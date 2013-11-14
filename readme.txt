@@ -1,3 +1,5 @@
+[This is a new version of the repo, the old one is called 'x64_dbg_old']
+
 This is a x32/x64 debugger that is currently in active development.
 
 The debugger has (currently) three parts:
@@ -32,3 +34,5 @@ Right now the debugger supports the following features:
 
 The debugger core is based on TitanEngine (an updated version) and the
 disassembly is powered by BeaEngine. The icon is taken from VisualPharm.
+
+Visual Studio support (VS2010-VS1013) tested by: acidflash
