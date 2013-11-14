@@ -1,6 +1,15 @@
 [This is a new version of this repository. The old version can be found ]
 [here: https://bitbucket.org/mrexodia/x64_dbg_old                       ]
 
+>Installation guide:
+1) Download the latest 'qt_base_XXX.rar'
+2) Download the latest 'bin_base_XXX.rar'
+3) Download the latest 'release_?.rar'
+4) (Optional) Download the latest 'help_XXX.rar'
+5) Extract all in the same directory
+6) Run 'bin\x64\x64_dbg.exe' or 'bin\x64\x64_dbg.exe'
+
+>Overview:
 This is a x64/x32 debugger that is currently in active development.
 
 The debugger has (currently) three parts:
@@ -19,7 +28,7 @@ Bridge is the communication library for the DBG and GUI part (and maybe in
 the future more parts). The bridge can be used to work on new features,
 without having to update the code of the other parts.
 
-Right now the debugger supports the following features:
+>Features:
 - variables (with regard to the upcoming script feature)
 - basic calculations (var*@401000+.45^4A)
 - hide debugger (very basic)
@@ -41,11 +50,12 @@ Right now the debugger supports the following features:
 - GUI hotkeys
 - dynamic jump arrow (just like OllyDbg)
 
-Known bugs are:
+>Known bugs:
 - hardware breakpoints do not work properly on x64 (TitanEngine bug)
 - sometimes the disassembly view is not updated (click anywhere to solve)
 - ??? (please report)
 
+>Last words:
 The debugger core is based on TitanEngine (an updated version,
 https://bitbucket.org/mrexodia/titanengine-update)
 
@@ -53,7 +63,7 @@ Disassembly powered by BeaEngine (http://beaengine.org/).
 
 The icon is taken from VisualPharm (http://www.visualpharm.com/)
 
-Special thanks:
+>Special thanks:
 - acidflash
 - Ahmadmansoor
 - cyberbob
@@ -62,8 +72,6 @@ Special thanks:
 - Tuts4You community
 - Sorry if I forgot you!
 
-Greetings,
-
-Mr. eXoDia & Sigma
-
-
+>Lead developers:
+- Mr. eXoDia
+- Sigma
