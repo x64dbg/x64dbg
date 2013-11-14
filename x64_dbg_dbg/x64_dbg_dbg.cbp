@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="x64_dbg_dbg" />
+		<Option pch_mode="2" />
+		<Option default_target="x64" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="x32">
+				<Option output="../bin/x32/x32_dbg" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/x32/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option host_application="../bin/x32/x32_dbg.exe" />
+				<Option run_host_application_in_terminal="0" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-Os" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="..\bin\x32\libx32_bridge.a" />
+					<Add library=".\TitanEngine\TitanEngine_x86.a" />
+					<Add library=".\libdbg_x32.a" />
+					<Add library=".\dbghelp\dbghelp_x86.a" />
+					<Add library=".\sqlite\libsqlite32.a" />
+				</Linker>
+			</Target>
+			<Target title="x64">
+				<Option output="../bin/x64/x64_dbg" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/x64/" />
+				<Option type="3" />
+				<Option compiler="gnu_gcc_compiler_x64" />
+				<Option host_application="../bin/x64/x64_dbg.exe" />
+				<Option run_host_application_in_terminal="0" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wno-narrowing" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="..\bin\x64\libx64_bridge.a" />
+					<Add library=".\TitanEngine\TitanEngine_x64.a" />
+					<Add library=".\libdbg_x64.a" />
+					<Add library=".\dbghelp\dbghelp_x64.a" />
+					<Add library=".\sqlite\libsqlite64.a" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions -Wno-format" />
+			<Add directory="$(project_dir)" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add library="shlwapi" />
+			<Add library="psapi" />
+		</Linker>
+		<Unit filename="TitanEngine/TitanEngine.h" />
+		<Unit filename="_exports.cpp" />
+		<Unit filename="_exports.h" />
+		<Unit filename="_global.cpp" />
+		<Unit filename="_global.h" />
+		<Unit filename="addrinfo.cpp" />
+		<Unit filename="addrinfo.h" />
+		<Unit filename="argument.cpp" />
+		<Unit filename="argument.h" />
+		<Unit filename="breakpoint.cpp" />
+		<Unit filename="breakpoint.h" />
+		<Unit filename="command.cpp" />
+		<Unit filename="command.h" />
+		<Unit filename="console.cpp" />
+		<Unit filename="console.h" />
+		<Unit filename="data.h" />
+		<Unit filename="dbg.h" />
+		<Unit filename="dbghelp/dbghelp.h" />
+		<Unit filename="debugger.cpp" />
+		<Unit filename="debugger.h" />
+		<Unit filename="instruction.cpp" />
+		<Unit filename="instruction.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="math.cpp" />
+		<Unit filename="math.h" />
+		<Unit filename="memory.cpp" />
+		<Unit filename="memory.h" />
+		<Unit filename="msgqueue.cpp" />
+		<Unit filename="msgqueue.h" />
+		<Unit filename="simplescript.cpp" />
+		<Unit filename="simplescript.h" />
+		<Unit filename="sqlite/sqlite3.h" />
+		<Unit filename="threading.cpp" />
+		<Unit filename="threading.h" />
+		<Unit filename="value.cpp" />
+		<Unit filename="value.h" />
+		<Unit filename="variable.cpp" />
+		<Unit filename="variable.h" />
+		<Unit filename="x64_dbg.cpp" />
+		<Unit filename="x64_dbg.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

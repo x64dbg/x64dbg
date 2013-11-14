@@ -1,0 +1,1079 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RegistersView</class>
+ <widget class="QWidget" name="RegistersView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>180</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>178</width>
+        <height>590</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>178</width>
+        <height>590</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>178</width>
+        <height>590</height>
+       </size>
+      </property>
+      <widget class="QLabel" name="DR7RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>565</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="AFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>335</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="OFLabel">
+       <property name="geometry">
+        <rect>
+         <x>85</x>
+         <y>350</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>OF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R13RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>210</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR2Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>520</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR2</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R11Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>180</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R11</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR1Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>505</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR1</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>465</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR3RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>535</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R8RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>135</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R14RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>225</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DFLabel">
+       <property name="geometry">
+        <rect>
+         <x>85</x>
+         <y>335</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R11RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>180</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="GSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>390</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>GS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>365</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="TFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>115</x>
+         <y>305</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="BXRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>50</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R10Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>165</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R10</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>435</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ESLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>420</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ES</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR0Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>490</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR2RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>520</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="FSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>405</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>305</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SPRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>65</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="GSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>390</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R12Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>195</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R12</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>465</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR3Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>535</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR3</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>435</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R14Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>225</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R14</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ESRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>420</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DIRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>110</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="TFLabel">
+       <property name="geometry">
+        <rect>
+         <x>85</x>
+         <y>305</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>TF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="AFLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>335</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>AF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ZFLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>350</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ZF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>450</y>
+         <width>40</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R9Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>150</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R9</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R8Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>135</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R8</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R13Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>210</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R13</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="IFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>115</x>
+         <y>320</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DXLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>35</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RDX</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="IPLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>265</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RIP</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="FSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>405</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>FS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR7Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>565</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR7</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="PFLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>320</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>PF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="AXRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>5</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="BPLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RBP</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="FLAGSRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>290</y>
+         <width>60</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>00000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DXRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>35</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R9RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>150</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>450</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CXRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>20</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SILabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>95</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RSI</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R15Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>240</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>R15</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="PFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>320</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR1RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>505</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR6RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>550</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="BXLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RBX</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DILabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>110</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RDI</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR0RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>490</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="ZFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>350</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="IFLabel">
+       <property name="geometry">
+        <rect>
+         <x>85</x>
+         <y>320</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>IF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SPLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>65</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RSP</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="OFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>115</x>
+         <y>350</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SIRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>95</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="IPRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>265</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CXLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RCX</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R12RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>195</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R10RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>165</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="SFLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>365</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>SF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="CFLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>305</y>
+         <width>30</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>CF</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="FLAGSLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>290</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>EFLAGS</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="BPRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>80</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="R15RegLabel">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>240</y>
+         <width>110</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0000000000000000</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="AXLabel">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>5</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>RAX</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DFRegLabel">
+       <property name="geometry">
+        <rect>
+         <x>115</x>
+         <y>335</y>
+         <width>15</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="DR6Label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>550</y>
+         <width>50</width>
+         <height>13</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>DR6</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

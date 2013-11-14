@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>images/alphabet/L.png</file>
+        <file>images/folder-horizontal-open.png</file>
+        <file>images/arrow-step-into.png</file>
+        <file>images/arrow-step-over.png</file>
+        <file>images/control-pause.png</file>
+        <file>images/arrow-run.png</file>
+        <file>images/geolocation-goto.png</file>
+        <file>images/arrow-restart.png</file>
+        <file>images/arrow-step-rtr.png</file>
+        <file>images/alphabet/A.png</file>
+        <file>images/control-exit.png</file>
+        <file>images/control-stop.png</file>
+        <file>images/terminal-command.png</file>
+        <file>images/memory-map.png</file>
+        <file>images/processor-cpu.png</file>
+        <file>images/ui-combo-box-edit.png</file>
+        <file>images/scylla.png</file>
+    </qresource>
+</RCC>

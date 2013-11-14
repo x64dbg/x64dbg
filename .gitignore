@@ -1,0 +1,49 @@
+#ignore directories
+*/obj/
+bin/*/*
+ipch/*
+*/Win32/
+*/x64/
+
+#global filetypes to ignore
+*.depend
+*.layout
+*.cscope_file_list
+*.bmarks
+*.chw
+*.cbTemp
+*.ini
+*.opensdf
+*.sdf
+*.suo
+
+#whitelisted bin files
+!bin/*/TitanEngine.dll
+!bin/*/test.dll
+!bin/*/test.exe
+!bin/*/dbghelp.dll
+!bin/*/sqlite.dll
+!bin/*/BeaEngine.dll
+!bin/*/Scylla.dll
+
+#files to ignore
+todo_bridge.txt
+
+#debugger files to ignore
+x64_dbg_dbg/ODbgScript.chm
+x64_dbg_dbg/ODbgScript.chw
+x64_dbg_dbg/CppCheckResults.xml
+x64_dbg_dbg/.cccc/
+x64_dbg_dbg/suggestions.txt
+
+# For GUI
+*.pro.user
+x64_dbg_gui/DebuggerX64-build-Debug
+x64_dbg_gui/DebuggerX64-build-Release
+x64_dbg_gui/bin
+x64_dbg_gui/Project/GeneratedFiles/
+x64_dbg_gui/Project/release/
+x64_dbg_gui/Project/Win32/
+x64_dbg_gui/Project/x64/
+x64_dbg_gui/Project/Src/Bridge/libx32_bridge.a
+x64_dbg_gui/Project/Src/Bridge/libx64_bridge.a

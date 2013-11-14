@@ -1,0 +1,62 @@
+- attach/detach debugger
+- asm command
+- advanced readprocessmemory (over multiple pages)
+- memcpy
+- pe data access
+- fpu support
+- mmx support
+- find asm
+- find memory
+- mov [mem],#data#,size
+- getremotestring
+- function parameter
+- isjumpgonnaexecute
+- help file updates
+- plugins
+- scripting
+- thread support
+- tls callbacks
+- inject dll
+- dump memory
+- dump process
+- set pe data in memory
+- va to offset
+- offset to va
+- getapiname
+- float calculations
+- command help
+- inject asm code
+- and or xor commands
+- delete mem breakpoints
+- delete hw breakpoints
+- udd file format
+- analysis
+- symbol loader
+- getlasterror
+- display open handles
+- log clear command
+- build howto
+- step to user code
+- tracing(?)
+- child processes (TitanEngine)
+- display source
+- patching
+- handle view
+- window view
+- debug strings
+- process privileges
+- loaded modules
+- strings
+- references
+- callstack
+- stack
+- heap
+- functions
+- TEB/TBI
+- PEB/PBI
+- debug pause
+- cpu filename+thread id
+- GetAddrInfo/SetAddrInfo
+- shift+f7f8f9
+- restart (last process)
+- log breakpoints
