@@ -56,8 +56,11 @@ The icon is taken from VisualPharm (http://www.visualpharm.com/)
 Special thanks:
 - acidflash
 - Ahmadmansoor
+- cyberbob
+- Teddy Rogers
 - EXETools community
 - Tuts4You community
+- Sorry if I forgot you!
 
 Greetings,
 

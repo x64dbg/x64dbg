@@ -28,6 +28,7 @@ ipch/*
 
 #files to ignore
 todo_bridge.txt
+help/x64_dbg.chm
 
 #debugger files to ignore
 x64_dbg_dbg/ODbgScript.chm
