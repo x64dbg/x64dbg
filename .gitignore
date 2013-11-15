@@ -2,8 +2,6 @@
 */obj/
 bin/*/*
 ipch/*
-*/Win32/
-*/x64/
 
 #global filetypes to ignore
 *.depend
