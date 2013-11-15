@@ -22,7 +22,7 @@ public:
     void readProcessMemory(byte_t* dest, uint_t va, uint_t size);
     uint_t getSize(uint_t va);
     void emitDisassembleAtSignal(int_t va, int_t eip);
-    void emitRepaintGUI();
+    void emitUpdateDisassembly();
     void emitDbgStateChanged(DBGSTATE state);
     uint_t getBase(uint_t addr);
     static Bridge* getBridge();

@@ -31,7 +31,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
 
     mNbrOfLineToPrint = 0;
 
-    mColResizeData = (ColumnResizingData_t){false, 0, 0};
+    memset(&mColResizeData, 0, sizeof(mColResizeData));
 
     mGuiState = AbstractTableView::NoState;
 
@@ -39,7 +39,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
 
     // ScrollBar Init
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    mScrollBarAttributes = (ScrollBar64_t){false, 0};
+    memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
 
     setMouseTracking(true);
 

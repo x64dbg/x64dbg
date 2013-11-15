@@ -164,7 +164,9 @@ DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 DLL_IMPEXP void GuiSetDebugState(DBGSTATE state);
 DLL_IMPEXP void GuiAddLogMessage(const char* msg);
 DLL_IMPEXP void GuiLogClear();
+DLL_IMPEXP void GuiUpdateAllViews();
 DLL_IMPEXP void GuiUpdateRegisterView();
+DLL_IMPEXP void GuiUpdateDisassemblyView();
 
 #ifdef __cplusplus
 }

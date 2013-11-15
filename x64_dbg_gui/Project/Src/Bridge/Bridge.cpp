@@ -46,7 +46,7 @@ void Bridge::emitDisassembleAtSignal(int_t va, int_t eip)
 #endif
 }
 
-void Bridge::emitRepaintGUI()
+void Bridge::emitUpdateDisassembly()
 {
 #ifdef BUILD_LIB
     emit repaintGui();
@@ -169,9 +169,9 @@ void Bridge::initBridge()
         Bridge::getBridge()->emitDisassembleAtSignal((int_t)va, (int_t)eip);
     }
 
-    __declspec(dllexport) void _gui_repaint()
+    __declspec(dllexport) void _gui_updatedisassemblyview()
     {
-        Bridge::getBridge()->emitRepaintGUI();
+        Bridge::getBridge()->emitUpdateDisassembly();
     }
 
 

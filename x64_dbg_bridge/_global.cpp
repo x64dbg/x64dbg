@@ -11,6 +11,7 @@ GUISETDEBUGSTATE _gui_setdebugstate;
 GUIADDLOGMESSAGE _gui_addlogmessage;
 GUILOGCLEAR _gui_logclear;
 GUIUPDATEREGISTERVIEW _gui_updateregisterview;
+GUIUPDATEDISASSEMBLYVIEW _gui_updatedisassemblyview;
 
 //DBG functions
 DBGDBGINIT _dbg_dbginit;

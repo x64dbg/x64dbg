@@ -1272,6 +1272,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("failed to write memory");
             return false;
         }
+        GuiUpdateAllViews(); //repaint gui
         return true;
     }
     else if(isregister(string)) //register
@@ -1286,7 +1287,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         if(strstr(string, "ip"))
             DebugUpdateGui(GetContextData(UE_CIP)); //update disassembly + register view
         else
-            GuiUpdateRegisterView(); //update register view
+            GuiUpdateAllViews(); //repaint gui
         return ok;
     }
     else if(*string=='!' and isflag(string+1)) //flag
@@ -1301,7 +1302,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         if(*value)
             set=true;
         setflag(string+1, set);
-        GuiUpdateRegisterView(); //update register view
+        GuiUpdateAllViews(); //repaint gui
         return true;
     }
     return varset(string, *value, false); //variable

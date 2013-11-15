@@ -68,7 +68,7 @@ bool dbgisrunning()
 
 void DebugUpdateGui(uint disasm_addr)
 {
-    GuiUpdateRegisterView();
+    GuiUpdateAllViews();
     GuiDisasmAt(disasm_addr, (duint)GetContextData(UE_CIP));
 }
 
@@ -533,6 +533,7 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
         dprintf("breakpoint at "fhex" set!\n", addr);
     else
         dputs("problem setting breakpoint!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -563,6 +564,7 @@ CMDRESULT cbDebugEnableBPX(const char* cmd)
                 bNext=false;
         }
         dputs("all breakpoints enabled!");
+        GuiUpdateAllViews();
         return res;
     }
     BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
@@ -595,6 +597,7 @@ CMDRESULT cbDebugEnableBPX(const char* cmd)
         dputs("could not enable breakpoint");
     else
         bp->enabled=true;
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -625,6 +628,7 @@ CMDRESULT cbDebugDisableBPX(const char* cmd)
                 bNext=false;
         }
         dputs("all breakpoints disabled!");
+        GuiUpdateAllViews();
         return res;
     }
     BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
@@ -657,6 +661,7 @@ CMDRESULT cbDebugDisableBPX(const char* cmd)
         dputs("could not disable breakpoint");
     else
         bp->enabled=false;
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -714,6 +719,7 @@ CMDRESULT cbDebugToggleBPX(const char* cmd)
         }
     }
     varset("$res", (uint)disable, false);
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -743,6 +749,7 @@ CMDRESULT cbDebugDeleteBPX(const char* cmd)
         }
         //memset(bplist, 0, sizeof(BREAKPOINT));
         dputs("all breakpoints deleted!");
+        GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
     BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
@@ -767,6 +774,7 @@ CMDRESULT cbDebugDeleteBPX(const char* cmd)
         return STATUS_ERROR;
     }
     bpdel(bplist, 0, bp->addr, BPNORMAL);
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -903,6 +911,7 @@ CMDRESULT cbDebugMemoryBpx(const char* cmd)
         dprintf("memory breakpoint at "fhex" set!\n", addr);
     else
         dputs("problem setting breakpoint (report please)!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -985,6 +994,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
         dprintf("hardware breakpoint at "fhex" set!\n", addr);
     else
         dputs("problem setting breakpoint (report please)!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

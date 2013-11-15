@@ -43,6 +43,10 @@ DLL_IMPEXP const char* BridgeInit()
     _gui_updateregisterview=(GUIUPDATEREGISTERVIEW)GetProcAddress(hInstGui, "_gui_updateregisterview");
     if(!_gui_updateregisterview)
         return "Export \"_gui_updateregisterview\" could not be found!";
+    //_gui_updatedisassemblyview
+    _gui_updatedisassemblyview=(GUIUPDATEDISASSEMBLYVIEW)GetProcAddress(hInstGui, "_gui_updatedisassemblyview");
+    if(!_gui_updatedisassemblyview)
+        return "Export \"_gui_updatedisassemblyview\" could not be found!";
 
     ///DBG Load
     hInstDbg=LoadLibraryA(dbg_lib); //Mr. eXoDia
@@ -312,9 +316,20 @@ DLL_IMPEXP void GuiLogClear()
     _gui_logclear();
 }
 
+DLL_IMPEXP void GuiUpdateAllViews()
+{
+    GuiUpdateRegisterView();
+    GuiUpdateDisassemblyView();
+}
+
 DLL_IMPEXP void GuiUpdateRegisterView()
 {
     _gui_updateregisterview();
+}
+
+DLL_IMPEXP void GuiUpdateDisassemblyView()
+{
+    _gui_updatedisassemblyview();
 }
 
 //Main

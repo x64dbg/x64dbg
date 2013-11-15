@@ -14,6 +14,7 @@
     extern "C" __declspec(dllexport) void _gui_addlogmessage(const char* msg);
     extern "C" __declspec(dllexport) void _gui_logclear();
     extern "C" __declspec(dllexport) void _gui_updateregisterview();
+    extern "C" __declspec(dllexport) void _gui_updatedisassemblyview();
 #endif
 
 

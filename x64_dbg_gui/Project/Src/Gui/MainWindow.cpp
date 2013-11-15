@@ -206,7 +206,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QString(pEvent->mimeData()->data("FileName"));
-        if(filename.contains(".exe", Qt::CaseInsensitive) or filename.contains(".dll", Qt::CaseInsensitive))
+        if(filename.contains(".exe", Qt::CaseInsensitive) || filename.contains(".dll", Qt::CaseInsensitive))
         {
             if(DbgIsDebugging())
             {

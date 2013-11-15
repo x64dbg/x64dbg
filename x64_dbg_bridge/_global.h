@@ -34,6 +34,7 @@ typedef void (*GUISETDEBUGSTATE)(DBGSTATE state);
 typedef void (*GUIADDLOGMESSAGE)(const char* msg);
 typedef void (*GUILOGCLEAR)();
 typedef void (*GUIUPDATEREGISTERVIEW)();
+typedef void (*GUIUPDATEDISASSEMBLYVIEW)();
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;
@@ -42,6 +43,7 @@ extern GUISETDEBUGSTATE _gui_setdebugstate;
 extern GUIADDLOGMESSAGE _gui_addlogmessage;
 extern GUILOGCLEAR _gui_logclear;
 extern GUIUPDATEREGISTERVIEW _gui_updateregisterview;
+extern GUIUPDATEDISASSEMBLYVIEW _gui_updatedisassemblyview;
 
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();
