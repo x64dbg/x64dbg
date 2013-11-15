@@ -46,6 +46,13 @@ void Bridge::emitDisassembleAtSignal(int_t va, int_t eip)
 #endif
 }
 
+void Bridge::emitRepaintGUI()
+{
+#ifdef BUILD_LIB
+    emit repaintGui();
+#endif
+}
+
 uint_t Bridge::getSize(uint_t va)
 {
 #ifdef BUILD_LIB
@@ -160,6 +167,11 @@ void Bridge::initBridge()
     __declspec(dllexport) void _gui_disassembleat(duint va, duint eip)
     {
         Bridge::getBridge()->emitDisassembleAtSignal((int_t)va, (int_t)eip);
+    }
+
+    __declspec(dllexport) void _gui_repaint()
+    {
+        Bridge::getBridge()->emitRepaintGUI();
     }
 
 

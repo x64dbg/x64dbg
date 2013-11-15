@@ -69,8 +69,6 @@ public:
     void setTableOffset(int_t val);
 
     // Update/Reload/Refresh/Repaint
-    void reloadData();
-    void repaint();
     virtual void prepareData();
 
 signals:
@@ -78,6 +76,11 @@ signals:
     void headerButtonReleased(int col);
 
 public slots:
+    // Update/Reload/Refresh/Repaint
+    void reloadData();
+    void repaint();
+
+    // ScrollBar Management
     void vertSliderActionSlot(int action);
 
 private:

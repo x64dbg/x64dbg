@@ -22,6 +22,7 @@ public:
     void readProcessMemory(byte_t* dest, uint_t va, uint_t size);
     uint_t getSize(uint_t va);
     void emitDisassembleAtSignal(int_t va, int_t eip);
+    void emitRepaintGUI();
     void emitDbgStateChanged(DBGSTATE state);
     uint_t getBase(uint_t addr);
     static Bridge* getBridge();
@@ -39,6 +40,7 @@ public:
     
 signals:
     void disassembleAt(int_t va, int_t eip);
+    void repaintGui();
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QString msg);
     void clearLog();
