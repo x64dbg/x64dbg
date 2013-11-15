@@ -819,6 +819,7 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
         setTableOffset(wRVA);
     }
 
+    reloadData();
 }
 
 
@@ -833,5 +834,7 @@ void Disassembly::disassembleClear()
 void Disassembly::debugStateChangedSlot(DBGSTATE state)
 {
     if(state==stopped)
+    {
         disassembleClear();
+    }
 }
