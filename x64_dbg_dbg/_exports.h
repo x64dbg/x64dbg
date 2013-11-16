@@ -17,7 +17,7 @@ DLL_EXPORT bool _dbg_isdebugging();
 DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr);
 DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo);
 DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo);
-DLL_EXPORT BPXTYPE _dbg_bpgettypeat(duint addr);
+DLL_EXPORT int _dbg_bpgettypeat(duint addr);
 DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump);
 DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value);
 

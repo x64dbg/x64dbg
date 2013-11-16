@@ -120,24 +120,19 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     return false;
 }
 
-extern "C" DLL_EXPORT BPXTYPE _dbg_bpgettypeat(duint addr)
+extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 {
-    BREAKPOINT* found=bpfind(bplist, 0, addr, 0, BPNOTYPE);
-    if(!found or !found->enabled) //none found or disabled
-        return bpnone;
-    switch(found->type)
-    {
-    case BPNORMAL:
-    case BPSINGLESHOOT:
-        return bpnormal;
-    case BPHARDWARE:
-        return bphardware;
-    case BPMEMORY:
-        return bpmemory;
-    default:
-        break;
-    }
-    return bpnone;
+    int result=bpnone;
+    BREAKPOINT* found=bpfind(bplist, 0, addr, 0, BPNORMAL);
+    if(found and found->enabled) //none found or disabled
+        result|=bpnormal;
+    found=bpfind(bplist, 0, addr, 0, BPHARDWARE);
+    if(found and found->enabled) //none found or disabled
+        result|=bphardware;
+    found=bpfind(bplist, 0, addr, 0, BPMEMORY);
+    if(found and found->enabled) //none found or disabled
+        result|=bpmemory;
+    return result;
 }
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)

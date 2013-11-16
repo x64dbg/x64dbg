@@ -63,10 +63,10 @@ enum ADDRINFOFLAGS
 
 enum BPXTYPE
 {
-    bpnone,
-    bpnormal,
-    bphardware,
-    bpmemory
+    bpnone=0,
+    bpnormal=1,
+    bphardware=2,
+    bpmemory=4
 };
 
 //Debugger structs
