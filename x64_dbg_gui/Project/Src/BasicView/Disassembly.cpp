@@ -125,14 +125,13 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor(0,0,0)));
-            switch(bpxtype) //breakpoint
+            if(bpxtype&bpnormal) //breakpoint
             {
-            case bpnormal:
                 painter->setPen(QPen(QColor("#ff0000")));
-                break;
-            default:
+            }
+            else
+            {
                 painter->setPen(QPen(QColor("#fffbf0")));
-                break;
             }
         }
         else //other address
@@ -143,15 +142,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
                 else //label+breakpoint
                 {
-                    switch(bpxtype)
+                    if(bpxtype&bpnormal)
                     {
-                    case bpnormal:
                         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
-                        break;
-                    default:
+                    }
+                    else
+                    {
                         painter->setPen(QPen(QColor("#000000"))); //black address
-                        break;
-                    }                    
+                    }
                 }
             }
             else //no label
@@ -165,17 +163,16 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 }
                 else //breakpoint only
                 {
-                    switch(bpxtype)
+                    if(bpxtype&bpnormal)
                     {
-                    case bpnormal:
                         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
-                        break;
-                    default:
+                    }
+                    else
+                    {
                         if(wIsSelected)
                             painter->setPen(QPen(QColor("#000000"))); //black address
                         else
                             painter->setPen(QPen(QColor("#808080")));
-                        break;
                     }
                 }
             }
