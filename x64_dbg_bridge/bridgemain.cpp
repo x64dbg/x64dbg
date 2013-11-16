@@ -195,7 +195,7 @@ DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(mod
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=label;
+    info.flags=flaglabel;
     if(!_dbg_addrinfoget(addr, segment, &info))
         return false;
     strcpy(text, info.label);
@@ -208,7 +208,7 @@ DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=label;
+    info.flags=flaglabel;
     strcpy(info.label, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -221,7 +221,7 @@ DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=comment;
+    info.flags=flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.comment);
@@ -234,7 +234,7 @@ DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=comment;
+    info.flags=flagcomment;
     strcpy(info.comment, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -247,7 +247,7 @@ DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=module;
+    info.flags=flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.module);

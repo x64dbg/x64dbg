@@ -100,7 +100,7 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
     bool retval=false;
-    if(addrinfo->flags&module) //get module
+    if(addrinfo->flags&flagmodule) //get module
     {
         char module[64]="";
         if(modnamefromaddr(addr, module) and strlen(module)<32) //get module name
@@ -109,7 +109,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             retval=true;
         }
     }
-    if(addrinfo->flags&label) //TODO: get label
+    if(addrinfo->flags&flaglabel) //TODO: get label
     {
         if(labelget(addr, addrinfo->label))
             retval=true;
@@ -118,7 +118,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             //TODO: label exports
         }
     }
-    if(addrinfo->flags&comment) //TODO: get comment
+    if(addrinfo->flags&flagcomment) //TODO: get comment
     {
         if(commentget(addr, addrinfo->comment))
             retval=true;
@@ -133,12 +133,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 {
     bool retval=false;
-    if(addrinfo->flags&label) //set label
+    if(addrinfo->flags&flaglabel) //set label
     {
         if(labelset(addr, addrinfo->label))
             retval=true;
     }
-    else if(addrinfo->flags&comment) //set comment
+    else if(addrinfo->flags&flagcomment) //set comment
     {
         if(commentset(addr, addrinfo->comment))
             retval=true;

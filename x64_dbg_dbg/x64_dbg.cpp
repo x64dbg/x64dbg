@@ -10,6 +10,7 @@
 #include "math.h"
 #include "x64_dbg.h"
 #include "msgqueue.h"
+#include "addrinfo.h"
 
 static MESSAGE_STACK* gMsgStack;
 
@@ -75,6 +76,8 @@ static void registercommands()
     cmdnew(cmd, "cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
     cmdnew(cmd, "lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
     cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
+    cmdnew(cmd, "savedb\1dbsave", cbSavedb, true); //save program database
+    cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

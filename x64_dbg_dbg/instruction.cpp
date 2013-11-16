@@ -280,3 +280,23 @@ CMDRESULT cbInstrLbldel(const char* cmd)
     }
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbLoaddb(const char* cmd)
+{
+    if(!dbload())
+    {
+        puts("failed to load database from disk!");
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbSavedb(const char* cmd)
+{
+    if(!dbsave())
+    {
+        puts("failed to save database to disk!");
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}

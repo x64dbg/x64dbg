@@ -56,9 +56,9 @@ enum SEGMENTREG
 
 enum ADDRINFOFLAGS
 {
-    module=1,
-    label=2,
-    comment=4
+    flagmodule=1,
+    flaglabel=2,
+    flagcomment=4
 };
 
 enum BPXTYPE

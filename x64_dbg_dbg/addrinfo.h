@@ -4,6 +4,9 @@
 #include "_global.h"
 
 void dbinit();
+bool dbsave();
+bool dbload();
+void dbclose();
 bool modnamefromaddr(uint addr, char* modname);
 bool commentset(uint addr, const char* text);
 bool commentget(uint addr, char* text);

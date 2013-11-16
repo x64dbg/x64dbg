@@ -382,6 +382,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     DebugLoop();
     DeleteFileA("DLLLoader.exe");
     //message the user/do final stuff
+    dbclose();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", 0, true);
@@ -1103,11 +1104,15 @@ CMDRESULT cbBenchmark(const char* cmd)
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
+    commentset(addr, "benchmark");
     for(int i=0; i<1000; i++)
     {
+        char comment[MAX_COMMENT_SIZE]="";
+        commentget(addr, comment);
         unsigned char dest[0x1000];
         _dbg_memread(addr, dest, 0x1000, 0);
     }
+    commentdel(addr);
     dprintf("%ums\n", GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }

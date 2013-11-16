@@ -15,5 +15,7 @@ CMDRESULT cbInstrCmt(const char* cmd);
 CMDRESULT cbInstrCmtdel(const char* cmd);
 CMDRESULT cbInstrLbl(const char* cmd);
 CMDRESULT cbInstrLbldel(const char* cmd);
+CMDRESULT cbLoaddb(const char* cmd);
+CMDRESULT cbSavedb(const char* cmd);
 
 #endif // _INSTRUCTIONS_H
