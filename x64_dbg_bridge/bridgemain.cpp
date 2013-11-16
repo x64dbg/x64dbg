@@ -108,6 +108,10 @@ DLL_IMPEXP const char* BridgeInit()
     _dbg_valtostring=(DBGVALTOSTRING)GetProcAddress(hInstDbg, "_dbg_valtostring");
     if(!_dbg_valtostring)
         return "Export \"_dbg_valtostring\" could not be found!";
+    //_dbg_memisvalidreadptr
+    _dbg_memisvalidreadptr=(DBGMEMISVALIDREADPTR)GetProcAddress(hInstDbg, "_dbg_memisvalidreadptr");
+    if(!_dbg_memisvalidreadptr)
+        return "Export \"_dbg_memisvalidreadptr\" could not be found!";
     return 0;
 }
 
@@ -187,24 +191,8 @@ DLL_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 
 DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(module.)+label
 {
-    if(!text or !addr)
+    if(!text || !addr)
         return false;
-    //test code (highlighting.exe|x32)
-    /*if(addr==0x40102b)
-    {
-        strcpy(text, "highlighting.retn");
-        return true;
-    }
-    else if(addr==0x401020 || addr==0x401022)
-    {
-        strcpy(text, "highlighting.label");
-        return true;
-    }
-    else if(addr==0x402000)
-    {
-        strcpy(text, "highlighting.dataLabel");
-        return true;
-    }*/
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags=label;
@@ -216,7 +204,7 @@ DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(mod
 
 DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
-    if(!text or strlen(text)>=MAX_LABEL_SIZE or !addr)
+    if(!text || strlen(text)>=MAX_LABEL_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
@@ -229,14 +217,8 @@ DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 
 DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
-    if(!text or !addr)
+    if(!text || !addr)
         return false;
-    //test code (highlighting.exe)
-    /*if(addr==0x401000)
-    {
-        strcpy(text, "test comment");
-        return true;
-    }*/
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags=comment;
@@ -248,7 +230,7 @@ DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 
 DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
-    if(!text or strlen(text)>=MAX_COMMENT_SIZE or !addr)
+    if(!text || strlen(text)>=MAX_COMMENT_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
@@ -261,7 +243,7 @@ DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 
 DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {
-    if(!text or !addr)
+    if(!text || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
@@ -293,6 +275,11 @@ DLL_IMPEXP bool DbgValToString(const char* string, duint value)
 {
     duint valueCopy=value;
     return _dbg_valtostring(string, &valueCopy);
+}
+
+DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
+{
+    return _dbg_memisvalidreadptr(addr);
 }
 
 //GUI

@@ -4,6 +4,7 @@
 #include "console.h"
 #include "value.h"
 #include "command.h"
+#include "addrinfo.h"
 
 CMDRESULT cbBadCmd(const char* cmd)
 {
@@ -207,5 +208,75 @@ CMDRESULT cbInstrChd(const char* cmd)
     }
     SetCurrentDirectoryA(arg1);
     dputs("current directory changed!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrCmt(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+        return STATUS_ERROR;
+    char arg2[deflen]="";
+    if(!argget(cmd, arg2, 1, false))
+        return STATUS_ERROR;
+    if(!commentset(addr, arg2))
+    {
+        dputs("error setting comment");
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrCmtdel(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+        return STATUS_ERROR;
+    if(!commentdel(addr))
+    {
+        dputs("error deleting comment");
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrLbl(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+        return STATUS_ERROR;
+    char arg2[deflen]="";
+    if(!argget(cmd, arg2, 1, false))
+        return STATUS_ERROR;
+    if(!labelset(addr, arg2))
+    {
+        dputs("error setting label");
+        return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrLbldel(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+        return STATUS_ERROR;
+    if(!labeldel(addr))
+    {
+        dputs("error deleting label");
+        return STATUS_ERROR;
+    }
     return STATUS_CONTINUE;
 }

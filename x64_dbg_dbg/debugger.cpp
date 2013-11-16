@@ -19,6 +19,9 @@ static bool isStepping=false;
 static bool isPausedByUser=false;
 static bool bScyllaLoaded=false;
 
+//Superglobal variables
+char sqlitedb[deflen]="";
+
 //static functions
 static void cbStep();
 static void cbSystemBreakpoint(void* ExceptionData);
@@ -262,8 +265,24 @@ static void cbSystemBreakpoint(void* ExceptionData)
 {
     //TODO: handle stuff (TLS, main entry, etc)
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, 0);
+    //init program database
+    int len=strlen(szFileName);
+    while(szFileName[len]!='\\' && len!=0)
+        len--;
+    if(len)
+        len++;
+    strcpy(sqlitedb, szFileName+len);
+#ifdef _WIN64
+    strcat(sqlitedb, ".dd64");
+#else
+    strcat(sqlitedb, ".dd32");
+#endif // _WIN64
+    sprintf(dbpath, "%s\\%s", sqlitedb_basedir, sqlitedb);
+    dprintf("Database file: %s\n", dbpath);
+    dbinit();
+    //log message
     dputs("system breakpoint reached!");
-    //NOTE: call GUI
+    //update GUI
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
     //unlock

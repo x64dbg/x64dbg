@@ -1,6 +1,8 @@
 #include "_global.h"
 
 HINSTANCE hInst;
+char sqlitedb_basedir[deflen]="";
+char dbpath[deflen]="";
 
 void* emalloc(size_t size)
 {

@@ -71,6 +71,10 @@ static void registercommands()
     cmdnew(cmd, "pause", cbDebugPause, true); //pause debugger
     cmdnew(cmd, "memwrite", cbMemWrite, true); //memwrite test
     cmdnew(cmd, "StartScylla\1scylla\1imprec", cbStartScylla, false); //start scylla
+    cmdnew(cmd, "cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
+    cmdnew(cmd, "cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
+    cmdnew(cmd, "lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
+    cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -121,6 +125,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(dir[len]!='\\')
         len--;
     dir[len]=0;
+    strcpy(sqlitedb_basedir, dir); //debug directory
+    PathAppendA(sqlitedb_basedir, "db");
     SetCurrentDirectoryA(dir);
     gMsgStack=msgallocstack();
     if(!gMsgStack)

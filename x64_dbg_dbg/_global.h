@@ -16,6 +16,7 @@
 #include <psapi.h>
 #include <vector>
 #include "..\x64_dbg_bridge\bridgemain.h"
+#include "sqlite\sqlite3.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"
@@ -90,6 +91,8 @@ enum BITMASK
 
 //superglobal variables
 extern HINSTANCE hInst;
+extern char sqlitedb_basedir[deflen];
+extern char dbpath[deflen];
 
 //functions
 void* emalloc(size_t size);

@@ -158,6 +158,7 @@ DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 DLL_IMPEXP duint DbgValFromString(const char* string);
 DLL_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
 DLL_IMPEXP bool DbgValToString(const char* string, duint value);
+DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 
 //GUI functions
 DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip);

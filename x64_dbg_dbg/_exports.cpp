@@ -60,6 +60,11 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     return true;
 }
 
+extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
+{
+    return memisvalidreadptr(fdProcessInfo->hProcess, addr);
+}
+
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
     //TODO: handle exit signal
@@ -106,18 +111,39 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags&label) //TODO: get label
     {
-        //TODO: label exports
+        if(labelget(addr, addrinfo->label))
+            retval=true;
+        else
+        {
+            //TODO: label exports
+        }
     }
     if(addrinfo->flags&comment) //TODO: get comment
     {
-        //TODO: auto-comments
+        if(commentget(addr, addrinfo->comment))
+            retval=true;
+        else
+        {
+            //TODO: auto-comments
+        }
     }
     return retval;
 }
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 {
-    return false;
+    bool retval=false;
+    if(addrinfo->flags&label) //set label
+    {
+        if(labelset(addr, addrinfo->label))
+            retval=true;
+    }
+    else if(addrinfo->flags&comment) //set comment
+    {
+        if(commentset(addr, addrinfo->comment))
+            retval=true;
+    }
+    return retval;
 }
 
 extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)

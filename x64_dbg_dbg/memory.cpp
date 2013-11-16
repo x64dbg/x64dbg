@@ -63,6 +63,12 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
     return true;
 }
 
+bool memisvalidreadptr(HANDLE hProcess, uint addr)
+{
+    unsigned char a=0;
+    return memread(hProcess, (void*)addr, &a, 1, 0);
+}
+
 void* memalloc(HANDLE hProcess, uint addr, DWORD size, DWORD fdProtect)
 {
     return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE|MEM_COMMIT, fdProtect);

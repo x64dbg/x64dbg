@@ -11,5 +11,9 @@ CMDRESULT cbInstrVarDel(const char* cmd);
 CMDRESULT cbInstrMov(const char* cmd);
 CMDRESULT cbInstrVarList(const char* cmd);
 CMDRESULT cbInstrChd(const char* cmd);
+CMDRESULT cbInstrCmt(const char* cmd);
+CMDRESULT cbInstrCmtdel(const char* cmd);
+CMDRESULT cbInstrLbl(const char* cmd);
+CMDRESULT cbInstrLbldel(const char* cmd);
 
 #endif // _INSTRUCTIONS_H
