@@ -49,6 +49,7 @@ without having to update the code of the other parts.
 - quite fast working in really big code pages (tested up to 5GB)
 - GUI hotkeys
 - dynamic jump arrow (just like OllyDbg)
+- user databases for labels/comments (*.dd64 or *.dd32 files)
 
 >Known bugs:
 - hardware breakpoints do not work properly on x64 (TitanEngine bug)
