@@ -2,80 +2,42 @@
 #include "debugger.h"
 #include "console.h"
 #include "memory.h"
+#include "sqlhelper.h"
 
-static sqlite3* db;
+sqlite3* userdb;
 
 ///basic database functions
 void dbinit()
 {
     //initialize user database
-    if(sqlite3_open(":memory:", &db))
+    if(sqlite3_open(":memory:", &userdb))
     {
         dputs("failed to open database!");
         return;
     }
     dbload();
-    char sql[deflen]="";
-    char* errorText=0;
-    strcpy(sql, "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)");
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
-    {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
-    }
-    strcpy(sql, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)");
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
-    {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
-    }
-}
-
-static int loadOrSaveDb(sqlite3* memory, const char* file, bool save)
-{
-    //CREDIT: http://www.sqlite.org/backup.html
-    int rc;
-    sqlite3* pFile;
-    sqlite3_backup* pBackup;
-    sqlite3* pTo;
-    sqlite3* pFrom;
-    rc=sqlite3_open(file, &pFile);
-    if(rc==SQLITE_OK)
-    {
-        pFrom=(save?memory:pFile);
-        pTo=(save?pFile:memory);
-        pBackup=sqlite3_backup_init(pTo, "main", pFrom, "main");
-        if(pBackup)
-        {
-            sqlite3_backup_step(pBackup, -1);
-            sqlite3_backup_finish(pBackup);
-        }
-        rc=sqlite3_errcode(pTo);
-    }
-    sqlite3_close(pFile);
-    return rc;
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
 }
 
 bool dbload()
 {
-    if(loadOrSaveDb(db, dbpath, false)!=SQLITE_OK)
-        return false;
-    return true;
+    return sqlloadorsavedb(userdb, dbpath, false);
 }
 
 bool dbsave()
 {
     CreateDirectoryA(sqlitedb_basedir, 0); //create database directory
-    if(loadOrSaveDb(db, dbpath, true)!=SQLITE_OK)
-        return false;
-    return true;
+    return sqlloadorsavedb(userdb, dbpath, true);
 }
 
 void dbclose()
 {
     dbsave();
-    sqlite3_db_release_memory(db);
-    sqlite3_close(db); //close program database
+    sqlite3_db_release_memory(userdb);
+    sqlite3_close(userdb); //close user database
 }
 
 ///module functions
@@ -184,56 +146,31 @@ bool commentset(uint addr, const char* text)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return commentdel(addr);
-    int len=strlen(text);
-    char* newtext=(char*)emalloc(len+1, "commentset:newtext");
-    *newtext=0;
-    for(int i=0,j=0; i<len; i++)
-    {
-        if(text[i]=='\"' or text[i]=='\'')
-            j+=sprintf(newtext+j, "''");
-        else
-            j+=sprintf(newtext+j, "%c", text[i]);
-    }
+    char commenttext[MAX_COMMENT_SIZE]="";
+    sqlstringescape(text, commenttext);
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //comments without module
     {
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
-        if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-        {
-            sqlite3_finalize(stmt);
-            efree(newtext, "commentset:newtext");
-            return false;
-        }
-        if(sqlite3_step(stmt)==SQLITE_ROW) //there is a comment already
-            sprintf(sql, "UPDATE comments SET text='%s' WHERE mod IS NULL AND addr=%"fext"d", newtext, addr);
+        if(sqlhasresult(userdb, sql)) //there is a comment already
+            sprintf(sql, "UPDATE comments SET text='%s' WHERE mod IS NULL AND addr=%"fext"d", commenttext, addr);
         else //insert
-            sprintf(sql, "INSERT INTO comments (addr,text) VALUES (%"fext"d,'%s')", addr, newtext);
+            sprintf(sql, "INSERT INTO comments (addr,text) VALUES (%"fext"d,'%s')", addr, commenttext);
     }
     else
     {
         uint modbase=modbasefromaddr(addr);
         uint rva=addr-modbase;
         sprintf(sql, "SELECT text FROM comments WHERE mod='%s' AND addr=%"fext"d", modname, rva);
-        if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-        {
-            sqlite3_finalize(stmt);
-            efree(newtext, "commentset:newtext");
-            return false;
-        }
-        if(sqlite3_step(stmt)==SQLITE_ROW) //there is a comment already
-            sprintf(sql, "UPDATE comments SET text='%s' WHERE mod='%s' AND addr=%"fext"d", newtext, modname, rva);
+        if(sqlhasresult(userdb, sql)) //there is a comment already
+            sprintf(sql, "UPDATE comments SET text='%s' WHERE mod='%s' AND addr=%"fext"d", commenttext, modname, rva);
         else //insert
-            sprintf(sql, "INSERT INTO comments (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, newtext);
+            sprintf(sql, "INSERT INTO comments (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, commenttext);
     }
-    sqlite3_finalize(stmt);
-    efree(newtext, "commentset:newtext");
-    char* errorText=0;
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
+    if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
+        dprintf("SQL Error: %s\n", sqllasterror());
         return false;
     }
     GuiUpdateAllViews();
@@ -247,24 +184,11 @@ bool commentget(uint addr, char* text)
         return false;
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //comments without module
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
         sprintf(sql, "SELECT text FROM comments WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
-    if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //there is a comment already
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    strcpy(text, (const char*)sqlite3_column_text(stmt, 0));
-    sqlite3_finalize(stmt);
-    return true;
+    return sqlgettext(userdb, sql, text);
 }
 
 bool commentdel(uint addr)
@@ -273,7 +197,6 @@ bool commentdel(uint addr)
         return false;
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //comments without module
         sprintf(sql, "SELECT id FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
@@ -282,24 +205,13 @@ bool commentdel(uint addr)
         uint rva=addr-modbase;
         sprintf(sql, "SELECT id FROM comments WHERE mod='%s' AND addr=%"fext"d", modname, rva);
     }
-    if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-    {
-        sqlite3_finalize(stmt);
+    int del_id=0;
+    if(!sqlgetint(userdb, sql, &del_id))
         return false;
-    }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //no comment to delete
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    int del_id=sqlite3_column_int(stmt, 0);
-    sqlite3_finalize(stmt);
-    char* errorText=0;
     sprintf(sql, "DELETE FROM comments WHERE id=%d", del_id);
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
+    if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
+        dprintf("SQL Error: %s\n", sqllasterror());
         return false;
     }
     GuiUpdateAllViews();
@@ -314,56 +226,31 @@ bool labelset(uint addr, const char* text)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
-    int len=strlen(text);
-    char* newtext=(char*)emalloc(len+1, "labelset:newtext");
-    *newtext=0;
-    for(int i=0,j=0; i<len; i++)
-    {
-        if(text[i]=='\"' or text[i]=='\'')
-            j+=sprintf(newtext+j, "''");
-        else
-            j+=sprintf(newtext+j, "%c", text[i]);
-    }
+    char labeltext[MAX_LABEL_SIZE]="";
+    sqlstringescape(text, labeltext);
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //labels without module
     {
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
-        if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-        {
-            sqlite3_finalize(stmt);
-            efree(newtext, "labelset:newtext");
-            return false;
-        }
-        if(sqlite3_step(stmt)==SQLITE_ROW) //there is a label already
-            sprintf(sql, "UPDATE labels SET text='%s' WHERE mod IS NULL AND addr=%"fext"d", newtext, addr);
+        if(sqlhasresult(userdb, sql)) //there is a label already
+            sprintf(sql, "UPDATE labels SET text='%s' WHERE mod IS NULL AND addr=%"fext"d", labeltext, addr);
         else //insert
-            sprintf(sql, "INSERT INTO labels (addr,text) VALUES (%"fext"d,'%s')", addr, newtext);
+            sprintf(sql, "INSERT INTO labels (addr,text) VALUES (%"fext"d,'%s')", addr, labeltext);
     }
     else
     {
         uint modbase=modbasefromaddr(addr);
         uint rva=addr-modbase;
         sprintf(sql, "SELECT text FROM labels WHERE mod='%s' AND addr=%"fext"d", modname, rva);
-        if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-        {
-            sqlite3_finalize(stmt);
-            efree(newtext, "labelset:newtext");
-            return false;
-        }
-        if(sqlite3_step(stmt)==SQLITE_ROW) //there is a label already
-            sprintf(sql, "UPDATE labels SET text='%s' WHERE mod='%s' AND addr=%"fext"d", newtext, modname, rva);
+        if(sqlhasresult(userdb, sql)) //there is a label already
+            sprintf(sql, "UPDATE labels SET text='%s' WHERE mod='%s' AND addr=%"fext"d", labeltext, modname, rva);
         else //insert
-            sprintf(sql, "INSERT INTO labels (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, newtext);
+            sprintf(sql, "INSERT INTO labels (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, labeltext);
     }
-    sqlite3_finalize(stmt);
-    efree(newtext, "labelset:newtext");
-    char* errorText=0;
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
+    if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
+        dprintf("SQL Error: %s\n", sqllasterror());
         return false;
     }
     GuiUpdateAllViews();
@@ -377,24 +264,11 @@ bool labelget(uint addr, char* text)
         return false;
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //labels without module
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
         sprintf(sql, "SELECT text FROM labels WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
-    if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //there is a label already
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    strcpy(text, (const char*)sqlite3_column_text(stmt, 0));
-    sqlite3_finalize(stmt);
-    return true;
+    return sqlgettext(userdb, sql, text);
 }
 
 bool labeldel(uint addr)
@@ -403,7 +277,6 @@ bool labeldel(uint addr)
         return false;
     char modname[35]="";
     char sql[256]="";
-    sqlite3_stmt* stmt;
     if(!modnamefromaddr(addr, modname)) //labels without module
         sprintf(sql, "SELECT id FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
@@ -412,24 +285,13 @@ bool labeldel(uint addr)
         uint rva=addr-modbase;
         sprintf(sql, "SELECT id FROM labels WHERE mod='%s' AND addr=%"fext"d", modname, rva);
     }
-    if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
-    {
-        sqlite3_finalize(stmt);
+    int del_id=0;
+    if(!sqlgetint(userdb, sql, &del_id))
         return false;
-    }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //no label to delete
-    {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    int del_id=sqlite3_column_int(stmt, 0);
-    sqlite3_finalize(stmt);
-    char* errorText=0;
     sprintf(sql, "DELETE FROM labels WHERE id=%d", del_id);
-    if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
+    if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
+        dprintf("SQL Error: %s\n", sqllasterror());
         return false;
     }
     dbsave();

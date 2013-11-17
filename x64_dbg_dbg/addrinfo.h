@@ -3,6 +3,9 @@
 
 #include "_global.h"
 
+//superglobal variables
+extern sqlite3* userdb;
+
 //typedefs
 typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
 

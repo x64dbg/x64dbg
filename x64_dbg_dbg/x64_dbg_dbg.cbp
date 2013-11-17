@@ -89,6 +89,8 @@
 		<Unit filename="msgqueue.h" />
 		<Unit filename="simplescript.cpp" />
 		<Unit filename="simplescript.h" />
+		<Unit filename="sqlhelper.cpp" />
+		<Unit filename="sqlhelper.h" />
 		<Unit filename="sqlite/sqlite3.h" />
 		<Unit filename="threading.cpp" />
 		<Unit filename="threading.h" />
