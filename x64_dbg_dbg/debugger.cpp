@@ -265,11 +265,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
-    IMAGEHLP_MODULE64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload(modInfo.BaseOfImage, modInfo.ImageSize, modInfo.ModuleName);
 }
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
@@ -282,7 +277,6 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Unloaded: "fhex" %s\n", base, DLLDebugFileName);
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
-    modunload((uint)base);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -315,12 +309,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
     //SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
-
-    IMAGEHLP_MODULE64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload(modInfo.BaseOfImage, modInfo.ImageSize, modInfo.ModuleName);
 }
 
 static void cbSystemBreakpoint(void* ExceptionData)
@@ -337,25 +325,6 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //lock
     lock(WAITID_RUN);
     wait(WAITID_RUN);
-
-    /*//my code
-
-     //list memorymap(cbListPage)
-     ReadMemory(va)
-     setBP(va, type, callback)
-
-     //gui
-     GuiChangeCIP(va, base, size)
-
-
-     //gui
-     cbClearMap
-     cbAddPage(MEMORY_BASIC_INFO, modulename)
-     cbEndMap
-
-     //dbg
-     MemoryMap(cbClear, cbAddPage, cbEndMap)
-     */
 }
 
 static void cbStep()

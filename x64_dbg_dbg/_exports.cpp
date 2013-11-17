@@ -103,36 +103,34 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     {
         if(labelget(addr, addrinfo->label))
             retval=true;
-        else
+        if(!retval) //no user labels
         {
             //TODO: auto-labels
-            /*const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, addr);
-            if(apiname)
+            DWORD64 displacement=0;
+            char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+            PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+            pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+            pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+            if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
-                strcpy(addrinfo->label, apiname);
+                strcpy(addrinfo->label, pSymbol->Name);
                 retval=true;
             }
-            uint addr_dw=0;
-            if(memread(fdProcessInfo->hProcess, (const void*)addr, &addr_dw, sizeof(uint), 0))
-            {
-                const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, addr_dw);
-                if(apiname)
-                {
-                    strcpy(addrinfo->label, apiname);
-                    retval=true;
-                }
-            }*/
             if(!retval)
             {
-                DWORD64 displacement=0;
-                char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
-                PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-                pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-                pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-                if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+                uint addr_=0;
+                if(memread(fdProcessInfo->hProcess, (const void*)addr, &addr_, sizeof(uint), 0))
                 {
-                    strcpy(addrinfo->label, pSymbol->Name);
-                    retval=true;
+                    DWORD64 displacement=0;
+                    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+                    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+                    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+                    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+                    if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr_, &displacement, pSymbol) and !displacement)
+                    {
+                        strcpy(addrinfo->label, pSymbol->Name);
+                        retval=true;
+                    }
                 }
             }
         }
@@ -142,18 +140,22 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         if(commentget(addr, addrinfo->comment))
             retval=true;
         //TODO: auto-comments
-        else
+        if(!retval)
         {
-            if(!retval)
+            DWORD dwDisplacement;
+            IMAGEHLP_LINE64 line;
+            line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+            if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
             {
-                DWORD dwDisplacement;
-                IMAGEHLP_LINE64 line;
-                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-                if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
-                {
-                    sprintf(addrinfo->comment, "line: %u", line.LineNumber);
-                    retval=true;
-                }
+                char filename[deflen]="";
+                strcpy(filename, line.FileName);
+                int len=strlen(filename);
+                while(filename[len]!='\\' and len!=0)
+                    len--;
+                if(len)
+                    len++;
+                sprintf(addrinfo->comment, "%s:%u", filename+len, line.LineNumber);
+                retval=true;
             }
         }
     }

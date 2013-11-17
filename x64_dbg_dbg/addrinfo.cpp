@@ -4,7 +4,6 @@
 #include "memory.h"
 
 static sqlite3* db;
-static sqlite3* internaldb;
 
 ///basic database functions
 void dbinit()
@@ -26,18 +25,6 @@ void dbinit()
     }
     strcpy(sql, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)");
     if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
-    {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
-    }
-    //initialize internal database
-    if(sqlite3_open(":memory:", &internaldb))
-    {
-        dputs("failed to open database!");
-        return;
-    }
-    strcpy(sql, "CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, base INT64 NOT NULL, mod TEXT, name TEXT NOT NULL, addr INT64 NOT NULL)");
-    if(sqlite3_exec(internaldb, sql, 0, 0, &errorText)!=SQLITE_OK) //error
     {
         dprintf("SQL Error: %s\n", errorText);
         sqlite3_free(errorText);
@@ -78,9 +65,6 @@ bool dbload()
 
 bool dbsave()
 {
-    DeleteFileA("internal.db");
-    loadOrSaveDb(internaldb, "internal.db", true);
-
     CreateDirectoryA(sqlitedb_basedir, 0); //create database directory
     if(loadOrSaveDb(db, dbpath, true)!=SQLITE_OK)
         return false;
@@ -92,86 +76,29 @@ void dbclose()
     dbsave();
     sqlite3_db_release_memory(db);
     sqlite3_close(db); //close program database
-    sqlite3_db_release_memory(internaldb);
-    sqlite3_close(internaldb); //close internal database
 }
 
 ///module functions
-
-static std::vector<MODINFO> modinfo;
-
 bool modnamefromaddr(uint addr, char* modname)
 {
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        if(addr>=modinfo.at(i).start and addr<modinfo.at(i).end)
-        {
-            strcpy(modname, modinfo.at(i).name);
-            return true;
-        }
-    }
-    return false;
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(!SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)addr, &modInfo))
+        return false;
+    _strlwr(modInfo.ModuleName);
+    strcpy(modname, modInfo.ModuleName);
+    return true;
 }
 
 uint modbasefromaddr(uint addr)
 {
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        if(addr>=modinfo.at(i).start and addr<modinfo.at(i).end)
-        {
-            return modinfo.at(i).start;
-        }
-    }
-    return 0;
-}
-
-static void cbExport(uint base, const char* mod, const char* name, uint addr)
-{
-    char sql[deflen]="";
-    sprintf(sql, "INSERT INTO exports (base,mod,name,addr) VALUES (%"fext"d,'%s','%s',%"fext"d)", base, mod, name, addr);
-    char* errorText=0;
-    if(sqlite3_exec(internaldb, sql, 0, 0, &errorText)!=SQLITE_OK) //error
-    {
-        dprintf("SQL Error: %s\n", errorText);
-        sqlite3_free(errorText);
-    }
-}
-
-bool modload(uint base, uint size, const char* name)
-{
-    if(!base or !size or !name or strlen(name)>=31)
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(!SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)addr, &modInfo))
         return false;
-    MODINFO info;
-    info.start=base;
-    info.end=base+size;
-    strcpy(info.name, name);
-    _strlwr(info.name);
-    modinfo.push_back(info);
-    apienumexports(base, cbExport);
-    return true;
-}
-
-bool modunload(uint base)
-{
-    if(!base)
-        return false;
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        if(modinfo.at(i).start==base)
-        {
-            modinfo.erase(modinfo.begin()+i);
-            return true;
-        }
-    }
-    return false;
-}
-
-void modclear()
-{
-    modinfo.clear();
+    return modInfo.BaseOfImage;
 }
 
 ///api functions
