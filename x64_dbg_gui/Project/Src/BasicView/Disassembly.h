@@ -4,16 +4,16 @@
 #include <QtGui>
 #include <QtDebug>
 #include "NewTypes.h"
+#include "Bridge.h"
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
-#include "MemoryPage.h"
 #include "BeaHighlight.h"
 
 class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit Disassembly(MemoryPage *parMemPage, QWidget *parent = 0);
+    explicit Disassembly(QWidget *parent = 0);
 
     // Private Functions
     void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText);
@@ -54,7 +54,6 @@ public:
     void prepareData();
 
     // Public Methods
-    void setMemoryPage(MemoryPage* parMemPage);
     void disassembleClear();
 
 signals:
@@ -82,7 +81,8 @@ private:
 
     GuiState_t mGuiState;
 
-    MemoryPage* mMemPage;
+    int_t mBase;
+    int_t mSize;
 
     int_t mCipRva;
 

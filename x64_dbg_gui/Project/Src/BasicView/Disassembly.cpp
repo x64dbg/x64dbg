@@ -1,8 +1,9 @@
 #include "Disassembly.h"
 
-Disassembly::Disassembly(MemoryPage* parMemPage, QWidget *parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 {
-    setMemoryPage(parMemPage);
+    mBase = 0;
+    mSize = 0;
 
     mInstBuffer.clear();
 
@@ -18,9 +19,7 @@ Disassembly::Disassembly(MemoryPage* parMemPage, QWidget *parent) : AbstractTabl
 
     mGuiState = Disassembly::NoState;
 
-    setRowCount(parMemPage->getSize());
-
-    //qDebug() << "size" << parMemPage->getSize();
+    setRowCount(mSize);
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
@@ -114,7 +113,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     case 0: // Draw address (+ label)
     {
         char label[MAX_LABEL_SIZE]="";
-        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mMemPage->getBase();
+        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
         QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
@@ -214,7 +213,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     case 3: //draw comments
     {
         char comment[MAX_COMMENT_SIZE]="";
-        if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mMemPage->getBase(), comment))
+        if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mBase, comment))
             wStr=QString(comment);
         else
             wStr="";
@@ -474,9 +473,9 @@ void Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     {
         int_t destRVA = (int_t)instruction.disasm.Instruction.AddrValue;
 
-        if(destRVA > (int_t)mMemPage->getBase())
+        if(destRVA > (int_t)mBase)
         {
-            destRVA -= (int_t)mMemPage->getBase();
+            destRVA -= (int_t)mBase;
 
             if(destRVA < selHeadRVA)
             {
@@ -501,7 +500,7 @@ void Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 
     painter->save() ;
 
-    if(DbgIsJumpGoingToExecute(instruction.rva+mMemPage->getBase())) //change pen color when jump is executed
+    if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
         painter->setPen(QColor(255, 0, 0));
     else
         painter->setPen(QColor(128, 128, 128));
@@ -575,7 +574,7 @@ int_t Disassembly::getPreviousInstructionRVA(int_t rva, uint_t count)
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->readOriginalMemory(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
+    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase + wBottomByteRealRVA, wMaxByteCountToRead);
 
     int_t addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
 
@@ -601,13 +600,13 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
     int_t wMaxByteCountToRead;
     int_t wNewRVA;
 
-    wRemainingBytes = mMemPage->getSize() - rva;
+    wRemainingBytes = mSize - rva;
 
     wMaxByteCountToRead = 16 * (count + 1);
     wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->readOriginalMemory(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
+    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase + rva, wMaxByteCountToRead);
 
     wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
     wNewRVA += rva;
@@ -655,11 +654,11 @@ int_t Disassembly::getInstructionRVA(int_t index, int_t count)
 Instruction_t Disassembly::DisassembleAt(int_t rva)
 {
     QByteArray wBuffer;
-    int_t base = mMemPage->getBase();
+    int_t base = mBase;
     int_t wMaxByteCountToRead = 16 * 2;
     wBuffer.resize(wMaxByteCountToRead);
 
-    mMemPage->readOriginalMemory(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
+    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase+rva, wMaxByteCountToRead);
 
     return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva);
 }
@@ -791,12 +790,6 @@ void Disassembly::prepareData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
-void Disassembly::setMemoryPage(MemoryPage* parMemPage)
-{
-    mMemPage = parMemPage;
-}
-
-
 void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 {
     int_t wBase = Bridge::getBridge()->getBase(parVA);
@@ -804,8 +797,12 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
     int_t wRVA = parVA - wBase;
     int_t wCipRva = parCIP - wBase;
 
+    // Set base and size (Useful when memory page changed)
+    mBase = wBase;
+    mSize = wSize;
+
     setRowCount(wSize);
-    mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
+
     setSingleSelection(wRVA);               // Selects disassembled instruction
 
     mCipRva = wCipRva;
