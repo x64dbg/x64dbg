@@ -54,6 +54,7 @@ public:
     void prepareData();
 
     // Public Methods
+    int_t rvaToVa(int_t rva);
     void disassembleClear();
 
 signals:

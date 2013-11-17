@@ -790,6 +790,11 @@ void Disassembly::prepareData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
+int_t Disassembly::rvaToVa(int_t rva)
+{
+    return mBase + rva;
+}
+
 void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 {
     int_t wBase = Bridge::getBridge()->getBase(parVA);
