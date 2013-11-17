@@ -23,6 +23,7 @@
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="msgqueue.cpp" />
     <ClCompile Include="simplescript.cpp" />
+    <ClCompile Include="sqlhelper.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
@@ -44,6 +45,7 @@
     <ClInclude Include="memory.h" />
     <ClInclude Include="msgqueue.h" />
     <ClInclude Include="simplescript.h" />
+    <ClInclude Include="sqlhelper.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
