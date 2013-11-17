@@ -3,6 +3,7 @@
 #include "debugger.h"
 #include "value.h"
 #include "addrinfo.h"
+#include "console.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -32,12 +33,8 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
         if(mbi.State==MEM_COMMIT)
         {
             MEMPAGE curPage;
-            IMAGEHLP_MODULE64 nfo;
-            nfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-            if(SymGetModuleInfo64(fdProcessInfo->hProcess, MyAddress, &nfo))
-                memcpy(curPage.mod, nfo.ModuleName, sizeof(curPage.mod));
-            else
-                memset(curPage.mod, 0, sizeof(curPage.mod));
+            *curPage.mod=0;
+            modnamefromaddr(MyAddress, curPage.mod);
             memcpy(&curPage.mbi, &mbi, sizeof(mbi));
             pageVector.push_back(curPage);
             memmap->count++;
@@ -109,22 +106,62 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             retval=true;
         }
     }
-    if(addrinfo->flags&flaglabel) //TODO: get label
+    if(addrinfo->flags&flaglabel)
     {
         if(labelget(addr, addrinfo->label))
             retval=true;
         else
         {
-            //TODO: label exports
+            //TODO: auto-labels
+            /*const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, addr);
+            if(apiname)
+            {
+                strcpy(addrinfo->label, apiname);
+                retval=true;
+            }
+            uint addr_dw=0;
+            if(memread(fdProcessInfo->hProcess, (const void*)addr, &addr_dw, sizeof(uint), 0))
+            {
+                const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, addr_dw);
+                if(apiname)
+                {
+                    strcpy(addrinfo->label, apiname);
+                    retval=true;
+                }
+            }*/
+            if(!retval)
+            {
+                DWORD64 displacement=0;
+                char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+                PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+                pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+                pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+                if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+                {
+                    strcpy(addrinfo->label, pSymbol->Name);
+                    retval=true;
+                }
+            }
         }
     }
-    if(addrinfo->flags&flagcomment) //TODO: get comment
+    if(addrinfo->flags&flagcomment)
     {
         if(commentget(addr, addrinfo->comment))
             retval=true;
+        //TODO: auto-comments
         else
         {
-            //TODO: auto-comments
+            if(!retval)
+            {
+                DWORD dwDisplacement;
+                IMAGEHLP_LINE64 line;
+                line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+                if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
+                {
+                    sprintf(addrinfo->comment, "line: %u", line.LineNumber);
+                    retval=true;
+                }
+            }
         }
     }
     return retval;

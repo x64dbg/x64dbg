@@ -223,6 +223,38 @@ static void cbException(void* ExceptionData)
     wait(WAITID_RUN);
 }
 
+BOOL
+CALLBACK
+SymRegisterCallbackProc64(
+    __in HANDLE hProcess,
+    __in ULONG ActionCode,
+    __in_opt ULONG64 CallbackData,
+    __in_opt ULONG64 UserContext
+)
+{
+    UNREFERENCED_PARAMETER(hProcess);
+    UNREFERENCED_PARAMETER(UserContext);
+
+    PIMAGEHLP_CBA_EVENT evt;
+
+    // If SYMOPT_DEBUG is set, then the symbol handler will pass
+    // verbose information on its attempt to load symbols.
+    // This information be delivered as text strings.
+
+    switch (ActionCode)
+    {
+    case CBA_EVENT:
+        evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
+        printf("%s", (PTSTR)evt->desc);
+        break;
+
+    default:
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
     void* base=LoadDll->lpBaseOfDll;
@@ -233,6 +265,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        modload(modInfo.BaseOfImage, modInfo.ImageSize, modInfo.ModuleName);
 }
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
@@ -245,6 +282,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Unloaded: "fhex" %s\n", base, DLLDebugFileName);
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
+    modunload((uint)base);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -257,14 +295,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         DevicePathToPath(DebugFileName, DebugFileName, deflen);
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
-    SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
-    SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
-}
-
-static void cbSystemBreakpoint(void* ExceptionData)
-{
-    //TODO: handle stuff (TLS, main entry, etc)
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, 0);
     //init program database
     int len=strlen(szFileName);
     while(szFileName[len]!='\\' && len!=0)
@@ -280,6 +310,23 @@ static void cbSystemBreakpoint(void* ExceptionData)
     sprintf(dbpath, "%s\\%s", sqlitedb_basedir, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbinit();
+
+    //SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
+    SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
+    //SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
+    SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
+
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        modload(modInfo.BaseOfImage, modInfo.ImageSize, modInfo.ModuleName);
+}
+
+static void cbSystemBreakpoint(void* ExceptionData)
+{
+    //TODO: handle stuff (TLS, main entry, etc)
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, 0);
     //log message
     dputs("system breakpoint reached!");
     //update GUI
@@ -1104,13 +1151,11 @@ CMDRESULT cbBenchmark(const char* cmd)
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
+    char comment[MAX_COMMENT_SIZE]="";
     commentset(addr, "benchmark");
-    for(int i=0; i<1000; i++)
+    for(int i=0; i<100000; i++)
     {
-        char comment[MAX_COMMENT_SIZE]="";
         commentget(addr, comment);
-        unsigned char dest[0x1000];
-        _dbg_memread(addr, dest, 0x1000, 0);
     }
     commentdel(addr);
     dprintf("%ums\n", GetTickCount()-ticks);

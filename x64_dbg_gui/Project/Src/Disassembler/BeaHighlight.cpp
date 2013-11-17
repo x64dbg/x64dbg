@@ -87,6 +87,8 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
 
             //labels
             uint_t label_addr=Argument->Memory.Displacement;
+            if(Argument->ArgType&RELATIVE_) //rip-relative
+                label_addr=Instruction->AddrValue;
             char label_text[MAX_LABEL_SIZE]="";
             if(DbgGetLabelAt(label_addr, ConvertBeaSeg(segmentReg), label_text))
             {

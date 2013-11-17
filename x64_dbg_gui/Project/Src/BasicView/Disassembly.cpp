@@ -117,7 +117,13 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int_t cur_addr=mInstBuffer.at(rowOffset).rva+mMemPage->getBase();
         QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
-            addrText+=" <"+QString(label)+">";
+        {
+            char module[MAX_LABEL_SIZE]="";
+            if(DbgGetModuleAt(cur_addr, module))
+                addrText+=" <"+QString(module)+"."+QString(label)+">";
+            else
+                addrText+=" <"+QString(label)+">";
+        }
         else
             *label=0;
         BPXTYPE bpxtype=DbgGetBpxTypeAt(cur_addr);

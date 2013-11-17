@@ -26,8 +26,22 @@ uint memfindbaseaddr(HANDLE hProcess, uint addr, uint* size)
 
 bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
+    //TODO: there are bugs in this function
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize)
         return false;
+
+    SIZE_T read1=0;
+    DWORD oldprotect=0;
+    VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, PAGE_EXECUTE_READWRITE, &oldprotect);
+    bool test=ReadProcessMemory(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read1);
+    VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, oldprotect, &oldprotect);
+    if(test and read1==nSize)
+    {
+        if(lpNumberOfBytesRead)
+            *lpNumberOfBytesRead=read1;
+        return true;
+    }
+
 
     uint addr=(uint)lpBaseAddress;
     uint startRva=addr&(PAGE_SIZE-1); //get start rva
@@ -44,7 +58,6 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
         bool ret=ReadProcessMemory(hProcess, curAddr, curPage, PAGE_SIZE, &readBytes);
         if(!ret or readBytes!=PAGE_SIZE)
         {
-            DWORD oldprotect=0;
             VirtualProtectEx(hProcess, curAddr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &oldprotect);
             ret=ReadProcessMemory(hProcess, curAddr, curPage, PAGE_SIZE, &readBytes);
             VirtualProtectEx(hProcess, curAddr, PAGE_SIZE, oldprotect, &oldprotect);

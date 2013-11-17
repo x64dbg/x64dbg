@@ -39,13 +39,13 @@ void HexDump::printDumpAt(int_t parVA)
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
 {
-    qDebug() << "HexDump::mouseMoveEvent";
+    //qDebug() << "HexDump::mouseMoveEvent";
 
     bool wAccept = true;
 
     if(mGuiState == HexDump::MultiRowsSelectionState)
     {
-        qDebug() << "State = MultiRowsSelectionState";
+        //qDebug() << "State = MultiRowsSelectionState";
 
         if((transY(event->y()) >= 0) && (transY(event->y()) <= this->getTableHeigth()))
         {
@@ -70,7 +70,7 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
 void HexDump::mousePressEvent(QMouseEvent* event)
 {
-    qDebug() << "HexDump::mousePressEvent";
+    //qDebug() << "HexDump::mousePressEvent";
 
     bool wAccept = false;
 
