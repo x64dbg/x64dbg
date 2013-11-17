@@ -20,6 +20,8 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, addr INT64 NOT NULL, enabled INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
 }
 
 bool dbload()
