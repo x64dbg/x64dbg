@@ -45,7 +45,8 @@ SOURCES += \
     Src/Disassembler/BeaHighlight.cpp \
     Src/BasicView/RegistersView.cpp \
     Src/Gui/StatusLabel.cpp \
-    Src/BasicView/WordEditDialog.cpp
+    Src/BasicView/WordEditDialog.cpp \
+    Src/Gui/CPUDisassembly.cpp
 
 
 HEADERS += \
@@ -71,7 +72,8 @@ HEADERS += \
     Src/Disassembler/BeaHighlight.h \
     Src/BasicView/RegistersView.h \
     Src/Gui/StatusLabel.h \
-    Src/BasicView/WordEditDialog.h
+    Src/BasicView/WordEditDialog.h \
+    Src/Gui/CPUDisassembly.h
 
 INCLUDEPATH += \
     Src \

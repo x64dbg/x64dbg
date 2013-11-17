@@ -3,7 +3,7 @@
 
 #include <QtGui>
 #include <QVBoxLayout>
-#include "Disassembly.h"
+#include "CPUDisassembly.h"
 #include "HexDump.h"
 #include "RegistersView.h"
 

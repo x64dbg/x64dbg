@@ -6,7 +6,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     ui->setupUi(this);
     setDefaultDisposition();
 
-    mDisas = new Disassembly(0);
+    mDisas = new CPUDisassembly(0);
     ui->mTopLeftFrameLayout->addWidget(mDisas);
 
     mRegs = new RegistersView(0);
