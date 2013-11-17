@@ -30,36 +30,25 @@ static void cbUserBreakpoint();
 
 void dbgdisablebpx()
 {
-    BREAKPOINT* cur=bplist;
-    if(!cur or !cur->addr)
-        return;
-    bool bNext=true;
-    while(bNext)
+    uint* bplist=0;
+    int* titantype=0;
+    int bpcount=bpgetlist(&bplist, &titantype);
+    for(int i=0; i<bpcount; i++)
     {
-        if(cur->type==BPNORMAL or cur->type==BPSINGLESHOOT)
-            if(IsBPXEnabled(cur->addr) and DeleteBPX(cur->addr))
-                cur->enabled=false;
-        cur=cur->next;
-        if(!cur)
-            bNext=false;
+        //printf(fhex"\n", bplist[i]);
+        if(IsBPXEnabled(bplist[i]))
+            DeleteBPX(bplist[i]);
     }
 }
 
 void dbgenablebpx()
 {
-    BREAKPOINT* cur=bplist;
-    if(!cur or !cur->addr)
-        return;
-    bool bNext=true;
-    while(bNext)
-    {
-        if(cur->type==BPNORMAL or cur->type==BPSINGLESHOOT)
-            if(!IsBPXEnabled(cur->addr) and SetBPX(cur->addr, cur->type, (void*)cbUserBreakpoint))
-                cur->enabled=true;
-        cur=cur->next;
-        if(!cur)
-            bNext=false;
-    }
+    uint* bplist=0;
+    int* titantype=0;
+    int bpcount=bpgetlist(&bplist, &titantype);
+    for(int i=0; i<bpcount; i++)
+        if(!IsBPXEnabled(bplist[i]))
+            SetBPX(bplist[i], titantype[i], (void*)cbUserBreakpoint);
 }
 
 bool dbgisrunning()
@@ -77,16 +66,17 @@ void DebugUpdateGui(uint disasm_addr)
 
 static void cbUserBreakpoint()
 {
-    BREAKPOINT* cur=bpfind(bplist, 0, (uint)GetContextData(UE_CIP), 0, BPNORMAL);
-    if(!cur)
+    //TODO: restore bp
+    BREAKPOINT bp;
+    if(!bpget(GetContextData(UE_CIP), BPNORMAL, &bp))
         dputs("breakpoint reached not in list!");
     else
     {
-        const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, cur->addr);
+        const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, bp.addr);
         char log[deflen]="";
         if(apiname)
         {
-            const char* dllname_=(const char*)ImporterGetDLLNameFromDebugee(fdProcessInfo->hProcess, cur->addr);
+            const char* dllname_=(const char*)ImporterGetDLLNameFromDebugee(fdProcessInfo->hProcess, bp.addr);
             char dllname[256]="";
             strcpy(dllname, dllname_);
             _strlwr(dllname);
@@ -97,21 +87,21 @@ static void cbUserBreakpoint()
                     dllname[i]=0;
                     break;
                 }
-            if(cur->name)
-                sprintf(log, "breakpoint \"%s\" at %s.%s ("fhex")!", cur->name, dllname, apiname, cur->addr);
+            if(*bp.name)
+                sprintf(log, "breakpoint \"%s\" at %s.%s ("fhex")!", bp.name, dllname, apiname, bp.addr);
             else
-                sprintf(log, "breakpoint at %s.%s ("fhex")!", dllname, apiname, cur->addr);
+                sprintf(log, "breakpoint at %s.%s ("fhex")!", dllname, apiname, bp.addr);
         }
         else
         {
-            if(cur->name)
-                sprintf(log, "breakpoint \"%s\" at "fhex"!", cur->name, cur->addr);
+            if(*bp.name)
+                sprintf(log, "breakpoint \"%s\" at "fhex"!", bp.name, bp.addr);
             else
-                sprintf(log, "breakpoint at "fhex"!", cur->addr);
+                sprintf(log, "breakpoint at "fhex"!", bp.addr);
         }
         dputs(log);
-        if(cur->type==BPSINGLESHOOT)
-            bpdel(bplist, 0, cur->addr, BPNORMAL);
+        if(bp.singleshoot)
+            bpdel(bp.addr, BPNORMAL);
     }
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
@@ -122,8 +112,9 @@ static void cbUserBreakpoint()
 
 static void cbHardwareBreakpoint(void* ExceptionAddress)
 {
+    //TODO: restore bp
     uint cip=GetContextData(UE_CIP);
-    BREAKPOINT* cur=bpfind(bplist, 0, (uint)ExceptionAddress, 0, BPHARDWARE);
+    /*BREAKPOINT* cur=bpfind(bplist, 0, (uint)ExceptionAddress, 0, BPHARDWARE);
     if(!cur)
         dputs("hardware breakpoint reached not in list!");
     else
@@ -135,7 +126,7 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
         else
             sprintf(log, "hardware breakpoint "fhex"!", cur->addr);
         dputs(log);
-    }
+    }*/
     DebugUpdateGui(cip);
     GuiSetDebugState(paused);
     //lock
@@ -148,7 +139,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     uint cip=GetContextData(UE_CIP);
     uint size;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
-    BREAKPOINT* cur=bpfind(bplist, 0, base, 0, BPMEMORY);
+    /*BREAKPOINT* cur=bpfind(bplist, 0, base, 0, BPMEMORY);
     if(!cur)
         dputs("memory breakpoint reached not in list!");
     else
@@ -162,7 +153,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
         dputs(log);
     }
     if(!(cur->oldbytes>>4)) //is auto-restoring?
-        bpdel(bplist, 0, base, BPMEMORY); //delete from breakpoint list
+        bpdel(bplist, 0, base, BPMEMORY); //delete from breakpoint list*/
     DebugUpdateGui(cip);
     GuiSetDebugState(paused);
     //lock
@@ -255,6 +246,24 @@ SymRegisterCallbackProc64(
     return TRUE;
 }
 
+static void cbSetModuleBreakpoints(const BREAKPOINT* bp)
+{
+    //TODO: more breakpoint types
+    switch(bp->type)
+    {
+    case BPNORMAL:
+        if(bp->enabled)
+            SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint);
+        break;
+    case BPMEMORY:
+        break;
+    case BPHARDWARE:
+        break;
+    default:
+        break;
+    }
+}
+
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
     void* base=LoadDll->lpBaseOfDll;
@@ -265,6 +274,33 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        modload((uint)base, modInfo.ImageSize, modInfo.ModuleName);
+    bpenumall(0);
+    char modname[256]="";
+    if(modnamefromaddr((uint)base, modname))
+        bpenumall(cbSetModuleBreakpoints, modname);
+}
+
+static void cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
+{
+    //TODO: more breakpoint types
+    switch(bp->type)
+    {
+    case BPNORMAL:
+        if(IsBPXEnabled(bp->addr))
+            DeleteBPX(bp->addr);
+        break;
+    case BPMEMORY:
+        break;
+    case BPHARDWARE:
+        break;
+    default:
+        break;
+    }
 }
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
@@ -276,7 +312,11 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     else
         DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Unloaded: "fhex" %s\n", base, DLLDebugFileName);
+    char modname[256]="";
+    if(modnamefromaddr((uint)base, modname))
+        bpenumall(cbSetModuleBreakpoints, modname);
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
+    bpenumall(0);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -309,6 +349,15 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
     //SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        modload((uint)base, modInfo.ImageSize, modInfo.ModuleName);
+    bpenumall(0);
+    char modname[256]="";
+    if(modnamefromaddr((uint)base, modname))
+        bpenumall(cbSetModuleBreakpoints, modname);
 }
 
 static void cbSystemBreakpoint(void* ExceptionData)
@@ -386,7 +435,6 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount=0;
-    bplist=bpinit();
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
@@ -402,7 +450,6 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     GuiSetDebugState(stopped);
-    bpfree(bplist);
     dputs("debugging stopped!");
     varset("$hp", 0, true);
     varset("$pid", 0, true);
@@ -544,18 +591,15 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
         dputs("entry breakpoint will be set automatically");
         return STATUS_ERROR;
     }
-    uint type=0;
-    BP_TYPE list_type;
+    int type=0;
+    bool singleshoot=false;
     if(strstr(argtype, "ss"))
     {
         type|=UE_SINGLESHOOT;
-        list_type=BPSINGLESHOOT;
+        singleshoot=true;
     }
     else
-    {
         type|=UE_BREAKPOINT;
-        list_type=BPNORMAL;
-    }
     if(strstr(argtype, "long"))
         type|=UE_BREAKPOINT_TYPE_LONG_INT3;
     else if(strstr(argtype, "ud2"))
@@ -563,22 +607,27 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
     else if(strstr(argtype, "short"))
         type|=UE_BREAKPOINT_TYPE_INT3;
     short oldbytes;
-    BREAKPOINT* found=bpfind(bplist, 0, addr, 0, BPNORMAL);
+    bool found=bpget(addr, BPNORMAL, 0);
     if(IsBPXEnabled(addr) or !memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0) or found or !SetBPX(addr, type, (void*)cbUserBreakpoint))
     {
         dprintf("error setting breakpoint at "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    if(bpnew(bplist, argname, addr, oldbytes, list_type))
+    if(bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type))
         dprintf("breakpoint at "fhex" set!\n", addr);
     else
+    {
         dputs("problem setting breakpoint!");
+        return STATUS_ERROR;
+    }
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugEnableBPX(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     char arg1[deflen]="";
     if(!argget(cmd, arg1, 0, true)) //enable all breakpoints
     {
@@ -637,12 +686,14 @@ CMDRESULT cbDebugEnableBPX(const char* cmd)
         dputs("could not enable breakpoint");
     else
         bp->enabled=true;
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();*/
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugDisableBPX(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     char arg1[deflen]="";
     if(!argget(cmd, arg1, 0, true)) //disable all breakpoints
     {
@@ -701,12 +752,14 @@ CMDRESULT cbDebugDisableBPX(const char* cmd)
         dputs("could not disable breakpoint");
     else
         bp->enabled=false;
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();*/
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugToggleBPX(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     char arg1[deflen]="";
     if(!argget(cmd, arg1, 0, false))
         return STATUS_ERROR;
@@ -759,67 +812,58 @@ CMDRESULT cbDebugToggleBPX(const char* cmd)
         }
     }
     varset("$res", (uint)disable, false);
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();*/
     return STATUS_CONTINUE;
+}
+
+static void cbDeleteAllBreakpoints(const BREAKPOINT* bp)
+{
+    DeleteBPX(bp->addr);
+    bpdel(bp->addr, BPNORMAL);
 }
 
 CMDRESULT cbDebugDeleteBPX(const char* cmd)
 {
+    //TODO: restore bp
     char arg1[deflen]="";
     if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
     {
-        BREAKPOINT* cur=bplist;
-        if(!cur or !cur->addr)
+        if(!bpgetlist(0, 0))
         {
             dputs("no breakpoints!");
             return STATUS_ERROR;
         }
-        bool bNext=true;
-        while(bNext)
-        {
-            BREAKPOINT* next=cur->next;
-            if(cur->type==BPNORMAL or cur->type==BPSINGLESHOOT)
-            {
-                DeleteBPX(cur->addr);
-                bpdel(bplist, 0, cur->addr, BPNORMAL);
-            }
-            cur=next;
-            if(!cur)
-                bNext=false;
-        }
-        //memset(bplist, 0, sizeof(BREAKPOINT));
+        bpenumall(cbDeleteAllBreakpoints);
         dputs("all breakpoints deleted!");
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
-    if(!bp)
+    BREAKPOINT bp;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
     {
-        uint addr=0;
-        if(!valfromstring(arg1, &addr, 0, 0, false, 0))
-        {
-            dprintf("invalid addr: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
-        bp=bpfind(bplist, 0, addr, 0, BPNORMAL);
-        if(!bp)
-        {
-            dprintf("no such breakpoint: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
-    }
-    if(!DeleteBPX(bp->addr))
-    {
-        dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
+        dprintf("invalid addr: \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    bpdel(bplist, 0, bp->addr, BPNORMAL);
+    if(!bpget(addr, BPNORMAL, &bp))
+    {
+        dprintf("no such breakpoint: \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!DeleteBPX(bp.addr))
+    {
+        dprintf("delete breakpoint failed: "fhex"\n", bp.addr);
+        return STATUS_ERROR;
+    }
+    bpdel(addr, BPNORMAL);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugBplist(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     BREAKPOINT* cur=bplist;
     if(!cur or !cur->addr)
     {
@@ -846,7 +890,7 @@ CMDRESULT cbDebugBplist(const char* cmd)
         cur=cur->next;
         if(!cur)
             bNext=false;
-    }
+    }*/
     return STATUS_CONTINUE;
 }
 
@@ -901,6 +945,8 @@ CMDRESULT cbDebugDisasm(const char* cmd)
 
 CMDRESULT cbDebugMemoryBpx(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     char arg1[deflen]=""; //addr
     if(!argget(cmd, arg1, 0, false))
         return STATUS_ERROR;
@@ -951,7 +997,7 @@ CMDRESULT cbDebugMemoryBpx(const char* cmd)
         dprintf("memory breakpoint at "fhex" set!\n", addr);
     else
         dputs("problem setting breakpoint (report please)!");
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();*/
     return STATUS_CONTINUE;
 }
 
@@ -964,6 +1010,8 @@ CMDRESULT cbDebugRtr(const char* cmd)
 
 CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
 {
+    //TODO: restore bp
+    /*
     char arg1[deflen]=""; //addr
     if(!argget(cmd, arg1, 0, false))
         return STATUS_ERROR;
@@ -1003,11 +1051,11 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
         case 4:
             size=UE_HARDWARE_SIZE_4;
             break;
-#ifdef _WIN64
+    #ifdef _WIN64
         case 8:
             size=UE_HARDWARE_SIZE_8;
             break;
-#endif // _WIN64
+    #endif // _WIN64
         default:
             dputs("invalid size, using 1");
             break;
@@ -1034,7 +1082,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
         dprintf("hardware breakpoint at "fhex" set!\n", addr);
     else
         dputs("problem setting breakpoint (report please)!");
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();*/
     return STATUS_CONTINUE;
 }
 

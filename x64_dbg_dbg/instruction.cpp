@@ -288,6 +288,7 @@ CMDRESULT cbLoaddb(const char* cmd)
         puts("failed to load database from disk!");
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

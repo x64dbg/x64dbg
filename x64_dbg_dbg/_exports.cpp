@@ -180,17 +180,16 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 
 extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 {
-    int result=bpnone;
-    BREAKPOINT* found=bpfind(bplist, 0, addr, 0, BPNORMAL);
-    if(found and found->enabled) //none found or disabled
+    BREAKPOINT bp;
+    int result=0;
+    if(bpget(addr, BPNORMAL, &bp))
         result|=bpnormal;
-    found=bpfind(bplist, 0, addr, 0, BPHARDWARE);
-    if(found and found->enabled) //none found or disabled
+    if(bpget(addr, BPHARDWARE, &bp))
         result|=bphardware;
-    found=bpfind(bplist, 0, addr, 0, BPMEMORY);
-    if(found and found->enabled) //none found or disabled
+    if(bpget(addr, BPMEMORY, &bp))
         result|=bpmemory;
     return result;
+    return 0;
 }
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)

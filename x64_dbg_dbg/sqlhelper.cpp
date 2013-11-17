@@ -29,13 +29,13 @@ bool sqlhasresult(sqlite3* db, const char* query)
         sqlite3_finalize(stmt);
         return false;
     }
-    if(sqlite3_step(stmt)==SQLITE_ROW) //there is a label already
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
-        return true;
+        return false;
     }
     sqlite3_finalize(stmt);
-    return false;
+    return true;
 }
 
 bool sqlgettext(sqlite3* db, const char* query, char* result)
@@ -48,7 +48,7 @@ bool sqlgettext(sqlite3* db, const char* query, char* result)
         sqlite3_finalize(stmt);
         return false;
     }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //there is a label already
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
         return false;
@@ -68,7 +68,7 @@ bool sqlgetint(sqlite3* db, const char* query, int* result)
         sqlite3_finalize(stmt);
         return false;
     }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //there is a label already
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
         return false;
@@ -88,7 +88,7 @@ bool sqlgetuint(sqlite3* db, const char* query, uint* result)
         sqlite3_finalize(stmt);
         return false;
     }
-    if(sqlite3_step(stmt)!=SQLITE_ROW) //there is a label already
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
         return false;

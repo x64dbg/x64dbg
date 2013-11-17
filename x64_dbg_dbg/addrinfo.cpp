@@ -3,6 +3,7 @@
 #include "console.h"
 #include "memory.h"
 #include "sqlhelper.h"
+#include "breakpoint.h"
 
 sqlite3* userdb;
 
@@ -20,8 +21,9 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
-    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, addr INT64 NOT NULL, enabled INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL)"))
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, addr INT64 NOT NULL, enabled INT NOT NULL, singleshoot INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL, titantype INT NOT NULL, mod TEXT, name TEXT)"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    bpenumall(0);
 }
 
 bool dbload()
@@ -43,8 +45,45 @@ void dbclose()
 }
 
 ///module functions
+
+static std::vector<MODINFO> modinfo;
+
+bool modload(uint base, uint size, const char* name)
+{
+    if(!base or !size or !name or strlen(name)>=31)
+        return false;
+    MODINFO info;
+    info.base=base;
+    info.size=size;
+    strcpy(info.name, name);
+    _strlwr(info.name);
+    modinfo.push_back(info);
+    return true;
+}
+
+bool modunload(uint base)
+{
+    int total=modinfo.size();
+    for(int i=0; i<total; i++)
+    {
+        if(modinfo.at(i).base==base)
+        {
+            modinfo.erase(modinfo.begin()+i);
+            return true;
+        }
+    }
+    return false;
+}
+
+void modclear()
+{
+    modinfo.clear();
+}
+
 bool modnamefromaddr(uint addr, char* modname)
 {
+    if(!modname)
+        return false;
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
@@ -63,6 +102,19 @@ uint modbasefromaddr(uint addr)
     if(!SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)addr, &modInfo))
         return false;
     return modInfo.BaseOfImage;
+}
+
+uint modbasefromname(const char* modname)
+{
+    if(!modname)
+        return 0;
+    int total=modinfo.size();
+    for(int i=0; i<total; i++)
+    {
+        if(!_stricmp(modinfo.at(i).name, modname))
+            return modinfo.at(i).base;
+    }
+    return 0;
 }
 
 ///api functions
