@@ -253,19 +253,22 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
         {
             int wI = getIndexOffsetFromY(transY(event->y()));
 
-            // Bound
-            wI = wI >= mInstBuffer.size() ? mInstBuffer.size() - 1 : wI;
-            wI = wI < 0 ? 0 : wI;
-
-            int_t wRowIndex = mInstBuffer.at(wI).rva;
-
-            if(wRowIndex < getRowCount())
+            if(mSize > 0)
             {
-                expandSelectionUpTo(wRowIndex);
+                // Bound
+                wI = wI >= mInstBuffer.size() ? mInstBuffer.size() - 1 : wI;
+                wI = wI < 0 ? 0 : wI;
 
-                repaint();
+                int_t wRowIndex = mInstBuffer.at(wI).rva;
 
-                wAccept = false;
+                if(wRowIndex < getRowCount())
+                {
+                    expandSelectionUpTo(wRowIndex);
+
+                    repaint();
+
+                    wAccept = false;
+                }
             }
         }
     }
