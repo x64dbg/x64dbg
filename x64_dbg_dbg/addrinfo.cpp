@@ -90,7 +90,9 @@ bool dbsave()
 void dbclose()
 {
     dbsave();
+    sqlite3_db_release_memory(db);
     sqlite3_close(db); //close program database
+    sqlite3_db_release_memory(internaldb);
     sqlite3_close(internaldb); //close internal database
 }
 
@@ -167,22 +169,27 @@ bool modunload(uint base)
     return false;
 }
 
+void modclear()
+{
+    modinfo.clear();
+}
+
 ///api functions
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
     uint size=mbi.RegionSize;
-    void* buffer=emalloc(size);
+    void* buffer=emalloc(size, "apienumexports:buffer");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, buffer, size, 0))
     {
-        efree(buffer);
+        efree(buffer, "apienumexports:buffer");
         return false;
     }
     IMAGE_NT_HEADERS* pnth=(IMAGE_NT_HEADERS*)((uint)buffer+GetPE32DataFromMappedFile((ULONG_PTR)buffer, 0, UE_PE_OFFSET));
     uint export_dir_rva=pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
     uint export_dir_size=pnth->OptionalHeader.DataDirectory[0].Size;
-    efree(buffer);
+    efree(buffer, "apienumexports:buffer");
     IMAGE_EXPORT_DIRECTORY export_dir;
     memset(&export_dir, 0, sizeof(export_dir));
     memread(fdProcessInfo->hProcess, (const void*)(export_dir_rva+base), &export_dir, sizeof(export_dir), 0);
@@ -251,7 +258,7 @@ bool commentset(uint addr, const char* text)
     if(!*text) //NOTE: delete when there is no text
         return commentdel(addr);
     int len=strlen(text);
-    char* newtext=(char*)emalloc(len+1);
+    char* newtext=(char*)emalloc(len+1, "commentset:newtext");
     *newtext=0;
     for(int i=0,j=0; i<len; i++)
     {
@@ -269,7 +276,7 @@ bool commentset(uint addr, const char* text)
         if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
         {
             sqlite3_finalize(stmt);
-            efree(newtext);
+            efree(newtext, "commentset:newtext");
             return false;
         }
         if(sqlite3_step(stmt)==SQLITE_ROW) //there is a comment already
@@ -285,7 +292,7 @@ bool commentset(uint addr, const char* text)
         if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
         {
             sqlite3_finalize(stmt);
-            efree(newtext);
+            efree(newtext, "commentset:newtext");
             return false;
         }
         if(sqlite3_step(stmt)==SQLITE_ROW) //there is a comment already
@@ -294,7 +301,7 @@ bool commentset(uint addr, const char* text)
             sprintf(sql, "INSERT INTO comments (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, newtext);
     }
     sqlite3_finalize(stmt);
-    efree(newtext);
+    efree(newtext, "commentset:newtext");
     char* errorText=0;
     if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
     {
@@ -381,7 +388,7 @@ bool labelset(uint addr, const char* text)
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
     int len=strlen(text);
-    char* newtext=(char*)emalloc(len+1);
+    char* newtext=(char*)emalloc(len+1, "labelset:newtext");
     *newtext=0;
     for(int i=0,j=0; i<len; i++)
     {
@@ -399,6 +406,7 @@ bool labelset(uint addr, const char* text)
         if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
         {
             sqlite3_finalize(stmt);
+            efree(newtext, "labelset:newtext");
             return false;
         }
         if(sqlite3_step(stmt)==SQLITE_ROW) //there is a label already
@@ -414,6 +422,7 @@ bool labelset(uint addr, const char* text)
         if(sqlite3_prepare_v2(db, sql, -1, &stmt, 0)!=SQLITE_OK)
         {
             sqlite3_finalize(stmt);
+            efree(newtext, "labelset:newtext");
             return false;
         }
         if(sqlite3_step(stmt)==SQLITE_ROW) //there is a label already
@@ -422,7 +431,7 @@ bool labelset(uint addr, const char* text)
             sprintf(sql, "INSERT INTO labels (mod,addr,text) VALUES ('%s',%"fext"d,'%s')", modname, rva, newtext);
     }
     sqlite3_finalize(stmt);
-    efree(newtext);
+    efree(newtext, "labelset:newtext");
     char* errorText=0;
     if(sqlite3_exec(db, sql, 0, 0, &errorText)!=SQLITE_OK) //error
     {

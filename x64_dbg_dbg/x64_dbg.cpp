@@ -11,8 +11,10 @@
 #include "x64_dbg.h"
 #include "msgqueue.h"
 #include "addrinfo.h"
+#include "threading.h"
 
-static MESSAGE_STACK* gMsgStack;
+static MESSAGE_STACK* gMsgStack=0;
+static COMMAND* command_list=0;
 
 static CMDRESULT cbStrLen(const char* cmd)
 {
@@ -32,8 +34,6 @@ static CMDRESULT cbCls(const char* cmd)
     GuiLogClear();
     return STATUS_CONTINUE;
 }
-
-static COMMAND* command_list=0;
 
 static void registercommands()
 {
@@ -88,14 +88,14 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     if(strlen(newcmd)>=deflen)
         newcmd[deflen-1]=0;
     strcpy(cmd, newcmd);
-    efree(newcmd); //free allocated command
+    efree(newcmd, "cbCommandProvider:newcmd"); //free allocated command
     return true;
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
     int len=strlen(cmd);
-    char* newcmd=(char*)emalloc((len+1)*sizeof(char));
+    char* newcmd=(char*)emalloc((len+1)*sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
 }
@@ -140,4 +140,15 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     //CreateThread(0, 0, ConsoleReadLoopThread, 0, 0, 0);
     return 0;
+}
+
+extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
+{
+    //TODO: handle exit signal
+    cbStopDebug("");
+    wait(WAITID_STOP); //after this, debugging stopped
+    DeleteFileA("DLLLoader.exe");
+    cmdfree(command_list);
+    varfree();
+    msgfreestack(gMsgStack);
 }

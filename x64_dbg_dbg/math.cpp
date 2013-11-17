@@ -56,13 +56,13 @@ mathformat:
 void mathformat(char* text)
 {
     int len=strlen(text);
-    char* temp=(char*)emalloc(len+1);
+    char* temp=(char*)emalloc(len+1, "mathformat:temp");
     memset(temp, 0, len+1);
     for(int i=0,j=0; i<len; i++)
         if(mathisoperator(text[i])<3 or text[i]!=text[i+1])
             j+=sprintf(temp+j, "%c", text[i]);
     strcpy(text, temp);
-    efree(temp);
+    efree(temp, "mathformat:temp");
 }
 
 /*
@@ -336,7 +336,7 @@ bool mathhandlebrackets(char* expression)
         return true;
     expstruct.total_pairs=total_pairs;
 
-    expstruct.pairs=(BRACKET_PAIR*)emalloc(expstruct.total_pairs*sizeof(BRACKET_PAIR));
+    expstruct.pairs=(BRACKET_PAIR*)emalloc(expstruct.total_pairs*sizeof(BRACKET_PAIR), "mathhandlebrackets:expstruct.pairs");
     memset(expstruct.pairs, 0, expstruct.total_pairs*sizeof(BRACKET_PAIR));
     matchpairs(&expstruct, expression, 0);
     int deepest=0;
@@ -348,7 +348,7 @@ bool mathhandlebrackets(char* expression)
         if(!printlayer(expression, &expstruct, i))
             return false;
 
-    efree(expstruct.pairs);
+    efree(expstruct.pairs, "mathhandlebrackets:expstruct.pairs");
     return true;
 }
 
@@ -375,8 +375,8 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
             return false;
         return true;
     }
-    char* strleft=(char*)emalloc(len+1);
-    char* strright=(char*)emalloc(len+1);
+    char* strleft=(char*)emalloc(len+1, "mathfromstring:strleft");
+    char* strright=(char*)emalloc(len+1, "mathfromstring:strright");
     memset(strleft, 0, len+1);
     memset(strright, 0, len+1);
     strncpy(strleft, string, highestop_pos);
@@ -384,15 +384,15 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
     //dprintf("left: %s, right: %s, op: %c\n", strleft, strright, string[highestop_pos]);
     if(!*strright)
     {
-        efree(strleft);
-        efree(strright);
+        efree(strleft, "mathfromstring:strleft");
+        efree(strright, "mathfromstring:strright");
         return false;
     }
     uint right=0;
     if(!valfromstring(strright, &right, 0, 0, false, 0))
     {
-        efree(strleft);
-        efree(strright);
+        efree(strleft, "mathfromstring:strleft");
+        efree(strright, "mathfromstring:strright");
         return false;
     }
     if(string[highestop_pos]=='~')
@@ -401,16 +401,16 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         if(!strlen(strleft))
         {
             *value=right;
-            efree(strleft);
-            efree(strright);
+            efree(strleft, "mathfromstring:strleft");
+            efree(strright, "mathfromstring:strright");
             return true;
         }
     }
     uint left=0;
     if(!valfromstring(strleft, &left, 0, 0, false, 0))
     {
-        efree(strleft);
-        efree(strright);
+        efree(strleft, "mathfromstring:strleft");
+        efree(strright, "mathfromstring:strright");
         return false;
     }
     bool math_ok;
@@ -418,8 +418,8 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         math_ok=mathdosignedoperation(string[highestop_pos], left, right, (sint*)value);
     else
         math_ok=mathdounsignedoperation(string[highestop_pos], left, right, value);
-    efree(strleft);
-    efree(strright);
+    efree(strleft, "mathfromstring:strleft");
+    efree(strright, "mathfromstring:strright");
     return math_ok;
 }
 

@@ -26,52 +26,38 @@ uint memfindbaseaddr(HANDLE hProcess, uint addr, uint* size)
 
 bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
-    //TODO: there are bugs in this function
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize)
+    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
 
-    SIZE_T read1=0;
+    SIZE_T read=0;
     DWORD oldprotect=0;
-    VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, PAGE_EXECUTE_READWRITE, &oldprotect);
-    bool test=ReadProcessMemory(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read1);
-    VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, oldprotect, &oldprotect);
-    if(test and read1==nSize)
+    bool ret=ReadProcessMemory(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
+    if(!ret or read!=nSize) //failed
+    {
+        VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, PAGE_EXECUTE_READWRITE, &oldprotect); //change page protection
+        ret=ReadProcessMemory(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM again
+        VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, oldprotect, &oldprotect); //restore page protection
+    }
+    if(ret and read==nSize) //'normal' RPM worked!
     {
         if(lpNumberOfBytesRead)
-            *lpNumberOfBytesRead=read1;
+            *lpNumberOfBytesRead=read;
         return true;
     }
 
-
-    uint addr=(uint)lpBaseAddress;
-    uint startRva=addr&(PAGE_SIZE-1); //get start rva
-    uint addrStart=addr-startRva; //round down one page
-    uint pages=nSize/PAGE_SIZE+1;
-    SIZE_T sizeRead=0;
-    unsigned char curPage[PAGE_SIZE]; //current page memory
-    unsigned char* destBuffer=(unsigned char*)lpBuffer;
-
-    for(uint i=0; i<pages; i++)
+    for(uint i=0; i<nSize; i++) //read byte-per-byte
     {
-        SIZE_T readBytes=0;
-        void* curAddr=(void*)(addrStart+i*PAGE_SIZE);
-        bool ret=ReadProcessMemory(hProcess, curAddr, curPage, PAGE_SIZE, &readBytes);
-        if(!ret or readBytes!=PAGE_SIZE)
+        unsigned char* curaddr=(unsigned char*)lpBaseAddress+i;
+        unsigned char* curbuf=(unsigned char*)lpBuffer+i;
+        ret=ReadProcessMemory(hProcess, curaddr, curbuf, 1, 0); //try 'normal' RPM
+        if(!ret) //we failed
         {
-            VirtualProtectEx(hProcess, curAddr, PAGE_SIZE, PAGE_EXECUTE_READWRITE, &oldprotect);
-            ret=ReadProcessMemory(hProcess, curAddr, curPage, PAGE_SIZE, &readBytes);
-            VirtualProtectEx(hProcess, curAddr, PAGE_SIZE, oldprotect, &oldprotect);
-            if(!ret or readBytes!=PAGE_SIZE)
+            VirtualProtectEx(hProcess, curaddr, 1, PAGE_EXECUTE_READWRITE, &oldprotect); //change page protection
+            ret=ReadProcessMemory(hProcess, curaddr, curbuf, PAGE_SIZE, 0); //try 'normal' RPM again
+            VirtualProtectEx(hProcess, curaddr, 1, oldprotect, &oldprotect); //restore page protection
+            if(!ret) //complete failure
                 return false;
         }
-        if(sizeRead+PAGE_SIZE>nSize) //do not overflow the buffer
-            memcpy(destBuffer, curPage+startRva, nSize-sizeRead);
-        else //default case
-            memcpy(destBuffer, curPage+startRva, PAGE_SIZE-startRva);
-        sizeRead+=(PAGE_SIZE-startRva);
-        destBuffer+=(PAGE_SIZE-startRva);
-        if(!i)
-            startRva=0;
     }
     return true;
 }

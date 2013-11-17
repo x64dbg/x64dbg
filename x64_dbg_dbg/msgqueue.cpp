@@ -4,19 +4,19 @@
 //allocate a message (internal)
 static MESSAGE* msgalloc()
 {
-    return (MESSAGE*)emalloc(sizeof(MESSAGE));
+    return (MESSAGE*)emalloc(sizeof(MESSAGE), "msgalloc:msg");
 }
 
 //free a message (internal)
 static void msgfree(MESSAGE* msg)
 {
-    efree(msg);
+    efree(msg, "msgfree:msg");
 }
 
 //allocate a message stack
 MESSAGE_STACK* msgallocstack()
 {
-    MESSAGE_STACK* msgstack=(MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK));
+    MESSAGE_STACK* msgstack=(MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
     if(!msgstack)
         return 0;
     memset(msgstack, 0, sizeof(MESSAGE_STACK));
@@ -31,7 +31,7 @@ void msgfreestack(MESSAGE_STACK* msgstack)
     int stackpos=msgstack->stackpos;
     for(int i=0; i<stackpos; i++) //free all messages left in stack
         msgfree(msgstack->msg[i]);
-    efree(msgstack);
+    efree(msgstack, "msgfreestack:msgstack");
 }
 
 //add a message to the stack

@@ -26,7 +26,7 @@ COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
 
 COMMAND* cmdinit()
 {
-    COMMAND* cmd=(COMMAND*)emalloc(sizeof(COMMAND));
+    COMMAND* cmd=(COMMAND*)emalloc(sizeof(COMMAND), "cmdinit:cmd");
     memset(cmd, 0, sizeof(COMMAND));
     return cmd;
 }
@@ -36,9 +36,9 @@ void cmdfree(COMMAND* cmd_list)
     COMMAND* cur=cmd_list;
     while(cur)
     {
-        efree(cur->name);
+        efree(cur->name, "cmdfree:cur->name");
         COMMAND* next=cur->next;
-        efree(cur);
+        efree(cur, "cmdfree:cur");
         cur=next;
     }
 }
@@ -55,9 +55,9 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
         nonext=true;
     }
     else
-        cmd=(COMMAND*)emalloc(sizeof(COMMAND));
+        cmd=(COMMAND*)emalloc(sizeof(COMMAND), "cmdnew:cmd");
     memset(cmd, 0, sizeof(COMMAND));
-    cmd->name=(char*)emalloc(strlen(name)+1);
+    cmd->name=(char*)emalloc(strlen(name)+1, "cmdnew:cmd->name");
     strcpy(cmd->name, name);
     cmd->cbCommand=cbCommand;
     cmd->debugonly=debugonly;
@@ -105,7 +105,7 @@ bool cmddel(COMMAND* command_list, const char* name)
     COMMAND* found=cmdfind(command_list, name, &prev);
     if(!found)
         return false;
-    efree(found->name);
+    efree(found->name, "cmddel:found->name");
     if(found==command_list)
     {
         COMMAND* next=command_list->next;
@@ -113,7 +113,7 @@ bool cmddel(COMMAND* command_list, const char* name)
         {
             memcpy(command_list, command_list->next, sizeof(COMMAND));
             command_list->next=next->next;
-            efree(next);
+            efree(next, "cmddel:next");
         }
         else
             memset(command_list, 0, sizeof(COMMAND));
@@ -121,7 +121,7 @@ bool cmddel(COMMAND* command_list, const char* name)
     else
     {
         prev->next=found->next;
-        efree(found);
+        efree(found, "cmddel:found");
     }
     return true;
 }
@@ -137,8 +137,7 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 {
     if(!cbUnknownCommand or !cbCommandProvider)
         return STATUS_ERROR;
-    char* command=(char*)emalloc(deflen);
-    memset(command, 0, deflen);
+    char command[deflen]="";
     bool bLoop=true;
     while(bLoop)
     {
@@ -176,7 +175,6 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
             }
         }
     }
-    efree(command);
     return STATUS_EXIT;
 }
 
@@ -187,7 +185,7 @@ static void specialformat(char* string)
 {
     int len=strlen(string);
     char* found=strstr(string, "=");
-    char* str=(char*)emalloc(len*2);
+    char* str=(char*)emalloc(len*2, "specialformat:str");
     memset(str, 0, len*2);
     if(found) //contains =
     {
@@ -197,7 +195,7 @@ static void specialformat(char* string)
         if(!*found)
         {
             *found='=';
-            efree(str);
+            efree(str, "specialformat:str");
             return;
         }
         int flen=strlen(found); //n(+)=n++
@@ -225,7 +223,7 @@ static void specialformat(char* string)
         sprintf(str, "mov %s,%s%c1", string, string, op);
         strcpy(string, str);
     }
-    efree(str);
+    efree(str, "specialformat:str");
 }
 
 /*

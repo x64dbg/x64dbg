@@ -11,8 +11,7 @@ extern "C"
 DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size);
 DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read);
 DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap);
-extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr);
-DLL_EXPORT void _dbg_dbgexitsignal();
+DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr);
 DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value);
 DLL_EXPORT bool _dbg_isdebugging();
 DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr);

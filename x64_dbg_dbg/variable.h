@@ -37,6 +37,7 @@ struct VAR
 
 //functions
 void varinit();
+void varfree();
 VAR* vargetptr();
 bool varnew(const char* name, uint value, VAR_TYPE type);
 bool varget(const char* name, uint* value, int* size, VAR_TYPE* type);

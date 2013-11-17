@@ -24,7 +24,7 @@ static VAR* varfind(const char* name, VAR** link)
 
 void varinit()
 {
-    vars=(VAR*)emalloc(sizeof(VAR));
+    vars=(VAR*)emalloc(sizeof(VAR), "varinit:vars");
     memset(vars, 0, sizeof(VAR));
     //General variables
     varnew("$res\1$result", 0, VAR_SYSTEM);
@@ -41,6 +41,18 @@ void varinit()
     varnew("$lastalloc", 0, VAR_READONLY);
 }
 
+void varfree()
+{
+    VAR* cur=vars;
+    while(cur)
+    {
+        efree(cur->name, "varfree:cur->name");
+        VAR* next=cur->next;
+        efree(cur, "varfree:cur");
+        cur=next;
+    }
+}
+
 VAR* vargetptr()
 {
     return vars;
@@ -50,7 +62,7 @@ bool varnew(const char* name_, uint value, VAR_TYPE type)
 {
     if(!name_)
         return false;
-    char* name=(char*)emalloc(strlen(name_)+2);
+    char* name=(char*)emalloc(strlen(name_)+2, "varnew:name");
     if(*name_!='$')
     {
         *name='$';
@@ -60,12 +72,12 @@ bool varnew(const char* name_, uint value, VAR_TYPE type)
         strcpy(name, name_);
     if(!name[1])
     {
-        efree(name);
+        efree(name, "varnew:name");
         return false;
     }
     if(varfind(name, 0))
     {
-        efree(name);
+        efree(name, "varnew:name");
         return false;
     }
     VAR* var;
@@ -76,7 +88,7 @@ bool varnew(const char* name_, uint value, VAR_TYPE type)
         var=vars;
     }
     else
-        var=(VAR*)emalloc(sizeof(VAR));
+        var=(VAR*)emalloc(sizeof(VAR), "varnew:var");
     memset(var, 0, sizeof(VAR));
     var->name=name;
     var->type=type;
@@ -127,7 +139,7 @@ bool varset(const char* name, uint value, bool setreadonly)
 
 bool vardel(const char* name_, bool delsystem)
 {
-    char* name=(char*)emalloc(strlen(name_)+2);
+    char* name=(char*)emalloc(strlen(name_)+2, "vardel:name");
     if(*name_!='$')
     {
         *name='$';
@@ -137,7 +149,7 @@ bool vardel(const char* name_, bool delsystem)
         strcpy(name, name_);
     VAR* prev=0;
     VAR* found=varfind(name, &prev);
-    efree(name);
+    efree(name, "vardel:name");
     if(!found)
         return false;
     VAR_TYPE type=found->type;
@@ -145,7 +157,7 @@ bool vardel(const char* name_, bool delsystem)
         return false;
     if(type==VAR_HIDDEN)
         return false;
-    efree(found->name);
+    efree(found->name, "vardel:found->name");
     if(found==vars)
     {
         VAR* next=vars->next;
@@ -153,7 +165,7 @@ bool vardel(const char* name_, bool delsystem)
         {
             memcpy(vars, vars->next, sizeof(VAR));
             vars->next=next->next;
-            efree(next);
+            efree(next, "vardel:next");
         }
         else
             memset(vars, 0, sizeof(VAR));
@@ -161,7 +173,7 @@ bool vardel(const char* name_, bool delsystem)
     else
     {
         prev->next=found->next;
-        efree(found);
+        efree(found, "vardel:found");
     }
     return true;
 }

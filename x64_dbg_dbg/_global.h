@@ -97,6 +97,8 @@ extern char dbpath[deflen];
 //functions
 void* emalloc(size_t size);
 void efree(void* ptr);
+void* emalloc(size_t size, const char* reason);
+void efree(void* ptr, const char* reason);
 bool arraycontains(const char* cmd_list, const char* cmd);
 bool scmp(const char* a, const char* b);
 void formathex(char* string);

@@ -4,7 +4,7 @@
 #include "_global.h"
 #include <windows.h>
 
-#define MAX_MESSAGES 4096
+#define MAX_MESSAGES 256
 
 //message structure
 struct MESSAGE

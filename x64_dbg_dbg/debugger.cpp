@@ -411,12 +411,13 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
         unlock(WAITID_SYSBREAK);
         return 0;
     }
+    lock(WAITID_STOP);
     strcpy(szFileName, init->exe);
-    efree(init); //free init struct
+    efree(init, "threadDebugLoop:init"); //free init struct
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount=0;
-    bplist=bpinit(bplist);
+    bplist=bpinit();
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
@@ -429,11 +430,14 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     DebugLoop();
     DeleteFileA("DLLLoader.exe");
     //message the user/do final stuff
+    SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     GuiSetDebugState(stopped);
+    bpfree(bplist);
     dputs("debugging stopped!");
     varset("$hp", 0, true);
     varset("$pid", 0, true);
+    unlock(WAITID_STOP);
     waitclear();
     return 0;
 }
@@ -472,7 +476,7 @@ CMDRESULT cbDebugInit(const char* cmd)
     currentfolder[len]=0;
     if(DirExists(arg3))
         strcpy(currentfolder, arg3);
-    INIT_STRUCT* init=(INIT_STRUCT*)emalloc(sizeof(INIT_STRUCT));
+    INIT_STRUCT* init=(INIT_STRUCT*)emalloc(sizeof(INIT_STRUCT), "cbDebugInit:init");
     memset(init, 0, sizeof(INIT_STRUCT));
     init->exe=arg1;
     init->commandline=commandline;
@@ -1182,7 +1186,7 @@ CMDRESULT cbMemWrite(const char* cmd)
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
         return STATUS_ERROR;
-    unsigned char* blub=(unsigned char*)emalloc(0x2123);
+    unsigned char* blub=(unsigned char*)emalloc(0x2123, "cbMemWrite:blub");
     memread(fdProcessInfo->hProcess, (const void*)addr, blub, 0x2123, 0);
     //memwrite(fdProcessInfo->hProcess, (void*)addr, blub, 0x2123, 0);
     return STATUS_CONTINUE;

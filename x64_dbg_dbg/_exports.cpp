@@ -4,6 +4,7 @@
 #include "value.h"
 #include "addrinfo.h"
 #include "console.h"
+#include "threading.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -60,14 +61,6 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 {
     return memisvalidreadptr(fdProcessInfo->hProcess, addr);
-}
-
-extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
-{
-    //TODO: handle exit signal
-    cbStopDebug("");
-    Sleep(200);
-    DeleteFileA("DLLLoader.exe");
 }
 
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)

@@ -26,7 +26,8 @@ struct BREAKPOINT
 };
 
 //functions
-BREAKPOINT* bpinit(BREAKPOINT* breakpoint_list);
+BREAKPOINT* bpinit();
+void bpfree(BREAKPOINT* breakpoint_list);
 BREAKPOINT* bpfind(BREAKPOINT* breakpoint_list, const char* name, uint addr, BREAKPOINT** link, BP_TYPE type);
 bool bpnew(BREAKPOINT* breakpoint_list, const char* name, uint addr, short oldbytes, BP_TYPE type);
 bool bpsetname(BREAKPOINT* breakpoint_list, uint addr, const char* name);

@@ -20,7 +20,7 @@ Disassembly::Disassembly(MemoryPage* parMemPage, QWidget *parent) : AbstractTabl
 
     setRowCount(parMemPage->getSize());
 
-    qDebug() << "size" << parMemPage->getSize();
+    //qDebug() << "size" << parMemPage->getSize();
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
