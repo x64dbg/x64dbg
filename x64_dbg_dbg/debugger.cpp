@@ -30,25 +30,24 @@ static void cbUserBreakpoint();
 
 void dbgdisablebpx()
 {
-    uint* bplist=0;
-    int* titantype=0;
-    int bpcount=bpgetlist(&bplist, &titantype);
+    BREAKPOINT* list;
+    int bpcount=bpgetlist(&list);
     for(int i=0; i<bpcount; i++)
     {
-        //printf(fhex"\n", bplist[i]);
-        if(IsBPXEnabled(bplist[i]))
-            DeleteBPX(bplist[i]);
+        if(IsBPXEnabled(list[i].addr))
+            DeleteBPX(list[i].addr);
     }
 }
 
 void dbgenablebpx()
 {
-    uint* bplist=0;
-    int* titantype=0;
-    int bpcount=bpgetlist(&bplist, &titantype);
+    BREAKPOINT* list;
+    int bpcount=bpgetlist(&list);
     for(int i=0; i<bpcount; i++)
-        if(!IsBPXEnabled(bplist[i]))
-            SetBPX(bplist[i], titantype[i], (void*)cbUserBreakpoint);
+    {
+        if(!IsBPXEnabled(list[i].addr) and list[i].enabled)
+            SetBPX(list[i].addr, list[i].titantype, (void*)cbUserBreakpoint);
+    }
 }
 
 bool dbgisrunning()
@@ -66,9 +65,8 @@ void DebugUpdateGui(uint disasm_addr)
 
 static void cbUserBreakpoint()
 {
-    //TODO: restore bp
     BREAKPOINT bp;
-    if(!bpget(GetContextData(UE_CIP), BPNORMAL, &bp))
+    if(!bpget(GetContextData(UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
         dputs("breakpoint reached not in list!");
     else
     {
@@ -139,6 +137,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     uint cip=GetContextData(UE_CIP);
     uint size;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
+    //TODO: restore bp
     /*BREAKPOINT* cur=bpfind(bplist, 0, base, 0, BPMEMORY);
     if(!cur)
         dputs("memory breakpoint reached not in list!");
@@ -246,14 +245,17 @@ SymRegisterCallbackProc64(
     return TRUE;
 }
 
-static void cbSetModuleBreakpoints(const BREAKPOINT* bp)
+static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
     //TODO: more breakpoint types
     switch(bp->type)
     {
     case BPNORMAL:
         if(bp->enabled)
-            SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint);
+        {
+            if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+                dprintf("could not set breakpoint "fhex"\n!", bp->addr);
+        }
         break;
     case BPMEMORY:
         break;
@@ -262,6 +264,7 @@ static void cbSetModuleBreakpoints(const BREAKPOINT* bp)
     default:
         break;
     }
+    return true;
 }
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
@@ -285,7 +288,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bpenumall(cbSetModuleBreakpoints, modname);
 }
 
-static void cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
+static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
     //TODO: more breakpoint types
     switch(bp->type)
@@ -301,6 +304,7 @@ static void cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     default:
         break;
     }
+    return true;
 }
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
@@ -314,9 +318,8 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     dprintf("DLL Unloaded: "fhex" %s\n", base, DLLDebugFileName);
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname))
-        bpenumall(cbSetModuleBreakpoints, modname);
+        bpenumall(cbRemoveModuleBreakpoints, modname);
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
-    bpenumall(0);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -565,9 +568,6 @@ CMDRESULT cbDebugSetBPXOptions(const char* cmd)
 CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
 {
     char argaddr[deflen]="";
-    if(!argget(cmd, argaddr, 0, true))
-        if(!_strnicmp(cmd, "bp", 2))
-            return cbBadCmd(cmd);
     if(!argget(cmd, argaddr, 0, false))
         return STATUS_ERROR;
     char argname[deflen]="";
@@ -586,7 +586,7 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
         dprintf("invalid addr: \"%s\"\n", argaddr);
         return STATUS_ERROR;
     }
-    if(addr==(uint)(GetPE32Data(szFileName, 0, UE_OEP)+GetPE32Data(szFileName, 0, UE_IMAGEBASE)))
+    if(addr==(uint)(GetPE32Data(szFileName, 0, UE_OEP)+pDebuggedDllBase))
     {
         dputs("entry breakpoint will be set automatically");
         return STATUS_ERROR;
@@ -607,256 +607,189 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
     else if(strstr(argtype, "short"))
         type|=UE_BREAKPOINT_TYPE_INT3;
     short oldbytes;
-    bool found=bpget(addr, BPNORMAL, 0);
-    if(IsBPXEnabled(addr) or !memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0) or found or !SetBPX(addr, type, (void*)cbUserBreakpoint))
+    const char* bpname=0;
+    if(*argname)
+        bpname=argname;
+    if(IsBPXEnabled(addr) or !memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0) or bpget(addr, BPNORMAL, bpname, 0) or !SetBPX(addr, type, (void*)cbUserBreakpoint) or !bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
     {
         dprintf("error setting breakpoint at "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    if(bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type))
-        dprintf("breakpoint at "fhex" set!\n", addr);
-    else
-    {
-        dputs("problem setting breakpoint!");
-        return STATUS_ERROR;
-    }
+    dprintf("breakpoint at "fhex" set!\n", addr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
+static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(DeleteBPX(bp->addr) and bpdel(bp->addr, BPNORMAL))
+        return true;
+    dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
+    return false;
+}
+
+CMDRESULT cbDebugDeleteBPX(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    {
+        if(!bpgetlist(0)) //get number of breakpoints
+        {
+            dputs("no breakpoints to delete!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbDeleteAllBreakpoints)) //at least one deletion failed
+            return STATUS_ERROR;
+        dputs("all breakpoints deleted!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
+    {
+        if(!DeleteBPX(found.addr) or !bpdel(found.addr, BPNORMAL))
+        {
+            dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+            return STATUS_ERROR;
+        }
+        return STATUS_CONTINUE;
+    }
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    {
+        dprintf("no such breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!DeleteBPX(found.addr) or !bpdel(found.addr, BPNORMAL))
+    {
+        dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("breakpoint deleted!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+static bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint) or !bpenable(bp->addr, BPNORMAL, true))
+    {
+        dprintf("could not enable "fhex"\n", bp->addr);
+        return false;
+    }
+    return true;
+}
+
 CMDRESULT cbDebugEnableBPX(const char* cmd)
 {
-    //TODO: restore bp
-    /*
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //enable all breakpoints
+    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
     {
-        BREAKPOINT* cur=bplist;
-        if(!cur or !cur->addr)
+        if(!bpgetlist(0)) //get number of breakpoints
         {
-            dputs("no breakpoints!");
+            dputs("no breakpoints to enable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbEnableAllBreakpoints)) //at least one deletion failed
             return STATUS_ERROR;
-        }
-        bool bNext=true;
-        CMDRESULT res=STATUS_CONTINUE;
-        while(bNext)
-        {
-            if(!SetBPX(cur->addr, cur->type, (void*)cbUserBreakpoint))
-            {
-                dprintf("could not enable %.8X\n", cur->addr);
-                res=STATUS_ERROR;
-            }
-            else
-                cur->enabled=true;
-            cur=cur->next;
-            if(!cur)
-                bNext=false;
-        }
         dputs("all breakpoints enabled!");
         GuiUpdateAllViews();
-        return res;
+        return STATUS_CONTINUE;
     }
-    BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
-    if(!bp)
+    BREAKPOINT found;
+    if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
     {
-        uint addr=0;
-        if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+        if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint) or !bpenable(found.addr, BPNORMAL, true))
         {
-            dprintf("invalid addr: \"%s\"\n", arg1);
+            dprintf("could not enable "fhex"\n", found.addr);
             return STATUS_ERROR;
         }
-        bp=bpfind(bplist, 0, addr, 0, BPNORMAL);
-        if(!bp)
-        {
-            dprintf("no such breakpoint: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
     }
-    if(bp->type!=BPNORMAL and bp->type!=BPSINGLESHOOT)
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
-        dputs("this breakpoint type cannot be enabled");
+        dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(bp->enabled)
+    if(found.enabled)
     {
         dputs("breakpoint already enabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint) or !bpenable(found.addr, BPNORMAL, true))
+    {
+        dprintf("could not enable "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
-    if(!SetBPX(bp->addr, bp->type, (void*)cbUserBreakpoint))
-        dputs("could not enable breakpoint");
-    else
-        bp->enabled=true;
-    GuiUpdateAllViews();*/
+    dputs("breakpoint enabled!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
+}
+
+static bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(!DeleteBPX(bp->addr) or !bpenable(bp->addr, BPNORMAL, false))
+    {
+        dprintf("could not disable "fhex"\n", bp->addr);
+        return false;
+    }
+    return true;
 }
 
 CMDRESULT cbDebugDisableBPX(const char* cmd)
 {
-    //TODO: restore bp
-    /*
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //disable all breakpoints
+    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
     {
-        BREAKPOINT* cur=bplist;
-        if(!cur or !cur->addr)
+        if(!bpgetlist(0)) //get number of breakpoints
         {
-            dputs("no breakpoints!");
+            dputs("no breakpoints to disable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbDisableAllBreakpoints)) //at least one deletion failed
             return STATUS_ERROR;
-        }
-        bool bNext=true;
-        CMDRESULT res=STATUS_CONTINUE;
-        while(bNext)
-        {
-            if(!DeleteBPX(cur->addr))
-            {
-                dprintf("could not disable %.8X\n", cur->addr);
-                res=STATUS_ERROR;
-            }
-            else
-                cur->enabled=false;
-            cur=cur->next;
-            if(!cur)
-                bNext=false;
-        }
         dputs("all breakpoints disabled!");
         GuiUpdateAllViews();
-        return res;
+        return STATUS_CONTINUE;
     }
-    BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
-    if(!bp)
+    BREAKPOINT found;
+    if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
     {
-        uint addr=0;
-        if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+        if(!DeleteBPX(found.addr) or !bpenable(found.addr, BPNORMAL, false))
         {
-            dprintf("invalid addr: \"%s\"\n", arg1);
+            dprintf("could not disable "fhex"\n", found.addr);
             return STATUS_ERROR;
         }
-        bp=bpfind(bplist, 0, addr, 0, BPNORMAL);
-        if(!bp)
-        {
-            dprintf("no such breakpoint: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
     }
-    if(bp->type!=BPNORMAL and bp->type!=BPSINGLESHOOT)
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
-        dputs("this breakpoint type cannot be disabled");
+        dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!bp->enabled)
+    if(!found.enabled)
     {
         dputs("breakpoint already disabled!");
+        return STATUS_CONTINUE;
+    }
+    if(!DeleteBPX(found.addr) or !bpenable(found.addr, BPNORMAL, false))
+    {
+        dprintf("could not disable "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
-    if(!DeleteBPX(bp->addr))
-        dputs("could not disable breakpoint");
-    else
-        bp->enabled=false;
-    GuiUpdateAllViews();*/
+    dputs("breakpoint enabled!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugToggleBPX(const char* cmd)
 {
     //TODO: restore bp
-    /*
-    char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
-        return STATUS_ERROR;
-    BREAKPOINT* bp=bpfind(bplist, arg1, 0, 0, BPNORMAL);
-    if(!bp)
-    {
-        uint addr=0;
-        if(!valfromstring(arg1, &addr, 0, 0, false, 0))
-        {
-            dprintf("invalid addr: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
-        bp=bpfind(bplist, 0, addr, 0, BPNORMAL);
-        if(!bp)
-        {
-            dprintf("no such breakpoint: \"%s\"\n", arg1);
-            return STATUS_ERROR;
-        }
-    }
-    if(bp->type!=BPNORMAL and bp->type!=BPSINGLESHOOT)
-    {
-        dputs("this breakpoint type cannot be toggled");
-        return STATUS_ERROR;
-    }
-    bool disable=bp->enabled;
-    if(disable)
-    {
-        if(!DeleteBPX(bp->addr))
-        {
-            dputs("could not disable breakpoint");
-            return STATUS_ERROR;
-        }
-        else
-        {
-            bp->enabled=false;
-            dputs("breakpoint disabled!");
-        }
-    }
-    else
-    {
-        if(!SetBPX(bp->addr, bp->type, (void*)cbUserBreakpoint))
-        {
-            dputs("could not disable breakpoint");
-            return STATUS_ERROR;
-        }
-        else
-        {
-            bp->enabled=true;
-            dputs("breakpoint enabled!");
-        }
-    }
-    varset("$res", (uint)disable, false);
-    GuiUpdateAllViews();*/
-    return STATUS_CONTINUE;
-}
-
-static void cbDeleteAllBreakpoints(const BREAKPOINT* bp)
-{
-    DeleteBPX(bp->addr);
-    bpdel(bp->addr, BPNORMAL);
-}
-
-CMDRESULT cbDebugDeleteBPX(const char* cmd)
-{
-    //TODO: restore bp
-    char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
-    {
-        if(!bpgetlist(0, 0))
-        {
-            dputs("no breakpoints!");
-            return STATUS_ERROR;
-        }
-        bpenumall(cbDeleteAllBreakpoints);
-        dputs("all breakpoints deleted!");
-        GuiUpdateAllViews();
-        return STATUS_CONTINUE;
-    }
-    BREAKPOINT bp;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
-    {
-        dprintf("invalid addr: \"%s\"\n", arg1);
-        return STATUS_ERROR;
-    }
-    if(!bpget(addr, BPNORMAL, &bp))
-    {
-        dprintf("no such breakpoint: \"%s\"\n", arg1);
-        return STATUS_ERROR;
-    }
-    if(!DeleteBPX(bp.addr))
-    {
-        dprintf("delete breakpoint failed: "fhex"\n", bp.addr);
-        return STATUS_ERROR;
-    }
-    bpdel(addr, BPNORMAL);
-    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

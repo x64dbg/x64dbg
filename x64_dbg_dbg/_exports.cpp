@@ -182,12 +182,15 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 {
     BREAKPOINT bp;
     int result=0;
-    if(bpget(addr, BPNORMAL, &bp))
-        result|=bpnormal;
-    if(bpget(addr, BPHARDWARE, &bp))
-        result|=bphardware;
-    if(bpget(addr, BPMEMORY, &bp))
-        result|=bpmemory;
+    if(bpget(addr, BPNORMAL, 0, &bp))
+        if(bp.enabled)
+            result|=bpnormal;
+    if(bpget(addr, BPHARDWARE, 0, &bp))
+        if(bp.enabled)
+            result|=bphardware;
+    if(bpget(addr, BPMEMORY, 0, &bp))
+        if(bp.enabled)
+            result|=bpmemory;
     return result;
     return 0;
 }

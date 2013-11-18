@@ -25,16 +25,17 @@ struct BREAKPOINT
     BP_TYPE type;
     int titantype;
     char name[MAX_BREAKPOINT_NAME];
+    char mod[32];
 };
 #pragma pack()
 
 //typedefs
-typedef void (*BPENUMCALLBACK)(const BREAKPOINT* bp);
+typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
 
 //functions
-int bpgetlist(uint** list, int** type);
-bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, int titantype);
-bool bpget(uint addr, BP_TYPE type, BREAKPOINT* bp);
+int bpgetlist(BREAKPOINT** list);
+bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, int titantype, const char* name);
+bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp);
 bool bpdel(uint addr, BP_TYPE type);
 bool bpenable(uint addr, BP_TYPE type, bool enable);
 bool bpsetname(uint addr, BP_TYPE type, const char* name);

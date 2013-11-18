@@ -16,18 +16,24 @@ void dbinit()
         dputs("failed to open database!");
         return;
     }
-    dbload();
+    sqlloadorsavedb(userdb, dbpath, false);
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, addr INT64 NOT NULL, enabled INT NOT NULL, singleshoot INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL, titantype INT NOT NULL, mod TEXT, name TEXT)"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    dbsave();
     bpenumall(0);
 }
 
 bool dbload()
 {
+    if(!FileExists(dbpath))
+    {
+        dbinit();
+        return true;
+    }
     return sqlloadorsavedb(userdb, dbpath, false);
 }
 
@@ -203,7 +209,7 @@ bool commentset(uint addr, const char* text)
     char commenttext[MAX_COMMENT_SIZE]="";
     sqlstringescape(text, commenttext);
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //comments without module
     {
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -237,7 +243,7 @@ bool commentget(uint addr, char* text)
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //comments without module
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
@@ -250,7 +256,7 @@ bool commentdel(uint addr)
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //comments without module
         sprintf(sql, "SELECT id FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
@@ -283,7 +289,7 @@ bool labelset(uint addr, const char* text)
     char labeltext[MAX_LABEL_SIZE]="";
     sqlstringescape(text, labeltext);
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //labels without module
     {
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -317,7 +323,7 @@ bool labelget(uint addr, char* text)
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //labels without module
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
@@ -330,7 +336,7 @@ bool labeldel(uint addr)
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[35]="";
-    char sql[256]="";
+    char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //labels without module
         sprintf(sql, "SELECT id FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else

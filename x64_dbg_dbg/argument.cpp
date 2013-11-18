@@ -24,6 +24,8 @@ formatarg:
 */
 void argformat(char* cmd)
 {
+    if(strlen(cmd)>=deflen)
+        return;
     char command_[deflen]="";
     char* command=command_;
     strcpy(command, cmd);
@@ -147,7 +149,7 @@ void argformat(char* cmd)
 int arggetcount(const char* cmd)
 {
     int len=strlen(cmd);
-    if(!len)
+    if(!len or len>=deflen)
         return -1;
 
     int arg_count=0;
@@ -182,6 +184,8 @@ int arggetcount(const char* cmd)
 */
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {
+    if(strlen(cmd)>=deflen)
+        return false;
     int argcount=arggetcount(cmd);
     if((arg_num+1)>argcount)
     {

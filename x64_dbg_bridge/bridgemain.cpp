@@ -1,6 +1,7 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
+#include <new>
 
 static HINSTANCE hInst;
 
@@ -129,7 +130,7 @@ DLL_IMPEXP const char* BridgeStart()
 
 DLL_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a= new unsigned char[size];
+    unsigned char* a= new (std::nothrow)unsigned char[size];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);

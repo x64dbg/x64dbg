@@ -1,8 +1,9 @@
 #include "_global.h"
+#include <new>
 
 HINSTANCE hInst;
 char sqlitedb_basedir[deflen]="";
-char dbpath[deflen]="";
+char dbpath[3*deflen]="";
 
 void* emalloc(size_t size)
 {
@@ -25,7 +26,7 @@ static int emalloc_count=0;
 
 void* emalloc(size_t size, const char* reason)
 {
-    unsigned char* a=new unsigned char[size+0x1000];
+    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -51,6 +52,8 @@ bool arraycontains(const char* cmd_list, const char* cmd)
     char temp[deflen]="";
     strcpy(temp, cmd_list);
     int len=strlen(cmd_list);
+    if(len>=deflen)
+        return false;
     for(int i=0; i<len; i++)
         if(temp[i]==1)
             temp[i]=0;

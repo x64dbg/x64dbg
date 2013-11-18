@@ -123,7 +123,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     DeleteFileA("DLLLoader.exe");
     char dir[deflen]="";
-    GetModuleFileNameA(hInst, dir, deflen);
+    if(!GetModuleFileNameA(hInst, dir, deflen))
+        return "GetModuleFileNameA failed!";
     int len=strlen(dir);
     while(dir[len]!='\\')
         len--;
