@@ -23,16 +23,16 @@ public:
 signals:
     
 public slots:
-    void toogleInt3BPAction();
-    void toogleHwBpActionSlot();
+    void toggleInt3BPAction();
+    void toggleHwBpActionSlot();
     void setNewOriginHereActionSlot();
 
 private:
     // Rigth Click Context Menu
     QMenu* mRigthClickContextMenu;
 
-    QAction* mToogleInt3BpAction;
-    QAction* mToogleHwBpAction;
+    QAction* mToggleInt3BpAction;
+    QAction* mToggleHwBpAction;
     QAction* mSetNewOriginHere;
 };
 

@@ -192,7 +192,6 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
         if(bp.enabled)
             result|=bpmemory;
     return result;
-    return 0;
 }
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)

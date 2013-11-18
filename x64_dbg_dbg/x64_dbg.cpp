@@ -50,10 +50,9 @@ static void registercommands()
     cmdnew(cmd, "run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
     cmdnew(cmd, "SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
     cmdnew(cmd, "SetBPX\1bp\1bpx", cbDebugSetBPX, true); //breakpoint
+    cmdnew(cmd, "DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
     cmdnew(cmd, "EnableBPX\1bpe\1be", cbDebugEnableBPX, true); //breakpoint enable
     cmdnew(cmd, "DisableBPX\1bpd\1bd", cbDebugDisableBPX, true); //breakpoint disable
-    cmdnew(cmd, "ToggleBPX\1bpt\1bt", cbDebugToggleBPX, true); //breakpoint toggle
-    cmdnew(cmd, "DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
     cmdnew(cmd, "bplist", cbDebugBplist, true); //breakpoint list
     cmdnew(cmd, "StepInto\1sti", cbDebugStepInto, true); //StepInto
     cmdnew(cmd, "StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
@@ -78,6 +77,7 @@ static void registercommands()
     cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
     cmdnew(cmd, "savedb\1dbsave", cbSavedb, true); //save program database
     cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
+    cmdnew(cmd, "DeleteHardwareBreakpoint\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

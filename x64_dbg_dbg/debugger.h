@@ -25,10 +25,9 @@ CMDRESULT cbStopDebug(const char* cmd);
 CMDRESULT cbDebugRun(const char* cmd);
 CMDRESULT cbDebugSetBPXOptions(const char* cmd);
 CMDRESULT cbDebugSetBPX(const char* cmd);
+CMDRESULT cbDebugDeleteBPX(const char* cmd);
 CMDRESULT cbDebugEnableBPX(const char* cmd);
 CMDRESULT cbDebugDisableBPX(const char* cmd);
-CMDRESULT cbDebugToggleBPX(const char* cmd);
-CMDRESULT cbDebugDeleteBPX(const char* cmd);
 CMDRESULT cbDebugBplist(const char* cmd);
 CMDRESULT cbDebugStepInto(const char* cmd);
 CMDRESULT cbDebugStepOver(const char* cmd);
@@ -45,6 +44,7 @@ CMDRESULT cbBenchmark(const char* cmd);
 CMDRESULT cbDebugPause(const char* cmd);
 CMDRESULT cbMemWrite(const char* cmd);
 CMDRESULT cbStartScylla(const char* cmd);
+CMDRESULT cbDebugDeleteHardwareBreakpoint(const char* cmd);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

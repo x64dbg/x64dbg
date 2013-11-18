@@ -25,11 +25,11 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
     if((wBpType & bphardware) == bphardware)
     {
-        mToogleHwBpAction->setText("Remove Hardware");
+        mToggleHwBpAction->setText("Remove Hardware");
     }
     else
     {
-        mToogleHwBpAction->setText("Set Hardware on Execution");
+        mToggleHwBpAction->setText("Set Hardware on Execution");
     }
 
     QAction* wAction = mRigthClickContextMenu->exec(event->globalPos());
@@ -47,17 +47,17 @@ void CPUDisassembly::setupRightClickContextMenu()
     QMenu* wBPMenu = new QMenu("Breakpoints", this);
 
     // INT3 BP
-    mToogleInt3BpAction = new QAction("Toogle INT3", this);
-    mToogleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
-    mToogleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
-    this->addAction(mToogleInt3BpAction);
-    connect(mToogleInt3BpAction, SIGNAL(triggered()), this, SLOT(toogleInt3BPAction()));
-    wBPMenu->addAction(mToogleInt3BpAction);
+    mToggleInt3BpAction = new QAction("Toggle INT3", this);
+    mToggleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
+    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
+    this->addAction(mToggleInt3BpAction);
+    connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
+    wBPMenu->addAction(mToggleInt3BpAction);
 
     // HW BP
-    mToogleHwBpAction = new QAction("Set Hardware on Execution", this);
-    connect(mToogleHwBpAction, SIGNAL(triggered()), this, SLOT(toogleHwBpActionSlot()));
-    wBPMenu->addAction(mToogleHwBpAction);
+    mToggleHwBpAction = new QAction("Set Hardware on Execution", this);
+    connect(mToggleHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
+    wBPMenu->addAction(mToggleHwBpAction);
 
     mRigthClickContextMenu->addMenu(wBPMenu);
 
@@ -75,7 +75,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 }
 
 
-void CPUDisassembly::toogleInt3BPAction()
+void CPUDisassembly::toggleInt3BPAction()
 {
     int_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
@@ -90,11 +90,11 @@ void CPUDisassembly::toogleInt3BPAction()
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
-    Bridge::getBridge()->execCmd(wCmd.toAscii().data());
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
 }
 
 
-void CPUDisassembly::toogleHwBpActionSlot()
+void CPUDisassembly::toggleHwBpActionSlot()
 {
     int_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
@@ -102,30 +102,20 @@ void CPUDisassembly::toogleHwBpActionSlot()
 
     if((wBpType & bphardware) == bphardware)
     {
-        // Todo
-        QMessageBox::information(this, "Remove Hardware Breakpoint", "Not yet implemented!");
-        return;
+        wCmd = "bphwc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else
     {
-        wCmd = "bph " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphws " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
-    Bridge::getBridge()->execCmd(wCmd.toAscii().data());
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
 }
 
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {
     int_t wVA = rvaToVa(getInitialSelection());
-    QString wCmd = "";
-
-#ifdef _WIN64
-    wCmd = "rip=";
-#else
-    wCmd = "eip=";
-#endif
-
-    wCmd += QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toAscii().data());
+    QString wCmd = "cip=" + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
 }

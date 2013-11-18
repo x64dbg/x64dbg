@@ -55,7 +55,6 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
         {
             sqlstringescape(name, bpname);
             sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE (addr=%"fext"d AND type=%d AND mod IS NULL) OR name='%s'", addr, type, bpname);
-            puts(sql);
         }
         else
             sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE (addr=%"fext"d AND type=%d AND mod IS NULL)", addr, type);
@@ -160,7 +159,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
         sprintf(sql, "UPDATE breakpoints SET enabled=%d WHERE addr=%"fext"d AND mod IS NULL AND type=%d", enable, addr, type);
     else
         sprintf(sql, "UPDATE breakpoints SET enabled=%d WHERE addr=%"fext"d AND mod='%s' AND type=%d", enable, addr-modbasefromaddr(addr), modname, type);
-    if(sqlexec(userdb, sql))
+    if(!sqlexec(userdb, sql))
     {
         dprintf("SQL Error: %s\n", sqllasterror());
         return false;
@@ -237,17 +236,16 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
             strcpy(curbp.name, bpname);
         else
             *curbp.name=0;
-        //TODO: fix breakpoints without module
         uint modbase=modbasefromname(modname);
-        if(!modbase) //module not loaded //TODO: fix this
-            continue;
+        if(!modbase) //module not loaded
+            *curbp.mod=0;
         curbp.addr=modbase+rva;
         if(cbEnum)
         {
             if(!cbEnum(&curbp))
                 retval=false;
         }
-        else if(bpcount<1000 and curbp.type==BPNORMAL)
+        else if(bpcount<1000)
         {
             memcpy(&bpall[bpcount], &curbp, sizeof(BREAKPOINT));
             bpcount++;
@@ -261,4 +259,11 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
 bool bpenumall(BPENUMCALLBACK cbEnum)
 {
     return bpenumall(cbEnum, 0);
+}
+
+int bpgetcount(BP_TYPE type)
+{
+    char sql[deflen]="";
+    sprintf(sql, "SELECT * FROM breakpoints WHERE type=%d", type);
+    return sqlrowcount(userdb, sql);
 }

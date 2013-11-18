@@ -16,7 +16,7 @@ void dbinit()
         dputs("failed to open database!");
         return;
     }
-    sqlloadorsavedb(userdb, dbpath, false);
+    sqlloadsavedb(userdb, dbpath, false);
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
@@ -34,13 +34,13 @@ bool dbload()
         dbinit();
         return true;
     }
-    return sqlloadorsavedb(userdb, dbpath, false);
+    return sqlloadsavedb(userdb, dbpath, false);
 }
 
 bool dbsave()
 {
     CreateDirectoryA(sqlitedb_basedir, 0); //create database directory
-    return sqlloadorsavedb(userdb, dbpath, true);
+    return sqlloadsavedb(userdb, dbpath, true);
 }
 
 void dbclose()

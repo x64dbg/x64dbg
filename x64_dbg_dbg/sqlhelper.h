@@ -9,6 +9,7 @@ bool sqlgettext(sqlite3* db, const char* query, char* result);
 bool sqlgetuint(sqlite3* db, const char* query, uint* result);
 bool sqlgetint(sqlite3* db, const char* query, int* result);
 void sqlstringescape(const char* string, char* escaped_string);
-bool sqlloadorsavedb(sqlite3* memory, const char* file, bool save);
+bool sqlloadsavedb(sqlite3* memory, const char* file, bool save);
+int sqlrowcount(sqlite3* db, const char* query);
 
 #endif // _SQLHELPER_H

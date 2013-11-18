@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <psapi.h>
 #include <vector>
+#include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "sqlite\sqlite3.h"
 

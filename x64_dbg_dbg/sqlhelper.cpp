@@ -117,7 +117,7 @@ void sqlstringescape(const char* string, char* escaped_string)
     }
 }
 
-bool sqlloadorsavedb(sqlite3* memory, const char* file, bool save)
+bool sqlloadsavedb(sqlite3* memory, const char* file, bool save)
 {
     //CREDIT: http://www.sqlite.org/backup.html
     int rc;
@@ -140,4 +140,18 @@ bool sqlloadorsavedb(sqlite3* memory, const char* file, bool save)
     }
     sqlite3_close(pFile);
     return (rc==SQLITE_OK);
+}
+
+int sqlrowcount(sqlite3* db, const char* query)
+{
+    int rowcount=0;
+    sqlite3_stmt* stmt;
+    if(sqlite3_prepare_v2(db, query, -1, &stmt, 0)!=SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+    while(sqlite3_step(stmt)==SQLITE_ROW)
+        rowcount++;
+    return rowcount;
 }

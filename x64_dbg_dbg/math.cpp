@@ -91,16 +91,16 @@ static inline long long mulhi(long long x, long long y)
 #include <intrin.h>
 static inline unsigned long long umulhi(unsigned long long x, unsigned long long y)
 {
-	unsigned __int64 res;
-	_umul128(x,y,&res);
-	return res;
+    unsigned __int64 res;
+    _umul128(x,y,&res);
+    return res;
 }
 
 static inline long long mulhi(long long x, long long y)
 {
-	__int64 res;
-	_mul128(x,y,&res);
-	return res;
+    __int64 res;
+    _mul128(x,y,&res);
+    return res;
 }
 #else
 static inline unsigned int umulhi(unsigned int x, unsigned int y)
@@ -346,7 +346,10 @@ bool mathhandlebrackets(char* expression)
 
     for(int i=deepest; i>0; i--)
         if(!printlayer(expression, &expstruct, i))
+        {
+            efree(expstruct.pairs, "mathhandlebrackets:expstruct.pairs");
             return false;
+        }
 
     efree(expstruct.pairs, "mathhandlebrackets:expstruct.pairs");
     return true;
