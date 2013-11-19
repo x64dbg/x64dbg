@@ -49,6 +49,7 @@ public:
     void selectNext();
     void selectPrevious();
     bool isSelected(int_t base, int_t offset);
+    bool isSelected(QList<Instruction_t>* buffer, int index);
 
     // Update/Reload/Refresh/Repaint
     void prepareData();

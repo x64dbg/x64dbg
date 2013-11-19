@@ -71,6 +71,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     {
         prepareData();
         mPrevTableOffset = mTableOffset;
+        mShouldReload = false;
     }
 
     // Paints background

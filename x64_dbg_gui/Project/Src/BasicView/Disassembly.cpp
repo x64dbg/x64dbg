@@ -747,6 +747,22 @@ bool Disassembly::isSelected(int_t base, int_t offset)
 }
 
 
+bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
+{
+    if(buffer->size() > 0 && index >= 0 && index < buffer->size())
+    {
+        if(buffer->at(index).rva >= mSelection.fromIndex && buffer->at(index).rva <= mSelection.toIndex)
+            return true;
+        else
+            return false;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 /************************************************************************************
                          Update/Reload/Refresh/Repaint
 ************************************************************************************/
