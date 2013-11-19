@@ -23,7 +23,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
     int_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
 
-    if((wBpType & bphardware) == bphardware)
+    if((wBpType & bp_hardware) == bp_hardware)
     {
         mToggleHwBpAction->setText("Remove Hardware");
     }
@@ -81,7 +81,7 @@ void CPUDisassembly::toggleInt3BPAction()
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
     QString wCmd;
 
-    if((wBpType & bpnormal) == bpnormal)
+    if((wBpType & bp_normal) == bp_normal)
     {
         wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
@@ -100,7 +100,7 @@ void CPUDisassembly::toggleHwBpActionSlot()
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
     QString wCmd;
 
-    if((wBpType & bphardware) == bphardware)
+    if((wBpType & bp_hardware) == bp_hardware)
     {
         wCmd = "bphwc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }

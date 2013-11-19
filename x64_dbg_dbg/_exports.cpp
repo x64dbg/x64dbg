@@ -5,6 +5,7 @@
 #include "addrinfo.h"
 #include "console.h"
 #include "threading.h"
+#include "breakpoint.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -13,10 +14,11 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    dbgdisablebpx();
-    bool res=memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
-    dbgenablebpx();
-    return res;
+    bool ret=memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
+    if(!ret)
+        return false;
+    bpfixmemory(addr, dest, size);
+    return true;
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
@@ -180,18 +182,27 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 
 extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 {
-    BREAKPOINT bp;
-    int result=0;
-    if(bpget(addr, BPNORMAL, 0, &bp))
-        if(bp.enabled)
-            result|=bpnormal;
-    if(bpget(addr, BPHARDWARE, 0, &bp))
-        if(bp.enabled)
-            result|=bphardware;
-    if(bpget(addr, BPMEMORY, 0, &bp))
-        if(bp.enabled)
-            result|=bpmemory;
-    return result;
+    static uint cacheAddr;
+    static int cacheBpCount;
+    static int cacheResult;
+    int bpcount=bpgetlist(0);
+    if(cacheAddr!=addr or cacheBpCount!=bpcount)
+    {
+        BREAKPOINT bp;
+        cacheAddr=addr;
+        cacheResult=0;
+        cacheBpCount=bpcount;
+        if(bpget(addr, BPNORMAL, 0, &bp))
+            if(bp.enabled)
+                cacheResult|=bp_normal;
+        if(bpget(addr, BPHARDWARE, 0, &bp))
+            if(bp.enabled)
+                cacheResult|=bp_hardware;
+        if(bpget(addr, BPMEMORY, 0, &bp))
+            if(bp.enabled)
+                cacheResult|=bp_memory;
+    }
+    return cacheResult;
 }
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)

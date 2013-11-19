@@ -135,22 +135,21 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     uint cip=GetContextData(UE_CIP);
     uint size;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
-    //TODO: restore bp
-    /*BREAKPOINT* cur=bpfind(bplist, 0, base, 0, BPMEMORY);
-    if(!cur)
+    BREAKPOINT found;
+    if(!bpget(base, BPMEMORY, 0, &found))
         dputs("memory breakpoint reached not in list!");
     else
     {
         //unsigned char type=cur->oldbytes&0xF;
         char log[50]="";
-        if(cur->name)
-            sprintf(log, "memory breakpoint \"%s\" on "fhex"!", cur->name, cur->addr);
+        if(*found.name)
+            sprintf(log, "memory breakpoint \"%s\" on "fhex"!", found.name, found.addr);
         else
-            sprintf(log, "memory breakpoint on "fhex"!", cur->addr);
+            sprintf(log, "memory breakpoint on "fhex"!", found.addr);
         dputs(log);
     }
-    if(!(cur->oldbytes>>4)) //is auto-restoring?
-        bpdel(bplist, 0, base, BPMEMORY); //delete from breakpoint list*/
+    if(found.singleshoot)
+        bpdel(found.addr, BPMEMORY); //delete from breakpoint list
     DebugUpdateGui(cip);
     GuiSetDebugState(paused);
     //lock
@@ -256,6 +255,16 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         }
         break;
     case BPMEMORY:
+        if(bp->enabled)
+        {
+            uint size=0;
+            memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
+            bool restore=false;
+            if(!bp->singleshoot)
+                restore=true;
+            if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, restore, (void*)cbMemoryBreakpoint))
+                dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
+        }
         break;
     case BPHARDWARE:
         if(bp->enabled)
@@ -401,10 +410,10 @@ static void cbRtrFinalStep()
 
 static unsigned char getCIPch()
 {
-    char ch;
-    dbgdisablebpx();
-    memread(fdProcessInfo->hProcess, (void*)GetContextData(UE_CIP), &ch, 1, 0);
-    dbgenablebpx();
+    unsigned char ch=0x90;
+    uint cip=GetContextData(UE_CIP);
+    memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
+    bpfixmemory(cip, &ch, 1);
     return ch;
 }
 
@@ -583,7 +592,7 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
     }
     _strlwr(argtype);
     uint addr=0;
-    if(!valfromstring(argaddr, &addr, 0, 0, false, 0))
+    if(!valfromstring(argaddr, &addr, 0, 0, true, 0))
     {
         dprintf("invalid addr: \"%s\"\n", argaddr);
         return STATUS_ERROR;
@@ -793,10 +802,13 @@ CMDRESULT cbDebugDisableBPX(const char* cmd)
 static bool cbBreakpointList(const BREAKPOINT* bp)
 {
     const char* type=0;
-    if(bp->singleshoot)
-        type="SS";
-    else if(bp->type==BPNORMAL)
-        type="BP";
+    if(bp->type==BPNORMAL)
+    {
+        if(bp->singleshoot)
+            type="SS";
+        else
+            type="BP";
+    }
     else if(bp->type==BPHARDWARE)
         type="HW";
     else if(bp->type==BPMEMORY)
@@ -864,15 +876,13 @@ CMDRESULT cbDebugDisasm(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugMemoryBpx(const char* cmd)
+CMDRESULT cbDebugSetMemoryBpx(const char* cmd)
 {
-    //TODO: restore bp
-    /*
     char arg1[deflen]=""; //addr
     if(!argget(cmd, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
         return STATUS_ERROR;
     bool restore=false;
     char arg2[deflen]=""; //restore
@@ -908,17 +918,16 @@ CMDRESULT cbDebugMemoryBpx(const char* cmd)
     }
     uint size=0;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
-    BREAKPOINT* found=bpfind(bplist, 0, base, 0, BPMEMORY);
-    if(found or !SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint))
+    bool singleshoot=false;
+    if(!restore)
+        singleshoot=true;
+    if(bpget(base, BPMEMORY, 0, 0) or !SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint) or !bpnew(base, true, singleshoot, 0, BPMEMORY, 0, 0))
     {
         dputs("error setting memory breakpoint!");
         return STATUS_ERROR;
     }
-    if(bpnew(bplist, 0, addr, (restore<<4)|type, BPMEMORY))
-        dprintf("memory breakpoint at "fhex" set!\n", addr);
-    else
-        dputs("problem setting breakpoint (report please)!");
-    GuiUpdateAllViews();*/
+    dprintf("memory breakpoint at "fhex" set!\n", addr);
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -929,44 +938,13 @@ CMDRESULT cbDebugRtr(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-static bool SetGlobalHardwareBreakpoint(ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, LPVOID bpxCallback)
-{
-    HANDLE hProcessSnap=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, fdProcessInfo->dwProcessId);
-    if(hProcessSnap==INVALID_HANDLE_VALUE)
-        return SetHardwareBreakPoint(bpxAddress, IndexOfRegister, bpxType, bpxSize, bpxCallback);
-    THREADENTRY32 threadEntry32;
-    threadEntry32.dwSize=sizeof(THREADENTRY32);
-    if(!Thread32First(hProcessSnap, &threadEntry32))
-    {
-        CloseHandle(hProcessSnap);
-        return SetHardwareBreakPoint(bpxAddress, IndexOfRegister, bpxType, bpxSize, bpxCallback);
-    }
-    HANDLE hThread=INVALID_HANDLE_VALUE;
-    do
-    {
-        if(fdProcessInfo->dwProcessId==threadEntry32.th32OwnerProcessID)
-        {
-            hThread=OpenThread(THREAD_ALL_ACCESS,false,threadEntry32.th32ThreadID);
-            if(hThread==INVALID_HANDLE_VALUE)
-                return SetHardwareBreakPoint(bpxAddress, IndexOfRegister, bpxType, bpxSize, bpxCallback);
-            if(!SetHardwareBreakPointEx(hThread, bpxAddress, IndexOfRegister, bpxType, bpxSize, bpxCallback, 0))
-                return false;
-            CloseHandle(hThread);
-            hThread=INVALID_HANDLE_VALUE;
-        }
-    }
-    while(Thread32Next(hProcessSnap, &threadEntry32));
-    CloseHandle(hProcessSnap);
-    return false;
-}
-
 CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
 {
     char arg1[deflen]=""; //addr
     if(!argget(cmd, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
         return STATUS_ERROR;
     uint type=UE_HARDWARE_EXECUTE;
     char arg2[deflen]=""; //type
@@ -991,7 +969,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
     uint size=UE_HARDWARE_SIZE_1;
     if(argget(cmd, arg3, 2, true))
     {
-        if(!valfromstring(arg3, &size, 0, 0, false, 0))
+        if(!valfromstring(arg3, &size, 0, 0, true, 0))
             return STATUS_ERROR;
         switch(size)
         {

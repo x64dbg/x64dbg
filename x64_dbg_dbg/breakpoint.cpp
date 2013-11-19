@@ -14,26 +14,37 @@ int bpgetlist(BREAKPOINT** list)
     return bpcount;
 }
 
-bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, int titantype, const char* name)
+bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name)
 {
-    char modname[256]="";
-    if(!modnamefromaddr(addr, modname)) //no module
-        return false;
-    char sql[deflen]="";
-    uint modbase=modbasefromaddr(addr);
     if(bpget(addr, type, name, 0)) //breakpoint found
         return false;
+    char modname[256]="";
+    char sql[deflen]="";
     char bpname[MAX_BREAKPOINT_NAME]="";
-    if(name and *name)
+    if(modnamefromaddr(addr, modname)) //no module
     {
-        sqlstringescape(name, bpname);
-        sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype,mod,name) VALUES (%"fext"d,%d,%d,%d,%d,%d,'%s','%s')", addr-modbase, enabled, singleshoot, oldbytes, type, titantype, modname, bpname);
+        uint modbase=modbasefromaddr(addr);
+        if(name and *name)
+        {
+            sqlstringescape(name, bpname);
+            sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype,mod,name) VALUES (%"fext"d,%d,%d,%d,%d,%d,'%s','%s')", addr-modbase, enabled, singleshoot, oldbytes, type, titantype, modname, bpname);
+        }
+        else
+            sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype,mod) VALUES (%"fext"d,%d,%d,%d,%d,%d,'%s')", addr-modbase, enabled, singleshoot, oldbytes, type, titantype, modname);
     }
     else
-        sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype,mod) VALUES (%"fext"d,%d,%d,%d,%d,%d,'%s')", addr-modbase, enabled, singleshoot, oldbytes, type, titantype, modname);
+    {
+        if(name and *name)
+        {
+            sqlstringescape(name, bpname);
+            sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype,name) VALUES (%"fext"d,%d,%d,%d,%d,%d,'%s')", addr, enabled, singleshoot, oldbytes, type, titantype, bpname);
+        }
+        else
+            sprintf(sql, "INSERT INTO breakpoints (addr,enabled,singleshoot,oldbytes,type,titantype) VALUES (%"fext"d,%d,%d,%d,%d,%d)", addr, enabled, singleshoot, oldbytes, type, titantype);
+    }
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     bpenumall(0); //update breakpoint list
@@ -68,7 +79,6 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
         {
             sqlstringescape(name, bpname);
             sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE (addr=%"fext"d AND type=%d AND mod='%s') OR name='%s'", addr-modbase, type, modname, bpname);
-            puts(sql);
         }
         else
             sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE (addr=%"fext"d AND type=%d AND mod='%s')", addr-modbase, type, modname);
@@ -91,34 +101,27 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     }
     if(!modbase)
     {
-        const char* mod=(const char*)sqlite3_column_text(stmt, 6);
+        const char* mod=(const char*)sqlite3_column_text(stmt, 6); //mod
         if(mod)
             modbase=modbasefromname(mod);
     }
-    //addr
 #ifdef _WIN64
     bp->addr=sqlite3_column_int64(stmt, 0)+modbase; //addr
 #else
     bp->addr=sqlite3_column_int(stmt, 0)+modbase; //addr
 #endif // _WIN64
-    //enabled
-    if(sqlite3_column_int(stmt, 1))
+    if(sqlite3_column_int(stmt, 1)) //enabled
         bp->enabled=true;
     else
         bp->enabled=false;
-    //singleshoot
-    if(sqlite3_column_int(stmt, 2))
+    if(sqlite3_column_int(stmt, 2)) //singleshoot
         bp->singleshoot=true;
     else
         bp->singleshoot=false;
-    //oldbytes
-    bp->oldbytes=(short)(sqlite3_column_int(stmt, 3)&0xFFFF);
-    //type
-    bp->type=(BP_TYPE)sqlite3_column_int(stmt, 4);
-    //titantype
-    bp->titantype=sqlite3_column_int(stmt, 5);
-    //name
-    const char* bpname_=(const char*)sqlite3_column_text(stmt, 7);
+    bp->oldbytes=(short)(sqlite3_column_int(stmt, 3)&0xFFFF); //oldbytes
+    bp->type=(BP_TYPE)sqlite3_column_int(stmt, 4); //type
+    bp->titantype=sqlite3_column_int(stmt, 5); //titantype
+    const char* bpname_=(const char*)sqlite3_column_text(stmt, 7); //name
     if(bpname_)
         strcpy(bp->name, bpname_);
     else
@@ -135,12 +138,12 @@ bool bpdel(uint addr, BP_TYPE type)
     char modname[256]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname)) //no module
-        sprintf(sql, "DELETE FROM breakpoints WHERE addr=%"fext"d AND IS NULL AND type=%d", addr, type);
+        sprintf(sql, "DELETE FROM breakpoints WHERE addr=%"fext"d AND mod IS NULL AND type=%d", addr, type);
     else
         sprintf(sql, "DELETE FROM breakpoints WHERE addr=%"fext"d AND mod='%s' AND type=%d", addr-modbasefromaddr(addr), modname, type);
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     bpenumall(0); //update breakpoint list
@@ -161,7 +164,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
         sprintf(sql, "UPDATE breakpoints SET enabled=%d WHERE addr=%"fext"d AND mod='%s' AND type=%d", enable, addr-modbasefromaddr(addr), modname, type);
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     dbsave();
@@ -183,7 +186,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
         sprintf(sql, "UPDATE breakpoints SET name='%s' WHERE addr=%"fext"d AND mod='%s' AND type=%d", bpname, addr-modbasefromaddr(addr), modname, type);
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     dbsave();
@@ -266,4 +269,23 @@ int bpgetcount(BP_TYPE type)
     char sql[deflen]="";
     sprintf(sql, "SELECT * FROM breakpoints WHERE type=%d", type);
     return sqlrowcount(userdb, sql);
+}
+
+void bpfixmemory(uint addr, unsigned char* dest, uint size)
+{
+    uint start=addr;
+    uint end=addr+size;
+    unsigned char oldbytes[2];
+    for(int i=0; i<bpcount; i++)
+    {
+        memcpy(oldbytes, &bpall[i].oldbytes, sizeof(short));
+        uint cur_addr=bpall[i].addr;
+        if(cur_addr>=start and cur_addr<end) //breakpoint is in range of current memory
+        {
+            uint index=cur_addr-start;
+            dest[index]=oldbytes[0];
+            if(size>1 and index!=(size-1)) //restore second byte
+                dest[index+1]=oldbytes[1];
+        }
+    }
 }

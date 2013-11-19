@@ -63,10 +63,10 @@ enum ADDRINFOFLAGS
 
 enum BPXTYPE
 {
-    bpnone=0,
-    bpnormal=1,
-    bphardware=2,
-    bpmemory=4
+    bp_none=0,
+    bp_normal=1,
+    bp_hardware=2,
+    bp_memory=4
 };
 
 //Debugger structs
@@ -145,6 +145,7 @@ DLL_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
 DLL_IMPEXP duint DbgMemGetPageSize(duint base);
 DLL_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);
 DLL_IMPEXP bool DbgCmdExec(const char* cmd);
+DLL_IMPEXP bool DbgCmdExecWait(const char* cmd);
 DLL_IMPEXP bool DbgMemMap(MEMMAP* memmap);
 DLL_IMPEXP bool DbgIsValidExpression(const char* expression);
 DLL_IMPEXP bool DbgIsDebugging();

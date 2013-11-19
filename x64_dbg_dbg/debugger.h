@@ -34,7 +34,7 @@ CMDRESULT cbDebugStepOver(const char* cmd);
 CMDRESULT cbDebugSingleStep(const char* cmd);
 CMDRESULT cbDebugHide(const char* cmd);
 CMDRESULT cbDebugDisasm(const char* cmd);
-CMDRESULT cbDebugMemoryBpx(const char* cmd);
+CMDRESULT cbDebugSetMemoryBpx(const char* cmd);
 CMDRESULT cbDebugRtr(const char* cmd);
 CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd);
 CMDRESULT cbDebugAlloc(const char* cmd);

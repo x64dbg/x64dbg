@@ -24,11 +24,6 @@ static CMDRESULT cbStrLen(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-static CMDRESULT cbExit(const char* cmd)
-{
-    return STATUS_EXIT;
-}
-
 static CMDRESULT cbCls(const char* cmd)
 {
     GuiLogClear();
@@ -59,7 +54,7 @@ static void registercommands()
     cmdnew(cmd, "SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
     cmdnew(cmd, "HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     cmdnew(cmd, "disasm\1dis\1d", cbDebugDisasm, true); //doDisasm
-    cmdnew(cmd, "SetMemoryBPX\1membp\1bpm", cbDebugMemoryBpx, true); //SetMemoryBPX
+    cmdnew(cmd, "SetMemoryBPX\1membp\1bpm", cbDebugSetMemoryBpx, true); //SetMemoryBPX
     cmdnew(cmd, "chd", cbInstrChd, false); //Change directory
     cmdnew(cmd, "rtr", cbDebugRtr, true); //rtr
     cmdnew(cmd, "SetHardwareBreakpoint\1bph\1bphws", cbDebugSetHardwareBreakpoint, true); //hardware breakpoint
@@ -98,19 +93,6 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
     char* newcmd=(char*)emalloc((len+1)*sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
-}
-
-static DWORD WINAPI ConsoleReadLoopThread(void* a)
-{
-    char cmd[deflen];
-    while(1)
-    {
-        fgets(cmd, deflen, stdin);
-        cmd[strlen(cmd)-1]=0;
-        while(!_dbg_dbgcmdexec(cmd)) //retry until the command came through
-            Sleep(100);
-    }
-    return 0;
 }
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)

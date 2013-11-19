@@ -1018,7 +1018,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(kernelbase!=-1)
     {
         *value=addrfound[kernelbase];
-        if(!printall)
+        if(!printall or silent)
             return true;
         for(int i=0; i<found; i++)
             if(i!=kernelbase)
@@ -1143,18 +1143,13 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
             return false;
         uint addr=*value;
         *value=0;
-        bool isrunning=dbgisrunning();
-        if(!isrunning)
-            dbgdisablebpx();
-        bool rpm=memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0);
-        if(!isrunning)
-            dbgenablebpx();
-        if(!rpm)
+        if(!memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to read memory");
             return false;
         }
+        bpfixmemory(addr, (unsigned char*)value, read_size);
         if(value_size)
             *value_size=read_size;
         if(isvar)

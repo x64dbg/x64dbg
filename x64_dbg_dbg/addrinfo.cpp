@@ -45,6 +45,9 @@ bool dbsave()
 
 void dbclose()
 {
+    //NOTE: remove breakpoints without module
+    if(!sqlexec(userdb, "DELETE FROM breakpoints WHERE mod IS NULL"))
+        dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
     sqlite3_db_release_memory(userdb);
     sqlite3_close(userdb); //close user database
@@ -230,7 +233,7 @@ bool commentset(uint addr, const char* text)
     }
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     GuiUpdateAllViews();
@@ -271,7 +274,7 @@ bool commentdel(uint addr)
     sprintf(sql, "DELETE FROM comments WHERE id=%d", del_id);
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     GuiUpdateAllViews();
@@ -310,7 +313,7 @@ bool labelset(uint addr, const char* text)
     }
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     GuiUpdateAllViews();
@@ -351,7 +354,7 @@ bool labeldel(uint addr)
     sprintf(sql, "DELETE FROM labels WHERE id=%d", del_id);
     if(!sqlexec(userdb, sql))
     {
-        dprintf("SQL Error: %s\n", sqllasterror());
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
     dbsave();

@@ -9,8 +9,9 @@
 			<Target title="x32">
 				<Option output="../bin/x32/x32_dbg" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/x32" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
@@ -22,8 +23,9 @@
 			<Target title="x64">
 				<Option output="../bin/x64/x64_dbg" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/x64" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_x64" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>

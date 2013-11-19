@@ -130,7 +130,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor(0,0,0)));
-            if(bpxtype&bpnormal) //breakpoint
+            if(bpxtype&bp_normal) //breakpoint
             {
                 painter->setPen(QPen(QColor("#ff0000")));
             }
@@ -143,11 +143,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         {
             if(*label) //label
             {
-                if(bpxtype==bpnone) //label only
+                if(bpxtype==bp_none) //label only
                     painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
                 else //label+breakpoint
                 {
-                    if(bpxtype&bpnormal)
+                    if(bpxtype&bp_normal)
                     {
                         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
                     }
@@ -159,7 +159,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             }
             else //no label
             {
-                if(bpxtype==bpnone) //no label, no breakpoint
+                if(bpxtype==bp_none) //no label, no breakpoint
                 {
                     if(wIsSelected)
                         painter->setPen(QPen(QColor("#000000"))); //black address
@@ -168,7 +168,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 }
                 else //breakpoint only
                 {
-                    if(bpxtype&bpnormal)
+                    if(bpxtype&bp_normal)
                     {
                         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
                     }
