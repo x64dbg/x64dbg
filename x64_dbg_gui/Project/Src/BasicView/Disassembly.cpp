@@ -102,7 +102,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 {
     QString wStr = "";
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
-    bool wIsSelected = isSelected(rowBase, rowOffset);
+    bool wIsSelected = isSelected(&mInstBuffer, rowOffset); // isSelected(rowBase, rowOffset);
 
     // Highlight if selected
     if(wIsSelected)
