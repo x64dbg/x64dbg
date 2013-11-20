@@ -122,7 +122,7 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
             if(!label_addr)
                 label_addr=Instruction->AddrValue;
             char label_text[MAX_LABEL_SIZE]="";
-            char module_text[33]="";
+            char module_text[MAX_MODULE_SIZE]="";
             bool hasLabel=DbgGetLabelAt(label_addr, SEG_DEFAULT, label_text);
             bool hasModule=DbgGetModuleAt(label_addr, module_text);
             QString label_addr_text=QString("%1").arg(label_addr, 0, 16, QChar('0')).toUpper();;

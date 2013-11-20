@@ -39,6 +39,7 @@ public slots:
     void openFile();
     void execPause();
     void startScylla();
+    void restartDebugging();
     
 private slots:
     void on_actionGoto_triggered();

@@ -69,6 +69,12 @@ static void cbUserBreakpoint()
         dputs("breakpoint reached not in list!");
     else
     {
+        const char* bptype="INT3";
+        int titantype=bp.titantype;
+        if((titantype&UE_BREAKPOINT_TYPE_UD2)==UE_BREAKPOINT_TYPE_UD2)
+            bptype="UD2";
+        else if((titantype&UE_BREAKPOINT_TYPE_LONG_INT3)==UE_BREAKPOINT_TYPE_LONG_INT3)
+            bptype="LONG INT3";
         const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, bp.addr);
         char log[deflen]="";
         if(apiname)
@@ -85,16 +91,16 @@ static void cbUserBreakpoint()
                     break;
                 }
             if(*bp.name)
-                sprintf(log, "breakpoint \"%s\" at %s.%s ("fhex")!", bp.name, dllname, apiname, bp.addr);
+                sprintf(log, "%s breakpoint \"%s\" at %s.%s ("fhex")!", bptype, bp.name, dllname, apiname, bp.addr);
             else
-                sprintf(log, "breakpoint at %s.%s ("fhex")!", dllname, apiname, bp.addr);
+                sprintf(log, "%s breakpoint at %s.%s ("fhex")!", bptype, dllname, apiname, bp.addr);
         }
         else
         {
             if(*bp.name)
-                sprintf(log, "breakpoint \"%s\" at "fhex"!", bp.name, bp.addr);
+                sprintf(log, "%s breakpoint \"%s\" at "fhex"!", bptype, bp.name, bp.addr);
             else
-                sprintf(log, "breakpoint at "fhex"!", bp.addr);
+                sprintf(log, "%s breakpoint at "fhex"!", bptype, bp.addr);
         }
         dputs(log);
         if(bp.singleshoot)
@@ -294,10 +300,10 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload((uint)base, modInfo.ImageSize, modInfo.ModuleName);
+        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     bpenumall(0);
     char modname[256]="";
-    if(modnamefromaddr((uint)base, modname))
+    if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
 }
 
@@ -326,7 +332,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
     void* base=UnloadDll->lpBaseOfDll;
     char modname[256]="???";
-    if(modnamefromaddr((uint)base, modname))
+    if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbRemoveModuleBreakpoints, modname);
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
@@ -366,10 +372,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload((uint)base, modInfo.ImageSize, modInfo.ModuleName);
+        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     bpenumall(0);
     char modname[256]="";
-    if(modnamefromaddr((uint)base, modname))
+    if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
 }
 
@@ -444,6 +450,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     }
     lock(WAITID_STOP);
     strcpy(szFileName, init->exe);
+    BridgeSettingSet("Recent Files", "path", szFileName);
     efree(init, "threadDebugLoop:init"); //free init struct
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
@@ -621,7 +628,12 @@ CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
     const char* bpname=0;
     if(*argname)
         bpname=argname;
-    if(IsBPXEnabled(addr) or !memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0) or bpget(addr, BPNORMAL, bpname, 0) or !SetBPX(addr, type, (void*)cbUserBreakpoint) or !bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
+    if(bpget(addr, BPNORMAL, bpname, 0))
+    {
+        dputs("breakpoint already set!");
+        return STATUS_CONTINUE;
+    }
+    if(IsBPXEnabled(addr) or !memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0) or !SetBPX(addr, type, (void*)cbUserBreakpoint) or !bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
     {
         dprintf("error setting breakpoint at "fhex"!\n", addr);
         return STATUS_ERROR;
@@ -921,12 +933,77 @@ CMDRESULT cbDebugSetMemoryBpx(const char* cmd)
     bool singleshoot=false;
     if(!restore)
         singleshoot=true;
-    if(bpget(base, BPMEMORY, 0, 0) or !SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint) or !bpnew(base, true, singleshoot, 0, BPMEMORY, 0, 0))
+    if(bpget(base, BPMEMORY, 0, 0))
+    {
+        dputs("hardware breakpoint already set!");
+        return STATUS_CONTINUE;
+    }
+    if(!SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint) or !bpnew(base, true, singleshoot, 0, BPMEMORY, 0, 0))
     {
         dputs("error setting memory breakpoint!");
         return STATUS_ERROR;
     }
     dprintf("memory breakpoint at "fhex" set!\n", addr);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+static bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
+{
+    if(!bp->enabled)
+        return true;
+    uint size;
+    memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
+    if(!RemoveMemoryBPX(bp->addr, size) or !bpdel(bp->addr, BPMEMORY))
+    {
+        dprintf("delete memory breakpoint failed: "fhex"\n", bp->addr);
+        return STATUS_ERROR;
+    }
+    return true;
+}
+
+CMDRESULT cbDebugDeleteMemoryBreakpoint(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    {
+        if(!bpgetcount(BPMEMORY))
+        {
+            dputs("no memory breakpoints to delete!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbDeleteAllMemoryBreakpoints)) //at least one deletion failed
+            return STATUS_ERROR;
+        dputs("all memory breakpoints deleted!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    if(bpget(0, BPMEMORY, arg1, &found)) //found a breakpoint with name
+    {
+        uint size;
+        memfindbaseaddr(fdProcessInfo->hProcess, found.addr, &size);
+        if(!RemoveMemoryBPX(found.addr, size) or !bpdel(found.addr, BPMEMORY))
+        {
+            dprintf("delete memory breakpoint failed: "fhex"\n", found.addr);
+            return STATUS_ERROR;
+        }
+        return STATUS_CONTINUE;
+    }
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPMEMORY, 0, &found)) //invalid breakpoint
+    {
+        dprintf("no such memory breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    uint size;
+    memfindbaseaddr(fdProcessInfo->hProcess, found.addr, &size);
+    if(!RemoveMemoryBPX(found.addr, size) or !bpdel(found.addr, BPMEMORY))
+    {
+        dprintf("delete memory breakpoint failed: "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("memory breakpoint deleted!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -1002,7 +1079,12 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
     }
     int titantype=(drx<<8)|(type<<4)|size;
     //TODO: hwbp in multiple threads TEST
-    if(bpget(addr, BPHARDWARE, 0, 0) or !SetHardwareBreakPoint(addr, drx, type, size, (void*)cbHardwareBreakpoint) or !bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0))
+    if(bpget(addr, BPHARDWARE, 0, 0))
+    {
+        dputs("hardware breakpoint already set!");
+        return STATUS_CONTINUE;
+    }
+    if(!SetHardwareBreakPoint(addr, drx, type, size, (void*)cbHardwareBreakpoint) or !bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0))
     {
         dputs("error setting hardware breakpoint!");
         return STATUS_ERROR;
@@ -1053,7 +1135,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(const char* cmd)
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
     {
-        dprintf("no such breakpoint \"%s\"\n", arg1);
+        dprintf("no such hardware breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
     if(!DeleteHardwareBreakPoint((found.titantype>>8)&0xF) or !bpdel(found.addr, BPHARDWARE))

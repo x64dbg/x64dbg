@@ -24,15 +24,23 @@ extern "C"
 {
 #endif
 
+//Bridge defines
+#define MAX_SETTING_SIZE 2048
+
 //Bridge functions
 DLL_IMPEXP const char* BridgeInit();
 DLL_IMPEXP const char* BridgeStart();
 DLL_IMPEXP void* BridgeAlloc(size_t size);
 DLL_IMPEXP void BridgeFree(void* ptr);
+DLL_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value);
+DLL_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
+DLL_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
+DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256
 #define MAX_COMMENT_SIZE 256
+#define MAX_MODULE_SIZE 256
 
 //Debugger enums
 enum DBGSTATE
@@ -73,7 +81,7 @@ enum BPXTYPE
 struct MEMPAGE
 {
     MEMORY_BASIC_INFORMATION mbi;
-    char mod[32];
+    char mod[MAX_MODULE_SIZE];
 };
 
 struct MEMMAP
@@ -84,7 +92,7 @@ struct MEMMAP
 
 struct ADDRINFO
 {
-    char module[32]; //module the address is in
+    char module[MAX_MODULE_SIZE]; //module the address is in
     char label[MAX_LABEL_SIZE];
     char comment[MAX_COMMENT_SIZE];
     int flags; //ADDRINFOFLAGS

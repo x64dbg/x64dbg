@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionOpen,SIGNAL(triggered()),this,SLOT(openFile()));
     connect(ui->actionPause,SIGNAL(triggered()),this,SLOT(execPause()));
     connect(ui->actionScylla,SIGNAL(triggered()),this,SLOT(startScylla()));
+    connect(ui->actionRestart,SIGNAL(triggered()),this,SLOT(restartDebugging()));
 }
 
 
@@ -191,6 +192,20 @@ void MainWindow::execPause()
 void MainWindow::startScylla() //this is executed
 {
     Bridge::getBridge()->execCmd("StartScylla");
+}
+
+void MainWindow::restartDebugging()
+{
+    char filename[MAX_SETTING_SIZE]="";
+    if(!BridgeSettingGet("Recent Files", "path", filename))
+        return;
+    if(DbgIsDebugging())
+    {
+        Bridge::getBridge()->execCmd("stop"); //close current file (when present)
+        Sleep(400);
+    }
+    QString cmd;
+    Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename).toUtf8().constData());
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)

@@ -14,17 +14,18 @@ struct MODINFO
 {
     uint base;
     uint size;
-    char name[32];
+    char name[MAX_MODULE_SIZE];
+    char extension[MAX_MODULE_SIZE];
 };
 
 void dbinit();
 bool dbsave();
 bool dbload();
 void dbclose();
-bool modload(uint base, uint size, const char* name);
+bool modload(uint base, uint size, const char* fullpath);
 bool modunload(uint base);
 void modclear();
-bool modnamefromaddr(uint addr, char* modname);
+bool modnamefromaddr(uint addr, char* modname, bool extension);
 uint modbasefromaddr(uint addr);
 uint modbasefromname(const char* modname);
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);

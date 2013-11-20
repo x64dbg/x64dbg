@@ -88,8 +88,8 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             setCellContent(wI, 1, wS);
 
             // Module Name
-            char newMod[17]="";
-            memcpy(newMod, (wMemMapStruct.page)[wI].mod, 16);
+            char newMod[MAX_MODULE_SIZE]="";
+            strcpy(newMod, (wMemMapStruct.page)[wI].mod);
             wS = QString(newMod);
             setCellContent(wI, 2, wS);
 

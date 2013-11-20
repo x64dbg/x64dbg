@@ -33,7 +33,6 @@ static CMDRESULT cbCls(const char* cmd)
 static void registercommands()
 {
     COMMAND* cmd=command_list=cmdinit();
-    //cmdnew(cmd, "exit\1x", cbExit, false); //quit debugger
     cmdnew(cmd, "strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
     cmdnew(cmd, "varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
     cmdnew(cmd, "vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
@@ -72,7 +71,8 @@ static void registercommands()
     cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
     cmdnew(cmd, "savedb\1dbsave", cbSavedb, true); //save program database
     cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
-    cmdnew(cmd, "DeleteHardwareBreakpoint\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
+    cmdnew(cmd, "DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
+    cmdnew(cmd, "DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

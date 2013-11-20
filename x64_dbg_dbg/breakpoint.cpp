@@ -21,7 +21,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     char modname[256]="";
     char sql[deflen]="";
     char bpname[MAX_BREAKPOINT_NAME]="";
-    if(modnamefromaddr(addr, modname)) //no module
+    if(modnamefromaddr(addr, modname, true)) //no module
     {
         uint modbase=modbasefromaddr(addr);
         if(name and *name)
@@ -58,7 +58,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     char modname[256]="";
     char bpname[MAX_BREAKPOINT_NAME]="";
     uint modbase=0;
-    if(!modnamefromaddr(addr, modname)) //no module
+    if(!modnamefromaddr(addr, modname, true)) //no module
     {
         if(bp)
             *bp->mod=0;
@@ -137,7 +137,7 @@ bool bpdel(uint addr, BP_TYPE type)
         return false;
     char modname[256]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //no module
+    if(!modnamefromaddr(addr, modname, true)) //no module
         sprintf(sql, "DELETE FROM breakpoints WHERE addr=%"fext"d AND mod IS NULL AND type=%d", addr, type);
     else
         sprintf(sql, "DELETE FROM breakpoints WHERE addr=%"fext"d AND mod='%s' AND type=%d", addr-modbasefromaddr(addr), modname, type);
@@ -158,7 +158,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
         return false;
     char modname[256]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //no module
+    if(!modnamefromaddr(addr, modname, true)) //no module
         sprintf(sql, "UPDATE breakpoints SET enabled=%d WHERE addr=%"fext"d AND mod IS NULL AND type=%d", enable, addr, type);
     else
         sprintf(sql, "UPDATE breakpoints SET enabled=%d WHERE addr=%"fext"d AND mod='%s' AND type=%d", enable, addr-modbasefromaddr(addr), modname, type);
@@ -180,7 +180,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
     char sql[deflen]="";
     char bpname[MAX_BREAKPOINT_NAME]="";
     sqlstringescape(name, bpname);
-    if(!modnamefromaddr(addr, modname)) //no module
+    if(!modnamefromaddr(addr, modname, true)) //no module
         sprintf(sql, "UPDATE breakpoints SET name='%s' WHERE addr=%"fext"d AND mod IS NULL AND type=%d", bpname, addr, type);
     else
         sprintf(sql, "UPDATE breakpoints SET name='%s' WHERE addr=%"fext"d AND mod='%s' AND type=%d", bpname, addr-modbasefromaddr(addr), modname, type);
@@ -278,6 +278,8 @@ void bpfixmemory(uint addr, unsigned char* dest, uint size)
     unsigned char oldbytes[2];
     for(int i=0; i<bpcount; i++)
     {
+        if(!bpall[i].enabled or bpall[i].type!=BPNORMAL)
+            continue;
         memcpy(oldbytes, &bpall[i].oldbytes, sizeof(short));
         uint cur_addr=bpall[i].addr;
         if(cur_addr>=start and cur_addr<end) //breakpoint is in range of current memory

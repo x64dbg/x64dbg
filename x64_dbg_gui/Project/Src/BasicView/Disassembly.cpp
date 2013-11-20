@@ -117,7 +117,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
-            char module[MAX_LABEL_SIZE]="";
+            char module[MAX_MODULE_SIZE]="";
             if(DbgGetModuleAt(cur_addr, module))
                 addrText+=" <"+QString(module)+"."+QString(label)+">";
             else

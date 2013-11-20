@@ -4,6 +4,7 @@
 #include <new>
 
 static HINSTANCE hInst;
+static char szIniFile[1024]="";
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -16,6 +17,15 @@ static HINSTANCE hInst;
 //Bridge
 DLL_IMPEXP const char* BridgeInit()
 {
+    ///Settings load
+    GetModuleFileNameA(0, szIniFile, 1024);
+    int len=strlen(szIniFile);
+    while(szIniFile[len]!='.' and szIniFile[len]!='\\')
+        len--;
+    if(szIniFile[len]=='\\')
+        strcat(szIniFile, ".ini");
+    else
+        strcpy(&szIniFile[len], ".ini");
     ///GUI Load
     hInstGui=LoadLibraryA(gui_lib); //Sigma
     if(!hInstGui)
@@ -143,6 +153,54 @@ DLL_IMPEXP void* BridgeAlloc(size_t size)
 DLL_IMPEXP void BridgeFree(void* ptr)
 {
     delete[] (unsigned char*)ptr;
+}
+
+DLL_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
+{
+    if(!section || !key || !value)
+        return false;
+    if(!GetPrivateProfileStringA(section, key, "", value, MAX_SETTING_SIZE, szIniFile))
+        return false;
+    return true;
+}
+
+DLL_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
+{
+    if(!section || !key || !value)
+        return false;
+    char newvalue[MAX_SETTING_SIZE]="";
+    if(!BridgeSettingGet(section, key, newvalue))
+        return false;
+#ifdef _WIN64
+    int ret=sscanf(newvalue, "%llX", value);
+#else
+    int ret=sscanf(newvalue, "%X", value);
+#endif //_WIN64
+    if(ret)
+        return true;
+    return false;
+}
+
+DLL_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
+{
+    if(!section || !key || !value)
+        return false;
+    if(!WritePrivateProfileStringA(section, key, value, szIniFile))
+        return false;
+    return true;
+}
+
+DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
+{
+    if(!section || !key)
+        return false;
+    char newvalue[MAX_SETTING_SIZE]="";
+#ifdef _WIN64
+    sprintf(newvalue, "%llX", value);
+#else
+    sprintf(newvalue, "%X", value);
+#endif //_WIN64
+    return BridgeSettingSet(section, key, newvalue);
 }
 
 //Debugger

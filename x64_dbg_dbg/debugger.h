@@ -45,6 +45,7 @@ CMDRESULT cbDebugPause(const char* cmd);
 CMDRESULT cbMemWrite(const char* cmd);
 CMDRESULT cbStartScylla(const char* cmd);
 CMDRESULT cbDebugDeleteHardwareBreakpoint(const char* cmd);
+CMDRESULT cbDebugDeleteMemoryBreakpoint(const char* cmd);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

@@ -37,7 +37,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
         {
             MEMPAGE curPage;
             *curPage.mod=0;
-            modnamefromaddr(MyAddress, curPage.mod);
+            modnamefromaddr(MyAddress, curPage.mod, false);
             memcpy(&curPage.mbi, &mbi, sizeof(mbi));
             pageVector.push_back(curPage);
             memmap->count++;
@@ -95,7 +95,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     if(addrinfo->flags&flagmodule) //get module
     {
         char module[64]="";
-        if(modnamefromaddr(addr, module) and strlen(module)<32) //get module name
+        if(modnamefromaddr(addr, module, false) and strlen(module)<MAX_MODULE_SIZE) //get module name
         {
             strcpy(addrinfo->module, module);
             retval=true;

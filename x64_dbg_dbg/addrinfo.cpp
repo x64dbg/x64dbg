@@ -57,11 +57,28 @@ void dbclose()
 
 static std::vector<MODINFO> modinfo;
 
-bool modload(uint base, uint size, const char* name)
+bool modload(uint base, uint size, const char* fullpath)
 {
-    if(!base or !size or !name or strlen(name)>=31)
+    if(!base or !size or !fullpath)
         return false;
+    char name[deflen]="";
+    int len=strlen(fullpath);
+    while(fullpath[len]!='\\' and len)
+        len--;
+    if(len)
+        len++;
+    strcpy(name, fullpath+len);
+    len=strlen(name);
+    name[MAX_MODULE_SIZE-1]=0; //ignore later characters
+    while(name[len]!='.' and len)
+        len--;
     MODINFO info;
+    if(len)
+    {
+        strcpy(info.extension, name+len);
+        _strlwr(info.extension);
+        name[len]=0; //remove extension
+    }
     info.base=base;
     info.size=size;
     strcpy(info.name, name);
@@ -89,28 +106,37 @@ void modclear()
     modinfo.clear();
 }
 
-bool modnamefromaddr(uint addr, char* modname)
+bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
     if(!modname)
         return false;
-    IMAGEHLP_MODULE64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-    if(!SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)addr, &modInfo))
-        return false;
-    _strlwr(modInfo.ModuleName);
-    strcpy(modname, modInfo.ModuleName);
-    return true;
+    int total=modinfo.size();
+    for(int i=0; i<total; i++)
+    {
+        uint modstart=modinfo.at(i).base;
+        uint modend=modstart+modinfo.at(i).size;
+        if(addr>=modstart and addr<modend) //found module
+        {
+            strcpy(modname, modinfo.at(i).name);
+            if(extension)
+                strcat(modname, modinfo.at(i).extension); //append extension
+            return true;
+        }
+    }
+    return false;
 }
 
 uint modbasefromaddr(uint addr)
 {
-    IMAGEHLP_MODULE64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-    if(!SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)addr, &modInfo))
-        return false;
-    return modInfo.BaseOfImage;
+    int total=modinfo.size();
+    for(int i=0; i<total; i++)
+    {
+        uint modstart=modinfo.at(i).base;
+        uint modend=modstart+modinfo.at(i).size;
+        if(addr>=modstart and addr<modend) //found module
+            return modstart;
+    }
+    return 0;
 }
 
 uint modbasefromname(const char* modname)
@@ -118,9 +144,19 @@ uint modbasefromname(const char* modname)
     if(!modname)
         return 0;
     int total=modinfo.size();
+    int modname_len=strlen(modname);
+    if(modname_len>=MAX_MODULE_SIZE)
+        return 0;
+    char newmodname[MAX_MODULE_SIZE]="";
+    strcpy(newmodname, modname);
+    _strlwr(newmodname);
     for(int i=0; i<total; i++)
     {
-        if(!_stricmp(modinfo.at(i).name, modname))
+        int cur_len=strlen(modinfo.at(i).name);
+        int cmp_len=modname_len;
+        if(cur_len<cmp_len)
+            cmp_len=cur_len;
+        if(!memcmp(modinfo.at(i).name, newmodname, cmp_len))
             return modinfo.at(i).base;
     }
     return 0;
@@ -149,7 +185,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     if(!export_dir.NumberOfFunctions or !NumberOfNames) //no named exports
         return false;
     char modname[256]="";
-    modnamefromaddr(base, modname);
+    modnamefromaddr(base, modname, true);
     uint original_name_va=export_dir.Name+base;
     char original_name[deflen]="";
     memset(original_name, 0, sizeof(original_name));
@@ -213,7 +249,7 @@ bool commentset(uint addr, const char* text)
     sqlstringescape(text, commenttext);
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //comments without module
+    if(!modnamefromaddr(addr, modname, true)) //comments without module
     {
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
         if(sqlhasresult(userdb, sql)) //there is a comment already
@@ -247,7 +283,7 @@ bool commentget(uint addr, char* text)
         return false;
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //comments without module
+    if(!modnamefromaddr(addr, modname, true)) //comments without module
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
         sprintf(sql, "SELECT text FROM comments WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
@@ -260,7 +296,7 @@ bool commentdel(uint addr)
         return false;
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //comments without module
+    if(!modnamefromaddr(addr, modname, true)) //comments without module
         sprintf(sql, "SELECT id FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
     {
@@ -293,7 +329,7 @@ bool labelset(uint addr, const char* text)
     sqlstringescape(text, labeltext);
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //labels without module
+    if(!modnamefromaddr(addr, modname, true)) //labels without module
     {
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
         if(sqlhasresult(userdb, sql)) //there is a label already
@@ -327,7 +363,7 @@ bool labelget(uint addr, char* text)
         return false;
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //labels without module
+    if(!modnamefromaddr(addr, modname, true)) //labels without module
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
         sprintf(sql, "SELECT text FROM labels WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
@@ -340,7 +376,7 @@ bool labeldel(uint addr)
         return false;
     char modname[35]="";
     char sql[deflen]="";
-    if(!modnamefromaddr(addr, modname)) //labels without module
+    if(!modnamefromaddr(addr, modname, true)) //labels without module
         sprintf(sql, "SELECT id FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
     else
     {
