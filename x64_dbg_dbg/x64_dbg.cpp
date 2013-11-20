@@ -69,6 +69,8 @@ static void registercommands()
     cmdnew(cmd, "cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
     cmdnew(cmd, "lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
     cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
+    cmdnew(cmd, "bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
+    cmdnew(cmd, "bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
     cmdnew(cmd, "savedb\1dbsave", cbSavedb, true); //save program database
     cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
     cmdnew(cmd, "DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint

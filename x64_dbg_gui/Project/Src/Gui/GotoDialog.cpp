@@ -7,9 +7,9 @@ GotoDialog::GotoDialog(QWidget *parent) :
 {
     //setup UI first
     ui->setupUi(this);
-    setWindowFlags(Qt::MSWindowsFixedSizeDialogHint);
+    setModal(true);
+    setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
-    setModal(true); //modal window
     //initialize stuff
     if(!DbgIsDebugging()) //not debugging
         ui->labelError->setText("<font color='red'><b>Not debugging...</b></color>");

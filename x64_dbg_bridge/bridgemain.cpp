@@ -123,6 +123,10 @@ DLL_IMPEXP const char* BridgeInit()
     _dbg_memisvalidreadptr=(DBGMEMISVALIDREADPTR)GetProcAddress(hInstDbg, "_dbg_memisvalidreadptr");
     if(!_dbg_memisvalidreadptr)
         return "Export \"_dbg_memisvalidreadptr\" could not be found!";
+    //_dbg_getbplist
+    _dbg_getbplist=(DBGGETBPLIST)GetProcAddress(hInstDbg, "_dbg_getbplist");
+    if(!_dbg_getbplist)
+        return "Export \"_dbg_getbplist\" could not be found!";
     return 0;
 }
 
@@ -313,6 +317,29 @@ DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     return true;
 }
 
+DLL_IMPEXP bool DbgGetBookmarkAt(duint addr)
+{
+    if(!addr)
+        return false;
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags=flagbookmark;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return false;
+    return info.isbookmark;
+}
+
+DLL_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
+{
+    if(!addr)
+        return false;
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags=flagbookmark;
+    info.isbookmark=isbookmark;
+    return _dbg_addrinfoset(addr, &info);
+}
+
 DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 {
     return _dbg_bpgettypeat(addr);
@@ -339,6 +366,11 @@ DLL_IMPEXP bool DbgValToString(const char* string, duint value)
 DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
 {
     return _dbg_memisvalidreadptr(addr);
+}
+
+DLL_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
+{
+    return _dbg_getbplist(type, list);
 }
 
 //GUI

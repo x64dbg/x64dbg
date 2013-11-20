@@ -278,7 +278,7 @@ void RegistersView::updateRegistersSlot()
 
 void RegistersView::displayEditDialog()
 {
-    WordEditDialog wEditDial;
+    WordEditDialog wEditDial(this);
     QString wReg = mRegList->at(mSelected)->text();
 
 #ifdef _WIN64

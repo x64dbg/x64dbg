@@ -20,7 +20,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
         return false;
     char modname[256]="";
     char sql[deflen]="";
-    char bpname[MAX_BREAKPOINT_NAME]="";
+    char bpname[MAX_BREAKPOINT_SIZE]="";
     if(modnamefromaddr(addr, modname, true)) //no module
     {
         uint modbase=modbasefromaddr(addr);
@@ -56,7 +56,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
 {
     char sql[deflen]="";
     char modname[256]="";
-    char bpname[MAX_BREAKPOINT_NAME]="";
+    char bpname[MAX_BREAKPOINT_SIZE]="";
     uint modbase=0;
     if(!modnamefromaddr(addr, modname, true)) //no module
     {
@@ -178,7 +178,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
         return false;
     char modname[256]="";
     char sql[deflen]="";
-    char bpname[MAX_BREAKPOINT_NAME]="";
+    char bpname[MAX_BREAKPOINT_SIZE]="";
     sqlstringescape(name, bpname);
     if(!modnamefromaddr(addr, modname, true)) //no module
         sprintf(sql, "UPDATE breakpoints SET name='%s' WHERE addr=%"fext"d AND mod IS NULL AND type=%d", bpname, addr, type);

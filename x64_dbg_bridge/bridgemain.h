@@ -41,6 +41,7 @@ DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint
 #define MAX_LABEL_SIZE 256
 #define MAX_COMMENT_SIZE 256
 #define MAX_MODULE_SIZE 256
+#define MAX_BREAKPOINT_SIZE 256
 
 //Debugger enums
 enum DBGSTATE
@@ -66,7 +67,8 @@ enum ADDRINFOFLAGS
 {
     flagmodule=1,
     flaglabel=2,
-    flagcomment=4
+    flagcomment=4,
+    flagbookmark=8
 };
 
 enum BPXTYPE
@@ -90,11 +92,28 @@ struct MEMMAP
     MEMPAGE* page;
 };
 
+struct BRIDGEBP
+{
+    BPXTYPE type;
+    duint addr;
+    bool enabled;
+    bool singleshoot;
+    char name[MAX_BREAKPOINT_SIZE];
+    char mod[MAX_MODULE_SIZE];
+};
+
+struct BPMAP
+{
+    int count;
+    BRIDGEBP* bp;
+};
+
 struct ADDRINFO
 {
     char module[MAX_MODULE_SIZE]; //module the address is in
     char label[MAX_LABEL_SIZE];
     char comment[MAX_COMMENT_SIZE];
+    bool isbookmark;
     int flags; //ADDRINFOFLAGS
 };
 
@@ -162,12 +181,15 @@ DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text);
 DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text);
 DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text);
 DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text);
+DLL_IMPEXP bool DbgGetBookmarkAt(duint addr);
+DLL_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark);
 DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
 DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 DLL_IMPEXP duint DbgValFromString(const char* string);
 DLL_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
 DLL_IMPEXP bool DbgValToString(const char* string, duint value);
 DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
+DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 
 //GUI functions
 DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip);

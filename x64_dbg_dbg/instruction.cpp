@@ -218,7 +218,10 @@ CMDRESULT cbInstrCmt(const char* cmd)
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
+    }
     char arg2[deflen]="";
     if(!argget(cmd, arg2, 1, false))
         return STATUS_ERROR;
@@ -237,7 +240,10 @@ CMDRESULT cbInstrCmtdel(const char* cmd)
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
+    }
     if(!commentdel(addr))
     {
         dputs("error deleting comment");
@@ -253,7 +259,10 @@ CMDRESULT cbInstrLbl(const char* cmd)
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
+    }
     char arg2[deflen]="";
     if(!argget(cmd, arg2, 1, false))
         return STATUS_ERROR;
@@ -272,12 +281,56 @@ CMDRESULT cbInstrLbldel(const char* cmd)
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
+    }
+
     if(!labeldel(addr))
     {
         dputs("error deleting label");
         return STATUS_ERROR;
     }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrBookmarkSet(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!bookmarkset(addr))
+    {
+        dputs("failed to set bookmark!");
+        return STATUS_ERROR;
+    }
+    dputs("bookmark set!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrBookmarkDel(const char* cmd)
+{
+    char arg1[deflen]="";
+    if(!argget(cmd, arg1, 0, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address: \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!bookmarkdel(addr))
+    {
+        dputs("failed to delete bookmark!");
+        return STATUS_ERROR;
+    }
+    dputs("bookmark deleted!");
     return STATUS_CONTINUE;
 }
 

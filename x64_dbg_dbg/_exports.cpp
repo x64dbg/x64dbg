@@ -161,6 +161,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             }
         }
     }
+    if(addrinfo->flags&flagbookmark)
+    {
+        addrinfo->isbookmark=bookmarkget(addr);
+        retval=true;
+    }
     return retval;
 }
 
@@ -172,10 +177,17 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
         if(labelset(addr, addrinfo->label))
             retval=true;
     }
-    else if(addrinfo->flags&flagcomment) //set comment
+    if(addrinfo->flags&flagcomment) //set comment
     {
         if(commentset(addr, addrinfo->comment))
             retval=true;
+    }
+    if(addrinfo->flags&flagbookmark) //set bookmark
+    {
+        if(addrinfo->isbookmark)
+            retval=bookmarkset(addr);
+        else
+            retval=bookmarkdel(addr);
     }
     return retval;
 }
@@ -304,4 +316,64 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
 {
     return valtostring(string, value, true);
+}
+
+extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
+{
+    if(!bplist)
+        return 0;
+    BREAKPOINT* list;
+    int bpcount=bpgetlist(&list);
+    if(!bpcount)
+        return 0;
+    int retcount=0;
+    std::vector<BRIDGEBP> bridgeList;
+    BRIDGEBP curBp;
+    for(int i=0; i<bpcount; i++)
+    {
+        switch(type)
+        {
+        case bp_none: //all types
+
+            break;
+        case bp_normal: //normal
+            if(list[i].type!=BPNORMAL)
+                continue;
+            break;
+        case bp_hardware: //hardware
+            if(list[i].type!=BPHARDWARE)
+                continue;
+            break;
+        case bp_memory: //memory
+            if(list[i].type!=BPMEMORY)
+                continue;
+            break;
+        default:
+            return 0;
+        }
+        switch(list[i].type)
+        {
+        case BPNORMAL:
+            curBp.type=bp_normal;
+            break;
+        case BPHARDWARE:
+            curBp.type=bp_hardware;
+            break;
+        case BPMEMORY:
+            curBp.type=bp_memory;
+            break;
+        }
+        curBp.addr=list[i].addr;
+        curBp.enabled=list[i].enabled;
+        strcpy(curBp.mod, list[i].mod);
+        strcpy(curBp.name, list[i].name);
+        curBp.singleshoot=list[i].singleshoot;
+        bridgeList.push_back(curBp);
+        retcount++;
+    }
+    bplist->count=retcount;
+    bplist->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
+    for(int i=0; i<retcount; i++)
+        memcpy(&bplist->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
+    return retcount;
 }

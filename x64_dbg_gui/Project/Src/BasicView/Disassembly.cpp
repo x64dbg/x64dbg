@@ -126,60 +126,79 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         else
             *label=0;
         BPXTYPE bpxtype=DbgGetBpxTypeAt(cur_addr);
+        bool isbookmark=DbgGetBookmarkAt(cur_addr);
         painter->save();
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor(0,0,0)));
-            if(bpxtype&bp_normal) //breakpoint
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
+            if(!isbookmark)
             {
-                painter->setPen(QPen(QColor("#ff0000")));
+                if(bpxtype&bp_normal) //breakpoint
+                {
+                    painter->setPen(QPen(QColor("#ff0000")));
+                }
+                else
+                {
+                    painter->setPen(QPen(QColor("#fffbf0")));
+                }
             }
             else
             {
-                painter->setPen(QPen(QColor("#fffbf0")));
+                painter->setPen(QPen(QColor("#fee970")));
             }
         }
         else //other address
         {
-            if(*label) //label
+            if(!isbookmark)
             {
-                if(bpxtype==bp_none) //label only
-                    painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
-                else //label+breakpoint
+                if(*label) //label
                 {
-                    if(bpxtype&bp_normal)
+                    if(bpxtype==bp_none) //label only
+                        painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
+                    else //label+breakpoint
                     {
-                        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
-                    }
-                    else
-                    {
-                        painter->setPen(QPen(QColor("#000000"))); //black address
+                        if(bpxtype&bp_normal)
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                        }
+                        else
+                        {
+                            painter->setPen(QPen(QColor("#000000"))); //black address
+                        }
                     }
                 }
-            }
-            else //no label
-            {
-                if(bpxtype==bp_none) //no label, no breakpoint
+                else //no label
                 {
-                    if(wIsSelected)
-                        painter->setPen(QPen(QColor("#000000"))); //black address
-                    else
-                        painter->setPen(QPen(QColor("#808080")));
-                }
-                else //breakpoint only
-                {
-                    if(bpxtype&bp_normal)
-                    {
-                        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
-                    }
-                    else
+                    if(bpxtype==bp_none) //no label, no breakpoint
                     {
                         if(wIsSelected)
                             painter->setPen(QPen(QColor("#000000"))); //black address
                         else
                             painter->setPen(QPen(QColor("#808080")));
                     }
+                    else //breakpoint only
+                    {
+                        if(bpxtype&bp_normal)
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                        }
+                        else
+                        {
+                            if(wIsSelected)
+                                painter->setPen(QPen(QColor("#000000"))); //black address
+                            else
+                                painter->setPen(QPen(QColor("#808080")));
+                        }
+                    }
                 }
+            }
+            else
+            {
+                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#fee970")));
+                if(wIsSelected)
+                    painter->setPen(QPen(QColor("#000000"))); //black address
+                else
+                    painter->setPen(QPen(QColor("#808080")));
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
@@ -809,7 +828,7 @@ void Disassembly::prepareData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
-int_t Disassembly::rvaToVa(int_t rva)
+uint_t Disassembly::rvaToVa(int_t rva)
 {
     return mBase + rva;
 }

@@ -20,6 +20,7 @@ DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo);
 DLL_EXPORT int _dbg_bpgettypeat(duint addr);
 DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump);
 DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value);
+DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist);
 
 #ifdef __cplusplus
 }

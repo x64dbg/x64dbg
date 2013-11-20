@@ -6,6 +6,7 @@
 #include <QMenu>
 #include "Bridge.h"
 #include "WordEditDialog.h"
+#include "LineEditDialog.h"
 
 namespace Ui {
 class RegistersView;

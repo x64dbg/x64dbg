@@ -161,7 +161,7 @@ void MainWindow::displayAboutWidget()
 
 void MainWindow::on_actionGoto_triggered()
 {
-    GotoDialog mGoto;
+    GotoDialog mGoto(this);
     if(mGoto.exec()==QDialog::Accepted)
     {
         QString cmd;

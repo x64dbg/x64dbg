@@ -29,3 +29,4 @@ DBGBPGETTYPEAT _dbg_bpgettypeat;
 DBGGETREGDUMP _dbg_getregdump;
 DBGVALTOSTRING _dbg_valtostring;
 DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
+DBGGETBPLIST _dbg_getbplist;

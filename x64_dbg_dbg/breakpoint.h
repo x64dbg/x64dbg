@@ -4,8 +4,6 @@
 #include "_global.h"
 #include "TitanEngine\TitanEngine.h"
 
-#define MAX_BREAKPOINT_NAME 256
-
 //enums
 enum BP_TYPE
 {
@@ -24,7 +22,7 @@ struct BREAKPOINT
     short oldbytes;
     BP_TYPE type;
     DWORD titantype;
-    char name[MAX_BREAKPOINT_NAME];
+    char name[MAX_BREAKPOINT_SIZE];
     char mod[32];
 };
 #pragma pack()

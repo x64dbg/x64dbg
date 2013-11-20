@@ -6,7 +6,7 @@
 #include "NewTypes.h"
 #include "Disassembly.h"
 #include "Bridge.h"
-
+#include "LineEditDialog.h"
 
 class CPUDisassembly : public Disassembly
 {
@@ -26,14 +26,22 @@ public slots:
     void toggleInt3BPAction();
     void toggleHwBpActionSlot();
     void setNewOriginHereActionSlot();
+    void gotoOrigin();
+    void setLabel();
+    void setComment();
+    void setBookmark();
 
 private:
     // Rigth Click Context Menu
-    QMenu* mRigthClickContextMenu;
+    QMenu* mRightClickContextMenu;
 
     QAction* mToggleInt3BpAction;
     QAction* mToggleHwBpAction;
     QAction* mSetNewOriginHere;
+    QAction* mGotoOrigin;
+    QAction* mSetComment;
+    QAction* mSetLabel;
+    QAction* mSetBookmark;
 };
 
 #endif // CPUDISASSEMBLY_H

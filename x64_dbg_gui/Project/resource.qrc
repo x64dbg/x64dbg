@@ -17,5 +17,6 @@
         <file>images/processor-cpu.png</file>
         <file>images/ui-combo-box-edit.png</file>
         <file>images/scylla.png</file>
+        <file>images/compile-error.png</file>
     </qresource>
 </RCC>

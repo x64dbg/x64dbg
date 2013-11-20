@@ -35,5 +35,8 @@ bool commentdel(uint addr);
 bool labelset(uint addr, const char* text);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
+bool bookmarkset(uint addr);
+bool bookmarkget(uint addr);
+bool bookmarkdel(uint addr);
 
 #endif // _ADDRINFO_H

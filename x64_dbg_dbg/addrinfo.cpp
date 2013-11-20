@@ -17,9 +17,11 @@ void dbinit()
         return;
     }
     sqlloadsavedb(userdb, dbpath, false);
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
-    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS bookmarks (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, addr INT64 NOT NULL, enabled INT NOT NULL, singleshoot INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL, titantype INT NOT NULL, mod TEXT, name TEXT)"))
         dprintf("SQL Error: %s\n", sqllasterror());
@@ -388,6 +390,82 @@ bool labeldel(uint addr)
     if(!sqlgetint(userdb, sql, &del_id))
         return false;
     sprintf(sql, "DELETE FROM labels WHERE id=%d", del_id);
+    if(!sqlexec(userdb, sql))
+    {
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
+        return false;
+    }
+    dbsave();
+    GuiUpdateAllViews();
+    return true;
+}
+
+///bookmark functions
+bool bookmarkset(uint addr)
+{
+    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    char modname[35]="";
+    char sql[deflen]="";
+    if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
+    {
+        sprintf(sql, "SELECT * FROM bookmarks WHERE mod IS NULL AND addr=%"fext"d", addr);
+        if(sqlhasresult(userdb, sql)) //there is a bookmark already
+            return true;
+        else //insert
+            sprintf(sql, "INSERT INTO bookmarks (addr) VALUES (%"fext"d)", addr);
+    }
+    else
+    {
+        uint modbase=modbasefromaddr(addr);
+        uint rva=addr-modbase;
+        sprintf(sql, "SELECT * FROM bookmarks WHERE mod='%s' AND addr=%"fext"d", modname, rva);
+        if(sqlhasresult(userdb, sql)) //there is a bookmark already
+            return true;
+        else //insert
+            sprintf(sql, "INSERT INTO bookmarks (mod,addr) VALUES ('%s',%"fext"d)", modname, rva);
+    }
+    if(!sqlexec(userdb, sql))
+    {
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
+        return false;
+    }
+    GuiUpdateAllViews();
+    dbsave();
+    return true;
+}
+
+bool bookmarkget(uint addr)
+{
+    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    char modname[35]="";
+    char sql[deflen]="";
+    if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
+        sprintf(sql, "SELECT * FROM bookmarks WHERE mod IS NULL AND addr=%"fext"d", addr);
+    else
+        sprintf(sql, "SELECT * FROM bookmarks WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
+    return sqlhasresult(userdb, sql);
+}
+
+bool bookmarkdel(uint addr)
+{
+    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    char modname[35]="";
+    char sql[deflen]="";
+    if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
+        sprintf(sql, "SELECT id FROM bookmarks WHERE mod IS NULL AND addr=%"fext"d", addr);
+    else
+    {
+        uint modbase=modbasefromaddr(addr);
+        uint rva=addr-modbase;
+        sprintf(sql, "SELECT id FROM bookmarks WHERE mod='%s' AND addr=%"fext"d", modname, rva);
+    }
+    int del_id=0;
+    if(!sqlgetint(userdb, sql, &del_id))
+        return false;
+    sprintf(sql, "DELETE FROM bookmarks WHERE id=%d", del_id);
     if(!sqlexec(userdb, sql))
     {
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);

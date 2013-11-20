@@ -46,7 +46,8 @@ SOURCES += \
     Src/BasicView/RegistersView.cpp \
     Src/Gui/StatusLabel.cpp \
     Src/BasicView/WordEditDialog.cpp \
-    Src/Gui/CPUDisassembly.cpp
+    Src/Gui/CPUDisassembly.cpp \
+    Src/BasicView/LineEditDialog.cpp
 
 
 HEADERS += \
@@ -73,7 +74,8 @@ HEADERS += \
     Src/BasicView/RegistersView.h \
     Src/Gui/StatusLabel.h \
     Src/BasicView/WordEditDialog.h \
-    Src/Gui/CPUDisassembly.h
+    Src/Gui/CPUDisassembly.h \
+    Src/BasicView/LineEditDialog.h
 
 INCLUDEPATH += \
     Src \
@@ -91,7 +93,8 @@ FORMS += \
     Src/Dummy.ui \
     Src/Gui/CPUWidget.ui \
     Src/Gui/GotoDialog.ui \
-    Src/BasicView/WordEditDialog.ui
+    Src/BasicView/WordEditDialog.ui \
+    Src/BasicView/LineEditDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
