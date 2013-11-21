@@ -20,7 +20,7 @@ DLL_IMPEXP const char* BridgeInit()
     ///Settings load
     GetModuleFileNameA(0, szIniFile, 1024);
     int len=strlen(szIniFile);
-    while(szIniFile[len]!='.' and szIniFile[len]!='\\')
+    while(szIniFile[len]!='.' && szIniFile[len]!='\\')
         len--;
     if(szIniFile[len]=='\\')
         strcat(szIniFile, ".ini");
