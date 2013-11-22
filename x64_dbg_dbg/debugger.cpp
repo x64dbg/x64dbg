@@ -18,6 +18,7 @@ uint pDebuggedDllBase=0;
 static bool isStepping=false;
 static bool isPausedByUser=false;
 static bool bScyllaLoaded=false;
+static int ecount=0;
 
 //Superglobal variables
 char sqlitedb[deflen]="";
@@ -175,48 +176,6 @@ static void cbEntryBreakpoint()
     wait(WAITID_RUN);
 }
 
-static int ecount=0;
-
-static void cbException(void* ExceptionData)
-{
-    EXCEPTION_DEBUG_INFO* edi=(EXCEPTION_DEBUG_INFO*)ExceptionData;
-    uint addr=(uint)edi->ExceptionRecord.ExceptionAddress;
-    if(edi->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
-    {
-        if(isPausedByUser)
-        {
-            dputs("paused!");
-            SetNextDbgContinueStatus(DBG_CONTINUE);
-            DebugUpdateGui(GetContextData(UE_CIP));
-            GuiSetDebugState(paused);
-            //lock
-            lock(WAITID_RUN);
-            wait(WAITID_RUN);
-            return;
-        }
-        SetContextData(UE_CIP, (uint)edi->ExceptionRecord.ExceptionAddress);
-    }
-
-    char msg[1024]="";
-    if(edi->dwFirstChance) //first chance exception
-    {
-        sprintf(msg, "first chance exception on "fhex" (%.8X)!", addr, edi->ExceptionRecord.ExceptionCode);
-        SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
-    }
-    else //lock the exception
-    {
-        sprintf(msg, "last chance exception on "fhex" (%.8X)!", addr, edi->ExceptionRecord.ExceptionCode);
-        SetNextDbgContinueStatus(DBG_CONTINUE);
-    }
-
-    dputs(msg);
-    DebugUpdateGui(GetContextData(UE_CIP));
-    GuiSetDebugState(paused);
-    //lock
-    lock(WAITID_RUN);
-    wait(WAITID_RUN);
-}
-
 BOOL
 CALLBACK
 SymRegisterCallbackProc64(
@@ -286,28 +245,6 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
-{
-    void* base=LoadDll->lpBaseOfDll;
-    char DLLDebugFileName[deflen]="";
-    if(!GetMappedFileNameA(fdProcessInfo->hProcess, base, DLLDebugFileName, deflen))
-        strcpy(DLLDebugFileName, "??? (GetMappedFileName failed)");
-    else
-        DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
-    dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
-
-    SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
-    IMAGEHLP_MODULE64 modInfo;
-    memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
-    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    bpenumall(0);
-    char modname[256]="";
-    if(modnamefromaddr((uint)base, modname, true))
-        bpenumall(cbSetModuleBreakpoints, modname);
-}
-
 static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
     //TODO: more breakpoint types
@@ -329,16 +266,44 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
+static void cbStep()
 {
-    void* base=UnloadDll->lpBaseOfDll;
-    char modname[256]="???";
-    if(modnamefromaddr((uint)base, modname, true))
-        bpenumall(cbRemoveModuleBreakpoints, modname);
-    SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
-    dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
+    isStepping=false;
+    DebugUpdateGui(GetContextData(UE_CIP));
+    GuiSetDebugState(paused);
+    //lock
+    lock(WAITID_RUN);
+    wait(WAITID_RUN);
 }
 
+static void cbRtrFinalStep()
+{
+    DebugUpdateGui(GetContextData(UE_CIP));
+    GuiSetDebugState(paused);
+    //lock
+    lock(WAITID_RUN);
+    wait(WAITID_RUN);
+}
+
+static unsigned char getCIPch()
+{
+    unsigned char ch=0x90;
+    uint cip=GetContextData(UE_CIP);
+    memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
+    bpfixmemory(cip, &ch, 1);
+    return ch;
+}
+
+static void cbRtrStep()
+{
+    unsigned int cipch=getCIPch();
+    if(cipch==0xC3 or cipch==0xC2)
+        cbRtrFinalStep();
+    else
+        StepOver((void*)cbRtrStep);
+}
+
+///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     void* base=CreateProcessInfo->lpBaseOfImage;
@@ -387,10 +352,33 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
 }
 
+static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
+{
+    PLUG_CB_EXITPROCESS callbackInfo;
+    callbackInfo.ExitProcess=ExitProcess;
+    plugincbcall(CB_EXITPROCESS, &callbackInfo);
+}
+
+static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
+{
+    PLUG_CB_CREATETHREAD callbackInfo;
+    callbackInfo.CreateThread=CreateThread;
+    plugincbcall(CB_CREATETHREAD, &callbackInfo);
+}
+
+static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
+{
+    PLUG_CB_EXITTHREAD callbackInfo;
+    callbackInfo.ExitThread=ExitThread;
+    plugincbcall(CB_EXITTHREAD, &callbackInfo);
+}
+
 static void cbSystemBreakpoint(void* ExceptionData)
 {
+    PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
+    callbackInfo.reserved=0;
+    plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
     //TODO: handle stuff (TLS, main entry, etc)
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, 0);
     //log message
     dputs("system breakpoint reached!");
     //update GUI
@@ -403,42 +391,102 @@ static void cbSystemBreakpoint(void* ExceptionData)
     wait(WAITID_RUN);
 }
 
-static void cbStep()
+static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
-    isStepping=false;
-    DebugUpdateGui(GetContextData(UE_CIP));
-    GuiSetDebugState(paused);
-    //lock
-    lock(WAITID_RUN);
-    wait(WAITID_RUN);
-}
-
-static void cbRtrFinalStep()
-{
-    DebugUpdateGui(GetContextData(UE_CIP));
-    GuiSetDebugState(paused);
-    //lock
-    lock(WAITID_RUN);
-    wait(WAITID_RUN);
-}
-
-static unsigned char getCIPch()
-{
-    unsigned char ch=0x90;
-    uint cip=GetContextData(UE_CIP);
-    memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
-    bpfixmemory(cip, &ch, 1);
-    return ch;
-}
-
-static void cbRtrStep()
-{
-    unsigned int cipch=getCIPch();
-    if(cipch==0xC3 or cipch==0xC2)
-        cbRtrFinalStep();
+    void* base=LoadDll->lpBaseOfDll;
+    char DLLDebugFileName[deflen]="";
+    if(!GetMappedFileNameA(fdProcessInfo->hProcess, base, DLLDebugFileName, deflen))
+        strcpy(DLLDebugFileName, "??? (GetMappedFileName failed)");
     else
-        StepOver((void*)cbRtrStep);
+        DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
+    dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
+
+    SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    IMAGEHLP_MODULE64 modInfo;
+    memset(&modInfo, 0, sizeof(modInfo));
+    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
+    bpenumall(0);
+    char modname[256]="";
+    if(modnamefromaddr((uint)base, modname, true))
+        bpenumall(cbSetModuleBreakpoints, modname);
+
+    //TODO: plugin callback
+    PLUG_CB_LOADDLL callbackInfo;
+    callbackInfo.LoadDll=LoadDll;
+    callbackInfo.modInfo=&modInfo;
+    callbackInfo.modname=modname;
+    plugincbcall(CB_LOADDLL, &callbackInfo);
 }
+
+static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
+{
+    //TODO: plugin callback
+    PLUG_CB_UNLOADDLL callbackInfo;
+    callbackInfo.UnloadDll=UnloadDll;
+    plugincbcall(CB_UNLOADDLL, &callbackInfo);
+
+    void* base=UnloadDll->lpBaseOfDll;
+    char modname[256]="???";
+    if(modnamefromaddr((uint)base, modname, true))
+        bpenumall(cbRemoveModuleBreakpoints, modname);
+    SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
+    dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
+}
+
+static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
+{
+    //TODO: handle debug strings
+    PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
+    callbackInfo.DebugString=DebugString;
+    plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
+}
+
+static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
+{
+    //TODO: plugin callback
+    PLUG_CB_EXCEPTION callbackInfo;
+    callbackInfo.Exception=ExceptionData;
+    plugincbcall(CB_EXCEPTION, &callbackInfo);
+
+    uint addr=(uint)ExceptionData->ExceptionRecord.ExceptionAddress;
+    if(ExceptionData->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
+    {
+        if(isPausedByUser)
+        {
+            dputs("paused!");
+            SetNextDbgContinueStatus(DBG_CONTINUE);
+            DebugUpdateGui(GetContextData(UE_CIP));
+            GuiSetDebugState(paused);
+            //lock
+            lock(WAITID_RUN);
+            wait(WAITID_RUN);
+            return;
+        }
+        SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
+    }
+
+    char msg[1024]="";
+    if(ExceptionData->dwFirstChance) //first chance exception
+    {
+        sprintf(msg, "first chance exception on "fhex" (%.8X)!", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
+    }
+    else //lock the exception
+    {
+        sprintf(msg, "last chance exception on "fhex" (%.8X)!", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        SetNextDbgContinueStatus(DBG_CONTINUE);
+    }
+
+    dputs(msg);
+    DebugUpdateGui(GetContextData(UE_CIP));
+    GuiSetDebugState(paused);
+    //lock
+    lock(WAITID_RUN);
+    wait(WAITID_RUN);
+}
+
 
 static DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
@@ -465,10 +513,14 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     ecount=0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
+    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
+    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
+    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
-    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
     SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
+    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
+    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
     //call plugin callback
