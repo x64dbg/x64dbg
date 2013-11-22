@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "_exports.h"
 #include "addrinfo.h"
+#include "plugin_loader.h"
 
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
 PROCESS_INFORMATION* fdProcessInfo=&g_pi;
@@ -377,6 +378,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
+
+    //call plugin callback
+    PLUG_CB_CREATEPROCESS callbackInfo;
+    callbackInfo.CreateProcessInfo=CreateProcessInfo;
+    callbackInfo.modInfo=&modInfo;
+    callbackInfo.DebugFileName=DebugFileName;
+    plugincbcall(CB_CREATEPROCESS, &callbackInfo);
 }
 
 static void cbSystemBreakpoint(void* ExceptionData)
@@ -463,10 +471,18 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
+    //call plugin callback
+    PLUG_CB_INITDEBUG initInfo;
+    initInfo.szFileName=szFileName;
+    plugincbcall(CB_INITDEBUG, &initInfo);
     //run debug loop (returns when process debugging is stopped)
     DebugLoop();
-    DeleteFileA("DLLLoader.exe");
+    //call plugin callback
+    PLUG_CB_STOPDEBUG stopInfo;
+    stopInfo.reserved=0;
+    plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
+    DeleteFileA("DLLLoader.exe");
     SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     modclear();

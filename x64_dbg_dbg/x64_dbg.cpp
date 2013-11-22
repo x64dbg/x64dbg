@@ -12,6 +12,7 @@
 #include "msgqueue.h"
 #include "addrinfo.h"
 #include "threading.h"
+#include "plugin_loader.h"
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
@@ -123,7 +124,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     registercommands();
     scriptSetList(command_list);
     CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
-    //CreateThread(0, 0, ConsoleReadLoopThread, 0, 0, 0);
+    char plugindir[deflen]="";
+    strcpy(plugindir, dir);
+    PathAppendA(plugindir, "plugins");
+    pluginload(plugindir);
     return 0;
 }
 
@@ -132,6 +136,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     //TODO: handle exit signal
     cbStopDebug("");
     wait(WAITID_STOP); //after this, debugging stopped
+    pluginunload();
     DeleteFileA("DLLLoader.exe");
     cmdfree(command_list);
     varfree();

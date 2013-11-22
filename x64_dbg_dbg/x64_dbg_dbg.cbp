@@ -14,6 +14,8 @@
 				<Option compiler="gcc" />
 				<Option host_application="../bin/x32/x32_dbg.exe" />
 				<Option run_host_application_in_terminal="0" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-Os" />
@@ -34,6 +36,8 @@
 				<Option compiler="gnu_gcc_compiler_x64" />
 				<Option host_application="../bin/x64/x64_dbg.exe" />
 				<Option run_host_application_in_terminal="0" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wno-narrowing" />
@@ -51,6 +55,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions -Wno-format" />
+			<Add option="-DBUILD_DBG" />
 			<Add directory="$(project_dir)" />
 		</Compiler>
 		<Linker>
@@ -63,6 +68,9 @@
 		<Unit filename="_exports.h" />
 		<Unit filename="_global.cpp" />
 		<Unit filename="_global.h" />
+		<Unit filename="_plugin_types.h" />
+		<Unit filename="_plugins.cpp" />
+		<Unit filename="_plugins.h" />
 		<Unit filename="addrinfo.cpp" />
 		<Unit filename="addrinfo.h" />
 		<Unit filename="argument.cpp" />
@@ -87,6 +95,8 @@
 		<Unit filename="memory.h" />
 		<Unit filename="msgqueue.cpp" />
 		<Unit filename="msgqueue.h" />
+		<Unit filename="plugin_loader.cpp" />
+		<Unit filename="plugin_loader.h" />
 		<Unit filename="simplescript.cpp" />
 		<Unit filename="simplescript.h" />
 		<Unit filename="sqlhelper.cpp" />
