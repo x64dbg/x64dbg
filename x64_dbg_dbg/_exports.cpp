@@ -329,6 +329,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
     int retcount=0;
     std::vector<BRIDGEBP> bridgeList;
     BRIDGEBP curBp;
+    unsigned short slot=0;
     for(int i=0; i<bpcount; i++)
     {
         switch(type)
@@ -363,11 +364,27 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
             curBp.type=bp_memory;
             break;
         }
+        switch(((DWORD)list[i].titantype)>>8)
+        {
+        case UE_DR0:
+            slot=0;
+            break;
+        case UE_DR1:
+            slot=1;
+            break;
+        case UE_DR2:
+            slot=2;
+            break;
+        case UE_DR3:
+            slot=3;
+            break;
+        }
         curBp.addr=list[i].addr;
         curBp.enabled=list[i].enabled;
         strcpy(curBp.mod, list[i].mod);
         strcpy(curBp.name, list[i].name);
         curBp.singleshoot=list[i].singleshoot;
+        curBp.slot=slot;
         bridgeList.push_back(curBp);
         retcount++;
     }

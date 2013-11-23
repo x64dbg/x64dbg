@@ -100,6 +100,7 @@ struct BRIDGEBP
     bool singleshoot;
     char name[MAX_BREAKPOINT_SIZE];
     char mod[MAX_MODULE_SIZE];
+    unsigned short slot;
 };
 
 struct BPMAP
@@ -190,6 +191,7 @@ DLL_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
 DLL_IMPEXP bool DbgValToString(const char* string, duint value);
 DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
+DLL_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
 
 //GUI functions
 DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip);
