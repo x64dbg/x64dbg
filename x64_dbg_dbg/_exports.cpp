@@ -332,10 +332,10 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
     unsigned short slot=0;
     for(int i=0; i<bpcount; i++)
     {
+        memset(&curBp, 0, sizeof(BRIDGEBP));
         switch(type)
         {
         case bp_none: //all types
-
             break;
         case bp_normal: //normal
             if(list[i].type!=BPNORMAL)
@@ -381,6 +381,9 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
         }
         curBp.addr=list[i].addr;
         curBp.enabled=list[i].enabled;
+        //TODO: fix this
+        if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
+            curBp.active=true;
         strcpy(curBp.mod, list[i].mod);
         strcpy(curBp.name, list[i].name);
         curBp.singleshoot=list[i].singleshoot;

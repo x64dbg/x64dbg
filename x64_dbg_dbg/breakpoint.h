@@ -13,19 +13,18 @@ enum BP_TYPE
 };
 
 //structs
-#pragma pack(1)
 struct BREAKPOINT
 {
     uint addr;
     bool enabled;
     bool singleshoot;
+    bool active;
     short oldbytes;
     BP_TYPE type;
     DWORD titantype;
     char name[MAX_BREAKPOINT_SIZE];
     char mod[32];
 };
-#pragma pack()
 
 //typedefs
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);

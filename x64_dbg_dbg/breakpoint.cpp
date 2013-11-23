@@ -3,6 +3,7 @@
 #include "addrinfo.h"
 #include "sqlhelper.h"
 #include "console.h"
+#include "memory.h"
 
 static BREAKPOINT bpall[1000];
 static int bpcount=0;
@@ -99,6 +100,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
         sqlite3_finalize(stmt);
         return true;
     }
+    memset(bp, 0, sizeof(BREAKPOINT));
     if(!modbase)
     {
         const char* mod=(const char*)sqlite3_column_text(stmt, 6); //mod
@@ -126,6 +128,9 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
         strcpy(bp->name, bpname_);
     else
         *bp->name=0;
+    //TODO: fix this
+    if(memisvalidreadptr(fdProcessInfo->hProcess, bp->addr))
+        bp->active=true;
     sqlite3_finalize(stmt);
     return true;
 }

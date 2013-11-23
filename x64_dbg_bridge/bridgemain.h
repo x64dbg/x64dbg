@@ -98,6 +98,7 @@ struct BRIDGEBP
     duint addr;
     bool enabled;
     bool singleshoot;
+    bool active;
     char name[MAX_BREAKPOINT_SIZE];
     char mod[MAX_MODULE_SIZE];
     unsigned short slot;
