@@ -47,6 +47,7 @@ void efree(void* ptr, const char* reason)
 
 bool arraycontains(const char* cmd_list, const char* cmd)
 {
+    //TODO: fix this function a little
     if(!cmd_list or !cmd)
         return false;
     char temp[deflen]="";

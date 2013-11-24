@@ -1,9 +1,12 @@
 #include "plugin_loader.h"
 #include "console.h"
+#include "command.h"
+#include "x64_dbg.h"
 
 static std::vector<PLUG_DATA> pluginList;
 static int curPluginHandle=0;
 static std::vector<PLUG_CALLBACK> pluginCallbackList;
+static std::vector<PLUG_COMMAND> pluginCommandList;
 
 ///internal plugin functions
 void pluginload(const char* pluginDir)
@@ -114,4 +117,35 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
             pluginCallbackList.at(i).cbPlugin(cbType, callbackInfo);
         }
     }
+}
+
+bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
+{
+    if(!command or strlen(command)>=deflen or strstr(command, "\1"))
+        return false;
+    PLUG_COMMAND plugCmd;
+    plugCmd.pluginHandle=pluginHandle;
+    strcpy(plugCmd.command, command);
+    if(!cmdnew(dbggetcommandlist(), command, (CBCOMMAND)cbCommand, debugonly))
+        return false;
+    pluginCommandList.push_back(plugCmd);
+    return true;
+}
+
+bool plugincmdunregister(int pluginHandle, const char* command)
+{
+    if(!command or strlen(command)>=deflen or strstr(command, "\1"))
+        return false;
+    int listsize=pluginCommandList.size();
+    for(int i=0; i<listsize; i++)
+    {
+        if(pluginCommandList.at(i).pluginHandle==pluginHandle and !strcmp(pluginCommandList.at(i).command, command))
+        {
+            if(!cmddel(dbggetcommandlist(), command))
+                return false;
+            pluginCommandList.erase(pluginCommandList.begin()+i);
+            return true;
+        }
+    }
+    return false;
 }

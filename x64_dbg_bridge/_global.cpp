@@ -30,3 +30,4 @@ DBGGETREGDUMP _dbg_getregdump;
 DBGVALTOSTRING _dbg_valtostring;
 DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 DBGGETBPLIST _dbg_getbplist;
+DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;

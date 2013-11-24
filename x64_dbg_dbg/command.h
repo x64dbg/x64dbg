@@ -9,12 +9,12 @@ struct COMMAND;
 
 enum CMDRESULT
 {
-    STATUS_EXIT=0,
-    STATUS_CONTINUE=1,
-    STATUS_ERROR=2
+    STATUS_ERROR=false,
+    STATUS_CONTINUE=true,
+    STATUS_EXIT=2,
 };
 
-typedef CMDRESULT (*CBCOMMAND)(const char*);
+typedef CMDRESULT (*CBCOMMAND)(int, char**);
 typedef bool (*CBCOMMANDPROVIDER)(char*, int);
 typedef COMMAND* (*CBCOMMANDFINDER)(COMMAND*, char*);
 
@@ -36,5 +36,6 @@ CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, b
 bool cmddel(COMMAND* command_list, const char* name);
 CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal);
 COMMAND* cmdfindmain(COMMAND* cmd_list, char* command);
+CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd);
 
 #endif // _COMMAND_H

@@ -2,12 +2,13 @@
 #include "command.h"
 #include "console.h"
 #include "instruction.h"
+#include "x64_dbg.h"
 
 static int total=0;
 static char found[1024][1024];
 static COMMAND* command_list=0;
 
-static CMDRESULT cbRet(const char* cmd)
+static CMDRESULT cbRet(int argc, char* argv[])
 {
     return STATUS_EXIT;
 }
@@ -19,18 +20,13 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     return true;
 }
 
-static CMDRESULT cbCollect(const char* cmd)
+static CMDRESULT cbCollect(int argc, char* argv[])
 {
-    strcpy(found[total], cmd);
+    strcpy(found[total], *argv);
     total++;
     if(total>=1024)
         return STATUS_EXIT;
     return STATUS_CONTINUE;
-}
-
-void scriptSetList(COMMAND* cmd_list)
-{
-    command_list=cmd_list;
 }
 
 static int i=0;
@@ -44,8 +40,9 @@ static bool provider(char* cmd, int size)
     return true;
 }
 
-CMDRESULT cbScript(const char* cmd)
+CMDRESULT cbScript(int argc, char* argv[])
 {
+    command_list=dbggetcommandlist();
     total=0;
     i=0;
     COMMAND* cmd_list=cmdinit();

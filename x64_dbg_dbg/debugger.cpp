@@ -547,7 +547,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     return 0;
 }
 
-CMDRESULT cbDebugInit(const char* cmd)
+CMDRESULT cbDebugInit(int argc, char* argv[])
 {
     if(IsFileBeingDebugged())
     {
@@ -556,7 +556,7 @@ CMDRESULT cbDebugInit(const char* cmd)
     }
 
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     if(!FileExists(arg1))
     {
@@ -565,13 +565,13 @@ CMDRESULT cbDebugInit(const char* cmd)
     }
 
     char arg2[deflen]="";
-    argget(cmd, arg2, 1, true);
+    argget(*argv, arg2, 1, true);
     char* commandline=0;
     if(strlen(arg2))
         commandline=arg2;
 
     char arg3[deflen]="";
-    argget(cmd, arg3, 2, true);
+    argget(*argv, arg3, 2, true);
 
     char currentfolder[deflen]="";
     strcpy(currentfolder, arg1);
@@ -600,14 +600,14 @@ CMDRESULT cbDebugInit(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbStopDebug(const char* cmd)
+CMDRESULT cbStopDebug(int argc, char* argv[])
 {
     StopDebug();
     unlock(WAITID_RUN);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugRun(const char* cmd)
+CMDRESULT cbDebugRun(int argc, char* argv[])
 {
     if(!waitislocked(WAITID_RUN))
     {
@@ -619,11 +619,11 @@ CMDRESULT cbDebugRun(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetBPXOptions(const char* cmd)
+CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
     char argtype[deflen]="";
     uint type=0;
-    if(!argget(cmd, argtype, 0, false))
+    if(!argget(*argv, argtype, 0, false))
         return STATUS_ERROR;
     const char* a=0;
     if(strstr(argtype, "long"))
@@ -651,15 +651,15 @@ CMDRESULT cbDebugSetBPXOptions(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetBPX(const char* cmd) //bp addr [,name [,type]]
+CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 {
     char argaddr[deflen]="";
-    if(!argget(cmd, argaddr, 0, false))
+    if(!argget(*argv, argaddr, 0, false))
         return STATUS_ERROR;
     char argname[deflen]="";
-    argget(cmd, argname, 1, true);
+    argget(*argv, argname, 1, true);
     char argtype[deflen]="";
-    bool has_arg2=argget(cmd, argtype, 2, true);
+    bool has_arg2=argget(*argv, argtype, 2, true);
     if(!has_arg2 and (scmp(argname, "ss") or scmp(argname, "long") or scmp(argname, "ud2")))
     {
         strcpy(argtype, argname);
@@ -719,10 +719,10 @@ static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
     return false;
 }
 
-CMDRESULT cbDebugDeleteBPX(const char* cmd)
+CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {
         if(!bpgetcount(BPNORMAL))
         {
@@ -771,11 +771,11 @@ static bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-CMDRESULT cbDebugEnableBPX(const char* cmd)
+CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
 {
     puts("cbDebugEnableBPX");
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {
         if(!bpgetcount(BPNORMAL))
         {
@@ -831,10 +831,10 @@ static bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-CMDRESULT cbDebugDisableBPX(const char* cmd)
+CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {
         if(!bpgetcount(BPNORMAL))
         {
@@ -901,31 +901,31 @@ static bool cbBreakpointList(const BREAKPOINT* bp)
     return true;
 }
 
-CMDRESULT cbDebugBplist(const char* cmd)
+CMDRESULT cbDebugBplist(int argc, char* argv[])
 {
     bpenumall(cbBreakpointList);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugStepInto(const char* cmd)
+CMDRESULT cbDebugStepInto(int argc, char* argv[])
 {
     StepInto((void*)cbStep);
     isStepping=true;
-    return cbDebugRun(cmd);
+    return cbDebugRun(argc, argv);
 }
 
-CMDRESULT cbDebugStepOver(const char* cmd)
+CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
     StepOver((void*)cbStep);
     isStepping=true;
-    return cbDebugRun(cmd);
+    return cbDebugRun(argc, argv);
 }
 
-CMDRESULT cbDebugSingleStep(const char* cmd)
+CMDRESULT cbDebugSingleStep(int argc, char* argv[])
 {
     char arg1[deflen]="";
     uint stepcount=1;
-    if(argget(cmd, arg1, 0, true))
+    if(argget(*argv, arg1, 0, true))
     {
         if(!valfromstring(arg1, &stepcount, 0, 0, true, 0))
             stepcount=1;
@@ -933,10 +933,10 @@ CMDRESULT cbDebugSingleStep(const char* cmd)
 
     SingleStep((DWORD)stepcount, (void*)cbStep);
     isStepping=true;
-    return cbDebugRun(cmd);
+    return cbDebugRun(argc, argv);
 }
 
-CMDRESULT cbDebugHide(const char* cmd)
+CMDRESULT cbDebugHide(int argc, char* argv[])
 {
     if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_BASIC))
         dputs("debugger hidden");
@@ -945,21 +945,21 @@ CMDRESULT cbDebugHide(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugDisasm(const char* cmd)
+CMDRESULT cbDebugDisasm(int argc, char* argv[])
 {
     char arg1[deflen]="";
     uint addr=GetContextData(UE_CIP);
-    if(argget(cmd, arg1, 0, true))
+    if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &addr, 0, 0, true, 0))
             addr=GetContextData(UE_CIP);
     DebugUpdateGui(addr);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetMemoryBpx(const char* cmd)
+CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 {
     char arg1[deflen]=""; //addr
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -967,8 +967,8 @@ CMDRESULT cbDebugSetMemoryBpx(const char* cmd)
     bool restore=false;
     char arg2[deflen]=""; //restore
     char arg3[deflen]=""; //type
-    argget(cmd, arg3, 2, true);
-    if(argget(cmd, arg2, 1, true))
+    argget(*argv, arg3, 2, true);
+    if(argget(*argv, arg2, 1, true))
     {
         if(*arg2=='1')
             restore=true;
@@ -1030,10 +1030,10 @@ static bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-CMDRESULT cbDebugDeleteMemoryBreakpoint(const char* cmd)
+CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {
         if(!bpgetcount(BPMEMORY))
         {
@@ -1076,24 +1076,24 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugRtr(const char* cmd)
+CMDRESULT cbDebugRtr(int argc, char* argv[])
 {
     StepOver((void*)cbRtrStep);
-    cbDebugRun(cmd);
+    cbDebugRun(argc, argv);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
+CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen]=""; //addr
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
         return STATUS_ERROR;
     uint type=UE_HARDWARE_EXECUTE;
     char arg2[deflen]=""; //type
-    if(argget(cmd, arg2, 1, true))
+    if(argget(*argv, arg2, 1, true))
     {
         switch(*arg2)
         {
@@ -1112,7 +1112,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(const char* cmd)
     }
     char arg3[deflen]=""; //size
     uint size=UE_HARDWARE_SIZE_1;
-    if(argget(cmd, arg3, 2, true))
+    if(argget(*argv, arg3, 2, true))
     {
         if(!valfromstring(arg3, &size, 0, 0, true, 0))
             return STATUS_ERROR;
@@ -1174,10 +1174,10 @@ static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
-CMDRESULT cbDebugDeleteHardwareBreakpoint(const char* cmd)
+CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {
         if(!bpgetcount(BPHARDWARE))
         {
@@ -1216,11 +1216,11 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugAlloc(const char* cmd)
+CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
     char arg1[deflen]=""; //size
     uint size=0x1000;
-    if(argget(cmd, arg1, 0, true))
+    if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &size, 0, 0, false, 0))
             return STATUS_ERROR;
     uint mem=(uint)memalloc(fdProcessInfo->hProcess, 0, size, PAGE_EXECUTE_READWRITE);
@@ -1234,13 +1234,13 @@ CMDRESULT cbDebugAlloc(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugFree(const char* cmd)
+CMDRESULT cbDebugFree(int argc, char* argv[])
 {
     uint lastalloc;
     varget("$lastalloc", &lastalloc, 0, 0);
     char arg1[deflen]=""; //addr
     uint addr=lastalloc;
-    if(argget(cmd, arg1, 0, true))
+    if(argget(*argv, arg1, 0, true))
     {
         if(!valfromstring(arg1, &addr, 0, 0, false, 0))
             return STATUS_ERROR;
@@ -1256,7 +1256,7 @@ CMDRESULT cbDebugFree(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugMemset(const char* cmd)
+CMDRESULT cbDebugMemset(int argc, char* argv[])
 {
     char arg1[deflen]=""; //addr
     char arg2[deflen]=""; //value
@@ -1264,11 +1264,11 @@ CMDRESULT cbDebugMemset(const char* cmd)
     uint addr;
     uint value;
     uint size;
-    if(!argget(cmd, arg1, 0, false) or !argget(cmd, arg2, 1, false))
+    if(!argget(*argv, arg1, 0, false) or !argget(*argv, arg2, 1, false))
         return STATUS_ERROR;
     if(!valfromstring(arg1, &addr, 0, 0, false, 0) or !valfromstring(arg2, &value, 0, 0, false, 0))
         return STATUS_ERROR;
-    if(argget(cmd, arg3, 2, true))
+    if(argget(*argv, arg3, 2, true))
     {
         if(!valfromstring(arg3, &size, 0, 0, false, 0))
             return STATUS_ERROR;
@@ -1293,10 +1293,10 @@ CMDRESULT cbDebugMemset(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbBenchmark(const char* cmd)
+CMDRESULT cbBenchmark(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
@@ -1313,7 +1313,7 @@ CMDRESULT cbBenchmark(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugPause(const char* cmd)
+CMDRESULT cbDebugPause(int argc, char* argv[])
 {
     if(waitislocked(WAITID_RUN))
     {
@@ -1325,10 +1325,10 @@ CMDRESULT cbDebugPause(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbMemWrite(const char* cmd)
+CMDRESULT cbMemWrite(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
@@ -1366,7 +1366,7 @@ DWORD WINAPI scyllaThread(void* lpParam)
     return 0;
 }
 
-CMDRESULT cbStartScylla(const char* cmd)
+CMDRESULT cbStartScylla(int argc, char* argv[])
 {
     if(bScyllaLoaded)
     {

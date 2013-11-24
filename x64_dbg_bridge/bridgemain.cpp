@@ -15,7 +15,7 @@ static char szIniFile[1024]="";
 #endif // _WIN64
 
 //Bridge
-DLL_IMPEXP const char* BridgeInit()
+BRIDGE_IMPEXP const char* BridgeInit()
 {
     ///Settings load
     GetModuleFileNameA(0, szIniFile, 1024);
@@ -127,10 +127,14 @@ DLL_IMPEXP const char* BridgeInit()
     _dbg_getbplist=(DBGGETBPLIST)GetProcAddress(hInstDbg, "_dbg_getbplist");
     if(!_dbg_getbplist)
         return "Export \"_dbg_getbplist\" could not be found!";
+    //_dbg_dbgcmddirectexec
+    _dbg_dbgcmddirectexec=(DBGDBGCMDEXECDIRECT)GetProcAddress(hInstDbg, "_dbg_dbgcmddirectexec");
+    if(!_dbg_dbgcmddirectexec)
+        return "Export \"_dbg_dbgcmddirectexec\" could not be found!";
     return 0;
 }
 
-DLL_IMPEXP const char* BridgeStart()
+BRIDGE_IMPEXP const char* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
@@ -142,7 +146,7 @@ DLL_IMPEXP const char* BridgeStart()
     return 0;
 }
 
-DLL_IMPEXP void* BridgeAlloc(size_t size)
+BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
     unsigned char* a= new (std::nothrow)unsigned char[size];
     if(!a)
@@ -154,12 +158,12 @@ DLL_IMPEXP void* BridgeAlloc(size_t size)
     return a;
 }
 
-DLL_IMPEXP void BridgeFree(void* ptr)
+BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
     delete[] (unsigned char*)ptr;
 }
 
-DLL_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
+BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
 {
     if(!section || !key || !value)
         return false;
@@ -168,7 +172,7 @@ DLL_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* val
     return true;
 }
 
-DLL_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
+BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
 {
     if(!section || !key || !value)
         return false;
@@ -185,7 +189,7 @@ DLL_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint
     return false;
 }
 
-DLL_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
+BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
     if(!section || !key || !value)
         return false;
@@ -194,7 +198,7 @@ DLL_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const cha
     return true;
 }
 
-DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
+BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
 {
     if(!section || !key)
         return false;
@@ -208,51 +212,51 @@ DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint
 }
 
 //Debugger
-DLL_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size)
+BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size)
 {
     if(!_dbg_memread(va, dest, size, 0))
         memset(dest, 0x90, size);
 }
 
-DLL_IMPEXP duint DbgMemGetPageSize(duint base)
+BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
 {
     duint size=0;
     _dbg_memfindbaseaddr(base, &size);
     return size;
 }
 
-DLL_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
+BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
 {
     return _dbg_memfindbaseaddr(addr, size);
 }
 
-DLL_IMPEXP bool DbgCmdExec(const char* cmd)
+BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd)
 {
     return _dbg_dbgcmdexec(cmd);
 }
 
-DLL_IMPEXP bool DbgMemMap(MEMMAP* memmap)
+BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
 {
     return _dbg_memmap(memmap);
 }
 
-DLL_IMPEXP bool DbgIsValidExpression(const char* expression)
+BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 {
     duint value=0;
     return _dbg_valfromstring(expression, &value);
 }
 
-DLL_IMPEXP bool DbgIsDebugging()
+BRIDGE_IMPEXP bool DbgIsDebugging()
 {
     return _dbg_isdebugging();
 }
 
-DLL_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
+BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 {
     return _dbg_isjumpgoingtoexecute(addr);
 }
 
-DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(module.)+label
+BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(module.)+label
 {
     if(!text || !addr)
         return false;
@@ -265,7 +269,7 @@ DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(mod
     return true;
 }
 
-DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
+BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
     if(!text || strlen(text)>=MAX_LABEL_SIZE || !addr)
         return false;
@@ -278,7 +282,7 @@ DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
     return true;
 }
 
-DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
+BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
     if(!text || !addr)
         return false;
@@ -291,7 +295,7 @@ DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
     return true;
 }
 
-DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
+BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
     if(!text || strlen(text)>=MAX_COMMENT_SIZE || !addr)
         return false;
@@ -304,7 +308,7 @@ DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
     return true;
 }
 
-DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
+BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {
     if(!text || !addr)
         return false;
@@ -317,7 +321,7 @@ DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     return true;
 }
 
-DLL_IMPEXP bool DbgGetBookmarkAt(duint addr)
+BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
 {
     if(!addr)
         return false;
@@ -329,7 +333,7 @@ DLL_IMPEXP bool DbgGetBookmarkAt(duint addr)
     return info.isbookmark;
 }
 
-DLL_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
+BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
 {
     if(!addr)
         return false;
@@ -340,72 +344,77 @@ DLL_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
     return _dbg_addrinfoset(addr, &info);
 }
 
-DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
+BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 {
     return _dbg_bpgettypeat(addr);
 }
 
-DLL_IMPEXP duint DbgValFromString(const char* string)
+BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 {
     duint value=0;
     _dbg_valfromstring(string, &value);
     return value;
 }
 
-DLL_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
+BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 {
     return _dbg_getregdump(regdump);
 }
 
-DLL_IMPEXP bool DbgValToString(const char* string, duint value)
+BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
     duint valueCopy=value;
     return _dbg_valtostring(string, &valueCopy);
 }
 
-DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
+BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
 {
     return _dbg_memisvalidreadptr(addr);
 }
 
-DLL_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
+BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
 {
     return _dbg_getbplist(type, list);
 }
 
+BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
+{
+    return _dbg_dbgcmddirectexec(cmd);
+}
+
 //GUI
-DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip)
+BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_disassembleat(addr, cip);
 }
 
-DLL_IMPEXP void GuiSetDebugState(DBGSTATE state)
+BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
     _gui_setdebugstate(state);
 }
 
-DLL_IMPEXP void GuiAddLogMessage(const char* msg)
+BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
     _gui_addlogmessage(msg);
 }
 
-DLL_IMPEXP void GuiLogClear()
+BRIDGE_IMPEXP void GuiLogClear()
 {
     _gui_logclear();
 }
 
-DLL_IMPEXP void GuiUpdateAllViews()
+BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
 }
 
-DLL_IMPEXP void GuiUpdateRegisterView()
+BRIDGE_IMPEXP void GuiUpdateRegisterView()
 {
     _gui_updateregisterview();
 }
 
-DLL_IMPEXP void GuiUpdateDisassemblyView()
+BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
     _gui_updatedisassemblyview();
 }

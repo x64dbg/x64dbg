@@ -17,15 +17,15 @@
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
 
-static CMDRESULT cbStrLen(const char* cmd)
+static CMDRESULT cbStrLen(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(argget(cmd, arg1, 0, false))
+    if(argget(*argv, arg1, 0, false))
         dprintf("\"%s\"[%d]\n", arg1, strlen(arg1));
     return STATUS_CONTINUE;
 }
 
-static CMDRESULT cbCls(const char* cmd)
+static CMDRESULT cbCls(int argc, char* argv[])
 {
     GuiLogClear();
     return STATUS_CONTINUE;
@@ -122,7 +122,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Could not allocate message stack!";
     varinit();
     registercommands();
-    scriptSetList(command_list);
     CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen]="";
     strcpy(plugindir, dir);
@@ -134,11 +133,23 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
     //TODO: handle exit signal
-    cbStopDebug("");
+    cbStopDebug(0, 0);
     wait(WAITID_STOP); //after this, debugging stopped
     pluginunload();
     DeleteFileA("DLLLoader.exe");
     cmdfree(command_list);
     varfree();
     msgfreestack(gMsgStack);
+}
+
+extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
+{
+    if(cmddirectexec(command_list, cmd)==STATUS_ERROR)
+        return false;
+    return true;
+}
+
+COMMAND* dbggetcommandlist()
+{
+    return command_list;
 }

@@ -5,19 +5,19 @@
 #include "command.h"
 
 //functions
-CMDRESULT cbBadCmd(const char* cmd);
-CMDRESULT cbInstrVar(const char* cmd);
-CMDRESULT cbInstrVarDel(const char* cmd);
-CMDRESULT cbInstrMov(const char* cmd);
-CMDRESULT cbInstrVarList(const char* cmd);
-CMDRESULT cbInstrChd(const char* cmd);
-CMDRESULT cbInstrCmt(const char* cmd);
-CMDRESULT cbInstrCmtdel(const char* cmd);
-CMDRESULT cbInstrLbl(const char* cmd);
-CMDRESULT cbInstrLbldel(const char* cmd);
-CMDRESULT cbInstrBookmarkSet(const char* cmd);
-CMDRESULT cbInstrBookmarkDel(const char* cmd);
-CMDRESULT cbLoaddb(const char* cmd);
-CMDRESULT cbSavedb(const char* cmd);
+CMDRESULT cbBadCmd(int argc, char* argv[]);
+CMDRESULT cbInstrVar(int argc, char* argv[]);
+CMDRESULT cbInstrVarDel(int argc, char* argv[]);
+CMDRESULT cbInstrMov(int argc, char* argv[]);
+CMDRESULT cbInstrVarList(int argc, char* argv[]);
+CMDRESULT cbInstrChd(int argc, char* argv[]);
+CMDRESULT cbInstrCmt(int argc, char* argv[]);
+CMDRESULT cbInstrCmtdel(int argc, char* argv[]);
+CMDRESULT cbInstrLbl(int argc, char* argv[]);
+CMDRESULT cbInstrLbldel(int argc, char* argv[]);
+CMDRESULT cbInstrBookmarkSet(int argc, char* argv[]);
+CMDRESULT cbInstrBookmarkDel(int argc, char* argv[]);
+CMDRESULT cbLoaddb(int argc, char* argv[]);
+CMDRESULT cbSavedb(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

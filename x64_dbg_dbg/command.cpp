@@ -154,7 +154,9 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 
             if(!cmd or !cmd->cbCommand) //unknown command
             {
-                CMDRESULT res=cbUnknownCommand(command);
+                char* argv[1];
+                *argv=command;
+                CMDRESULT res=cbUnknownCommand(1, argv);
                 if((error_is_fatal and res==STATUS_ERROR) or res==STATUS_EXIT)
                     bLoop=false;
             }
@@ -168,7 +170,19 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
                 }
                 else
                 {
-                    CMDRESULT res=cmd->cbCommand(command);
+                    int argcount=arggetcount(command);
+                    char** argv=(char**)emalloc((argcount+1)*sizeof(char*));
+                    argv[0]=command;
+                    for(int i=0; i<argcount; i++)
+                    {
+                        argv[i+1]=(char*)emalloc(deflen);
+                        *argv[i+1]=0;
+                        argget(command, argv[i+1], i, true);
+                    }
+                    CMDRESULT res=cmd->cbCommand(argcount+1, argv);
+                    for(int i=0; i<argcount; i++)
+                        efree(argv[i+1]);
+                    efree(argv);
                     if((error_is_fatal and res==STATUS_ERROR) or res==STATUS_EXIT)
                         bLoop=false;
                 }
@@ -240,4 +254,32 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
     if(!cmd or !cmd->cbCommand)
         mathformat(command);
     return cmd;
+}
+
+CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
+{
+    if(!cmd or !strlen(cmd))
+        return STATUS_ERROR;
+    char command[deflen]="";
+    strcpy(command, cmd);
+    argformat(command);
+    COMMAND* found=cmdfindmain(cmd_list, command);
+    if(!found or !found->cbCommand)
+        return STATUS_ERROR;
+    if(found->debugonly and !IsFileBeingDebugged())
+        return STATUS_ERROR;
+    int argcount=arggetcount(command);
+    char** argv=(char**)emalloc((argcount+1)*sizeof(char*));
+    argv[0]=command;
+    for(int i=0; i<argcount; i++)
+    {
+        argv[i+1]=(char*)emalloc(deflen);
+        *argv[i+1]=0;
+        argget(command, argv[i+1], i, true);
+    }
+    CMDRESULT res=found->cbCommand(argcount+1, argv);
+    for(int i=0; i<argcount; i++)
+        efree(argv[i+1]);
+    efree(argv);
+    return res;
 }

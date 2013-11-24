@@ -62,6 +62,7 @@ typedef bool (*DBGGETREGDUMP)(REGDUMP* regdump);
 typedef bool (*DBGVALTOSTRING)(const char* string, duint* value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
+typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
 
 //DBG functions
 extern DBGDBGINIT _dbg_dbginit;
@@ -80,5 +81,6 @@ extern DBGGETREGDUMP _dbg_getregdump;
 extern DBGVALTOSTRING _dbg_valtostring;
 extern DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 extern DBGGETBPLIST _dbg_getbplist;
+extern DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
 
 #endif // _GLOBAL_H

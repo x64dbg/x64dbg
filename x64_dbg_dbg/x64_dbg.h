@@ -11,10 +11,13 @@ extern "C"
 
 DLL_EXPORT const char* _dbg_dbginit();
 DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd);
+DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd);
 DLL_EXPORT void _dbg_dbgexitsignal();
 
 #ifdef __cplusplus
 }
 #endif
+
+COMMAND* dbggetcommandlist();
 
 #endif // _X64_DBG_H

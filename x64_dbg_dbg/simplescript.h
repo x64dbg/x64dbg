@@ -3,7 +3,6 @@
 
 #include "command.h"
 
-CMDRESULT cbScript(const char* cmd);
-void scriptSetList(COMMAND* cmd_list);
+CMDRESULT cbScript(int argc, char* argv[]);
 
 #endif // _SIMPLESCRIPT_H

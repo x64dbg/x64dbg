@@ -383,12 +383,15 @@ bool labelfromstring(const char* text, uint* addr)
     *addr=sqlite3_column_int(stmt, 0); //addr
 #endif // _WIN64
     const char* modname=(const char*)sqlite3_column_text(stmt, 1); //mod
-    sqlite3_finalize(stmt);
     if(!modname)
+    {
+        sqlite3_finalize(stmt);
         return true;
+    }
     puts(modname);
     //TODO: fix this
     *addr+=modbasefromname(modname);
+    sqlite3_finalize(stmt);
     return true;
 }
 

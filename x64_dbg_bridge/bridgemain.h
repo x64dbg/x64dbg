@@ -11,13 +11,13 @@ typedef unsigned long duint;
 typedef signed long dsint;
 #endif //_WIN64
 
-#ifndef DLL_IMPEXP
+#ifndef BRIDGE_IMPEXP
 #ifdef BUILD_BRIDGE
-#define DLL_IMPEXP __declspec(dllexport)
+#define BRIDGE_IMPEXP __declspec(dllexport)
 #else
-#define DLL_IMPEXP __declspec(dllimport)
+#define BRIDGE_IMPEXP __declspec(dllimport)
 #endif //BUILD_BRIDGE
-#endif //DLL_IMPEXP
+#endif //BRIDGE_IMPEXP
 
 #ifdef __cplusplus
 extern "C"
@@ -28,14 +28,14 @@ extern "C"
 #define MAX_SETTING_SIZE 2048
 
 //Bridge functions
-DLL_IMPEXP const char* BridgeInit();
-DLL_IMPEXP const char* BridgeStart();
-DLL_IMPEXP void* BridgeAlloc(size_t size);
-DLL_IMPEXP void BridgeFree(void* ptr);
-DLL_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value);
-DLL_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
-DLL_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
-DLL_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
+BRIDGE_IMPEXP const char* BridgeInit();
+BRIDGE_IMPEXP const char* BridgeStart();
+BRIDGE_IMPEXP void* BridgeAlloc(size_t size);
+BRIDGE_IMPEXP void BridgeFree(void* ptr);
+BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value);
+BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
+BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
+BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256
@@ -170,38 +170,38 @@ struct REGDUMP
 };
 
 //Debugger functions
-DLL_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
-DLL_IMPEXP duint DbgMemGetPageSize(duint base);
-DLL_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);
-DLL_IMPEXP bool DbgCmdExec(const char* cmd);
-DLL_IMPEXP bool DbgCmdExecWait(const char* cmd);
-DLL_IMPEXP bool DbgMemMap(MEMMAP* memmap);
-DLL_IMPEXP bool DbgIsValidExpression(const char* expression);
-DLL_IMPEXP bool DbgIsDebugging();
-DLL_IMPEXP bool DbgIsJumpGoingToExecute(duint addr);
-DLL_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text);
-DLL_IMPEXP bool DbgSetLabelAt(duint addr, const char* text);
-DLL_IMPEXP bool DbgGetCommentAt(duint addr, char* text);
-DLL_IMPEXP bool DbgSetCommentAt(duint addr, const char* text);
-DLL_IMPEXP bool DbgGetBookmarkAt(duint addr);
-DLL_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark);
-DLL_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
-DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
-DLL_IMPEXP duint DbgValFromString(const char* string);
-DLL_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
-DLL_IMPEXP bool DbgValToString(const char* string, duint value);
-DLL_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
-DLL_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
-DLL_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
+BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
+BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base);
+BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);
+BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd);
+BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd);
+BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap);
+BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression);
+BRIDGE_IMPEXP bool DbgIsDebugging();
+BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr);
+BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text);
+BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text);
+BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text);
+BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text);
+BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr);
+BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark);
+BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
+BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
+BRIDGE_IMPEXP duint DbgValFromString(const char* string);
+BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
+BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
+BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
+BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
+BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
 
 //GUI functions
-DLL_IMPEXP void GuiDisasmAt(duint addr, duint cip);
-DLL_IMPEXP void GuiSetDebugState(DBGSTATE state);
-DLL_IMPEXP void GuiAddLogMessage(const char* msg);
-DLL_IMPEXP void GuiLogClear();
-DLL_IMPEXP void GuiUpdateAllViews();
-DLL_IMPEXP void GuiUpdateRegisterView();
-DLL_IMPEXP void GuiUpdateDisassemblyView();
+BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
+BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
+BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
+BRIDGE_IMPEXP void GuiLogClear();
+BRIDGE_IMPEXP void GuiUpdateAllViews();
+BRIDGE_IMPEXP void GuiUpdateRegisterView();
+BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
 
 #ifdef __cplusplus
 }

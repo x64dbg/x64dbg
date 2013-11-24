@@ -6,13 +6,13 @@
 #include "command.h"
 #include "addrinfo.h"
 
-CMDRESULT cbBadCmd(const char* cmd)
+CMDRESULT cbBadCmd(int argc, char* argv[])
 {
     uint value=0;
     int valsize=0;
     bool isvar=false;
     bool hexonly=false;
-    if(valfromstring(cmd, &value, &valsize, &isvar, false, &hexonly)) //dump variable/value/register/etc
+    if(valfromstring(*argv, &value, &valsize, &isvar, false, &hexonly)) //dump variable/value/register/etc
     {
         //dprintf("[DEBUG] valsize: %d\n", valsize);
         if(valsize)
@@ -28,12 +28,12 @@ CMDRESULT cbBadCmd(const char* cmd)
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
                 else
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"d)\n", valsize);
-                dprintf(format_str, cmd, value, value);
+                dprintf(format_str, *argv, value, value);
             }
             else
             {
                 sprintf(format_str, "%%s=%%.%d"fext"X\n", valsize);
-                dprintf(format_str, cmd, value);
+                dprintf(format_str, *argv, value);
             }
         }
         else
@@ -56,19 +56,19 @@ CMDRESULT cbBadCmd(const char* cmd)
     }
     else //unknown command
     {
-        dprintf("unknown command/expression: \"%s\"\n", cmd);
+        dprintf("unknown command/expression: \"%s\"\n", *argv);
         return STATUS_ERROR;
     }
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVar(const char* cmd)
+CMDRESULT cbInstrVar(int argc, char* argv[])
 {
     char arg1[deflen]="";
     char arg2[deflen]="";
-    if(!argget(cmd, arg1, 0, false)) //var name
+    if(!argget(*argv, arg1, 0, false)) //var name
         return STATUS_ERROR;
-    argget(cmd, arg2, 1, true); //var value (optional)
+    argget(*argv, arg2, 1, true); //var value (optional)
     uint value=0;
     int add=0;
     if(*arg1=='$')
@@ -98,10 +98,10 @@ CMDRESULT cbInstrVar(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVarDel(const char* cmd)
+CMDRESULT cbInstrVarDel(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false)) //var name
+    if(!argget(*argv, arg1, 0, false)) //var name
         return STATUS_ERROR;
     if(!vardel(arg1, false))
         dprintf("could not delete variable \"%s\"\n", arg1);
@@ -110,13 +110,13 @@ CMDRESULT cbInstrVarDel(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrMov(const char* cmd)
+CMDRESULT cbInstrMov(int argc, char* argv[])
 {
     char arg1[deflen]="";
     char arg2[deflen]="";
-    if(!argget(cmd, arg1, 0, false)) //dest name
+    if(!argget(*argv, arg1, 0, false)) //dest name
         return STATUS_ERROR;
-    if(!argget(cmd, arg2, 1, false)) //src name
+    if(!argget(*argv, arg2, 1, false)) //src name
         return STATUS_ERROR;
     uint set_value=0;
     if(!valfromstring(arg2, &set_value, 0, 0, false, 0))
@@ -137,14 +137,14 @@ CMDRESULT cbInstrMov(const char* cmd)
         }
         varnew(arg1, set_value, VAR_USER);
     }
-    cbBadCmd(arg1);
+    cbBadCmd(1, &argv[0]);
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrVarList(const char* cmd)
+CMDRESULT cbInstrVarList(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    argget(cmd, arg1, 0, true);
+    argget(*argv, arg1, 0, true);
     int filter=0;
     if(!_stricmp(arg1, "USER"))
         filter=VAR_USER;
@@ -196,10 +196,10 @@ CMDRESULT cbInstrVarList(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrChd(const char* cmd)
+CMDRESULT cbInstrChd(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     if(!DirExists(arg1))
     {
@@ -211,10 +211,10 @@ CMDRESULT cbInstrChd(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrCmt(const char* cmd)
+CMDRESULT cbInstrCmt(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -223,7 +223,7 @@ CMDRESULT cbInstrCmt(const char* cmd)
         return STATUS_ERROR;
     }
     char arg2[deflen]="";
-    if(!argget(cmd, arg2, 1, false))
+    if(!argget(*argv, arg2, 1, false))
         return STATUS_ERROR;
     if(!commentset(addr, arg2))
     {
@@ -233,10 +233,10 @@ CMDRESULT cbInstrCmt(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrCmtdel(const char* cmd)
+CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -252,10 +252,10 @@ CMDRESULT cbInstrCmtdel(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrLbl(const char* cmd)
+CMDRESULT cbInstrLbl(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -264,7 +264,7 @@ CMDRESULT cbInstrLbl(const char* cmd)
         return STATUS_ERROR;
     }
     char arg2[deflen]="";
-    if(!argget(cmd, arg2, 1, false))
+    if(!argget(*argv, arg2, 1, false))
         return STATUS_ERROR;
     if(!labelset(addr, arg2))
     {
@@ -274,10 +274,10 @@ CMDRESULT cbInstrLbl(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrLbldel(const char* cmd)
+CMDRESULT cbInstrLbldel(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -294,10 +294,10 @@ CMDRESULT cbInstrLbldel(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrBookmarkSet(const char* cmd)
+CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -314,10 +314,10 @@ CMDRESULT cbInstrBookmarkSet(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbInstrBookmarkDel(const char* cmd)
+CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(cmd, arg1, 0, false))
+    if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
     if(!valfromstring(arg1, &addr, 0, 0, true, 0))
@@ -334,7 +334,7 @@ CMDRESULT cbInstrBookmarkDel(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbLoaddb(const char* cmd)
+CMDRESULT cbLoaddb(int argc, char* argv[])
 {
     if(!dbload())
     {
@@ -345,7 +345,7 @@ CMDRESULT cbLoaddb(const char* cmd)
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbSavedb(const char* cmd)
+CMDRESULT cbSavedb(int argc, char* argv[])
 {
     if(!dbsave())
     {
