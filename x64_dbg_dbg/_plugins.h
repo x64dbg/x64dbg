@@ -137,6 +137,9 @@ PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLU
 PLUG_IMPEXP bool _plugin_unregistercallback(int pluginHandle, CBTYPE cbType);
 PLUG_IMPEXP bool _plugin_registercommand(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly);
 PLUG_IMPEXP bool _plugin_unregistercommand(int pluginHandle, const char* command);
+PLUG_IMPEXP void _plugin_logprintf(const char* format, ...);
+PLUG_IMPEXP void _plugin_logputs(const char* text);
+PLUG_IMPEXP void _plugin_debugpause();
 
 #ifdef __cplusplus
 }

@@ -137,7 +137,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         }
         varnew(arg1, set_value, VAR_USER);
     }
-    cbBadCmd(1, &argv[0]);
+    cbBadCmd(1, &argv[1]);
     return STATUS_CONTINUE;
 }
 

@@ -38,7 +38,7 @@ static void registercommands()
     cmdnew(cmd, "varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
     cmdnew(cmd, "vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
     cmdnew(cmd, "mov\1set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
-    cmdnew(cmd, "cls", cbCls, false); //clear the screen
+    cmdnew(cmd, "cls\1lc\1lclr", cbCls, false); //clear the log
     cmdnew(cmd, "varlist", cbInstrVarList, false); //list variables[arg1:type filter]
     cmdnew(cmd, "InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
     cmdnew(cmd, "StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
