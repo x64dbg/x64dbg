@@ -22,6 +22,7 @@
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="msgqueue.cpp" />
+    <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="sqlhelper.cpp" />
     <ClCompile Include="threading.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="x64_dbg.cpp" />
     <ClCompile Include="_exports.cpp" />
     <ClCompile Include="_global.cpp" />
+    <ClCompile Include="_plugins.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
@@ -44,6 +46,7 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="msgqueue.h" />
+    <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="sqlhelper.h" />
     <ClInclude Include="threading.h" />
@@ -52,6 +55,8 @@
     <ClInclude Include="x64_dbg.h" />
     <ClInclude Include="_exports.h" />
     <ClInclude Include="_global.h" />
+    <ClInclude Include="_plugins.h" />
+    <ClInclude Include="_plugin_types.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
@@ -88,7 +93,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -104,7 +109,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
