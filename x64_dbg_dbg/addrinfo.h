@@ -33,10 +33,12 @@ bool commentset(uint addr, const char* text);
 bool commentget(uint addr, char* text);
 bool commentdel(uint addr);
 bool labelset(uint addr, const char* text);
+bool labelfromstring(const char* text, uint* addr);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
 bool bookmarkset(uint addr);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
+bool symfromname(const char* name, uint* addr);
 
 #endif // _ADDRINFO_H

@@ -6,6 +6,7 @@
 #include "breakpoint.h"
 
 sqlite3* userdb;
+static std::vector<MODINFO> modinfo;
 
 ///basic database functions
 void dbinit()
@@ -56,9 +57,6 @@ void dbclose()
 }
 
 ///module functions
-
-static std::vector<MODINFO> modinfo;
-
 bool modload(uint base, uint size, const char* fullpath)
 {
     if(!base or !size or !fullpath)
@@ -359,6 +357,41 @@ bool labelset(uint addr, const char* text)
     return true;
 }
 
+bool labelfromstring(const char* text, uint* addr)
+{
+    if(!text or !strlen(text) or !addr)
+        return 0;
+    char labeltext[MAX_LABEL_SIZE]="";
+    sqlstringescape(text, labeltext);
+    char sql[deflen]="";
+    sprintf(sql, "SELECT addr,mod FROM labels WHERE text='%s'", labeltext);
+    puts(sql);
+    sqlite3_stmt* stmt;
+    if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
+    {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+#ifdef _WIN64
+    *addr=sqlite3_column_int64(stmt, 0); //addr
+#else
+    *addr=sqlite3_column_int(stmt, 0); //addr
+#endif // _WIN64
+    const char* modname=(const char*)sqlite3_column_text(stmt, 1); //mod
+    sqlite3_finalize(stmt);
+    if(!modname)
+        return true;
+    puts(modname);
+    //TODO: fix this
+    *addr+=modbasefromname(modname);
+    return true;
+}
+
 bool labelget(uint addr, char* text)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
@@ -473,5 +506,20 @@ bool bookmarkdel(uint addr)
     }
     dbsave();
     GuiUpdateAllViews();
+    return true;
+}
+
+///symbol functions
+bool symfromname(const char* name, uint* addr)
+{
+    if(!name or !strlen(name) or !addr)
+        return false;
+    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+    if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
+        return false;
+    *addr=(uint)pSymbol->Address;
     return true;
 }
