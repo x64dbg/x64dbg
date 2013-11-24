@@ -20,19 +20,86 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
  */
 void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 {
-    uint_t wVA = rvaToVa(getInitialSelection());
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-
-    if((wBpType & bp_hardware) == bp_hardware)
+    if(getSize() != 0)
     {
-        mToggleHwBpAction->setText("Remove Hardware");
-    }
-    else
-    {
-        mToggleHwBpAction->setText("Set Hardware on Execution");
-    }
+        int wI;
+        QMenu* wMenu = new QMenu(this);
+        uint_t wVA = rvaToVa(getInitialSelection());
+        BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
 
-    QAction* wAction = mRightClickContextMenu->exec(event->globalPos());
+        // Build Menu
+        wMenu->addAction(mSetLabel);
+        wMenu->addAction(mSetComment);
+        wMenu->addAction(mSetBookmark);
+
+        // BP Menu
+        mBPMenu->clear();
+
+        // Soft BP
+        mBPMenu->addAction(mToggleInt3BpAction);
+
+
+        // Hardware BP
+        if((wBpType & bp_hardware) == bp_hardware)
+        {
+            mBPMenu->addAction(mClearHwBpAction);
+        }
+        else
+        {
+            BPMAP wBPList;
+            DbgGetBpList(bp_hardware, &wBPList);
+
+            if(wBPList.count < 4)
+            {
+                mBPMenu->addAction(mSetHwBpAction);
+            }
+            else
+            {
+                REGDUMP wRegDump;
+                DbgGetRegDump(&wRegDump);
+
+                for(wI = 0; wI < 4; wI++)
+                {
+                    switch(wBPList.bp[wI].slot)
+                    {
+                        case 0:
+                            msetHwBPOnSlot0Action->setText("Set Hardware on Execution on Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            break;
+                        case 1:
+                            msetHwBPOnSlot1Action->setText("Set Hardware on Execution on Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            break;
+                        case 2:
+                            msetHwBPOnSlot2Action->setText("Set Hardware on Execution on Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            break;
+                        case 3:
+                            msetHwBPOnSlot3Action->setText("Set Hardware on Execution on Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                mHwSlotSelectMenu->addAction(msetHwBPOnSlot0Action);
+                mHwSlotSelectMenu->addAction(msetHwBPOnSlot1Action);
+                mHwSlotSelectMenu->addAction(msetHwBPOnSlot2Action);
+                mHwSlotSelectMenu->addAction(msetHwBPOnSlot3Action);
+                mBPMenu->addMenu(mHwSlotSelectMenu);
+            }
+
+        }
+        wMenu->addMenu(mBPMenu);
+
+        // Separator
+        wMenu->addSeparator();
+
+        // Goto Menu
+        mGotoMenu->addAction(mGotoOrigin);
+        mGotoMenu->addAction(mSetNewOriginHere);
+        wMenu->addMenu(mGotoMenu);
+
+
+        QAction* wAction = wMenu->exec(event->globalPos());
+    }
 }
 
 
@@ -41,40 +108,41 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 ************************************************************************************/
 void CPUDisassembly::setupRightClickContextMenu()
 {
-    mRightClickContextMenu = new QMenu(this);
-
-    //label/comment
+    // Labels
     mSetLabel = new QAction("Label", this);
     mSetLabel->setShortcutContext(Qt::WidgetShortcut);
     mSetLabel->setShortcut(QKeySequence(":"));
     this->addAction(mSetLabel);
     connect(mSetLabel, SIGNAL(triggered()), this, SLOT(setLabel()));
 
+    // Comments
     mSetComment = new QAction("Comment", this);
     mSetComment->setShortcutContext(Qt::WidgetShortcut);
     mSetComment->setShortcut(QKeySequence(";"));
     this->addAction(mSetComment);
     connect(mSetComment, SIGNAL(triggered()), this, SLOT(setComment()));
 
+    // Bookmarks
     mSetBookmark = new QAction("Bookmark", this);
     mSetBookmark->setShortcutContext(Qt::WidgetShortcut);
     mSetBookmark->setShortcut(QKeySequence("ctrl+d"));
     this->addAction(mSetBookmark);
     connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
 
-
     //---------------------- Go to -----------------------------------
-    QMenu* wGotoMenu = new QMenu("Go to", this);
+    // Menu
+    mGotoMenu = new QMenu("Go to", this);
+
+    // Origin action
     mGotoOrigin = new QAction("Origin", this);
     mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
     mGotoOrigin->setShortcut(QKeySequence("*"));
     this->addAction(mGotoOrigin);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOrigin()));
-    wGotoMenu->addAction(mGotoOrigin);
-
 
     //---------------------- Breakpoints -----------------------------
-    QMenu* wBPMenu = new QMenu("Breakpoint", this);
+    // Menu
+    mBPMenu = new QMenu("Breakpoint", this);
 
     // Standard breakpoint (option set using SetBPXOption)
     mToggleInt3BpAction = new QAction("Toggle", this);
@@ -82,12 +150,27 @@ void CPUDisassembly::setupRightClickContextMenu()
     mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
     this->addAction(mToggleInt3BpAction);
     connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
-    wBPMenu->addAction(mToggleInt3BpAction);
 
     // HW BP
-    mToggleHwBpAction = new QAction("Set Hardware on Execution", this);
-    connect(mToggleHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
-    wBPMenu->addAction(mToggleHwBpAction);
+    mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
+
+    mSetHwBpAction = new QAction("Set Hardware on Execution", this);
+    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toogleHwBpActionSlot()));
+
+    mClearHwBpAction = new QAction("Remove Hardware", this);
+    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toogleHwBpActionSlot()));
+
+    msetHwBPOnSlot0Action = new QAction("Set Hardware on Execution on Slot 0 (Free)", this);
+    connect(msetHwBPOnSlot0Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot0ActionSlot()));
+
+    msetHwBPOnSlot1Action = new QAction("Set Hardware on Execution on Slot 1 (Free)", this);
+    connect(msetHwBPOnSlot1Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot1ActionSlot()));
+
+    msetHwBPOnSlot2Action = new QAction("Set Hardware on Execution on Slot 2 (Free)", this);
+    connect(msetHwBPOnSlot2Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot2ActionSlot()));
+
+    msetHwBPOnSlot3Action = new QAction("Set Hardware on Execution on Slot 3 (Free)", this);
+    connect(msetHwBPOnSlot3Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot3ActionSlot()));
 
     //---------------------- New origin here -----------------------------
     mSetNewOriginHere = new QAction("Set New Origin Here", this);
@@ -95,15 +178,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
     this->addAction(mSetNewOriginHere);
     connect(mSetNewOriginHere, SIGNAL(triggered()), this, SLOT(setNewOriginHereActionSlot()));
-
-    //Add to menu
-    mRightClickContextMenu->addAction(mSetLabel);
-    mRightClickContextMenu->addAction(mSetComment);
-    mRightClickContextMenu->addAction(mSetBookmark);
-    mRightClickContextMenu->addMenu(wBPMenu); //Breakpoint->
-    mRightClickContextMenu->addSeparator(); //Seperator
-    mRightClickContextMenu->addMenu(wGotoMenu); //Go to->
-    mRightClickContextMenu->addAction(mSetNewOriginHere); //New origin here
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -131,7 +205,7 @@ void CPUDisassembly::toggleInt3BPAction()
 }
 
 
-void CPUDisassembly::toggleHwBpActionSlot()
+void CPUDisassembly::toogleHwBpActionSlot()
 {
     uint_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
@@ -149,6 +223,127 @@ void CPUDisassembly::toggleHwBpActionSlot()
     Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
 }
 
+
+void CPUDisassembly::setHwBpOnSlot0ActionSlot()
+{
+    setHwBpAt(rvaToVa(getInitialSelection()), 0);
+
+
+
+    /*
+    qDebug() << "setHwBpOnSlot0ActionSlot";
+    int wI = 0;
+    int wSlot0Index = 0;
+    BPMAP wBPList;
+    uint_t wVA = rvaToVa(getInitialSelection());
+    QString wCmd = "";
+
+    DbgGetBpList(bp_hardware, &wBPList);
+
+    for(wI = 0; wI < 4; wI++)
+    {
+        if(wBPList.bp[wI].slot == 0)
+        {
+            wSlot0Index = wI;
+            break;
+        }
+    }
+
+    wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlot0Index].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+
+    Sleep(200);
+
+    wCmd = "bphws " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    */
+}
+
+void CPUDisassembly::setHwBpOnSlot1ActionSlot()
+{
+    setHwBpAt(rvaToVa(getInitialSelection()), 1);
+}
+
+void CPUDisassembly::setHwBpOnSlot2ActionSlot()
+{
+    setHwBpAt(rvaToVa(getInitialSelection()), 2);
+}
+
+void CPUDisassembly::setHwBpOnSlot3ActionSlot()
+{
+    setHwBpAt(rvaToVa(getInitialSelection()), 3);
+}
+
+void CPUDisassembly::setHwBpAt(uint_t va, int slot)
+{
+    BPXTYPE wBpType = DbgGetBpxTypeAt(va);
+
+    if((wBpType & bp_hardware) == bp_hardware)
+    {
+        mBPMenu->addAction(mClearHwBpAction);
+    }
+
+
+    int wI = 0;
+    int wSlotIndex = -1;
+    BPMAP wBPList;
+    QString wCmd = "";
+
+    DbgGetBpList(bp_hardware, &wBPList);
+
+    // Find index of slot slot in the list
+    for(wI = 0; wI < wBPList.count; wI++)
+    {
+        if(wBPList.bp[wI].slot == (unsigned short)slot)
+        {
+            wSlotIndex = wI;
+            break;
+        }
+    }
+
+    if(wSlotIndex < 0) // Slot not used
+    {
+        wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    }
+    else // Slot used
+    {
+        wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlotIndex].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+
+        Sleep(200);
+
+        wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    }
+
+
+    /*
+    int wI = 0;
+    int wSlotIndex = 0;
+    BPMAP wBPList;
+    QString wCmd = "";
+
+    DbgGetBpList(bp_hardware, &wBPList);
+
+    for(wI = 0; wI < 4; wI++)
+    {
+        if(wBPList.bp[wI].slot == (unsigned short)slot)
+        {
+            wSlotIndex = wI;
+            break;
+        }
+    }
+
+    wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlotIndex].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+
+    Sleep(200);
+
+    wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    */
+}
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {

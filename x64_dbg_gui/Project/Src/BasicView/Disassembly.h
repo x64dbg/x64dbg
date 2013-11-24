@@ -57,6 +57,8 @@ public:
     // Public Methods
     uint_t rvaToVa(int_t rva);
     void disassembleClear();
+    int_t getBase();
+    int_t getSize();
 
 signals:
     

@@ -870,6 +870,8 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 void Disassembly::disassembleClear()
 {
     //TODO: fix this (also try restarting)
+    mBase = 0;
+    mSize = 0;
     setRowCount(0);
     reloadData();
 }
@@ -882,3 +884,14 @@ void Disassembly::debugStateChangedSlot(DBGSTATE state)
         disassembleClear();
     }
 }
+
+int_t Disassembly::getBase()
+{
+    return mBase;
+}
+
+int_t Disassembly::getSize()
+{
+    return mSize;
+}
+

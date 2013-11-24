@@ -19,12 +19,18 @@ public:
 
     // Context Menu Management
     void setupRightClickContextMenu();
+
+    void setHwBpAt(uint_t va, int slot);
     
 signals:
     
 public slots:
     void toggleInt3BPAction();
-    void toggleHwBpActionSlot();
+    void toogleHwBpActionSlot();
+    void setHwBpOnSlot0ActionSlot();
+    void setHwBpOnSlot1ActionSlot();
+    void setHwBpOnSlot2ActionSlot();
+    void setHwBpOnSlot3ActionSlot();
     void setNewOriginHereActionSlot();
     void gotoOrigin();
     void setLabel();
@@ -35,13 +41,25 @@ private:
     // Rigth Click Context Menu
     QMenu* mRightClickContextMenu;
 
+    // Menus
+    QMenu* mGotoMenu;
+    QMenu* mBPMenu;
+    QMenu* mHwSlotSelectMenu;
+
     QAction* mToggleInt3BpAction;
-    QAction* mToggleHwBpAction;
+    QAction* mSetHwBpAction;
+    QAction* mClearHwBpAction;
     QAction* mSetNewOriginHere;
     QAction* mGotoOrigin;
     QAction* mSetComment;
     QAction* mSetLabel;
     QAction* mSetBookmark;
+    QAction* msetHwBPOnSlot0Action;
+    QAction* msetHwBPOnSlot1Action;
+    QAction* msetHwBPOnSlot2Action;
+    QAction* msetHwBPOnSlot3Action;
+
+
 };
 
 #endif // CPUDISASSEMBLY_H
