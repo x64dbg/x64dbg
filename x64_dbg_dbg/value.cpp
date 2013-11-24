@@ -1221,11 +1221,11 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
         sscanf(string+inc, "%"fext"x", value);
         return true;
     }
-    else if(labelfromstring(string, value)) //then come labels
-        return true;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
         return true;
-    else if(symfromname(string, value)) //then come symbols (as symbols also take API names)
+    else if(labelfromstring(string, value)) //then come labels
+        return true;
+    else if(symfromname(string, value)) //then come symbols
         return true;
     else if(varget(string, value, value_size, 0)) //finally variables
     {

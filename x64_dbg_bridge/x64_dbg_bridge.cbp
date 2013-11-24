@@ -13,7 +13,6 @@
 				<Option compiler="gcc" />
 				<Option host_application="../bin/x32/x32_dbg.exe" />
 				<Option run_host_application_in_terminal="0" />
-				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-O2" />
@@ -29,7 +28,6 @@
 				<Option compiler="gnu_gcc_compiler_x64" />
 				<Option host_application="../bin/x64/x64_dbg.exe" />
 				<Option run_host_application_in_terminal="0" />
-				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-O2" />

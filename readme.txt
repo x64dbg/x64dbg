@@ -49,13 +49,12 @@ without having to update the code of the other parts.
 - quite fast working in really big code pages (tested up to 5GB)
 - GUI hotkeys
 - dynamic jump arrow (just like OllyDbg)
-- user databases for labels/comments/breakpoints (*.dd64 or *.dd32 files)
+- user databases for labels/comments/breakpoints/bookmarks (*.dd64 or *.dd32 files)
 - easy context menu in disassembly (to set breakpoints etc)
+- plugin support
 
 >Known bugs:
-- hardware breakpoints do not work properly on x64 (TitanEngine bug)
-- sometimes the disassembly view is not updated (click anywhere to solve)
-- ??? (please report)
+- memory breakpoints sometimes fail (TitanEngine bug)
 
 >Last words:
 The debugger core is based on TitanEngine (an updated version,
@@ -72,6 +71,7 @@ The icon is taken from VisualPharm (http://www.visualpharm.com/)
 - Teddy Rogers
 - EXETools community
 - Tuts4You community
+- DMichael
 - Sorry if I forgot you!
 
 >Lead developers:
