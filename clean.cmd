@@ -51,6 +51,7 @@ del /Q *.pdb
 del /Q *.exp
 del /Q *.a
 del /Q *.lib
+del /Q *.def
 del /Q x32_dbg.exe
 del /Q x32_dbg.dll
 del /Q x32_gui.dll
@@ -64,6 +65,7 @@ del /Q *.pdb
 del /Q *.exp
 del /Q *.a
 del /Q *.lib
+del /Q *.def
 del /Q x64_dbg.exe
 del /Q x64_dbg.dll
 del /Q x64_gui.dll

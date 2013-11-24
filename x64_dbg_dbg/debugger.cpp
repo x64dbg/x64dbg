@@ -67,6 +67,9 @@ void DebugUpdateGui(uint disasm_addr)
 static void cbUserBreakpoint()
 {
     BREAKPOINT bp;
+    BRIDGEBP pluginBp;
+    PLUG_CB_BREAKPOINT bpInfo;
+    bpInfo.breakpoint=0;
     if(!bpget(GetContextData(UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
         dputs("breakpoint reached not in list!");
     else
@@ -107,11 +110,17 @@ static void cbUserBreakpoint()
         dputs(log);
         if(bp.singleshoot)
             bpdel(bp.addr, BPNORMAL);
+        bptobridge(&bp, &pluginBp);
+        bpInfo.breakpoint=&pluginBp;
     }
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
 }
 
@@ -119,6 +128,9 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
 {
     uint cip=GetContextData(UE_CIP);
     BREAKPOINT found;
+    BRIDGEBP pluginBp;
+    PLUG_CB_BREAKPOINT bpInfo;
+    bpInfo.breakpoint=0;
     if(!bpget((uint)ExceptionAddress, BPHARDWARE, 0, &found))
         dputs("hardware breakpoint reached not in list!");
     else
@@ -130,11 +142,17 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
         else
             sprintf(log, "hardware breakpoint "fhex"!", found.addr);
         dputs(log);
+        bptobridge(&found, &pluginBp);
+        bpInfo.breakpoint=&pluginBp;
     }
     DebugUpdateGui(cip);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
 }
 
@@ -144,6 +162,9 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     uint size;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
     BREAKPOINT found;
+    BRIDGEBP pluginBp;
+    PLUG_CB_BREAKPOINT bpInfo;
+    bpInfo.breakpoint=0;
     if(!bpget(base, BPMEMORY, 0, &found))
         dputs("memory breakpoint reached not in list!");
     else
@@ -155,6 +176,8 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
         else
             sprintf(log, "memory breakpoint on "fhex"!", found.addr);
         dputs(log);
+        bptobridge(&found, &pluginBp);
+        bpInfo.breakpoint=&pluginBp;
     }
     if(found.singleshoot)
         bpdel(found.addr, BPMEMORY); //delete from breakpoint list
@@ -162,6 +185,10 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
 }
 
@@ -173,6 +200,9 @@ static void cbEntryBreakpoint()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
@@ -271,8 +301,14 @@ static void cbStep()
     isStepping=false;
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
+    PLUG_CB_STEPPED stepInfo;
+    stepInfo.reserved=0;
+    plugincbcall(CB_STEPPED, &stepInfo);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
@@ -282,6 +318,9 @@ static void cbRtrFinalStep()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
@@ -349,6 +388,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     callbackInfo.CreateProcessInfo=CreateProcessInfo;
     callbackInfo.modInfo=&modInfo;
     callbackInfo.DebugFileName=DebugFileName;
+    callbackInfo.fdProcessInfo=fdProcessInfo;
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
 }
 
@@ -375,9 +415,10 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 
 static void cbSystemBreakpoint(void* ExceptionData)
 {
+    //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
     callbackInfo.reserved=0;
-    plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
+
     //TODO: handle stuff (TLS, main entry, etc)
     //log message
     dputs("system breakpoint reached!");
@@ -388,6 +429,10 @@ static void cbSystemBreakpoint(void* ExceptionData)
     unlock(WAITID_SYSBREAK);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
     wait(WAITID_RUN);
 }
 
@@ -448,7 +493,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     //TODO: plugin callback
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception=ExceptionData;
-    plugincbcall(CB_EXCEPTION, &callbackInfo);
 
     uint addr=(uint)ExceptionData->ExceptionRecord.ExceptionAddress;
     if(ExceptionData->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
@@ -461,6 +505,10 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             GuiSetDebugState(paused);
             //lock
             lock(WAITID_RUN);
+            PLUG_CB_PAUSEDEBUG pauseInfo;
+            pauseInfo.reserved=0;
+            plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+            plugincbcall(CB_EXCEPTION, &callbackInfo);
             wait(WAITID_RUN);
             return;
         }
@@ -484,6 +532,10 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved=0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_EXCEPTION, &callbackInfo);
     wait(WAITID_RUN);
 }
 
@@ -535,6 +587,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     DeleteFileA("DLLLoader.exe");
+    RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     modclear();
@@ -616,6 +669,9 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     }
     GuiSetDebugState(running);
     unlock(WAITID_RUN);
+    PLUG_CB_RESUMEDEBUG callbackInfo;
+    callbackInfo.reserved=0;
+    plugincbcall(CB_RESUMEDEBUG, &callbackInfo);
     return STATUS_CONTINUE;
 }
 

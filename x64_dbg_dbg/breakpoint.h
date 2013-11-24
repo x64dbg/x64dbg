@@ -40,5 +40,6 @@ bool bpenumall(BPENUMCALLBACK cbEnum);
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module);
 int bpgetcount(BP_TYPE type);
 void bpfixmemory(uint addr, unsigned char* dest, uint size);
+void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge);
 
 #endif // _BREAKPOINT_H

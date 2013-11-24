@@ -296,3 +296,29 @@ void bpfixmemory(uint addr, unsigned char* dest, uint size)
         }
     }
 }
+
+void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
+{
+    if(!bp or !bridge)
+        return;
+    memset(bridge, 0, sizeof(BRIDGEBP));
+    bridge->active=bp->active;
+    bridge->addr=bp->addr;
+    bridge->enabled=bp->enabled;
+    strcpy(bridge->mod, bp->mod);
+    strcpy(bridge->name, bp->name);
+    bridge->singleshoot=bp->singleshoot;
+    switch(bp->type)
+    {
+    case BPNORMAL:
+        bridge->type=bp_normal;
+        break;
+    case BPHARDWARE:
+        bridge->type=bp_hardware;
+        break;
+    case BPMEMORY:
+        bridge->type=bp_memory;
+    default:
+        bridge->type=bp_none;
+    }
+}

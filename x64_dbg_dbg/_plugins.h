@@ -38,6 +38,7 @@ struct PLUG_CB_CREATEPROCESS
     CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo;
     IMAGEHLP_MODULE64* modInfo;
     const char* DebugFileName;
+    PROCESS_INFORMATION* fdProcessInfo;
 };
 
 struct PLUG_CB_EXITPROCESS
@@ -84,7 +85,7 @@ struct PLUG_CB_EXCEPTION
 
 struct PLUG_CB_BREAKPOINT
 {
-    void* reserved;
+    BRIDGEBP* breakpoint;
 };
 
 struct PLUG_CB_PAUSEDEBUG
