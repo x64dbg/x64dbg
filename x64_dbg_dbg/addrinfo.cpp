@@ -365,7 +365,6 @@ bool labelfromstring(const char* text, uint* addr)
     sqlstringescape(text, labeltext);
     char sql[deflen]="";
     sprintf(sql, "SELECT addr,mod FROM labels WHERE text='%s'", labeltext);
-    puts(sql);
     sqlite3_stmt* stmt;
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
@@ -388,7 +387,6 @@ bool labelfromstring(const char* text, uint* addr)
         sqlite3_finalize(stmt);
         return true;
     }
-    puts(modname);
     //TODO: fix this
     *addr+=modbasefromname(modname);
     sqlite3_finalize(stmt);

@@ -63,16 +63,16 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                     switch(wBPList.bp[wI].slot)
                     {
                         case 0:
-                            msetHwBPOnSlot0Action->setText("Set Hardware on Execution on Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
                             break;
                         case 1:
-                            msetHwBPOnSlot1Action->setText("Set Hardware on Execution on Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
                             break;
                         case 2:
-                            msetHwBPOnSlot2Action->setText("Set Hardware on Execution on Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
                             break;
                         case 3:
-                            msetHwBPOnSlot3Action->setText("Set Hardware on Execution on Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                            msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
                             break;
                         default:
                             break;
@@ -155,10 +155,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
 
     mSetHwBpAction = new QAction("Set Hardware on Execution", this);
-    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toogleHwBpActionSlot()));
+    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
 
     mClearHwBpAction = new QAction("Remove Hardware", this);
-    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toogleHwBpActionSlot()));
+    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
 
     msetHwBPOnSlot0Action = new QAction("Set Hardware on Execution on Slot 0 (Free)", this);
     connect(msetHwBPOnSlot0Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot0ActionSlot()));
@@ -205,7 +205,7 @@ void CPUDisassembly::toggleInt3BPAction()
 }
 
 
-void CPUDisassembly::toogleHwBpActionSlot()
+void CPUDisassembly::toggleHwBpActionSlot()
 {
     uint_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);

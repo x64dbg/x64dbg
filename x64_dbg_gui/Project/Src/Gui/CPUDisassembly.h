@@ -26,7 +26,7 @@ signals:
     
 public slots:
     void toggleInt3BPAction();
-    void toogleHwBpActionSlot();
+    void toggleHwBpActionSlot();
     void setHwBpOnSlot0ActionSlot();
     void setHwBpOnSlot1ActionSlot();
     void setHwBpOnSlot2ActionSlot();

@@ -11,6 +11,9 @@
 
 #include "_plugin_types.h"
 
+//defines
+#define PLUG_SDKVERSION 1
+
 //structures
 struct PLUG_INITSTRUCT
 {
