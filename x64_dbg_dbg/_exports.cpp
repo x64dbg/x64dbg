@@ -324,8 +324,12 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
         return 0;
     BREAKPOINT* list;
     int bpcount=bpgetlist(&list);
-    if(!bpcount)
+    if(bpcount==0)
+    {
+        bplist->count=0;
         return 0;
+    }
+
     int retcount=0;
     std::vector<BRIDGEBP> bridgeList;
     BRIDGEBP curBp;
