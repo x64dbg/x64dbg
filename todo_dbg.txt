@@ -1,18 +1,15 @@
 - attach/detach debugger
 - asm command
-- advanced readprocessmemory (over multiple pages)
 - memcpy
 - pe data access
 - fpu support
 - mmx support
 - find asm
-- find memory
+- find memory (pattern+wildcard)
 - mov [mem],#data#,size
 - getremotestring
 - function parameter
-- isjumpgonnaexecute
 - help file updates
-- plugins
 - scripting
 - thread support
 - tls callbacks
@@ -27,25 +24,20 @@
 - command help
 - inject asm code
 - and or xor commands
-- delete mem breakpoints
-- delete hw breakpoints
-- udd file format
 - analysis
-- symbol loader
 - getlasterror
 - display open handles
-- log clear command
 - build howto
 - step to user code
 - tracing(?)
-- child processes (TitanEngine)
-- display source
-- patching
+- [OPTIONAL] child processes (TitanEngine)
+- display source in PDB files (source debugging)
+- patching (+save)
 - handle view
 - window view
 - debug strings
 - process privileges
-- loaded modules
+- loaded modules window
 - strings
 - references
 - callstack
@@ -54,9 +46,29 @@
 - functions
 - TEB/TBI
 - PEB/PBI
-- debug pause
 - cpu filename+thread id
-- GetAddrInfo/SetAddrInfo
 - shift+f7f8f9
-- restart (last process)
 - log breakpoints
+- fix memory breakpoints
+- membp in memmap
+- command va2offset (and the other way around)
+- various different float calculations
+- and/or/xor/cmp with internal flags (script)
+- restore window position (BridgeSetting)
+- follow in dump
+- opcode byte split
+- middle mouse click = copy addr/bytes/disasm
+- DOS name fix in Qt browse dialog
+- abstractTable column names
+- stack window(!)
+- dump window(!!!)
+- tabbed GUI (workspace+dragable windows)
+- LUA/Python support
+- ep break options
+- live comments
+- [] brackets for memory operations
+- custom colours
+- show export table
+- find all intermodular calls
+- highlight register changes (only when CIP changed also)
+- PAGE UP + PAGE DOWN keys in disasm
