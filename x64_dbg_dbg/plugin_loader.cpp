@@ -28,7 +28,6 @@ void pluginload(const char* pluginDir)
         return;
     }
     PLUG_DATA pluginData;
-    char errorMsg[deflen]="";
     do
     {
         memset(&pluginData, 0, sizeof(PLUG_DATA));
@@ -36,34 +35,26 @@ void pluginload(const char* pluginDir)
         pluginData.hPlugin=LoadLibraryA(foundData.cFileName); //load the plugin library
         if(!pluginData.hPlugin)
         {
-            sprintf(errorMsg, "Failed to load plugin: %s", foundData.cFileName);
-            MessageBoxA(0, errorMsg, "Plugin Error!", MB_ICONERROR|MB_SYSTEMMODAL);
+            dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
             continue;
         }
         pluginData.pluginit=(PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
         if(!pluginData.pluginit)
         {
-            sprintf(errorMsg, "Export \"pluginit\" not found in plugin: %s", foundData.cFileName);
-            MessageBoxA(0, errorMsg, "Plugin Error!", MB_ICONERROR|MB_SYSTEMMODAL);
+            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", foundData.cFileName);
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
         pluginData.plugstop=(PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
-        if(!pluginData.plugstop)
-        {
-            sprintf(errorMsg, "Export \"plugstop\" not found in plugin: %s", foundData.cFileName);
-            MessageBoxA(0, errorMsg, "Plugin Error!", MB_ICONERROR|MB_SYSTEMMODAL);
-            FreeLibrary(pluginData.hPlugin);
-            continue;
-        }
         //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))
         {
-            sprintf(errorMsg, "pluginit failed for plugin: %s", foundData.cFileName);
-            MessageBoxA(0, errorMsg, "Plugin Error!", MB_ICONERROR|MB_SYSTEMMODAL);
+            dprintf("[PLUGIN] pluginit failed for plugin: %s\n", foundData.cFileName);
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
+        else
+            dprintf("[PLUGIN] %s v%d Loaded!\n", pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
         pluginList.push_back(pluginData);
         curPluginHandle++;
     }
@@ -76,7 +67,9 @@ void pluginunload()
     int pluginCount=pluginList.size();
     for(int i=0; i<pluginCount; i++)
     {
-        pluginList.at(i).plugstop();
+        PLUGSTOP stop=pluginList.at(i).plugstop;
+        if(stop)
+            stop();
         FreeLibrary(pluginList.at(i).hPlugin);
     }
 }

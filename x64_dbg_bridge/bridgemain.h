@@ -170,6 +170,7 @@ struct REGDUMP
 };
 
 //Debugger functions
+BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base);
 BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);

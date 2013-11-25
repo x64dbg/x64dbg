@@ -87,6 +87,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionPause,SIGNAL(triggered()),this,SLOT(execPause()));
     connect(ui->actionScylla,SIGNAL(triggered()),this,SLOT(startScylla()));
     connect(ui->actionRestart,SIGNAL(triggered()),this,SLOT(restartDebugging()));
+
+    const char* errormsg=DbgInit();
+    if(errormsg)
+    {
+        QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.exec();
+        ExitProcess(1);
+    }
 }
 
 
