@@ -227,36 +227,6 @@ void CPUDisassembly::toggleHwBpActionSlot()
 void CPUDisassembly::setHwBpOnSlot0ActionSlot()
 {
     setHwBpAt(rvaToVa(getInitialSelection()), 0);
-
-
-
-    /*
-    qDebug() << "setHwBpOnSlot0ActionSlot";
-    int wI = 0;
-    int wSlot0Index = 0;
-    BPMAP wBPList;
-    uint_t wVA = rvaToVa(getInitialSelection());
-    QString wCmd = "";
-
-    DbgGetBpList(bp_hardware, &wBPList);
-
-    for(wI = 0; wI < 4; wI++)
-    {
-        if(wBPList.bp[wI].slot == 0)
-        {
-            wSlot0Index = wI;
-            break;
-        }
-    }
-
-    wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlot0Index].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
-
-    Sleep(200);
-
-    wCmd = "bphws " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
-    */
 }
 
 void CPUDisassembly::setHwBpOnSlot1ActionSlot()
@@ -316,33 +286,6 @@ void CPUDisassembly::setHwBpAt(uint_t va, int slot)
         wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
     }
-
-
-    /*
-    int wI = 0;
-    int wSlotIndex = 0;
-    BPMAP wBPList;
-    QString wCmd = "";
-
-    DbgGetBpList(bp_hardware, &wBPList);
-
-    for(wI = 0; wI < 4; wI++)
-    {
-        if(wBPList.bp[wI].slot == (unsigned short)slot)
-        {
-            wSlotIndex = wI;
-            break;
-        }
-    }
-
-    wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlotIndex].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
-
-    Sleep(200);
-
-    wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
-    */
 }
 
 void CPUDisassembly::setNewOriginHereActionSlot()
