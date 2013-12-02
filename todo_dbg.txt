@@ -72,3 +72,6 @@
 - find all intermodular calls
 - highlight register changes (only when CIP changed also)
 - PAGE UP + PAGE DOWN keys in disasm
+- function lines (+database) for analysis
+- 'dead' bytes custom analysis
+- loops lines (+database) for analysis

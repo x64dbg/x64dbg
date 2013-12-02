@@ -180,15 +180,12 @@ void MainWindow::on_actionGoto_triggered()
 
 void MainWindow::openFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), 0, tr("Executables (*.exe *.dll)"));
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), 0, tr("Executables (*.exe *.dll);;All files (*.*)"));
     if(!filename.length())
         return;
     filename=QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
     if(DbgIsDebugging())
-    {
-        Bridge::getBridge()->execCmd("stop"); //close current file (when present)
-        Sleep(400);
-    }
+        DbgCmdExecDirect("stop");
     QString cmd;
     Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
 }
@@ -229,14 +226,11 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
 {
     if(pEvent->mimeData()->hasUrls())
     {
-        QString filename = QString(pEvent->mimeData()->data("FileName"));
+        QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
         if(filename.contains(".exe", Qt::CaseInsensitive) || filename.contains(".dll", Qt::CaseInsensitive))
         {
             if(DbgIsDebugging())
-            {
-                Bridge::getBridge()->execCmd("stop"); //close current file (when present)
-                Sleep(400);
-            }
+                DbgCmdExecDirect("stop");
             QString cmd;
             Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
         }
