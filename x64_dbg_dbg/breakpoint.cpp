@@ -172,8 +172,8 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    dbsave();
     bpenumall(0); //update breakpoint list
+    dbsave();
     return true;
 }
 
@@ -194,6 +194,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
+    bpenumall(0); //update breakpoint list
     dbsave();
     return true;
 }

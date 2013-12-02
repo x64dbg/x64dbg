@@ -27,7 +27,7 @@ void dbinit()
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, addr INT64 NOT NULL, enabled INT NOT NULL, singleshoot INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL, titantype INT NOT NULL, mod TEXT, name TEXT)"))
         dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
-    bpenumall(0);
+    bpenumall(0); //update breakpoint list
 }
 
 bool dbload()
