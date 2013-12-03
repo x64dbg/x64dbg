@@ -47,7 +47,8 @@ SOURCES += \
     Src/Gui/StatusLabel.cpp \
     Src/BasicView/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
-    Src/BasicView/LineEditDialog.cpp
+    Src/BasicView/LineEditDialog.cpp \
+    Src/Gui/BreakpointsView.cpp
 
 
 HEADERS += \
@@ -75,7 +76,8 @@ HEADERS += \
     Src/Gui/StatusLabel.h \
     Src/BasicView/WordEditDialog.h \
     Src/Gui/CPUDisassembly.h \
-    Src/BasicView/LineEditDialog.h
+    Src/BasicView/LineEditDialog.h \
+    Src/Gui/BreakpointsView.h
 
 INCLUDEPATH += \
     Src \

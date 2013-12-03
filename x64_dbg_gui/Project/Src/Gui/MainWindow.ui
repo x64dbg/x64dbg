@@ -36,6 +36,7 @@
     </property>
     <addaction name="actionMemoryMap"/>
     <addaction name="actionLog"/>
+    <addaction name="actionBreakpoints"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -101,6 +102,7 @@
    <addaction name="actionGoto"/>
    <addaction name="separator"/>
    <addaction name="actionLog"/>
+   <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
@@ -298,6 +300,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionBreakpoints">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/alphabet/B.png</normaloff>:/icons/images/alphabet/B.png</iconset>
+   </property>
+   <property name="text">
+    <string>Breakpoints</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+B</string>
    </property>
   </action>
  </widget>

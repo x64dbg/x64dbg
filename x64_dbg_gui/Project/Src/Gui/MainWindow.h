@@ -12,6 +12,7 @@
 #include "LogView.h"
 #include "GotoDialog.h"
 #include "StatusLabel.h"
+#include "BreakpointsView.h"
 
 namespace Ui {
 class MainWindow;
@@ -40,6 +41,7 @@ public slots:
     void execPause();
     void startScylla();
     void restartDebugging();
+    void displayBreakpointWidget();
     
 private slots:
     void on_actionGoto_triggered();
@@ -53,6 +55,7 @@ private:
 
     QMdiSubWindow* mMemMapView;
     QMdiSubWindow* mLogView;
+    QMdiSubWindow* mBreakpointsView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

@@ -38,6 +38,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mLogView->hide();
     mLogView->setGeometry(20, 20, 800, 300);
 
+    // Breakpoints
+    mBreakpointsView = new QMdiSubWindow();
+    mBreakpointsView->setWindowTitle("Breakpoints");
+    mBreakpointsView->setWidget(new BreakpointsView());
+    mBreakpointsView->hide();
+    mBreakpointsView->setGeometry(20, 20, 800, 300);
+
     mdiArea = new QMdiArea;
     mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -56,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mdiArea->addSubWindow(subWindow);
     mdiArea->addSubWindow(mMemMapView);
     mdiArea->addSubWindow(mLogView);
+    mdiArea->addSubWindow(mBreakpointsView);
 
     setCentralWidget(mdiArea);
 
@@ -87,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionPause,SIGNAL(triggered()),this,SLOT(execPause()));
     connect(ui->actionScylla,SIGNAL(triggered()),this,SLOT(startScylla()));
     connect(ui->actionRestart,SIGNAL(triggered()),this,SLOT(restartDebugging()));
+    connect(ui->actionBreakpoints,SIGNAL(triggered()),this,SLOT(displayBreakpointWidget()));
 
     const char* errormsg=DbgInit();
     if(errormsg)
@@ -212,6 +221,12 @@ void MainWindow::restartDebugging()
     }
     QString cmd;
     Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename).toUtf8().constData());
+}
+
+void MainWindow::displayBreakpointWidget()
+{
+    mBreakpointsView->widget()->show();
+    mBreakpointsView->setFocus();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)
