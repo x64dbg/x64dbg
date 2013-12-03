@@ -17,6 +17,7 @@
 #define UE_ACCESS_WRITE 1
 #define UE_ACCESS_ALL 2
 
+#define UE_HIDE_PEBONLY 0
 #define UE_HIDE_BASIC 1
 
 #define UE_PLUGIN_CALL_REASON_PREDEBUG 1
@@ -300,6 +301,12 @@ typedef struct
     WORD Characteristics;
     DWORD NumberOfRvaAndSizes;
 } PE64Struct, *PPE64Struct;
+
+#if defined(_WIN64)
+typedef PE64Struct PEStruct;
+#else
+typedef PE32Struct PEStruct;
+#endif
 
 typedef struct
 {

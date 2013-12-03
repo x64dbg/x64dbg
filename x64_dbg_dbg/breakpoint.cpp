@@ -5,7 +5,7 @@
 #include "console.h"
 #include "memory.h"
 
-static BREAKPOINT bpall[1000];
+static BREAKPOINT bpall[1000]; //TODO: fix this size
 static int bpcount=0;
 
 int bpgetlist(BREAKPOINT** list)

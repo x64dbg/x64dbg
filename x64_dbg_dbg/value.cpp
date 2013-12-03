@@ -1260,12 +1260,8 @@ bool valtostring(const char* string, uint* value, bool silent)
         uint temp;
         if(!valfromstring(string+add, &temp, 0, 0, false, 0))
             return false;
-        bool isrunning=dbgisrunning();
-        if(!isrunning)
-            dbgdisablebpx();
         bool wpm=WriteProcessMemory(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0);
-        if(!isrunning)
-            dbgenablebpx();
+        bpfixmemory(temp, (unsigned char*)value, read_size);
         if(!wpm)
         {
             if(!silent)

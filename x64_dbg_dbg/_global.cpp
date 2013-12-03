@@ -154,3 +154,29 @@ bool PathToDevicePath(const char* path, char* devicepath, size_t devicepath_size
     sprintf(devicepath, "%s%s", curDevice, path+2);
     return true;
 }
+
+bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
+{
+    if(!GetFileSize(hFile, 0))
+        return false;
+    HANDLE hFileMap=CreateFileMappingA(hFile, 0, PAGE_READONLY, 0, 1, 0);
+    if(!hFileMap)
+        return false;
+    void* pFileMap=MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, 1);
+    if(!pFileMap)
+    {
+        CloseHandle(hFileMap);
+        return false;
+    }
+    char szMappedName[MAX_PATH]="";
+    if(GetMappedFileNameA(GetCurrentProcess(), pFileMap, szMappedName, MAX_PATH))
+    {
+        DevicePathToPath(szMappedName, szFileName, MAX_PATH);
+        UnmapViewOfFile(pFileMap);
+        CloseHandle(hFileMap);
+        return true;
+    }
+    UnmapViewOfFile(pFileMap);
+    CloseHandle(hFileMap);
+    return false;
+}

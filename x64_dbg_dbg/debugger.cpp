@@ -9,12 +9,13 @@
 #include "_exports.h"
 #include "addrinfo.h"
 #include "plugin_loader.h"
+#include "x64_dbg.h"
 
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
-PROCESS_INFORMATION* fdProcessInfo=&g_pi;
-static char szFileName[deflen]="";
-bool bFileIsDll=false;
-uint pDebuggedDllBase=0;
+static char szFileName[MAX_PATH]="";
+static bool bFileIsDll=false;
+static uint pDebuggedBase=0;
+static uint pDebuggedEntry=0;
 static bool isStepping=false;
 static bool isPausedByUser=false;
 static bool bScyllaLoaded=false;
@@ -22,11 +23,11 @@ static int ecount=0;
 
 //Superglobal variables
 char sqlitedb[deflen]="";
+PROCESS_INFORMATION* fdProcessInfo=&g_pi;
 
 //static functions
 static void cbStep();
 static void cbSystemBreakpoint(void* ExceptionData);
-static void cbEntryBreakpoint();
 static void cbUserBreakpoint();
 
 void dbgdisablebpx()
@@ -192,49 +193,20 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
-static void cbEntryBreakpoint()
-{
-    pDebuggedDllBase=GetDebuggedDLLBaseAddress();
-    dputs("entry point reached!");
-    DebugUpdateGui(GetContextData(UE_CIP));
-    GuiSetDebugState(paused);
-    //lock
-    lock(WAITID_RUN);
-    PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
-    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-    wait(WAITID_RUN);
-}
-
-BOOL
-CALLBACK
-SymRegisterCallbackProc64(
-    __in HANDLE hProcess,
-    __in ULONG ActionCode,
-    __in_opt ULONG64 CallbackData,
-    __in_opt ULONG64 UserContext
-)
+BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
     UNREFERENCED_PARAMETER(hProcess);
     UNREFERENCED_PARAMETER(UserContext);
-
     PIMAGEHLP_CBA_EVENT evt;
-
-    // If SYMOPT_DEBUG is set, then the symbol handler will pass
-    // verbose information on its attempt to load symbols.
-    // This information be delivered as text strings.
-
     switch (ActionCode)
     {
     case CBA_EVENT:
-        evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
+        evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
         printf("%s", (PTSTR)evt->desc);
         break;
-
     default:
         return FALSE;
     }
-
     return TRUE;
 }
 
@@ -383,6 +355,16 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
 
+    //Set entry breakpoint
+    if(!bFileIsDll)
+    {
+        char command[256]="";
+        sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
+        cmddirectexec(dbggetcommandlist(), command);
+        pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage;
+        //SetBPX((ULONG_PTR)CreateProcessInfo->lpStartAddress, UE_SINGLESHOOT, (void*)cbEntryBreakpoint);
+    }
+
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
     callbackInfo.CreateProcessInfo=CreateProcessInfo;
@@ -456,6 +438,15 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
+
+    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName))
+    {
+        pDebuggedBase=(uint)base;
+        char command[256]="";
+        sprintf(command, "bp "fhex",\"entry breakpoint\",ss", pDebuggedBase+pDebuggedEntry);
+        cmddirectexec(dbggetcommandlist(), command);
+        //SetBPX(pDebuggedBase+pDebuggedEntry, UE_SINGLESHOOT, (void*)cbEntryBreakpoint);
+    }
 
     //TODO: plugin callback
     PLUG_CB_LOADDLL callbackInfo;
@@ -545,10 +536,11 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //initialize
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
+    pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
     if(bFileIsDll)
-        fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, (void*)cbEntryBreakpoint);
+        fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
-        fdProcessInfo=(PROCESS_INFORMATION*)InitDebugEx(init->exe, init->commandline, init->currentfolder, (void*)cbEntryBreakpoint);
+        fdProcessInfo=(PROCESS_INFORMATION*)InitDebugEx(init->exe, init->commandline, init->currentfolder, 0);
     if(!fdProcessInfo)
     {
         fdProcessInfo=&g_pi;
@@ -581,6 +573,8 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     plugincbcall(CB_INITDEBUG, &initInfo);
     //run debug loop (returns when process debugging is stopped)
     DebugLoop();
+    //remove entry breakpoint from database
+    bpdel(pDebuggedBase+pDebuggedEntry, BPNORMAL);
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved=0;
@@ -616,6 +610,14 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("file does not exsist!");
         return STATUS_ERROR;
     }
+    HANDLE hFile=CreateFileA(arg1, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if(hFile==INVALID_HANDLE_VALUE)
+    {
+        dputs("could not open file!");
+        return STATUS_ERROR;
+    }
+    GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    CloseHandle(hFile);
 
     char arg2[deflen]="";
     argget(*argv, arg2, 1, true);
@@ -728,11 +730,6 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf("invalid addr: \"%s\"\n", argaddr);
         return STATUS_ERROR;
     }
-    if(addr==(uint)(GetPE32Data(szFileName, 0, UE_OEP)+pDebuggedDllBase))
-    {
-        dputs("entry breakpoint will be set automatically");
-        return STATUS_ERROR;
-    }
     int type=0;
     bool singleshoot=false;
     if(strstr(argtype, "ss"))
@@ -769,7 +766,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 
 static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(DeleteBPX(bp->addr) and bpdel(bp->addr, BPNORMAL))
+    if(bpdel(bp->addr, BPNORMAL) and DeleteBPX(bp->addr))
         return true;
     dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
     return false;
@@ -794,7 +791,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
     {
-        if(!DeleteBPX(found.addr) or !bpdel(found.addr, BPNORMAL))
+        if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
         {
             dprintf("delete breakpoint failed: "fhex"\n", found.addr);
             return STATUS_ERROR;
@@ -807,7 +804,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!DeleteBPX(found.addr) or !bpdel(found.addr, BPNORMAL))
+    if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
     {
         dprintf("delete breakpoint failed: "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1414,7 +1411,7 @@ DWORD WINAPI scyllaThread(void* lpParam)
         return 0;
     }
     if(bFileIsDll)
-        ScyllaStartGui(fdProcessInfo->dwProcessId, (HINSTANCE)pDebuggedDllBase);
+        ScyllaStartGui(fdProcessInfo->dwProcessId, (HINSTANCE)pDebuggedBase);
     else
         ScyllaStartGui(fdProcessInfo->dwProcessId, 0);
     FreeLibrary(hScylla);
