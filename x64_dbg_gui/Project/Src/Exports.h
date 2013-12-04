@@ -15,6 +15,9 @@
     extern "C" __declspec(dllexport) void _gui_logclear();
     extern "C" __declspec(dllexport) void _gui_updateregisterview();
     extern "C" __declspec(dllexport) void _gui_updatedisassemblyview();
+
+
+    extern "C" __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* param2);
 #endif
 
 

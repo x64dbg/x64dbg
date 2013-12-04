@@ -43,6 +43,17 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 #define MAX_MODULE_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
 
+//Gui enums
+enum MSGTYPE
+{
+    GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
+    GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
+    GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
+    GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
+    GUI_UPDATE_REGISTER,            // param1=unused,               param2=unused
+    GUI_UPDATE_DISASSEMBLY_VIEW     // param1=unused,               param2=unused
+};
+
 //Debugger enums
 enum DBGSTATE
 {
