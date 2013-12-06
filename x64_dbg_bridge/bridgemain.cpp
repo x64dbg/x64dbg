@@ -18,7 +18,8 @@ static char szIniFile[1024]="";
 BRIDGE_IMPEXP const char* BridgeInit()
 {
     ///Settings load
-    GetModuleFileNameA(0, szIniFile, 1024);
+    if(!GetModuleFileNameA(0, szIniFile, 1024))
+        return "Error getting module path!";
     int len=strlen(szIniFile);
     while(szIniFile[len]!='.' && szIniFile[len]!='\\')
         len--;
