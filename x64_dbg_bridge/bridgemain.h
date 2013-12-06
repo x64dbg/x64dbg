@@ -50,7 +50,7 @@ enum MSGTYPE
     GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
     GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
     GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
-    GUI_UPDATE_REGISTER,            // param1=unused,               param2=unused
+    GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
     GUI_UPDATE_DISASSEMBLY_VIEW     // param1=unused,               param2=unused
 };
 

@@ -21,13 +21,11 @@ WordEditDialog::~WordEditDialog()
 
 void WordEditDialog::expressionChanged(QString s)
 {
-    bool wIsValid = Bridge::getBridge()->isValidExpression(s.toUtf8().constData());
-
-    if(wIsValid == true)
+    if(DbgIsValidExpression(s.toUtf8().constData()))
     {
         ui->expressionLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        mWord = Bridge::getBridge()->getValFromString(reinterpret_cast<const char*>(s.toUtf8().constData()));
+        mWord = DbgValFromString(s.toUtf8().constData());
         ui->hexLineEdit->setText(QString("%1").arg(mWord, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
         ui->signedLineEdit->setText(QString::number((int_t)mWord));
         ui->unsignedLineEdit->setText(QString::number((uint_t)mWord));

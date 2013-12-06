@@ -29,21 +29,11 @@ extern HINSTANCE hInstDbg;
 
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
-typedef void (*GUIDISASSEMBLEAT)(duint va, duint cip);
-typedef void (*GUISETDEBUGSTATE)(DBGSTATE state);
-typedef void (*GUIADDLOGMESSAGE)(const char* msg);
-typedef void (*GUILOGCLEAR)();
-typedef void (*GUIUPDATEREGISTERVIEW)();
-typedef void (*GUIUPDATEDISASSEMBLYVIEW)();
+typedef void (*GUISENDMESSAGE)(MSGTYPE type, void* param1, void* param2);
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;
-extern GUIDISASSEMBLEAT _gui_disassembleat;
-extern GUISETDEBUGSTATE _gui_setdebugstate;
-extern GUIADDLOGMESSAGE _gui_addlogmessage;
-extern GUILOGCLEAR _gui_logclear;
-extern GUIUPDATEREGISTERVIEW _gui_updateregisterview;
-extern GUIUPDATEDISASSEMBLYVIEW _gui_updatedisassemblyview;
+extern GUISENDMESSAGE _gui_sendmessage;
 
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();

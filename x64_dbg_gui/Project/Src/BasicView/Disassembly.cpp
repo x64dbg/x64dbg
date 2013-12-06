@@ -596,7 +596,7 @@ int_t Disassembly::getPreviousInstructionRVA(int_t rva, uint_t count)
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
     wBuffer.resize(wMaxByteCountToRead);
 
-    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase + wBottomByteRealRVA, wMaxByteCountToRead);
+    DbgMemRead(mBase + wBottomByteRealRVA, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
 
     int_t addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
 
@@ -628,7 +628,7 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
     wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
     wBuffer.resize(wMaxByteCountToRead);
 
-    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase + rva, wMaxByteCountToRead);
+    DbgMemRead(mBase + rva, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
 
     wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
     wNewRVA += rva;
@@ -680,7 +680,7 @@ Instruction_t Disassembly::DisassembleAt(int_t rva)
     int_t wMaxByteCountToRead = 16 * 2;
     wBuffer.resize(wMaxByteCountToRead);
 
-    Bridge::getBridge()->readProcessMemory(reinterpret_cast<byte_t*>(wBuffer.data()), mBase+rva, wMaxByteCountToRead);
+    DbgMemRead(mBase+rva, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
 
     return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva);
 }
@@ -835,8 +835,8 @@ uint_t Disassembly::rvaToVa(int_t rva)
 
 void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 {
-    int_t wBase = Bridge::getBridge()->getBase(parVA);
-    int_t wSize = Bridge::getBridge()->getSize(wBase);
+    int_t wBase = DbgMemFindBaseAddr(parVA, 0);
+    int_t wSize = DbgMemGetPageSize(wBase);
     int_t wRVA = parVA - wBase;
     int_t wCipRva = parCIP - wBase;
 

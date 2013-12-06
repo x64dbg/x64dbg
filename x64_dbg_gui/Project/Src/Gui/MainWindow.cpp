@@ -118,7 +118,7 @@ void MainWindow::executeCommand()
 {
     QString wCmd = mCmdLineEdit->text();
 
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd.toUtf8().constData());
 
     mCmdLineEdit->addCmdToHistory(wCmd);
     mCmdLineEdit->setText("");
@@ -127,12 +127,12 @@ void MainWindow::executeCommand()
 
 void MainWindow::execStepOver()
 {
-    Bridge::getBridge()->execCmd("StepOver");
+    DbgCmdExec("StepOver");
 }
 
 void MainWindow::execStepInto()
 {
-    Bridge::getBridge()->execCmd("StepInto");
+    DbgCmdExec("StepInto");
 }
 
 void MainWindow::setFocusToCommandBar()
@@ -142,17 +142,17 @@ void MainWindow::setFocusToCommandBar()
 
 void MainWindow::execClose()
 {
-    Bridge::getBridge()->execCmd("stop");
+    DbgCmdExec("stop");
 }
 
 void MainWindow::execRun()
 {
-    Bridge::getBridge()->execCmd("run");
+    DbgCmdExec("run");
 }
 
 void MainWindow::execRtr()
 {
-    Bridge::getBridge()->execCmd("rtr");
+    DbgCmdExec("rtr");
 }
 
 void MainWindow::displayMemMapWidget()
@@ -183,7 +183,7 @@ void MainWindow::on_actionGoto_triggered()
     if(mGoto.exec()==QDialog::Accepted)
     {
         QString cmd;
-        Bridge::getBridge()->execCmd(cmd.sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(cmd.sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
     }
 }
 
@@ -196,17 +196,17 @@ void MainWindow::openFile()
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
     QString cmd;
-    Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+    DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
 }
 
 void MainWindow::execPause()
 {
-    Bridge::getBridge()->execCmd("pause");
+    DbgCmdExec("pause");
 }
 
 void MainWindow::startScylla() //this is executed
 {
-    Bridge::getBridge()->execCmd("StartScylla");
+    DbgCmdExec("StartScylla");
 }
 
 void MainWindow::restartDebugging()
@@ -216,11 +216,11 @@ void MainWindow::restartDebugging()
         return;
     if(DbgIsDebugging())
     {
-        Bridge::getBridge()->execCmd("stop"); //close current file (when present)
+        DbgCmdExec("stop"); //close current file (when present)
         Sleep(400);
     }
     QString cmd;
-    Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename).toUtf8().constData());
+    DbgCmdExec(cmd.sprintf("init \"%s\"", filename).toUtf8().constData());
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -247,7 +247,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
             if(DbgIsDebugging())
                 DbgCmdExecDirect("stop");
             QString cmd;
-            Bridge::getBridge()->execCmd(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
         }
         pEvent->acceptProposedAction();
     }

@@ -225,7 +225,7 @@ void RegistersView::updateRegistersSlot()
     REGDUMP wRegDumpStruct;
     memset(&wRegDumpStruct, 0, sizeof(REGDUMP));
 
-    Bridge::getBridge()->getRegDumpFromDbg(&wRegDumpStruct);
+    DbgGetRegDump(&wRegDumpStruct);
 
     ui->AXRegLabel->setText(QString("%1").arg(wRegDumpStruct.cax, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
     ui->CXRegLabel->setText(QString("%1").arg(wRegDumpStruct.ccx, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
@@ -525,5 +525,5 @@ void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)
     else
         return;
 
-    Bridge::getBridge()->valToString(wRegName.toUtf8().constData(), value);
+    DbgValToString(wRegName.toUtf8().constData(), value);
 }

@@ -6,12 +6,7 @@ HINSTANCE hInstDbg;
 
 //GUI functions
 GUIGUIINIT _gui_guiinit;
-GUIDISASSEMBLEAT _gui_disassembleat;
-GUISETDEBUGSTATE _gui_setdebugstate;
-GUIADDLOGMESSAGE _gui_addlogmessage;
-GUILOGCLEAR _gui_logclear;
-GUIUPDATEREGISTERVIEW _gui_updateregisterview;
-GUIUPDATEDISASSEMBLYVIEW _gui_updatedisassemblyview;
+GUISENDMESSAGE _gui_sendmessage;
 
 //DBG functions
 DBGDBGINIT _dbg_dbginit;

@@ -34,30 +34,10 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _gui_guiinit=(GUIGUIINIT)GetProcAddress(hInstGui, "_gui_guiinit");
     if(!_gui_guiinit)
         return "Export \"_gui_guiinit\" could not be found!";
-    //_gui_disassembleat
-    _gui_disassembleat=(GUIDISASSEMBLEAT)GetProcAddress(hInstGui, "_gui_disassembleat");
-    if(!_gui_disassembleat)
-        return "Export \"_gui_disassembleat\" could not be found!";
-    //_gui_setdebugstate
-    _gui_setdebugstate=(GUISETDEBUGSTATE)GetProcAddress(hInstGui, "_gui_setdebugstate");
-    if(!_gui_setdebugstate)
-        return "Export \"_gui_setdebugstate\" could not be found!";
-    //_gui_addlogmessage
-    _gui_addlogmessage=(GUIADDLOGMESSAGE)GetProcAddress(hInstGui, "_gui_addlogmessage");
-    if(!_gui_addlogmessage)
-        return "Export \"_gui_addlogmessage\" could not be found!";
-    //_gui_logclear
-    _gui_logclear=(GUILOGCLEAR)GetProcAddress(hInstGui, "_gui_logclear");
-    if(!_gui_logclear)
-        return "Export \"_gui_logclear\" could not be found!";
-    //_gui_updateregisterview
-    _gui_updateregisterview=(GUIUPDATEREGISTERVIEW)GetProcAddress(hInstGui, "_gui_updateregisterview");
-    if(!_gui_updateregisterview)
-        return "Export \"_gui_updateregisterview\" could not be found!";
-    //_gui_updatedisassemblyview
-    _gui_updatedisassemblyview=(GUIUPDATEDISASSEMBLYVIEW)GetProcAddress(hInstGui, "_gui_updatedisassemblyview");
-    if(!_gui_updatedisassemblyview)
-        return "Export \"_gui_updatedisassemblyview\" could not be found!";
+    //_gui_sendmessage;
+    _gui_sendmessage=(GUISENDMESSAGE)GetProcAddress(hInstGui, "_gui_sendmessage");
+    if(!_gui_sendmessage)
+        return "Export \"_gui_sendmessage\" could not be found!";
 
     ///DBG Load
     hInstDbg=LoadLibraryA(dbg_lib); //Mr. eXoDia
@@ -387,22 +367,22 @@ BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
-    _gui_disassembleat(addr, cip);
+    _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
 }
 
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
-    _gui_setdebugstate(state);
+    _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, 0);
 }
 
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
-    _gui_addlogmessage(msg);
+    _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
 BRIDGE_IMPEXP void GuiLogClear()
 {
-    _gui_logclear();
+    _gui_sendmessage(GUI_CLEAR_LOG, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateAllViews()
@@ -413,12 +393,12 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
 {
-    _gui_updateregisterview();
+    _gui_sendmessage(GUI_UPDATE_REGISTER_VIEW, 0, 0);
 }
 
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
-    _gui_updatedisassemblyview();
+    _gui_sendmessage(GUI_UPDATE_DISASSEMBLY_VIEW, 0, 0);
 }
 
 //Main

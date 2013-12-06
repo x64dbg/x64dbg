@@ -182,7 +182,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 void CPUDisassembly::gotoOrigin()
 {
-    Bridge::getBridge()->execCmd("d cip");
+    DbgCmdExec("d cip");
 }
 
 
@@ -201,7 +201,7 @@ void CPUDisassembly::toggleInt3BPAction()
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd.toUtf8().constData());
 }
 
 
@@ -220,7 +220,7 @@ void CPUDisassembly::toggleHwBpActionSlot()
         wCmd = "bphws " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd.toUtf8().constData());
 }
 
 
@@ -274,17 +274,17 @@ void CPUDisassembly::setHwBpAt(uint_t va, int slot)
     if(wSlotIndex < 0) // Slot not used
     {
         wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd.toUtf8().constData());
     }
     else // Slot used
     {
         wCmd = "bphwc " + QString("%1").arg((uint_t)(wBPList.bp[wSlotIndex].addr), sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
-        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd.toUtf8().constData());
 
         Sleep(200);
 
         wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd.toUtf8().constData());
     }
 }
 
@@ -292,7 +292,7 @@ void CPUDisassembly::setNewOriginHereActionSlot()
 {
     uint_t wVA = rvaToVa(getInitialSelection());
     QString wCmd = "cip=" + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    Bridge::getBridge()->execCmd(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd.toUtf8().constData());
 }
 
 void CPUDisassembly::setLabel()

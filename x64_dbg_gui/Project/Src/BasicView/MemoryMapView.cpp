@@ -67,8 +67,7 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
         memset(&wMemMapStruct, 0, sizeof(MEMMAP));
 
-
-        Bridge::getBridge()->getMemMapFromDbg(&wMemMapStruct);
+        DbgMemMap(&wMemMapStruct);
 
         //qDebug() << "count " << wMemMapStruct.count;
 
@@ -140,7 +139,7 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
         if(wMemMapStruct.page != 0)
         {
-            Bridge::getBridge()->Free(wMemMapStruct.page);
+            BridgeFree(wMemMapStruct.page);
         }
     }
 

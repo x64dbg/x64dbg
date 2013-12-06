@@ -28,8 +28,8 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
 void HexDump::printDumpAt(int_t parVA)
 {
-    int_t wBase = Bridge::getBridge()->getBase(parVA);
-    int_t wSize = Bridge::getBridge()->getSize(wBase);
+    int_t wBase = DbgMemFindBaseAddr(parVA, 0);
+    int_t wSize = DbgMemGetPageSize(wBase);
     int_t wRVA = parVA - wBase;
 
     setRowCount(wSize/mDumpByteWidth);

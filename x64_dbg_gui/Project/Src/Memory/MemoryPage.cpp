@@ -9,7 +9,7 @@ MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject *parent) : QObjec
 
 void MemoryPage::readOriginalMemory(byte_t* parDest, uint_t parRVA, uint_t parSize)
 {
-    Bridge::getBridge()->readProcessMemory(parDest, mBase + parRVA, parSize);
+    DbgMemRead(mBase + parRVA, parDest, parSize);
 }
 
 
