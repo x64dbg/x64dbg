@@ -93,6 +93,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
             mHeaderButtonSytle.style()->drawControl(QStyle::CE_PushButton, &wOpt, &wPainter,&mHeaderButtonSytle);
 
+            wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeigth()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
+
             x += getColumnWidth(i);
         }
         x = 0;
@@ -737,7 +739,7 @@ int AbstractTableView::getLineToPrintcount()
  *
  * @return      Nothing.
  */
-void AbstractTableView::addColumnAt(int width, bool isClickable)
+void AbstractTableView::addColumnAt(int width, QString title, bool isClickable)
 {
     HeaderButton_t wHeaderButton;
     Column_t wColumn;
@@ -749,6 +751,8 @@ void AbstractTableView::addColumnAt(int width, bool isClickable)
     wColumn.header = wHeaderButton;
     wColumn.width = width;
 
+    wColumn.title = title;
+
     mColumnList.append(wColumn);
 }
 
@@ -758,6 +762,18 @@ void AbstractTableView::setRowCount(int_t count)
     updateScrollBarRange(count);
     mRowCount = count;
 }
+
+
+void AbstractTableView::setColTitle(int index, QString title)
+{
+    if(mColumnList.size() > 0 && index >= 0 && index < mColumnList.size())
+    {
+       Column_t wColum = mColumnList.takeAt(index);
+       wColum.title = title;
+       mColumnList.insert(index - 1, wColum);
+    }
+}
+
 
 /************************************************************************************
                                 Getter & Setter

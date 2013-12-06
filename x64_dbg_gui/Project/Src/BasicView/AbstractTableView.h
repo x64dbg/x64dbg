@@ -49,8 +49,9 @@ public:
     virtual int getLineToPrintcount();
 
     // New Columns/New Size
-    virtual void addColumnAt(int width, bool isClickable);
+    virtual void addColumnAt(int width, QString title, bool isClickable);
     virtual void setRowCount(int_t count);
+    void setColTitle(int index, QString title);
 
     // Getter & Setter
     int_t getRowCount();
@@ -102,6 +103,7 @@ private:
     {
         int width;
         HeaderButton_t header;
+        QString title;
     } Column_t;
 
     typedef struct _Header_t

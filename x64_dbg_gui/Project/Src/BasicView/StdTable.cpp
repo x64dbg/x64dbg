@@ -195,9 +195,9 @@ bool StdTable::isSelected(int base, int offset)
 /************************************************************************************
                                 Data Management
 ************************************************************************************/
-void StdTable::addColumnAt(int width, bool isClickable)
+void StdTable::addColumnAt(int width, QString title, bool isClickable)
 {
-    AbstractTableView::addColumnAt(width, isClickable);
+    AbstractTableView::addColumnAt(width, title, isClickable);
 
     mData->append(new QList<QString>());
 

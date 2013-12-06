@@ -27,7 +27,7 @@ public:
     bool isSelected(int base, int offset);
 
     // Data Management
-    void addColumnAt(int width, bool isClickable);
+    void addColumnAt(int width, QString title, bool isClickable);
     void setRowCount(int count);
     void setCellContent(int r, int c, QString s);
 

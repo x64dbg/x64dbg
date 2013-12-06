@@ -23,10 +23,10 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(charwidth*2*sizeof(int_t)+8, false); //address
-    addColumnAt(charwidth*2*12+8, false); //bytes
-    addColumnAt(charwidth*40, false); //disassembly
-    addColumnAt(100, false); //comments
+    addColumnAt(charwidth*2*sizeof(int_t)+8, "", false); //address
+    addColumnAt(charwidth*2*12+8, "", false); //bytes
+    addColumnAt(charwidth*40, "", false); //disassembly
+    addColumnAt(100, "", false); //comments
 
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassambleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));

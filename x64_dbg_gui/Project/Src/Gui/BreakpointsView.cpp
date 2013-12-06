@@ -6,11 +6,11 @@ BreakpointsView::BreakpointsView(QWidget *parent) :QWidget(parent)
     mHardBPTable->setMaximumHeight(100);
     mSoftBPTable = new StdTable(this);
 
-    mHardBPTable->addColumnAt(50, false);
-    mHardBPTable->addColumnAt(50, false);
+    mHardBPTable->addColumnAt(50, "Hardware", false);
+    mHardBPTable->addColumnAt(50, "", false);
 
-    mSoftBPTable->addColumnAt(50, false);
-    mSoftBPTable->addColumnAt(50, false);
+    mSoftBPTable->addColumnAt(50, "Software", false);
+    mSoftBPTable->addColumnAt(50, "", false);
 
     mVertLayout = new QVBoxLayout;
     mVertLayout->setSpacing(0);
@@ -45,7 +45,6 @@ void BreakpointsView::paintEvent(QPaintEvent* event)
     {
         mSoftBPTable->setCellContent(wI, 0, QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     }
-
 
     QWidget::paintEvent(event);
 }

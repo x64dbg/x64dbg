@@ -18,9 +18,9 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     mMemPage = new MemoryPage(0, 0);
 
-    addColumnAt(100, false);
-    addColumnAt(100, false);
-    addColumnAt(100, false);
+    addColumnAt(100, "", false);
+    addColumnAt(100, "", false);
+    addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(printDumpAt(int_t)));
 }
