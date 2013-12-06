@@ -214,6 +214,7 @@ BRIDGE_IMPEXP void GuiLogClear();
 BRIDGE_IMPEXP void GuiUpdateAllViews();
 BRIDGE_IMPEXP void GuiUpdateRegisterView();
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
+BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
 
 #ifdef __cplusplus
 }

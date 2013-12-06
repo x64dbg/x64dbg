@@ -389,6 +389,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
+    GuiUpdateBreakpointsView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -399,6 +400,11 @@ BRIDGE_IMPEXP void GuiUpdateRegisterView()
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
     _gui_sendmessage(GUI_UPDATE_DISASSEMBLY_VIEW, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
+{
+    _gui_sendmessage(GUI_UPDATE_BREAKPOINTS_VIEW, 0, 0);
 }
 
 //Main

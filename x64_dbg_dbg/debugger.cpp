@@ -354,9 +354,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
-
-    //Set entry breakpoint
-    if(!bFileIsDll)
+    if(!bFileIsDll) //Set entry breakpoint
     {
         char command[256]="";
         sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
@@ -364,6 +362,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage;
         //SetBPX((ULONG_PTR)CreateProcessInfo->lpStartAddress, UE_SINGLESHOOT, (void*)cbEntryBreakpoint);
     }
+    GuiUpdateBreakpointsView();
 
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
@@ -438,8 +437,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
-
-    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName))
+    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName)) //Set entry breakpoint
     {
         pDebuggedBase=(uint)base;
         char command[256]="";
@@ -447,6 +445,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         cmddirectexec(dbggetcommandlist(), command);
         //SetBPX(pDebuggedBase+pDebuggedEntry, UE_SINGLESHOOT, (void*)cbEntryBreakpoint);
     }
+    GuiUpdateBreakpointsView();
 
     //TODO: plugin callback
     PLUG_CB_LOADDLL callbackInfo;

@@ -28,6 +28,7 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
     bpenumall(0); //update breakpoint list
+    GuiUpdateBreakpointsView();
 }
 
 bool dbload()
