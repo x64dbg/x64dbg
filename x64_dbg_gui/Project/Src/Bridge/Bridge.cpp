@@ -10,43 +10,27 @@ static Bridge* mBridge;
 ************************************************************************************/
 Bridge::Bridge(QObject *parent) : QObject(parent)
 {
-    mData = new QByteArray();
 
-    QFile wFile("AsmCode.bin");
-
-    if(wFile.open(QIODevice::ReadOnly) == false)
-        //qDebug() << "File has not been opened.";
-
-        *mData = wFile.readAll();
-    //qDebug() << "Size: " << mData->size();
-
-    if(mData->size() == 0)
-    {
-        //qDebug() << "No Data";
-    }
 }
 
+
+/************************************************************************************
+                            Exports Binding
+************************************************************************************/
 void Bridge::emitDisassembleAtSignal(int_t va, int_t eip)
 {
-#ifdef BUILD_LIB
     emit disassembleAt(va, eip);
-#endif
 }
 
 void Bridge::emitUpdateDisassembly()
 {
-#ifdef BUILD_LIB
     emit repaintGui();
-#endif
 }
 
 void Bridge::emitDbgStateChanged(DBGSTATE state)
 {
-#ifdef BUILD_LIB
     emit dbgStateChanged(state);
-#endif
 }
-
 
 void Bridge::emitAddMsgToLog(QString msg)
 {
@@ -63,6 +47,7 @@ void Bridge::emitUpdateRegisters()
     emit updateRegisters();
 }
 
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -71,22 +56,15 @@ Bridge* Bridge::getBridge()
     return mBridge;
 }
 
-
 void Bridge::initBridge()
 {
     mBridge = new Bridge();
 }
 
 
-
-
-
 /************************************************************************************
                             Exported Functions
 ************************************************************************************/
-
-#ifdef BUILD_LIB
-
 __declspec(dllexport) int _gui_guiinit(int argc, char *argv[])
 {
     return main(argc, argv);
@@ -139,51 +117,6 @@ __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* pa
     break;
     }
 }
-
-#endif
-
-
-/************************************************************************************
-                            Imported Functions (Stub)
-************************************************************************************/
-#ifndef BUILD_LIB
-void stubReadProcessMemory(byte_t* dest, uint_t va, uint_t size)
-{
-    uint_t wI;
-
-    for(wI = 0; wI < size; wI++)
-    {
-        dest[wI] = Bridge::getBridge()->mData->data()[(va - Bridge::getBridge()->getBase(0)) + wI];
-    }
-}
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
