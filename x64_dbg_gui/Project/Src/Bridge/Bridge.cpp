@@ -47,6 +47,11 @@ void Bridge::emitUpdateRegisters()
     emit updateRegisters();
 }
 
+void Bridge::emitUpdateBreakpoints()
+{
+    emit updateBreakpoints();
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -107,6 +112,12 @@ __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* pa
     case GUI_UPDATE_DISASSEMBLY_VIEW:
     {
         Bridge::getBridge()->emitUpdateDisassembly();
+    }
+    break;
+
+    case GUI_UPDATE_BREAKPOINTS_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateBreakpoints();
     }
     break;
 

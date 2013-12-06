@@ -28,6 +28,7 @@ public:
     void emitAddMsgToLog(QString msg);
     void emitClearLog();
     void emitUpdateRegisters();
+    void emitUpdateBreakpoints();
     
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -36,6 +37,7 @@ signals:
     void addMsgToLog(QString msg);
     void clearLog();
     void updateRegisters();
+    void updateBreakpoints();
     
 public slots:
 

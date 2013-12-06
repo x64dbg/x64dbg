@@ -51,7 +51,8 @@ enum MSGTYPE
     GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
     GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
     GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
-    GUI_UPDATE_DISASSEMBLY_VIEW     // param1=unused,               param2=unused
+    GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
+    GUI_UPDATE_BREAKPOINTS_VIEW     // param1=unused,               param2=unused
 };
 
 //Debugger enums
