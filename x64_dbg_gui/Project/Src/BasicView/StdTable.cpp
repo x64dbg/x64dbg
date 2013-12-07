@@ -226,8 +226,6 @@ void StdTable::setRowCount(int count)
         }
     }
 
-
-
     AbstractTableView::setRowCount(count);
 }
 
@@ -236,12 +234,38 @@ void StdTable::setRowCount(int count)
 
 void StdTable::setCellContent(int r, int c, QString s)
 {
-    mData->at(c)->replace(r, s);
+    if(isValidIndex(r, c) == true)
+        mData->at(c)->replace(r, s);
 }
 
 
+QString StdTable::getCellContent(int r, int c)
+{
+    if(isValidIndex(r, c) == true)
+        return QString(mData->at(c)->at(r));
+    else
+        return QString("");
+}
 
 
+bool StdTable::isValidIndex(int r, int c)
+{
+    if(mData->isEmpty() == false && c >= 0 && c < mData->size())
+    {
+        if(mData->at(c)->isEmpty() == false && r >= 0 && r < mData->at(c)->size())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
 
 
 

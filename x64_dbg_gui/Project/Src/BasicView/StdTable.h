@@ -30,6 +30,8 @@ public:
     void addColumnAt(int width, QString title, bool isClickable);
     void setRowCount(int count);
     void setCellContent(int r, int c, QString s);
+    QString getCellContent(int r, int c);
+    bool isValidIndex(int r, int c);
 
 signals:
     
