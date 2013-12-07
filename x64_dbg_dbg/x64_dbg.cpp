@@ -13,6 +13,7 @@
 #include "addrinfo.h"
 #include "threading.h"
 #include "plugin_loader.h"
+#include "assemble.h"
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
@@ -76,6 +77,7 @@ static void registercommands()
     cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
     cmdnew(cmd, "DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
     cmdnew(cmd, "DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
+    cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -126,6 +128,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen]="";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
+    strcpy(nasmpath, dir);
+    PathAppendA(nasmpath, "nasm.exe");
     pluginload(plugindir);
     return 0;
 }

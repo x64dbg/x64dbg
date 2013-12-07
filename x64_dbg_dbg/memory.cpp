@@ -28,7 +28,6 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-
     SIZE_T read=0;
     DWORD oldprotect=0;
     bool ret=ReadProcessMemory(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
@@ -44,7 +43,6 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
             *lpNumberOfBytesRead=read;
         return true;
     }
-
     for(uint i=0; i<nSize; i++) //read byte-per-byte
     {
         unsigned char* curaddr=(unsigned char*)lpBaseAddress+i;
@@ -54,6 +52,42 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
         {
             VirtualProtectEx(hProcess, curaddr, 1, PAGE_EXECUTE_READWRITE, &oldprotect); //change page protection
             ret=ReadProcessMemory(hProcess, curaddr, curbuf, PAGE_SIZE, 0); //try 'normal' RPM again
+            VirtualProtectEx(hProcess, curaddr, 1, oldprotect, &oldprotect); //restore page protection
+            if(!ret) //complete failure
+                return false;
+        }
+    }
+    return true;
+}
+
+bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+{
+    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+        return false;
+    SIZE_T written=0;
+    DWORD oldprotect=0;
+    bool ret=WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, &written);
+    if(!ret or written!=nSize) //failed
+    {
+        VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, PAGE_EXECUTE_READWRITE, &oldprotect); //change page protection
+        ret=WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, &written); //try 'normal' WPM again
+        VirtualProtectEx(hProcess, (void*)lpBaseAddress, nSize, oldprotect, &oldprotect); //restore page protection
+    }
+    if(ret and written==nSize) //'normal' WPM worked!
+    {
+        if(lpNumberOfBytesWritten)
+            *lpNumberOfBytesWritten=written;
+        return true;
+    }
+    for(uint i=0; i<nSize; i++) //read byte-per-byte
+    {
+        unsigned char* curaddr=(unsigned char*)lpBaseAddress+i;
+        unsigned char* curbuf=(unsigned char*)lpBuffer+i;
+        ret=WriteProcessMemory(hProcess, curaddr, curbuf, 1, 0); //try 'normal' WPM
+        if(!ret) //we failed
+        {
+            VirtualProtectEx(hProcess, curaddr, 1, PAGE_EXECUTE_READWRITE, &oldprotect); //change page protection
+            ret=WriteProcessMemory(hProcess, curaddr, curbuf, PAGE_SIZE, 0); //try 'normal' WPM again
             VirtualProtectEx(hProcess, curaddr, 1, oldprotect, &oldprotect); //restore page protection
             if(!ret) //complete failure
                 return false;

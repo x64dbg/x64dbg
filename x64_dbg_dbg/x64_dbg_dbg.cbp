@@ -73,6 +73,8 @@
 		<Unit filename="addrinfo.h" />
 		<Unit filename="argument.cpp" />
 		<Unit filename="argument.h" />
+		<Unit filename="assemble.cpp" />
+		<Unit filename="assemble.h" />
 		<Unit filename="breakpoint.cpp" />
 		<Unit filename="breakpoint.h" />
 		<Unit filename="command.cpp" />

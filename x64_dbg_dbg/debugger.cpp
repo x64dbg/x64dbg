@@ -825,7 +825,6 @@ static bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 
 CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
 {
-    puts("cbDebugEnableBPX");
     char arg1[deflen]="";
     if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
     {

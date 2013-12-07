@@ -75,4 +75,4 @@
 - function lines (+database) for analysis
 - 'dead' bytes custom analysis
 - loops lines (+database) for analysis
-- signal for GUI in bridge (msgsend)
+- enable/disable hw+mem breakpoint

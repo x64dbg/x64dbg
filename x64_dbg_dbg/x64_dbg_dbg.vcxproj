@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
     <ClCompile Include="argument.cpp" />
+    <ClCompile Include="assemble.cpp" />
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="console.cpp" />
@@ -36,6 +37,7 @@
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
     <ClInclude Include="argument.h" />
+    <ClInclude Include="assemble.h" />
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="console.h" />

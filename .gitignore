@@ -25,6 +25,7 @@ x64_dbg_*/x64/*
 !bin/*/sqlite.dll
 !bin/*/BeaEngine.dll
 !bin/*/Scylla.dll
+!bin/*/nasm.exe
 
 #files to ignore
 todo_bridge.txt

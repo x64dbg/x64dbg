@@ -5,6 +5,9 @@
 #include "value.h"
 #include "command.h"
 #include "addrinfo.h"
+#include "assemble.h"
+#include "debugger.h"
+#include "memory.h"
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -338,7 +341,7 @@ CMDRESULT cbLoaddb(int argc, char* argv[])
 {
     if(!dbload())
     {
-        puts("failed to load database from disk!");
+        dputs("failed to load database from disk!");
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
@@ -349,8 +352,68 @@ CMDRESULT cbSavedb(int argc, char* argv[])
 {
     if(!dbsave())
     {
-        puts("failed to save database to disk!");
+        dputs("failed to save database to disk!");
         return STATUS_ERROR;
     }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbAssemble(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid expression: \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!DbgMemIsValidReadPtr(addr))
+    {
+        dprintf("invalid address: "fhex"!\n", addr);
+        return STATUS_ERROR;
+    }
+
+    char instruction[256]="";
+    intel2nasm(argv[2], instruction);
+    unsigned char* outdata=0;
+    int outsize=0;
+    char error[1024]="";
+#ifdef _WIN64
+    bool ret=assemble(instruction, &outdata, &outsize, error, true);
+#else
+    bool ret=assemble(instruction, &outdata, &outsize, error, false);
+#endif // _WIN64
+    if(!ret)
+    {
+        dprintf("assemble error: %s\n", error);
+        return STATUS_ERROR;
+    }
+
+    bool fillnop=false;
+    if(argc>=4) //fill with NOPs
+        fillnop=true;
+
+    if(!fillnop)
+    {
+        if(!memwrite(fdProcessInfo->hProcess, (void*)addr, outdata, outsize, 0))
+        {
+            efree(outdata);
+            dputs("failed to write memory!");
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        efree(outdata);
+        dputs("not yet implemented!");
+        return STATUS_ERROR;
+    }
+    varset("$result", outsize, false);
+    efree(outdata);
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

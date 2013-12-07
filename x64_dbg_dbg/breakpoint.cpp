@@ -244,6 +244,10 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         curbp.type=(BP_TYPE)sqlite3_column_int(stmt, 4); //type
         curbp.titantype=sqlite3_column_int(stmt, 5); //titantype
         const char* modname=(const char*)sqlite3_column_text(stmt, 6); //mod
+        if(modname)
+            strcpy(curbp.mod, modname);
+        else
+            *curbp.mod=0;
         const char* bpname=(const char*)sqlite3_column_text(stmt, 7); //name
         if(bpname)
             strcpy(curbp.name, bpname);
