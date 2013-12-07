@@ -48,7 +48,8 @@ SOURCES += \
     Src/BasicView/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
     Src/BasicView/LineEditDialog.cpp \
-    Src/Gui/BreakpointsView.cpp
+    Src/Gui/BreakpointsView.cpp \
+    Src/Utils/Breakpoints.cpp
 
 
 HEADERS += \
@@ -77,7 +78,8 @@ HEADERS += \
     Src/BasicView/WordEditDialog.h \
     Src/Gui/CPUDisassembly.h \
     Src/BasicView/LineEditDialog.h \
-    Src/Gui/BreakpointsView.h
+    Src/Gui/BreakpointsView.h \
+    Src/Utils/Breakpoints.h
 
 INCLUDEPATH += \
     Src \
@@ -88,7 +90,8 @@ INCLUDEPATH += \
     Src/ThirdPartyLibs/BeaEngine \
     Src/Memory \
     Src/Bridge \
-    Src/Global
+    Src/Global \
+    Src/Utils
 
 FORMS += \
     Src/Gui/MainWindow.ui \
