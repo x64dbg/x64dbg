@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mBreakpointsView = new QMdiSubWindow();
     mBreakpointsView->setWindowTitle("Breakpoints");
     mBreakpointsView->setWidget(new BreakpointsView());
+    mBreakpointsView->setWindowIcon(QIcon(":/icons/images/alphabet/B.png"));
     mBreakpointsView->hide();
     mBreakpointsView->setGeometry(20, 20, 800, 300);
 
