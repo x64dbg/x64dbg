@@ -406,8 +406,6 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //update GUI
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
-    //unlock
-    unlock(WAITID_SYSBREAK);
     //lock
     lock(WAITID_RUN);
     PLUG_CB_PAUSEDEBUG pauseInfo;
@@ -544,7 +542,6 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     {
         fdProcessInfo=&g_pi;
         dputs("error starting process (invalid pe?)!");
-        unlock(WAITID_SYSBREAK);
         return 0;
     }
     lock(WAITID_STOP);
@@ -641,16 +638,13 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     init->commandline=commandline;
     if(*currentfolder)
         init->currentfolder=currentfolder;
-
     //initialize
     waitclear(); //clear waiting flags
-    lock(WAITID_SYSBREAK);
     if(!CreateThread(0, 0, threadDebugLoop, init, 0, 0))
     {
         dputs("failed creating debug thread!");
         return STATUS_ERROR;
     }
-    wait(WAITID_SYSBREAK);
     return STATUS_CONTINUE;
 }
 
@@ -1057,7 +1051,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs("hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
-    if(!SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint) or !bpnew(base, true, singleshoot, 0, BPMEMORY, 0, 0))
+    if(!SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint) or !bpnew(base, true, singleshoot, 0, BPMEMORY, type, 0))
     {
         dputs("error setting memory breakpoint!");
         return STATUS_ERROR;

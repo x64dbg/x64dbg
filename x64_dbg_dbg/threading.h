@@ -6,7 +6,6 @@
 //enums
 enum WAIT_ID
 {
-    WAITID_SYSBREAK,
     WAITID_RUN,
     WAITID_STOP
 };
