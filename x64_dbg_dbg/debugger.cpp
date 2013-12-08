@@ -534,10 +534,11 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
     pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
+    printf("%s %s %s\n", init->exe, init->commandline, init->currentfolder);
     if(bFileIsDll)
         fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
-        fdProcessInfo=(PROCESS_INFORMATION*)InitDebugEx(init->exe, init->commandline, init->currentfolder, 0);
+        fdProcessInfo=(PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
     if(!fdProcessInfo)
     {
         fdProcessInfo=&g_pi;
@@ -598,7 +599,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    char arg1[deflen]="";
+    static char arg1[deflen]="";
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     if(!FileExists(arg1))
@@ -615,7 +616,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
     CloseHandle(hFile);
 
-    char arg2[deflen]="";
+    static char arg2[deflen]="";
     argget(*argv, arg2, 1, true);
     char* commandline=0;
     if(strlen(arg2))
@@ -624,7 +625,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     char arg3[deflen]="";
     argget(*argv, arg3, 2, true);
 
-    char currentfolder[deflen]="";
+    static char currentfolder[deflen]="";
     strcpy(currentfolder, arg1);
     int len=strlen(currentfolder);
     while(currentfolder[len]!='\\' and len!=0)
