@@ -162,9 +162,11 @@ int StdTable::getInitialSelection()
 
 void StdTable::selectNext()
 {
-    uint_t wNext = getInitialSelection() + 1;
+    int wNext = getInitialSelection() + 1;
 
+    // Bounding
     wNext = wNext > getRowCount() - 1 ? getRowCount() - 1 : wNext;
+    wNext = wNext < 0  ? 0 : wNext;
 
     setSingleSelection(wNext);
 }
@@ -172,9 +174,11 @@ void StdTable::selectNext()
 
 void StdTable::selectPrevious()
 {
-    uint_t wNext = getInitialSelection() - 1;
+    int wNext = getInitialSelection() - 1;
 
+    // Bounding
     wNext = wNext > getRowCount() - 1 ? getRowCount() - 1 : wNext;
+    wNext = wNext < 0  ? 0 : wNext;
 
     setSingleSelection(wNext);
 }
