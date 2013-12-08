@@ -120,13 +120,42 @@ void StdTable::mouseReleaseEvent(QMouseEvent* event)
 }
 
 
+void StdTable::keyPressEvent(QKeyEvent* event)
+{
+    int key = event->key();
+
+    if(key == Qt::Key_Up || key == Qt::Key_Down)
+    {
+        int_t wBotIndex = getTableOffset();
+        int_t wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
+
+        if(key == Qt::Key_Up)
+            selectPrevious();
+        else
+            selectNext();
+
+        if(getInitialSelection() < wBotIndex)
+        {
+            setTableOffset(getInitialSelection());
+        }
+        else if(getInitialSelection() >= wTopIndex)
+        {
+            setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
+        }
+
+        repaint();
+    }
+    else
+    {
+        AbstractTableView::keyPressEvent(event);
+    }
+}
+
+
 void StdTable::enableMultiSelection(bool enabled)
 {
     mIsMultiSelctionAllowed = enabled;
 }
-
-
-
 
 /************************************************************************************
                                 Selection Management
