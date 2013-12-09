@@ -32,7 +32,9 @@ void pluginload(const char* pluginDir)
     {
         memset(&pluginData, 0, sizeof(PLUG_DATA));
         pluginData.initStruct.pluginHandle=curPluginHandle;
-        pluginData.hPlugin=LoadLibraryA(foundData.cFileName); //load the plugin library
+        char szPluginPath[MAX_PATH]="";
+        sprintf(szPluginPath, "%s\\%s", pluginDir, foundData.cFileName);
+        pluginData.hPlugin=LoadLibraryA(szPluginPath); //load the plugin library
         if(!pluginData.hPlugin)
         {
             dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
