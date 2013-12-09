@@ -573,7 +573,7 @@ int_t AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
  */
 void AbstractTableView::updateScrollBarRange(int_t range)
 {
-    int_t wMax = range--;
+    int_t wMax = range - 1;
 
     if(wMax > 0)
     {
