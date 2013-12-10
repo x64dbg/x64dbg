@@ -68,11 +68,13 @@ public:
     ~RegistersView();
     void mousePressEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
+    void setRegisters(REGDUMP *reg);
 
 public slots:
     void updateRegistersSlot();
     void displayCustomContextMenuSlot(QPoint pos);
     void setRegister(REGISTER_NAME reg, uint_t value);
+    void debugStateChangedSlot(DBGSTATE state);
     
 private:
     void displayEditDialog();
