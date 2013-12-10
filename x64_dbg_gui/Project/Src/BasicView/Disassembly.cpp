@@ -678,6 +678,10 @@ Instruction_t Disassembly::DisassembleAt(int_t rva)
     QByteArray wBuffer;
     int_t base = mBase;
     int_t wMaxByteCountToRead = 16 * 2;
+
+    // Bounding
+    wMaxByteCountToRead = wMaxByteCountToRead > (getSize() - rva) ? (getSize() - rva) : wMaxByteCountToRead;
+
     wBuffer.resize(wMaxByteCountToRead);
 
     DbgMemRead(mBase+rva, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
