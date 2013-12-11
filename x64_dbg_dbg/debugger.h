@@ -46,6 +46,7 @@ CMDRESULT cbMemWrite(int argc, char* argv[]);
 CMDRESULT cbStartScylla(int argc, char* argv[]);
 CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[]);
+CMDRESULT cbDebugAttach(int argc, char* argv[]);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

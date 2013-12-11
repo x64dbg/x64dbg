@@ -78,6 +78,7 @@ static void registercommands()
     cmdnew(cmd, "DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
     cmdnew(cmd, "DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
     cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
+    cmdnew(cmd, "AttachDebugger\1attach", cbDebugAttach, false); //attach
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

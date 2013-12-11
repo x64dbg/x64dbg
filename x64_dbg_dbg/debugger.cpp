@@ -19,6 +19,7 @@ static uint pDebuggedEntry=0;
 static bool isStepping=false;
 static bool isPausedByUser=false;
 static bool bScyllaLoaded=false;
+static bool bIsAttached=false;
 static int ecount=0;
 
 //Superglobal variables
@@ -354,7 +355,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
-    if(!bFileIsDll) //Set entry breakpoint
+    if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
     {
         char command[256]="";
         sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
@@ -435,7 +436,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
-    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName)) //Set entry breakpoint
+    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase=(uint)base;
         char command[256]="";
@@ -531,10 +532,10 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 static DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
     //initialize
+    bIsAttached=false;
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
     pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
-    printf("%s %s %s\n", init->exe, init->commandline, init->currentfolder);
     if(bFileIsDll)
         fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
@@ -651,7 +652,10 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 
 CMDRESULT cbStopDebug(int argc, char* argv[])
 {
-    StopDebug();
+    if(bIsAttached)
+        DetachDebuggerEx(fdProcessInfo->dwProcessId);
+    else
+        StopDebug();
     unlock(WAITID_RUN);
     return STATUS_CONTINUE;
 }
@@ -1421,5 +1425,96 @@ CMDRESULT cbStartScylla(int argc, char* argv[])
     }
     bScyllaLoaded=true;
     CreateThread(0, 0, scyllaThread, 0, 0, 0);
+    return STATUS_CONTINUE;
+}
+
+static void cbAttachDebugger()
+{
+    varset("$hp", (uint)fdProcessInfo->hProcess, true);
+    varset("$pid", fdProcessInfo->dwProcessId, true);
+}
+
+static DWORD WINAPI threadAttachLoop(void* lpParameter)
+{
+    bIsAttached=true;
+    uint pid=(uint)lpParameter;
+    static PROCESS_INFORMATION pi_attached;
+    fdProcessInfo=&pi_attached;
+    //do some init stuff
+    bFileIsDll=IsFileDLL(szFileName, 0);
+    BridgeSettingSet("Recent Files", "path", szFileName);
+    lock(WAITID_STOP);
+    ecount=0;
+    //NOTE: set custom handlers
+    SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
+    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
+    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
+    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
+    SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
+    SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
+    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
+    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
+    //inform GUI start we started without problems
+    GuiSetDebugState(initialized);
+    //call plugin callback
+    PLUG_CB_INITDEBUG initInfo;
+    initInfo.szFileName=szFileName;
+    plugincbcall(CB_INITDEBUG, &initInfo);
+    //run debug loop (returns when process debugging is stopped)
+    AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
+    MessageBoxA(0,0,0,0);
+    //call plugin callback
+    PLUG_CB_STOPDEBUG stopInfo;
+    stopInfo.reserved=0;
+    plugincbcall(CB_STOPDEBUG, &stopInfo);
+    //message the user/do final stuff
+    DeleteFileA("DLLLoader.exe");
+    RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
+    SymCleanup(fdProcessInfo->hProcess);
+    dbclose();
+    modclear();
+    GuiSetDebugState(stopped);
+    dputs("debugging stopped!");
+    varset("$hp", 0, true);
+    varset("$pid", 0, true);
+    unlock(WAITID_STOP);
+    waitclear();
+    return 0;
+}
+
+CMDRESULT cbDebugAttach(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint pid=0;
+    if(!valfromstring(argv[1], &pid, 0, 0, true, 0))
+    {
+        dprintf("invalid expression \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(IsFileBeingDebugged())
+    {
+        //TODO: do stuff
+        dputs("terminate the current session!");
+        return STATUS_ERROR;
+    }
+    HANDLE hProcess=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
+    if(!hProcess)
+    {
+        dprintf("could not open process %X!\n", pid);
+        return STATUS_ERROR;
+    }
+    if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
+    {
+        dprintf("could not get module filename %X!\n", pid);
+        CloseHandle(hProcess);
+        return STATUS_ERROR;
+    }
+    CloseHandle(hProcess);
+    CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0);
     return STATUS_CONTINUE;
 }
