@@ -7,12 +7,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     this->showMaximized();
 
-    //Set window title
 #ifdef _WIN64
-    setWindowTitle("x64_dbg");
+    mWindowMainTitle="x64_dbg";
 #else
-    setWindowTitle("x32_dbg");
+    mWindowMainTitle="x32_dbg";
 #endif
+
+    //Set window title
+    setWindowTitle(QString(mWindowMainTitle));
 
     //Load application icon
     HICON hIcon=LoadIcon(GetModuleHandleA(0), MAKEINTRESOURCE(100));
@@ -51,17 +53,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     //Create QMdiSubWindow
-    QMdiSubWindow* subWindow = new QMdiSubWindow();
-    subWindow->setWindowTitle("CPU");
-    subWindow->showMaximized();
+    mSubWindow = new QMdiSubWindow();
+    mSubWindow->setWindowTitle("CPU");
+    mSubWindow->showMaximized();
 
     mCpuWin = new CPUWidget();
     mCpuWin->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
-    subWindow->setWidget(mCpuWin);
+    mSubWindow->setWidget(mCpuWin);
 
     //Add subWindow to Main QMdiArea here
-    mdiArea->addSubWindow(subWindow);
+    mdiArea->addSubWindow(mSubWindow);
     mdiArea->addSubWindow(mMemMapView);
     mdiArea->addSubWindow(mLogView);
     mdiArea->addSubWindow(mBreakpointsView);
@@ -81,7 +83,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
     // Setup Signals/Slots
-    connect(ui->actionStepOver, SIGNAL(triggered()), mCpuWin, SLOT(stepOverSlot()));
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
     connect(ui->actionStepOver,SIGNAL(triggered()),this,SLOT(execStepOver()));
     connect(ui->actionStepInto,SIGNAL(triggered()),this,SLOT(execStepInto()));
@@ -97,6 +98,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionScylla,SIGNAL(triggered()),this,SLOT(startScylla()));
     connect(ui->actionRestart,SIGNAL(triggered()),this,SLOT(restartDebugging()));
     connect(ui->actionBreakpoints,SIGNAL(triggered()),this,SLOT(displayBreakpointWidget()));
+    connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
 
     const char* errormsg=DbgInit();
     if(errormsg)
@@ -252,4 +255,20 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
         }
         pEvent->acceptProposedAction();
     }
+}
+
+void MainWindow::updateWindowTitleSlot(QString filename)
+{
+    if(filename.length())
+        setWindowTitle(QString(mWindowMainTitle)+QString(" - ")+filename);
+    else
+        setWindowTitle(QString(mWindowMainTitle));
+}
+
+void MainWindow::updateCPUTitleSlot(QString modname)
+{
+    if(modname.length())
+        mSubWindow->setWindowTitle(QString("CPU - ")+modname);
+    else
+        mSubWindow->setWindowTitle(QString("CPU"));
 }

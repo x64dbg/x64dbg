@@ -37,7 +37,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
         {
             MEMPAGE curPage;
             *curPage.mod=0;
-            modnamefromaddr(MyAddress, curPage.mod, false);
+            modnamefromaddr(MyAddress, curPage.mod, true);
             memcpy(&curPage.mbi, &mbi, sizeof(mbi));
             pageVector.push_back(curPage);
             memmap->count++;

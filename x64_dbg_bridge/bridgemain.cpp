@@ -408,6 +408,16 @@ BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
     _gui_sendmessage(GUI_UPDATE_BREAKPOINTS_VIEW, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
+{
+    _gui_sendmessage(GUI_UPDATE_WINDOW_TITLE, (void*)filename, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname)
+{
+    _gui_sendmessage(GUI_UPDATE_CPU_TITLE, (void*)modname, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

@@ -29,6 +29,8 @@ public:
     void emitClearLog();
     void emitUpdateRegisters();
     void emitUpdateBreakpoints();
+    void emitUpdateWindowTitle(QString filename);
+    void emitUpdateCPUTitle(QString modname);
     
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -38,6 +40,8 @@ signals:
     void clearLog();
     void updateRegisters();
     void updateBreakpoints();
+    void updateWindowTitle(QString filename);
+    void updateCPUTitle(QString modname);
     
 public slots:
 

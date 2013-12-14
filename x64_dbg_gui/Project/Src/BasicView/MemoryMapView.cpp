@@ -6,12 +6,12 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false); //addr
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false); //size
-    addColumnAt(8+charwidth*32, "", false); //module
-    addColumnAt(8+charwidth*3, "", false);
-    addColumnAt(8+charwidth*5, "", false);
-    addColumnAt(8+charwidth*5, "", false);
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false); //addr
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false); //size
+    addColumnAt(8+charwidth*32, "MOD", false); //module
+    addColumnAt(8+charwidth*3, "TYP", false);
+    addColumnAt(8+charwidth*5, "CPROT", false);
+    addColumnAt(8+charwidth*5, "APROT", false);
     addColumnAt(100, "", false);
 
 

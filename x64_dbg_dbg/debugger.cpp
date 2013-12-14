@@ -13,6 +13,7 @@
 
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
 static char szFileName[MAX_PATH]="";
+static char szBaseFileName[MAX_PATH]="";
 static bool bFileIsDll=false;
 static uint pDebuggedBase=0;
 static uint pDebuggedEntry=0;
@@ -64,6 +65,10 @@ void DebugUpdateGui(uint disasm_addr)
 {
     GuiUpdateAllViews();
     GuiDisasmAt(disasm_addr, (duint)GetContextData(UE_CIP));
+    char modname[MAX_MODULE_SIZE]="";
+    if(!modnamefromaddr(disasm_addr, modname, true))
+        *modname=0;
+    GuiUpdateCPUTitle(modname);
 }
 
 static void cbUserBreakpoint()
@@ -565,6 +570,14 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
+    //set GUI title
+    strcpy(szBaseFileName, szFileName);
+    int len=strlen(szBaseFileName);
+    while(szBaseFileName[len]!='\\' and len)
+        len--;
+    if(len)
+        strcpy(szBaseFileName, szBaseFileName+len+1);
+    GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
     initInfo.szFileName=szFileName;
@@ -1457,6 +1470,14 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
+    //set GUI title
+    strcpy(szBaseFileName, szFileName);
+    int len=strlen(szBaseFileName);
+    while(szBaseFileName[len]!='\\' and len)
+        len--;
+    if(len)
+        strcpy(szBaseFileName, szBaseFileName+len+1);
+    GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
     initInfo.szFileName=szFileName;

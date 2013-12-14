@@ -52,6 +52,16 @@ void Bridge::emitUpdateBreakpoints()
     emit updateBreakpoints();
 }
 
+void Bridge::emitUpdateWindowTitle(QString filename)
+{
+    emit updateWindowTitle(filename);
+}
+
+void Bridge::emitUpdateCPUTitle(QString modname)
+{
+    emit updateCPUTitle(modname);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -121,9 +131,20 @@ __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* pa
     }
     break;
 
+    case GUI_UPDATE_WINDOW_TITLE:
+    {
+        Bridge::getBridge()->emitUpdateWindowTitle(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_UPDATE_CPU_TITLE:
+    {
+        Bridge::getBridge()->emitUpdateCPUTitle(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
     default:
     {
-
     }
     break;
     }

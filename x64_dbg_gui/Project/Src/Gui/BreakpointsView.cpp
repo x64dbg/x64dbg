@@ -6,28 +6,28 @@ BreakpointsView::BreakpointsView(QWidget *parent) :QWidget(parent)
     mHardBPTable = new StdTable(this);
     int wCharWidth = QFontMetrics(mHardBPTable->font()).width(QChar(' '));
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Hardware", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Name", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Module", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "State", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Hardware", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*32, "Module", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*8, "State", false);
     mHardBPTable->addColumnAt(wCharWidth*10, "Comment", false);
 
     // Software
     mSoftBPTable = new StdTable(this);
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "Software", false);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "Name", false);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "Module", false);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "State", false);
+    mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false);
+    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
+    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Module", false);
+    mSoftBPTable->addColumnAt(8+wCharWidth*8, "State", false);
     mSoftBPTable->addColumnAt(wCharWidth*10, "Comment", false);
 
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(wCharWidth*10, "Memory", false);
-    mMemBPTable->addColumnAt(wCharWidth*10, "Name", false);
-    mMemBPTable->addColumnAt(wCharWidth*10, "Module", false);
-    mMemBPTable->addColumnAt(wCharWidth*10, "State", false);
+    mMemBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Memory", false);
+    mMemBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
+    mMemBPTable->addColumnAt(8+wCharWidth*32, "Module", false);
+    mMemBPTable->addColumnAt(8+wCharWidth*8, "State", false);
     mMemBPTable->addColumnAt(wCharWidth*10, "Comment", false);
 
     // Splitter

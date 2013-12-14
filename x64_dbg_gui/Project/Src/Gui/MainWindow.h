@@ -42,6 +42,8 @@ public slots:
     void startScylla();
     void restartDebugging();
     void displayBreakpointWidget();
+    void updateWindowTitleSlot(QString filename);
+    void updateCPUTitleSlot(QString modname);
     
 private slots:
     void on_actionGoto_triggered();
@@ -53,12 +55,15 @@ private:
 
     CommandLineEdit* mCmdLineEdit;
 
+    QMdiSubWindow* mSubWindow;
     QMdiSubWindow* mMemMapView;
     QMdiSubWindow* mLogView;
     QMdiSubWindow* mBreakpointsView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
+
+    const char* mWindowMainTitle;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

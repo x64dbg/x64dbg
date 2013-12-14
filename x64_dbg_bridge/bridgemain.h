@@ -52,7 +52,9 @@ enum MSGTYPE
     GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
     GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
-    GUI_UPDATE_BREAKPOINTS_VIEW     // param1=unused,               param2=unused
+    GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
+    GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
+    GUI_UPDATE_CPU_TITLE            // param1=(const char*)mod,     param2=unused
 };
 
 //Debugger enums
@@ -215,6 +217,8 @@ BRIDGE_IMPEXP void GuiUpdateAllViews();
 BRIDGE_IMPEXP void GuiUpdateRegisterView();
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
+BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
+BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 
 #ifdef __cplusplus
 }
