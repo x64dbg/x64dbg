@@ -311,7 +311,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
     bool wAccept = false;
 
-    if(((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
+    if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
