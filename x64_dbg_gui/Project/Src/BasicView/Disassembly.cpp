@@ -48,6 +48,8 @@ void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, i
         int backgroundWidth=charwidth*curRichTextLength;
         if(backgroundWidth+xinc>w)
             backgroundWidth=w-xinc;
+        if(backgroundWidth<=0) //stop drawing when going outside the specified width
+            break;
         switch(curRichText.flags)
         {
         case FlagNone: //defaults
@@ -208,13 +210,34 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
+        //draw functions
+        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
+        Function_t funcType;
+        switch(DbgGetFunctionTypeAt(cur_addr))
+        {
+        case FUNC_NONE:
+            funcType=Function_none;
+            break;
+        case FUNC_BEGIN:
+            funcType=Function_start;
+            break;
+        case FUNC_MIDDLE:
+            funcType=Function_middle;
+            break;
+        case FUNC_END:
+            funcType=Function_end;
+            break;
+        }
+        int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
+
+        //draw jump arrows
+        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
+
+        //draw bytes
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
             wStr += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
 
-        paintJumpsGraphic(painter, x + 5, y, wRVA);
-
-        // Draw cell content
-        painter->drawText(QRect(x + 15, y, getColumnWidth(col) - 15, getRowHeight()), 0, wStr);
+        painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wStr);
 
         wStr = "";
 
@@ -223,9 +246,37 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
     case 2: //draw disassembly (with colours needed)
     {
+        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
+        int loopsize=0;
+        int depth=0;
+        while(1) //paint all loop depths
+        {
+            LOOPTYPE loopType=DbgGetLoopTypeAt(cur_addr, depth);
+            if(loopType==LOOP_NONE)
+                break;
+            Function_t funcType;
+            switch(loopType)
+            {
+            case LOOP_NONE:
+                funcType=Function_none;
+                break;
+            case LOOP_BEGIN:
+                funcType=Function_start;
+                break;
+            case LOOP_MIDDLE:
+                funcType=Function_middle;
+                break;
+            case LOOP_END:
+                funcType=Function_end;
+                break;
+            }
+            loopsize+=paintFunctionGraphic(painter, x+loopsize, y, funcType, true);
+            depth++;
+        }
+
         QList<CustomRichText_t> richText;
         BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
-        Disassembly::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, &richText);
+        Disassembly::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText);
         break;
     }
 
@@ -463,7 +514,7 @@ int_t Disassembly::sliderMovedHook(int type, int_t value, int_t delta)
  *
  * @return      Nothing.
  */
-void Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
+int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 {
     int_t selHeadRVA = mSelection.fromIndex;
     int_t rva = addr;
@@ -567,6 +618,62 @@ void Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     }
 
     painter->restore();
+
+    return 7;
+}
+
+/************************************************************************************
+                            Function Graphic
+************************************************************************************/
+/**
+ * @brief       This method paints the graphic for functions/loops.
+ *
+ * @param[in]   painter     Pointer to the painter that allows painting by its own
+ * @param[in]   x           Rectangle x
+ * @param[in]   y           Rectangle y
+ * @param[in]   funcType    Type of drawing to make
+ *
+ * @return      Width of the painted data.
+ */
+
+int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop)
+{
+    if(loop && funcType==Function_none)
+        return 0;
+    painter->save();
+    painter->setPen(QPen(Qt::black, 2)); //thick black line
+    int height=getRowHeight();
+    int x_add=5;
+    int y_add=4;
+    int end_add=2;
+    int line_width=3;
+    if(loop)
+    {
+        end_add=-1;
+        x_add=4;
+    }
+    switch(funcType)
+    {
+    case Function_start:
+        if(loop)
+            y_add=height/2+1;
+        painter->drawLine(x+x_add+line_width, y+y_add, x+x_add, y+y_add);
+        painter->drawLine(x+x_add, y+y_add, x+x_add, y+height);
+        break;
+    case Function_middle:
+        painter->drawLine(x+x_add, y, x+x_add, y+height);
+        break;
+    case Function_end:
+        if(loop)
+            y_add=height/2-1;
+        painter->drawLine(x+x_add, y, x+x_add, y+height-y_add);
+        painter->drawLine(x+x_add, y+height-y_add, x+x_add+line_width, y+height-y_add);
+        break;
+    case Function_none:
+        break;
+    }
+    painter->restore();
+    return x_add+line_width+end_add;
 }
 
 

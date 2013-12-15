@@ -33,7 +33,19 @@ public:
     int_t sliderMovedHook(int type, int_t value, int_t delta);
 
     // Jumps Graphic
-    void paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr);
+    int paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr);
+
+    // Function Graphic
+
+    enum Function_t
+    {
+        Function_none,
+        Function_start,
+        Function_middle,
+        Function_end
+    };
+
+    int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
 
     // Instructions Management
     int_t getPreviousInstructionRVA(int_t rva, uint_t count);

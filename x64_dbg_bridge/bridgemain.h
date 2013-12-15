@@ -93,6 +93,22 @@ enum BPXTYPE
     bp_memory=4
 };
 
+enum FUNCTYPE
+{
+    FUNC_NONE,
+    FUNC_BEGIN,
+    FUNC_MIDDLE,
+    FUNC_END,
+};
+
+enum LOOPTYPE
+{
+    LOOP_NONE,
+    LOOP_BEGIN,
+    LOOP_MIDDLE,
+    LOOP_END
+};
+
 //Debugger structs
 struct MEMPAGE
 {
@@ -207,6 +223,8 @@ BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump);
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
+BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr);
+BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth);
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
