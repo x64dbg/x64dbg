@@ -26,6 +26,7 @@
 					<Add library=".\libdbg_x32.a" />
 					<Add library=".\dbghelp\dbghelp_x86.a" />
 					<Add library=".\sqlite\libsqlite32.a" />
+					<Add library=".\BeaEngine\libBeaEngine.a" />
 				</Linker>
 			</Target>
 			<Target title="x64">
@@ -47,6 +48,7 @@
 					<Add library=".\libdbg_x64.a" />
 					<Add library=".\dbghelp\dbghelp_x64.a" />
 					<Add library=".\sqlite\libsqlite64.a" />
+					<Add library=".\BeaEngine\libBeaEngine_64.a" />
 				</Linker>
 			</Target>
 		</Build>
