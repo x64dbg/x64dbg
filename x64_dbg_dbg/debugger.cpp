@@ -1365,14 +1365,11 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     if(!valfromstring(arg1, &addr, 0, 0, false, 0))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
-    char comment[MAX_COMMENT_SIZE]="";
-    commentset(addr, "benchmark");
-    for(int i=0; i<100000; i++)
+    for(int i=0; i<10000; i++)
     {
-        commentget(addr, comment);
+        DbgValFromString("eax");
     }
-    commentdel(addr);
-    dprintf("%ums\n", GetTickCount()-ticks);
+    dprintf("%d:%ums\n", 1000, GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
 

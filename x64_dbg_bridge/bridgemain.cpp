@@ -370,7 +370,7 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
     //NOTE: test code for 'function.exe'
     if(addr==0x0040132A)
         return FUNC_BEGIN;
-    else if(addr>0x0040132A and addr<0x004013BA)
+    else if(addr>0x0040132A && addr<0x004013BA)
         return FUNC_MIDDLE;
     else if(addr==0x004013BA)
         return FUNC_END;
@@ -384,7 +384,7 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x00401348)
             return LOOP_BEGIN;
-        else if(addr>0x00401348 and addr<0x004013B3)
+        else if(addr>0x00401348 && addr<0x004013B3)
             return LOOP_MIDDLE;
         else if(addr==0x004013B3)
             return LOOP_END;
@@ -393,7 +393,7 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x00401351)
             return LOOP_BEGIN;
-        else if(addr>0x00401351 and addr<0x004013A3)
+        else if(addr>0x00401351 && addr<0x004013A3)
             return LOOP_MIDDLE;
         else if(addr==0x004013A3)
             return LOOP_END;
@@ -402,7 +402,7 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x0040135A)
             return LOOP_BEGIN;
-        else if(addr>0x0040135A and addr<0x00401393)
+        else if(addr>0x0040135A && addr<0x00401393)
             return LOOP_MIDDLE;
         else if(addr==0x00401393)
             return LOOP_END;

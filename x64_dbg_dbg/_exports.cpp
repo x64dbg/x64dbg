@@ -144,6 +144,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         //TODO: auto-comments
         if(!retval)
         {
+            //TODO: print disasm argument values
+        }
+        if(!retval)
+        {
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);

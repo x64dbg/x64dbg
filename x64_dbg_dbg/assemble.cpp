@@ -4,17 +4,17 @@ char nasmpath[deflen]="";
 
 static bool issegment(const char* str)
 {
-    if(!strncasecmp(str, "gs", 2))
+    if(!_strnicmp(str, "gs", 2))
         return true;
-    if(!strncasecmp(str, "fs", 2))
+    if(!_strnicmp(str, "fs", 2))
         return true;
-    if(!strncasecmp(str, "es", 2))
+    if(!_strnicmp(str, "es", 2))
         return true;
-    if(!strncasecmp(str, "ds", 2))
+    if(!_strnicmp(str, "ds", 2))
         return true;
-    if(!strncasecmp(str, "cs", 2))
+    if(!_strnicmp(str, "cs", 2))
         return true;
-    if(!strncasecmp(str, "ss", 2))
+    if(!_strnicmp(str, "ss", 2))
         return true;
     return false;
 }
@@ -26,14 +26,14 @@ void intel2nasm(const char* intel, char* nasm)
     int len=strlen(intel);
     for(int i=0,j=0; i<len; i++) //fix basic differences and problems
     {
-        if(!strncasecmp(intel+i, "ptr", 3)) //remove "ptr"
+        if(!_strnicmp(intel+i, "ptr", 3)) //remove "ptr"
         {
             i+=2;
             if(intel[i+1]==' ')
                 i++;
             continue;
         }
-        else if(!strncasecmp(intel+i, "  ", 2)) //remove double spaces
+        else if(!_strnicmp(intel+i, "  ", 2)) //remove double spaces
             continue;
         else if(intel[i]=='\t') //tab=space
         {

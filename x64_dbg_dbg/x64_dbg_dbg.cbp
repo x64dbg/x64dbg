@@ -61,6 +61,10 @@
 			<Add library="shlwapi" />
 			<Add library="psapi" />
 		</Linker>
+		<Unit filename="BeaEngine/BeaEngine.h" />
+		<Unit filename="BeaEngine/basic_types.h" />
+		<Unit filename="BeaEngine/export.h" />
+		<Unit filename="BeaEngine/macros.h" />
 		<Unit filename="TitanEngine/TitanEngine.h" />
 		<Unit filename="_exports.cpp" />
 		<Unit filename="_exports.h" />
@@ -86,6 +90,8 @@
 		<Unit filename="dbghelp/dbghelp.h" />
 		<Unit filename="debugger.cpp" />
 		<Unit filename="debugger.h" />
+		<Unit filename="disasm_helper.cpp" />
+		<Unit filename="disasm_helper.h" />
 		<Unit filename="instruction.cpp" />
 		<Unit filename="instruction.h" />
 		<Unit filename="main.cpp" />

@@ -81,6 +81,9 @@
     <ClCompile Include="assemble.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="disasm_helper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -153,6 +156,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="assemble.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="disasm_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
