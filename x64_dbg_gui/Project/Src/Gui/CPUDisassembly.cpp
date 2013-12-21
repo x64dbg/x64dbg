@@ -7,6 +7,41 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
 
 }
 
+void CPUDisassembly::CopyToClipboard(const char* text)
+{
+    HGLOBAL hText;
+    char *pText;
+    int len=strlen(text);
+    if(!len)
+        return;
+
+    hText=GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE, len+1);
+    pText=(char*)GlobalLock(hText);
+    strcpy(pText, text);
+
+    OpenClipboard(0);
+    EmptyClipboard();
+    if(!SetClipboardData(CF_OEMTEXT, hText))
+        MessageBeep(MB_ICONERROR);
+    else
+        MessageBeep(MB_ICONINFORMATION);
+    CloseClipboard();
+}
+
+void CPUDisassembly::mousePressEvent(QMouseEvent* event)
+{
+    if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
+    {
+        if(DbgIsDebugging())
+        {
+            QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            CopyToClipboard(addrText.toUtf8().constData());
+        }
+    }
+    else
+        Disassembly::mousePressEvent(event);
+}
+
 
 /************************************************************************************
                             Mouse Management
@@ -62,20 +97,20 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 {
                     switch(wBPList.bp[wI].slot)
                     {
-                        case 0:
-                            msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                            break;
-                        case 1:
-                            msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                            break;
-                        case 2:
-                            msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                            break;
-                        case 3:
-                            msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                            break;
-                        default:
-                            break;
+                    case 0:
+                        msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 1:
+                        msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 2:
+                        msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 3:
+                        msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    default:
+                        break;
                     }
                 }
 

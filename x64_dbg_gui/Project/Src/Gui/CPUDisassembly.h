@@ -16,6 +16,7 @@ public:
 
     // Mouse Management
     void contextMenuEvent(QContextMenuEvent* event);
+    void mousePressEvent(QMouseEvent* event);
 
     // Context Menu Management
     void setupRightClickContextMenu();
@@ -38,6 +39,8 @@ public slots:
     void setBookmark();
 
 private:
+    void CopyToClipboard(const char* text);
+
     // Rigth Click Context Menu
     QMenu* mRightClickContextMenu;
 
