@@ -76,7 +76,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeigth())
+            if(event->y() > getHeaderHeight())
             {
                 int wRowIndex = getTableOffset() + getIndexOffsetFromY(transY(event->y()));
 

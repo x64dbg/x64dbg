@@ -165,7 +165,7 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
                 argument.textBackground=QColor(255,255,0);
                 unsigned char* opc=(unsigned char*)&Instruction->Opcode;
 
-                if(*opc==0xEB || Instruction->Opcode<0x80)
+                if(*opc==0xEB || *opc==0xE9 || Instruction->Opcode<0x80)
                 {
                     strcpy(shortjmp+1, "short ");
                     has_shortjmp=true;

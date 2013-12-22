@@ -31,6 +31,8 @@ public:
     void emitUpdateBreakpoints();
     void emitUpdateWindowTitle(QString filename);
     void emitUpdateCPUTitle(QString modname);
+    void emitSetInfoLine(int line, QString text);
+    void emitClearInfoBox();
     
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -42,6 +44,7 @@ signals:
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
     void updateCPUTitle(QString modname);
+    void setInfoLine(int line, QString text);
     
 public slots:
 

@@ -10,6 +10,7 @@
 #include "addrinfo.h"
 #include "plugin_loader.h"
 #include "x64_dbg.h"
+#include "disasm_helper.h"
 
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
 static char szFileName[MAX_PATH]="";
@@ -1367,7 +1368,8 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     uint ticks=GetTickCount();
     for(int i=0; i<10000; i++)
     {
-        DbgValFromString("eax");
+        DISASM_INSTR instr;
+        disasmget(addr, &instr);
     }
     dprintf("%d:%ums\n", 1000, GetTickCount()-ticks);
     return STATUS_CONTINUE;

@@ -78,7 +78,7 @@ void HexDump::mousePressEvent(QMouseEvent* event)
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeigth())
+            if(event->y() > getHeaderHeight())
             {
                 int wRowIndex = getTableOffset()+ getIndexOffsetFromY(transY(event->y()));
                 int wColIndex = getColumnIndexFromX(event->x());

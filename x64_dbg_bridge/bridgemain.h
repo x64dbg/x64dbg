@@ -54,7 +54,8 @@ enum MSGTYPE
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
-    GUI_UPDATE_CPU_TITLE            // param1=(const char*)mod,     param2=unused
+    GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
+    GUI_SET_INFO_LINE               // param1=(int)line,            param2=(const char*)text
 };
 
 //Debugger enums

@@ -59,11 +59,12 @@ public:
     int getRowHeight();
     int getColumnWidth(int index);
     void setColumnWidth(int index, int width);
-    int getHeaderHeigth();
+    int getHeaderHeight();
     int getTableHeigth();
     int getGuiState();
     int getNbrOfLineToPrint();
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
+    void setShowHeader(bool show);
 
     // Table Offset Management
     int_t getTableOffset();

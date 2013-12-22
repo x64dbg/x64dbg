@@ -6,6 +6,7 @@
 #include "console.h"
 #include "threading.h"
 #include "breakpoint.h"
+#include "disasm_helper.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -105,7 +106,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     {
         if(labelget(addr, addrinfo->label))
             retval=true;
-        if(!retval) //no user labels
+        else //no user labels
         {
             //TODO: auto-labels
             DWORD64 displacement=0;
@@ -118,35 +119,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 strcpy(addrinfo->label, pSymbol->Name);
                 retval=true;
             }
-            if(!retval)
-            {
-                uint addr_=0;
-                if(memread(fdProcessInfo->hProcess, (const void*)addr, &addr_, sizeof(uint), 0))
-                {
-                    DWORD64 displacement=0;
-                    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
-                    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-                    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-                    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-                    if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr_, &displacement, pSymbol) and !displacement)
-                    {
-                        strcpy(addrinfo->label, pSymbol->Name);
-                        retval=true;
-                    }
-                }
-            }
         }
     }
     if(addrinfo->flags&flagcomment)
     {
         if(commentget(addr, addrinfo->comment))
             retval=true;
-        //TODO: auto-comments
-        if(!retval)
-        {
-            //TODO: print disasm argument values
-        }
-        if(!retval)
+        else //TODO: auto-comments
         {
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
@@ -162,6 +141,35 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     len++;
                 sprintf(addrinfo->comment, "%s:%u", filename+len, line.LineNumber);
                 retval=true;
+            }
+            else //no line number
+            {
+                DISASM_INSTR instr;
+                disasmget(addr, &instr);
+                for(int i=0,j=0; i<instr.argcount; i++)
+                {
+                    char
+                    ADDRINFO newinfo;
+                    newinfo.flags=flaglabel;
+                    if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
+                        continue;
+                    else if(instr.arg[i].memvalue and _dbg_addrinfoget(instr.arg[i].memvalue, SEG_DEFAULT, &newinfo))
+                    {
+                        if(j)
+                            j+=sprintf(addrinfo->comment+j, ", [%s]:%s", instr.arg[i].mnemonic, newinfo.comment);
+                        else
+                            j+=sprintf(addrinfo->comment+j, "[%s]:%s", instr.arg[i].mnemonic, newinfo.comment);
+                        retval=true;
+                    }
+                    else if(instr.arg[i].value and _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo))
+                    {
+                        if(j)
+                            j+=sprintf(addrinfo->comment+j, ", %s:%s", instr.arg[i].mnemonic, newinfo.comment);
+                        else
+                            j+=sprintf(addrinfo->comment+j, "%s:%s", instr.arg[i].mnemonic, newinfo.comment);
+                        retval=true;
+                    }
+                }
             }
         }
     }

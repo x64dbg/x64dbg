@@ -242,7 +242,15 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
     memset(&info, 0, sizeof(info));
     info.flags=flaglabel;
     if(!_dbg_addrinfoget(addr, segment, &info))
-        return false;
+    {
+        duint addr_=0;
+        if(!DbgMemIsValidReadPtr(addr))
+            return false;
+        DbgMemRead(addr, (unsigned char*)&addr_, sizeof(duint));
+        if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &info))
+            return false;
+    }
+
     strcpy(text, info.label);
     return true;
 }

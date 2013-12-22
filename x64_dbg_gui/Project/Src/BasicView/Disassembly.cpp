@@ -28,6 +28,8 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
     addColumnAt(charwidth*40, "", false); //disassembly
     addColumnAt(100, "", false); //comments
 
+    setShowHeader(false); //hide header
+
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassambleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
@@ -366,7 +368,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeigth())
+            if(event->y() > getHeaderHeight())
             {
                 int_t wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
 

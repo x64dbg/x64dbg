@@ -1233,7 +1233,8 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
             *isvar=true;
         return true;
     }
-    dprintf("invalid value: \"%s\"!\n", string);
+    if(!silent)
+        dprintf("invalid value: \"%s\"!\n", string);
     return false; //nothing was OK
 }
 

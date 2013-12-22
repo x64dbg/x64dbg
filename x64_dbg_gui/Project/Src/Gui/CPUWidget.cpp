@@ -7,7 +7,13 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     setDefaultDisposition();
 
     mDisas = new CPUDisassembly(0);
-    ui->mTopLeftFrameLayout->addWidget(mDisas);
+    ui->mTopLeftUpperFrameLayout->addWidget(mDisas);
+
+    mInfo = new InfoBox();
+    ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
+    int height = mInfo->getHeight();
+    ui->mTopLeftLowerFrame->setMinimumHeight(height+2);
+    ui->mTopLeftLowerFrame->setMaximumHeight(height+2);
 
     mRegs = new RegistersView(0);
     ui->mTopRightFrameLayout->addWidget(mRegs);
@@ -54,9 +60,14 @@ void CPUWidget::setDefaultDisposition(void)
 }
 
 
-QVBoxLayout* CPUWidget::getTopLeftWidget(void)
+QVBoxLayout* CPUWidget::getTopLeftUpperWidget(void)
 {
-    return ui->mTopLeftFrameLayout;
+    return ui->mTopLeftUpperFrameLayout;
+}
+
+QVBoxLayout* CPUWidget::getTopLeftLowerWidget(void)
+{
+    return ui->mTopLeftLowerFrameLayout;
 }
 
 
@@ -75,10 +86,4 @@ QVBoxLayout* CPUWidget::getBotLeftWidget(void)
 QVBoxLayout* CPUWidget::getBotRightWidget(void)
 {
     return ui->mBotRightFrameLayout;
-}
-
-
-void CPUWidget::stepOverSlot()
-{
-
 }

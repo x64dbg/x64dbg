@@ -89,16 +89,16 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             else
                 wOpt.state = QStyle::State_Enabled;
 
-            wOpt.rect = QRect(x, y, getColumnWidth(i), getHeaderHeigth());
+            wOpt.rect = QRect(x, y, getColumnWidth(i), getHeaderHeight());
 
             mHeaderButtonSytle.style()->drawControl(QStyle::CE_PushButton, &wOpt, &wPainter,&mHeaderButtonSytle);
 
-            wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeigth()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
+            wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeight()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
 
             x += getColumnWidth(i);
         }
         x = 0;
-        y = getHeaderHeigth();
+        y = getHeaderHeight();
     }
 
     // Iterate over all columns and cells
@@ -123,7 +123,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             y += getRowHeight();
         }
 
-        y = getHeaderHeigth();
+        y = getHeaderHeight();
         x += getColumnWidth(j);
     }
 }
@@ -242,7 +242,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 
             int wColIndex = getColumnIndexFromX(event->x());
 
-            if((wColIndex == mHeader.activeButtonIndex) && (event->y() <= getHeaderHeigth()) && (event->y() >= 0))
+            if((wColIndex == mHeader.activeButtonIndex) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
             {
                 mColumnList[mHeader.activeButtonIndex].header.isMouseOver = true;
             }
@@ -290,7 +290,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
 
             mColResizeData.lastPosX = event->x();
         }
-        else if((mHeader.isVisible == true) && (event->y() <= getHeaderHeigth()) && (event->y() >= 0))
+        else if((mHeader.isVisible == true) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
         {
             int wColIndex = getColumnIndexFromX(event->x());
 
@@ -694,7 +694,7 @@ int AbstractTableView::getColumnPosition(int index)
  */
 int AbstractTableView::transY(int y)
 {
-    return y - getHeaderHeigth();
+    return y - getHeaderHeight();
 }
 
 
@@ -705,7 +705,7 @@ int AbstractTableView::transY(int y)
  */
 int AbstractTableView::getViewableRowsCount()
 {
-    int wTableHeight = this->height() - getHeaderHeigth();
+    int wTableHeight = this->height() - getHeaderHeight();
     int wCount = wTableHeight / getRowHeight();
 
     wCount += (wTableHeight % getRowHeight()) > 0 ? 1 : 0;
@@ -826,7 +826,7 @@ void AbstractTableView::setColumnWidth(int index, int width)
 }
 
 
-int AbstractTableView::getHeaderHeigth()
+int AbstractTableView::getHeaderHeight()
 {
     if(mHeader.isVisible == true)
         return mHeader.height;
@@ -837,7 +837,7 @@ int AbstractTableView::getHeaderHeigth()
 
 int AbstractTableView::getTableHeigth()
 {
-    return this->height() - getHeaderHeigth();
+    return this->height() - getHeaderHeight();
 }
 
 
@@ -856,6 +856,11 @@ int AbstractTableView::getNbrOfLineToPrint()
 void AbstractTableView::setNbrOfLineToPrint(int parNbrOfLineToPrint)
 {
     mNbrOfLineToPrint = parNbrOfLineToPrint;
+}
+
+void AbstractTableView::setShowHeader(bool show)
+{
+    mHeader.isVisible=show;
 }
 
 

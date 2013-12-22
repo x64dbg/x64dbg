@@ -6,6 +6,7 @@
 #include "CPUDisassembly.h"
 #include "HexDump.h"
 #include "RegistersView.h"
+#include "InfoBox.h"
 
 
 namespace Ui {
@@ -20,20 +21,19 @@ public:
     explicit CPUWidget(QWidget *parent = 0);
     ~CPUWidget();
     void setDefaultDisposition(void);
-    QVBoxLayout* getTopLeftWidget(void);
+    QVBoxLayout* getTopLeftUpperWidget(void);
+    QVBoxLayout* getTopLeftLowerWidget(void);
     QVBoxLayout* getTopRightWidget(void);
     QVBoxLayout* getBotLeftWidget(void);
     QVBoxLayout* getBotRightWidget(void);
 
 signals:
 
-public slots:
-    void stepOverSlot();
-
 private:
     Ui::CPUWidget *ui;
     Disassembly* mDisas;
     RegistersView* mRegs;
+    InfoBox* mInfo;
 
 };
 

@@ -62,6 +62,18 @@ void Bridge::emitUpdateCPUTitle(QString modname)
     emit updateCPUTitle(modname);
 }
 
+void Bridge::emitSetInfoLine(int line, QString text)
+{
+    emit setInfoLine(line, text);
+}
+
+void Bridge::emitClearInfoBox()
+{
+    emit setInfoLine(0, "");
+    emit setInfoLine(1, "");
+    emit setInfoLine(2, "");
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -140,6 +152,12 @@ __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* pa
     case GUI_UPDATE_CPU_TITLE:
     {
         Bridge::getBridge()->emitUpdateCPUTitle(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SET_INFO_LINE:
+    {
+        Bridge::getBridge()->emitSetInfoLine((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
     }
     break;
 
