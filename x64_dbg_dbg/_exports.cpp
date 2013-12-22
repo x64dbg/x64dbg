@@ -167,7 +167,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
                             break;
                         case str_unicode:
-                            sprintf(temp_string, "%s:L\"UNICODE!\"", instr.arg[i].mnemonic);
+                            sprintf(temp_string, "%s:L\"UNICODE\"");
                             break;
                         }
                     }
@@ -175,8 +175,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         sprintf(temp_string, "[%s]:%s", instr.arg[i].mnemonic, newinfo.label);
                     }
-                    else if(instr.arg[i].value and ((instr.type==instr_normal and disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode)) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
+                        if(instr.type==instr_branch)
+                            strtype=str_none;
                         switch(strtype)
                         {
                         case str_none:
@@ -186,7 +188,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
                             break;
                         case str_unicode:
-                            sprintf(temp_string, "%s:L\"UNICODE!\"", instr.arg[i].mnemonic);
+                            sprintf(temp_string, "%s:L\"UNICODE\"");
                             break;
                         }
                     }

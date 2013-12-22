@@ -6,9 +6,9 @@ InfoBox::InfoBox(StdTable *parent) : StdTable(parent)
     setShowHeader(false);
     addColumnAt(0, "", true);
     setRowCount(3);
-    setCellContent(0, 0, "Info Line 1");
-    setCellContent(1, 0, "Info Line 2");
-    setCellContent(2, 0, "Info Line 3");
+    setCellContent(0, 0, "");
+    setCellContent(1, 0, "");
+    setCellContent(2, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     int height = getHeight();
     setMaximumHeight(height);

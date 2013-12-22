@@ -1104,21 +1104,42 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
     else if(mathcontains(string)) //handle math
     {
         int len=strlen(string);
+        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        if(strstr(string, "[")) //memory brackets: []
+        {
+            for(int i=0,j=0; i<len; i++)
+            {
+                if(string[i]==']')
+                    j+=sprintf(newstring+j, ")");
+                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                {
+                    j+=sprintf(newstring+j, "@%c:(", string[i]);
+                    i+=2;
+                }
+                else if(string[i]=='[')
+                    j+=sprintf(newstring+j, "@(");
+                else
+                    j+=sprintf(newstring+j, "%c", string[i]);
+            }
+        }
+        else
+            strcpy(newstring, string);
         char* string_=(char*)emalloc(len+256, "valfromstring:string_");
-        strcpy(string_, string);
+        strcpy(string_, newstring);
+        efree(newstring, "valfromstring::newstring");
         int add=0;
         while(mathisoperator(string_[add])>2)
             add++;
-        if(!mathhandlebrackets(string_+add))
+        if(!mathhandlebrackets(string_+add, silent))
         {
             efree(string_, "valfromstring:string_");
             return false;
         }
-        bool ret=mathfromstring(string_+add, value, value_size, isvar);
+        bool ret=mathfromstring(string_+add, value, value_size, isvar, silent);
         efree(string_, "valfromstring:string_");
         return ret;
     }
-    else if(*string=='@') //memory location
+    else if(*string=='@' or strstr(string, "[")) //memory location
     {
         if(!IsFileBeingDebugged())
         {
@@ -1131,17 +1152,42 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
                 *isvar=true;
             return true;
         }
+        int len=strlen(string);
+        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        if(strstr(string, "["))
+        {
+            for(int i=0,j=0; i<len; i++)
+            {
+                if(string[i]==']')
+                    j+=sprintf(newstring+j, ")");
+                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                {
+                    j+=sprintf(newstring+j, "@%c:(", string[i]);
+                    i+=2;
+                }
+                else if(string[i]=='[')
+                    j+=sprintf(newstring+j, "@(");
+                else
+                    j+=sprintf(newstring+j, "%c", string[i]);
+            }
+        }
+        else
+            strcpy(newstring, string);
         int read_size=sizeof(uint);
         int add=1;
-        if(string[2]==':' and isdigit((string[1]))) //@n: (number of bytes to read)
+        if(newstring[2]==':' and isdigit((newstring[1]))) //@n: (number of bytes to read)
         {
             add+=2;
-            int new_size=string[1]-0x30;
+            int new_size=newstring[1]-0x30;
             if(new_size<read_size)
                 read_size=new_size;
         }
-        if(!valfromstring(string+add, value, 0, 0, false, 0))
+        if(!valfromstring(newstring+add, value, 0, 0, silent, 0))
+        {
+            efree(newstring, "valfromstring::newstring");
             return false;
+        }
+        efree(newstring, "valfromstring::newstring");
         uint addr=*value;
         *value=0;
         if(!memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0))
@@ -1260,7 +1306,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 read_size=new_size;
         }
         uint temp;
-        if(!valfromstring(string+add, &temp, 0, 0, false, 0))
+        if(!valfromstring(string+add, &temp, 0, 0, silent, 0))
             return false;
         bool wpm=WriteProcessMemory(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0);
         bpfixmemory(temp, (unsigned char*)value, read_size);

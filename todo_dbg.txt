@@ -27,7 +27,6 @@
 - analysis
 - getlasterror
 - display open handles
-- build howto
 - step to user code
 - tracing(?)
 - [OPTIONAL] child processes (TitanEngine)
@@ -46,7 +45,7 @@
 - functions
 - TEB/TBI
 - PEB/PBI
-- cpu filename+thread id
+- cpu thread id
 - shift+f7f8f9
 - log breakpoints
 - fix memory breakpoints
@@ -65,14 +64,12 @@
 - tabbed GUI (workspace+dragable windows)
 - LUA/Python support
 - ep break options
-- live comments
-- [] brackets for memory operations
 - custom colours
 - show export table
 - find all intermodular calls
 - highlight register changes (only when CIP changed also)
 - PAGE UP + PAGE DOWN keys in disasm
-- function lines (+database) for analysis
+- function lines database for analysis
 - 'dead' bytes custom analysis
-- loops lines (+database) for analysis
+- loops lines database for analysis
 - enable/disable hw+mem breakpoint

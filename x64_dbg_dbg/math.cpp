@@ -295,7 +295,7 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
     }
 }
 
-static bool printlayer(char* exp, EXPRESSION* exps, int layer)
+static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent)
 {
     for(int i=0; i<exps->total_pairs; i++)
     {
@@ -312,7 +312,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer)
             strcpy(backup, exp+open+len+1);
 
             uint value;
-            if(!mathfromstring(temp, &value, 0, 0))
+            if(!mathfromstring(temp, &value, 0, 0, silent))
                 return false;
 
             adjustpairs(exps, open, close, len+1, sprintf(exp+open, "%X", value));
@@ -325,7 +325,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer)
     return true;
 }
 
-bool mathhandlebrackets(char* expression)
+bool mathhandlebrackets(char* expression, bool silent)
 {
     EXPRESSION expstruct;
     expstruct.expression=expression;
@@ -345,7 +345,7 @@ bool mathhandlebrackets(char* expression)
             deepest=expstruct.pairs[i].layer;
 
     for(int i=deepest; i>0; i--)
-        if(!printlayer(expression, &expstruct, i))
+        if(!printlayer(expression, &expstruct, i, silent))
         {
             efree(expstruct.pairs, "mathhandlebrackets:expstruct.pairs");
             return false;
@@ -358,7 +358,7 @@ bool mathhandlebrackets(char* expression)
 /*
 - handle math
 */
-bool mathfromstring(const char* string, uint* value, int* value_size, bool* isvar)
+bool mathfromstring(const char* string, uint* value, int* value_size, bool* isvar, bool silent)
 {
     int highestop=0;
     int highestop_pos=0;
@@ -410,7 +410,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         }
     }
     uint left=0;
-    if(!valfromstring(strleft, &left, 0, 0, false, 0))
+    if(!valfromstring(strleft, &left, 0, 0, silent, 0))
     {
         efree(strleft, "mathfromstring:strleft");
         efree(strright, "mathfromstring:strright");

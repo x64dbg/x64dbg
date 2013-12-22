@@ -542,20 +542,37 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
     pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
+    strcpy(szFileName, init->exe);
     if(bFileIsDll)
         fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
         fdProcessInfo=(PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
+    efree(init, "threadDebugLoop:init"); //free init struct
     if(!fdProcessInfo)
     {
         fdProcessInfo=&g_pi;
         dputs("error starting process (invalid pe?)!");
         return 0;
     }
+    BOOL wow64=false, mewow64=false;
+    if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+    {
+        dputs("IsWow64Process failed!");
+        StopDebug();
+        return 0;
+    }
+    if((mewow64 and !wow64) or (!mewow64 and wow64))
+    {
+#ifdef _WIN64
+        dputs("Use x32_dbg to debug this process!");
+        return 0;
+#else
+        dputs("Use x64_dbg to debug this process!");
+#endif // _WIN64
+        return 0;
+    }
     lock(WAITID_STOP);
-    strcpy(szFileName, init->exe);
     BridgeSettingSet("Recent Files", "path", szFileName);
-    efree(init, "threadDebugLoop:init"); //free init struct
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount=0;
@@ -1531,6 +1548,23 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
     {
         dprintf("could not get module filename %X!\n", pid);
+        CloseHandle(hProcess);
+        return STATUS_ERROR;
+    }
+    BOOL wow64=false, mewow64=false;
+    if(!IsWow64Process(hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+    {
+        dputs("IsWow64Process failed!");
+        CloseHandle(hProcess);
+        return STATUS_ERROR;
+    }
+    if((mewow64 and !wow64) or (!mewow64 and wow64))
+    {
+#ifdef _WIN64
+        dputs("Use x32_dbg to debug this process!");
+#else
+        dputs("Use x64_dbg to debug this process!");
+#endif // _WIN64
         CloseHandle(hProcess);
         return STATUS_ERROR;
     }

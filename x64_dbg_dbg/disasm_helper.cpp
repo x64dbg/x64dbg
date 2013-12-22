@@ -1,6 +1,8 @@
 #include "disasm_helper.h"
 #include "BeaEngine\BeaEngine.h"
 #include "value.h"
+#include <cwctype>
+#include <cwchar>
 
 const char* disasmtext(uint addr)
 {
@@ -127,7 +129,7 @@ void disasmget(uint addr, DISASM_INSTR* instr)
     }
     if(disasm.Instruction.BranchType)
         instr->type=instr_branch;
-    else if(strstr(disasm.CompleteInstr, "esp") or strstr(disasm.CompleteInstr, "ebp"))
+    else if(strstr(disasm.CompleteInstr, "sp") or strstr(disasm.CompleteInstr, "bp"))
         instr->type=instr_stack;
     else
         instr->type=instr_normal;
@@ -148,14 +150,13 @@ void disasmprint(uint addr)
         printf(" %d:%d:%"fext"X:%"fext"X:%"fext"X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
 }
 
-//TODO: shitty function
 static bool isasciistring(const unsigned char* data)
 {
     int len=strlen((const char*)data);
     if(len<2)
         return false;
     for(int i=0; i<len; i++)
-        if(data[i]<' ' or data[i]>'~')
+        if(!isprint(data[i]) and !isspace(data[i]))
             return false;
     return true;
 }
@@ -165,29 +166,45 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, wchar_t* unico
     if(type)
         *type=str_none;
     unsigned char data[512]="";
-    DbgMemRead(addr, data, 511);
+    memset(data, 0, 512);
+    DbgMemRead(addr, data, 510);
     if(isasciistring(data))
     {
         if(type)
             *type=str_ascii;
         data[250]=0;
-        strcpy(ascii, (const char*)data);
-        return true;
-    }
-    else
-    {
-        return false;
-        //TODO: unicode stuff
-        int unitype=IS_TEXT_UNICODE_ASCII16;
-        if(IsTextUnicode(data, 511, &unitype))
+        int len=strlen((const char*)data);
+        for(int i=0,j=0; i<len; i++)
         {
-            if(type)
-                *type=str_unicode;
-            data[500]=0;
-            data[501]=0;
-            lstrcmpW(unicode, (const wchar_t*)data);
-            return true;
+            switch(data[i])
+            {
+            case '\t':
+                j+=sprintf(ascii+j, "\\t");
+                break;
+            case '\f':
+                j+=sprintf(ascii+j, "\\f");
+                break;
+            case '\v':
+                j+=sprintf(ascii+j, "\\v");
+                break;
+            case '\n':
+                j+=sprintf(ascii+j, "\\n");
+                break;
+            case '\r':
+                j+=sprintf(ascii+j, "\\r");
+                break;
+            case '\\':
+                j+=sprintf(ascii+j, "\\\\");
+                break;
+            case '\"':
+                j+=sprintf(ascii+j, "\\\"");
+                break;
+            default:
+                j+=sprintf(ascii+j, "%c", data[i]);
+                break;
+            }
         }
+        return true;
     }
     return false;
 }

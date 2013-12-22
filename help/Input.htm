@@ -30,12 +30,32 @@ class=rvts9>: All debug registers (all sizes) can be used as
 variables.</SPAN><SPAN class=rvts9><BR></SPAN></P>
 <P class=rvps3><SPAN class=rvts11><U>memory locations</U></SPAN><SPAN 
 class=rvts9>: You can read from a memory location by using one of the 
-following expressions:<BR>@addr<BR>         
-       @n:addr (where n is the amount of bytes to read, 
-this can be anything smaller then 4 on x32 and smaller then 
-8 on x64, when specified otherwise, there will be an error). addr is directly interpreted 
+following expressions:<BR>[addr]&nbsp;&nbsp;&nbsp; - read a 
+DWORD/QWORD, depending on the architecture.<BR>         
+                 
+            
+               
+            
+     </SPAN><SPAN 
+class=rvts9>@addr&nbsp;&nbsp;&nbsp;&nbsp; - same as 
+above.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM>         
+                 
+            
+               
+            
+     bytes.</SPAN><SPAN 
+class=rvts9><BR>         
+       @<EM>n</EM>:addr&nbsp;&nbsp; - same as 
+above.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to 
+read, this can be anything smaller then 4 on x32 and smaller then 8 on x64 when 
+specified, otherwise there will be an error.<BR>- addr is directly interpreted 
 as a value, when you want to read [addr+1] you should use 
-brackets: @(addr+1), @addr+1 will read: [addr]+1.</SPAN></P>
+brackets:<BR>         
+                 
+            
+               
+            
+ @(addr+1), @addr+1 will read: [addr]+1.</SPAN></P>
 <P class=rvps3><SPAN 
 class=rvts9>         
                  
@@ -59,9 +79,14 @@ automatically be resolved to the
                 
            actual address of the 
 function.</SPAN></P>
+<P class=rvps3><SPAN class=rvts9><U>labels/symbols</U>      
+  : user-defined labels  
+                
+           and symbols&nbsp;are a valid 
+expressions.</SPAN></P>
 <P class=rvps3><SPAN class=rvts9>  
                 
 Input  
                 
 for arguments can always be done in any of the above forms, except if stated 
-otherwise.</SPAN></P></body>
+otherwise.</SPAN></P></BODY></HTML>
