@@ -1,5 +1,6 @@
 #include "disasm_helper.h"
 #include "BeaEngine\BeaEngine.h"
+#include "value.h"
 
 const char* disasmtext(uint addr)
 {

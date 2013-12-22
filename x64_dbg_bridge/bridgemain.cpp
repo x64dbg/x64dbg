@@ -112,6 +112,10 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _dbg_dbgcmddirectexec=(DBGDBGCMDEXECDIRECT)GetProcAddress(hInstDbg, "_dbg_dbgcmddirectexec");
     if(!_dbg_dbgcmddirectexec)
         return "Export \"_dbg_dbgcmddirectexec\" could not be found!";
+    //_dbg_getbranchdestination
+    _dbg_getbranchdestination=(DBGGETBRANCHDESTINATION)GetProcAddress(hInstDbg, "_dbg_getbranchdestination");
+    if(!_dbg_getbranchdestination)
+        return "Export \"_dbg_getbranchdestination\" could not be found!";
     return 0;
 }
 
@@ -417,6 +421,11 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
             return LOOP_END;
     }
     return LOOP_NONE;
+}
+
+BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
+{
+    return _dbg_getbranchdestination(addr);
 }
 
 //GUI

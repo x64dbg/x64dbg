@@ -444,3 +444,23 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
         memcpy(&bplist->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
     return retcount;
 }
+
+extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
+{
+    DISASM_INSTR instr;
+    disasmget(addr, &instr);
+    if(instr.type!=instr_branch)
+        return 0;
+    if(strstr(instr.instruction, "ret"))
+    {
+        uint atcsp=DbgValFromString("@csp");
+        if(DbgMemIsValidReadPtr(atcsp))
+            return atcsp;
+        else
+            return 0;
+    }
+    else if(instr.arg[0].type==arg_memory)
+        return instr.arg[0].memvalue;
+    else
+        return instr.arg[0].value;
+}

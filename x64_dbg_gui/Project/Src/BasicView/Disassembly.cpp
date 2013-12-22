@@ -456,6 +456,14 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 
         repaint();
     }
+    else if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    {
+        uint_t dest = DbgGetBranchDestination(getInitialSelection() + mBase);
+        if(!dest)
+            return;
+        QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
     else
     {
         AbstractTableView::keyPressEvent(event);
