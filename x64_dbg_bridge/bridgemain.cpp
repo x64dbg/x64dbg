@@ -250,7 +250,6 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &info))
             return false;
     }
-
     strcpy(text, info.label);
     return true;
 }
@@ -382,6 +381,8 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
         return FUNC_MIDDLE;
     else if(addr==0x004013BA)
         return FUNC_END;
+    else if(addr==0x004013BB)
+        return FUNC_SINGLE;
     return FUNC_NONE;
 }
 
@@ -469,6 +470,11 @@ BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
 BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname)
 {
     _gui_sendmessage(GUI_UPDATE_CPU_TITLE, (void*)modname, 0);
+}
+
+BRIDGE_IMPEXP HWND GuiGetWindowHandle()
+{
+    return (HWND)_gui_sendmessage(GUI_GET_WINDOW_HANDLE, 0, 0);
 }
 
 //Main

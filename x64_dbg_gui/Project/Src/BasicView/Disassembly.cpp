@@ -217,6 +217,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         Function_t funcType;
         switch(DbgGetFunctionTypeAt(cur_addr))
         {
+        case FUNC_SINGLE:
         case FUNC_NONE:
             funcType=Function_none;
             break;

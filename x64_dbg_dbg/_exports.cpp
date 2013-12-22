@@ -123,6 +123,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags&flagcomment)
     {
+        *addrinfo->comment=0;
         if(commentget(addr, addrinfo->comment))
             retval=true;
         else //TODO: auto-comments
@@ -148,25 +149,55 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 disasmget(addr, &instr);
                 for(int i=0,j=0; i<instr.argcount; i++)
                 {
-                    char
+                    char temp_string[MAX_COMMENT_SIZE]="";
                     ADDRINFO newinfo;
                     newinfo.flags=flaglabel;
+                    char ascii[256]="";
+                    wchar_t unicode[256]=L"";
+                    STRING_TYPE strtype;
                     if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
-                        continue;
+                    {
+                        if(!disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode) or strtype==str_none)
+                            continue;
+                        switch(strtype)
+                        {
+                        case str_none:
+                            break;
+                        case str_ascii:
+                            sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
+                            break;
+                        case str_unicode:
+                            sprintf(temp_string, "%s:L\"UNICODE!\"", instr.arg[i].mnemonic);
+                            break;
+                        }
+                    }
                     else if(instr.arg[i].memvalue and _dbg_addrinfoget(instr.arg[i].memvalue, SEG_DEFAULT, &newinfo))
                     {
-                        if(j)
-                            j+=sprintf(addrinfo->comment+j, ", [%s]:%s", instr.arg[i].mnemonic, newinfo.comment);
-                        else
-                            j+=sprintf(addrinfo->comment+j, "[%s]:%s", instr.arg[i].mnemonic, newinfo.comment);
-                        retval=true;
+                        sprintf(temp_string, "[%s]:%s", instr.arg[i].mnemonic, newinfo.label);
                     }
-                    else if(instr.arg[i].value and _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo))
+                    else if(instr.arg[i].value and ((instr.type==instr_normal and disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode)) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    {
+                        switch(strtype)
+                        {
+                        case str_none:
+                            sprintf(temp_string, "%s:%s", instr.arg[i].mnemonic, newinfo.label);
+                            break;
+                        case str_ascii:
+                            sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
+                            break;
+                        case str_unicode:
+                            sprintf(temp_string, "%s:L\"UNICODE!\"", instr.arg[i].mnemonic);
+                            break;
+                        }
+                    }
+                    else
+                        continue;
+                    if(!strstr(addrinfo->comment, temp_string))
                     {
                         if(j)
-                            j+=sprintf(addrinfo->comment+j, ", %s:%s", instr.arg[i].mnemonic, newinfo.comment);
+                            j+=sprintf(addrinfo->comment+j, ", %s", temp_string);
                         else
-                            j+=sprintf(addrinfo->comment+j, "%s:%s", instr.arg[i].mnemonic, newinfo.comment);
+                            j+=sprintf(addrinfo->comment+j, "%s", temp_string);
                         retval=true;
                     }
                 }

@@ -7,13 +7,21 @@
 enum DISASM_INSTRTYPE
 {
     instr_normal,
-    instr_branch
+    instr_branch,
+    instr_stack
 };
 
 enum DISASM_ARGTYPE
 {
     arg_normal,
     arg_memory
+};
+
+enum STRING_TYPE
+{
+    str_none,
+    str_ascii,
+    str_unicode
 };
 
 //structures
@@ -40,5 +48,6 @@ struct DISASM_INSTR
 const char* disasmtext(uint addr);
 void disasmprint(uint addr);
 void disasmget(uint addr, DISASM_INSTR* instr);
+bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, wchar_t* unicode);
 
 #endif // _DISASM_HELPER_H

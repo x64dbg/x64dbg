@@ -33,6 +33,8 @@ public:
     void emitUpdateCPUTitle(QString modname);
     void emitSetInfoLine(int line, QString text);
     void emitClearInfoBox();
+
+    void* winId;
     
 signals:
     void disassembleAt(int_t va, int_t eip);

@@ -29,7 +29,7 @@ extern HINSTANCE hInstDbg;
 
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
-typedef void (*GUISENDMESSAGE)(MSGTYPE type, void* param1, void* param2);
+typedef void* (*GUISENDMESSAGE)(MSGTYPE type, void* param1, void* param2);
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;

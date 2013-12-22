@@ -39,7 +39,7 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256
-#define MAX_COMMENT_SIZE 256
+#define MAX_COMMENT_SIZE 512
 #define MAX_MODULE_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
 
@@ -55,7 +55,8 @@ enum MSGTYPE
     GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
     GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
-    GUI_SET_INFO_LINE               // param1=(int)line,            param2=(const char*)text
+    GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
+    GUI_GET_WINDOW_HANDLE           // param1=unused,               param2=unused
 };
 
 //Debugger enums
@@ -100,6 +101,7 @@ enum FUNCTYPE
     FUNC_BEGIN,
     FUNC_MIDDLE,
     FUNC_END,
+    FUNC_SINGLE
 };
 
 enum LOOPTYPE
@@ -238,6 +240,7 @@ BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
 BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
+BRIDGE_IMPEXP HWND GuiGetWindowHandle();
 
 #ifdef __cplusplus
 }

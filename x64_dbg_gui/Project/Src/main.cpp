@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     // Start GUI
     MainWindow w;
     w.show();
+    Bridge::getBridge()->winId=(void*)w.winId();
 
     return a.exec();
 }

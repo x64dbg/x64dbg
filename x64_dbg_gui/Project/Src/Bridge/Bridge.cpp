@@ -97,7 +97,7 @@ __declspec(dllexport) int _gui_guiinit(int argc, char *argv[])
     return main(argc, argv);
 }
 
-__declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* param2)
+__declspec(dllexport) void* _gui_sendmessage(MSGTYPE type, void* param1, void* param2)
 {
     switch(type)
     {
@@ -161,11 +161,18 @@ __declspec(dllexport) void _gui_sendmessage(MSGTYPE type, void* param1, void* pa
     }
     break;
 
+    case GUI_GET_WINDOW_HANDLE:
+    {
+        return Bridge::getBridge()->winId;
+    }
+    break;
+
     default:
     {
     }
     break;
     }
+    return 0;
 }
 
 
