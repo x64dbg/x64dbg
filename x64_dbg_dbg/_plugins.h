@@ -106,6 +106,16 @@ struct PLUG_CB_STEPPED
     void* reserved;
 };
 
+struct PLUG_CB_ATTACH
+{
+    DWORD dwProcessId;
+};
+
+struct PLUG_CB_DETACH
+{
+    PROCESS_INFORMATION* fdProcessInfo;
+};
+
 //enums
 enum CBTYPE
 {
@@ -123,7 +133,10 @@ enum CBTYPE
     CB_BREAKPOINT, //PLUG_CB_BREAKPOINT
     CB_PAUSEDEBUG, //PLUG_CB_PAUSEDEBUG
     CB_RESUMEDEBUG, //PLUG_CB_RESUMEDEBUG
-    CB_STEPPED //PLUG_CB_STEPPED
+    CB_STEPPED, //PLUG_CB_STEPPED
+    CB_ATTACH, //PLUG_CB_ATTACHED (before attaching, after CB_INITDEBUG)
+    CB_DETACH //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
+
 };
 
 //typedefs

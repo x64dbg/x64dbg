@@ -109,6 +109,7 @@ enum LOOPTYPE
     LOOP_NONE,
     LOOP_BEGIN,
     LOOP_MIDDLE,
+    LOOP_ENTRY,
     LOOP_END
 };
 

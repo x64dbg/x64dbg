@@ -151,13 +151,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 {
                     char temp_string[MAX_COMMENT_SIZE]="";
                     ADDRINFO newinfo;
+                    memset(&newinfo, 0, sizeof(ADDRINFO));
                     newinfo.flags=flaglabel;
                     char ascii[256]="";
                     wchar_t unicode[256]=L"";
                     STRING_TYPE strtype;
                     if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(!disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode) or strtype==str_none)
+                        if(instr.type==instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode) or strtype==str_none)
                             continue;
                         switch(strtype)
                         {
@@ -177,12 +178,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     }
                     else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
-                        if(instr.type==instr_branch)
+                        if(instr.type!=instr_normal)
                             strtype=str_none;
                         switch(strtype)
                         {
                         case str_none:
-                            sprintf(temp_string, "%s:%s", instr.arg[i].mnemonic, newinfo.label);
+                            if(*newinfo.label)
+                                sprintf(temp_string, "%s:%s", instr.arg[i].mnemonic, newinfo.label);
                             break;
                         case str_ascii:
                             sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);

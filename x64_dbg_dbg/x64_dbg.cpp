@@ -79,6 +79,7 @@ static void registercommands()
     cmdnew(cmd, "DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
     cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
     cmdnew(cmd, "AttachDebugger\1attach", cbDebugAttach, false); //attach
+    //cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -110,6 +111,7 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     DeleteFileA("DLLLoader.exe");
+    DeleteFileA("alloctrace.txt");
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";

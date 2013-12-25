@@ -266,6 +266,9 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             case LOOP_BEGIN:
                 funcType=Function_start;
                 break;
+            case LOOP_ENTRY:
+                funcType=Function_loop_entry;
+                break;
             case LOOP_MIDDLE:
                 funcType=Function_middle;
                 break;
@@ -291,7 +294,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         else
             wStr="";
     }
-        break;
+    break;
 
     default:
         break;
@@ -605,7 +608,8 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     }
     else if(wPict == GD_HeadFromBottom)
     {
-        QPoint wPoints[] = {
+        QPoint wPoints[] =
+        {
             QPoint(x + 3, y + getRowHeight() / 2 - 2),
             QPoint(x + 5, y + getRowHeight() / 2),
             QPoint(x + 3, y + getRowHeight() / 2 + 2),
@@ -617,7 +621,8 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     }
     if(wPict == GD_HeadFromTop)
     {
-        QPoint wPoints[] = {
+        QPoint wPoints[] =
+        {
             QPoint(x + 3, y + getRowHeight() / 2 - 2),
             QPoint(x + 5, y + getRowHeight() / 2),
             QPoint(x + 3, y + getRowHeight() / 2 + 2),
@@ -666,22 +671,46 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     switch(funcType)
     {
     case Function_start:
+    {
         if(loop)
             y_add=height/2+1;
         painter->drawLine(x+x_add+line_width, y+y_add, x+x_add, y+y_add);
         painter->drawLine(x+x_add, y+y_add, x+x_add, y+height);
-        break;
+    }
+    break;
+
     case Function_middle:
+    {
         painter->drawLine(x+x_add, y, x+x_add, y+height);
-        break;
+    }
+    break;
+
+    case Function_loop_entry:
+    {
+        int trisize=2;
+        int y_start=(height-trisize*2)/2+y;
+        painter->drawLine(x+x_add, y_start, x+trisize+x_add, y_start+trisize);
+        painter->drawLine(x+trisize+x_add, y_start+trisize, x+x_add, y_start+trisize*2);
+
+        painter->drawLine(x+x_add, y, x+x_add, y_start-1);
+        painter->drawLine(x+x_add, y_start+trisize*2+2, x+x_add, y+height);
+    }
+    break;
+
     case Function_end:
+    {
         if(loop)
             y_add=height/2-1;
         painter->drawLine(x+x_add, y, x+x_add, y+height-y_add);
         painter->drawLine(x+x_add, y+height-y_add, x+x_add+line_width, y+height-y_add);
-        break;
+    }
+    break;
+
     case Function_none:
-        break;
+    {
+
+    }
+    break;
     }
     painter->restore();
     return x_add+line_width+end_add;

@@ -683,10 +683,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 
 CMDRESULT cbStopDebug(int argc, char* argv[])
 {
-    if(bIsAttached)
-        DetachDebuggerEx(fdProcessInfo->dwProcessId);
-    else
-        StopDebug();
+    StopDebug();
     unlock(WAITID_RUN);
     return STATUS_CONTINUE;
 }
@@ -1494,13 +1491,16 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     if(len)
         strcpy(szBaseFileName, szBaseFileName+len+1);
     GuiUpdateWindowTitle(szBaseFileName);
-    //call plugin callback
+    //call plugin callback (init)
     PLUG_CB_INITDEBUG initInfo;
     initInfo.szFileName=szFileName;
     plugincbcall(CB_INITDEBUG, &initInfo);
+    //call plugin callback (attach)
+    PLUG_CB_ATTACH attachInfo;
+    attachInfo.dwProcessId=pid;
+    plugincbcall(CB_ATTACH, &attachInfo);
     //run debug loop (returns when process debugging is stopped)
     AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
-    MessageBoxA(0,0,0,0);
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved=0;
@@ -1570,5 +1570,15 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     }
     CloseHandle(hProcess);
     CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugDetach(int argc, char* argv[])
+{
+    PLUG_CB_DETACH detachInfo;
+    detachInfo.fdProcessInfo=fdProcessInfo;
+    plugincbcall(CB_DETACH, &detachInfo);
+    DetachDebugger(fdProcessInfo->dwProcessId);
+    unlock(WAITID_RUN);
     return STATUS_CONTINUE;
 }

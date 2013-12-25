@@ -171,18 +171,18 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
                 else
                 {
                     int argcount=arggetcount(command);
-                    char** argv=(char**)emalloc((argcount+1)*sizeof(char*));
+                    char** argv=(char**)emalloc((argcount+1)*sizeof(char*), "cmdloop:argv");
                     argv[0]=command;
                     for(int i=0; i<argcount; i++)
                     {
-                        argv[i+1]=(char*)emalloc(deflen);
+                        argv[i+1]=(char*)emalloc(deflen, "cmdloop:argv[i+1]");
                         *argv[i+1]=0;
                         argget(command, argv[i+1], i, true);
                     }
                     CMDRESULT res=cmd->cbCommand(argcount+1, argv);
                     for(int i=0; i<argcount; i++)
-                        efree(argv[i+1]);
-                    efree(argv);
+                        efree(argv[i+1], "cmdloop:argv[i+1]");
+                    efree(argv, "cmdloop:argv");
                     if((error_is_fatal and res==STATUS_ERROR) or res==STATUS_EXIT)
                         bLoop=false;
                 }
@@ -269,17 +269,17 @@ CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
     if(found->debugonly and !IsFileBeingDebugged())
         return STATUS_ERROR;
     int argcount=arggetcount(command);
-    char** argv=(char**)emalloc((argcount+1)*sizeof(char*));
+    char** argv=(char**)emalloc((argcount+1)*sizeof(char*), "cmddirectexec:argv");
     argv[0]=command;
     for(int i=0; i<argcount; i++)
     {
-        argv[i+1]=(char*)emalloc(deflen);
+        argv[i+1]=(char*)emalloc(deflen, "cmddirectexec:argv[i+1]");
         *argv[i+1]=0;
         argget(command, argv[i+1], i, true);
     }
     CMDRESULT res=found->cbCommand(argcount+1, argv);
     for(int i=0; i<argcount; i++)
-        efree(argv[i+1]);
-    efree(argv);
+        efree(argv[i+1], "cmddirectexec:argv[i+1]");
+    efree(argv, "cmddirectexec:argv");
     return res;
 }

@@ -42,6 +42,7 @@ public:
         Function_none,
         Function_start,
         Function_middle,
+        Function_loop_entry,
         Function_end
     };
 

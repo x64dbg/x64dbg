@@ -397,6 +397,8 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x00401348)
             return LOOP_BEGIN;
+        else if(addr==0x004013A8)
+            return LOOP_ENTRY;
         else if(addr>0x00401348 && addr<0x004013B3)
             return LOOP_MIDDLE;
         else if(addr==0x004013B3)
@@ -406,6 +408,8 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x00401351)
             return LOOP_BEGIN;
+        else if(addr==0x00401398)
+            return LOOP_ENTRY;
         else if(addr>0x00401351 && addr<0x004013A3)
             return LOOP_MIDDLE;
         else if(addr==0x004013A3)
@@ -415,6 +419,8 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     {
         if(addr==0x0040135A)
             return LOOP_BEGIN;
+        else if(addr==0x00401388)
+            return LOOP_ENTRY;
         else if(addr>0x0040135A && addr<0x00401393)
             return LOOP_MIDDLE;
         else if(addr==0x00401393)

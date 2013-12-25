@@ -7,19 +7,12 @@ char dbpath[3*deflen]="";
 
 void* emalloc(size_t size)
 {
-    unsigned char* a=new unsigned char[size+0x1000];
-    if(!a)
-    {
-        MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
-        ExitProcess(1);
-    }
-    memset(a, 0, size);
-    return a;
+    return emalloc(size, "emalloc:???");
 }
 
 void efree(void* ptr)
 {
-    delete[] (unsigned char*)ptr;
+    efree(ptr, "efree:???");
 }
 
 static int emalloc_count=0;
@@ -34,14 +27,18 @@ void* emalloc(size_t size, const char* reason)
     }
     memset(a, 0, size);
     emalloc_count++;
-    //printf("DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
+    FILE* file=fopen("alloctrace.txt", "a+");
+    fprintf(file, "DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
+    fclose(file);
     return a;
 }
 
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
-    //printf("DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
+    FILE* file=fopen("alloctrace.txt", "a+");
+    fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
+    fclose(file);
     delete[] (unsigned char*)ptr;
 }
 
