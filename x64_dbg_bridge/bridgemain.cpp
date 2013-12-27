@@ -116,6 +116,10 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _dbg_getbranchdestination=(DBGGETBRANCHDESTINATION)GetProcAddress(hInstDbg, "_dbg_getbranchdestination");
     if(!_dbg_getbranchdestination)
         return "Export \"_dbg_getbranchdestination\" could not be found!";
+    //_dbg_functionoverlaps
+    _dbg_functionoverlaps=(DBGFUNCTIONOVERLAPS)GetProcAddress(hInstDbg, "_dbg_functionoverlaps");
+    if(!_dbg_functionoverlaps)
+        return "Export \"_dbg_functionoverlaps\" could not be found!";
     return 0;
 }
 
@@ -436,6 +440,25 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
 {
     return _dbg_getbranchdestination(addr);
+}
+
+BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
+{
+    return _dbg_functionoverlaps(start, end);
+}
+
+BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
+{
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags=flagfunction;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return false;
+    if(start)
+        *start=info.function.start;
+    if(end)
+        *end=info.function.end;
+    return true;
 }
 
 //GUI

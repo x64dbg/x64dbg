@@ -4,25 +4,6 @@
 #include <windows.h>
 #include "bridgemain.h"
 
-#ifndef DLL_EXPORT
-#define DLL_EXPORT __declspec(dllexport)
-#endif //DLL_IMPORT
-#ifndef DLL_EXPORT
-#define DLL_IMPORT __declspec(dllimport)
-#endif //DLL_IMPORT
-
-#ifdef _WIN64 //defined by default
-#define fhex "%.16llX"
-#define fext "ll"
-#define uint unsigned long long
-#define sint long long
-#else
-#define fhex "%.8X"
-#define fext ""
-#define uint unsigned long
-#define sint long
-#endif // _WIN64
-
 //hInst GUI/DBG
 extern HINSTANCE hInstGui;
 extern HINSTANCE hInstDbg;
@@ -53,7 +34,8 @@ typedef bool (*DBGVALTOSTRING)(const char* string, duint* value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
 typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
-typedef uint (*DBGGETBRANCHDESTINATION)(uint addr);
+typedef duint (*DBGGETBRANCHDESTINATION)(duint addr);
+typedef bool (*DBGFUNCTIONOVERLAPS)(duint start, duint end);
 
 //DBG functions
 extern DBGDBGINIT _dbg_dbginit;
@@ -74,5 +56,6 @@ extern DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 extern DBGGETBPLIST _dbg_getbplist;
 extern DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
 extern DBGGETBRANCHDESTINATION _dbg_getbranchdestination;
+extern DBGFUNCTIONOVERLAPS _dbg_functionoverlaps;
 
 #endif // _GLOBAL_H

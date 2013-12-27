@@ -80,7 +80,8 @@ static void registercommands()
     cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
     cmdnew(cmd, "AttachDebugger\1attach", cbDebugAttach, false); //attach
     //cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
-    cmdnew(cmd, "functionadd\1function\1func", cbFunction, true); //function
+    cmdnew(cmd, "functionadd\1func", cbFunctionAdd, true); //function
+    cmdnew(cmd, "functiondel\1funcc", cbFunctionDel, true); //function
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

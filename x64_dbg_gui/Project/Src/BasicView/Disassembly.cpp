@@ -898,6 +898,14 @@ int_t Disassembly::getInitialSelection()
     return mSelection.firstSelectedIndex;
 }
 
+int_t Disassembly::getSelectionRange()
+{
+    int delta = mSelection.toIndex - mSelection.fromIndex;
+    if(delta < 0)
+        delta *= -1;
+    return delta;
+}
+
 
 void Disassembly::selectNext()
 {

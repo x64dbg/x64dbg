@@ -418,7 +418,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbFunction(int argc, char* argv[])
+CMDRESULT cbFunctionAdd(int argc, char* argv[])
 {
     if(argc<3)
     {
@@ -429,9 +429,30 @@ CMDRESULT cbFunction(int argc, char* argv[])
     uint end=0;
     if(!valfromstring(argv[1], &start, 0, 0, false, 0) or !valfromstring(argv[2], &end, 0, 0, false, 0))
         return STATUS_ERROR;
-    if(functionadd(start, end, true))
-        dputs("function added!");
-    else
-        dputs("function NOT added...");
+    if(!functionadd(start, end, true))
+    {
+        dputs("failed to add function");
+        return STATUS_ERROR;
+    }
+    dputs("function added!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbFunctionDel(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, 0, 0, false, 0))
+        return STATUS_ERROR;
+    if(!functiondel(addr))
+    {
+        dputs("failed to delete function");
+        return STATUS_ERROR;
+    }
+    dputs("function deleted!");
     return STATUS_CONTINUE;
 }

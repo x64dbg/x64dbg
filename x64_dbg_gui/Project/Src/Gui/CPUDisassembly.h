@@ -37,6 +37,7 @@ public slots:
     void setLabel();
     void setComment();
     void setBookmark();
+    void toggleFunction();
 
 private:
     void CopyToClipboard(const char* text);
@@ -57,6 +58,7 @@ private:
     QAction* mSetComment;
     QAction* mSetLabel;
     QAction* mSetBookmark;
+    QAction* mToggleFunction;
     QAction* msetHwBPOnSlot0Action;
     QAction* msetHwBPOnSlot1Action;
     QAction* msetHwBPOnSlot2Action;

@@ -215,7 +215,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags&flagfunction)
     {
-        if(functionfromaddr(addr, &addrinfo->function.start, &addrinfo->function.end))
+        if(functionget(addr, &addrinfo->function.start, &addrinfo->function.end))
             retval=true;
     }
     return retval;
@@ -472,4 +472,9 @@ extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
         return instr.arg[0].memvalue;
     else
         return instr.arg[0].value;
+}
+
+extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
+{
+    return functionoverlaps(start, end);
 }

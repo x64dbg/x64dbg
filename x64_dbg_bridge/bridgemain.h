@@ -238,6 +238,8 @@ BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr);
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth);
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr);
+BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
+BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);

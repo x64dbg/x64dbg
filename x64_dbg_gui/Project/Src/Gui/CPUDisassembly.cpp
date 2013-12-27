@@ -67,6 +67,19 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mSetComment);
         wMenu->addAction(mSetBookmark);
 
+        uint_t selection_start = rvaToVa(getInitialSelection());
+        uint_t selection_end = selection_start + getSelectionRange();
+        if(!DbgFunctionOverlaps(selection_start, selection_end))
+        {
+            mToggleFunction->setText("Add function");
+            wMenu->addAction(mToggleFunction);
+        }
+        else if(DbgGetFunctionTypeAt(selection_start) != FUNC_NONE)
+        {
+            mToggleFunction->setText("Delete function");
+            wMenu->addAction(mToggleFunction);
+        }
+
         // BP Menu
         mBPMenu->clear();
 
@@ -163,6 +176,14 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSetBookmark->setShortcut(QKeySequence("ctrl+d"));
     this->addAction(mSetBookmark);
     connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
+
+    // Functions
+    mToggleFunction = new QAction("Function", this);
+    mToggleFunction->setShortcutContext(Qt::WidgetShortcut);
+    mToggleFunction->setShortcut(QKeySequence("shift+f"));
+    this->addAction(mToggleFunction);
+    connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
+
 
     //---------------------- Go to -----------------------------------
     // Menu
@@ -381,5 +402,47 @@ void CPUDisassembly::setBookmark()
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.exec();
+    }
+}
+
+void CPUDisassembly::toggleFunction()
+{
+    uint_t start = rvaToVa(getInitialSelection());
+    uint_t range = getSelectionRange();
+    uint_t end = start + range;
+    uint_t function_start=0;
+    uint_t function_end=0;
+    if(!DbgFunctionOverlaps(start, end))
+    {
+        QString start_text=QString("%1").arg(start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString end_text=QString("%1").arg(end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE]="";
+        QString label_text="";
+        if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
+            label_text = " (" + QString(labeltext) + ")";
+
+        QMessageBox msg(QMessageBox::Question, "Do you want to add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes|QMessageBox::No);
+        msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
+        if(msg.exec() != QMessageBox::Yes)
+            return;
+        QString cmd = "functionadd " + start_text + "," + end_text;
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
+    else if(DbgFunctionGet(start, &function_start, &function_end))
+    {
+        QString start_text=QString("%1").arg(function_start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString end_text=QString("%1").arg(function_end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE]="";
+        QString label_text="";
+        if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
+            label_text = " (" + QString(labeltext) + ")";
+
+        QMessageBox msg(QMessageBox::Warning, "You are deleting the function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
+        msg.setDefaultButton(QMessageBox::Cancel);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        if(msg.exec() != QMessageBox::Ok)
+            return;
+        QString cmd = "functiondel " + start_text;
+        DbgCmdExec(cmd.toUtf8().constData());
     }
 }

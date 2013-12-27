@@ -528,8 +528,8 @@ bool symfromname(const char* name, uint* addr)
     return true;
 }
 
-///function functions :D
-bool functionfromaddr(duint addr, duint* start, duint* end)
+///function database
+bool functionget(duint addr, duint* start, duint* end)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
@@ -544,8 +544,6 @@ bool functionfromaddr(duint addr, duint* start, duint* end)
         uint rva=addr-modbase;
         sprintf(sql, "SELECT start,end FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, rva, rva);
     }
-    if(addr==0x7758100F)
-        puts(sql);
     sqlite3_stmt* stmt;
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
@@ -610,6 +608,29 @@ bool functionadd(uint start, uint end, bool manual)
         sprintf(sql, "INSERT INTO functions (mod,start,end,manual) VALUES('%s',%"fext"d,%"fext"d,%d)", modname, start-modbase, end-modbase, manual);
     else
         sprintf(sql, "INSERT INTO functions (start,end,manual) VALUES(%"fext"d,%"fext"d,%d)", start, end, manual);
+    if(!sqlexec(userdb, sql))
+    {
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
+        return false;
+    }
+    GuiUpdateAllViews();
+    dbsave();
+    return true;
+}
+
+bool functiondel(uint addr)
+{
+    if(!IsFileBeingDebugged() or !functionget(addr, 0, 0))
+        return false;
+    char modname[MAX_MODULE_SIZE]="";
+    char sql[deflen]="";
+    if(!modnamefromaddr(addr, modname, true))
+        sprintf(sql, "DELETE FROM functions WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d", addr, addr);
+    else
+    {
+        uint rva=addr-modbasefromaddr(addr);
+        sprintf(sql, "DELETE FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, rva, rva);
+    }
     if(!sqlexec(userdb, sql))
     {
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);

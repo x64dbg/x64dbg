@@ -20,6 +20,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[]);
 CMDRESULT cbLoaddb(int argc, char* argv[]);
 CMDRESULT cbSavedb(int argc, char* argv[]);
 CMDRESULT cbAssemble(int argc, char* argv[]);
-CMDRESULT cbFunction(int argc, char* argv[]);
+CMDRESULT cbFunctionAdd(int argc, char* argv[]);
+CMDRESULT cbFunctionDel(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

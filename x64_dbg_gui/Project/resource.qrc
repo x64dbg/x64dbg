@@ -19,5 +19,7 @@
         <file>images/scylla.png</file>
         <file>images/compile-error.png</file>
         <file>images/alphabet/B.png</file>
+        <file>images/compile-warning.png</file>
+        <file>images/compile.png</file>
     </qresource>
 </RCC>
