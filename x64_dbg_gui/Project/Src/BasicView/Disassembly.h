@@ -40,6 +40,7 @@ public:
     enum Function_t
     {
         Function_none,
+        Function_single,
         Function_start,
         Function_middle,
         Function_loop_entry,

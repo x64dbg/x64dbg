@@ -378,16 +378,20 @@ BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
-    //NOTE: test code for 'function.exe'
-    if(addr==0x0040132A)
-        return FUNC_BEGIN;
-    else if(addr>0x0040132A && addr<0x004013BA)
-        return FUNC_MIDDLE;
-    else if(addr==0x004013BA)
-        return FUNC_END;
-    else if(addr==0x004013BB)
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags=flagfunction;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return FUNC_NONE;
+    duint start=info.function.start;
+    duint end=info.function.end;
+    if(start==end)
         return FUNC_SINGLE;
-    return FUNC_NONE;
+    else if(addr==start)
+        return FUNC_BEGIN;
+    else if(addr==end)
+        return FUNC_END;
+    return FUNC_MIDDLE;
 }
 
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)

@@ -417,3 +417,21 @@ CMDRESULT cbAssemble(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbFunction(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint start=0;
+    uint end=0;
+    if(!valfromstring(argv[1], &start, 0, 0, false, 0) or !valfromstring(argv[2], &end, 0, 0, false, 0))
+        return STATUS_ERROR;
+    if(functionadd(start, end, true))
+        dputs("function added!");
+    else
+        dputs("function NOT added...");
+    return STATUS_CONTINUE;
+}

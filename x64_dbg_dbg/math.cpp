@@ -374,7 +374,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
     }
     if(!highestop)
     {
-        if(!valfromstring(string, value, value_size, isvar, false, 0))
+        if(!valfromstring(string, value, value_size, isvar, silent, 0))
             return false;
         return true;
     }
@@ -392,7 +392,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         return false;
     }
     uint right=0;
-    if(!valfromstring(strright, &right, 0, 0, false, 0))
+    if(!valfromstring(strright, &right, 0, 0, silent, 0))
     {
         efree(strleft, "mathfromstring:strleft");
         efree(strright, "mathfromstring:strright");

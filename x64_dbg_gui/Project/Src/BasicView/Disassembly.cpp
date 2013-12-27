@@ -218,6 +218,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         switch(DbgGetFunctionTypeAt(cur_addr))
         {
         case FUNC_SINGLE:
+            funcType=Function_single;
+            break;
         case FUNC_NONE:
             funcType=Function_none;
             break;
@@ -670,6 +672,18 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     }
     switch(funcType)
     {
+    case Function_single:
+    {
+        if(loop)
+            y_add=height/2+1;
+        painter->drawLine(x+x_add+line_width, y+y_add, x+x_add, y+y_add);
+        painter->drawLine(x+x_add, y+y_add, x+x_add, y+height-y_add-1);
+        if(loop)
+            y_add=height/2-1;
+        painter->drawLine(x+x_add, y+height-y_add, x+x_add+line_width, y+height-y_add);
+    }
+    break;
+
     case Function_start:
     {
         if(loop)

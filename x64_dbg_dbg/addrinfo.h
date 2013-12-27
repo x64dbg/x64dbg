@@ -40,5 +40,8 @@ bool bookmarkset(uint addr);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
 bool symfromname(const char* name, uint* addr);
+bool functionfromaddr(duint addr, duint* start, duint* end);
+bool functionoverlaps(uint start, uint end);
+bool functionadd(uint start, uint end, bool manual);
 
 #endif // _ADDRINFO_H

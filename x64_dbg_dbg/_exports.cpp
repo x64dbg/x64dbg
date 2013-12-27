@@ -213,6 +213,11 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         addrinfo->isbookmark=bookmarkget(addr);
         retval=true;
     }
+    if(addrinfo->flags&flagfunction)
+    {
+        if(functionfromaddr(addr, &addrinfo->function.start, &addrinfo->function.end))
+            retval=true;
+    }
     return retval;
 }
 

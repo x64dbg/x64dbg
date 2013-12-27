@@ -84,7 +84,8 @@ enum ADDRINFOFLAGS
     flagmodule=1,
     flaglabel=2,
     flagcomment=4,
-    flagbookmark=8
+    flagbookmark=8,
+    flagfunction=16
 };
 
 enum BPXTYPE
@@ -144,13 +145,20 @@ struct BPMAP
     BRIDGEBP* bp;
 };
 
+struct FUNCTION
+{
+    duint start;
+    duint end;
+};
+
 struct ADDRINFO
 {
+    int flags; //ADDRINFOFLAGS
     char module[MAX_MODULE_SIZE]; //module the address is in
     char label[MAX_LABEL_SIZE];
     char comment[MAX_COMMENT_SIZE];
     bool isbookmark;
-    int flags; //ADDRINFOFLAGS
+    FUNCTION function;
 };
 
 struct FLAGS

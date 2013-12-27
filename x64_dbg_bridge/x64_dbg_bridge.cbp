@@ -39,7 +39,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add option="-fexceptions -Wno-format" />
 			<Add option="-DBUILD_BRIDGE" />
 		</Compiler>
 		<Linker>

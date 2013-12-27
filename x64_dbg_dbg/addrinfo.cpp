@@ -26,6 +26,8 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS breakpoints (id INTEGER PRIMARY KEY AUTOINCREMENT, addr INT64 NOT NULL, enabled INT NOT NULL, singleshoot INT NOT NULL, oldbytes INT NOT NULL, type INT NOT NULL, titantype INT NOT NULL, mod TEXT, name TEXT)"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS functions (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, start INT64 NOT NULL, end INT64 NOT NULL, manual BOOL NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
     bpenumall(0); //update breakpoint list
     GuiUpdateBreakpointsView();
@@ -185,7 +187,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     unsigned int NumberOfNames=export_dir.NumberOfNames;
     if(!export_dir.NumberOfFunctions or !NumberOfNames) //no named exports
         return false;
-    char modname[256]="";
+    char modname[MAX_MODULE_SIZE]="";
     modnamefromaddr(base, modname, true);
     uint original_name_va=export_dir.Name+base;
     char original_name[deflen]="";
@@ -248,7 +250,7 @@ bool commentset(uint addr, const char* text)
         return commentdel(addr);
     char commenttext[MAX_COMMENT_SIZE]="";
     sqlstringescape(text, commenttext);
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //comments without module
     {
@@ -282,7 +284,7 @@ bool commentget(uint addr, char* text)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //comments without module
         sprintf(sql, "SELECT text FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -295,7 +297,7 @@ bool commentdel(uint addr)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //comments without module
         sprintf(sql, "SELECT id FROM comments WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -328,7 +330,7 @@ bool labelset(uint addr, const char* text)
         return labeldel(addr);
     char labeltext[MAX_LABEL_SIZE]="";
     sqlstringescape(text, labeltext);
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //labels without module
     {
@@ -398,7 +400,7 @@ bool labelget(uint addr, char* text)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //labels without module
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -411,7 +413,7 @@ bool labeldel(uint addr)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //labels without module
         sprintf(sql, "SELECT id FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -440,7 +442,7 @@ bool bookmarkset(uint addr)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
     {
@@ -474,7 +476,7 @@ bool bookmarkget(uint addr)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
         sprintf(sql, "SELECT * FROM bookmarks WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -487,7 +489,7 @@ bool bookmarkdel(uint addr)
 {
     if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    char modname[35]="";
+    char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
         sprintf(sql, "SELECT id FROM bookmarks WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -523,5 +525,97 @@ bool symfromname(const char* name, uint* addr)
     if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
         return false;
     *addr=(uint)pSymbol->Address;
+    return true;
+}
+
+///function functions :D
+bool functionfromaddr(duint addr, duint* start, duint* end)
+{
+    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    char modname[MAX_MODULE_SIZE]="";
+    char sql[deflen]="";
+    uint modbase=0;
+    if(!modnamefromaddr(addr, modname, true))
+        sprintf(sql, "SELECT start,end FROM functions WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d", addr, addr);
+    else
+    {
+        modbase=modbasefromaddr(addr);
+        uint rva=addr-modbase;
+        sprintf(sql, "SELECT start,end FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, rva, rva);
+    }
+    if(addr==0x7758100F)
+        puts(sql);
+    sqlite3_stmt* stmt;
+    if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
+    {
+        sqlite3_finalize(stmt);
+        return false;
+    }
+#ifdef _WIN64
+    uint dbstart=sqlite3_column_int64(stmt, 0)+modbase; //start
+    uint dbend=sqlite3_column_int64(stmt, 1)+modbase; //end
+#else
+    uint dbstart=sqlite3_column_int(stmt, 0)+modbase; //addr
+    uint dbend=sqlite3_column_int(stmt, 1)+modbase; //end
+#endif // _WIN64
+    sqlite3_finalize(stmt);
+    if(start)
+        *start=dbstart;
+    if(end)
+        *end=dbend;
+    return true;
+}
+
+bool functionoverlaps(uint start, uint end)
+{
+    char sql[deflen]="";
+    char modname[MAX_MODULE_SIZE]="";
+    //check for function overlaps
+    if(!modnamefromaddr(start, modname, true))
+        sprintf(sql, "SELECT manual FROM functions WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d", end, start);
+    else
+    {
+        uint modbase=modbasefromaddr(start);
+        sprintf(sql, "SELECT manual FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, end-modbase, start-modbase);
+    }
+    if(sqlhasresult(userdb, sql)) //functions overlap
+        return true;
+    return false;
+}
+
+bool functionadd(uint start, uint end, bool manual)
+{
+    if(!IsFileBeingDebugged() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
+        return false;
+    char sql[deflen]="";
+    char modname[MAX_MODULE_SIZE]="";
+    uint modbase=0;
+    //check for function overlaps
+    if(!modnamefromaddr(start, modname, true))
+        sprintf(sql, "SELECT manual FROM functions WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d", end, start);
+    else
+    {
+        modbase=modbasefromaddr(start);
+        sprintf(sql, "SELECT manual FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, end-modbase, start-modbase);
+    }
+    if(sqlhasresult(userdb, sql)) //functions overlap
+        return false;
+    if(modbase)
+        sprintf(sql, "INSERT INTO functions (mod,start,end,manual) VALUES('%s',%"fext"d,%"fext"d,%d)", modname, start-modbase, end-modbase, manual);
+    else
+        sprintf(sql, "INSERT INTO functions (start,end,manual) VALUES(%"fext"d,%"fext"d,%d)", start, end, manual);
+    if(!sqlexec(userdb, sql))
+    {
+        dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
+        return false;
+    }
+    GuiUpdateAllViews();
+    dbsave();
     return true;
 }
