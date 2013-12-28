@@ -27,18 +27,18 @@ void* emalloc(size_t size, const char* reason)
     }
     memset(a, 0, size);
     emalloc_count++;
-    FILE* file=fopen("alloctrace.txt", "a+");
+    /*FILE* file=fopen("alloctrace.txt", "a+");
     fprintf(file, "DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
-    fclose(file);
+    fclose(file);*/
     return a;
 }
 
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
-    FILE* file=fopen("alloctrace.txt", "a+");
+    /*FILE* file=fopen("alloctrace.txt", "a+");
     fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
-    fclose(file);
+    fclose(file);*/
     delete[] (unsigned char*)ptr;
 }
 
