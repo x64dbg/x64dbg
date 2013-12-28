@@ -4,10 +4,10 @@
 >Installation guide:
 1) Download the latest 'qt_base_XXX.rar'
 2) Download the latest 'bin_base_XXX.rar'
-3) Download the latest 'release_?.rar'
+3) Download the latest 'release_xxx.rar'
 4) (Optional) Download the latest 'help_XXX.rar'
 5) Extract all in the same directory
-6) Run 'bin\x64\x64_dbg.exe' or 'bin\x64\x64_dbg.exe'
+6) Run 'bin\x64\x64_dbg.exe' or 'bin\x32\x32_dbg.exe'
 
 >Overview:
 This is a x64/x32 debugger that is currently in active development.
@@ -52,6 +52,9 @@ without having to update the code of the other parts.
 - user databases for labels/comments/breakpoints/bookmarks (*.dd64 or *.dd32 files)
 - easy context menu in disassembly (to set breakpoints etc)
 - plugin support
+- (manual) function analysis
+- easily follow calls/jumps/ret (press ENTER in when selecting)
+- (buggy) dynamic commenting
 
 >Known bugs:
 - memory breakpoints sometimes fail (TitanEngine bug)
