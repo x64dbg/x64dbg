@@ -367,11 +367,15 @@ void AbstractTableView::wheelEvent(QWheelEvent* event)
     //qDebug() << "wheelEvent";
 
     if(event->delta() > 0)
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+    {
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+    }
     else
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
-
-    //QAbstractScrollArea::wheelEvent(event);
+    {
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+    }
 }
 
 
