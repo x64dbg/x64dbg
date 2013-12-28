@@ -44,5 +44,11 @@ PLUG_IMPEXP void _plugin_debugpause()
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
     lock(WAITID_RUN);
+    dbgsetskipexceptions(false);
     wait(WAITID_RUN);
+}
+
+PLUG_IMPEXP void _plugin_debugskipexceptions(bool skip)
+{
+    dbgsetskipexceptions(skip);
 }

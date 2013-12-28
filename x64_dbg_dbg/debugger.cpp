@@ -22,6 +22,7 @@ static bool isStepping=false;
 static bool isPausedByUser=false;
 static bool bScyllaLoaded=false;
 static bool bIsAttached=false;
+static bool bSkipExceptions=false;
 static int ecount=0;
 
 //Superglobal variables
@@ -60,6 +61,11 @@ bool dbgisrunning()
     if(!waitislocked(WAITID_RUN))
         return true;
     return false;
+}
+
+void dbgsetskipexceptions(bool skip)
+{
+    bSkipExceptions=skip;
 }
 
 void DebugUpdateGui(uint disasm_addr)
@@ -125,6 +131,7 @@ static void cbUserBreakpoint()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -157,6 +164,7 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -193,6 +201,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -285,6 +294,7 @@ static void cbStep()
     plugincbcall(CB_STEPPED, &stepInfo);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -297,6 +307,7 @@ static void cbRtrFinalStep()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -415,6 +426,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -500,6 +512,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             GuiSetDebugState(paused);
             //lock
             lock(WAITID_RUN);
+            bSkipExceptions=false;
             PLUG_CB_PAUSEDEBUG pauseInfo;
             pauseInfo.reserved=0;
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -510,23 +523,24 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
 
-    char msg[1024]="";
     if(ExceptionData->dwFirstChance) //first chance exception
     {
-        sprintf(msg, "first chance exception on "fhex" (%.8X)!", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        dprintf("first chance exception on "fhex" (%.8X)!\n", addr, ExceptionData->ExceptionRecord.ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
+        if(bSkipExceptions)
+            return;
     }
     else //lock the exception
     {
-        sprintf(msg, "last chance exception on "fhex" (%.8X)!", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        dprintf("last chance exception on "fhex" (%.8X)!\n", addr, ExceptionData->ExceptionRecord.ExceptionCode);
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
-    dputs(msg);
     DebugUpdateGui(GetContextData(UE_CIP));
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -534,11 +548,11 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     wait(WAITID_RUN);
 }
 
-
 static DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
     //initialize
     bIsAttached=false;
+    bSkipExceptions=false;
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
     pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
@@ -701,6 +715,13 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     callbackInfo.reserved=0;
     plugincbcall(CB_RESUMEDEBUG, &callbackInfo);
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugErun(int argc, char* argv[])
+{
+    if(waitislocked(WAITID_RUN))
+        bSkipExceptions=true;
+    return cbDebugRun(argc, argv);
 }
 
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
@@ -992,11 +1013,23 @@ CMDRESULT cbDebugStepInto(int argc, char* argv[])
     return cbDebugRun(argc, argv);
 }
 
+CMDRESULT cbDebugeStepInto(int argc, char* argv[])
+{
+    bSkipExceptions=true;
+    return cbDebugStepInto(argc, argv);
+}
+
 CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
     StepOver((void*)cbStep);
     isStepping=true;
     return cbDebugRun(argc, argv);
+}
+
+CMDRESULT cbDebugeStepOver(int argc, char* argv[])
+{
+    bSkipExceptions=true;
+    return cbDebugStepOver(argc, argv);
 }
 
 CMDRESULT cbDebugSingleStep(int argc, char* argv[])
@@ -1008,10 +1041,15 @@ CMDRESULT cbDebugSingleStep(int argc, char* argv[])
         if(!valfromstring(arg1, &stepcount, 0, 0, true, 0))
             stepcount=1;
     }
-
     SingleStep((DWORD)stepcount, (void*)cbStep);
     isStepping=true;
     return cbDebugRun(argc, argv);
+}
+
+CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
+{
+    bSkipExceptions=true;
+    return cbDebugSingleStep(argc, argv);
 }
 
 CMDRESULT cbDebugHide(int argc, char* argv[])
@@ -1159,6 +1197,12 @@ CMDRESULT cbDebugRtr(int argc, char* argv[])
     StepOver((void*)cbRtrStep);
     cbDebugRun(argc, argv);
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugeRtr(int argc, char* argv[])
+{
+    bSkipExceptions=true;
+    return cbDebugRtr(argc, argv);
 }
 
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
@@ -1463,6 +1507,7 @@ static void cbAttachDebugger()
 static DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
     bIsAttached=true;
+    bSkipExceptions=false;
     uint pid=(uint)lpParameter;
     static PROCESS_INFORMATION pi_attached;
     fdProcessInfo=&pi_attached;

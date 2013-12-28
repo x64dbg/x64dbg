@@ -43,13 +43,17 @@
      <string>Debug</string>
     </property>
     <addaction name="actionRun"/>
+    <addaction name="actioneRun"/>
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
+    <addaction name="actioneStepInto"/>
     <addaction name="actionStepOver"/>
+    <addaction name="actioneStepOver"/>
     <addaction name="actionRtr"/>
+    <addaction name="actioneRtr"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
    </widget>
@@ -312,6 +316,54 @@
    </property>
    <property name="shortcut">
     <string>Alt+B</string>
+   </property>
+  </action>
+  <action name="actioneStepInto">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step into (skip exceptions)</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F7</string>
+   </property>
+  </action>
+  <action name="actioneStepOver">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+   </property>
+   <property name="text">
+    <string>Step over (skip exceptions)</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F8</string>
+   </property>
+  </action>
+  <action name="actioneRun">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run (skip exceptions)</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F9</string>
+   </property>
+  </action>
+  <action name="actioneRtr">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
+   </property>
+   <property name="text">
+    <string>Execute till return (skip exceptions)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F9</string>
    </property>
   </action>
  </widget>

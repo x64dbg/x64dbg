@@ -416,6 +416,14 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
     }
+    else if(wKey == Qt::Key_PageUp)
+    {
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+    }
+    else if(wKey == Qt::Key_PageDown)
+    {
+        verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+    }
 }
 
 
@@ -451,10 +459,10 @@ void AbstractTableView::vertSliderActionSlot(int action)
             wDelta = -1;
             break;
         case QAbstractSlider::SliderPageStepAdd:
-            wDelta = 3;
+            wDelta = 30;
             break;
         case QAbstractSlider::SliderPageStepSub:
-            wDelta = -3;
+            wDelta = -30;
             break;
         case QAbstractSlider::SliderToMinimum:
         case QAbstractSlider::SliderToMaximum:

@@ -75,10 +75,11 @@ the "x" prefix. Decimal numbers can be used by prefixing the number with a "."
            See "Calculations" for more 
 information.</SPAN></P>
 <P class=rvps3><SPAN class=rvts9><U>DLL exports</U>: Type 'GetProcAddress' and it will 
-automatically be resolved to the  
+automatically be resolved to the actual address of the function. To explicitly define from 
+which module to load the  
                 
-           actual address of the 
-function.</SPAN></P>
+           API, use: "kernel32.dll:GetProcAddress" or 
+"kernel32:GetProcAddress"</SPAN></P>
 <P class=rvps3><SPAN class=rvts9><U>labels/symbols</U>      
   : user-defined labels  
                 
@@ -89,4 +90,4 @@ expressions.</SPAN></P>
 Input  
                 
 for arguments can always be done in any of the above forms, except if stated 
-otherwise.</SPAN></P></BODY></HTML>
+otherwise.</SPAN></P></body></HTML>

@@ -156,6 +156,7 @@ PLUG_IMPEXP bool _plugin_unregistercommand(int pluginHandle, const char* command
 PLUG_IMPEXP void _plugin_logprintf(const char* format, ...);
 PLUG_IMPEXP void _plugin_logputs(const char* text);
 PLUG_IMPEXP void _plugin_debugpause();
+PLUG_IMPEXP void _plugin_debugskipexceptions(bool skip);
 
 #ifdef __cplusplus
 }

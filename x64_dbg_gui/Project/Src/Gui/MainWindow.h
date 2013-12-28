@@ -44,6 +44,10 @@ public slots:
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
     void updateCPUTitleSlot(QString modname);
+    void execeStepOver();
+    void execeStepInto();
+    void execeRun();
+    void execeRtr();
     
 private slots:
     void on_actionGoto_triggered();

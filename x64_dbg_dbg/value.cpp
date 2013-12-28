@@ -984,13 +984,21 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     uint addrfound[256];
     int found=0;
     int kernelbase=-1;
-    if(EnumProcessModules(fdProcessInfo->hProcess, hMods, sizeof(hMods), &cbNeeded))
+
+    //explicit API handling
+    const char* apiname=strstr(name, ":");
+    if(apiname)
     {
-        for(unsigned int i=0; i<(cbNeeded/sizeof(HMODULE)); i++)
+        char modname[MAX_MODULE_SIZE]="";
+        strcpy(modname, name);
+        modname[apiname-name]=0;
+        apiname++;
+        uint modbase=modbasefromname(modname);
+        char szModName[MAX_PATH];
+        if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH) and !silent)
+            dprintf("could not get filename of module "fhex"\n", modbase);
+        else
         {
-            char szModName[MAX_PATH];
-            if(!GetModuleFileNameEx(fdProcessInfo->hProcess, hMods[i], szModName, MAX_PATH) and !silent)
-                dprintf("could not get filename of module "fhex"\n", hMods[i]);
             char szBaseName[256]="";
             int len=strlen(szModName);
             while(szModName[len]!='\\')
@@ -999,14 +1007,51 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
             if(!mod and !silent)
                 dprintf("unable to load library %s\n", szBaseName);
-            uint addr=(uint)GetProcAddress(mod, name);
-            FreeLibrary(mod);
-            if(addr)
+            else
             {
-                if(!_stricmp(szBaseName, "kernelbase") or !_stricmp(szBaseName, "kernelbase.dll"))
-                    kernelbase=found;
-                addrfound[found]=ImporterGetRemoteAPIAddressEx(szBaseName, (char*)name);
-                found++;
+                uint addr=(uint)GetProcAddress(mod, apiname);
+                FreeLibrary(mod);
+                if(addr) //found!
+                {
+                    if(value_size)
+                        *value_size=sizeof(uint);
+                    if(hexonly)
+                        *hexonly=true;
+                    *value=ImporterGetRemoteAPIAddressEx(szBaseName, (char*)apiname);
+                    return true;
+                }
+            }
+        }
+    }
+    if(EnumProcessModules(fdProcessInfo->hProcess, hMods, sizeof(hMods), &cbNeeded))
+    {
+        for(unsigned int i=0; i<(cbNeeded/sizeof(HMODULE)); i++)
+        {
+            char szModName[MAX_PATH];
+            if(!GetModuleFileNameEx(fdProcessInfo->hProcess, hMods[i], szModName, MAX_PATH) and !silent)
+                dprintf("could not get filename of module "fhex"\n", hMods[i]);
+            else
+            {
+                char szBaseName[256]="";
+                int len=strlen(szModName);
+                while(szModName[len]!='\\')
+                    len--;
+                strcpy(szBaseName, szModName+len+1);
+                HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
+                if(!mod and !silent)
+                    dprintf("unable to load library %s\n", szBaseName);
+                else
+                {
+                    uint addr=(uint)GetProcAddress(mod, name);
+                    FreeLibrary(mod);
+                    if(addr)
+                    {
+                        if(!_stricmp(szBaseName, "kernelbase") or !_stricmp(szBaseName, "kernelbase.dll"))
+                            kernelbase=found;
+                        addrfound[found]=ImporterGetRemoteAPIAddressEx(szBaseName, (char*)name);
+                        found++;
+                    }
+                }
             }
         }
     }

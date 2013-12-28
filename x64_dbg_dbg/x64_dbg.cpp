@@ -44,6 +44,7 @@ static void registercommands()
     cmdnew(cmd, "InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
     cmdnew(cmd, "StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
     cmdnew(cmd, "run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
+    cmdnew(cmd, "erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     cmdnew(cmd, "SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
     cmdnew(cmd, "SetBPX\1bp\1bpx", cbDebugSetBPX, true); //breakpoint
     cmdnew(cmd, "DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
@@ -51,13 +52,17 @@ static void registercommands()
     cmdnew(cmd, "DisableBPX\1bpd\1bd", cbDebugDisableBPX, true); //breakpoint disable
     cmdnew(cmd, "bplist", cbDebugBplist, true); //breakpoint list
     cmdnew(cmd, "StepInto\1sti", cbDebugStepInto, true); //StepInto
+    cmdnew(cmd, "eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
     cmdnew(cmd, "StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
+    cmdnew(cmd, "eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
     cmdnew(cmd, "SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
+    cmdnew(cmd, "eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     cmdnew(cmd, "HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     cmdnew(cmd, "disasm\1dis\1d", cbDebugDisasm, true); //doDisasm
     cmdnew(cmd, "SetMemoryBPX\1membp\1bpm", cbDebugSetMemoryBpx, true); //SetMemoryBPX
     cmdnew(cmd, "chd", cbInstrChd, false); //Change directory
-    cmdnew(cmd, "rtr", cbDebugRtr, true); //rtr
+    cmdnew(cmd, "StepOut\1rtr", cbDebugRtr, true); //rtr
+    cmdnew(cmd, "eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
     cmdnew(cmd, "SetHardwareBreakpoint\1bph\1bphws", cbDebugSetHardwareBreakpoint, true); //hardware breakpoint
     cmdnew(cmd, "alloc", cbDebugAlloc, true); //allocate memory
     cmdnew(cmd, "free", cbDebugFree, true); //free memory

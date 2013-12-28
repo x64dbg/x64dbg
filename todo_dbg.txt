@@ -19,12 +19,10 @@
 - set pe data in memory
 - va to offset
 - offset to va
-- getapiname
 - float calculations
 - command help
 - inject asm code
 - and or xor commands
-- analysis
 - getlasterror
 - display open handles
 - step to user code
@@ -46,7 +44,6 @@
 - TEB/TBI
 - PEB/PBI
 - cpu thread id
-- shift+f7f8f9
 - log breakpoints
 - fix memory breakpoints
 - membp in memmap
@@ -56,9 +53,6 @@
 - restore window position (BridgeSetting)
 - follow in dump
 - opcode byte split
-- middle mouse click = copy addr/bytes/disasm
-- DOS name fix in Qt browse dialog
-- abstractTable column names
 - stack window(!)
 - dump window(!!!)
 - tabbed GUI (workspace+dragable windows)
@@ -68,7 +62,6 @@
 - show export table
 - find all intermodular calls
 - highlight register changes (only when CIP changed also)
-- PAGE UP + PAGE DOWN keys in disasm
 - 'dead' bytes custom analysis
 - loops lines database for analysis
 - enable/disable hw+mem breakpoint
