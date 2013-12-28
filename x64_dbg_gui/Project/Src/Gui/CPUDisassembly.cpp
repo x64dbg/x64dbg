@@ -67,8 +67,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mSetComment);
         wMenu->addAction(mSetBookmark);
 
-        uint_t selection_start = rvaToVa(getInitialSelection());
-        uint_t selection_end = selection_start + getSelectionRange();
+        uint_t selection_start = rvaToVa(getSelectionStart());
+        uint_t selection_end = rvaToVa(getSelectionEnd());
         if(!DbgFunctionOverlaps(selection_start, selection_end))
         {
             mToggleFunction->setText("Add function");
@@ -407,9 +407,8 @@ void CPUDisassembly::setBookmark()
 
 void CPUDisassembly::toggleFunction()
 {
-    uint_t start = rvaToVa(getInitialSelection());
-    uint_t range = getSelectionRange();
-    uint_t end = start + range;
+    uint_t start = rvaToVa(getSelectionStart());
+    uint_t end = rvaToVa(getSelectionEnd());
     uint_t function_start=0;
     uint_t function_end=0;
     if(!DbgFunctionOverlaps(start, end))
@@ -421,7 +420,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Question, "Do you want to add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes|QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes|QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
         if(msg.exec() != QMessageBox::Yes)
             return;
@@ -437,7 +436,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Warning, "You are deleting the function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
+        QMessageBox msg(QMessageBox::Warning, "Deleting the function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
         msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         if(msg.exec() != QMessageBox::Ok)

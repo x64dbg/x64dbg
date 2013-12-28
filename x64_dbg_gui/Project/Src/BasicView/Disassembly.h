@@ -60,7 +60,9 @@ public:
     void expandSelectionUpTo(int_t to);
     void setSingleSelection(int_t index);
     int_t getInitialSelection();
-    int_t getSelectionRange();
+    int_t getSelectionSize();
+    int_t getSelectionStart();
+    int_t getSelectionEnd();
     void selectNext();
     void selectPrevious();
     bool isSelected(int_t base, int_t offset);
