@@ -195,11 +195,12 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
     }
     int len=strlen(cmd);
     int start=0;
-    while(cmd[start]!=' ')
+    while(cmd[start]!=' ') //ignore the command
         start++;
-    while(cmd[start]==' ')
+    while(cmd[start]==' ') //ignore initial spaces
         start++;
-    char temp[deflen]="";
+    char temp_[deflen]="";
+    char* temp=temp_+1;
     strcpy(temp, cmd+start);
     len=strlen(temp);
     for(int i=0; i<len; i++)
