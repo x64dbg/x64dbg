@@ -1368,7 +1368,10 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
             return STATUS_ERROR;
     }
     else if(!lastalloc)
+    {
         dputs("lastalloc is zero, provide a page address");
+        return STATUS_ERROR;
+    }
     if(addr==lastalloc)
         varset("$lastalloc", 0, true);
     bool ok=VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);

@@ -141,6 +141,7 @@ bool assemble(const char* instruction, unsigned char** outdata, int* outsize, ch
     do
         GetExitCodeProcess(pi.hProcess, &exitCode);
     while(exitCode==STILL_ACTIVE);
+    CloseHandle(pi.hThread);
     if(exitCode) //nasm failed
     {
         if(error)

@@ -168,7 +168,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
                             break;
                         case str_unicode:
-                            sprintf(temp_string, "%s:L\"UNICODE\"");
+                            sprintf(temp_string, "%s:L\"UNICODE\"", instr.arg[i].mnemonic);
                             break;
                         }
                     }
@@ -190,7 +190,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
                             break;
                         case str_unicode:
-                            sprintf(temp_string, "%s:L\"UNICODE\"");
+                            sprintf(temp_string, "%s:L\"UNICODE\"", instr.arg[i].mnemonic);
                             break;
                         }
                     }
@@ -370,15 +370,15 @@ extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
     return valtostring(string, value, true);
 }
 
-extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
+extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* list)
 {
-    if(!bplist)
+    if(!list)
         return 0;
     BREAKPOINT* list;
     int bpcount=bpgetlist(&list);
     if(bpcount==0)
     {
-        bplist->count=0;
+        list->count=0;
         return 0;
     }
 
@@ -447,10 +447,10 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bplist)
         bridgeList.push_back(curBp);
         retcount++;
     }
-    bplist->count=retcount;
-    bplist->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
+    list->count=retcount;
+    list->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
     for(int i=0; i<retcount; i++)
-        memcpy(&bplist->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
+        memcpy(&list->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
     return retcount;
 }
 

@@ -160,7 +160,8 @@ int arggetcount(const char* cmd)
     if(start==len)
         return arg_count;
     arg_count=1;
-    char temp[deflen]="";
+    char temp_[deflen]="";
+    char* temp=temp_+1;
     strcpy(temp, cmd);
     for(int i=start; i<len; i++)
         if(temp[i]=='\\' and temp[i+1]=='\\')
