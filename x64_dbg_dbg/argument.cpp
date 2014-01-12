@@ -193,7 +193,6 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
             dprintf("missing argument nr %d\n", arg_num+1);
         return false;
     }
-    int len=strlen(cmd);
     int start=0;
     while(cmd[start]!=' ') //ignore the command
         start++;
@@ -202,7 +201,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
     char temp_[deflen]="";
     char* temp=temp_+1;
     strcpy(temp, cmd+start);
-    len=strlen(temp);
+    int len=strlen(temp);
     for(int i=0; i<len; i++)
         if(temp[i]=='\\' and temp[i+1]=='\\')
         {
