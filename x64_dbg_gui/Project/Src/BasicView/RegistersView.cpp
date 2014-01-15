@@ -317,6 +317,19 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             }
         }
     }
+    else if(DbgIsDebugging())
+    {
+        wMenu.addSeparator();
+#ifdef _WIN64
+        QAction* wHwbpCsp = wMenu.addAction("HW Break on [RSP]");
+#else
+        QAction* wHwbpCsp = wMenu.addAction("HW Break on [ESP]");
+#endif
+        QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
+
+        if(wAction == wHwbpCsp)
+            DbgCmdExec("bphws csp,rw");
+    }
 }
 
 void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)

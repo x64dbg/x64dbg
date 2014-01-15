@@ -16,11 +16,13 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     mMemPage = new MemoryPage(0, 0);
 
-    addColumnAt(100, "", false);
-    addColumnAt(100, "", false);
-    addColumnAt(100, "", false);
-    addColumnAt(100, "", false);
-    addColumnAt(100, "", false);
+    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false);
+    addColumnAt(8+charwidth*23, "", false);
+    addColumnAt(8+charwidth*15, "", false);
+    addColumnAt(8+charwidth*23, "", false);
+    addColumnAt(8+charwidth*23, "", false);
     addColumnAt(100, "", false);
 
     mDescriptor.clear();
