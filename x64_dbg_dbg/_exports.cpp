@@ -370,15 +370,15 @@ extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
     return valtostring(string, value, true);
 }
 
-extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* list)
+extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 {
-    if(!list)
+    if(!bpmap)
         return 0;
     BREAKPOINT* list;
     int bpcount=bpgetlist(&list);
     if(bpcount==0)
     {
-        list->count=0;
+        bpmap->count=0;
         return 0;
     }
 
@@ -447,10 +447,10 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* list)
         bridgeList.push_back(curBp);
         retcount++;
     }
-    list->count=retcount;
-    list->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
+    bpmap->count=retcount;
+    bpmap->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
     for(int i=0; i<retcount; i++)
-        memcpy(&list->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
+        memcpy(&bpmap->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
     return retcount;
 }
 
