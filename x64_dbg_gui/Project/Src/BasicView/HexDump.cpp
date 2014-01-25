@@ -1,6 +1,5 @@
 #include "HexDump.h"
 
-
 HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 {
     SelectionData_t data;
@@ -18,59 +17,67 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false);
-    addColumnAt(8+charwidth*23, "", false);
-    addColumnAt(8+charwidth*15, "", false);
-    addColumnAt(8+charwidth*23, "", false);
-    addColumnAt(8+charwidth*23, "", false);
-    addColumnAt(100, "", false);
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false); //address
+    addColumnAt(8+charwidth*23, "", false); //hex (byte)
+    addColumnAt(8+charwidth*15, "", false); //ascii (byte)
+    addColumnAt(8+charwidth*23, "", false); //signed int (dword)
+    addColumnAt(8+charwidth*23, "", false); //double (qword)
+    addColumnAt(100, "", false); //comments
 
     mDescriptor.clear();
     ColumnDescriptor_t wColDesc;
 
-    wColDesc.isData = true;
+    wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 8;
-    wColDesc.data = (DataDescriptor_t){Byte, HexByte};
+    wColDesc.data = (DataDescriptor_t)
+    {
+        Byte, HexByte
+    };
     mDescriptor << wColDesc;
 
-    wColDesc.isData = true;
+    wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 8;
-    wColDesc.data = (DataDescriptor_t){Byte, AsciiByte};
+    wColDesc.data = (DataDescriptor_t)
+    {
+        Byte, AsciiByte
+    };
     mDescriptor << wColDesc;
 
-    wColDesc.isData = true;
+    wColDesc.isData = true; //signed decimal dword
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = SignedDecDword;
     mDescriptor << wColDesc;
 
-    wColDesc.isData = true;
+    wColDesc.isData = true; //float qword
     wColDesc.itemCount = 1;
     wColDesc.data.itemSize = Qword;
-    wColDesc.data.qwordMode = FloatQword;
+    wColDesc.data.qwordMode = DoubleQword;
     mDescriptor << wColDesc;
 
-    wColDesc.isData = false;
+    wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
-    wColDesc.data = (DataDescriptor_t){Byte, AsciiByte};
+    wColDesc.data = (DataDescriptor_t)
+    {
+        Byte, AsciiByte
+    };
     mDescriptor << wColDesc;
 
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(printDumpAt(int_t)));
 }
 
-
 void HexDump::printDumpAt(int_t parVA)
 {
-    int_t wBase = DbgMemFindBaseAddr(parVA, 0);
-    int_t wSize = DbgMemGetPageSize(wBase);
-    int_t wRVA = parVA - wBase;
-    int wBytePerRowCount = getBytePerRowCount();
+    int_t wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
+    int_t wSize = DbgMemGetPageSize(wBase); //get page size
+    int_t wRVA = parVA - wBase; //calculate rva
+    int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
 
-    setRowCount(wSize / wBytePerRowCount);
+    setRowCount(wSize / wBytePerRowCount); //set the number of rows
     mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
     mBase = wBase;
     mSize = wSize;
-    setTableOffset(wRVA / wBytePerRowCount);
+    setTableOffset(wRVA / wBytePerRowCount); //change the displayed offset
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
@@ -111,8 +118,6 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
         AbstractTableView::mouseMoveEvent(event);
 }
 
-
-
 void HexDump::mousePressEvent(QMouseEvent* event)
 {
     //qDebug() << "HexDump::mousePressEvent";
@@ -152,8 +157,6 @@ void HexDump::mousePressEvent(QMouseEvent* event)
         AbstractTableView::mousePressEvent(event);
 }
 
-
-
 void HexDump::mouseReleaseEvent(QMouseEvent* event)
 {
     bool wAccept = true;
@@ -174,10 +177,6 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
         AbstractTableView::mouseReleaseEvent(event);
 }
 
-
-
-
-
 QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     //return QString("HexDump: Col:") + QString::number(col) + "Row:" + QString::number(rowBase + rowOffset);
@@ -192,19 +191,18 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         //wStr += QString::number(wRva);
         wStr += QString("%1").arg(mBase + wRva, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
-    else if(mDescriptor.at(col - 1).isData == true)
+    else if(mDescriptor.at(col - 1).isData == true) //paint data
     {
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
         wStr += getString(col - 1, wRva);
     }
-    else
+    else //paint comments
     {
         wStr += "comments";
     }
 
     return wStr;
 }
-
 
 void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
@@ -248,7 +246,6 @@ void HexDump::expandSelectionUpTo(int_t rva)
     }
 }
 
-
 void HexDump::setSingleSelection(int_t rva)
 {
     mSelection.firstSelectedIndex = rva;
@@ -256,12 +253,10 @@ void HexDump::setSingleSelection(int_t rva)
     mSelection.toIndex = rva;
 }
 
-
 int HexDump::getInitialSelection()
 {
     return mSelection.firstSelectedIndex;
 }
-
 
 bool HexDump::isSelected(int_t rva)
 {
@@ -290,53 +285,52 @@ QString HexDump::getString(int col, int_t rva)
     return wStr;
 }
 
-
-QString HexDump::toString(DataDescriptor_t desc, void* data)
+QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to string
 {
     QString wStr = "";
 
     switch(desc.itemSize)
     {
-        case Byte:
-        {
-           wStr = byteToString(*((byte_t*)data), desc.byteMode);
-        }
-        break;
+    case Byte:
+    {
+        wStr = byteToString(*((byte_t*)data), desc.byteMode);
+    }
+    break;
 
-        case Word:
-        {
-            wStr = wordToString(*((uint16*)data), desc.wordMode);
-        }
-        break;
+    case Word:
+    {
+        wStr = wordToString(*((uint16*)data), desc.wordMode);
+    }
+    break;
 
-        case Dword:
-        {
-            wStr = dwordToString(*((uint32*)data), desc.dwordMode);
-        }
-        break;
+    case Dword:
+    {
+        wStr = dwordToString(*((uint32*)data), desc.dwordMode);
+    }
+    break;
 
-        case Qword:
-        {
-            wStr = qwordToString(*((uint64*)data), desc.qwordMode);
-        }
-        break;
+    case Qword:
+    {
+        wStr = qwordToString(*((uint64*)data), desc.qwordMode);
+    }
+    break;
 
-        case Tword:
-        {
-            wStr = twordToString(*((long double*)data), desc.twordMode);
-        }
-        break;
+    case Tword:
+    {
+        //TODO: sizeof(long double)=12, not 10
+        wStr = twordToString(*((long double*)data), desc.twordMode);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
 }
-
 
 QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
 {
@@ -344,40 +338,40 @@ QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
 
     switch(mode)
     {
-        case HexByte:
-        {
-            wStr = QString("%1").arg((unsigned char)byte, 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case HexByte:
+    {
+        wStr = QString("%1").arg((unsigned char)byte, 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case AsciiByte:
-        {
-            QChar wChar((char)byte);
+    case AsciiByte:
+    {
+        QChar wChar((char)byte);
 
-            if(wChar.isPrint() == true)
-                wStr = QString(wChar);
-            else
-                wStr = ".";
-        }
-        break;
+        if(wChar.isPrint() == true)
+            wStr = QString(wChar);
+        else
+            wStr = ".";
+    }
+    break;
 
-        case SignedDecByte:
-        {
-            wStr = QString::number((int)((char)byte));
-        }
-        break;
+    case SignedDecByte:
+    {
+        wStr = QString::number((int)((char)byte));
+    }
+    break;
 
-        case UnsignedDecByte:
-        {
-            wStr = QString::number((unsigned int)byte);
-        }
-        break;
+    case UnsignedDecByte:
+    {
+        wStr = QString::number((unsigned int)byte);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
@@ -389,40 +383,40 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     switch(mode)
     {
-        case HexWord:
-        {
-            wStr = QString("%1").arg((unsigned short)word, 4, 16, QChar('0')).toUpper();
-        }
-        break;
+    case HexWord:
+    {
+        wStr = QString("%1").arg((unsigned short)word, 4, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case UnicodeWord:
-        {
-            QChar wChar((unsigned short)word);
+    case UnicodeWord:
+    {
+        QChar wChar((unsigned short)word);
 
-            if(wChar.isPrint() == true)
-                wStr = QString(wChar);
-            else
-                wStr = ".";
-        }
-        break;
+        if(wChar.isPrint() == true)
+            wStr = QString(wChar);
+        else
+            wStr = ".";
+    }
+    break;
 
-        case SignedDecWord:
-        {
-            wStr = QString::number((int)((short)word));
-        }
-        break;
+    case SignedDecWord:
+    {
+        wStr = QString::number((int)((short)word));
+    }
+    break;
 
-        case UnsignedDecWord:
-        {
-            wStr = QString::number((unsigned int)word);
-        }
-        break;
+    case UnsignedDecWord:
+    {
+        wStr = QString::number((unsigned int)word);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
@@ -434,36 +428,36 @@ QString HexDump::dwordToString(uint32 dword, DwordViewMode_e mode)
 
     switch(mode)
     {
-        case HexDword:
-        {
-            wStr = QString("%1").arg((unsigned int)dword, 8, 16, QChar('0')).toUpper();
-        }
-        break;
+    case HexDword:
+    {
+        wStr = QString("%1").arg((unsigned int)dword, 8, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case SignedDecDword:
-        {
-            wStr = QString::number((int)dword);
-        }
-        break;
+    case SignedDecDword:
+    {
+        wStr = QString::number((int)dword);
+    }
+    break;
 
-        case UnsignedDecDword:
-        {
-            wStr = QString::number((unsigned int)dword);
-        }
-        break;
+    case UnsignedDecDword:
+    {
+        wStr = QString::number((unsigned int)dword);
+    }
+    break;
 
-        case FloatDword:
-        {
-            float* wPtr = (float*)&dword;
-            wStr = QString::number((double)*wPtr);
-        }
-        break;
+    case FloatDword:
+    {
+        float* wPtr = (float*)&dword;
+        wStr = QString::number((double)*wPtr);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
@@ -475,36 +469,36 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
 
     switch(mode)
     {
-        case HexQword:
-        {
-            wStr = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper();
-        }
-        break;
+    case HexQword:
+    {
+        wStr = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case SignedDecQword:
-        {
-            wStr = QString::number((long long)qword);
-        }
-        break;
+    case SignedDecQword:
+    {
+        wStr = QString::number((long long)qword);
+    }
+    break;
 
-        case UnsignedDecQword:
-        {
-            wStr = QString::number((unsigned long long)qword);
-        }
-        break;
+    case UnsignedDecQword:
+    {
+        wStr = QString::number((unsigned long long)qword);
+    }
+    break;
 
-        case FloatQword:
-        {
-            double* wPtr = (double*)&qword;
-            wStr = QString::number((double)*wPtr);
-        }
-        break;
+    case DoubleQword:
+    {
+        double* wPtr = (double*)&qword;
+        wStr = QString::number((double)*wPtr);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
@@ -516,26 +510,24 @@ QString HexDump::twordToString(long double tword, TwordViewMode_e mode)
 
     switch(mode)
     {
-        case FloatTword:
-        {
-            std::stringstream wlongDoubleStr;
-            wlongDoubleStr <<  std::scientific << (long double)tword;
+    case FloatTword:
+    {
+        std::stringstream wlongDoubleStr;
+        wlongDoubleStr <<  std::scientific << (long double)tword;
 
-            wStr = QString::fromStdString(wlongDoubleStr.str());
-        }
-        break;
+        wStr = QString::fromStdString(wlongDoubleStr.str());
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wStr;
 }
-
-
 
 int HexDump::getSizeOf(DataSize_e size)
 {
@@ -543,45 +535,44 @@ int HexDump::getSizeOf(DataSize_e size)
 
     switch(size)
     {
-        case Byte:          // 1 Byte
-        {
-            wSize = 1;
-        }
-        break;
+    case Byte:          // 1 Byte
+    {
+        wSize = 1;
+    }
+    break;
 
-        case Word:          // 2 Bytes
-        {
-            wSize = 2;
-        }
-        break;
+    case Word:          // 2 Bytes
+    {
+        wSize = 2;
+    }
+    break;
 
-        case Dword:         // 4 Bytes
-        {
-            wSize = 4;
-        }
-        break;
+    case Dword:         // 4 Bytes
+    {
+        wSize = 4;
+    }
+    break;
 
-        case Qword:         // 8 Bytes
-        {
-            wSize = 8;
-        }
-        break;
+    case Qword:         // 8 Bytes
+    {
+        wSize = 8;
+    }
+    break;
 
-        case Tword:         // 10 Bytes
-        {
-            wSize = 10;
-        }
-        break;
+    case Tword:         // 10 Bytes
+    {
+        wSize = 10;
+    }
+    break;
 
-        default:
-        {
-            wSize = 0;
-        }
+    default:
+    {
+        wSize = 0;
+    }
     }
 
     return wSize;
 }
-
 
 int HexDump::getStringMaxLength(DataDescriptor_t desc)
 {
@@ -589,41 +580,41 @@ int HexDump::getStringMaxLength(DataDescriptor_t desc)
 
     switch(desc.itemSize)
     {
-        case Byte:
-        {
-            wLength = byteStringMaxLength(desc.byteMode);
-        }
-        break;
+    case Byte:
+    {
+        wLength = byteStringMaxLength(desc.byteMode);
+    }
+    break;
 
-        case Word:
-        {
-            wLength = wordStringMaxLength(desc.wordMode);
-        }
-        break;
+    case Word:
+    {
+        wLength = wordStringMaxLength(desc.wordMode);
+    }
+    break;
 
-        case Dword:
-        {
-            wLength = dwordStringMaxLength(desc.dwordMode);
-        }
-        break;
+    case Dword:
+    {
+        wLength = dwordStringMaxLength(desc.dwordMode);
+    }
+    break;
 
-        case Qword:
-        {
-            wLength = qwordStringMaxLength(desc.qwordMode);
-        }
-        break;
+    case Qword:
+    {
+        wLength = qwordStringMaxLength(desc.qwordMode);
+    }
+    break;
 
-        case Tword:
-        {
-            wLength = twordStringMaxLength(desc.twordMode);
-        }
-        break;
+    case Tword:
+    {
+        wLength = twordStringMaxLength(desc.twordMode);
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
@@ -635,35 +626,35 @@ int HexDump::byteStringMaxLength(ByteViewMode_e mode)
 
     switch(mode)
     {
-        case HexByte:
-        {
-            wLength = 2;
-        }
-        break;
+    case HexByte:
+    {
+        wLength = 2;
+    }
+    break;
 
-        case AsciiByte:
-        {
-            wLength = 1;
-        }
-        break;
+    case AsciiByte:
+    {
+        wLength = 1;
+    }
+    break;
 
-        case SignedDecByte:
-        {
-            wLength = 4;
-        }
-        break;
+    case SignedDecByte:
+    {
+        wLength = 4;
+    }
+    break;
 
-        case UnsignedDecByte:
-        {
-            wLength = 3;
-        }
-        break;
+    case UnsignedDecByte:
+    {
+        wLength = 3;
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
@@ -675,35 +666,35 @@ int HexDump::wordStringMaxLength(WordViewMode_e mode)
 
     switch(mode)
     {
-        case HexWord:
-        {
-            wLength = 4;
-        }
-        break;
+    case HexWord:
+    {
+        wLength = 4;
+    }
+    break;
 
-        case UnicodeWord:
-        {
-            wLength = 1;
-        }
-        break;
+    case UnicodeWord:
+    {
+        wLength = 1;
+    }
+    break;
 
-        case SignedDecWord:
-        {
-            wLength = 6;
-        }
-        break;
+    case SignedDecWord:
+    {
+        wLength = 6;
+    }
+    break;
 
-        case UnsignedDecWord:
-        {
-            wLength = 5;
-        }
-        break;
+    case UnsignedDecWord:
+    {
+        wLength = 5;
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
@@ -715,35 +706,35 @@ int HexDump::dwordStringMaxLength(DwordViewMode_e mode)
 
     switch(mode)
     {
-        case HexDword:
-        {
-            wLength = 8;
-        }
-        break;
+    case HexDword:
+    {
+        wLength = 8;
+    }
+    break;
 
-        case SignedDecDword:
-        {
-            wLength = 11;
-        }
-        break;
+    case SignedDecDword:
+    {
+        wLength = 11;
+    }
+    break;
 
-        case UnsignedDecDword:
-        {
-            wLength = 10;
-        }
-        break;
+    case UnsignedDecDword:
+    {
+        wLength = 10;
+    }
+    break;
 
-        case FloatDword:
-        {
-            wLength = 13;
-        }
-        break;
+    case FloatDword:
+    {
+        wLength = 13;
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
@@ -755,35 +746,35 @@ int HexDump::qwordStringMaxLength(QwordViewMode_e mode)
 
     switch(mode)
     {
-        case HexQword:
-        {
-            wLength = 16;
-        }
-        break;
+    case HexQword:
+    {
+        wLength = 16;
+    }
+    break;
 
-        case SignedDecQword:
-        {
-            wLength = 20;
-        }
-        break;
+    case SignedDecQword:
+    {
+        wLength = 20;
+    }
+    break;
 
-        case UnsignedDecQword:
-        {
-            wLength = 20;
-        }
-        break;
+    case UnsignedDecQword:
+    {
+        wLength = 20;
+    }
+    break;
 
-        case FloatQword:
-        {
-            wLength = 23;
-        }
-        break;
+    case DoubleQword:
+    {
+        wLength = 23;
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
@@ -795,22 +786,21 @@ int HexDump::twordStringMaxLength(TwordViewMode_e mode)
 
     switch(mode)
     {
-        case FloatTword:
-        {
-            wLength = 29;
-        }
-        break;
+    case FloatTword:
+    {
+        wLength = 29;
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     return wLength;
 }
-
 
 int HexDump::getItemIndexFromX(int x)
 {
@@ -836,8 +826,6 @@ int HexDump::getItemIndexFromX(int x)
     }
 }
 
-
-
 int_t HexDump::getItemStartingAddress(int x, int y)
 {
     int wRowOffset = getIndexOffsetFromY(transY(y));
@@ -854,7 +842,6 @@ int_t HexDump::getItemStartingAddress(int x, int y)
     return wStartingAddress;
 }
 
-
 int HexDump::getBytePerRowCount()
 {
     return mDescriptor.at(0).itemCount * getSizeOf(mDescriptor.at(0).data.itemSize);
@@ -867,4 +854,3 @@ int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
 
     return wItemPixWidth;
 }
-

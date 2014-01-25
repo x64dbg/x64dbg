@@ -44,7 +44,7 @@ public:
         HexDword,
         SignedDecDword,
         UnsignedDecDword,
-        FloatDword
+        FloatDword //sizeof(float)=4
     };
 
     enum QwordViewMode_e
@@ -52,7 +52,7 @@ public:
         HexQword,
         SignedDecQword,
         UnsignedDecQword,
-        FloatQword
+        DoubleQword //sizeof(double)=8
     };
 
     enum TwordViewMode_e
