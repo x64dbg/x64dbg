@@ -1333,7 +1333,7 @@ bool valtostring(const char* string, uint* value, bool silent)
 {
     if(!*string or !value)
         return false;
-    else if(*string=='@') //memory location
+    else if(*string=='@' or strstr(string, "[")) //memory location
     {
         if(!IsFileBeingDebugged())
         {
@@ -1341,18 +1341,43 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
+        int len=strlen(string);
+        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        if(strstr(string, "[")) //memory brackets: []
+        {
+            for(int i=0,j=0; i<len; i++)
+            {
+                if(string[i]==']')
+                    j+=sprintf(newstring+j, ")");
+                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                {
+                    j+=sprintf(newstring+j, "@%c:(", string[i]);
+                    i+=2;
+                }
+                else if(string[i]=='[')
+                    j+=sprintf(newstring+j, "@(");
+                else
+                    j+=sprintf(newstring+j, "%c", string[i]);
+            }
+        }
+        else
+            strcpy(newstring, string);
         int read_size=sizeof(uint);
         int add=1;
-        if(string[2]==':' and isdigit((string[1])))
+        if(newstring[2]==':' and isdigit((newstring[1])))
         {
             add+=2;
-            int new_size=string[1]-0x30;
+            int new_size=newstring[1]-0x30;
             if(new_size<read_size)
                 read_size=new_size;
         }
         uint temp;
-        if(!valfromstring(string+add, &temp, 0, 0, silent, 0))
+        if(!valfromstring(newstring+add, &temp, 0, 0, silent, 0))
+        {
+            efree(newstring, "valfromstring::newstring");
             return false;
+        }
+        efree(newstring, "valfromstring::newstring");
         bool wpm=WriteProcessMemory(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0);
         bpfixmemory(temp, (unsigned char*)value, read_size);
         if(!wpm)
