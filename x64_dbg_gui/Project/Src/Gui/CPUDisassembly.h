@@ -7,6 +7,7 @@
 #include "Disassembly.h"
 #include "Bridge.h"
 #include "LineEditDialog.h"
+#include "QBeaEngine.h"
 
 class CPUDisassembly : public Disassembly
 {
@@ -38,6 +39,7 @@ public slots:
     void setComment();
     void setBookmark();
     void toggleFunction();
+    void assembleAt();
 
 private:
     void CopyToClipboard(const char* text);
@@ -59,6 +61,7 @@ private:
     QAction* mSetLabel;
     QAction* mSetBookmark;
     QAction* mToggleFunction;
+    QAction* mAssemble;
     QAction* msetHwBPOnSlot0Action;
     QAction* msetHwBPOnSlot1Action;
     QAction* msetHwBPOnSlot2Action;

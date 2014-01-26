@@ -50,7 +50,8 @@ SOURCES += \
     Src/BasicView/LineEditDialog.cpp \
     Src/Gui/BreakpointsView.cpp \
     Src/Utils/Breakpoints.cpp \
-    Src/BasicView/InfoBox.cpp
+    Src/BasicView/InfoBox.cpp \
+    Src/Gui/CPUDump.cpp
 
 
 HEADERS += \
@@ -81,7 +82,8 @@ HEADERS += \
     Src/BasicView/LineEditDialog.h \
     Src/Gui/BreakpointsView.h \
     Src/Utils/Breakpoints.h \
-    Src/BasicView/InfoBox.h
+    Src/BasicView/InfoBox.h \
+    Src/Gui/CPUDump.h
 
 INCLUDEPATH += \
     Src \

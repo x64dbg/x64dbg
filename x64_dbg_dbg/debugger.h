@@ -54,6 +54,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugAttach(int argc, char* argv[]);
 CMDRESULT cbDebugDetach(int argc, char* argv[]);
+CMDRESULT cbDebugDump(int argc, char* argv[]);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

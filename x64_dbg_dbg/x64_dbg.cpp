@@ -87,6 +87,7 @@ static void registercommands()
     //cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
     cmdnew(cmd, "functionadd\1func", cbFunctionAdd, true); //function
     cmdnew(cmd, "functiondel\1funcc", cbFunctionDel, true); //function
+    cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

@@ -4,10 +4,9 @@
 #include <QtGui>
 #include <QVBoxLayout>
 #include "CPUDisassembly.h"
-#include "HexDump.h"
+#include "CPUDump.h"
 #include "RegistersView.h"
 #include "InfoBox.h"
-
 
 namespace Ui {
 class CPUWidget;

@@ -18,7 +18,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     mRegs = new RegistersView(0);
     ui->mTopRightFrameLayout->addWidget(mRegs);
 
-    HexDump* hx = new HexDump(0);
+    CPUDump* hx = new CPUDump(0);
     ui->mBotLeftFrameLayout->addWidget(hx);
 
     //cw = new ColumnWidget(3, this);

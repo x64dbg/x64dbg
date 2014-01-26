@@ -56,7 +56,8 @@ enum MSGTYPE
     GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
     GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
     GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
-    GUI_GET_WINDOW_HANDLE           // param1=unused,               param2=unused
+    GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
+    GUI_DUMP_AT                     // param1=(duint)va             param2=unused
 };
 
 //Debugger enums
@@ -253,6 +254,7 @@ BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
 BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
+BRIDGE_IMPEXP void GuiDumpAt(duint va);
 
 #ifdef __cplusplus
 }

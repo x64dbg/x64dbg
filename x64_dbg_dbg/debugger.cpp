@@ -1630,3 +1630,20 @@ CMDRESULT cbDebugDetach(int argc, char* argv[])
     unlock(WAITID_RUN);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugDump(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint addr=0;
+    if(!valfromstring(argv[1], &addr, 0, 0, true, 0))
+    {
+        dprintf("invalid address \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    GuiDumpAt(addr);
+    return STATUS_CONTINUE;
+}

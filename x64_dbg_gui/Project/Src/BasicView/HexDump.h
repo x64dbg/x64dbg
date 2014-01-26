@@ -80,7 +80,6 @@ public:
         DataDescriptor_t data;
     } ColumnDescriptor_t;
 
-
     explicit HexDump(QWidget *parent = 0);
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
@@ -147,7 +146,6 @@ private:
 
     int_t mBase;
     int_t mSize;
-
 
     MemoryPage* mMemPage;
 };

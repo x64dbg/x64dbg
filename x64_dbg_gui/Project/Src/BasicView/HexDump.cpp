@@ -17,12 +17,12 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "", false); //address
-    addColumnAt(8+charwidth*23, "", false); //hex (byte)
-    addColumnAt(8+charwidth*15, "", false); //ascii (byte)
-    addColumnAt(8+charwidth*23, "", false); //signed int (dword)
-    addColumnAt(8+charwidth*23, "", false); //double (qword)
-    addColumnAt(100, "", false); //comments
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
+    addColumnAt(8+charwidth*23, "Hex", false); //hex (byte)
+    addColumnAt(8+charwidth*15, "ASCII", false); //ascii (byte)
+    addColumnAt(8+charwidth*23, "Double", false); //double (qword)
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "void*", false); //void* (dword/qword)
+    addColumnAt(100, "Comments", false); //comments
 
     mDescriptor.clear();
     ColumnDescriptor_t wColDesc;
@@ -33,7 +33,7 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
     {
         Byte, HexByte
     };
-    mDescriptor << wColDesc;
+    mDescriptor.append(wColDesc);
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 8;
@@ -41,19 +41,24 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
     {
         Byte, AsciiByte
     };
-    mDescriptor << wColDesc;
-
-    wColDesc.isData = true; //signed decimal dword
-    wColDesc.itemCount = 2;
-    wColDesc.data.itemSize = Dword;
-    wColDesc.data.dwordMode = SignedDecDword;
-    mDescriptor << wColDesc;
+    mDescriptor.append(wColDesc);
 
     wColDesc.isData = true; //float qword
     wColDesc.itemCount = 1;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = DoubleQword;
-    mDescriptor << wColDesc;
+    mDescriptor.append(wColDesc);
+
+    wColDesc.isData = true; //void*
+    wColDesc.itemCount = 1;
+#ifdef _WIN64
+    wColDesc.data.itemSize = Qword;
+    wColDesc.data.qwordMode = HexQword;
+#else
+    wColDesc.data.itemSize = Dword;
+    wColDesc.data.dwordMode = HexDword;
+#endif
+    mDescriptor.append(wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
@@ -61,9 +66,9 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
     {
         Byte, AsciiByte
     };
-    mDescriptor << wColDesc;
+    mDescriptor.append(wColDesc);
 
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(printDumpAt(int_t)));
+    connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
 }
 
 void HexDump::printDumpAt(int_t parVA)
@@ -198,7 +203,13 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     }
     else //paint comments
     {
-        wStr += "comments";
+        uint_t data=0;
+        mMemPage->readOriginalMemory((byte_t*)&data, wRva, sizeof(uint_t));
+        char label_text[MAX_LABEL_SIZE]="";
+        if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
+            wStr+=QString(label_text);// + QString("%1").arg(data, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
+
+        //wStr += "comments";
     }
 
     return wStr;

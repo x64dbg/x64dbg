@@ -74,6 +74,11 @@ void Bridge::emitClearInfoBox()
     emit setInfoLine(2, "");
 }
 
+void Bridge::emitDumpAt(int_t va)
+{
+    emit dumpAt(va);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -164,6 +169,12 @@ __declspec(dllexport) void* _gui_sendmessage(MSGTYPE type, void* param1, void* p
     case GUI_GET_WINDOW_HANDLE:
     {
         return Bridge::getBridge()->winId;
+    }
+    break;
+
+    case GUI_DUMP_AT:
+    {
+        Bridge::getBridge()->emitDumpAt((int_t)param1);
     }
     break;
 

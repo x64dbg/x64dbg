@@ -80,6 +80,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
             wMenu->addAction(mToggleFunction);
         }
 
+        wMenu->addAction(mAssemble);
+
         // BP Menu
         mBPMenu->clear();
 
@@ -184,6 +186,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     this->addAction(mToggleFunction);
     connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
 
+    // Assemble
+    mAssemble = new QAction("Assemble", this);
+    mAssemble->setShortcutContext(Qt::WidgetShortcut);
+    mAssemble->setShortcut(QKeySequence("space"));
+    this->addAction(mAssemble);
+    connect(mAssemble, SIGNAL(triggered()), this, SLOT(assembleAt()));
 
     //---------------------- Go to -----------------------------------
     // Menu
@@ -444,4 +452,35 @@ void CPUDisassembly::toggleFunction()
         QString cmd = "functiondel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
+}
+
+void CPUDisassembly::assembleAt()
+{
+    int_t wRVA = getInitialSelection();
+    uint_t wVA = rvaToVa(wRVA);
+    LineEditDialog mLineEdit(this);
+    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+
+    QByteArray wBuffer;
+
+    int_t wMaxByteCountToRead = 16 * 2;
+
+    // Bounding
+    wMaxByteCountToRead = wMaxByteCountToRead > (getSize() - wRVA) ? (getSize() - wRVA) : wMaxByteCountToRead;
+
+    wBuffer.resize(wMaxByteCountToRead);
+
+    DbgMemRead(wVA, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
+
+    QBeaEngine* disasm = new QBeaEngine();
+    Instruction_t instr=disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+
+    mLineEdit.setText(instr.instStr);
+    mLineEdit.setWindowTitle("Assemble at " + addr_text);
+    if(mLineEdit.exec()!=QDialog::Accepted)
+        return;
+
+    QMessageBox msg(QMessageBox::Critical, "Error!", "Function not (yet) supported...");
+    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+    msg.exec();
 }

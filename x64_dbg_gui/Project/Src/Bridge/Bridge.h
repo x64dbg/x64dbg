@@ -33,6 +33,7 @@ public:
     void emitUpdateCPUTitle(QString modname);
     void emitSetInfoLine(int line, QString text);
     void emitClearInfoBox();
+    void emitDumpAt(int_t va);
 
     void* winId;
     
@@ -47,6 +48,7 @@ signals:
     void updateWindowTitle(QString filename);
     void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
+    void dumpAt(int_t va);
     
 public slots:
 
