@@ -1054,7 +1054,7 @@ CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
 
 CMDRESULT cbDebugHide(int argc, char* argv[])
 {
-    if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_BASIC))
+    if(HideDebugger(fdProcessInfo->hProcess, UE_HIDE_PEBONLY))
         dputs("debugger hidden");
     else
         dputs("something went wrong");

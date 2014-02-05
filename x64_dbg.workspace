@@ -2,6 +2,7 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="x64_dbg">
 		<Project filename="x64_dbg_bridge/x64_dbg_bridge.cbp" />
+		<Project filename="x64_dbg_crash/x64_dbg_crash.cbp" />
 		<Project filename="x64_dbg_dbg/x64_dbg_dbg.cbp" />
 		<Project filename="x64_dbg_exe/x64_dbg_exe.cbp" />
 	</Workspace>
