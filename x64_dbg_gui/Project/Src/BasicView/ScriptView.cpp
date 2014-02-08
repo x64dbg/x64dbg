@@ -10,11 +10,11 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*60, "Text", false);
     addColumnAt(8+charwidth*40, "Info", false);
 
-    const char* sample_script[5]={"var test,123", "mov test,$pid", "mov eax,pid", "estep", "mov test,eax"};
+    const char* sample_script[6]={"var test,123", "mov test,$pid", "mov eax,pid", "estep", "mov test,eax", "ret"};
 
-    setRowCount(5);
+    setRowCount(6);
 
-    for(int i=0; i<5; i++)
+    for(int i=0; i<6; i++)
     {
         setCellContent(i, 1, sample_script[i]);
     }
@@ -34,10 +34,15 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         int line=rowOffset+1;
         returnString=returnString.sprintf("%.4d", line);
         painter->save();
-        if(line==3)
+        if(line==2)
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
             painter->setPen(QPen(QColor("#FFFFFF"))); //black address
+        }
+        else if(line==5)
+        {
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000")));
+            painter->setPen(QPen(QColor("#000000"))); //black address
         }
         else
         {
