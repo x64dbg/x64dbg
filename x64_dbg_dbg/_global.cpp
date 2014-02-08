@@ -25,7 +25,7 @@ void* emalloc(size_t size, const char* reason)
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
         ExitProcess(1);
     }
-    memset(a, 0, size);
+    memset(a, 0, size+0x1000);
     emalloc_count++;
     /*FILE* file=fopen("alloctrace.txt", "a+");
     fprintf(file, "DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);

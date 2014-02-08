@@ -134,13 +134,13 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a= new (std::nothrow)unsigned char[size];
+    unsigned char* a= new (std::nothrow)unsigned char[size+0x1000];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
         ExitProcess(1);
     }
-    memset(a, 0, size);
+    memset(a, 0, size+0x1000);
     return a;
 }
 
