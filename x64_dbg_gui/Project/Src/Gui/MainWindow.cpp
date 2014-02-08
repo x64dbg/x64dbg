@@ -24,21 +24,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //Accept drops
     setAcceptDrops(true);
 
-    // Memory Map View
-    mMemMapView = new QMdiSubWindow();
-    mMemMapView->setWindowTitle("Memory Map");
-    mMemMapView->setWidget(new MemoryMapView());
-    mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
-    mMemMapView->hide();
-    mMemMapView->setGeometry(10, 10, 625, 500);
-
     // Log View
     mLogView = new QMdiSubWindow();
     mLogView->setWindowTitle("Log");
     mLogView->setWidget(new LogView());
     mLogView->setWindowIcon(QIcon(":/icons/images/alphabet/L.png"));
     mLogView->hide();
-    mLogView->setGeometry(20, 20, 800, 300);
+    mLogView->setGeometry(10, 10, 800, 300);
 
     // Breakpoints
     mBreakpointsView = new QMdiSubWindow();
@@ -47,6 +39,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mBreakpointsView->setWindowIcon(QIcon(":/icons/images/alphabet/B.png"));
     mBreakpointsView->hide();
     mBreakpointsView->setGeometry(20, 20, 800, 300);
+
+    // Memory Map View
+    mMemMapView = new QMdiSubWindow();
+    mMemMapView->setWindowTitle("Memory Map");
+    mMemMapView->setWidget(new MemoryMapView());
+    mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
+    mMemMapView->hide();
+    mMemMapView->setGeometry(30, 30, 625, 500);
+
+    // Script view
+    mScriptView = new QMdiSubWindow();
+    mScriptView->setWindowTitle("Script");
+    mScriptView->setWidget(new ScriptView());
+    mScriptView->setWindowIcon(QIcon(":/icons/images/script-code.png"));
+    mScriptView->hide();
+    mScriptView->setGeometry(40, 40, 625, 500);
 
     mdiArea = new QMdiArea;
     mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -64,9 +72,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //Add subWindow to Main QMdiArea here
     mdiArea->addSubWindow(mSubWindow);
-    mdiArea->addSubWindow(mMemMapView);
     mdiArea->addSubWindow(mLogView);
     mdiArea->addSubWindow(mBreakpointsView);
+    mdiArea->addSubWindow(mMemMapView);
+    mdiArea->addSubWindow(mScriptView);
+
 
     setCentralWidget(mdiArea);
 
@@ -103,6 +113,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actioneStepInto,SIGNAL(triggered()),this,SLOT(execeStepInto()));
     connect(ui->actioneRun,SIGNAL(triggered()),this,SLOT(execeRun()));
     connect(ui->actioneRtr,SIGNAL(triggered()),this,SLOT(execeRtr()));
+    connect(ui->actionScript,SIGNAL(triggered()),this,SLOT(displayScriptWidget()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
@@ -175,6 +186,12 @@ void MainWindow::displayLogWidget()
 {
     mLogView->widget()->show();
     mLogView->setFocus();
+}
+
+void MainWindow::displayScriptWidget()
+{
+    mScriptView->widget()->show();
+    mScriptView->setFocus();
 }
 
 void MainWindow::displayAboutWidget()

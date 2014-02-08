@@ -218,7 +218,7 @@ BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG
     {
     case CBA_EVENT:
         evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
-        printf("%s", (PTSTR)evt->desc);
+        dprintf("%s", (PTSTR)evt->desc);
         break;
     default:
         return FALSE;
@@ -358,14 +358,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     sprintf(dbpath, "%s\\%s", sqlitedb_basedir, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbinit();
-
-    //SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
+    SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
-    //SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
+    SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    modInfo.SizeOfStruct=sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     bpenumall(0); //update breakpoint list

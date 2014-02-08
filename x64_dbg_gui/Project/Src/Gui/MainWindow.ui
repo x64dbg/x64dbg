@@ -37,6 +37,7 @@
     <addaction name="actionMemoryMap"/>
     <addaction name="actionLog"/>
     <addaction name="actionBreakpoints"/>
+    <addaction name="actionScript"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -108,6 +109,7 @@
    <addaction name="actionLog"/>
    <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
+   <addaction name="actionScript"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
   </widget>
@@ -364,6 +366,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F9</string>
+   </property>
+  </action>
+  <action name="actionScript">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/script-code.png</normaloff>:/icons/images/script-code.png</iconset>
+   </property>
+   <property name="text">
+    <string>Script</string>
+   </property>
+   <property name="toolTip">
+    <string>Script</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+S</string>
    </property>
   </action>
  </widget>

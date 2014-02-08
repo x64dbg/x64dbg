@@ -110,7 +110,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor(192,192,192)));
+        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
 
     switch(col)
     {

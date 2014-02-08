@@ -9,6 +9,11 @@ static char szDumpPath[MAX_PATH]="";
 
 static LONG WINAPI UnhandledException(EXCEPTION_POINTERS* pExceptionPointers)
 {
+    unsigned int ExceptionCode=pExceptionPointers->ExceptionRecord->ExceptionCode;
+
+    if(ExceptionCode==0x40010006)
+        return EXCEPTION_EXECUTE_HANDLER;
+
     char szFileName[MAX_PATH];
 #ifdef _WIN64
     const char* szAppName = "x64_dbg";
@@ -39,15 +44,13 @@ static LONG WINAPI UnhandledException(EXCEPTION_POINTERS* pExceptionPointers)
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
                       hDumpFile, MiniDumpWithDataSegs, &ExpParam, NULL, NULL);
 
-    char szMessage[256]="";
-
-    unsigned int ExceptionCode=pExceptionPointers->ExceptionRecord->ExceptionCode;
+    /*char szMessage[256]="";
 
     sprintf(szMessage, "Exception code: 0x%.8X\n\nCrash dump written to:\n%s", ExceptionCode, szFileName);
 
     MessageBoxA(0, szMessage, "Fatal Exception!", MB_ICONERROR|MB_SYSTEMMODAL);
 
-    ExitProcess(ExceptionCode);
+    ExitProcess(ExceptionCode);*/
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -66,7 +69,7 @@ extern "C" __declspec(dllexport) BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD
         if(len)
             szDumpPath[len]=0;
         strcat(szDumpPath, "\\crashdumps");
-        AddVectoredExceptionHandler(1, UnhandledException);
+        AddVectoredExceptionHandler(0, UnhandledException);
     }
     return TRUE;
 }

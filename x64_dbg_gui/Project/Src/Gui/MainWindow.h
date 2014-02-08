@@ -13,6 +13,7 @@
 #include "GotoDialog.h"
 #include "StatusLabel.h"
 #include "BreakpointsView.h"
+#include "ScriptView.h"
 
 namespace Ui {
 class MainWindow;
@@ -33,6 +34,7 @@ public slots:
     void setFocusToCommandBar();
     void displayMemMapWidget();
     void displayLogWidget();
+    void displayScriptWidget();
     void displayAboutWidget();
     void execClose();
     void execRun();
@@ -63,6 +65,7 @@ private:
     QMdiSubWindow* mMemMapView;
     QMdiSubWindow* mLogView;
     QMdiSubWindow* mBreakpointsView;
+    QMdiSubWindow* mScriptView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
