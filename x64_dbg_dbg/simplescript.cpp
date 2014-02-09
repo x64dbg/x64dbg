@@ -2,6 +2,51 @@
 #include "value.h"
 #include "console.h"
 
+bool scriptload(const char* filename)
+{
+    dprintf("scriptload(%s)\n", filename);
+    return true;
+}
+
+void scriptunload()
+{
+    dputs("scriptunload");
+}
+
+void scriptrun(int destline)
+{
+    dprintf("scriptrun(%d)\n", destline);
+}
+
+void scriptstep()
+{
+    dputs("scriptstep");
+}
+
+bool scriptbptoggle(int line)
+{
+    dprintf("scriptbptoggle(%d)\n", line);
+    return true;
+}
+
+bool scriptbpget(int line)
+{
+    if(line==5)
+        return true;
+    return false;
+}
+
+bool scriptcmdexec(const char* command)
+{
+    dprintf("scriptcmdexec(%s)\n", command);
+    return true;
+}
+
+void scriptabort()
+{
+    dputs("scriptabort");
+}
+
 CMDRESULT cbScriptAddLine(int argc, char* argv[])
 {
     if(argc<2)

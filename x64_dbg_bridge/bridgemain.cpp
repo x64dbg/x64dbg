@@ -477,9 +477,9 @@ BRIDGE_IMPEXP void DbgScriptUnload()
     _dbg_sendmessage(DBG_SCRIPT_UNLOAD, 0, 0);
 }
 
-BRIDGE_IMPEXP void DbgScriptRun()
+BRIDGE_IMPEXP void DbgScriptRun(int destline)
 {
-    _dbg_sendmessage(DBG_SCRIPT_RUN, 0, 0);
+    _dbg_sendmessage(DBG_SCRIPT_RUN, (void*)(duint)destline, 0);
 }
 
 BRIDGE_IMPEXP void DbgScriptStep()
@@ -487,9 +487,9 @@ BRIDGE_IMPEXP void DbgScriptStep()
     _dbg_sendmessage(DBG_SCRIPT_STEP, 0, 0);
 }
 
-BRIDGE_IMPEXP bool DbgScriptBpSet(int line, bool set)
+BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
 {
-    if(_dbg_sendmessage(DBG_SCRIPT_BPSET, (void*)(duint)line, (void*)(duint)set))
+    if(_dbg_sendmessage(DBG_SCRIPT_BPTOGGLE, (void*)(duint)line, 0))
         return true;
     return false;
 }
@@ -506,6 +506,11 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
     if(_dbg_sendmessage(DBG_SCRIPT_CMDEXEC, (void*)command, 0))
         return true;
     return false;
+}
+
+BRIDGE_IMPEXP void DbgScriptAbort()
+{
+    _dbg_sendmessage(DBG_SCRIPT_ABORT, 0, 0);
 }
 
 //GUI

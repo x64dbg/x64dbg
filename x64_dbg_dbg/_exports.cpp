@@ -7,6 +7,7 @@
 #include "threading.h"
 #include "breakpoint.h"
 #include "disasm_helper.h"
+#include "simplescript.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -481,5 +482,55 @@ extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
 
 extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2)
 {
+    switch(type)
+    {
+    case DBG_SCRIPT_LOAD:
+    {
+        return scriptload((const char*)param1);
+    }
+    break;
+
+    case DBG_SCRIPT_UNLOAD:
+    {
+        scriptunload();
+    }
+    break;
+
+    case DBG_SCRIPT_RUN:
+    {
+        scriptrun((int)(duint)param1);
+    }
+    break;
+
+    case DBG_SCRIPT_STEP:
+    {
+        scriptstep();
+    }
+    break;
+
+    case DBG_SCRIPT_BPTOGGLE:
+    {
+        return scriptbptoggle((int)(duint)param1);
+    }
+    break;
+
+    case DBG_SCRIPT_BPGET:
+    {
+        return scriptbpget((int)(duint)param1);
+    }
+    break;
+
+    case DBG_SCRIPT_CMDEXEC:
+    {
+        return scriptcmdexec((const char*)param1);
+    }
+    break;
+
+    case DBG_SCRIPT_ABORT:
+    {
+        scriptabort();
+    }
+    break;
+    }
     return 0;
 }

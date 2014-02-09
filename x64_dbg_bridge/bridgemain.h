@@ -127,11 +127,12 @@ enum DBGMSG
 {
     DBG_SCRIPT_LOAD,                // param1=const char* filename,      param2=unused
     DBG_SCRIPT_UNLOAD,              // param1=unused,                    param2=unused
-    DBG_SCRIPT_RUN,                 // param1=unused,                    param2=unused
+    DBG_SCRIPT_RUN,                 // param1=int destline,              param2=unused
     DBG_SCRIPT_STEP,                // param1=unused,                    param2=unused
-    DBG_SCRIPT_BPSET,               // param1=int line,                  param2=bool set
+    DBG_SCRIPT_BPTOGGLE,            // param1=int line,                  param2=unused
     DBG_SCRIPT_BPGET,               // param1=int line,                  param2=unused
-    DBG_SCRIPT_CMDEXEC              // param1=const char* command,       param2=unused
+    DBG_SCRIPT_CMDEXEC,             // param1=const char* command,       param2=unused
+    DBG_SCRIPT_ABORT,               // param1=unused,                    param2=unused
 };
 
 //Debugger structs
@@ -263,11 +264,12 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 
 BRIDGE_IMPEXP bool DbgScriptLoad(const char* filename);
 BRIDGE_IMPEXP void DbgScriptUnload();
-BRIDGE_IMPEXP void DbgScriptRun();
+BRIDGE_IMPEXP void DbgScriptRun(int destline);
 BRIDGE_IMPEXP void DbgScriptStep();
-BRIDGE_IMPEXP bool DbgScriptBpSet(int line, bool set);
+BRIDGE_IMPEXP bool DbgScriptBpToggle(int line);
 BRIDGE_IMPEXP bool DbgScriptBpGet(int line);
 BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command);
+BRIDGE_IMPEXP void DbgScriptAbort();
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
