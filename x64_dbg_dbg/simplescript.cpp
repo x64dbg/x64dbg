@@ -9,7 +9,7 @@ static int scriptIp=0;
 static bool bAbort=false;
 static bool bIsRunning=false;
 
-static SCRIPTBRANCHTYPE getbranchtype(const char* text)
+static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
     if(!strncmp(text, "jmp", 3))
         return scriptjmp;
@@ -28,14 +28,23 @@ static SCRIPTBRANCHTYPE getbranchtype(const char* text)
     return scriptnobranch;
 }
 
-static bool islabel(const char* text)
+static bool scriptislabel(const char* text)
 {
     if(!strstr(text, " ") and !strstr(text, ",") and !strstr(text, "\\") and text[strlen(text)-1]==':')
         return true;
     return false;
 }
 
-static bool createlinemap(const char* filename)
+static int scriptlabelfind(const char* labelname)
+{
+    int linecount=linemap.size();
+    for(int i=0; i<linecount; i++)
+        if(linemap.at(i).type==linelabel && !strcmp(linemap.at(i).u.label, labelname))
+            return i+1;
+    return 0;
+}
+
+static bool scriptcreatelinemap(const char* filename)
 {
     HANDLE hFile=CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile==INVALID_HANDLE_VALUE)
@@ -114,15 +123,24 @@ static bool createlinemap(const char* filename)
             cur.type=linecomment;
             strcpy(cur.u.comment, cur.raw);
         }
-        else if(islabel(cur.raw)) //label
+        else if(scriptislabel(cur.raw)) //label
         {
             cur.type=linelabel;
             strncpy(cur.u.label, cur.raw, rawlen-1);
+            int foundlabel=scriptlabelfind(cur.u.label);
+            if(foundlabel) //label defined twice
+            {
+                char message[256]="";
+                sprintf(message, "Duplicate label \"%s\" detected on lines %d and %d!", cur.u.label, foundlabel, i+1);
+                GuiScriptError(0, message);
+                linemap.clear();
+                return false;
+            }
         }
-        else if(getbranchtype(cur.raw)!=scriptnobranch) //branch
+        else if(scriptgetbranchtype(cur.raw)!=scriptnobranch) //branch
         {
             cur.type=linebranch;
-            cur.u.branch.type=getbranchtype(cur.raw);
+            cur.u.branch.type=scriptgetbranchtype(cur.raw);
             int len=strlen(cur.raw);
             for(int i=0; i<len; i++)
                 if(cur.raw[i]==' ')
@@ -139,6 +157,18 @@ static bool createlinemap(const char* filename)
         linemap.at(i)=cur;
     }
     linemapsize=linemap.size();
+    for(unsigned int i=0; i<linemapsize; i++)
+    {
+        LINEMAPENTRY cur=linemap.at(i);
+        if(cur.type==linebranch and !scriptlabelfind(cur.u.branch.branchlabel)) //invalid branch label
+        {
+            char message[256]="";
+            sprintf(message, "Invalid branch label \"%s\" detected on line %d!", cur.u.branch.branchlabel, i+1);
+            GuiScriptError(0, message);
+            linemap.clear();
+            return false;
+        }
+    }
     if(linemap.at(linemapsize-1).type==linecomment or linemap.at(linemapsize-1).type==linelabel) //label/comment on the end
     {
         memset(&entry, 0, sizeof(entry));
@@ -208,7 +238,7 @@ static CMDRESULT scriptinternalcmdexec(const char* command)
     return STATUS_CONTINUE;
 }
 
-static DWORD WINAPI runThread(void* arg)
+static DWORD WINAPI scriptRunThread(void* arg)
 {
     int destline=(int)(duint)arg;
     if(!destline or destline>(int)linemap.size()) //invalid line
@@ -240,13 +270,21 @@ static DWORD WINAPI runThread(void* arg)
                 break;
             case STATUS_EXIT:
                 bContinue=false;
+                scriptIp=scriptinternalstep(0);
                 break;
             }
         }
         else if(cur.type==linebranch) //branch
         {
-            bContinue=false;
-            GuiScriptError(scriptIp, "Branches are not yet supported...");
+            if(cur.u.branch.type==scriptjmp) //simple jump
+            {
+                scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
+            }
+            else
+            {
+                bContinue=false;
+                GuiScriptError(scriptIp, "Branches are not yet supported...");
+            }
         }
         if(scriptIp==scriptinternalstep(scriptIp)) //end of script
         {
@@ -270,7 +308,7 @@ void scriptload(const char* filename)
     scriptIp=0;
     scriptbplist.clear(); //clear breakpoints
     bAbort=false;
-    if(!createlinemap(filename))
+    if(!scriptcreatelinemap(filename))
         return;
     for(unsigned int i=0; i<linemap.size(); i++) //add script lines
         GuiScriptAddLine(linemap.at(i).raw);
@@ -291,7 +329,7 @@ void scriptrun(int destline)
     if(bIsRunning) //already running
         return;
     bIsRunning=true;
-    CreateThread(0, 0, runThread, (void*)(duint)destline, 0, 0);
+    CreateThread(0, 0, scriptRunThread, (void*)(duint)destline, 0, 0);
 }
 
 void scriptstep()
@@ -314,13 +352,22 @@ void scriptstep()
             break;
         case STATUS_EXIT:
             bContinue=false;
+            scriptIp=scriptinternalstep(0);
+            GuiScriptSetIp(scriptIp);
             break;
         }
     }
     else if(cur.type==linebranch) //branch
     {
-        bContinue=false;
-        GuiScriptError(scriptIp, "Branches are not yet supported...");
+        if(cur.u.branch.type==scriptjmp) //simple jump
+        {
+            scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
+        }
+        else
+        {
+            bContinue=false;
+            GuiScriptError(scriptIp, "Branches are not yet supported...");
+        }
     }
 
     if(!bContinue)
