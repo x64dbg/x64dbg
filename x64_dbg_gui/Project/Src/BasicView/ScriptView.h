@@ -15,6 +15,7 @@ public:
     // Reimplemented Functions
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void contextMenuEvent(QContextMenuEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
 public slots:
     void addLine(QString text);
@@ -32,6 +33,7 @@ public slots:
     void abort();
     void cmdExec();
     void message(QString message);
+    void newIp();
 
 private:
     //private functions
@@ -49,6 +51,7 @@ private:
     QAction* mScriptBpToggle;
     QAction* mScriptCmdExec;
     QAction* mScriptAbort;
+    QAction* mScriptNewIp;
 };
 
 #endif // SCRIPTVIEW_H

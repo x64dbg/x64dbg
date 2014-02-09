@@ -183,7 +183,7 @@ static bool scriptcreatelinemap(const char* filename)
 static int scriptinternalstep(int fromIp) //internal step routine
 {
     int maxIp=linemap.size(); //maximum ip
-    if(fromIp==maxIp) //script end
+    if(fromIp>=maxIp) //script end
         return fromIp;
     while((linemap.at(fromIp).type==lineempty or linemap.at(fromIp).type==linecomment or linemap.at(fromIp).type==linelabel) and fromIp<maxIp) //skip empty lines
         fromIp++;
@@ -415,9 +415,20 @@ bool scriptbpget(int line)
 
 bool scriptcmdexec(const char* command)
 {
-    if(scriptinternalcmdexec(command)!=STATUS_ERROR)
+    switch(scriptinternalcmdexec(command))
+    {
+    case STATUS_ERROR:
+        return false;
+        break;
+    case STATUS_EXIT:
+        scriptIp=scriptinternalstep(0);
+        GuiScriptSetIp(scriptIp);
         return true;
-    return false;
+        break;
+    case STATUS_CONTINUE:
+        break;
+    }
+    return true;
 }
 
 void scriptabort()
@@ -431,4 +442,12 @@ SCRIPTLINETYPE scriptgetlinetype(int line)
     if(line>(int)linemap.size())
         return lineempty;
     return linemap.at(line-1).type;
+}
+
+void scriptsetip(int line)
+{
+    if(line)
+        line--;
+    scriptIp=scriptinternalstep(line);
+    GuiScriptSetIp(scriptIp);
 }

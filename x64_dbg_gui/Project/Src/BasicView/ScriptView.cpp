@@ -104,10 +104,18 @@ void ScriptView::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mScriptStep);
         wMenu->addAction(mScriptRun);
         wMenu->addAction(mScriptAbort);
+        wMenu->addAction(mScriptNewIp);
     }
     wMenu->addSeparator();
     wMenu->addAction(mScriptCmdExec);
     wMenu->exec(event->globalPos());
+}
+
+void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if(!getRowCount())
+        return;
+    newIp();
 }
 
 void ScriptView::setupContextMenu()
@@ -162,6 +170,11 @@ void ScriptView::setupContextMenu()
     mScriptCmdExec->setShortcut(QKeySequence("x"));
     this->addAction(mScriptCmdExec);
     connect(mScriptCmdExec, SIGNAL(triggered()), this, SLOT(cmdExec()));
+
+    mScriptNewIp = new QAction("Continue here...", this);
+    mScriptNewIp->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mScriptNewIp);
+    connect(mScriptNewIp, SIGNAL(triggered()), this, SLOT(newIp()));
 }
 
 //slots
@@ -281,4 +294,13 @@ void ScriptView::message(QString message)
     QMessageBox msg(QMessageBox::Information, "Information", message);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.exec();
+}
+
+void ScriptView::newIp()
+{
+    if(!getRowCount())
+        return;
+    int selected=getInitialSelection()+1;
+    if(isValidIndex(selected-1, 0))
+        DbgScriptSetIp(selected);
 }

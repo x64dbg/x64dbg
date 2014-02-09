@@ -516,6 +516,11 @@ BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
     return (SCRIPTLINETYPE)_dbg_sendmessage(DBG_SCRIPT_GETLINETYPE, (void*)(duint)line, 0);
 }
 
+BRIDGE_IMPEXP void DbgScriptSetIp(int line)
+{
+    _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

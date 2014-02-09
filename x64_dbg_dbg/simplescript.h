@@ -52,5 +52,6 @@ bool scriptbpget(int line);
 bool scriptcmdexec(const char* command);
 void scriptabort();
 SCRIPTLINETYPE scriptgetlinetype(int line);
+void scriptsetip(int line);
 
 #endif // _SIMPLESCRIPT_H
