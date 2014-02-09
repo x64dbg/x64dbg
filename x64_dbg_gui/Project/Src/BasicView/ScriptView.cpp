@@ -18,6 +18,7 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptError(int,QString)), this, SLOT(error(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptSetTitle(QString)), this, SLOT(setTitle(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptSetInfoLine(int,QString)), this, SLOT(setInfoLine(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
 
     setupContextMenu();
 }
@@ -29,11 +30,12 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
     QString returnString;
+    int line=rowBase+rowOffset+1;
+    SCRIPTLINETYPE linetype=DbgScriptGetLineType(line);
     switch(col)
     {
     case 0: //line number
     {
-        int line=rowBase+rowOffset+1;
         returnString=returnString.sprintf("%.4d", line);
         painter->save();
         if(line==mIpLine) //IP
@@ -51,10 +53,10 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         }
         else
         {
-            if(wIsSelected)
+            if(linetype==linecommand || linetype==linebranch)
                 painter->setPen(QPen(QColor("#000000"))); //black address
             else
-                painter->setPen(QPen(QColor("#808080")));
+                painter->setPen(QPen(QColor("#808080"))); //grey address
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
         painter->restore();
@@ -64,7 +66,19 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
     case 1: //command
     {
-        returnString=getCellContent(rowBase+rowOffset, col);
+        painter->save();
+        if(linetype==linecomment || linetype==linelabel)
+            painter->setPen(QPen(QColor("#808080"))); //grey text
+        if(linetype!=linelabel)
+            returnString=QString(" ") + getCellContent(rowBase+rowOffset, col);
+        else //label
+        {
+            returnString=getCellContent(rowBase+rowOffset, col);
+            painter->drawLine(QPoint(x+2, y+h-2), QPoint(x+w-4, y+h-2));
+        }
+        painter->drawText(QRect(x+1, y , w , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
+        painter->restore();
+        returnString="";
     }
     break;
 
@@ -205,8 +219,7 @@ void ScriptView::openFile()
         return;
     filename=QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
     DbgScriptUnload();
-    if(!DbgScriptLoad(filename.toUtf8().constData()))
-        error(0, "Failed to open script!");
+    DbgScriptLoad(filename.toUtf8().constData());
 }
 
 void ScriptView::unload()
@@ -216,29 +229,40 @@ void ScriptView::unload()
 
 void ScriptView::run()
 {
+    if(!getRowCount())
+        return;
     DbgScriptRun(0);
 }
 
 void ScriptView::bpToggle()
 {
+    if(!getRowCount())
+        return;
     int selected=getInitialSelection()+1;
     if(!DbgScriptBpToggle(selected))
         error(selected, "Error setting script breakpoint!");
+    reloadData();
 }
 
 void ScriptView::runCursor()
 {
+    if(!getRowCount())
+        return;
     int selected=getInitialSelection()+1;
     DbgScriptRun(selected);
 }
 
 void ScriptView::step()
 {
+    if(!getRowCount())
+        return;
     DbgScriptStep();
 }
 
 void ScriptView::abort()
 {
+    if(!getRowCount())
+        return;
     DbgScriptAbort();
 }
 
@@ -250,4 +274,11 @@ void ScriptView::cmdExec()
         return;
     if(!DbgScriptCmdExec(mLineEdit.editText.toUtf8().constData()))
         error(0, "Error executing command!");
+}
+
+void ScriptView::message(QString message)
+{
+    QMessageBox msg(QMessageBox::Information, "Information", message);
+    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.exec();
 }

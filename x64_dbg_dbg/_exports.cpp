@@ -486,7 +486,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     {
     case DBG_SCRIPT_LOAD:
     {
-        return scriptload((const char*)param1);
+        scriptload((const char*)param1);
     }
     break;
 
@@ -529,6 +529,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_SCRIPT_ABORT:
     {
         scriptabort();
+    }
+    break;
+
+    case DBG_SCRIPT_GETLINETYPE:
+    {
+        return (duint)scriptgetlinetype((int)(duint)param1);
     }
     break;
     }

@@ -31,6 +31,7 @@ public slots:
     void step();
     void abort();
     void cmdExec();
+    void message(QString message);
 
 private:
     //private functions

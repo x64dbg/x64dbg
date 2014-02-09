@@ -23,5 +23,6 @@
         <file>images/compile.png</file>
         <file>images/script-code.png</file>
         <file>images/script-error.png</file>
+        <file>images/information.png</file>
     </qresource>
 </RCC>

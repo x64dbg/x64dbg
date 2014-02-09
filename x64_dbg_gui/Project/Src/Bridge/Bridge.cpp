@@ -109,6 +109,11 @@ void Bridge::emitScriptSetInfoLine(int line, QString info)
     emit scriptSetInfoLine(line, info);
 }
 
+void Bridge::emitScriptMessage(QString message)
+{
+    emit scriptMessage(message);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -244,6 +249,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     {
         int_t arg=(int_t)param1;
         Bridge::getBridge()->emitScriptSetInfoLine((int)arg, QString(reinterpret_cast<const char*>(param2)));
+    }
+    break;
+
+    case GUI_SCRIPT_MESSAGE:
+    {
+        Bridge::getBridge()->emitScriptMessage(QString(reinterpret_cast<const char*>(param1)));
     }
     break;
 

@@ -42,30 +42,7 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 #define MAX_COMMENT_SIZE 512
 #define MAX_MODULE_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
-
-//Gui enums
-enum GUIMSG
-{
-    GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
-    GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
-    GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
-    GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
-    GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
-    GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
-    GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
-    GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
-    GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
-    GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
-    GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
-    GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
-
-    GUI_SCRIPT_ADDLINE,             // param1=const char* text,     param2=unused
-    GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
-    GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
-    GUI_SCRIPT_ERROR,               // param1=int line,             param2=const char* message
-    GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
-    GUI_SCRIPT_SETINFOLINE          // param1=int line,             param2=const char* info
-};
+#define MAX_SCRIPT_LINE_SIZE 2048
 
 //Debugger enums
 enum DBGSTATE
@@ -122,7 +99,6 @@ enum LOOPTYPE
     LOOP_END
 };
 
-//Debugger enums
 enum DBGMSG
 {
     DBG_SCRIPT_LOAD,                // param1=const char* filename,      param2=unused
@@ -133,6 +109,16 @@ enum DBGMSG
     DBG_SCRIPT_BPGET,               // param1=int line,                  param2=unused
     DBG_SCRIPT_CMDEXEC,             // param1=const char* command,       param2=unused
     DBG_SCRIPT_ABORT,               // param1=unused,                    param2=unused
+    DBG_SCRIPT_GETLINETYPE          // param1=int line,                  param2=unused
+};
+
+enum SCRIPTLINETYPE
+{
+    linecommand,
+    linebranch,
+    linelabel,
+    linecomment,
+    lineempty,
 };
 
 //Debugger structs
@@ -262,7 +248,7 @@ BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr);
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 
-BRIDGE_IMPEXP bool DbgScriptLoad(const char* filename);
+BRIDGE_IMPEXP void DbgScriptLoad(const char* filename);
 BRIDGE_IMPEXP void DbgScriptUnload();
 BRIDGE_IMPEXP void DbgScriptRun(int destline);
 BRIDGE_IMPEXP void DbgScriptStep();
@@ -270,6 +256,32 @@ BRIDGE_IMPEXP bool DbgScriptBpToggle(int line);
 BRIDGE_IMPEXP bool DbgScriptBpGet(int line);
 BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command);
 BRIDGE_IMPEXP void DbgScriptAbort();
+BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
+
+//Gui enums
+enum GUIMSG
+{
+    GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
+    GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
+    GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
+    GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
+    GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
+    GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
+    GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
+    GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
+    GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
+    GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
+    GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
+    GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
+
+    GUI_SCRIPT_ADDLINE,             // param1=const char* text,     param2=unused
+    GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
+    GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
+    GUI_SCRIPT_ERROR,               // param1=int line,             param2=const char* message
+    GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
+    GUI_SCRIPT_SETINFOLINE,         // param1=int line,             param2=const char* info
+    GUI_SCRIPT_MESSAGE              // param1=const char* message,  param2=unused
+};
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
@@ -291,6 +303,7 @@ BRIDGE_IMPEXP void GuiScriptSetIp(int line);
 BRIDGE_IMPEXP void GuiScriptError(int line, const char* message);
 BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
+BRIDGE_IMPEXP void GuiScriptMessage(const char* message);
 
 #ifdef __cplusplus
 }

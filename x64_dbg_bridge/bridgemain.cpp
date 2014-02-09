@@ -465,11 +465,9 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
     return true;
 }
 
-BRIDGE_IMPEXP bool DbgScriptLoad(const char* filename)
+BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
 {
-    if(_dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0))
-        return true;
-    return false;
+    _dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0);
 }
 
 BRIDGE_IMPEXP void DbgScriptUnload()
@@ -511,6 +509,11 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
 BRIDGE_IMPEXP void DbgScriptAbort()
 {
     _dbg_sendmessage(DBG_SCRIPT_ABORT, 0, 0);
+}
+
+BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
+{
+    return (SCRIPTLINETYPE)_dbg_sendmessage(DBG_SCRIPT_GETLINETYPE, (void*)(duint)line, 0);
 }
 
 //GUI
@@ -604,6 +607,11 @@ BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title)
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
 {
     _gui_sendmessage(GUI_SCRIPT_SETINFOLINE, (void*)(duint)line, (void*)info);
+}
+
+BRIDGE_IMPEXP void GuiScriptMessage(const char* message)
+{
+    _gui_sendmessage(GUI_SCRIPT_MESSAGE, (void*)message, 0);
 }
 
 //Main

@@ -87,15 +87,6 @@ static void registercommands()
     cmdnew(cmd, "functionadd\1func", cbFunctionAdd, true); //function
     cmdnew(cmd, "functiondel\1funcc", cbFunctionDel, true); //function
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
-
-    cmdnew(cmd, "scriptaddline", cbScriptAddLine, false);
-    cmdnew(cmd, "scriptclear", cbScriptClear, false);
-    cmdnew(cmd, "scriptsetip", cbScriptSetIp, false);
-    cmdnew(cmd, "scripterror", cbScriptError, false);
-    cmdnew(cmd, "scriptsettitle", cbScriptSetTitle, false);
-    cmdnew(cmd, "scriptsetinfoline", cbScriptSetInfoLine, false);
-
-
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

@@ -40,6 +40,7 @@ public:
     void emitScriptError(int line, QString message);
     void emitScriptSetTitle(QString title);
     void emitScriptSetInfoLine(int line, QString info);
+    void emitScriptMessage(QString message);
 
     void* winId;
     
@@ -62,6 +63,7 @@ signals:
     void scriptError(int line, QString message);
     void scriptSetTitle(QString title);
     void scriptSetInfoLine(int line, QString info);
+    void scriptMessage(QString message);
     
 public slots:
 
