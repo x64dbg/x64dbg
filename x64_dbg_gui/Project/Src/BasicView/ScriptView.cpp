@@ -93,8 +93,9 @@ void ScriptView::clear()
 void ScriptView::setIp(int line)
 {
     if(!isValidIndex(line-1, 0))
-        return;
-    mIpLine=line;
+        mIpLine=0;
+    else
+        mIpLine=line;
     reloadData(); //repaint
 }
 
