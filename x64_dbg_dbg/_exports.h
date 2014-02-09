@@ -23,6 +23,7 @@ DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value);
 DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* list);
 DLL_EXPORT uint _dbg_getbranchdestination(uint addr);
 DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end);
+DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2);
 
 #ifdef __cplusplus
 }

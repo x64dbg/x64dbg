@@ -67,7 +67,6 @@ static void registercommands()
     cmdnew(cmd, "alloc", cbDebugAlloc, true); //allocate memory
     cmdnew(cmd, "free", cbDebugFree, true); //free memory
     cmdnew(cmd, "Fill\1memset", cbDebugMemset, true); //memset
-    cmdnew(cmd, "scr\1script", cbScript, false); //script testing
     cmdnew(cmd, "bench", cbBenchmark, true); //benchmark test (readmem etc)
     cmdnew(cmd, "pause", cbDebugPause, true); //pause debugger
     cmdnew(cmd, "memwrite", cbMemWrite, true); //memwrite test
@@ -88,6 +87,9 @@ static void registercommands()
     cmdnew(cmd, "functionadd\1func", cbFunctionAdd, true); //function
     cmdnew(cmd, "functiondel\1funcc", cbFunctionDel, true); //function
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
+
+    cmdnew(cmd, "scriptaddline", cbScriptAddLine, false);
+    cmdnew(cmd, "scriptclear", cbScriptClear, false);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

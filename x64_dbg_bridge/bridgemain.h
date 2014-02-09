@@ -44,7 +44,7 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 #define MAX_BREAKPOINT_SIZE 256
 
 //Gui enums
-enum MSGTYPE
+enum GUIMSG
 {
     GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
     GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
@@ -57,7 +57,14 @@ enum MSGTYPE
     GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
     GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
     GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
-    GUI_DUMP_AT                     // param1=(duint)va             param2=unused
+    GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
+
+    GUI_SCRIPT_ADDLINE,             // param1=const char* text,     param2=unused
+    GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
+    GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
+    GUI_SCRIPT_ERROR,               // param1=int line,             param2=const char* message
+    GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
+    GUI_SCRIPT_SETINFOLINE          // param1=int line,             param2=const char* info
 };
 
 //Debugger enums
@@ -113,6 +120,18 @@ enum LOOPTYPE
     LOOP_MIDDLE,
     LOOP_ENTRY,
     LOOP_END
+};
+
+//Debugger enums
+enum DBGMSG
+{
+    DBG_SCRIPT_LOAD,                // param1=const char* filename,      param2=unused
+    DBG_SCRIPT_UNLOAD,              // param1=unused,                    param2=unused
+    DBG_SCRIPT_RUN,                 // param1=unused,                    param2=unused
+    DBG_SCRIPT_STEP,                // param1=unused,                    param2=unused
+    DBG_SCRIPT_BPSET,               // param1=int line,                  param2=bool set
+    DBG_SCRIPT_BPGET,               // param1=int line,                  param2=unused
+    DBG_SCRIPT_CMDEXEC              // param1=const char* command,       param2=unused
 };
 
 //Debugger structs
@@ -242,6 +261,14 @@ BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr);
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 
+BRIDGE_IMPEXP bool DbgScriptLoad(const char* filename);
+BRIDGE_IMPEXP void DbgScriptUnload();
+BRIDGE_IMPEXP void DbgScriptRun();
+BRIDGE_IMPEXP void DbgScriptStep();
+BRIDGE_IMPEXP bool DbgScriptBpSet(int line, bool set);
+BRIDGE_IMPEXP bool DbgScriptBpGet(int line);
+BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command);
+
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
@@ -255,6 +282,13 @@ BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
 BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
 BRIDGE_IMPEXP void GuiDumpAt(duint va);
+
+BRIDGE_IMPEXP void GuiScriptAddLine(const char* text);
+BRIDGE_IMPEXP void GuiScriptClear();
+BRIDGE_IMPEXP void GuiScriptSetIp(int line);
+BRIDGE_IMPEXP void GuiScriptError(int line, const char* message);
+BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
+BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
 
 #ifdef __cplusplus
 }

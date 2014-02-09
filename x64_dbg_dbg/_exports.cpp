@@ -478,3 +478,8 @@ extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
 {
     return functionoverlaps(start, end);
 }
+
+extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2)
+{
+    return 0;
+}

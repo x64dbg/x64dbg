@@ -34,6 +34,12 @@ public:
     void emitSetInfoLine(int line, QString text);
     void emitClearInfoBox();
     void emitDumpAt(int_t va);
+    void emitScriptAddLine(QString text);
+    void emitScriptClear();
+    void emitScriptSetIp(int line);
+    void emitScriptError(int line, QString message);
+    void emitScriptSetTitle(QString title);
+    void emitScriptSetInfoLine(int line, QString info);
 
     void* winId;
     
@@ -49,6 +55,13 @@ signals:
     void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
+
+    void scriptAddLine(QString text);
+    void scriptClear();
+    void scriptSetIp(int line);
+    void scriptError(int line, QString message);
+    void scriptSetTitle(QString title);
+    void scriptSetInfoLine(int line, QString info);
     
 public slots:
 

@@ -120,6 +120,10 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _dbg_functionoverlaps=(DBGFUNCTIONOVERLAPS)GetProcAddress(hInstDbg, "_dbg_functionoverlaps");
     if(!_dbg_functionoverlaps)
         return "Export \"_dbg_functionoverlaps\" could not be found!";
+    //_dbg_sendmessage
+    _dbg_sendmessage=(DBGSENDMESSAGE)GetProcAddress(hInstDbg, "_dbg_sendmessage");
+    if(!_dbg_sendmessage)
+        return "Export \"_dbg_sendmessage\" could not be found!";
     return 0;
 }
 
@@ -134,7 +138,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a= new (std::nothrow)unsigned char[size+0x1000];
+    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -461,6 +465,49 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
     return true;
 }
 
+BRIDGE_IMPEXP bool DbgScriptLoad(const char* filename)
+{
+    if(_dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgScriptUnload()
+{
+    _dbg_sendmessage(DBG_SCRIPT_UNLOAD, 0, 0);
+}
+
+BRIDGE_IMPEXP void DbgScriptRun()
+{
+    _dbg_sendmessage(DBG_SCRIPT_RUN, 0, 0);
+}
+
+BRIDGE_IMPEXP void DbgScriptStep()
+{
+    _dbg_sendmessage(DBG_SCRIPT_STEP, 0, 0);
+}
+
+BRIDGE_IMPEXP bool DbgScriptBpSet(int line, bool set)
+{
+    if(_dbg_sendmessage(DBG_SCRIPT_BPSET, (void*)(duint)line, (void*)(duint)set))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
+{
+    if(_dbg_sendmessage(DBG_SCRIPT_BPGET, (void*)(duint)line, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
+{
+    if(_dbg_sendmessage(DBG_SCRIPT_CMDEXEC, (void*)command, 0))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -522,6 +569,36 @@ BRIDGE_IMPEXP HWND GuiGetWindowHandle()
 BRIDGE_IMPEXP void GuiDumpAt(duint va)
 {
     _gui_sendmessage(GUI_DUMP_AT, (void*)va, 0);
+}
+
+BRIDGE_IMPEXP void GuiScriptAddLine(const char* text)
+{
+    _gui_sendmessage(GUI_SCRIPT_ADDLINE, (void*)text, 0);
+}
+
+BRIDGE_IMPEXP void GuiScriptClear()
+{
+    _gui_sendmessage(GUI_SCRIPT_CLEAR, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiScriptSetIp(int line)
+{
+    _gui_sendmessage(GUI_SCRIPT_SETIP, (void*)(duint)line, 0);
+}
+
+BRIDGE_IMPEXP void GuiScriptError(int line, const char* message)
+{
+    _gui_sendmessage(GUI_SCRIPT_ERROR, (void*)(duint)line, (void*)message);
+}
+
+BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title)
+{
+    _gui_sendmessage(GUI_SCRIPT_SETTITLE, (void*)title, 0);
+}
+
+BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
+{
+    _gui_sendmessage(GUI_SCRIPT_SETINFOLINE, (void*)(duint)line, (void*)info);
 }
 
 //Main

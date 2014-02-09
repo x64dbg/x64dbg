@@ -10,14 +10,14 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*60, "Text", false);
     addColumnAt(8+charwidth*40, "Info", false);
 
-    const char* sample_script[6]={"var test,123", "mov test,$pid", "mov eax,pid", "estep", "mov test,eax", "ret"};
+    setIp(0); //no IP
 
-    setRowCount(6);
-
-    for(int i=0; i<6; i++)
-    {
-        setCellContent(i, 1, sample_script[i]);
-    }
+    connect(Bridge::getBridge(), SIGNAL(scriptAddLine(QString)), this, SLOT(addLine(QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptClear()), this, SLOT(clear()));
+    connect(Bridge::getBridge(), SIGNAL(scriptSetIp(int)), this, SLOT(setIp(int)));
+    connect(Bridge::getBridge(), SIGNAL(scriptError(int,QString)), this, SLOT(error(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptSetTitle(QString)), this, SLOT(setTitle(QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptSetInfoLine(int,QString)), this, SLOT(setInfoLine(int,QString)));
 }
 
 QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -31,15 +31,18 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     {
     case 0: //line number
     {
-        int line=rowOffset+1;
+        int line=rowBase+rowOffset+1;
         returnString=returnString.sprintf("%.4d", line);
         painter->save();
-        if(line==2)
+        if(line==mIpLine) //IP
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
-            painter->setPen(QPen(QColor("#FFFFFF"))); //black address
+            if(DbgScriptBpGet(line)) //breakpoint
+                painter->setPen(QPen(QColor("#FF0000"))); //red address
+            else
+                painter->setPen(QPen(QColor("#FFFFFF"))); //black address
         }
-        else if(line==5)
+        else if(DbgScriptBpGet(line)) //breakpoint
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000")));
             painter->setPen(QPen(QColor("#000000"))); //black address
@@ -59,15 +62,61 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
     case 1: //command
     {
-        returnString=getCellContent(rowOffset, col);
+        returnString=getCellContent(rowBase+rowOffset, col);
     }
     break;
 
     case 2: //info
     {
-        returnString=getCellContent(rowOffset, col);
+        returnString=getCellContent(rowBase+rowOffset, col);
     }
     break;
     }
     return returnString;
+}
+
+void ScriptView::addLine(QString text)
+{
+    int rows=getRowCount();
+    setRowCount(rows+1);
+    setCellContent(rows, 1, text);
+    reloadData(); //repaint
+}
+
+void ScriptView::clear()
+{
+    setRowCount(0);
+    mIpLine=0;
+    reloadData(); //repaint
+}
+
+void ScriptView::setIp(int line)
+{
+    if(!isValidIndex(line-1, 0))
+        return;
+    mIpLine=line;
+    reloadData(); //repaint
+}
+
+void ScriptView::error(int line, QString message)
+{
+    QString title;
+    if(isValidIndex(line-1, 0))
+        title=title.sprintf("Error on line %.4d!", line);
+    else
+        title="Script Error!";
+    QMessageBox msg(QMessageBox::Critical, title, message);
+    msg.setWindowIcon(QIcon(":/icons/images/script-error.png"));
+    msg.exec();
+}
+
+void ScriptView::setTitle(QString title)
+{
+    setWindowTitle(title);
+}
+
+void ScriptView::setInfoLine(int line, QString info)
+{
+    setCellContent(line-1, 2, info);
+    reloadData(); //repaint
 }

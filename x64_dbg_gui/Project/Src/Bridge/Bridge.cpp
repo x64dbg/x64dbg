@@ -79,6 +79,36 @@ void Bridge::emitDumpAt(int_t va)
     emit dumpAt(va);
 }
 
+void Bridge::emitScriptAddLine(QString text)
+{
+    emit scriptAddLine(text);
+}
+
+void Bridge::emitScriptClear()
+{
+    emit scriptClear();
+}
+
+void Bridge::emitScriptSetIp(int line)
+{
+    emit scriptSetIp(line);
+}
+
+void Bridge::emitScriptError(int line, QString message)
+{
+    emit scriptError(line, message);
+}
+
+void Bridge::emitScriptSetTitle(QString title)
+{
+    emit scriptSetTitle(title);
+}
+
+void Bridge::emitScriptSetInfoLine(int line, QString info)
+{
+    emit scriptSetInfoLine(line, info);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -102,7 +132,7 @@ __declspec(dllexport) int _gui_guiinit(int argc, char *argv[])
     return main(argc, argv);
 }
 
-__declspec(dllexport) void* _gui_sendmessage(MSGTYPE type, void* param1, void* param2)
+__declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* param2)
 {
     switch(type)
     {
@@ -175,6 +205,45 @@ __declspec(dllexport) void* _gui_sendmessage(MSGTYPE type, void* param1, void* p
     case GUI_DUMP_AT:
     {
         Bridge::getBridge()->emitDumpAt((int_t)param1);
+    }
+    break;
+
+    case GUI_SCRIPT_ADDLINE:
+    {
+        Bridge::getBridge()->emitScriptAddLine(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SCRIPT_CLEAR:
+    {
+        Bridge::getBridge()->emitScriptClear();
+    }
+    break;
+
+    case GUI_SCRIPT_SETIP:
+    {
+        int_t arg=(int_t)param1;
+        Bridge::getBridge()->emitScriptSetIp((int)arg);
+    }
+    break;
+
+    case GUI_SCRIPT_ERROR:
+    {
+        int_t arg=(int_t)param1;
+        Bridge::getBridge()->emitScriptError((int)arg, QString(reinterpret_cast<const char*>(param2)));
+    }
+    break;
+
+    case GUI_SCRIPT_SETTITLE:
+    {
+        Bridge::getBridge()->emitScriptSetTitle(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SCRIPT_SETINFOLINE:
+    {
+        int_t arg=(int_t)param1;
+        Bridge::getBridge()->emitScriptSetInfoLine((int)arg, QString(reinterpret_cast<const char*>(param2)));
     }
     break;
 

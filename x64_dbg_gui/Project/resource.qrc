@@ -22,5 +22,6 @@
         <file>images/compile-warning.png</file>
         <file>images/compile.png</file>
         <file>images/script-code.png</file>
+        <file>images/script-error.png</file>
     </qresource>
 </RCC>

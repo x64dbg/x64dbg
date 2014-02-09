@@ -3,6 +3,7 @@
 
 #include "command.h"
 
-CMDRESULT cbScript(int argc, char* argv[]);
+CMDRESULT cbScriptAddLine(int argc, char* argv[]);
+CMDRESULT cbScriptClear(int argc, char* argv[]);
 
 #endif // _SIMPLESCRIPT_H
