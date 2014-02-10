@@ -15,20 +15,20 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     char newtext[MAX_SCRIPT_LINE_SIZE]="";
     strcpy(newtext, text);
     argformat(newtext); //format jump commands
-    if(!strncmp(newtext, "jmp", 3) or !strncmp(newtext, "goto", 4))
+    if(!strncmp(newtext, "jmp ", 4) or !strncmp(newtext, "goto ", 5))
         return scriptjmp;
-    else if(!strncmp(newtext, "jne", 3) or !strncmp(newtext, "ifne", 4) or !strncmp(newtext, "ifneq", 5) or !strncmp(newtext, "jnz", 3) or !strncmp(newtext, "ifnz", 4))
-        return scriptjnejnz;
-    else if(!strncmp(newtext, "je", 2)  or !strncmp(newtext, "ife", 3) or !strncmp(newtext, "ifeq", 4) or !strncmp(newtext, "jz", 2) or !strncmp(newtext, "ifz", 3))
-        return scriptjejz;
-    else if(!strncmp(newtext, "jb", 2) or !strncmp(newtext, "ifb", 3) or !strncmp(newtext, "jl", 2) or !strncmp(newtext, "ifl", 3))
-        return scriptjbjl;
-    else if(!strncmp(newtext, "ja", 2) or !strncmp(newtext, "ifa", 3) or !strncmp(newtext, "jg", 2) or !strncmp(newtext, "ifg", 3))
-        return scriptjajg;
-    else if(!strncmp(newtext, "jbe", 3) or !strncmp(newtext, "ifbe", 4) or !strncmp(newtext, "ifbeq", 5) or !strncmp(newtext, "jle", 3) or !strncmp(newtext, "ifle", 4) or !strncmp(newtext, "ifleq", 5))
+    else if(!strncmp(newtext, "jbe ", 4) or !strncmp(newtext, "ifbe ", 5) or !strncmp(newtext, "ifbeq ", 6) or !strncmp(newtext, "jle ", 4) or !strncmp(newtext, "ifle ", 5) or !strncmp(newtext, "ifleq ", 6))
         return scriptjbejle;
-    else if(!strncmp(newtext, "jae", 3) or !strncmp(newtext, "ifae", 4) or !strncmp(newtext, "ifaeq", 5) or !strncmp(newtext, "jge", 3) or !strncmp(newtext, "ifge", 4) or !strncmp(newtext, "ifgeq", 5))
+    else if(!strncmp(newtext, "jae ", 4) or !strncmp(newtext, "ifae ", 5) or !strncmp(newtext, "ifaeq ", 6) or !strncmp(newtext, "jge ", 4) or !strncmp(newtext, "ifge ", 5) or !strncmp(newtext, "ifgeq ", 6))
         return scriptjaejge;
+    else if(!strncmp(newtext, "jne ", 4) or !strncmp(newtext, "ifne ", 5) or !strncmp(newtext, "ifneq ", 6) or !strncmp(newtext, "jnz ", 4) or !strncmp(newtext, "ifnz ", 5))
+        return scriptjnejnz;
+    else if(!strncmp(newtext, "je ", 3)  or !strncmp(newtext, "ife ", 4) or !strncmp(newtext, "ifeq ", 5) or !strncmp(newtext, "jz ", 3) or !strncmp(newtext, "ifz ", 4))
+        return scriptjejz;
+    else if(!strncmp(newtext, "jb ", 3) or !strncmp(newtext, "ifb ", 4) or !strncmp(newtext, "jl ", 3) or !strncmp(newtext, "ifl ", 4))
+        return scriptjbjl;
+    else if(!strncmp(newtext, "ja ", 3) or !strncmp(newtext, "ifa ", 4) or !strncmp(newtext, "jg ", 3) or !strncmp(newtext, "ifg ", 4))
+        return scriptjajg;
     return scriptnobranch;
 }
 
@@ -232,12 +232,12 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
 static CMDRESULT scriptinternalcmdexec(const char* command)
 {
     dprintf("scriptinternalcmdexec(%s)\n", command);
-    if(!strcmp(command, "ret"))
+    if(!strcmp(command, "ret")) //script finished
     {
         GuiScriptMessage("Script finished!");
         return STATUS_EXIT;
     }
-    else if(!strcmp(command, "invalid"))
+    else if(!strcmp(command, "invalid")) //invalid command for testing
         return STATUS_ERROR;
     return STATUS_CONTINUE;
 }

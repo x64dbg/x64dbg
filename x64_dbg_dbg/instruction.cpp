@@ -456,3 +456,31 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
     dputs("function deleted!");
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrCmp(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint arg1=0;
+    if(!valfromstring(argv[1], &arg1, 0, 0, false, 0))
+        return STATUS_ERROR;
+    uint arg2=0;
+    if(!valfromstring(argv[2], &arg2, 0, 0, false, 0))
+        return STATUS_ERROR;
+    uint ezflag;
+    uint bsflag;
+    if(arg1==arg2)
+        ezflag=1;
+    else
+        ezflag=0;
+    if(arg1>arg2)
+        bsflag=1;
+    else
+        bsflag=0;
+    varset("$_EZ_FLAG", ezflag, true);
+    varset("$_BS_FLAG", bsflag, true);
+    return STATUS_CONTINUE;
+}
