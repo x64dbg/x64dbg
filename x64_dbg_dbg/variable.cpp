@@ -39,6 +39,8 @@ void varinit()
     varnew("$ans\1$an", 0, VAR_HIDDEN);
     //read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);
+    varnew("$_EZ_FLAG", 0, VAR_READONLY); //equal/zero flag for internal use (1=equal, 0=unequal)
+    varnew("$_BS_FLAG", 0, VAR_READONLY); //bigger/smaller flag for internal use (1=bigger, 0=smaller)
 }
 
 void varfree()

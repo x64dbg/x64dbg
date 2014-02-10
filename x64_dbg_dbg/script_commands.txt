@@ -81,27 +81,27 @@ jump, call, conditional jumps:
 call
 *cmp
 cret
-goto
-ifa
-ifae
-ifb
-ifbe
-ifeq
-ifneq
-ja
-jae
-jb
-jbe
-je
-jg
-jge
-jl
-jle
-jmp
-jne
-jnz
-jz
-ret
+goto //jump
+ifa //if above
+ifae //if above or equal
+ifb //if below
+ifbe //if below or equal
+ifeq //if equal
+ifneq //if not equal
+ja //jump above
+jae //jump above or equal
+jb //jump below
+jbe //jump below or equal
+je //jump equal
+jg //jump greater
+jge //jump greater or equal
+jl //jump less
+jle //jump less or equal
+jmp //jump
+jne //jump if not equal
+jnz //jump if not zero
+jz //jump if zero
+ret //end if script
 
 log commands:
 #log

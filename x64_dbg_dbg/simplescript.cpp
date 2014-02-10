@@ -2,6 +2,7 @@
 #include "value.h"
 #include "console.h"
 #include "argument.h"
+#include "variable.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 static std::vector<SCRIPTBP> scriptbplist;
@@ -11,19 +12,19 @@ static bool bIsRunning=false;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
-    if(!strncmp(text, "jmp", 3))
+    if(!strncmp(text, "jmp", 3) or !strncmp(text, "goto", 4))
         return scriptjmp;
-    else if(!strncmp(text, "jne", 3) or !strncmp(text, "jnz", 3))
+    else if(!strncmp(text, "jne", 3) or !strncmp(text, "ifne", 4) or !strncmp(text, "ifneq", 5) or !strncmp(text, "jnz", 3) or !strncmp(text, "ifnz", 4))
         return scriptjnejnz;
-    else if(!strncmp(text, "je", 2) or !strncmp(text, "jz", 2))
+    else if(!strncmp(text, "je", 2)  or !strncmp(text, "ife", 3) or !strncmp(text, "ifeq", 4) or !strncmp(text, "jz", 2) or !strncmp(text, "ifz", 3))
         return scriptjnejnz;
-    else if(!strncmp(text, "jb", 2) or !strncmp(text, "jl", 2))
+    else if(!strncmp(text, "jb", 2) or !strncmp(text, "ifb", 3) or !strncmp(text, "jl", 2) or !strncmp(text, "ifl", 3))
         return scriptjnejnz;
-    else if(!strncmp(text, "ja", 2) or !strncmp(text, "jg", 2))
+    else if(!strncmp(text, "ja", 2) or !strncmp(text, "ifa", 3) or !strncmp(text, "jg", 2) or !strncmp(text, "ifg", 3))
         return scriptjnejnz;
-    else if(!strncmp(text, "jbe", 3) or !strncmp(text, "jle", 3))
+    else if(!strncmp(text, "jbe", 3) or !strncmp(text, "ifbe", 4) or !strncmp(text, "ifbeq", 5) or !strncmp(text, "jle", 3) or !strncmp(text, "ifle", 4) or !strncmp(text, "ifleq", 5))
         return scriptjnejnz;
-    else if(!strncmp(text, "jae", 3) or !strncmp(text, "jge", 3))
+    else if(!strncmp(text, "jae", 3) or !strncmp(text, "ifae", 4) or !strncmp(text, "ifaeq", 5) or !strncmp(text, "jge", 3) or !strncmp(text, "ifge", 4) or !strncmp(text, "ifgeq", 5))
         return scriptjnejnz;
     return scriptnobranch;
 }
@@ -241,6 +242,49 @@ static CMDRESULT scriptinternalcmdexec(const char* command)
     return STATUS_CONTINUE;
 }
 
+static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump
+{
+    uint ezflag=0;
+    uint bsflag=0;
+    varget("$_EZ_FLAG", &ezflag, 0, 0);
+    varget("$_BS_FLAG", &bsflag, 0, 0);
+    bool bJump=false;
+    switch(type)
+    {
+    case scriptjmp:
+        bJump=true;
+        break;
+    case scriptjnejnz: //$_EZ_FLAG=0
+        if(!ezflag)
+            bJump=true;
+        break;
+    case scriptjejz: //$_EZ_FLAG=1
+        if(ezflag)
+            bJump=true;
+        break;
+    case scriptjbjl: //$_BS_FLAG=0 and $_EZ_FLAG=0 //below, not equal
+        if(!bsflag and !ezflag)
+            bJump=true;
+        break;
+    case scriptjajg: //$_BS_FLAG=1 and $_EZ_FLAG=0 //above, not equal
+        if(bsflag and !ezflag)
+            bJump=true;
+        break;
+    case scriptjbejle: //$_BS_FLAG=0 or $_EZ_FLAG=1
+        if(!bsflag or ezflag)
+            bJump=true;
+        break;
+    case scriptjaejge: //$_BS_FLAG=1 or $_EZ_FLAG=1
+        if(bsflag or ezflag)
+            bJump=true;
+        break;
+    default:
+        bJump=false;
+        break;
+    }
+    return bJump;
+}
+
 static bool scriptinternalcmd()
 {
     bool bContinue=true;
@@ -262,25 +306,14 @@ static bool scriptinternalcmd()
             break;
         }
     }
-    else if(cur.type==linebranch) //branch
-    {
-        switch(cur.u.branch.type) //branch types
-        {
-        case scriptjmp:
-            scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
-            break;
-        default:
-            bContinue=false;
-            GuiScriptError(scriptIp, "Branches are not yet supported...");
-            break;
-        }
-    }
+    else if(cur.type==linebranch and scriptinternalbranch(cur.u.branch.type)) //branch
+        scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
     return bContinue;
 }
 
 static DWORD WINAPI scriptRunThread(void* arg)
 {
-    int destline=(int)(duint)arg;
+    int destline=(int)(uint)arg;
     if(!destline or destline>(int)linemap.size()) //invalid line
         destline=0;
     if(destline)
@@ -340,7 +373,7 @@ void scriptrun(int destline)
     if(bIsRunning) //already running
         return;
     bIsRunning=true;
-    CreateThread(0, 0, scriptRunThread, (void*)(duint)destline, 0, 0);
+    CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0);
 }
 
 void scriptstep()
