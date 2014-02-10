@@ -17,15 +17,15 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     else if(!strncmp(text, "jne", 3) or !strncmp(text, "ifne", 4) or !strncmp(text, "ifneq", 5) or !strncmp(text, "jnz", 3) or !strncmp(text, "ifnz", 4))
         return scriptjnejnz;
     else if(!strncmp(text, "je", 2)  or !strncmp(text, "ife", 3) or !strncmp(text, "ifeq", 4) or !strncmp(text, "jz", 2) or !strncmp(text, "ifz", 3))
-        return scriptjnejnz;
+        return scriptjejz;
     else if(!strncmp(text, "jb", 2) or !strncmp(text, "ifb", 3) or !strncmp(text, "jl", 2) or !strncmp(text, "ifl", 3))
-        return scriptjnejnz;
+        return scriptjbjl;
     else if(!strncmp(text, "ja", 2) or !strncmp(text, "ifa", 3) or !strncmp(text, "jg", 2) or !strncmp(text, "ifg", 3))
-        return scriptjnejnz;
+        return scriptjajg;
     else if(!strncmp(text, "jbe", 3) or !strncmp(text, "ifbe", 4) or !strncmp(text, "ifbeq", 5) or !strncmp(text, "jle", 3) or !strncmp(text, "ifle", 4) or !strncmp(text, "ifleq", 5))
-        return scriptjnejnz;
+        return scriptjbejle;
     else if(!strncmp(text, "jae", 3) or !strncmp(text, "ifae", 4) or !strncmp(text, "ifaeq", 5) or !strncmp(text, "jge", 3) or !strncmp(text, "ifge", 4) or !strncmp(text, "ifgeq", 5))
-        return scriptjnejnz;
+        return scriptjaejge;
     return scriptnobranch;
 }
 
