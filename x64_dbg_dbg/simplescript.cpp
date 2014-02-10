@@ -12,28 +12,24 @@ static bool bIsRunning=false;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
-    if(!strncmp(text, "jmp", 3) or !strncmp(text, "goto", 4))
+    char newtext[MAX_SCRIPT_LINE_SIZE]="";
+    strcpy(newtext, text);
+    argformat(newtext); //format jump commands
+    if(!strncmp(newtext, "jmp", 3) or !strncmp(newtext, "goto", 4))
         return scriptjmp;
-    else if(!strncmp(text, "jne", 3) or !strncmp(text, "ifne", 4) or !strncmp(text, "ifneq", 5) or !strncmp(text, "jnz", 3) or !strncmp(text, "ifnz", 4))
+    else if(!strncmp(newtext, "jne", 3) or !strncmp(newtext, "ifne", 4) or !strncmp(newtext, "ifneq", 5) or !strncmp(newtext, "jnz", 3) or !strncmp(newtext, "ifnz", 4))
         return scriptjnejnz;
-    else if(!strncmp(text, "je", 2)  or !strncmp(text, "ife", 3) or !strncmp(text, "ifeq", 4) or !strncmp(text, "jz", 2) or !strncmp(text, "ifz", 3))
+    else if(!strncmp(newtext, "je", 2)  or !strncmp(newtext, "ife", 3) or !strncmp(newtext, "ifeq", 4) or !strncmp(newtext, "jz", 2) or !strncmp(newtext, "ifz", 3))
         return scriptjejz;
-    else if(!strncmp(text, "jb", 2) or !strncmp(text, "ifb", 3) or !strncmp(text, "jl", 2) or !strncmp(text, "ifl", 3))
+    else if(!strncmp(newtext, "jb", 2) or !strncmp(newtext, "ifb", 3) or !strncmp(newtext, "jl", 2) or !strncmp(newtext, "ifl", 3))
         return scriptjbjl;
-    else if(!strncmp(text, "ja", 2) or !strncmp(text, "ifa", 3) or !strncmp(text, "jg", 2) or !strncmp(text, "ifg", 3))
+    else if(!strncmp(newtext, "ja", 2) or !strncmp(newtext, "ifa", 3) or !strncmp(newtext, "jg", 2) or !strncmp(newtext, "ifg", 3))
         return scriptjajg;
-    else if(!strncmp(text, "jbe", 3) or !strncmp(text, "ifbe", 4) or !strncmp(text, "ifbeq", 5) or !strncmp(text, "jle", 3) or !strncmp(text, "ifle", 4) or !strncmp(text, "ifleq", 5))
+    else if(!strncmp(newtext, "jbe", 3) or !strncmp(newtext, "ifbe", 4) or !strncmp(newtext, "ifbeq", 5) or !strncmp(newtext, "jle", 3) or !strncmp(newtext, "ifle", 4) or !strncmp(newtext, "ifleq", 5))
         return scriptjbejle;
-    else if(!strncmp(text, "jae", 3) or !strncmp(text, "ifae", 4) or !strncmp(text, "ifaeq", 5) or !strncmp(text, "jge", 3) or !strncmp(text, "ifge", 4) or !strncmp(text, "ifgeq", 5))
+    else if(!strncmp(newtext, "jae", 3) or !strncmp(newtext, "ifae", 4) or !strncmp(newtext, "ifaeq", 5) or !strncmp(newtext, "jge", 3) or !strncmp(newtext, "ifge", 4) or !strncmp(newtext, "ifgeq", 5))
         return scriptjaejge;
     return scriptnobranch;
-}
-
-static bool scriptislabel(const char* text)
-{
-    if(!strstr(text, " ") and !strstr(text, ",") and !strstr(text, "\\") and text[strlen(text)-1]==':')
-        return true;
-    return false;
 }
 
 static int scriptlabelfind(const char* labelname)
@@ -92,7 +88,6 @@ static bool scriptcreatelinemap(const char* filename)
         else if(j>=254)
         {
             memset(&entry, 0, sizeof(entry));
-            argformat(temp);
             strcpy(entry.raw, temp);
             *temp=0;
             j=0;
@@ -127,10 +122,12 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type=linecomment;
             strcpy(cur.u.comment, cur.raw);
         }
-        else if(scriptislabel(cur.raw)) //label
+        else if(cur.raw[rawlen-1]==':') //label
         {
             cur.type=linelabel;
-            strncpy(cur.u.label, cur.raw, rawlen-1);
+            sprintf(cur.u.label, "l %.*s", rawlen-1, cur.raw); //create a fake command for formatting
+            argformat(cur.u.label); //format labels
+            strcpy(cur.u.label, cur.u.label+2); //remove fake command
             int foundlabel=scriptlabelfind(cur.u.label);
             if(foundlabel) //label defined twice
             {
@@ -145,11 +142,14 @@ static bool scriptcreatelinemap(const char* filename)
         {
             cur.type=linebranch;
             cur.u.branch.type=scriptgetbranchtype(cur.raw);
-            int len=strlen(cur.raw);
+            char newraw[MAX_SCRIPT_LINE_SIZE]="";
+            strcpy(newraw, cur.raw);
+            argformat(newraw);
+            int len=strlen(newraw);
             for(int i=0; i<len; i++)
-                if(cur.raw[i]==' ')
+                if(newraw[i]==' ')
                 {
-                    strcpy(cur.u.branch.branchlabel, cur.raw+i+1);
+                    strcpy(cur.u.branch.branchlabel, newraw+i+1);
                     break;
                 }
         }
