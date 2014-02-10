@@ -15,6 +15,8 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     char newtext[MAX_SCRIPT_LINE_SIZE]="";
     strcpy(newtext, text);
     argformat(newtext); //format jump commands
+    if(!strstr(newtext, " "))
+        strcat(newtext, " ");
     if(!strncmp(newtext, "jmp ", 4) or !strncmp(newtext, "goto ", 5))
         return scriptjmp;
     else if(!strncmp(newtext, "jbe ", 4) or !strncmp(newtext, "ifbe ", 5) or !strncmp(newtext, "ifbeq ", 6) or !strncmp(newtext, "jle ", 4) or !strncmp(newtext, "ifle ", 5) or !strncmp(newtext, "ifleq ", 6))
@@ -128,6 +130,14 @@ static bool scriptcreatelinemap(const char* filename)
             sprintf(cur.u.label, "l %.*s", rawlen-1, cur.raw); //create a fake command for formatting
             argformat(cur.u.label); //format labels
             strcpy(cur.u.label, cur.u.label+2); //remove fake command
+            if(!*cur.u.label or !strcmp(cur.u.label, "\"\"")) //no label text
+            {
+                char message[256]="";
+                sprintf(message, "Empty label detected on line %d!", i+1);
+                GuiScriptError(0, message);
+                linemap.clear();
+                return false;
+            }
             int foundlabel=scriptlabelfind(cur.u.label);
             if(foundlabel) //label defined twice
             {
