@@ -55,6 +55,7 @@ without having to update the code of the other parts.
 - (manual) function analysis
 - easily follow calls/jumps/ret (press ENTER in when selecting)
 - (buggy) dynamic commenting
+- scripting support (using the debugger commands)!
 
 >Known bugs:
 - memory breakpoints sometimes fail (TitanEngine bug)
