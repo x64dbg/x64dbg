@@ -3,6 +3,8 @@
 #include "console.h"
 #include "argument.h"
 #include "variable.h"
+#include "threading.h"
+#include "x64_dbg.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 static std::vector<SCRIPTBP> scriptbplist;
@@ -239,17 +241,49 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
     return true;
 }
 
+static bool scriptisruncommand(const char* cmdlist, const char* command)
+{
+    if(arraycontains(cmdlist, "run"))
+        return true;
+    else if(arraycontains(cmdlist, "erun"))
+        return true;
+    else if(arraycontains(cmdlist, "sti"))
+        return true;
+    else if(arraycontains(cmdlist, "esti"))
+        return true;
+    else if(arraycontains(cmdlist, "step"))
+        return true;
+    else if(arraycontains(cmdlist, "estep"))
+        return true;
+    else if(arraycontains(cmdlist, "sstep"))
+        return true;
+    else if(arraycontains(cmdlist, "rtr"))
+        return true;
+    else if(arraycontains(cmdlist, "ertr"))
+        return true;
+    return false;
+}
+
 static CMDRESULT scriptinternalcmdexec(const char* command)
 {
-    dprintf("scriptinternalcmdexec(%s)\n", command);
-    if(!strcmp(command, "ret")) //script finished
+    if(arraycontains(command, "ret")) //script finished
     {
         GuiScriptMessage("Script finished!");
         return STATUS_EXIT;
     }
-    else if(!strcmp(command, "invalid")) //invalid command for testing
+    else if(arraycontains(command, "invalid")) //invalid command for testing
         return STATUS_ERROR;
-    return STATUS_CONTINUE;
+    COMMAND* cmd=cmdget(dbggetcommandlist(), command);
+    if(!cmd) //invalid command
+        return STATUS_ERROR;
+    if(scriptisruncommand(cmd->name, command))
+    {
+        CMDRESULT res=cmddirectexec(dbggetcommandlist(), command);
+        while(!waitislocked(WAITID_RUN)) //while not locked (NOTE: possible deadlock)
+            Sleep(10);
+        return res;
+    }
+    return cmddirectexec(dbggetcommandlist(), command);
 }
 
 static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump
