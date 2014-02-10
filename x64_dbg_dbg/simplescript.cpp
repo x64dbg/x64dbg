@@ -48,7 +48,10 @@ static bool scriptcreatelinemap(const char* filename)
 {
     HANDLE hFile=CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile==INVALID_HANDLE_VALUE)
+    {
+        GuiScriptError(0, "CreateFile failed...");
         return false;
+    }
     unsigned int filesize=GetFileSize(hFile, 0);
     char* filedata=(char*)emalloc(filesize+1, "createlinemap:filedata");
     memset(filedata, 0, filesize+1);
@@ -238,6 +241,43 @@ static CMDRESULT scriptinternalcmdexec(const char* command)
     return STATUS_CONTINUE;
 }
 
+static bool scriptinternalcmd()
+{
+    bool bContinue=true;
+    LINEMAPENTRY cur=linemap.at(scriptIp-1);
+    if(cur.type==linecommand)
+    {
+        switch(scriptinternalcmdexec(cur.u.command))
+        {
+        case STATUS_CONTINUE:
+            break;
+        case STATUS_ERROR:
+            bContinue=false;
+            GuiScriptError(scriptIp, "Error executing command!");
+            break;
+        case STATUS_EXIT:
+            bContinue=false;
+            scriptIp=scriptinternalstep(0);
+            GuiScriptSetIp(scriptIp);
+            break;
+        }
+    }
+    else if(cur.type==linebranch) //branch
+    {
+        switch(cur.u.branch.type) //branch types
+        {
+        case scriptjmp:
+            scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
+            break;
+        default:
+            bContinue=false;
+            GuiScriptError(scriptIp, "Branches are not yet supported...");
+            break;
+        }
+    }
+    return bContinue;
+}
+
 static DWORD WINAPI scriptRunThread(void* arg)
 {
     int destline=(int)(duint)arg;
@@ -256,36 +296,7 @@ static DWORD WINAPI scriptRunThread(void* arg)
     bool bContinue=true;
     while(bContinue && !bAbort) //run loop
     {
-        LINEMAPENTRY cur=linemap.at(scriptIp-1);
-        if(cur.type==linecommand)
-        {
-            CMDRESULT cmdres=scriptinternalcmdexec(cur.u.command);
-            switch(cmdres)
-            {
-            case STATUS_CONTINUE:
-                break;
-            case STATUS_ERROR:
-                bContinue=false;
-                GuiScriptError(scriptIp, "Error executing command!");
-                break;
-            case STATUS_EXIT:
-                bContinue=false;
-                scriptIp=scriptinternalstep(0);
-                break;
-            }
-        }
-        else if(cur.type==linebranch) //branch
-        {
-            if(cur.u.branch.type==scriptjmp) //simple jump
-            {
-                scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
-            }
-            else
-            {
-                bContinue=false;
-                GuiScriptError(scriptIp, "Branches are not yet supported...");
-            }
-        }
+        bContinue=scriptinternalcmd();
         if(scriptIp==scriptinternalstep(scriptIp)) //end of script
         {
             bContinue=false;
@@ -337,42 +348,8 @@ void scriptstep()
     if(bIsRunning) //already running
         return;
     scriptIp=scriptinternalstep(scriptIp-1); //probably useless
-    bool bContinue=true;
-    LINEMAPENTRY cur=linemap.at(scriptIp-1);
-    if(cur.type==linecommand)
-    {
-        CMDRESULT cmdres=scriptinternalcmdexec(cur.u.command);
-        switch(cmdres)
-        {
-        case STATUS_CONTINUE:
-            break;
-        case STATUS_ERROR:
-            bContinue=false;
-            GuiScriptError(scriptIp, "Error executing command!");
-            break;
-        case STATUS_EXIT:
-            bContinue=false;
-            scriptIp=scriptinternalstep(0);
-            GuiScriptSetIp(scriptIp);
-            break;
-        }
-    }
-    else if(cur.type==linebranch) //branch
-    {
-        if(cur.u.branch.type==scriptjmp) //simple jump
-        {
-            scriptIp=scriptlabelfind(cur.u.branch.branchlabel);
-        }
-        else
-        {
-            bContinue=false;
-            GuiScriptError(scriptIp, "Branches are not yet supported...");
-        }
-    }
-
-    if(!bContinue)
+    if(!scriptinternalcmd())
         return;
-
     if(scriptIp==scriptinternalstep(scriptIp)) //end of script
         scriptIp=0;
     scriptIp=scriptinternalstep(scriptIp);
