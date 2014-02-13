@@ -54,4 +54,9 @@ void scriptabort();
 SCRIPTLINETYPE scriptgetlinetype(int line);
 void scriptsetip(int line);
 
+//script commands
+CMDRESULT cbScriptLoad(int argc, char* argv[]);
+CMDRESULT cbScriptMsg(int argc, char* argv[]);
+CMDRESULT cbScriptMsgyn(int argc, char* argv[]);
+
 #endif // _SIMPLESCRIPT_H

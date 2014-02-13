@@ -12,13 +12,14 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
 
     setIp(0); //no IP
 
-    connect(Bridge::getBridge(), SIGNAL(scriptAddLine(QString)), this, SLOT(addLine(QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptAdd(int,const char**)), this, SLOT(add(int,const char**)));
     connect(Bridge::getBridge(), SIGNAL(scriptClear()), this, SLOT(clear()));
     connect(Bridge::getBridge(), SIGNAL(scriptSetIp(int)), this, SLOT(setIp(int)));
     connect(Bridge::getBridge(), SIGNAL(scriptError(int,QString)), this, SLOT(error(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptSetTitle(QString)), this, SLOT(setTitle(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptSetInfoLine(int,QString)), this, SLOT(setInfoLine(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
 
     setupContextMenu();
 }
@@ -178,12 +179,14 @@ void ScriptView::setupContextMenu()
 }
 
 //slots
-void ScriptView::addLine(QString text)
+void ScriptView::add(int count, const char** lines)
 {
-    int rows=getRowCount();
-    setRowCount(rows+1);
-    setCellContent(rows, 1, text);
+    setRowCount(count);
+    for(int i=0; i<count; i++)
+        setCellContent(i, 1, QString(lines[i]));
+    BridgeFree(lines);
     reloadData(); //repaint
+    Bridge::getBridge()->scriptResult=1;
 }
 
 void ScriptView::clear()
@@ -195,10 +198,20 @@ void ScriptView::clear()
 
 void ScriptView::setIp(int line)
 {
-    if(!isValidIndex(line-1, 0))
+    int offset=line-1;
+    if(!isValidIndex(offset, 0))
+    {
         mIpLine=0;
-    else
-        mIpLine=line;
+        return;
+    }
+    mIpLine=line;
+    int rangefrom=getTableOffset();
+    int rangeto=rangefrom+getViewableRowsCount()-1;
+    if(offset<rangefrom) //ip lays before the current view
+        setTableOffset(offset);
+    else if(offset>(rangeto-1)) //ip lays after the current view
+        setTableOffset(offset-getViewableRowsCount()+2);
+    setSingleSelection(offset);
     reloadData(); //repaint
 }
 
@@ -303,4 +316,14 @@ void ScriptView::newIp()
     int selected=getInitialSelection()+1;
     if(isValidIndex(selected-1, 0))
         DbgScriptSetIp(selected);
+}
+
+void ScriptView::question(QString message)
+{
+    QMessageBox msg(QMessageBox::Question, "Question", message, QMessageBox::Yes|QMessageBox::No);
+    msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+    if(msg.exec()==QMessageBox::Yes)
+        Bridge::getBridge()->scriptResult=1;
+    else
+        Bridge::getBridge()->scriptResult=0;
 }

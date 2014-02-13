@@ -34,15 +34,18 @@ public:
     void emitSetInfoLine(int line, QString text);
     void emitClearInfoBox();
     void emitDumpAt(int_t va);
-    void emitScriptAddLine(QString text);
+    void emitScriptAdd(int count, const char** lines);
     void emitScriptClear();
     void emitScriptSetIp(int line);
     void emitScriptError(int line, QString message);
     void emitScriptSetTitle(QString title);
     void emitScriptSetInfoLine(int line, QString info);
     void emitScriptMessage(QString message);
+    int emitScriptQuestion(QString message);
 
     void* winId;
+    QWidget* scriptView;
+    int scriptResult;
     
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -57,17 +60,19 @@ signals:
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
 
-    void scriptAddLine(QString text);
+    void scriptAdd(int count, const char** lines);
     void scriptClear();
     void scriptSetIp(int line);
     void scriptError(int line, QString message);
     void scriptSetTitle(QString title);
     void scriptSetInfoLine(int line, QString info);
     void scriptMessage(QString message);
+    void scriptQuestion(QString message);
     
 public slots:
 
 private:
+    QMutex mBridgeMutex;
 
 public:
 

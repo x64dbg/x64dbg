@@ -24,5 +24,6 @@
         <file>images/script-code.png</file>
         <file>images/script-error.png</file>
         <file>images/information.png</file>
+        <file>images/question.png</file>
     </qresource>
 </RCC>

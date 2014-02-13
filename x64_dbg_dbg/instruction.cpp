@@ -8,6 +8,7 @@
 #include "assemble.h"
 #include "debugger.h"
 #include "memory.h"
+#include "x64_dbg.h"
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -476,11 +477,264 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
         ezflag=1;
     else
         ezflag=0;
-    if(arg1>arg2)
-        bsflag=1;
-    else
-        bsflag=0;
+    if(valuesignedcalc()) //signed comparision
+    {
+        if((sint)arg1<(sint)arg2)
+            bsflag=0;
+        else
+            bsflag=1;
+    }
+    else //unsigned comparision
+    {
+        if(arg1>arg2)
+            bsflag=1;
+        else
+            bsflag=0;
+    }
     varset("$_EZ_FLAG", ezflag, true);
     varset("$_BS_FLAG", bsflag, true);
+    //dprintf("$_EZ_FLAG=%d, $_BS_FLAG=%d\n", ezflag, bsflag);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrGpa(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    if(argc>=3)
+        sprintf(newcmd, "%s:%s", argv[2], argv[1]);
+    else
+        sprintf(newcmd, "%s", argv[1]);
+    uint result=0;
+    if(!valfromstring(newcmd, &result, 0, 0, false, 0))
+        return STATUS_ERROR;
+    varset("$RESULT", result, false);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrAdd(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s+%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrAnd(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s&%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrDec(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s-1", argv[1], argv[1]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrDiv(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s/%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrInc(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s+1", argv[1], argv[1]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrMul(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s*%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrNeg(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s*-1", argv[1], argv[1]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrNot(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,~%s", argv[1], argv[1]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrOr(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s|%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrRol(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
+    bool signedcalc=valuesignedcalc();
+    valuesetsignedcalc(true); //rol = signed
+    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    valuesetsignedcalc(signedcalc);
+    return res;
+}
+
+CMDRESULT cbInstrRor(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
+    bool signedcalc=valuesignedcalc();
+    valuesetsignedcalc(true); //ror = signed
+    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    valuesetsignedcalc(signedcalc);
+    return res;
+}
+
+CMDRESULT cbInstrShl(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
+    bool signedcalc=valuesignedcalc();
+    valuesetsignedcalc(false); //shl = unsigned
+    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    valuesetsignedcalc(signedcalc);
+    return res;
+}
+
+CMDRESULT cbInstrShr(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
+    bool signedcalc=valuesignedcalc();
+    valuesetsignedcalc(false); //shr = unsigned
+    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    valuesetsignedcalc(signedcalc);
+    return res;
+}
+
+CMDRESULT cbInstrSub(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s-%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrTest(int argc, char* argv[])
+{
+    //TODO: test
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint arg1=0;
+    if(!valfromstring(argv[1], &arg1, 0, 0, false, 0))
+        return STATUS_ERROR;
+    uint arg2=0;
+    if(!valfromstring(argv[2], &arg2, 0, 0, false, 0))
+        return STATUS_ERROR;
+    uint ezflag;
+    uint bsflag=0;
+    if(!(arg1&arg2))
+        ezflag=1;
+    else
+        ezflag=0;
+    varset("$_EZ_FLAG", ezflag, true);
+    varset("$_BS_FLAG", bsflag, true);
+    //dprintf("$_EZ_FLAG=%d, $_BS_FLAG=%d\n", ezflag, bsflag);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrXor(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    char newcmd[deflen]="";
+    sprintf(newcmd, "mov %s,%s^%s", argv[1], argv[1], argv[2]);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+

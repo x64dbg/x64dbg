@@ -47,6 +47,7 @@ static int scriptlabelfind(const char* labelname)
 
 static bool scriptcreatelinemap(const char* filename)
 {
+    DWORD ticks=GetTickCount();
     HANDLE hFile=CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile==INVALID_HANDLE_VALUE)
     {
@@ -193,6 +194,7 @@ static bool scriptcreatelinemap(const char* filename)
         strcpy(entry.u.command, "ret");
         linemap.push_back(entry);
     }
+    dprintf("%ums to parse the script\n", GetTickCount()-ticks);
     return true;
 }
 
@@ -390,18 +392,29 @@ static DWORD WINAPI scriptRunThread(void* arg)
     return 0;
 }
 
-void scriptload(const char* filename)
+static DWORD WINAPI scriptLoadThread(void* filename)
 {
     GuiScriptClear();
     scriptIp=0;
     scriptbplist.clear(); //clear breakpoints
     bAbort=false;
-    if(!scriptcreatelinemap(filename))
-        return;
-    for(unsigned int i=0; i<linemap.size(); i++) //add script lines
-        GuiScriptAddLine(linemap.at(i).raw);
+    if(!scriptcreatelinemap((const char*)filename))
+        return 0;
+    int lines=linemap.size();
+    const char** script=(const char**)BridgeAlloc(lines*sizeof(const char*));
+    for(int i=0; i<lines; i++) //add script lines
+        script[i]=linemap.at(i).raw;
+    GuiScriptAdd(lines, script);
     scriptIp=scriptinternalstep(0);
     GuiScriptSetIp(scriptIp);
+    return 0;
+}
+
+void scriptload(const char* filename)
+{
+    static char filename_[MAX_PATH]="";
+    strcpy(filename_, filename);
+    CreateThread(0, 0, scriptLoadThread, filename_, 0, 0);
 }
 
 void scriptunload()
@@ -420,17 +433,23 @@ void scriptrun(int destline)
     CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0);
 }
 
-void scriptstep()
+DWORD WINAPI scriptStepThread(void* param)
 {
     if(bIsRunning) //already running
-        return;
+        return 0;
     scriptIp=scriptinternalstep(scriptIp-1); //probably useless
     if(!scriptinternalcmd())
-        return;
+        return 0;
     if(scriptIp==scriptinternalstep(scriptIp)) //end of script
         scriptIp=0;
     scriptIp=scriptinternalstep(scriptIp);
     GuiScriptSetIp(scriptIp);
+    return 0;
+}
+
+void scriptstep()
+{
+    CreateThread(0, 0, scriptStepThread, 0, 0, 0);
 }
 
 bool scriptbptoggle(int line)
@@ -504,4 +523,34 @@ void scriptsetip(int line)
         line--;
     scriptIp=scriptinternalstep(line);
     GuiScriptSetIp(scriptIp);
+}
+
+CMDRESULT cbScriptLoad(int argc, char* argv[])
+{
+    if(argc<2)
+        return STATUS_ERROR;
+    scriptload(argv[1]);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbScriptMsg(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    GuiScriptMessage(argv[1]);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbScriptMsgyn(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    varset("$RESULT", GuiScriptMsgyn(argv[1]), false);
+    return STATUS_CONTINUE;
 }

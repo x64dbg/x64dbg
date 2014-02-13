@@ -276,13 +276,14 @@ enum GUIMSG
     GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
     GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
 
-    GUI_SCRIPT_ADDLINE,             // param1=const char* text,     param2=unused
+    GUI_SCRIPT_ADD,                 // param1=int count,            param2=const char** lines
     GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
     GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
     GUI_SCRIPT_ERROR,               // param1=int line,             param2=const char* message
     GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
     GUI_SCRIPT_SETINFOLINE,         // param1=int line,             param2=const char* info
-    GUI_SCRIPT_MESSAGE              // param1=const char* message,  param2=unused
+    GUI_SCRIPT_MESSAGE,             // param1=const char* message,  param2=unused
+    GUI_SCRIPT_MSGYN                // param1=const char* message,  param2=unused
 };
 
 //GUI functions
@@ -299,13 +300,14 @@ BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
 BRIDGE_IMPEXP void GuiDumpAt(duint va);
 
-BRIDGE_IMPEXP void GuiScriptAddLine(const char* text);
+BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines);
 BRIDGE_IMPEXP void GuiScriptClear();
 BRIDGE_IMPEXP void GuiScriptSetIp(int line);
 BRIDGE_IMPEXP void GuiScriptError(int line, const char* message);
 BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message);
+BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message);
 
 #ifdef __cplusplus
 }

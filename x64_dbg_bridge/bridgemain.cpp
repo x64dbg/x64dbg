@@ -584,9 +584,9 @@ BRIDGE_IMPEXP void GuiDumpAt(duint va)
     _gui_sendmessage(GUI_DUMP_AT, (void*)va, 0);
 }
 
-BRIDGE_IMPEXP void GuiScriptAddLine(const char* text)
+BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines)
 {
-    _gui_sendmessage(GUI_SCRIPT_ADDLINE, (void*)text, 0);
+    _gui_sendmessage(GUI_SCRIPT_ADD, (void*)(duint)count, (void*)lines);
 }
 
 BRIDGE_IMPEXP void GuiScriptClear()
@@ -617,6 +617,11 @@ BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message)
 {
     _gui_sendmessage(GUI_SCRIPT_MESSAGE, (void*)message, 0);
+}
+
+BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
+{
+    return (int)(duint)_gui_sendmessage(GUI_SCRIPT_MSGYN, (void*)message, 0);
 }
 
 //Main

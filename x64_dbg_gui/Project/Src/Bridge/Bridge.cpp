@@ -79,9 +79,14 @@ void Bridge::emitDumpAt(int_t va)
     emit dumpAt(va);
 }
 
-void Bridge::emitScriptAddLine(QString text)
+void Bridge::emitScriptAdd(int count, const char** lines)
 {
-    emit scriptAddLine(text);
+    mBridgeMutex.lock();
+    scriptResult=-1;
+    emit scriptAdd(count, lines);
+    while(scriptResult==-1) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
 }
 
 void Bridge::emitScriptClear()
@@ -112,6 +117,17 @@ void Bridge::emitScriptSetInfoLine(int line, QString info)
 void Bridge::emitScriptMessage(QString message)
 {
     emit scriptMessage(message);
+}
+
+int Bridge::emitScriptQuestion(QString message)
+{
+    mBridgeMutex.lock();
+    scriptResult=-1;
+    emit scriptQuestion(message);
+    while(scriptResult==-1) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
+    return scriptResult;
 }
 
 
@@ -213,9 +229,9 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
-    case GUI_SCRIPT_ADDLINE:
+    case GUI_SCRIPT_ADD:
     {
-        Bridge::getBridge()->emitScriptAddLine(QString(reinterpret_cast<const char*>(param1)));
+        Bridge::getBridge()->emitScriptAdd((int)(int_t)param1, reinterpret_cast<const char**>(param2));
     }
     break;
 
@@ -234,8 +250,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SCRIPT_ERROR:
     {
-        int_t arg=(int_t)param1;
-        Bridge::getBridge()->emitScriptError((int)arg, QString(reinterpret_cast<const char*>(param2)));
+        Bridge::getBridge()->emitScriptError((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
     }
     break;
 
@@ -255,6 +270,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SCRIPT_MESSAGE:
     {
         Bridge::getBridge()->emitScriptMessage(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SCRIPT_MSGYN:
+    {
+        return (void*)Bridge::getBridge()->emitScriptQuestion(QString(reinterpret_cast<const char*>(param1)));
     }
     break;
 

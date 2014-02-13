@@ -18,7 +18,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* event);
 
 public slots:
-    void addLine(QString text);
+    void add(int count, const char** lines);
     void clear();
     void setIp(int line);
     void error(int line, QString message);
@@ -34,6 +34,7 @@ public slots:
     void cmdExec();
     void message(QString message);
     void newIp();
+    void question(QString message);
 
 private:
     //private functions
