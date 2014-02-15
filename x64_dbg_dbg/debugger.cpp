@@ -972,7 +972,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         dprintf("could not disable "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
-    dputs("breakpoint enabled!");
+    dputs("breakpoint disabled!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

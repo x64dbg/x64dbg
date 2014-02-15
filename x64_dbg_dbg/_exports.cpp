@@ -442,6 +442,11 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
             curBp.active=true;
         strcpy(curBp.mod, list[i].mod);
+        int len=strlen(curBp.mod);
+        while(curBp.mod[len]!='.' and len)
+            len--;
+        if(len)
+            curBp.mod[len]=0;
         strcpy(curBp.name, list[i].name);
         curBp.singleshoot=list[i].singleshoot;
         curBp.slot=slot;
