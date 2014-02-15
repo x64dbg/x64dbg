@@ -268,12 +268,12 @@ static bool scriptisruncommand(const char* cmdlist, const char* command)
 
 static CMDRESULT scriptinternalcmdexec(const char* command)
 {
-    if(arraycontains(command, "ret")) //script finished
+    if(scmp(command, "ret")) //script finished
     {
         GuiScriptMessage("Script finished!");
         return STATUS_EXIT;
     }
-    else if(arraycontains(command, "invalid")) //invalid command for testing
+    else if(scmp(command, "invalid")) //invalid command for testing
         return STATUS_ERROR;
     COMMAND* cmd=cmdget(dbggetcommandlist(), command);
     if(!cmd) //invalid command

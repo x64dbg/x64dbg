@@ -52,7 +52,8 @@ SOURCES += \
     Src/Utils/Breakpoints.cpp \
     Src/BasicView/InfoBox.cpp \
     Src/Gui/CPUDump.cpp \
-    Src/BasicView/ScriptView.cpp
+    Src/BasicView/ScriptView.cpp \
+    Src/Gui/CPUStack.cpp
 
 
 HEADERS += \
@@ -85,7 +86,8 @@ HEADERS += \
     Src/Utils/Breakpoints.h \
     Src/BasicView/InfoBox.h \
     Src/Gui/CPUDump.h \
-    Src/BasicView/ScriptView.h
+    Src/BasicView/ScriptView.h \
+    Src/Gui/CPUStack.h
 
 INCLUDEPATH += \
     Src \

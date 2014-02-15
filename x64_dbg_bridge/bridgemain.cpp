@@ -138,7 +138,8 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
+    unsigned char* a=(unsigned char*)VirtualAlloc(0, size+0x1000, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+    //unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -150,7 +151,8 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
-    delete[] (unsigned char*)ptr;
+    VirtualFree(ptr, 0, MEM_RELEASE);
+    //delete[] (unsigned char*)ptr;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
@@ -405,7 +407,7 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
     //NOTE: test code for 'function.exe'
-    if(depth==0)
+    /*if(depth==0)
     {
         if(addr==0x00401348)
             return LOOP_BEGIN;
@@ -437,7 +439,7 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
             return LOOP_MIDDLE;
         else if(addr==0x00401393)
             return LOOP_END;
-    }
+    }*/
     return LOOP_NONE;
 }
 
