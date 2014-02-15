@@ -1030,9 +1030,30 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 
     mCipRva = wCipRva;
 
+    // Update table offset depending on the location of the instruction to disassamble
     if(mInstBuffer.size() > 0 && wRVA >= (int_t)mInstBuffer.first().rva && wRVA < (int_t)mInstBuffer.last().rva)
     {
-        repaint();
+        int wI;
+        bool wIsAligned = false;
+
+        // Check if the new RVA is aligned on an instruction from the cache (buffer)
+        for(wI = 0; wI < mInstBuffer.size(); wI++)
+        {
+            if(mInstBuffer.at(wI).rva == wRVA)
+            {
+                wIsAligned = true;
+                break;
+            }
+        }
+
+        if(wIsAligned == true)
+        {
+            repaint();
+        }
+        else
+        {
+            setTableOffset(wRVA);
+        }
     }
     else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
     {
