@@ -117,7 +117,9 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
             if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
-                strcpy(addrinfo->label, pSymbol->Name);
+                //TODO: user preference
+                if(!UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                    strcpy(addrinfo->label, pSymbol->Name);
                 retval=true;
             }
         }
