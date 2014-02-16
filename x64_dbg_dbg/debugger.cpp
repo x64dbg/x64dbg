@@ -700,6 +700,7 @@ CMDRESULT cbStopDebug(int argc, char* argv[])
 {
     StopDebug();
     unlock(WAITID_RUN);
+    wait(WAITID_STOP);
     return STATUS_CONTINUE;
 }
 
