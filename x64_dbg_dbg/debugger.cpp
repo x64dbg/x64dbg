@@ -549,6 +549,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
+    lock(WAITID_STOP); //we are running
     //initialize
     bIsAttached=false;
     bSkipExceptions=false;
@@ -565,6 +566,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     {
         fdProcessInfo=&g_pi;
         dputs("error starting process (invalid pe?)!");
+        unlock(WAITID_STOP);
         return 0;
     }
     BOOL wow64=false, mewow64=false;
@@ -572,19 +574,19 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     {
         dputs("IsWow64Process failed!");
         StopDebug();
+        unlock(WAITID_STOP);
         return 0;
     }
     if((mewow64 and !wow64) or (!mewow64 and wow64))
     {
 #ifdef _WIN64
         dputs("Use x32_dbg to debug this process!");
-        return 0;
 #else
         dputs("Use x64_dbg to debug this process!");
 #endif // _WIN64
+        unlock(WAITID_STOP);
         return 0;
     }
-    lock(WAITID_STOP);
     BridgeSettingSet("Recent Files", "path", szFileName);
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
@@ -631,8 +633,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     dputs("debugging stopped!");
     varset("$hp", 0, true);
     varset("$pid", 0, true);
-    unlock(WAITID_STOP);
-    waitclear();
+    unlock(WAITID_STOP); //we are done
     return 0;
 }
 
@@ -685,7 +686,8 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     if(*currentfolder)
         init->currentfolder=currentfolder;
     //initialize
-    waitclear(); //clear waiting flags
+    wait(WAITID_STOP); //wait for the debugger to stop
+    waitclear(); //clear waiting flags NOTE: thread-unsafe
     if(!CreateThread(0, 0, threadDebugLoop, init, 0, 0))
     {
         dputs("failed creating debug thread!");

@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "sqlhelper.h"
 #include "breakpoint.h"
+#include "threading.h"
 
 sqlite3* userdb;
 static std::vector<MODINFO> modinfo;
@@ -12,11 +13,14 @@ static std::vector<MODINFO> modinfo;
 void dbinit()
 {
     //initialize user database
+    lock(WAITID_USERDB);
     if(sqlite3_open(":memory:", &userdb))
     {
+        unlock(WAITID_USERDB);
         dputs("failed to open database!");
         return;
     }
+    unlock(WAITID_USERDB);
     sqlloadsavedb(userdb, dbpath, false);
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS labels (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, addr INT64 NOT NULL, text TEXT NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
@@ -55,8 +59,11 @@ void dbclose()
     if(!sqlexec(userdb, "DELETE FROM breakpoints WHERE mod IS NULL"))
         dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
+    wait(WAITID_USERDB); //wait for the SQLite operation to complete before closing
+    lock(WAITID_USERDB);
     sqlite3_db_release_memory(userdb);
     sqlite3_close(userdb); //close user database
+    unlock(WAITID_USERDB);
 }
 
 ///module functions
@@ -369,14 +376,17 @@ bool labelfromstring(const char* text, uint* addr)
     char sql[deflen]="";
     sprintf(sql, "SELECT addr,mod FROM labels WHERE text='%s'", labeltext);
     sqlite3_stmt* stmt;
+    lock(WAITID_USERDB);
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
 #ifdef _WIN64
@@ -388,11 +398,13 @@ bool labelfromstring(const char* text, uint* addr)
     if(!modname)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return true;
     }
     //TODO: fix this
     *addr+=modbasefromname(modname);
     sqlite3_finalize(stmt);
+    unlock(WAITID_USERDB);
     return true;
 }
 
@@ -545,14 +557,17 @@ bool functionget(duint addr, duint* start, duint* end)
         sprintf(sql, "SELECT start,end FROM functions WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d", modname, rva, rva);
     }
     sqlite3_stmt* stmt;
+    lock(WAITID_USERDB);
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
 #ifdef _WIN64
@@ -567,6 +582,7 @@ bool functionget(duint addr, duint* start, duint* end)
         *start=dbstart;
     if(end)
         *end=dbend;
+    unlock(WAITID_USERDB);
     return true;
 }
 

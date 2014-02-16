@@ -4,6 +4,7 @@
 #include "sqlhelper.h"
 #include "console.h"
 #include "memory.h"
+#include "threading.h"
 
 static BREAKPOINT bpall[1000]; //TODO: fix this size
 static int bpcount=0;
@@ -86,19 +87,23 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
             sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE (addr=%"fext"d AND type=%d AND mod='%s')", addr-modbase, type, modname);
     }
     sqlite3_stmt* stmt;
+    lock(WAITID_USERDB);
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     if(!bp) //just check if a breakpoint exists
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return true;
     }
     memset(bp, 0, sizeof(BREAKPOINT));
@@ -133,6 +138,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     if(memisvalidreadptr(fdProcessInfo->hProcess, bp->addr))
         bp->active=true;
     sqlite3_finalize(stmt);
+    unlock(WAITID_USERDB);
     return true;
 }
 
@@ -214,14 +220,17 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
     else
         sprintf(sql, "SELECT addr,enabled,singleshoot,oldbytes,type,titantype,mod,name FROM breakpoints WHERE mod='%s'", module);
     sqlite3_stmt* stmt;
+    lock(WAITID_USERDB);
     if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     if(sqlite3_step(stmt)!=SQLITE_ROW)
     {
         sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
         return false;
     }
     BREAKPOINT curbp;
@@ -270,6 +279,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
     }
     while(sqlite3_step(stmt)==SQLITE_ROW);
     sqlite3_finalize(stmt);
+    unlock(WAITID_USERDB);
     return retval;
 }
 

@@ -45,6 +45,7 @@
     </property>
     <addaction name="actionRun"/>
     <addaction name="actioneRun"/>
+    <addaction name="actionRunSelection"/>
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
@@ -381,6 +382,21 @@
    </property>
    <property name="shortcut">
     <string>Alt+S</string>
+   </property>
+  </action>
+  <action name="actionRunSelection">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-run-cursor.png</normaloff>:/icons/images/arrow-run-cursor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Run until selection</string>
+   </property>
+   <property name="toolTip">
+    <string>Run until selection</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
    </property>
   </action>
  </widget>

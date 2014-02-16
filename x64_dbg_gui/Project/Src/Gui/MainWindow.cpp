@@ -108,12 +108,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionScylla,SIGNAL(triggered()),this,SLOT(startScylla()));
     connect(ui->actionRestart,SIGNAL(triggered()),this,SLOT(restartDebugging()));
     connect(ui->actionBreakpoints,SIGNAL(triggered()),this,SLOT(displayBreakpointWidget()));
-
     connect(ui->actioneStepOver,SIGNAL(triggered()),this,SLOT(execeStepOver()));
     connect(ui->actioneStepInto,SIGNAL(triggered()),this,SLOT(execeStepInto()));
     connect(ui->actioneRun,SIGNAL(triggered()),this,SLOT(execeRun()));
     connect(ui->actioneRtr,SIGNAL(triggered()),this,SLOT(execeRtr()));
     connect(ui->actionScript,SIGNAL(triggered()),this,SLOT(displayScriptWidget()));
+    connect(ui->actionRunSelection,SIGNAL(triggered()),mCpuWin,SLOT(runSelection()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));

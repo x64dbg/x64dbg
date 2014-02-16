@@ -4,7 +4,6 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
 {
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
-
 }
 
 void CPUDisassembly::CopyToClipboard(const char* text)

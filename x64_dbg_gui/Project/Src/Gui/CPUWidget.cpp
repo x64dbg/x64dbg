@@ -87,3 +87,12 @@ QVBoxLayout* CPUWidget::getBotRightWidget(void)
 {
     return ui->mBotRightFrameLayout;
 }
+
+void CPUWidget::runSelection()
+{
+    if(!DbgIsDebugging())
+        return;
+    QString command = "bp " + QString("%1").arg(mDisas->rvaToVa(mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper() + ", ss";
+    if(DbgCmdExecDirect(command.toUtf8().constData()))
+        DbgCmdExecDirect("run");
+}

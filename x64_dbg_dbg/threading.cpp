@@ -1,10 +1,10 @@
 #include "threading.h"
 
-static bool waitarray[16];
+static volatile bool waitarray[16];
 
 void waitclear()
 {
-    memset(waitarray, 0, sizeof(waitarray));
+    memset((void*)waitarray, 0, sizeof(waitarray));
 }
 
 void wait(WAIT_ID id)

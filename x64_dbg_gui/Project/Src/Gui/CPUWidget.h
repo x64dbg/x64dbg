@@ -28,6 +28,9 @@ public:
 
 signals:
 
+public slots:
+    void runSelection();
+
 private:
     Ui::CPUWidget *ui;
     Disassembly* mDisas;
