@@ -141,11 +141,12 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         // Separator
         wMenu->addSeparator();
 
+        // New origin
+        wMenu->addAction(mSetNewOriginHere);
+
         // Goto Menu
         mGotoMenu->addAction(mGotoOrigin);
-        mGotoMenu->addAction(mSetNewOriginHere);
         wMenu->addMenu(mGotoMenu);
-
 
         QAction* wAction = wMenu->exec(event->globalPos());
     }
@@ -464,8 +465,13 @@ void CPUDisassembly::assembleAt()
 
     int_t wMaxByteCountToRead = 16 * 2;
 
+    //TODO: fix size problems
+    int_t size = getSize();
+    if(!size)
+        size=wRVA;
+
     // Bounding
-    wMaxByteCountToRead = wMaxByteCountToRead > (getSize() - wRVA) ? (getSize() - wRVA) : wMaxByteCountToRead;
+    wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
 
     wBuffer.resize(wMaxByteCountToRead);
 

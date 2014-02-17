@@ -6,6 +6,9 @@
 #include "Bridge.h"
 #include "Breakpoints.h"
 #include <QDebug>
+#include <QSplitter>
+#include <QMenu>
+#include <QVBoxLayout>
 
 class BreakpointsView : public QWidget
 {

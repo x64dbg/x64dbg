@@ -26,21 +26,20 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     mDescriptor.clear();
     ColumnDescriptor_t wColDesc;
+    DataDescriptor_t dDesc;
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 8;
-    wColDesc.data = (DataDescriptor_t)
-    {
-        Byte, HexByte
-    };
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = HexByte;
+    wColDesc.data = dDesc;
     mDescriptor.append(wColDesc);
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 8;
-    wColDesc.data = (DataDescriptor_t)
-    {
-        Byte, AsciiByte
-    };
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
     mDescriptor.append(wColDesc);
 
     wColDesc.isData = true; //float qword
@@ -62,10 +61,9 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
-    wColDesc.data = (DataDescriptor_t)
-    {
-        Byte, AsciiByte
-    };
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
     mDescriptor.append(wColDesc);
 
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
@@ -284,7 +282,8 @@ QString HexDump::getString(int col, int_t rva)
 
     int wByteCount = getSizeOf(mDescriptor.at(col).data.itemSize);
 
-    byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
+    byte_t* wData = new byte_t[mDescriptor.at(col).itemCount * wByteCount];
+    //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
 
     mMemPage->readOriginalMemory(wData, rva, mDescriptor.at(col).itemCount * wByteCount);
 
@@ -292,6 +291,8 @@ QString HexDump::getString(int col, int_t rva)
     {
         wStr += toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(getStringMaxLength(mDescriptor.at(col).data), ' ') + " ";
     }
+
+    delete[] wData;
 
     return wStr;
 }

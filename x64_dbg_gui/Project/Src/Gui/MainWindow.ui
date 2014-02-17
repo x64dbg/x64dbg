@@ -34,6 +34,7 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionCpu"/>
     <addaction name="actionMemoryMap"/>
     <addaction name="actionLog"/>
     <addaction name="actionBreakpoints"/>
@@ -107,6 +108,7 @@
    <addaction name="separator"/>
    <addaction name="actionGoto"/>
    <addaction name="separator"/>
+   <addaction name="actionCpu"/>
    <addaction name="actionLog"/>
    <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
@@ -267,7 +269,7 @@
   <action name="actionLog">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/alphabet/L.png</normaloff>:/icons/images/alphabet/L.png</iconset>
+     <normaloff>:/icons/images/log.png</normaloff>:/icons/images/log.png</iconset>
    </property>
    <property name="text">
     <string>Log Window</string>
@@ -279,7 +281,7 @@
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/alphabet/A.png</normaloff>:/icons/images/alphabet/A.png</iconset>
+     <normaloff>:/icons/images/information.png</normaloff>:/icons/images/information.png</iconset>
    </property>
    <property name="text">
     <string>&amp;About</string>
@@ -312,7 +314,7 @@
   <action name="actionBreakpoints">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/alphabet/B.png</normaloff>:/icons/images/alphabet/B.png</iconset>
+     <normaloff>:/icons/images/breakpoint.png</normaloff>:/icons/images/breakpoint.png</iconset>
    </property>
    <property name="text">
     <string>Breakpoints</string>
@@ -397,6 +399,21 @@
    </property>
    <property name="shortcut">
     <string>F4</string>
+   </property>
+  </action>
+  <action name="actionCpu">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/processor-cpu.png</normaloff>:/icons/images/processor-cpu.png</iconset>
+   </property>
+   <property name="text">
+    <string>CPU</string>
+   </property>
+   <property name="toolTip">
+    <string>CPU</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+C</string>
    </property>
   </action>
  </widget>

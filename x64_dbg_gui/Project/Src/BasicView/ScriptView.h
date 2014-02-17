@@ -2,6 +2,10 @@
 #define SCRIPTVIEW_H
 
 #include <QtGui>
+#include <QAction>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QMenu>
 #include "StdTable.h"
 #include "Bridge.h"
 #include "LineEditDialog.h"

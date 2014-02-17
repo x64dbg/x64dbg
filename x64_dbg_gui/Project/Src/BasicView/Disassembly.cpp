@@ -841,7 +841,12 @@ Instruction_t Disassembly::DisassembleAt(int_t rva)
     int_t wMaxByteCountToRead = 16 * 2;
 
     // Bounding
-    wMaxByteCountToRead = wMaxByteCountToRead > (getSize() - rva) ? (getSize() - rva) : wMaxByteCountToRead;
+    //TODO: fix problems with negative sizes
+    int_t size = getSize();
+    if(!size)
+        size=rva;
+
+    wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
 
     wBuffer.resize(wMaxByteCountToRead);
 

@@ -8,6 +8,9 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "QBeaEngine.h"
+#include <QAction>
+#include <QMessageBox>
+#include <QMenu>
 
 class CPUDisassembly : public Disassembly
 {
