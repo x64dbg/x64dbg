@@ -32,6 +32,15 @@ static CMDRESULT cbCls(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static CMDRESULT cbPrintf(int argc, char* argv[])
+{
+    if(argc<2)
+        dprintf("\n");
+    else
+        dprintf("%s", argv[1]);
+    return STATUS_CONTINUE;
+}
+
 static void registercommands()
 {
     COMMAND* cmd=command_list=cmdinit();
@@ -129,6 +138,7 @@ static void registercommands()
     cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
 
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
+    cmdnew(cmd, "printf", cbPrintf, false); //printf
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

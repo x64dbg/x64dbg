@@ -14,7 +14,7 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
         connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     }
     else //last log message
-        connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(setText(QString)));
+        connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
 }
 
 void StatusLabel::debugStateChangedSlot(DBGSTATE state)
@@ -38,4 +38,12 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
     default:
         break;
     }
+}
+
+void StatusLabel::logUpdate(QString message)
+{
+    if(labelText.contains(QChar('\n'))) //newline
+        labelText="";
+    labelText+=message;
+    setText(labelText);
 }

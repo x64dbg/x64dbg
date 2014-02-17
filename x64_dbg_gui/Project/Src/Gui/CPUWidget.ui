@@ -40,6 +40,9 @@
      <property name="handleWidth">
       <number>1</number>
      </property>
+     <property name="childrenCollapsible">
+      <bool>false</bool>
+     </property>
      <widget class="QSplitter" name="mTopHSplitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -47,12 +50,18 @@
       <property name="handleWidth">
        <number>1</number>
       </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
       <widget class="QSplitter" name="mTopLeftVSplitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
        <property name="handleWidth">
         <number>1</number>
+       </property>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
        </property>
        <widget class="QFrame" name="mTopLeftUpperFrame">
         <property name="frameShape">
@@ -137,6 +146,9 @@
       </property>
       <property name="handleWidth">
        <number>1</number>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
       </property>
       <widget class="QFrame" name="mBotLeftFrame">
        <property name="frameShape">

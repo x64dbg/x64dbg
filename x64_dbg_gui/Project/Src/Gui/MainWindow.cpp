@@ -31,19 +31,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mLogView->hide();
     mLogView->setGeometry(10, 10, 800, 300);
 
+    // Symbol view
+    mSymbolView = new SymbolView();
+    mSymbolView->setWindowTitle("Symbol Info");
+    mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
+    mSymbolView->hide();
+    mSymbolView->setGeometry(20, 20, 800, 300);
+
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle("Breakpoints");
     mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     mBreakpointsView->hide();
-    mBreakpointsView->setGeometry(20, 20, 800, 300);
+    mBreakpointsView->setGeometry(30, 30, 800, 300);
 
     // Memory Map View
     mMemMapView = new MemoryMapView();
     mMemMapView->setWindowTitle("Memory Map");
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
-    mMemMapView->setGeometry(30, 30, 625, 500);
+    mMemMapView->setGeometry(40, 40, 625, 500);
 
     // Script view
     mScriptView = new ScriptView();
@@ -65,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mBreakpointsView, mBreakpointsView->windowIcon(), mBreakpointsView->windowTitle());
     mTabWidget->addTab(mMemMapView, mMemMapView->windowIcon(), mMemMapView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
+    mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
 
     setCentralWidget(mTabWidget);
 
@@ -103,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionScript,SIGNAL(triggered()),this,SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection,SIGNAL(triggered()),mCpuWidget,SLOT(runSelection()));
     connect(ui->actionCpu,SIGNAL(triggered()),this,SLOT(displayCpuWidget()));
+    connect(ui->actionSymbolInfo,SIGNAL(triggered()),this,SLOT(displaySymbolWidget()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
@@ -323,4 +332,11 @@ void MainWindow::displayCpuWidget()
     mCpuWidget->show();
     mCpuWidget->setFocus();
     setTab(mCpuWidget);
+}
+
+void MainWindow::displaySymbolWidget()
+{
+    mSymbolView->show();
+    mSymbolView->setFocus();
+    setTab(mSymbolView);
 }

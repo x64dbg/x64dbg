@@ -25,5 +25,6 @@
         <file>images/arrow-run-cursor.png</file>
         <file>images/log.png</file>
         <file>images/breakpoint.png</file>
+        <file>images/pdb.png</file>
     </qresource>
 </RCC>

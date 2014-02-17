@@ -14,6 +14,7 @@
 #include "StatusLabel.h"
 #include "BreakpointsView.h"
 #include "ScriptView.h"
+#include "SymbolView.h"
 
 namespace Ui {
 class MainWindow;
@@ -52,6 +53,7 @@ public slots:
     void execeRun();
     void execeRtr();
     void displayCpuWidget();
+    void displaySymbolWidget();
     
 private slots:
     void on_actionGoto_triggered();
@@ -64,6 +66,7 @@ private:
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     LogView* mLogView;
+    SymbolView* mSymbolView;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
 

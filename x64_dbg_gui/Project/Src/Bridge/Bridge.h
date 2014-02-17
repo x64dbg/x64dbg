@@ -59,6 +59,8 @@ signals:
     void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
+    void addMsgToSymbolLog(QString msg);
+    void clearSymbolLog();
 
     void scriptAdd(int count, const char** lines);
     void scriptClear();

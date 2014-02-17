@@ -13,6 +13,10 @@ public:
 
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
+    void logUpdate(QString message);
+
+private:
+    QString labelText;
 
 };
 

@@ -53,7 +53,8 @@ SOURCES += \
     Src/BasicView/InfoBox.cpp \
     Src/Gui/CPUDump.cpp \
     Src/BasicView/ScriptView.cpp \
-    Src/Gui/CPUStack.cpp
+    Src/Gui/CPUStack.cpp \
+    Src/BasicView/SymbolView.cpp
 
 
 HEADERS += \
@@ -87,7 +88,8 @@ HEADERS += \
     Src/BasicView/InfoBox.h \
     Src/Gui/CPUDump.h \
     Src/BasicView/ScriptView.h \
-    Src/Gui/CPUStack.h
+    Src/Gui/CPUStack.h \
+    Src/BasicView/SymbolView.h
 
 INCLUDEPATH += \
     Src \
@@ -107,7 +109,8 @@ FORMS += \
     Src/Gui/CPUWidget.ui \
     Src/Gui/GotoDialog.ui \
     Src/BasicView/WordEditDialog.ui \
-    Src/BasicView/LineEditDialog.ui
+    Src/BasicView/LineEditDialog.ui \
+    Src/BasicView/SymbolView.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
