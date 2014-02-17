@@ -26,6 +26,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void setTab(QWidget* widget);
 
 public slots:
     void executeCommand();
@@ -50,22 +51,21 @@ public slots:
     void execeStepInto();
     void execeRun();
     void execeRtr();
+    void displayCpuWidget();
     
 private slots:
     void on_actionGoto_triggered();
 
 private:
     Ui::MainWindow *ui;
-    QMdiArea* mdiArea;
-    CPUWidget* mCpuWin;
 
     CommandLineEdit* mCmdLineEdit;
-
-    QMdiSubWindow* mSubWindow;
-    QMdiSubWindow* mMemMapView;
-    QMdiSubWindow* mLogView;
-    QMdiSubWindow* mBreakpointsView;
-    QMdiSubWindow* mScriptView;
+    QTabWidget* mTabWidget;
+    CPUWidget* mCpuWidget;
+    MemoryMapView* mMemMapView;
+    LogView* mLogView;
+    BreakpointsView* mBreakpointsView;
+    ScriptView* mScriptView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

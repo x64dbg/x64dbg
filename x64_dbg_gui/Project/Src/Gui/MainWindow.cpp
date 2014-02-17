@@ -25,60 +25,48 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setAcceptDrops(true);
 
     // Log View
-    mLogView = new QMdiSubWindow();
+    mLogView = new LogView();
     mLogView->setWindowTitle("Log");
-    mLogView->setWidget(new LogView());
-    mLogView->setWindowIcon(QIcon(":/icons/images/alphabet/L.png"));
+    mLogView->setWindowIcon(QIcon(":/icons/images/log.png"));
     mLogView->hide();
     mLogView->setGeometry(10, 10, 800, 300);
 
     // Breakpoints
-    mBreakpointsView = new QMdiSubWindow();
+    mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle("Breakpoints");
-    mBreakpointsView->setWidget(new BreakpointsView());
-    mBreakpointsView->setWindowIcon(QIcon(":/icons/images/alphabet/B.png"));
+    mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     mBreakpointsView->hide();
     mBreakpointsView->setGeometry(20, 20, 800, 300);
 
     // Memory Map View
-    mMemMapView = new QMdiSubWindow();
+    mMemMapView = new MemoryMapView();
     mMemMapView->setWindowTitle("Memory Map");
-    mMemMapView->setWidget(new MemoryMapView());
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
     mMemMapView->setGeometry(30, 30, 625, 500);
 
     // Script view
-    mScriptView = new QMdiSubWindow();
+    mScriptView = new ScriptView();
     mScriptView->setWindowTitle("Script");
-    mScriptView->setWidget(new ScriptView());
     mScriptView->setWindowIcon(QIcon(":/icons/images/script-code.png"));
     mScriptView->hide();
-    mScriptView->setGeometry(40, 40, 625, 500);
 
-    mdiArea = new QMdiArea;
-    mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    // CPU View
+    mCpuWidget = new CPUWidget();
+    mCpuWidget->setWindowTitle("CPU");
+    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
-    //Create QMdiSubWindow
-    mSubWindow = new QMdiSubWindow();
-    mSubWindow->setWindowTitle("CPU");
-    mSubWindow->showMaximized();
+    //Create the tab widget
+    mTabWidget = new QTabWidget();
 
-    mCpuWin = new CPUWidget();
-    mCpuWin->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
+    //Setup tabs
+    mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
+    mTabWidget->addTab(mLogView, mLogView->windowIcon(), mLogView->windowTitle());
+    mTabWidget->addTab(mBreakpointsView, mBreakpointsView->windowIcon(), mBreakpointsView->windowTitle());
+    mTabWidget->addTab(mMemMapView, mMemMapView->windowIcon(), mMemMapView->windowTitle());
+    mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
 
-    mSubWindow->setWidget(mCpuWin);
-
-    //Add subWindow to Main QMdiArea here
-    mdiArea->addSubWindow(mSubWindow);
-    mdiArea->addSubWindow(mLogView);
-    mdiArea->addSubWindow(mBreakpointsView);
-    mdiArea->addSubWindow(mMemMapView);
-    mdiArea->addSubWindow(mScriptView);
-
-
-    setCentralWidget(mdiArea);
+    setCentralWidget(mTabWidget);
 
     // Setup the command bar
     mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
@@ -113,7 +101,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actioneRun,SIGNAL(triggered()),this,SLOT(execeRun()));
     connect(ui->actioneRtr,SIGNAL(triggered()),this,SLOT(execeRtr()));
     connect(ui->actionScript,SIGNAL(triggered()),this,SLOT(displayScriptWidget()));
-    connect(ui->actionRunSelection,SIGNAL(triggered()),mCpuWin,SLOT(runSelection()));
+    connect(ui->actionRunSelection,SIGNAL(triggered()),mCpuWidget,SLOT(runSelection()));
+    connect(ui->actionCpu,SIGNAL(triggered()),this,SLOT(displayCpuWidget()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
@@ -132,6 +121,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setTab(QWidget* widget)
+{
+    for(int i=0; i<mTabWidget->count(); i++)
+        if(mTabWidget->widget(i)==widget)
+        {
+            mTabWidget->setCurrentIndex(i);
+            break;
+        }
 }
 
 
@@ -178,20 +177,23 @@ void MainWindow::execRtr()
 
 void MainWindow::displayMemMapWidget()
 {
-    mMemMapView->widget()->show();
+    mMemMapView->show();
     mMemMapView->setFocus();
+    setTab(mMemMapView);
 }
 
 void MainWindow::displayLogWidget()
 {
-    mLogView->widget()->show();
+    mLogView->show();
     mLogView->setFocus();
+    setTab(mLogView);
 }
 
 void MainWindow::displayScriptWidget()
 {
-    mScriptView->widget()->show();
+    mScriptView->show();
     mScriptView->setFocus();
+    setTab(mScriptView);
 }
 
 void MainWindow::displayAboutWidget()
@@ -252,8 +254,9 @@ void MainWindow::restartDebugging()
 
 void MainWindow::displayBreakpointWidget()
 {
-    mBreakpointsView->widget()->show();
+    mBreakpointsView->show();
     mBreakpointsView->setFocus();
+    setTab(mBreakpointsView);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)
@@ -291,9 +294,9 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 void MainWindow::updateCPUTitleSlot(QString modname)
 {
     if(modname.length())
-        mSubWindow->setWindowTitle(QString("CPU - ")+modname);
+        mCpuWidget->setWindowTitle(QString("CPU - ")+modname);
     else
-        mSubWindow->setWindowTitle(QString("CPU"));
+        mCpuWidget->setWindowTitle(QString("CPU"));
 }
 
 void MainWindow::execeStepOver()
@@ -313,4 +316,11 @@ void MainWindow::execeRun()
 void MainWindow::execeRtr()
 {
     DbgCmdExec("ertr");
+}
+
+void MainWindow::displayCpuWidget()
+{
+    mCpuWidget->show();
+    mCpuWidget->setFocus();
+    setTab(mCpuWidget);
 }
