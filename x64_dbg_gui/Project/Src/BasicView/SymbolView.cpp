@@ -99,6 +99,12 @@ void SymbolView::moduleSelectionChanged(int index)
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
     mModuleList->setRowCount(module_count);
+    if(!module_count)
+    {
+        mSymbolList->setRowCount(0);
+        mSymbolList->setSingleSelection(0);
+        mModuleList->setSingleSelection(0);
+    }
     QList<uint_t> empty;
     empty.clear();
     empty.swap(moduleBaseList);
