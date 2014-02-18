@@ -53,7 +53,6 @@ SymbolView::SymbolView(QWidget *parent) :
     connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
-    emit mModuleList->selectionChangedSignal(0);
 }
 
 SymbolView::~SymbolView()
@@ -72,20 +71,44 @@ void SymbolView::clearSymbolLogSlot()
     ui->symbolLogEdit->clear();
 }
 
+void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
+{
+    StdTable* symbolList=(StdTable*)user;
+    int_t index=symbolList->getRowCount();
+    symbolList->setRowCount(index+1);
+    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(int_t)*2, 16, QChar('0')).toUpper());
+    if(symbol->decoratedSymbol)
+    {
+        symbolList->setCellContent(index, 1, symbol->decoratedSymbol);
+        BridgeFree(symbol->decoratedSymbol);
+    }
+    if(symbol->undecoratedSymbol)
+    {
+        symbolList->setCellContent(index, 2, symbol->undecoratedSymbol);
+        BridgeFree(symbol->undecoratedSymbol);
+    }
+}
+
 void SymbolView::moduleSelectionChanged(int index)
 {
+    mSymbolList->setRowCount(0);
+    DbgSymbolEnum(moduleBaseList.at(index), cbSymbolEnum, mSymbolList);
+    mSymbolList->reloadData();
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
     mModuleList->setRowCount(module_count);
+    QList<uint_t> empty;
+    empty.clear();
+    empty.swap(moduleBaseList);
     for(int i=0; i<module_count; i++)
     {
+        moduleBaseList.push_back(modules[i].base);
         mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t)*2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->reloadData();
     if(modules)
         BridgeFree(modules);
-    this->moduleSelectionChanged(0);
 }

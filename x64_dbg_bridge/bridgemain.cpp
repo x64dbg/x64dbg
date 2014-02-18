@@ -523,6 +523,15 @@ BRIDGE_IMPEXP void DbgScriptSetIp(int line)
     _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
+BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+{
+    SYMBOLCBINFO cbInfo;
+    cbInfo.base=base;
+    cbInfo.cbSymbolEnum=cbSymbolEnum;
+    cbInfo.user=user;
+    _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

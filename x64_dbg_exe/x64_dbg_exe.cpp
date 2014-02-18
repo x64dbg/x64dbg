@@ -2,7 +2,6 @@
 #include <windows.h>
 #include "resource.h"
 #include "..\x64_dbg_bridge\bridgemain.h"
-#include "..\x64_dbg_crash\x64_dbg_crash.h"
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {

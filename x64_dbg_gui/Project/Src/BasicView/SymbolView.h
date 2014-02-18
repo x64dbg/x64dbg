@@ -32,22 +32,9 @@ private:
     StdTable* mModuleList;
     StdTable* mSymbolList;
 
-    struct SymbolInfo_t
-    {
-        uint_t addr;
-        QString decoratedSymbol;
-        QString undecoratedSymbol;
-    };
+    QList<uint_t> moduleBaseList;
 
-    struct ModuleInfo_t
-    {
-        uint_t base;
-        QString name;
-        QList<SymbolInfo_t> symbols;
-    };
-
-    QList<ModuleInfo_t> moduleList;
-
+    static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };
 
 #endif // SYMBOLVIEW_H
