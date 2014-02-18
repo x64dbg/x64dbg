@@ -65,7 +65,6 @@ void BreakpointsView::reloadData()
     // Hardware
     DbgGetBpList(bp_hardware, &wBPList);
     mHardBPTable->setRowCount(wBPList.count);
-
     for(wI = 0; wI < wBPList.count; wI++)
     {
         QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -91,13 +90,12 @@ void BreakpointsView::reloadData()
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
-
     mHardBPTable->reloadData();
+    BridgeFree(wBPList.bp);
 
     // Software
     DbgGetBpList(bp_normal, &wBPList);
     mSoftBPTable->setRowCount(wBPList.count);
-
     for(wI = 0; wI < wBPList.count; wI++)
     {
         QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -123,13 +121,12 @@ void BreakpointsView::reloadData()
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
-
     mSoftBPTable->reloadData();
+    BridgeFree(wBPList.bp);
 
     // Memory
     DbgGetBpList(bp_memory, &wBPList);
     mMemBPTable->setRowCount(wBPList.count);
-
     for(wI = 0; wI < wBPList.count; wI++)
     {
         QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -155,8 +152,8 @@ void BreakpointsView::reloadData()
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
-
     mMemBPTable->reloadData();
+    BridgeFree(wBPList.bp);
 }
 
 

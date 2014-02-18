@@ -47,15 +47,6 @@ SymbolView::SymbolView(QWidget *parent) :
     ui->mainSplitter->setStretchFactor(0, 9);
     ui->mainSplitter->setStretchFactor(1, 2);
 
-    /*mModuleList->setRowCount(5);
-    const char* modules[5]={"ntdll.dll", "kernel32.dll", "kernelbase.dll", "msvcrt.dll", "user32.dll"};
-    const char* bases[5]={"77A70000", "773D0000", "762F0000", "75800000", "756F0000"};
-    for(int i=0; i<5; i++)
-    {
-        mModuleList->setCellContent(i, 0, bases[i]);
-        mModuleList->setCellContent(i, 1, modules[i]);
-    }*/
-
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));

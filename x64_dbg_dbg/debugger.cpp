@@ -440,6 +440,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess=ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    //Cleanup
+    SymCleanup(fdProcessInfo->hProcess);
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
@@ -671,7 +673,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //message the user/do final stuff
     DeleteFileA("DLLLoader.exe");
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    SymCleanup(fdProcessInfo->hProcess);
+    //cleanup
     dbclose();
     modclear();
     GuiSetDebugState(stopped);
@@ -1603,7 +1605,6 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     //message the user/do final stuff
     DeleteFileA("DLLLoader.exe");
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     modclear();
     GuiSetDebugState(stopped);

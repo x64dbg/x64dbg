@@ -124,7 +124,7 @@ enum SCRIPTLINETYPE
 };
 
 //Debugger typedefs
-typedef struct SYMBOLINFO;
+struct SYMBOLINFO;
 
 typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
 
