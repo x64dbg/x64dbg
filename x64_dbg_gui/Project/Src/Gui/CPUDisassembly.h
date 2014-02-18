@@ -45,7 +45,6 @@ public slots:
     void assembleAt();
 
 private:
-    void CopyToClipboard(const char* text);
 
     // Rigth Click Context Menu
     QMenu* mRightClickContextMenu;

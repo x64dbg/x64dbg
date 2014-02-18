@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QList>
+#include <QMenu>
 #include "StdTable.h"
 #include "Bridge.h"
 
@@ -18,12 +19,21 @@ class SymbolView : public QWidget
 public:
     explicit SymbolView(QWidget *parent = 0);
     ~SymbolView();
+    void setupContextMenu();
 
 public slots:
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
     void moduleSelectionChanged(int index);
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
+    void symbolFollow();
+    void symbolContextMenu(const QPoint & pos);
+    void symbolAddressCopy();
+    void symbolDecoratedCopy();
+    void symbolUndecoratedCopy();
+
+signals:
+    void showCpu();
 
 private:
     Ui::SymbolView *ui;
@@ -33,6 +43,11 @@ private:
     StdTable* mSymbolList;
 
     QList<uint_t> moduleBaseList;
+
+    QAction* mFollowSymbolAction;
+    QAction* mCopySymbolAddress;
+    QAction* mCopyDecoratedSymbolAction;
+    QAction* mCopyUndecoratedSymbolAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

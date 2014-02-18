@@ -13,6 +13,26 @@ Bridge::Bridge(QObject *parent) : QObject(parent)
 
 }
 
+void Bridge::CopyToClipboard(const char* text)
+{
+    HGLOBAL hText;
+    char *pText;
+    int len=strlen(text);
+    if(!len)
+        return;
+
+    hText=GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE, len+1);
+    pText=(char*)GlobalLock(hText);
+    strcpy(pText, text);
+
+    OpenClipboard(0);
+    EmptyClipboard();
+    if(!SetClipboardData(CF_OEMTEXT, hText))
+        MessageBeep(MB_ICONERROR);
+    else
+        MessageBeep(MB_ICONINFORMATION);
+    CloseClipboard();
+}
 
 /************************************************************************************
                             Exports Binding

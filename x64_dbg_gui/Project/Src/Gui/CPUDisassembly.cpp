@@ -6,27 +6,6 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
     setupRightClickContextMenu();
 }
 
-void CPUDisassembly::CopyToClipboard(const char* text)
-{
-    HGLOBAL hText;
-    char *pText;
-    int len=strlen(text);
-    if(!len)
-        return;
-
-    hText=GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE, len+1);
-    pText=(char*)GlobalLock(hText);
-    strcpy(pText, text);
-
-    OpenClipboard(0);
-    EmptyClipboard();
-    if(!SetClipboardData(CF_OEMTEXT, hText))
-        MessageBeep(MB_ICONERROR);
-    else
-        MessageBeep(MB_ICONINFORMATION);
-    CloseClipboard();
-}
-
 void CPUDisassembly::mousePressEvent(QMouseEvent* event)
 {
     if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
@@ -34,7 +13,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         if(DbgIsDebugging())
         {
             QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
-            CopyToClipboard(addrText.toUtf8().constData());
+            Bridge::CopyToClipboard(addrText.toUtf8().constData());
         }
     }
     else
@@ -134,7 +113,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 mHwSlotSelectMenu->addAction(msetHwBPOnSlot3Action);
                 mBPMenu->addMenu(mHwSlotSelectMenu);
             }
-
+            if(wBPList.count)
+                BridgeFree(wBPList.bp);
         }
         wMenu->addMenu(mBPMenu);
 
@@ -350,6 +330,8 @@ void CPUDisassembly::setHwBpAt(uint_t va, int slot)
         wCmd = "bphws " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(wCmd.toUtf8().constData());
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 void CPUDisassembly::setNewOriginHereActionSlot()

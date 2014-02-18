@@ -102,6 +102,8 @@ void Breakpoints::enableBP(BPXTYPE type, uint_t va)
             enableBP(wBPList.bp[wI]);
         }
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 /**
@@ -158,6 +160,8 @@ void Breakpoints::disableBP(BPXTYPE type, uint_t va)
             disableBP(wBPList.bp[wI]);
         }
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 /**
@@ -228,6 +232,8 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
             removeBP(wBPList.bp[wI]);
         }
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 /**
@@ -274,6 +280,8 @@ void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
             toogleBPByDisabling(wBPList.bp[wI]);
         }
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 
@@ -322,6 +330,8 @@ void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
             }
         }
     }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 
     if((type == bp_none || type == bp_normal) && (wNormalWasRemoved == false))
     {

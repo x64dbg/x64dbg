@@ -21,6 +21,9 @@ public:
     static Bridge* getBridge();
     static void initBridge();
 
+    // Misc functions
+    static void CopyToClipboard(const char* text);
+
     // Exports Binding
     void emitDisassembleAtSignal(int_t va, int_t eip);
     void emitUpdateDisassembly();

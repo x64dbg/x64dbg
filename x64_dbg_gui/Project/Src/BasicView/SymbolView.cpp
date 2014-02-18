@@ -22,6 +22,7 @@ SymbolView::SymbolView(QWidget *parent) :
     mModuleList->addColumnAt(0, "Module", true);
 
     mSymbolList = new StdTable();
+    mSymbolList->setContextMenuPolicy(Qt::CustomContextMenu);
     mSymbolList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Address", true);
     mSymbolList->addColumnAt(charwidth*80, "Symbol", true);
     mSymbolList->addColumnAt(0, "Symbol (undecorated)", true);
@@ -47,17 +48,37 @@ SymbolView::SymbolView(QWidget *parent) :
     ui->mainSplitter->setStretchFactor(0, 9);
     ui->mainSplitter->setStretchFactor(1, 2);
 
+    //setup context menu
+    setupContextMenu();
+
+    //Signals and slots
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
+    connect(mSymbolList, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(symbolContextMenu(const QPoint &)));
 }
 
 SymbolView::~SymbolView()
 {
     delete ui;
+}
+
+void SymbolView::setupContextMenu()
+{
+    mFollowSymbolAction = new QAction("&Follow in Disassembler", this);
+    connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
+
+    mCopySymbolAddress = new QAction("Copy &Address", this);
+    connect(mCopySymbolAddress, SIGNAL(triggered()), this, SLOT(symbolAddressCopy()));
+
+    mCopyDecoratedSymbolAction = new QAction("Copy &Symbol", this);
+    connect(mCopyDecoratedSymbolAction, SIGNAL(triggered()), this, SLOT(symbolDecoratedCopy()));
+
+    mCopyUndecoratedSymbolAction = new QAction("Copy Symbol (&undecorated)", this);
+    connect(mCopyUndecoratedSymbolAction, SIGNAL(triggered()), this, SLOT(symbolUndecoratedCopy()));
 }
 
 void SymbolView::addMsgToSymbolLogSlot(QString msg)
@@ -94,6 +115,8 @@ void SymbolView::moduleSelectionChanged(int index)
     mSymbolList->setRowCount(0);
     DbgSymbolEnum(moduleBaseList.at(index), cbSymbolEnum, mSymbolList);
     mSymbolList->reloadData();
+    mSymbolList->setSingleSelection(0);
+    mSymbolList->setTableOffset(0);
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
@@ -117,4 +140,39 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     mModuleList->reloadData();
     if(modules)
         BridgeFree(modules);
+}
+
+void SymbolView::symbolContextMenu(const QPoint & pos)
+{
+    if(!mSymbolList->getRowCount())
+        return;
+    QMenu* wMenu = new QMenu(this);
+    wMenu->addAction(mFollowSymbolAction);
+    wMenu->addSeparator();
+    wMenu->addAction(mCopySymbolAddress);
+    wMenu->addAction(mCopyDecoratedSymbolAction);
+    if(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 2).length())
+        wMenu->addAction(mCopyUndecoratedSymbolAction);
+    wMenu->exec(mSymbolList->mapToGlobal(pos));
+}
+
+void SymbolView::symbolFollow()
+{
+    DbgCmdExecDirect(QString("disasm " + mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 0)).toUtf8().constData());
+    emit showCpu();
+}
+
+void SymbolView::symbolAddressCopy()
+{
+    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 0).toUtf8().constData());
+}
+
+void SymbolView::symbolDecoratedCopy()
+{
+    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 1).toUtf8().constData());
+}
+
+void SymbolView::symbolUndecoratedCopy()
+{
+    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 2).toUtf8().constData());
 }

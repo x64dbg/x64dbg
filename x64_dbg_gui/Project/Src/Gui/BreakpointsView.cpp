@@ -219,6 +219,8 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
                 }
             }
         }
+        if(wBPList.count)
+            BridgeFree(wBPList.bp);
 
         // Separator
         wMenu->addSeparator();
@@ -307,6 +309,8 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
                 }
             }
         }
+        if(wBPList.count)
+            BridgeFree(wBPList.bp);
 
         // Separator
         wMenu->addSeparator();
@@ -394,6 +398,8 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
                 }
             }
         }
+        if(wBPList.count)
+            BridgeFree(wBPList.bp);
 
         // Separator
         wMenu->addSeparator();
