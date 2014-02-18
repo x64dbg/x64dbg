@@ -27,6 +27,7 @@
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="sqlhelper.cpp" />
+    <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
@@ -53,6 +54,7 @@
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="sqlhelper.h" />
+    <ClInclude Include="symbolinfo.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />

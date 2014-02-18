@@ -84,6 +84,9 @@
     <ClCompile Include="disasm_helper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="symbolinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -159,6 +162,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="disasm_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="symbolinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

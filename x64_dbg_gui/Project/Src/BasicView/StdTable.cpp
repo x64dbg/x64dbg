@@ -17,6 +17,7 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
     mIsMultiSelctionAllowed = false;
 
     mData = new QList< QList<QString>* >();
+
 /*
     setRowCount(100);
 
@@ -180,6 +181,7 @@ void StdTable::setSingleSelection(int index)
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
     mSelection.toIndex = index;
+    emit selectionChangedSignal(index);
 }
 
 

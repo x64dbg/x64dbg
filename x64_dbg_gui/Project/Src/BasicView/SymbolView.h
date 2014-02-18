@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QList>
 #include "StdTable.h"
 #include "Bridge.h"
 
@@ -21,6 +22,8 @@ public:
 public slots:
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
+    void moduleSelectionChanged(int index);
+    void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
 
 private:
     Ui::SymbolView *ui;
@@ -28,6 +31,22 @@ private:
 
     StdTable* mModuleList;
     StdTable* mSymbolList;
+
+    struct SymbolInfo_t
+    {
+        uint_t addr;
+        QString decoratedSymbol;
+        QString undecoratedSymbol;
+    };
+
+    struct ModuleInfo_t
+    {
+        uint_t base;
+        QString name;
+        QList<SymbolInfo_t> symbols;
+    };
+
+    QList<ModuleInfo_t> moduleList;
 
 };
 

@@ -169,6 +169,23 @@ struct ADDRINFO
     FUNCTION function;
 };
 
+//Free these pointers using BridgeFree
+struct SYMBOLINFO
+{
+    duint addr;
+    const char* decoratedSymbol;
+    const char* undecoratedSymbol;
+};
+
+//Free the SYMBOLINFO* pointer using BridgeFree
+struct SYMBOLMODULEINFO
+{
+    duint base;
+    char name[MAX_MODULE_SIZE];
+    int symbol_count;
+    SYMBOLINFO* symbols;
+};
+
 struct FLAGS
 {
     bool c;
@@ -283,7 +300,11 @@ enum GUIMSG
     GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
     GUI_SCRIPT_SETINFOLINE,         // param1=int line,             param2=const char* info
     GUI_SCRIPT_MESSAGE,             // param1=const char* message,  param2=unused
-    GUI_SCRIPT_MSGYN                // param1=const char* message,  param2=unused
+    GUI_SCRIPT_MSGYN,               // param1=const char* message,  param2=unused
+
+    GUI_SYMBOL_LOG_ADD,             // param1(const char*)msg,      param2=unused
+    GUI_SYMBOL_LOG_CLEAR,           // param1=unused,               param2=unused
+    GUI_SYMBOL_UPDATE_LIST          // param1=int count,            param2=SYMBOLMODULEINFO* modules
 };
 
 //GUI functions
@@ -308,6 +329,10 @@ BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message);
 BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message);
+
+BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
+BRIDGE_IMPEXP void GuiSymbolLogClear();
+BRIDGE_IMPEXP void GuiSymbolUpdateList(int count, SYMBOLMODULEINFO* modules);
 
 #ifdef __cplusplus
 }

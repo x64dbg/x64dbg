@@ -42,6 +42,7 @@ public:
     void emitScriptSetInfoLine(int line, QString info);
     void emitScriptMessage(QString message);
     int emitScriptQuestion(QString message);
+    void emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
 
     void* winId;
     QWidget* scriptView;
@@ -70,6 +71,8 @@ signals:
     void scriptSetInfoLine(int line, QString info);
     void scriptMessage(QString message);
     void scriptQuestion(QString message);
+
+    void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     
 public slots:
 

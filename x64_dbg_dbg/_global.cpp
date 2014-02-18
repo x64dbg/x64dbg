@@ -19,8 +19,8 @@ static int emalloc_count=0;
 
 void* emalloc(size_t size, const char* reason)
 {
-    unsigned char* a=(unsigned char*)VirtualAlloc(0, size+0x1000, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    //unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
+    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size+0x1000, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -40,8 +40,8 @@ void efree(void* ptr, const char* reason)
     /*FILE* file=fopen("alloctrace.txt", "a+");
     fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
     fclose(file);*/
-    VirtualFree(ptr, 0, MEM_RELEASE);
-    //delete[] (unsigned char*)ptr;
+    //VirtualFree(ptr, 0, MEM_RELEASE);
+    delete[] (unsigned char*)ptr;
 }
 
 bool arraycontains(const char* cmd_list, const char* cmd)

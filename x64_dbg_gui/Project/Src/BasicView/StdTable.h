@@ -35,6 +35,7 @@ public:
     bool isValidIndex(int r, int c);
 
 signals:
+    void selectionChangedSignal(int index);
     
 public slots:
 

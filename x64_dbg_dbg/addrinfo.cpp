@@ -5,6 +5,7 @@
 #include "sqlhelper.h"
 #include "breakpoint.h"
 #include "threading.h"
+#include "symbolinfo.h"
 
 sqlite3* userdb;
 static std::vector<MODINFO> modinfo;
@@ -94,6 +95,7 @@ bool modload(uint base, uint size, const char* fullpath)
     strcpy(info.name, name);
     _strlwr(info.name);
     modinfo.push_back(info);
+    symbolupdategui();
     return true;
 }
 

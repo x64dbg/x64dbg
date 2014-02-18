@@ -629,6 +629,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     modclear();
+    GuiSymbolUpdateList(0, 0); //empty the symbol list
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", 0, true);

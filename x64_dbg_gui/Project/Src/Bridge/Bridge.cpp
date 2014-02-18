@@ -130,6 +130,11 @@ int Bridge::emitScriptQuestion(QString message)
     return scriptResult;
 }
 
+void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
+{
+    emit updateSymbolList(module_count, modules);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -262,8 +267,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SCRIPT_SETINFOLINE:
     {
-        int_t arg=(int_t)param1;
-        Bridge::getBridge()->emitScriptSetInfoLine((int)arg, QString(reinterpret_cast<const char*>(param2)));
+        Bridge::getBridge()->emitScriptSetInfoLine((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
     }
     break;
 
@@ -276,6 +280,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SCRIPT_MSGYN:
     {
         return (void*)Bridge::getBridge()->emitScriptQuestion(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SYMBOL_UPDATE_LIST:
+    {
+        Bridge::getBridge()->emitUpdateSymbolList((int)(int_t)param1, (SYMBOLMODULEINFO*)param2);
     }
     break;
 
