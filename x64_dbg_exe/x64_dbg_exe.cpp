@@ -6,7 +6,6 @@
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-    InitCrashHandler();
     const char* errormsg=BridgeInit();
     if(errormsg)
     {

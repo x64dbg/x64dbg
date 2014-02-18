@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64_dbg_exe", "x64_dbg_exe\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64_dbg_dbg", "x64_dbg_dbg\x64_dbg_dbg.vcxproj", "{E6548308-401E-3A8A-5819-905DB90522A6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64_dbg_crash", "x64_dbg_crash\x64_dbg_crash.vcxproj", "{E28BFD48-D02F-9A8A-154D-21E1B221AD2F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|Win32 = Release|Win32
@@ -27,10 +25,6 @@ Global
 		{E6548308-401E-3A8A-5819-905DB90522A6}.Release|Win32.Build.0 = Release|Win32
 		{E6548308-401E-3A8A-5819-905DB90522A6}.Release|x64.ActiveCfg = Release|x64
 		{E6548308-401E-3A8A-5819-905DB90522A6}.Release|x64.Build.0 = Release|x64
-		{E28BFD48-D02F-9A8A-154D-21E1B221AD2F}.Release|Win32.ActiveCfg = Release|Win32
-		{E28BFD48-D02F-9A8A-154D-21E1B221AD2F}.Release|Win32.Build.0 = Release|Win32
-		{E28BFD48-D02F-9A8A-154D-21E1B221AD2F}.Release|x64.ActiveCfg = Release|x64
-		{E28BFD48-D02F-9A8A-154D-21E1B221AD2F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

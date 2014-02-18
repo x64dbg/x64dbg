@@ -91,7 +91,8 @@ void BreakpointsView::reloadData()
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
     mHardBPTable->reloadData();
-    BridgeFree(wBPList.bp);
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 
     // Software
     DbgGetBpList(bp_normal, &wBPList);
@@ -122,7 +123,8 @@ void BreakpointsView::reloadData()
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
     mSoftBPTable->reloadData();
-    BridgeFree(wBPList.bp);
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 
     // Memory
     DbgGetBpList(bp_memory, &wBPList);
@@ -153,7 +155,8 @@ void BreakpointsView::reloadData()
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
     mMemBPTable->reloadData();
-    BridgeFree(wBPList.bp);
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
 }
 
 

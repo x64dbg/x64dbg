@@ -17,7 +17,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\bin\x32\libx32_crash.a" />
 					<Add library="..\bin\x32\libx32_bridge.a" />
 				</Linker>
 			</Target>
@@ -32,7 +31,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="..\bin\x64\libx64_crash.a" />
 					<Add library="..\bin\x64\libx64_bridge.a" />
 				</Linker>
 			</Target>

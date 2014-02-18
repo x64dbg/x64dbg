@@ -78,13 +78,6 @@ void SymbolView::moduleSelectionChanged(int index)
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
-    if(!module_count)
-    {
-        mModuleList->setRowCount(0);
-        mModuleList->reloadData();
-        this->moduleSelectionChanged(0);
-        return;
-    }
     mModuleList->setRowCount(module_count);
     for(int i=0; i<module_count; i++)
     {
