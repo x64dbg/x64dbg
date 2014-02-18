@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     DestroyIcon(hIcon);
 
+    //Load recent files
+    loadMRUList(16);
+
     //Accept drops
     setAcceptDrops(true);
 
@@ -126,7 +129,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
 }
 
-
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -142,6 +144,98 @@ void MainWindow::setTab(QWidget* widget)
         }
 }
 
+//Reads recent files list from settings
+void MainWindow::loadMRUList(int maxItems)
+{
+    mMaxMRU = maxItems;
+    for(unsigned int i=0; i<mMaxMRU; i++)
+    {
+        char currentFile[MAX_PATH]="";
+        if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), currentFile))
+            break;
+        mMRUList.push_back(currentFile);
+    }
+    updateMRUMenu();
+}
+
+//save recent files to settings
+void MainWindow::saveMRUList()
+{
+    int mruSize=mMRUList.size();
+    for(int i=0; i<mruSize; i++)
+        BridgeSettingSet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), mMRUList.at(i).toUtf8().constData());
+}
+
+void MainWindow::addMRUEntry(QString entry)
+{
+    //remove duplicate entry if it exists
+    removeMRUEntry(entry);
+    mMRUList.insert(mMRUList.begin(), entry);
+    if (mMRUList.size() > mMaxMRU)
+        mMRUList.erase(mMRUList.begin() + mMaxMRU, mMRUList.end());
+}
+
+void MainWindow::removeMRUEntry(QString entry)
+{
+    std::vector<QString>::iterator it;
+
+    for (it = mMRUList.begin(); it != mMRUList.end(); ++it)
+    {
+        if ((*it) == entry)
+        {
+            mMRUList.erase(it);
+            break;
+        }
+    }
+}
+
+void MainWindow::updateMRUMenu()
+{
+    if (mMaxMRU < 1) return;
+
+    QMenu* fileMenu = this->menuBar()->findChild<QMenu*>(QString::fromWCharArray(L"menuFile"));
+    if (fileMenu == NULL)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to find menu!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.exec();
+        return;
+    }
+    fileMenu = fileMenu->findChild<QMenu*>(QString::fromWCharArray(L"menuRecent_Files"));
+    if (fileMenu == NULL)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to find submenu!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.exec();
+        return;
+    }
+
+    QList<QAction*> list = fileMenu->actions();
+    for (int i = 1; i < list.length(); ++i)
+        fileMenu->removeAction(list.at(i));
+
+    //add items to list
+    if (mMRUList.size() > 0)
+    {
+        list = fileMenu->actions();
+        for (unsigned int index = 0; index < mMRUList.size(); ++index)
+        {
+            fileMenu->addAction(new QAction(mMRUList.at(index), this));
+            fileMenu->actions().last()->setObjectName(QString("MRU").append(QString::number(index)));
+            connect(fileMenu->actions().last(), SIGNAL(triggered()), this, SLOT(openFile()));
+        }
+    }
+}
+
+QString MainWindow::getMRUEntry(size_t index)
+{
+    QString path;
+
+    if (index < mMRUList.size())
+        path = mMRUList.at(index);
+
+    return path;
+}
 
 void MainWindow::executeCommand()
 {
@@ -227,14 +321,60 @@ void MainWindow::on_actionGoto_triggered()
 
 void MainWindow::openFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open file"), 0, tr("Executables (*.exe *.dll);;All files (*.*)"));
-    if(!filename.length())
-        return;
-    filename=QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
+    QString lastPath, filename;
+    QAction* fileToOpen = qobject_cast<QAction*>(sender());
+
+    //if sender is from recent list directly open file, otherwise show dialog
+    if (fileToOpen == NULL || !fileToOpen->objectName().startsWith("MRU") || !(fileToOpen->text().length()))
+    {
+        lastPath = (mMRUList.size() > 0) ? mMRUList.at(0) : 0;
+        filename = QFileDialog::getOpenFileName(this, tr("Open file"), lastPath, tr("Executables (*.exe *.dll);;All files (*.*)"));
+        if(!filename.length())
+            return;
+        filename=QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
+    }
+    else
+    {
+        filename = fileToOpen->text();
+    }
+
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
     QString cmd;
     DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+
+    //file is from recent menu
+    if (fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
+    {
+        fileToOpen->setObjectName(fileToOpen->objectName().split("U").at(1));
+        int index = fileToOpen->objectName().toInt();
+
+        QString exists = getMRUEntry(index);
+        if (exists.length() == 0)
+        {
+            addMRUEntry(filename);
+            updateMRUMenu();
+            saveMRUList();
+        }
+
+        fileToOpen->setObjectName(fileToOpen->objectName().prepend("MRU"));
+    }
+
+    //file is from open button
+    bool update = true;
+    if (fileToOpen == NULL || fileToOpen->objectName().compare("actionOpen") == 0)
+        for(unsigned int i=0; i<mMRUList.size(); i++)
+            if(mMRUList.at(i) == filename)
+            {
+                update = false;
+                break;
+            }
+    if (update)
+    {
+        addMRUEntry(filename);
+        updateMRUMenu();
+        saveMRUList();
+    }
 }
 
 void MainWindow::execPause()
@@ -250,7 +390,7 @@ void MainWindow::startScylla() //this is executed
 void MainWindow::restartDebugging()
 {
     char filename[MAX_SETTING_SIZE]="";
-    if(!BridgeSettingGet("Recent Files", "path", filename))
+    if(!BridgeSettingGet("Recent Files", "01", filename)) //most recent file
         return;
     if(DbgIsDebugging())
     {

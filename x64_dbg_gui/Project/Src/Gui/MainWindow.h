@@ -75,6 +75,16 @@ private:
 
     const char* mWindowMainTitle;
 
+    std::vector<QString> mMRUList;
+    unsigned int mMaxMRU;
+
+    void loadMRUList(int maxItems);
+    void saveMRUList();
+    void addMRUEntry(QString entry);
+    void removeMRUEntry(QString entry);
+    void updateMRUMenu();
+    QString getMRUEntry(size_t index);
+
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);

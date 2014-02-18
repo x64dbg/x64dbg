@@ -634,7 +634,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
         unlock(WAITID_STOP);
         return 0;
     }
-    BridgeSettingSet("Recent Files", "path", szFileName);
+    BridgeSettingSet("Recent Files", "01", szFileName);
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount=0;
