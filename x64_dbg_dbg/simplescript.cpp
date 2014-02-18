@@ -70,7 +70,7 @@ static bool scriptcreatelinemap(const char* filename)
     char temp[256]="";
     LINEMAPENTRY entry;
     memset(&entry, 0, sizeof(entry));
-    linemap.clear();
+    std::vector<LINEMAPENTRY>().swap(linemap);
     for(int i=0,j=0; i<len; i++) //make raw line map
     {
         if(filedata[i]=='\r' and filedata[i+1]=='\n') //windows file
@@ -138,7 +138,7 @@ static bool scriptcreatelinemap(const char* filename)
                 char message[256]="";
                 sprintf(message, "Empty label detected on line %d!", i+1);
                 GuiScriptError(0, message);
-                linemap.clear();
+                std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
             }
             int foundlabel=scriptlabelfind(cur.u.label);
@@ -147,7 +147,7 @@ static bool scriptcreatelinemap(const char* filename)
                 char message[256]="";
                 sprintf(message, "Duplicate label \"%s\" detected on lines %d and %d!", cur.u.label, foundlabel, i+1);
                 GuiScriptError(0, message);
-                linemap.clear();
+                std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
             }
         }
@@ -182,7 +182,7 @@ static bool scriptcreatelinemap(const char* filename)
             char message[256]="";
             sprintf(message, "Invalid branch label \"%s\" detected on line %d!", cur.u.branch.branchlabel, i+1);
             GuiScriptError(0, message);
-            linemap.clear();
+            std::vector<LINEMAPENTRY>().swap(linemap);
             return false;
         }
     }
@@ -396,7 +396,7 @@ static DWORD WINAPI scriptLoadThread(void* filename)
 {
     GuiScriptClear();
     scriptIp=0;
-    scriptbplist.clear(); //clear breakpoints
+    std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
     bAbort=false;
     if(!scriptcreatelinemap((const char*)filename))
         return 0;
@@ -421,7 +421,7 @@ void scriptunload()
 {
     GuiScriptClear();
     scriptIp=0;
-    scriptbplist.clear(); //clear breakpoints
+    std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
     bAbort=false;
 }
 

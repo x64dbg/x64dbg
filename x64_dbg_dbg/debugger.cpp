@@ -209,7 +209,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
-BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
+static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
     UNREFERENCED_PARAMETER(hProcess);
     UNREFERENCED_PARAMETER(UserContext);
@@ -217,11 +217,55 @@ BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG
     switch (ActionCode)
     {
     case CBA_EVENT:
+    {
         evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
-        dprintf("%s", (PTSTR)evt->desc);
-        break;
+        const char* text=(const char*)evt->desc;
+        int len=strlen(text);
+        bool suspress=false;
+        for(int i=0; i<len; i++)
+            if(text[i]==0x08)
+            {
+                suspress=true;
+                break;
+            }
+        int percent=0;
+        static bool zerobar=false;
+        if(zerobar)
+        {
+            zerobar=false;
+            GuiSymbolSetProgress(0);
+        }
+        if(strstr(text, " bytes -  "))
+        {
+            char* newtext=(char*)emalloc(len+1, "SymRegisterCallbackProc64:newtext");
+            strcpy(newtext, text);
+            strstr(newtext, " bytes -  ")[8]=0;
+            GuiSymbolLogAdd(newtext);
+            efree(newtext, "SymRegisterCallbackProc64:newtext");
+            suspress=true;
+        }
+        else if(strstr(text, " copied         "))
+        {
+            GuiSymbolSetProgress(100);
+            GuiSymbolLogAdd(" downloaded!\n");
+            suspress=true;
+            zerobar=true;
+        }
+        else if(sscanf(text, "%*s %d percent", &percent)==1 or sscanf(text, "%d percent", &percent)==1)
+        {
+            GuiSymbolSetProgress(percent);
+            suspress=true;
+        }
+
+        if(!suspress)
+            GuiSymbolLogAdd(text);
+    }
+    break;
+
     default:
+    {
         return FALSE;
+    }
     }
     return TRUE;
 }
@@ -359,6 +403,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dprintf("Database file: %s\n", dbpath);
     dbinit();
     SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
+    GuiSymbolLogClear();
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
     SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
@@ -629,7 +674,6 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SymCleanup(fdProcessInfo->hProcess);
     dbclose();
     modclear();
-    GuiSymbolUpdateList(0, 0); //empty the symbol list
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", 0, true);
@@ -1512,6 +1556,7 @@ static void cbAttachDebugger()
 
 static DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
+    lock(WAITID_STOP);
     bIsAttached=true;
     bSkipExceptions=false;
     uint pid=(uint)lpParameter;
@@ -1520,7 +1565,6 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     //do some init stuff
     bFileIsDll=IsFileDLL(szFileName, 0);
     BridgeSettingSet("Recent Files", "path", szFileName);
-    lock(WAITID_STOP);
     ecount=0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);

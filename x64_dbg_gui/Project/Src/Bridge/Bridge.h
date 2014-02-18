@@ -43,6 +43,9 @@ public:
     void emitScriptMessage(QString message);
     int emitScriptQuestion(QString message);
     void emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
+    void emitAddMsgToSymbolLog(QString msg);
+    void emitClearSymbolLog();
+    void emitSetSymbolProgress(int progress);
 
     void* winId;
     QWidget* scriptView;
@@ -60,8 +63,6 @@ signals:
     void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
-    void addMsgToSymbolLog(QString msg);
-    void clearSymbolLog();
 
     void scriptAdd(int count, const char** lines);
     void scriptClear();
@@ -73,6 +74,9 @@ signals:
     void scriptQuestion(QString message);
 
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
+    void addMsgToSymbolLog(QString msg);
+    void clearSymbolLog();
+    void setSymbolProgress(int progress);
     
 public slots:
 

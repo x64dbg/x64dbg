@@ -22,6 +22,7 @@ x64_dbg_*/x64/*
 !bin/*/test.dll
 !bin/*/test.exe
 !bin/*/dbghelp.dll
+!bin/*/symsrv.dll
 !bin/*/sqlite.dll
 !bin/*/BeaEngine.dll
 !bin/*/Scylla.dll

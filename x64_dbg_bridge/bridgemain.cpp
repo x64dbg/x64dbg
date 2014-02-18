@@ -641,6 +641,11 @@ BRIDGE_IMPEXP void GuiSymbolUpdateList(int count, SYMBOLMODULEINFO* modules)
     _gui_sendmessage(GUI_SYMBOL_UPDATE_LIST, (void*)(duint)count, (void*)modules);
 }
 
+BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent)
+{
+    _gui_sendmessage(GUI_SYMBOL_SET_PROGRESS, (void*)(duint)percent, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

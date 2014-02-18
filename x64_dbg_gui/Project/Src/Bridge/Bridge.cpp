@@ -135,6 +135,21 @@ void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     emit updateSymbolList(module_count, modules);
 }
 
+void Bridge::emitAddMsgToSymbolLog(QString msg)
+{
+    emit addMsgToSymbolLog(msg);
+}
+
+void Bridge::emitClearSymbolLog()
+{
+    emit clearSymbolLog();
+}
+
+void Bridge::emitSetSymbolProgress(int progress)
+{
+    emit setSymbolProgress(progress);
+}
+
 
 /************************************************************************************
                             Static Functions
@@ -248,8 +263,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SCRIPT_SETIP:
     {
-        int_t arg=(int_t)param1;
-        Bridge::getBridge()->emitScriptSetIp((int)arg);
+        Bridge::getBridge()->emitScriptSetIp((int)(int_t)param1);
     }
     break;
 
@@ -286,6 +300,24 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SYMBOL_UPDATE_LIST:
     {
         Bridge::getBridge()->emitUpdateSymbolList((int)(int_t)param1, (SYMBOLMODULEINFO*)param2);
+    }
+    break;
+
+    case GUI_SYMBOL_LOG_ADD:
+    {
+        Bridge::getBridge()->emitAddMsgToSymbolLog(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SYMBOL_LOG_CLEAR:
+    {
+        Bridge::getBridge()->emitClearSymbolLog();
+    }
+    break;
+
+    case GUI_SYMBOL_SET_PROGRESS:
+    {
+        Bridge::getBridge()->emitSetSymbolProgress((int)(int_t)param1);
     }
     break;
 

@@ -2,18 +2,36 @@
 #include "debugger.h"
 #include "console.h"
 
-static BOOL CALLBACK EnumSymProc(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
+static struct INTERNALSYMBOLMODULEINFO
+{
+    uint base;
+    char name[MAX_MODULE_SIZE];
+    std::vector<SYMBOLINFO> symbols;
+};
+
+static std::vector<INTERNALSYMBOLMODULEINFO> modList;
+
+static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
     return TRUE;
 }
 
-#ifdef _WIN64
-static BOOL CALLBACK EnumModules(PCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
-#else
-static BOOL CALLBACK EnumModules(PCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
-#endif //_WIN64
+void symbolloadmodule(MODINFO* modinfo)
 {
-    return TRUE;
+    INTERNALSYMBOLMODULEINFO curModule;
+    memset(&curModule, 0, sizeof(curModule));
+    curModule.base=modinfo->base;
+    sprintf(curModule.name, "%s%s", modinfo->name, modinfo->extension);
+    modList.push_back(curModule);
+}
+
+void symbolunloadmodule(uint base)
+{
+}
+
+void symbolclear()
+{
+    std::vector<INTERNALSYMBOLMODULEINFO>().swap(modList);
 }
 
 void symbolupdategui()
