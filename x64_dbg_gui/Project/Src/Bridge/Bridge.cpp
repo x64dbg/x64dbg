@@ -297,7 +297,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
-    case GUI_SYMBOL_UPDATE_LIST:
+    case GUI_SYMBOL_UPDATE_MODULE_LIST:
     {
         Bridge::getBridge()->emitUpdateSymbolList((int)(int_t)param1, (SYMBOLMODULEINFO*)param2);
     }

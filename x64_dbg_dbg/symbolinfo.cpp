@@ -1,39 +1,32 @@
 #include "symbolinfo.h"
 #include "debugger.h"
-#include "console.h"
 
-static struct INTERNALSYMBOLMODULEINFO
+void symbolenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
-    uint base;
-    char name[MAX_MODULE_SIZE];
-    std::vector<SYMBOLINFO> symbols;
-};
+}
 
-static std::vector<INTERNALSYMBOLMODULEINFO> modList;
-
-static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
+#ifdef _WIN64
+static BOOL CALLBACK EnumModules(PCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
+#else
+static BOOL CALLBACK EnumModules(PCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
+#endif //_WIN64
 {
+    SYMBOLMODULEINFO curModule;
+    memset(&curModule, 0, sizeof(SYMBOLMODULEINFO));
+    curModule.base=BaseOfDll;
+    strcpy(curModule.name, ModuleName);
+    ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
     return TRUE;
 }
 
-void symbolloadmodule(MODINFO* modinfo)
+void symbolupdatemodulelist()
 {
-    INTERNALSYMBOLMODULEINFO curModule;
-    memset(&curModule, 0, sizeof(curModule));
-    curModule.base=modinfo->base;
-    sprintf(curModule.name, "%s%s", modinfo->name, modinfo->extension);
-    modList.push_back(curModule);
-}
-
-void symbolunloadmodule(uint base)
-{
-}
-
-void symbolclear()
-{
-    std::vector<INTERNALSYMBOLMODULEINFO>().swap(modList);
-}
-
-void symbolupdategui()
-{
+    std::vector<SYMBOLMODULEINFO> modList;
+    modList.clear();
+    //SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
+    int modcount=modList.size();
+    SYMBOLMODULEINFO* modListBridge=(SYMBOLMODULEINFO*)BridgeAlloc(sizeof(SYMBOLMODULEINFO)*modcount);
+    for(int i=0; i<modcount; i++)
+        memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
+    GuiSymbolUpdateModuleList(modcount, modListBridge);
 }

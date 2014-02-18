@@ -47,14 +47,14 @@ SymbolView::SymbolView(QWidget *parent) :
     ui->mainSplitter->setStretchFactor(0, 9);
     ui->mainSplitter->setStretchFactor(1, 2);
 
-    mModuleList->setRowCount(5);
+    /*mModuleList->setRowCount(5);
     const char* modules[5]={"ntdll.dll", "kernel32.dll", "kernelbase.dll", "msvcrt.dll", "user32.dll"};
     const char* bases[5]={"77A70000", "773D0000", "762F0000", "75800000", "756F0000"};
     for(int i=0; i<5; i++)
     {
         mModuleList->setCellContent(i, 0, bases[i]);
         mModuleList->setCellContent(i, 1, modules[i]);
-    }
+    }*/
 
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
@@ -83,14 +83,25 @@ void SymbolView::clearSymbolLogSlot()
 
 void SymbolView::moduleSelectionChanged(int index)
 {
-    const char* addr[5]={"77A8FAD8", "773E1826", "762FEF02", "75878D2C", "7575FD1E"};
-    const char* data[5]={"ntdll.NtQueryInformationProcess", "kernel32.VirtualAlloc", "kernelbase.VirtualQueryEx", "msvcrt.puts", "user32.MessageBoxA"};
-    mSymbolList->setRowCount(1);
-    mSymbolList->setCellContent(0, 0, addr[index]);
-    mSymbolList->setCellContent(0, 1, data[index]);
-    mSymbolList->reloadData();
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
+    if(!module_count)
+    {
+        mModuleList->setRowCount(0);
+        mModuleList->reloadData();
+        this->moduleSelectionChanged(0);
+        return;
+    }
+    mModuleList->setRowCount(module_count);
+    for(int i=0; i<module_count; i++)
+    {
+        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t)*2, 16, QChar('0')).toUpper());
+        mModuleList->setCellContent(i, 1, modules[i].name);
+    }
+    mModuleList->reloadData();
+    if(modules)
+        BridgeFree(modules);
+    this->moduleSelectionChanged(0);
 }

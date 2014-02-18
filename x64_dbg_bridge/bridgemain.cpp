@@ -138,14 +138,14 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size+0x1000, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
+    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
+    unsigned char* a=new (std::nothrow)unsigned char[size];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
         ExitProcess(1);
     }
-    memset(a, 0, size+0x1000);
+    memset(a, 0, size);
     return a;
 }
 
@@ -636,14 +636,14 @@ BRIDGE_IMPEXP void GuiSymbolLogClear()
     _gui_sendmessage(GUI_SYMBOL_LOG_CLEAR, 0, 0);
 }
 
-BRIDGE_IMPEXP void GuiSymbolUpdateList(int count, SYMBOLMODULEINFO* modules)
-{
-    _gui_sendmessage(GUI_SYMBOL_UPDATE_LIST, (void*)(duint)count, (void*)modules);
-}
-
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent)
 {
     _gui_sendmessage(GUI_SYMBOL_SET_PROGRESS, (void*)(duint)percent, 0);
+}
+
+BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules)
+{
+    _gui_sendmessage(GUI_SYMBOL_UPDATE_MODULE_LIST, (void*)(duint)count, (void*)modules);
 }
 
 //Main

@@ -8,6 +8,7 @@
 #include "breakpoint.h"
 #include "disasm_helper.h"
 #include "simplescript.h"
+#include "symbolinfo.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -548,6 +549,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_SCRIPT_SETIP:
     {
         scriptsetip((int)(duint)param1);
+    }
+    break;
+
+    case DBG_SYMBOL_ENUM:
+    {
+        SYMBOLCBINFO* cbInfo=(SYMBOLCBINFO*)param1;
+        symbolenum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
     }
     break;
     }

@@ -95,7 +95,7 @@ bool modload(uint base, uint size, const char* fullpath)
     strcpy(info.name, name);
     _strlwr(info.name);
     modinfo.push_back(info);
-    symbolloadmodule(&info);
+    symbolupdatemodulelist();
     return true;
 }
 
@@ -107,7 +107,7 @@ bool modunload(uint base)
         if(modinfo.at(i).base==base)
         {
             modinfo.erase(modinfo.begin()+i);
-            symbolunloadmodule(base);
+            symbolupdatemodulelist();
             return true;
         }
     }
@@ -117,7 +117,7 @@ bool modunload(uint base)
 void modclear()
 {
     std::vector<MODINFO>().swap(modinfo);
-    symbolclear();
+    symbolupdatemodulelist();
 }
 
 bool modnamefromaddr(uint addr, char* modname, bool extension)

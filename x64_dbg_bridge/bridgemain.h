@@ -110,7 +110,8 @@ enum DBGMSG
     DBG_SCRIPT_CMDEXEC,             // param1=const char* command,       param2=unused
     DBG_SCRIPT_ABORT,               // param1=unused,                    param2=unused
     DBG_SCRIPT_GETLINETYPE,         // param1=int line,                  param2=unused
-    DBG_SCRIPT_SETIP                // param1=int line,                  param2=unused
+    DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
+    DBG_SYMBOL_ENUM                 // param1=SYMBOLCBINFO* cbInfo,      param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -121,6 +122,11 @@ enum SCRIPTLINETYPE
     linecomment,
     lineempty,
 };
+
+//Debugger typedefs
+typedef struct SYMBOLINFO;
+
+typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
 
 //Debugger structs
 struct MEMPAGE
@@ -169,21 +175,24 @@ struct ADDRINFO
     FUNCTION function;
 };
 
-//Free these pointers using BridgeFree
 struct SYMBOLINFO
 {
     duint addr;
-    const char* decoratedSymbol;
-    const char* undecoratedSymbol;
+    char* decoratedSymbol;
+    char* undecoratedSymbol;
 };
 
-//Free the SYMBOLINFO* pointer using BridgeFree
 struct SYMBOLMODULEINFO
 {
     duint base;
     char name[MAX_MODULE_SIZE];
-    int symbol_count;
-    SYMBOLINFO* symbols;
+};
+
+struct SYMBOLCBINFO
+{
+    duint base;
+    CBSYMBOLENUM cbSymbolEnum;
+    void* user;
 };
 
 struct FLAGS
@@ -304,8 +313,8 @@ enum GUIMSG
 
     GUI_SYMBOL_LOG_ADD,             // param1(const char*)msg,      param2=unused
     GUI_SYMBOL_LOG_CLEAR,           // param1=unused,               param2=unused
-    GUI_SYMBOL_UPDATE_LIST,         // param1=int count,            param2=SYMBOLMODULEINFO* modules
-    GUI_SYMBOL_SET_PROGRESS         // param1=int percent           param2=unused
+    GUI_SYMBOL_SET_PROGRESS,        // param1=int percent           param2=unused
+    GUI_SYMBOL_UPDATE_MODULE_LIST,  // param1=int count,            param2=SYMBOLMODULEINFO* modules
 };
 
 //GUI functions
@@ -333,8 +342,8 @@ BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message);
 
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
 BRIDGE_IMPEXP void GuiSymbolLogClear();
-BRIDGE_IMPEXP void GuiSymbolUpdateList(int count, SYMBOLMODULEINFO* modules);
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent);
+BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules);
 
 #ifdef __cplusplus
 }

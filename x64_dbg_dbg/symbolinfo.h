@@ -2,11 +2,8 @@
 #define _SYMBOLINFO_H
 
 #include "_global.h"
-#include "addrinfo.h"
 
-void symbolloadmodule(MODINFO* modinfo);
-void symbolunloadmodule(uint base);
-void symbolclear();
-void symbolupdategui();
+void symbolenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+void symbolupdatemodulelist();
 
 #endif //_SYMBOLINFO_H
