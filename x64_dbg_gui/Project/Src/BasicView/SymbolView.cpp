@@ -92,17 +92,4 @@ void SymbolView::moduleSelectionChanged(int index)
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
-    for(int i=0; i<module_count; i++)
-    {
-        SYMBOLINFO* curSymInfo=modules[i].symbols;
-        int symbol_count=modules[i].symbol_count;
-        for(int j=0; j<symbol_count; j++)
-        {
-            if(curSymInfo[j].decoratedSymbol)
-                BridgeFree((void*)curSymInfo[j].decoratedSymbol);
-            if(curSymInfo[j].undecoratedSymbol)
-                BridgeFree((void*)curSymInfo[j].undecoratedSymbol);
-        }
-        BridgeFree(curSymInfo);
-    }
 }
