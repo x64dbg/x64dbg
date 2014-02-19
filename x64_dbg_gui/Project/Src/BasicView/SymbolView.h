@@ -31,6 +31,7 @@ public slots:
     void symbolAddressCopy();
     void symbolDecoratedCopy();
     void symbolUndecoratedCopy();
+    void searchTextChanged(const QString &arg1);
 
 signals:
     void showCpu();

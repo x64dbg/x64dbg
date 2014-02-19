@@ -59,6 +59,7 @@ SymbolView::SymbolView(QWidget *parent) :
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(mSymbolList, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(symbolContextMenu(const QPoint &)));
+    connect(ui->searchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
 }
 
 SymbolView::~SymbolView()
@@ -175,4 +176,21 @@ void SymbolView::symbolDecoratedCopy()
 void SymbolView::symbolUndecoratedCopy()
 {
     Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 2).toUtf8().constData());
+}
+
+void SymbolView::searchTextChanged(const QString &arg1)
+{
+    int count=mSymbolList->getRowCount();
+    for(int i=0; i<count; i++)
+    {
+        if(mSymbolList->getCellContent(i, 1).contains(arg1, Qt::CaseInsensitive) || mSymbolList->getCellContent(i, 2).contains(arg1, Qt::CaseInsensitive))
+        {
+            int cur=i-mSymbolList->getViewableRowsCount()/2;
+            if(!mSymbolList->isValidIndex(cur, 0))
+                cur=i;
+            mSymbolList->setTableOffset(cur);
+            mSymbolList->setSingleSelection(i);
+            break;
+        }
+    }
 }
