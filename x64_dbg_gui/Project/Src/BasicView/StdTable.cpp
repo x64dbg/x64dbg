@@ -17,14 +17,6 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
     mIsMultiSelctionAllowed = false;
 
     mData = new QList< QList<QString>* >();
-
-/*
-    setRowCount(100);
-
-    addColumnAt(getColumnCount(), 100, false);
-    addColumnAt(getColumnCount(), 100, false);
-    addColumnAt(getColumnCount(), 100, false);
-    */
 }
 
 
@@ -301,21 +293,3 @@ bool StdTable::isValidIndex(int r, int c)
         return false;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

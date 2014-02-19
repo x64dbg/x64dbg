@@ -234,7 +234,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 
 void BreakpointsView::removeHardBPActionSlot()
 {
-    qDebug() << "mHardBPTable->getInitialSelection()" << mHardBPTable->getInitialSelection();
+    //qDebug() << "mHardBPTable->getInitialSelection()" << mHardBPTable->getInitialSelection();
     uint_t wVA = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_hardware, wVA);
 }

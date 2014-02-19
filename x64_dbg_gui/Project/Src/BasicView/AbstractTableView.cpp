@@ -294,7 +294,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
         {
             int wColIndex = getColumnIndexFromX(event->x());
 
-            qDebug() << "Button " << wColIndex << "has been pressed.";
+            //qDebug() << "Button " << wColIndex << "has been pressed.";
             emit headerButtonPressed(wColIndex);
 
             mColumnList[wColIndex].header.isPressed = true;
@@ -333,7 +333,7 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
         {
             if(mColumnList[mHeader.activeButtonIndex].header.isMouseOver == true)
             {
-                qDebug() << "Button " << mHeader.activeButtonIndex << "has been released.";
+                //qDebug() << "Button " << mHeader.activeButtonIndex << "has been released.";
                 emit headerButtonReleased(mHeader.activeButtonIndex);
             }
             mGuiState = AbstractTableView::NoState;
