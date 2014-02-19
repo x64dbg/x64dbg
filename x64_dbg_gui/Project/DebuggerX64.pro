@@ -114,6 +114,8 @@ FORMS += \
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
+LIBS += -luser32
+
 !contains(QMAKE_HOST.arch, x86_64) {
     message("x86 build")
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
