@@ -456,6 +456,11 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         bridgeList.push_back(curBp);
         retcount++;
     }
+    if(!retcount)
+    {
+        bpmap->count=retcount;
+        return retcount;
+    }
     bpmap->count=retcount;
     bpmap->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
     for(int i=0; i<retcount; i++)

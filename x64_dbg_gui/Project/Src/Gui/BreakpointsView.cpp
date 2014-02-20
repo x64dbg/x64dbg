@@ -68,7 +68,7 @@ void BreakpointsView::reloadData()
     for(wI = 0; wI < wBPList.count; wI++)
     {
         QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        mSoftBPTable->setCellContent(wI, 0, addr_text);
+        mHardBPTable->setCellContent(wI, 0, addr_text);
         mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
@@ -77,7 +77,7 @@ void BreakpointsView::reloadData()
             label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
         else
             label_text=QString(wBPList.bp[wI].mod);
-        mSoftBPTable->setCellContent(wI, 2, label_text);
+        mHardBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
             mHardBPTable->setCellContent(wI, 3, "Inactive");
@@ -88,7 +88,7 @@ void BreakpointsView::reloadData()
 
         char comment[MAX_COMMENT_SIZE]="";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-            mSoftBPTable->setCellContent(wI, 4, comment);
+            mHardBPTable->setCellContent(wI, 4, comment);
     }
     mHardBPTable->reloadData();
     if(wBPList.count)
@@ -132,7 +132,7 @@ void BreakpointsView::reloadData()
     for(wI = 0; wI < wBPList.count; wI++)
     {
         QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        mSoftBPTable->setCellContent(wI, 0, addr_text);
+        mMemBPTable->setCellContent(wI, 0, addr_text);
         mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
@@ -141,7 +141,7 @@ void BreakpointsView::reloadData()
             label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
         else
             label_text=QString(wBPList.bp[wI].mod);
-        mSoftBPTable->setCellContent(wI, 2, label_text);
+        mMemBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
             mMemBPTable->setCellContent(wI, 3, "Inactive");
@@ -152,7 +152,7 @@ void BreakpointsView::reloadData()
 
         char comment[MAX_COMMENT_SIZE]="";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-            mSoftBPTable->setCellContent(wI, 4, comment);
+            mMemBPTable->setCellContent(wI, 4, comment);
     }
     mMemBPTable->reloadData();
     if(wBPList.count)

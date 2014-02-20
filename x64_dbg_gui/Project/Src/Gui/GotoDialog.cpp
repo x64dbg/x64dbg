@@ -40,8 +40,33 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
     }
     else
     {
-        ui->labelError->setText("<font color='#00FF00'><b>Correct expression!</b></color>");
-        ui->buttonOk->setEnabled(true);
-        expressionText=arg1;
+        duint addr=DbgValFromString(arg1.toUtf8().constData());
+        if(!DbgMemIsValidReadPtr(addr))
+        {
+            ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></color>");
+            ui->buttonOk->setEnabled(false);
+            expressionText.clear();
+        }
+        else
+        {
+            QString addrText;
+            char module[MAX_MODULE_SIZE]="";
+            char label[MAX_LABEL_SIZE]="";
+            if(DbgGetLabelAt(addr, SEG_DEFAULT, label)) //has label
+            {
+                if(DbgGetModuleAt(addr, module))
+                    addrText=QString(module)+"."+QString(label);
+                else
+                    addrText=QString(label);
+            }
+            else if(DbgGetModuleAt(addr, module))
+                addrText=QString(module)+"."+QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            else
+                addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+
+            ui->labelError->setText(QString("<font color='#00FF00'><b>Correct expression! -> </b></color>" + addrText));
+            ui->buttonOk->setEnabled(true);
+            expressionText=arg1;
+        }
     }
 }
