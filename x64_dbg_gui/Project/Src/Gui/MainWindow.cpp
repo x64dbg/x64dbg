@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Symbol view
     mSymbolView = new SymbolView();
-    mSymbolView->setWindowTitle("Symbol Info");
+    mSymbolView->setWindowTitle("Symbols");
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
     mSymbolView->setGeometry(20, 20, 800, 300);

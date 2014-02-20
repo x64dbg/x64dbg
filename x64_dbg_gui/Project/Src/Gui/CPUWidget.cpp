@@ -15,8 +15,18 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftLowerFrame->setMinimumHeight(height+2);
     ui->mTopLeftLowerFrame->setMaximumHeight(height+2);
 
-    mRegs = new RegistersView(0);
-    ui->mTopRightFrameLayout->addWidget(mRegs);
+    mGeneralRegs = new RegistersView(0);
+
+    //TODO: add more tabs
+    mRegsTab = new QTabWidget(this);
+    mRegsTab->addTab(mGeneralRegs, "General");
+    mRegsTab->addTab(new QWidget(), "test123123");
+    mRegsTab->addTab(new QWidget(), "test123123");
+    mRegsTab->addTab(new QWidget(), "test123123");
+    mRegsTab->addTab(new QWidget(), "test123123");
+    mRegsTab->addTab(new QWidget(), "test123123");
+
+    ui->mTopRightFrameLayout->addWidget(mRegsTab);
 
     CPUDump* hx = new CPUDump(0);
     ui->mBotLeftFrameLayout->addWidget(hx);

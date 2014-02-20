@@ -3,6 +3,7 @@
 
 #include <QtGui>
 #include <QVBoxLayout>
+#include <QTableWidget>
 #include "CPUDisassembly.h"
 #include "CPUDump.h"
 #include "RegistersView.h"
@@ -34,9 +35,9 @@ public slots:
 private:
     Ui::CPUWidget *ui;
     Disassembly* mDisas;
-    RegistersView* mRegs;
+    RegistersView* mGeneralRegs;
     InfoBox* mInfo;
-
+    QTabWidget* mRegsTab;
 };
 
 #endif // CPUWIDGET_H
