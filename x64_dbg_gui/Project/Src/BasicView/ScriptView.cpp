@@ -224,6 +224,8 @@ void ScriptView::error(int line, QString message)
         title="Script Error!";
     QMessageBox msg(QMessageBox::Critical, title, message);
     msg.setWindowIcon(QIcon(":/icons/images/script-error.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
@@ -306,6 +308,8 @@ void ScriptView::message(QString message)
 {
     QMessageBox msg(QMessageBox::Information, "Information", message);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
@@ -322,6 +326,8 @@ void ScriptView::question(QString message)
 {
     QMessageBox msg(QMessageBox::Question, "Question", message, QMessageBox::Yes|QMessageBox::No);
     msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     if(msg.exec()==QMessageBox::Yes)
         Bridge::getBridge()->scriptResult=1;
     else

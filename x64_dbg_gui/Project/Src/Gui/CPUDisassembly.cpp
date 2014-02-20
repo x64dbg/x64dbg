@@ -356,6 +356,8 @@ void CPUDisassembly::setLabel()
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
 }
@@ -375,6 +377,8 @@ void CPUDisassembly::setComment()
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetCommentAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
 }
@@ -391,6 +395,8 @@ void CPUDisassembly::setBookmark()
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
 }
@@ -412,6 +418,8 @@ void CPUDisassembly::toggleFunction()
 
         QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes|QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         if(msg.exec() != QMessageBox::Yes)
             return;
         QString cmd = "functionadd " + start_text + "," + end_text;
@@ -429,6 +437,8 @@ void CPUDisassembly::toggleFunction()
         QMessageBox msg(QMessageBox::Warning, "Deleting the function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
         msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         if(msg.exec() != QMessageBox::Ok)
             return;
         QString cmd = "functiondel " + start_text;
@@ -469,5 +479,7 @@ void CPUDisassembly::assembleAt()
 
     QMessageBox msg(QMessageBox::Critical, "Error!", "Function not (yet) supported...");
     msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
