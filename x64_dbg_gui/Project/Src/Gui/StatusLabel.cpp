@@ -21,6 +21,10 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
 {
     switch(state)
     {
+    case initialized:
+        this->setText("<font color='#00DD00'>Initialized</font>");
+        this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
+        break;
     case paused:
         this->setText("<font color='#ff0000'>Paused</font>");
         this->setStyleSheet("QLabel { background-color : #ffff00; }");

@@ -20,11 +20,6 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     //TODO: add more tabs
     mRegsTab = new QTabWidget(this);
     mRegsTab->addTab(mGeneralRegs, "General");
-    mRegsTab->addTab(new QWidget(), "test123123");
-    mRegsTab->addTab(new QWidget(), "test123123");
-    mRegsTab->addTab(new QWidget(), "test123123");
-    mRegsTab->addTab(new QWidget(), "test123123");
-    mRegsTab->addTab(new QWidget(), "test123123");
 
     ui->mTopRightFrameLayout->addWidget(mRegsTab);
 

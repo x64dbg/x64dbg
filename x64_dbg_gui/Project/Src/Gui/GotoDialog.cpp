@@ -63,7 +63,7 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
                 addrText=QString(module)+"."+QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
             else
                 addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
-            ui->labelError->setText(QString("<font color='#00FF00'><b>Correct expression! -> </b></color>" + addrText));
+            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></color>" + addrText));
             ui->buttonOk->setEnabled(true);
             expressionText=arg1;
         }
