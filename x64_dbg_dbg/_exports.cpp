@@ -570,6 +570,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         return assembleat((duint)param1, (const char*)param2);
     }
     break;
+
+    case DBG_MODBASE_FROM_NAME:
+    {
+        return modbasefromname((const char*)param1);
     }
-    return 0;
+    break;
+    }
+}
+return 0;
 }
