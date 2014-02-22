@@ -243,7 +243,7 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
     return true;
 }
 
-static bool scriptisruncommand(const char* cmdlist, const char* command)
+static bool scriptisruncommand(const char* cmdlist)
 {
     if(arraycontains(cmdlist, "run"))
         return true;
@@ -278,12 +278,17 @@ static CMDRESULT scriptinternalcmdexec(const char* command)
     COMMAND* cmd=cmdget(dbggetcommandlist(), command);
     if(!cmd) //invalid command
         return STATUS_ERROR;
-    if(scriptisruncommand(cmd->name, command))
+    if(scriptisruncommand(cmd->name))
     {
         CMDRESULT res=cmddirectexec(dbggetcommandlist(), command);
         while(!waitislocked(WAITID_RUN)) //while not locked (NOTE: possible deadlock)
             Sleep(10);
         return res;
+    }
+    else if(arraycontains(cmd->name, "var")) //var
+    {
+        cmddirectexec(dbggetcommandlist(), command);
+        return STATUS_CONTINUE;
     }
     return cmddirectexec(dbggetcommandlist(), command);
 }
