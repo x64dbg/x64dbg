@@ -648,7 +648,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
     SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
-    //inform GUI start we started without problems
+    //inform GUI we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
     strcpy(szBaseFileName, szFileName);
@@ -821,7 +821,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     }
     _strlwr(argtype);
     uint addr=0;
-    if(!valfromstring(argaddr, &addr, 0, 0, true, 0))
+    if(!valfromstring(argaddr, &addr))
     {
         dprintf("invalid addr: \"%s\"\n", argaddr);
         return STATUS_ERROR;
@@ -895,7 +895,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -948,7 +948,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -1007,7 +1007,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -1087,7 +1087,7 @@ CMDRESULT cbDebugSingleStep(int argc, char* argv[])
     uint stepcount=1;
     if(argget(*argv, arg1, 0, true))
     {
-        if(!valfromstring(arg1, &stepcount, 0, 0, true, 0))
+        if(!valfromstring(arg1, &stepcount))
             stepcount=1;
     }
     SingleStep((DWORD)stepcount, (void*)cbStep);
@@ -1115,7 +1115,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     char arg1[deflen]="";
     uint addr=GetContextData(UE_CIP);
     if(argget(*argv, arg1, 0, true))
-        if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+        if(!valfromstring(arg1, &addr))
             addr=GetContextData(UE_CIP);
     DebugUpdateGui(addr);
     return STATUS_CONTINUE;
@@ -1127,7 +1127,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
         return STATUS_ERROR;
     bool restore=false;
     char arg2[deflen]=""; //restore
@@ -1224,7 +1224,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPMEMORY, 0, &found)) //invalid breakpoint
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPMEMORY, 0, &found)) //invalid breakpoint
     {
         dprintf("no such memory breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -1260,7 +1260,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
         return STATUS_ERROR;
     uint type=UE_HARDWARE_EXECUTE;
     char arg2[deflen]=""; //type
@@ -1285,7 +1285,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     uint size=UE_HARDWARE_SIZE_1;
     if(argget(*argv, arg3, 2, true))
     {
-        if(!valfromstring(arg3, &size, 0, 0, true, 0))
+        if(!valfromstring(arg3, &size))
             return STATUS_ERROR;
         switch(size)
         {
@@ -1372,7 +1372,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0) or !bpget(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
     {
         dprintf("no such hardware breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -1392,7 +1392,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     char arg1[deflen]=""; //size
     uint size=0x1000;
     if(argget(*argv, arg1, 0, true))
-        if(!valfromstring(arg1, &size, 0, 0, false, 0))
+        if(!valfromstring(arg1, &size, false))
             return STATUS_ERROR;
     uint mem=(uint)memalloc(fdProcessInfo->hProcess, 0, size, PAGE_EXECUTE_READWRITE);
     if(!mem)
@@ -1413,7 +1413,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     uint addr=lastalloc;
     if(argget(*argv, arg1, 0, true))
     {
-        if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+        if(!valfromstring(arg1, &addr, false))
             return STATUS_ERROR;
     }
     else if(!lastalloc)
@@ -1440,11 +1440,11 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     uint size;
     if(!argget(*argv, arg1, 0, false) or !argget(*argv, arg2, 1, false))
         return STATUS_ERROR;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0) or !valfromstring(arg2, &value, 0, 0, false, 0))
+    if(!valfromstring(arg1, &addr, false) or !valfromstring(arg2, &value, false))
         return STATUS_ERROR;
     if(argget(*argv, arg3, 2, true))
     {
-        if(!valfromstring(arg3, &size, 0, 0, false, 0))
+        if(!valfromstring(arg3, &size, false))
             return STATUS_ERROR;
     }
     else
@@ -1473,7 +1473,7 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+    if(!valfromstring(arg1, &addr, false))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
     for(int i=0; i<10000; i++)
@@ -1503,7 +1503,7 @@ CMDRESULT cbMemWrite(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, false, 0))
+    if(!valfromstring(arg1, &addr, false))
         return STATUS_ERROR;
     unsigned char* blub=(unsigned char*)emalloc(0x2123, "cbMemWrite:blub");
     memread(fdProcessInfo->hProcess, (const void*)addr, blub, 0x2123, 0);
@@ -1624,7 +1624,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint pid=0;
-    if(!valfromstring(argv[1], &pid, 0, 0, true, 0))
+    if(!valfromstring(argv[1], &pid))
     {
         dprintf("invalid expression \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
@@ -1687,7 +1687,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
         return STATUS_ERROR;
     }
     duint addr=0;
-    if(!valfromstring(argv[1], &addr, 0, 0, true, 0))
+    if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;

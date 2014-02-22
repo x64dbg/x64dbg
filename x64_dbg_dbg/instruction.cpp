@@ -16,7 +16,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     int valsize=0;
     bool isvar=false;
     bool hexonly=false;
-    if(valfromstring(*argv, &value, &valsize, &isvar, false, &hexonly)) //dump variable/value/register/etc
+    if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly)) //dump variable/value/register/etc
     {
         //dprintf("[DEBUG] valsize: %d\n", valsize);
         if(valsize)
@@ -77,12 +77,12 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     int add=0;
     if(*arg1=='$')
         add++;
-    if(valfromstring(arg1+add, &value, 0, 0, true, 0))
+    if(valfromstring(arg1+add, &value))
     {
         dprintf("invalid variable name \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!valfromstring(arg2, &value, 0, 0, false, 0))
+    if(!valfromstring(arg2, &value))
     {
         dprintf("invalid value \"%s\"\n", arg2);
         return STATUS_ERROR;
@@ -123,18 +123,16 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
     if(!argget(*argv, arg2, 1, false)) //src name
         return STATUS_ERROR;
     uint set_value=0;
-    if(!valfromstring(arg2, &set_value, 0, 0, false, 0))
+    if(!valfromstring(arg2, &set_value))
     {
         dprintf("invalid src \"%s\"\n", arg2);
         return STATUS_ERROR;
     }
     bool isvar=false;
-    uint temp;
-    valfromstring(arg1, &temp, 0, &isvar, true, 0);
-    if(!isvar or !valtostring(arg1, &set_value, false))
+    if(!isvar or !valtostring(arg1, &set_value, true))
     {
         uint value;
-        if(valfromstring(arg1, &value, 0, 0, true, 0))
+        if(valfromstring(arg1, &value))
         {
             dprintf("invalid dest \"%s\"\n", arg1);
             return STATUS_ERROR;
@@ -221,7 +219,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -243,7 +241,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -262,7 +260,7 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -284,7 +282,7 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -304,7 +302,7 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -324,7 +322,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(!valfromstring(arg1, &addr, 0, 0, true, 0))
+    if(!valfromstring(arg1, &addr))
     {
         dprintf("invalid address: \"%s\"\n", arg1);
         return STATUS_ERROR;
@@ -367,7 +365,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint addr=0;
-    if(!valfromstring(argv[1], &addr, 0, 0, true, 0))
+    if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid expression: \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
@@ -428,7 +426,7 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
     }
     uint start=0;
     uint end=0;
-    if(!valfromstring(argv[1], &start, 0, 0, false, 0) or !valfromstring(argv[2], &end, 0, 0, false, 0))
+    if(!valfromstring(argv[1], &start, false) or !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!functionadd(start, end, true))
     {
@@ -447,7 +445,7 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint addr=0;
-    if(!valfromstring(argv[1], &addr, 0, 0, false, 0))
+    if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!functiondel(addr))
     {
@@ -466,10 +464,10 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint arg1=0;
-    if(!valfromstring(argv[1], &arg1, 0, 0, false, 0))
+    if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
     uint arg2=0;
-    if(!valfromstring(argv[2], &arg2, 0, 0, false, 0))
+    if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
     uint ezflag;
     uint bsflag;
@@ -510,7 +508,7 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
     else
         sprintf(newcmd, "%s", argv[1]);
     uint result=0;
-    if(!valfromstring(newcmd, &result, 0, 0, false, 0))
+    if(!valfromstring(newcmd, &result, false))
         return STATUS_ERROR;
     varset("$RESULT", result, false);
     return STATUS_CONTINUE;
@@ -709,10 +707,10 @@ CMDRESULT cbInstrTest(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint arg1=0;
-    if(!valfromstring(argv[1], &arg1, 0, 0, false, 0))
+    if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
     uint arg2=0;
-    if(!valfromstring(argv[2], &arg2, 0, 0, false, 0))
+    if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
     uint ezflag;
     uint bsflag=0;

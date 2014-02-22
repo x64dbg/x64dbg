@@ -1119,7 +1119,7 @@ static bool ishexnumber(const char* string)
     return true;
 }
 
-bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar, bool silent, bool* hexonly)
+bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     if(!value)
         return false;
@@ -1175,12 +1175,12 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
         int add=0;
         while(mathisoperator(string_[add])>2)
             add++;
-        if(!mathhandlebrackets(string_+add, silent))
+        if(!mathhandlebrackets(string_+add, silent, baseonly))
         {
             efree(string_, "valfromstring:string_");
             return false;
         }
-        bool ret=mathfromstring(string_+add, value, value_size, isvar, silent);
+        bool ret=mathfromstring(string_+add, value, silent, baseonly, value_size, isvar);
         efree(string_, "valfromstring:string_");
         return ret;
     }
@@ -1227,7 +1227,7 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
             if(new_size<read_size)
                 read_size=new_size;
         }
-        if(!valfromstring(newstring+add, value, 0, 0, silent, 0))
+        if(!valfromstring(newstring+add, value, silent, baseonly))
         {
             efree(newstring, "valfromstring::newstring");
             return false;
@@ -1312,6 +1312,8 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
         sscanf(string+inc, "%"fext"x", value);
         return true;
     }
+    if(baseonly)
+        return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
         return true;
     else if(labelfromstring(string, value)) //then come labels
@@ -1327,6 +1329,21 @@ bool valfromstring(const char* string, uint* value, int* value_size, bool* isvar
     if(!silent)
         dprintf("invalid value: \"%s\"!\n", string);
     return false; //nothing was OK
+}
+
+bool valfromstring(const char* string, uint* value, bool silent, bool baseonly)
+{
+    return valfromstring(string, value, silent, baseonly, 0, 0, 0);
+}
+
+bool valfromstring(const char* string, uint* value, bool silent)
+{
+    return valfromstring(string, value, silent, false);
+}
+
+bool valfromstring(const char* string, uint* value)
+{
+    return valfromstring(string, value, true);
 }
 
 bool valtostring(const char* string, uint* value, bool silent)
@@ -1372,7 +1389,8 @@ bool valtostring(const char* string, uint* value, bool silent)
                 read_size=new_size;
         }
         uint temp;
-        if(!valfromstring(newstring+add, &temp, 0, 0, silent, 0))
+        //TODO: check this
+        if(!valfromstring(newstring+add, &temp, silent, true))
         {
             efree(newstring, "valfromstring::newstring");
             return false;

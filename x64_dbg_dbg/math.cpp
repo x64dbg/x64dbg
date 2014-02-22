@@ -295,7 +295,7 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
     }
 }
 
-static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent)
+static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
 {
     for(int i=0; i<exps->total_pairs; i++)
     {
@@ -312,7 +312,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent)
             strcpy(backup, exp+open+len+1);
 
             uint value;
-            if(!mathfromstring(temp, &value, 0, 0, silent))
+            if(!mathfromstring(temp, &value, silent, baseonly, 0, 0))
                 return false;
 
             adjustpairs(exps, open, close, len+1, sprintf(exp+open, "%X", value));
@@ -325,7 +325,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent)
     return true;
 }
 
-bool mathhandlebrackets(char* expression, bool silent)
+bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
 {
     EXPRESSION expstruct;
     expstruct.expression=expression;
@@ -345,7 +345,7 @@ bool mathhandlebrackets(char* expression, bool silent)
             deepest=expstruct.pairs[i].layer;
 
     for(int i=deepest; i>0; i--)
-        if(!printlayer(expression, &expstruct, i, silent))
+        if(!printlayer(expression, &expstruct, i, silent, baseonly))
         {
             efree(expstruct.pairs, "mathhandlebrackets:expstruct.pairs");
             return false;
@@ -358,7 +358,7 @@ bool mathhandlebrackets(char* expression, bool silent)
 /*
 - handle math
 */
-bool mathfromstring(const char* string, uint* value, int* value_size, bool* isvar, bool silent)
+bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar)
 {
     int highestop=0;
     int highestop_pos=0;
@@ -373,11 +373,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         }
     }
     if(!highestop)
-    {
-        if(!valfromstring(string, value, value_size, isvar, silent, 0))
-            return false;
-        return true;
-    }
+        return valfromstring(string, value, silent, baseonly, value_size, isvar, 0);
     char* strleft=(char*)emalloc(len+1, "mathfromstring:strleft");
     char* strright=(char*)emalloc(len+1, "mathfromstring:strright");
     memset(strleft, 0, len+1);
@@ -392,7 +388,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         return false;
     }
     uint right=0;
-    if(!valfromstring(strright, &right, 0, 0, silent, 0))
+    if(!valfromstring(strright, &right, silent, baseonly))
     {
         efree(strleft, "mathfromstring:strleft");
         efree(strright, "mathfromstring:strright");
@@ -410,7 +406,7 @@ bool mathfromstring(const char* string, uint* value, int* value_size, bool* isva
         }
     }
     uint left=0;
-    if(!valfromstring(strleft, &left, 0, 0, silent, 0))
+    if(!valfromstring(strleft, &left, silent, baseonly))
     {
         efree(strleft, "mathfromstring:strleft");
         efree(strright, "mathfromstring:strright");

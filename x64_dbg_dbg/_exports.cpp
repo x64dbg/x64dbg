@@ -70,7 +70,7 @@ extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 {
-    return valfromstring(string, value, 0, 0, true, 0);
+    return valfromstring(string, value);
 }
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()

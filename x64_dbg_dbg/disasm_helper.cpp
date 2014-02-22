@@ -68,7 +68,8 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
             value=Instruction->AddrValue;
         arg->constant=value;
         arg->value=0;
-        valfromstring(argmnemonic, &value, 0, 0, true, 0);
+        if(!valfromstring(argmnemonic, &value, true, true))
+			return false;
         if(DbgMemIsValidReadPtr(value))
         {
             arg->value=value;
@@ -94,11 +95,8 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
         arg->segment=SEG_DEFAULT;
         arg->type=arg_normal;
         uint value=0;
-        if(!valfromstring(argmnemonic, &value, 0, 0, true, 0))
-		{
-			dprintf("HandleArgument:valfromstring failed!->%p\n", addr);
+        if(!valfromstring(argmnemonic, &value, true, true))
 			return false;
-		}
         arg->value=value;
         char sValue[64]="";
         sprintf(sValue, "%"fext"X", value);
