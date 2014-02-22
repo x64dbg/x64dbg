@@ -375,45 +375,11 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         dprintf("invalid address: "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-
-    char instruction[256]="";
-    intel2nasm(argv[2], instruction);
-    unsigned char* outdata=0;
-    int outsize=0;
-    char error[1024]="";
-#ifdef _WIN64
-    bool ret=assemble(instruction, &outdata, &outsize, error, true);
-#else
-    bool ret=assemble(instruction, &outdata, &outsize, error, false);
-#endif // _WIN64
-    if(!ret)
+    if(!assembleat(addr, argv[2]))
     {
-        dprintf("assemble error: %s\n", error);
+        dprintf("failed to assemble \"%s\"\n", argv[2]);
         return STATUS_ERROR;
     }
-
-    bool fillnop=false;
-    if(argc>=4) //fill with NOPs
-        fillnop=true;
-
-    if(!fillnop)
-    {
-        if(!memwrite(fdProcessInfo->hProcess, (void*)addr, outdata, outsize, 0))
-        {
-            efree(outdata);
-            dputs("failed to write memory!");
-            return STATUS_ERROR;
-        }
-    }
-    else
-    {
-        efree(outdata);
-        dputs("not yet implemented!");
-        return STATUS_ERROR;
-    }
-    varset("$result", outsize, false);
-    efree(outdata);
-    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

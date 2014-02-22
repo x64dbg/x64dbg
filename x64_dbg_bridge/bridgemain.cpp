@@ -532,6 +532,13 @@ BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* us
     _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
+BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
+{
+    if(_dbg_sendmessage(DBG_ASSEMBLE_AT, (void*)addr, (void*)instruction))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

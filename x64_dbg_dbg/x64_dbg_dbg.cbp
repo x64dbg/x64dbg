@@ -27,6 +27,7 @@
 					<Add library=".\dbghelp\dbghelp_x86.a" />
 					<Add library=".\sqlite\libsqlite32.a" />
 					<Add library=".\BeaEngine\libBeaEngine.a" />
+					<Add library=".\XEDParse\XEDParse_x86.a" />
 				</Linker>
 			</Target>
 			<Target title="x64">
@@ -49,6 +50,7 @@
 					<Add library=".\dbghelp\dbghelp_x64.a" />
 					<Add library=".\sqlite\libsqlite64.a" />
 					<Add library=".\BeaEngine\libBeaEngine_64.a" />
+					<Add library=".\XEDParse\XEDParse_x64.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -68,6 +70,7 @@
 		<Unit filename="BeaEngine/export.h" />
 		<Unit filename="BeaEngine/macros.h" />
 		<Unit filename="TitanEngine/TitanEngine.h" />
+		<Unit filename="XEDParse/XEDParse.h" />
 		<Unit filename="_exports.cpp" />
 		<Unit filename="_exports.h" />
 		<Unit filename="_global.cpp" />

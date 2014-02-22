@@ -477,9 +477,12 @@ void CPUDisassembly::assembleAt()
     if(mLineEdit.exec()!=QDialog::Accepted)
         return;
 
-    QMessageBox msg(QMessageBox::Critical, "Error!", "Function not (yet) supported...");
-    msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(!DbgAssembleAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + QString("\""));
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
 }

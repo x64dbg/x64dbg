@@ -111,7 +111,8 @@ enum DBGMSG
     DBG_SCRIPT_ABORT,               // param1=unused,                    param2=unused
     DBG_SCRIPT_GETLINETYPE,         // param1=int line,                  param2=unused
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
-    DBG_SYMBOL_ENUM                 // param1=SYMBOLCBINFO* cbInfo,      param2=unused
+    DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
+    DBG_ASSEMBLE_AT                 // param1=duint addr,                param2=const char* instruction
 };
 
 enum SCRIPTLINETYPE
@@ -287,6 +288,7 @@ BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
 
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 
 //Gui enums
 enum GUIMSG

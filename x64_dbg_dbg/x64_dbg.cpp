@@ -190,8 +190,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen]="";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
-    strcpy(nasmpath, dir);
-    PathAppendA(nasmpath, "nasm.exe");
     pluginload(plugindir);
     return 0;
 }
