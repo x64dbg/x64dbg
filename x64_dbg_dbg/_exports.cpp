@@ -155,14 +155,13 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 int len_left=MAX_COMMENT_SIZE;
                 for(int i=0,j=0; i<instr.argcount; i++)
                 {
-                    //TODO: avoid size crashes
                     char temp_string[MAX_COMMENT_SIZE*2]="";
                     ADDRINFO newinfo;
                     memset(&newinfo, 0, sizeof(ADDRINFO));
                     newinfo.flags=flaglabel;
                     char ascii[256]="";
                     char unicode[256]="";
-                    STRING_TYPE strtype;
+                    STRING_TYPE strtype=str_none;
                     if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
                         if(instr.type==instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) or strtype==str_none)
@@ -183,9 +182,27 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             break;
                         }
                     }
-                    else if(instr.arg[i].memvalue and _dbg_addrinfoget(instr.arg[i].memvalue, SEG_DEFAULT, &newinfo))
+                    else if(instr.arg[i].memvalue and (disasmgetstringat(instr.arg[i].memvalue, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                     {
-                        len_left-=sprintf(temp_string, "[%s]:%s", instr.arg[i].mnemonic, newinfo.label);
+                        switch(strtype)
+                        {
+                        case str_none:
+                            if(*newinfo.label)
+                                len_left-=sprintf(temp_string, "[%s]:%s", instr.arg[i].mnemonic, newinfo.label);
+                            if(len_left<0)
+                                temp_string[MAX_COMMENT_SIZE]=0;
+                            break;
+                        case str_ascii:
+                            len_left-=sprintf(temp_string, "[%s]:\"%s\"", instr.arg[i].mnemonic, ascii);
+                            if(len_left<0)
+                                temp_string[MAX_COMMENT_SIZE]=0;
+                            break;
+                        case str_unicode:
+                            len_left-=sprintf(temp_string, "[%s]:L\"%s\"", instr.arg[i].mnemonic, unicode);
+                            if(len_left<0)
+                                temp_string[MAX_COMMENT_SIZE]=0;
+                            break;
+                        }
                     }
                     else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
