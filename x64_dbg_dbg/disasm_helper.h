@@ -48,6 +48,6 @@ struct DISASM_INSTR
 const char* disasmtext(uint addr);
 void disasmprint(uint addr);
 void disasmget(uint addr, DISASM_INSTR* instr);
-bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, wchar_t* unicode);
+bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
 
 #endif // _DISASM_HELPER_H

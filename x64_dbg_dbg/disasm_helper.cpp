@@ -2,6 +2,8 @@
 #include "BeaEngine\BeaEngine.h"
 #include "value.h"
 #include "console.h"
+#include "debugger.h"
+#include "memory.h"
 #include <cwctype>
 #include <cwchar>
 
@@ -153,10 +155,10 @@ void disasmprint(uint addr)
         printf(" %d:%d:%"fext"X:%"fext"X:%"fext"X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
 }
 
-static bool isasciistring(const unsigned char* data)
+static bool isasciistring(const unsigned char* data, int maxlen)
 {
     int len=strlen((const char*)data);
-    if(len<2)
+    if(len<2 or len+1>=maxlen)
         return false;
     for(int i=0; i<len; i++)
         if(!isprint(data[i]) and !isspace(data[i]))
@@ -164,18 +166,33 @@ static bool isasciistring(const unsigned char* data)
     return true;
 }
 
-bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, wchar_t* unicode)
+static bool isunicodestring(const unsigned char* data, int maxlen)
+{
+    int len=wcslen((const wchar_t*)data);
+    if(len<2 or len+1>=maxlen)
+        return false;
+    for(int i=0; i<len*2; i+=2)
+    {
+        if(data[i+1])
+            return false;
+        if(!isprint(data[i]) and !isspace(data[i]))
+            return false;
+    }
+    return true;
+}
+
+bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
 {
     if(type)
         *type=str_none;
-    unsigned char data[512]="";
-    memset(data, 0, 512);
-    DbgMemRead(addr, data, 510);
-    if(isasciistring(data))
+    unsigned char* data=(unsigned char*)emalloc((maxlen+1)*2, "disasmgetstringat:data");
+    memset(data, 0, (maxlen+1)*2);
+    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen+1)*2, 0))
+        return false;
+    if(isasciistring(data, maxlen))
     {
         if(type)
             *type=str_ascii;
-        data[250]=0;
         int len=strlen((const char*)data);
         for(int i=0,j=0; i<len; i++)
         {
@@ -207,7 +224,47 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, wchar_t* unico
                 break;
             }
         }
+        efree(data, "disasmgetstringat:data");
         return true;
     }
+    else if(isunicodestring(data, maxlen))
+    {
+        if(type)
+            *type=str_unicode;
+        int len=wcslen((const wchar_t*)data);
+        for(int i=0,j=0; i<len*2; i+=2)
+        {
+            switch(data[i])
+            {
+            case '\t':
+                j+=sprintf(unicode+j, "\\t");
+                break;
+            case '\f':
+                j+=sprintf(unicode+j, "\\f");
+                break;
+            case '\v':
+                j+=sprintf(unicode+j, "\\v");
+                break;
+            case '\n':
+                j+=sprintf(unicode+j, "\\n");
+                break;
+            case '\r':
+                j+=sprintf(unicode+j, "\\r");
+                break;
+            case '\\':
+                j+=sprintf(unicode+j, "\\\\");
+                break;
+            case '\"':
+                j+=sprintf(unicode+j, "\\\"");
+                break;
+            default:
+                j+=sprintf(unicode+j, "%c", data[i]);
+                break;
+            }
+        }
+        efree(data, "disasmgetstringat:data");
+        return true;
+    }
+    efree(data, "disasmgetstringat:data");
     return false;
 }
