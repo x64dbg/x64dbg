@@ -1,6 +1,7 @@
 #include "disasm_helper.h"
 #include "BeaEngine\BeaEngine.h"
 #include "value.h"
+#include "console.h"
 #include <cwctype>
 #include <cwchar>
 
@@ -50,7 +51,7 @@ static SEGMENTREG ConvertBeaSeg(int beaSeg)
     return SEG_DEFAULT;
 }
 
-static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG* arg)
+static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG* arg, uint addr)
 {
     int argtype=Argument->ArgType;
     const char* argmnemonic=Argument->ArgMnemonic;
@@ -93,7 +94,11 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
         arg->segment=SEG_DEFAULT;
         arg->type=arg_normal;
         uint value=0;
-        valfromstring(argmnemonic, &value, 0, 0, true, 0);
+        if(!valfromstring(argmnemonic, &value, 0, 0, true, 0))
+		{
+			dprintf("HandleArgument:valfromstring failed!->%p\n", addr);
+			return false;
+		}
         arg->value=value;
         char sValue[64]="";
         sprintf(sValue, "%"fext"X", value);
@@ -133,11 +138,11 @@ void disasmget(uint addr, DISASM_INSTR* instr)
         instr->type=instr_stack;
     else
         instr->type=instr_normal;
-    if(HandleArgument(&disasm.Argument1, &disasm.Instruction, &instr->arg[instr->argcount]))
+    if(HandleArgument(&disasm.Argument1, &disasm.Instruction, &instr->arg[instr->argcount], addr))
         instr->argcount++;
-    if(HandleArgument(&disasm.Argument2, &disasm.Instruction, &instr->arg[instr->argcount]))
+    if(HandleArgument(&disasm.Argument2, &disasm.Instruction, &instr->arg[instr->argcount], addr))
         instr->argcount++;
-    if(HandleArgument(&disasm.Argument3, &disasm.Instruction, &instr->arg[instr->argcount]))
+    if(HandleArgument(&disasm.Argument3, &disasm.Instruction, &instr->arg[instr->argcount], addr))
         instr->argcount++;
 }
 

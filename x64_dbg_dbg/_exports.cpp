@@ -147,7 +147,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 sprintf(addrinfo->comment, "%s:%u", filename+len, line.LineNumber);
                 retval=true;
             }
-            /*else //no line number
+            else //no line number
             {
                 DISASM_INSTR instr;
                 disasmget(addr, &instr);
@@ -209,7 +209,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval=true;
                     }
                 }
-            }*/
+            }
         }
     }
     if(addrinfo->flags&flagbookmark)
