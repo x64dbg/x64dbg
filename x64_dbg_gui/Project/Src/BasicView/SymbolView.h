@@ -39,15 +39,15 @@ signals:
 
 private:
     Ui::SymbolView *ui;
-    QVBoxLayout* mainLayout;
-    QVBoxLayout* symbolLayout;
-    QWidget* symbolPlaceholder;
+    QVBoxLayout* mMainLayout;
+    QVBoxLayout* mSymbolLayout;
+    QWidget* mSymbolPlaceHolder;
 
     StdTable* mModuleList;
     StdTable* mSymbolList;
     StdTable* mSymbolSearchList;
 
-    QList<uint_t> moduleBaseList;
+    QList<uint_t> mModuleBaseList;
 
     QAction* mFollowSymbolAction;
     QAction* mCopySymbolAddress;

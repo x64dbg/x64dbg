@@ -26,5 +26,6 @@
         <file>images/log.png</file>
         <file>images/breakpoint.png</file>
         <file>images/pdb.png</file>
+        <file>images/search.png</file>
     </qresource>
 </RCC>

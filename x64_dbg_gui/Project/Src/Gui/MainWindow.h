@@ -15,6 +15,7 @@
 #include "BreakpointsView.h"
 #include "ScriptView.h"
 #include "SymbolView.h"
+#include "ReferenceView.h"
 
 namespace Ui {
 class MainWindow;
@@ -69,6 +70,7 @@ private:
     SymbolView* mSymbolView;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
+    ReferenceView* mReferenceView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

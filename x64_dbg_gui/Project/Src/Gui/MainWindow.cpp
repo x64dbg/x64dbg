@@ -32,28 +32,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mLogView->setWindowTitle("Log");
     mLogView->setWindowIcon(QIcon(":/icons/images/log.png"));
     mLogView->hide();
-    mLogView->setGeometry(10, 10, 800, 300);
 
     // Symbol view
     mSymbolView = new SymbolView();
     mSymbolView->setWindowTitle("Symbols");
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
-    mSymbolView->setGeometry(20, 20, 800, 300);
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle("Breakpoints");
     mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     mBreakpointsView->hide();
-    mBreakpointsView->setGeometry(30, 30, 800, 300);
 
     // Memory Map View
     mMemMapView = new MemoryMapView();
     mMemMapView->setWindowTitle("Memory Map");
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
-    mMemMapView->setGeometry(40, 40, 625, 500);
 
     // Script view
     mScriptView = new ScriptView();
@@ -66,6 +62,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setWindowTitle("CPU");
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
+    mReferenceView = new ReferenceView();
+    mReferenceView->setWindowTitle("References");
+    mReferenceView->setWindowIcon(QIcon(":/icons/images/search.png"));
+
     //Create the tab widget
     mTabWidget = new QTabWidget();
 
@@ -76,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mMemMapView, mMemMapView->windowIcon(), mMemMapView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
+    mTabWidget->addTab(mReferenceView, mReferenceView->windowIcon(),mReferenceView->windowTitle());
 
     setCentralWidget(mTabWidget);
 

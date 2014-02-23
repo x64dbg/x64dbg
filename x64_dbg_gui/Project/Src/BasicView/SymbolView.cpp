@@ -7,10 +7,10 @@ SymbolView::SymbolView(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    mainLayout = new QVBoxLayout;
-    mainLayout->setContentsMargins(1, 1, 1, 1);
-    mainLayout->addWidget(ui->mainSplitter);
-    setLayout(mainLayout);
+    mMainLayout = new QVBoxLayout;
+    mMainLayout->setContentsMargins(0, 0, 0, 0);
+    mMainLayout->addWidget(ui->mainSplitter);
+    setLayout(mMainLayout);
 
     QFont wFont("Monospace", 8);
     wFont.setStyleHint(QFont::Monospace);
@@ -37,18 +37,18 @@ SymbolView::SymbolView(QWidget *parent) :
     mSymbolSearchList->hide();
 
     // Create symbol layout
-    symbolLayout = new QVBoxLayout();
-    symbolLayout->setContentsMargins(0, 0, 0, 0);
-    symbolLayout->setSpacing(0);
-    symbolLayout->addWidget(mSymbolList);
-    symbolLayout->addWidget(mSymbolSearchList);
+    mSymbolLayout = new QVBoxLayout();
+    mSymbolLayout->setContentsMargins(0, 0, 0, 0);
+    mSymbolLayout->setSpacing(0);
+    mSymbolLayout->addWidget(mSymbolList);
+    mSymbolLayout->addWidget(mSymbolSearchList);
 
     // Create symbol placeholder
-    symbolPlaceholder = new QWidget();
-    symbolPlaceholder->setLayout(symbolLayout);
+    mSymbolPlaceHolder = new QWidget();
+    mSymbolPlaceHolder->setLayout(mSymbolLayout);
 
     ui->listSplitter->addWidget(mModuleList);
-    ui->listSplitter->addWidget(symbolPlaceholder);
+    ui->listSplitter->addWidget(mSymbolPlaceHolder);
 #ifdef _WIN64
     // mModuleList : mSymbolList = 40 : 100
     ui->listSplitter->setStretchFactor(0, 40);
@@ -136,7 +136,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 void SymbolView::moduleSelectionChanged(int index)
 {
     mSymbolList->setRowCount(0);
-    DbgSymbolEnum(moduleBaseList.at(index), cbSymbolEnum, mSymbolList);
+    DbgSymbolEnum(mModuleBaseList.at(index), cbSymbolEnum, mSymbolList);
     mSymbolList->reloadData();
     mSymbolList->setSingleSelection(0);
     mSymbolList->setTableOffset(0);
@@ -155,10 +155,10 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     }
     QList<uint_t> empty;
     empty.clear();
-    empty.swap(moduleBaseList);
+    empty.swap(mModuleBaseList);
     for(int i=0; i<module_count; i++)
     {
-        moduleBaseList.push_back(modules[i].base);
+        mModuleBaseList.push_back(modules[i].base);
         mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t)*2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }

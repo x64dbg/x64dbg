@@ -54,7 +54,8 @@ SOURCES += \
     Src/Gui/CPUDump.cpp \
     Src/BasicView/ScriptView.cpp \
     Src/Gui/CPUStack.cpp \
-    Src/BasicView/SymbolView.cpp
+    Src/BasicView/SymbolView.cpp \
+    Src/BasicView/ReferenceView.cpp
 
 
 HEADERS += \
@@ -89,7 +90,8 @@ HEADERS += \
     Src/Gui/CPUDump.h \
     Src/BasicView/ScriptView.h \
     Src/Gui/CPUStack.h \
-    Src/BasicView/SymbolView.h
+    Src/BasicView/SymbolView.h \
+    Src/BasicView/ReferenceView.h
 
 INCLUDEPATH += \
     Src \
@@ -110,7 +112,8 @@ FORMS += \
     Src/Gui/GotoDialog.ui \
     Src/BasicView/WordEditDialog.ui \
     Src/BasicView/LineEditDialog.ui \
-    Src/BasicView/SymbolView.ui
+    Src/BasicView/SymbolView.ui \
+    Src/BasicView/ReferenceView.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
