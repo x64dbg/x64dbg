@@ -15,6 +15,7 @@ SymbolView::SymbolView(QWidget *parent) :
 
     // Create reference view
     mSearchListView = new SearchListView();
+    mSearchListView->mSearchStartCol = 1;
 
     // Get font information
     QFont wFont("Monospace", 8);

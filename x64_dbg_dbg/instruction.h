@@ -41,4 +41,7 @@ CMDRESULT cbInstrShr(int argc, char* argv[]);
 CMDRESULT cbInstrSub(int argc, char* argv[]);
 CMDRESULT cbInstrTest(int argc, char* argv[]);
 
+CMDRESULT cbInstrRefinit(int argc, char* argv[]);
+CMDRESULT cbInstrRefadd(int argc, char* argv[]);
+
 #endif // _INSTRUCTIONS_H

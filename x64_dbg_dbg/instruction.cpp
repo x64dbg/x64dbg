@@ -10,6 +10,8 @@
 #include "memory.h"
 #include "x64_dbg.h"
 
+static bool bRefinit=false;
+
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
     uint value=0;
@@ -702,3 +704,35 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
+CMDRESULT cbInstrRefinit(int argc, char* argv[])
+{
+	GuiReferenceDeleteAllColumns();
+	GuiReferenceAddColumn(sizeof(uint)*2, "Address");
+	GuiReferenceAddColumn(0, "Data");
+	GuiReferenceSetRowCount(0);
+	GuiReferenceReloadData();
+	bRefinit=true;
+	return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrRefadd(int argc, char* argv[])
+{
+	if(argc<3)
+	{
+		dputs("not enough arguments!");
+		return STATUS_ERROR;
+	}
+	uint addr=0;
+	if(!valfromstring(argv[1], &addr, false))
+		return STATUS_ERROR;
+	if(!bRefinit)
+		cbInstrRefinit(argc, argv);
+	int index=GuiReferenceGetRowCount();
+	GuiReferenceSetRowCount(index+1);
+	char addr_text[deflen]="";
+	sprintf(addr_text, fhex, addr);
+	GuiReferenceSetCellContent(index, 0, addr_text);
+	GuiReferenceSetCellContent(index, 1, argv[2]);
+	GuiReferenceReloadData();
+	return STATUS_CONTINUE;
+}

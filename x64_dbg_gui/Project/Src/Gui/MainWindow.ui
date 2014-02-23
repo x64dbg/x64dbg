@@ -48,6 +48,7 @@
     <addaction name="actionBreakpoints"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
+    <addaction name="actionReferences"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -123,6 +124,7 @@
    <addaction name="actionMemoryMap"/>
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
+   <addaction name="actionReferences"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
   </widget>
@@ -439,6 +441,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+S</string>
+   </property>
+  </action>
+  <action name="actionReferences">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/search.png</normaloff>:/icons/images/search.png</iconset>
+   </property>
+   <property name="text">
+    <string>References</string>
+   </property>
+   <property name="toolTip">
+    <string>References</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+R</string>
    </property>
   </action>
  </widget>

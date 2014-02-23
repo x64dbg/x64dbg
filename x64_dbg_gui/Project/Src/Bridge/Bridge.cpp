@@ -170,91 +170,34 @@ void Bridge::emitSetSymbolProgress(int progress)
     emit setSymbolProgress(progress);
 }
 
-void Bridge::emitAddColumnAt(StdTable* table, int width, QString title, bool isClickable)
-{
-    table->addColumnAt(width, title, isClickable);
-}
-
-void Bridge::emitSetRowCount(StdTable* table, int_t count)
-{
-    table->setRowCount(count);
-}
-
-int_t Bridge::emitGetRowCount(StdTable* table)
-{
-    return table->getRowCount();
-}
-
-void Bridge::emitDeleteAllColumns(StdTable* table)
-{
-    table->deleteAllColumns();
-}
-
-void Bridge::emitSetCellContent(StdTable* table, int r, int c, QString s)
-{
-    table->setCellContent(r, c, s);
-}
-
-const char* Bridge::emitGetCellContent(StdTable* table, int r, int c)
-{
-    return table->getCellContent(r, c).toUtf8().constData(); //TODO: fix this
-}
-
-void Bridge::emitReloadData(StdTable* table)
-{
-    table->reloadData();
-}
-
-void Bridge::emitSetSingleSelection(StdTable* table, int index, bool scroll)
-{
-    table->setSingleSelection(index);
-    if(scroll) //TODO: better scrolling
-        table->setTableOffset(index);
-}
-
 void Bridge::emitReferenceAddColumnAt(int width, QString title)
 {
-    referenceView->mSearchBox->setText("");
-    emitAddColumnAt(referenceView->mList, width, title, true);
+    emit referenceAddColumnAt(width, title);
 }
 
 void Bridge::emitReferenceSetRowCount(int_t count)
 {
-    referenceView->mSearchBox->setText("");
-    emitSetRowCount(referenceView->mList, count);
-}
-
-int_t Bridge::emitReferenceGetRowCount()
-{
-    return emitGetRowCount(referenceView->mList);
+    emit referenceSetRowCount(count);
 }
 
 void Bridge::emitReferenceDeleteAllColumns()
 {
-    referenceView->mSearchBox->setText("");
-    emitDeleteAllColumns(referenceView->mList);
+    emit referenceDeleteAllColumns();
 }
 
 void Bridge::emitReferenceSetCellContent(int r, int c, QString s)
 {
-    referenceView->mSearchBox->setText("");
-    emitSetCellContent(referenceView->mList, r, c, s);
-}
-
-const char* Bridge::emitReferenceGetCellContent(int r, int c)
-{
-    return emitGetCellContent(referenceView->mList, r, c);
+    emit referenceSetCellContent(r, c, s);
 }
 
 void Bridge::emitReferenceReloadData()
 {
-    emitReloadData(referenceView->mList);
+    emit referenceReloadData();
 }
 
 void Bridge::emitReferenceSetSingleSelection(int index, bool scroll)
 {
-    referenceView->mSearchBox->setText("");
-    emitSetSingleSelection(referenceView->mList, index, scroll);
+    emit referenceSetSingleSelection(index, scroll);
 }
 
 /************************************************************************************
@@ -441,7 +384,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_GETROWCOUNT:
     {
-        return (void*)Bridge::getBridge()->emitReferenceGetRowCount();
+        return (void*)Bridge::getBridge()->referenceView->mList->getRowCount();
     }
     break;
 
@@ -460,7 +403,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_GETCELLCONTENT:
     {
-        return (void*)Bridge::getBridge()->emitReferenceGetCellContent((int)(int_t)param1, (int)(int_t)param2);
+        return (void*)Bridge::getBridge()->referenceView->mList->getCellContent((int)(int_t)param1, (int)(int_t)param2).toUtf8().constData();
     }
     break;
 

@@ -51,21 +51,10 @@ public:
     void emitClearSymbolLog();
     void emitSetSymbolProgress(int progress);
 
-    void emitAddColumnAt(StdTable* table, int width, QString title, bool isClickable);
-    void emitSetRowCount(StdTable* table, int_t count);
-    int_t emitGetRowCount(StdTable* table);
-    void emitDeleteAllColumns(StdTable* table);
-    void emitSetCellContent(StdTable* table, int r, int c, QString s);
-    const char* emitGetCellContent(StdTable* table, int r, int c);
-    void emitReloadData(StdTable* table);
-    void emitSetSingleSelection(StdTable* table, int index, bool scroll);
-
     void emitReferenceAddColumnAt(int width, QString title);
     void emitReferenceSetRowCount(int_t count);
-    int_t emitReferenceGetRowCount();
     void emitReferenceDeleteAllColumns();
     void emitReferenceSetCellContent(int r, int c, QString s);
-    const char* emitReferenceGetCellContent(int r, int c);
     void emitReferenceReloadData();
     void emitReferenceSetSingleSelection(int index, bool scroll);
 
@@ -101,6 +90,13 @@ signals:
     void addMsgToSymbolLog(QString msg);
     void clearSymbolLog();
     void setSymbolProgress(int progress);
+
+    void referenceAddColumnAt(int width, QString title);
+    void referenceSetRowCount(int_t count);
+    void referenceDeleteAllColumns();
+    void referenceSetCellContent(int r, int c, QString s);
+    void referenceReloadData();
+    void referenceSetSingleSelection(int index, bool scroll);
 
 private:
     QMutex mBridgeMutex;

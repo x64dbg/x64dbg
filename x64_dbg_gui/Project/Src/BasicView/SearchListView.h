@@ -23,6 +23,9 @@ public:
     StdTable* mSearchList;
     StdTable* mCurList;
     QLineEdit* mSearchBox;
+    int mSearchStartCol;
+
+    bool findTextInList(StdTable* list, QString text, int row, int startcol, bool startswith);
 
 private slots:
     void searchTextChanged(const QString &arg1);

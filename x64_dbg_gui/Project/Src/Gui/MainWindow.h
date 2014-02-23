@@ -55,6 +55,7 @@ public slots:
     void execeRtr();
     void displayCpuWidget();
     void displaySymbolWidget();
+    void displayReferencesWidget();
     
 private slots:
     void on_actionGoto_triggered();

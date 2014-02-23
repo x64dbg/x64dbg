@@ -118,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCpu,SIGNAL(triggered()),this,SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo,SIGNAL(triggered()),this,SLOT(displaySymbolWidget()));
     connect(mSymbolView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
+    connect(ui->actionReferences,SIGNAL(triggered()),this,SLOT(displayReferencesWidget()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
@@ -492,4 +493,11 @@ void MainWindow::displaySymbolWidget()
     mSymbolView->show();
     mSymbolView->setFocus();
     setTab(mSymbolView);
+}
+
+void MainWindow::displayReferencesWidget()
+{
+    mReferenceView->show();
+    mReferenceView->setFocus();
+    setTab(mReferenceView);
 }

@@ -139,6 +139,9 @@ static void registercommands()
 
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
     cmdnew(cmd, "printf", cbPrintf, false); //printf
+
+	cmdnew(cmd, "refinit", cbInstrRefinit, false);
+	cmdnew(cmd, "refadd", cbInstrRefadd, false);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

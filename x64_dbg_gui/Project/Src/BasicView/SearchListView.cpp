@@ -19,6 +19,7 @@ SearchListView::SearchListView(QWidget *parent) :
     // Set global variables
     mSearchBox = ui->searchBox;
     mCurList = mList;
+    mSearchStartCol = 0;
 
     // Create list layout
     mListLayout = new QVBoxLayout();
@@ -82,6 +83,26 @@ void SearchListView::listKeyPressed(QKeyEvent* event)
         emit enterPressedSignal();
 }
 
+bool SearchListView::findTextInList(StdTable* list, QString text, int row, int startcol, bool startswith)
+{
+    int count=list->getColumnCount();
+    if(startcol+1>count)
+        return false;
+    if(startswith)
+    {
+        for(int i=startcol; i<count; i++)
+            if(list->getCellContent(row, i).startsWith(text, Qt::CaseInsensitive))
+                return true;
+    }
+    else
+    {
+        for(int i=startcol; i<count; i++)
+            if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
+                return true;
+    }
+    return false;
+}
+
 void SearchListView::searchTextChanged(const QString &arg1)
 {
     if(arg1.length())
@@ -101,7 +122,8 @@ void SearchListView::searchTextChanged(const QString &arg1)
     int count=mList->getRowCount();
     for(int i=0,j=0; i<count; i++)
     {
-        if(mList->getCellContent(i, 1).contains(arg1, Qt::CaseInsensitive) || mList->getCellContent(i, 2).contains(arg1, Qt::CaseInsensitive))
+        if(findTextInList(mList, arg1, i, mSearchStartCol, false))
+        //if(mList->getCellContent(i, 1).contains(arg1, Qt::CaseInsensitive) || mList->getCellContent(i, 2).contains(arg1, Qt::CaseInsensitive))
         {
             mSearchList->setRowCount(j+1);
             mSearchList->setCellContent(j, 0, mList->getCellContent(i, 0));
@@ -114,7 +136,8 @@ void SearchListView::searchTextChanged(const QString &arg1)
     mSearchList->setTableOffset(0);
     for(int i=0; i<count; i++)
     {
-        if(mSearchList->getCellContent(i, 1).startsWith(arg1, Qt::CaseInsensitive) || mSearchList->getCellContent(i, 2).startsWith(arg1, Qt::CaseInsensitive))
+        if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
+        //if(mSearchList->getCellContent(i, 1).startsWith(arg1, Qt::CaseInsensitive) || mSearchList->getCellContent(i, 2).startsWith(arg1, Qt::CaseInsensitive))
         {
             if(count>mSearchList->getViewableRowsCount())
             {
