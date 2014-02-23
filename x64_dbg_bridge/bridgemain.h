@@ -330,7 +330,7 @@ enum GUIMSG
     GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
     GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
     GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
-	GUI_REF_SETPROGRESS				// param1=int progress,			param2=unused
+    GUI_REF_SETPROGRESS				// param1=int progress,			param2=unused
 };
 
 //GUI structures

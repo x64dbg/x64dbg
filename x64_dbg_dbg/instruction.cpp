@@ -70,18 +70,20 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
 
 CMDRESULT cbInstrVar(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    char arg2[deflen]="";
-    if(!argget(*argv, arg1, 0, false)) //var name
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
         return STATUS_ERROR;
+    }
+    char arg2[deflen]="";
     argget(*argv, arg2, 1, true); //var value (optional)
     uint value=0;
     int add=0;
-    if(*arg1=='$')
+    if(*argv[1]=='$')
         add++;
-    if(valfromstring(arg1+add, &value))
+    if(valfromstring(argv[1]+add, &value))
     {
-        dprintf("invalid variable name \"%s\"\n", arg1);
+        dprintf("invalid variable name \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
     if(!valfromstring(arg2, &value))
@@ -89,57 +91,60 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
         dprintf("invalid value \"%s\"\n", arg2);
         return STATUS_ERROR;
     }
-    if(!varnew(arg1, value, VAR_USER))
+    if(!varnew(argv[1], value, VAR_USER))
     {
-        dprintf("error creating variable \"%s\"\n", arg1);
+        dprintf("error creating variable \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
     else
     {
         if(value>15)
-            dprintf("%s=%"fext"X (%"fext"ud)\n", arg1, value, value);
+            dprintf("%s=%"fext"X (%"fext"ud)\n", argv[1], value, value);
         else
-            dprintf("%s=%"fext"X\n", arg1, value);
+            dprintf("%s=%"fext"X\n", argv[1], value);
     }
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrVarDel(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false)) //var name
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
         return STATUS_ERROR;
-    if(!vardel(arg1, false))
-        dprintf("could not delete variable \"%s\"\n", arg1);
+    }
+    if(!vardel(argv[1], false))
+        dprintf("could not delete variable \"%s\"\n", argv[1]);
     else
-        dprintf("deleted variable \"%s\"\n", arg1);
+        dprintf("deleted variable \"%s\"\n", argv[1]);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrMov(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    char arg2[deflen]="";
-    if(!argget(*argv, arg1, 0, false)) //dest name
-        return STATUS_ERROR;
-    if(!argget(*argv, arg2, 1, false)) //src name
-        return STATUS_ERROR;
-    uint set_value=0;
-    if(!valfromstring(arg2, &set_value))
+    if(argc<3)
     {
-        dprintf("invalid src \"%s\"\n", arg2);
+        dputs("not enough arguments");
+        return STATUS_ERROR;
+    }
+    uint set_value=0;
+    if(!valfromstring(argv[2], &set_value))
+    {
+        dprintf("invalid src \"%s\"\n", argv[2]);
         return STATUS_ERROR;
     }
     bool isvar=false;
-    if(!isvar or !valtostring(arg1, &set_value, true))
+    uint temp=0;
+    valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
+    if(!isvar or !valtostring(argv[1], &set_value, true))
     {
         uint value;
-        if(valfromstring(arg1, &value))
+        if(!valfromstring(argv[1], &value))
         {
-            dprintf("invalid dest \"%s\"\n", arg1);
+            dprintf("invalid dest \"%s\"\n", argv[1]);
             return STATUS_ERROR;
         }
-        varnew(arg1, set_value, VAR_USER);
+        varnew(argv[1], set_value, VAR_USER);
     }
     cbBadCmd(1, &argv[1]);
     return STATUS_CONTINUE;
@@ -202,34 +207,32 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
 
 CMDRESULT cbInstrChd(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
         return STATUS_ERROR;
-    if(!DirExists(arg1))
+    }
+    if(!DirExists(argv[1]))
     {
         dputs("directory doesn't exist");
         return STATUS_ERROR;
     }
-    SetCurrentDirectoryA(arg1);
+    SetCurrentDirectoryA(argv[1]);
     dputs("current directory changed!");
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrCmt(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<3)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char arg2[deflen]="";
-    if(!argget(*argv, arg2, 1, false))
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!commentset(addr, arg2))
+    if(!commentset(addr, argv[2]))
     {
         dputs("error setting comment");
         return STATUS_ERROR;
@@ -239,15 +242,14 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
 
 CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<2)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
     if(!commentdel(addr))
     {
         dputs("error deleting comment");
@@ -258,19 +260,15 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 
 CMDRESULT cbInstrLbl(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<3)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char arg2[deflen]="";
-    if(!argget(*argv, arg2, 1, false))
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!labelset(addr, arg2))
+    if(!labelset(addr, argv[2]))
     {
         dputs("error setting label");
         return STATUS_ERROR;
@@ -280,16 +278,14 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
 
 CMDRESULT cbInstrLbldel(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<2)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
     if(!labeldel(addr))
     {
         dputs("error deleting label");
@@ -300,15 +296,14 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<2)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
     if(!bookmarkset(addr))
     {
         dputs("failed to set bookmark!");
@@ -320,15 +315,14 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
-        return STATUS_ERROR;
-    uint addr=0;
-    if(!valfromstring(arg1, &addr))
+    if(argc<2)
     {
-        dprintf("invalid address: \"%s\"\n", arg1);
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
     if(!bookmarkdel(addr))
     {
         dputs("failed to delete bookmark!");
@@ -706,33 +700,33 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
-	GuiReferenceDeleteAllColumns();
-	GuiReferenceAddColumn(sizeof(uint)*2, "Address");
-	GuiReferenceAddColumn(0, "Data");
-	GuiReferenceSetRowCount(0);
-	GuiReferenceReloadData();
-	bRefinit=true;
-	return STATUS_CONTINUE;
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(sizeof(uint)*2, "Address");
+    GuiReferenceAddColumn(0, "Data");
+    GuiReferenceSetRowCount(0);
+    GuiReferenceReloadData();
+    bRefinit=true;
+    return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrRefadd(int argc, char* argv[])
 {
-	if(argc<3)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
-	uint addr=0;
-	if(!valfromstring(argv[1], &addr, false))
-		return STATUS_ERROR;
-	if(!bRefinit)
-		cbInstrRefinit(argc, argv);
-	int index=GuiReferenceGetRowCount();
-	GuiReferenceSetRowCount(index+1);
-	char addr_text[deflen]="";
-	sprintf(addr_text, fhex, addr);
-	GuiReferenceSetCellContent(index, 0, addr_text);
-	GuiReferenceSetCellContent(index, 1, argv[2]);
-	GuiReferenceReloadData();
-	return STATUS_CONTINUE;
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+    if(!bRefinit)
+        cbInstrRefinit(argc, argv);
+    int index=GuiReferenceGetRowCount();
+    GuiReferenceSetRowCount(index+1);
+    char addr_text[deflen]="";
+    sprintf(addr_text, fhex, addr);
+    GuiReferenceSetCellContent(index, 0, addr_text);
+    GuiReferenceSetCellContent(index, 1, argv[2]);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
 }

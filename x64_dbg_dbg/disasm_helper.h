@@ -41,7 +41,7 @@ struct DISASM_INSTR
     char instruction[64];
     DISASM_INSTRTYPE type;
     int argcount;
-	int instr_size;
+    int instr_size;
     DISASM_ARG arg[3];
 };
 

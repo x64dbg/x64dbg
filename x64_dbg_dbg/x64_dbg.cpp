@@ -20,9 +20,12 @@ static COMMAND* command_list=0;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(argget(*argv, arg1, 0, false))
-        dprintf("\"%s\"[%d]\n", arg1, strlen(arg1));
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
     return STATUS_CONTINUE;
 }
 
@@ -140,8 +143,8 @@ static void registercommands()
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
     cmdnew(cmd, "printf", cbPrintf, false); //printf
 
-	cmdnew(cmd, "refinit", cbInstrRefinit, false);
-	cmdnew(cmd, "refadd", cbInstrRefadd, false);
+    cmdnew(cmd, "refinit", cbInstrRefinit, false);
+    cmdnew(cmd, "refadd", cbInstrRefadd, false);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

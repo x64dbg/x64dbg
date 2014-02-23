@@ -1285,6 +1285,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     uint size=UE_HARDWARE_SIZE_1;
     if(argget(*argv, arg3, 2, true))
     {
+			
         if(!valfromstring(arg3, &size))
             return STATUS_ERROR;
         switch(size)
@@ -1432,15 +1433,16 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
 
 CMDRESULT cbDebugMemset(int argc, char* argv[])
 {
-    char arg1[deflen]=""; //addr
-    char arg2[deflen]=""; //value
     char arg3[deflen]=""; //size
     uint addr;
     uint value;
     uint size;
-    if(!argget(*argv, arg1, 0, false) or !argget(*argv, arg2, 1, false))
+    if(argc<3)
+    {
+        dputs("not enough arguments");
         return STATUS_ERROR;
-    if(!valfromstring(arg1, &addr, false) or !valfromstring(arg2, &value, false))
+    }
+    if(!valfromstring(argv[1], &addr, false) or !valfromstring(argv[2], &value, false))
         return STATUS_ERROR;
     if(argget(*argv, arg3, 2, true))
     {
@@ -1469,11 +1471,13 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbBenchmark(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
+    if(argc<2)
+    {
+        dputs("not enough arguments");
         return STATUS_ERROR;
+    }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, false))
+    if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
     for(int i=0; i<10000; i++)
@@ -1499,11 +1503,13 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
 
 CMDRESULT cbMemWrite(int argc, char* argv[])
 {
-    char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, false))
+    if(argc<2)
+    {
+        dputs("not enough arguments");
         return STATUS_ERROR;
+    }
     uint addr=0;
-    if(!valfromstring(arg1, &addr, false))
+    if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     unsigned char* blub=(unsigned char*)emalloc(0x2123, "cbMemWrite:blub");
     memread(fdProcessInfo->hProcess, (const void*)addr, blub, 0x2123, 0);
