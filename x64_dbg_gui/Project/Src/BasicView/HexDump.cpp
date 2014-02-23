@@ -81,8 +81,6 @@ void HexDump::printDumpAt(int_t parVA)
     mByteOffset = (int)((int_t)wRVA % (int_t)wBytePerRowCount);
     mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
 
-    //QMessageBox::information(this, "eeee", "RVA "+QString::number(wRVA)+"\nwBytePerRowCount "+QString::number(wBytePerRowCount)+"\nmByteOffset "+QString::number(mByteOffset));
-
     // Compute row count
     wRowCount = wSize / wBytePerRowCount;
     wRowCount += mByteOffset > 0 ? 1 : 0;
@@ -92,6 +90,9 @@ void HexDump::printDumpAt(int_t parVA)
     mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
     mBase = wBase;
     mSize = wSize;
+
+    setTableOffset(-1); //make sure the requested address is always first
+
     setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
 }
 
