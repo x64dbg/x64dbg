@@ -200,6 +200,11 @@ void Bridge::emitReferenceSetSingleSelection(int index, bool scroll)
     emit referenceSetSingleSelection(index, scroll);
 }
 
+void Bridge::emitReferenceSetProgress(int progress)
+{
+    emit referenceSetProgress(progress);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -416,6 +421,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_REF_SETSINGLESELECTION:
     {
         Bridge::getBridge()->emitReferenceSetSingleSelection((int)(int_t)param1, (bool)(int_t)param2);
+    }
+    break;
+
+    case GUI_REF_SETPROGRESS:
+    {
+        Bridge::getBridge()->emitReferenceSetProgress((int)(int_t)param1);
     }
     break;
 

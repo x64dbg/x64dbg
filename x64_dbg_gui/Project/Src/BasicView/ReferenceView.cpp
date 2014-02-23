@@ -21,6 +21,7 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int,int,QString)), this, SLOT(setCellContent(int,int,QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)

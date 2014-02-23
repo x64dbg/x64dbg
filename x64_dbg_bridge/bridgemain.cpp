@@ -711,6 +711,11 @@ BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
 	_gui_sendmessage(GUI_REF_SETSINGLESELECTION, (void*)(duint)index, (void*)(duint)scroll);
 }
 
+BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
+{
+	_gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

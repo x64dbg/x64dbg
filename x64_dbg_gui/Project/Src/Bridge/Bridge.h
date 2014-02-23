@@ -57,6 +57,7 @@ public:
     void emitReferenceSetCellContent(int r, int c, QString s);
     void emitReferenceReloadData();
     void emitReferenceSetSingleSelection(int index, bool scroll);
+    void emitReferenceSetProgress(int progress);
 
     //Public variables
     void* winId;
@@ -97,6 +98,7 @@ signals:
     void referenceSetCellContent(int r, int c, QString s);
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
+    void referenceSetProgress(int progress);
 
 private:
     QMutex mBridgeMutex;

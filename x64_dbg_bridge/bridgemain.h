@@ -329,7 +329,8 @@ enum GUIMSG
     GUI_REF_SETCELLCONTENT,         // param1=(CELLINFO*)info,      param2=unused
     GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
     GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
-    GUI_REF_SETSINGLESELECTION      // param1=int index,            param2=bool scroll
+    GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
+	GUI_REF_SETPROGRESS				// param1=int progress,			param2=unused
 };
 
 //GUI structures
@@ -376,6 +377,7 @@ BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
+BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);
 
 #ifdef __cplusplus
 }
