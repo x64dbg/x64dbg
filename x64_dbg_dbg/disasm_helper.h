@@ -41,12 +41,14 @@ struct DISASM_INSTR
     char instruction[64];
     DISASM_INSTRTYPE type;
     int argcount;
+	int instr_size;
     DISASM_ARG arg[3];
 };
 
 //functions
 const char* disasmtext(uint addr);
 void disasmprint(uint addr);
+void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr);
 void disasmget(uint addr, DISASM_INSTR* instr);
 bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
 

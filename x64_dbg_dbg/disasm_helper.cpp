@@ -109,16 +109,14 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     return true;
 }
 
-void disasmget(uint addr, DISASM_INSTR* instr)
+void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
 {
-    if(!DbgIsDebugging() or !instr)
+	if(!DbgIsDebugging() or !instr)
         return;
-    memset(instr, 0, sizeof(DISASM_INSTR));
+	memset(instr, 0, sizeof(DISASM_INSTR));
     DISASM disasm;
     memset(&disasm, 0, sizeof(DISASM));
-    unsigned char buffer[16]="";
-    DbgMemRead(addr, buffer, 16);
-    disasm.Options=NoformatNumeral;
+	disasm.Options=NoformatNumeral;
 #ifdef _WIN64
     disasm.Archi=64;
 #endif // _WIN64
@@ -128,10 +126,12 @@ void disasmget(uint addr, DISASM_INSTR* instr)
     strcpy(instr->instruction, disasm.CompleteInstr);
     if(len==UNKNOWN_OPCODE)
     {
+		instr->instr_size=1;
         instr->type=instr_normal;
         instr->argcount=0;
         return;
     }
+	instr->instr_size=len;
     if(disasm.Instruction.BranchType)
         instr->type=instr_branch;
     else if(strstr(disasm.CompleteInstr, "sp") or strstr(disasm.CompleteInstr, "bp"))
@@ -144,6 +144,15 @@ void disasmget(uint addr, DISASM_INSTR* instr)
         instr->argcount++;
     if(HandleArgument(&disasm.Argument3, &disasm.Instruction, &instr->arg[instr->argcount], addr))
         instr->argcount++;
+}
+
+void disasmget(uint addr, DISASM_INSTR* instr)
+{
+    if(!DbgIsDebugging() or !instr)
+        return;
+    unsigned char buffer[16]="";
+    DbgMemRead(addr, buffer, 16);
+	disasmget(buffer, addr, instr);
 }
 
 void disasmprint(uint addr)
