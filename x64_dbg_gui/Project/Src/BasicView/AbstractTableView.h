@@ -51,6 +51,7 @@ public:
     // New Columns/New Size
     virtual void addColumnAt(int width, QString title, bool isClickable);
     virtual void setRowCount(int_t count);
+    virtual void deleteAllColumns();
     void setColTitle(int index, QString title);
 
     // Getter & Setter

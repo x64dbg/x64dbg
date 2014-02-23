@@ -18,6 +18,7 @@ public:
     explicit SearchListView(QWidget* parent = 0);
     ~SearchListView();
 
+    QVBoxLayout* mMainLayout;
     StdTable* mList;
     StdTable* mSearchList;
     StdTable* mCurList;
@@ -34,7 +35,6 @@ signals:
 
 private:
     Ui::SearchListView* ui;
-    QVBoxLayout* mMainLayout;
     QVBoxLayout* mListLayout;
     QWidget* mListPlaceHolder;
 

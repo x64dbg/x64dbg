@@ -768,13 +768,16 @@ void AbstractTableView::addColumnAt(int width, QString title, bool isClickable)
     mColumnList.append(wColumn);
 }
 
-
 void AbstractTableView::setRowCount(int_t count)
 {
     updateScrollBarRange(count);
     mRowCount = count;
 }
 
+void AbstractTableView::deleteAllColumns()
+{
+    mColumnList.clear();
+}
 
 void AbstractTableView::setColTitle(int index, QString title)
 {

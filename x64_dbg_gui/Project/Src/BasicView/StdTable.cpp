@@ -257,6 +257,12 @@ void StdTable::setRowCount(int count)
     AbstractTableView::setRowCount(count);
 }
 
+void StdTable::deleteAllColumns()
+{
+    setRowCount(0);
+    AbstractTableView::deleteAllColumns();
+}
+
 
 
 
