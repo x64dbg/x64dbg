@@ -53,6 +53,7 @@ public:
     virtual void setRowCount(int_t count);
     virtual void deleteAllColumns();
     void setColTitle(int index, QString title);
+    QString getColTitle(int index);
 
     // Getter & Setter
     int_t getRowCount();

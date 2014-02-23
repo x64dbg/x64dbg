@@ -789,6 +789,13 @@ void AbstractTableView::setColTitle(int index, QString title)
     }
 }
 
+QString AbstractTableView::getColTitle(int index)
+{
+    if(mColumnList.size() > 0 && index >= 0 && index < mColumnList.size())
+        return mColumnList.at(index).title;
+    return "";
+}
+
 
 /************************************************************************************
                                 Getter & Setter
