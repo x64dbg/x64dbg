@@ -8,6 +8,7 @@ SymbolView::SymbolView(QWidget *parent) :
     ui->setupUi(this);
 
     mainLayout = new QVBoxLayout;
+    mainLayout->setContentsMargins(1, 1, 1, 1);
     mainLayout->addWidget(ui->mainSplitter);
     setLayout(mainLayout);
 
@@ -21,14 +22,33 @@ SymbolView::SymbolView(QWidget *parent) :
     mModuleList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Base", false);
     mModuleList->addColumnAt(0, "Module", true);
 
+    // Create symbol list
     mSymbolList = new StdTable();
     mSymbolList->setContextMenuPolicy(Qt::CustomContextMenu);
     mSymbolList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Address", true);
     mSymbolList->addColumnAt(charwidth*80, "Symbol", true);
     mSymbolList->addColumnAt(0, "Symbol (undecorated)", true);
 
+    // Create search list
+    mSymbolSearchList = new StdTable();
+    mSymbolSearchList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Address", true);
+    mSymbolSearchList->addColumnAt(charwidth*80, "Symbol Search", true);
+    mSymbolSearchList->addColumnAt(0, "Symbol (undecorated)", true);
+    mSymbolSearchList->hide();
+
+    // Create symbol layout
+    symbolLayout = new QVBoxLayout();
+    symbolLayout->setContentsMargins(0, 0, 0, 0);
+    symbolLayout->setSpacing(0);
+    symbolLayout->addWidget(mSymbolList);
+    symbolLayout->addWidget(mSymbolSearchList);
+
+    // Create symbol placeholder
+    symbolPlaceholder = new QWidget();
+    symbolPlaceholder->setLayout(symbolLayout);
+
     ui->listSplitter->addWidget(mModuleList);
-    ui->listSplitter->addWidget(mSymbolList);
+    ui->listSplitter->addWidget(symbolPlaceholder);
 #ifdef _WIN64
     // mModuleList : mSymbolList = 40 : 100
     ui->listSplitter->setStretchFactor(0, 40);
@@ -59,6 +79,8 @@ SymbolView::SymbolView(QWidget *parent) :
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(mSymbolList, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(symbolContextMenu(const QPoint &)));
+    connect(mSymbolList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(symbolKeyPressed(QKeyEvent*)));
+    connect(mSymbolSearchList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(symbolKeyPressed(QKeyEvent*)));
     connect(ui->searchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
 }
 
@@ -118,6 +140,8 @@ void SymbolView::moduleSelectionChanged(int index)
     mSymbolList->reloadData();
     mSymbolList->setSingleSelection(0);
     mSymbolList->setTableOffset(0);
+    mSymbolList->setFocus();
+    ui->searchBox->setText("");
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
@@ -159,38 +183,109 @@ void SymbolView::symbolContextMenu(const QPoint & pos)
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 0)).toUtf8().constData());
+    StdTable* curList;
+    if(mSymbolList->isHidden()) //search is active
+        curList=mSymbolSearchList;
+    else
+        curList=mSymbolList;
+    DbgCmdExecDirect(QString("disasm " + curList->getCellContent(curList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
 }
 
 void SymbolView::symbolAddressCopy()
 {
-    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 0).toUtf8().constData());
+    StdTable* curList;
+    if(mSymbolList->isHidden()) //search is active
+        curList=mSymbolSearchList;
+    else
+        curList=mSymbolList;
+    Bridge::CopyToClipboard(curList->getCellContent(curList->getInitialSelection(), 0).toUtf8().constData());
 }
 
 void SymbolView::symbolDecoratedCopy()
 {
-    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 1).toUtf8().constData());
+    StdTable* curList;
+    if(mSymbolList->isHidden()) //search is active
+        curList=mSymbolSearchList;
+    else
+        curList=mSymbolList;
+    Bridge::CopyToClipboard(curList->getCellContent(curList->getInitialSelection(), 1).toUtf8().constData());
 }
 
 void SymbolView::symbolUndecoratedCopy()
 {
-    Bridge::CopyToClipboard(mSymbolList->getCellContent(mSymbolList->getInitialSelection(), 2).toUtf8().constData());
+    StdTable* curList;
+    if(mSymbolList->isHidden()) //search is active
+        curList=mSymbolSearchList;
+    else
+        curList=mSymbolList;
+    Bridge::CopyToClipboard(curList->getCellContent(curList->getInitialSelection(), 2).toUtf8().constData());
+}
+
+void SymbolView::symbolKeyPressed(QKeyEvent* event)
+{
+    char ch=event->text().toUtf8().constData()[0];
+    if(isprint(ch)) //add a char to the search box
+        ui->searchBox->setText(ui->searchBox->text()+QString(QChar(ch)));
+    else if(event->key()==Qt::Key_Backspace) //remove a char from the search box
+    {
+        QString newText;
+        if(event->modifiers()==Qt::ControlModifier) //clear the search box
+            newText="";
+        else
+        {
+            newText=ui->searchBox->text();
+            newText.chop(1);
+        }
+        ui->searchBox->setText(newText);
+    }
+    else if((event->key()==Qt::Key_Return || event->key()==Qt::Key_Enter) && event->modifiers()==Qt::NoModifier) //user pressed enter
+        mFollowSymbolAction->trigger();
 }
 
 void SymbolView::searchTextChanged(const QString &arg1)
 {
+    if(arg1.length())
+    {
+        mSymbolList->hide();
+        mSymbolSearchList->show();
+    }
+    else
+    {
+        mSymbolSearchList->hide();
+        mSymbolList->show();
+        mSymbolList->setFocus();
+    }
+    mSymbolSearchList->setRowCount(0);
     int count=mSymbolList->getRowCount();
-    for(int i=0; i<count; i++)
+    for(int i=0,j=0; i<count; i++)
     {
         if(mSymbolList->getCellContent(i, 1).contains(arg1, Qt::CaseInsensitive) || mSymbolList->getCellContent(i, 2).contains(arg1, Qt::CaseInsensitive))
         {
-            int cur=i-mSymbolList->getViewableRowsCount()/2;
-            if(!mSymbolList->isValidIndex(cur, 0))
-                cur=i;
-            mSymbolList->setTableOffset(cur);
-            mSymbolList->setSingleSelection(i);
+            mSymbolSearchList->setRowCount(j+1);
+            mSymbolSearchList->setCellContent(j, 0, mSymbolList->getCellContent(i, 0));
+            mSymbolSearchList->setCellContent(j, 1, mSymbolList->getCellContent(i, 1));
+            mSymbolSearchList->setCellContent(j, 2, mSymbolList->getCellContent(i, 2));
+            j++;
+        }
+    }
+    count=mSymbolSearchList->getRowCount();
+    mSymbolSearchList->setTableOffset(0);
+    for(int i=0; i<count; i++)
+    {
+        if(mSymbolSearchList->getCellContent(i, 1).startsWith(arg1, Qt::CaseInsensitive) || mSymbolSearchList->getCellContent(i, 2).startsWith(arg1, Qt::CaseInsensitive))
+        {
+            if(count>mSymbolSearchList->getViewableRowsCount())
+            {
+                int cur=i-mSymbolSearchList->getViewableRowsCount()/2;
+                if(!mSymbolSearchList->isValidIndex(cur, 0))
+                    cur=i;
+                mSymbolSearchList->setTableOffset(cur);
+            }
+            mSymbolSearchList->setSingleSelection(i);
             break;
         }
     }
+    mSymbolSearchList->reloadData();
+    mSymbolSearchList->setFocus();
 }

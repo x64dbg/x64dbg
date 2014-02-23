@@ -115,6 +115,7 @@ void StdTable::mouseReleaseEvent(QMouseEvent* event)
 
 void StdTable::keyPressEvent(QKeyEvent* event)
 {
+    emit keyPressedSignal(event);
     int key = event->key();
 
     if(key == Qt::Key_Up || key == Qt::Key_Down)

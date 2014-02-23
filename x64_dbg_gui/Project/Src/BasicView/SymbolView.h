@@ -31,6 +31,7 @@ public slots:
     void symbolAddressCopy();
     void symbolDecoratedCopy();
     void symbolUndecoratedCopy();
+    void symbolKeyPressed(QKeyEvent* event);
     void searchTextChanged(const QString &arg1);
 
 signals:
@@ -39,9 +40,12 @@ signals:
 private:
     Ui::SymbolView *ui;
     QVBoxLayout* mainLayout;
+    QVBoxLayout* symbolLayout;
+    QWidget* symbolPlaceholder;
 
     StdTable* mModuleList;
     StdTable* mSymbolList;
+    StdTable* mSymbolSearchList;
 
     QList<uint_t> moduleBaseList;
 

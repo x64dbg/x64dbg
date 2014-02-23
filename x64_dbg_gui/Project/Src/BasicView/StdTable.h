@@ -36,6 +36,7 @@ public:
 
 signals:
     void selectionChangedSignal(int index);
+    void keyPressedSignal(QKeyEvent* event);
     
 public slots:
 

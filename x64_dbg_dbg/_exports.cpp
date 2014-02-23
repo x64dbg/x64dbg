@@ -206,7 +206,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     }
                     else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
-                        if(instr.type!=instr_normal)
+                        if(instr.type!=instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
                             strtype=str_none;
                         switch(strtype)
                         {

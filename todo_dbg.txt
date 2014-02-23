@@ -65,3 +65,4 @@
 - 'dead' bytes custom analysis
 - loops lines database for analysis
 - enable/disable hw+mem breakpoint
+- highlight words
