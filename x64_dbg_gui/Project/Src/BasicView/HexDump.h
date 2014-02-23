@@ -148,6 +148,8 @@ private:
     int_t mSize;
 
     MemoryPage* mMemPage;
+
+    int mByteOffset;
 };
 
 #endif // DUMP_H
