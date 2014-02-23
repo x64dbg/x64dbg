@@ -321,6 +321,23 @@ enum GUIMSG
     GUI_SYMBOL_LOG_CLEAR,           // param1=unused,               param2=unused
     GUI_SYMBOL_SET_PROGRESS,        // param1=int percent           param2=unused
     GUI_SYMBOL_UPDATE_MODULE_LIST,  // param1=int count,            param2=SYMBOLMODULEINFO* modules
+
+    GUI_REF_ADDCOLUMN,              // param1=int width,            param2=(const char*)title
+    GUI_REF_SETROWCOUNT,            // param1=int rows,             param2=unused
+    GUI_REF_GETROWCOUNT,            // param1=unused,               param2=unused
+    GUI_REF_DELETEALLCOLUMNS,       // param1=unused,               param2=unused
+    GUI_REF_SETCELLCONTENT,         // param1=(CELLINFO*)info,      param2=unused
+    GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
+    GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
+    GUI_REF_SETSINGLESELECTION      // param1=int index,            param2=bool scroll
+};
+
+//GUI structures
+struct CELLINFO
+{
+    int row;
+    int col;
+    const char* str;
 };
 
 //GUI functions
@@ -350,6 +367,15 @@ BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
 BRIDGE_IMPEXP void GuiSymbolLogClear();
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent);
 BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules);
+
+BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
+BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
+BRIDGE_IMPEXP int GuiReferenceGetRowCount();
+BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns();
+BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str);
+BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
+BRIDGE_IMPEXP void GuiReferenceReloadData();
+BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 
 #ifdef __cplusplus
 }

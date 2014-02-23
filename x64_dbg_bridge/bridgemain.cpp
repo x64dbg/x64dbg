@@ -667,6 +667,50 @@ BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* module
     _gui_sendmessage(GUI_SYMBOL_UPDATE_MODULE_LIST, (void*)(duint)count, (void*)modules);
 }
 
+BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
+{
+	_gui_sendmessage(GUI_REF_ADDCOLUMN, (void*)(duint)width, (void*)title);
+}
+
+BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
+{
+	_gui_sendmessage(GUI_REF_SETROWCOUNT, (void*)(duint)count, 0);
+}
+
+BRIDGE_IMPEXP int GuiReferenceGetRowCount()
+{
+	return (int)(duint)_gui_sendmessage(GUI_REF_GETROWCOUNT, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
+{
+	_gui_sendmessage(GUI_REF_DELETEALLCOLUMNS, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
+{
+	CELLINFO info;
+	info.row=row;
+	info.col=col;
+	info.str=str;
+	_gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
+}
+
+BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col)
+{
+	return (const char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
+}
+
+BRIDGE_IMPEXP void GuiReferenceReloadData()
+{
+	_gui_sendmessage(GUI_REF_RELOADDATA, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
+{
+	_gui_sendmessage(GUI_REF_SETSINGLESELECTION, (void*)(duint)index, (void*)(duint)scroll);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

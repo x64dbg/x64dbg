@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
     mReferenceView = new ReferenceView();
+    Bridge::getBridge()->referenceView = mReferenceView;
     mReferenceView->setWindowTitle("References");
     mReferenceView->setWindowIcon(QIcon(":/icons/images/search.png"));
 
