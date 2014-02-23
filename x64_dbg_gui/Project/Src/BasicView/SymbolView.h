@@ -7,6 +7,7 @@
 #include <QMenu>
 #include "StdTable.h"
 #include "Bridge.h"
+#include "SearchListView.h"
 
 namespace Ui {
 class SymbolView;
@@ -21,7 +22,7 @@ public:
     ~SymbolView();
     void setupContextMenu();
 
-public slots:
+private slots:
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
     void moduleSelectionChanged(int index);
@@ -31,8 +32,6 @@ public slots:
     void symbolAddressCopy();
     void symbolDecoratedCopy();
     void symbolUndecoratedCopy();
-    void symbolKeyPressed(QKeyEvent* event);
-    void searchTextChanged(const QString &arg1);
 
 signals:
     void showCpu();
@@ -42,13 +41,9 @@ private:
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;
-
+    SearchListView* mSearchListView;
     StdTable* mModuleList;
-    StdTable* mSymbolList;
-    StdTable* mSymbolSearchList;
-
     QList<uint_t> mModuleBaseList;
-
     QAction* mFollowSymbolAction;
     QAction* mCopySymbolAddress;
     QAction* mCopyDecoratedSymbolAction;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ReferenceView</class>
- <widget class="QWidget" name="ReferenceView">
+ <class>SearchListView</class>
+ <widget class="QWidget" name="SearchListView">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -49,7 +49,7 @@
       <number>2</number>
      </property>
      <property name="sizeConstraint">
-      <enum>QLayout::SetMinimumSize</enum>
+      <enum>QLayout::SetDefaultConstraint</enum>
      </property>
      <item>
       <widget class="QLabel" name="searchLabel">

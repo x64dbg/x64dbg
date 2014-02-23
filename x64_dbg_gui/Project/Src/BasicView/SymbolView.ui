@@ -40,61 +40,22 @@
    <property name="childrenCollapsible">
     <bool>false</bool>
    </property>
-   <widget class="QWidget" name="layoutWidget">
-    <layout class="QVBoxLayout" name="verticalListLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QSplitter" name="listSplitter">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="handleWidth">
-        <number>2</number>
-       </property>
-       <property name="childrenCollapsible">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalListLayout">
-       <property name="spacing">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QLabel" name="searchLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Search:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="searchBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
+   <widget class="QSplitter" name="listSplitter">
+	<property name="sizePolicy">
+	 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+	 <horstretch>0</horstretch>
+	 <verstretch>0</verstretch>
+	 </sizepolicy>
+	</property>
+	<property name="orientation">
+	 <enum>Qt::Horizontal</enum>
+	</property>
+	<property name="handleWidth">
+	 <number>2</number>
+	</property>
+	<property name="childrenCollapsible">
+	 <bool>false</bool>
+	</property>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <layout class="QVBoxLayout" name="logLayout">

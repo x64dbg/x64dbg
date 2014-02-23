@@ -43,7 +43,6 @@ SOURCES += \
     Src/BasicView/LogView.cpp \
     Src/Gui/GotoDialog.cpp \
     Src/Disassembler/BeaHighlight.cpp \
-    Src/BasicView/RegistersView.cpp \
     Src/Gui/StatusLabel.cpp \
     Src/BasicView/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
@@ -55,6 +54,8 @@ SOURCES += \
     Src/BasicView/ScriptView.cpp \
     Src/Gui/CPUStack.cpp \
     Src/BasicView/SymbolView.cpp \
+    Src/BasicView/RegistersView.cpp \
+    Src/BasicView/SearchListView.cpp \
     Src/BasicView/ReferenceView.cpp
 
 
@@ -91,6 +92,7 @@ HEADERS += \
     Src/BasicView/ScriptView.h \
     Src/Gui/CPUStack.h \
     Src/BasicView/SymbolView.h \
+    Src/BasicView/SearchListView.h \
     Src/BasicView/ReferenceView.h
 
 INCLUDEPATH += \
@@ -113,7 +115,7 @@ FORMS += \
     Src/BasicView/WordEditDialog.ui \
     Src/BasicView/LineEditDialog.ui \
     Src/BasicView/SymbolView.ui \
-    Src/BasicView/ReferenceView.ui
+    Src/BasicView/SearchListView.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
