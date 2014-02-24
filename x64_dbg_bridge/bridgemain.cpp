@@ -544,6 +544,11 @@ BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name)
     return _dbg_sendmessage(DBG_MODBASE_FROM_NAME, (void*)name, 0);
 }
 
+BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
+{
+    _dbg_sendmessage(DBG_DISASM_AT, (void*)addr, instr);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

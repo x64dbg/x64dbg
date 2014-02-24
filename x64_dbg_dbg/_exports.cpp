@@ -605,6 +605,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         return modbasefromname((const char*)param1);
     }
     break;
+
+    case DBG_DISASM_AT:
+    {
+        disasmget((uint)param1, (DISASM_INSTR*)param2);
+    }
+    break;
     }
     return 0;
 }

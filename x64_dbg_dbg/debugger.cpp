@@ -1285,7 +1285,6 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     uint size=UE_HARDWARE_SIZE_1;
     if(argget(*argv, arg3, 2, true))
     {
-			
         if(!valfromstring(arg3, &size))
             return STATUS_ERROR;
         switch(size)

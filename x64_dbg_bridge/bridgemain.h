@@ -113,7 +113,8 @@ enum DBGMSG
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
-    DBG_MODBASE_FROM_NAME           // param1=const char* modname,       param2=unused
+    DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
+    DBG_DISASM_AT					// param1=duint addr,				 param2=DISASM_INSTR* instr      
 };
 
 enum SCRIPTLINETYPE
@@ -123,6 +124,26 @@ enum SCRIPTLINETYPE
     linelabel,
     linecomment,
     lineempty,
+};
+
+enum DISASM_INSTRTYPE
+{
+    instr_normal,
+    instr_branch,
+    instr_stack
+};
+
+enum DISASM_ARGTYPE
+{
+    arg_normal,
+    arg_memory
+};
+
+enum STRING_TYPE
+{
+    str_none,
+    str_ascii,
+    str_unicode
 };
 
 //Debugger typedefs
@@ -247,6 +268,26 @@ struct REGDUMP
     duint dr7;
 };
 
+struct DISASM_ARG
+{
+    DISASM_ARGTYPE type;
+    SEGMENTREG segment;
+    char mnemonic[64];
+    duint constant;
+    duint value;
+    duint memvalue;
+};
+
+
+struct DISASM_INSTR
+{
+    char instruction[64];
+    DISASM_INSTRTYPE type;
+    int argcount;
+    int instr_size;
+    DISASM_ARG arg[3];
+};
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
@@ -276,7 +317,6 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth);
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr);
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
-
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename);
 BRIDGE_IMPEXP void DbgScriptUnload();
 BRIDGE_IMPEXP void DbgScriptRun(int destline);
@@ -287,10 +327,10 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command);
 BRIDGE_IMPEXP void DbgScriptAbort();
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
-
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
+BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
 
 //Gui enums
 enum GUIMSG
@@ -354,7 +394,6 @@ BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
 BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
 BRIDGE_IMPEXP void GuiDumpAt(duint va);
-
 BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines);
 BRIDGE_IMPEXP void GuiScriptClear();
 BRIDGE_IMPEXP void GuiScriptSetIp(int line);
@@ -363,12 +402,10 @@ BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message);
 BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message);
-
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
 BRIDGE_IMPEXP void GuiSymbolLogClear();
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent);
 BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules);
-
 BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
 BRIDGE_IMPEXP int GuiReferenceGetRowCount();
