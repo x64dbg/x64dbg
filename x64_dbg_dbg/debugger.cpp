@@ -12,6 +12,8 @@
 #include "x64_dbg.h"
 #include "disasm_helper.h"
 
+#include "BeaEngine\BeaEngine.h"
+
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
 static char szFileName[MAX_PATH]="";
 static char szBaseFileName[MAX_PATH]="";
@@ -1479,12 +1481,42 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     uint ticks=GetTickCount();
-    for(int i=0; i<10000; i++)
+
+    int count=0;
+    uint size=0;
+    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+    if(!base or !size)
     {
-        DISASM_INSTR instr;
-        disasmget(addr, &instr);
+        dputs("invalid memory page");
+        return STATUS_ERROR;
     }
-    dprintf("%d:%ums\n", 1000, GetTickCount()-ticks);
+    unsigned char* data=(unsigned char*)emalloc(size);
+    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    {
+        dputs("error reading memory");
+        efree(data);
+        return STATUS_ERROR;
+    }
+    dprintf("%"fext"X:%ums\n", size, GetTickCount()-ticks);
+    ticks=GetTickCount();
+    uint i=0;
+    while(i<size)
+    {
+        DISASM disasm;
+        disasm.Options=NoformatNumeral;
+#ifdef _WIN64
+        disasm.Archi=64;
+#endif // _WIN64
+        disasm.VirtualAddr=addr+i;
+        disasm.EIP=(UIntPtr)(data+i);
+        int len=Disasm(&disasm);
+        if(len==UNKNOWN_OPCODE)
+            len=1;
+        i+=len;
+        count++;
+    }
+    efree(data);
+    dprintf("%d:%ums\n", count, GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
 
