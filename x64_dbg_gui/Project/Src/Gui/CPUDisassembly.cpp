@@ -126,6 +126,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Goto Menu
         mGotoMenu->addAction(mGotoOrigin);
+        mGotoMenu->addAction(mGotoExpression);
         wMenu->addMenu(mGotoMenu);
 
         QAction* wAction = wMenu->exec(event->globalPos());
@@ -183,6 +184,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     mGotoOrigin->setShortcut(QKeySequence("*"));
     this->addAction(mGotoOrigin);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOrigin()));
+
+    // Address action
+    mGotoExpression = new QAction("Expression", this);
+    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    this->addAction(mGotoExpression);
+    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpression()));
 
     //---------------------- Breakpoints -----------------------------
     // Menu
@@ -434,7 +442,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Warning, "Deleting the function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
+        QMessageBox msg(QMessageBox::Warning, "Deleting function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
         msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
@@ -484,5 +492,15 @@ void CPUDisassembly::assembleAt()
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
+    }
+}
+
+void CPUDisassembly::gotoExpression()
+{
+    GotoDialog mGoto(this);
+    if(mGoto.exec()==QDialog::Accepted)
+    {
+        QString cmd;
+        DbgCmdExec(cmd.sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
     }
 }

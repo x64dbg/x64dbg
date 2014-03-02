@@ -8,6 +8,7 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "QBeaEngine.h"
+#include "GotoDialog.h"
 #include <QAction>
 #include <QMessageBox>
 #include <QMenu>
@@ -43,6 +44,7 @@ public slots:
     void setBookmark();
     void toggleFunction();
     void assembleAt();
+    void gotoExpression();
 
 private:
 
@@ -68,8 +70,7 @@ private:
     QAction* msetHwBPOnSlot1Action;
     QAction* msetHwBPOnSlot2Action;
     QAction* msetHwBPOnSlot3Action;
-
-
+    QAction* mGotoExpression;
 };
 
 #endif // CPUDISASSEMBLY_H

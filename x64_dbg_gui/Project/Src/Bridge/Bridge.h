@@ -58,6 +58,7 @@ public:
     void emitReferenceSetSingleSelection(int index, bool scroll);
     void emitReferenceSetProgress(int progress);
     void emitStackDumpAt(uint_t va, uint_t csp);
+    void emitUpdateDump();
 
     //Public variables
     void* winId;
@@ -97,6 +98,7 @@ signals:
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
     void stackDumpAt(uint_t va, uint_t csp);
+    void updateDump();
 
 private:
     QMutex mBridgeMutex;

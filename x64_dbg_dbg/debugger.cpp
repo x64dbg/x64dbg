@@ -72,7 +72,6 @@ void dbgsetskipexceptions(bool skip)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    GuiUpdateAllViews();
     uint cip=GetContextData(UE_CIP);
     GuiDisasmAt(disasm_addr, cip);
     if(stack)
@@ -84,6 +83,7 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;
     GuiUpdateCPUTitle(modname);
+    GuiUpdateAllViews();
 }
 
 static void cbUserBreakpoint()

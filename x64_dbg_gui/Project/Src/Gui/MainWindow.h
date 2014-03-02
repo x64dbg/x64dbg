@@ -10,7 +10,6 @@
 #include "CommandLineEdit.h"
 #include "MemoryMapView.h"
 #include "LogView.h"
-#include "GotoDialog.h"
 #include "StatusLabel.h"
 #include "BreakpointsView.h"
 #include "ScriptView.h"
@@ -56,9 +55,6 @@ public slots:
     void displayCpuWidget();
     void displaySymbolWidget();
     void displayReferencesWidget();
-    
-private slots:
-    void on_actionGoto_triggered();
 
 private:
     Ui::MainWindow *ui;

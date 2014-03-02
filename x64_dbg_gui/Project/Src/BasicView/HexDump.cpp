@@ -16,6 +16,8 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
     mMemPage = new MemoryPage(0, 0);
 
     clearDescriptors();
+
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
 }
 
 void HexDump::printDumpAt(int_t parVA)

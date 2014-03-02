@@ -210,6 +210,11 @@ void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
     emit stackDumpAt(va, csp);
 }
 
+void Bridge::emitUpdateDump()
+{
+    emit updateDump();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -437,6 +442,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_STACK_DUMP_AT:
     {
         Bridge::getBridge()->emitStackDumpAt((uint_t)param1, (uint_t)param2);
+    }
+    break;
+
+    case GUI_UPDATE_DUMP_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateDump();
     }
     break;
 

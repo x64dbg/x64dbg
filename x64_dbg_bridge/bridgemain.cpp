@@ -580,6 +580,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
     GuiUpdateBreakpointsView();
+    GuiUpdateDumpView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -729,6 +730,11 @@ BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 {
     _gui_sendmessage(GUI_STACK_DUMP_AT, (void*)addr, (void*)csp);
+}
+
+BRIDGE_IMPEXP void GuiUpdateDumpView()
+{
+    _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
 
 //Main

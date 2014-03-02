@@ -323,16 +323,6 @@ void MainWindow::displayAboutWidget()
     msg.exec();
 }
 
-void MainWindow::on_actionGoto_triggered()
-{
-    GotoDialog mGoto(this);
-    if(mGoto.exec()==QDialog::Accepted)
-    {
-        QString cmd;
-        DbgCmdExec(cmd.sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
-    }
-}
-
 void MainWindow::openFile()
 {
     QString lastPath, filename;

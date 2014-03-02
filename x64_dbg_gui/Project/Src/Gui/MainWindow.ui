@@ -10,6 +10,9 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>x64_dbg</string>
   </property>
@@ -115,8 +118,6 @@
    <addaction name="actionStepOver"/>
    <addaction name="separator"/>
    <addaction name="actionRtr"/>
-   <addaction name="separator"/>
-   <addaction name="actionGoto"/>
    <addaction name="separator"/>
    <addaction name="actionCpu"/>
    <addaction name="actionLog"/>
@@ -297,18 +298,6 @@
    </property>
    <property name="text">
     <string>&amp;About</string>
-   </property>
-  </action>
-  <action name="actionGoto">
-   <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/geolocation-goto.png</normaloff>:/icons/images/geolocation-goto.png</iconset>
-   </property>
-   <property name="text">
-    <string>Goto</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+G</string>
    </property>
   </action>
   <action name="actionScylla">
