@@ -1502,6 +1502,7 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     uint i=0;
     while(i<size)
     {
+        /*
         DISASM disasm;
         disasm.Options=NoformatNumeral;
 #ifdef _WIN64
@@ -1512,7 +1513,10 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
         int len=Disasm(&disasm);
         if(len==UNKNOWN_OPCODE)
             len=1;
-        i+=len;
+        i+=len;*/
+        DISASM_INSTR instr;
+        disasmget((unsigned char*)(data+i), base+i, &instr);
+        i+=instr.instr_size;
         count++;
     }
     efree(data);
