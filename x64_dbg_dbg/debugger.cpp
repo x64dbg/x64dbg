@@ -1497,30 +1497,18 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
         efree(data);
         return STATUS_ERROR;
     }
-    dprintf("%"fext"X:%ums\n", size, GetTickCount()-ticks);
+    dprintf("memread:%"fext"X:%ums\n", size, GetTickCount()-ticks);
     ticks=GetTickCount();
     uint i=0;
     while(i<size)
     {
-        /*
-        DISASM disasm;
-        disasm.Options=NoformatNumeral;
-#ifdef _WIN64
-        disasm.Archi=64;
-#endif // _WIN64
-        disasm.VirtualAddr=addr+i;
-        disasm.EIP=(UIntPtr)(data+i);
-        int len=Disasm(&disasm);
-        if(len==UNKNOWN_OPCODE)
-            len=1;
-        i+=len;*/
         DISASM_INSTR instr;
         disasmget((unsigned char*)(data+i), base+i, &instr);
         i+=instr.instr_size;
         count++;
     }
     efree(data);
-    dprintf("%d:%ums\n", count, GetTickCount()-ticks);
+    dprintf("disasmget:%d:%ums\n", count, GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
 
