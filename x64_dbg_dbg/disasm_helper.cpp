@@ -7,6 +7,112 @@
 #include <cwctype>
 #include <cwchar>
 
+unsigned int disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
+{
+    int i;
+    uint abuf[131], addr, back, cmdsize;
+    unsigned char* pdata;
+    int len;
+
+    // Reset Disasm Structure
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(DISASM));
+#ifdef _WIN64
+    disasm.Archi = 64;
+#endif
+    disasm.Options=NoformatNumeral;
+
+    // Check if the pointer is not null
+    if (data == NULL)
+        return 0;
+
+    // Round the number of back instructions to 127
+    if(n < 0)
+        n = 0;
+    else if (n > 127)
+        n = 127;
+
+    // Check if the instruction pointer ip is not outside the memory range
+    if(ip >= size)
+        ip = size - 1;
+
+    // Obvious answer
+    if(n == 0)
+        return ip;
+
+    if(ip < (uint)n)
+        return ip;
+
+    back = 16 * (n + 3); // Instruction length limited to 16
+
+    if(ip < back)
+        back = ip;
+
+    addr = ip - back;
+
+    pdata = data + addr;
+
+    for(i = 0; addr < ip; i++)
+    {
+        abuf[i % 128] = addr;
+
+        disasm.EIP = (UIntPtr)pdata;
+        len = Disasm(&disasm);
+        cmdsize = (len < 1) ? 1 : len ;
+
+        pdata += cmdsize;
+        addr += cmdsize;
+        back -= cmdsize;
+    }
+
+    if(i < n)
+        return abuf[0];
+    else
+        return abuf[(i - n + 128) % 128];
+}
+
+unsigned int disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
+{
+    int i;
+    uint cmdsize;
+    unsigned char* pdata;
+    int len;
+
+    // Reset Disasm Structure
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(DISASM));
+#ifdef _WIN64
+    disasm.Archi = 64;
+#endif
+    disasm.Options=NoformatNumeral;
+
+    if(data == NULL)
+        return 0;
+
+    if (ip >= size)
+        ip = size - 1;
+
+    if(n <= 0)
+        return ip;
+
+    pdata = data + ip;
+    size -= ip;
+
+    for(i = 0; i < n && size > 0; i++)
+    {
+        disasm.EIP = (UIntPtr)pdata;
+        disasm.SecurityBlock = (UIntPtr)size;
+        len = Disasm(&disasm);
+        cmdsize = (len < 1) ? 1 : len;
+
+        pdata += cmdsize;
+        ip += cmdsize;
+        size -= cmdsize;
+    }
+
+    return ip;
+}
+
 const char* disasmtext(uint addr)
 {
     unsigned char buffer[16]="";

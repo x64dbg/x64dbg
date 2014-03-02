@@ -80,7 +80,6 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
         painter->save();
         if(wActiveStack)
         {
-            //TODO: custom colors
             if(*comment.color)
                 painter->setPen(QPen(QColor(QString(comment.color))));
             else

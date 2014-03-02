@@ -1417,7 +1417,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         }
         bool ok=setregister(string, *value);
         if(strstr(string, "ip"))
-            DebugUpdateGui(GetContextData(UE_CIP)); //update disassembly + register view
+            DebugUpdateGui(GetContextData(UE_CIP), false); //update disassembly + register view
         else if(strstr(string, "sp")) //update stack
         {
             uint csp=GetContextData(UE_CSP);

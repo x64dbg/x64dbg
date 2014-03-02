@@ -70,12 +70,16 @@ void dbgsetskipexceptions(bool skip)
     bSkipExceptions=skip;
 }
 
-void DebugUpdateGui(uint disasm_addr)
+void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     GuiUpdateAllViews();
-    GuiDisasmAt(disasm_addr, (duint)GetContextData(UE_CIP));
-    uint csp=GetContextData(UE_CSP);
-    GuiStackDumpAt(csp, csp);
+    uint cip=GetContextData(UE_CIP);
+    GuiDisasmAt(disasm_addr, cip);
+    if(stack)
+    {
+        uint csp=GetContextData(UE_CSP);
+        GuiStackDumpAt(csp, csp);
+    }
     char modname[MAX_MODULE_SIZE]="";
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;
@@ -131,7 +135,7 @@ static void cbUserBreakpoint()
         bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint=&pluginBp;
     }
-    DebugUpdateGui(GetContextData(UE_CIP));
+    DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -164,7 +168,7 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
         bptobridge(&found, &pluginBp);
         bpInfo.breakpoint=&pluginBp;
     }
-    DebugUpdateGui(cip);
+    DebugUpdateGui(cip, true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -201,7 +205,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     }
     if(found.singleshoot)
         bpdel(found.addr, BPMEMORY); //delete from breakpoint list
-    DebugUpdateGui(cip);
+    DebugUpdateGui(cip, true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -335,7 +339,7 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 static void cbStep()
 {
     isStepping=false;
-    DebugUpdateGui(GetContextData(UE_CIP));
+    DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved=0;
@@ -351,7 +355,7 @@ static void cbStep()
 
 static void cbRtrFinalStep()
 {
-    DebugUpdateGui(GetContextData(UE_CIP));
+    DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -472,7 +476,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //log message
     dputs("system breakpoint reached!");
     //update GUI
-    DebugUpdateGui(GetContextData(UE_CIP));
+    DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -558,7 +562,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         {
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
-            DebugUpdateGui(GetContextData(UE_CIP));
+            DebugUpdateGui(GetContextData(UE_CIP), true);
             GuiSetDebugState(paused);
             //lock
             lock(WAITID_RUN);
@@ -586,7 +590,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
-    DebugUpdateGui(GetContextData(UE_CIP));
+    DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -1121,7 +1125,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &addr))
             addr=GetContextData(UE_CIP);
-    DebugUpdateGui(addr);
+    DebugUpdateGui(addr, false);
     return STATUS_CONTINUE;
 }
 
