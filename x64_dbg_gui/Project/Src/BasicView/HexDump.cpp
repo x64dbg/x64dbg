@@ -150,23 +150,17 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
 QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    //return QString("HexDump: Col:") + QString::number(col) + "Row:" + QString::number(rowBase + rowOffset);
-
-    QString wStr = "";
-    int wBytePerRowCount;
-    int_t wRva;
-
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
         printDumpAt(mBase);
 
     // Compute RVA
-    wBytePerRowCount = getBytePerRowCount();
-    wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
+    int wBytePerRowCount = getBytePerRowCount();
+    int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
 
+    QString wStr = "";
     if(col == 0)    // Addresses
     {
-        //wStr += QString::number(wRva);
         wStr += QString("%1").arg(mBase + wRva, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else if(mDescriptor.at(col - 1).isData == true) //paint data
@@ -174,14 +168,11 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
         wStr += getString(col - 1, wRva);
     }
-    else //paint comments
-        wStr += printNonData(col, wRva, mDescriptor.at(col-1), mMemPage);
-    return wStr;
-}
+    else //paint non-data
+    {
 
-QString HexDump::printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage)
-{
-    return "";
+    }
+    return wStr;
 }
 
 void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)

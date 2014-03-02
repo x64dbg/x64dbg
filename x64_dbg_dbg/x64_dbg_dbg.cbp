@@ -113,6 +113,8 @@
 		<Unit filename="sqlhelper.cpp" />
 		<Unit filename="sqlhelper.h" />
 		<Unit filename="sqlite/sqlite3.h" />
+		<Unit filename="stackinfo.cpp" />
+		<Unit filename="stackinfo.h" />
 		<Unit filename="symbolinfo.cpp" />
 		<Unit filename="symbolinfo.h" />
 		<Unit filename="threading.cpp" />

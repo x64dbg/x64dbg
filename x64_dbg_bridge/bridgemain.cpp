@@ -549,6 +549,11 @@ BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
     _dbg_sendmessage(DBG_DISASM_AT, (void*)addr, instr);
 }
 
+BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
+{
+    return (bool)(duint)_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -719,6 +724,11 @@ BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
 {
     _gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
+}
+
+BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
+{
+    _gui_sendmessage(GUI_STACK_DUMP_AT, (void*)addr, (void*)csp);
 }
 
 //Main

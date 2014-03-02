@@ -47,13 +47,19 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
 }
 
-QString CPUDump::printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage)
+QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     QString wStr = "";
-    uint_t data=0;
-    memPage->readOriginalMemory((byte_t*)&data, wRva, sizeof(uint_t));
-    char label_text[MAX_LABEL_SIZE]="";
-    if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
-        wStr+=QString(label_text);// + QString("%1").arg(data, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
+    if(col && mDescriptor.at(col - 1).isData == false) //print comments
+    {
+        uint_t data=0;
+        int_t wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
+        mMemPage->readOriginalMemory((byte_t*)&data, wRva, sizeof(uint_t));
+        char label_text[MAX_LABEL_SIZE]="";
+        if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
+            wStr=QString(label_text);
+    }
+    else
+        wStr = HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     return wStr;
 }

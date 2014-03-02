@@ -126,9 +126,6 @@ public:
     //descriptor management
     void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
-
-    //virtual
-    virtual QString printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage);
     
 public slots:
     void printDumpAt(int_t parVA);
@@ -144,17 +141,15 @@ private:
     } SelectionData_t;
 
     SelectionData_t mSelection;
-
-    QList<ColumnDescriptor_t> mDescriptor;
     
     GuiState_t mGuiState;
 
+protected:
+    MemoryPage* mMemPage;
     int_t mBase;
     int_t mSize;
-
-    MemoryPage* mMemPage;
-
     int mByteOffset;
+    QList<ColumnDescriptor_t> mDescriptor;
 };
 
 #endif // DUMP_H

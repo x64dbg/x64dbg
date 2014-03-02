@@ -50,7 +50,6 @@ public:
     void emitAddMsgToSymbolLog(QString msg);
     void emitClearSymbolLog();
     void emitSetSymbolProgress(int progress);
-
     void emitReferenceAddColumnAt(int width, QString title);
     void emitReferenceSetRowCount(int_t count);
     void emitReferenceDeleteAllColumns();
@@ -58,6 +57,7 @@ public:
     void emitReferenceReloadData();
     void emitReferenceSetSingleSelection(int index, bool scroll);
     void emitReferenceSetProgress(int progress);
+    void emitStackDumpAt(uint_t va, uint_t csp);
 
     //Public variables
     void* winId;
@@ -77,7 +77,6 @@ signals:
     void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
-
     void scriptAdd(int count, const char** lines);
     void scriptClear();
     void scriptSetIp(int line);
@@ -86,12 +85,10 @@ signals:
     void scriptSetInfoLine(int line, QString info);
     void scriptMessage(QString message);
     void scriptQuestion(QString message);
-
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void addMsgToSymbolLog(QString msg);
     void clearSymbolLog();
     void setSymbolProgress(int progress);
-
     void referenceAddColumnAt(int width, QString title);
     void referenceSetRowCount(int_t count);
     void referenceDeleteAllColumns();
@@ -99,6 +96,7 @@ signals:
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
+    void stackDumpAt(uint_t va, uint_t csp);
 
 private:
     QMutex mBridgeMutex;

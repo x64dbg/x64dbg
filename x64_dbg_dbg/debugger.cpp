@@ -74,6 +74,8 @@ void DebugUpdateGui(uint disasm_addr)
 {
     GuiUpdateAllViews();
     GuiDisasmAt(disasm_addr, (duint)GetContextData(UE_CIP));
+    uint csp=GetContextData(UE_CSP);
+    GuiStackDumpAt(csp, csp);
     char modname[MAX_MODULE_SIZE]="";
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;

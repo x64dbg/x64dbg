@@ -205,6 +205,11 @@ void Bridge::emitReferenceSetProgress(int progress)
     emit referenceSetProgress(progress);
 }
 
+void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
+{
+    emit stackDumpAt(va, csp);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -217,7 +222,6 @@ void Bridge::initBridge()
 {
     mBridge = new Bridge();
 }
-
 
 /************************************************************************************
                             Exported Functions
@@ -427,6 +431,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_REF_SETPROGRESS:
     {
         Bridge::getBridge()->emitReferenceSetProgress((int)(int_t)param1);
+    }
+    break;
+
+    case GUI_STACK_DUMP_AT:
+    {
+        Bridge::getBridge()->emitStackDumpAt((uint_t)param1, (uint_t)param2);
     }
     break;
 

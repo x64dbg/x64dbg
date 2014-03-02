@@ -114,7 +114,8 @@ enum DBGMSG
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
-    DBG_DISASM_AT					// param1=duint addr,				 param2=DISASM_INSTR* instr      
+    DBG_DISASM_AT,                  // param1=duint addr,				 param2=DISASM_INSTR* instr      
+    DBG_STACK_COMMENT_GET           // param1=duint addr,                param2=STACK_COMMENT* comment
 };
 
 enum SCRIPTLINETYPE
@@ -288,6 +289,12 @@ struct DISASM_INSTR
     DISASM_ARG arg[3];
 };
 
+struct STACK_COMMENT
+{
+    char color[8]; //hex color-code
+    char comment[MAX_COMMENT_SIZE];
+};
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
@@ -331,6 +338,7 @@ BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* us
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
+BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
 
 //Gui enums
 enum GUIMSG
@@ -347,7 +355,6 @@ enum GUIMSG
     GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
     GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
     GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
-
     GUI_SCRIPT_ADD,                 // param1=int count,            param2=const char** lines
     GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
     GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
@@ -356,12 +363,10 @@ enum GUIMSG
     GUI_SCRIPT_SETINFOLINE,         // param1=int line,             param2=const char* info
     GUI_SCRIPT_MESSAGE,             // param1=const char* message,  param2=unused
     GUI_SCRIPT_MSGYN,               // param1=const char* message,  param2=unused
-
     GUI_SYMBOL_LOG_ADD,             // param1(const char*)msg,      param2=unused
     GUI_SYMBOL_LOG_CLEAR,           // param1=unused,               param2=unused
     GUI_SYMBOL_SET_PROGRESS,        // param1=int percent           param2=unused
     GUI_SYMBOL_UPDATE_MODULE_LIST,  // param1=int count,            param2=SYMBOLMODULEINFO* modules
-
     GUI_REF_ADDCOLUMN,              // param1=int width,            param2=(const char*)title
     GUI_REF_SETROWCOUNT,            // param1=int rows,             param2=unused
     GUI_REF_GETROWCOUNT,            // param1=unused,               param2=unused
@@ -370,7 +375,8 @@ enum GUIMSG
     GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
     GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
     GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
-    GUI_REF_SETPROGRESS				// param1=int progress,			param2=unused
+    GUI_REF_SETPROGRESS,			// param1=int progress,			param2=unused
+    GUI_STACK_DUMP_AT               // param1=duint addr,           param2=duint csp
 };
 
 //GUI structures
@@ -415,6 +421,7 @@ BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);
+BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 
 #ifdef __cplusplus
 }

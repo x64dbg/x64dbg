@@ -10,6 +10,7 @@
 #include "simplescript.h"
 #include "symbolinfo.h"
 #include "assemble.h"
+#include "stackinfo.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -609,6 +610,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_DISASM_AT:
     {
         disasmget((uint)param1, (DISASM_INSTR*)param2);
+    }
+    break;
+
+    case DBG_STACK_COMMENT_GET:
+    {
+        return stackcommentget((uint)param1, (STACK_COMMENT*)param2);
     }
     break;
     }
