@@ -23,8 +23,11 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopRightFrameLayout->addWidget(mRegsTab);
 
-    CPUDump* hx = new CPUDump(0);
+    CPUDump* hx = new CPUDump(0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(hx);
+
+    CPUStack* st = new CPUStack(0); //stack widget
+    ui->mBotRightFrameLayout->addWidget(st);
 
     //cw = new ColumnWidget(3, this);
 }

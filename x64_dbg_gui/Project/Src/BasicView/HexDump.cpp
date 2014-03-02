@@ -1,6 +1,6 @@
 #include "HexDump.h"
 
-HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
+HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 {
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
@@ -15,58 +15,7 @@ HexDump::HexDump(QWidget *parent) :AbstractTableView(parent)
 
     mMemPage = new MemoryPage(0, 0);
 
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
-    addColumnAt(8+charwidth*23, "Hex", false); //hex (byte)
-    addColumnAt(8+charwidth*15, "ASCII", false); //ascii (byte)
-    addColumnAt(8+charwidth*23, "Double", false); //double (qword)
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "void*", false); //void* (dword/qword)
-    addColumnAt(100, "Comments", false); //comments
-
-    mDescriptor.clear();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
-
-    wColDesc.isData = true; //hex byte
-    wColDesc.itemCount = 8;
-    dDesc.itemSize = Byte;
-    dDesc.byteMode = HexByte;
-    wColDesc.data = dDesc;
-    mDescriptor.append(wColDesc);
-
-    wColDesc.isData = true; //ascii byte
-    wColDesc.itemCount = 8;
-    dDesc.itemSize = Byte;
-    dDesc.byteMode = AsciiByte;
-    wColDesc.data = dDesc;
-    mDescriptor.append(wColDesc);
-
-    wColDesc.isData = true; //float qword
-    wColDesc.itemCount = 1;
-    wColDesc.data.itemSize = Qword;
-    wColDesc.data.qwordMode = DoubleQword;
-    mDescriptor.append(wColDesc);
-
-    wColDesc.isData = true; //void*
-    wColDesc.itemCount = 1;
-#ifdef _WIN64
-    wColDesc.data.itemSize = Qword;
-    wColDesc.data.qwordMode = HexQword;
-#else
-    wColDesc.data.itemSize = Dword;
-    wColDesc.data.dwordMode = HexDword;
-#endif
-    mDescriptor.append(wColDesc);
-
-    wColDesc.isData = false; //comments
-    wColDesc.itemCount = 0;
-    dDesc.itemSize = Byte;
-    dDesc.byteMode = AsciiByte;
-    wColDesc.data = dDesc;
-    mDescriptor.append(wColDesc);
-
-    connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
+    clearDescriptors();
 }
 
 void HexDump::printDumpAt(int_t parVA)
@@ -226,17 +175,13 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         wStr += getString(col - 1, wRva);
     }
     else //paint comments
-    {
-        uint_t data=0;
-        mMemPage->readOriginalMemory((byte_t*)&data, wRva, sizeof(uint_t));
-        char label_text[MAX_LABEL_SIZE]="";
-        if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
-            wStr+=QString(label_text);// + QString("%1").arg(data, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
-
-        //wStr += "comments";
-    }
-
+        wStr += printNonData(col, wRva, mDescriptor.at(col-1), mMemPage);
     return wStr;
+}
+
+QString HexDump::printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage)
+{
+    return "";
 }
 
 void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -897,4 +842,18 @@ int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
     int wItemPixWidth = getStringMaxLength(desc.data) * wCharWidth + wCharWidth;
 
     return wItemPixWidth;
+}
+
+void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+{
+    addColumnAt(width, title, clickable);
+    mDescriptor.append(descriptor);
+}
+
+void HexDump::clearDescriptors()
+{
+    deleteAllColumns();
+    mDescriptor.clear();
+    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
 }

@@ -6,6 +6,7 @@
 #include <QTableWidget>
 #include "CPUDisassembly.h"
 #include "CPUDump.h"
+#include "CPUStack.h"
 #include "RegistersView.h"
 #include "InfoBox.h"
 

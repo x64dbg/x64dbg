@@ -12,6 +12,7 @@ class CPUDump : public HexDump
     Q_OBJECT
 public:
     explicit CPUDump(QWidget *parent = 0);
+    QString printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage);
 };
 
 #endif // CPUDUMP_H

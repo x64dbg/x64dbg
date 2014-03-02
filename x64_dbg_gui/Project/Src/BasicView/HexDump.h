@@ -123,7 +123,12 @@ public:
     int getBytePerRowCount();
     int getItemPixelWidth(ColumnDescriptor_t desc);
 
-signals:
+    //descriptor management
+    void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
+    void clearDescriptors();
+
+    //virtual
+    virtual QString printNonData(int col, int_t wRva, ColumnDescriptor_t descriptor, MemoryPage* memPage);
     
 public slots:
     void printDumpAt(int_t parVA);
@@ -138,9 +143,9 @@ private:
         int_t toIndex;
     } SelectionData_t;
 
-    QList<ColumnDescriptor_t> mDescriptor;
-
     SelectionData_t mSelection;
+
+    QList<ColumnDescriptor_t> mDescriptor;
     
     GuiState_t mGuiState;
 
