@@ -141,6 +141,7 @@ static void registercommands()
     cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
 
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
+    cmdnew(cmd, "sdump", cbDebugStackDump, true); //dump at stack address
     cmdnew(cmd, "printf", cbPrintf, false); //printf
 
     cmdnew(cmd, "refinit", cbInstrRefinit, false);

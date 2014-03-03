@@ -1,5 +1,4 @@
 - detach debugger
-- asm command
 - memcpy
 - pe data access
 - fpu support
@@ -10,7 +9,6 @@
 - getremotestring
 - function parameter
 - help file updates
-- scripting
 - thread support
 - tls callbacks
 - inject dll
@@ -38,9 +36,7 @@
 - strings
 - references
 - callstack
-- stack
 - heap
-- functions
 - TEB/TBI
 - PEB/PBI
 - cpu thread id
@@ -53,13 +49,10 @@
 - restore window position (BridgeSetting)
 - follow in dump
 - opcode byte split
-- stack window(!)
-- dump window(!!!)
 - tabbed GUI (workspace+dragable windows)
 - LUA/Python support
 - ep break options
 - custom colours
-- show export table
 - find all intermodular calls
 - highlight register changes (only when CIP changed also)
 - 'dead' bytes custom analysis

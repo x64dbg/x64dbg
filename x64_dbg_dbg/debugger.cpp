@@ -1730,3 +1730,17 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
     GuiDumpAt(addr);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugStackDump(int argc, char* argv[])
+{
+    duint addr=0;
+    if(argc<2)
+        addr=GetContextData(UE_CSP);
+    else if(!valfromstring(argv[1], &addr))
+    {
+        dprintf("invalid address \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    GuiStackDumpAt(addr, GetContextData(UE_CSP));
+    return STATUS_CONTINUE;
+}

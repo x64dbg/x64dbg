@@ -53,11 +53,13 @@ without having to update the code of the other parts.
 - easy context menu in disassembly (to set breakpoints etc)
 - plugin support
 - (manual) function analysis
-- easily follow calls/jumps/ret (press ENTER in when selecting)
+- easily follow calls/jumps/ret (press ENTER when selecting)
 - (buggy) dynamic commenting
 - scripting support (using the debugger commands)!
 - simple dump
 - symbols (+ exports) view with search
+- simple stack view
+- programmable reference view
 
 >Known bugs:
 - memory breakpoints sometimes fail (TitanEngine bug)

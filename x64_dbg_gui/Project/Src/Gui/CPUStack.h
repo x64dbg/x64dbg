@@ -3,6 +3,7 @@
 
 #include <QtGui>
 #include <QtDebug>
+#include <QAction>
 #include "NewTypes.h"
 #include "HexDump.h"
 #include "Bridge.h"
