@@ -84,6 +84,7 @@ bool modload(uint base, uint size, const char* fullpath)
     while(name[len]!='.' and len)
         len--;
     MODINFO info;
+    memset(&info, 0, sizeof(MODINFO));
     if(len)
     {
         strcpy(info.extension, name+len);

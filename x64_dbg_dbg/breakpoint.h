@@ -23,7 +23,7 @@ struct BREAKPOINT
     BP_TYPE type;
     DWORD titantype;
     char name[MAX_BREAKPOINT_SIZE];
-    char mod[32];
+    char mod[MAX_MODULE_SIZE];
 };
 
 //typedefs
