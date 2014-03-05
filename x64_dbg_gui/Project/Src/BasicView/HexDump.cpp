@@ -18,6 +18,7 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
     clearDescriptors();
 
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 }
 
 void HexDump::printDumpAt(int_t parVA)
@@ -849,4 +850,15 @@ void HexDump::clearDescriptors()
     mDescriptor.clear();
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
+}
+
+void HexDump::debugStateChanged(DBGSTATE state)
+{
+    if(state==stopped)
+    {
+        mBase=0;
+        mSize=0;
+        setRowCount(0);
+        reloadData();
+    }
 }

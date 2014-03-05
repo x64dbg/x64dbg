@@ -129,6 +129,7 @@ public:
     
 public slots:
     void printDumpAt(int_t parVA);
+    void debugStateChanged(DBGSTATE state);
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
