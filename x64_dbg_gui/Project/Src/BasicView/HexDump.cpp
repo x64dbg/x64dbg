@@ -374,9 +374,8 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        QChar wChar((unsigned short)word);
-
-        if(wChar.isPrint() == true)
+        QChar wChar((char)word&0xFF);
+        if(wChar.isPrint() == true && (word>>8)==0)
             wStr = QString(wChar);
         else
             wStr = ".";
@@ -842,6 +841,20 @@ void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnD
 {
     addColumnAt(width, title, clickable);
     mDescriptor.append(descriptor);
+}
+
+//Clears the descriptors, append a new descriptor and fix the tableOffset (use this instead of clearDescriptors()
+void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+{
+    int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
+    clearDescriptors();
+    appendDescriptor(width, title, clickable, descriptor);
+    // fix the tableOffset
+    int wBytePerRowCount = getBytePerRowCount();
+    // Byte offset used to be aligned on the given RVA
+    mByteOffset = (int)((int_t)wRVA % (int_t)wBytePerRowCount);
+    mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
+    setTableOffset((wRVA + mByteOffset) / wBytePerRowCount);
 }
 
 void HexDump::clearDescriptors()

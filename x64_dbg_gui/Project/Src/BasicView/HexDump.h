@@ -1,5 +1,5 @@
-#ifndef DUMP_H
-#define DUMP_H
+#ifndef _HEXDUMP_H
+#define _HEXDUMP_H
 
 #include <QtGui>
 #include <QtDebug>
@@ -125,6 +125,7 @@ public:
 
     //descriptor management
     void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
+    void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
     
 public slots:
@@ -153,4 +154,4 @@ protected:
     QList<ColumnDescriptor_t> mDescriptor;
 };
 
-#endif // DUMP_H
+#endif // _HEXDUMP_H
