@@ -846,15 +846,20 @@ void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnD
 //Clears the descriptors, append a new descriptor and fix the tableOffset (use this instead of clearDescriptors()
 void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
 {
-    int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
-    clearDescriptors();
-    appendDescriptor(width, title, clickable, descriptor);
-    // fix the tableOffset
-    int wBytePerRowCount = getBytePerRowCount();
-    // Byte offset used to be aligned on the given RVA
-    mByteOffset = (int)((int_t)wRVA % (int_t)wBytePerRowCount);
-    mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
-    setTableOffset((wRVA + mByteOffset) / wBytePerRowCount);
+    if(mDescriptor.size())
+    {
+        int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
+        clearDescriptors();
+        appendDescriptor(width, title, clickable, descriptor);
+        // fix the tableOffset
+        int wBytePerRowCount = getBytePerRowCount();
+        // Byte offset used to be aligned on the given RVA
+        mByteOffset = (int)((int_t)wRVA % (int_t)wBytePerRowCount);
+        mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
+        setTableOffset((wRVA + mByteOffset) / wBytePerRowCount);
+    }
+    else
+        appendDescriptor(width, title, clickable, descriptor);
 }
 
 void HexDump::clearDescriptors()
