@@ -304,10 +304,10 @@ void bpfixmemory(uint addr, unsigned char* dest, uint size)
     {
         if(!bpall[i].enabled or bpall[i].type!=BPNORMAL)
             continue;
-        memcpy(oldbytes, &bpall[i].oldbytes, sizeof(short));
         uint cur_addr=bpall[i].addr;
         if(cur_addr>=start and cur_addr<end) //breakpoint is in range of current memory
         {
+            memcpy(oldbytes, &bpall[i].oldbytes, sizeof(short));
             uint index=cur_addr-start;
             dest[index]=oldbytes[0];
             if(size>1 and index!=(size-1)) //restore second byte
