@@ -39,7 +39,6 @@ bool labeldel(uint addr);
 bool bookmarkset(uint addr);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
-bool symfromname(const char* name, uint* addr);
 bool functionget(duint addr, duint* start, duint* end);
 bool functionoverlaps(uint start, uint end);
 bool functionadd(uint start, uint end, bool manual);

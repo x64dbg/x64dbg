@@ -96,7 +96,7 @@ bool modload(uint base, uint size, const char* fullpath)
     strcpy(info.name, name);
     _strlwr(info.name);
     modinfo.push_back(info);
-    symbolupdatemodulelist();
+    symupdatemodulelist();
     return true;
 }
 
@@ -108,7 +108,7 @@ bool modunload(uint base)
         if(modinfo.at(i).base==base)
         {
             modinfo.erase(modinfo.begin()+i);
-            symbolupdatemodulelist();
+            symupdatemodulelist();
             return true;
         }
     }
@@ -118,7 +118,7 @@ bool modunload(uint base)
 void modclear()
 {
     std::vector<MODINFO>().swap(modinfo);
-    symbolupdatemodulelist();
+    symupdatemodulelist();
 }
 
 bool modnamefromaddr(uint addr, char* modname, bool extension)
@@ -527,21 +527,6 @@ bool bookmarkdel(uint addr)
     }
     dbsave();
     GuiUpdateAllViews();
-    return true;
-}
-
-///symbol functions
-bool symfromname(const char* name, uint* addr)
-{
-    if(!name or !strlen(name) or !addr)
-        return false;
-    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
-    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-    if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
-        return false;
-    *addr=(uint)pSymbol->Address;
     return true;
 }
 

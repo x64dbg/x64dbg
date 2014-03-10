@@ -3,7 +3,9 @@
 
 #include "_global.h"
 
-void symbolenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user);
-void symbolupdatemodulelist();
+void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+void symupdatemodulelist();
+bool symfromname(const char* name, uint* addr);
+const char* symgetsymbolicname(uint addr);
 
 #endif //_SYMBOLINFO_H

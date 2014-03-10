@@ -5,6 +5,7 @@
 #include "math.h"
 #include "memory.h"
 #include "addrinfo.h"
+#include "symbolinfo.h"
 #include <psapi.h>
 
 static bool dosignedcalc=false;
@@ -995,8 +996,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         apiname++;
         uint modbase=modbasefromname(modname);
         char szModName[MAX_PATH];
-        if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH) and !silent)
-            dprintf("could not get filename of module "fhex"\n", modbase);
+        if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
+        {
+            if(!silent)
+                dprintf("could not get filename of module "fhex"\n", modbase);
+        }
         else
         {
             char szBaseName[256]="";
@@ -1005,8 +1009,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 len--;
             strcpy(szBaseName, szModName+len+1);
             HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
-            if(!mod and !silent)
-                dprintf("unable to load library %s\n", szBaseName);
+            if(!mod)
+            {
+                if(!silent)
+                    dprintf("unable to load library %s\n", szBaseName);
+            }
             else
             {
                 uint addr=(uint)GetProcAddress(mod, apiname);
@@ -1017,7 +1024,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                         *value_size=sizeof(uint);
                     if(hexonly)
                         *hexonly=true;
-                    *value=ImporterGetRemoteAPIAddressEx(szBaseName, (char*)apiname);
+                    uint rva=addr-(uint)mod;
+                    *value=modbase+rva;
                     return true;
                 }
             }
@@ -1029,8 +1037,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         for(unsigned int i=0; i<(cbNeeded/sizeof(HMODULE)); i++)
         {
             char szModName[MAX_PATH];
-            if(!GetModuleFileNameEx(fdProcessInfo->hProcess, hMods[i], szModName, MAX_PATH) and !silent)
-                dprintf("could not get filename of module "fhex"\n", hMods[i]);
+            if(!GetModuleFileNameEx(fdProcessInfo->hProcess, hMods[i], szModName, MAX_PATH))
+            {
+                if(!silent)
+                   dprintf("could not get filename of module "fhex"\n", hMods[i]);
+            }
             else
             {
                 char szBaseName[256]="";
@@ -1039,8 +1050,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     len--;
                 strcpy(szBaseName, szModName+len+1);
                 HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
-                if(!mod and !silent)
-                    dprintf("unable to load library %s\n", szBaseName);
+                if(!mod)
+                {
+                    if(!silent)
+                        dprintf("unable to load library %s\n", szBaseName);
+                }
                 else
                 {
                     uint addr=(uint)GetProcAddress(mod, name);
@@ -1049,7 +1063,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     {
                         if(!_stricmp(szBaseName, "kernelbase") or !_stricmp(szBaseName, "kernelbase.dll"))
                             kernelbase=found;
-                        addrfound[found]=ImporterGetRemoteAPIAddressEx(szBaseName, (char*)name);
+                        uint rva=addr-(uint)mod;
+                        addrfound[found]=(uint)hMods[i]+rva;
                         found++;
                     }
                 }

@@ -11,6 +11,7 @@
 #include "plugin_loader.h"
 #include "x64_dbg.h"
 #include "disasm_helper.h"
+#include "symbolinfo.h"
 
 #include "BeaEngine\BeaEngine.h"
 
@@ -102,34 +103,21 @@ static void cbUserBreakpoint()
             bptype="UD2";
         else if((titantype&UE_BREAKPOINT_TYPE_LONG_INT3)==UE_BREAKPOINT_TYPE_LONG_INT3)
             bptype="LONG INT3";
-        const char* apiname=(const char*)ImporterGetAPINameFromDebugee(fdProcessInfo->hProcess, bp.addr);
-        char log[deflen]="";
-        if(apiname)
+        const char* symbolicname=symgetsymbolicname(bp.addr);
+        if(symbolicname)
         {
-            const char* dllname_=(const char*)ImporterGetDLLNameFromDebugee(fdProcessInfo->hProcess, bp.addr);
-            char dllname[256]="";
-            strcpy(dllname, dllname_);
-            _strlwr(dllname);
-            int len=strlen(dllname);
-            for(int i=len-1; i!=0; i--)
-                if(dllname[i]=='.')
-                {
-                    dllname[i]=0;
-                    break;
-                }
             if(*bp.name)
-                sprintf(log, "%s breakpoint \"%s\" at %s.%s ("fhex")!", bptype, bp.name, dllname, apiname, bp.addr);
+                dprintf("%s breakpoint \"%s\" at %s ("fhex")!\n", bptype, bp.name, symbolicname, bp.addr);
             else
-                sprintf(log, "%s breakpoint at %s.%s ("fhex")!", bptype, dllname, apiname, bp.addr);
+                dprintf("%s breakpoint at %s ("fhex")!\n", bptype, symbolicname, bp.addr);
         }
         else
         {
             if(*bp.name)
-                sprintf(log, "%s breakpoint \"%s\" at "fhex"!", bptype, bp.name, bp.addr);
+                dprintf("%s breakpoint \"%s\" at "fhex"!\n", bptype, bp.name, bp.addr);
             else
-                sprintf(log, "%s breakpoint at "fhex"!", bptype, bp.addr);
+                dprintf("%s breakpoint at "fhex"!\n", bptype, bp.addr);
         }
-        dputs(log);
         if(bp.singleshoot)
             bpdel(bp.addr, BPNORMAL);
         bptobridge(&bp, &pluginBp);
@@ -150,22 +138,62 @@ static void cbUserBreakpoint()
 static void cbHardwareBreakpoint(void* ExceptionAddress)
 {
     uint cip=GetContextData(UE_CIP);
-    BREAKPOINT found;
+    BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint=0;
-    if(!bpget((uint)ExceptionAddress, BPHARDWARE, 0, &found))
+    if(!bpget((uint)ExceptionAddress, BPHARDWARE, 0, &bp))
         dputs("hardware breakpoint reached not in list!");
     else
     {
-        //TODO: type
-        char log[deflen]="";
-        if(*found.name)
-            sprintf(log, "hardware breakpoint \"%s\" "fhex"!", found.name, found.addr);
+        const char* bpsize="";
+        switch(bp.titantype&0xF) //size
+        {
+        case UE_HARDWARE_SIZE_1:
+            bpsize="byte, ";
+            break;
+        case UE_HARDWARE_SIZE_2:
+            bpsize="word, ";
+            break;
+        case UE_HARDWARE_SIZE_4:
+            bpsize="dword, ";
+            break;
+#ifdef _WIN64
+        case UE_HARDWARE_SIZE_8:
+            bpsize="qword, ";
+            break;
+#endif //_WIN64
+        }
+        const char* bptype="";
+        switch((bp.titantype>>4)&0xF) //type
+        {
+        case UE_HARDWARE_EXECUTE:
+            bptype="execute";
+            bpsize="";
+            break;
+        case UE_HARDWARE_READWRITE:
+            bptype="read/write";
+            break;
+        case UE_HARDWARE_WRITE:
+            bptype="write";
+            break;
+        }
+        const char* symbolicname=symgetsymbolicname(bp.addr);
+        if(symbolicname)
+        {
+            if(*bp.name)
+                dprintf("hardware breakpoint (%s%s) \"%s\" at %s ("fhex")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
+            else
+                dprintf("hardware breakpoint (%s%s) at %s ("fhex")!\n", bpsize, bptype, symbolicname, bp.addr);
+        }
         else
-            sprintf(log, "hardware breakpoint "fhex"!", found.addr);
-        dputs(log);
-        bptobridge(&found, &pluginBp);
+        {
+            if(*bp.name)
+                dprintf("hardware breakpoint (%s%s) \"%s\" at "fhex"!\n", bpsize, bptype, bp.name, bp.addr);
+            else
+                dprintf("hardware breakpoint (%s%s) at "fhex"!\n", bpsize, bptype, bp.addr);
+        }
+        bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint=&pluginBp;
     }
     DebugUpdateGui(cip, true);
@@ -185,26 +213,50 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     uint cip=GetContextData(UE_CIP);
     uint size;
     uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
-    BREAKPOINT found;
+    BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint=0;
-    if(!bpget(base, BPMEMORY, 0, &found))
+    if(!bpget(base, BPMEMORY, 0, &bp))
         dputs("memory breakpoint reached not in list!");
     else
     {
-        //unsigned char type=cur->oldbytes&0xF;
-        char log[50]="";
-        if(*found.name)
-            sprintf(log, "memory breakpoint \"%s\" on "fhex"!", found.name, found.addr);
+        const char* bptype="";
+        switch(bp.titantype)
+        {
+        case UE_MEMORY_READ:
+            bptype=" (read)";
+            break;
+        case UE_MEMORY_WRITE:
+            bptype=" (write)";
+            break;
+        case UE_MEMORY_EXECUTE:
+            bptype=" (execute)";
+            break;
+        case UE_MEMORY:
+            bptype=" (read/write/execute)";
+            break;
+        }
+        const char* symbolicname=symgetsymbolicname(bp.addr);
+        if(symbolicname)
+        {
+            if(*bp.name)
+                dprintf("memory breakpoint%s \"%s\" at %s ("fhex", "fhex")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
+            else
+                dprintf("memory breakpoint%s at %s ("fhex", "fhex")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
+        }
         else
-            sprintf(log, "memory breakpoint on "fhex"!", found.addr);
-        dputs(log);
-        bptobridge(&found, &pluginBp);
+        {
+            if(*bp.name)
+                dprintf("memory breakpoint%s \"%s\" at "fhex" ("fhex")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
+            else
+                dprintf("memory breakpoint%s at "fhex" ("fhex")!\n", bptype, bp.addr, ExceptionAddress);
+        }
+        bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint=&pluginBp;
     }
-    if(found.singleshoot)
-        bpdel(found.addr, BPMEMORY); //delete from breakpoint list
+    if(bp.singleshoot)
+        bpdel(bp.addr, BPMEMORY); //delete from breakpoint list
     DebugUpdateGui(cip, true);
     GuiSetDebugState(paused);
     //lock

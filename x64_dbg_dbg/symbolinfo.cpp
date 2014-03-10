@@ -32,7 +32,7 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     return TRUE;
 }
 
-void symbolenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBDATA symbolCbData;
     symbolCbData.cbSymbolEnum=cbSymbolEnum;
@@ -55,7 +55,7 @@ static BOOL CALLBACK EnumModules(PCTSTR ModuleName, ULONG BaseOfDll, PVOID UserC
     return TRUE;
 }
 
-void symbolupdatemodulelist()
+void symupdatemodulelist()
 {
     std::vector<SYMBOLMODULEINFO> modList;
     modList.clear();
@@ -65,4 +65,53 @@ void symbolupdatemodulelist()
     for(int i=0; i<modcount; i++)
         memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
     GuiSymbolUpdateModuleList(modcount, modListBridge);
+}
+
+bool symfromname(const char* name, uint* addr)
+{
+    if(!name or !strlen(name) or !addr)
+        return false;
+    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+    if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
+        return false;
+    *addr=(uint)pSymbol->Address;
+    return true;
+}
+
+const char* symgetsymbolicname(uint addr)
+{
+    //[modname.]symbolname
+    static char symbolicname[MAX_MODULE_SIZE+MAX_SYM_NAME]="";
+    char label[MAX_SYM_NAME]="";
+    bool retval=false;
+    if(labelget(addr, label)) //user labels have priority
+        retval=true;
+    else //no user labels
+    {
+        DWORD64 displacement=0;
+        char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+        PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+        pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+        if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+        {
+            //TODO: user preference
+            if(!UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
+                strcpy(label, pSymbol->Name);
+            retval=true;
+        }
+    }
+    if(retval)
+    {
+        char modname[MAX_MODULE_SIZE]="";
+        if(modnamefromaddr(addr, modname, false))
+            sprintf(symbolicname, "%s.%s", modname, label);
+        else
+            sprintf(symbolicname, "<%s>", label);
+        return symbolicname;
+    }
+    return 0;
 }
