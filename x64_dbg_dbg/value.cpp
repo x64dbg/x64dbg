@@ -1022,6 +1022,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 }
             }
         }
+        return false;
     }
     if(EnumProcessModules(fdProcessInfo->hProcess, hMods, sizeof(hMods), &cbNeeded))
     {
@@ -1312,6 +1313,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         sscanf(string+inc, "%"fext"x", value);
         return true;
     }
+
     if(baseonly)
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
