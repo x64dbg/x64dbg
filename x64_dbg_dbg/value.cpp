@@ -980,12 +980,6 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
 {
     if(!value or !IsFileBeingDebugged())
         return false;
-    DWORD cbNeeded=1;
-    HMODULE hMods[256];
-    uint addrfound[256];
-    int found=0;
-    int kernelbase=-1;
-
     //explicit API handling
     const char* apiname=strstr(name, ":");
     if(apiname)
@@ -1032,47 +1026,50 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         }
         return false;
     }
-    if(EnumProcessModules(fdProcessInfo->hProcess, hMods, sizeof(hMods), &cbNeeded))
+    int found=0;
+    int kernelbase=-1;
+    DWORD cbNeeded=0;
+    uint* addrfound=0;
+    if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
     {
-        for(unsigned int i=0; i<(cbNeeded/sizeof(HMODULE)); i++)
+        addrfound=(uint*)emalloc(cbNeeded*sizeof(uint), "valapifromstring:addrfound");
+        HMODULE* hMods=(HMODULE*)emalloc(cbNeeded*sizeof(HMODULE), "valapifromstring:hMods");
+        if(EnumProcessModules(fdProcessInfo->hProcess, hMods, cbNeeded, &cbNeeded))
         {
-            char szModName[MAX_PATH];
-            if(!GetModuleFileNameEx(fdProcessInfo->hProcess, hMods[i], szModName, MAX_PATH))
+            for(unsigned int i=0; i<cbNeeded/sizeof(HMODULE); i++)
             {
-                if(!silent)
-                   dprintf("could not get filename of module "fhex"\n", hMods[i]);
-            }
-            else
-            {
-                char szBaseName[256]="";
-                int len=strlen(szModName);
-                while(szModName[len]!='\\')
-                    len--;
-                strcpy(szBaseName, szModName+len+1);
-                HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
-                if(!mod)
+                char szModuleName[MAX_PATH]="";
+                if(GetModuleFileNameExA(fdProcessInfo->hProcess, hMods[i], szModuleName, _countof(szModuleName)))
                 {
-                    if(!silent)
-                        dprintf("unable to load library %s\n", szBaseName);
-                }
-                else
-                {
-                    uint addr=(uint)GetProcAddress(mod, name);
-                    FreeLibrary(mod);
-                    if(addr)
+                    char* szBaseName=strchr(szModuleName, '\\');
+                    if(szBaseName)
                     {
-                        if(!_stricmp(szBaseName, "kernelbase") or !_stricmp(szBaseName, "kernelbase.dll"))
-                            kernelbase=found;
-                        uint rva=addr-(uint)mod;
-                        addrfound[found]=(uint)hMods[i]+rva;
-                        found++;
+                        szBaseName++;
+                        HMODULE hModule = LoadLibraryExA(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
+                        if (hModule)
+                        {
+                            ULONG_PTR funcAddress=(ULONG_PTR)GetProcAddress(hModule, name);
+                            if(funcAddress)
+                            {
+                                if(!_stricmp(szBaseName, "kernelbase.dll"))
+                                    kernelbase=found;
+                                uint rva=funcAddress-(uint)hModule;
+                                addrfound[found]=(uint)hMods[i]+rva;
+                                found++;
+                            }
+                        }
+                        break;
                     }
                 }
             }
         }
+        efree(hMods, "valapifromstring:hMods");
     }
     if(!found)
+    {
+        efree(addrfound, "valapifromstring:addrfound");
         return false;
+    }
     if(value_size)
         *value_size=sizeof(uint);
     if(hexonly)
@@ -1081,7 +1078,10 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     {
         *value=addrfound[kernelbase];
         if(!printall or silent)
+        {
+            efree(addrfound, "valapifromstring:addrfound");
             return true;
+        }
         for(int i=0; i<found; i++)
             if(i!=kernelbase)
                 dprintf(fhex"\n", addrfound[i]);
@@ -1090,10 +1090,14 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     {
         *value=*addrfound;
         if(!printall or silent)
+        {
+            efree(addrfound, "valapifromstring:addrfound");
             return true;
+        }
         for(int i=1; i<found; i++)
             dprintf(fhex"\n", addrfound[i]);
     }
+    efree(addrfound, "valapifromstring:addrfound");
     return true;
 }
 

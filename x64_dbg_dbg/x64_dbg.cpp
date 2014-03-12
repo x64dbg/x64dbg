@@ -142,7 +142,7 @@ static void registercommands()
 
     cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
     cmdnew(cmd, "sdump", cbDebugStackDump, true); //dump at stack address
-    cmdnew(cmd, "printf", cbPrintf, false); //printf
+    cmdnew(cmd, "dprintf", cbPrintf, false); //printf
 
     cmdnew(cmd, "refinit", cbInstrRefinit, false);
     cmdnew(cmd, "refadd", cbInstrRefadd, false);
