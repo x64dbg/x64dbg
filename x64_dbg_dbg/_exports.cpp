@@ -19,11 +19,12 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    bool ret=memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
-    if(!ret)
-        return false;
-    bpfixmemory(addr, dest, size);
-    return true;
+    return memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
+}
+
+extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
+{
+    return memwrite(fdProcessInfo->hProcess, (void*)addr, src, size, written);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)

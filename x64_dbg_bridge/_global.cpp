@@ -12,6 +12,7 @@ GUISENDMESSAGE _gui_sendmessage;
 DBGDBGINIT _dbg_dbginit;
 DBGMEMFINDBASEADDR _dbg_memfindbaseaddr;
 DBGMEMREAD _dbg_memread;
+DBGMEMWRITE _dbg_memwrite;
 DBGDBGCMDEXEC _dbg_dbgcmdexec;
 DBGMEMMAP _dbg_memmap;
 DBGDBGEXITSIGNAL _dbg_dbgexitsignal;

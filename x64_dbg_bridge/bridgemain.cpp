@@ -52,10 +52,14 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _dbg_memfindbaseaddr=(DBGMEMFINDBASEADDR)GetProcAddress(hInstDbg, "_dbg_memfindbaseaddr");
     if(!_dbg_memfindbaseaddr)
         return "Export \"_dbg_memfindbaseaddr\" could not be found!";
-    //_dbg_memfindbaseaddr
+    //_dbg_memread
     _dbg_memread=(DBGMEMREAD)GetProcAddress(hInstDbg, "_dbg_memread");
     if(!_dbg_memread)
         return "Export \"_dbg_memread\" could not be found!";
+    //_dbg_memwrite
+    _dbg_memwrite=(DBGMEMWRITE)GetProcAddress(hInstDbg, "_dbg_memwrite");
+    if(!_dbg_memwrite)
+        return "Export \"_dbg_memwrite\" could not be found!";
     //_dbg_dbgcmdexec
     _dbg_dbgcmdexec=(DBGDBGCMDEXEC)GetProcAddress(hInstDbg, "_dbg_dbgcmdexec");
     if(!_dbg_dbgcmdexec)
@@ -204,10 +208,17 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 }
 
 //Debugger
-BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size)
+BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
-    if(!_dbg_memread(va, dest, size, 0))
+    bool ret=_dbg_memread(va, dest, size, 0);
+    if(!ret)
         memset(dest, 0x90, size);
+    return ret;
+}
+
+BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
+{
+    return _dbg_memwrite(va, src, size, 0);
 }
 
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)

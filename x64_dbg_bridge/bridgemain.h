@@ -297,7 +297,8 @@ struct STACK_COMMENT
 
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
-BRIDGE_IMPEXP void DbgMemRead(duint va, unsigned char* dest, duint size);
+BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size);
+BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size);
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base);
 BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);
 BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd);

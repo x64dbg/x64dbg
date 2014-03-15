@@ -1261,7 +1261,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 dputs("failed to read memory");
             return false;
         }
-        bpfixmemory(addr, (unsigned char*)value, read_size);
         if(value_size)
             *value_size=read_size;
         if(isvar)
@@ -1417,9 +1416,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         efree(newstring, "valfromstring::newstring");
-        bool wpm=WriteProcessMemory(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0);
-        bpfixmemory(temp, (unsigned char*)value, read_size);
-        if(!wpm)
+        if(!memwrite(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");

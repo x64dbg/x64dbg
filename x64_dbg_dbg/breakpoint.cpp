@@ -295,27 +295,6 @@ int bpgetcount(BP_TYPE type)
     return sqlrowcount(userdb, sql);
 }
 
-void bpfixmemory(uint addr, unsigned char* dest, uint size)
-{
-    uint start=addr;
-    uint end=addr+size;
-    unsigned char oldbytes[2];
-    for(int i=0; i<bpcount; i++)
-    {
-        if(!bpall[i].enabled or bpall[i].type!=BPNORMAL)
-            continue;
-        uint cur_addr=bpall[i].addr;
-        if(cur_addr>=start and cur_addr<end) //breakpoint is in range of current memory
-        {
-            memcpy(oldbytes, &bpall[i].oldbytes, sizeof(short));
-            uint index=cur_addr-start;
-            dest[index]=oldbytes[0];
-            if(size>1 and index!=(size-1)) //restore second byte
-                dest[index+1]=oldbytes[1];
-        }
-    }
-}
-
 void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
 {
     if(!bp or !bridge)

@@ -423,7 +423,6 @@ static unsigned char getCIPch()
     unsigned char ch=0x90;
     uint cip=GetContextData(UE_CIP);
     memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
-    bpfixmemory(cip, &ch, 1);
     return ch;
 }
 

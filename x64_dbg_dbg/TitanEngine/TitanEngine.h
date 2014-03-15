@@ -13,6 +13,20 @@
 
 // Global.Constant.Structure.Declaration:
 // Engine.External:
+#define UE_STRUCT_PE32STRUCT 1
+#define UE_STRUCT_PE64STRUCT 2
+#define UE_STRUCT_PESTRUCT 3
+#define UE_STRUCT_IMPORTENUMDATA 4
+#define UE_STRUCT_THREAD_ITEM_DATA 5
+#define UE_STRUCT_LIBRARY_ITEM_DATA 6
+#define UE_STRUCT_LIBRARY_ITEM_DATAW 7
+#define UE_STRUCT_PROCESS_ITEM_DATA 8
+#define UE_STRUCT_HANDLERARRAY 9
+#define UE_STRUCT_PLUGININFORMATION 10
+#define UE_STRUCT_HOOK_ENTRY 11
+#define UE_STRUCT_FILE_STATUS_INFO 12
+#define UE_STRUCT_FILE_FIX_INFO 13
+
 #define UE_ACCESS_READ 0
 #define UE_ACCESS_WRITE 1
 #define UE_ACCESS_ALL 2
@@ -23,6 +37,7 @@
 #define UE_PLUGIN_CALL_REASON_PREDEBUG 1
 #define UE_PLUGIN_CALL_REASON_EXCEPTION 2
 #define UE_PLUGIN_CALL_REASON_POSTDEBUG 3
+#define UE_PLUGIN_CALL_REASON_UNHANDLEDEXCEPTION 4
 
 #define TEE_HOOK_NRM_JUMP 1
 #define TEE_HOOK_NRM_CALL 3
@@ -188,21 +203,6 @@
 #define UE_PARAMETER_PTR_QWORD 7
 #define UE_PARAMETER_STRING 8
 #define UE_PARAMETER_UNICODE 9
-
-#define UE_CMP_NOCONDITION 0
-#define UE_CMP_EQUAL 1
-#define UE_CMP_NOTEQUAL 2
-#define UE_CMP_GREATER 3
-#define UE_CMP_GREATEROREQUAL 4
-#define UE_CMP_LOWER 5
-#define UE_CMP_LOWEROREQUAL 6
-#define UE_CMP_REG_EQUAL 7
-#define UE_CMP_REG_NOTEQUAL 8
-#define UE_CMP_REG_GREATER 9
-#define UE_CMP_REG_GREATEROREQUAL 10
-#define UE_CMP_REG_LOWER 11
-#define UE_CMP_REG_LOWEROREQUAL 12
-#define UE_CMP_ALWAYSFALSE 13
 
 #define UE_EAX 1
 #define UE_EBX 2
@@ -582,6 +582,8 @@ __declspec(dllexport) long long TITCALL ConvertVAtoFileOffset(ULONG_PTR FileMapV
 __declspec(dllexport) long long TITCALL ConvertVAtoFileOffsetEx(ULONG_PTR FileMapVA, DWORD FileSize, ULONG_PTR ImageBase, ULONG_PTR AddressToConvert, bool AddressIsRVA, bool ReturnType);
 __declspec(dllexport) long long TITCALL ConvertFileOffsetToVA(ULONG_PTR FileMapVA, ULONG_PTR AddressToConvert, bool ReturnType);
 __declspec(dllexport) long long TITCALL ConvertFileOffsetToVAEx(ULONG_PTR FileMapVA, DWORD FileSize, ULONG_PTR ImageBase, ULONG_PTR AddressToConvert, bool ReturnType);
+__declspec(dllexport) bool TITCALL MemoryReadSafe(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T * lpNumberOfBytesRead);
+__declspec(dllexport) bool TITCALL MemoryWriteSafe(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T * lpNumberOfBytesWritten);
 // TitanEngine.Realigner.functions:
 __declspec(dllexport) bool TITCALL FixHeaderCheckSum(char* szFileName);
 __declspec(dllexport) bool TITCALL FixHeaderCheckSumW(wchar_t* szFileName);
@@ -598,6 +600,9 @@ __declspec(dllexport) bool TITCALL IsFileDLL(char* szFileName, ULONG_PTR FileMap
 __declspec(dllexport) bool TITCALL IsFileDLLW(wchar_t* szFileName, ULONG_PTR FileMapVA);
 // TitanEngine.Hider.functions:
 __declspec(dllexport) void* TITCALL GetPEBLocation(HANDLE hProcess);
+__declspec(dllexport) void* TITCALL GetPEBLocation64(HANDLE hProcess);
+__declspec(dllexport) void* TITCALL GetTEBLocation(HANDLE hThread);
+__declspec(dllexport) void* TITCALL GetTEBLocation64(HANDLE hThread);
 __declspec(dllexport) bool TITCALL HideDebugger(HANDLE hProcess, DWORD PatchAPILevel);
 __declspec(dllexport) bool TITCALL UnHideDebugger(HANDLE hProcess, DWORD PatchAPILevel);
 // TitanEngine.Relocater.functions:
@@ -653,7 +658,6 @@ __declspec(dllexport) bool TITCALL ThreaderIsThreadActive(HANDLE hThread);
 __declspec(dllexport) bool TITCALL ThreaderIsAnyThreadActive();
 __declspec(dllexport) bool TITCALL ThreaderExecuteOnlyInjectedThreads();
 __declspec(dllexport) long long TITCALL ThreaderGetOpenHandleForThread(DWORD ThreadId);
-__declspec(dllexport) void* TITCALL ThreaderGetThreadData();
 __declspec(dllexport) bool TITCALL ThreaderIsExceptionInMainThread();
 // TitanEngine.Debugger.functions:
 __declspec(dllexport) void* TITCALL StaticDisassembleEx(ULONG_PTR DisassmStart, LPVOID DisassmAddress);
@@ -675,12 +679,11 @@ __declspec(dllexport) bool TITCALL IsBPXEnabled(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL EnableBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL DisableBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL SetBPX(ULONG_PTR bpxAddress, DWORD bpxType, LPVOID bpxCallBack);
-__declspec(dllexport) bool TITCALL SetBPXEx(ULONG_PTR bpxAddress, DWORD bpxType, DWORD NumberOfExecution, DWORD CmpRegister, DWORD CmpCondition, ULONG_PTR CmpValue, LPVOID bpxCallBack, LPVOID bpxCompareCallBack, LPVOID bpxRemoveCallBack);
 __declspec(dllexport) bool TITCALL DeleteBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL SafeDeleteBPX(ULONG_PTR bpxAddress);
-__declspec(dllexport) bool TITCALL SetAPIBreakPoint(char* szDLLName, char* szAPIName, DWORD bpxType, DWORD bpxPlace, LPVOID bpxCallBack);
-__declspec(dllexport) bool TITCALL DeleteAPIBreakPoint(char* szDLLName, char* szAPIName, DWORD bpxPlace);
-__declspec(dllexport) bool TITCALL SafeDeleteAPIBreakPoint(char* szDLLName, char* szAPIName, DWORD bpxPlace);
+__declspec(dllexport) bool TITCALL SetAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxType, DWORD bpxPlace, LPVOID bpxCallBack);
+__declspec(dllexport) bool TITCALL DeleteAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxPlace);
+__declspec(dllexport) bool TITCALL SafeDeleteAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxPlace);
 __declspec(dllexport) bool TITCALL SetMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL SetMemoryBPXEx(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, DWORD BreakPointType, bool RestoreOnHit, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL RemoveMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory);
@@ -717,6 +720,7 @@ __declspec(dllexport) void TITCALL SetCustomHandler(DWORD ExceptionId, LPVOID Ca
 __declspec(dllexport) void TITCALL ForceClose();
 __declspec(dllexport) void TITCALL StepInto(LPVOID traceCallBack);
 __declspec(dllexport) void TITCALL StepOver(LPVOID traceCallBack);
+__declspec(dllexport) void TITCALL StepOut(LPVOID StepOut, bool StepFinal);
 __declspec(dllexport) void TITCALL SingleStep(DWORD StepCount, LPVOID StepCallBack);
 __declspec(dllexport) bool TITCALL GetUnusedHardwareBreakPointRegister(LPDWORD RegisterIndex);
 __declspec(dllexport) bool TITCALL SetHardwareBreakPointEx(HANDLE hActiveThread, ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, LPVOID bpxCallBack, LPDWORD IndexOfSelectedRegister);
@@ -755,6 +759,7 @@ __declspec(dllexport) long long TITCALL ImporterFindOrdinalAPIWriteLocation(ULON
 __declspec(dllexport) long long TITCALL ImporterFindAPIByWriteLocation(ULONG_PTR APIWriteLocation);
 __declspec(dllexport) long long TITCALL ImporterFindDLLByWriteLocation(ULONG_PTR APIWriteLocation);
 __declspec(dllexport) void* TITCALL ImporterGetDLLName(ULONG_PTR APIAddress);
+__declspec(dllexport) void* TITCALL ImporterGetDLLNameW(ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetAPIName(ULONG_PTR APIAddress);
 __declspec(dllexport) long long TITCALL ImporterGetAPIOrdinalNumber(ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetAPINameEx(ULONG_PTR APIAddress, ULONG_PTR DLLBasesList);
@@ -762,12 +767,14 @@ __declspec(dllexport) long long TITCALL ImporterGetRemoteAPIAddress(HANDLE hProc
 __declspec(dllexport) long long TITCALL ImporterGetRemoteAPIAddressEx(char* szDLLName, char* szAPIName);
 __declspec(dllexport) long long TITCALL ImporterGetLocalAPIAddress(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetDLLNameFromDebugee(HANDLE hProcess, ULONG_PTR APIAddress);
+__declspec(dllexport) void* TITCALL ImporterGetDLLNameFromDebugeeW(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetAPINameFromDebugee(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) long long TITCALL ImporterGetAPIOrdinalNumberFromDebugee(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) long TITCALL ImporterGetDLLIndexEx(ULONG_PTR APIAddress, ULONG_PTR DLLBasesList);
 __declspec(dllexport) long TITCALL ImporterGetDLLIndex(HANDLE hProcess, ULONG_PTR APIAddress, ULONG_PTR DLLBasesList);
 __declspec(dllexport) long long TITCALL ImporterGetRemoteDLLBase(HANDLE hProcess, HMODULE LocalModuleBase);
 __declspec(dllexport) long long TITCALL ImporterGetRemoteDLLBaseEx(HANDLE hProcess, char* szModuleName);
+__declspec(dllexport) void* TITCALL ImporterGetRemoteDLLBaseExW(HANDLE hProcess, wchar_t* szModuleName);
 __declspec(dllexport) bool TITCALL ImporterIsForwardedAPI(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetForwardedAPIName(HANDLE hProcess, ULONG_PTR APIAddress);
 __declspec(dllexport) void* TITCALL ImporterGetForwardedDLLName(HANDLE hProcess, ULONG_PTR APIAddress);
@@ -927,6 +934,7 @@ __declspec(dllexport) bool TITCALL EngineFakeMissingDependencies(HANDLE hProcess
 __declspec(dllexport) bool TITCALL EngineDeleteCreatedDependencies();
 __declspec(dllexport) bool TITCALL EngineCreateUnpackerWindow(char* WindowUnpackerTitle, char* WindowUnpackerLongTitle, char* WindowUnpackerName, char* WindowUnpackerAuthor, void* StartUnpackingCallBack);
 __declspec(dllexport) void TITCALL EngineAddUnpackerWindowLogMessage(char* szLogMessage);
+__declspec(dllexport) bool TITCALL EngineCheckStructAlignment(DWORD StructureType, ULONG_PTR StructureSize);
 // Global.Engine.Extension.Functions:
 __declspec(dllexport) bool TITCALL ExtensionManagerIsPluginLoaded(char* szPluginName);
 __declspec(dllexport) bool TITCALL ExtensionManagerIsPluginEnabled(char* szPluginName);
