@@ -597,6 +597,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateDisassemblyView();
     GuiUpdateBreakpointsView();
     GuiUpdateDumpView();
+    GuiUpdateThreadView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()

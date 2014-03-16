@@ -541,7 +541,6 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //update GUI
     DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
-    GuiUpdateThreadView();
     //lock
     lock(WAITID_RUN);
     bSkipExceptions=false;
@@ -748,6 +747,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //cleanup
     dbclose();
     modclear();
+    threadclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", 0, true);

@@ -60,6 +60,7 @@
     <ClInclude Include="symbolinfo.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="threading.h" />
+    <ClInclude Include="undocumented.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64_dbg.h" />

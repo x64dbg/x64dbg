@@ -1,5 +1,7 @@
 #include "thread.h"
 #include "console.h"
+#include "undocumented.h"
+#include "memory.h"
 
 static std::vector<THREADINFO> threadList;
 static int threadNum;
@@ -41,6 +43,15 @@ static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
     return Executive;
 }
 
+static DWORD GetThreadLastError(uint tebAddress)
+{
+    TEB teb;
+    memset(&teb, 0, sizeof(TEB));
+    if(!memread(fdProcessInfo->hProcess, (void*)tebAddress, &teb, sizeof(TEB), 0))
+        return 0;
+    return teb.LastErrorValue;
+}
+
 void threadgetlist(THREADLIST* list)
 {
     int count=threadList.size();
@@ -60,6 +71,7 @@ void threadgetlist(THREADLIST* list)
         ResumeThread(hThread);
         list->list[i].Priority=(THREADPRIORITY)GetThreadPriority(list->list[i].BasicInfo.hThread);
         list->list[i].WaitReason=GetThreadWaitReason(list->list[i].BasicInfo.dwThreadId);
+        list->list[i].LastError=GetThreadLastError(list->list[i].BasicInfo.ThreadLocalBase);
     }
     list->CurrentThread=currentThread;
 }

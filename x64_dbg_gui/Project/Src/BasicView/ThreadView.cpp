@@ -13,7 +13,7 @@ ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*sizeof(uint_t)*2, "EIP", false);
 #endif //_WIN64
     addColumnAt(8+charwidth*14, "Suspend Count", false);
-    addColumnAt(8+charwidth*20, "Priority", false);
+    addColumnAt(8+charwidth*12, "Priority", false);
     addColumnAt(8+charwidth*16, "WaitReason", false);
     addColumnAt(8+charwidth*10, "LastError", false);
     addColumnAt(0, "", false);
