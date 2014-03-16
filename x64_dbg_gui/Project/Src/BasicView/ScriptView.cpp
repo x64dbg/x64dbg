@@ -45,7 +45,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             if(DbgScriptBpGet(line)) //breakpoint
                 painter->setPen(QPen(QColor("#FF0000"))); //red address
             else
-                painter->setPen(QPen(QColor("#FFFFFF"))); //black address
+                painter->setPen(QPen(QColor("#FFFFFF"))); //white address
         }
         else if(DbgScriptBpGet(line)) //breakpoint
         {

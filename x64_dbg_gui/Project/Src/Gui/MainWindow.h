@@ -15,6 +15,7 @@
 #include "ScriptView.h"
 #include "SymbolView.h"
 #include "ReferenceView.h"
+#include "ThreadView.h"
 
 namespace Ui {
 class MainWindow;
@@ -55,6 +56,7 @@ public slots:
     void displayCpuWidget();
     void displaySymbolWidget();
     void displayReferencesWidget();
+    void displayThreadsWidget();
 
 private:
     Ui::MainWindow *ui;
@@ -68,6 +70,7 @@ private:
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
     ReferenceView* mReferenceView;
+    ThreadView* mThreadView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

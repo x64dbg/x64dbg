@@ -52,6 +52,7 @@
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
     <addaction name="actionReferences"/>
+    <addaction name="actionThreads"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -126,6 +127,7 @@
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
    <addaction name="actionReferences"/>
+   <addaction name="actionThreads"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
   </widget>
@@ -445,6 +447,21 @@
    </property>
    <property name="shortcut">
     <string>Alt+R</string>
+   </property>
+  </action>
+  <action name="actionThreads">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-threads.png</normaloff>:/icons/images/arrow-threads.png</iconset>
+   </property>
+   <property name="text">
+    <string>Threads</string>
+   </property>
+   <property name="toolTip">
+    <string>Threads</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+T</string>
    </property>
   </action>
  </widget>

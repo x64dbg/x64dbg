@@ -29,6 +29,7 @@
     <ClCompile Include="sqlhelper.cpp" />
     <ClCompile Include="stackinfo.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
@@ -57,6 +58,7 @@
     <ClInclude Include="sqlhelper.h" />
     <ClInclude Include="stackinfo.h" />
     <ClInclude Include="symbolinfo.h" />
+    <ClInclude Include="thread.h" />
     <ClInclude Include="threading.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />

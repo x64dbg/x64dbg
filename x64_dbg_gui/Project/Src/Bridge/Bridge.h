@@ -59,6 +59,7 @@ public:
     void emitReferenceSetProgress(int progress);
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
+    void emitUpdateThreads();
 
     //Public variables
     void* winId;
@@ -99,6 +100,7 @@ signals:
     void referenceSetProgress(int progress);
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
+    void updateThreads();
 
 private:
     QMutex mBridgeMutex;

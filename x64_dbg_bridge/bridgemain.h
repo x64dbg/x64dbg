@@ -114,8 +114,9 @@ enum DBGMSG
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
-    DBG_DISASM_AT,                  // param1=duint addr,				 param2=DISASM_INSTR* instr      
-    DBG_STACK_COMMENT_GET           // param1=duint addr,                param2=STACK_COMMENT* comment
+    DBG_DISASM_AT,                  // param1=duint addr,				 param2=DISASM_INSTR* instr
+    DBG_STACK_COMMENT_GET,          // param1=duint addr,                param2=STACK_COMMENT* comment
+    DBG_GET_THREAD_LIST             // param1=THREADALLINFO* list,       param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -145,6 +146,59 @@ enum STRING_TYPE
     str_none,
     str_ascii,
     str_unicode
+};
+
+enum THREADPRIORITY
+{
+    PriorityIdle = -15,
+    PriorityAboveNormal = 1,
+    PriorityBelowNormal = -1,
+    PriorityHighest = 2,
+    PriorityLowest = -2,
+    PriorityNormal = 0,
+    PriorityTimeCritical = 15,
+    PriorityUnknown = 0x7FFFFFFF
+};
+
+enum THREADWAITREASON
+{
+    Executive = 0,
+    FreePage = 1,
+    PageIn = 2,
+    PoolAllocation = 3,
+    DelayExecution = 4,
+    Suspended = 5,
+    UserRequest = 6,
+    WrExecutive = 7,
+    WrFreePage = 8,
+    WrPageIn = 9,
+    WrPoolAllocation = 10,
+    WrDelayExecution = 11,
+    WrSuspended = 12,
+    WrUserRequest = 13,
+    WrEventPair = 14,
+    WrQueue = 15,
+    WrLpcReceive = 16,
+    WrLpcReply = 17,
+    WrVirtualMemory = 18,
+    WrPageOut = 19,
+    WrRendezvous = 20,
+    Spare2 = 21,
+    Spare3 = 22,
+    Spare4 = 23,
+    Spare5 = 24,
+    WrCalloutStack = 25,
+    WrKernel = 26,
+    WrResource = 27,
+    WrPushLock = 28,
+    WrMutex = 29,
+    WrQuantumEnd = 30,
+    WrDispatchInt = 31,
+    WrPreempted = 32,
+    WrYieldExecution = 33,
+    WrFastMutex = 34,
+    WrGuardedMutex = 35,
+    WrRundown = 36,
 };
 
 //Debugger typedefs
@@ -295,6 +349,32 @@ struct STACK_COMMENT
     char comment[MAX_COMMENT_SIZE];
 };
 
+struct THREADINFO
+{
+    int ThreadNumber;
+    HANDLE hThread;
+    DWORD dwThreadId;
+    duint ThreadStartAddress;
+    duint ThreadLocalBase;
+};
+
+struct THREADALLINFO
+{
+    THREADINFO BasicInfo;
+    duint ThreadCip;
+    DWORD SuspendCount;
+    THREADPRIORITY Priority;
+    THREADWAITREASON WaitReason;
+    DWORD LastError;
+};
+
+struct THREADLIST
+{
+    int count;
+    THREADALLINFO* list;
+    int CurrentThread;
+};
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size);
@@ -340,6 +420,7 @@ BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
+BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
 
 //Gui enums
 enum GUIMSG
@@ -378,7 +459,8 @@ enum GUIMSG
     GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
     GUI_REF_SETPROGRESS,            // param1=int progress,			param2=unused
     GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
-    GUI_UPDATE_DUMP_VIEW            // param1=unused,               param2=unused
+    GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
+    GUI_UPDATE_THREAD_VIEW          // param1=unused,               param2=unused
 };
 
 //GUI structures
@@ -425,6 +507,7 @@ BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
+BRIDGE_IMPEXP void GuiUpdateThreadView();
 
 #ifdef __cplusplus
 }

@@ -117,6 +117,8 @@
 		<Unit filename="stackinfo.h" />
 		<Unit filename="symbolinfo.cpp" />
 		<Unit filename="symbolinfo.h" />
+		<Unit filename="thread.cpp" />
+		<Unit filename="thread.h" />
 		<Unit filename="threading.cpp" />
 		<Unit filename="threading.h" />
 		<Unit filename="value.cpp" />

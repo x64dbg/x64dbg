@@ -56,7 +56,8 @@ SOURCES += \
     Src/BasicView/SymbolView.cpp \
     Src/BasicView/RegistersView.cpp \
     Src/BasicView/SearchListView.cpp \
-    Src/BasicView/ReferenceView.cpp
+    Src/BasicView/ReferenceView.cpp \
+    Src/BasicView/ThreadView.cpp
 
 
 HEADERS += \
@@ -93,7 +94,8 @@ HEADERS += \
     Src/Gui/CPUStack.h \
     Src/BasicView/SymbolView.h \
     Src/BasicView/SearchListView.h \
-    Src/BasicView/ReferenceView.h
+    Src/BasicView/ReferenceView.h \
+    Src/BasicView/ThreadView.h
 
 INCLUDEPATH += \
     Src \

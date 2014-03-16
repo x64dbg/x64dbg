@@ -12,6 +12,7 @@
 #include "x64_dbg.h"
 #include "disasm_helper.h"
 #include "symbolinfo.h"
+#include "thread.h"
 
 #include "BeaEngine\BeaEngine.h"
 
@@ -492,6 +493,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     callbackInfo.DebugFileName=DebugFileName;
     callbackInfo.fdProcessInfo=fdProcessInfo;
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
+
+    //update thread list
+    CREATE_THREAD_DEBUG_INFO threadInfo;
+    threadInfo.hThread=CreateProcessInfo->hThread;
+    threadInfo.lpStartAddress=CreateProcessInfo->lpStartAddress;
+    threadInfo.lpThreadLocalBase=CreateProcessInfo->lpThreadLocalBase;
+    threadcreate(&threadInfo);
 }
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
@@ -505,6 +513,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
+    threadcreate(CreateThread); //update thread list
     PLUG_CB_CREATETHREAD callbackInfo;
     callbackInfo.CreateThread=CreateThread;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
@@ -512,9 +521,12 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
+    DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread=ExitThread;
+    callbackInfo.dwThreadId=dwThreadId;
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
+    threadexit(dwThreadId);
 }
 
 static void cbSystemBreakpoint(void* ExceptionData)
@@ -529,6 +541,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //update GUI
     DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
+    GuiUpdateThreadView();
     //lock
     lock(WAITID_RUN);
     bSkipExceptions=false;

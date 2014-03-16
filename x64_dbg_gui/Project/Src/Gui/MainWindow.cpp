@@ -67,6 +67,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mReferenceView->setWindowTitle("References");
     mReferenceView->setWindowIcon(QIcon(":/icons/images/search.png"));
 
+    mThreadView = new ThreadView();
+    mThreadView->setWindowTitle("Threads");
+    mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
+
     //Create the tab widget
     mTabWidget = new QTabWidget();
 
@@ -78,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
     mTabWidget->addTab(mReferenceView, mReferenceView->windowIcon(),mReferenceView->windowTitle());
+    mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
 
     setCentralWidget(mTabWidget);
 
@@ -119,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionSymbolInfo,SIGNAL(triggered()),this,SLOT(displaySymbolWidget()));
     connect(mSymbolView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
     connect(ui->actionReferences,SIGNAL(triggered()),this,SLOT(displayReferencesWidget()));
+    connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
@@ -490,4 +496,11 @@ void MainWindow::displayReferencesWidget()
     mReferenceView->show();
     mReferenceView->setFocus();
     setTab(mReferenceView);
+}
+
+void MainWindow::displayThreadsWidget()
+{
+    mThreadView->show();
+    mThreadView->setFocus();
+    setTab(mThreadView);
 }

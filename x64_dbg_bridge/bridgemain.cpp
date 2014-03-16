@@ -565,6 +565,11 @@ BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
     return (bool)(duint)_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
 }
 
+BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
+{
+    _dbg_sendmessage(DBG_GET_THREAD_LIST, list, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -746,6 +751,11 @@ BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 BRIDGE_IMPEXP void GuiUpdateDumpView()
 {
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateThreadView()
+{
+    _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
 }
 
 //Main

@@ -215,6 +215,11 @@ void Bridge::emitUpdateDump()
     emit updateDump();
 }
 
+void Bridge::emitUpdateThreads()
+{
+    emit updateThreads();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -448,6 +453,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_UPDATE_DUMP_VIEW:
     {
         Bridge::getBridge()->emitUpdateDump();
+    }
+    break;
+
+    case GUI_UPDATE_THREAD_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateThreads();
     }
     break;
 
