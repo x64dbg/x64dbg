@@ -335,6 +335,13 @@ typedef struct
     DWORD dwThreadId;
     void* ThreadStartAddress;
     void* ThreadLocalBase;
+    void* TebAddress;
+    ULONG WaitTime;
+    LONG Priority;
+    LONG BasePriority;
+    ULONG ContextSwitches;
+    ULONG ThreadState;
+    ULONG WaitReason;
 } THREAD_ITEM_DATA, *PTHREAD_ITEM_DATA;
 
 typedef struct

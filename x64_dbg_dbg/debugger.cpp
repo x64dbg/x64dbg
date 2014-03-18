@@ -482,7 +482,25 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
         cmddirectexec(dbggetcommandlist(), command);
         pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage;
-        //SetBPX((ULONG_PTR)CreateProcessInfo->lpStartAddress, UE_SINGLESHOOT, (void*)cbEntryBreakpoint);
+        
+        DWORD NumberOfCallBacks=0;
+        TLSGrabCallBackData(DebugFileName, 0, &NumberOfCallBacks);
+        if(NumberOfCallBacks)
+        {
+            dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
+            uint* TLSCallBacks=(uint*)emalloc(NumberOfCallBacks*sizeof(uint), "cbCreateProcess:TLSCallBacks");
+            if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
+                dputs("failed to get TLS callback addresses!");
+            else
+            {
+                for(int i=0; i<NumberOfCallBacks; i++)
+                {
+                    sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i+1);
+                    cmddirectexec(dbggetcommandlist(), command);
+                }
+            }
+            efree(TLSCallBacks, "cbCreateProcess:TLSCallBacks");
+        }
     }
     GuiUpdateBreakpointsView();
 
