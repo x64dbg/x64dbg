@@ -34,7 +34,6 @@ public:
     void emitUpdateRegisters();
     void emitUpdateBreakpoints();
     void emitUpdateWindowTitle(QString filename);
-    void emitUpdateCPUTitle(QString modname);
     void emitSetInfoLine(int line, QString text);
     void emitClearInfoBox();
     void emitDumpAt(int_t va);
@@ -60,6 +59,7 @@ public:
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
     void emitUpdateThreads();
+    void emitAddRecentFile(QString file);
 
     //Public variables
     void* winId;
@@ -76,7 +76,6 @@ signals:
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
-    void updateCPUTitle(QString modname);
     void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
     void scriptAdd(int count, const char** lines);
@@ -101,6 +100,7 @@ signals:
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
     void updateThreads();
+    void addRecentFile(QString file);
 
 private:
     QMutex mBridgeMutex;

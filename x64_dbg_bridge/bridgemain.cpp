@@ -570,6 +570,11 @@ BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
     _dbg_sendmessage(DBG_GET_THREAD_LIST, list, 0);
 }
 
+BRIDGE_IMPEXP void DbgSettingsUpdated()
+{
+    _dbg_sendmessage(DBG_SETTINGS_UPDATED, 0, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -618,11 +623,6 @@ BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
 {
     _gui_sendmessage(GUI_UPDATE_WINDOW_TITLE, (void*)filename, 0);
-}
-
-BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname)
-{
-    _gui_sendmessage(GUI_UPDATE_CPU_TITLE, (void*)modname, 0);
 }
 
 BRIDGE_IMPEXP HWND GuiGetWindowHandle()
@@ -757,6 +757,11 @@ BRIDGE_IMPEXP void GuiUpdateDumpView()
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiAddRecentFile(const char* file)
+{
+    _gui_sendmessage(GUI_ADD_RECENT_FILE, (void*)file, 0);
 }
 
 //Main

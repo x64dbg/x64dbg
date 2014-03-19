@@ -28,11 +28,11 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <widget class="QMenu" name="menuRecent_Files">
      <property name="title">
-      <string>Recent Files</string>
+      <string>&amp;Recent Files</string>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -43,7 +43,7 @@
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="actionCpu"/>
     <addaction name="actionMemoryMap"/>
@@ -56,7 +56,7 @@
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
-     <string>Debug</string>
+     <string>&amp;Debug</string>
     </property>
     <addaction name="actionRun"/>
     <addaction name="actioneRun"/>
@@ -76,20 +76,27 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
-     <string>Plugins</string>
+     <string>&amp;Plugins</string>
     </property>
     <addaction name="actionScylla"/>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>&amp;Options</string>
+    </property>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
    <addaction name="menuDebug"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuOptions"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -155,7 +162,7 @@
      <normaloff>:/icons/images/folder-horizontal-open.png</normaloff>:/icons/images/folder-horizontal-open.png</iconset>
    </property>
    <property name="text">
-    <string>Open</string>
+    <string>&amp;Open</string>
    </property>
    <property name="shortcut">
     <string>F3</string>
@@ -167,7 +174,7 @@
      <normaloff>:/icons/images/control-exit.png</normaloff>:/icons/images/control-exit.png</iconset>
    </property>
    <property name="text">
-    <string>Exit</string>
+    <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
     <string>Alt+X</string>
@@ -179,7 +186,7 @@
      <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
    </property>
    <property name="text">
-    <string>Run</string>
+    <string>&amp;Run</string>
    </property>
    <property name="shortcut">
     <string>F9</string>
@@ -191,7 +198,7 @@
      <normaloff>:/icons/images/control-pause.png</normaloff>:/icons/images/control-pause.png</iconset>
    </property>
    <property name="text">
-    <string>Pause</string>
+    <string>&amp;Pause</string>
    </property>
    <property name="shortcut">
     <string>F12</string>
@@ -203,7 +210,7 @@
      <normaloff>:/icons/images/arrow-restart.png</normaloff>:/icons/images/arrow-restart.png</iconset>
    </property>
    <property name="text">
-    <string>Restart</string>
+    <string>Re&amp;start</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F2</string>
@@ -215,7 +222,7 @@
      <normaloff>:/icons/images/control-stop.png</normaloff>:/icons/images/control-stop.png</iconset>
    </property>
    <property name="text">
-    <string>Close</string>
+    <string>&amp;Close</string>
    </property>
    <property name="shortcut">
     <string>Alt+F2</string>
@@ -227,7 +234,7 @@
      <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
    </property>
    <property name="text">
-    <string>Step into</string>
+    <string>Step &amp;into</string>
    </property>
    <property name="shortcut">
     <string>F7</string>
@@ -239,7 +246,7 @@
      <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
    </property>
    <property name="text">
-    <string>Step over</string>
+    <string>Step &amp;over</string>
    </property>
    <property name="shortcut">
     <string>F8</string>
@@ -251,7 +258,7 @@
      <normaloff>:/icons/images/terminal-command.png</normaloff>:/icons/images/terminal-command.png</iconset>
    </property>
    <property name="text">
-    <string>Command</string>
+    <string>Co&amp;mmand</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
@@ -263,7 +270,7 @@
      <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
    </property>
    <property name="text">
-    <string>Execute till return</string>
+    <string>E&amp;xecute till return</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+F9</string>
@@ -275,7 +282,7 @@
      <normaloff>:/icons/images/memory-map.png</normaloff>:/icons/images/memory-map.png</iconset>
    </property>
    <property name="text">
-    <string>Memory Map</string>
+    <string>&amp;Memory Map</string>
    </property>
    <property name="shortcut">
     <string>Alt+M</string>
@@ -287,7 +294,7 @@
      <normaloff>:/icons/images/log.png</normaloff>:/icons/images/log.png</iconset>
    </property>
    <property name="text">
-    <string>Log Window</string>
+    <string>&amp;Log Window</string>
    </property>
    <property name="shortcut">
     <string>Alt+L</string>
@@ -320,7 +327,7 @@
      <normaloff>:/icons/images/breakpoint.png</normaloff>:/icons/images/breakpoint.png</iconset>
    </property>
    <property name="text">
-    <string>Breakpoints</string>
+    <string>&amp;Breakpoints</string>
    </property>
    <property name="shortcut">
     <string>Alt+B</string>
@@ -356,7 +363,7 @@
      <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
    </property>
    <property name="text">
-    <string>Run (skip exceptions)</string>
+    <string>Run (&amp;skip exceptions)</string>
    </property>
    <property name="shortcut">
     <string>Shift+F9</string>
@@ -380,7 +387,7 @@
      <normaloff>:/icons/images/script-code.png</normaloff>:/icons/images/script-code.png</iconset>
    </property>
    <property name="text">
-    <string>Script</string>
+    <string>&amp;Script</string>
    </property>
    <property name="toolTip">
     <string>Script</string>
@@ -395,7 +402,7 @@
      <normaloff>:/icons/images/arrow-run-cursor.png</normaloff>:/icons/images/arrow-run-cursor.png</iconset>
    </property>
    <property name="text">
-    <string>Run until selection</string>
+    <string>Run &amp;until selection</string>
    </property>
    <property name="toolTip">
     <string>Run until selection</string>
@@ -410,7 +417,7 @@
      <normaloff>:/icons/images/processor-cpu.png</normaloff>:/icons/images/processor-cpu.png</iconset>
    </property>
    <property name="text">
-    <string>CPU</string>
+    <string>&amp;CPU</string>
    </property>
    <property name="toolTip">
     <string>CPU</string>
@@ -425,7 +432,7 @@
      <normaloff>:/icons/images/pdb.png</normaloff>:/icons/images/pdb.png</iconset>
    </property>
    <property name="text">
-    <string>Symbol Info</string>
+    <string>Symbol &amp;Info</string>
    </property>
    <property name="toolTip">
     <string>Symbol Info</string>
@@ -440,7 +447,7 @@
      <normaloff>:/icons/images/search.png</normaloff>:/icons/images/search.png</iconset>
    </property>
    <property name="text">
-    <string>References</string>
+    <string>&amp;References</string>
    </property>
    <property name="toolTip">
     <string>References</string>
@@ -455,13 +462,25 @@
      <normaloff>:/icons/images/arrow-threads.png</normaloff>:/icons/images/arrow-threads.png</iconset>
    </property>
    <property name="text">
-    <string>Threads</string>
+    <string>&amp;Threads</string>
    </property>
    <property name="toolTip">
     <string>Threads</string>
    </property>
    <property name="shortcut">
     <string>Alt+T</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/settings.png</normaloff>:/icons/images/settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Preferences</string>
+   </property>
+   <property name="toolTip">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

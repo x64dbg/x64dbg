@@ -59,6 +59,9 @@ void dbclose()
     //NOTE: remove breakpoints without module
     if(!sqlexec(userdb, "DELETE FROM breakpoints WHERE mod IS NULL"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    //NOTE: remove singleshoot breakpoints (mostly temporary breakpoints)
+    if(!sqlexec(userdb, "DELETE FROM breakpoints WHERE singleshoot=1 AND type=0"))
+        dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
     wait(WAITID_USERDB); //wait for the SQLite operation to complete before closing
     lock(WAITID_USERDB);

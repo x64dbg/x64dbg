@@ -125,9 +125,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mSymbolView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
     connect(ui->actionReferences,SIGNAL(triggered()),this,SLOT(displayReferencesWidget()));
     connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
+    connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(openSettings()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
-    connect(Bridge::getBridge(), SIGNAL(updateCPUTitle(QString)), this, SLOT(updateCPUTitleSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
 
     const char* errormsg=DbgInit();
     if(errormsg)
@@ -165,7 +166,8 @@ void MainWindow::loadMRUList(int maxItems)
         char currentFile[MAX_PATH]="";
         if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), currentFile))
             break;
-        mMRUList.push_back(currentFile);
+        if(QString(currentFile).size())
+            mMRUList.push_back(currentFile);
     }
     updateMRUMenu();
 }
@@ -180,6 +182,8 @@ void MainWindow::saveMRUList()
 
 void MainWindow::addMRUEntry(QString entry)
 {
+    if(!entry.size())
+        return;
     //remove duplicate entry if it exists
     removeMRUEntry(entry);
     mMRUList.insert(mMRUList.begin(), entry);
@@ -189,6 +193,8 @@ void MainWindow::addMRUEntry(QString entry)
 
 void MainWindow::removeMRUEntry(QString entry)
 {
+    if(!entry.size())
+        return;
     std::vector<QString>::iterator it;
 
     for (it = mMRUList.begin(); it != mMRUList.end(); ++it)
@@ -450,14 +456,6 @@ void MainWindow::updateWindowTitleSlot(QString filename)
         setWindowTitle(QString(mWindowMainTitle));
 }
 
-void MainWindow::updateCPUTitleSlot(QString modname)
-{
-    if(modname.length())
-        mCpuWidget->setWindowTitle(QString("CPU - ")+modname);
-    else
-        mCpuWidget->setWindowTitle(QString("CPU"));
-}
-
 void MainWindow::execeStepOver()
 {
     DbgCmdExec("eStepOver");
@@ -503,4 +501,17 @@ void MainWindow::displayThreadsWidget()
     mThreadView->show();
     mThreadView->setFocus();
     setTab(mThreadView);
+}
+
+void MainWindow::openSettings()
+{
+    SettingsDialog settings(this);
+    settings.exec();
+}
+
+void MainWindow::addRecentFile(QString file)
+{
+    addMRUEntry(file);
+    updateMRUMenu();
+    saveMRUList();
 }

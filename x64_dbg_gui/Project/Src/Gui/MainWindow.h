@@ -16,6 +16,7 @@
 #include "SymbolView.h"
 #include "ReferenceView.h"
 #include "ThreadView.h"
+#include "SettingsDialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -48,7 +49,6 @@ public slots:
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
-    void updateCPUTitleSlot(QString modname);
     void execeStepOver();
     void execeStepInto();
     void execeRun();
@@ -57,6 +57,8 @@ public slots:
     void displaySymbolWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
+    void openSettings();
+    void addRecentFile(QString file);
 
 private:
     Ui::MainWindow *ui;

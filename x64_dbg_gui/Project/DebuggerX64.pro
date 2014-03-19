@@ -57,7 +57,8 @@ SOURCES += \
     Src/BasicView/RegistersView.cpp \
     Src/BasicView/SearchListView.cpp \
     Src/BasicView/ReferenceView.cpp \
-    Src/BasicView/ThreadView.cpp
+    Src/BasicView/ThreadView.cpp \
+    Src/Gui/SettingsDialog.cpp
 
 
 HEADERS += \
@@ -95,7 +96,8 @@ HEADERS += \
     Src/BasicView/SymbolView.h \
     Src/BasicView/SearchListView.h \
     Src/BasicView/ReferenceView.h \
-    Src/BasicView/ThreadView.h
+    Src/BasicView/ThreadView.h \
+    Src/Gui/SettingsDialog.h
 
 INCLUDEPATH += \
     Src \
@@ -117,7 +119,8 @@ FORMS += \
     Src/BasicView/WordEditDialog.ui \
     Src/BasicView/LineEditDialog.ui \
     Src/BasicView/SymbolView.ui \
-    Src/BasicView/SearchListView.ui
+    Src/BasicView/SearchListView.ui \
+    Src/Gui/SettingsDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

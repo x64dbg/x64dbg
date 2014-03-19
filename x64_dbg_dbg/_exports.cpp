@@ -626,6 +626,39 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         threadgetlist((THREADLIST*)param1);
     }
     break;
+
+    case DBG_SETTINGS_UPDATED:
+    {
+        uint setting;
+        if(BridgeSettingGetUint("Engine", "CalculationType", &setting))
+        {
+            switch(setting)
+            {
+            case 0: //calc_signed
+                valuesetsignedcalc(true);
+                break;
+            case 1: //calc_unsigned
+                valuesetsignedcalc(false);
+                break;
+            }
+        }
+        if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
+        {
+            switch(setting)
+            {
+            case 0: //break_int3short
+                SetBPXOptions(UE_BREAKPOINT_INT3);
+                break;
+            case 1: //break_int3long
+                SetBPXOptions(UE_BREAKPOINT_LONG_INT3);
+                break;
+            case 2: //break_ud2
+                SetBPXOptions(UE_BREAKPOINT_UD2);
+                break;
+            }
+        }
+    }
+    break;
     }
     return 0;
 }

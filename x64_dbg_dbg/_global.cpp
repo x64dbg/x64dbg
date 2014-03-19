@@ -179,3 +179,13 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     CloseHandle(hFileMap);
     return false;
 }
+
+bool settingboolget(const char* section, const char* name)
+{
+    uint setting;
+    if(!BridgeSettingGetUint(section, name, &setting))
+        return false;
+    if(setting)
+        return true;
+    return false;
+}

@@ -116,7 +116,8 @@ enum DBGMSG
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
     DBG_DISASM_AT,                  // param1=duint addr,				 param2=DISASM_INSTR* instr
     DBG_STACK_COMMENT_GET,          // param1=duint addr,                param2=STACK_COMMENT* comment
-    DBG_GET_THREAD_LIST             // param1=THREADALLINFO* list,       param2=unused
+    DBG_GET_THREAD_LIST,            // param1=THREADALLINFO* list,       param2=unused
+    DBG_SETTINGS_UPDATED            // param1=unused,                    param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -421,6 +422,7 @@ BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
+BRIDGE_IMPEXP void DbgSettingsUpdated();
 
 //Gui enums
 enum GUIMSG
@@ -433,7 +435,6 @@ enum GUIMSG
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
-    GUI_UPDATE_CPU_TITLE,           // param1=(const char*)mod,     param2=unused
     GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
     GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
     GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
@@ -460,7 +461,8 @@ enum GUIMSG
     GUI_REF_SETPROGRESS,            // param1=int progress,			param2=unused
     GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
     GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
-    GUI_UPDATE_THREAD_VIEW          // param1=unused,               param2=unused
+    GUI_UPDATE_THREAD_VIEW,         // param1=unused,               param2=unused
+    GUI_ADD_RECENT_FILE             // param1=(const char*)file,    param2=unused
 };
 
 //GUI structures
@@ -481,7 +483,6 @@ BRIDGE_IMPEXP void GuiUpdateRegisterView();
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView();
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView();
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename);
-BRIDGE_IMPEXP void GuiUpdateCPUTitle(const char* modname);
 BRIDGE_IMPEXP HWND GuiGetWindowHandle();
 BRIDGE_IMPEXP void GuiDumpAt(duint va);
 BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines);
@@ -508,6 +509,7 @@ BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
 BRIDGE_IMPEXP void GuiUpdateThreadView();
+BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
 
 #ifdef __cplusplus
 }

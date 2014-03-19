@@ -77,11 +77,6 @@ void Bridge::emitUpdateWindowTitle(QString filename)
     emit updateWindowTitle(filename);
 }
 
-void Bridge::emitUpdateCPUTitle(QString modname)
-{
-    emit updateCPUTitle(modname);
-}
-
 void Bridge::emitSetInfoLine(int line, QString text)
 {
     emit setInfoLine(line, text);
@@ -220,6 +215,11 @@ void Bridge::emitUpdateThreads()
     emit updateThreads();
 }
 
+void Bridge::emitAddRecentFile(QString file)
+{
+    emit addRecentFile(file);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -290,12 +290,6 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_UPDATE_WINDOW_TITLE:
     {
         Bridge::getBridge()->emitUpdateWindowTitle(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
-
-    case GUI_UPDATE_CPU_TITLE:
-    {
-        Bridge::getBridge()->emitUpdateCPUTitle(QString(reinterpret_cast<const char*>(param1)));
     }
     break;
 
@@ -459,6 +453,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_UPDATE_THREAD_VIEW:
     {
         Bridge::getBridge()->emitUpdateThreads();
+    }
+    break;
+
+    case GUI_ADD_RECENT_FILE:
+    {
+        Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
     }
     break;
 

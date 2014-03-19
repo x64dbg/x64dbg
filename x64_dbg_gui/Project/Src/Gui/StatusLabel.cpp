@@ -37,7 +37,6 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
         this->setText("<font color='#ff0000'>Terminated</font>");
         this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
         GuiUpdateWindowTitle("");
-        GuiUpdateCPUTitle("");
         break;
     default:
         break;
