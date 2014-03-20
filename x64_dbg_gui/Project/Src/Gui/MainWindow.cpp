@@ -130,6 +130,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
 
+    //Set default setttings (when not set)
+    SettingsDialog defaultSettings;
+    defaultSettings.SaveSettings();
+
     const char* errormsg=DbgInit();
     if(errormsg)
     {

@@ -15,6 +15,7 @@ class SettingsDialog : public QDialog
 public:
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog();
+    void SaveSettings();
 
 private slots:
     void on_chkSystemBreakpoint_stateChanged(int arg1);
@@ -77,7 +78,6 @@ private:
     void GetSettingBool(const char* section, const char* name, bool* set);
     Qt::CheckState bool2check(bool checked);
     void LoadSettings();
-    void SaveSettings();
 };
 
 #endif // SETTINGSDIALOG_H
