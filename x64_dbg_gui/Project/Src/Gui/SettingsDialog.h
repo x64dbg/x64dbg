@@ -3,9 +3,10 @@
 
 #include <QDialog>
 #include "Bridge.h"
+#include "ExceptionRangeDialog.h"
 
 namespace Ui {
-class SettingsDialog;
+    class SettingsDialog;
 }
 
 class SettingsDialog : public QDialog
@@ -34,6 +35,9 @@ private slots:
     void on_radioInt3Long_clicked();
     void on_radioUd2_clicked();
     void on_btnSave_clicked();
+    void on_btnAddRange_clicked();
+    void on_btnDeleteRange_clicked();
+    void on_btnAddLast_clicked();
 
 private:
     //enums
@@ -51,6 +55,20 @@ private:
     };
 
     //structures
+    struct RangeStruct
+    {
+        unsigned long start;
+        unsigned long end;
+    };
+
+    struct RangeStructLess
+    {
+        bool operator()(const RangeStruct a, const RangeStruct b) const
+        {
+            return a.start < b.start;
+        }
+    };
+
     struct SettingsStruct
     {
         //Event Tab
@@ -68,16 +86,19 @@ private:
         CalcType engineCalcType;
         BreakpointType engineBreakpointType;
         //Exception Tab
+        QList<RangeStruct>* exceptionRanges;
     };
 
     //variables
     Ui::SettingsDialog *ui;
     SettingsStruct settings;
+    QList<RangeStruct> realExceptionRanges;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);
     Qt::CheckState bool2check(bool checked);
     void LoadSettings();
+    void AddRangeToList(RangeStruct range);
 };
 
 #endif // SETTINGSDIALOG_H

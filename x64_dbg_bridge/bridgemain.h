@@ -25,7 +25,7 @@ extern "C"
 #endif
 
 //Bridge defines
-#define MAX_SETTING_SIZE 2048
+#define MAX_SETTING_SIZE 65536
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();

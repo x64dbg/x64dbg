@@ -45,6 +45,7 @@ void SettingsDialog::LoadSettings()
     settings.eventEntryBreakpoint=true;
     settings.engineCalcType=calc_unsigned;
     settings.engineBreakpointType=break_int3short;
+    settings.exceptionRanges=&realExceptionRanges;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -112,6 +113,25 @@ void SettingsDialog::LoadSettings()
         ui->radioUd2->setChecked(true);
         break;
     }
+
+    //Exceptions tab
+    char exceptionRange[MAX_SETTING_SIZE]="";
+    if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))
+    {
+        QStringList ranges=QString(exceptionRange).split(QString(","), QString::SkipEmptyParts);
+        for(int i=0; i<ranges.size(); i++)
+        {
+            unsigned long start;
+            unsigned long end;
+            if(sscanf(ranges.at(i).toUtf8().constData(), "%.8X-%.8X", &start, &end)==2 && start<end)
+            {
+                RangeStruct newRange;
+                newRange.start=start;
+                newRange.end=end;
+                AddRangeToList(newRange);
+            }
+        }
+    }
 }
 
 void SettingsDialog::SaveSettings()
@@ -131,6 +151,42 @@ void SettingsDialog::SaveSettings()
     //Engine tab
     BridgeSettingSetUint("Engine", "CalculationType", settings.engineCalcType);
     BridgeSettingSetUint("Engine", "BreakpointType", settings.engineBreakpointType);
+
+    //Exceptions tab
+    QString exceptionRange="";
+    for(int i=0; i<settings.exceptionRanges->size(); i++)
+        exceptionRange.append(QString().sprintf("%.8X-%.8X", settings.exceptionRanges->at(i).start, settings.exceptionRanges->at(i).end)+QString(","));
+    exceptionRange.chop(1); //remove last comma
+    if(exceptionRange.size())
+        BridgeSettingSet("Exceptions", "IgnoreRange", exceptionRange.toUtf8().constData());
+}
+
+void SettingsDialog::AddRangeToList(RangeStruct range)
+{
+    //check range
+    unsigned long start=range.start;
+    unsigned long end=range.end;
+
+    for(int i=settings.exceptionRanges->size()-1; i>-1; i--)
+    {
+        unsigned long curStart=settings.exceptionRanges->at(i).start;
+        unsigned long curEnd=settings.exceptionRanges->at(i).end;
+        if(curStart<=end && curEnd>=start) //ranges overlap
+        {
+            if(curStart<start) //extend range to the left
+                start=curStart;
+            if(curEnd>end) //extend range to the right
+                end=curEnd;
+            settings.exceptionRanges->erase(settings.exceptionRanges->begin()+i); //remove old range
+        }
+    }
+    range.start=start;
+    range.end=end;
+    settings.exceptionRanges->push_back(range);
+    qSort(settings.exceptionRanges->begin(), settings.exceptionRanges->end(), RangeStructLess());
+    ui->listExceptions->clear();
+    for(int i=0; i<settings.exceptionRanges->size(); i++)
+        ui->listExceptions->addItem(QString().sprintf("%.8X-%.8X", settings.exceptionRanges->at(i).start, settings.exceptionRanges->at(i).end));
 }
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
@@ -242,4 +298,32 @@ void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
     DbgSettingsUpdated();
+}
+
+
+void SettingsDialog::on_btnAddRange_clicked()
+{
+    ExceptionRangeDialog exceptionRange(this);
+    if(exceptionRange.exec()!=QDialog::Accepted)
+        return;
+    RangeStruct range;
+    range.start=exceptionRange.rangeStart;
+    range.end=exceptionRange.rangeEnd;
+    AddRangeToList(range);
+}
+
+void SettingsDialog::on_btnDeleteRange_clicked()
+{
+    QModelIndexList indexes=ui->listExceptions->selectionModel()->selectedIndexes();
+    if(!indexes.size()) //no selection
+        return;
+    settings.exceptionRanges->erase(settings.exceptionRanges->begin()+indexes.at(0).row());
+    ui->listExceptions->clear();
+    for(int i=0; i<settings.exceptionRanges->size(); i++)
+        ui->listExceptions->addItem(QString().sprintf("%.8X-%.8X", settings.exceptionRanges->at(i).start, settings.exceptionRanges->at(i).end));
+}
+
+void SettingsDialog::on_btnAddLast_clicked()
+{
+
 }
