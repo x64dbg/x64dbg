@@ -123,7 +123,7 @@ void SettingsDialog::LoadSettings()
         {
             unsigned long start;
             unsigned long end;
-            if(sscanf(ranges.at(i).toUtf8().constData(), "%.8X-%.8X", &start, &end)==2 && start<end)
+            if(sscanf(ranges.at(i).toUtf8().constData(), "%08X-%08X", &start, &end)==2 && start<=end)
             {
                 RangeStruct newRange;
                 newRange.start=start;
@@ -159,6 +159,8 @@ void SettingsDialog::SaveSettings()
     exceptionRange.chop(1); //remove last comma
     if(exceptionRange.size())
         BridgeSettingSet("Exceptions", "IgnoreRange", exceptionRange.toUtf8().constData());
+
+    DbgSettingsUpdated();
 }
 
 void SettingsDialog::AddRangeToList(RangeStruct range)
@@ -297,7 +299,6 @@ void SettingsDialog::on_radioUd2_clicked()
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
-    DbgSettingsUpdated();
 }
 
 

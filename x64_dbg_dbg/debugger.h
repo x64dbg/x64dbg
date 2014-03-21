@@ -14,12 +14,21 @@ struct INIT_STRUCT
     char* currentfolder;
 };
 
+struct ExceptionRange
+{
+    unsigned int start;
+    unsigned int end;
+};
+
 //functions
 void dbgdisablebpx();
 void dbgenablebpx();
 bool dbgisrunning();
 void DebugUpdateGui(uint disasm_addr, bool stack);
 void dbgsetskipexceptions(bool skip);
+void dbgclearignoredexceptions();
+void dbgaddignoredexception(ExceptionRange range);
+bool dbgisignoredexception(unsigned int exception);
 //callbacks
 CMDRESULT cbDebugInit(int argc, char* argv[]);
 CMDRESULT cbStopDebug(int argc, char* argv[]);

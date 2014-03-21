@@ -657,6 +657,25 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 break;
             }
         }
+        char exceptionRange[MAX_SETTING_SIZE]="";
+        if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))
+        {
+            dbgclearignoredexceptions();
+            char* entry=strtok(exceptionRange, ",");
+            while(entry)
+            {
+                unsigned long start;
+                unsigned long end;
+                if(sscanf(entry, "%08X-%08X", &start, &end)==2 && start<=end)
+                {
+                    ExceptionRange range;
+                    range.start=start;
+                    range.end=end;
+                    dbgaddignoredexception(range);
+                }
+                entry=strtok(0, ",");
+            }
+        }
     }
     break;
     }

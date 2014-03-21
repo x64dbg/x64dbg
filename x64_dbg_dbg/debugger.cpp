@@ -28,6 +28,7 @@ static bool bScyllaLoaded=false;
 static bool bIsAttached=false;
 static bool bSkipExceptions=false;
 static int ecount=0;
+static std::vector<ExceptionRange> ignoredExceptionRange;
 
 //Superglobal variables
 char sqlitedb[deflen]="";
@@ -70,6 +71,28 @@ bool dbgisrunning()
 void dbgsetskipexceptions(bool skip)
 {
     bSkipExceptions=skip;
+}
+
+void dbgclearignoredexceptions()
+{
+    std::vector<ExceptionRange>().swap(ignoredExceptionRange);
+}
+
+void dbgaddignoredexception(ExceptionRange range)
+{
+    ignoredExceptionRange.push_back(range);
+}
+
+bool dbgisignoredexception(unsigned int exception)
+{
+    for(unsigned int i=0; i<ignoredExceptionRange.size(); i++)
+    {
+        unsigned int curStart=ignoredExceptionRange.at(i).start;
+        unsigned int curEnd=ignoredExceptionRange.at(i).end;
+        if(exception>=curStart && exception<=curEnd)
+            return true;
+    }
+    return false;
 }
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
@@ -767,16 +790,18 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
 
+    unsigned int ExceptionCode=ExceptionData->ExceptionRecord.ExceptionCode;
+
     if(ExceptionData->dwFirstChance) //first chance exception
     {
-        dprintf("first chance exception on "fhex" (%.8X)!\n", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        dprintf("first chance exception on "fhex" (%.8X)!\n", addr,ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
-        if(bSkipExceptions)
+        if(bSkipExceptions || dbgisignoredexception(ExceptionCode))
             return;
     }
     else //lock the exception
     {
-        dprintf("last chance exception on "fhex" (%.8X)!\n", addr, ExceptionData->ExceptionRecord.ExceptionCode);
+        dprintf("last chance exception on "fhex" (%.8X)!\n", addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
