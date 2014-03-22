@@ -217,8 +217,12 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
 
 void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
 {
-    if(!DbgIsDebugging() or !instr)
+    if(!DbgIsDebugging())
+    {
+        if(instr)
+            instr->argcount=0;
         return;
+    }
     memset(instr, 0, sizeof(DISASM_INSTR));
     DISASM disasm;
     memset(&disasm, 0, sizeof(DISASM));
@@ -254,8 +258,12 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
 
 void disasmget(uint addr, DISASM_INSTR* instr)
 {
-    if(!DbgIsDebugging() or !instr)
+    if(!DbgIsDebugging())
+    {
+        if(instr)
+            instr->argcount=0;
         return;
+    }
     unsigned char buffer[16]="";
     DbgMemRead(addr, buffer, 16);
     disasmget(buffer, addr, instr);
@@ -264,6 +272,7 @@ void disasmget(uint addr, DISASM_INSTR* instr)
 void disasmprint(uint addr)
 {
     DISASM_INSTR instr;
+    memset(&instr, 0, sizeof(instr));
     disasmget(addr, &instr);
     printf(">%d:\"%s\":\n", instr.type, instr.instruction);
     for(int i=0; i<instr.argcount; i++)

@@ -662,12 +662,14 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
+    bool bAlreadySetEntry=false;
     if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase=(uint)base;
         char command[256]="";
         if(settingboolget("Events", "EntryBreakpoint"))
         {
+            bAlreadySetEntry=true;
             sprintf(command, "bp "fhex",\"entry breakpoint\",ss", pDebuggedBase+pDebuggedEntry);
             cmddirectexec(dbggetcommandlist(), command);
         }
@@ -694,7 +696,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         wait(WAITID_RUN);
     }
 
-    if(settingboolget("Events", "DllEntry"))
+    if(settingboolget("Events", "DllEntry") && !bAlreadySetEntry)
     {
         uint oep=GetPE32Data(DLLDebugFileName, 0, UE_OEP);
         if(oep)
@@ -744,7 +746,24 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         char* DebugText=(char*)emalloc(DebugString->nDebugStringLength+1, "cbOutputDebugString:DebugText");
         memset(DebugText, 0, DebugString->nDebugStringLength+1);
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
-            dprintf("DebugString: \"%s\"\n", DebugText);
+        {
+            int len=strlen(DebugText);
+            int escape_count=0;
+            for(int i=0; i<len; i++)
+                if(DebugText[i]=='\\')
+                    escape_count++;
+            char* DebugTextEscaped=(char*)emalloc(DebugString->nDebugStringLength+escape_count+1, "cbOutputDebugString:DebugTextEscaped");
+            memset(DebugTextEscaped, 0, DebugString->nDebugStringLength+escape_count+1);
+            for(int i=0,j=0; i<len; i++)
+            {
+                if(DebugText[i]=='\\')
+                    j+=sprintf(DebugTextEscaped+j, "\\\\");
+                else
+                    j+=sprintf(DebugTextEscaped+j, "%c", DebugText[i]);
+            }
+            dprintf("DebugString: \"%s\"\n", DebugTextEscaped);
+            efree(DebugTextEscaped, "cbOutputDebugString:DebugTextEscaped");
+        }
         efree(DebugText, "cbOutputDebugString:DebugText");
     }    
 
@@ -1743,6 +1762,7 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     while(i<size)
     {
         DISASM_INSTR instr;
+        memset(&instr, 0, sizeof(instr));
         disasmget((unsigned char*)(data+i), base+i, &instr);
         i+=instr.instr_size;
         count++;

@@ -11,6 +11,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     LoadSettings(); //load settings from file
+    ui->btnAddLast->setEnabled(false);
 }
 
 SettingsDialog::~SettingsDialog()
@@ -299,8 +300,12 @@ void SettingsDialog::on_radioUd2_clicked()
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
+    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
+    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }
-
 
 void SettingsDialog::on_btnAddRange_clicked()
 {

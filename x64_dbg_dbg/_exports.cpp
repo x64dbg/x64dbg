@@ -98,6 +98,8 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
+    if(!IsFileBeingDebugged())
+        return false;
     bool retval=false;
     if(addrinfo->flags&flagmodule) //get module
     {
@@ -154,6 +156,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             else //no line number
             {
                 DISASM_INSTR instr;
+                memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
                 int len_left=MAX_COMMENT_SIZE;
                 for(int i=0,j=0; i<instr.argcount; i++)
@@ -504,6 +507,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
 {
     DISASM_INSTR instr;
+    memset(&instr, 0, sizeof(instr));
     disasmget(addr, &instr);
     if(instr.type!=instr_branch)
         return 0;

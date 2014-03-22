@@ -28,13 +28,13 @@ void ExceptionRangeDialog::on_editStart_textChanged(const QString &arg1)
         return;
     }
     bool converted=false;
-    unsigned long start=ui->editStart->text().toLong(&converted, 16);
+    unsigned long start=ui->editStart->text().toUInt(&converted, 16);
     if(!converted)
     {
         ui->btnOk->setEnabled(false);
         return;
     }
-    unsigned long end=ui->editEnd->text().toLong(&converted, 16);
+    unsigned long end=ui->editEnd->text().toUInt(&converted, 16);
     if(converted && end<start)
         ui->btnOk->setEnabled(false);
     else
@@ -50,13 +50,13 @@ void ExceptionRangeDialog::on_editEnd_textChanged(const QString &arg1)
         return;
     }
     bool converted=false;
-    unsigned long start=ui->editStart->text().toLong(&converted, 16);
+    unsigned long start=ui->editStart->text().toUInt(&converted, 16);
     if(!converted)
     {
         ui->btnOk->setEnabled(false);
         return;
     }
-    unsigned long end=ui->editEnd->text().toLong(&converted, 16);
+    unsigned long end=ui->editEnd->text().toUInt(&converted, 16);
     if(!converted)
     {
         ui->btnOk->setEnabled(false);
@@ -70,9 +70,9 @@ void ExceptionRangeDialog::on_editEnd_textChanged(const QString &arg1)
 
 void ExceptionRangeDialog::on_btnOk_clicked()
 {
-    rangeStart=ui->editStart->text().toLong(0, 16);
+    rangeStart=ui->editStart->text().toUInt(0, 16);
     bool converted=false;
-    rangeEnd=ui->editEnd->text().toLong(&converted, 16);
+    rangeEnd=ui->editEnd->text().toUInt(&converted, 16);
     if(!converted)
         rangeEnd=rangeStart;
     accept();

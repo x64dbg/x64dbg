@@ -34,6 +34,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         if(len!=UNKNOWN_OPCODE && disasm.Instruction.BranchType==CallType) //call
         {
             DISASM_INSTR instr;
+            memset(&instr, 0, sizeof(instr));
             disasmget((unsigned char*)disasm.EIP, previousInstr, &instr);
             
             char label[MAX_LABEL_SIZE]="";
