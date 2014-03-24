@@ -52,6 +52,7 @@ struct PLUG_CB_EXITPROCESS
 struct PLUG_CB_CREATETHREAD
 {
     CREATE_THREAD_DEBUG_INFO* CreateThread;
+    DWORD dwThreadId;
 };
 
 struct PLUG_CB_EXITTHREAD

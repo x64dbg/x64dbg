@@ -139,7 +139,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
     if(!isvar or !valtostring(argv[1], &set_value, true))
     {
         uint value;
-        if(!valfromstring(argv[1], &value))
+        if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
         {
             dprintf("invalid dest \"%s\"\n", argv[1]);
             return STATUS_ERROR;

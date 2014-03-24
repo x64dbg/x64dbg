@@ -13,7 +13,8 @@ enum SCRIPTBRANCHTYPE
     scriptjbjl,
     scriptjajg,
     scriptjbejle,
-    scriptjaejge
+    scriptjaejge,
+    scriptcall
 };
 
 //structures

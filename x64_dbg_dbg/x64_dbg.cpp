@@ -128,6 +128,7 @@ static void registercommands()
     cmdnew(cmd, "shr", cbInstrShr, false);
     cmdnew(cmd, "sub", cbInstrSub, false);
     cmdnew(cmd, "test", cbInstrTest, false);
+    cmdnew(cmd, "xor", cbInstrXor, false);
 
     //script
     cmdnew(cmd, "scriptload", cbScriptLoad, false);

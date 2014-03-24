@@ -566,10 +566,12 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
+    DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_CREATETHREAD callbackInfo;
     callbackInfo.CreateThread=CreateThread;
+    callbackInfo.dwThreadId=dwThreadId;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
-    DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    
     dprintf("Thread %X created\n", dwThreadId);
 
     if(settingboolget("Events", "ThreadStart"))
@@ -756,10 +758,33 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             memset(DebugTextEscaped, 0, DebugString->nDebugStringLength+escape_count+1);
             for(int i=0,j=0; i<len; i++)
             {
-                if(DebugText[i]=='\\')
+                switch(DebugText[i])
+                {
+                case '\t':
+                    j+=sprintf(DebugTextEscaped+j, "\\t");
+                    break;
+                case '\f':
+                    j+=sprintf(DebugTextEscaped+j, "\\f");
+                    break;
+                case '\v':
+                    j+=sprintf(DebugTextEscaped+j, "\\v");
+                    break;
+                case '\n':
+                    j+=sprintf(DebugTextEscaped+j, "\\n");
+                    break;
+                case '\r':
+                    j+=sprintf(DebugTextEscaped+j, "\\r");
+                    break;
+                case '\\':
                     j+=sprintf(DebugTextEscaped+j, "\\\\");
-                else
+                    break;
+                case '\"':
+                    j+=sprintf(DebugTextEscaped+j, "\\\"");
+                    break;
+                default:
                     j+=sprintf(DebugTextEscaped+j, "%c", DebugText[i]);
+                    break;
+                }
             }
             dprintf("DebugString: \"%s\"\n", DebugTextEscaped);
             efree(DebugTextEscaped, "cbOutputDebugString:DebugTextEscaped");

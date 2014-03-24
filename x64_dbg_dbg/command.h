@@ -12,6 +12,7 @@ enum CMDRESULT
     STATUS_ERROR=false,
     STATUS_CONTINUE=true,
     STATUS_EXIT=2,
+    STATUS_PAUSE=3
 };
 
 typedef CMDRESULT (*CBCOMMAND)(int, char**);

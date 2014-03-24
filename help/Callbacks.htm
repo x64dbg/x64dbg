@@ -41,9 +41,11 @@ fdProcessInfo;<BR>};</P>
 <P>struct 
 <STRONG>PLUG_CB_CREATETHREAD<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; 
 <STRONG>CREATE_THREAD_DEBUG_INFO*</STRONG> 
- CreateThread;<BR>};</P>
+CreateThread;<BR>&nbsp;&nbsp;&nbsp; <STRONG>DWORD</STRONG> 
+ dwThreadId;<BR>};</P>
 <P>struct <STRONG> PLUG_CB_EXITTHREAD<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; <STRONG>EXIT_THREAD_DEBUG_INFO*</STRONG> 
- ExitThread;<BR>};</P>
+ExitThread;<BR>&nbsp;&nbsp;&nbsp; <STRONG>DWORD</STRONG> 
+ dwThreadId;<BR>};</P>
 <P>struct <STRONG> 
 PLUG_CB_SYSTEMBREAKPOINT<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; 
 <STRONG>void*</STRONG>  reserved;<BR>};</P>
@@ -72,4 +74,9 @@ DebugString;<BR>};</P>
 <P>struct <STRONG> PLUG_CB_STEPPED<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; 
 <STRONG>void*</STRONG>  
 reserved;<BR>};</P>
-<P>&nbsp;</P></body>
+<P>struct 
+<STRONG>PLUG_CB_ATTACH<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; 
+<STRONG>DWORD</STRONG> dwProcessId;<BR>};</P>
+<P>struct 
+<STRONG>PLUG_CB_DETACH<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; 
+<STRONG>PROCESS_INFORMATION*</STRONG> fdProcessInfo;<BR>};</P></BODY></HTML>

@@ -4,6 +4,8 @@
 #include "debugger.h"
 #include "threading.h"
 
+static char msg[66000];
+
 ///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 {
@@ -29,7 +31,6 @@ PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    char msg[deflen]="";
     vsprintf(msg, format, args);
     GuiAddLogMessage(msg);
 }
