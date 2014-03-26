@@ -712,7 +712,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
-    //TODO: plugin callback
     PLUG_CB_UNLOADDLL callbackInfo;
     callbackInfo.UnloadDll=UnloadDll;
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
@@ -808,7 +807,6 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
-    //TODO: plugin callback
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception=ExceptionData;
 

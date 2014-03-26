@@ -207,7 +207,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
-    //TODO: handle exit signal
     cbStopDebug(0, 0);
     wait(WAITID_STOP); //after this, debugging stopped
     pluginunload();

@@ -3,8 +3,6 @@
 
 #include "_global.h"
 
-//TODO: VAR_VALUE struct usage
-
 //enums
 enum VAR_TYPE
 {

@@ -116,7 +116,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             retval=true;
         else //no user labels
         {
-            //TODO: auto-labels
             DWORD64 displacement=0;
             char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
@@ -136,7 +135,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         *addrinfo->comment=0;
         if(commentget(addr, addrinfo->comment))
             retval=true;
-        else //TODO: auto-comments
+        else
         {
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
