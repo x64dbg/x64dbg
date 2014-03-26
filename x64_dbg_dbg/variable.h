@@ -46,9 +46,10 @@ void varfree();
 VAR* vargetptr();
 bool varnew(const char* name, uint value, VAR_TYPE type);
 bool varget(const char* name, uint* value, int* size, VAR_TYPE* type);
-bool varset(const char* name, VAR_VALUE* value, bool setreadonly);
+bool varget(const char* name, char* string, int* size, VAR_TYPE* type);
 bool varset(const char* name, uint value, bool setreadonly);
-bool varset(const char* name, char* data, bool setreadonly);
+bool varset(const char* name, const char* string, bool setreadonly);
 bool vardel(const char* name, bool delsystem);
+bool vargettype(const char* name, VAR_TYPE* type);
 
 #endif // _VARIABLE_H

@@ -136,6 +136,8 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
     bool isvar=false;
     uint temp=0;
     valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
+    if(!isvar)
+        isvar=vargettype(argv[1], 0);
     if(!isvar or !valtostring(argv[1], &set_value, true))
     {
         uint value;
@@ -728,5 +730,65 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, argv[2]);
     GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrSetstr(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    varnew(argv[1], 0, VAR_USER);
+    if(!vargettype(argv[1], 0))
+    {
+        dprintf("no such variable \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!varset(argv[1], argv[2], false))
+    {
+        dprintf("failed to set variable \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    char cmd[deflen]="";
+    sprintf(cmd, "getstr \"%s\"", argv[1]);
+    cmddirectexec(dbggetcommandlist(), cmd);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrGetstr(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    VAR_TYPE vartype;
+    if(!vargettype(argv[1], &vartype))
+    {
+        dprintf("no such variable \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(vartype!=VAR_STRING)
+    {
+        dprintf("variable \"%s\" is not a string!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    int size;
+    if(!varget(argv[1], (char*)0, &size, 0) or !size)
+    {
+        dprintf("failed to get variable size \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    char* string=(char*)emalloc(size+1, "cbInstrGetstr:string");
+    memset(string, 0, size+1);
+    if(!varget(argv[1], string, &size, 0))
+    {
+        dprintf("failed to get variable data \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    dprintf("%s=\"%s\"\n", argv[1], string);
+    efree(string, "cbInstrGetstr:string");
     return STATUS_CONTINUE;
 }

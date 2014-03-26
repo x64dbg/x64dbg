@@ -147,6 +147,9 @@ static void registercommands()
 
     cmdnew(cmd, "refinit", cbInstrRefinit, false);
     cmdnew(cmd, "refadd", cbInstrRefadd, false);
+
+    cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
+    cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

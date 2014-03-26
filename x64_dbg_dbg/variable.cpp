@@ -26,11 +26,28 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 {
     switch(var->value.type)
     {
-        case VAR_STRING:
-            delete [] var->value.u.data;
-            break;
+    case VAR_STRING:
+        var->value.u.data->clear();
+        delete var->value.u.data;
+        break;
     }
     memcpy(&var->value, value, sizeof(VAR_VALUE));
+}
+
+static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
+{
+    char newname[deflen]="$";
+    int add=0;
+    if(*name=='$')
+        add=1;
+    strcat(newname, name+add);
+    VAR* found=varfind(newname, 0);
+    if(!found)
+        return false;
+    if(!setreadonly and (found->type==VAR_READONLY or found->type==VAR_HIDDEN))
+        return false;
+    varsetvalue(found, value);
+    return true;
 }
 
 void varinit()
@@ -120,7 +137,7 @@ bool varnew(const char* name_, uint value, VAR_TYPE type)
     return true;
 }
 
-bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
+static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
     char newname[deflen]="$";
     int add=0;
@@ -128,33 +145,45 @@ bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
         add=1;
     strcat(newname, name+add);
     VAR* found=varfind(newname, 0);
-    if(!found)
+    if(!found or !value or !size or !type)
         return false;
-    if(!value)
-        return false;
-    if(type)
-        *type=found->type;
-    if(found->value.type!=VAR_UINT)
-        return false;
-    if(size)
-        *size=found->value.size;
-    *value=found->value.u.value;
+    *type=found->type;
+    *size=found->value.size;
+    memcpy(value, &found->value, sizeof(VAR_VALUE));
     return true;
 }
 
-bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
+bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
 {
-    char newname[deflen]="$";
-    int add=0;
-    if(*name=='$')
-        add=1;
-    strcat(newname, name+add);
-    VAR* found=varfind(newname, 0);
-    if(!found)
+    VAR_VALUE varvalue;
+    int varsize;
+    VAR_TYPE vartype;
+    if(!varget(name, &varvalue, &varsize, &vartype) or varvalue.type!=VAR_UINT)
         return false;
-    if(!setreadonly and (found->type==VAR_READONLY or found->type==VAR_HIDDEN))
+    if(size)
+        *size=varsize;
+    if(!value && size)
+        return true; //variable was valid, just get the size
+    if(type)
+        *type=vartype;
+    *value=varvalue.u.value;
+    return true;
+}
+
+bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
+{
+    VAR_VALUE varvalue;
+    int varsize;
+    VAR_TYPE vartype;
+    if(!varget(name, &varvalue, &varsize, &vartype) or varvalue.type!=VAR_STRING)
         return false;
-    varsetvalue(found, value);
+    if(size)
+        *size=varsize;
+    if(!string && size)
+        return true; //variable was valid, just get the size
+    if(type)
+        *type=vartype;
+    memcpy(string, &varvalue.u.data->front(), varsize);
     return true;
 }
 
@@ -168,15 +197,21 @@ bool varset(const char* name, uint value, bool setreadonly)
     return true;
 }
 
-bool varset(const char* name, char* data, bool setreadonly)
+bool varset(const char* name, const char* string, bool setreadonly)
 {
     VAR_VALUE varvalue;
-    int size=strlen(data);
+    int size=strlen(string);
     varvalue.size=size;
     varvalue.type=VAR_STRING;
     varvalue.u.data=new std::vector<unsigned char>;
     varvalue.u.data->resize(size);
-    memcpy(&varvalue.u.data->front(), data, size);
+    memcpy(&varvalue.u.data->front(), string, size);
+    if(!varset(name, &varvalue, setreadonly))
+    {
+        varvalue.u.data->clear();
+        delete varvalue.u.data;
+        return false;
+    }
     return true;
 }
 
@@ -223,5 +258,20 @@ bool vardel(const char* name, bool delsystem)
         prev->next=found->next;
         efree(found, "vardel:found");
     }
+    return true;
+}
+
+bool vargettype(const char* name, VAR_TYPE* type)
+{
+    char newname[deflen]="$";
+    int add=0;
+    if(*name=='$')
+        add=1;
+    strcat(newname, name+add);
+    VAR* found=varfind(newname, 0);
+    if(!found)
+        return false;
+    if(type)
+        *type=found->type;
     return true;
 }
