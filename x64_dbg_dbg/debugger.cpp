@@ -944,8 +944,8 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     threadclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
-    varset("$hp", 0, true);
-    varset("$pid", 0, true);
+    varset("$hp", (uint)0, true);
+    varset("$pid", (uint)0, true);
     unlock(WAITID_STOP); //we are done
     return 0;
 }
@@ -1708,7 +1708,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         return STATUS_ERROR;
     }
     if(addr==lastalloc)
-        varset("$lastalloc", 0, true);
+        varset("$lastalloc", (uint)0, true);
     bool ok=VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs("VirtualFreeEx failed");
@@ -1923,8 +1923,8 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     modclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
-    varset("$hp", 0, true);
-    varset("$pid", 0, true);
+    varset("$hp", (uint)0, true);
+    varset("$pid", (uint)0, true);
     unlock(WAITID_STOP);
     waitclear();
     return 0;

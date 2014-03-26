@@ -177,7 +177,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         for(int i=0; i<len; i++)
             if(name[i]==1)
                 name[i]='/';
-        uint value=(uint)cur->value.value;
+        uint value=(uint)cur->value.u.value;
         if(cur->type!=VAR_HIDDEN)
         {
             if(filter)

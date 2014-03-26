@@ -22,6 +22,17 @@ static VAR* varfind(const char* name, VAR** link)
     return 0;
 }
 
+static void varsetvalue(VAR* var, VAR_VALUE* value)
+{
+    switch(var->value.type)
+    {
+        case VAR_STRING:
+            delete [] var->value.u.data;
+            break;
+    }
+    memcpy(&var->value, value, sizeof(VAR_VALUE));
+}
+
 void varinit()
 {
     vars=(VAR*)emalloc(sizeof(VAR), "varinit:vars");
@@ -94,7 +105,11 @@ bool varnew(const char* name_, uint value, VAR_TYPE type)
     memset(var, 0, sizeof(VAR));
     var->name=name;
     var->type=type;
-    var->value.value=value;
+    VAR_VALUE varvalue;
+    varvalue.size=sizeof(uint);
+    varvalue.type=VAR_UINT;
+    varvalue.u.value=value;
+    varsetvalue(var, &varvalue);
     if(!nonext)
     {
         VAR* cur=vars;
@@ -119,11 +134,15 @@ bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
         return false;
     if(type)
         *type=found->type;
-    *value=found->value.value;
+    if(found->value.type!=VAR_UINT)
+        return false;
+    if(size)
+        *size=found->value.size;
+    *value=found->value.u.value;
     return true;
 }
 
-bool varset(const char* name, uint value, bool setreadonly)
+bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
     char newname[deflen]="$";
     int add=0;
@@ -135,23 +154,45 @@ bool varset(const char* name, uint value, bool setreadonly)
         return false;
     if(!setreadonly and (found->type==VAR_READONLY or found->type==VAR_HIDDEN))
         return false;
-    found->value.value=value;
+    varsetvalue(found, value);
     return true;
 }
 
-bool vardel(const char* name_, bool delsystem)
+bool varset(const char* name, uint value, bool setreadonly)
 {
-    char* name=(char*)emalloc(strlen(name_)+2, "vardel:name");
-    if(*name_!='$')
+    VAR_VALUE varvalue;
+    varvalue.size=sizeof(uint);
+    varvalue.type=VAR_UINT;
+    varvalue.u.value=value;
+    varset(name, &varvalue, setreadonly);
+    return true;
+}
+
+bool varset(const char* name, char* data, bool setreadonly)
+{
+    VAR_VALUE varvalue;
+    int size=strlen(data);
+    varvalue.size=size;
+    varvalue.type=VAR_STRING;
+    varvalue.u.data=new std::vector<unsigned char>;
+    varvalue.u.data->resize(size);
+    memcpy(&varvalue.u.data->front(), data, size);
+    return true;
+}
+
+bool vardel(const char* name, bool delsystem)
+{
+    char* name_=(char*)emalloc(strlen(name)+2, "vardel:name");
+    if(*name!='$')
     {
-        *name='$';
-        strcpy(name+1, name_);
+        *name_='$';
+        strcpy(name_+1, name);
     }
     else
-        strcpy(name, name_);
+        strcpy(name_, name);
     VAR* prev=0;
-    VAR* found=varfind(name, &prev);
-    efree(name, "vardel:name");
+    VAR* found=varfind(name_, &prev);
+    efree(name_, "vardel:name");
     if(!found)
         return false;
     VAR_TYPE type=found->type;
@@ -159,6 +200,11 @@ bool vardel(const char* name_, bool delsystem)
         return false;
     if(type==VAR_HIDDEN)
         return false;
+    VAR_VALUE varvalue;
+    varvalue.size=sizeof(uint);
+    varvalue.type=VAR_UINT;
+    varvalue.u.value=0;
+    varsetvalue(found, &varvalue);
     efree(found->name, "vardel:found->name");
     if(found==vars)
     {

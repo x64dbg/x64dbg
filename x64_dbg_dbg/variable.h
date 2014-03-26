@@ -16,13 +16,18 @@ enum VAR_TYPE
 
 enum VAR_VALUE_TYPE
 {
-    VAR_INT=1
+    VAR_UINT,
+    VAR_STRING,
 };
 
 //structures
 struct VAR_VALUE
 {
-    uint value;
+    union
+    {
+        uint value;
+        std::vector<unsigned char>* data;
+    } u;
     VAR_VALUE_TYPE type;
     int size;
 };
@@ -41,7 +46,9 @@ void varfree();
 VAR* vargetptr();
 bool varnew(const char* name, uint value, VAR_TYPE type);
 bool varget(const char* name, uint* value, int* size, VAR_TYPE* type);
+bool varset(const char* name, VAR_VALUE* value, bool setreadonly);
 bool varset(const char* name, uint value, bool setreadonly);
-bool vardel(const char* name_, bool delsystem);
+bool varset(const char* name, char* data, bool setreadonly);
+bool vardel(const char* name, bool delsystem);
 
 #endif // _VARIABLE_H

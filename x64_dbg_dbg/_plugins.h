@@ -138,7 +138,6 @@ enum CBTYPE
     CB_STEPPED, //PLUG_CB_STEPPED
     CB_ATTACH, //PLUG_CB_ATTACHED (before attaching, after CB_INITDEBUG)
     CB_DETACH //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
-
 };
 
 //typedefs

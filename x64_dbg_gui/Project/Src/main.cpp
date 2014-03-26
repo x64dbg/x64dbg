@@ -17,19 +17,11 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
     }
     catch (const std::exception& ex)
     {
-        QMessageBox msg(QMessageBox::Critical, "Fatal GUI Exception!", QString(ex.what()));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        ExitProcess(1);
+        GuiAddLogMessage(QString().sprintf("Fatal GUI Exception: %s!\n", ex.what()).toUtf8().constData());
     }
     catch (...)
     {
-        QMessageBox msg(QMessageBox::Critical, "Fatal GUI Exception!", "(...)");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        ExitProcess(1);
+        GuiAddLogMessage("Fatal GUI Exception: (...)!\n");
     }
     return done;
 }
