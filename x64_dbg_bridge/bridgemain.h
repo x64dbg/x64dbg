@@ -462,7 +462,8 @@ enum GUIMSG
     GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
     GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
     GUI_UPDATE_THREAD_VIEW,         // param1=unused,               param2=unused
-    GUI_ADD_RECENT_FILE             // param1=(const char*)file,    param2=unused
+    GUI_ADD_RECENT_FILE,            // param1=(const char*)file,    param2=unused
+    GUI_SET_LAST_EXCEPTION          // param1=unsigned int code,    param2=unused
 };
 
 //GUI structures
@@ -510,6 +511,7 @@ BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
 BRIDGE_IMPEXP void GuiUpdateThreadView();
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
+BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception);
 
 #ifdef __cplusplus
 }

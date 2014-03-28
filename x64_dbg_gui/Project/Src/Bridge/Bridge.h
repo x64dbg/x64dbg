@@ -60,6 +60,7 @@ public:
     void emitUpdateDump();
     void emitUpdateThreads();
     void emitAddRecentFile(QString file);
+    void emitSetLastException(unsigned int exceptionCode);
 
     //Public variables
     void* winId;
@@ -101,6 +102,7 @@ signals:
     void updateDump();
     void updateThreads();
     void addRecentFile(QString file);
+    void setLastException(unsigned int exceptionCode);
 
 private:
     QMutex mBridgeMutex;

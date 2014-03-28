@@ -220,6 +220,11 @@ void Bridge::emitAddRecentFile(QString file)
     emit addRecentFile(file);
 }
 
+void Bridge::emitSetLastException(unsigned int exceptionCode)
+{
+    emit setLastException(exceptionCode);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -459,6 +464,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_ADD_RECENT_FILE:
     {
         Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SET_LAST_EXCEPTION:
+    {
+        Bridge::getBridge()->emitSetLastException((unsigned int)(uint_t)param1);
     }
     break;
 

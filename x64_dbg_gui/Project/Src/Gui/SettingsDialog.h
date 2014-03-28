@@ -17,8 +17,11 @@ public:
     explicit SettingsDialog(QWidget *parent = 0);
     ~SettingsDialog();
     void SaveSettings();
+    unsigned int lastException;
 
 private slots:
+    //Manual slots
+    void setLastException(unsigned int exceptionCode);
     //General
     void on_btnSave_clicked();
     //Event tab

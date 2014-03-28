@@ -624,6 +624,8 @@ static void cbSystemBreakpoint(void* ExceptionData)
     //log message
     dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
+    uint cip=GetContextData(UE_CIP);
+    GuiDumpAt(memfindbaseaddr(fdProcessInfo->hProcess, cip, 0)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -633,7 +635,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     if(settingboolget("Events", "SystemBreakpoint"))
     {
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(cip, true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -809,6 +811,8 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception=ExceptionData;
+    unsigned int ExceptionCode=ExceptionData->ExceptionRecord.ExceptionCode;
+    GuiSetLastException(ExceptionCode);
 
     uint addr=(uint)ExceptionData->ExceptionRecord.ExceptionAddress;
     if(ExceptionData->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
@@ -831,8 +835,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
         SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
-
-    unsigned int ExceptionCode=ExceptionData->ExceptionRecord.ExceptionCode;
 
     if(ExceptionData->dwFirstChance) //first chance exception
     {

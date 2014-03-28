@@ -129,9 +129,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
+    connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
 
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
+    lastException=0;
     defaultSettings.SaveSettings();
 
     const char* errormsg=DbgInit();
@@ -510,6 +512,7 @@ void MainWindow::displayThreadsWidget()
 void MainWindow::openSettings()
 {
     SettingsDialog settings(this);
+    settings.lastException=lastException;
     settings.exec();
 }
 
@@ -518,4 +521,9 @@ void MainWindow::addRecentFile(QString file)
     addMRUEntry(file);
     updateMRUMenu();
     saveMRUList();
+}
+
+void MainWindow::setLastException(unsigned int exceptionCode)
+{
+    lastException=exceptionCode;
 }

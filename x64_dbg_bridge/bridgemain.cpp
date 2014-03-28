@@ -764,6 +764,11 @@ BRIDGE_IMPEXP void GuiAddRecentFile(const char* file)
     _gui_sendmessage(GUI_ADD_RECENT_FILE, (void*)file, 0);
 }
 
+BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
+{
+    _gui_sendmessage(GUI_SET_LAST_EXCEPTION, (void*)(duint)exception, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

@@ -59,6 +59,7 @@ public slots:
     void displayThreadsWidget();
     void openSettings();
     void addRecentFile(QString file);
+    void setLastException(unsigned int exceptionCode);
 
 private:
     Ui::MainWindow *ui;
@@ -81,6 +82,7 @@ private:
 
     std::vector<QString> mMRUList;
     unsigned int mMaxMRU;
+    unsigned int lastException;
 
     void loadMRUList(int maxItems);
     void saveMRUList();

@@ -11,11 +11,12 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     LoadSettings(); //load settings from file
-    ui->btnAddLast->setEnabled(false);
+    connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
 }
 
 SettingsDialog::~SettingsDialog()
 {
+    disconnect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     delete ui;
 }
 
@@ -196,6 +197,11 @@ void SettingsDialog::AddRangeToList(RangeStruct range)
         ui->listExceptions->addItem(QString().sprintf("%.8X-%.8X", settings.exceptionRanges->at(i).start, settings.exceptionRanges->at(i).end));
 }
 
+void SettingsDialog::setLastException(unsigned int exceptionCode)
+{
+    lastException=exceptionCode;
+}
+
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
@@ -343,5 +349,16 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 
 void SettingsDialog::on_btnAddLast_clicked()
 {
-
+    QMessageBox msg(QMessageBox::Question, "Question", QString().sprintf("Are you sure you want to add %.8X?", lastException));
+    msg.setWindowIcon(QIcon(":/icons/images/question.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setStandardButtons(QMessageBox::No|QMessageBox::Yes);
+    msg.setDefaultButton(QMessageBox::Yes);
+    if(msg.exec()!=QMessageBox::Yes)
+        return;
+    RangeStruct range;
+    range.start=lastException;
+    range.end=lastException;
+    AddRangeToList(range);
 }
