@@ -293,6 +293,19 @@
       </item>
      </layout>
     </widget>
+    <widget class="QCheckBox" name="chkUndecorateSymbolNames">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>110</y>
+       <width>151</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Undecorate Symbol Names</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabExceptions">
     <attribute name="title">

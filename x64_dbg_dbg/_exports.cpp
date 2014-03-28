@@ -84,7 +84,7 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
-    static unsigned int cacheFlags;
+    static uint cacheFlags;
     static uint cacheAddr;
     static bool cacheResult;
     if(cacheAddr!=addr or cacheFlags!=GetContextData(UE_EFLAGS))
@@ -123,8 +123,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
             if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
-                //TODO: user preference
-                if(!UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy(addrinfo->label, pSymbol->Name);
                 retval=true;
             }

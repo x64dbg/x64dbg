@@ -46,6 +46,7 @@ void SettingsDialog::LoadSettings()
     settings.eventEntryBreakpoint=true;
     settings.engineCalcType=calc_unsigned;
     settings.engineBreakpointType=break_int3short;
+    settings.engineUndecorateSymbolNames=true;
     settings.exceptionRanges=&realExceptionRanges;
 
     //Events tab
@@ -93,6 +94,7 @@ void SettingsDialog::LoadSettings()
             break;
         }
     }
+    GetSettingBool("Engine", "UndecorateSymbolNames", &settings.engineUndecorateSymbolNames);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -114,6 +116,7 @@ void SettingsDialog::LoadSettings()
         ui->radioUd2->setChecked(true);
         break;
     }
+    ui->chkUndecorateSymbolNames->setChecked(settings.engineUndecorateSymbolNames);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE]="";
@@ -152,6 +155,7 @@ void SettingsDialog::SaveSettings()
     //Engine tab
     BridgeSettingSetUint("Engine", "CalculationType", settings.engineCalcType);
     BridgeSettingSetUint("Engine", "BreakpointType", settings.engineBreakpointType);
+    BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
 
     //Exceptions tab
     QString exceptionRange="";
@@ -190,6 +194,16 @@ void SettingsDialog::AddRangeToList(RangeStruct range)
     ui->listExceptions->clear();
     for(int i=0; i<settings.exceptionRanges->size(); i++)
         ui->listExceptions->addItem(QString().sprintf("%.8X-%.8X", settings.exceptionRanges->at(i).start, settings.exceptionRanges->at(i).end));
+}
+
+void SettingsDialog::on_btnSave_clicked()
+{
+    SaveSettings();
+    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
+    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
@@ -297,14 +311,12 @@ void SettingsDialog::on_radioUd2_clicked()
     settings.engineBreakpointType=break_ud2;
 }
 
-void SettingsDialog::on_btnSave_clicked()
+void SettingsDialog::on_chkUndecorateSymbolNames_stateChanged(int arg1)
 {
-    SaveSettings();
-    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-    msg.exec();
+    if(arg1==Qt::Unchecked)
+        settings.engineUndecorateSymbolNames=false;
+    else
+        settings.engineUndecorateSymbolNames=true;
 }
 
 void SettingsDialog::on_btnAddRange_clicked()

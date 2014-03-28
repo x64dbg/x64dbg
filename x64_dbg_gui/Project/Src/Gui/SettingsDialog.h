@@ -19,6 +19,9 @@ public:
     void SaveSettings();
 
 private slots:
+    //General
+    void on_btnSave_clicked();
+    //Event tab
     void on_chkSystemBreakpoint_stateChanged(int arg1);
     void on_chkTlsCallbacks_stateChanged(int arg1);
     void on_chkEntryBreakpoint_stateChanged(int arg1);
@@ -29,12 +32,14 @@ private slots:
     void on_chkThreadStart_stateChanged(int arg1);
     void on_chkThreadEnd_stateChanged(int arg1);
     void on_chkDebugStrings_stateChanged(int arg1);
+    //Engine tab
     void on_radioUnsigned_clicked();
     void on_radioSigned_clicked();
     void on_radioInt3Short_clicked();
     void on_radioInt3Long_clicked();
     void on_radioUd2_clicked();
-    void on_btnSave_clicked();
+    void on_chkUndecorateSymbolNames_stateChanged(int arg1);
+    //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
     void on_btnAddLast_clicked();
@@ -85,6 +90,7 @@ private:
         //Engine Tab
         CalcType engineCalcType;
         BreakpointType engineBreakpointType;
+        bool engineUndecorateSymbolNames;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
     };
