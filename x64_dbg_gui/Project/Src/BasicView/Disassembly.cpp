@@ -1023,6 +1023,8 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 {
     int_t wBase = DbgMemFindBaseAddr(parVA, 0);
     int_t wSize = DbgMemGetPageSize(wBase);
+    if(!wBase || !wSize)
+        return;
     int_t wRVA = parVA - wBase;
     int_t wCipRva = parCIP - wBase;
 
