@@ -15,6 +15,8 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftLowerFrame->setMinimumHeight(height+2);
     ui->mTopLeftLowerFrame->setMaximumHeight(height+2);
 
+    connect(mDisas, SIGNAL(selectionChanged(int_t)), mInfo, SLOT(disasmSelectionChanged(int_t)));
+
     mGeneralRegs = new RegistersView(0);
 
     //TODO: add more tabs

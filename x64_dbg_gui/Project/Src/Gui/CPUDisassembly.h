@@ -45,6 +45,7 @@ public slots:
     void toggleFunction();
     void assembleAt();
     void gotoExpression();
+    void followActionSlot();
 
 private:
 
@@ -53,6 +54,7 @@ private:
 
     // Menus
     QMenu* mGotoMenu;
+    QMenu* mFollowMenu;
     QMenu* mBPMenu;
     QMenu* mHwSlotSelectMenu;
 

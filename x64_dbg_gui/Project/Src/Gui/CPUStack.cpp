@@ -26,6 +26,30 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     appendDescriptor(0, "Comments", false, wColDesc);
 
     connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t,uint_t)), this, SLOT(stackDumpAt(uint_t,uint_t)));
+
+    setupContextMenu();
+}
+
+void CPUStack::setupContextMenu()
+{
+#ifdef _WIN64
+    mGotoSp = new QAction("Follow R&SP", this);
+    mGotoBp = new QAction("Follow R&BP", this);
+#else
+    mGotoSp = new QAction("Follow E&SP", this);
+    mGotoBp = new QAction("Follow E&BP", this);
+#endif //_WIN64
+    mGotoSp->setShortcutContext(Qt::WidgetShortcut);
+    mGotoSp->setShortcut(QKeySequence("*"));
+    this->addAction(mGotoSp);
+    connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
+    connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
+
+    mGotoExpression = new QAction("&Expression", this);
+    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    this->addAction(mGotoExpression);
+    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 }
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -94,8 +118,52 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     return wStr;
 }
 
+void CPUStack::contextMenuEvent(QContextMenuEvent* event)
+{
+    if(!DbgIsDebugging())
+        return;
+    QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mGotoSp);
+    wMenu->addAction(mGotoBp);
+    wMenu->addAction(mGotoExpression);
+    wMenu->exec(event->globalPos());
+}
+
 void CPUStack::stackDumpAt(uint_t addr, uint_t csp)
 {
     mCsp=csp;
     printDumpAt(addr);
+}
+
+void CPUStack::gotoSpSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("sdump csp");
+}
+
+void CPUStack::gotoBpSlot()
+{
+#ifdef _WIN64
+    DbgCmdExec("sdump rbp");
+#else
+    DbgCmdExec("sdump ebp");
+#endif //_WIN64
+}
+
+void CPUStack::gotoExpressionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    uint_t size=0;
+    uint_t base=DbgMemFindBaseAddr(mCsp, &size);
+    GotoDialog mGoto(this);
+    mGoto.validRangeStart=base;
+    mGoto.validRangeEnd=base+size;
+    mGoto.setWindowTitle("Enter expression to follow in Stack...");
+    if(mGoto.exec()==QDialog::Accepted)
+    {
+        QString cmd;
+        DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+    }
 }

@@ -315,7 +315,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool
             if(!mathfromstring(temp, &value, silent, baseonly, 0, 0))
                 return false;
 
-            adjustpairs(exps, open, close, len+1, sprintf(exp+open, "%X", value));
+            adjustpairs(exps, open, close, len+1, sprintf(exp+open, "%"fext"X", value));
 
             if(*backup)
                 strcat(exp, backup);

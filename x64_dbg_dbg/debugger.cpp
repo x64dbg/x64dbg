@@ -2020,6 +2020,12 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    GuiStackDumpAt(addr, GetContextData(UE_CSP));
+    duint csp=GetContextData(UE_CSP);
+    duint size=0;
+    duint base=memfindbaseaddr(fdProcessInfo->hProcess, csp, &size);
+    if(base && addr>=base && addr<(base+size))
+        GuiStackDumpAt(addr, csp);
+    else
+        dputs("invalid stack address!");
     return STATUS_CONTINUE;
 }

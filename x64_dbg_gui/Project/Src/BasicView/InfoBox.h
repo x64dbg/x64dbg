@@ -4,6 +4,7 @@
 #include <QtGui>
 #include "StdTable.h"
 #include "Bridge.h"
+#include "CPUDisassembly.h"
 
 class InfoBox : public StdTable
 {
@@ -13,7 +14,10 @@ public:
     int getHeight();
 
 public slots:
-    void setInfoLineSlot(int line, QString text);
+    void disasmSelectionChanged(int_t parVA);
+
+private:
+    void setInfoLine(int line, QString text);
 };
 
 #endif // INFOBOX_H

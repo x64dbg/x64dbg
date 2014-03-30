@@ -13,7 +13,6 @@ InfoBox::InfoBox(StdTable *parent) : StdTable(parent)
     int height = getHeight();
     setMaximumHeight(height);
     setMinimumHeight(height);
-    connect(Bridge::getBridge(), SIGNAL(setInfoLine(int, QString)), this, SLOT(setInfoLineSlot(int, QString)));
 }
 
 int InfoBox::getHeight()
@@ -21,10 +20,15 @@ int InfoBox::getHeight()
     return (getRowHeight() + 1) * 3;
 }
 
-void InfoBox::setInfoLineSlot(int line, QString text)
+void InfoBox::setInfoLine(int line, QString text)
 {
     if(line < 0 || line > 2)
         return;
     setCellContent(line, 0, text);
     reloadData();
+}
+
+void InfoBox::disasmSelectionChanged(int_t parVA)
+{
+    //setInfoLine(0, QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
 }

@@ -435,7 +435,6 @@ enum GUIMSG
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
     GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
-    GUI_SET_INFO_LINE,              // param1=(int)line,            param2=(const char*)text
     GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
     GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
     GUI_SCRIPT_ADD,                 // param1=int count,            param2=const char** lines

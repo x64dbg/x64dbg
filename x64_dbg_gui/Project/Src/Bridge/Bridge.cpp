@@ -77,18 +77,6 @@ void Bridge::emitUpdateWindowTitle(QString filename)
     emit updateWindowTitle(filename);
 }
 
-void Bridge::emitSetInfoLine(int line, QString text)
-{
-    emit setInfoLine(line, text);
-}
-
-void Bridge::emitClearInfoBox()
-{
-    emit setInfoLine(0, "");
-    emit setInfoLine(1, "");
-    emit setInfoLine(2, "");
-}
-
 void Bridge::emitDumpAt(int_t va)
 {
     emit dumpAt(va);
@@ -295,12 +283,6 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_UPDATE_WINDOW_TITLE:
     {
         Bridge::getBridge()->emitUpdateWindowTitle(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
-
-    case GUI_SET_INFO_LINE:
-    {
-        Bridge::getBridge()->emitSetInfoLine((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
     }
     break;
 

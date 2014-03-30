@@ -17,6 +17,8 @@ GotoDialog::GotoDialog(QWidget *parent) :
         ui->labelError->setText("<font color='red'><b>Invalid expression...</b></color>");
     ui->buttonOk->setEnabled(false);
     ui->editExpression->setFocus();
+    validRangeStart=0;
+    validRangeEnd=0;
 }
 
 GotoDialog::~GotoDialog()
@@ -40,10 +42,16 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
     }
     else
     {
-        duint addr=DbgValFromString(arg1.toUtf8().constData());
+        uint_t addr=DbgValFromString(arg1.toUtf8().constData());
         if(!DbgMemIsValidReadPtr(addr))
         {
             ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></color>");
+            ui->buttonOk->setEnabled(false);
+            expressionText.clear();
+        }
+        else if(!IsValidMemoryRange(addr))
+        {
+            ui->labelError->setText("<font color='red'><b>Memory out of range...</b></color>");
             ui->buttonOk->setEnabled(false);
             expressionText.clear();
         }
@@ -68,4 +76,9 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
             expressionText=arg1;
         }
     }
+}
+
+bool GotoDialog::IsValidMemoryRange(uint_t addr)
+{
+    return ((validRangeStart || validRangeEnd) && addr >= validRangeStart && addr < validRangeEnd);
 }

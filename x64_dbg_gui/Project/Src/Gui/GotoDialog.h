@@ -17,12 +17,15 @@ public:
     explicit GotoDialog(QWidget *parent = 0);
     ~GotoDialog();
     QString expressionText;
+    uint_t validRangeStart;
+    uint_t validRangeEnd;
 
 private slots:
     void on_editExpression_textChanged(const QString &arg1);
 
 private:
     Ui::GotoDialog *ui;
+    bool IsValidMemoryRange(uint_t addr);
 };
 
 #endif // GOTODIALOG_H

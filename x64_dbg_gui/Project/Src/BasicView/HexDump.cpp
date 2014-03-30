@@ -25,6 +25,8 @@ void HexDump::printDumpAt(int_t parVA)
 {
     int_t wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
     int_t wSize = DbgMemGetPageSize(wBase); //get page size
+    if(!wBase || !wSize)
+        return;
     int_t wRVA = parVA - wBase; //calculate rva
     int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
     int_t wRowCount;
@@ -46,6 +48,8 @@ void HexDump::printDumpAt(int_t parVA)
     setTableOffset(-1); //make sure the requested address is always first
 
     setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
+
+    setSingleSelection(wRVA);
 
     reloadData();
 }

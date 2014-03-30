@@ -128,6 +128,17 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         mGotoMenu->addAction(mGotoOrigin);
         mGotoMenu->addAction(mGotoExpression);
         wMenu->addMenu(mGotoMenu);
+        wMenu->addMenu(mFollowMenu);
+
+        //remove previous actions
+        QList<QAction*> list = mFollowMenu->actions();
+        for(int i=0; i<list.length(); i++)
+            mFollowMenu->removeAction(list.at(i));
+
+        //add follow actions
+        mFollowMenu->addAction(new QAction("&Selection", this));
+        mFollowMenu->actions().last()->setObjectName(QString("DUMP|")+QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+        connect(mFollowMenu->actions().last(), SIGNAL(triggered()), this, SLOT(followActionSlot()));
 
         QAction* wAction = wMenu->exec(event->globalPos());
     }
@@ -192,6 +203,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpression()));
 
+    //-------------------- Follow in Dump ----------------------------
+    // Menu
+    mFollowMenu = new QMenu("&Follow in Dump", this);
+
     //---------------------- Breakpoints -----------------------------
     // Menu
     mBPMenu = new QMenu("Breakpoint", this);
@@ -234,12 +249,16 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 void CPUDisassembly::gotoOrigin()
 {
-    DbgCmdExec("d cip");
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("disasm cip");
 }
 
 
 void CPUDisassembly::toggleInt3BPAction()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t wVA = rvaToVa(getInitialSelection());
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
     QString wCmd;
@@ -344,6 +363,8 @@ void CPUDisassembly::setHwBpAt(uint_t va, int slot)
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t wVA = rvaToVa(getInitialSelection());
     QString wCmd = "cip=" + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -351,6 +372,8 @@ void CPUDisassembly::setNewOriginHereActionSlot()
 
 void CPUDisassembly::setLabel()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
     QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -372,6 +395,8 @@ void CPUDisassembly::setLabel()
 
 void CPUDisassembly::setComment()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
     QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -393,6 +418,8 @@ void CPUDisassembly::setComment()
 
 void CPUDisassembly::setBookmark()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t wVA = rvaToVa(getInitialSelection());
     bool result;
     if(DbgGetBookmarkAt(wVA))
@@ -411,6 +438,8 @@ void CPUDisassembly::setBookmark()
 
 void CPUDisassembly::toggleFunction()
 {
+    if(!DbgIsDebugging())
+        return;
     uint_t start = rvaToVa(getSelectionStart());
     uint_t end = rvaToVa(getSelectionEnd());
     uint_t function_start=0;
@@ -456,6 +485,8 @@ void CPUDisassembly::toggleFunction()
 
 void CPUDisassembly::assembleAt()
 {
+    if(!DbgIsDebugging())
+        return;
     int_t wRVA = getInitialSelection();
     uint_t wVA = rvaToVa(wRVA);
     LineEditDialog mLineEdit(this);
@@ -497,10 +528,18 @@ void CPUDisassembly::assembleAt()
 
 void CPUDisassembly::gotoExpression()
 {
+    if(!DbgIsDebugging())
+        return;
     GotoDialog mGoto(this);
     if(mGoto.exec()==QDialog::Accepted)
     {
-        QString cmd;
-        DbgCmdExec(cmd.sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUDisassembly::followActionSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action && action->objectName().startsWith("DUMP|"))
+        DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
 }

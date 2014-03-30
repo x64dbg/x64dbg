@@ -19,6 +19,7 @@ void CPUDump::setupContextMenu()
     mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+    mGotoMenu->addAction(mGotoExpression);
 
     //Hex menu
     mHexMenu = new QMenu("&Hex", this);
@@ -146,8 +147,10 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     return wStr;
 }
 
-void CPUDump::contextMenuEvent(QContextMenuEvent *event)
+void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 {
+    if(!DbgIsDebugging())
+        return;
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addMenu(mGotoMenu);
     wMenu->addMenu(mHexMenu);
@@ -161,6 +164,8 @@ void CPUDump::contextMenuEvent(QContextMenuEvent *event)
 
 void CPUDump::gotoExpressionSlot()
 {
+    if(!DbgIsDebugging())
+        return;
     GotoDialog mGoto(this);
     mGoto.setWindowTitle("Enter expression to follow in Dump...");
     if(mGoto.exec()==QDialog::Accepted)

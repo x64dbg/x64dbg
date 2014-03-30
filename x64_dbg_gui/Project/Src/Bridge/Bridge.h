@@ -34,8 +34,6 @@ public:
     void emitUpdateRegisters();
     void emitUpdateBreakpoints();
     void emitUpdateWindowTitle(QString filename);
-    void emitSetInfoLine(int line, QString text);
-    void emitClearInfoBox();
     void emitDumpAt(int_t va);
     void emitScriptAdd(int count, const char** lines);
     void emitScriptClear();
@@ -77,7 +75,6 @@ signals:
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
-    void setInfoLine(int line, QString text);
     void dumpAt(int_t va);
     void scriptAdd(int count, const char** lines);
     void scriptClear();
