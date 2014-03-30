@@ -9,7 +9,6 @@
 - getremotestring
 - function parameter
 - help file updates
-- tls callbacks
 - inject dll
 - dump memory
 - dump process

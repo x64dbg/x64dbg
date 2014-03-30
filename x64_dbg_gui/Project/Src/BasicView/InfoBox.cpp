@@ -26,4 +26,5 @@ void InfoBox::setInfoLineSlot(int line, QString text)
     if(line < 0 || line > 2)
         return;
     setCellContent(line, 0, text);
+    reloadData();
 }

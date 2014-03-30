@@ -895,6 +895,7 @@ void Disassembly::setSingleSelection(int_t index)
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
     mSelection.toIndex = index;
+    emit selectionChanged(rvaToVa(index));
 }
 
 

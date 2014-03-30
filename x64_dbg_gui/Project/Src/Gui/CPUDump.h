@@ -8,6 +8,7 @@
 #include "NewTypes.h"
 #include "HexDump.h"
 #include "Bridge.h"
+#include "GotoDialog.h"
 
 class CPUDump : public HexDump
 {
@@ -19,6 +20,8 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
 
 public slots:
+    void gotoExpressionSlot();
+
     void hexAsciiSlot();
     void hexUnicodeSlot();
 
@@ -43,6 +46,9 @@ public slots:
     void disassemblySlot();
 
 private:
+    QMenu* mGotoMenu;
+    QAction* mGotoExpression;
+
     QMenu* mHexMenu;
     QAction* mHexAsciiAction;
     QAction* mHexUnicodeAction;

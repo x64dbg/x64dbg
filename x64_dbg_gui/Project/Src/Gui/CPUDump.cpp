@@ -11,6 +11,15 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 
 void CPUDump::setupContextMenu()
 {
+    //Goto menu
+    mGotoMenu = new QMenu("&Goto", this);
+    //Goto->Expression
+    mGotoExpression = new QAction("&Expression", this);
+    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    this->addAction(mGotoExpression);
+    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+
     //Hex menu
     mHexMenu = new QMenu("&Hex", this);
     //Hex->Ascii
@@ -140,6 +149,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 void CPUDump::contextMenuEvent(QContextMenuEvent *event)
 {
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addMenu(mGotoMenu);
     wMenu->addMenu(mHexMenu);
     wMenu->addMenu(mTextMenu);
     wMenu->addMenu(mIntegerMenu);
@@ -147,6 +157,17 @@ void CPUDump::contextMenuEvent(QContextMenuEvent *event)
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
     wMenu->exec(event->globalPos()); //execute context menu
+}
+
+void CPUDump::gotoExpressionSlot()
+{
+    GotoDialog mGoto(this);
+    mGoto.setWindowTitle("Enter expression to follow in Dump...");
+    if(mGoto.exec()==QDialog::Accepted)
+    {
+        QString cmd;
+        DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+    }
 }
 
 void CPUDump::hexAsciiSlot()

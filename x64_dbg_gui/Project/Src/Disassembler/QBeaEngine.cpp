@@ -171,6 +171,8 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     len = (len < 1) ? 1 : len ;
 
     wInst.instStr = QString(mDisasmStruct.CompleteInstr);
+    if(wInst.instStr.at(wInst.instStr.length()-1)==' ')
+        wInst.instStr.chop(1);
     wInst.dump = QByteArray((char*)mDisasmStruct.EIP, len);
     wInst.rva = origInstRVA;
     wInst.lentgh = len;

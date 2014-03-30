@@ -78,6 +78,7 @@ public:
     int_t getSize();
 
 signals:
+    void selectionChanged(int_t parVA);
     
 public slots:
     void disassambleAt(int_t parVA, int_t parCIP);
