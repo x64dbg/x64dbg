@@ -80,5 +80,5 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
 
 bool GotoDialog::IsValidMemoryRange(uint_t addr)
 {
-    return ((validRangeStart || validRangeEnd) && addr >= validRangeStart && addr < validRangeEnd);
+    return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
 }
