@@ -165,6 +165,8 @@ void SettingsDialog::SaveSettings()
     exceptionRange.chop(1); //remove last comma
     if(exceptionRange.size())
         BridgeSettingSet("Exceptions", "IgnoreRange", exceptionRange.toUtf8().constData());
+    else
+        BridgeSettingSet("Exceptions", "IgnoreRange", "");
 
     DbgSettingsUpdated();
 }
