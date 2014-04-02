@@ -13,6 +13,7 @@
 #include "disasm_helper.h"
 #include "symbolinfo.h"
 #include "thread.h"
+#include "disasm_fast.h"
 
 #include "BeaEngine\BeaEngine.h"
 
@@ -1783,17 +1784,31 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     }
     dprintf("memread:%"fext"X:%ums\n", size, GetTickCount()-ticks);
     ticks=GetTickCount();
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(disasm));
+#ifdef _WIN64
+    disasm.Archi=64;
+#endif // _WIN64
+    disasm.EIP=(UIntPtr)data;
+    disasm.VirtualAddr=(UInt64)data;
     uint i=0;
+    BASIC_INSTRUCTION_INFO basicinfo;
     while(i<size)
     {
-        DISASM_INSTR instr;
-        memset(&instr, 0, sizeof(instr));
-        disasmget((unsigned char*)(data+i), base+i, &instr);
-        i+=instr.instr_size;
-        count++;
+        int len=Disasm(&disasm);
+        if(len!=UNKNOWN_OPCODE)
+        {
+            //fillbasicinfo(&disasm, &basicinfo);
+            count++;
+        }
+        else
+            len=1;
+        disasm.EIP+=len;
+        disasm.VirtualAddr+=len;
+        i+=len;
     }
     efree(data);
-    dprintf("disasmget:%d:%ums\n", count, GetTickCount()-ticks);
+    dprintf("disasmget:%u:%ums\n", count, GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
 

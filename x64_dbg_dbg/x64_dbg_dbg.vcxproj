@@ -18,6 +18,7 @@
     <ClCompile Include="command.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="debugger.cpp" />
+    <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="instruction.cpp" />
     <ClCompile Include="main.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="data.h" />
     <ClInclude Include="dbg.h" />
     <ClInclude Include="debugger.h" />
+    <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="math.h" />

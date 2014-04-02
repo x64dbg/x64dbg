@@ -95,6 +95,8 @@
 		<Unit filename="dbghelp/dbghelp.h" />
 		<Unit filename="debugger.cpp" />
 		<Unit filename="debugger.h" />
+		<Unit filename="disasm_fast.cpp" />
+		<Unit filename="disasm_fast.h" />
 		<Unit filename="disasm_helper.cpp" />
 		<Unit filename="disasm_helper.h" />
 		<Unit filename="instruction.cpp" />
@@ -121,6 +123,7 @@
 		<Unit filename="thread.h" />
 		<Unit filename="threading.cpp" />
 		<Unit filename="threading.h" />
+		<Unit filename="undocumented.h" />
 		<Unit filename="value.cpp" />
 		<Unit filename="value.h" />
 		<Unit filename="variable.cpp" />
