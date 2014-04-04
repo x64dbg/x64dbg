@@ -44,6 +44,11 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 
+#define TYPE_VALUE 1
+#define TYPE_MEMORY 2
+#define TYPE_ADDR 4
+#define MAX_MNEMONIC_SIZE 64
+
 //Debugger enums
 enum DBGSTATE
 {
@@ -117,7 +122,8 @@ enum DBGMSG
     DBG_DISASM_AT,                  // param1=duint addr,				 param2=DISASM_INSTR* instr
     DBG_STACK_COMMENT_GET,          // param1=duint addr,                param2=STACK_COMMENT* comment
     DBG_GET_THREAD_LIST,            // param1=THREADALLINFO* list,       param2=unused
-    DBG_SETTINGS_UPDATED            // param1=unused,                    param2=unused
+    DBG_SETTINGS_UPDATED,           // param1=unused,                    param2=unused
+    DBG_DISASM_FAST_AT              // param1=duint addr,                param2=BASIC_INSTRUCTION_INFO* basicinfo
 };
 
 enum SCRIPTLINETYPE
@@ -202,7 +208,16 @@ enum THREADWAITREASON
     WrRundown = 36,
 };
 
+enum MEMORY_SIZE
+{
+    size_byte,
+    size_word,
+    size_dword,
+    size_qword
+};
+
 //Debugger typedefs
+typedef MEMORY_SIZE VALUE_SIZE;
 struct SYMBOLINFO;
 
 typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
@@ -334,7 +349,6 @@ struct DISASM_ARG
     duint memvalue;
 };
 
-
 struct DISASM_INSTR
 {
     char instruction[64];
@@ -374,6 +388,28 @@ struct THREADLIST
     int count;
     THREADALLINFO* list;
     int CurrentThread;
+};
+
+struct MEMORY_INFO
+{
+    ULONG_PTR value; //displacement / addrvalue (rip-relative)
+    MEMORY_SIZE size; //byte/word/dword/qword
+    char mnemonic[MAX_MNEMONIC_SIZE];
+};
+
+struct VALUE_INFO
+{
+    ULONG_PTR value;
+    VALUE_SIZE size;
+};
+
+struct BASIC_INSTRUCTION_INFO
+{
+    DWORD type; //value|memory|addr
+    VALUE_INFO value; //immediat
+    MEMORY_INFO memory;
+    ULONG_PTR addr; //addrvalue (jumps + calls)
+    bool branch; //jumps/calls
 };
 
 //Debugger functions
@@ -423,6 +459,7 @@ BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
 BRIDGE_IMPEXP void DbgSettingsUpdated();
+BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 
 //Gui enums
 enum GUIMSG
@@ -462,7 +499,8 @@ enum GUIMSG
     GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
     GUI_UPDATE_THREAD_VIEW,         // param1=unused,               param2=unused
     GUI_ADD_RECENT_FILE,            // param1=(const char*)file,    param2=unused
-    GUI_SET_LAST_EXCEPTION          // param1=unsigned int code,    param2=unused
+    GUI_SET_LAST_EXCEPTION,         // param1=unsigned int code,    param2=unused
+    GUI_GET_DISASSEMBLY             // param1=duint addr,           param2=char* text
 };
 
 //GUI structures
@@ -511,6 +549,7 @@ BRIDGE_IMPEXP void GuiUpdateDumpView();
 BRIDGE_IMPEXP void GuiUpdateThreadView();
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception);
+BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text);
 
 #ifdef __cplusplus
 }

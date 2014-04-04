@@ -91,6 +91,12 @@ void StdTable::mousePressEvent(QMouseEvent* event)
         AbstractTableView::mousePressEvent(event);
 }
 
+void StdTable::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if(event->button() == Qt::LeftButton)
+        emit doubleClickedSignal();
+    AbstractTableView::mouseDoubleClickEvent(event);
+}
 
 void StdTable::mouseReleaseEvent(QMouseEvent* event)
 {

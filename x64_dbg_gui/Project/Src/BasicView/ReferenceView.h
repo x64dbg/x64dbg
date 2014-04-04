@@ -24,6 +24,7 @@ private slots:
     void referenceContextMenu(const QPoint & pos);
     void followAddress();
     void followDumpAddress();
+    void copySlot();
 
 signals:
     void showCpu();

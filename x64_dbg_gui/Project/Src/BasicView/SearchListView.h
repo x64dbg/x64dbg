@@ -31,6 +31,7 @@ private slots:
     void searchTextChanged(const QString &arg1);
     void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
+    void doubleClickedSlot();
 
 signals:
     void enterPressedSignal();

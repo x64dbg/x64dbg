@@ -311,7 +311,6 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
     //QWidget::mousePressEvent(event);
 }
 
-
 /**
  * @brief       This method has been reimplemented. It manages the following actions:
  *               - Column resizing

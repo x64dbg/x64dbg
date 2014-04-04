@@ -23,6 +23,7 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
     connect(this, SIGNAL(listContextMenuSignal(QPoint)), this, SLOT(referenceContextMenu(QPoint)));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followAddress()));
 
     setupContextMenu();
 }
@@ -98,6 +99,17 @@ void ReferenceView::referenceContextMenu(const QPoint &pos)
     QMenu* wMenu = new QMenu(this);
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowDumpAddress);
+    wMenu->addSeparator();
+
+    //add copy actions
+    int count=this->mCurList->getColumnCount();
+    for(int i=0; i<count; i++)
+    {
+        wMenu->addAction(new QAction(QString("Copy " + this->mCurList->getColTitle(i)), this));
+        wMenu->actions().last()->setObjectName(QString("COPY|")+QString().sprintf("%d", i));
+        connect(wMenu->actions().last(), SIGNAL(triggered()), this, SLOT(copySlot()));
+    }
+
     wMenu->exec(pos);
 }
 
@@ -111,4 +123,18 @@ void ReferenceView::followDumpAddress()
 {
     DbgCmdExecDirect(QString("dump " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
+}
+
+void ReferenceView::copySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action && action->objectName().startsWith("COPY|"))
+    {
+        bool ok=false;
+        int row=action->objectName().mid(5).toInt(&ok);
+        if(ok)
+        {
+            Bridge::CopyToClipboard(this->mCurList->getCellContent(this->mCurList->getInitialSelection(), row).toUtf8().constData());
+        }
+    }
 }

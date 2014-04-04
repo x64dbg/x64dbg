@@ -18,12 +18,11 @@ static MEMORY_SIZE argsize2memsize(int argsize)
 
 void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
 {
-    //set type to zero
-    basicinfo->type=0;
+    //zero basicinfo
+    memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     //find immidiat
     if(disasm->Instruction.BranchType==0) //no branch
     {
-        basicinfo->branch=false;
         if((disasm->Argument1.ArgType&CONSTANT_TYPE)==CONSTANT_TYPE)
         {
             basicinfo->type|=TYPE_VALUE;

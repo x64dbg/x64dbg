@@ -455,6 +455,27 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_GET_DISASSEMBLY:
+    {
+        uint_t parVA=(uint_t)param1;
+        char* text=(char*)param2;
+        if(!text || !parVA || !DbgIsDebugging())
+            return 0;
+        byte_t wBuffer[16];
+        if(!DbgMemRead(parVA, wBuffer, 16))
+            return 0;
+        QBeaEngine* disasm = new QBeaEngine();
+        Instruction_t instr=disasm->DisassembleAt(wBuffer, 16, 0, 0, parVA);
+        QList<CustomRichText_t> richText;
+        BeaHighlight::PrintRtfInstruction(&richText, &instr.disasm);
+        QString finalInstruction="";
+        for(int i=0; i<richText.size(); i++)
+            finalInstruction+=richText.at(i).text;
+        strcpy(text, finalInstruction.toUtf8().constData());
+        return (void*)1;
+    }
+    break;
+
     default:
     {
     }

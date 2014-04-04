@@ -313,7 +313,7 @@ bool disasmispossiblestring(uint addr)
         return false;
     uint test=0;
     memcpy(&test, data, sizeof(uint));
-    if(memisvalidreadptr(fdProcessInfo->hProcess, test))
+    if(memisvalidreadptr(fdProcessInfo->hProcess, test)) //imports/pointers
         return false;
     if(isasciistring(data, sizeof(data)) or isunicodestring(data, sizeof(data)))
         return true;

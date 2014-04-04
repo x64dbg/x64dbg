@@ -14,6 +14,7 @@ public:
 
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
     void keyPressEvent(QKeyEvent* event);
 
@@ -38,6 +39,7 @@ public:
 signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
+    void doubleClickedSignal();
     
 public slots:
 

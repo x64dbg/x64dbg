@@ -769,7 +769,11 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount+1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
     }
     return found;
 }
@@ -787,10 +791,10 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
     uint addr=0;
     if(argc<3 or !valfromstring(argv[2], &addr, true))
         addr=GetContextData(UE_CIP);
+    uint ticks=GetTickCount();
     int found=reffind(addr, cbRefFind, (void*)value, false);
-    char cmd[256]="";
-    sprintf(cmd, "$result=%u", found);
-    DbgCmdExec(cmd);
+    dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
+    varset("$result", found, false);
     return STATUS_CONTINUE;
 }
 
@@ -808,7 +812,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     bool found=false;
     STRING_TYPE strtype;
     char string[512]="";
-    if(basicinfo->branch) //branches have no strings
+    if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
     if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
     {
@@ -826,7 +830,11 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount+1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
         char dispString[1024]="";
         if(strtype==str_ascii)
             sprintf(dispString, "\"%s\"", string);
@@ -844,10 +852,8 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
         addr=GetContextData(UE_CIP);
     uint ticks=GetTickCount();
     int found=reffind(addr, cbRefStr, 0, false);
-    dprintf("%ums\n", GetTickCount()-ticks);
-    char cmd[256]="";
-    sprintf(cmd, "$result=%u", found);
-    DbgCmdExec(cmd);
+    dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
+    varset("$result", found, false);
     return STATUS_CONTINUE;
 }
 

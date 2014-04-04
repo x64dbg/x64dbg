@@ -12,6 +12,7 @@
 #include "assemble.h"
 #include "stackinfo.h"
 #include "thread.h"
+#include "disasm_fast.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -678,6 +679,25 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 entry=strtok(0, ",");
             }
         }
+    }
+    break;
+
+    case DBG_DISASM_FAST_AT:
+    {
+        if(!param1 or !param2)
+            return 0;
+        unsigned char data[16];
+        if(!memread(fdProcessInfo->hProcess, param1, data, sizeof(data), 0))
+            return 0;
+        DISASM disasm;
+        memset(&disasm, 0, sizeof(disasm));
+#ifdef _WIN64
+        disasm.Archi=64;
+#endif // _WIN64
+        disasm.EIP=(UIntPtr)data;
+        disasm.VirtualAddr=(UInt64)param1;
+        uint i=0;
+        fillbasicinfo(&disasm, (BASIC_INSTRUCTION_INFO*)param2);
     }
     break;
     }

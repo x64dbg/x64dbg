@@ -52,8 +52,10 @@ SearchListView::SearchListView(QWidget *parent) :
     // Setup signals
     connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mList, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(listContextMenu(QPoint)));
+    connect(mList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mSearchList, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(listContextMenu(QPoint)));
+    connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
 }
 
@@ -123,7 +125,6 @@ void SearchListView::searchTextChanged(const QString &arg1)
     for(int i=0,j=0; i<count; i++)
     {
         if(findTextInList(mList, arg1, i, mSearchStartCol, false))
-        //if(mList->getCellContent(i, 1).contains(arg1, Qt::CaseInsensitive) || mList->getCellContent(i, 2).contains(arg1, Qt::CaseInsensitive))
         {
             mSearchList->setRowCount(j+1);
             mSearchList->setCellContent(j, 0, mList->getCellContent(i, 0));
@@ -137,7 +138,6 @@ void SearchListView::searchTextChanged(const QString &arg1)
     for(int i=0; i<count; i++)
     {
         if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
-        //if(mSearchList->getCellContent(i, 1).startsWith(arg1, Qt::CaseInsensitive) || mSearchList->getCellContent(i, 2).startsWith(arg1, Qt::CaseInsensitive))
         {
             if(count>mSearchList->getViewableRowsCount())
             {
@@ -157,4 +157,9 @@ void SearchListView::searchTextChanged(const QString &arg1)
 void SearchListView::listContextMenu(const QPoint & pos)
 {
     emit listContextMenuSignal(mCurList->mapToGlobal(pos));
+}
+
+void SearchListView::doubleClickedSlot()
+{
+    emit enterPressedSignal();
 }
