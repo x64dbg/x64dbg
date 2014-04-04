@@ -263,9 +263,6 @@ void StdTable::deleteAllColumns()
     AbstractTableView::deleteAllColumns();
 }
 
-
-
-
 void StdTable::setCellContent(int r, int c, QString s)
 {
     if(isValidIndex(r, c) == true)

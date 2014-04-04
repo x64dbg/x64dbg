@@ -148,6 +148,7 @@ static void registercommands()
     cmdnew(cmd, "refinit", cbInstrRefinit, false);
     cmdnew(cmd, "refadd", cbInstrRefadd, false);
     cmdnew(cmd, "reffind\1findref\1ref", cbInstrRefFind, true);
+    cmdnew(cmd, "refstr\1strref", cbInstrRefStr, true);
 
     cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
     cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable

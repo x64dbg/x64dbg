@@ -45,6 +45,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[]);
 CMDRESULT cbInstrRefinit(int argc, char* argv[]);
 CMDRESULT cbInstrRefadd(int argc, char* argv[]);
 CMDRESULT cbInstrRefFind(int argc, char* argv[]);
+CMDRESULT cbInstrRefStr(int argc, char* argv[]);
 
 CMDRESULT cbInstrSetstr(int argc, char* argv[]);
 CMDRESULT cbInstrGetstr(int argc, char* argv[]);

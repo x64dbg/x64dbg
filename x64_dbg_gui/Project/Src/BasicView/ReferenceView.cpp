@@ -59,7 +59,10 @@ void ReferenceView::setRowCount(int_t count)
 
 void ReferenceView::deleteAllColumns()
 {
+    mList->setTableOffset(0);
+    mList->setSingleSelection(0);
     mList->deleteAllColumns();
+    mList->reloadData();
 }
 
 void ReferenceView::setCellContent(int r, int c, QString s)

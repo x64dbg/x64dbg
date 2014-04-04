@@ -305,6 +305,21 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
     return true;
 }
 
+bool disasmispossiblestring(uint addr)
+{
+    unsigned char data[11];
+    memset(data, 0, sizeof(data));
+    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data)-3, 0))
+        return false;
+    uint test=0;
+    memcpy(&test, data, sizeof(uint));
+    if(memisvalidreadptr(fdProcessInfo->hProcess, test))
+        return false;
+    if(isasciistring(data, sizeof(data)) or isunicodestring(data, sizeof(data)))
+        return true;
+    return false;
+}
+
 bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
 {
     if(type)
@@ -312,6 +327,13 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     unsigned char* data=(unsigned char*)emalloc((maxlen+1)*2, "disasmgetstringat:data");
     memset(data, 0, (maxlen+1)*2);
     if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen+1)*2, 0))
+    {
+        efree(data, "disasmgetstringat:data");
+        return false;
+    }
+    uint test=0;
+    memcpy(&test, data, sizeof(uint));
+    if(memisvalidreadptr(fdProcessInfo->hProcess, test))
         return false;
     if(isasciistring(data, maxlen))
     {

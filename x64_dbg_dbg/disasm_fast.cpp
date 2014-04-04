@@ -23,6 +23,7 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
     //find immidiat
     if(disasm->Instruction.BranchType==0) //no branch
     {
+        basicinfo->branch=false;
         if((disasm->Argument1.ArgType&CONSTANT_TYPE)==CONSTANT_TYPE)
         {
             basicinfo->type|=TYPE_VALUE;

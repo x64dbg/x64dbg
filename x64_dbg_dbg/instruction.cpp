@@ -11,6 +11,7 @@
 #include "x64_dbg.h"
 #include "disasm_fast.h"
 #include "reference.h"
+#include "disasm_helper.h"
 
 static bool bRefinit=false;
 
@@ -740,6 +741,7 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
 {
     if(!refinfo) //initialize
     {
+        GuiReferenceDeleteAllColumns();
         GuiReferenceAddColumn(2*sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         return true;
@@ -786,6 +788,63 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
     if(argc<3 or !valfromstring(argv[2], &addr, true))
         addr=GetContextData(UE_CIP);
     int found=reffind(addr, cbRefFind, (void*)value, false);
+    char cmd[256]="";
+    sprintf(cmd, "$result=%u", found);
+    DbgCmdExec(cmd);
+    return STATUS_CONTINUE;
+}
+
+//refstr [page]
+bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!refinfo) //initialize
+    {
+        GuiReferenceDeleteAllColumns();
+        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(64, "Disassembly");
+        GuiReferenceAddColumn(0, "String");
+        return true;
+    }
+    bool found=false;
+    STRING_TYPE strtype;
+    char string[512]="";
+    if(basicinfo->branch) //branches have no strings
+        return false;
+    if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
+    {
+        if(disasmispossiblestring(basicinfo->value.value) and disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
+            found=true;
+    }
+    if((basicinfo->type&TYPE_MEMORY)==TYPE_MEMORY)
+    {
+        if(!found and disasmispossiblestring(basicinfo->memory.value) and disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
+            found=true;
+    }
+    if(found)
+    {
+        char addrText[20]="";
+        sprintf(addrText, "%p", disasm->VirtualAddr);
+        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+        char dispString[1024]="";
+        if(strtype==str_ascii)
+            sprintf(dispString, "\"%s\"", string);
+        else
+            sprintf(dispString, "L\"%s\"", string);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, dispString);
+    }
+    return found;
+}
+
+CMDRESULT cbInstrRefStr(int argc, char* argv[])
+{
+    uint addr;
+    if(argc<2 or !valfromstring(argv[1], &addr, true))
+        addr=GetContextData(UE_CIP);
+    uint ticks=GetTickCount();
+    int found=reffind(addr, cbRefStr, 0, false);
+    dprintf("%ums\n", GetTickCount()-ticks);
     char cmd[256]="";
     sprintf(cmd, "$result=%u", found);
     DbgCmdExec(cmd);
