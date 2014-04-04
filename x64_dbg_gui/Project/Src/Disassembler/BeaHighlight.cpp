@@ -113,8 +113,17 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
             case 64:
                 argument.text.sprintf("qword ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
                 break;
+            case 80:
+                argument.text.sprintf("tword ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
+                break;
+            case 128:
+                argument.text.sprintf("dqword ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
+                break;
+            case 256:
+                argument.text.sprintf("yword ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
+                break;
             default: //different memory size
-                argument.text.sprintf("ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
+                argument.text.sprintf("??? ptr %s:[%s]", segment, argmnemonic.toUtf8().constData());
                 break;
             }
         }
