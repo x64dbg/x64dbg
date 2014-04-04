@@ -63,12 +63,12 @@
       <rect>
        <x>20</x>
        <y>30</y>
-       <width>111</width>
+       <width>121</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>System Breakpoint</string>
+      <string>System Breakpoint*</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -79,12 +79,12 @@
       <rect>
        <x>20</x>
        <y>50</y>
-       <width>111</width>
+       <width>121</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>TLS Callbacks</string>
+      <string>TLS Callbacks*</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -95,12 +95,12 @@
       <rect>
        <x>20</x>
        <y>70</y>
-       <width>111</width>
+       <width>121</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Entry Breakpoint</string>
+      <string>Entry Breakpoint*</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -109,9 +109,9 @@
     <widget class="QCheckBox" name="chkDllLoad">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>30</y>
-       <width>111</width>
+       <width>101</width>
        <height>17</height>
       </rect>
      </property>
@@ -122,9 +122,9 @@
     <widget class="QCheckBox" name="chkDllUnload">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>50</y>
-       <width>111</width>
+       <width>101</width>
        <height>17</height>
       </rect>
      </property>
@@ -135,9 +135,9 @@
     <widget class="QCheckBox" name="chkThreadStart">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>70</y>
-       <width>111</width>
+       <width>101</width>
        <height>17</height>
       </rect>
      </property>
@@ -148,9 +148,9 @@
     <widget class="QCheckBox" name="chkThreadEnd">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>90</y>
-       <width>111</width>
+       <width>101</width>
        <height>17</height>
       </rect>
      </property>
@@ -161,9 +161,9 @@
     <widget class="QCheckBox" name="chkDebugStrings">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>150</x>
        <y>110</y>
-       <width>111</width>
+       <width>101</width>
        <height>17</height>
       </rect>
      </property>
@@ -176,7 +176,7 @@
       <rect>
        <x>20</x>
        <y>90</y>
-       <width>111</width>
+       <width>121</width>
        <height>17</height>
       </rect>
      </property>
@@ -189,7 +189,7 @@
       <rect>
        <x>20</x>
        <y>110</y>
-       <width>111</width>
+       <width>121</width>
        <height>17</height>
       </rect>
      </property>

@@ -110,6 +110,8 @@
 		<Unit filename="msgqueue.h" />
 		<Unit filename="plugin_loader.cpp" />
 		<Unit filename="plugin_loader.h" />
+		<Unit filename="reference.cpp" />
+		<Unit filename="reference.h" />
 		<Unit filename="simplescript.cpp" />
 		<Unit filename="simplescript.h" />
 		<Unit filename="sqlhelper.cpp" />

@@ -28,6 +28,7 @@ private slots:
     void moduleSelectionChanged(int index);
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
+    void symbolFollowDump();
     void symbolContextMenu(const QPoint & pos);
     void symbolAddressCopy();
     void symbolDecoratedCopy();
@@ -45,6 +46,7 @@ private:
     StdTable* mModuleList;
     QList<uint_t> mModuleBaseList;
     QAction* mFollowSymbolAction;
+    QAction* mFollowSymbolDumpAction;
     QAction* mCopySymbolAddress;
     QAction* mCopyDecoratedSymbolAction;
     QAction* mCopyUndecoratedSymbolAction;

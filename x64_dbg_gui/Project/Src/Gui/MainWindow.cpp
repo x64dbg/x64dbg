@@ -123,6 +123,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCpu,SIGNAL(triggered()),this,SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo,SIGNAL(triggered()),this,SLOT(displaySymbolWidget()));
     connect(mSymbolView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
+    connect(mReferenceView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
     connect(ui->actionReferences,SIGNAL(triggered()),this,SLOT(displayReferencesWidget()));
     connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
     connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(openSettings()));

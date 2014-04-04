@@ -26,6 +26,7 @@
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="msgqueue.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
+    <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="sqlhelper.cpp" />
     <ClCompile Include="stackinfo.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="memory.h" />
     <ClInclude Include="msgqueue.h" />
     <ClInclude Include="plugin_loader.h" />
+    <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="sqlhelper.h" />
     <ClInclude Include="stackinfo.h" />

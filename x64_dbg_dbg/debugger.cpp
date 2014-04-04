@@ -1757,58 +1757,6 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbBenchmark(int argc, char* argv[])
 {
-    if(argc<2)
-    {
-        dputs("not enough arguments");
-        return STATUS_ERROR;
-    }
-    uint addr=0;
-    if(!valfromstring(argv[1], &addr, false))
-        return STATUS_ERROR;
-    uint ticks=GetTickCount();
-
-    int count=0;
-    uint size=0;
-    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
-    if(!base or !size)
-    {
-        dputs("invalid memory page");
-        return STATUS_ERROR;
-    }
-    unsigned char* data=(unsigned char*)emalloc(size);
-    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
-    {
-        dputs("error reading memory");
-        efree(data);
-        return STATUS_ERROR;
-    }
-    dprintf("memread:%"fext"X:%ums\n", size, GetTickCount()-ticks);
-    ticks=GetTickCount();
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(disasm));
-#ifdef _WIN64
-    disasm.Archi=64;
-#endif // _WIN64
-    disasm.EIP=(UIntPtr)data;
-    disasm.VirtualAddr=(UInt64)data;
-    uint i=0;
-    BASIC_INSTRUCTION_INFO basicinfo;
-    while(i<size)
-    {
-        int len=Disasm(&disasm);
-        if(len!=UNKNOWN_OPCODE)
-        {
-            //fillbasicinfo(&disasm, &basicinfo);
-            count++;
-        }
-        else
-            len=1;
-        disasm.EIP+=len;
-        disasm.VirtualAddr+=len;
-        i+=len;
-    }
-    efree(data);
-    dprintf("disasmget:%u:%ums\n", count, GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
 

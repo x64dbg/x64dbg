@@ -84,6 +84,9 @@ void SymbolView::setupContextMenu()
     mFollowSymbolAction = new QAction("&Follow in Disassembler", this);
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
+    mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
+    connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
+
     mCopySymbolAddress = new QAction("Copy &Address", this);
     connect(mCopySymbolAddress, SIGNAL(triggered()), this, SLOT(symbolAddressCopy()));
 
@@ -163,6 +166,7 @@ void SymbolView::symbolContextMenu(const QPoint & pos)
         return;
     QMenu* wMenu = new QMenu(this);
     wMenu->addAction(mFollowSymbolAction);
+    wMenu->addAction(mFollowSymbolDumpAction);
     wMenu->addSeparator();
     wMenu->addAction(mCopySymbolAddress);
     wMenu->addAction(mCopyDecoratedSymbolAction);
@@ -174,6 +178,12 @@ void SymbolView::symbolContextMenu(const QPoint & pos)
 void SymbolView::symbolFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    emit showCpu();
+}
+
+void SymbolView::symbolFollowDump()
+{
+    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
 }
 

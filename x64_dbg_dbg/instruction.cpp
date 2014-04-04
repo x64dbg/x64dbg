@@ -9,6 +9,8 @@
 #include "debugger.h"
 #include "memory.h"
 #include "x64_dbg.h"
+#include "disasm_fast.h"
+#include "reference.h"
 
 static bool bRefinit=false;
 
@@ -730,6 +732,63 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, argv[2]);
     GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+//reffind value[,page]
+static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!refinfo) //initialize
+    {
+        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(0, "Disassembly");
+        return true;
+    }
+    bool found=false;
+    uint value=(uint)refinfo->userinfo;
+    if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
+    {
+        if(basicinfo->value.value==value)
+            found=true;
+    }
+    if((basicinfo->type&TYPE_MEMORY)==TYPE_MEMORY)
+    {
+        if(basicinfo->memory.value==value)
+            found=true;
+    }
+    if((basicinfo->type&TYPE_ADDR)==TYPE_ADDR)
+    {
+        if(basicinfo->addr==value)
+            found=true;
+    }
+    if(found)
+    {
+        char addrText[20]="";
+        sprintf(addrText, "%p", disasm->VirtualAddr);
+        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+    }
+    return found;
+}
+
+CMDRESULT cbInstrRefFind(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        puts("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint value=0;
+    if(!valfromstring(argv[1], &value, false))
+        return STATUS_ERROR;
+    uint addr=0;
+    if(argc<3 or !valfromstring(argv[2], &addr, true))
+        addr=GetContextData(UE_CIP);
+    int found=reffind(addr, cbRefFind, (void*)value, false);
+    char cmd[256]="";
+    sprintf(cmd, "$result=%u", found);
+    DbgCmdExec(cmd);
     return STATUS_CONTINUE;
 }
 

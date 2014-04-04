@@ -1141,7 +1141,7 @@ static bool ishexnumber(const char* string)
 
 bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
-    if(!value)
+    if(!value or !string)
         return false;
     else if(*string=='.' and string[1]=='-' and string[2]) //negative decimal number
     {

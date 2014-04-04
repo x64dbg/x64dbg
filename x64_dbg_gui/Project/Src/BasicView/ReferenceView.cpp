@@ -22,6 +22,18 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
+    connect(this, SIGNAL(listContextMenuSignal(QPoint)), this, SLOT(referenceContextMenu(QPoint)));
+
+    setupContextMenu();
+}
+
+void ReferenceView::setupContextMenu()
+{
+    mFollowAddress = new QAction("&Follow in Disassembler", this);
+    connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
+
+    mFollowDumpAddress = new QAction("Follow in &Dump", this);
+    connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)
@@ -68,4 +80,32 @@ void ReferenceView::setSingleSelection(int index, bool scroll)
     mList->setSingleSelection(index);
     if(scroll) //TODO: better scrolling
         mList->setTableOffset(index);
+}
+
+void ReferenceView::referenceContextMenu(const QPoint &pos)
+{
+    if(!this->mCurList->getRowCount())
+        return;
+    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t addr = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
+    QMenu* wMenu = new QMenu(this);
+    wMenu->addAction(mFollowAddress);
+    wMenu->addAction(mFollowDumpAddress);
+    wMenu->exec(pos);
+}
+
+void ReferenceView::followAddress()
+{
+    DbgCmdExecDirect(QString("disasm " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    emit showCpu();
+}
+
+void ReferenceView::followDumpAddress()
+{
+    DbgCmdExecDirect(QString("dump " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    emit showCpu();
 }
