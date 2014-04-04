@@ -60,6 +60,7 @@ public slots:
     void openSettings();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
+    void findStrings();
 
 private:
     Ui::MainWindow *ui;

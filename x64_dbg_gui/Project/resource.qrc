@@ -29,5 +29,6 @@
         <file>images/search.png</file>
         <file>images/arrow-threads.png</file>
         <file>images/settings.png</file>
+        <file>images/strings.png</file>
     </qresource>
 </RCC>

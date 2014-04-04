@@ -744,6 +744,7 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
         GuiReferenceDeleteAllColumns();
         GuiReferenceAddColumn(2*sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceReloadData();
         return true;
     }
     bool found=false;
@@ -807,6 +808,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         GuiReferenceAddColumn(2*sizeof(uint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
         GuiReferenceAddColumn(0, "String");
+        GuiReferenceReloadData();
         return true;
     }
     bool found=false;

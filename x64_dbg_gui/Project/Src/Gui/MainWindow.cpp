@@ -127,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionReferences,SIGNAL(triggered()),this,SLOT(displayReferencesWidget()));
     connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
     connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(openSettings()));
+    connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -527,4 +528,10 @@ void MainWindow::addRecentFile(QString file)
 void MainWindow::setLastException(unsigned int exceptionCode)
 {
     lastException=exceptionCode;
+}
+
+void MainWindow::findStrings()
+{
+    DbgCmdExec("strref");
+    displayReferencesWidget();
 }

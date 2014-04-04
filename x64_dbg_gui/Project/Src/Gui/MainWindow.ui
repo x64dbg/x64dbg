@@ -137,6 +137,8 @@
    <addaction name="actionThreads"/>
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
+   <addaction name="separator"/>
+   <addaction name="actionStrings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
@@ -481,6 +483,18 @@
    </property>
    <property name="toolTip">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionStrings">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/strings.png</normaloff>:/icons/images/strings.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Find Strings</string>
+   </property>
+   <property name="toolTip">
+    <string>&amp;Find Strings</string>
    </property>
   </action>
  </widget>
