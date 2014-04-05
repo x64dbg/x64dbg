@@ -336,6 +336,7 @@ void MainWindow::displayAboutWidget()
 #else
     QString title="About x32_dbg";
 #endif
+    title += QString().sprintf(" v%d", DBG_VERSION);
     QMessageBox msg(QMessageBox::Information, title, "Created by:\nSigma (GUI)\nMr. eXoDia (DBG)\n\nSpecial Thanks:\nVisualPharm (http://visualpharm.com)\nReversingLabs (http://reversinglabs.com)\nBeatriX (http://beaengine.org)\nQt Project (http://qt-project.org)\nFugue Icons (http://yusukekamiyamane.com)\nNanomite (https://github.com/zer0fl4g/Nanomite)");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
