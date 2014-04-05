@@ -188,6 +188,11 @@ void Bridge::emitReferenceSetProgress(int progress)
     emit referenceSetProgress(progress);
 }
 
+void Bridge::emitReferenceSetSearchStartCol(int col)
+{
+    emit referenceSetSearchStartCol(col);
+}
+
 void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
 {
     emit stackDumpAt(va, csp);
@@ -422,6 +427,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_REF_SETPROGRESS:
     {
         Bridge::getBridge()->emitReferenceSetProgress((int)(int_t)param1);
+    }
+    break;
+
+    case GUI_REF_SETSEARCHSTARTCOL:
+    {
+        Bridge::getBridge()->emitReferenceSetSearchStartCol((int)(int_t)param1);
     }
     break;
 

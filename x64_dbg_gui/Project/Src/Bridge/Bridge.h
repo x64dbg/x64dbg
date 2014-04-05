@@ -55,6 +55,7 @@ public:
     void emitReferenceReloadData();
     void emitReferenceSetSingleSelection(int index, bool scroll);
     void emitReferenceSetProgress(int progress);
+    void emitReferenceSetSearchStartCol(int col);
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
     void emitUpdateThreads();
@@ -96,6 +97,7 @@ signals:
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
+    void referenceSetSearchStartCol(int col);
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
     void updateThreads();

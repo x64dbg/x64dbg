@@ -22,6 +22,7 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     connect(this, SIGNAL(listContextMenuSignal(QPoint)), this, SLOT(referenceContextMenu(QPoint)));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followAddress()));
 
@@ -64,6 +65,7 @@ void ReferenceView::deleteAllColumns()
     mList->setSingleSelection(0);
     mList->deleteAllColumns();
     mList->reloadData();
+    mSearchStartCol = 1;
 }
 
 void ReferenceView::setCellContent(int r, int c, QString s)
@@ -84,6 +86,12 @@ void ReferenceView::setSingleSelection(int index, bool scroll)
     mList->setSingleSelection(index);
     if(scroll) //TODO: better scrolling
         mList->setTableOffset(index);
+}
+
+void ReferenceView::setSearchStartCol(int col)
+{
+    if(col < mList->getColumnCount())
+        this->mSearchStartCol = col;
 }
 
 void ReferenceView::referenceContextMenu(const QPoint &pos)

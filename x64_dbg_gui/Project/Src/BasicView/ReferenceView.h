@@ -21,6 +21,7 @@ private slots:
     void setCellContent(int r, int c, QString s);
     void reloadData();
     void setSingleSelection(int index, bool scroll);
+    void setSearchStartCol(int col);
     void referenceContextMenu(const QPoint & pos);
     void followAddress();
     void followDumpAddress();

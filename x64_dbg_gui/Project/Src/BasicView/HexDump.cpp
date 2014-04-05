@@ -21,7 +21,7 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 }
 
-void HexDump::printDumpAt(int_t parVA)
+void HexDump::printDumpAt(int_t parVA, bool select)
 {
     int_t wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
     int_t wSize = DbgMemGetPageSize(wBase); //get page size
@@ -49,9 +49,15 @@ void HexDump::printDumpAt(int_t parVA)
 
     setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
 
-    setSingleSelection(wRVA);
+    if(select)
+        setSingleSelection(wRVA);
 
     reloadData();
+}
+
+void HexDump::printDumpAt(int_t parVA)
+{
+    printDumpAt(parVA, true);
 }
 
 void HexDump::mouseMoveEvent(QMouseEvent* event)
@@ -161,7 +167,7 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
-        printDumpAt(mBase);
+        printDumpAt(mBase, false);
 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
@@ -857,7 +863,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
         int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
         clearDescriptors();
         appendDescriptor(width, title, clickable, descriptor);
-        printDumpAt(wRVA + mBase);
+        printDumpAt(wRVA + mBase, false);
     }
     else
         appendDescriptor(width, title, clickable, descriptor);

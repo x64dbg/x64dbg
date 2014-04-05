@@ -127,6 +127,8 @@ public:
     void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
+
+    void printDumpAt(int_t parVA, bool select);
     
 public slots:
     void printDumpAt(int_t parVA);

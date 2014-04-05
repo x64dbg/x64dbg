@@ -121,25 +121,25 @@ void SearchListView::searchTextChanged(const QString &arg1)
         mCurList=mList;
     }
     mSearchList->setRowCount(0);
-    int count=mList->getRowCount();
-    for(int i=0,j=0; i<count; i++)
+    int rows=mList->getRowCount();
+    int columns=mList->getColumnCount();
+    for(int i=0,j=0; i<rows; i++)
     {
         if(findTextInList(mList, arg1, i, mSearchStartCol, false))
         {
             mSearchList->setRowCount(j+1);
-            mSearchList->setCellContent(j, 0, mList->getCellContent(i, 0));
-            mSearchList->setCellContent(j, 1, mList->getCellContent(i, 1));
-            mSearchList->setCellContent(j, 2, mList->getCellContent(i, 2));
+            for(int k=0; k<columns; k++)
+                mSearchList->setCellContent(j, k, mList->getCellContent(i, k));
             j++;
         }
     }
-    count=mSearchList->getRowCount();
+    rows=mSearchList->getRowCount();
     mSearchList->setTableOffset(0);
-    for(int i=0; i<count; i++)
+    for(int i=0; i<rows; i++)
     {
         if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
         {
-            if(count>mSearchList->getViewableRowsCount())
+            if(rows>mSearchList->getViewableRowsCount())
             {
                 int cur=i-mSearchList->getViewableRowsCount()/2;
                 if(!mSearchList->isValidIndex(cur, 0))

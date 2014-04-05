@@ -749,6 +749,11 @@ BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
     _gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
 }
 
+BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
+{
+    _gui_sendmessage(GUI_REF_SETSEARCHSTARTCOL, (void*)(duint)col, 0);
+}
+
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 {
     _gui_sendmessage(GUI_STACK_DUMP_AT, (void*)addr, (void*)csp);
