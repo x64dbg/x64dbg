@@ -46,6 +46,8 @@ public slots:
     void assembleAt();
     void gotoExpression();
     void followActionSlot();
+    void gotoPrevious();
+    void gotoNext();
 
 private:
 
@@ -73,6 +75,8 @@ private:
     QAction* msetHwBPOnSlot2Action;
     QAction* msetHwBPOnSlot3Action;
     QAction* mGotoExpression;
+    QAction* mGotoPrevious;
+    QAction* mGotoNext;
 };
 
 #endif // CPUDISASSEMBLY_H

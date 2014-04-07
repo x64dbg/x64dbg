@@ -7,6 +7,8 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     mInstBuffer.clear();
 
+    historyClear();
+
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
     mSelection = data;
@@ -30,7 +32,7 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     setShowHeader(false); //hide header
 
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassambleAt(int_t, int_t)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
 }
@@ -1019,7 +1021,7 @@ uint_t Disassembly::rvaToVa(int_t rva)
     return mBase + rva;
 }
 
-void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
+void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset)
 {
     int_t wBase = DbgMemFindBaseAddr(parVA, 0);
     int_t wSize = DbgMemGetPageSize(wBase);
@@ -1027,6 +1029,34 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
         return;
     int_t wRVA = parVA - wBase;
     int_t wCipRva = parCIP - wBase;
+
+    HistoryData_t newHistory;
+
+    //VA history
+    if(history)
+    {
+        //truncate everything right from the current VA
+        if(mVaHistory.size() && mCurrentVa<mVaHistory.size()-1) //mCurrentVa is not the last
+            mVaHistory.erase(mVaHistory.begin()+mCurrentVa+1, mVaHistory.end());
+
+        //NOTE: mCurrentVa always points to the last entry of the list
+
+        //add the currently selected address to the history
+        int_t selectionVA=rvaToVa(getInitialSelection()); //currently selected VA
+        int_t selectionTableOffset=getTableOffset();
+        if(selectionVA && mVaHistory.size() && mVaHistory.last().va!=selectionVA) //do not have 2x the same va in a row
+        {
+            if(mVaHistory.size() >= 1024) //max 1024 in the history
+            {
+                mCurrentVa--;
+                mVaHistory.erase(mVaHistory.begin()); //remove the oldest element
+            }
+            mCurrentVa++;
+            newHistory.va=selectionVA;
+            newHistory.tableOffset=selectionTableOffset;
+            mVaHistory.push_back(newHistory);
+        }
+    }
 
     // Set base and size (Useful when memory page changed)
     mBase = wBase;
@@ -1036,49 +1066,93 @@ void Disassembly::disassambleAt(int_t parVA, int_t parCIP)
 
     setSingleSelection(wRVA);               // Selects disassembled instruction
 
+    //set CIP rva
     mCipRva = wCipRva;
 
-    // Update table offset depending on the location of the instruction to disassamble
-    if(mInstBuffer.size() > 0 && wRVA >= (int_t)mInstBuffer.first().rva && wRVA < (int_t)mInstBuffer.last().rva)
+    if(newTableOffset==-1) //nothing specified
     {
-        int wI;
-        bool wIsAligned = false;
-
-        // Check if the new RVA is aligned on an instruction from the cache (buffer)
-        for(wI = 0; wI < mInstBuffer.size(); wI++)
+        // Update table offset depending on the location of the instruction to disassemble
+        if(mInstBuffer.size() > 0 && wRVA >= (int_t)mInstBuffer.first().rva && wRVA < (int_t)mInstBuffer.last().rva)
         {
-            if(mInstBuffer.at(wI).rva == wRVA)
+            int wI;
+            bool wIsAligned = false;
+
+            // Check if the new RVA is aligned on an instruction from the cache (buffer)
+            for(wI = 0; wI < mInstBuffer.size(); wI++)
             {
-                wIsAligned = true;
-                break;
+                if(mInstBuffer.at(wI).rva == wRVA)
+                {
+                    wIsAligned = true;
+                    break;
+                }
+            }
+
+            if(wIsAligned == true)
+            {
+                repaint();
+            }
+            else
+            {
+                setTableOffset(wRVA);
             }
         }
-
-        if(wIsAligned == true)
+        else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
         {
-            repaint();
+            setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().lentgh);
         }
         else
         {
             setTableOffset(wRVA);
         }
+
+        if(history)
+        {
+            //new disassembled address
+            newHistory.va=parVA;
+            newHistory.tableOffset=getTableOffset();
+            if(mVaHistory.size())
+            {
+                if(mVaHistory.last().va!=parVA) //not 2x the same va in history
+                {
+                    if(mVaHistory.size() >= 1024) //max 1024 in the history
+                    {
+                        mCurrentVa--;
+                        mVaHistory.erase(mVaHistory.begin()); //remove the oldest element
+                    }
+                    mCurrentVa++;
+                    mVaHistory.push_back(newHistory); //add a va to the history
+                }
+            }
+            else //the list is empty
+                mVaHistory.push_back(newHistory);
+        }
     }
-    else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
+    else //specified new table offset
+        setTableOffset(newTableOffset);
+
+    /*
+    //print history
+    if(history)
     {
-        setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().lentgh);
+        QString strList = "";
+        for(int i=0; i<mVaHistory.size(); i++)
+            strList += QString().sprintf("[%d]:%p,%p\n", i, mVaHistory.at(i).va, mVaHistory.at(i).tableOffset);
+        MessageBoxA(GuiGetWindowHandle(), strList.toUtf8().constData(), QString().sprintf("mCurrentVa=%d", mCurrentVa).toUtf8().constData(), MB_ICONINFORMATION);
     }
-    else
-    {
-        setTableOffset(wRVA);
-    }
+    */
 
     reloadData();
+}
+
+void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
+{
+    disassembleAt(parVA, parCIP, true, -1);
 }
 
 
 void Disassembly::disassembleClear()
 {
-    //TODO: fix this (also try restarting)
+    historyClear();
     mBase = 0;
     mSize = 0;
     setRowCount(0);
@@ -1104,3 +1178,40 @@ int_t Disassembly::getSize()
     return mSize;
 }
 
+void Disassembly::historyClear()
+{
+    mVaHistory.clear(); //clear history for new targets
+    mCurrentVa = 0;
+}
+
+void Disassembly::historyPrevious()
+{
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return;
+    mCurrentVa--;
+    disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+}
+
+void Disassembly::historyNext()
+{
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size()-1) //we are at the newest history entry
+        return;
+    mCurrentVa++;
+    disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+}
+
+bool Disassembly::historyHasPrevious()
+{
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return false;
+    return true;
+}
+
+bool Disassembly::historyHasNext()
+{
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size()-1) //we are at the newest history entry
+        return false;
+    return true;
+}

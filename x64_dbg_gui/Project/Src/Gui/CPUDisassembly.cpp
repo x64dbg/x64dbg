@@ -126,6 +126,10 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Goto Menu
         mGotoMenu->addAction(mGotoOrigin);
+        if(historyHasPrevious())
+            mGotoMenu->addAction(mGotoPrevious);
+        if(historyHasNext())
+            mGotoMenu->addAction(mGotoNext);
         mGotoMenu->addAction(mGotoExpression);
         wMenu->addMenu(mGotoMenu);
         wMenu->addMenu(mFollowMenu);
@@ -195,6 +199,20 @@ void CPUDisassembly::setupRightClickContextMenu()
     mGotoOrigin->setShortcut(QKeySequence("*"));
     this->addAction(mGotoOrigin);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOrigin()));
+
+    // Previous action
+    mGotoPrevious = new QAction("Previous", this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    mGotoPrevious->setShortcut(QKeySequence("-"));
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevious()));
+
+    // Next action
+    mGotoNext = new QAction("Next", this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    mGotoNext->setShortcut(QKeySequence("+"));
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNext()));
 
     // Address action
     mGotoExpression = new QAction("Expression", this);
@@ -542,4 +560,14 @@ void CPUDisassembly::followActionSlot()
     QAction* action = qobject_cast<QAction*>(sender());
     if(action && action->objectName().startsWith("DUMP|"))
         DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoPrevious()
+{
+    historyPrevious();
+}
+
+void CPUDisassembly::gotoNext()
+{
+    historyNext();
 }

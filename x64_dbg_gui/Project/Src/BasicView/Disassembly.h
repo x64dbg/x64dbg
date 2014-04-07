@@ -77,11 +77,21 @@ public:
     int_t getBase();
     int_t getSize();
 
+    // history management
+    void historyClear();
+    void historyPrevious();
+    void historyNext();
+    bool historyHasPrevious();
+    bool historyHasNext();
+
+    //disassemble
+    void disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
+
 signals:
     void selectionChanged(int_t parVA);
     
 public slots:
-    void disassambleAt(int_t parVA, int_t parCIP);
+    void disassembleAt(int_t parVA, int_t parCIP);
     void debugStateChangedSlot(DBGSTATE state);
 
 private:
@@ -109,6 +119,15 @@ private:
     int_t mCipRva;
 
     QList<Instruction_t> mInstBuffer;
+
+    typedef struct _HistoryData_t
+    {
+        int_t va;
+        int_t tableOffset;
+    } HistoryData_t;
+
+    QList<HistoryData_t> mVaHistory;
+    int mCurrentVa;
 };
 
 #endif // DISASSEMBLY_H
