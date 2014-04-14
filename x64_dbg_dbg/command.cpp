@@ -162,7 +162,7 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
             }
             else
             {
-                if(cmd->debugonly and !IsFileBeingDebugged())
+                if(cmd->debugonly and !DbgIsDebugging())
                 {
                     dputs("this command is debug-only");
                     if(error_is_fatal)
@@ -266,7 +266,7 @@ CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
     COMMAND* found=cmdfindmain(cmd_list, command);
     if(!found or !found->cbCommand)
         return STATUS_ERROR;
-    if(found->debugonly and !IsFileBeingDebugged())
+    if(found->debugonly and !DbgIsDebugging())
         return STATUS_ERROR;
     int argcount=arggetcount(command);
     char** argv=(char**)emalloc((argcount+1)*sizeof(char*), "cmddirectexec:argv");

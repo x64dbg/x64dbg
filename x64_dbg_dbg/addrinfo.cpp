@@ -259,7 +259,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 ///comment functions
 bool commentset(uint addr, const char* text)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_COMMENT_SIZE-1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_COMMENT_SIZE-1)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return commentdel(addr);
@@ -297,7 +297,7 @@ bool commentset(uint addr, const char* text)
 
 bool commentget(uint addr, char* text)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -310,7 +310,7 @@ bool commentget(uint addr, char* text)
 
 bool commentdel(uint addr)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -339,7 +339,7 @@ bool commentdel(uint addr)
 ///label functions
 bool labelset(uint addr, const char* text)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_LABEL_SIZE-1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_LABEL_SIZE-1)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
@@ -418,7 +418,7 @@ bool labelfromstring(const char* text, uint* addr)
 
 bool labelget(uint addr, char* text)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -431,7 +431,7 @@ bool labelget(uint addr, char* text)
 
 bool labeldel(uint addr)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -460,7 +460,7 @@ bool labeldel(uint addr)
 ///bookmark functions
 bool bookmarkset(uint addr)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -494,7 +494,7 @@ bool bookmarkset(uint addr)
 
 bool bookmarkget(uint addr)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -507,7 +507,7 @@ bool bookmarkget(uint addr)
 
 bool bookmarkdel(uint addr)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -536,7 +536,7 @@ bool bookmarkdel(uint addr)
 ///function database
 bool functionget(duint addr, duint* start, duint* end)
 {
-    if(!IsFileBeingDebugged() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
@@ -598,7 +598,7 @@ bool functionoverlaps(uint start, uint end)
 
 bool functionadd(uint start, uint end, bool manual)
 {
-    if(!IsFileBeingDebugged() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
+    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
         return false;
     char sql[deflen]="";
     char modname[MAX_MODULE_SIZE]="";
@@ -629,7 +629,7 @@ bool functionadd(uint start, uint end, bool manual)
 
 bool functiondel(uint addr)
 {
-    if(!IsFileBeingDebugged() or !functionget(addr, 0, 0))
+    if(!DbgIsDebugging() or !functionget(addr, 0, 0))
         return false;
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";

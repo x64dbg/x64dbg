@@ -953,7 +953,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
-    if(IsFileBeingDebugged())
+    if(DbgIsDebugging())
     {
         dputs("already debugging!");
         return STATUS_ERROR;
@@ -1906,7 +1906,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dprintf("invalid expression \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(IsFileBeingDebugged())
+    if(DbgIsDebugging())
     {
         //TODO: do stuff
         dputs("terminate the current session!");

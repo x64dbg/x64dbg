@@ -978,7 +978,7 @@ static bool setregister(const char* string, uint value)
 
 bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
 {
-    if(!value or !IsFileBeingDebugged())
+    if(!value or !DbgIsDebugging())
         return false;
     //explicit API handling
     const char* apiname=strstr(name, ":");
@@ -1206,7 +1206,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(*string=='@' or strstr(string, "[")) //memory location
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");
@@ -1269,7 +1269,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(isregister(string)) //register
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging!");
@@ -1287,7 +1287,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(*string=='!' and isflag(string+1)) //flag
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");
@@ -1372,7 +1372,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         return false;
     else if(*string=='@' or strstr(string, "[")) //memory location
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");
@@ -1427,7 +1427,7 @@ bool valtostring(const char* string, uint* value, bool silent)
     }
     else if(isregister(string)) //register
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging!");
@@ -1447,7 +1447,7 @@ bool valtostring(const char* string, uint* value, bool silent)
     }
     else if(*string=='!' and isflag(string+1)) //flag
     {
-        if(!IsFileBeingDebugged())
+        if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");

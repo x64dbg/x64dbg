@@ -80,7 +80,9 @@ extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
-    return IsFileBeingDebugged();
+    if(IsFileBeingDebugged())
+        return true;
+    return false;
 }
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
@@ -99,7 +101,7 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
-    if(!IsFileBeingDebugged())
+    if(!DbgIsDebugging())
         return false;
     bool retval=false;
     if(addrinfo->flags&flagmodule) //get module
@@ -310,7 +312,7 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
-    if(!IsFileBeingDebugged())
+    if(!DbgIsDebugging())
     {
         memset(regdump, 0, sizeof(REGDUMP));
         return true;
