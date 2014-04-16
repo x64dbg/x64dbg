@@ -662,6 +662,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 break;
             }
         }
+        if(BridgeSettingGetUint("Engine", "EnableDebugPrivilege", &setting))
+        {
+            if(setting)
+                SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, true);
+            else
+                SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, false);
+        }
         char exceptionRange[MAX_SETTING_SIZE]="";
         dbgclearignoredexceptions();
         if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))

@@ -170,7 +170,8 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     char szMappedName[MAX_PATH]="";
     if(GetMappedFileNameA(GetCurrentProcess(), pFileMap, szMappedName, MAX_PATH))
     {
-        DevicePathToPath(szMappedName, szFileName, MAX_PATH);
+        if(!DevicePathToPath(szMappedName, szFileName, MAX_PATH))
+            return false;
         UnmapViewOfFile(pFileMap);
         CloseHandle(hFileMap);
         return true;

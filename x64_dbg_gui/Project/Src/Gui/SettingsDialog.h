@@ -42,6 +42,7 @@ private slots:
     void on_radioInt3Long_clicked();
     void on_radioUd2_clicked();
     void on_chkUndecorateSymbolNames_stateChanged(int arg1);
+    void on_chkEnableDebugPrivilege_stateChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -94,6 +95,7 @@ private:
         CalcType engineCalcType;
         BreakpointType engineBreakpointType;
         bool engineUndecorateSymbolNames;
+        bool engineEnableDebugPrivilege;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
     };

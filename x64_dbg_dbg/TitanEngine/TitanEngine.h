@@ -51,6 +51,7 @@
 #define UE_ENGINE_CALL_PLUGIN_CALLBACK 6
 #define UE_ENGINE_RESET_CUSTOM_HANDLER 7
 #define UE_ENGINE_CALL_PLUGIN_DEBUG_CALLBACK 8
+#define UE_ENGINE_SET_DEBUG_PRIVILEGE 9
 
 #define UE_OPTION_REMOVEALL 1
 #define UE_OPTION_DISABLEALL 2
@@ -859,6 +860,7 @@ __declspec(dllexport) void TITCALL LibrarianEnumLibraryInfoW(void* EnumCallBack)
 __declspec(dllexport) long TITCALL GetActiveProcessId(char* szImageName);
 __declspec(dllexport) long TITCALL GetActiveProcessIdW(wchar_t* szImageName);
 __declspec(dllexport) void TITCALL EnumProcessesWithLibrary(char* szLibraryName, void* EnumFunction);
+__declspec(dllexport) HANDLE TITCALL TitanOpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId);
 // TitanEngine.TLSFixer.functions:
 __declspec(dllexport) bool TITCALL TLSBreakOnCallBack(LPVOID ArrayOfCallBacks, DWORD NumberOfCallBacks, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL TLSGrabCallBackData(char* szFileName, LPVOID ArrayOfCallBacks, LPDWORD NumberOfCallBacks);

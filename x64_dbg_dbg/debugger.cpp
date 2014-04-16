@@ -1912,16 +1912,10 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dputs("terminate the current session!");
         return STATUS_ERROR;
     }
-    HANDLE hProcess=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
+    HANDLE hProcess=TitanOpenProcess(PROCESS_ALL_ACCESS, false, pid);
     if(!hProcess)
     {
         dprintf("could not open process %X!\n", pid);
-        return STATUS_ERROR;
-    }
-    if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
-    {
-        dprintf("could not get module filename %X!\n", pid);
-        CloseHandle(hProcess);
         return STATUS_ERROR;
     }
     BOOL wow64=false, mewow64=false;
@@ -1938,6 +1932,12 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 #else
         dputs("Use x64_dbg to debug this process!");
 #endif // _WIN64
+        CloseHandle(hProcess);
+        return STATUS_ERROR;
+    }
+    if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
+    {
+        dprintf("could not get module filename %X!\n", pid);
         CloseHandle(hProcess);
         return STATUS_ERROR;
     }

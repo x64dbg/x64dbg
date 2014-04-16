@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>262</width>
-    <height>201</height>
+    <height>220</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,7 +32,7 @@
      <x>2</x>
      <y>2</y>
      <width>261</width>
-     <height>161</height>
+     <height>181</height>
     </rect>
    </property>
    <property name="autoFillBackground">
@@ -306,6 +306,19 @@
       <string>Undecorate Symbol Names</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkEnableDebugPrivilege">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>131</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Enable Debug &amp;Privilege</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabExceptions">
     <attribute name="title">
@@ -317,7 +330,7 @@
        <x>10</x>
        <y>30</y>
        <width>151</width>
-       <height>81</height>
+       <height>111</height>
       </rect>
      </property>
      <property name="font">
@@ -382,7 +395,7 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>170</y>
+     <y>190</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -398,7 +411,7 @@
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>170</y>
+     <y>190</y>
      <width>75</width>
      <height>23</height>
     </rect>

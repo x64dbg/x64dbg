@@ -96,6 +96,7 @@ void SettingsDialog::LoadSettings()
         }
     }
     GetSettingBool("Engine", "UndecorateSymbolNames", &settings.engineUndecorateSymbolNames);
+    GetSettingBool("Engine", "EnableDebugPrivilege", &settings.engineEnableDebugPrivilege);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -118,6 +119,7 @@ void SettingsDialog::LoadSettings()
         break;
     }
     ui->chkUndecorateSymbolNames->setChecked(settings.engineUndecorateSymbolNames);
+    ui->chkEnableDebugPrivilege->setChecked(settings.engineEnableDebugPrivilege);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE]="";
@@ -157,6 +159,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "CalculationType", settings.engineCalcType);
     BridgeSettingSetUint("Engine", "BreakpointType", settings.engineBreakpointType);
     BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
+    BridgeSettingSetUint("Engine", "EnableDebugPrivilege", settings.engineEnableDebugPrivilege);
 
     //Exceptions tab
     QString exceptionRange="";
@@ -325,6 +328,14 @@ void SettingsDialog::on_chkUndecorateSymbolNames_stateChanged(int arg1)
         settings.engineUndecorateSymbolNames=false;
     else
         settings.engineUndecorateSymbolNames=true;
+}
+
+void SettingsDialog::on_chkEnableDebugPrivilege_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.engineEnableDebugPrivilege=false;
+    else
+        settings.engineEnableDebugPrivilege=true;
 }
 
 void SettingsDialog::on_btnAddRange_clicked()
