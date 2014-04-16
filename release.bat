@@ -105,5 +105,3 @@ xcopy %RELEASEDIR%\qt_base\bin %RELEASEDIR%\test\bin /S /Y
 xcopy %RELEASEDIR%\bin_base\bin %RELEASEDIR%\test\bin /S /Y
 xcopy %RELEASEDIR%\release\bin %RELEASEDIR%\test\bin /S /Y
 xcopy %RELEASEDIR%\help %RELEASEDIR%\test /S /Y
-
-pause
