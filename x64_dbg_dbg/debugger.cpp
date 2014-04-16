@@ -25,6 +25,7 @@ static uint pDebuggedBase=0;
 static uint pDebuggedEntry=0;
 static bool isStepping=false;
 static bool isPausedByUser=false;
+static bool isDetachedByUser=false;
 static bool bScyllaLoaded=false;
 static bool bIsAttached=false;
 static bool bSkipExceptions=false;
@@ -818,7 +819,18 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     uint addr=(uint)ExceptionData->ExceptionRecord.ExceptionAddress;
     if(ExceptionData->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
     {
-        if(isPausedByUser)
+        if(isDetachedByUser)
+        {
+            PLUG_CB_DETACH detachInfo;
+            detachInfo.fdProcessInfo=fdProcessInfo;
+            plugincbcall(CB_DETACH, &detachInfo);
+            if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+                dputs("DetachDebuggerEx failed...");
+            else
+                dputs("detached!");
+            return;
+        }
+        else if(isPausedByUser)
         {
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
@@ -932,6 +944,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     plugincbcall(CB_INITDEBUG, &initInfo);
     //run debug loop (returns when process debugging is stopped)
     DebugLoop();
+    isDetachedByUser=false;
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved=0;
@@ -1843,7 +1856,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     fdProcessInfo=&pi_attached;
     //do some init stuff
     bFileIsDll=IsFileDLL(szFileName, 0);
-    BridgeSettingSet("Recent Files", "path", szFileName);
+    GuiAddRecentFile(szFileName);
     ecount=0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
@@ -1875,12 +1888,12 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     plugincbcall(CB_ATTACH, &attachInfo);
     //run debug loop (returns when process debugging is stopped)
     AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
+    isDetachedByUser=false;
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved=0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
-    DeleteFileA("DLLLoader.exe");
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     dbclose();
     modclear();
@@ -1948,11 +1961,9 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 
 CMDRESULT cbDebugDetach(int argc, char* argv[])
 {
-    PLUG_CB_DETACH detachInfo;
-    detachInfo.fdProcessInfo=fdProcessInfo;
-    plugincbcall(CB_DETACH, &detachInfo);
-    DetachDebugger(fdProcessInfo->dwProcessId);
-    unlock(WAITID_RUN);
+    unlock(WAITID_RUN); //run
+    isDetachedByUser=true; //detach when paused
+    DebugBreakProcess(fdProcessInfo->hProcess);
     return STATUS_CONTINUE;
 }
 

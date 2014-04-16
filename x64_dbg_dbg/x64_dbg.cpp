@@ -52,7 +52,7 @@ static void registercommands()
     cmdnew(cmd, "InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
     cmdnew(cmd, "StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
     cmdnew(cmd, "AttachDebugger\1attach", cbDebugAttach, false); //attach
-    //cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
+    cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
     cmdnew(cmd, "run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
     cmdnew(cmd, "erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
     cmdnew(cmd, "pause", cbDebugPause, true); //pause debugger
