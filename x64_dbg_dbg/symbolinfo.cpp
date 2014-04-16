@@ -42,9 +42,9 @@ void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 }
 
 #ifdef _WIN64
-static BOOL CALLBACK EnumModules(PCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
+static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
 #else
-static BOOL CALLBACK EnumModules(PCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
+static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
 #endif //_WIN64
 {
     SYMBOLMODULEINFO curModule;

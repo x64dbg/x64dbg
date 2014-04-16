@@ -30,6 +30,8 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
         var->value.u.data->clear();
         delete var->value.u.data;
         break;
+    default:
+        break;
     }
     memcpy(&var->value, value, sizeof(VAR_VALUE));
 }

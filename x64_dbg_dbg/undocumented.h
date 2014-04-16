@@ -2,6 +2,8 @@
 
 //Thanks to: https://github.com/zer0fl4g/Nanomite
 
+typedef LONG NTSTATUS;
+
 typedef struct _UNICODE_STRING
 {
     USHORT Length;

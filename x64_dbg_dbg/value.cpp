@@ -1039,7 +1039,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             for(unsigned int i=0; i<cbNeeded/sizeof(HMODULE); i++)
             {
                 char szModuleName[MAX_PATH]="";
-                if(GetModuleFileNameExA(fdProcessInfo->hProcess, hMods[i], szModuleName, _countof(szModuleName)))
+                if(GetModuleFileNameExA(fdProcessInfo->hProcess, hMods[i], szModuleName, sizeof(szModuleName)))
                 {
                     char* szBaseName=strchr(szModuleName, '\\');
                     if(szBaseName)

@@ -13,6 +13,27 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Header Files\BeaEngine">
+      <UniqueIdentifier>{6028af23-e8de-4db7-b1c7-bee2b5a4402b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dbghelp">
+      <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\sqlite">
+      <UniqueIdentifier>{fa9d17d3-a464-4693-b1d8-0d0c10a88bd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dbg">
+      <UniqueIdentifier>{c7d6554c-6b4c-42b2-8d0a-7968cdfdba63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TitanEngine">
+      <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\XEDParse">
+      <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DeviceNameResolver">
+      <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_exports.cpp">
@@ -193,6 +214,36 @@
     </ClInclude>
     <ClInclude Include="reference.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BeaEngine\basic_types.h">
+      <Filter>Header Files\BeaEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="BeaEngine\BeaEngine.h">
+      <Filter>Header Files\BeaEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="BeaEngine\export.h">
+      <Filter>Header Files\BeaEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="BeaEngine\macros.h">
+      <Filter>Header Files\BeaEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="dbghelp\dbghelp.h">
+      <Filter>Header Files\dbghelp</Filter>
+    </ClInclude>
+    <ClInclude Include="dbg\dbg.h">
+      <Filter>Header Files\dbg</Filter>
+    </ClInclude>
+    <ClInclude Include="XEDParse\XEDParse.h">
+      <Filter>Header Files\XEDParse</Filter>
+    </ClInclude>
+    <ClInclude Include="TitanEngine\TitanEngine.h">
+      <Filter>Header Files\TitanEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite\sqlite3.h">
+      <Filter>Header Files\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
+      <Filter>Header Files\DeviceNameResolver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
