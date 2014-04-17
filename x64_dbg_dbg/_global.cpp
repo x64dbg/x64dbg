@@ -133,7 +133,7 @@ bool DevicePathToPath(const char* devicepath, char* path, size_t path_size)
         {
             if(strlen(devicepath)-curDevice_len>=path_size)
                 return false;
-            sprintf(path, "%s%s", curDrive, devicepath+curDevice_len);
+            sprintf(path, "%s\\%s", curDrive, devicepath+curDevice_len);
             return true;
         }
     }
