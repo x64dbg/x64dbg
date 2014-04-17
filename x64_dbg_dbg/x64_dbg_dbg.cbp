@@ -28,7 +28,6 @@
 					<Add library=".\sqlite\libsqlite32.a" />
 					<Add library=".\BeaEngine\libBeaEngine.a" />
 					<Add library=".\XEDParse\XEDParse_x86.a" />
-					<Add library=".\DeviceNameResolver\DeviceNameResolver_x86.a" />
 				</Linker>
 			</Target>
 			<Target title="x64">
@@ -52,7 +51,6 @@
 					<Add library=".\sqlite\libsqlite64.a" />
 					<Add library=".\BeaEngine\libBeaEngine_64.a" />
 					<Add library=".\XEDParse\XEDParse_x64.a" />
-					<Add library=".\DeviceNameResolver\DeviceNameResolver_x64.a" />
 				</Linker>
 			</Target>
 		</Build>

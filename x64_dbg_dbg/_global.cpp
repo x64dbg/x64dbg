@@ -1,5 +1,4 @@
 #include "_global.h"
-#include "DeviceNameResolver\DeviceNameResolver.h"
 #include <new>
 
 HINSTANCE hInst;
@@ -117,6 +116,30 @@ bool DirExists(const char* dir)
     return (attrib==FILE_ATTRIBUTE_DIRECTORY);
 }
 
+bool DevicePathToPath(const char* devicepath, char* path, size_t path_size)
+{
+    if(!devicepath or !path)
+        return false;
+    char curDrive[3]=" :";
+    char curDevice[MAX_PATH]="";
+    for(char drive='C'; drive<='Z'; drive++)
+    {
+        *curDrive=drive;
+        if(!QueryDosDeviceA(curDrive, curDevice, MAX_PATH))
+            continue;
+        strcat(curDevice, "\\"); //fixed thanks to ahmadmansoor!
+        size_t curDevice_len=strlen(curDevice);
+        if(!_strnicmp(devicepath, curDevice, curDevice_len)) //we match the device
+        {
+            if(strlen(devicepath)-curDevice_len>=path_size)
+                return false;
+            sprintf(path, "%s%s", curDrive, devicepath+curDevice_len);
+            return true;
+        }
+    }
+    return false;
+}
+
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
     if(!GetFileSize(hFile, 0))
@@ -133,7 +156,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     char szMappedName[MAX_PATH]="";
     if(GetMappedFileNameA(GetCurrentProcess(), pFileMap, szMappedName, MAX_PATH))
     {
-        if(!DevicePathToPathA(szMappedName, szFileName, MAX_PATH))
+        if(!DevicePathToPath(szMappedName, szFileName, MAX_PATH))
             return false;
         UnmapViewOfFile(pFileMap);
         CloseHandle(hFileMap);

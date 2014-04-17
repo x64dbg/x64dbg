@@ -16,7 +16,6 @@
 #include "disasm_fast.h"
 
 #include "BeaEngine\BeaEngine.h"
-#include "DeviceNameResolver\DeviceNameResolver.h"
 
 static PROCESS_INFORMATION g_pi= {0,0,0,0};
 static char szFileName[MAX_PATH]="";
@@ -474,7 +473,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(!GetMappedFileNameA(fdProcessInfo->hProcess, base, DebugFileName, deflen))
         strcpy(DebugFileName, "??? (GetMappedFileName failed)");
     else
-        DevicePathToPathA(DebugFileName, DebugFileName, deflen);
+        DevicePathToPath(DebugFileName, DebugFileName, deflen);
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     //init program database
@@ -656,7 +655,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(!GetMappedFileNameA(fdProcessInfo->hProcess, base, DLLDebugFileName, deflen))
         strcpy(DLLDebugFileName, "??? (GetMappedFileName failed)");
     else
-        DevicePathToPathA(DLLDebugFileName, DLLDebugFileName, deflen);
+        DevicePathToPath(DLLDebugFileName, DLLDebugFileName, deflen);
     dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
 
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);

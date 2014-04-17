@@ -31,9 +31,6 @@
     <Filter Include="Header Files\XEDParse">
       <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\DeviceNameResolver">
-      <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_exports.cpp">
@@ -241,9 +238,6 @@
     </ClInclude>
     <ClInclude Include="sqlite\sqlite3.h">
       <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
-    <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
-      <Filter>Header Files\DeviceNameResolver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
