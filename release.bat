@@ -23,12 +23,14 @@ mkdir %RELEASEDIR%\bin_base\bin\x64
 
 copy bin\x32\BeaEngine.dll %RELEASEDIR%\bin_base\bin\x32\BeaEngine.dll
 copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\bin\x32\dbghelp.dll
+copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\bin\x32\DeviceNameResolver.dll
 copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\bin\x32\Scylla.dll
 copy bin\x32\sqlite.dll %RELEASEDIR%\bin_base\bin\x32\sqlite.dll
 copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\bin\x32\TitanEngine.dll
 copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\bin\x32\XEDParse.dll
 copy bin\x64\BeaEngine.dll %RELEASEDIR%\bin_base\bin\x64\BeaEngine.dll
 copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\bin\x64\dbghelp.dll
+copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\bin\x64\DeviceNameResolver.dll
 copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\bin\x64\Scylla.dll
 copy bin\x64\sqlite.dll %RELEASEDIR%\bin_base\bin\x64\sqlite.dll
 copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\bin\x64\TitanEngine.dll

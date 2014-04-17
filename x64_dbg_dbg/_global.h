@@ -106,7 +106,6 @@ void formathex(char* string);
 void formatdec(char* string);
 bool FileExists(const char* file);
 bool DirExists(const char* dir);
-bool DevicePathToPath(const char* devicepath, char* path, size_t path_size);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 
