@@ -125,7 +125,6 @@ enum DBGMSG
     DBG_GET_THREAD_LIST,            // param1=THREADALLINFO* list,       param2=unused
     DBG_SETTINGS_UPDATED,           // param1=unused,                    param2=unused
     DBG_DISASM_FAST_AT,             // param1=duint addr,                param2=BASIC_INSTRUCTION_INFO* basicinfo
-    DBG_MENU_ENTRY_CLICKED          // param1=int hEntry,                param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -462,7 +461,6 @@ BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
 BRIDGE_IMPEXP void DbgSettingsUpdated();
 BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
-BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

@@ -674,9 +674,5 @@ void MainWindow::menuEntrySlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action && action->objectName().startsWith("ENTRY|"))
-    {
-        int hEntry = -1;
-        if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry)==1)
-            DbgMenuEntryClicked(hEntry);
-    }
+        DbgCmdExec(QString("menuentryclicked ." + action->objectName().mid(6)).toUtf8().constData());
 }
