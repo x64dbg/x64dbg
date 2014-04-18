@@ -708,7 +708,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         uint i=0;
         fillbasicinfo(&disasm, (BASIC_INSTRUCTION_INFO*)param2);
     }
-    break; 
+    break;
+
+    case DBG_MENU_ENTRY_CLICKED:
+    {
+        int hEntry=(int)(uint)param1;
+    }
+    break;    
     }
     return 0;
 }

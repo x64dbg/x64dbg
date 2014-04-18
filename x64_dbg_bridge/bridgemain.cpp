@@ -580,6 +580,11 @@ BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo
     _dbg_sendmessage(DBG_DISASM_FAST_AT, (void*)addr, basicinfo);
 }
 
+BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
+{
+    _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

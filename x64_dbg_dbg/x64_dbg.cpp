@@ -14,7 +14,6 @@
 #include "threading.h"
 #include "plugin_loader.h"
 #include "assemble.h"
-#include "value.h"
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
@@ -45,19 +44,8 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static CMDRESULT cbMenuEntryClicked(int argc, char* argv[])
-{
-    if(argc<2)
-        return STATUS_CONTINUE;
-    uint hEntry=0;
-    if(!valfromstring(argv[1], &hEntry))
-        return STATUS_CONTINUE;
-    //TODO: implement this
-}
-
 static void registercommands()
 {
-    GuiMenuAddEntry(GUI_PLUGIN_MENU, "test");
     COMMAND* cmd=command_list=cmdinit();
 
     //debug control
@@ -164,9 +152,6 @@ static void registercommands()
 
     cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
     cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable
-
-    //internal
-    cmdnew(cmd, "menuentryclicked", cbMenuEntryClicked, false); //a menu entry was clicked
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
