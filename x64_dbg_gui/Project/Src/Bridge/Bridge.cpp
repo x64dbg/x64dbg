@@ -34,6 +34,12 @@ void Bridge::CopyToClipboard(const char* text)
     CloseClipboard();
 }
 
+void Bridge::BridgeSetResult(int_t result)
+{
+    bridgeResult=result;
+    hasBridgeResult=true;
+}
+
 /************************************************************************************
                             Exports Binding
 ************************************************************************************/
@@ -85,9 +91,9 @@ void Bridge::emitDumpAt(int_t va)
 void Bridge::emitScriptAdd(int count, const char** lines)
 {
     mBridgeMutex.lock();
-    scriptResult=-1;
+    hasBridgeResult=false;
     emit scriptAdd(count, lines);
-    while(scriptResult==-1) //wait for thread completion
+    while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
     mBridgeMutex.unlock();
 }
@@ -125,12 +131,12 @@ void Bridge::emitScriptMessage(QString message)
 int Bridge::emitScriptQuestion(QString message)
 {
     mBridgeMutex.lock();
-    scriptResult=-1;
+    hasBridgeResult=false;
     emit scriptQuestion(message);
-    while(scriptResult==-1) //wait for thread completion
+    while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
     mBridgeMutex.unlock();
-    return scriptResult;
+    return bridgeResult;
 }
 
 void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
@@ -216,6 +222,38 @@ void Bridge::emitAddRecentFile(QString file)
 void Bridge::emitSetLastException(unsigned int exceptionCode)
 {
     emit setLastException(exceptionCode);
+}
+
+int Bridge::emitMenuAddMenu(int hMenu, QString title)
+{
+    mBridgeMutex.lock();
+    hasBridgeResult=false;
+    emit menuAddMenu(hMenu, title);
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
+    return bridgeResult;
+}
+
+int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
+{
+    mBridgeMutex.lock();
+    hasBridgeResult=false;
+    emit menuAddMenuEntry(hMenu, title);
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
+    return bridgeResult;
+}
+
+void Bridge::emitMenuAddSeparator(int hMenu)
+{
+    emit menuAddSeparator(hMenu);
+}
+
+void Bridge::emitMenuClearMenu(int hMenu)
+{
+    emit menuClearMenu(hMenu);
 }
 
 /************************************************************************************
@@ -484,6 +522,30 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
             finalInstruction+=richText.at(i).text;
         strcpy(text, finalInstruction.toUtf8().constData());
         return (void*)1;
+    }
+    break;
+
+    case GUI_MENU_ADD:
+    {
+        return (void*)(uint_t)Bridge::getBridge()->emitMenuAddMenu((int)(uint_t)param1, QString(reinterpret_cast<const char*>(param2)));
+    }
+    break;
+
+    case GUI_MENU_ADD_ENTRY:
+    {
+        return (void*)(uint_t)Bridge::getBridge()->emitMenuAddMenuEntry((int)(uint_t)param1, QString(reinterpret_cast<const char*>(param2)));
+    }
+    break;
+
+    case GUI_MENU_ADD_SEPARATOR:
+    {
+        Bridge::getBridge()->emitMenuAddSeparator((int)(uint_t)param1);
+    }
+    break;
+
+    case GUI_MENU_CLEAR:
+    {
+        Bridge::getBridge()->emitMenuClearMenu((int)(uint_t)param1);
     }
     break;
 

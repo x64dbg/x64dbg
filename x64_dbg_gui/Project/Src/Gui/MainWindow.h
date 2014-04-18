@@ -61,6 +61,11 @@ public slots:
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void findStrings();
+    void addMenu(int hMenu, QString title);
+    void addMenuEntry(int hMenu, QString title);
+    void addSeparator(int hMenu);
+    void clearMenu(int hMenu);
+    void menuEntrySlot();
 
 private:
     Ui::MainWindow *ui;
@@ -91,6 +96,28 @@ private:
     void removeMRUEntry(QString entry);
     void updateMRUMenu();
     QString getMRUEntry(size_t index);
+
+    //menu api
+    struct MenuEntryInfo
+    {
+        QAction* mAction;
+        int hEntry;
+        int hParentMenu;
+    };
+
+    struct MenuInfo
+    {
+        QMenu* mMenu;
+        int hMenu;
+        int hParentMenu;
+    };
+
+    QList<MenuEntryInfo> mEntryList;
+    int hEntryNext;
+    QList<MenuInfo> mMenuList;
+    int hMenuNext;
+
+    void initMenuApi();
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

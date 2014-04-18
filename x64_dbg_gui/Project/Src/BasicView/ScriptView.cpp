@@ -186,7 +186,7 @@ void ScriptView::add(int count, const char** lines)
         setCellContent(i, 1, QString(lines[i]));
     BridgeFree(lines);
     reloadData(); //repaint
-    Bridge::getBridge()->scriptResult=1;
+    Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void ScriptView::clear()
@@ -329,7 +329,7 @@ void ScriptView::question(QString message)
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     if(msg.exec()==QMessageBox::Yes)
-        Bridge::getBridge()->scriptResult=1;
+        Bridge::getBridge()->BridgeSetResult(1);
     else
-        Bridge::getBridge()->scriptResult=0;
+        Bridge::getBridge()->BridgeSetResult(0);
 }

@@ -124,7 +124,8 @@ enum DBGMSG
     DBG_STACK_COMMENT_GET,          // param1=duint addr,                param2=STACK_COMMENT* comment
     DBG_GET_THREAD_LIST,            // param1=THREADALLINFO* list,       param2=unused
     DBG_SETTINGS_UPDATED,           // param1=unused,                    param2=unused
-    DBG_DISASM_FAST_AT              // param1=duint addr,                param2=BASIC_INSTRUCTION_INFO* basicinfo
+    DBG_DISASM_FAST_AT,             // param1=duint addr,                param2=BASIC_INSTRUCTION_INFO* basicinfo
+    DBG_MENU_ENTRY_CLICKED          // param1=int hEntry,                param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -461,6 +462,10 @@ BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment);
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
 BRIDGE_IMPEXP void DbgSettingsUpdated();
 BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
+BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry);
+
+//Gui defines
+#define GUI_PLUGIN_MENU 0
 
 //Gui enums
 enum GUIMSG
@@ -502,7 +507,11 @@ enum GUIMSG
     GUI_UPDATE_THREAD_VIEW,         // param1=unused,               param2=unused
     GUI_ADD_RECENT_FILE,            // param1=(const char*)file,    param2=unused
     GUI_SET_LAST_EXCEPTION,         // param1=unsigned int code,    param2=unused
-    GUI_GET_DISASSEMBLY             // param1=duint addr,           param2=char* text
+    GUI_GET_DISASSEMBLY,            // param1=duint addr,           param2=char* text
+    GUI_MENU_ADD,                   // param1=int hMenu,            param2=const char* title
+    GUI_MENU_ADD_ENTRY,             // param1=int hMenu,            param2=const char* title
+    GUI_MENU_ADD_SEPARATOR,         // param1=int hMenu,            param2=unused
+    GUI_MENU_CLEAR                  // param1=int hMenu,            param2=unused
 };
 
 //GUI structures
@@ -553,6 +562,10 @@ BRIDGE_IMPEXP void GuiUpdateThreadView();
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception);
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text);
+BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title);
+BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title);
+BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu);
+BRIDGE_IMPEXP void GuiMenuClear(int hMenu);
 
 #ifdef __cplusplus
 }

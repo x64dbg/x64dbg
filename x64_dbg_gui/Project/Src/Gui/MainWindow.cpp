@@ -132,11 +132,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenu(int,QString)), this, SLOT(addMenu(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int,QString)), this, SLOT(addMenuEntry(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
+    connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
 
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException=0;
     defaultSettings.SaveSettings();
+
+    //setup menu api
+    initMenuApi();
 
     const char* errormsg=DbgInit();
     if(errormsg)
@@ -535,4 +542,141 @@ void MainWindow::findStrings()
 {
     DbgCmdExec("strref");
     displayReferencesWidget();
+}
+
+void MainWindow::addMenu(int hMenu, QString title)
+{
+    int nFound=-1;
+    for(int i=0; i<mMenuList.size(); i++)
+    {
+        if(hMenu==mMenuList.at(i).hMenu)
+        {
+            nFound=i;
+            break;
+        }
+    }
+    if(nFound==-1 && hMenu!=-1)
+    {
+        Bridge::getBridge()->BridgeSetResult(-1);
+        return;
+    }
+    MenuInfo newInfo;
+    int hMenuNew=hMenuNext;
+    hMenuNext++;
+    QMenu* wMenu = new QMenu(title, this);
+    newInfo.mMenu=wMenu;
+    newInfo.hMenu=hMenuNew;
+    newInfo.hParentMenu=hMenu;
+    mMenuList.push_back(newInfo);
+    if(hMenu==-1) //top-level
+        ui->menuBar->addMenu(wMenu);
+    else //deeper level
+        mMenuList.at(nFound).mMenu->addMenu(wMenu);
+    Bridge::getBridge()->BridgeSetResult(hMenuNew);
+}
+
+void MainWindow::addMenuEntry(int hMenu, QString title)
+{
+    int nFound=-1;
+    for(int i=0; i<mMenuList.size(); i++)
+    {
+        if(hMenu==mMenuList.at(i).hMenu)
+        {
+            nFound=i;
+            break;
+        }
+    }
+    if(nFound==-1 && hMenu!=-1)
+    {
+        Bridge::getBridge()->BridgeSetResult(-1);
+        return;
+    }
+    MenuEntryInfo newInfo;
+    int hEntryNew=hEntryNext;
+    hEntryNext++;
+    newInfo.hEntry=hEntryNew;
+    newInfo.hParentMenu=hMenu;
+    QAction* wAction = new QAction(title, this);
+    wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
+    this->addAction(wAction);
+    connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
+    newInfo.mAction=wAction;
+    mEntryList.push_back(newInfo);
+    if(hMenu==-1) //top level
+        ui->menuBar->addAction(wAction);
+    else //deeper level
+        mMenuList.at(nFound).mMenu->addAction(wAction);
+    Bridge::getBridge()->BridgeSetResult(hEntryNew);
+}
+
+void MainWindow::addSeparator(int hMenu)
+{
+    int nFound=-1;
+    for(int i=0; i<mMenuList.size(); i++)
+    {
+        if(hMenu==mMenuList.at(i).hMenu) //we found a menu that has the menu as parent
+        {
+            nFound=i;
+            break;
+        }
+    }
+    if(nFound==-1) //not found
+        return;
+    MenuEntryInfo newInfo;
+    newInfo.hEntry=-1;
+    newInfo.hParentMenu=hMenu;
+    newInfo.mAction=mMenuList.at(nFound).mMenu->addSeparator();
+    mEntryList.push_back(newInfo);
+}
+
+void MainWindow::clearMenu(int hMenu)
+{
+    if(!mMenuList.size() || hMenu==-1)
+        return;
+    //delete menu entries
+    for(int i=mEntryList.size()-1; i>-1; i--)
+    {
+        if(hMenu==mEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
+        {
+            this->removeAction(mEntryList.at(i).mAction);
+            delete mEntryList.at(i).mAction; //delete the entry object
+            mEntryList.erase(mEntryList.begin()+i);
+        }
+    }
+    //recursively delete the menus
+    for(int i=mMenuList.size()-1; i>-1; i--)
+    {
+        if(hMenu==mMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
+        {
+            clearMenu(mMenuList.at(i).hMenu); //delete children menus
+            delete mMenuList.at(i).mMenu; //delete the child menu object
+            mMenuList.erase(mMenuList.begin()+i); //delete the child entry
+        }
+    }
+}
+
+void MainWindow::initMenuApi()
+{
+    //256 entries are reserved
+    mEntryList.clear();
+    hEntryNext = 256;
+    mMenuList.clear();
+    hMenuNext = 256;
+    MenuInfo newInfo;
+    //add plugin menu
+    newInfo.mMenu=ui->menuPlugins;
+    newInfo.hMenu=GUI_PLUGIN_MENU;
+    newInfo.hParentMenu=-1;
+    mMenuList.push_back(newInfo);
+}
+
+void MainWindow::menuEntrySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action && action->objectName().startsWith("ENTRY|"))
+    {
+        int hEntry = -1;
+        if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry)==1)
+            DbgMenuEntryClicked(hEntry);
+    }
 }

@@ -580,6 +580,11 @@ BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo
     _dbg_sendmessage(DBG_DISASM_FAST_AT, (void*)addr, basicinfo);
 }
 
+BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
+{
+    _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -782,6 +787,26 @@ BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
 {
     return (bool)(duint)_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
+}
+
+BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
+{
+    return (int)(duint)_gui_sendmessage(GUI_MENU_ADD, (void*)(duint)hMenu, (void*)title);
+}
+
+BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title)
+{
+    return (int)(duint)_gui_sendmessage(GUI_MENU_ADD_ENTRY, (void*)(duint)hMenu, (void*)title);
+}
+
+BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu)
+{
+    _gui_sendmessage(GUI_MENU_ADD_SEPARATOR, (void*)(duint)hMenu, 0);
+}
+
+BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
+{
+    _gui_sendmessage(GUI_MENU_CLEAR, (void*)(duint)hMenu, 0);
 }
 
 //Main

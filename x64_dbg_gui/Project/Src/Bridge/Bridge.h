@@ -26,6 +26,9 @@ public:
     // Misc functions
     static void CopyToClipboard(const char* text);
 
+    //result function
+    void BridgeSetResult(int_t result);
+
     // Exports Binding
     void emitDisassembleAtSignal(int_t va, int_t eip);
     void emitUpdateDisassembly();
@@ -61,12 +64,15 @@ public:
     void emitUpdateThreads();
     void emitAddRecentFile(QString file);
     void emitSetLastException(unsigned int exceptionCode);
+    int emitMenuAddMenu(int hMenu, QString title);
+    int emitMenuAddMenuEntry(int hMenu, QString title);
+    void emitMenuAddSeparator(int hMenu);
+    void emitMenuClearMenu(int hMenu);
 
     //Public variables
     void* winId;
     QWidget* scriptView;
     SearchListView* referenceView;
-    int scriptResult;
     
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -103,9 +109,15 @@ signals:
     void updateThreads();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
+    void menuAddMenu(int hMenu, QString title);
+    void menuAddMenuEntry(int hMenu, QString title);
+    void menuAddSeparator(int hMenu);
+    void menuClearMenu(int hMenu);
 
 private:
     QMutex mBridgeMutex;
+    int_t bridgeResult;
+    bool hasBridgeResult;
 
 public:
 
