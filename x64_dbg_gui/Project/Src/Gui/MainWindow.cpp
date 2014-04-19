@@ -73,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //Create the tab widget
     mTabWidget = new QTabWidget();
+    mTabWidget->setMovable(true);
 
     //Setup tabs
     mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
