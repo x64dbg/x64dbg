@@ -54,6 +54,7 @@ bool scriptcmdexec(const char* command);
 void scriptabort();
 SCRIPTLINETYPE scriptgetlinetype(int line);
 void scriptsetip(int line);
+void scriptreset();
 
 //script commands
 CMDRESULT cbScriptLoad(int argc, char* argv[]);

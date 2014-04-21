@@ -199,7 +199,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Could not allocate message stack!";
     varinit();
     registercommands();
-    CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
+    CloseHandle(CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0));
     char plugindir[deflen]="";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");

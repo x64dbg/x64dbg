@@ -1409,8 +1409,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 read_size=new_size;
         }
         uint temp;
-        //TODO: check this
-        if(!valfromstring(newstring+add, &temp, silent, true))
+        if(!valfromstring(newstring+add, &temp, silent, false))
         {
             efree(newstring, "valfromstring::newstring");
             return false;

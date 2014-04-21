@@ -11,8 +11,8 @@ static std::vector<LINEMAPENTRY> linemap;
 static std::vector<SCRIPTBP> scriptbplist;
 static std::vector<int> scriptstack;
 static int scriptIp=0;
-static bool bAbort=false;
-static bool bIsRunning=false;
+static bool volatile bAbort=false;
+static bool volatile bIsRunning=false;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
@@ -449,7 +449,7 @@ void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH]="";
     strcpy(filename_, filename);
-    CreateThread(0, 0, scriptLoadThread, filename_, 0, 0);
+    CloseHandle(CreateThread(0, 0, scriptLoadThread, filename_, 0, 0));
 }
 
 void scriptunload()
@@ -462,10 +462,15 @@ void scriptunload()
 
 void scriptrun(int destline)
 {
+    if(!waitislocked(WAITID_RUN))
+    {
+        GuiScriptError(0, "Debugger must be paused to run a script!");
+        return;
+    }
     if(bIsRunning) //already running
         return;
     bIsRunning=true;
-    CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0);
+    CloseHandle(CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0));
 }
 
 DWORD WINAPI scriptStepThread(void* param)
@@ -484,7 +489,7 @@ DWORD WINAPI scriptStepThread(void* param)
 
 void scriptstep()
 {
-    CreateThread(0, 0, scriptStepThread, 0, 0, 0);
+    CloseHandle(CreateThread(0, 0, scriptStepThread, 0, 0, 0));
 }
 
 bool scriptbptoggle(int line)
@@ -543,6 +548,8 @@ void scriptabort()
 {
     if(bIsRunning)
         bAbort=true;
+    else //reset the script
+        scriptsetip(0);
 }
 
 SCRIPTLINETYPE scriptgetlinetype(int line)
@@ -558,6 +565,17 @@ void scriptsetip(int line)
         line--;
     scriptIp=scriptinternalstep(line);
     GuiScriptSetIp(scriptIp);
+}
+
+void scriptreset()
+{
+    while(bIsRunning)
+    {
+        bAbort=true;
+        Sleep(1);
+    }
+    Sleep(10);
+    scriptsetip(0);
 }
 
 CMDRESULT cbScriptLoad(int argc, char* argv[])

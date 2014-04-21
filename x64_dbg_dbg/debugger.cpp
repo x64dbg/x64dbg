@@ -14,6 +14,7 @@
 #include "symbolinfo.h"
 #include "thread.h"
 #include "disasm_fast.h"
+#include "simplescript.h"
 
 #include "BeaEngine\BeaEngine.h"
 #include "DeviceNameResolver\DeviceNameResolver.h"
@@ -1012,16 +1013,13 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     //initialize
     wait(WAITID_STOP); //wait for the debugger to stop
     waitclear(); //clear waiting flags NOTE: thread-unsafe
-    if(!CreateThread(0, 0, threadDebugLoop, init, 0, 0))
-    {
-        dputs("failed creating debug thread!");
-        return STATUS_ERROR;
-    }
+    CloseHandle(CreateThread(0, 0, threadDebugLoop, init, 0, 0));
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbStopDebug(int argc, char* argv[])
 {
+    scriptreset(); //reset the currently-loaded script
     StopDebug();
     unlock(WAITID_RUN);
     wait(WAITID_STOP);
@@ -1833,7 +1831,7 @@ CMDRESULT cbStartScylla(int argc, char* argv[])
         return STATUS_ERROR;
     }
     bScyllaLoaded=true;
-    CreateThread(0, 0, scyllaThread, 0, 0, 0);
+    CloseHandle(CreateThread(0, 0, scyllaThread, 0, 0, 0));
     return STATUS_CONTINUE;
 }
 
@@ -1952,7 +1950,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         return STATUS_ERROR;
     }
     CloseHandle(hProcess);
-    CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0);
+    CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
 
