@@ -80,6 +80,7 @@ The icon is taken from VisualPharm (http://www.visualpharm.com/)
 - EXETools community
 - Tuts4You community
 - DMichael
+- TEAM DVT
 - Sorry if I forgot you!
 
 >Lead developers:

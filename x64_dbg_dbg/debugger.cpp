@@ -427,13 +427,13 @@ static void cbStep()
     GuiSetDebugState(paused);
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved=0;
-    plugincbcall(CB_STEPPED, &stepInfo);
     //lock
     lock(WAITID_RUN);
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    plugincbcall(CB_STEPPED, &stepInfo);
     wait(WAITID_RUN);
 }
 
@@ -569,6 +569,14 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
     DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    
+    if(settingboolget("Events", "ThreadEntry"))
+    {
+        char command[256]="";
+        sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
+        cmddirectexec(dbggetcommandlist(), command);
+    }
+    
     PLUG_CB_CREATETHREAD callbackInfo;
     callbackInfo.CreateThread=CreateThread;
     callbackInfo.dwThreadId=dwThreadId;
@@ -587,13 +595,6 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
-    }
-
-    if(settingboolget("Events", "ThreadEntry"))
-    {
-        char command[256]="";
-        sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
-        cmddirectexec(dbggetcommandlist(), command);
     }
 }
 
@@ -680,6 +681,17 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     }
     GuiUpdateBreakpointsView();
 
+    if(settingboolget("Events", "DllEntry") && !bAlreadySetEntry)
+    {
+        uint oep=GetPE32Data(DLLDebugFileName, 0, UE_OEP);
+        if(oep)
+        {
+            char command[256]="";
+            sprintf(command, "bp "fhex",\"DllMain (%s)\",ss", oep+(uint)base, modname);
+            cmddirectexec(dbggetcommandlist(), command);
+        }
+    }
+
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll=LoadDll;
@@ -698,17 +710,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
-    }
-
-    if(settingboolget("Events", "DllEntry") && !bAlreadySetEntry)
-    {
-        uint oep=GetPE32Data(DLLDebugFileName, 0, UE_OEP);
-        if(oep)
-        {
-            char command[256]="";
-            sprintf(command, "bp "fhex",\"DllMain (%s)\",ss", oep+(uint)base, modname);
-            cmddirectexec(dbggetcommandlist(), command);
-        }
     }
 }
 
@@ -744,6 +745,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString=DebugString;
     plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
+
     if(!DebugString->fUnicode) //ASCII
     {
         char* DebugText=(char*)emalloc(DebugString->nDebugStringLength+1, "cbOutputDebugString:DebugText");
