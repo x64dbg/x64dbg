@@ -145,17 +145,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //setup menu api
     initMenuApi();
-
-    const char* errormsg=DbgInit();
-    if(errormsg)
-    {
-        QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        ExitProcess(1);
-    }
 }
 
 MainWindow::~MainWindow()

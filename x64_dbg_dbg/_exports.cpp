@@ -13,6 +13,7 @@
 #include "stackinfo.h"
 #include "thread.h"
 #include "disasm_fast.h"
+#include "plugin_loader.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -713,6 +714,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_MENU_ENTRY_CLICKED:
     {
         int hEntry=(int)(uint)param1;
+        pluginmenucall(hEntry);
     }
     break;    
     }

@@ -522,7 +522,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                     dputs("failed to get TLS callback addresses!");
                 else
                 {
-                    for(int i=0; i<NumberOfCallBacks; i++)
+                    for(unsigned int i=0; i<NumberOfCallBacks; i++)
                     {
                         sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i+1);
                         cmddirectexec(dbggetcommandlist(), command);
@@ -667,7 +667,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
     bool bAlreadySetEntry=false;
-    if(bFileIsDll and !stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
+    if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase=(uint)base;
         char command[256]="";
@@ -872,6 +872,13 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     wait(WAITID_RUN);
 }
 
+static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
+{
+    PLUG_CB_DEBUGEVENT debugEventInfo;
+    debugEventInfo.DebugEvent=DebugEvent;
+    plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
+}
+
 static DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
     lock(WAITID_STOP); //we are running
@@ -926,6 +933,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
     SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
@@ -1718,7 +1726,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     }
     if(addr==lastalloc)
         varset("$lastalloc", (uint)0, true);
-    bool ok=VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
+    bool ok=!!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs("VirtualFreeEx failed");
     varset("$res", ok, false);

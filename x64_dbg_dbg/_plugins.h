@@ -23,7 +23,12 @@ struct PLUG_INITSTRUCT
     int sdkVersion;
     int pluginVersion;
     char pluginName[256];
+};
+
+struct PLUG_SETUPSTRUCT
+{
     //provided by the debugger
+    HWND hwndDlg; //gui window handle
     int hMenu; //plugin menu handle
 };
 
@@ -120,6 +125,16 @@ struct PLUG_CB_DETACH
     PROCESS_INFORMATION* fdProcessInfo;
 };
 
+struct PLUG_CB_DEBUGEVENT
+{
+    DEBUG_EVENT* DebugEvent;
+};
+
+struct PLUG_CB_MENUENTRY
+{
+    int hEntry;
+};
+
 //enums
 enum CBTYPE
 {
@@ -141,6 +156,7 @@ enum CBTYPE
     CB_ATTACH, //PLUG_CB_ATTACHED (before attaching, after CB_INITDEBUG)
     CB_DETACH, //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
     CB_DEBUGEVENT, //PLUG_CB_DEBUGEVENT (called on any debug event)
+    CB_MENUENTRY //PLUG_CB_MENUENTRY
 };
 
 //typedefs

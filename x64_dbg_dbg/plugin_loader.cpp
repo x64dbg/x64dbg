@@ -32,6 +32,7 @@ void pluginload(const char* pluginDir)
     PLUG_DATA pluginData;
     do
     {
+        //set plugin data
         pluginData.initStruct.pluginHandle=curPluginHandle;
         char szPluginPath[MAX_PATH]="";
         sprintf(szPluginPath, "%s\\%s", pluginDir, foundData.cFileName);
@@ -49,6 +50,8 @@ void pluginload(const char* pluginDir)
             continue;
         }
         pluginData.plugstop=(PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
+        pluginData.plugsetup=(PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
+        //init plugin
         //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))
         {
@@ -58,7 +61,31 @@ void pluginload(const char* pluginDir)
         }
         else
             dprintf("[PLUGIN] %s v%d Loaded!\n", pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
+        //add plugin menu
+        int hNewMenu=GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu==-1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu=-1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu=hNewMenu;
+            newMenu.hEntryPlugin=-1;
+            newMenu.pluginHandle=pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenu=hNewMenu;
+        }
         pluginList.push_back(pluginData);
+        //setup plugin
+        if(pluginData.plugsetup)
+        {
+            PLUG_SETUPSTRUCT setupStruct;
+            setupStruct.hwndDlg=GuiGetWindowHandle();
+            setupStruct.hMenu=hNewMenu;
+            pluginData.plugsetup(&setupStruct);
+        }
         curPluginHandle++;
     }
     while(FindNextFileA(hSearch, &foundData));
@@ -208,6 +235,8 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
         if(pluginMenuList.at(i).pluginHandle==pluginHandle && pluginMenuList.at(i).hEntryPlugin==hEntry)
             return false;
     int hNewEntry=GuiMenuAddEntry(hMenu, title);
+    if(hNewEntry==-1)
+        return false;
     PLUG_MENU newMenu;
     newMenu.hEntryMenu=hNewEntry;
     newMenu.hEntryPlugin=hEntry;
@@ -248,4 +277,30 @@ bool pluginmenuclear(int hMenu)
         return false;
     GuiMenuClear(hMenu);
     return false;
+}
+
+void pluginmenucall(int hEntry)
+{
+    dprintf("pluginmenucall(%d)\n", hEntry);
+    if(hEntry==-1)
+        return;
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu==hEntry && pluginMenuList.at(i).hEntryPlugin!=-1)
+        {
+            PLUG_CB_MENUENTRY menuEntryInfo;
+            menuEntryInfo.hEntry=pluginMenuList.at(i).hEntryPlugin;
+            int pluginCallbackCount=pluginCallbackList.size();
+            int pluginHandle=pluginMenuList.at(i).pluginHandle;
+            for(int j=0; j<pluginCallbackCount; j++)
+            {
+                if(pluginCallbackList.at(j).pluginHandle==pluginHandle and pluginCallbackList.at(j).cbType==CB_MENUENTRY)
+                {
+                    //TODO: handle exceptions
+                    pluginCallbackList.at(j).cbPlugin(CB_MENUENTRY, &menuEntryInfo);
+                    return;
+                }
+            }
+        }
+    }
 }

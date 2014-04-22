@@ -7,6 +7,7 @@
 //typedefs
 typedef bool (*PLUGINIT)(PLUG_INITSTRUCT* initStruct);
 typedef bool (*PLUGSTOP)();
+typedef void (*PLUGSETUP)(PLUG_SETUPSTRUCT* setupStruct);
 
 //structures
 struct PLUG_MENU
@@ -21,6 +22,8 @@ struct PLUG_DATA
     HINSTANCE hPlugin;
     PLUGINIT pluginit;
     PLUGSTOP plugstop;
+    PLUGSETUP plugsetup;
+    int hMenu;
     PLUG_INITSTRUCT initStruct;
 };
 
@@ -49,5 +52,6 @@ int pluginmenuadd(int hMenu, const char* title);
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title);
 bool pluginmenuaddseparator(int hMenu);
 bool pluginmenuclear(int hMenu);
+void pluginmenucall(int hEntry);
 
 #endif // _PLUGIN_LOADER_H

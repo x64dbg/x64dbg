@@ -54,7 +54,20 @@ int main(int argc, char *argv[])
     // Start GUI
     MainWindow w;
     w.show();
+
+    // Set some data
     Bridge::getBridge()->winId=(void*)w.winId();
+
+    // Init debugger
+    const char* errormsg=DbgInit();
+    if(errormsg)
+    {
+        QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        ExitProcess(1);
+    }
 
     return a.exec();
 }
