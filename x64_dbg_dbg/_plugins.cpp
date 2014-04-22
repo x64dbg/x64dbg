@@ -53,3 +53,23 @@ PLUG_IMPEXP void _plugin_debugskipexceptions(bool skip)
 {
     dbgsetskipexceptions(skip);
 }
+
+PLUG_IMPEXP int _plugin_menuadd(int hMenu, const char* title)
+{
+    return pluginmenuadd(hMenu, title);
+}
+
+PLUG_IMPEXP bool _plugin_menuaddentry(int hMenu, int hEntry, const char* title)
+{
+    return pluginmenuaddentry(hMenu, hEntry, title);
+}
+
+PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu)
+{
+    return pluginmenuaddseparator(hMenu);
+}
+
+PLUG_IMPEXP bool _plugin_menuclear(int hMenu)
+{
+    return pluginmenuclear(hMenu);
+}

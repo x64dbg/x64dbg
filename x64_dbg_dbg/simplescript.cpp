@@ -274,9 +274,22 @@ static bool scriptisruncommand(const char* cmdlist)
     return false;
 }
 
+static bool scriptisinternalcommand(const char* text, const char* cmd)
+{
+    int len=strlen(text);
+    int cmdlen=strlen(cmd);
+    if(cmdlen>len)
+        return false;
+    else if(cmdlen==len)
+        return scmp(text, cmd);
+    else if(text[cmdlen]==' ')
+            return (!_strnicmp(text, cmd, cmdlen));
+    return false;
+}
+
 static CMDRESULT scriptinternalcmdexec(const char* cmd)
 {
-    if(scmp(cmd, "ret")) //script finished
+    if(scriptisinternalcommand(cmd, "ret")) //script finished
     {
         if(!scriptstack.size()) //nothing on the stack
         {
@@ -287,9 +300,9 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         scriptstack.pop_back(); //remove last stack entry
         return STATUS_CONTINUE;
     }
-    else if(scmp(cmd, "invalid")) //invalid command for testing
+    else if(scriptisinternalcommand(cmd, "invalid")) //invalid command for testing
         return STATUS_ERROR;
-    else if(scmp(cmd, "pause")) //pause the script
+    else if(scriptisinternalcommand(cmd, "pause")) //pause the script
         return STATUS_PAUSE;
     char command[deflen]="";
     strcpy(command, cmd);

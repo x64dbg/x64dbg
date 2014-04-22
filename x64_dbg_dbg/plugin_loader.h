@@ -9,6 +9,13 @@ typedef bool (*PLUGINIT)(PLUG_INITSTRUCT* initStruct);
 typedef bool (*PLUGSTOP)();
 
 //structures
+struct PLUG_MENU
+{
+    int pluginHandle; //plugin handle
+    int hEntryMenu; //GUI entry/menu handle (unique)
+    int hEntryPlugin; //plugin entry handle (unique per plugin)
+};
+
 struct PLUG_DATA
 {
     HINSTANCE hPlugin;
@@ -38,5 +45,9 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly);
 bool plugincmdunregister(int pluginHandle, const char* command);
+int pluginmenuadd(int hMenu, const char* title);
+bool pluginmenuaddentry(int hMenu, int hEntry, const char* title);
+bool pluginmenuaddseparator(int hMenu);
+bool pluginmenuclear(int hMenu);
 
 #endif // _PLUGIN_LOADER_H

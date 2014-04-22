@@ -37,17 +37,23 @@ void msgfreestack(MESSAGE_STACK* msgstack)
 //add a message to the stack
 bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 {
+    CRITICAL_SECTION* cr=&msgstack->cr;
+    EnterCriticalSection(cr);
     int stackpos=msgstack->stackpos;
     if(stackpos>=MAX_MESSAGES)
+    {
+        LeaveCriticalSection(cr);
         return false;
+    }
     MESSAGE* newmsg=msgalloc();
     if(!newmsg)
+    {
+        LeaveCriticalSection(cr);
         return false;
+    }
     newmsg->msg=msg;
     newmsg->param1=param1;
     newmsg->param2=param2;
-    CRITICAL_SECTION* cr=&msgstack->cr;
-    EnterCriticalSection(cr);
     msgstack->msg[stackpos]=newmsg;
     msgstack->stackpos++; //increase stack pointer
     LeaveCriticalSection(cr);

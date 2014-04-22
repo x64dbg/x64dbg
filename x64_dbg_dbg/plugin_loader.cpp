@@ -7,10 +7,12 @@ static std::vector<PLUG_DATA> pluginList;
 static int curPluginHandle=0;
 static std::vector<PLUG_CALLBACK> pluginCallbackList;
 static std::vector<PLUG_COMMAND> pluginCommandList;
+static std::vector<PLUG_MENU> pluginMenuList;
 
 ///internal plugin functions
 void pluginload(const char* pluginDir)
 {
+    //load new plugins
     char currentDir[deflen]="";
     GetCurrentDirectoryA(deflen, currentDir);
     SetCurrentDirectoryA(pluginDir);
@@ -30,7 +32,6 @@ void pluginload(const char* pluginDir)
     PLUG_DATA pluginData;
     do
     {
-        memset(&pluginData, 0, sizeof(PLUG_DATA));
         pluginData.initStruct.pluginHandle=curPluginHandle;
         char szPluginPath[MAX_PATH]="";
         sprintf(szPluginPath, "%s\\%s", pluginDir, foundData.cFileName);
@@ -64,6 +65,19 @@ void pluginload(const char* pluginDir)
     SetCurrentDirectoryA(currentDir);
 }
 
+static void plugincmdunregisterall(int pluginHandle)
+{
+    int listsize=pluginCommandList.size();
+    for(int i=listsize-1; i>=0; i--)
+    {
+        if(pluginCommandList.at(i).pluginHandle==pluginHandle)
+        {
+            cmddel(dbggetcommandlist(), pluginCommandList.at(i).command);
+            pluginCommandList.erase(pluginCommandList.begin()+i);
+        }
+    }
+}
+
 void pluginunload()
 {
     int pluginCount=pluginList.size();
@@ -72,8 +86,12 @@ void pluginunload()
         PLUGSTOP stop=pluginList.at(i).plugstop;
         if(stop)
             stop();
+        plugincmdunregisterall(pluginList.at(i).initStruct.pluginHandle);
         FreeLibrary(pluginList.at(i).hPlugin);
     }
+    pluginCallbackList.clear(); //remove all callbacks
+    pluginMenuList.clear(); //clear menu list
+    GuiMenuClear(GUI_PLUGIN_MENU); //clear the plugin menu
 }
 
 ///debugging plugin exports
@@ -142,5 +160,92 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             return true;
         }
     }
+    return false;
+}
+
+int pluginmenuadd(int hMenu, const char* title)
+{
+    if(!title or !strlen(title))
+        return -1;
+    int nFound=-1;
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu==hMenu and pluginMenuList.at(i).hEntryPlugin==-1)
+        {
+            nFound=i;
+            break;
+        }
+    }
+    if(nFound==-1) //not a valid menu handle
+        return -1;
+    int hMenuNew=GuiMenuAdd(pluginMenuList.at(nFound).hEntryMenu, title);
+    PLUG_MENU newMenu;
+    newMenu.pluginHandle=pluginMenuList.at(nFound).pluginHandle;
+    newMenu.hEntryPlugin=-1;
+    newMenu.hEntryMenu=hMenuNew;
+    pluginMenuList.push_back(newMenu);
+    return hMenuNew;
+}
+
+bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
+{
+    if(!title or !strlen(title) or hEntry==-1)
+        return false;
+    int pluginHandle=-1;
+    //find plugin handle
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu==hMenu and pluginMenuList.at(i).hEntryPlugin==-1)
+        {
+            pluginHandle=pluginMenuList.at(i).pluginHandle;
+            break;
+        }
+    }
+    if(pluginHandle==-1) //not found
+        return false;
+    //search if hEntry was previously used
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+        if(pluginMenuList.at(i).pluginHandle==pluginHandle && pluginMenuList.at(i).hEntryPlugin==hEntry)
+            return false;
+    int hNewEntry=GuiMenuAddEntry(hMenu, title);
+    PLUG_MENU newMenu;
+    newMenu.hEntryMenu=hNewEntry;
+    newMenu.hEntryPlugin=hEntry;
+    newMenu.pluginHandle=pluginHandle;
+    pluginMenuList.push_back(newMenu);
+    return true;
+}
+
+bool pluginmenuaddseparator(int hMenu)
+{
+    bool bFound=false;
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu==hMenu and pluginMenuList.at(i).hEntryPlugin==-1)
+        {
+            bFound=true;
+            break;
+        }
+    }
+    if(!bFound)
+        return false;
+    GuiMenuAddSeparator(hMenu);
+    return true;
+}
+
+bool pluginmenuclear(int hMenu)
+{
+    bool bFound=false;
+    for(unsigned int i=0; i<pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu==hMenu and pluginMenuList.at(i).hEntryPlugin==-1)
+        {
+            bFound=true;
+            break;
+        }
+    }
+    if(!bFound)
+        return false;
+    GuiMenuClear(hMenu);
     return false;
 }

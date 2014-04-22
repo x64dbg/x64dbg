@@ -23,6 +23,8 @@ struct PLUG_INITSTRUCT
     int sdkVersion;
     int pluginVersion;
     char pluginName[256];
+    //provided by the debugger
+    int hMenu; //plugin menu handle
 };
 
 //callback structures
@@ -137,7 +139,8 @@ enum CBTYPE
     CB_RESUMEDEBUG, //PLUG_CB_RESUMEDEBUG
     CB_STEPPED, //PLUG_CB_STEPPED
     CB_ATTACH, //PLUG_CB_ATTACHED (before attaching, after CB_INITDEBUG)
-    CB_DETACH //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
+    CB_DETACH, //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
+    CB_DEBUGEVENT, //PLUG_CB_DEBUGEVENT (called on any debug event)
 };
 
 //typedefs
@@ -158,6 +161,10 @@ PLUG_IMPEXP void _plugin_logprintf(const char* format, ...);
 PLUG_IMPEXP void _plugin_logputs(const char* text);
 PLUG_IMPEXP void _plugin_debugpause();
 PLUG_IMPEXP void _plugin_debugskipexceptions(bool skip);
+PLUG_IMPEXP int _plugin_menuadd(int hMenu, const char* title);
+PLUG_IMPEXP bool _plugin_menuaddentry(int hMenu, int hEntry, const char* title);
+PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu);
+PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
 
 #ifdef __cplusplus
 }
