@@ -1,7 +1,7 @@
 #include "CPUWidget.h"
 #include "ui_CPUWidget.h"
 
-CPUWidget::CPUWidget(QWidget *parent) :MHWorkflowWidget(parent), ui(new Ui::CPUWidget)
+CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 {
     ui->setupUi(this);
     setDefaultDisposition();

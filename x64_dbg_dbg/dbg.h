@@ -3,7 +3,6 @@
 
 #include <windows.h>
 #include "_global.h"
-#include "kd/stdafx.h"
 
 #ifdef __cplusplus
 extern "C"

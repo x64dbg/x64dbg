@@ -18,9 +18,6 @@
 #include "ThreadView.h"
 #include "SettingsDialog.h"
 
-#include "tabwidget.h"
-#include "tabbar.h"
-
 namespace Ui {
 class MainWindow;
 }
@@ -74,7 +71,7 @@ private:
     Ui::MainWindow *ui;
 
     CommandLineEdit* mCmdLineEdit;
-	MHTabWidget* mTabWidget;
+    QTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     LogView* mLogView;

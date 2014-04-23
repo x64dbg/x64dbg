@@ -72,9 +72,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
     //Create the tab widget
-	mTabWidget = new MHTabWidget(NULL);
-	mTabWidget->Initialize(NULL);
-	//mTabWidget->setMovable(true);
+    mTabWidget = new QTabWidget();
+    mTabWidget->setMovable(true);
 
     //Setup tabs
     mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
@@ -667,7 +666,7 @@ void MainWindow::menuEntrySlot()
     if(action && action->objectName().startsWith("ENTRY|"))
     {
         int hEntry = -1;
-		//if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry)==1)
-		//    DbgMenuEntryClicked(hEntry);
+        if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry)==1)
+            DbgMenuEntryClicked(hEntry);
     }
 }
