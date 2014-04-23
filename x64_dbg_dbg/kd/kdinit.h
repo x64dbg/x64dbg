@@ -1,7 +1,7 @@
 #pragma once
 
 bool KdDebugEnabled();
-bool KdDebugInit(int argc, char **argv);
+//CMDRESULT KdDebugInit(int argc, char **argv);
 DWORD WINAPI KdDebugLoop(LPVOID lpArg);
 bool KdDebugQueryInterfaces();
 bool KdDebugSetOptions();

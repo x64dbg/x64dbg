@@ -17,12 +17,12 @@ bool KdDebugEnabled()
 	return true;
 }
 
-bool KdDebugInit(int argc, char **argv)
+CMDRESULT KdDebugInit(int argc, char *argv[])
 {
-	if (KdState.m_Debugging)
+	if (DbgIsDebugging())
 	{
 		dputs("Debugger is already running!");
-		return false;
+		return STATUS_ERROR;
 	}
 
 	// Reset any previous variables
@@ -40,7 +40,8 @@ bool KdDebugInit(int argc, char **argv)
 	}*/
 
 	// Set the directory
-	SetDllDirectory("C:\\Program Files (x86)\\Windows Kits\\8.1\\Debuggers\\x64");
+	// NOT SUPPORTED ON BASE WINXP (die already)
+	//SetDllDirectory("C:\\Program Files (x86)\\Windows Kits\\8.1\\Debuggers\\x64");
 
 	// Try to load the dbgeng.dll library
 	HMODULE hDbgEng = LoadLibraryA("C:\\Program Files (x86)\\Windows Kits\\8.1\\Debuggers\\x64\\dbgeng.dll");
@@ -48,7 +49,7 @@ bool KdDebugInit(int argc, char **argv)
 	if (!hDbgEng)
 	{
 		dprintf("Unable to load DbgEng library (0x%X)\n", GetLastError());
-		return false;
+		return STATUS_ERROR;
 	}
 
 	*(FARPROC *)&pfnDebugCreate = GetProcAddress(hDbgEng, "DebugCreate");
@@ -56,7 +57,7 @@ bool KdDebugInit(int argc, char **argv)
 	if (!pfnDebugCreate)
 	{
 		dprintf("Unable to find export 'DebugCreate' in DbgEng library\n");
-		return false;
+		return STATUS_ERROR;
 	}
 
 	// Wait for the debugger to stop
@@ -69,12 +70,12 @@ bool KdDebugInit(int argc, char **argv)
 	if (!hThread)
 	{
 		dprintf("Failed to create debug thread!\n");
-		return false;
+		return STATUS_ERROR;
 	}
 
 	CloseHandle(hThread);
 
-	return true;
+	return STATUS_CONTINUE;
 }
 
 void KdDebugShutdown()

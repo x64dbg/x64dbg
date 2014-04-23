@@ -65,6 +65,11 @@ static void registercommands()
     cmdnew(cmd, "StepOut\1rtr", cbDebugRtr, true); //rtr
     cmdnew(cmd, "eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
 
+	// kernel
+#ifdef KDEBUGGER_ENABLE
+	KdAddCommands();
+#endif // KDEBUGGER_ENABLE
+
     //breakpoints
     cmdnew(cmd, "bplist", cbDebugBplist, true); //breakpoint list
     cmdnew(cmd, "SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type

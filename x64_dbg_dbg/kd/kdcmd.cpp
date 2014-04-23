@@ -5,6 +5,7 @@
 #include "../x64_dbg.h"
 #include "stdafx.h"
 
+CMDRESULT KdDebugInit(int argc, char *argv[]);
 CMDRESULT KdCmdKd(int argc, char* argv[]);
 CMDRESULT KdCmdProcess(int argc, char* argv[]);
 CMDRESULT KdCmdVad(int argc, char* argv[]);
@@ -18,6 +19,7 @@ void KdAddCommands()
 	cmddel(dbggetcommandlist(), "StepInto");
 	cmddel(dbggetcommandlist(), "StepOver");
 
+	cmdnew(dbggetcommandlist(), "InitKD\1initkd", KdDebugInit, false);				// Initialize kernel debugger
 	cmdnew(dbggetcommandlist(), "kd", KdCmdKd, true);								// Execute a WinDbg command
 	cmdnew(dbggetcommandlist(), "kdproc", KdCmdProcess, true);						// Switch process contexts
 	cmdnew(dbggetcommandlist(), "kdvad", KdCmdVad, true);							// Find VAD for process address
