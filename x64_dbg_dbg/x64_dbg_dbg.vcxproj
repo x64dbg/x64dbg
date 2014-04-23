@@ -21,6 +21,25 @@
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="instruction.cpp" />
+    <ClCompile Include="kd\kdcmd.cpp" />
+    <ClCompile Include="kd\kdcontext.cpp" />
+    <ClCompile Include="kd\kdevent.cpp" />
+    <ClCompile Include="kd\kdinit.cpp" />
+    <ClCompile Include="kd\kdssdt.cpp" />
+    <ClCompile Include="kd\kdstate.cpp" />
+    <ClCompile Include="kd\mem\kdmemory.cpp" />
+    <ClCompile Include="kd\mem\kdpool.cpp" />
+    <ClCompile Include="kd\mem\kdvad.cpp" />
+    <ClCompile Include="kd\module\kddriver.cpp" />
+    <ClCompile Include="kd\nt.cpp" />
+    <ClCompile Include="kd\opemu.cpp" />
+    <ClCompile Include="kd\PatchGuard.cpp" />
+    <ClCompile Include="kd\processor\kdkprcb.cpp" />
+    <ClCompile Include="kd\processor\kdmsr.cpp" />
+    <ClCompile Include="kd\sym.cpp" />
+    <ClCompile Include="kd\vmclient\vmclient.cpp" />
+    <ClCompile Include="kd\windbg_event.cpp" />
+    <ClCompile Include="kd\windbg_output.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -60,6 +79,33 @@
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="instruction.h" />
+    <ClInclude Include="kd\kdcmd.h" />
+    <ClInclude Include="kd\kdcontext.h" />
+    <ClInclude Include="kd\kdevent.h" />
+    <ClInclude Include="kd\kdinit.h" />
+    <ClInclude Include="kd\kdoffset.h" />
+    <ClInclude Include="kd\kdssdt.h" />
+    <ClInclude Include="kd\kdstate.h" />
+    <ClInclude Include="kd\kdstruct.h" />
+    <ClInclude Include="kd\mem\kdmemory.h" />
+    <ClInclude Include="kd\mem\kdmm.h" />
+    <ClInclude Include="kd\mem\kdpool.h" />
+    <ClInclude Include="kd\mem\kdvad.h" />
+    <ClInclude Include="kd\mem\stdafx.h" />
+    <ClInclude Include="kd\module\kddriver.h" />
+    <ClInclude Include="kd\module\stdafx.h" />
+    <ClInclude Include="kd\nt.h" />
+    <ClInclude Include="kd\opemu.h" />
+    <ClInclude Include="kd\PatchGuard.h" />
+    <ClInclude Include="kd\processor\kdkprcb.h" />
+    <ClInclude Include="kd\processor\kdmsr.h" />
+    <ClInclude Include="kd\processor\stdafx.h" />
+    <ClInclude Include="kd\stdafx.h" />
+    <ClInclude Include="kd\sym.h" />
+    <ClInclude Include="kd\vmclient\stdafx.h" />
+    <ClInclude Include="kd\vmclient\vmclient.h" />
+    <ClInclude Include="kd\windbg_event.h" />
+    <ClInclude Include="kd\windbg_output.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="msgqueue.h" />
@@ -95,6 +141,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -139,6 +186,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

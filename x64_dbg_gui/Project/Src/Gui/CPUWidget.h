@@ -10,11 +10,13 @@
 #include "RegistersView.h"
 #include "InfoBox.h"
 
+#include "tabwidget.h"
+
 namespace Ui {
 class CPUWidget;
 }
 
-class CPUWidget : public QWidget
+class CPUWidget : public MHWorkflowWidget
 {
     Q_OBJECT
     

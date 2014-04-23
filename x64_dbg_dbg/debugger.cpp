@@ -980,6 +980,13 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+#ifdef KDEBUGGER_ENABLE
+	if (!KdDebugInit(argc, argv))
+		return STATUS_ERROR;
+
+	return STATUS_CONTINUE;
+#endif // KDEBUGGER_ENABLE
+
     static char arg1[deflen]="";
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;

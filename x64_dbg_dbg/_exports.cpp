@@ -81,6 +81,11 @@ extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
+#ifdef KDEBUGGER_ENABLE
+	if (KdDebugEnabled())
+		return KdState.m_Debugging;
+#endif // KDEBUGGER_ENABLE
+
     if(IsFileBeingDebugged())
         return true;
     return false;
@@ -318,6 +323,12 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         memset(regdump, 0, sizeof(REGDUMP));
         return true;
     }
+
+#ifdef KDEBUGGER_ENABLE
+	if (KdDebugEnabled())
+		return KdContextToRegdump(regdump);
+#endif
+
     REGDUMP r;
 #ifdef _WIN64
     r.cax=GetContextData(UE_RAX);

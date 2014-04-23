@@ -1,4 +1,5 @@
 #include "CPUDump.h"
+#include <QMessageBox>
 
 CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 {
