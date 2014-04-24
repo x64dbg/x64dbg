@@ -30,7 +30,7 @@ void KdAddCommands()
 
 CMDRESULT KdCmdKd(int argc, char* argv[])
 {
-	// Format and concatenate arguments to send to WinDbg
+	// Format and concatenate arguments to send to DbgEng
 	char buffer[deflen];
 	memset(buffer, 0, sizeof(buffer));
 

@@ -6,8 +6,8 @@ Module Name:
 vmclient.cpp
 
 Purpose:
-Fast interprocess communication using an external dll injected
-to a virtual machine. Allows direct physical memory access to the machine.
+Fast interprocess communication using an external dll injected into a
+virtual machine. Allows direct physical memory access to the machine.
 ~2.5x faster than using DbgEng with VirtualKD.
 
 --*/

@@ -50,4 +50,6 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[]);
 CMDRESULT cbInstrSetstr(int argc, char* argv[]);
 CMDRESULT cbInstrGetstr(int argc, char* argv[]);
 
+CMDRESULT cbInstrFind(int argc, char* argv[]);
+
 #endif // _INSTRUCTIONS_H

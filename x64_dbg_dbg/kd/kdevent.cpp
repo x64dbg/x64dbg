@@ -51,6 +51,9 @@ void KdEventUninitialized()
 	// This is no longer valid
 	KdState.m_Initialized = false;
 
+	// Clear all modules
+	KdDriverClear();
+
 	// Update the GUI elements
 	GuiSetDebugState(stopped);
 	GuiDisasmAt(0, 0);

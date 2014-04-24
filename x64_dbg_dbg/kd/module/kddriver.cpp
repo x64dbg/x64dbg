@@ -15,6 +15,11 @@ std::vector<DriverEntry> DriverList;
 
 void UpdateGuiModuleList();
 
+void KdDriverClear()
+{
+	DriverList.clear();
+}
+
 void KdDriverLoad(const char *Name, ULONG64 BaseAddress, ULONG64 ModuleSize)
 {
 	// Make sure it doesn't already exist
@@ -84,7 +89,7 @@ void UpdateGuiModuleList()
 
 	SYMBOLMODULEINFO *data = (SYMBOLMODULEINFO *)BridgeAlloc(sizeof(SYMBOLMODULEINFO) * count);
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 	{
 		data[i].base = DriverList[i].Base;
 		strcpy_s(data[i].name, DriverList[i].File);

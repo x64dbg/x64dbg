@@ -133,5 +133,88 @@ void memfree(HANDLE hProcess, uint addr)
 		KdMemFree(addr);
 #endif // KDEBUGGER_ENABLE
 
-	VirtualFreeEx(hProcess, (void*) addr, 0, MEM_RELEASE);
+	VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
+}
+
+static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
+{
+    if(!text or !pattern)
+        return false;
+    pattern->clear();
+    int len=strlen(text);
+    if(!len)
+        return false;
+    char* newtext=(char*)emalloc(len+2, "transformpattern:newtext");
+    strcpy(newtext, text);
+    if(len%2) //not a multiple of 2
+    {
+        newtext[len]='?';
+        newtext[len+1]='\0';
+        len++;
+    }
+    PATTERNBYTE newByte;
+    for(int i=0,j=0; i<len; i++)
+    {
+        if(isxdigit(newtext[i])) //hex
+        {
+            char x[2]="";
+            *x=newtext[i];
+            unsigned int val=0;
+            sscanf(x, "%x", &val);
+            newByte.n[j].all=false;
+            newByte.n[j].n=val&0xF;
+            j++;
+        }
+        else if(newtext[i]=='?') //wildcard
+        {
+            newByte.n[j].all=true; //match anything
+            newByte.n[j].n=0;
+            j++;
+        }
+        else //dafug dude..
+            return false; //invalid pattern format
+        if(j==2) //two nibbles = one byte
+        {
+            j=0;
+            pattern->push_back(newByte);
+        }
+    }
+    efree(newtext, "transformpattern:newtext");
+    return true;
+}
+
+static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
+{
+    unsigned char n1=(byte>>4)&0xF;
+    unsigned char n2=byte&0xF;
+    int matched=0;
+    if(pbyte->n[0].all)
+        matched++;
+    else if(pbyte->n[0].n==n1)
+        matched++;
+    if(pbyte->n[1].all)
+        matched++;
+    else if(pbyte->n[1].n==n2)
+        matched++;
+    return (matched==2);
+}
+
+uint memfindpattern(unsigned char* data, uint size, const char* pattern)
+{
+    std::vector<PATTERNBYTE> searchpattern;
+    if(!patterntransform(pattern, &searchpattern))
+        return -1;
+    int searchpatternsize=searchpattern.size();
+    for(uint i=0,pos=0; i<size; i++) //search for the pattern
+    {
+        if(patternmatchbyte(data[i], &searchpattern.at(pos))) //check if our pattern matches the current byte
+        {
+            pos++;
+            if(pos==searchpatternsize) //everything matched
+                return i-searchpatternsize+1;
+        }
+        else
+            pos=0; //reset current pattern position
+    }
+    return -1;
 }

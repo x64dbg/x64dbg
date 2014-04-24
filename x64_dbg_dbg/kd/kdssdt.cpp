@@ -70,17 +70,17 @@ bool KdSSDTEnumerate(ULONG TableIndex, bool Shadow, bool (* Callback)(ULONG Inde
 		return false;
 
 	// Read it
-	if (!KdMemRead(tableBase, buf, sizeof(ULONG) * tableCount, nullptr))
-		return false;
-
-	for (ULONG i = 0; i < tableCount; i++)
+	if (KdMemRead(tableBase, buf, sizeof(ULONG) * tableCount, nullptr))
 	{
-		ULONG64 func = KdSSDTGetPointer(tableBase, buf[i]);
-
-		if (!Callback(i, func))
+		for (ULONG i = 0; i < tableCount; i++)
 		{
-			BridgeFree(buf);
-			return false;
+			ULONG64 func = KdSSDTGetPointer(tableBase, buf[i]);
+
+			if (!Callback(i, func))
+			{
+				BridgeFree(buf);
+				return false;
+			}
 		}
 	}
 

@@ -918,3 +918,46 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
     efree(string, "cbInstrGetstr:string");
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrFind(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+    char pattern[deflen]="";
+    //remove # from the start and end of the pattern (ODBGScript support)
+    if(argv[2][0]=='#')
+        strcpy(pattern, argv[2]+1);
+    else
+        strcpy(pattern, argv[2]);
+    int len=strlen(pattern);
+    if(pattern[len-1]=='#')
+        pattern[len-1]='\0';
+    uint size=0;
+    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+    if(!base)
+    {
+        dprintf("invalid memory address "fhex"!\n", addr);
+        return STATUS_ERROR;
+    }
+    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFind:data");
+    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    {
+        efree(data, "cbInstrFind:data");
+        dputs("failed to read memory!");
+        return STATUS_ERROR;
+    }
+    uint start=addr-base;
+    uint foundoffset=memfindpattern(data+start, size-start, pattern);
+    uint result=0;
+    if(foundoffset!=-1)
+        result=addr+foundoffset;
+    varset("$result", result, false);
+    DbgCmdExec("$result");
+    return STATUS_CONTINUE;
+}

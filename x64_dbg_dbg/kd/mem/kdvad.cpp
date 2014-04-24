@@ -201,7 +201,7 @@ ULONG64 KdVadForProcessAddress(ULONG64 EProcess, ULONG64 Address)
 	for (ULONG64 node = balancedRoot; node;)
 	{
 		if (!KdMemRead(node, vad, KdVadGetNodeSize(), nullptr))
-			return 0;
+			break;
 
 		ULONG64 leftChild;
 		ULONG64 rightChild;
@@ -241,6 +241,9 @@ bool KdVadEnumerateProcess(ULONG64 EProcess, KdEnumCallback Callback)
 	// NOTE:
 	// VadRoot isn't an actual VAD node, just the list start
 	PMMVAD vad = KdVadAllocNode(&balancedRoot);
+
+	if (!vad)
+		return false;
 
 	ULONG64 leftNode;
 	ULONG64 rightNode;

@@ -7,6 +7,7 @@ struct DriverEntry
 	ULONG64 Size;
 };
 
+void KdDriverClear		();
 void KdDriverLoad		(const char *Name, ULONG64 BaseAddress, ULONG64 ModuleSize);
 void KdDriverUnload		(ULONG64 BaseAddress);
 bool KdDriverEnumerate	(bool (* Callback)(DriverEntry *));

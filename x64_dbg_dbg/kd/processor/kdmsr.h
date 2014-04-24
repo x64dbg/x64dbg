@@ -5,7 +5,7 @@
 #define MSR_IA32_SYSENTER_EIP	0x00000176 // SYSCALL execution address
 
 // x86-64 specific MSRs
-#ifdef _WIN64
+// Keep these defined in 32/64 compilation for consistency
 #define MSR_IA32_EFER			0xC0000080 // Extended Feature Enable
 #define MSR_IA32_STAR			0xC0000081 // SYSCALL Target Address
 #define MSR_IA32_LSTAR			0xC0000082 // Long Mode SYSCALL Target Address
@@ -38,7 +38,6 @@ union IA32_FMASK_BITS
 		ULONG Reserved : 32;		// Unused
 	};
 };
-#endif
 
 ULONG64 KdMsrRead	(ULONG Msr);
 bool	KdMsrSet	(ULONG Msr, ULONG64 Value);

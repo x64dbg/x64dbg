@@ -148,6 +148,17 @@ STDMETHODIMP EventCallbacks::SystemError(THIS_ ULONG Error, ULONG Level)
 
 STDMETHODIMP EventCallbacks::SessionStatus(THIS_ ULONG Status)
 {
+	dprintf("SEESION STATUS: 0x%X\n", Status);
+
+	switch (Status)
+	{
+	case DEBUG_SESSION_REBOOT:
+	case DEBUG_SESSION_HIBERNATE:
+	case DEBUG_SESSION_FAILURE:
+		// TODO: End
+		break;
+	}
+
 	return S_OK;
 }
 

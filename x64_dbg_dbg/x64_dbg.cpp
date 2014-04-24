@@ -157,6 +157,8 @@ static void registercommands()
 
     cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
     cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable
+
+    cmdnew(cmd, "find", cbInstrFind, true); //find a pattern
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

@@ -28,15 +28,12 @@ CMDRESULT KdDebugInit(int argc, char *argv[])
 	// Reset any previous variables
 	KdStateReset();
 
-	// Add commands
-	KdAddCommands();
-
 	// Try to get the command line
-	strcpy_s(KdState.m_CommandLine, "com:port=\\\\.\\pipe\\kd_Windows_8_x64,baud=115200,pipe,reconnect");
+	strcpy_s(KdState.m_CommandLine, "com:port=\\\\.\\pipe\\kd_Windows_7_x64,baud=115200,pipe,reconnect");
 	/*if (!argget(*argv, KdState.m_CommandLine, 0, false))
 	{
-		dputs("Invalid command line specified");
-		return false;
+		dprintf("Invalid command line specified\n");
+		return STATUS_ERROR;
 	}*/
 
 	// Set the directory
@@ -168,7 +165,7 @@ DWORD WINAPI KdDebugLoop(LPVOID lpArg)
 	KdState.SymbolHandle	= (HANDLE)0xF0F0F0F0;
 	fdProcessInfo->hProcess = KdState.SymbolHandle;
 
-	varset("$hp", (uint)0, true);
+	varset("$hp", (uint)KdState.SymbolHandle, true);
 	varset("$pid", (uint)0, true);
 
 	KdState.m_Debugging = true;
@@ -334,14 +331,14 @@ bool KdDebugSetOptions()
 	return true;
 }
 
-typedef struct UNICODE_STRING64
+struct UNICODE_STRING64
 {
 	USHORT	Length;
 	USHORT	MaximumLength;
 	ULONG64	Buffer;
 };
 
-typedef struct LDR_DATA_TABLE_ENTRY
+struct LDR_DATA_TABLE_ENTRY
 {
 	LIST_ENTRY64 InLoadOrderLinks;
 	LIST_ENTRY64 InMemoryOrderLinks;
@@ -390,6 +387,7 @@ bool KdLoadSymbols()
 	KdMemRead(KdSymbols["nt"]["KdDebuggerDataBlock"], &KdDebuggerData, sizeof(KdDebuggerData), nullptr);
 
 	// Fix up the pointers so they're actually values
+	// TODO: THESE ARE NOT INITIALIZED AT THE FIRST BREAK IN!!!
 	MAKEPTRVAL(KdDebuggerData.MmHighestUserAddress);
 	MAKEPTRVAL(KdDebuggerData.MmSystemRangeStart);
 	MAKEPTRVAL(KdDebuggerData.MmUserProbeAddress);
@@ -399,7 +397,7 @@ bool KdLoadSymbols()
 
 	for (ULONG i = 0; i < (sizeof(ULONG) * 8); i++)
 	{
-		if ((KdDebuggerData.MmPageSize & (1 << i)) != 0)
+		if ((KdDebuggerData.MmPageSize & (ULONG64)(1 << i)) != 0)
 			KdState.OS.PageShift = i;
 	}
 

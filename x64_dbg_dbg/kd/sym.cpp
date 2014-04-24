@@ -87,13 +87,16 @@ bool KdGetFieldSize(const char *Symbol, PULONG Size)
 
 bool KdGetRegIndex(const char *Register, PULONG Index)
 {
+	// Set it by default
+	*Index = KDREG_INVALID;
+
 	// IDebugRegisters::GetIndexByName was somewhat unreliable in my testing at least
 	ULONG registerCount = 0;
 
 	if (!SUCCEEDED(KdState.DebugRegisters->GetNumberRegisters(&registerCount)))
 	{
 		dprintf("Failed to get register count for machine\n");
-		// Fall through
+		return false;
 	}
 
 	for (ULONG i = 0; i < registerCount; i++)
@@ -117,6 +120,5 @@ bool KdGetRegIndex(const char *Register, PULONG Index)
 		return true;
 	}
 
-	*Index = KDREG_INVALID;
 	return false;
 }
