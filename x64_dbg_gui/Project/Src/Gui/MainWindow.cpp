@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "tabbar.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -72,8 +73,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
     //Create the tab widget
-    mTabWidget = new QTabWidget();
-    mTabWidget->setMovable(true);
+	mTabWidget = new MHTabBar(NULL);
 
     //Setup tabs
     mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
