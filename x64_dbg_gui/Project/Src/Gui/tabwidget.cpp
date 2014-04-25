@@ -13,6 +13,8 @@ MHTabWidget::MHTabWidget(QWidget *parent) : QTabWidget(parent)
 
 	setTabBar(m_tabBar);
 	setMovable(true);
+
+	m_Windows.clear();
 }
 
 //////////////////////////////////////////////////////////////
@@ -25,6 +27,44 @@ MHTabWidget::~MHTabWidget(void)
 	delete m_tabBar;
 }
 
+int MHTabWidget::count() const
+{
+	return QTabWidget::count() + m_Windows.size();
+}
+
+QWidget *MHTabWidget::widget(int index) const
+{
+	int baseCount = QTabWidget::count();
+
+	// Check if it's just a normal tab
+	if (index < baseCount)
+		return QTabWidget::widget(index);
+
+	// Otherwise it's going to be a window
+	return m_Windows.at(index - baseCount);
+}
+
+void MHTabWidget::setCurrentIndex(int index)
+{
+	// Check if it's just a normal tab
+	if (index < QTabWidget::count())
+	{
+		QTabWidget::setCurrentIndex(index);
+	}
+	else
+	{
+		// Otherwise it's going to be a window (just bring it up)
+		MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(widget(index)->parent());
+		window->activateWindow();
+	}
+}
+
+void MHTabWidget::setCurrentWidget(QWidget *widget)
+{
+	widget = 0;
+	// To be implemented.
+}
+
 //////////////////////////////////////////////////////////////////////////////
 void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 {
@@ -34,7 +74,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void MHTabWidget::DetachTab(int index, QPoint& /*dropPoint*/)
+void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
 {
 	// Create the window
 	MHDetachedWindow* detachedWidget = new MHDetachedWindow(parentWidget());
@@ -43,12 +83,15 @@ void MHTabWidget::DetachTab(int index, QPoint& /*dropPoint*/)
 	// Find Widget and connect
 	connect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
 
-	detachedWidget->setWindowTitle(tabText (index));
+	detachedWidget->setWindowTitle(tabText(index));
 	detachedWidget->setWindowIcon(tabIcon(index));
 
 	// Remove from tab bar
 	QWidget* tearOffWidget = widget(index);
 	tearOffWidget->setParent(detachedWidget);
+
+	// Add it to the windows list
+	m_Windows.append(tearOffWidget);
 
 	// Make first active
 	if (count() > 0)
@@ -59,7 +102,7 @@ void MHTabWidget::DetachTab(int index, QPoint& /*dropPoint*/)
 
 	// Needs to be done explicitly
 	tearOffWidget->show();
-	detachedWidget->resize(640, 480);
+	detachedWidget->setGeometry(dropPoint.x(), dropPoint.y(), 640, 480);
 	detachedWidget->show();
 }
 
@@ -75,6 +118,13 @@ void MHTabWidget::AttachTab(QWidget *parent)
 
 	// Reattach the tab
 	int newIndex = addTab(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle());
+
+	// Remove it from the windows list
+	for(int i = 0; i < m_Windows.size(); i++)
+	{
+		if (m_Windows.at(i) == tearOffWidget)
+			m_Windows.removeAt(i);
+	}
 
 	// Make Active
 	if (newIndex != -1)

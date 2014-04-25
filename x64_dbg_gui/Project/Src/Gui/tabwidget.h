@@ -23,6 +23,9 @@ public:
 	virtual ~MHTabWidget(void);
 
 public slots:
+	int count() const;
+	QWidget *widget(int index) const;
+
 	// Move Tab
 	void MoveTab(int fromIndex, int toIndex);
 
@@ -32,10 +35,16 @@ public slots:
 	// Attach Tab
 	void AttachTab(QWidget *parent);
 
+public Q_SLOTS:
+	void setCurrentIndex(int index);
+	void setCurrentWidget(QWidget *widget);
+
 protected:
 
 private:
 	MHTabBar* m_tabBar;
+
+	QList<QWidget*> m_Windows;
 };
 
 //////////////////////////////////////////////////////////////////////////////

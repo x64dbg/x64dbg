@@ -35,7 +35,7 @@ signals:
 private:
   QPoint       m_dragStartPos;
   QPoint       m_dragMovedPos;
-  QPoint       m_dragDropedPos;
+  QPoint       m_dragDroppedPos;
   bool         m_dragInitiated;
   int          m_dragCurrentIndex;
 };
