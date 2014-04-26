@@ -23,7 +23,7 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 QString StdTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset) == true)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#808080")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
 
     //return "c " + QString::number(col) + " r " + QString::number(rowBase + rowOffset);
     return mData->at(col)->at(rowBase + rowOffset);
