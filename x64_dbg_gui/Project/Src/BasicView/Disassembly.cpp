@@ -38,55 +38,6 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 }
 
 /************************************************************************************
-                            Private Functions
-************************************************************************************/
-
-void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText)
-{
-    int len=richText->size();
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-    for(int i=0; i<len; i++)
-    {
-        CustomRichText_t curRichText=richText->at(i);
-        int curRichTextLength=curRichText.text.length();
-        int backgroundWidth=charwidth*curRichTextLength;
-        if(backgroundWidth+xinc>w)
-            backgroundWidth=w-xinc;
-        if(backgroundWidth<=0) //stop drawing when going outside the specified width
-            break;
-        switch(curRichText.flags)
-        {
-        case FlagNone: //defaults
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            break;
-        case FlagColor: //color only
-            painter->save();
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagBackground: //background only
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagAll: //color+background
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        }
-        xinc+=charwidth*curRichTextLength;
-    }
-}
-
-
-/************************************************************************************
                             Reimplemented Functions
 ************************************************************************************/
 /**
@@ -286,7 +237,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         QList<CustomRichText_t> richText;
         BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
-        Disassembly::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText);
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
         break;
     }
 

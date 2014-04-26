@@ -8,15 +8,13 @@
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
 #include "BeaHighlight.h"
+#include "RichTextPainter.h"
 
 class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
     explicit Disassembly(QWidget *parent = 0);
-
-    // Private Functions
-    void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText);
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);

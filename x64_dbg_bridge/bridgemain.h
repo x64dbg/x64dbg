@@ -117,6 +117,7 @@ enum DBGMSG
     DBG_SCRIPT_ABORT,               // param1=unused,                    param2=unused
     DBG_SCRIPT_GETLINETYPE,         // param1=int line,                  param2=unused
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
+    DBG_SCRIPT_GETBRANCHINFO,       // param1=int line,                  param2=SCRIPTBRANCH* info
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
@@ -135,6 +136,19 @@ enum SCRIPTLINETYPE
     linelabel,
     linecomment,
     lineempty,
+};
+
+enum SCRIPTBRANCHTYPE
+{
+    scriptnobranch,
+    scriptjmp,
+    scriptjnejnz,
+    scriptjejz,
+    scriptjbjl,
+    scriptjajg,
+    scriptjbejle,
+    scriptjaejge,
+    scriptcall
 };
 
 enum DISASM_INSTRTYPE
@@ -414,6 +428,13 @@ struct BASIC_INSTRUCTION_INFO
     bool branch; //jumps/calls
 };
 
+struct SCRIPTBRANCH
+{
+    SCRIPTBRANCHTYPE type;
+    int dest;
+    char branchlabel[256];
+};
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size);
@@ -454,6 +475,7 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command);
 BRIDGE_IMPEXP void DbgScriptAbort();
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
+BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info);
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);

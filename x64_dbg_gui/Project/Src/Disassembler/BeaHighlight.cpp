@@ -1,9 +1,5 @@
 #include "BeaHighlight.h"
 
-BeaHighlight::BeaHighlight()
-{
-}
-
 SEGMENTREG BeaHighlight::ConvertBeaSeg(int beaSeg)
 {
     switch(beaSeg)

@@ -534,6 +534,11 @@ BRIDGE_IMPEXP void DbgScriptSetIp(int line)
     _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
+BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
+{
+    return (bool)(duint)_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
+}
+
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;

@@ -19,6 +19,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
 
+    backgroundColor=QColor(255, 251, 240);
 
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
@@ -75,7 +76,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     }
 
     // Paints background
-    wPainter.fillRect(wPainter.viewport(), QBrush(QColor(255, 251, 240)));
+    wPainter.fillRect(wPainter.viewport(), QBrush(backgroundColor));
 
     // Paints header
     if(mHeader.isVisible == true)

@@ -67,17 +67,150 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
     case 1: //command
     {
+        //initialize
         painter->save();
-        if(linetype==linecomment || linetype==linelabel)
-            painter->setPen(QPen(QColor("#808080"))); //grey text
-        if(linetype!=linelabel)
-            returnString=QString(" ") + getCellContent(rowBase+rowOffset, col);
-        else //label
+        int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+        int xadd=charwidth; //for testing
+        QList<CustomRichText_t> richText;
+        CustomRichText_t newRichText;
+        QString command=getCellContent(rowBase+rowOffset, col);
+
+        //handle comments
+        int comment_idx=command.indexOf("//"); //find the index of the space
+        QString comment="";
+        if(comment_idx!=-1 && command.at(0)!=QChar('/')) //there is a comment
         {
-            returnString=getCellContent(rowBase+rowOffset, col);
-            painter->drawLine(QPoint(x+2, y+h-2), QPoint(x+w-4, y+h-2));
+            comment=command.right(command.length()-comment_idx);
+            if(command.at(comment_idx-1)==QChar(' '))
+                command.truncate(comment_idx-1);
+            else
+                command.truncate(comment_idx);
         }
-        painter->drawText(QRect(x+1, y , w , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
+
+        //setup the richText list
+        switch(linetype)
+        {
+        case linecommand:
+        {
+            if(isScriptCommand(command, "ret"))
+            {
+                newRichText.flags=FlagBackground;
+                newRichText.textBackground=QColor(0,255,255);
+                newRichText.text="ret";
+                richText.push_back(newRichText);
+                QString remainder=command.right(command.length()-3);
+                if(remainder.length())
+                {
+                    newRichText.flags=FlagNone;
+                    newRichText.text=remainder;
+                    richText.push_back(newRichText);
+                }
+            }
+            else
+            {
+                newRichText.flags=FlagNone;
+                newRichText.text=command;
+                richText.push_back(newRichText);
+            }
+        }
+        break;
+
+        case linebranch:
+        {
+            SCRIPTBRANCH branchinfo;
+            DbgScriptGetBranchInfo(line, &branchinfo);
+            //jumps
+            int i=command.indexOf(" "); //find the index of the space
+            switch(branchinfo.type)
+            {
+            case scriptjmp: //unconditional jumps
+                newRichText.flags=FlagBackground;
+                newRichText.textBackground=QColor(255,255,0);
+            break;
+
+            case scriptjnejnz: //conditional jumps
+            case scriptjejz:
+            case scriptjbjl:
+            case scriptjajg:
+            case scriptjbejle:
+            case scriptjaejge:
+                newRichText.flags=FlagAll;
+                newRichText.textBackground=QColor(255,255,0);
+                newRichText.textColor=QColor(255,0,0);
+            break;
+
+            case scriptcall: //calls
+                newRichText.flags=FlagBackground;
+                newRichText.textBackground=QColor(0,255,255);
+            break;
+
+            default:
+                newRichText.flags=FlagNone;
+            break;
+            }
+            newRichText.text=command.left(i);
+            richText.push_back(newRichText);
+            //space
+            newRichText.flags=FlagNone;
+            newRichText.text=" ";
+            richText.push_back(newRichText);
+            //label
+            QString label=branchinfo.branchlabel;
+            newRichText.flags=FlagBackground;
+            newRichText.textBackground=QColor(255,255,0);
+            newRichText.text=label;
+            richText.push_back(newRichText);
+            //remainder
+            QString remainder=command.right(command.length()-command.indexOf(label)-label.length());
+            if(remainder.length())
+            {
+                newRichText.flags=FlagNone;
+                newRichText.text=remainder;
+                richText.push_back(newRichText);
+            }
+        }
+        break;
+
+        case linelabel:
+        {
+            newRichText.flags=FlagColor;
+            newRichText.textColor=QColor("#808080");
+            newRichText.text=command;
+            richText.push_back(newRichText);
+            painter->drawLine(QPoint(x+xadd+2, y+h-2), QPoint(x+w-4, y+h-2));
+        }
+        break;
+
+        case linecomment:
+        {
+            newRichText.flags=FlagColor;
+            newRichText.textColor=QColor("#808080");
+            newRichText.text=command;
+            richText.push_back(newRichText);
+        }
+        break;
+
+        case lineempty:
+        {
+        }
+        break;
+        }
+
+        //append the comment (when present)
+        if(comment.length())
+        {
+            CustomRichText_t newRichText;
+            newRichText.flags=FlagNone;
+            newRichText.text=" ";
+            richText.push_back(newRichText); //space
+            newRichText.flags=FlagColor;
+            newRichText.textColor=QColor("#808080");
+            newRichText.text=comment;
+            richText.push_back(newRichText); //comment
+        }
+
+        //paint the rich text
+        RichTextPainter::paintRichText(painter, x+1, y, w, h, xadd, &richText, charwidth);
         painter->restore();
         returnString="";
     }
@@ -117,6 +250,41 @@ void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
     if(!getRowCount())
         return;
     newIp();
+}
+
+void ScriptView::keyPressEvent(QKeyEvent* event)
+{
+    int key = event->key();
+    if(key == Qt::Key_Up || key == Qt::Key_Down)
+    {
+        int_t botRVA = getTableOffset();
+        int_t topRVA = botRVA + getNbrOfLineToPrint() - 1;
+        if(key == Qt::Key_Up)
+            selectPrevious();
+        else
+            selectNext();
+        if(getInitialSelection() < botRVA)
+        {
+            setTableOffset(getInitialSelection());
+        }
+        else if(getInitialSelection() >= topRVA)
+        {
+            setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
+        }
+        repaint();
+    }
+    else if(key == Qt::Key_Return || key == Qt::Key_Enter)
+    {
+        int line=getInitialSelection()+1;
+        SCRIPTBRANCH branchinfo;
+        memset(&branchinfo, 0, sizeof(SCRIPTBRANCH));
+        if(DbgScriptGetBranchInfo(line, &branchinfo))
+            setSelection(branchinfo.dest);
+    }
+    else
+    {
+        AbstractTableView::keyPressEvent(event);
+    }
 }
 
 void ScriptView::setupContextMenu()
@@ -178,6 +346,19 @@ void ScriptView::setupContextMenu()
     connect(mScriptNewIp, SIGNAL(triggered()), this, SLOT(newIp()));
 }
 
+bool ScriptView::isScriptCommand(QString text, QString cmd)
+{
+    int len=text.length();
+    int cmdlen=cmd.length();
+    if(cmdlen>len)
+        return false;
+    else if(cmdlen==len)
+        return (text.compare(cmd, Qt::CaseInsensitive)==0);
+    else if(text.at(cmdlen)==' ')
+        return (text.left(cmdlen).compare(cmd, Qt::CaseInsensitive)==0);
+    return false;
+}
+
 //slots
 void ScriptView::add(int count, const char** lines)
 {
@@ -205,6 +386,21 @@ void ScriptView::setIp(int line)
         return;
     }
     mIpLine=line;
+    int rangefrom=getTableOffset();
+    int rangeto=rangefrom+getViewableRowsCount()-1;
+    if(offset<rangefrom) //ip lays before the current view
+        setTableOffset(offset);
+    else if(offset>(rangeto-1)) //ip lays after the current view
+        setTableOffset(offset-getViewableRowsCount()+2);
+    setSingleSelection(offset);
+    reloadData(); //repaint
+}
+
+void ScriptView::setSelection(int line)
+{
+    int offset=line-1;
+    if(!isValidIndex(offset, 0))
+        return;
     int rangefrom=getTableOffset();
     int rangeto=rangefrom+getViewableRowsCount()-1;
     if(offset<rangefrom) //ip lays before the current view

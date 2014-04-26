@@ -10,7 +10,6 @@
 #include <qdebug.h>
 #include <NewTypes.h>
 
-
 class AbstractTableView : public QAbstractScrollArea
 {
     Q_OBJECT
@@ -144,6 +143,9 @@ private:
     bool mShouldReload;
 
     ScrollBar64_t mScrollBarAttributes;
+
+protected:
+    QColor backgroundColor;
 };
 
 #endif // ABSTRACTTABLEVIEW_H

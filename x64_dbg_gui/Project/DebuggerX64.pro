@@ -61,7 +61,8 @@ SOURCES += \
     Src/Gui/SettingsDialog.cpp \
     Src/Gui/ExceptionRangeDialog.cpp \
     Src/Gui/tabbar.cpp \
-    Src/Gui/tabwidget.cpp
+    Src/Gui/tabwidget.cpp \
+    Src/BasicView/RichTextPainter.cpp
 
 
 HEADERS += \
@@ -103,7 +104,9 @@ HEADERS += \
     Src/Gui/SettingsDialog.h \
     Src/Gui/ExceptionRangeDialog.h \
     Src/Gui/tabbar.h \
-    Src/Gui/tabwidget.h
+    Src/Gui/tabwidget.h \
+    Src/BasicView/RichTextPainter.h
+
 
 INCLUDEPATH += \
     Src \
