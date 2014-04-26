@@ -19,7 +19,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
 
-    backgroundColor=QColor("#FFFBF0");
+    backgroundColor=QColor("#FFFBF0"); //AbstractTableViewBackgroundColor
 
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
@@ -117,7 +117,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
             // Paints cell right borders
             wPainter.save();
-            wPainter.setPen(QColor("#808080"));
+            wPainter.setPen(QColor("#808080")); //AbstractTableViewSeparatorColor
             wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
             wPainter.restore();
 

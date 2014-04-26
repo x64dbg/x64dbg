@@ -17,6 +17,8 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 
     clearDescriptors();
 
+    backgroundColor=QColor("#FFFBF0"); //HexDumpBackgroundColor
+
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 }
@@ -209,7 +211,7 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
                 wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
 
-                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(QColor("#C0C0C0")));
+                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(QColor("#C0C0C0"))); //HexDumpSelectionColor
             }
         }
     }

@@ -29,7 +29,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     bool wIsSelected=isSelected(rowBase, rowOffset);
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0"))); //ScriptViewSelectionColor
     QString returnString;
     int line=rowBase+rowOffset+1;
     SCRIPTLINETYPE linetype=DbgScriptGetLineType(line);
@@ -41,23 +41,23 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         painter->save();
         if(line==mIpLine) //IP
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000"))); //ScriptViewIpColor
             if(DbgScriptBpGet(line)) //breakpoint
-                painter->setPen(QPen(QColor("#FF0000"))); //red address
+                painter->setPen(QPen(QColor("#FF0000"))); //red address (ScriptViewMainBpColor)
             else
-                painter->setPen(QPen(QColor("#FFFFFF"))); //white address
+                painter->setPen(QPen(QColor("#FFFFFF"))); //white address (ScriptViewIpTextColor)
         }
         else if(DbgScriptBpGet(line)) //breakpoint
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000")));
-            painter->setPen(QPen(QColor("#000000"))); //black address
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //ScriptViewMainBpColor
+            painter->setPen(QPen(QColor("#000000"))); //black address //ScripViewMainBpTextColor
         }
         else
         {
             if(linetype==linecommand || linetype==linebranch)
-                painter->setPen(QPen(QColor("#000000"))); //black address
+                painter->setPen(QPen(QColor("#000000"))); //black address (ScriptViewMainTextColor)
             else
-                painter->setPen(QPen(QColor("#808080"))); //grey address
+                painter->setPen(QPen(QColor("#808080"))); //grey address (ScriptViewOtherTextColor)
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
         painter->restore();
