@@ -77,7 +77,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
 {
     // Create the window
-    MHDetachedWindow* detachedWidget = new MHDetachedWindow(parentWidget());
+    MHDetachedWindow* detachedWidget = new MHDetachedWindow(parentWidget(), this);
     detachedWidget->setWindowModality(Qt::NonModal);
 
     // Find Widget and connect
@@ -138,8 +138,9 @@ void MHTabWidget::AttachTab(QWidget *parent)
 //----------------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////////
-MHDetachedWindow::MHDetachedWindow(QWidget *parent) : QMainWindow(parent)
+MHDetachedWindow::MHDetachedWindow(QWidget *parent, MHTabWidget *tabwidget) : QMainWindow(parent)
 {
+    m_TabWidget = tabwidget;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -148,8 +149,27 @@ MHDetachedWindow::~MHDetachedWindow(void)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+void MHDetachedWindow::moveEvent(QMoveEvent *event)
+{
+    QRect rect = m_TabWidget->geometry();
+    QSize hint = m_TabWidget->tabBar()->sizeHint();
+
+    // Height of the actual top tab bar (with a buffer of 30)
+    rect.setBottom(rect.top() + hint.height() + 30);
+
+    if (rect.contains(event->pos()))
+    {
+        m_TabWidget->AttachTab(this);
+        event->accept();
+    }
+    else
+    {
+        QMainWindow::moveEvent(event);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
 void MHDetachedWindow::closeEvent(QCloseEvent* /*event*/)
 {
     emit OnClose(this);
 }
-

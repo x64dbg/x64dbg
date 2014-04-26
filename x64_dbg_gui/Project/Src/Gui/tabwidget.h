@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QTabWidget>
 #include <QMainWindow>
+#include <QMoveEvent>
 
 // Qt forward class definitions
 class MHTabBar;
@@ -56,16 +57,19 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 class MHDetachedWindow : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    MHDetachedWindow(QWidget *parent = 0);
+    MHDetachedWindow(QWidget *parent = 0, MHTabWidget *tabwidget = 0);
     ~MHDetachedWindow(void);
 
 protected:
+    MHTabWidget *m_TabWidget;
+
+    virtual void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent *event);
 
 signals:
-    void OnClose (QWidget* widget);
+    void OnClose(QWidget* widget);
 };
 
 #endif // __MHTABWIDGET_H__
