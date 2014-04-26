@@ -92,16 +92,16 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             {
                 if(bpxtype&bp_normal) //breakpoint
                 {
-                    painter->setPen(QPen(QColor("#ff0000")));
+                    painter->setPen(QPen(QColor("#FF0000")));
                 }
                 else
                 {
-                    painter->setPen(QPen(QColor("#fffbf0")));
+                    painter->setPen(QPen(QColor("#FFFBF0")));
                 }
             }
             else
             {
-                painter->setPen(QPen(QColor("#fee970")));
+                painter->setPen(QPen(QColor("#FEE970")));
             }
         }
         else //other address
@@ -111,12 +111,12 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 if(*label) //label
                 {
                     if(bpxtype==bp_none) //label only
-                        painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
+                        painter->setPen(QPen(QColor("#FF0000"))); //red -> address + label text
                     else //label+breakpoint
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //fill red
                         }
                         else
                         {
@@ -137,7 +137,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //fill red
                         }
                         else
                         {
@@ -151,7 +151,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             }
             else
             {
-                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#fee970")));
+                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FEE970")));
                 if(wIsSelected)
                     painter->setPen(QPen(QColor("#000000"))); //black address
                 else
@@ -543,9 +543,9 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     painter->save() ;
 
     if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(QColor(255, 0, 0));
+        painter->setPen(QColor("#FF0000"));
     else
-        painter->setPen(QColor(128, 128, 128));
+        painter->setPen(QColor("#808080"));
 
     if(wPict == GD_Vert)
     {

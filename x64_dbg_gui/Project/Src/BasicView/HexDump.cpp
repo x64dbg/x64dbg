@@ -209,7 +209,7 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
                 wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
 
-                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(QColor(192,192,192)));
+                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(QColor("#C0C0C0")));
             }
         }
     }

@@ -77,7 +77,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
         if(wVa==mCsp) //CSP
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
-            painter->setPen(QPen(QColor("#fffbf0")));
+            painter->setPen(QPen(QColor("#FFFBF0")));
         }
         else if(wIsSelected)
             painter->setPen(QPen(QColor("#000000"))); //black address

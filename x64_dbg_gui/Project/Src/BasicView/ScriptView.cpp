@@ -49,7 +49,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         }
         else if(DbgScriptBpGet(line)) //breakpoint
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000")));
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000")));
             painter->setPen(QPen(QColor("#000000"))); //black address
         }
         else
@@ -95,7 +95,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             if(isScriptCommand(command, "ret"))
             {
                 newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor(0,255,255);
+                newRichText.textBackground=QColor("#00FFFF");
                 newRichText.text="ret";
                 richText.push_back(newRichText);
                 QString remainder=command.right(command.length()-3);
@@ -125,7 +125,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             {
             case scriptjmp: //unconditional jumps
                 newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor(255,255,0);
+                newRichText.textBackground=QColor("#FFFF00");
             break;
 
             case scriptjnejnz: //conditional jumps
@@ -135,13 +135,13 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             case scriptjbejle:
             case scriptjaejge:
                 newRichText.flags=FlagAll;
-                newRichText.textBackground=QColor(255,255,0);
-                newRichText.textColor=QColor(255,0,0);
+                newRichText.textBackground=QColor("#FFFF00");
+                newRichText.textColor=QColor("#FF0000");
             break;
 
             case scriptcall: //calls
                 newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor(0,255,255);
+                newRichText.textBackground=QColor("#00FFFF");
             break;
 
             default:
@@ -157,7 +157,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             //label
             QString label=branchinfo.branchlabel;
             newRichText.flags=FlagBackground;
-            newRichText.textBackground=QColor(255,255,0);
+            newRichText.textBackground=QColor("#FFFF00");
             newRichText.text=label;
             richText.push_back(newRichText);
             //remainder

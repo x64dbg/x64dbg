@@ -71,13 +71,13 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
             int basereg=Argument->Memory.BaseRegister;
             if(basereg&REG4 || basereg&REG5) //esp || ebp
             {
-                argument.textBackground=QColor(0,255,255);
+                argument.textBackground=QColor("#00FFFF");
                 argument.flags=FlagBackground;
                 //Highlight ESP || EBP memory move
             }
             else
             {
-                argument.textColor=QColor(0,0,128);
+                argument.textColor=QColor("#000080");
                 argument.flags=FlagColor;
             }
 
@@ -144,7 +144,7 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
                 if(argmnemonic.indexOf(label_addr_text)!=-1)
                 {
                     argument.flags=FlagBackground;
-                    argument.textBackground=QColor(255,255,0);
+                    argument.textBackground=QColor("#FFFF00");
                     argmnemonic.replace(label_addr_text, newText);
                 }
             }
@@ -154,7 +154,7 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
                 if(argmnemonic.indexOf(label_addr_text)!=-1)
                 {
                     argument.flags=FlagBackground;
-                    argument.textBackground=QColor(255,255,0);
+                    argument.textBackground=QColor("#FFFF00");
                     argmnemonic.replace(label_addr_text, newText);
                 }
             }
@@ -173,7 +173,7 @@ bool BeaHighlight::PrintArgument(QList<CustomRichText_t>* richText, const ARGTYP
             if(brtype && brtype!=RetType && !(argtype&REGISTER_TYPE))
             {
                 argument.flags=FlagBackground;
-                argument.textBackground=QColor(255,255,0);
+                argument.textBackground=QColor("#FFFF00");
                 unsigned char* opc=(unsigned char*)&Instruction->Opcode;
 
                 if(*opc==0xEB || *opc==0xE9 || Instruction->Opcode<0x80)
@@ -207,33 +207,33 @@ void BeaHighlight::PrintBaseInstruction(QList<CustomRichText_t>* richText, const
         if(brtype==RetType || brtype==CallType)
         {
             mnemonic.flags=FlagBackground;
-            mnemonic.textBackground=QColor(0,255,255);
+            mnemonic.textBackground=QColor("#00FFFF");
             //calls && rets
         }
         else if(brtype==JmpType)
         {
             mnemonic.flags=FlagBackground;
-            mnemonic.textBackground=QColor(255,255,0);
+            mnemonic.textBackground=QColor("#FFFF00");
             //uncond jumps
         }
         else
         {
             mnemonic.flags=FlagAll;
-            mnemonic.textBackground=QColor(255,255,0);
-            mnemonic.textColor=QColor(255,0,0);
+            mnemonic.textBackground=QColor("#FFFF00");
+            mnemonic.textColor=QColor("#FF0000");
             //cond jumps
         }
     }
     else if(!_stricmp(mnemonicText, "push") || !_stricmp(mnemonicText, "pop"))
     {
         mnemonic.flags=FlagColor;
-        mnemonic.textColor=QColor(0,0,255);
+        mnemonic.textColor=QColor("#0000FF");
         //push/pop
     }
     else if(!_stricmp(mnemonicText, "nop"))
     {
         mnemonic.flags=FlagColor;
-        mnemonic.textColor=QColor(128,128,128);
+        mnemonic.textColor=QColor("#808080");
         //nop
     }
     else
