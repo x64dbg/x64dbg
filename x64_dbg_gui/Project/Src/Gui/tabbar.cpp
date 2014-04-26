@@ -113,11 +113,13 @@ void MHTabBar::mouseMoveEvent(QMouseEvent* event)
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
-    // Only accept if it's an tab-reordering request
+    // Only accept if it's an tab-reordering request (not a detach request)
     const QMimeData* m = event->mimeData();
 
-    if (m->formats().contains("action") && (m->data("action") == "application/tab-detach"))
+    if (m->formats().contains("action") && (m->data("action") != "application/tab-detach"))
+    {
         event->acceptProposedAction();
+    }
 
     QTabBar::dragEnterEvent(event);
 }
@@ -125,10 +127,10 @@ void MHTabBar::dragEnterEvent(QDragEnterEvent* event)
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::dragMoveEvent(QDragMoveEvent* event)
 {
-    // Only accept if it's an tab-reordering request
+    // Only accept if it's an tab-reordering request (not a detach request)
     const QMimeData* m = event->mimeData();
 
-    if (m->formats().contains("action") && (m->data("action") == "application/tab-detach"))
+    if (m->formats().contains("action") && (m->data("action") != "application/tab-detach"))
     {
         m_dragMovedPos = event->pos();
         event->acceptProposedAction();
