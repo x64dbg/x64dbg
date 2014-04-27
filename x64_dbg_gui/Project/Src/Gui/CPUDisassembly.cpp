@@ -20,6 +20,12 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         Disassembly::mousePressEvent(event);
 }
 
+void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    toggleInt3BPAction();
+    Disassembly::mouseDoubleClickEvent(event);
+}
+
 
 /************************************************************************************
                             Mouse Management

@@ -22,6 +22,7 @@ public:
     // Mouse Management
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
     // Context Menu Management
     void setupRightClickContextMenu();
