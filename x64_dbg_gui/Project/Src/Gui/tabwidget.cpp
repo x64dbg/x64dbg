@@ -17,6 +17,11 @@ MHTabWidget::MHTabWidget(QWidget *parent) : QTabWidget(parent)
     m_Windows.clear();
 }
 
+QTabBar* MHTabWidget::tabBar()
+{
+    return m_tabBar;
+}
+
 //////////////////////////////////////////////////////////////
 // Default Destructor
 //////////////////////////////////////////////////////////////
@@ -113,9 +118,6 @@ void MHTabWidget::AttachTab(QWidget *parent)
     MHDetachedWindow* detachedWidget = dynamic_cast<MHDetachedWindow*>(parent);
     QWidget* tearOffWidget = detachedWidget->centralWidget();
 
-    // Change parent
-    tearOffWidget->setParent(this);
-
     // Reattach the tab
     int newIndex = addTab(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle());
 
@@ -132,7 +134,8 @@ void MHTabWidget::AttachTab(QWidget *parent)
 
     // Cleanup Window
     disconnect(detachedWidget, SIGNAL(OnClose(QWidget*)), this, SLOT(AttachTab(QWidget*)));
-    delete detachedWidget;
+    detachedWidget->hide();
+    detachedWidget->close();
 }
 
 //----------------------------------------------------------------------------

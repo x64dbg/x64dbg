@@ -22,6 +22,7 @@ class MHTabWidget: public QTabWidget
 public:
     MHTabWidget(QWidget *parent);
     virtual ~MHTabWidget(void);
+    QTabBar* tabBar();
 
 public slots:
     int count() const;
