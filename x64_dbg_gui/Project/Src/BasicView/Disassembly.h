@@ -126,6 +126,11 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
+
+protected:
+    bool mRvaDisplayEnabled;
+    uint_t mRvaDisplayBase;
+    int_t mRvaDisplayPageBase;
 };
 
 #endif // DISASSEMBLY_H

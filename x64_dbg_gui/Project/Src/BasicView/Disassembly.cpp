@@ -72,7 +72,36 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     {
         char label[MAX_LABEL_SIZE]="";
         int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
-        QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        QString addrText="";
+        if(mRvaDisplayEnabled) //RVA display
+        {
+            int_t rva=cur_addr-mRvaDisplayBase;
+            if(rva == 0)
+            {
+#ifdef _WIN64
+                addrText="$ ==>            ";
+#else
+                addrText="$ ==>    ";
+#endif //_WIN64
+            }
+            else if(rva > 0)
+            {
+#ifdef _WIN64
+                addrText="$+"+QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText="$+"+QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+            else if(rva < 0)
+            {
+#ifdef _WIN64
+                addrText="$-"+QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText="$-"+QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+        }
+        addrText += QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE]="";
@@ -1017,6 +1046,9 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     // Set base and size (Useful when memory page changed)
     mBase = wBase;
     mSize = wSize;
+
+    if(mRvaDisplayEnabled && mBase != mRvaDisplayPageBase)
+        mRvaDisplayEnabled = false;
 
     setRowCount(wSize);
 

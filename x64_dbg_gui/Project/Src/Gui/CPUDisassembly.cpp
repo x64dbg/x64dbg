@@ -22,8 +22,45 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
 
 void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    toggleInt3BPAction();
-    Disassembly::mouseDoubleClickEvent(event);
+    switch(getColumnIndexFromX(event->x()))
+    {
+    case 0: //address
+    {
+        int_t mSelectedVa = rvaToVa(getInitialSelection());
+        if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
+            mRvaDisplayEnabled = false;
+        else
+        {
+            mRvaDisplayEnabled = true;
+            mRvaDisplayBase = mSelectedVa;
+            mRvaDisplayPageBase = getBase();
+        }
+        reloadData();
+    }
+    break;
+
+    case 1: //opcodes
+    {
+        toggleInt3BPAction(); //toggle INT3 breakpoint
+    }
+    break;
+
+    case 2: //disassembly
+    {
+        assembleAt();
+    }
+    break;
+
+    case 3: //comments
+    {
+        setComment();
+    }
+    break;
+
+    default:
+        Disassembly::mouseDoubleClickEvent(event);
+    break;
+    }
 }
 
 
@@ -98,18 +135,18 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                     {
                     case 0:
                         msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 1:
                         msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 2:
                         msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 3:
                         msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     default:
-                        break;
+                    break;
                     }
                 }
 
