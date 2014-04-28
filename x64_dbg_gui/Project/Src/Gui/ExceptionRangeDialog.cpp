@@ -27,6 +27,8 @@ void ExceptionRangeDialog::on_editStart_textChanged(const QString &arg1)
         ui->btnOk->setEnabled(false);
         return;
     }
+    if(ui->editStart->text()=="-1")
+        ui->editStart->setText("FFFFFFFF");
     bool converted=false;
     unsigned long start=ui->editStart->text().toUInt(&converted, 16);
     if(!converted)
@@ -49,6 +51,8 @@ void ExceptionRangeDialog::on_editEnd_textChanged(const QString &arg1)
         ui->btnOk->setEnabled(false);
         return;
     }
+    if(ui->editEnd->text()=="-1")
+        ui->editEnd->setText("FFFFFFFF");
     bool converted=false;
     unsigned long start=ui->editStart->text().toUInt(&converted, 16);
     if(!converted)

@@ -187,6 +187,13 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         mFollowMenu->actions().last()->setObjectName(QString("DUMP|")+QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         connect(mFollowMenu->actions().last(), SIGNAL(triggered()), this, SLOT(followActionSlot()));
 
+        wMenu->addSeparator();
+
+        //wMenu->addMenu(mSearchMenu);
+
+        mReferencesMenu->addAction(mReferenceSelectedAddress);
+        wMenu->addMenu(mReferencesMenu);
+
         QAction* wAction = wMenu->exec(event->globalPos());
     }
 }
@@ -267,6 +274,24 @@ void CPUDisassembly::setupRightClickContextMenu()
     //-------------------- Follow in Dump ----------------------------
     // Menu
     mFollowMenu = new QMenu("&Follow in Dump", this);
+
+    //-------------------- Find references to -----------------------
+    // Menu
+    mReferencesMenu = new QMenu("Find &references to", this);
+
+    // Selected address
+    mReferenceSelectedAddress = new QAction("&Selected address", this);
+    mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
+    mReferenceSelectedAddress->setShortcut(QKeySequence("ctrl+r"));
+    this->addAction(mReferenceSelectedAddress);
+    connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
+
+    //---------------------- Search for -----------------------------
+    // Menu
+    mSearchMenu = new QMenu("&Search for", this);
+
+    //
+
 
     //---------------------- Breakpoints -----------------------------
     // Menu
@@ -613,4 +638,11 @@ void CPUDisassembly::gotoPrevious()
 void CPUDisassembly::gotoNext()
 {
     historyNext();
+}
+
+void CPUDisassembly::findReferences()
+{
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
 }

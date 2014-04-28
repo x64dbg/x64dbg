@@ -28,17 +28,14 @@ public:
     QVBoxLayout* getBotLeftWidget(void);
     QVBoxLayout* getBotRightWidget(void);
 
-signals:
-
-public slots:
-    void runSelection();
-
-private:
-    Ui::CPUWidget *ui;
-    Disassembly* mDisas;
+public:
+    CPUDisassembly* mDisas;
     RegistersView* mGeneralRegs;
     InfoBox* mInfo;
     QTabWidget* mRegsTab;
+
+private:
+    Ui::CPUWidget *ui;
 };
 
 #endif // CPUWIDGET_H

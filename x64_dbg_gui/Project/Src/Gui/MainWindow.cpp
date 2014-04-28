@@ -119,7 +119,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actioneRun,SIGNAL(triggered()),this,SLOT(execeRun()));
     connect(ui->actioneRtr,SIGNAL(triggered()),this,SLOT(execeRtr()));
     connect(ui->actionScript,SIGNAL(triggered()),this,SLOT(displayScriptWidget()));
-    connect(ui->actionRunSelection,SIGNAL(triggered()),mCpuWidget,SLOT(runSelection()));
+    connect(ui->actionRunSelection,SIGNAL(triggered()),this,SLOT(runSelection()));
     connect(ui->actionCpu,SIGNAL(triggered()),this,SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo,SIGNAL(triggered()),this,SLOT(displaySymbolWidget()));
     connect(mSymbolView,SIGNAL(showCpu()),this,SLOT(displayCpuWidget()));
@@ -136,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int,QString)), this, SLOT(addMenuEntry(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
+    connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
@@ -529,7 +530,7 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 
 void MainWindow::findStrings()
 {
-    DbgCmdExec("strref");
+    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 
@@ -668,4 +669,13 @@ void MainWindow::menuEntrySlot()
         if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry)==1)
             DbgMenuEntryClicked(hEntry);
     }
+}
+
+void MainWindow::runSelection()
+{
+    if(!DbgIsDebugging())
+        return;
+    QString command = "bp " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper() + ", ss";
+    if(DbgCmdExecDirect(command.toUtf8().constData()))
+        DbgCmdExecDirect("run");
 }

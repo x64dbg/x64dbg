@@ -89,6 +89,8 @@ static void registercommands()
     cmdnew(cmd, "chd", cbInstrChd, false); //Change directory
     cmdnew(cmd, "disasm\1dis\1d", cbDebugDisasm, true); //doDisasm
     cmdnew(cmd, "HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
+    cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
+    cmdnew(cmd, "sdump", cbDebugStackDump, true); //dump at stack address
 
     //user database
     cmdnew(cmd, "cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -135,25 +137,20 @@ static void registercommands()
     cmdnew(cmd, "msg", cbScriptMsg, false);
     cmdnew(cmd, "msgyn", cbScriptMsgyn, false);
 
-    //undocumented
-    cmdnew(cmd, "bench", cbBenchmark, true); //benchmark test (readmem etc)
-
-    cmdnew(cmd, "memwrite", cbMemWrite, true); //memwrite test
-    cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
-
-    cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
-    cmdnew(cmd, "sdump", cbDebugStackDump, true); //dump at stack address
-    cmdnew(cmd, "dprintf", cbPrintf, false); //printf
-
-    cmdnew(cmd, "refinit", cbInstrRefinit, false);
-    cmdnew(cmd, "refadd", cbInstrRefadd, false);
+    //data
     cmdnew(cmd, "reffind\1findref\1ref", cbInstrRefFind, true);
     cmdnew(cmd, "refstr\1strref", cbInstrRefStr, true);
+    cmdnew(cmd, "find", cbInstrFind, true); //find a pattern
 
+    //undocumented
+    cmdnew(cmd, "bench", cbBenchmark, true); //benchmark test (readmem etc)
+    cmdnew(cmd, "memwrite", cbMemWrite, true); //memwrite test
+    cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
+    cmdnew(cmd, "dprintf", cbPrintf, false); //printf
+    cmdnew(cmd, "refinit", cbInstrRefinit, false);
+    cmdnew(cmd, "refadd", cbInstrRefadd, false);
     cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
     cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable
-
-    cmdnew(cmd, "find", cbInstrFind, true); //find a pattern
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

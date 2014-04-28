@@ -67,6 +67,7 @@ public slots:
     void addSeparator(int hMenu);
     void clearMenu(int hMenu);
     void menuEntrySlot();
+    void runSelection();
 
 private:
     Ui::MainWindow *ui;

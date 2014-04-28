@@ -30,6 +30,7 @@ public:
     void setHwBpAt(uint_t va, int slot);
     
 signals:
+    void displayReferencesWidget();
     
 public slots:
     void toggleInt3BPAction();
@@ -49,6 +50,7 @@ public slots:
     void followActionSlot();
     void gotoPrevious();
     void gotoNext();
+    void findReferences();
 
 private:
 
@@ -60,6 +62,8 @@ private:
     QMenu* mFollowMenu;
     QMenu* mBPMenu;
     QMenu* mHwSlotSelectMenu;
+    QMenu* mReferencesMenu;
+    QMenu* mSearchMenu;
 
     QAction* mToggleInt3BpAction;
     QAction* mSetHwBpAction;
@@ -78,6 +82,7 @@ private:
     QAction* mGotoExpression;
     QAction* mGotoPrevious;
     QAction* mGotoNext;
+    QAction* mReferenceSelectedAddress;
 };
 
 #endif // CPUDISASSEMBLY_H
