@@ -206,6 +206,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 ************************************************************************************/
 void CPUDisassembly::setupRightClickContextMenu()
 {
+    ///Setup menu actions
+
     // Labels
     mSetLabel = new QAction("Label", this);
     mSetLabel->setShortcutContext(Qt::WidgetShortcut);
@@ -240,6 +242,48 @@ void CPUDisassembly::setupRightClickContextMenu()
     mAssemble->setShortcut(QKeySequence("space"));
     this->addAction(mAssemble);
     connect(mAssemble, SIGNAL(triggered()), this, SLOT(assembleAt()));
+
+    //---------------------- Breakpoints -----------------------------
+    // Menu
+    mBPMenu = new QMenu("Breakpoint", this);
+
+    // Standard breakpoint (option set using SetBPXOption)
+    mToggleInt3BpAction = new QAction("Toggle", this);
+    mToggleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
+    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
+    this->addAction(mToggleInt3BpAction);
+    connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
+
+    // HW BP
+    mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
+
+    mSetHwBpAction = new QAction("Set Hardware on Execution", this);
+    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
+
+    mClearHwBpAction = new QAction("Remove Hardware", this);
+    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
+
+    msetHwBPOnSlot0Action = new QAction("Set Hardware on Execution on Slot 0 (Free)", this);
+    connect(msetHwBPOnSlot0Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot0ActionSlot()));
+
+    msetHwBPOnSlot1Action = new QAction("Set Hardware on Execution on Slot 1 (Free)", this);
+    connect(msetHwBPOnSlot1Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot1ActionSlot()));
+
+    msetHwBPOnSlot2Action = new QAction("Set Hardware on Execution on Slot 2 (Free)", this);
+    connect(msetHwBPOnSlot2Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot2ActionSlot()));
+
+    msetHwBPOnSlot3Action = new QAction("Set Hardware on Execution on Slot 3 (Free)", this);
+    connect(msetHwBPOnSlot3Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot3ActionSlot()));
+
+    //--------------------------------------------------------------------
+
+    //---------------------- New origin here -----------------------------
+    mSetNewOriginHere = new QAction("Set New Origin Here", this);
+    mSetNewOriginHere->setShortcutContext(Qt::WidgetShortcut);
+    mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
+    this->addAction(mSetNewOriginHere);
+    connect(mSetNewOriginHere, SIGNAL(triggered()), this, SLOT(setNewOriginHereActionSlot()));
+
 
     //---------------------- Go to -----------------------------------
     // Menu
@@ -299,45 +343,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     // String References
     mSearchStrings = new QAction("&String references", this);
     connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
-
-    //---------------------- Breakpoints -----------------------------
-    // Menu
-    mBPMenu = new QMenu("Breakpoint", this);
-
-    // Standard breakpoint (option set using SetBPXOption)
-    mToggleInt3BpAction = new QAction("Toggle", this);
-    mToggleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
-    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
-    this->addAction(mToggleInt3BpAction);
-    connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
-
-    // HW BP
-    mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
-
-    mSetHwBpAction = new QAction("Set Hardware on Execution", this);
-    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
-
-    mClearHwBpAction = new QAction("Remove Hardware", this);
-    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
-
-    msetHwBPOnSlot0Action = new QAction("Set Hardware on Execution on Slot 0 (Free)", this);
-    connect(msetHwBPOnSlot0Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot0ActionSlot()));
-
-    msetHwBPOnSlot1Action = new QAction("Set Hardware on Execution on Slot 1 (Free)", this);
-    connect(msetHwBPOnSlot1Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot1ActionSlot()));
-
-    msetHwBPOnSlot2Action = new QAction("Set Hardware on Execution on Slot 2 (Free)", this);
-    connect(msetHwBPOnSlot2Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot2ActionSlot()));
-
-    msetHwBPOnSlot3Action = new QAction("Set Hardware on Execution on Slot 3 (Free)", this);
-    connect(msetHwBPOnSlot3Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot3ActionSlot()));
-
-    //---------------------- New origin here -----------------------------
-    mSetNewOriginHere = new QAction("Set New Origin Here", this);
-    mSetNewOriginHere->setShortcutContext(Qt::WidgetShortcut);
-    mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
-    this->addAction(mSetNewOriginHere);
-    connect(mSetNewOriginHere, SIGNAL(triggered()), this, SLOT(setNewOriginHereActionSlot()));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -657,7 +662,7 @@ void CPUDisassembly::findReferences()
 void CPUDisassembly::findConstant()
 {
     WordEditDialog wordEdit(this);
-    wordEdit.setup("Constant", 0, sizeof(int_t));
+    wordEdit.setup("Enter Constant", 0, sizeof(int_t));
     if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
         return;
     QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();

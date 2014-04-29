@@ -57,9 +57,6 @@ public slots:
 
 private:
 
-    // Rigth Click Context Menu
-    QMenu* mRightClickContextMenu;
-
     // Menus
     QMenu* mGotoMenu;
     QMenu* mFollowMenu;
