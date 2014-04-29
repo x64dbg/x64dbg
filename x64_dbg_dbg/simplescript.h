@@ -3,31 +3,11 @@
 
 #include "command.h"
 
-//enums
-enum SCRIPTBRANCHTYPE
-{
-    scriptnobranch,
-    scriptjmp,
-    scriptjnejnz,
-    scriptjejz,
-    scriptjbjl,
-    scriptjajg,
-    scriptjbejle,
-    scriptjaejge,
-    scriptcall
-};
-
 //structures
 struct SCRIPTBP
 {
     int line;
     bool silent; //do not show in GUI
-};
-
-struct SCRIPTBRANCH
-{
-    SCRIPTBRANCHTYPE type;
-    char branchlabel[256];
 };
 
 struct LINEMAPENTRY
@@ -55,6 +35,7 @@ void scriptabort();
 SCRIPTLINETYPE scriptgetlinetype(int line);
 void scriptsetip(int line);
 void scriptreset();
+bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info);
 
 //script commands
 CMDRESULT cbScriptLoad(int argc, char* argv[]);

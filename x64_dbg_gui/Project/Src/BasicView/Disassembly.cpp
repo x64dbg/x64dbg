@@ -32,59 +32,12 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     setShowHeader(false); //hide header
 
+    backgroundColor=QColor("#FFFBF0"); //DisassemblyBackgroundColor
+
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
 }
-
-/************************************************************************************
-                            Private Functions
-************************************************************************************/
-
-void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText)
-{
-    int len=richText->size();
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-    for(int i=0; i<len; i++)
-    {
-        CustomRichText_t curRichText=richText->at(i);
-        int curRichTextLength=curRichText.text.length();
-        int backgroundWidth=charwidth*curRichTextLength;
-        if(backgroundWidth+xinc>w)
-            backgroundWidth=w-xinc;
-        if(backgroundWidth<=0) //stop drawing when going outside the specified width
-            break;
-        switch(curRichText.flags)
-        {
-        case FlagNone: //defaults
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            break;
-        case FlagColor: //color only
-            painter->save();
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagBackground: //background only
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagAll: //color+background
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        }
-        xinc+=charwidth*curRichTextLength;
-    }
-}
-
 
 /************************************************************************************
                             Reimplemented Functions
@@ -106,13 +59,12 @@ void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, i
  */
 QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    QString wStr = "";
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
     bool wIsSelected = isSelected(&mInstBuffer, rowOffset); // isSelected(rowBase, rowOffset);
 
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0"))); //DisassemblySelectionColor
 
     switch(col)
     {
@@ -120,7 +72,36 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     {
         char label[MAX_LABEL_SIZE]="";
         int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
-        QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        QString addrText="";
+        if(mRvaDisplayEnabled) //RVA display
+        {
+            int_t rva=cur_addr-mRvaDisplayBase;
+            if(rva == 0)
+            {
+#ifdef _WIN64
+                addrText="$ ==>            ";
+#else
+                addrText="$ ==>    ";
+#endif //_WIN64
+            }
+            else if(rva > 0)
+            {
+#ifdef _WIN64
+                addrText="$+"+QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText="$+"+QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+            else if(rva < 0)
+            {
+#ifdef _WIN64
+                addrText="$-"+QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText="$-"+QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+        }
+        addrText += QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE]="";
@@ -136,21 +117,21 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         painter->save();
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
+            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000"))); //DisassemblyCipColor
             if(!isbookmark)
             {
                 if(bpxtype&bp_normal) //breakpoint
                 {
-                    painter->setPen(QPen(QColor("#ff0000")));
+                    painter->setPen(QPen(QColor("#FF0000"))); //DisassemblyMainBpColor
                 }
                 else
                 {
-                    painter->setPen(QPen(QColor("#fffbf0")));
+                    painter->setPen(QPen(QColor("#FFFBF0"))); //DisassemblyOtherBpColor
                 }
             }
             else
             {
-                painter->setPen(QPen(QColor("#fee970")));
+                painter->setPen(QPen(QColor("#FEE970"))); //DisassemblyBookmarkColor
             }
         }
         else //other address
@@ -160,16 +141,16 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 if(*label) //label
                 {
                     if(bpxtype==bp_none) //label only
-                        painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
+                        painter->setPen(QPen(QColor("#FF0000"))); //red -> address + label text (DisassemblyMainLabelColor)
                     else //label+breakpoint
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //fill red (DisassemblyMainBpColor)
                         }
                         else
                         {
-                            painter->setPen(QPen(QColor("#000000"))); //black address
+                            painter->setPen(QPen(QColor("#000000"))); //black address (???)
                         }
                     }
                 }
@@ -178,33 +159,33 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     if(bpxtype==bp_none) //no label, no breakpoint
                     {
                         if(wIsSelected)
-                            painter->setPen(QPen(QColor("#000000"))); //black address
+                            painter->setPen(QPen(QColor("#000000"))); //black address (DisassemblySelectedAddressColor)
                         else
-                            painter->setPen(QPen(QColor("#808080")));
+                            painter->setPen(QPen(QColor("#808080"))); //DisassemblyAddressColor
                     }
                     else //breakpoint only
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //fill red (DisassemblyMainBpColor)
                         }
                         else
                         {
                             if(wIsSelected)
-                                painter->setPen(QPen(QColor("#000000"))); //black address
+                                painter->setPen(QPen(QColor("#000000"))); //black address (DisassemblySelectedAddressColor)
                             else
-                                painter->setPen(QPen(QColor("#808080")));
+                                painter->setPen(QPen(QColor("#808080"))); //DisassemblyAddressColor
                         }
                     }
                 }
             }
-            else
+            else //bookmark
             {
-                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#fee970")));
+                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FEE970"))); //DisassemblyBookmarkColor
                 if(wIsSelected)
-                    painter->setPen(QPen(QColor("#000000"))); //black address
+                    painter->setPen(QPen(QColor("#000000"))); //black address (DisassemblySelectedAddressColor)
                 else
-                    painter->setPen(QPen(QColor("#808080")));
+                    painter->setPen(QPen(QColor("#808080"))); //DisassemblyAddressColor
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
@@ -241,13 +222,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
+        painter->save();
+        painter->setPen(QColor("#000000")); //DisassemblyBytesColor
+        QString wBytes = "";
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
-            wStr += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
+            wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
 
-        painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wStr);
-
-        wStr = "";
-
+        painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wBytes);
+        painter->restore();
         break;
     }
 
@@ -286,7 +268,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         QList<CustomRichText_t> richText;
         BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
-        Disassembly::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText);
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
         break;
     }
 
@@ -294,9 +276,12 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     {
         char comment[MAX_COMMENT_SIZE]="";
         if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mBase, comment))
-            wStr=QString(comment);
-        else
-            wStr="";
+        {
+            painter->save();
+            painter->setPen(QColor("#000000")); //DisassemblyCommentColor
+            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
+            painter->restore();
+        }
     }
     break;
 
@@ -304,7 +289,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         break;
     }
 
-    return wStr;
+    return "";
 }
 
 
@@ -592,9 +577,9 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     painter->save() ;
 
     if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(QColor(255, 0, 0));
+        painter->setPen(QColor("#FF0000")); //DisassemblyJumpLineTrueColor
     else
-        painter->setPen(QColor(128, 128, 128));
+        painter->setPen(QColor("#808080")); //DisassemblyJumpLineFalseColor
 
     if(wPict == GD_Vert)
     {
@@ -1061,6 +1046,9 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     // Set base and size (Useful when memory page changed)
     mBase = wBase;
     mSize = wSize;
+
+    if(mRvaDisplayEnabled && mBase != mRvaDisplayPageBase)
+        mRvaDisplayEnabled = false;
 
     setRowCount(wSize);
 

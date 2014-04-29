@@ -13,7 +13,7 @@ RegistersView::RegistersView(QWidget *parent) : QWidget(parent), ui(new Ui::Regi
 
     // Set background color
     QPalette wPalette;
-    wPalette.setColor(QPalette::Window, QColor(255, 251, 240));
+    wPalette.setColor(QPalette::Window, QColor("#FFFBF0"));
     this->setAutoFillBackground(true);
     this->setPalette(wPalette);
 

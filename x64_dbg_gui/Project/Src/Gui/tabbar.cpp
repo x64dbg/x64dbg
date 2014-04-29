@@ -1,15 +1,11 @@
 // Qt includes
-#include <qapplication.h>
-#include <qevent.h>
-#include <qimage.h>
-#include <qlayout.h>
-#include <qpainter.h>
-#include <qpixmap.h>
-#include <qpaintdevice.h>
-#include <qtabbar.h>
-#include <qtabwidget.h>
-#include <qboxlayout.h>
-#include <qdrag>
+#include <QApplication>
+#include <QMouseEvent>
+#include <QImage>
+#include <QPainter>
+#include <QPixmap>
+#include <QPaintDevice>
+#include <QDrag>
 #include <QMimeData>
 
 #include "tabbar.h"
@@ -20,10 +16,10 @@
 //////////////////////////////////////////////////////////////
 MHTabBar::MHTabBar(QWidget *parent) : QTabBar(parent)
 {
-	setAcceptDrops(true);
-	setElideMode(Qt::ElideRight);
-	setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
-	setMovable(true);
+    setAcceptDrops(true);
+    setElideMode(Qt::ElideRight);
+    setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
+    setMovable(true);
 }
 
 //////////////////////////////////////////////////////////////
@@ -36,117 +32,118 @@ MHTabBar::~MHTabBar(void)
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton)
-		m_dragStartPos = event->pos();
+    if (event->button() == Qt::LeftButton)
+        m_dragStartPos = event->pos();
 
-	m_dragDropedPos.setX(0);
-	m_dragDropedPos.setY(0);
-	m_dragMovedPos.setX(0);
-	m_dragMovedPos.setY(0);
+    m_dragDroppedPos.setX(0);
+    m_dragDroppedPos.setY(0);
+    m_dragMovedPos.setX(0);
+    m_dragMovedPos.setY(0);
 
-	m_dragInitiated = false;
+    m_dragInitiated = false;
 
-	QTabBar::mousePressEvent(event);
+    QTabBar::mousePressEvent(event);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::mouseMoveEvent(QMouseEvent* event)
 {
-	// Distinguish a drag
-	if ( !m_dragStartPos.isNull () &&
-		 ((event->pos() - m_dragStartPos).manhattanLength() < QApplication::startDragDistance()) )
-	{
-		m_dragInitiated = true;
-	}
+    // Distinguish a drag
+    if ( !m_dragStartPos.isNull() &&
+         ((event->pos() - m_dragStartPos).manhattanLength() < QApplication::startDragDistance()) )
+    {
+        m_dragInitiated = true;
+    }
 
-	// The left button is pressed
-	// And the move could also be a drag
-	// And the mouse moved outside the tab bar
-	if ( ((event->buttons() & Qt::LeftButton)) &&
-		 m_dragInitiated &&
-		 (!geometry ().contains (event->pos ())))
-	{
-		// Stop the move to be able to convert to a drag
-		{
-			QMouseEvent finishMoveEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-			QTabBar::mouseMoveEvent(&finishMoveEvent);
-		}
+    // The left button is pressed
+    // And the move could also be a drag
+    // And the mouse moved outside the tab bar
+    if ((event->buttons() & Qt::LeftButton) && m_dragInitiated && !geometry().contains(event->pos()))
+    {
+        // Stop the move to be able to convert to a drag
+        {
+            QMouseEvent finishMoveEvent(QEvent::MouseMove, event->pos(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+            QTabBar::mouseMoveEvent(&finishMoveEvent);
+        }
 
-		// Initiate Drag
-		QDrag* drag = new QDrag(this);
-		QMimeData* mimeData = new QMimeData;
-		// a crude way to distinguish tab-reordering drops from other ones
-		mimeData->setData("action", "application/tab-detach");
-		drag->setMimeData(mimeData);
+        // A crude way to distinguish tab-reordering drops from other ones
+        QMimeData* mimeData = new QMimeData;
+        mimeData->setData("action", "application/tab-detach");
 
-		// Create transparent screen dump
-		QPixmap pixmap = QPixmap::grabWindow(dynamic_cast<MHTabWidget*>(parentWidget())->currentWidget()->winId()).scaled (640, 480, Qt::KeepAspectRatio);
-		QPixmap targetPixmap(pixmap.size());
+        // Initiate Drag
+        QDrag* drag = new QDrag(this);
+        drag->setMimeData(mimeData);
 
-		QPainter painter(&targetPixmap);
-		painter.setOpacity(0.5);
-		painter.drawPixmap(0, 0, pixmap);
-		painter.end();
+        // Create transparent screen dump
+        QPixmap pixmap = QPixmap::grabWindow(dynamic_cast<MHTabWidget*>(parentWidget())->currentWidget()->winId()).scaled(640, 480, Qt::KeepAspectRatio);
+        QPixmap targetPixmap(pixmap.size());
 
-		drag->setPixmap(targetPixmap);
+        QPainter painter(&targetPixmap);
+        painter.setOpacity(0.5);
+        painter.drawPixmap(0, 0, pixmap);
+        painter.end();
 
-		// Handle Detach and Move
-		Qt::DropAction dragged = drag->exec(Qt::MoveAction | Qt::CopyAction);
+        drag->setPixmap(targetPixmap);
 
-		if (dragged == Qt::IgnoreAction)
-		{
-			event->accept();
-			OnDetachTab(tabAt(m_dragStartPos), m_dragDropedPos);
-		}
-		else if (dragged == Qt::MoveAction)
-		{
-			if (!m_dragDropedPos.isNull())
-			{
-				event->accept();
-				OnMoveTab(tabAt(m_dragStartPos), tabAt(m_dragDropedPos));
-			}
-		}
+        // Handle Detach and Move
+        Qt::DropAction dragged = drag->exec(Qt::MoveAction | Qt::CopyAction);
 
-		delete drag;
-	}
-	else
-	{
-		QTabBar::mouseMoveEvent(event);
-	}
+        if (dragged == Qt::IgnoreAction)
+        {
+            event->accept();
+            OnDetachTab(tabAt(m_dragStartPos), QCursor::pos());
+        }
+        else if (dragged == Qt::MoveAction)
+        {
+            if (!m_dragDroppedPos.isNull())
+            {
+                event->accept();
+                OnMoveTab(tabAt(m_dragStartPos), tabAt(m_dragDroppedPos));
+            }
+        }
+
+        delete drag;
+    }
+    else
+    {
+        QTabBar::mouseMoveEvent(event);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::dragEnterEvent(QDragEnterEvent* event)
 {
-	// Only accept if it's an tab-reordering request
-	const QMimeData* m = event->mimeData();
+    // Only accept if it's an tab-reordering request (not a detach request)
+    const QMimeData* m = event->mimeData();
 
-	if (m->formats().contains("action") && (m->data("action") == "application/tab-detach"))
-		event->acceptProposedAction();
+    if (m->formats().contains("action") && (m->data("action") != "application/tab-detach"))
+    {
+        event->acceptProposedAction();
+    }
 
-	QTabBar::dragEnterEvent(event);
+    QTabBar::dragEnterEvent(event);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::dragMoveEvent(QDragMoveEvent* event)
 {
-	// Only accept if it's an tab-reordering request
-	const QMimeData* m = event->mimeData();
+    // Only accept if it's an tab-reordering request (not a detach request)
+    const QMimeData* m = event->mimeData();
 
-	if (m->formats().contains("action") && (m->data("action") == "application/tab-detach"))
-	{
-		m_dragMovedPos = event->pos();
-		event->acceptProposedAction();
-	}
+    if (m->formats().contains("action") && (m->data("action") != "application/tab-detach"))
+    {
+        m_dragMovedPos = event->pos();
+        event->acceptProposedAction();
+    }
 
-	QTabBar::dragMoveEvent(event);
+    QTabBar::dragMoveEvent(event);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 void MHTabBar::dropEvent(QDropEvent* event)
 {
-	// If a dragged Event is dropped within this widget it is not a drag but a move.
-	m_dragDropedPos = event->pos();
+    // If a dragged Event is dropped within this widget it is not a drag but a move.
+    m_dragDroppedPos = event->pos();
 
-	QTabBar::dropEvent(event);
+    QTabBar::dropEvent(event);
 }

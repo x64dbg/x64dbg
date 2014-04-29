@@ -17,6 +17,7 @@
 #include "ReferenceView.h"
 #include "ThreadView.h"
 #include "SettingsDialog.h"
+#include "tabwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -66,12 +67,13 @@ public slots:
     void addSeparator(int hMenu);
     void clearMenu(int hMenu);
     void menuEntrySlot();
+    void runSelection();
 
 private:
     Ui::MainWindow *ui;
 
     CommandLineEdit* mCmdLineEdit;
-    QTabWidget* mTabWidget;
+	MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     LogView* mLogView;

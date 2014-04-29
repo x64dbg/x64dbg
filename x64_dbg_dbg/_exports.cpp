@@ -607,6 +607,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     }
     break;
 
+    case DBG_SCRIPT_GETBRANCHINFO:
+    {
+        return (duint)scriptgetbranchinfo((int)(duint)param1, (SCRIPTBRANCH*)param2);
+    }
+    break;
+
     case DBG_SYMBOL_ENUM:
     {
         SYMBOLCBINFO* cbInfo=(SYMBOLCBINFO*)param1;
@@ -727,7 +733,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         int hEntry=(int)(uint)param1;
         pluginmenucall(hEntry);
     }
-    break;    
+    break;
     }
     return 0;
 }

@@ -19,6 +19,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
 
+    backgroundColor=QColor("#FFFBF0"); //AbstractTableViewBackgroundColor
 
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
@@ -75,7 +76,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     }
 
     // Paints background
-    wPainter.fillRect(wPainter.viewport(), QBrush(QColor(255, 251, 240)));
+    wPainter.fillRect(wPainter.viewport(), QBrush(backgroundColor));
 
     // Paints header
     if(mHeader.isVisible == true)
@@ -109,13 +110,14 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             //  Paints cell contents
             if(i < mNbrOfLineToPrint)
             {
-               QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
-               wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
+                if(wStr.length())
+                    wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
             }
 
             // Paints cell right borders
-            wPainter.save() ;
-            wPainter.setPen(QColor(128, 128, 128));
+            wPainter.save();
+            wPainter.setPen(QColor("#808080")); //AbstractTableViewSeparatorColor
             wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
             wPainter.restore();
 
@@ -143,118 +145,118 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
  */
 void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 {
-   // qDebug() << "mouseMoveEvent";
+    // qDebug() << "mouseMoveEvent";
 
     switch (mGuiState)
     {
-        case AbstractTableView::NoState:
+    case AbstractTableView::NoState:
+    {
+        //qDebug() << "State = NoState";
+
+        int wColIndex = getColumnIndexFromX(event->x());
+        int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
+        int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
+
+        if(event->buttons() == Qt::NoButton)
         {
-            //qDebug() << "State = NoState";
+            bool wHandle = true;
+            bool wHasCursor;
 
-            int wColIndex = getColumnIndexFromX(event->x());
-            int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
-            int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
+            wHasCursor = cursor().shape() == Qt::SplitHCursor ? true : false;
 
-            if(event->buttons() == Qt::NoButton)
+            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
             {
-                bool wHandle = true;
-                bool wHasCursor;
-
-                wHasCursor = cursor().shape() == Qt::SplitHCursor ? true : false;
-
-                if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
-                {
-                    wHandle = true;
-                }
-                else
-                {
-                    wHandle = false;
-                }
-
-                if((wHandle == true) && (wHasCursor == false))
-                {
-                    setCursor(Qt::SplitHCursor);
-                    mColResizeData.splitHandle = true;
-                    mGuiState = AbstractTableView::ReadyToResize;
-                }
-                if ((wHandle == false) && (wHasCursor == true))
-                {
-                    unsetCursor();
-                    mColResizeData.splitHandle = false;
-                    mGuiState = AbstractTableView::NoState;
-                }
+                wHandle = true;
             }
             else
             {
-                QWidget::mouseMoveEvent(event);
+                wHandle = false;
             }
-            break;
-        }
-        case AbstractTableView::ReadyToResize:
-        {
-            //qDebug() << "State = ReadyToResize";
 
-            int wColIndex = getColumnIndexFromX(event->x());
-            int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
-            int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
-
-            if(event->buttons() == Qt::NoButton)
+            if((wHandle == true) && (wHasCursor == false))
             {
-                bool wHandle = true;
-
-                if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
-                {
-                    wHandle = true;
-                }
-                else
-                {
-                    wHandle = false;
-                }
-
-                if ((wHandle == false) && (mGuiState == AbstractTableView::ReadyToResize))
-                {
-                    unsetCursor();
-                    mColResizeData.splitHandle = false;
-                    mGuiState = AbstractTableView::NoState;
-                }
+                setCursor(Qt::SplitHCursor);
+                mColResizeData.splitHandle = true;
+                mGuiState = AbstractTableView::ReadyToResize;
             }
-            break;
-        }
-        case AbstractTableView::ResizeColumnState:
-        {
-            //qDebug() << "State = ResizeColumnState";
-
-            int delta = event->x() - mColResizeData.lastPosX;
-
-            int wNewSize = ((getColumnWidth(mColResizeData.index) + delta) >= 20) ? (getColumnWidth(mColResizeData.index) + delta) : (20);
-
-            setColumnWidth(mColResizeData.index, wNewSize);
-
-            mColResizeData.lastPosX = event->x();
-
-            repaint();
-
-            break;
-        }
-        case AbstractTableView::HeaderButtonPressed:
-        {
-            //qDebug() << "State = HeaderButtonPressed";
-
-            int wColIndex = getColumnIndexFromX(event->x());
-
-            if((wColIndex == mHeader.activeButtonIndex) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
+            if ((wHandle == false) && (wHasCursor == true))
             {
-                mColumnList[mHeader.activeButtonIndex].header.isMouseOver = true;
+                unsetCursor();
+                mColResizeData.splitHandle = false;
+                mGuiState = AbstractTableView::NoState;
+            }
+        }
+        else
+        {
+            QWidget::mouseMoveEvent(event);
+        }
+        break;
+    }
+    case AbstractTableView::ReadyToResize:
+    {
+        //qDebug() << "State = ReadyToResize";
+
+        int wColIndex = getColumnIndexFromX(event->x());
+        int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
+        int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
+
+        if(event->buttons() == Qt::NoButton)
+        {
+            bool wHandle = true;
+
+            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
+            {
+                wHandle = true;
             }
             else
             {
-                mColumnList[mHeader.activeButtonIndex].header.isMouseOver = false;
+                wHandle = false;
             }
 
-            repaint();
+            if ((wHandle == false) && (mGuiState == AbstractTableView::ReadyToResize))
+            {
+                unsetCursor();
+                mColResizeData.splitHandle = false;
+                mGuiState = AbstractTableView::NoState;
+            }
         }
-        default:
-            break;
+        break;
+    }
+    case AbstractTableView::ResizeColumnState:
+    {
+        //qDebug() << "State = ResizeColumnState";
+
+        int delta = event->x() - mColResizeData.lastPosX;
+
+        int wNewSize = ((getColumnWidth(mColResizeData.index) + delta) >= 20) ? (getColumnWidth(mColResizeData.index) + delta) : (20);
+
+        setColumnWidth(mColResizeData.index, wNewSize);
+
+        mColResizeData.lastPosX = event->x();
+
+        repaint();
+
+        break;
+    }
+    case AbstractTableView::HeaderButtonPressed:
+    {
+        //qDebug() << "State = HeaderButtonPressed";
+
+        int wColIndex = getColumnIndexFromX(event->x());
+
+        if((wColIndex == mHeader.activeButtonIndex) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
+        {
+            mColumnList[mHeader.activeButtonIndex].header.isMouseOver = true;
+        }
+        else
+        {
+            mColumnList[mHeader.activeButtonIndex].header.isMouseOver = false;
+        }
+
+        repaint();
+    }
+    default:
+    break;
     }
 }
 
@@ -453,31 +455,31 @@ void AbstractTableView::vertSliderActionSlot(int action)
     // Determine the delta
     switch(action)
     {
-        case QAbstractSlider::SliderNoAction:
-            break;
-        case QAbstractSlider::SliderSingleStepAdd:
-            wDelta = 1;
-            break;
-        case QAbstractSlider::SliderSingleStepSub:
-            wDelta = -1;
-            break;
-        case QAbstractSlider::SliderPageStepAdd:
-            wDelta = 30;
-            break;
-        case QAbstractSlider::SliderPageStepSub:
-            wDelta = -30;
-            break;
-        case QAbstractSlider::SliderToMinimum:
-        case QAbstractSlider::SliderToMaximum:
-        case QAbstractSlider::SliderMove:
+    case QAbstractSlider::SliderNoAction:
+    break;
+    case QAbstractSlider::SliderSingleStepAdd:
+        wDelta = 1;
+    break;
+    case QAbstractSlider::SliderSingleStepSub:
+        wDelta = -1;
+    break;
+    case QAbstractSlider::SliderPageStepAdd:
+        wDelta = 30;
+    break;
+    case QAbstractSlider::SliderPageStepSub:
+        wDelta = -30;
+    break;
+    case QAbstractSlider::SliderToMinimum:
+    case QAbstractSlider::SliderToMaximum:
+    case QAbstractSlider::SliderMove:
 #ifdef _WIN64
-            wDelta = scaleFromScrollBarRangeToUint64(wSliderPos) - mTableOffset;
+        wDelta = scaleFromScrollBarRangeToUint64(wSliderPos) - mTableOffset;
 #else
-            wDelta = wSliderPos - mTableOffset;
+        wDelta = wSliderPos - mTableOffset;
 #endif
-            break;
-        default:
-            break;
+    break;
+    default:
+    break;
     }
 
     // Call the hook (Usefull for disassembly)
@@ -782,9 +784,9 @@ void AbstractTableView::setColTitle(int index, QString title)
 {
     if(mColumnList.size() > 0 && index >= 0 && index < mColumnList.size())
     {
-       Column_t wColum = mColumnList.takeAt(index);
-       wColum.title = title;
-       mColumnList.insert(index - 1, wColum);
+        Column_t wColum = mColumnList.takeAt(index);
+        wColum.title = title;
+        mColumnList.insert(index - 1, wColum);
     }
 }
 

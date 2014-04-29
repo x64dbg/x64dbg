@@ -49,9 +49,19 @@ static int scriptlabelfind(const char* labelname)
     return 0;
 }
 
+static int scriptinternalstep(int fromIp) //internal step routine
+{
+    int maxIp=linemap.size(); //maximum ip
+    if(fromIp>=maxIp) //script end
+        return fromIp;
+    while((linemap.at(fromIp).type==lineempty or linemap.at(fromIp).type==linecomment or linemap.at(fromIp).type==linelabel) and fromIp<maxIp) //skip empty lines
+        fromIp++;
+    fromIp++;
+    return fromIp;
+}
+
 static bool scriptcreatelinemap(const char* filename)
 {
-    DWORD ticks=GetTickCount();
     HANDLE hFile=CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile==INVALID_HANDLE_VALUE)
     {
@@ -80,7 +90,10 @@ static bool scriptcreatelinemap(const char* filename)
         if(filedata[i]=='\r' and filedata[i+1]=='\n') //windows file
         {
             memset(&entry, 0, sizeof(entry));
-            strcpy(entry.raw, temp);
+            int add=0;
+            while(temp[add]==' ')
+                add++;
+            strcpy(entry.raw, temp+add);
             *temp=0;
             j=0;
             i++;
@@ -89,7 +102,10 @@ static bool scriptcreatelinemap(const char* filename)
         else if(filedata[i]=='\n') //other file
         {
             memset(&entry, 0, sizeof(entry));
-            strcpy(entry.raw, temp);
+            int add=0;
+            while(temp[add]==' ')
+                add++;
+            strcpy(entry.raw, temp+add);
             *temp=0;
             j=0;
             linemap.push_back(entry);
@@ -97,7 +113,10 @@ static bool scriptcreatelinemap(const char* filename)
         else if(j>=254)
         {
             memset(&entry, 0, sizeof(entry));
-            strcpy(entry.raw, temp);
+            int add=0;
+            while(temp[add]==' ')
+                add++;
+            strcpy(entry.raw, temp+add);
             *temp=0;
             j=0;
             linemap.push_back(entry);
@@ -113,7 +132,7 @@ static bool scriptcreatelinemap(const char* filename)
     }
     efree(filedata, "createlinemap:filedata");
     unsigned int linemapsize=linemap.size();
-    while(!*linemap.at(linemapsize-1).raw) //remove empty lines
+    while(!*linemap.at(linemapsize-1).raw) //remove empty lines from the end
     {
         linemapsize--;
         linemap.pop_back();
@@ -121,6 +140,24 @@ static bool scriptcreatelinemap(const char* filename)
     for(unsigned int i=0; i<linemapsize; i++)
     {
         LINEMAPENTRY cur=linemap.at(i);
+
+        //temp. remove comments from the raw line
+        char line_comment[256]="";
+        char* comment=strstr(&cur.raw[0], "//");
+        if(comment && comment!=cur.raw) //only when the line doesnt start with a comment
+        {
+            if(*(comment-1)==' ') //space before comment
+            {
+                strcpy(line_comment, comment);
+                *(comment-1)='\0';
+            }
+            else //no space before comment
+            {
+                strcpy(line_comment, comment);
+                *comment=0;                
+            }
+        }
+
         int rawlen=strlen(cur.raw);
         if(!strlen(cur.raw)) //empty
         {
@@ -173,25 +210,30 @@ static bool scriptcreatelinemap(const char* filename)
         else
         {
             cur.type=linecommand;
-            const char* comment=strstr(cur.raw, "//"); //find comment
-            if(comment)
-                strncpy(cur.u.command, cur.raw, comment-cur.raw);
-            else
-                strcpy(cur.u.command, cur.raw);
+            strcpy(cur.u.command, cur.raw);
         }
+
+        //append the comment to the raw line again
+        if(*line_comment)
+            sprintf(cur.raw+rawlen, " %s", line_comment);
         linemap.at(i)=cur;
     }
     linemapsize=linemap.size();
     for(unsigned int i=0; i<linemapsize; i++)
     {
-        LINEMAPENTRY cur=linemap.at(i);
-        if(cur.type==linebranch and !scriptlabelfind(cur.u.branch.branchlabel)) //invalid branch label
+        if(linemap.at(i).type==linebranch) //invalid branch label
         {
-            char message[256]="";
-            sprintf(message, "Invalid branch label \"%s\" detected on line %d!", cur.u.branch.branchlabel, i+1);
-            GuiScriptError(0, message);
-            std::vector<LINEMAPENTRY>().swap(linemap);
-            return false;
+            int labelline=scriptlabelfind(linemap.at(i).u.branch.branchlabel);
+            if(!labelline) //invalid branch label
+            {
+                char message[256]="";
+                sprintf(message, "Invalid branch label \"%s\" detected on line %d!", linemap.at(i).u.branch.branchlabel, i+1);
+                GuiScriptError(0, message);
+                std::vector<LINEMAPENTRY>().swap(linemap);
+                return false;
+            }
+            else //set the branch destination line
+                linemap.at(i).u.branch.dest=scriptinternalstep(labelline);
         }
     }
     if(linemap.at(linemapsize-1).type==linecomment or linemap.at(linemapsize-1).type==linelabel) //label/comment on the end
@@ -202,19 +244,7 @@ static bool scriptcreatelinemap(const char* filename)
         strcpy(entry.u.command, "ret");
         linemap.push_back(entry);
     }
-    dprintf("%ums to parse the script\n", GetTickCount()-ticks);
     return true;
-}
-
-static int scriptinternalstep(int fromIp) //internal step routine
-{
-    int maxIp=linemap.size(); //maximum ip
-    if(fromIp>=maxIp) //script end
-        return fromIp;
-    while((linemap.at(fromIp).type==lineempty or linemap.at(fromIp).type==linecomment or linemap.at(fromIp).type==linelabel) and fromIp<maxIp) //skip empty lines
-        fromIp++;
-    fromIp++;
-    return fromIp;
 }
 
 static bool scriptinternalbpget(int line) //internal bpget routine
@@ -304,6 +334,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_ERROR;
     else if(scriptisinternalcommand(cmd, "pause")) //pause the script
         return STATUS_PAUSE;
+    else if(scriptisinternalcommand(cmd, "nop")) //do nothing
+        return STATUS_CONTINUE;
     char command[deflen]="";
     strcpy(command, cmd);
     argformat(command);
@@ -589,6 +621,16 @@ void scriptreset()
     }
     Sleep(10);
     scriptsetip(0);
+}
+
+bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
+{
+    if(!info or !line or line>(int)linemap.size()) //invalid line
+        return false;
+    if(linemap.at(line-1).type!=linebranch) //no branch
+        return false;
+    memcpy(info, &linemap.at(line-1).u.branch, sizeof(SCRIPTBRANCH));
+    return true;
 }
 
 CMDRESULT cbScriptLoad(int argc, char* argv[])

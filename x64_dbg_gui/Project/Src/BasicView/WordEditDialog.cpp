@@ -8,7 +8,6 @@ WordEditDialog::WordEditDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Wo
     setModal(true);
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
 
-
     mWord = 0;
 
     connect(ui->expressionLineEdit, SIGNAL(textChanged(const QString)), this, SLOT(expressionChanged(QString)));
@@ -37,8 +36,6 @@ void WordEditDialog::expressionChanged(QString s)
     }
 }
 
-
-
 void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
 {
     this->setWindowTitle(title);
@@ -50,7 +47,6 @@ void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
     ui->expressionLineEdit->selectAll();
     ui->expressionLineEdit->setFocus();
 }
-
 
 uint_t WordEditDialog::getVal()
 {

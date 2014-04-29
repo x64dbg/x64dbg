@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QMenu>
+#include "WordEditDialog.h"
 
 class CPUDisassembly : public Disassembly
 {
@@ -22,6 +23,7 @@ public:
     // Mouse Management
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
     // Context Menu Management
     void setupRightClickContextMenu();
@@ -29,6 +31,7 @@ public:
     void setHwBpAt(uint_t va, int slot);
     
 signals:
+    void displayReferencesWidget();
     
 public slots:
     void toggleInt3BPAction();
@@ -48,6 +51,9 @@ public slots:
     void followActionSlot();
     void gotoPrevious();
     void gotoNext();
+    void findReferences();
+    void findConstant();
+    void findStrings();
 
 private:
 
@@ -59,6 +65,8 @@ private:
     QMenu* mFollowMenu;
     QMenu* mBPMenu;
     QMenu* mHwSlotSelectMenu;
+    QMenu* mReferencesMenu;
+    QMenu* mSearchMenu;
 
     QAction* mToggleInt3BpAction;
     QAction* mSetHwBpAction;
@@ -77,6 +85,9 @@ private:
     QAction* mGotoExpression;
     QAction* mGotoPrevious;
     QAction* mGotoNext;
+    QAction* mReferenceSelectedAddress;
+    QAction* mSearchConstant;
+    QAction* mSearchStrings;
 };
 
 #endif // CPUDISASSEMBLY_H

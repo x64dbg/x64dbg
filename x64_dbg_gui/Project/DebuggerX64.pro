@@ -60,8 +60,9 @@ SOURCES += \
     Src/BasicView/ThreadView.cpp \
     Src/Gui/SettingsDialog.cpp \
     Src/Gui/ExceptionRangeDialog.cpp \
-    Src/Gui/tabbar.cpp \
-    Src/Gui/tabwidget.cpp
+    Src/BasicView/RichTextPainter.cpp \
+    Src/Gui/TabBar.cpp \
+    Src/Gui/TabWidget.cpp
 
 
 HEADERS += \
@@ -102,8 +103,10 @@ HEADERS += \
     Src/BasicView/ThreadView.h \
     Src/Gui/SettingsDialog.h \
     Src/Gui/ExceptionRangeDialog.h \
-    Src/Gui/tabbar.h \
-    Src/Gui/tabwidget.h
+    Src/BasicView/RichTextPainter.h \
+    Src/Gui/TabBar.h \
+    Src/Gui/TabWidget.h
+
 
 INCLUDEPATH += \
     Src \

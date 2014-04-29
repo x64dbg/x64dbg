@@ -20,6 +20,7 @@ public:
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
+    void keyPressEvent(QKeyEvent* event);
 
 public slots:
     void add(int count, const char** lines);
@@ -43,6 +44,8 @@ public slots:
 private:
     //private functions
     void setupContextMenu();
+    void setSelection(int line);
+    bool isScriptCommand(QString text, QString cmd);
 
     //private variables
     int mIpLine;

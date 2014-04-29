@@ -20,6 +20,49 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         Disassembly::mousePressEvent(event);
 }
 
+void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    switch(getColumnIndexFromX(event->x()))
+    {
+    case 0: //address
+    {
+        int_t mSelectedVa = rvaToVa(getInitialSelection());
+        if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
+            mRvaDisplayEnabled = false;
+        else
+        {
+            mRvaDisplayEnabled = true;
+            mRvaDisplayBase = mSelectedVa;
+            mRvaDisplayPageBase = getBase();
+        }
+        reloadData();
+    }
+    break;
+
+    case 1: //opcodes
+    {
+        toggleInt3BPAction(); //toggle INT3 breakpoint
+    }
+    break;
+
+    case 2: //disassembly
+    {
+        assembleAt();
+    }
+    break;
+
+    case 3: //comments
+    {
+        setComment();
+    }
+    break;
+
+    default:
+        Disassembly::mouseDoubleClickEvent(event);
+    break;
+    }
+}
+
 
 /************************************************************************************
                             Mouse Management
@@ -92,18 +135,18 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                     {
                     case 0:
                         msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 1:
                         msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 2:
                         msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     case 3:
                         msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
+                    break;
                     default:
-                        break;
+                    break;
                     }
                 }
 
@@ -143,6 +186,15 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         mFollowMenu->addAction(new QAction("&Selection", this));
         mFollowMenu->actions().last()->setObjectName(QString("DUMP|")+QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         connect(mFollowMenu->actions().last(), SIGNAL(triggered()), this, SLOT(followActionSlot()));
+
+        wMenu->addSeparator();
+
+        mSearchMenu->addAction(mSearchConstant);
+        mSearchMenu->addAction(mSearchStrings);
+        wMenu->addMenu(mSearchMenu);
+
+        mReferencesMenu->addAction(mReferenceSelectedAddress);
+        wMenu->addMenu(mReferencesMenu);
 
         QAction* wAction = wMenu->exec(event->globalPos());
     }
@@ -224,6 +276,29 @@ void CPUDisassembly::setupRightClickContextMenu()
     //-------------------- Follow in Dump ----------------------------
     // Menu
     mFollowMenu = new QMenu("&Follow in Dump", this);
+
+    //-------------------- Find references to -----------------------
+    // Menu
+    mReferencesMenu = new QMenu("Find &references to", this);
+
+    // Selected address
+    mReferenceSelectedAddress = new QAction("&Selected address", this);
+    mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
+    mReferenceSelectedAddress->setShortcut(QKeySequence("ctrl+r"));
+    this->addAction(mReferenceSelectedAddress);
+    connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
+
+    //---------------------- Search for -----------------------------
+    // Menu
+    mSearchMenu = new QMenu("&Search for", this);
+
+    // Constant
+    mSearchConstant = new QAction("&Constant", this);
+    connect(mSearchConstant, SIGNAL(triggered()), this, SLOT(findConstant()));
+
+    // String References
+    mSearchStrings = new QAction("&String references", this);
+    connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
 
     //---------------------- Breakpoints -----------------------------
     // Menu
@@ -570,4 +645,30 @@ void CPUDisassembly::gotoPrevious()
 void CPUDisassembly::gotoNext()
 {
     historyNext();
+}
+
+void CPUDisassembly::findReferences()
+{
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findConstant()
+{
+    WordEditDialog wordEdit(this);
+    wordEdit.setup("Constant", 0, sizeof(int_t));
+    if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
+        return;
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString constText=QString("%1").arg(wordEdit.getVal(), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findref " + constText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findStrings()
+{
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
 }

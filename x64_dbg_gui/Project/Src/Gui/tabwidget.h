@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QTabWidget>
 #include <QMainWindow>
+#include <QMoveEvent>
 
 // Qt forward class definitions
 class MHTabBar;
@@ -16,26 +17,36 @@ class MHTabBar;
 //////////////////////////////////////////////////////////////////////////////
 class MHTabWidget: public QTabWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	MHTabWidget(QWidget *parent);
-	virtual ~MHTabWidget(void);
+    MHTabWidget(QWidget *parent);
+    virtual ~MHTabWidget(void);
+    QTabBar* tabBar();
 
 public slots:
-	// Move Tab
-	void MoveTab(int fromIndex, int toIndex);
+    int count() const;
+    QWidget *widget(int index) const;
 
-	// Detach Tab
-	void DetachTab(int index, QPoint&);
+    // Move Tab
+    void MoveTab(int fromIndex, int toIndex);
 
-	// Attach Tab
-	void AttachTab(QWidget *parent);
+    // Detach Tab
+    void DetachTab(int index, QPoint&);
+
+    // Attach Tab
+    void AttachTab(QWidget *parent);
+
+public Q_SLOTS:
+    void setCurrentIndex(int index);
+    void setCurrentWidget(QWidget *widget);
 
 protected:
 
 private:
-	MHTabBar* m_tabBar;
+    MHTabBar* m_tabBar;
+
+    QList<QWidget*> m_Windows;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -47,16 +58,19 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 class MHDetachedWindow : public QMainWindow
 {
-  Q_OBJECT
+	Q_OBJECT
 public:
-  MHDetachedWindow(QWidget *parent = 0);
-  ~MHDetachedWindow(void);
+    MHDetachedWindow(QWidget *parent = 0, MHTabWidget *tabwidget = 0);
+    ~MHDetachedWindow(void);
 
 protected:
-  void closeEvent(QCloseEvent *event);
+    MHTabWidget *m_TabWidget;
+
+    virtual void moveEvent(QMoveEvent *event);
+    void closeEvent(QCloseEvent *event);
 
 signals:
-  void OnClose (QWidget* widget);
+    void OnClose(QWidget* widget);
 };
 
 #endif // __MHTABWIDGET_H__

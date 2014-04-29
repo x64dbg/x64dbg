@@ -201,7 +201,7 @@ QString ThreadView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     {
         painter->save();
         painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
-        painter->setPen(QPen(QColor("#ffffff"))); //white text
+        painter->setPen(QPen(QColor("#FFFFFF"))); //white text
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, ret);
         painter->restore();
         ret="";
