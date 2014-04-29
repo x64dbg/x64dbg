@@ -189,7 +189,9 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         wMenu->addSeparator();
 
-        //wMenu->addMenu(mSearchMenu);
+        mSearchMenu->addAction(mSearchConstant);
+        mSearchMenu->addAction(mSearchStrings);
+        wMenu->addMenu(mSearchMenu);
 
         mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
@@ -290,8 +292,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Menu
     mSearchMenu = new QMenu("&Search for", this);
 
-    //
+    // Constant
+    mSearchConstant = new QAction("&Constant", this);
+    connect(mSearchConstant, SIGNAL(triggered()), this, SLOT(findConstant()));
 
+    // String References
+    mSearchStrings = new QAction("&String references", this);
+    connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
 
     //---------------------- Breakpoints -----------------------------
     // Menu
@@ -644,5 +651,24 @@ void CPUDisassembly::findReferences()
 {
     QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findConstant()
+{
+    WordEditDialog wordEdit(this);
+    wordEdit.setup("Constant", 0, sizeof(int_t));
+    if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
+        return;
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString constText=QString("%1").arg(wordEdit.getVal(), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findref " + constText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findStrings()
+{
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }

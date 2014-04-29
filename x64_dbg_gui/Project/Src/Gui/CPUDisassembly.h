@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QMenu>
+#include "WordEditDialog.h"
 
 class CPUDisassembly : public Disassembly
 {
@@ -51,6 +52,8 @@ public slots:
     void gotoPrevious();
     void gotoNext();
     void findReferences();
+    void findConstant();
+    void findStrings();
 
 private:
 
@@ -83,6 +86,8 @@ private:
     QAction* mGotoPrevious;
     QAction* mGotoNext;
     QAction* mReferenceSelectedAddress;
+    QAction* mSearchConstant;
+    QAction* mSearchStrings;
 };
 
 #endif // CPUDISASSEMBLY_H

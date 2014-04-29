@@ -494,7 +494,7 @@
     <string>&amp;Find Strings</string>
    </property>
    <property name="toolTip">
-    <string>&amp;Find Strings</string>
+    <string>Find Strings</string>
    </property>
   </action>
  </widget>
