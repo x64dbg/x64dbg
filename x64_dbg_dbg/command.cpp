@@ -1,5 +1,6 @@
 #include "command.h"
 #include "argument.h"
+#include "value.h"
 #include "console.h"
 #include "debugger.h"
 #include "math.h"
@@ -195,11 +196,20 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 /*
 - custom command formatting rules
 */
+
+static bool isvalidexpression(const char* expression)
+{
+    uint value;
+    return valfromstring(expression, &value);
+}
+
 static void specialformat(char* string)
 {
     int len=strlen(string);
     char* found=strstr(string, "=");
     char* str=(char*)emalloc(len*2, "specialformat:str");
+    char* backup=(char*)emalloc(len+1, "specialformat:backup");
+    strcpy(backup, string); //create a backup of the string
     memset(str, 0, len*2);
     if(found) //contains =
     {
@@ -210,6 +220,7 @@ static void specialformat(char* string)
         {
             *found='=';
             efree(str, "specialformat:str");
+            efree(backup, "specialformat:backup");
             return;
         }
         int flen=strlen(found); //n(+)=n++
@@ -224,20 +235,32 @@ static void specialformat(char* string)
         {
             char op=*a;
             *a=0;
-            sprintf(str, "mov %s,%s%c%s", string, string, op, found);
+            if(isvalidexpression(string))
+                sprintf(str, "mov %s,%s%c%s", string, string, op, found);
+            else
+                strcpy(str, backup);
         }
         else
-            sprintf(str, "mov %s,%s", string, found);
+        {
+            if(isvalidexpression(string) && isvalidexpression(found))
+                sprintf(str, "mov %s,%s", string, found);
+            else
+                strcpy(str, backup);
+        }
         strcpy(string, str);
     }
     else if((string[len-1]=='+' and string[len-2]=='+') or (string[len-1]=='-' and string[len-2]=='-')) //eax++/eax--
     {
         string[len-2]=0;
         char op=string[len-1];
-        sprintf(str, "mov %s,%s%c1", string, string, op);
+        if(isvalidexpression(string))
+            sprintf(str, "mov %s,%s%c1", string, string, op);
+        else
+            strcpy(str, backup);
         strcpy(string, str);
     }
     efree(str, "specialformat:str");
+    efree(backup, "specialformat:backup");
 }
 
 /*
