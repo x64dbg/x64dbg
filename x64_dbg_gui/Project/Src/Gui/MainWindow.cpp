@@ -93,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Status bar
     mStatusLabel=new StatusLabel(ui->statusBar);
-    mStatusLabel->setText("<font color='#ff0000'>Terminated</font>");
+    mStatusLabel->setText("Ready");
     ui->statusBar->addWidget(mStatusLabel);
     mLastLogLabel=new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
