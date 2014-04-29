@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "../stdafx.h"
 
 /*--
 
@@ -12,6 +12,11 @@ Does not rely on any caching and should always be up to date.
 --*/
 
 ULONG64 cache = 0;
+
+// See: enum.cpp
+bool DriverEnum	(ULONG64 ModuleEntry, PVOID Callback);
+bool ProcessEnum(ULONG64 ProcessEntry, PVOID Callback);
+bool ThreadEnum	(ULONG64 EThread, PVOID Callback);
 
 ULONG64 NtKdCurrrentProcess()
 {
@@ -45,44 +50,17 @@ ULONG64 NtKdKernelBase()
 
 bool NtKdEnumerateDrivers(KdEnumCallback Callback)
 {
-	auto Enum = [](ULONG64 ModuleEntry, PVOID Callback)
-	{
-		// Adjust to the CONTAINING_RECORD (base of struct)
-		ModuleEntry -= KdFields["_LDR_DATA_TABLE_ENTRY"]["InLoadOrderLinks"];
-
-		// _LDR_DATA_TABLE_ENTRY
-		return ((KdEnumCallback)Callback)(ModuleEntry);
-	};
-
-	return KdWalkListEntry(KdSymbols["nt"]["PsLoadedModuleList"], Callback, Enum);
+	return KdWalkListEntry(KdSymbols["nt"]["PsLoadedModuleList"], Callback, DriverEnum);
 }
 
 bool NtKdEnumerateProcesses(KdEnumCallback Callback)
 {
-	auto Enum = [](ULONG64 ProcessEntry, PVOID Callback)
-	{
-		// Adjust to the CONTAINING_RECORD (base of struct)
-		ProcessEntry -= KdFields["_EPROCESS"]["ActiveProcessLinks"];
-
-		// _EPROCESS
-		return ((KdEnumCallback)Callback)(ProcessEntry);
-	};
-
-	return KdWalkListEntry(KdSymbols["nt"]["PsActiveProcessHead"], Callback, Enum);
+	return KdWalkListEntry(KdSymbols["nt"]["PsActiveProcessHead"], Callback, ProcessEnum);
 }
 
 bool NtKdEnumerateProcessThreads(ULONG64 EProcess, KdEnumCallback Callback)
 {
-	auto Enum = [](ULONG64 EThread, PVOID Callback)
-	{
-		// Adjust to the CONTAINING_RECORD (base of struct)
-		EThread -= KdFields["_ETHREAD"]["ThreadListEntry"];
-
-		// _ETHREAD
-		return ((KdEnumCallback)Callback)(EThread);
-	};
-
-	return KdWalkListEntry(EProcess + KdFields["_EPROCESS"]["ThreadListHead"], Callback, Enum);
+	return KdWalkListEntry(EProcess + KdFields["_EPROCESS"]["ThreadListHead"], Callback, ThreadEnum);
 }
 
 bool NtKdEnumerateProcessVads(ULONG64 EProcess, KdEnumCallback Callback)

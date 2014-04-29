@@ -31,7 +31,8 @@
     <ClCompile Include="kd\mem\kdpool.cpp" />
     <ClCompile Include="kd\mem\kdvad.cpp" />
     <ClCompile Include="kd\module\kddriver.cpp" />
-    <ClCompile Include="kd\nt.cpp" />
+    <ClCompile Include="kd\nt\enum.cpp" />
+    <ClCompile Include="kd\nt\nt.cpp" />
     <ClCompile Include="kd\opemu.cpp" />
     <ClCompile Include="kd\PatchGuard.cpp" />
     <ClCompile Include="kd\processor\kdkprcb.cpp" />
@@ -94,7 +95,8 @@
     <ClInclude Include="kd\mem\stdafx.h" />
     <ClInclude Include="kd\module\kddriver.h" />
     <ClInclude Include="kd\module\stdafx.h" />
-    <ClInclude Include="kd\nt.h" />
+    <ClInclude Include="kd\nt\nt.h" />
+    <ClInclude Include="kd\nt\stdafx.h" />
     <ClInclude Include="kd\opemu.h" />
     <ClInclude Include="kd\PatchGuard.h" />
     <ClInclude Include="kd\processor\kdkprcb.h" />

@@ -155,7 +155,8 @@ STDMETHODIMP EventCallbacks::SessionStatus(THIS_ ULONG Status)
 	case DEBUG_SESSION_REBOOT:
 	case DEBUG_SESSION_HIBERNATE:
 	case DEBUG_SESSION_FAILURE:
-		// TODO: End
+		KdState.m_ExitSignal = true;
+		KdState.DebugControl2->SetInterrupt(DEBUG_INTERRUPT_EXIT);
 		break;
 	}
 

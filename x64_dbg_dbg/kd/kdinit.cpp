@@ -206,7 +206,7 @@ DWORD WINAPI KdDebugLoop(LPVOID lpArg)
 
 	ULONG LastState = 0;
 	// Actual debugging loop
-	while (true)
+	while (!KdState.m_ExitSignal)
 	{
 		ULONG ExecStatus = 0;
 
@@ -353,7 +353,6 @@ struct LDR_DATA_TABLE_ENTRY
 	WORD TlsIndex;
 };
 
-int sys = 0;
 bool KdLoadSymbols()
 {
 #define MAKESYM(base, sym)		ULONG64 __z ##sym; if (KdFindSymbol(#base "!" #sym, &__z ##sym)) KdSymbols.Set(#base, #sym, __z ##sym); else return false;
@@ -458,85 +457,14 @@ bool KdLoadSymbols()
 	if (!PatchGuardLoadSymbols())
 		dprintf("Failed to load PatchGuard symbols\n");
 
-	// Update the initial driver list
-	auto DriverEnum = [](ULONG64 addr)
-	{
-		// Read the loader entry
-		LDR_DATA_TABLE_ENTRY ldr;
-		if (!KdMemRead(addr, &ldr, sizeof(ldr), nullptr))
-			return false;
-
-		// Read the base file names
-		wchar_t dllNameW[MAX_PATH];
-		memset(dllNameW, 0, sizeof(dllNameW));
-
-		if (!KdMemRead(ldr.BaseDllName.Buffer, &dllNameW, ldr.BaseDllName.Length, nullptr))
-			return false;
-
-		// Unicode to multi-byte
-		char dllNameA[MAX_PATH];
-		memset(dllNameA, 0, sizeof(dllNameA));
-
-		wcstombs(dllNameA, dllNameW, MAX_PATH);
-
-		// Notify the handler
-		KdDriverLoad(dllNameA, ldr.DllBase, ldr.SizeOfImage);
-		return true;
-	};
-
-	if (!NtKdEnumerateDrivers(DriverEnum))
+	//
+	// Process and driver lists
+	//
+	if (!NtKdEnumerateDrivers(KdInitialDriverEnum))
 		dprintf("Failed to enumerate initial list of drivers\n");
 
-	// Update the initial process list
-	auto ProcessEnum = [](ULONG64 EProcess)
-	{
-		char temp[64];
-		memset(&temp, 0, sizeof(temp));
-
-		ULONG64 peb = 0;
-
-		KdState.DebugDataSpaces2->ReadVirtual(EProcess + KdFields["_EPROCESS"]["ImageFileName"], &temp, sizeof(temp), nullptr);
-		KdState.DebugDataSpaces2->ReadVirtual(EProcess + KdFields["_EPROCESS"]["Peb"], &peb, sizeof(peb), nullptr);
-
-		dprintf("Process: %s\t\t0x%08llX\n", temp, peb);
-
-		auto vads = [](ULONG64 Node)
-		{
-			dprintf("VAD Node: 0x%08llX\n", Node);
-			return true;
-		};
-
-		//NtKdEnumerateProcessVads(EProcess, vads);
-
-		// The first process is always 'System'
-		if (sys == 0)
-		{
-			KdSetProcessContext(EProcess);
-		}
-
-		sys++;
-
-		//strcpy_s(g_syms[g_symcount].name, temp);
-		//g_syms[g_symcount++].base = peb;
-
-		//KdSetProcessContext(EProcess);
-
-		auto thread = [](ULONG64 EThread)
-		{
-			ULONG id;
-			KdState.DebugDataSpaces2->ReadVirtual(EThread + KdFields["_ETHREAD"]["Cid"], &id, sizeof(id), nullptr);
-
-			dprintf("\tThread: 0x%x\t\t0x%08llX\n", id, EThread);
-
-			return true;
-		};
-
-		//NtKdEnumerateProcessThreads(EProcess, thread);
-
-		return true;
-	};
-
-	NtKdEnumerateProcesses(ProcessEnum);
+	if (!NtKdEnumerateProcesses(KdInitialProcessEnum))
+		dprintf("Failed to enumerate initial list of processes\n");
 
 #undef MAKEPTRVAL
 #undef MAKEFIELD
@@ -544,6 +472,57 @@ bool KdLoadSymbols()
 
 	return true;
 }
+
+bool KdInitialDriverEnum(ULONG64 LdrEntry)
+{
+	// Read the loader entry
+	LDR_DATA_TABLE_ENTRY ldr;
+	if (!KdMemRead(LdrEntry, &ldr, sizeof(ldr), nullptr))
+		return false;
+
+	// Read the base file names
+	wchar_t dllNameW[MAX_PATH];
+	memset(dllNameW, 0, sizeof(dllNameW));
+
+	if (!KdMemRead(ldr.BaseDllName.Buffer, &dllNameW, ldr.BaseDllName.Length, nullptr))
+		return false;
+
+	// Unicode to multi-byte
+	char dllNameA[MAX_PATH];
+	memset(dllNameA, 0, sizeof(dllNameA));
+
+	wcstombs(dllNameA, dllNameW, MAX_PATH);
+
+	// Notify the handler
+	KdDriverLoad(dllNameA, ldr.DllBase, ldr.SizeOfImage);
+	return true;
+};
+
+int sys = 0;
+bool KdInitialProcessEnum(ULONG64 EProcess)
+{
+	char temp[64];
+	memset(&temp, 0, sizeof(temp));
+
+	ULONG64 peb = 0;
+
+	if (!KdMemRead(EProcess + KdFields["_EPROCESS"]["ImageFileName"], &temp, sizeof(temp), nullptr))
+		return false;
+
+	if (!KdMemRead(EProcess + KdFields["_EPROCESS"]["Peb"], &peb, sizeof(peb), nullptr))
+		return false;
+
+	dprintf("Process: %s\t\t0x%08llX\n", temp, peb);
+
+	// The first process is always 'System'
+	if (sys == 0)
+	{
+		KdSetProcessContext(EProcess);
+	}
+
+	sys++;
+	return true;
+};
 
 void KdSetProcessContext(ULONG64 EProcess)
 {

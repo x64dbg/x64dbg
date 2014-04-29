@@ -6,6 +6,7 @@ struct KdState_s
 	bool m_Initialized;
 	bool m_Debugging;
 	bool m_DebugOutput;
+	bool m_ExitSignal;
 	char m_CommandLine[1024];
 
 	// True if the last command was a single step

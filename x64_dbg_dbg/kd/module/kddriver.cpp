@@ -23,9 +23,9 @@ void KdDriverClear()
 void KdDriverLoad(const char *Name, ULONG64 BaseAddress, ULONG64 ModuleSize)
 {
 	// Make sure it doesn't already exist
-	for (auto& entry : DriverList)
+	for (std::vector<DriverEntry>::iterator itr = DriverList.begin(); itr != DriverList.end(); itr++)
 	{
-		if (entry.Base == BaseAddress && entry.Size == ModuleSize)
+		if (itr->Base == BaseAddress && itr->Size == ModuleSize)
 			return;
 	}
 
@@ -62,9 +62,9 @@ void KdDriverUnload(ULONG64 BaseAddress)
 
 bool KdDriverEnumerate(bool (* Callback)(DriverEntry *))
 {
-	for (auto& entry : DriverList)
+	for (std::vector<DriverEntry>::iterator itr = DriverList.begin(); itr != DriverList.end(); itr++)
 	{
-		if (!Callback(&entry))
+		if (!Callback(&(*itr)))
 			return false;
 	}
 
@@ -73,11 +73,11 @@ bool KdDriverEnumerate(bool (* Callback)(DriverEntry *))
 
 DriverEntry *KdDriverGetOwnerModule(ULONG64 Address)
 {
-	for (auto& entry : DriverList)
+	for (std::vector<DriverEntry>::iterator itr = DriverList.begin(); itr != DriverList.end(); itr++)
 	{
 		// Check if it is within range
-		if (Address >= entry.Base && Address <= (entry.Base + entry.Size))
-			return &entry;
+		if (Address >= itr->Base && Address <= (itr->Base + itr->Size))
+			return &(*itr);
 	}
 
 	return nullptr;

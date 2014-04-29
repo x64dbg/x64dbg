@@ -27,14 +27,14 @@ public:
 
 	bool WritePatches()
 	{
-		for (auto& entry : Patches)
+		for (std::vector<PatchEntry>::iterator itr = Patches.begin(); itr != Patches.end(); itr++)
 		{
 			// Save the old instructions
-			if (!KdMemRead(entry.Address, entry.OldData, entry.Size, nullptr))
+			if (!KdMemRead(itr->Address, itr->OldData, itr->Size, nullptr))
 				return false;
 
 			// Now overwrite the data
-			if (!KdMemWrite(entry.Address, entry.Data, entry.Size, nullptr))
+			if (!KdMemWrite(itr->Address, itr->Data, itr->Size, nullptr))
 				return false;
 		}
 

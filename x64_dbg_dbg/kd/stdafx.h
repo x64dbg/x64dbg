@@ -16,11 +16,11 @@
 #include "sym.h"
 #include "kdinit.h"
 #include "kdevent.h"
-#include "nt.h"
 #include "kdcmd.h"
 
 #include "vmclient/vmclient.h"
 #include "processor/stdafx.h"
+#include "nt/stdafx.h"
 #include "mem/stdafx.h"
 #include "module/stdafx.h"
 
