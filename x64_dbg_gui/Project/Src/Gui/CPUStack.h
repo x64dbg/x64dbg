@@ -25,6 +25,8 @@ public slots:
     void gotoSpSlot();
     void gotoBpSlot();
     void gotoExpressionSlot();
+    void selectionGet(SELECTIONDATA* selection);
+    void selectionSet(const SELECTIONDATA* selection);
 
 private:
     uint_t mCsp;

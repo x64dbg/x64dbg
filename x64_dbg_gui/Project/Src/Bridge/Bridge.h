@@ -13,7 +13,6 @@
 #include "Exports.h"
 #include "Imports.h"
 
-
 class Bridge : public QObject
 {
     Q_OBJECT
@@ -68,6 +67,8 @@ public:
     int emitMenuAddMenuEntry(int hMenu, QString title);
     void emitMenuAddSeparator(int hMenu);
     void emitMenuClearMenu(int hMenu);
+    bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
+    bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
 
     //Public variables
     void* winId;
@@ -113,6 +114,12 @@ signals:
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
     void menuClearMenu(int hMenu);
+    void selectionDisasmGet(SELECTIONDATA* selection);
+    void selectionDisasmSet(const SELECTIONDATA* selection);
+    void selectionDumpGet(SELECTIONDATA* selection);
+    void selectionDumpSet(const SELECTIONDATA* selection);
+    void selectionStackGet(SELECTIONDATA* selection);
+    void selectionStackSet(const SELECTIONDATA* selection);
 
 private:
     QMutex mBridgeMutex;

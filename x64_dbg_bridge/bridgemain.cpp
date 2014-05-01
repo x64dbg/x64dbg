@@ -814,6 +814,16 @@ BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
     _gui_sendmessage(GUI_MENU_CLEAR, (void*)(duint)hMenu, 0);
 }
 
+BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
+{
+    return (bool)(duint)_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
+}
+
+BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
+{
+    return (bool)(duint)_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

@@ -489,6 +489,10 @@ BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry);
 //Gui defines
 #define GUI_PLUGIN_MENU 0
 
+#define GUI_DISASSEMBLY 0
+#define GUI_DUMP 1
+#define GUI_STACK 2
+
 //Gui enums
 enum GUIMSG
 {
@@ -533,7 +537,9 @@ enum GUIMSG
     GUI_MENU_ADD,                   // param1=int hMenu,            param2=const char* title
     GUI_MENU_ADD_ENTRY,             // param1=int hMenu,            param2=const char* title
     GUI_MENU_ADD_SEPARATOR,         // param1=int hMenu,            param2=unused
-    GUI_MENU_CLEAR                  // param1=int hMenu,            param2=unused
+    GUI_MENU_CLEAR,                 // param1=int hMenu,            param2=unused
+    GUI_SELECTION_GET,              // param1=int hWindow,          param2=SELECTIONDATA* selection
+    GUI_SELECTION_SET               // param1=int hWindow,          param2=const SELECTIONDATA* selection
 };
 
 //GUI structures
@@ -542,6 +548,12 @@ struct CELLINFO
     int row;
     int col;
     const char* str;
+};
+
+struct SELECTIONDATA
+{
+    duint start;
+    duint end;
 };
 
 //GUI functions
@@ -588,6 +600,8 @@ BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title);
 BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title);
 BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu);
 BRIDGE_IMPEXP void GuiMenuClear(int hMenu);
+BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection);
+BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection);
 
 #ifdef __cplusplus
 }

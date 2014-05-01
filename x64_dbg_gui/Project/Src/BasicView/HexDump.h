@@ -95,7 +95,9 @@ public:
     // Selection Management
     void expandSelectionUpTo(int_t rva);
     void setSingleSelection(int_t rva);
-    int getInitialSelection();
+    int_t getInitialSelection();
+    int_t getSelectionStart();
+    int_t getSelectionEnd();
     bool isSelected(int_t rva);
 
     QString getString(int col, int_t rva);

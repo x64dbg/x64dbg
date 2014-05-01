@@ -5,6 +5,8 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
     hexAsciiSlot();
 
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
     setupContextMenu();
 }
@@ -579,4 +581,16 @@ void CPUDump::disassemblySlot()
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
+}
+
+void CPUDump::selectionGet(SELECTIONDATA* selection)
+{
+    selection->start=getSelectionStart();
+    selection->end=getSelectionEnd();
+}
+
+void CPUDump::selectionSet(const SELECTIONDATA* selection)
+{
+    setSingleSelection(selection->start);
+    expandSelectionUpTo(selection->end);
 }

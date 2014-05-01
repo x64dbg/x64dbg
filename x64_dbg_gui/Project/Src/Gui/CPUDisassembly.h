@@ -54,6 +54,8 @@ public slots:
     void findReferences();
     void findConstant();
     void findStrings();
+    void selectionGet(SELECTIONDATA* selection);
+    void selectionSet(const SELECTIONDATA* selection);
 
 private:
 

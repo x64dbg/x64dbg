@@ -4,6 +4,9 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
 {
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
+
+    connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 }
 
 void CPUDisassembly::mousePressEvent(QMouseEvent* event)
@@ -676,4 +679,16 @@ void CPUDisassembly::findStrings()
     QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
+}
+
+void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
+{
+    selection->start=getSelectionStart();
+    selection->end=getSelectionEnd();
+}
+
+void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
+{
+    setSingleSelection(selection->start);
+    expandSelectionUpTo(selection->end);
 }

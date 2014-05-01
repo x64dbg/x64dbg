@@ -45,6 +45,9 @@ public slots:
     void addressSlot();
     void disassemblySlot();
 
+    void selectionGet(SELECTIONDATA* selection);
+    void selectionSet(const SELECTIONDATA* selection);
+
 private:
     QMenu* mGotoMenu;
     QAction* mGotoExpression;

@@ -256,6 +256,44 @@ void Bridge::emitMenuClearMenu(int hMenu)
     emit menuClearMenu(hMenu);
 }
 
+bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
+{
+    switch(hWindow)
+    {
+    case GUI_DISASSEMBLY:
+        emit selectionDisasmGet(selection);
+    break;
+    case GUI_DUMP:
+        emit selectionDumpGet(selection);
+    break;
+    case GUI_STACK:
+        emit selectionStackGet(selection);
+    break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
+{
+    switch(hWindow)
+    {
+    case GUI_DISASSEMBLY:
+        emit selectionDisasmSet(selection);
+    break;
+    case GUI_DUMP:
+        emit selectionDumpSet(selection);
+    break;
+    case GUI_STACK:
+        emit selectionStackSet(selection);
+    break;
+    default:
+        return false;
+    }
+    return true;
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/

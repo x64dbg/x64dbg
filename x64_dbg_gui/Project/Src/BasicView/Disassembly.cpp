@@ -876,7 +876,6 @@ void Disassembly::expandSelectionUpTo(int_t to)
     }
 }
 
-
 void Disassembly::setSingleSelection(int_t index)
 {
     mSelection.firstSelectedIndex = index;
@@ -905,7 +904,6 @@ int_t Disassembly::getSelectionEnd()
 {
     return mSelection.toIndex;
 }
-
 
 void Disassembly::selectNext()
 {

@@ -26,6 +26,8 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     appendDescriptor(0, "Comments", false, wColDesc);
 
     connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t,uint_t)), this, SLOT(stackDumpAt(uint_t,uint_t)));
+    connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
     setupContextMenu();
 }
@@ -166,4 +168,16 @@ void CPUStack::gotoExpressionSlot()
         QString cmd;
         DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUStack::selectionGet(SELECTIONDATA* selection)
+{
+    selection->start=getSelectionStart();
+    selection->end=getSelectionEnd();
+}
+
+void CPUStack::selectionSet(const SELECTIONDATA* selection)
+{
+    setSingleSelection(selection->start);
+    expandSelectionUpTo(selection->end);
 }

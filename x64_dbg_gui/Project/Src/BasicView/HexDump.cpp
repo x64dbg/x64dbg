@@ -241,9 +241,19 @@ void HexDump::setSingleSelection(int_t rva)
     mSelection.toIndex = rva;
 }
 
-int HexDump::getInitialSelection()
+int_t HexDump::getInitialSelection()
 {
     return mSelection.firstSelectedIndex;
+}
+
+int_t HexDump::getSelectionStart()
+{
+    return mSelection.fromIndex;
+}
+
+int_t HexDump::getSelectionEnd()
+{
+    return mSelection.toIndex;
 }
 
 bool HexDump::isSelected(int_t rva)
