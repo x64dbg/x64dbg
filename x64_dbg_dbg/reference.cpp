@@ -3,22 +3,40 @@
 #include "memory.h"
 #include "console.h"
 
-int reffind(uint addr, CBREF cbRef, void* userinfo, bool silent)
+int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
 {
-    uint size=0;
-    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
-    if(!base or !size)
+    uint start_addr;
+    uint start_size;
+    uint base;
+    uint base_size;
+    base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &base_size);
+    if(!base or !base_size)
     {
         if(!silent)
             dputs("invalid memory page");
         return 0;
     }
-    unsigned char* data=(unsigned char*)emalloc(size);
-    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    
+    if(!size) //assume the whole page
+    {
+        start_addr=base;
+        start_size=base_size;
+    }
+    else //custom boundaries
+    {
+        start_addr=addr;
+        uint maxsize=size-(start_addr-base);
+        if(size<maxsize) //check if the size fits in the page
+            start_size=size;
+        else
+            start_size=maxsize;
+    }
+    unsigned char* data=(unsigned char*)emalloc(start_size, "reffind:data");
+    if(!memread(fdProcessInfo->hProcess, (const void*)start_addr, data, start_size, 0))
     {
         if(!silent)
             dputs("error reading memory");
-        efree(data);
+        efree(data, "reffind:data");
         return 0;
     }
     DISASM disasm;
@@ -27,18 +45,18 @@ int reffind(uint addr, CBREF cbRef, void* userinfo, bool silent)
     disasm.Archi=64;
 #endif // _WIN64
     disasm.EIP=(UIntPtr)data;
-    disasm.VirtualAddr=(UInt64)base;
+    disasm.VirtualAddr=(UInt64)start_addr;
     uint i=0;
     BASIC_INSTRUCTION_INFO basicinfo;
     cbRef(&disasm, &basicinfo, 0); //allow initializing
     REFINFO refinfo;
     memset(&refinfo, 0, sizeof(REFINFO));
     refinfo.userinfo=userinfo;
-    while(i<size)
+    while(i<start_size)
     {
         if(!(i%0x1000))
         {
-            double percent=(double)i/(double)size;
+            double percent=(double)i/(double)start_size;
             GuiReferenceSetProgress((int)(percent*100));
         }
         int len=Disasm(&disasm);
@@ -56,6 +74,6 @@ int reffind(uint addr, CBREF cbRef, void* userinfo, bool silent)
     }
     GuiReferenceSetProgress(100);
     GuiReferenceReloadData();
-    efree(data);
+    efree(data, "reffind:data");
     return refinfo.refcount;
 }

@@ -15,6 +15,6 @@ struct REFINFO
 typedef bool (*CBREF)(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo);
 
 //functions
-int reffind(uint page, CBREF cbRef, void* userinfo, bool silent);
+int reffind(uint page, uint size, CBREF cbRef, void* userinfo, bool silent);
 
 #endif //_REFERENCE_H

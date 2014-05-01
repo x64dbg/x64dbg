@@ -21,9 +21,11 @@ from. Notice that the searching will stop when the end of the memory page this
 address resides in has been reached. This means you cannot search the complete 
 process memory without enumerating the memory pages first.</SPAN></P>
 <P class=rvps3><SPAN class=rvts9>&nbsp; arg2: The byte pattern to search for. This byte 
-pattern can contain wildcards (?) for example: "EB0?90??8D"</SPAN></P>
+pattern can contain wildcards (?) for example: "EB0?90??8D".</SPAN></P>
+<P class=rvps3><SPAN class=rvts9>         [arg3]: 
+The size of the data to search in.</SPAN></P>
 <P class=rvps3><SPAN class=rvts11><U>result <BR></U></SPAN><SPAN 
 class=rvts9>The $result variable is set to the virtual 
 address of the address that matches the byte pattern. $result will be 0 when the pattern could not be 
 matched.</SPAN></P>
-<P>&nbsp;</P></body>
+<P>&nbsp;</P></body>

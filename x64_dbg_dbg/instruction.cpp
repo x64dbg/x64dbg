@@ -782,17 +782,23 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
 {
     if(argc<2)
     {
-        puts("not enough arguments!");
+        dputs("not enough arguments!");
         return STATUS_ERROR;
     }
     uint value=0;
     if(!valfromstring(argv[1], &value, false))
         return STATUS_ERROR;
     uint addr=0;
-    if(argc<3 or !valfromstring(argv[2], &addr, true))
+    if(argc<3 or !valfromstring(argv[2], &addr))
         addr=GetContextData(UE_CIP);
+    uint size;
+    if(argc>=4)
+    {
+        if(!valfromstring(argv[3], &size))
+            size=0;
+    }
     uint ticks=GetTickCount();
-    int found=reffind(addr, cbRefFind, (void*)value, false);
+    int found=reffind(addr, size, cbRefFind, (void*)value, false);
     dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -852,8 +858,14 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
     uint addr;
     if(argc<2 or !valfromstring(argv[1], &addr, true))
         addr=GetContextData(UE_CIP);
+    uint size;
+    if(argc>=3)
+    {
+        if(!valfromstring(argv[2], &size, true))
+            size=0;
+    }
     uint ticks=GetTickCount();
-    int found=reffind(addr, cbRefStr, 0, false);
+    int found=reffind(addr, size, cbRefStr, 0, false);
     dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -953,7 +965,17 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint start=addr-base;
-    uint foundoffset=memfindpattern(data+start, size-start, pattern);
+    uint find_size=0;
+    if(argc>=4)
+    {
+        if(!valfromstring(argv[3], &find_size))
+            find_size=size-start;
+        if(find_size>(size-start))
+            find_size=size-start;
+    }
+    else
+        find_size=size-start;
+    uint foundoffset=memfindpattern(data+start, find_size, pattern);
     uint result=0;
     if(foundoffset!=-1)
         result=addr+foundoffset;
