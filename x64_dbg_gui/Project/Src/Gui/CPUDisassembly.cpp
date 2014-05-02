@@ -683,12 +683,24 @@ void CPUDisassembly::findStrings()
 
 void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=getSelectionStart();
-    selection->end=getSelectionEnd();
+    selection->start=rvaToVa(getSelectionStart());
+    selection->end=rvaToVa(getSelectionEnd());
+    Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
 {
-    setSingleSelection(selection->start);
-    expandSelectionUpTo(selection->end);
+    int_t selMin=getBase();
+    int_t selMax=selMin + getSize();
+    int_t start=selection->start;
+    int_t end=selection->end;
+    if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
+    {
+        Bridge::getBridge()->BridgeSetResult(0);
+        return;
+    }
+    setSingleSelection(start - selMin);
+    expandSelectionUpTo(end - selMin);
+    reloadData();
+    Bridge::getBridge()->BridgeSetResult(1);
 }

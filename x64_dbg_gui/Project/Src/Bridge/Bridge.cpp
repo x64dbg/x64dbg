@@ -258,6 +258,10 @@ void Bridge::emitMenuClearMenu(int hMenu)
 
 bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
+    if(!DbgIsDebugging())
+        return false;
+    mBridgeMutex.lock();
+    hasBridgeResult=false;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -270,13 +274,21 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
         emit selectionStackGet(selection);
     break;
     default:
+        mBridgeMutex.unlock();
         return false;
     }
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
     return true;
 }
 
 bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
+    if(!DbgIsDebugging())
+        return false;
+    mBridgeMutex.lock();
+    hasBridgeResult=false;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -289,9 +301,13 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
         emit selectionStackSet(selection);
     break;
     default:
+        mBridgeMutex.unlock();
         return false;
     }
-    return true;
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
+    return bridgeResult;
 }
 
 /************************************************************************************
@@ -584,6 +600,18 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_MENU_CLEAR:
     {
         Bridge::getBridge()->emitMenuClearMenu((int)(uint_t)param1);
+    }
+    break;
+
+    case GUI_SELECTION_GET:
+    {
+        Bridge::getBridge()->emitSelectionGet((int)(uint_t)param1, (SELECTIONDATA*)param2);
+    }
+    break;
+
+    case GUI_SELECTION_SET:
+    {
+        Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
     }
     break;
 
