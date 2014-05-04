@@ -824,12 +824,12 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         return false;
     if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
     {
-        if(disasmispossiblestring(basicinfo->value.value) and disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
+        if(disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
             found=true;
     }
     if((basicinfo->type&TYPE_MEMORY)==TYPE_MEMORY)
     {
-        if(!found and disasmispossiblestring(basicinfo->memory.value) and disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
+        if(!found and disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
             found=true;
     }
     if(found)
