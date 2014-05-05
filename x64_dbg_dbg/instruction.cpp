@@ -791,12 +791,10 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
     uint addr=0;
     if(argc<3 or !valfromstring(argv[2], &addr))
         addr=GetContextData(UE_CIP);
-    uint size;
+    uint size=0;
     if(argc>=4)
-    {
         if(!valfromstring(argv[3], &size))
             size=0;
-    }
     uint ticks=GetTickCount();
     int found=reffind(addr, size, cbRefFind, (void*)value, false);
     dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
@@ -858,12 +856,10 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
     uint addr;
     if(argc<2 or !valfromstring(argv[1], &addr, true))
         addr=GetContextData(UE_CIP);
-    uint size;
+    uint size=0;
     if(argc>=3)
-    {
         if(!valfromstring(argv[2], &size, true))
             size=0;
-    }
     uint ticks=GetTickCount();
     int found=reffind(addr, size, cbRefStr, 0, false);
     dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
