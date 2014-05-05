@@ -27,6 +27,9 @@ public slots:
     void gotoExpressionSlot();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
+    void followDisasmSlot();
+    void followDumpSlot();
+    void followStackSlot();
 
 private:
     uint_t mCsp;
@@ -34,6 +37,9 @@ private:
     QAction* mGotoSp;
     QAction* mGotoBp;
     QAction* mGotoExpression;
+    QAction* mFollowDisasm;
+    QAction* mFollowDump;
+    QAction* mFollowStack;
 };
 
 #endif // CPUSTACK_H

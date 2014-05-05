@@ -52,6 +52,18 @@ void CPUStack::setupContextMenu()
     mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
+
+    mFollowDisasm = new QAction("&Follow in Disassembler", this);
+    mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
+    mFollowDisasm->setShortcut(QKeySequence("enter"));
+    this->addAction(mFollowDisasm);
+    connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
+
+    mFollowDump = new QAction("Follow in &Dump", this);
+    connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+
+    mFollowStack = new QAction("Follow in &Stack", this);
+    connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 }
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -124,10 +136,26 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 {
     if(!DbgIsDebugging())
         return;
+
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mGotoSp);
     wMenu->addAction(mGotoBp);
     wMenu->addAction(mGotoExpression);
+
+    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
+    uint_t selectedData;
+    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        {
+            uint_t stackBegin = mMemPage->getBase();
+            uint_t stackEnd = stackBegin + mMemPage->getSize();
+            if(selectedData >= stackBegin && selectedData < stackEnd)
+                wMenu->addAction(mFollowStack);
+            else
+                wMenu->addAction(mFollowDisasm);
+            wMenu->addAction(mFollowDump);
+        }
+
     wMenu->exec(event->globalPos());
 }
 
@@ -192,4 +220,40 @@ void CPUStack::selectionSet(const SELECTIONDATA* selection)
     expandSelectionUpTo(end - selMin);
     reloadData();
     Bridge::getBridge()->BridgeSetResult(1);
+}
+
+void CPUStack::followDisasmSlot()
+{
+    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
+    uint_t selectedData;
+    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        {
+            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
+        }
+}
+
+void CPUStack::followDumpSlot()
+{
+    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
+    uint_t selectedData;
+    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        {
+            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            DbgCmdExec(QString("dump " + addrText).toUtf8().constData());
+        }
+}
+
+void CPUStack::followStackSlot()
+{
+    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
+    uint_t selectedData;
+    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        {
+            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
+        }
 }
