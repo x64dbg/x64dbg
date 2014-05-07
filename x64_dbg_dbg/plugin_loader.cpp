@@ -59,6 +59,12 @@ void pluginload(const char* pluginDir)
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
+        else if(pluginData.initStruct.sdkVersion < PLUG_SDKVERSION) //the plugin SDK is not compatible
+        {
+            dprintf("[PLUGIN] %s is incompatible with this SDK version\n", pluginData.initStruct.pluginName);
+            FreeLibrary(pluginData.hPlugin);
+            continue;
+        }
         else
             dprintf("[PLUGIN] %s v%d Loaded!\n", pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
         //add plugin menu

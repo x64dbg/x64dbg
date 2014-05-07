@@ -11,8 +11,10 @@
 
 #include "_plugin_types.h"
 
+#pragma pack(push, 1)
+
 //defines
-#define PLUG_SDKVERSION 1
+#define PLUG_SDKVERSION 2
 
 //structures
 struct PLUG_INITSTRUCT
@@ -185,5 +187,7 @@ PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma pack(pop)
 
 #endif // _PLUGINS_H

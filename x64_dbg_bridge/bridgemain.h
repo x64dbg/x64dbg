@@ -3,6 +3,8 @@
 
 #include <windows.h>
 
+#pragma pack(push, 1)
+
 #ifdef _WIN64
 typedef unsigned long long duint;
 typedef signed long long dsint;
@@ -26,7 +28,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 15
+#define DBG_VERSION 16
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
@@ -606,5 +608,7 @@ BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma pack(pop)
 
 #endif // _BRIDGEMAIN_H_
