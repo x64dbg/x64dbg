@@ -37,19 +37,27 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     MEMORY_BASIC_INFORMATION mbi;
     DWORD numBytes;
     uint MyAddress=0, newAddress=0;
-    SymInitialize(fdProcessInfo->hProcess, 0, true);
+    uint curAllocationBase=0;
+
+    bool bListAllPages = false; //TODO: settings for this
+
     std::vector<MEMPAGE> pageVector;
     do
     {
         numBytes=VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)MyAddress, &mbi, sizeof(mbi));
         if(mbi.State==MEM_COMMIT)
         {
-            MEMPAGE curPage;
-            *curPage.mod=0;
-            modnamefromaddr(MyAddress, curPage.mod, true);
-            memcpy(&curPage.mbi, &mbi, sizeof(mbi));
-            pageVector.push_back(curPage);
-            memmap->count++;
+            if(bListAllPages || curAllocationBase!=(uint)mbi.AllocationBase) //only list allocation bases
+            {
+                curAllocationBase=(uint)mbi.AllocationBase;
+                MEMPAGE curPage;
+                *curPage.info=0;
+                modnamefromaddr(MyAddress, curPage.info, true);
+                memcpy(&curPage.mbi, &mbi, sizeof(mbi));
+                pageVector.push_back(curPage);
+            }
+            else
+                pageVector.at(pageVector.size()-1).mbi.RegionSize+=mbi.RegionSize;
         }
         newAddress=(uint)mbi.BaseAddress+mbi.RegionSize;
         if(newAddress<=MyAddress)
@@ -59,8 +67,117 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     }
     while(numBytes);
 
+    int pagecount;
+
+    //filter executable sections
+    if(bListAllPages)
+    {
+        pagecount=pageVector.size();
+        char curMod[MAX_MODULE_SIZE]="";
+        for(int i=pagecount-1,curIdx=0; i>-1; i--)
+        {
+            if(pageVector.at(i).info[0]) //there is a module
+            {
+                if(!scmp(curMod, pageVector.at(i).info)) //mod is not the current mod
+                {
+                    strcpy(curMod, pageVector.at(i).info);
+                    curIdx=i;
+                }
+                else //current mod
+                {
+                    pageVector.at(curIdx).mbi.RegionSize+=pageVector.at(i).mbi.RegionSize;
+                    pageVector.erase(pageVector.begin()+i);
+                    curIdx--; //the index changes when you remove an entry
+                }
+            }
+        }
+    }
+
+    //process file sections
+    pagecount=pageVector.size();
+    char curMod[MAX_MODULE_SIZE]="";
+    for(int i=pagecount-1; i>-1; i--)
+    {
+        if(pageVector.at(i).info[0]) //there is a module
+        {
+            if(!scmp(curMod, pageVector.at(i).info)) //mod is not the current mod
+            {
+                strcpy(curMod, pageVector.at(i).info);
+                HMODULE hMod=(HMODULE)modbasefromname(curMod);
+                if(!hMod)
+                    continue;
+                char curModPath[MAX_PATH]="";
+                if(!GetModuleFileNameExA(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
+                    continue;
+                int SectionNumber=GetPE32Data(curModPath, 0, UE_SECTIONNUMBER);
+                MEMPAGE newPage;
+                pageVector.erase(pageVector.begin()+i); //remove the SizeOfImage page
+                for(int j=SectionNumber-1; j>-1; j--)
+                {
+                    memset(&newPage, 0, sizeof(MEMPAGE));
+                    VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)((uint)hMod+GetPE32Data(curModPath, j, UE_SECTIONVIRTUALOFFSET)), &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                    uint SectionSize=GetPE32Data(curModPath, j, UE_SECTIONVIRTUALSIZE);
+                    if(SectionSize%PAGE_SIZE) //unaligned page size
+                        SectionSize+=PAGE_SIZE-(SectionSize%PAGE_SIZE); //fix this
+                    if(SectionSize)
+                        newPage.mbi.RegionSize=SectionSize;
+                    const char* SectionName=(const char*)GetPE32Data(curModPath, j, UE_SECTIONNAME);
+                    if(!SectionName)
+                        SectionName="";
+                    int len=strlen(SectionName);
+                    int escape_count=0;
+                    for(int i=0; i<len; i++)
+                        if(SectionName[i]=='\\' or SectionName[i]=='\"' or !isprint(SectionName[i]))
+                            escape_count++;
+                    char* SectionNameEscaped=(char*)emalloc(len+escape_count+1, "_dbg_memmap:SectionNameEscaped");
+                    memset(SectionNameEscaped, 0, len+escape_count+1);
+                    for(int i=0,j=0; i<len; i++)
+                    {
+                        switch(SectionName[i])
+                        {
+                        case '\t':
+                            j+=sprintf(SectionNameEscaped+j, "\\t");
+                            break;
+                        case '\f':
+                            j+=sprintf(SectionNameEscaped+j, "\\f");
+                            break;
+                        case '\v':
+                            j+=sprintf(SectionNameEscaped+j, "\\v");
+                            break;
+                        case '\n':
+                            j+=sprintf(SectionNameEscaped+j, "\\n");
+                            break;
+                        case '\r':
+                            j+=sprintf(SectionNameEscaped+j, "\\r");
+                            break;
+                        case '\\':
+                            j+=sprintf(SectionNameEscaped+j, "\\\\");
+                            break;
+                        case '\"':
+                            j+=sprintf(SectionNameEscaped+j, "\\\"");
+                            break;
+                        default:
+                            if(!isprint(SectionName[i])) //unknown unprintable character
+                                j+=sprintf(SectionNameEscaped+j, "\\x%.2X", SectionName[i]);
+                            else
+                                j+=sprintf(SectionNameEscaped+j, "%c", SectionName[i]);
+                            break;
+                        }
+                    }
+                    sprintf(newPage.info, " \"%s\"", SectionNameEscaped);
+                    efree(SectionNameEscaped, "_dbg_memmap:SectionNameEscaped");
+                    pageVector.insert(pageVector.begin()+i, newPage);
+                }
+                memset(&newPage, 0, sizeof(MEMPAGE));
+                VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)hMod, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                strcpy(newPage.info, curMod);
+                pageVector.insert(pageVector.begin()+i, newPage);
+            }
+        }
+    }
+
     //process vector
-    int pagecount=memmap->count;
+    memmap->count=pagecount=pageVector.size();
     memmap->page=(MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE)*pagecount);
     memset(memmap->page, 0, sizeof(MEMPAGE)*pagecount);
     for(int i=0; i<pagecount; i++)

@@ -157,6 +157,7 @@ static void cbUserBreakpoint()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
@@ -230,6 +231,7 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
@@ -291,6 +293,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
@@ -429,6 +432,7 @@ static void cbStep()
     stepInfo.reserved=0;
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
@@ -443,6 +447,7 @@ static void cbRtrFinalStep()
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;
@@ -591,6 +596,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -615,6 +621,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -642,6 +649,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -706,6 +714,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -733,6 +742,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -755,10 +765,10 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             int len=strlen(DebugText);
             int escape_count=0;
             for(int i=0; i<len; i++)
-                if(DebugText[i]=='\\')
+                if(DebugText[i]=='\\' or DebugText[i]=='\"' or !isprint(DebugText[i]))
                     escape_count++;
-            char* DebugTextEscaped=(char*)emalloc(DebugString->nDebugStringLength+escape_count+1, "cbOutputDebugString:DebugTextEscaped");
-            memset(DebugTextEscaped, 0, DebugString->nDebugStringLength+escape_count+1);
+            char* DebugTextEscaped=(char*)emalloc(len+escape_count+1, "cbOutputDebugString:DebugTextEscaped");
+            memset(DebugTextEscaped, 0, len+escape_count+1);
             for(int i=0,j=0; i<len; i++)
             {
                 switch(DebugText[i])
@@ -785,7 +795,10 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
                     j+=sprintf(DebugTextEscaped+j, "\\\"");
                     break;
                 default:
-                    j+=sprintf(DebugTextEscaped+j, "%c", DebugText[i]);
+                    if(!isprint(DebugText[i])) //unknown unprintable character
+                        j+=sprintf(DebugTextEscaped+j, "\\%.2x", DebugText[i]);
+                    else
+                        j+=sprintf(DebugTextEscaped+j, "%c", DebugText[i]);
                     break;
                 }
             }
@@ -802,6 +815,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
+        SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
         pauseInfo.reserved=0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -838,6 +852,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             GuiSetDebugState(paused);
             //lock
             lock(WAITID_RUN);
+            SetForegroundWindow(GuiGetWindowHandle());
             bSkipExceptions=false;
             PLUG_CB_PAUSEDEBUG pauseInfo;
             pauseInfo.reserved=0;
@@ -866,6 +881,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions=false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved=0;

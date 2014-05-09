@@ -45,6 +45,7 @@ PLUG_IMPEXP void _plugin_debugpause()
     DebugUpdateGui(GetContextData(UE_CIP), true);
     GuiSetDebugState(paused);
     lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
     dbgsetskipexceptions(false);
     wait(WAITID_RUN);
 }

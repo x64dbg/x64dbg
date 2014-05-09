@@ -8,15 +8,11 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
 
     addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false); //addr
     addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false); //size
-    addColumnAt(8+charwidth*32, "MOD", false); //module
-    addColumnAt(8+charwidth*3, "TYP", false);
-    addColumnAt(8+charwidth*5, "CPROT", false);
-    addColumnAt(8+charwidth*5, "APROT", false);
+    addColumnAt(8+charwidth*32, "INFO", false); //page information
+    addColumnAt(8+charwidth*3, "TYP", false); //allocation type
+    addColumnAt(8+charwidth*5, "CPROT", false); //current protection
+    addColumnAt(8+charwidth*5, "APROT", false); //allocation protection
     addColumnAt(100, "", false);
-
-
-    //setRowCount(100);
-
 
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
 }
@@ -69,8 +65,6 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
         DbgMemMap(&wMemMapStruct);
 
-        //qDebug() << "count " << wMemMapStruct.count;
-
         setRowCount(wMemMapStruct.count);
 
         for(wI = 0; wI < wMemMapStruct.count; wI++)
@@ -86,10 +80,8 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
             setCellContent(wI, 1, wS);
 
-            // Module Name
-            char newMod[MAX_MODULE_SIZE]="";
-            strcpy(newMod, (wMemMapStruct.page)[wI].mod);
-            wS = QString(newMod);
+            // Information
+            wS = QString((wMemMapStruct.page)[wI].info);
             setCellContent(wI, 2, wS);
 
             // State
@@ -136,11 +128,9 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             setCellContent(wI, 5, wS);
 
         }
-
         if(wMemMapStruct.page != 0)
-        {
             BridgeFree(wMemMapStruct.page);
-        }
+        reloadData(); //refresh memory map
     }
 
 }

@@ -244,7 +244,7 @@ typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
 struct MEMPAGE
 {
     MEMORY_BASIC_INFORMATION mbi;
-    char mod[MAX_MODULE_SIZE];
+    char info[MAX_MODULE_SIZE];
 };
 
 struct MEMMAP
