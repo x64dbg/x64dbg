@@ -242,7 +242,7 @@ static void specialformat(char* string)
         }
         else
         {
-            if(isvalidexpression(string) && isvalidexpression(found))
+            if(isvalidexpression(found))
                 sprintf(str, "mov %s,%s", string, found);
             else
                 strcpy(str, backup);

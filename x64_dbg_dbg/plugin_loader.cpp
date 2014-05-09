@@ -175,6 +175,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     if(!cmdnew(dbggetcommandlist(), command, (CBCOMMAND)cbCommand, debugonly))
         return false;
     pluginCommandList.push_back(plugCmd);
+    dprintf("[PLUGIN] command \"%s\" registered!\n", command);
     return true;
 }
 
@@ -190,6 +191,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
             if(!cmddel(dbggetcommandlist(), command))
                 return false;
             pluginCommandList.erase(pluginCommandList.begin()+i);
+            dprintf("[PLUGIN] command \"%s\" unregistered!\n", command);
             return true;
         }
     }
