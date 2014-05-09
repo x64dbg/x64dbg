@@ -40,7 +40,7 @@ void threadclear()
 
 static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
 {
-    return Executive;
+    return _Executive;
 }
 
 static DWORD GetThreadLastError(uint tebAddress)

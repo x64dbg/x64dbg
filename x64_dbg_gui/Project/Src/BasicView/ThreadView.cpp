@@ -41,25 +41,25 @@ void ThreadView::updateThreadList()
         QString priorityString;
         switch(threadList.list[i].Priority)
         {
-        case PriorityIdle:
+        case _PriorityIdle:
             priorityString="Idle";
         break;
-        case PriorityAboveNormal:
+        case _PriorityAboveNormal:
             priorityString="AboveNormal";
         break;
-        case PriorityBelowNormal:
+        case _PriorityBelowNormal:
             priorityString="BelowNormal";
         break;
-        case PriorityHighest:
+        case _PriorityHighest:
             priorityString="Highest";
         break;
-        case PriorityLowest:
+        case _PriorityLowest:
             priorityString="Lowest";
         break;
-        case PriorityNormal:
+        case _PriorityNormal:
             priorityString="Normal";
         break;
-        case PriorityTimeCritical:
+        case _PriorityTimeCritical:
             priorityString="TimeCritical";
         break;
         default:
@@ -70,115 +70,115 @@ void ThreadView::updateThreadList()
         QString waitReasonString;
         switch(threadList.list[i].WaitReason)
         {
-        case Executive:
+        case _Executive:
             waitReasonString="Executive";
         break;
-        case FreePage:
+        case _FreePage:
             waitReasonString="FreePage";
         break;
-        case PageIn:
+        case _PageIn:
             waitReasonString="PageIn";
         break;
-        case PoolAllocation:
+        case _PoolAllocation:
             waitReasonString="PoolAllocation";
         break;
-        case DelayExecution:
+        case _DelayExecution:
             waitReasonString="DelayExecution";
         break;
-        case Suspended:
+        case _Suspended:
             waitReasonString="Suspended";
         break;
-        case UserRequest:
+        case _UserRequest:
             waitReasonString="UserRequest";
         break;
-        case WrExecutive:
+        case _WrExecutive:
             waitReasonString="WrExecutive";
         break;
-        case WrFreePage:
+        case _WrFreePage:
             waitReasonString="WrFreePage";
         break;
-        case WrPageIn:
+        case _WrPageIn:
             waitReasonString="WrPageIn";
         break;
-        case WrPoolAllocation:
+        case _WrPoolAllocation:
             waitReasonString="WrPoolAllocation";
         break;
-        case WrDelayExecution:
+        case _WrDelayExecution:
             waitReasonString="WrDelayExecution";
         break;
-        case WrSuspended:
+        case _WrSuspended:
             waitReasonString="WrSuspended";
         break;
-        case WrUserRequest:
+        case _WrUserRequest:
             waitReasonString="WrUserRequest";
         break;
-        case WrEventPair:
+        case _WrEventPair:
             waitReasonString="WrEventPair";
         break;
-        case WrQueue:
+        case _WrQueue:
             waitReasonString="WrQueue";
         break;
-        case WrLpcReceive:
+        case _WrLpcReceive:
             waitReasonString="WrLpcReceive";
         break;
-        case WrLpcReply:
+        case _WrLpcReply:
             waitReasonString="WrLpcReply";
         break;
-        case WrVirtualMemory:
+        case _WrVirtualMemory:
             waitReasonString="WrVirtualMemory";
         break;
-        case WrPageOut:
+        case _WrPageOut:
             waitReasonString="WrPageOut";
         break;
-        case WrRendezvous:
+        case _WrRendezvous:
             waitReasonString="WrRendezvous";
         break;
-        case Spare2:
+        case _Spare2:
             waitReasonString="Spare2";
         break;
-        case Spare3:
+        case _Spare3:
             waitReasonString="Spare3";
         break;
-        case Spare4:
+        case _Spare4:
             waitReasonString="Spare4";
         break;
-        case Spare5:
+        case _Spare5:
             waitReasonString="Spare5";
         break;
-        case WrCalloutStack:
+        case _WrCalloutStack:
             waitReasonString="WrCalloutStack";
         break;
-        case WrKernel:
+        case _WrKernel:
             waitReasonString="WrKernel";
         break;
-        case WrResource:
+        case _WrResource:
             waitReasonString="WrResource";
         break;
-        case WrPushLock:
+        case _WrPushLock:
             waitReasonString="WrPushLock";
         break;
-        case WrMutex:
+        case _WrMutex:
             waitReasonString="WrMutex";
         break;
-        case WrQuantumEnd:
+        case _WrQuantumEnd:
             waitReasonString="WrQuantumEnd";
         break;
-        case WrDispatchInt:
+        case _WrDispatchInt:
             waitReasonString="WrDispatchInt";
         break;
-        case WrPreempted:
+        case _WrPreempted:
             waitReasonString="WrPreempted";
         break;
-        case WrYieldExecution:
+        case _WrYieldExecution:
             waitReasonString="WrYieldExecution";
         break;
-        case WrFastMutex:
+        case _WrFastMutex:
             waitReasonString="WrFastMutex";
         break;
-        case WrGuardedMutex:
+        case _WrGuardedMutex:
             waitReasonString="WrGuardedMutex";
         break;
-        case WrRundown:
+        case _WrRundown:
             waitReasonString="WrRundown";
         break;
         default:
