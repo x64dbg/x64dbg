@@ -824,6 +824,11 @@ BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
     return (bool)(duint)_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
 }
 
+BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
+{
+    return (bool)(duint)_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

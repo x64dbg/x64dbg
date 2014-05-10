@@ -495,6 +495,8 @@ BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry);
 #define GUI_DUMP 1
 #define GUI_STACK 2
 
+#define GUI_MAX_LINE_SIZE 65536
+
 //Gui enums
 enum GUIMSG
 {
@@ -541,7 +543,8 @@ enum GUIMSG
     GUI_MENU_ADD_SEPARATOR,         // param1=int hMenu,            param2=unused
     GUI_MENU_CLEAR,                 // param1=int hMenu,            param2=unused
     GUI_SELECTION_GET,              // param1=int hWindow,          param2=SELECTIONDATA* selection
-    GUI_SELECTION_SET               // param1=int hWindow,          param2=const SELECTIONDATA* selection
+    GUI_SELECTION_SET,              // param1=int hWindow,          param2=const SELECTIONDATA* selection
+    GUI_GETLINE_WINDOW              // param1=const char* title,    param2=char* text
 };
 
 //GUI structures
@@ -604,6 +607,7 @@ BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu);
 BRIDGE_IMPEXP void GuiMenuClear(int hMenu);
 BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection);
 BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection);
+BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text);
 
 #ifdef __cplusplus
 }

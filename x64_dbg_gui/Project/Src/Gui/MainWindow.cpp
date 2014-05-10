@@ -137,6 +137,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString,QString*)), this, SLOT(getStrWindow(QString,QString*)));
 
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
@@ -678,4 +679,15 @@ void MainWindow::runSelection()
     QString command = "bp " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper() + ", ss";
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
+}
+
+void MainWindow::getStrWindow(const QString title, QString *text)
+{
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(title);
+    bool bResult = true;
+    if(mLineEdit.exec()!=QDialog::Accepted)
+        bResult = false;
+    *text=mLineEdit.editText;
+    Bridge::getBridge()->BridgeSetResult(bResult);
 }

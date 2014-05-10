@@ -69,6 +69,7 @@ public:
     void emitMenuClearMenu(int hMenu);
     bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
     bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
+    bool emitGetStrWindow(const QString title, QString* text);
 
     //Public variables
     void* winId;
@@ -120,6 +121,7 @@ signals:
     void selectionDumpSet(const SELECTIONDATA* selection);
     void selectionStackGet(SELECTIONDATA* selection);
     void selectionStackSet(const SELECTIONDATA* selection);
+    void getStrWindow(const QString title, QString* text);
 
 private:
     QMutex mBridgeMutex;

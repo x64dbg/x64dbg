@@ -310,6 +310,17 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
     return bridgeResult;
 }
 
+bool Bridge::emitGetStrWindow(const QString title, QString* text)
+{
+    mBridgeMutex.lock();
+    hasBridgeResult=false;
+    emit getStrWindow(title, text);
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex.unlock();
+    return bridgeResult;
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -612,6 +623,20 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SELECTION_SET:
     {
         Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
+    }
+    break;
+
+    case GUI_GETLINE_WINDOW:
+    {
+        QString text = "";
+        if(Bridge::getBridge()->emitGetStrWindow(QString(reinterpret_cast<const char*>(param1)), &text))
+        {
+            if(text.length()>=GUI_MAX_LINE_SIZE)
+                text.chop(text.length()-GUI_MAX_LINE_SIZE);
+            strcpy((char*)param2, text.toUtf8().constData());
+            return (void*)(uint_t)true;
+        }
+        return (void*)(uint_t)false; //cancel/escape
     }
     break;
 

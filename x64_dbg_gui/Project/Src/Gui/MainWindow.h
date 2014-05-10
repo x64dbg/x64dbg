@@ -68,6 +68,7 @@ public slots:
     void clearMenu(int hMenu);
     void menuEntrySlot();
     void runSelection();
+    void getStrWindow(const QString title, QString* text);
 
 private:
     Ui::MainWindow *ui;
