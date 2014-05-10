@@ -11,10 +11,15 @@
 
 #include "_plugin_types.h"
 
-#pragma pack(push, 1)
+//default structure alignments forced
+#ifdef _WIN64
+#pragma pack(push, 16)
+#else //x86
+#pragma pack(push, 8)
+#endif //_WIN64
 
 //defines
-#define PLUG_SDKVERSION 2
+#define PLUG_SDKVERSION 1
 
 //structures
 struct PLUG_INITSTRUCT
