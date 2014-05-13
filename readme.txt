@@ -1,13 +1,8 @@
 [This is a new version of this repository. The old version can be found ]
 [here: https://bitbucket.org/mrexodia/x64_dbg_old                       ]
 
->Installation guide:
-1) Download the latest 'qt_base_XXX.rar'
-2) Download the latest 'bin_base_XXX.rar'
-3) Download the latest 'release_xxx.rar'
-4) (Optional) Download the latest 'help_XXX.rar'
-5) Extract all in the same directory
-6) Run 'bin\x64\x64_dbg.exe' or 'bin\x32\x32_dbg.exe'
+>Downloads:
+These can be found at https://sf.net/projects/x64dbg/
 
 >Overview:
 This is a x64/x32 debugger that is currently in active development.
