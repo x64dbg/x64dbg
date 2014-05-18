@@ -69,6 +69,12 @@ static bool scriptcreatelinemap(const char* filename)
         return false;
     }
     unsigned int filesize=GetFileSize(hFile, 0);
+    if(!filesize)
+    {
+        CloseHandle(hFile);
+        GuiScriptError(0, "Empty script...");
+        return false;
+    }
     char* filedata=(char*)emalloc(filesize+1, "createlinemap:filedata");
     memset(filedata, 0, filesize+1);
     DWORD read=0;
@@ -507,7 +513,7 @@ void scriptunload()
 
 void scriptrun(int destline)
 {
-    if(!waitislocked(WAITID_RUN))
+    if(DbgIsDebugging() && !waitislocked(WAITID_RUN))
     {
         GuiScriptError(0, "Debugger must be paused to run a script!");
         return;
