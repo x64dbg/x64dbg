@@ -974,7 +974,6 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     stopInfo.reserved=0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
-    DeleteFileA("DLLLoader.exe");
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
     dbclose();

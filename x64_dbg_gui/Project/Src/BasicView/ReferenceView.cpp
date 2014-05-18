@@ -61,10 +61,15 @@ void ReferenceView::setRowCount(int_t count)
 
 void ReferenceView::deleteAllColumns()
 {
+    mSearchBox->setText("");
     mList->setTableOffset(0);
     mList->setSingleSelection(0);
     mList->deleteAllColumns();
     mList->reloadData();
+    mSearchList->setTableOffset(0);
+    mSearchList->setSingleSelection(0);
+    mSearchList->deleteAllColumns();
+    mSearchList->reloadData();
     mSearchStartCol = 1;
 }
 

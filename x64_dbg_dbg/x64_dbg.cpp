@@ -181,7 +181,6 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
-    DeleteFileA("DLLLoader.exe");
     DeleteFileA("alloctrace.txt");
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))
@@ -211,7 +210,6 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cbStopDebug(0, 0);
     wait(WAITID_STOP); //after this, debugging stopped
     pluginunload();
-    DeleteFileA("DLLLoader.exe");
     cmdfree(command_list);
     varfree();
     msgfreestack(gMsgStack);

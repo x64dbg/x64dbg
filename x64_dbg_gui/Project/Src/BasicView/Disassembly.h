@@ -68,6 +68,7 @@ public:
 
     // Update/Reload/Refresh/Repaint
     void prepareData();
+    void reloadData();
 
     // Public Methods
     uint_t rvaToVa(int_t rva);

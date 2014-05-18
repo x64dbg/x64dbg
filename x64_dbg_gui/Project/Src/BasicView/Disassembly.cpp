@@ -995,6 +995,12 @@ void Disassembly::prepareData()
     }
 }
 
+void Disassembly::reloadData()
+{
+    emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
+    AbstractTableView::reloadData();
+}
+
 
 /************************************************************************************
                         Public Methods

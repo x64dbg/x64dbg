@@ -80,7 +80,7 @@ signals:
 
 public slots:
     // Update/Reload/Refresh/Repaint
-    void reloadData();
+    virtual void reloadData();
     void repaint();
 
     // ScrollBar Management
