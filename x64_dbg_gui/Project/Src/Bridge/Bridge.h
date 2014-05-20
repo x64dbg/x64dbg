@@ -70,6 +70,9 @@ public:
     bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
     bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
     bool emitGetStrWindow(const QString title, QString* text);
+    void emitAutoCompleteAddCmd(const QString cmd);
+    void emitAutoCompleteDelCmd(const QString cmd);
+    void emitAutoCompleteClearAll();
 
     //Public variables
     void* winId;
@@ -122,6 +125,9 @@ signals:
     void selectionStackGet(SELECTIONDATA* selection);
     void selectionStackSet(const SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
+    void autoCompleteAddCmd(const QString cmd);
+    void autoCompleteDelCmd(const QString cmd);
+    void autoCompleteClearAll();
 
 private:
     QMutex mBridgeMutex;

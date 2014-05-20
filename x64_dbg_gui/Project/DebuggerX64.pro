@@ -62,7 +62,9 @@ SOURCES += \
     Src/Gui/ExceptionRangeDialog.cpp \
     Src/BasicView/RichTextPainter.cpp \
     Src/Gui/TabBar.cpp \
-    Src/Gui/TabWidget.cpp
+    Src/Gui/TabWidget.cpp \
+    Src/BasicView/CommandHelpView.cpp \
+    Src/BasicView/HistoryLineEdit.cpp
 
 
 HEADERS += \
@@ -105,7 +107,9 @@ HEADERS += \
     Src/Gui/ExceptionRangeDialog.h \
     Src/BasicView/RichTextPainter.h \
     Src/Gui/TabBar.h \
-    Src/Gui/TabWidget.h
+    Src/Gui/TabWidget.h \
+    Src/BasicView/CommandHelpView.h \
+    Src/BasicView/HistoryLineEdit.h
 
 
 INCLUDEPATH += \
@@ -130,7 +134,8 @@ FORMS += \
     Src/BasicView/SymbolView.ui \
     Src/BasicView/SearchListView.ui \
     Src/Gui/SettingsDialog.ui \
-    Src/Gui/ExceptionRangeDialog.ui
+    Src/Gui/ExceptionRangeDialog.ui \
+    Src/BasicView/CommandHelpView.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

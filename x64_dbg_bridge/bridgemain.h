@@ -549,7 +549,10 @@ enum GUIMSG
     GUI_MENU_CLEAR,                 // param1=int hMenu,            param2=unused
     GUI_SELECTION_GET,              // param1=int hWindow,          param2=SELECTIONDATA* selection
     GUI_SELECTION_SET,              // param1=int hWindow,          param2=const SELECTIONDATA* selection
-    GUI_GETLINE_WINDOW              // param1=const char* title,    param2=char* text
+    GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
+    GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
+    GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
+    GUI_AUTOCOMPLETE_CLEARALL       // param1=ununsed,              param2=unused
 };
 
 //GUI structures
@@ -613,6 +616,9 @@ BRIDGE_IMPEXP void GuiMenuClear(int hMenu);
 BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection);
 BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection);
 BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text);
+BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd);
+BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd);
+BRIDGE_IMPEXP void GuiAutoCompleteClearAll();
 
 #ifdef __cplusplus
 }

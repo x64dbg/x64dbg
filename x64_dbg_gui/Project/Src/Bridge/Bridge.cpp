@@ -280,6 +280,12 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
     mBridgeMutex.unlock();
+    if(selection->start > selection->end) //swap start and end
+    {
+        int_t temp=selection->end;
+        selection->end=selection->start;
+        selection->start=temp;
+    }
     return true;
 }
 
@@ -319,6 +325,21 @@ bool Bridge::emitGetStrWindow(const QString title, QString* text)
         Sleep(100);
     mBridgeMutex.unlock();
     return bridgeResult;
+}
+
+void Bridge::emitAutoCompleteAddCmd(const QString cmd)
+{
+    emit autoCompleteAddCmd(cmd);
+}
+
+void Bridge::emitAutoCompleteDelCmd(const QString cmd)
+{
+    emit autoCompleteDelCmd(cmd);
+}
+
+void Bridge::emitAutoCompleteClearAll()
+{
+    emit autoCompleteClearAll();
 }
 
 /************************************************************************************
@@ -637,6 +658,24 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
             return (void*)(uint_t)true;
         }
         return (void*)(uint_t)false; //cancel/escape
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_ADDCMD:
+    {
+        Bridge::getBridge()->emitAutoCompleteAddCmd(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_DELCMD:
+    {
+        Bridge::getBridge()->emitAutoCompleteDelCmd(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_CLEARALL:
+    {
+        Bridge::getBridge()->emitAutoCompleteClearAll();
     }
     break;
 

@@ -40,6 +40,8 @@ private:
     QAction* mFollowDisasm;
     QAction* mFollowDump;
     QAction* mFollowStack;
+
+    GotoDialog* mGoto;
 };
 
 #endif // CPUSTACK_H

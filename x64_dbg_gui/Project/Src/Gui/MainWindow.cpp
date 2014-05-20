@@ -271,7 +271,7 @@ void MainWindow::executeCommand()
 
     DbgCmdExec(wCmd.toUtf8().constData());
 
-    mCmdLineEdit->addCmdToHistory(wCmd);
+    mCmdLineEdit->addLineToHistory(wCmd);
     mCmdLineEdit->setText("");
 }
 
@@ -288,7 +288,7 @@ void MainWindow::execStepInto()
 
 void MainWindow::setFocusToCommandBar()
 {
-    mCmdLineEdit->setFocusToCmd();
+    mCmdLineEdit->setFocus();
 }
 
 void MainWindow::execClose()

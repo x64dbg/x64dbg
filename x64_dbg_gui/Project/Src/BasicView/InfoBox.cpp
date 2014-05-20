@@ -30,5 +30,16 @@ void InfoBox::setInfoLine(int line, QString text)
 
 void InfoBox::disasmSelectionChanged(int_t parVA)
 {
+    char label[MAX_LABEL_SIZE]="";
+    QString info="";
+    if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
+    {
+        QString fullLabel="<"+QString(label)+">";
+        char mod[MAX_MODULE_SIZE]="";
+        if(DbgGetModuleAt(parVA, mod))
+            fullLabel="<"+QString(mod)+"."+QString(label)+">";
+        info=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper() + " " + fullLabel;
+    }
+    setInfoLine(2, info);
     //setInfoLine(0, QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
 }

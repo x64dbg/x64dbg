@@ -23,6 +23,8 @@ public:
 private slots:
     void on_editExpression_textChanged(const QString &arg1);
 
+    void on_buttonOk_clicked();
+
 private:
     Ui::GotoDialog *ui;
     bool IsValidMemoryRange(uint_t addr);

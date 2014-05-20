@@ -87,6 +87,8 @@ private:
     QAction* mReferenceSelectedAddress;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
+
+    GotoDialog* mGoto;
 };
 
 #endif // CPUDISASSEMBLY_H

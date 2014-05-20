@@ -1,6 +1,6 @@
 #include "plugin_loader.h"
 #include "console.h"
-#include "command.h"
+#include "debugger.h"
 #include "x64_dbg.h"
 
 static std::vector<PLUG_DATA> pluginList;
@@ -105,7 +105,7 @@ static void plugincmdunregisterall(int pluginHandle)
     {
         if(pluginCommandList.at(i).pluginHandle==pluginHandle)
         {
-            cmddel(dbggetcommandlist(), pluginCommandList.at(i).command);
+            dbgcmddel(pluginCommandList.at(i).command);
             pluginCommandList.erase(pluginCommandList.begin()+i);
         }
     }
@@ -172,7 +172,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     PLUG_COMMAND plugCmd;
     plugCmd.pluginHandle=pluginHandle;
     strcpy(plugCmd.command, command);
-    if(!cmdnew(dbggetcommandlist(), command, (CBCOMMAND)cbCommand, debugonly))
+    if(!dbgcmdnew(command, (CBCOMMAND)cbCommand, debugonly))
         return false;
     pluginCommandList.push_back(plugCmd);
     dprintf("[PLUGIN] command \"%s\" registered!\n", command);
@@ -188,7 +188,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
     {
         if(pluginCommandList.at(i).pluginHandle==pluginHandle and !strcmp(pluginCommandList.at(i).command, command))
         {
-            if(!cmddel(dbggetcommandlist(), command))
+            if(!dbgcmddel(command))
                 return false;
             pluginCommandList.erase(pluginCommandList.begin()+i);
             dprintf("[PLUGIN] command \"%s\" unregistered!\n", command);

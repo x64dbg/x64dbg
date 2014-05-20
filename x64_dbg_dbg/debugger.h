@@ -29,6 +29,9 @@ void dbgsetskipexceptions(bool skip);
 void dbgclearignoredexceptions();
 void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
+bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
+bool dbgcmddel(const char* name);
+
 //callbacks
 CMDRESULT cbDebugInit(int argc, char* argv[]);
 CMDRESULT cbStopDebug(int argc, char* argv[]);

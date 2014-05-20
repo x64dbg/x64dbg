@@ -82,3 +82,11 @@ bool GotoDialog::IsValidMemoryRange(uint_t addr)
 {
     return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
 }
+
+void GotoDialog::on_buttonOk_clicked()
+{
+    QString expression = ui->editExpression->text();
+    ui->editExpression->addLineToHistory(expression);
+    ui->editExpression->setText("");
+    expressionText = expression;
+}

@@ -30,6 +30,8 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
     setupContextMenu();
+
+    mGoto = 0;
 }
 
 void CPUStack::setupContextMenu()
@@ -187,14 +189,15 @@ void CPUStack::gotoExpressionSlot()
         return;
     uint_t size=0;
     uint_t base=DbgMemFindBaseAddr(mCsp, &size);
-    GotoDialog mGoto(this);
-    mGoto.validRangeStart=base;
-    mGoto.validRangeEnd=base+size;
-    mGoto.setWindowTitle("Enter expression to follow in Stack...");
-    if(mGoto.exec()==QDialog::Accepted)
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    mGoto->validRangeStart=base;
+    mGoto->validRangeEnd=base+size;
+    mGoto->setWindowTitle("Enter expression to follow in Stack...");
+    if(mGoto->exec()==QDialog::Accepted)
     {
         QString cmd;
-        DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
 }
 

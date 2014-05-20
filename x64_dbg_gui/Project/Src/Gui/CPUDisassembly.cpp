@@ -7,6 +7,8 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
 
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+
+    mGoto = 0;
 }
 
 void CPUDisassembly::mousePressEvent(QMouseEvent* event)
@@ -631,10 +633,11 @@ void CPUDisassembly::gotoExpression()
 {
     if(!DbgIsDebugging())
         return;
-    GotoDialog mGoto(this);
-    if(mGoto.exec()==QDialog::Accepted)
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    if(mGoto->exec()==QDialog::Accepted)
     {
-        DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
 }
 

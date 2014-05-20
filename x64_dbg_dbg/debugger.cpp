@@ -99,6 +99,22 @@ bool dbgisignoredexception(unsigned int exception)
     return false;
 }
 
+bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
+{
+    if(!cmdnew(dbggetcommandlist(), name, cbCommand, debugonly))
+        return false;
+    GuiAutoCompleteAddCmd(name);
+    return true;
+}
+
+bool dbgcmddel(const char* name)
+{
+    if(!cmddel(dbggetcommandlist(), name))
+        return false;
+    GuiAutoCompleteDelCmd(name);
+    return true;
+}
+
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     uint cip=GetContextData(UE_CIP);

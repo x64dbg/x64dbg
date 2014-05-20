@@ -87,6 +87,8 @@ private:
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
+
+    GotoDialog* mGoto;
 };
 
 #endif // CPUDUMP_H

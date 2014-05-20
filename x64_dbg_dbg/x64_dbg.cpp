@@ -49,108 +49,108 @@ static void registercommands()
     COMMAND* cmd=command_list=cmdinit();
 
     //debug control
-    cmdnew(cmd, "InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
-    cmdnew(cmd, "StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
-    cmdnew(cmd, "AttachDebugger\1attach", cbDebugAttach, false); //attach
-    cmdnew(cmd, "DetachDebugger\1detach", cbDebugDetach, true); //detach
-    cmdnew(cmd, "run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
-    cmdnew(cmd, "erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
-    cmdnew(cmd, "pause", cbDebugPause, true); //pause debugger
-    cmdnew(cmd, "StepInto\1sti", cbDebugStepInto, true); //StepInto
-    cmdnew(cmd, "eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
-    cmdnew(cmd, "StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
-    cmdnew(cmd, "eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
-    cmdnew(cmd, "SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
-    cmdnew(cmd, "eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
-    cmdnew(cmd, "StepOut\1rtr", cbDebugRtr, true); //rtr
-    cmdnew(cmd, "eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
+    dbgcmdnew("InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
+    dbgcmdnew("StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
+    dbgcmdnew("AttachDebugger\1attach", cbDebugAttach, false); //attach
+    dbgcmdnew("DetachDebugger\1detach", cbDebugDetach, true); //detach
+    dbgcmdnew("run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
+    dbgcmdnew("erun\1egun\1er\1eg", cbDebugErun, true); //run + skip first chance exceptions
+    dbgcmdnew("pause", cbDebugPause, true); //pause debugger
+    dbgcmdnew("StepInto\1sti", cbDebugStepInto, true); //StepInto
+    dbgcmdnew("eStepInto\1esti", cbDebugeStepInto, true); //StepInto + skip first chance exceptions
+    dbgcmdnew("StepOver\1step\1sto\1st", cbDebugStepOver, true); //StepOver
+    dbgcmdnew("eStepOver\1estep\1esto\1est", cbDebugeStepOver, true); //StepOver + skip first chance exceptions
+    dbgcmdnew("SingleStep\1sstep\1sst", cbDebugSingleStep, true); //SingleStep arg1:count
+    dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
+    dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
+    dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
 
     //breakpoints
-    cmdnew(cmd, "bplist", cbDebugBplist, true); //breakpoint list
-    cmdnew(cmd, "SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
-    cmdnew(cmd, "SetBPX\1bp\1bpx", cbDebugSetBPX, true); //breakpoint
-    cmdnew(cmd, "DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
-    cmdnew(cmd, "EnableBPX\1bpe\1be", cbDebugEnableBPX, true); //breakpoint enable
-    cmdnew(cmd, "DisableBPX\1bpd\1bd", cbDebugDisableBPX, true); //breakpoint disable
-    cmdnew(cmd, "SetHardwareBreakpoint\1bph\1bphws", cbDebugSetHardwareBreakpoint, true); //hardware breakpoint
-    cmdnew(cmd, "DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
-    cmdnew(cmd, "SetMemoryBPX\1membp\1bpm", cbDebugSetMemoryBpx, true); //SetMemoryBPX
-    cmdnew(cmd, "DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
+    dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
+    dbgcmdnew("SetBPXOptions\1bptype", cbDebugSetBPXOptions, false); //breakpoint type
+    dbgcmdnew("SetBPX\1bp\1bpx", cbDebugSetBPX, true); //breakpoint
+    dbgcmdnew("DeleteBPX\1bpc\1bc", cbDebugDeleteBPX, true); //breakpoint delete
+    dbgcmdnew("EnableBPX\1bpe\1be", cbDebugEnableBPX, true); //breakpoint enable
+    dbgcmdnew("DisableBPX\1bpd\1bd", cbDebugDisableBPX, true); //breakpoint disable
+    dbgcmdnew("SetHardwareBreakpoint\1bph\1bphws", cbDebugSetHardwareBreakpoint, true); //hardware breakpoint
+    dbgcmdnew("DeleteHardwareBreakpoint\1bphc\1bphwc", cbDebugDeleteHardwareBreakpoint, true); //delete hardware breakpoint
+    dbgcmdnew("SetMemoryBPX\1membp\1bpm", cbDebugSetMemoryBpx, true); //SetMemoryBPX
+    dbgcmdnew("DeleteMemoryBPX\1membpc\1bpmc", cbDebugDeleteMemoryBreakpoint, true); //delete memory breakpoint
 
     //variables
-    cmdnew(cmd, "varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
-    cmdnew(cmd, "vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
-    cmdnew(cmd, "varlist", cbInstrVarList, false); //list variables[arg1:type filter]
-    cmdnew(cmd, "mov\1set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
+    dbgcmdnew("varnew\1var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
+    dbgcmdnew("vardel", cbInstrVarDel, false); //delete a variable, arg1:variable name
+    dbgcmdnew("varlist", cbInstrVarList, false); //list variables[arg1:type filter]
+    dbgcmdnew("mov\1set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
 
     //misc
-    cmdnew(cmd, "strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
-    cmdnew(cmd, "cls\1lc\1lclr", cbCls, false); //clear the log
-    cmdnew(cmd, "chd", cbInstrChd, false); //Change directory
-    cmdnew(cmd, "disasm\1dis\1d", cbDebugDisasm, true); //doDisasm
-    cmdnew(cmd, "HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
-    cmdnew(cmd, "dump", cbDebugDump, true); //dump at address
-    cmdnew(cmd, "sdump", cbDebugStackDump, true); //dump at stack address
+    dbgcmdnew("strlen\1charcount\1ccount", cbStrLen, false); //get strlen, arg1:string
+    dbgcmdnew("cls\1lc\1lclr", cbCls, false); //clear the log
+    dbgcmdnew("chd", cbInstrChd, false); //Change directory
+    dbgcmdnew("disasm\1dis\1d", cbDebugDisasm, true); //doDisasm
+    dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
+    dbgcmdnew("dump", cbDebugDump, true); //dump at address
+    dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
 
     //user database
-    cmdnew(cmd, "cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
-    cmdnew(cmd, "cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
-    cmdnew(cmd, "lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
-    cmdnew(cmd, "lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
-    cmdnew(cmd, "bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
-    cmdnew(cmd, "bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
-    cmdnew(cmd, "savedb\1dbsave", cbSavedb, true); //save program database
-    cmdnew(cmd, "loaddb\1dbload", cbLoaddb, true); //load program database
-    cmdnew(cmd, "functionadd\1func", cbFunctionAdd, true); //function
-    cmdnew(cmd, "functiondel\1funcc", cbFunctionDel, true); //function
+    dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
+    dbgcmdnew("cmtc\1cmtdel\1commentdel", cbInstrCmtdel, true); //delete comment
+    dbgcmdnew("lbl\1lblset\1labelset", cbInstrLbl, true); //set/edit label
+    dbgcmdnew("lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
+    dbgcmdnew("bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
+    dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
+    dbgcmdnew("savedb\1dbsave", cbSavedb, true); //save program database
+    dbgcmdnew("loaddb\1dbload", cbLoaddb, true); //load program database
+    dbgcmdnew("functionadd\1func", cbFunctionAdd, true); //function
+    dbgcmdnew("functiondel\1funcc", cbFunctionDel, true); //function
 
     //memory operations
-    cmdnew(cmd, "alloc", cbDebugAlloc, true); //allocate memory
-    cmdnew(cmd, "free", cbDebugFree, true); //free memory
-    cmdnew(cmd, "Fill\1memset", cbDebugMemset, true); //memset
+    dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
+    dbgcmdnew("free", cbDebugFree, true); //free memory
+    dbgcmdnew("Fill\1memset", cbDebugMemset, true); //memset
 
     //plugins
-    cmdnew(cmd, "StartScylla\1scylla\1imprec", cbStartScylla, false); //start scylla
+    dbgcmdnew("StartScylla\1scylla\1imprec", cbStartScylla, false); //start scylla
 
     //general purpose
-    cmdnew(cmd, "cmp", cbInstrCmp, false); //compare
-    cmdnew(cmd, "gpa", cbInstrGpa, true);
-    cmdnew(cmd, "add", cbInstrAdd, false);
-    cmdnew(cmd, "and", cbInstrAnd, false);
-    cmdnew(cmd, "dec", cbInstrDec, false);
-    cmdnew(cmd, "div", cbInstrDiv, false);
-    cmdnew(cmd, "inc", cbInstrInc, false);
-    cmdnew(cmd, "mul", cbInstrMul, false);
-    cmdnew(cmd, "neg", cbInstrNeg, false);
-    cmdnew(cmd, "not", cbInstrNot, false);
-    cmdnew(cmd, "or", cbInstrOr, false);
-    cmdnew(cmd, "rol", cbInstrRol, false);
-    cmdnew(cmd, "ror", cbInstrRor, false);
-    cmdnew(cmd, "shl", cbInstrShl, false);
-    cmdnew(cmd, "shr", cbInstrShr, false);
-    cmdnew(cmd, "sub", cbInstrSub, false);
-    cmdnew(cmd, "test", cbInstrTest, false);
-    cmdnew(cmd, "xor", cbInstrXor, false);
+    dbgcmdnew("cmp", cbInstrCmp, false); //compare
+    dbgcmdnew("gpa", cbInstrGpa, true);
+    dbgcmdnew("add", cbInstrAdd, false);
+    dbgcmdnew("and", cbInstrAnd, false);
+    dbgcmdnew("dec", cbInstrDec, false);
+    dbgcmdnew("div", cbInstrDiv, false);
+    dbgcmdnew("inc", cbInstrInc, false);
+    dbgcmdnew("mul", cbInstrMul, false);
+    dbgcmdnew("neg", cbInstrNeg, false);
+    dbgcmdnew("not", cbInstrNot, false);
+    dbgcmdnew("or", cbInstrOr, false);
+    dbgcmdnew("rol", cbInstrRol, false);
+    dbgcmdnew("ror", cbInstrRor, false);
+    dbgcmdnew("shl", cbInstrShl, false);
+    dbgcmdnew("shr", cbInstrShr, false);
+    dbgcmdnew("sub", cbInstrSub, false);
+    dbgcmdnew("test", cbInstrTest, false);
+    dbgcmdnew("xor", cbInstrXor, false);
 
     //script
-    cmdnew(cmd, "scriptload", cbScriptLoad, false);
-    cmdnew(cmd, "msg", cbScriptMsg, false);
-    cmdnew(cmd, "msgyn", cbScriptMsgyn, false);
+    dbgcmdnew("scriptload", cbScriptLoad, false);
+    dbgcmdnew("msg", cbScriptMsg, false);
+    dbgcmdnew("msgyn", cbScriptMsgyn, false);
 
     //data
-    cmdnew(cmd, "reffind\1findref\1ref", cbInstrRefFind, true);
-    cmdnew(cmd, "refstr\1strref", cbInstrRefStr, true);
-    cmdnew(cmd, "find", cbInstrFind, true); //find a pattern
+    dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true);
+    dbgcmdnew("refstr\1strref", cbInstrRefStr, true);
+    dbgcmdnew("find", cbInstrFind, true); //find a pattern
 
     //undocumented
-    cmdnew(cmd, "bench", cbBenchmark, true); //benchmark test (readmem etc)
-    cmdnew(cmd, "memwrite", cbMemWrite, true); //memwrite test
-    cmdnew(cmd, "asm", cbAssemble, true); //assemble instruction
-    cmdnew(cmd, "dprintf", cbPrintf, false); //printf
-    cmdnew(cmd, "refinit", cbInstrRefinit, false);
-    cmdnew(cmd, "refadd", cbInstrRefadd, false);
-    cmdnew(cmd, "setstr\1strset", cbInstrSetstr, false); //set a string variable
-    cmdnew(cmd, "getstr\1strget", cbInstrGetstr, false); //get a string variable
+    dbgcmdnew("bench", cbBenchmark, true); //benchmark test (readmem etc)
+    dbgcmdnew("memwrite", cbMemWrite, true); //memwrite test
+    dbgcmdnew("asm", cbAssemble, true); //assemble instruction
+    dbgcmdnew("dprintf", cbPrintf, false); //printf
+    dbgcmdnew("refinit", cbInstrRefinit, false);
+    dbgcmdnew("refadd", cbInstrRefadd, false);
+    dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
+    dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

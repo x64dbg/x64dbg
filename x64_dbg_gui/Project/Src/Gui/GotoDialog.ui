@@ -26,7 +26,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QLineEdit" name="editExpression"/>
+        <widget class="HistoryLineEdit" name="editExpression"/>
        </item>
        <item>
         <widget class="QLabel" name="labelError">
@@ -75,6 +75,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>HistoryLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>HistoryLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>editExpression</tabstop>
   <tabstop>buttonOk</tabstop>

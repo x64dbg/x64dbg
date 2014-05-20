@@ -9,6 +9,8 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
     setupContextMenu();
+
+    mGoto = 0;
 }
 
 void CPUDump::setupContextMenu()
@@ -168,12 +170,13 @@ void CPUDump::gotoExpressionSlot()
 {
     if(!DbgIsDebugging())
         return;
-    GotoDialog mGoto(this);
-    mGoto.setWindowTitle("Enter expression to follow in Dump...");
-    if(mGoto.exec()==QDialog::Accepted)
+    if(!mGoto)
+        mGoto = new GotoDialog(this);
+    mGoto->setWindowTitle("Enter expression to follow in Dump...");
+    if(mGoto->exec()==QDialog::Accepted)
     {
         QString cmd;
-        DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto.expressionText.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
 }
 

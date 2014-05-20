@@ -829,6 +829,21 @@ BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
     return (bool)(duint)_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
 }
 
+BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_ADDCMD, (void*)cmd, 0);
+}
+
+BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_DELCMD, (void*)cmd, 0);
+}
+
+BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_CLEARALL, 0, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
