@@ -552,7 +552,8 @@ enum GUIMSG
     GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
     GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL       // param1=ununsed,              param2=unused
+    GUI_AUTOCOMPLETE_CLEARALL,      // param1=ununsed,              param2=unused
+    GUI_SCRIPT_ENABLEHIGHLIGHTING   // param1=bool enable,          param2=unused
 };
 
 //GUI structures
@@ -589,6 +590,7 @@ BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title);
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info);
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message);
 BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message);
+BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable);
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
 BRIDGE_IMPEXP void GuiSymbolLogClear();
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent);

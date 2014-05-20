@@ -289,7 +289,6 @@ bool pluginmenuclear(int hMenu)
 
 void pluginmenucall(int hEntry)
 {
-    dprintf("pluginmenucall(%d)\n", hEntry);
     if(hEntry==-1)
         return;
     for(unsigned int i=0; i<pluginMenuList.size(); i++)

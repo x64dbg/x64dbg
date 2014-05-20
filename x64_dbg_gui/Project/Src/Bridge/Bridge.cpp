@@ -139,6 +139,11 @@ int Bridge::emitScriptQuestion(QString message)
     return bridgeResult;
 }
 
+void Bridge::emitScriptEnableHighlighting(bool enable)
+{
+    emit scriptEnableHighlighting(enable);
+}
+
 void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
     emit updateSymbolList(module_count, modules);
@@ -472,6 +477,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SCRIPT_MSGYN:
     {
         return (void*)Bridge::getBridge()->emitScriptQuestion(QString(reinterpret_cast<const char*>(param1)));
+    }
+    break;
+
+    case GUI_SCRIPT_ENABLEHIGHLIGHTING:
+    {
+        Bridge::getBridge()->emitScriptEnableHighlighting((bool)(int_t)param1);
     }
     break;
 

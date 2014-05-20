@@ -690,6 +690,11 @@ BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
     return (int)(duint)_gui_sendmessage(GUI_SCRIPT_MSGYN, (void*)message, 0);
 }
 
+BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable)
+{
+    _gui_sendmessage(GUI_SCRIPT_ENABLEHIGHLIGHTING, (void*)(duint)enable, 0);
+}
+
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message)
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_ADD, (void*)message, 0);

@@ -68,6 +68,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[]);
 CMDRESULT cbDebugDetach(int argc, char* argv[]);
 CMDRESULT cbDebugDump(int argc, char* argv[]);
 CMDRESULT cbDebugStackDump(int argc, char* argv[]);
+CMDRESULT cbDebugContinue(int argc, char* argv[]);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;

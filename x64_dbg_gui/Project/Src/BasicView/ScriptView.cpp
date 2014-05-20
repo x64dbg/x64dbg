@@ -2,6 +2,7 @@
 
 ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
 {
+    mEnableSyntaxHighlighting=false;
     enableMultiSelection(false);
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
@@ -20,6 +21,7 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptSetInfoLine(int,QString)), this, SLOT(setInfoLine(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
+    connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
 
     setupContextMenu();
 }
@@ -67,38 +69,103 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
     case 1: //command
     {
-        //initialize
-        painter->save();
-        int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-        int xadd=charwidth; //for testing
-        QList<CustomRichText_t> richText;
-        CustomRichText_t newRichText;
-        QString command=getCellContent(rowBase+rowOffset, col);
+        if(mEnableSyntaxHighlighting)
+        {
+            //initialize
+            painter->save();
+            int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+            int xadd=charwidth; //for testing
+            QList<CustomRichText_t> richText;
+            CustomRichText_t newRichText;
+            QString command=getCellContent(rowBase+rowOffset, col);
 
-        //handle comments
-        int comment_idx=command.indexOf("//"); //find the index of the space
-        QString comment="";
-        if(comment_idx!=-1 && command.at(0)!=QChar('/')) //there is a comment
-        {
-            comment=command.right(command.length()-comment_idx);
-            if(command.at(comment_idx-1)==QChar(' '))
-                command.truncate(comment_idx-1);
-            else
-                command.truncate(comment_idx);
-        }
-
-        //setup the richText list
-        switch(linetype)
-        {
-        case linecommand:
-        {
-            if(isScriptCommand(command, "ret"))
+            //handle comments
+            int comment_idx=command.indexOf("//"); //find the index of the space
+            QString comment="";
+            if(comment_idx!=-1 && command.at(0)!=QChar('/')) //there is a comment
             {
-                newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor("#00FFFF");
-                newRichText.text="ret";
+                comment=command.right(command.length()-comment_idx);
+                if(command.at(comment_idx-1)==QChar(' '))
+                    command.truncate(comment_idx-1);
+                else
+                    command.truncate(comment_idx);
+            }
+
+            //setup the richText list
+            switch(linetype)
+            {
+            case linecommand:
+            {
+                if(isScriptCommand(command, "ret"))
+                {
+                    newRichText.flags=FlagBackground;
+                    newRichText.textBackground=QColor("#00FFFF");
+                    newRichText.text="ret";
+                    richText.push_back(newRichText);
+                    QString remainder=command.right(command.length()-3);
+                    if(remainder.length())
+                    {
+                        newRichText.flags=FlagNone;
+                        newRichText.text=remainder;
+                        richText.push_back(newRichText);
+                    }
+                }
+                else
+                {
+                    newRichText.flags=FlagNone;
+                    newRichText.text=command;
+                    richText.push_back(newRichText);
+                }
+            }
+            break;
+
+            case linebranch:
+            {
+                SCRIPTBRANCH branchinfo;
+                DbgScriptGetBranchInfo(line, &branchinfo);
+                //jumps
+                int i=command.indexOf(" "); //find the index of the space
+                switch(branchinfo.type)
+                {
+                case scriptjmp: //unconditional jumps
+                    newRichText.flags=FlagBackground;
+                    newRichText.textBackground=QColor("#FFFF00");
+                break;
+
+                case scriptjnejnz: //conditional jumps
+                case scriptjejz:
+                case scriptjbjl:
+                case scriptjajg:
+                case scriptjbejle:
+                case scriptjaejge:
+                    newRichText.flags=FlagAll;
+                    newRichText.textBackground=QColor("#FFFF00");
+                    newRichText.textColor=QColor("#FF0000");
+                break;
+
+                case scriptcall: //calls
+                    newRichText.flags=FlagBackground;
+                    newRichText.textBackground=QColor("#00FFFF");
+                break;
+
+                default:
+                    newRichText.flags=FlagNone;
+                break;
+                }
+                newRichText.text=command.left(i);
                 richText.push_back(newRichText);
-                QString remainder=command.right(command.length()-3);
+                //space
+                newRichText.flags=FlagNone;
+                newRichText.text=" ";
+                richText.push_back(newRichText);
+                //label
+                QString label=branchinfo.branchlabel;
+                newRichText.flags=FlagBackground;
+                newRichText.textBackground=QColor("#FFFF00");
+                newRichText.text=label;
+                richText.push_back(newRichText);
+                //remainder
+                QString remainder=command.right(command.length()-command.indexOf(label)-label.length());
                 if(remainder.length())
                 {
                     newRichText.flags=FlagNone;
@@ -106,113 +173,53 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                     richText.push_back(newRichText);
                 }
             }
-            else
+            break;
+
+            case linelabel:
             {
-                newRichText.flags=FlagNone;
+                newRichText.flags=FlagColor;
+                newRichText.textColor=QColor("#808080");
+                newRichText.text=command;
+                richText.push_back(newRichText);
+                painter->drawLine(QPoint(x+xadd+2, y+h-2), QPoint(x+w-4, y+h-2));
+            }
+            break;
+
+            case linecomment:
+            {
+                newRichText.flags=FlagColor;
+                newRichText.textColor=QColor("#808080");
                 newRichText.text=command;
                 richText.push_back(newRichText);
             }
-        }
-        break;
+            break;
 
-        case linebranch:
-        {
-            SCRIPTBRANCH branchinfo;
-            DbgScriptGetBranchInfo(line, &branchinfo);
-            //jumps
-            int i=command.indexOf(" "); //find the index of the space
-            switch(branchinfo.type)
+            case lineempty:
             {
-            case scriptjmp: //unconditional jumps
-                newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor("#FFFF00");
-            break;
-
-            case scriptjnejnz: //conditional jumps
-            case scriptjejz:
-            case scriptjbjl:
-            case scriptjajg:
-            case scriptjbejle:
-            case scriptjaejge:
-                newRichText.flags=FlagAll;
-                newRichText.textBackground=QColor("#FFFF00");
-                newRichText.textColor=QColor("#FF0000");
-            break;
-
-            case scriptcall: //calls
-                newRichText.flags=FlagBackground;
-                newRichText.textBackground=QColor("#00FFFF");
-            break;
-
-            default:
-                newRichText.flags=FlagNone;
+            }
             break;
             }
-            newRichText.text=command.left(i);
-            richText.push_back(newRichText);
-            //space
-            newRichText.flags=FlagNone;
-            newRichText.text=" ";
-            richText.push_back(newRichText);
-            //label
-            QString label=branchinfo.branchlabel;
-            newRichText.flags=FlagBackground;
-            newRichText.textBackground=QColor("#FFFF00");
-            newRichText.text=label;
-            richText.push_back(newRichText);
-            //remainder
-            QString remainder=command.right(command.length()-command.indexOf(label)-label.length());
-            if(remainder.length())
+
+            //append the comment (when present)
+            if(comment.length())
             {
+                CustomRichText_t newRichText;
                 newRichText.flags=FlagNone;
-                newRichText.text=remainder;
-                richText.push_back(newRichText);
+                newRichText.text=" ";
+                richText.push_back(newRichText); //space
+                newRichText.flags=FlagColor;
+                newRichText.textColor=QColor("#808080");
+                newRichText.text=comment;
+                richText.push_back(newRichText); //comment
             }
-        }
-        break;
 
-        case linelabel:
-        {
-            newRichText.flags=FlagColor;
-            newRichText.textColor=QColor("#808080");
-            newRichText.text=command;
-            richText.push_back(newRichText);
-            painter->drawLine(QPoint(x+xadd+2, y+h-2), QPoint(x+w-4, y+h-2));
+            //paint the rich text
+            RichTextPainter::paintRichText(painter, x+1, y, w, h, xadd, &richText, charwidth);
+            painter->restore();
+            returnString="";
         }
-        break;
-
-        case linecomment:
-        {
-            newRichText.flags=FlagColor;
-            newRichText.textColor=QColor("#808080");
-            newRichText.text=command;
-            richText.push_back(newRichText);
-        }
-        break;
-
-        case lineempty:
-        {
-        }
-        break;
-        }
-
-        //append the comment (when present)
-        if(comment.length())
-        {
-            CustomRichText_t newRichText;
-            newRichText.flags=FlagNone;
-            newRichText.text=" ";
-            richText.push_back(newRichText); //space
-            newRichText.flags=FlagColor;
-            newRichText.textColor=QColor("#808080");
-            newRichText.text=comment;
-            richText.push_back(newRichText); //comment
-        }
-
-        //paint the rich text
-        RichTextPainter::paintRichText(painter, x+1, y, w, h, xadd, &richText, charwidth);
-        painter->restore();
-        returnString="";
+        else //no syntax highlighting
+            returnString=getCellContent(rowBase+rowOffset, col);
     }
     break;
 
@@ -528,4 +535,9 @@ void ScriptView::question(QString message)
         Bridge::getBridge()->BridgeSetResult(1);
     else
         Bridge::getBridge()->BridgeSetResult(0);
+}
+
+void ScriptView::enableHighlighting(bool enable)
+{
+    mEnableSyntaxHighlighting=enable;
 }

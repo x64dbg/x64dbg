@@ -480,6 +480,7 @@ static DWORD WINAPI scriptRunThread(void* arg)
 static DWORD WINAPI scriptLoadThread(void* filename)
 {
     GuiScriptClear();
+    GuiScriptEnableHighlighting(true); //enable default script syntax highlighting
     scriptIp=0;
     std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
     std::vector<int>().swap(scriptstack); //clear script stack

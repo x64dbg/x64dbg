@@ -40,6 +40,7 @@ public slots:
     void message(QString message);
     void newIp();
     void question(QString message);
+    void enableHighlighting(bool enable);
 
 private:
     //private functions
@@ -49,6 +50,7 @@ private:
 
     //private variables
     int mIpLine;
+    bool mEnableSyntaxHighlighting;
 
     QMenu* mLoadMenu;
     QAction* mScriptLoad;

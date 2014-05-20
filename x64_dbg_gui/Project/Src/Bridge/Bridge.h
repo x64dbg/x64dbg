@@ -46,6 +46,7 @@ public:
     void emitScriptSetInfoLine(int line, QString info);
     void emitScriptMessage(QString message);
     int emitScriptQuestion(QString message);
+    void emitScriptEnableHighlighting(bool enable);
     void emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void emitAddMsgToSymbolLog(QString msg);
     void emitClearSymbolLog();
@@ -97,6 +98,7 @@ signals:
     void scriptSetInfoLine(int line, QString info);
     void scriptMessage(QString message);
     void scriptQuestion(QString message);
+    void scriptEnableHighlighting(bool enable);
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void addMsgToSymbolLog(QString msg);
     void clearSymbolLog();
