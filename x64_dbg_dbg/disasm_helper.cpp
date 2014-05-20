@@ -171,9 +171,9 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     {
         arg->type=arg_memory;
         arg->segment=ConvertBeaSeg(Argument->SegmentReg);
-        uint value=Argument->Memory.Displacement;
+        uint value=(uint)Argument->Memory.Displacement;
         if((Argument->ArgType&RELATIVE_)==RELATIVE_)
-            value=Instruction->AddrValue;
+            value=(uint)Instruction->AddrValue;
         arg->constant=value;
         arg->value=0;
         if(!valfromstring(argmnemonic, &value, true, true))

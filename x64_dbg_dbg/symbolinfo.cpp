@@ -13,7 +13,7 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     int len=strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
-    curSymbol.addr=pSymInfo->Address;
+    curSymbol.addr=(duint)pSymInfo->Address;
     curSymbol.decoratedSymbol=(char*)BridgeAlloc(len+1);
     strcpy(curSymbol.decoratedSymbol, pSymInfo->Name);
     curSymbol.undecoratedSymbol=(char*)BridgeAlloc(MAX_SYM_NAME);

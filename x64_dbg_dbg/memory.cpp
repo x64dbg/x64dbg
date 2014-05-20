@@ -99,6 +99,20 @@ void memfree(HANDLE hProcess, uint addr)
     VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
 }
 
+static int formathexpattern(char* string)
+{
+    int len=strlen(string);
+    _strupr(string);
+    char* new_string=(char*)emalloc(len+1, "formathexpattern:new_string");
+    memset(new_string, 0, len+1);
+    for(int i=0,j=0; i<len; i++)
+        if(string[i]=='?' or isxdigit(string[i]))
+            j+=sprintf(new_string+j, "%c", string[i]);
+    strcpy(string, new_string);
+    efree(new_string, "formathexpattern:new_string");
+    return strlen(string);
+}
+
 static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
 {
     if(!text or !pattern)
@@ -109,6 +123,7 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
         return false;
     char* newtext=(char*)emalloc(len+2, "transformpattern:newtext");
     strcpy(newtext, text);
+    len=formathexpattern(newtext);
     if(len%2) //not a multiple of 2
     {
         newtext[len]='?';
@@ -118,7 +133,13 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     PATTERNBYTE newByte;
     for(int i=0,j=0; i<len; i++)
     {
-        if(isxdigit(newtext[i])) //hex
+        if(newtext[i]=='?') //wildcard
+        {
+            newByte.n[j].all=true; //match anything
+            newByte.n[j].n=0;
+            j++;
+        }
+        else //hex
         {
             char x[2]="";
             *x=newtext[i];
@@ -128,14 +149,7 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
             newByte.n[j].n=val&0xF;
             j++;
         }
-        else if(newtext[i]=='?') //wildcard
-        {
-            newByte.n[j].all=true; //match anything
-            newByte.n[j].n=0;
-            j++;
-        }
-        else //dafug dude..
-            return false; //invalid pattern format
+
         if(j==2) //two nibbles = one byte
         {
             j=0;

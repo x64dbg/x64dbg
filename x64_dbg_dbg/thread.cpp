@@ -22,7 +22,7 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 void threadexit(DWORD dwThreadId)
 {
-    for(int i=0; i<threadList.size(); i++)
+    for(unsigned int i=0; i<threadList.size(); i++)
         if(threadList.at(i).dwThreadId==dwThreadId)
         {
             threadList.erase(threadList.begin()+i);

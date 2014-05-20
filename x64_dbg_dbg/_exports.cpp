@@ -126,41 +126,41 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
                         SectionName="";
                     int len=strlen(SectionName);
                     int escape_count=0;
-                    for(int i=0; i<len; i++)
-                        if(SectionName[i]=='\\' or SectionName[i]=='\"' or !isprint(SectionName[i]))
+                    for(int k=0; k<len; k++)
+                        if(SectionName[k]=='\\' or SectionName[k]=='\"' or !isprint(SectionName[k]))
                             escape_count++;
                     char* SectionNameEscaped=(char*)emalloc(len+escape_count+1, "_dbg_memmap:SectionNameEscaped");
                     memset(SectionNameEscaped, 0, len+escape_count+1);
-                    for(int i=0,j=0; i<len; i++)
+                    for(int k=0,l=0; k<len; k++)
                     {
-                        switch(SectionName[i])
+                        switch(SectionName[k])
                         {
                         case '\t':
-                            j+=sprintf(SectionNameEscaped+j, "\\t");
+                            l+=sprintf(SectionNameEscaped+l, "\\t");
                             break;
                         case '\f':
-                            j+=sprintf(SectionNameEscaped+j, "\\f");
+                            l+=sprintf(SectionNameEscaped+l, "\\f");
                             break;
                         case '\v':
-                            j+=sprintf(SectionNameEscaped+j, "\\v");
+                            l+=sprintf(SectionNameEscaped+l, "\\v");
                             break;
                         case '\n':
-                            j+=sprintf(SectionNameEscaped+j, "\\n");
+                            l+=sprintf(SectionNameEscaped+l, "\\n");
                             break;
                         case '\r':
-                            j+=sprintf(SectionNameEscaped+j, "\\r");
+                            l+=sprintf(SectionNameEscaped+l, "\\r");
                             break;
                         case '\\':
-                            j+=sprintf(SectionNameEscaped+j, "\\\\");
+                            l+=sprintf(SectionNameEscaped+l, "\\\\");
                             break;
                         case '\"':
-                            j+=sprintf(SectionNameEscaped+j, "\\\"");
+                            l+=sprintf(SectionNameEscaped+l, "\\\"");
                             break;
                         default:
-                            if(!isprint(SectionName[i])) //unknown unprintable character
-                                j+=sprintf(SectionNameEscaped+j, "\\x%.2X", SectionName[i]);
+                            if(!isprint(SectionName[k])) //unknown unprintable character
+                                l+=sprintf(SectionNameEscaped+l, "\\x%.2X", SectionName[k]);
                             else
-                                j+=sprintf(SectionNameEscaped+j, "%c", SectionName[i]);
+                                l+=sprintf(SectionNameEscaped+l, "%c", SectionName[k]);
                             break;
                         }
                     }
