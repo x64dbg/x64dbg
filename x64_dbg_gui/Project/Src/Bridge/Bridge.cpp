@@ -648,13 +648,13 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SELECTION_GET:
     {
-        Bridge::getBridge()->emitSelectionGet((int)(uint_t)param1, (SELECTIONDATA*)param2);
+        return (void*)(int_t)Bridge::getBridge()->emitSelectionGet((int)(uint_t)param1, (SELECTIONDATA*)param2);
     }
     break;
 
     case GUI_SELECTION_SET:
     {
-        Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
+        return (void*)(int_t)Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
     }
     break;
 
