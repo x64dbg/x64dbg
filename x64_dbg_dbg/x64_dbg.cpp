@@ -18,6 +18,31 @@
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
 
+//Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
+static void commandlinefree(int argc, char** argv)
+{
+    for(int i=0; i<argc; i++)
+        efree(argv[i]);
+    efree(argv);
+}
+
+static char** commandlineparse(int* argc)
+{
+    if(!argc)
+        return NULL;
+    LPWSTR wcCommandLine=GetCommandLineW();
+    LPWSTR* argw=CommandLineToArgvW(wcCommandLine, argc);
+    char** argv=(char**)emalloc(sizeof(void*)*(*argc+1));
+    for(int i=0; i<*argc; i++)
+    {
+        int bufSize=WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
+        argv[i]=(char*)emalloc(bufSize+1);
+        WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], bufSize*sizeof(WCHAR), argv[i], bufSize, NULL, NULL);
+    }
+    LocalFree(argw);
+    return argv;
+}
+
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
     if(argc<2)
@@ -202,6 +227,17 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
     pluginload(plugindir);
+    //handle command line
+    int argc=0;
+    char** argv=commandlineparse(&argc);
+    if(argc>1) //we have an argument
+    {
+        std::string str="init \"";
+        str+=argv[1];
+        str+="\"";
+        DbgCmdExec(str.c_str());
+    }
+    commandlinefree(argc, argv);
     return 0;
 }
 
