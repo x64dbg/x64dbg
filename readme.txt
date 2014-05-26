@@ -76,6 +76,7 @@ The icon is taken from VisualPharm (http://www.visualpharm.com/)
 - Tuts4You community
 - DMichael
 - TEAM DVT
+- Artic
 - Sorry if I forgot you!
 
 >Lead developers:

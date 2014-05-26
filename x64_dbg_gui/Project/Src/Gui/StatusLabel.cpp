@@ -14,7 +14,10 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
         connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     }
     else //last log message
+    {
         connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
+        connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
+    }
 }
 
 void StatusLabel::debugStateChangedSlot(DBGSTATE state)

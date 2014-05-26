@@ -417,41 +417,19 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
-    //NOTE: test code for 'function.exe'
-    /*if(depth==0)
-    {
-        if(addr==0x00401348)
-            return LOOP_BEGIN;
-        else if(addr==0x004013A8)
-            return LOOP_ENTRY;
-        else if(addr>0x00401348 && addr<0x004013B3)
-            return LOOP_MIDDLE;
-        else if(addr==0x004013B3)
-            return LOOP_END;
-    }
-    else if(depth==1)
-    {
-        if(addr==0x00401351)
-            return LOOP_BEGIN;
-        else if(addr==0x00401398)
-            return LOOP_ENTRY;
-        else if(addr>0x00401351 && addr<0x004013A3)
-            return LOOP_MIDDLE;
-        else if(addr==0x004013A3)
-            return LOOP_END;
-    }
-    else if(depth==2)
-    {
-        if(addr==0x0040135A)
-            return LOOP_BEGIN;
-        else if(addr==0x00401388)
-            return LOOP_ENTRY;
-        else if(addr>0x0040135A && addr<0x00401393)
-            return LOOP_MIDDLE;
-        else if(addr==0x00401393)
-            return LOOP_END;
-    }*/
-    return LOOP_NONE;
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags=flagloop;
+    info.loop.depth=depth;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return LOOP_NONE;
+    duint start=info.loop.start;
+    duint end=info.loop.end;
+    if(addr==start)
+        return LOOP_BEGIN;
+    else if(addr==end)
+        return LOOP_END;
+    return LOOP_MIDDLE;
 }
 
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
@@ -847,6 +825,11 @@ BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
 BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_CLEARALL, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
+{
+    _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
 }
 
 //Main

@@ -74,6 +74,7 @@ public:
     void emitAutoCompleteAddCmd(const QString cmd);
     void emitAutoCompleteDelCmd(const QString cmd);
     void emitAutoCompleteClearAll();
+    void emitAddMsgToStatusBar(QString msg);
 
     //Public variables
     void* winId;
@@ -130,6 +131,7 @@ signals:
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);
     void autoCompleteClearAll();
+    void addMsgToStatusBar(QString msg);
 
 private:
     QMutex mBridgeMutex;

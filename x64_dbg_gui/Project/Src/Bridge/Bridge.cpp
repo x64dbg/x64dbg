@@ -261,6 +261,11 @@ void Bridge::emitMenuClearMenu(int hMenu)
     emit menuClearMenu(hMenu);
 }
 
+void Bridge::emitAddMsgToStatusBar(QString msg)
+{
+    emit addMsgToStatusBar(msg);
+}
+
 bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
     if(!DbgIsDebugging())
@@ -687,6 +692,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_AUTOCOMPLETE_CLEARALL:
     {
         Bridge::getBridge()->emitAutoCompleteClearAll();
+    }
+    break;
+
+    case GUI_ADD_MSG_TO_STATUSBAR:
+    {
+        Bridge::getBridge()->emitAddMsgToStatusBar(QString((const char*)param1));
     }
     break;
 

@@ -33,6 +33,8 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS functions (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, start INT64 NOT NULL, end INT64 NOT NULL, manual BOOL NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
+    if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS loops (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, start INT64 NOT NULL, end INT64 NOT NULL, parent INT, depth INT NOT NULL, manual BOOL NOT NULL)"))
+        dprintf("SQL Error: %s\n", sqllasterror());
     dbsave();
     bpenumall(0); //update breakpoint list
     GuiUpdateBreakpointsView();
@@ -165,16 +167,13 @@ uint modbasefromname(const char* modname)
     int modname_len=strlen(modname);
     if(modname_len>=MAX_MODULE_SIZE)
         return 0;
-    char newmodname[MAX_MODULE_SIZE]="";
-    strcpy(newmodname, modname);
-    _strlwr(newmodname);
     for(int i=0; i<total; i++)
     {
-        int cur_len=strlen(modinfo.at(i).name);
-        int cmp_len=modname_len;
-        if(cur_len<cmp_len)
-            cmp_len=cur_len;
-        if(!memcmp(modinfo.at(i).name, newmodname, cmp_len))
+        char curmodname[MAX_MODULE_SIZE]="";
+        sprintf(curmodname, "%s%s", modinfo.at(i).name, modinfo.at(i).extension);
+        if(!_stricmp(curmodname, modname)) //with extension
+            return modinfo.at(i).base;
+        if(!_stricmp(modinfo.at(i).name, modname)) //without extension
             return modinfo.at(i).base;
     }
     return 0;
@@ -648,4 +647,90 @@ bool functiondel(uint addr)
     GuiUpdateAllViews();
     dbsave();
     return true;
+}
+
+bool loopget(int depth, uint addr, uint* start, uint* end)
+{
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    char modname[MAX_MODULE_SIZE]="";
+    char sql[deflen]="";
+    uint modbase=0;
+    if(!modnamefromaddr(addr, modname, true))
+        sprintf(sql, "SELECT start,end FROM loops WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d AND depth=%d", addr, addr, depth);
+    else
+    {
+        modbase=modbasefromaddr(addr);
+        uint rva=addr-modbase;
+        sprintf(sql, "SELECT start,end FROM loops WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d AND depth=%d", modname, rva, rva, depth);
+    }
+    sqlite3_stmt* stmt;
+    lock(WAITID_USERDB);
+    if(sqlite3_prepare_v2(userdb, sql, -1, &stmt, 0)!=SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
+        return false;
+    }
+    if(sqlite3_step(stmt)!=SQLITE_ROW)
+    {
+        sqlite3_finalize(stmt);
+        unlock(WAITID_USERDB);
+        return false;
+    }
+#ifdef _WIN64
+    uint dbstart=sqlite3_column_int64(stmt, 0)+modbase; //start
+    uint dbend=sqlite3_column_int64(stmt, 1)+modbase; //end
+#else
+    uint dbstart=sqlite3_column_int(stmt, 0)+modbase; //addr
+    uint dbend=sqlite3_column_int(stmt, 1)+modbase; //end
+#endif // _WIN64
+    sqlite3_finalize(stmt);
+    if(start)
+        *start=dbstart;
+    if(end)
+        *end=dbend;
+    unlock(WAITID_USERDB);
+    return true;
+}
+
+bool loopadd(uint start, uint end, bool manual)
+{
+    return false;
+}
+
+//check if a loop overlaps a range, inside is not overlapping
+bool loopoverlaps(int depth, uint start, uint end)
+{
+    char sql[deflen]="";
+    char modname[MAX_MODULE_SIZE]="";
+
+    //check if the new loop fits in the old loop
+    if(!modnamefromaddr(start, modname, true))
+        sprintf(sql, "SELECT manual FROM loops WHERE mod IS NULL AND start<%"fext"d AND end>%"fext"d AND depth=%d", start, end, depth);
+    else
+    {
+        uint modbase=modbasefromaddr(start);
+        sprintf(sql, "SELECT manual FROM loops WHERE mod='%s' AND start<%"fext"d AND end>%"fext"d AND depth=%d", modname, start-modbase, end-modbase, depth);
+    }
+    if(sqlhasresult(userdb, sql)) //new loop fits in the old loop
+        return loopoverlaps(depth+1, start, end); //check the next depth
+    
+    //check for loop overlaps
+    if(!modnamefromaddr(start, modname, true))
+        sprintf(sql, "SELECT manual FROM loops WHERE mod IS NULL AND start<=%"fext"d AND end>=%"fext"d AND depth=%d", end, start, depth);
+    else
+    {
+        uint modbase=modbasefromaddr(start);
+        sprintf(sql, "SELECT manual FROM loops WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d AND depth=%d", modname, end-modbase, start-modbase, depth);
+    }
+    if(sqlhasresult(userdb, sql)) //loops overlap
+        return true;
+    return false;
+
+}
+
+bool loopdel(uint addr)
+{
+    return false;
 }
