@@ -176,6 +176,9 @@ static void registercommands()
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
+    dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
+    dbgcmdnew("bpdll", cbBpDll, true); //set dll breakpoint
+    dbgcmdnew("bcdll", cbBcDll, true); //remove dll breakpoint
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

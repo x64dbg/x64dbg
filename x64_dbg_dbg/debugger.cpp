@@ -31,6 +31,7 @@ static bool isDetachedByUser=false;
 static bool bScyllaLoaded=false;
 static bool bIsAttached=false;
 static bool bSkipExceptions=false;
+static bool bBreakOnNextDll=false;
 static int ecount=0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 
@@ -318,6 +319,11 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
+static void cbLibrarianBreakpoint(void* lpData)
+{
+    bBreakOnNextDll=true;
+}
+
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
     UNREFERENCED_PARAMETER(hProcess);
@@ -530,7 +536,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     {
         pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage; //debugged base = executable
         char command[256]="";
-        
+
         if(settingboolget("Events", "TlsCallbacks"))
         {
             DWORD NumberOfCallBacks=0;
@@ -590,19 +596,19 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
     DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    
+
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256]="";
         sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(dbggetcommandlist(), command);
     }
-    
+
     PLUG_CB_CREATETHREAD callbackInfo;
     callbackInfo.CreateThread=CreateThread;
     callbackInfo.dwThreadId=dwThreadId;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
-    
+
     dprintf("Thread %X created\n", dwThreadId);
 
     if(settingboolget("Events", "ThreadStart"))
@@ -657,7 +663,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
     callbackInfo.reserved=0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
-    
+
     if(settingboolget("Events", "SystemBreakpoint"))
     {
         //update GUI
@@ -679,7 +685,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char DLLDebugFileName[deflen]="";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
         strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
-    dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
 
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
@@ -705,7 +710,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     }
     GuiUpdateBreakpointsView();
 
-    if(settingboolget("Events", "DllEntry") && !bAlreadySetEntry)
+    if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
         uint oep=GetPE32Data(DLLDebugFileName, 0, UE_OEP);
         if(oep)
@@ -716,6 +721,8 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         }
     }
 
+    dprintf("DLL Loaded: "fhex" %s\n", base, DLLDebugFileName);
+
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll=LoadDll;
@@ -723,8 +730,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname=modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
-    if(settingboolget("Events", "DllLoad"))
+    if(bBreakOnNextDll || settingboolget("Events", "DllLoad"))
     {
+        bBreakOnNextDll=false;
         //update GUI
         DebugUpdateGui(GetContextData(UE_CIP), true);
         GuiSetDebugState(paused);
@@ -751,8 +759,9 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
 
-    if(settingboolget("Events", "DllÙnload"))
+    if(bBreakOnNextDll || settingboolget("Events", "DllÙnload"))
     {
+        bBreakOnNextDll=false;
         //update GUI
         DebugUpdateGui(GetContextData(UE_CIP), true);
         GuiSetDebugState(paused);
@@ -822,7 +831,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             efree(DebugTextEscaped, "cbOutputDebugString:DebugTextEscaped");
         }
         efree(DebugText, "cbOutputDebugString:DebugText");
-    }    
+    }
 
     if(settingboolget("Events", "DebugStrings"))
     {
@@ -919,6 +928,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //initialize
     bIsAttached=false;
     bSkipExceptions=false;
+    bBreakOnNextDll=false;
     INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
     bFileIsDll=IsFileDLL(init->exe, 0);
     pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
@@ -2037,5 +2047,64 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
         GuiStackDumpAt(addr, csp);
     else
         dputs("invalid stack address!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugContinue(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        SetNextDbgContinueStatus(DBG_CONTINUE);
+        dputs("exception will be swallowed");
+    }
+    else
+    {
+        SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
+        dputs("exception will be thrown in the program");
+    }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbBpDll(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    DWORD type=UE_ON_LIB_ALL;
+    if(argc>2)
+    {
+        switch(*argv[2])
+        {
+        case 'l':
+            type=UE_ON_LIB_LOAD;
+            break;
+        case 'u':
+            type=UE_ON_LIB_UNLOAD;
+            break;
+        }
+    }
+    bool singleshoot=true;
+    if(argc>3)
+        singleshoot=false;
+    LibrarianSetBreakPoint(argv[1], type, singleshoot, (void*)cbLibrarianBreakpoint);
+    dprintf("dll breakpoint set on \"%s\"!\n", argv[1]);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbBcDll(int argc, char* argv[])
+{
+    if(argc<2)
+    {
+        dputs("not enough arguments");
+        return STATUS_ERROR;
+    }
+    if(!LibrarianRemoveBreakPoint(argv[1], UE_ON_LIB_ALL))
+    {
+        dputs("failed to remove dll breakpoint...");
+        return STATUS_ERROR;
+    }
+    dputs("dll breakpoint removed!");
     return STATUS_CONTINUE;
 }
