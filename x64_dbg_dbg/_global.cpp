@@ -119,29 +119,7 @@ bool DirExists(const char* dir)
 
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
-    if(!GetFileSize(hFile, 0))
-        return false;
-    HANDLE hFileMap=CreateFileMappingA(hFile, 0, PAGE_READONLY, 0, 1, 0);
-    if(!hFileMap)
-        return false;
-    void* pFileMap=MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, 1);
-    if(!pFileMap)
-    {
-        CloseHandle(hFileMap);
-        return false;
-    }
-    char szMappedName[MAX_PATH]="";
-    if(GetMappedFileNameA(GetCurrentProcess(), pFileMap, szMappedName, MAX_PATH))
-    {
-        if(!DevicePathToPathA(szMappedName, szFileName, MAX_PATH))
-            return false;
-        UnmapViewOfFile(pFileMap);
-        CloseHandle(hFileMap);
-        return true;
-    }
-    UnmapViewOfFile(pFileMap);
-    CloseHandle(hFileMap);
-    return false;
+    return PathFromFileHandleA(hFile, szFileName, MAX_PATH);
 }
 
 bool settingboolget(const char* section, const char* name)
