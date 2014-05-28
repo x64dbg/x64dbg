@@ -843,6 +843,62 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         pluginmenucall(hEntry);
     }
     break;
+
+    case DBG_FUNCTION_GET:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)functionget(info->addr, &info->start, &info->end);
+    }
+    break;
+
+    case DBG_FUNCTION_OVERLAPS:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)functionoverlaps(info->start, info->end);
+    }
+    break;
+
+    case DBG_FUNCTION_ADD:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)functionadd(info->start, info->end, info->manual);
+    }
+    break;
+
+    case DBG_FUNCTION_DEL:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)functiondel(info->addr);
+    }
+    break;
+
+    case DBG_LOOP_GET:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)loopget(info->depth, info->addr, &info->start, &info->end);
+    }
+    break;
+
+    case DBG_LOOP_OVERLAPS:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)loopoverlaps(info->depth, info->start, info->end);
+    }
+    break;
+
+    case DBG_LOOP_ADD:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)loopadd(info->start, info->end, info->manual);
+    }
+    break;
+
+    case DBG_LOOP_DEL:
+    {
+        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        return (uint)loopdel(info->depth, info->addr);
+    }
+    break;
     }
     return 0;
 }

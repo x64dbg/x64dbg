@@ -46,6 +46,6 @@ bool functiondel(uint addr);
 bool loopget(int depth, uint addr, uint* start, uint* end);
 bool loopoverlaps(int depth, uint start, uint end);
 bool loopadd(uint start, uint end, bool manual);
-bool loopdel(uint addr);
+bool loopdel(int depth, uint addr);
 
 #endif // _ADDRINFO_H

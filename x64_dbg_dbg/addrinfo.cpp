@@ -730,7 +730,7 @@ bool loopoverlaps(int depth, uint start, uint end)
 
 }
 
-bool loopdel(uint addr)
+bool loopdel(int depth, uint addr)
 {
     return false;
 }

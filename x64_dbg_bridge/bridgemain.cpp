@@ -120,10 +120,6 @@ BRIDGE_IMPEXP const char* BridgeInit()
     _dbg_getbranchdestination=(DBGGETBRANCHDESTINATION)GetProcAddress(hInstDbg, "_dbg_getbranchdestination");
     if(!_dbg_getbranchdestination)
         return "Export \"_dbg_getbranchdestination\" could not be found!";
-    //_dbg_functionoverlaps
-    _dbg_functionoverlaps=(DBGFUNCTIONOVERLAPS)GetProcAddress(hInstDbg, "_dbg_functionoverlaps");
-    if(!_dbg_functionoverlaps)
-        return "Export \"_dbg_functionoverlaps\" could not be found!";
     //_dbg_sendmessage
     _dbg_sendmessage=(DBGSENDMESSAGE)GetProcAddress(hInstDbg, "_dbg_sendmessage");
     if(!_dbg_sendmessage)
@@ -437,25 +433,6 @@ BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
     return _dbg_getbranchdestination(addr);
 }
 
-BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
-{
-    return _dbg_functionoverlaps(start, end);
-}
-
-BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
-{
-    ADDRINFO info;
-    memset(&info, 0, sizeof(info));
-    info.flags=flagfunction;
-    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
-        return false;
-    if(start)
-        *start=info.function.start;
-    if(end)
-        *end=info.function.end;
-    return true;
-}
-
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
 {
     _dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0);
@@ -566,6 +543,92 @@ BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo
 BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
 {
     _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
+}
+
+
+BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr=addr;
+    if(!_dbg_sendmessage(DBG_FUNCTION_GET, &info, 0))
+        return false;
+    *start=info.start;
+    *end=info.end;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start=start;
+    info.end=end;
+    if(!_dbg_sendmessage(DBG_FUNCTION_OVERLAPS, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start=start;
+    info.end=end;
+    info.manual=false;
+    if(!_dbg_sendmessage(DBG_FUNCTION_ADD, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr=addr;
+    if(!_dbg_sendmessage(DBG_FUNCTION_DEL, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr=addr;
+    info.depth=depth;
+    if(!_dbg_sendmessage(DBG_LOOP_GET, &info, 0))
+        return false;
+    *start=info.start;
+    *end=info.end;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start=start;
+    info.end=end;
+    info.depth=depth;
+    if(!_dbg_sendmessage(DBG_LOOP_OVERLAPS, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start=start;
+    info.end=end;
+    info.manual=false;
+    if(!_dbg_sendmessage(DBG_LOOP_ADD, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr=addr;
+    info.depth;
+    if(!_dbg_sendmessage(DBG_LOOP_DEL, &info, 0))
+        return false;
+    return true;
 }
 
 //GUI

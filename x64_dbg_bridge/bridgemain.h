@@ -134,7 +134,15 @@ enum DBGMSG
     DBG_GET_THREAD_LIST,            // param1=THREADALLINFO* list,       param2=unused
     DBG_SETTINGS_UPDATED,           // param1=unused,                    param2=unused
     DBG_DISASM_FAST_AT,             // param1=duint addr,                param2=BASIC_INSTRUCTION_INFO* basicinfo
-    DBG_MENU_ENTRY_CLICKED          // param1=int hEntry,                param2=unused
+    DBG_MENU_ENTRY_CLICKED,         // param1=int hEntry,                param2=unused
+    DBG_FUNCTION_GET,               // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_FUNCTION_OVERLAPS,          // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_FUNCTION_ADD,               // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_FUNCTION_DEL,               // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_LOOP_GET,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_LOOP_OVERLAPS,              // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_LOOP_ADD,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_LOOP_DEL                    // param1=FUNCTION_LOOP_INFO* info,  param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -451,6 +459,15 @@ struct SCRIPTBRANCH
     char branchlabel[256];
 };
 
+struct FUNCTION_LOOP_INFO
+{
+    duint addr;
+    duint start;
+    duint end;
+    bool manual;
+    int depth;
+};
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size);
@@ -479,8 +496,6 @@ BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr);
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth);
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr);
-BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
-BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename);
 BRIDGE_IMPEXP void DbgScriptUnload();
 BRIDGE_IMPEXP void DbgScriptRun(int destline);
@@ -501,6 +516,14 @@ BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list);
 BRIDGE_IMPEXP void DbgSettingsUpdated();
 BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry);
+BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end);
+BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end);
+BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end);
+BRIDGE_IMPEXP bool DbgFunctionDel(duint addr);
+BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
+BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
+BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
+BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

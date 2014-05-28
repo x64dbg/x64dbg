@@ -36,7 +36,6 @@ typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
 typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
 typedef duint (*DBGGETBRANCHDESTINATION)(duint addr);
-typedef bool (*DBGFUNCTIONOVERLAPS)(duint start, duint end);
 typedef duint (*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
 
 //DBG functions
@@ -59,7 +58,6 @@ extern DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 extern DBGGETBPLIST _dbg_getbplist;
 extern DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
 extern DBGGETBRANCHDESTINATION _dbg_getbranchdestination;
-extern DBGFUNCTIONOVERLAPS _dbg_functionoverlaps;
 extern DBGSENDMESSAGE _dbg_sendmessage;
 
 #endif // _GLOBAL_H
