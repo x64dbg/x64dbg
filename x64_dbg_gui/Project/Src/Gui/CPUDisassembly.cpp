@@ -100,7 +100,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
             mToggleFunction->setText("Add function");
             wMenu->addAction(mToggleFunction);
         }
-        else if(DbgGetFunctionTypeAt(selection_start) != FUNC_NONE)
+        else if(DbgFunctionOverlaps(selection_start, selection_end))
         {
             mToggleFunction->setText("Delete function");
             wMenu->addAction(mToggleFunction);
@@ -565,8 +565,13 @@ void CPUDisassembly::toggleFunction()
         QString cmd = "functionadd " + start_text + "," + end_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(DbgFunctionGet(start, &function_start, &function_end))
+    else
     {
+        for(int_t i=start; i<=end; i++)
+        {
+            if(DbgFunctionGet(i, &function_start, &function_end))
+                break;
+        }
         QString start_text=QString("%1").arg(function_start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         QString end_text=QString("%1").arg(function_end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         char labeltext[MAX_LABEL_SIZE]="";
