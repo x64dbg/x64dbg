@@ -899,6 +899,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         return (uint)loopdel(info->depth, info->addr);
     }
     break;
+
+    case DBG_IS_RUN_LOCKED:
+    {
+        return (uint)waitislocked(WAITID_RUN);
+    }
+    break;
     }
     return 0;
 }

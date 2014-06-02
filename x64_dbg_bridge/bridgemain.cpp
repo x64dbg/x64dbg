@@ -203,6 +203,11 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
     return BridgeSettingSet(section, key, newvalue);
 }
 
+BRIDGE_IMPEXP int BridgeGetDbgVersion()
+{
+    return DBG_VERSION;
+}
+
 //Debugger
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
@@ -629,6 +634,13 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
     if(!_dbg_sendmessage(DBG_LOOP_DEL, &info, 0))
         return false;
     return true;
+}
+
+BRIDGE_IMPEXP bool DbgIsRunLocked()
+{
+    if(_dbg_sendmessage(DBG_IS_RUN_LOCKED, 0, 0))
+        return true;
+    return false;
 }
 
 //GUI

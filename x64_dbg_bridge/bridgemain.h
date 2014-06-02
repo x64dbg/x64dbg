@@ -44,6 +44,7 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
+BRIDGE_IMPEXP int BridgeGetDbgVersion();
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256
@@ -142,7 +143,8 @@ enum DBGMSG
     DBG_LOOP_GET,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_OVERLAPS,              // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_ADD,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
-    DBG_LOOP_DEL                    // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_LOOP_DEL,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
+    DBG_IS_RUN_LOCKED               // param1=unused,                    param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -524,6 +526,7 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end);
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
+BRIDGE_IMPEXP bool DbgIsRunLocked();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
