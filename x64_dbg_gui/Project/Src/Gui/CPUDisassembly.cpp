@@ -632,6 +632,8 @@ void CPUDisassembly::assembleAt()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
+
 }
 
 void CPUDisassembly::gotoExpression()

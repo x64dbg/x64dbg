@@ -219,14 +219,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
 
         //draw jump arrows
-        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
+        int jumpsize = 7;//paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
         painter->save();
         painter->setPen(QColor("#000000")); //DisassemblyBytesColor
         QString wBytes = "";
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
-            wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
+            wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper()+" ";
 
         painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wBytes);
         painter->restore();
@@ -280,6 +280,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             painter->save();
             painter->setPen(QColor("#000000")); //DisassemblyCommentColor
             painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
+            painter->restore();
+        }else{
+            painter->save();
+            painter->setPen(QColor("#000000")); //DisassemblyCommentColor
+            //painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, "QString(comment)");
             painter->restore();
         }
     }
@@ -993,6 +998,7 @@ void Disassembly::prepareData()
         mInstBuffer.append(wInst);
         wRVA += wInst.lentgh;
     }
+
 }
 
 void Disassembly::reloadData()
@@ -1132,9 +1138,21 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         MessageBoxA(GuiGetWindowHandle(), strList.toUtf8().constData(), QString().sprintf("mCurrentVa=%d", mCurrentVa).toUtf8().constData(), MB_ICONINFORMATION);
     }
     */
-
+    emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
     reloadData();
+
 }
+
+QList<Instruction_t>* Disassembly::instructionsBuffer()
+{
+    return &mInstBuffer;
+}
+
+const int_t Disassembly::currentEIP() const
+{
+    return mCipRva;
+}
+
 
 void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 {
@@ -1160,7 +1178,7 @@ void Disassembly::debugStateChangedSlot(DBGSTATE state)
     }
 }
 
-int_t Disassembly::getBase()
+const int_t Disassembly::getBase() const
 {
     return mBase;
 }

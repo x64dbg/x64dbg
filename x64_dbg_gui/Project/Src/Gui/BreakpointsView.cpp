@@ -228,7 +228,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mHardBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mHardBPTable->mapToGlobal(pos));
+        wMenu->exec(mHardBPTable->mapToGlobal(pos));
     }
 }
 
@@ -318,7 +318,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mSoftBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mSoftBPTable->mapToGlobal(pos));
+        wMenu->exec(mSoftBPTable->mapToGlobal(pos));
     }
 }
 
@@ -407,7 +407,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mMemBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mMemBPTable->mapToGlobal(pos));
+        wMenu->exec(mMemBPTable->mapToGlobal(pos));
     }
 }
 

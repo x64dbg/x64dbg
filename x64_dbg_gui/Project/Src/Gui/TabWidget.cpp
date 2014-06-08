@@ -81,6 +81,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 //////////////////////////////////////////////////////////////////////////////
 void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
 {
+    Q_UNUSED(dropPoint);
     // Create the window
     MHDetachedWindow* detachedWidget = new MHDetachedWindow(parentWidget(), this);
     detachedWidget->setWindowModality(Qt::NonModal);

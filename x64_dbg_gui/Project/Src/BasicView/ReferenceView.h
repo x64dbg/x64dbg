@@ -3,6 +3,7 @@
 
 #include <QProgressBar>
 #include <QAction>
+#include <QMenu>
 #include "SearchListView.h"
 #include "Bridge.h"
 

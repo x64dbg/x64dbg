@@ -5,6 +5,7 @@
 #include <QtDebug>
 #include <QAction>
 #include <QMenu>
+#include <QMessageBox>
 #include "NewTypes.h"
 #include "HexDump.h"
 #include "Bridge.h"

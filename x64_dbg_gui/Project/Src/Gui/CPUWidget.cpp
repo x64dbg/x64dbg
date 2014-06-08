@@ -7,7 +7,19 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     setDefaultDisposition();
 
     mDisas = new CPUDisassembly(0);
-    ui->mTopLeftUpperFrameLayout->addWidget(mDisas);
+    mJumps = new CPUJumps(mDisas);
+    connect(mDisas,SIGNAL(tableOffsetChanged(int)),mJumps,SLOT(changeTopmostAddress(int)));
+    connect(mDisas,SIGNAL(viewableRows(int)),mJumps,SLOT(setViewableRows(int)));
+    connect(mDisas,SIGNAL(repainted()),mJumps,SLOT(repaint()));
+
+
+    QSplitter *splitter = new QSplitter(this);
+
+    splitter->addWidget(mJumps);
+    splitter->addWidget(mDisas);
+
+
+    ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 
     mInfo = new InfoBox();
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
@@ -30,6 +42,8 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     CPUStack* st = new CPUStack(0); //stack widget
     ui->mBotRightFrameLayout->addWidget(st);
+
+
 
     //cw = new ColumnWidget(3, this);
 }

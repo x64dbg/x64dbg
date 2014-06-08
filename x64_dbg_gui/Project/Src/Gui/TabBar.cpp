@@ -36,7 +36,8 @@ void MHTabBar::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(&wDetach);
     if(wMenu.exec(event->globalPos())==&wDetach)
     {
-        OnDetachTab(tabAt(event->pos()), QPoint(0, 0));
+        QPoint p(0, 0);
+        OnDetachTab((int)tabAt(event->pos()), p);
     }
 }
 

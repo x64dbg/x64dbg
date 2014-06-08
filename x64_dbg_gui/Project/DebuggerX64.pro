@@ -64,7 +64,8 @@ SOURCES += \
     Src/Gui/TabBar.cpp \
     Src/Gui/TabWidget.cpp \
     Src/BasicView/CommandHelpView.cpp \
-    Src/BasicView/HistoryLineEdit.cpp
+    Src/BasicView/HistoryLineEdit.cpp \
+    Src/Gui/CPUJumps.cpp
 
 
 HEADERS += \
@@ -109,7 +110,8 @@ HEADERS += \
     Src/Gui/TabBar.h \
     Src/Gui/TabWidget.h \
     Src/BasicView/CommandHelpView.h \
-    Src/BasicView/HistoryLineEdit.h
+    Src/BasicView/HistoryLineEdit.h \
+    Src/Gui/CPUJumps.h
 
 
 INCLUDEPATH += \
@@ -140,6 +142,8 @@ FORMS += \
 INCLUDEPATH += $$PWD/Src/Bridge
 
 LIBS += -luser32
+
+ DEFINES += NOMINMAX
 
 !contains(QMAKE_HOST.arch, x86_64) {
     message("x86 build")
