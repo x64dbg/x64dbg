@@ -25,6 +25,7 @@ public:
     void readColors();
     const QColor color(QString id) const;
     void load(QString filename);
+    QList<QString> ApiFingerprints();
 };
 
 #endif // CONFIGURATION_H

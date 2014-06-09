@@ -116,6 +116,13 @@ void CPUJumps::paintEvent(QPaintEvent *event)
                          cond,
                          DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva,
                          selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
+            }else if(destRVA < first_va){
+                drawJump(line,
+                         -6,
+                         jumpoffset,
+                         cond,
+                         DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva,
+                         selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
             }
 
         }
