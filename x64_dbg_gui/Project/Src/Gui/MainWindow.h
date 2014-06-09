@@ -18,6 +18,7 @@
 #include "ThreadView.h"
 #include "SettingsDialog.h"
 #include "tabwidget.h"
+#include "Configuration.h"
 
 namespace Ui {
 class MainWindow;
@@ -86,6 +87,8 @@ private:
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
+
+    Configuration* mConfiguration;
 
     const char* mWindowMainTitle;
 

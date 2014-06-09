@@ -11,6 +11,7 @@ class CPUJumps : public QAbstractScrollArea
     Q_OBJECT
 
     int_t topVA;
+    int_t selectedVA;
     QPainter *painter;
     QFont m_DefaultFont;
     int    fontWidth, fontHeight;
@@ -31,12 +32,13 @@ public slots:
     void repaint();
     void changeTopmostAddress(int i);
     void setViewableRows(int rows);
+    void setSelection(int_t selVA);
 protected:
     void paintEvent(QPaintEvent *event);
     void drawLabel(int Line, QString Text);
     void drawBullets(int line, bool ispb);
     bool isJump(int i) const;
-    void drawJump(int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute);
+    void drawJump(int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
 };
 
 #endif // CPUJUMPS_H

@@ -1,0 +1,30 @@
+#ifndef CONFIGURATION_H
+#define CONFIGURATION_H
+
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QString>
+#include <QJsonArray>
+#include <QColor>
+#include <QMap>
+#include <QDebug>
+
+class Configuration
+{
+    QJsonObject Config;
+
+    QMap<QString,QColor> Colors;
+
+    static Configuration* mPtr;
+public:
+    Configuration();
+
+    static Configuration* instance();
+
+    void readColors();
+    const QColor color(QString id) const;
+    void load(QString filename);
+};
+
+#endif // CONFIGURATION_H

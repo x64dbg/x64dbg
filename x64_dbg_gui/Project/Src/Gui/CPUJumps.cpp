@@ -1,10 +1,11 @@
 #include "CPUJumps.h"
-
+#include "Configuration.h"
 CPUJumps::CPUJumps(CPUDisassembly *Ptr, QWidget *parent) :
     QAbstractScrollArea(parent)
 {
 
     topVA = -1;
+    selectedVA = -1;
     viewableRows = 0;
 
     CodePtr = Ptr;
@@ -28,7 +29,7 @@ QSize CPUJumps::sizeHint() const
 
 void CPUJumps::disassembleAt(int_t parVA, int_t parCIP)
 {
-    repaint();
+    //repaint();
 }
 
 void CPUJumps::repaint(){
@@ -40,12 +41,22 @@ void CPUJumps::changeTopmostAddress(int i)
 {
     if(i!=topVA){
         topVA = i;
+        qDebug() << i;
+        repaint();
     }
 }
 
 void CPUJumps::setViewableRows(int rows)
 {
     viewableRows = rows;
+}
+
+void CPUJumps::setSelection(int_t selVA)
+{
+    if(selVA != selectedVA){
+        selectedVA = selVA;
+        repaint();
+    }
 }
 
 bool CPUJumps::isJump(int i) const{
@@ -59,6 +70,9 @@ bool CPUJumps::isJump(int i) const{
 
 void CPUJumps::paintEvent(QPaintEvent *event)
 {
+    if(InstrBuffer->size() ==0)
+        return;
+
     painter = new QPainter(viewport());
 
     int jumpoffset = 0;
@@ -90,11 +104,18 @@ void CPUJumps::paintEvent(QPaintEvent *event)
                     destLine++;
 
 
-                drawJump(line,destLine,jumpoffset,cond,DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva);
+                drawJump(line,destLine,jumpoffset,cond,
+                         DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva,
+                         selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
 
 
             }else if(destRVA > last_va){
-                drawJump(line,viewableRows+6,jumpoffset,cond,DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva);
+                drawJump(line,
+                         viewableRows+6,
+                         jumpoffset,
+                         cond,
+                         DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva,
+                         selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
             }
 
         }
@@ -109,7 +130,7 @@ void CPUJumps::paintEvent(QPaintEvent *event)
     //delete painter;
 }
 
-void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute){
+void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute, bool isactive){
     painter->save();
     if(!conditional){
         painter->setPen(QPen(QColor("#000000"),1, Qt::SolidLine));  // jmp
@@ -120,6 +141,9 @@ void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool condition
     if(isexecute){
             tmp.setWidth(2);
             //tmp.setColor(Qt::red);
+    }
+    if(isactive){
+        tmp.setColor(Qt::red);
     }
     painter->setPen(tmp);
 
@@ -183,17 +207,17 @@ void CPUJumps::drawLabel(int Line, QString Text){
     const int LineCoordinate = fontHeight*(1+Line);
     int length = Text.length();
 
-    painter->setBrush(QBrush(QColor("#4040ff")));
-    painter->setPen(QPen(QColor("#4040ff")));
+    painter->setBrush(QBrush(Configuration::instance()->color("EIPLabelBG")));
+    painter->setPen(QPen(Configuration::instance()->color("EIPLabelBG")));
     int y = LineCoordinate-fontHeight;
 
     painter->drawRect(1,y,length*fontWidth,fontHeight);
-    painter->setPen(QPen(QColor("#ffffff")));
+    painter->setPen(QPen(Configuration::instance()->color("EIPLabel")));
     painter->drawText(2,LineCoordinate-0.2*fontHeight,Text);
 
     y = fontHeight*(1+Line)-0.5*fontHeight;
-    painter->setPen(QPen(QColor("#4040ff"),2));
-    painter->setBrush(QBrush(QColor("#4040ff")));
+    painter->setPen(QPen(Configuration::instance()->color("EIPLabelBG"),2));
+    painter->setBrush(QBrush(Configuration::instance()->color("EIPLabelBG")));
 
     drawStraightArrow(painter,length*fontWidth,y,this->viewport()->width()-2-15,y);
     painter->restore();

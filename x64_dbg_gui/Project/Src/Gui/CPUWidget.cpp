@@ -11,6 +11,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas,SIGNAL(tableOffsetChanged(int)),mJumps,SLOT(changeTopmostAddress(int)));
     connect(mDisas,SIGNAL(viewableRows(int)),mJumps,SLOT(setViewableRows(int)));
     connect(mDisas,SIGNAL(repainted()),mJumps,SLOT(repaint()));
+    connect(mDisas,SIGNAL(selectionChanged(int_t)),mJumps,SLOT(setSelection(int_t)));
 
 
     QSplitter *splitter = new QSplitter(this);

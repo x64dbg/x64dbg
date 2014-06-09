@@ -495,7 +495,7 @@ void AbstractTableView::vertSliderActionSlot(int action)
     wNewScrollBarValue = mTableOffset;
 #endif
 
-    qDebug() << mTableOffset;
+    emit repainted();
 
     // Update scrollbar attributes
     verticalScrollBar()->setValue(wNewScrollBarValue);

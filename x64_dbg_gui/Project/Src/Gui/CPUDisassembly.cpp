@@ -376,6 +376,7 @@ void CPUDisassembly::toggleInt3BPAction()
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
+    emit repainted();
 }
 
 

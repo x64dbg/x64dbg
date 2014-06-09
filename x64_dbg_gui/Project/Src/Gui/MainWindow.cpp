@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     DestroyIcon(hIcon);
 
+    // load config file
+    mConfiguration = new Configuration;
+
     //Load recent files
     loadMRUList(16);
 
@@ -97,6 +100,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->statusBar->addWidget(mStatusLabel);
     mLastLogLabel=new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
+
+
 
     // Setup Signals/Slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));

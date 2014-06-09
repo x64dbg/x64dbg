@@ -65,7 +65,8 @@ SOURCES += \
     Src/Gui/TabWidget.cpp \
     Src/BasicView/CommandHelpView.cpp \
     Src/BasicView/HistoryLineEdit.cpp \
-    Src/Gui/CPUJumps.cpp
+    Src/Gui/CPUJumps.cpp \
+    Src/Gui/Configuration.cpp
 
 
 HEADERS += \
@@ -111,7 +112,8 @@ HEADERS += \
     Src/Gui/TabWidget.h \
     Src/BasicView/CommandHelpView.h \
     Src/BasicView/HistoryLineEdit.h \
-    Src/Gui/CPUJumps.h
+    Src/Gui/CPUJumps.h \
+    Src/Gui/Configuration.h
 
 
 INCLUDEPATH += \
