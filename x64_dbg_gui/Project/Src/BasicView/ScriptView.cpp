@@ -254,6 +254,7 @@ void ScriptView::contextMenuEvent(QContextMenuEvent* event)
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    Q_UNUSED(event);
     if(!getRowCount())
         return;
     newIp();

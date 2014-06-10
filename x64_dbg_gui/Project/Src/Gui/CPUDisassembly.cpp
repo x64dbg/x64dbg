@@ -376,6 +376,7 @@ void CPUDisassembly::toggleInt3BPAction()
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
+    emit repainted();
 }
 
 
@@ -632,6 +633,8 @@ void CPUDisassembly::assembleAt()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
+
 }
 
 void CPUDisassembly::gotoExpression()

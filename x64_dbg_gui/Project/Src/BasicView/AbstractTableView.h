@@ -77,6 +77,9 @@ public:
 signals:
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
+    void tableOffsetChanged(int i);
+    void viewableRows(int rows);
+    void repainted();
 
 public slots:
     // Update/Reload/Refresh/Repaint

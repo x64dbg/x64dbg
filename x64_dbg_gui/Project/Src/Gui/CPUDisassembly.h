@@ -29,10 +29,10 @@ public:
     void setupRightClickContextMenu();
 
     void setHwBpAt(uint_t va, int slot);
-    
+
 signals:
     void displayReferencesWidget();
-    
+
 public slots:
     void toggleInt3BPAction();
     void toggleHwBpActionSlot();

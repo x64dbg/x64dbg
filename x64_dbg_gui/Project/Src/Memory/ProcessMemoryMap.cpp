@@ -3,7 +3,7 @@
 
 ProcessMemoryMap::ProcessMemoryMap(QString fileName, QObject *parent) : QObject(parent)
 {
-
+    Q_UNUSED(fileName);
     STARTUPINFO si;
     memset(&si, 0, sizeof(STARTUPINFO));
     si.cb = sizeof(si);

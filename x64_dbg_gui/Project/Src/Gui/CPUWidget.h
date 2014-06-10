@@ -9,6 +9,7 @@
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "InfoBox.h"
+#include "CPUJumps.h"
 
 namespace Ui {
 class CPUWidget;
@@ -29,6 +30,7 @@ public:
     QVBoxLayout* getBotRightWidget(void);
 
 public:
+    CPUJumps* mJumps;
     CPUDisassembly* mDisas;
     RegistersView* mGeneralRegs;
     InfoBox* mInfo;

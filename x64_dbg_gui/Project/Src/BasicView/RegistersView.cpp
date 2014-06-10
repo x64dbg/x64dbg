@@ -138,6 +138,7 @@ RegistersView::~RegistersView()
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
 {
+    Q_UNUSED(event);
     int wI = 0;
     int wSelected = -1;
     QPalette wPalette;
@@ -179,6 +180,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    Q_UNUSED(event);
     if(mSelected==-1) //no selection
         return;
 

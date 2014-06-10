@@ -2,6 +2,8 @@
 
 MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject *parent) : QObject(parent)
 {
+    Q_UNUSED(parBase);
+    Q_UNUSED(parSize);
     mBase = 0;
     mSize = 0;
 }

@@ -21,7 +21,7 @@ CommandHelpView::CommandHelpView(QWidget *parent) :
     QFont wFont("Monospace", 8);
     wFont.setStyleHint(QFont::Monospace);
     wFont.setFixedPitch(true);
-    int charwidth=QFontMetrics(wFont).width(QChar(' '));
+    //int charwidth=QFontMetrics(wFont).width(QChar(' '));
 
     // Create module list
     mModuleList = new StdTable();

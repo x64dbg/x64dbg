@@ -73,7 +73,7 @@ public:
     // Public Methods
     uint_t rvaToVa(int_t rva);
     void disassembleClear();
-    int_t getBase();
+    const int_t getBase() const;
     int_t getSize();
 
     // history management
@@ -86,9 +86,15 @@ public:
     //disassemble
     void disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
 
+    QList<Instruction_t> *instructionsBuffer();
+    const int_t baseAddress() const;
+    const int_t currentEIP() const;
+
 signals:
     void selectionChanged(int_t parVA);
-    
+    void repainted();
+    void disassembledAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
+
 public slots:
     void disassembleAt(int_t parVA, int_t parCIP);
     void debugStateChangedSlot(DBGSTATE state);

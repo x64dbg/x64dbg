@@ -61,6 +61,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
  */
 void AbstractTableView::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
     QPainter wPainter(this->viewport());
     int wViewableRowsCount = getViewableRowsCount();
 
@@ -128,6 +129,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         y = getHeaderHeight();
         x += getColumnWidth(j);
     }
+     emit repainted();
 }
 
 
@@ -484,6 +486,7 @@ void AbstractTableView::vertSliderActionSlot(int action)
 
     // Call the hook (Usefull for disassembly)
     mTableOffset = sliderMovedHook(action, mTableOffset, wDelta);
+    emit tableOffsetChanged(mTableOffset);
 
     // Scale the new table offset to the 32bits scrollbar range
 #ifdef _WIN64
@@ -492,9 +495,13 @@ void AbstractTableView::vertSliderActionSlot(int action)
     wNewScrollBarValue = mTableOffset;
 #endif
 
+    emit repainted();
+
     // Update scrollbar attributes
     verticalScrollBar()->setValue(wNewScrollBarValue);
     verticalScrollBar()->setSliderPosition(wNewScrollBarValue);
+
+
 }
 
 
@@ -511,6 +518,7 @@ void AbstractTableView::vertSliderActionSlot(int action)
  */
 int_t AbstractTableView::sliderMovedHook(int type, int_t value, int_t delta)
 {
+    Q_UNUSED(type);
     int_t wValue = value + delta;
     int_t wMax = getRowCount() - 1;
 
@@ -723,6 +731,7 @@ int AbstractTableView::getViewableRowsCount()
 
     wCount += (wTableHeight % getRowHeight()) > 0 ? 1 : 0;
 
+    emit viewableRows(wCount);
     return wCount;
 }
 
@@ -899,6 +908,7 @@ int_t AbstractTableView::getTableOffset()
 void AbstractTableView::setTableOffset(int_t val)
 {
     mTableOffset = val;
+    emit tableOffsetChanged(val);
 
 #ifdef _WIN64
     int wNewValue = scaleFromUint64ToScrollBarRange(mTableOffset);
@@ -924,6 +934,7 @@ void AbstractTableView::reloadData()
 void AbstractTableView::repaint()
 {
     this->viewport()->repaint();
+
 }
 
 

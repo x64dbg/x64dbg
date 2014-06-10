@@ -22,6 +22,10 @@ QBeaEngine::QBeaEngine()
  */
 ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
 {
+
+    const unsigned int max_instructions = 128;
+
+    Q_UNUSED(base);
     int i;
     uint_t abuf[131], addr, back, cmdsize;
     byte_t* pdata;
@@ -41,8 +45,8 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
     // Round the number of back instructions to 127
     if(n < 0)
         n = 0;
-    else if (n > 127)
-        n = 127;
+    else if (n >= max_instructions)
+        n = max_instructions-1;
 
     // Check if the instruction pointer ip is not outside the memory range
     if(ip >= size)
@@ -66,7 +70,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
 
     for(i = 0; addr < ip; i++)
     {
-        abuf[i % 128] = addr;
+        abuf[i % max_instructions] = addr;
 
         mDisasmStruct.EIP = (UIntPtr)pdata;
         len = Disasm(&mDisasmStruct);
@@ -80,7 +84,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
     if(i < n)
         return abuf[0];
     else
-        return abuf[(i - n + 128) % 128];
+        return abuf[(i - n + max_instructions) % max_instructions];
 }
 
 
@@ -98,6 +102,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
  */
 ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
 {
+    Q_UNUSED(base);
     int i;
     uint_t cmdsize;
     byte_t* pdata;
