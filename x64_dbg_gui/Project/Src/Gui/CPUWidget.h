@@ -9,7 +9,7 @@
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "InfoBox.h"
-#include "CPUJumps.h"
+#include "CPUSideBar.h"
 
 namespace Ui
 {
@@ -31,7 +31,7 @@ public:
     QVBoxLayout* getBotRightWidget(void);
 
 public:
-    CPUJumps* mJumps;
+    CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
     RegistersView* mGeneralRegs;
     InfoBox* mInfo;

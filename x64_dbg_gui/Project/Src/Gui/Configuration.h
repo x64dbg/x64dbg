@@ -6,23 +6,25 @@
 #include <QColor>
 #include <QMap>
 #include <QDebug>
+#include "Bridge.h"
 
 class Configuration
 {
-    QJsonObject Config;
-
     QMap<QString,QColor> Colors;
+    QMap<QString,QColor> defaultColors;
 
     static Configuration* mPtr;
 public:
     Configuration();
-
     static Configuration* instance();
-
+    void load();
     void readColors();
-    const QColor color(QString id) const;
-    void load(QString filename);
-    QList<QString> ApiFingerprints();
+    const QList<QString> ApiFingerprints();
+    const QColor color(QString id);
+
+private:
+    QColor colorFromConfig(const QString id);
+    bool colorToConfig(const QString id, const QColor color);
 };
 
 #endif // CONFIGURATION_H

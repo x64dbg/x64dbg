@@ -17,8 +17,6 @@ typedef struct _Instruction_t
     DISASM disasm;
 } Instruction_t;
 
-
-
 class QBeaEngine
 {
 

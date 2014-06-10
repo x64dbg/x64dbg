@@ -65,9 +65,9 @@ SOURCES += \
     Src/Gui/TabWidget.cpp \
     Src/BasicView/CommandHelpView.cpp \
     Src/BasicView/HistoryLineEdit.cpp \
-    Src/Gui/CPUJumps.cpp \
     Src/Gui/Configuration.cpp \
-    Src/Utils/ApiFingerprints.cpp
+    Src/Utils/ApiFingerprints.cpp \
+    Src/Gui/CPUSideBar.cpp
 
 
 HEADERS += \
@@ -113,9 +113,9 @@ HEADERS += \
     Src/Gui/TabWidget.h \
     Src/BasicView/CommandHelpView.h \
     Src/BasicView/HistoryLineEdit.h \
-    Src/Gui/CPUJumps.h \
     Src/Gui/Configuration.h \
-    Src/Utils/ApiFingerprints.h
+    Src/Utils/ApiFingerprints.h \
+    Src/Gui/CPUSideBar.h
 
 
 INCLUDEPATH += \

@@ -220,7 +220,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
 
         //draw jump arrows
-        int jumpsize = 7;//paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
+        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
         painter->save();

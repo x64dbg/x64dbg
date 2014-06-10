@@ -7,18 +7,18 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     setDefaultDisposition();
 
     mDisas = new CPUDisassembly(0);
-    mJumps = new CPUJumps(mDisas);
-    connect(mDisas,SIGNAL(tableOffsetChanged(int)),mJumps,SLOT(changeTopmostAddress(int)));
-    connect(mDisas,SIGNAL(viewableRows(int)),mJumps,SLOT(setViewableRows(int)));
-    connect(mDisas,SIGNAL(repainted()),mJumps,SLOT(repaint()));
-    connect(mDisas,SIGNAL(selectionChanged(int_t)),mJumps,SLOT(setSelection(int_t)));
+    mSideBar = new CPUSideBar(mDisas);
+    connect(mDisas,SIGNAL(tableOffsetChanged(int)),mSideBar,SLOT(changeTopmostAddress(int)));
+    connect(mDisas,SIGNAL(viewableRows(int)),mSideBar,SLOT(setViewableRows(int)));
+    connect(mDisas,SIGNAL(repainted()),mSideBar,SLOT(repaint()));
+    connect(mDisas,SIGNAL(selectionChanged(int_t)),mSideBar,SLOT(setSelection(int_t)));
 
 
-    QSplitter *splitter = new QSplitter(this);
-
-    splitter->addWidget(mJumps);
+    QSplitter* splitter = new QSplitter(this);
+    splitter->addWidget(mSideBar);
     splitter->addWidget(mDisas);
-
+    splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(1);
 
     ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 

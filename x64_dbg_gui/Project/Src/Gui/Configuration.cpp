@@ -5,9 +5,7 @@ Configuration* Configuration::mPtr = NULL;
 
 Configuration::Configuration()
 {
-    load("config.json");
-    //Colors = new QMap<QString,QColor>();
-    //Colors = QMap<QString,QColor>();
+    load();
     mPtr = this;
 }
 
@@ -16,58 +14,79 @@ Configuration *Configuration::instance()
     return mPtr;
 }
 
-void Configuration::load(QString filename)
+void Configuration::load()
 {
-    // load configuration file
-    QFile configfile(filename);
-
-    if (!configfile.open(QIODevice::ReadOnly))
-    {
-        qWarning("Couldn't open config file.");
-        return ;
-    }
-    QByteArray saveData = configfile.readAll();
-    Config = QJsonDocument(QJsonDocument::fromJson(saveData)).object();
-
     readColors();
-
 }
 
 void Configuration::readColors()
 {
-    Colors.clear();
-
-    QJsonArray ColorArray = Config["colors"].toArray();
-    for (int idx = 0; idx < ColorArray.size(); ++idx)
+    //setup default color map
+    QMap<QString,QColor> defaultColorMap;
+    defaultColorMap.insert("DisassemblyCipColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyMainBpColor", QColor("#FF0000"));
+    defaultColorMap.insert("DisassemblyOtherBpColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("DisassemblyBookmarkColor", QColor("#FEE970"));
+    defaultColorMap.insert("DisassemblyMainLabelColor", QColor("#FF0000"));
+    defaultColorMap.insert("blackaddress", QColor("#000000"));
+    defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
+    defaultColorMap.insert("IPLabel", QColor("#FFFFFF"));
+    defaultColorMap.insert("IPLabelBG", QColor("#4040FF"));
+    Colors = defaultColors = defaultColorMap;
+    //read config
+    for(int i=0; i<Colors.size(); i++)
     {
-        QJsonArray colorObj = ColorArray[idx].toArray();
-        Colors.insert(colorObj.at(0).toString(),QColor( colorObj.at(1).toString()));
+        QString id=Colors.keys().at(i);
+        Colors[id]=colorFromConfig(id);
     }
 }
 
-QList<QString> Configuration::ApiFingerprints()
+const QList<QString> Configuration::ApiFingerprints()
 {
-    QList<QString> files;
-    QJsonArray APIArray = Config["apifingerprints"].toArray();
-    for (int idx = 0; idx < APIArray.size(); ++idx)
+    char setting[MAX_SETTING_SIZE]="";
+    if(!BridgeSettingGet("Engine", "APIFingerprints", setting))
     {
-        QString filename = "data/"+APIArray.at(idx).toString()+".txt";
-        QFile mFile(filename);
-        if(mFile.open(QFile::ReadOnly | QFile::Text))
-        {
-            files.append(APIArray.at(idx).toString());
-            mFile.close();
-        }
-
+        strcpy(setting, "gdi32,kernel32,shell32,stdio,user32"); //default setting
+        BridgeSettingSet("Engine", "APIFingerprints", setting);
     }
-    return files;
+    return QString(setting).split(QChar(','), QString::SkipEmptyParts);
 }
 
-const QColor Configuration::color(QString id) const
+const QColor Configuration::color(QString id)
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
     else
         return Qt::black;
+}
+
+bool Configuration::colorToConfig(const QString id, const QColor color)
+{
+    return BridgeSettingSet("Colors", id.toUtf8().constData(), color.name().toUtf8().constData());
+}
+
+QColor Configuration::colorFromConfig(const QString id)
+{
+    char setting[MAX_SETTING_SIZE]="";
+    if(!BridgeSettingGet("Colors", id.toUtf8().constData(), setting))
+    {
+        if(defaultColors.contains(id))
+        {
+            QColor ret = defaultColors.find(id).value();
+            colorToConfig(id, ret);
+            return ret;
+        }
+        return QColor("#000000"); //black is default
+    }
+    QColor color(setting);
+    if(!color.isValid())
+    {
+        QColor ret = defaultColors.find(id).value(); //return default
+        colorToConfig(id, ret);
+        return ret;
+    }
+    return color;
 }
 
