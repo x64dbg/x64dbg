@@ -8,6 +8,8 @@
 #include <QDebug>
 #include "Bridge.h"
 
+#define ConfigColor(x) (Configuration::instance()->color(x))
+
 class Configuration
 {
     QMap<QString,QColor> Colors;

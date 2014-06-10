@@ -12,7 +12,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas,SIGNAL(viewableRows(int)),mSideBar,SLOT(setViewableRows(int)));
     connect(mDisas,SIGNAL(repainted()),mSideBar,SLOT(repaint()));
     connect(mDisas,SIGNAL(selectionChanged(int_t)),mSideBar,SLOT(setSelection(int_t)));
-
+    connect(Bridge::getBridge(),SIGNAL(dbgStateChanged(DBGSTATE)),mSideBar,SLOT(debugStateChangedSlot(DBGSTATE)));
 
     QSplitter* splitter = new QSplitter(this);
     splitter->addWidget(mSideBar);
@@ -43,10 +43,6 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     CPUStack* st = new CPUStack(0); //stack widget
     ui->mBotRightFrameLayout->addWidget(st);
-
-
-
-    //cw = new ColumnWidget(3, this);
 }
 
 CPUWidget::~CPUWidget()

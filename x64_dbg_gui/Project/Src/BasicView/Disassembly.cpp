@@ -33,7 +33,7 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     setShowHeader(false); //hide header
 
-    backgroundColor=QColor("#FFFBF0"); //DisassemblyBackgroundColor
+    backgroundColor=ConfigColor("DisassemblyBackgroundColor");
 
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
@@ -65,7 +65,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0"))); //DisassemblySelectionColor
+        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblySelectionColor")));
 
     switch(col)
     {
@@ -118,21 +118,21 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         painter->save();
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(Configuration::instance()->color("DisassemblyCipColor"))); //DisassemblyCipColor
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipColor"))); //DisassemblyCipColor
             if(!isbookmark)
             {
                 if(bpxtype&bp_normal) //breakpoint
                 {
-                    painter->setPen(QPen(Configuration::instance()->color("DisassemblyMainBpColor"))); //DisassemblyMainBpColor
+                    painter->setPen(QPen(ConfigColor("DisassemblyMainBpColor"))); //DisassemblyMainBpColor
                 }
                 else
                 {
-                    painter->setPen(QPen(Configuration::instance()->color("DisassemblyOtherBpColor"))); //DisassemblyOtherBpColor
+                    painter->setPen(QPen(ConfigColor("DisassemblyOtherBpColor"))); //DisassemblyOtherBpColor
                 }
             }
             else
             {
-                painter->setPen(QPen(Configuration::instance()->color("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
+                painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
             }
         }
         else //other address
@@ -142,16 +142,16 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 if(*label) //label
                 {
                     if(bpxtype==bp_none) //label only
-                        painter->setPen(QPen(Configuration::instance()->color("DisassemblyMainLabelColor"))); //red -> address + label text (DisassemblyMainLabelColor)
+                        painter->setPen(QPen(ConfigColor("DisassemblyMainLabelColor"))); //red -> address + label text (DisassemblyMainLabelColor)
                     else //label+breakpoint
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(Configuration::instance()->color("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
                         }
                         else
                         {
-                            painter->setPen(QPen(Configuration::instance()->color("blackaddress"))); //black address (???)
+                            painter->setPen(QPen(ConfigColor("DisassemblyOtherBpColor"))); //DisassemblyOtherBpColor
                         }
                     }
                 }
@@ -160,33 +160,33 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     if(bpxtype==bp_none) //no label, no breakpoint
                     {
                         if(wIsSelected)
-                            painter->setPen(QPen(Configuration::instance()->color("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                            painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
                         else
-                            painter->setPen(QPen(Configuration::instance()->color("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                            painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
                     }
                     else //breakpoint only
                     {
                         if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(Configuration::instance()->color("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
                         }
                         else
                         {
                             if(wIsSelected)
-                                painter->setPen(QPen(Configuration::instance()->color("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                                painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
                             else
-                                painter->setPen(QPen(Configuration::instance()->color("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                                painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
                         }
                     }
                 }
             }
             else //bookmark
             {
-                painter->fillRect(QRect(x, y, w, h), QBrush(Configuration::instance()->color("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
+                painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
                 if(wIsSelected)
-                    painter->setPen(QPen(Configuration::instance()->color("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                    painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
                 else
-                    painter->setPen(QPen(Configuration::instance()->color("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                    painter->setPen(QPen(ConfigColor("DisassemblyAddressColor")));
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
@@ -224,7 +224,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         //draw bytes
         painter->save();
-        painter->setPen(Configuration::instance()->color("DisassemblyBytesColor")); //DisassemblyBytesColor
+        painter->setPen(ConfigColor("DisassemblyBytesColor"));
         QString wBytes = "";
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
             wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper()+" ";
@@ -279,15 +279,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mBase, comment))
         {
             painter->save();
-            painter->setPen(Configuration::instance()->color("DisassemblyCommentColor")); //DisassemblyCommentColor
+            painter->setPen(ConfigColor("DisassemblyCommentColor"));
             painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
-            painter->restore();
-        }
-        else
-        {
-            painter->save();
-            painter->setPen(Configuration::instance()->color("DisassemblyCommentColor")); //DisassemblyCommentColor
-            //painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, "QString(comment)");
             painter->restore();
         }
     }
@@ -585,9 +578,9 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     painter->save() ;
 
     if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(QColor("#FF0000")); //DisassemblyJumpLineTrueColor
+        painter->setPen(ConfigColor("DisassemblyJumpLineTrueColor"));
     else
-        painter->setPen(QColor("#808080")); //DisassemblyJumpLineFalseColor
+        painter->setPen(ConfigColor("DisassemblyJumpLineFalseColor"));
 
     if(wPict == GD_Vert)
     {

@@ -23,17 +23,24 @@ void Configuration::readColors()
 {
     //setup default color map
     QMap<QString,QColor> defaultColorMap;
+    defaultColorMap.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
+    defaultColorMap.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
+    defaultColorMap.insert("DisassemblyJumpLineTrueColor", QColor("#FF0000"));
+    defaultColorMap.insert("DisassemblyJumpLineFalseColor", QColor("#808080"));
     defaultColorMap.insert("DisassemblyCipColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyMainBpColor", QColor("#FF0000"));
     defaultColorMap.insert("DisassemblyOtherBpColor", QColor("#FFFBF0"));
     defaultColorMap.insert("DisassemblyBookmarkColor", QColor("#FEE970"));
     defaultColorMap.insert("DisassemblyMainLabelColor", QColor("#FF0000"));
-    defaultColorMap.insert("blackaddress", QColor("#000000"));
     defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
-    defaultColorMap.insert("IPLabel", QColor("#FFFFFF"));
-    defaultColorMap.insert("IPLabelBG", QColor("#4040FF"));
+    defaultColorMap.insert("DisassemblyOtherBpColor", QColor("#000000"));
+    defaultColorMap.insert("SideBarIpLabelColor", QColor("#FFFFFF"));
+    defaultColorMap.insert("SideBarIpLabelBackgroundColor", QColor("#4040FF"));
+    defaultColorMap.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
     Colors = defaultColors = defaultColorMap;
     //read config
     for(int i=0; i<Colors.size(); i++)
@@ -58,13 +65,12 @@ const QColor Configuration::color(QString id)
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
-    else
-        return Qt::black;
+    return Qt::black;
 }
 
 bool Configuration::colorToConfig(const QString id, const QColor color)
 {
-    return BridgeSettingSet("Colors", id.toUtf8().constData(), color.name().toUtf8().constData());
+    return BridgeSettingSet("Colors", id.toUtf8().constData(), color.name().toUpper().toUtf8().constData());
 }
 
 QColor Configuration::colorFromConfig(const QString id)
@@ -78,8 +84,10 @@ QColor Configuration::colorFromConfig(const QString id)
             colorToConfig(id, ret);
             return ret;
         }
-        return QColor("#000000"); //black is default
+        return Qt::black; //black is default
     }
+    if(QString(setting).toUpper()=="#XXXXXX") //support custom transparent color name
+        return Qt::transparent;
     QColor color(setting);
     if(!color.isValid())
     {

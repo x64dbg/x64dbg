@@ -3,7 +3,6 @@
 
 CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollArea(parent)
 {
-
     topVA = -1;
     selectedVA = -1;
     viewableRows = 0;
@@ -19,6 +18,8 @@ CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollAr
 
     InstrBuffer = CodePtr->instructionsBuffer();
 
+    backgroundColor = ConfigColor("SideBarBackgroundColor");
+
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
 }
 
@@ -30,6 +31,14 @@ QSize CPUSideBar::sizeHint() const
 void CPUSideBar::disassembleAt(int_t parVA, int_t parCIP)
 {
     MessageBeep(0);
+}
+
+void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
+{
+    if(state==stopped)
+    {
+        repaint(); //clear
+    }
 }
 
 void CPUSideBar::repaint()
@@ -76,10 +85,13 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
 
+    QPainter painter(this->viewport());
+
+    // Paints background
+    painter.fillRect(painter.viewport(), QBrush(backgroundColor));
+
     if(InstrBuffer->size() == 0)
         return;
-
-    QPainter painter(this->viewport());
 
     int jumpoffset = 0;
 
@@ -209,8 +221,8 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     const int LineCoordinate = fontHeight*(1+Line);
     int length = Text.length();
 
-    const QColor IPLabel = Configuration::instance()->color("IPLabel");
-    const QColor IPLabelBG = Configuration::instance()->color("IPLabelBG");
+    const QColor IPLabel = ConfigColor("SideBarIpLabelColor");
+    const QColor IPLabelBG = ConfigColor("SideBarIpLabelBackgroundColor");
 
     int width = length*fontWidth + 2;
     int x = 1;

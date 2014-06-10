@@ -16,6 +16,7 @@ public:
 
 public slots:
     void disassembleAt(int_t parVA, int_t parCIP);
+    void debugStateChangedSlot(DBGSTATE state);
     void repaint();
     void changeTopmostAddress(int i);
     void setViewableRows(int rows);
@@ -37,6 +38,7 @@ private:
 
     CPUDisassembly *CodePtr;
     QList<Instruction_t> *InstrBuffer;
+    QColor backgroundColor;
 };
 
 #endif // CPUSIDEBAR_H
