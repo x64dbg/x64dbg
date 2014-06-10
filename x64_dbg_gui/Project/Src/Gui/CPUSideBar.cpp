@@ -125,11 +125,20 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 
             bool isConditional = !((instr.disasm.Instruction.Opcode == 0xEB) || instr.disasm.Instruction.Opcode == 0xE9);
 
-            if(destVA <= last_va && destVA >= first_va)
+            if(destVA==instrVA) //do not try to draw EBFE
+                continue;
+            else if(destVA >= CodePtr->getBase()+CodePtr->getSize() || destVA < CodePtr->getBase()) //do not draw jumps that leave the page
+                continue;
+            else if(destVA <= last_va && destVA >= first_va)
             {
-                int destLine = line + 1;
-                while(InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA && destLine < viewableRows)
-                    destLine++;
+                int destLine = line;
+                while(destLine < viewableRows && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
+                {
+                    if(destVA>instrVA) //jump goes up
+                        destLine++;
+                    else //jump goes down
+                        destLine--;
+                }
                 drawJump(&painter, line, destLine, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
             }
             else if(destVA > last_va)
