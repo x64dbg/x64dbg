@@ -60,7 +60,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 class MHDetachedWindow : public QMainWindow
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
     MHDetachedWindow(QWidget *parent = 0, MHTabWidget *tabwidget = 0);
     ~MHDetachedWindow(void);

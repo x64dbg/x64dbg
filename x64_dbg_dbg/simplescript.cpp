@@ -160,7 +160,7 @@ static bool scriptcreatelinemap(const char* filename)
             else //no space before comment
             {
                 strcpy(line_comment, comment);
-                *comment=0;                
+                *comment=0;
             }
         }
 
@@ -319,7 +319,7 @@ static bool scriptisinternalcommand(const char* text, const char* cmd)
     else if(cmdlen==len)
         return scmp(text, cmd);
     else if(text[cmdlen]==' ')
-            return (!_strnicmp(text, cmd, cmdlen));
+        return (!_strnicmp(text, cmd, cmdlen));
     return false;
 }
 

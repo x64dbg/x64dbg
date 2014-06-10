@@ -9,7 +9,8 @@
 #include "Bridge.h"
 #include "SearchListView.h"
 
-namespace Ui {
+namespace Ui
+{
 class CommandHelpView;
 }
 

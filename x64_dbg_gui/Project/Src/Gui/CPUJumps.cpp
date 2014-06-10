@@ -32,14 +32,16 @@ void CPUJumps::disassembleAt(int_t parVA, int_t parCIP)
     //repaint();
 }
 
-void CPUJumps::repaint(){
+void CPUJumps::repaint()
+{
 
     viewport()->repaint();
 }
 
 void CPUJumps::changeTopmostAddress(int i)
 {
-    if(i!=topVA){
+    if(i!=topVA)
+    {
         topVA = i;
         qDebug() << i;
         repaint();
@@ -53,16 +55,19 @@ void CPUJumps::setViewableRows(int rows)
 
 void CPUJumps::setSelection(int_t selVA)
 {
-    if(selVA != selectedVA){
+    if(selVA != selectedVA)
+    {
         selectedVA = selVA;
         repaint();
     }
 }
 
-bool CPUJumps::isJump(int i) const{
+bool CPUJumps::isJump(int i) const
+{
 
     int BranchType=InstrBuffer->at(i).disasm.Instruction.BranchType;
-    if(BranchType && BranchType!=RetType && BranchType!=CallType){
+    if(BranchType && BranchType!=RetType && BranchType!=CallType)
+    {
         return true;
     }
     return false;
@@ -80,12 +85,14 @@ void CPUJumps::paintEvent(QPaintEvent *event)
     int_t last_va = InstrBuffer->last().rva + CodePtr->getBase();
     int_t first_va = InstrBuffer->first().rva + CodePtr->getBase();
 
-    for(int line=0;line<viewableRows;line++){
+    for(int line=0; line<viewableRows; line++)
+    {
         // draw bullet
         drawBullets(line,DbgGetBpxTypeAt(InstrBuffer->at(line).rva + CodePtr->getBase()) == bp_none);
 
 
-        if(isJump(line)){
+        if(isJump(line))
+        {
             jumpoffset++;
 
             int_t destRVA = (int_t)InstrBuffer->at(line).disasm.Instruction.AddrValue;
@@ -95,12 +102,13 @@ void CPUJumps::paintEvent(QPaintEvent *event)
 
 
             bool cond = !((InstrBuffer->at(line).disasm.Instruction.Opcode == 0xEB) || InstrBuffer->at(line).disasm.Instruction.Opcode == 0xE9);
-            if(destRVA <= last_va && destRVA >= first_va){
+            if(destRVA <= last_va && destRVA >= first_va)
+            {
 
                 int destLine = line+1;
 
                 while(InstrBuffer->at(destLine).rva + CodePtr->getBase() != destRVA
-                      && destLine <viewableRows )
+                        && destLine <viewableRows )
                     destLine++;
 
 
@@ -109,14 +117,18 @@ void CPUJumps::paintEvent(QPaintEvent *event)
                          selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
 
 
-            }else if(destRVA > last_va){
+            }
+            else if(destRVA > last_va)
+            {
                 drawJump(line,
                          viewableRows+6,
                          jumpoffset,
                          cond,
                          DbgIsJumpGoingToExecute(InstrBuffer->at(line).rva+CodePtr->getBase())&&CodePtr->currentEIP() == InstrBuffer->at(line).rva,
                          selectedVA == InstrBuffer->at(line).rva+CodePtr->getBase());
-            }else if(destRVA < first_va){
+            }
+            else if(destRVA < first_va)
+            {
                 drawJump(line,
                          -6,
                          jumpoffset,
@@ -127,7 +139,8 @@ void CPUJumps::paintEvent(QPaintEvent *event)
 
         }
 
-        if(InstrBuffer->at(line).rva == CodePtr->currentEIP()){
+        if(InstrBuffer->at(line).rva == CodePtr->currentEIP())
+        {
             drawLabel(line,"EIP");
         }
 
@@ -137,19 +150,25 @@ void CPUJumps::paintEvent(QPaintEvent *event)
     //delete painter;
 }
 
-void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute, bool isactive){
+void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute, bool isactive)
+{
     painter->save();
-    if(!conditional){
+    if(!conditional)
+    {
         painter->setPen(QPen(QColor("#000000"),1, Qt::SolidLine));  // jmp
-    }else{
+    }
+    else
+    {
         painter->setPen(QPen(QColor("#000000"),1, Qt::DashLine));
     }
     QPen tmp = painter->pen();
-    if(isexecute){
-            tmp.setWidth(2);
-            //tmp.setColor(Qt::red);
+    if(isexecute)
+    {
+        tmp.setWidth(2);
+        //tmp.setColor(Qt::red);
     }
-    if(isactive){
+    if(isactive)
+    {
         tmp.setColor(Qt::red);
     }
     painter->setPen(tmp);
@@ -182,7 +201,8 @@ void CPUJumps::drawJump(int startLine,int endLine,int jumpoffset, bool condition
     painter->restore();
 }
 
-void CPUJumps::drawBullets(int line, bool isbp){
+void CPUJumps::drawBullets(int line, bool isbp)
+{
 
 
     painter->save();
@@ -208,7 +228,8 @@ void CPUJumps::drawBullets(int line, bool isbp){
 
 
 
-void CPUJumps::drawLabel(int Line, QString Text){
+void CPUJumps::drawLabel(int Line, QString Text)
+{
 
     painter->save();
     const int LineCoordinate = fontHeight*(1+Line);

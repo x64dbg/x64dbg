@@ -19,29 +19,29 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
 
     switch(type)
     {
-        case bp_normal:
-        {
-            wCmd = "bp " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_normal:
+    {
+        wCmd = "bp " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_hardware:
-        {
-            wCmd = "bph " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_hardware:
+    {
+        wCmd = "bph " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_memory:
-        {
-            wCmd = "bpm " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_memory:
+    {
+        wCmd = "bpm " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -177,29 +177,29 @@ void Breakpoints::removeBP(BRIDGEBP bp)
 
     switch(bp.type)
     {
-        case bp_normal:
-        {
-            wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_normal:
+    {
+        wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_hardware:
-        {
-            wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_hardware:
+    {
+        wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_memory:
-        {
-            wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_memory:
+    {
+        wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -316,17 +316,17 @@ void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
 
             switch(wBPList.bp[wI].type)
             {
-                case bp_normal:
-                    wNormalWasRemoved = true;
-                    break;
-                case bp_memory:
-                    wMemoryWasRemoved = true;
-                    break;
-                case bp_hardware:
-                    wHardwareWasRemoved = true;
-                    break;
-                default:
-                    break;
+            case bp_normal:
+                wNormalWasRemoved = true;
+                break;
+            case bp_memory:
+                wMemoryWasRemoved = true;
+                break;
+            case bp_hardware:
+                wHardwareWasRemoved = true;
+                break;
+            default:
+                break;
             }
         }
     }

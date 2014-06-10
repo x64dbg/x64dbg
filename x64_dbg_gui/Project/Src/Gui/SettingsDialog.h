@@ -6,8 +6,9 @@
 #include "Bridge.h"
 #include "ExceptionRangeDialog.h"
 
-namespace Ui {
-    class SettingsDialog;
+namespace Ui
+{
+class SettingsDialog;
 }
 
 class SettingsDialog : public QDialog

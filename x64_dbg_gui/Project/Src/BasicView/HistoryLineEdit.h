@@ -13,17 +13,17 @@ public:
     void keyPressEvent(QKeyEvent* event);
     void addLineToHistory(QString parLine);
     void setFocus();
-    
+
 signals:
     void keyPressed(int parKey);
-    
+
 public slots:
 
 
 private:
     QList<QString> mCmdHistory;
     int mCmdIndex;
-    
+
 };
 
 #endif // HISTORYLINEEDIT_H

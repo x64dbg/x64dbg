@@ -43,28 +43,28 @@ void ThreadView::updateThreadList()
         {
         case _PriorityIdle:
             priorityString="Idle";
-        break;
+            break;
         case _PriorityAboveNormal:
             priorityString="AboveNormal";
-        break;
+            break;
         case _PriorityBelowNormal:
             priorityString="BelowNormal";
-        break;
+            break;
         case _PriorityHighest:
             priorityString="Highest";
-        break;
+            break;
         case _PriorityLowest:
             priorityString="Lowest";
-        break;
+            break;
         case _PriorityNormal:
             priorityString="Normal";
-        break;
+            break;
         case _PriorityTimeCritical:
             priorityString="TimeCritical";
-        break;
+            break;
         default:
             priorityString="Unknown";
-        break;
+            break;
         }
         setCellContent(i, 6, priorityString);
         QString waitReasonString;
@@ -72,118 +72,118 @@ void ThreadView::updateThreadList()
         {
         case _Executive:
             waitReasonString="Executive";
-        break;
+            break;
         case _FreePage:
             waitReasonString="FreePage";
-        break;
+            break;
         case _PageIn:
             waitReasonString="PageIn";
-        break;
+            break;
         case _PoolAllocation:
             waitReasonString="PoolAllocation";
-        break;
+            break;
         case _DelayExecution:
             waitReasonString="DelayExecution";
-        break;
+            break;
         case _Suspended:
             waitReasonString="Suspended";
-        break;
+            break;
         case _UserRequest:
             waitReasonString="UserRequest";
-        break;
+            break;
         case _WrExecutive:
             waitReasonString="WrExecutive";
-        break;
+            break;
         case _WrFreePage:
             waitReasonString="WrFreePage";
-        break;
+            break;
         case _WrPageIn:
             waitReasonString="WrPageIn";
-        break;
+            break;
         case _WrPoolAllocation:
             waitReasonString="WrPoolAllocation";
-        break;
+            break;
         case _WrDelayExecution:
             waitReasonString="WrDelayExecution";
-        break;
+            break;
         case _WrSuspended:
             waitReasonString="WrSuspended";
-        break;
+            break;
         case _WrUserRequest:
             waitReasonString="WrUserRequest";
-        break;
+            break;
         case _WrEventPair:
             waitReasonString="WrEventPair";
-        break;
+            break;
         case _WrQueue:
             waitReasonString="WrQueue";
-        break;
+            break;
         case _WrLpcReceive:
             waitReasonString="WrLpcReceive";
-        break;
+            break;
         case _WrLpcReply:
             waitReasonString="WrLpcReply";
-        break;
+            break;
         case _WrVirtualMemory:
             waitReasonString="WrVirtualMemory";
-        break;
+            break;
         case _WrPageOut:
             waitReasonString="WrPageOut";
-        break;
+            break;
         case _WrRendezvous:
             waitReasonString="WrRendezvous";
-        break;
+            break;
         case _Spare2:
             waitReasonString="Spare2";
-        break;
+            break;
         case _Spare3:
             waitReasonString="Spare3";
-        break;
+            break;
         case _Spare4:
             waitReasonString="Spare4";
-        break;
+            break;
         case _Spare5:
             waitReasonString="Spare5";
-        break;
+            break;
         case _WrCalloutStack:
             waitReasonString="WrCalloutStack";
-        break;
+            break;
         case _WrKernel:
             waitReasonString="WrKernel";
-        break;
+            break;
         case _WrResource:
             waitReasonString="WrResource";
-        break;
+            break;
         case _WrPushLock:
             waitReasonString="WrPushLock";
-        break;
+            break;
         case _WrMutex:
             waitReasonString="WrMutex";
-        break;
+            break;
         case _WrQuantumEnd:
             waitReasonString="WrQuantumEnd";
-        break;
+            break;
         case _WrDispatchInt:
             waitReasonString="WrDispatchInt";
-        break;
+            break;
         case _WrPreempted:
             waitReasonString="WrPreempted";
-        break;
+            break;
         case _WrYieldExecution:
             waitReasonString="WrYieldExecution";
-        break;
+            break;
         case _WrFastMutex:
             waitReasonString="WrFastMutex";
-        break;
+            break;
         case _WrGuardedMutex:
             waitReasonString="WrGuardedMutex";
-        break;
+            break;
         case _WrRundown:
             waitReasonString="WrRundown";
-        break;
+            break;
         default:
             waitReasonString="Unknown";
-        break;
+            break;
         }
         setCellContent(i, 7, waitReasonString);
         setCellContent(i, 8, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());

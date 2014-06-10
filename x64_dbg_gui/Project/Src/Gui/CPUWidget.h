@@ -11,14 +11,15 @@
 #include "InfoBox.h"
 #include "CPUJumps.h"
 
-namespace Ui {
+namespace Ui
+{
 class CPUWidget;
 }
 
 class CPUWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit CPUWidget(QWidget *parent = 0);
     ~CPUWidget();

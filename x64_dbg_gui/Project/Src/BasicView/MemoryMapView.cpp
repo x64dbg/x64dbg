@@ -87,35 +87,35 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             // State
             switch(wMbi.State)
             {
-                case MEM_FREE:
-                    wS = QString("FREE");
-                    break;
-                case MEM_COMMIT:
-                    wS = QString("COMM");
-                    break;
-                case MEM_RESERVE:
-                    wS = QString("RESV");
-                    break;
-                default:
-                    wS = QString("????");
+            case MEM_FREE:
+                wS = QString("FREE");
+                break;
+            case MEM_COMMIT:
+                wS = QString("COMM");
+                break;
+            case MEM_RESERVE:
+                wS = QString("RESV");
+                break;
+            default:
+                wS = QString("????");
             }
             setCellContent(wI, 3, wS);
 
             // Type
             switch(wMbi.Type)
             {
-                case MEM_IMAGE:
-                    wS = QString("IMG");
-                    break;
-                case MEM_MAPPED:
-                    wS = QString("MAP");
-                    break;
-                case MEM_PRIVATE:
-                    wS = QString("PRV");
-                    break;
-                default:
-                    wS = QString("N/A");
-                    break;
+            case MEM_IMAGE:
+                wS = QString("IMG");
+                break;
+            case MEM_MAPPED:
+                wS = QString("MAP");
+                break;
+            case MEM_PRIVATE:
+                wS = QString("PRV");
+                break;
+            default:
+                wS = QString("N/A");
+                break;
             }
             setCellContent(wI, 3, wS);
 

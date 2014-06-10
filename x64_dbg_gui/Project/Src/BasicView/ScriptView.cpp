@@ -130,7 +130,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 case scriptjmp: //unconditional jumps
                     newRichText.flags=FlagBackground;
                     newRichText.textBackground=QColor("#FFFF00");
-                break;
+                    break;
 
                 case scriptjnejnz: //conditional jumps
                 case scriptjejz:
@@ -141,16 +141,16 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                     newRichText.flags=FlagAll;
                     newRichText.textBackground=QColor("#FFFF00");
                     newRichText.textColor=QColor("#FF0000");
-                break;
+                    break;
 
                 case scriptcall: //calls
                     newRichText.flags=FlagBackground;
                     newRichText.textBackground=QColor("#00FFFF");
-                break;
+                    break;
 
                 default:
                     newRichText.flags=FlagNone;
-                break;
+                    break;
                 }
                 newRichText.text=command.left(i);
                 richText.push_back(newRichText);

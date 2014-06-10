@@ -2,10 +2,7 @@
 #define CONFIGURATION_H
 
 #include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QString>
-#include <QJsonArray>
 #include <QColor>
 #include <QMap>
 #include <QDebug>

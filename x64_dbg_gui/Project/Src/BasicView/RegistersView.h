@@ -8,16 +8,18 @@
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
 
-namespace Ui {
+namespace Ui
+{
 class RegistersView;
 }
 
 class RegistersView : public QWidget
 {
     Q_OBJECT
-    
+
 public:
-    enum REGISTER_NAME {
+    enum REGISTER_NAME
+    {
         CAX,
         CCX,
         CDX,
@@ -75,7 +77,7 @@ public slots:
     void displayCustomContextMenuSlot(QPoint pos);
     void setRegister(REGISTER_NAME reg, uint_t value);
     void debugStateChangedSlot(DBGSTATE state);
-    
+
 private:
     void displayEditDialog();
     Ui::RegistersView *ui;

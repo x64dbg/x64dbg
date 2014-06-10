@@ -6,8 +6,9 @@
 #include <QLineEdit>
 #include "StdTable.h"
 
-namespace Ui {
-    class SearchListView;
+namespace Ui
+{
+class SearchListView;
 }
 
 class SearchListView : public QWidget

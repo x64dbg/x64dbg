@@ -282,7 +282,9 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             painter->setPen(Configuration::instance()->color("DisassemblyCommentColor")); //DisassemblyCommentColor
             painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
             painter->restore();
-        }else{
+        }
+        else
+        {
             painter->save();
             painter->setPen(Configuration::instance()->color("DisassemblyCommentColor")); //DisassemblyCommentColor
             //painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, "QString(comment)");

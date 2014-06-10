@@ -22,9 +22,9 @@ MapViewOfMem::MapViewOfMem(QString file)
     QFile wFile(file);
 
     if(wFile.open(QIODevice::ReadOnly) == false)
-         //qDebug() << "File has not been opened.";
+        //qDebug() << "File has not been opened.";
 
-    mData = wFile.readAll();
+        mData = wFile.readAll();
     //qDebug() << "Size: " << mData.size();
 
     if(mData.size() == 0)

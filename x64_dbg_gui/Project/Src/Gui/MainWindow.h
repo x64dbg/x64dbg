@@ -21,14 +21,15 @@
 #include "Configuration.h"
 #include "ApiFingerprints.h"
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -76,7 +77,7 @@ private:
     Ui::MainWindow *ui;
 
     CommandLineEdit* mCmdLineEdit;
-	MHTabWidget* mTabWidget;
+    MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     LogView* mLogView;

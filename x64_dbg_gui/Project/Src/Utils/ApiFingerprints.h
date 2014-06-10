@@ -5,12 +5,14 @@
 #include <QList>
 #include <QMap>
 
-struct APIArgument{
+struct APIArgument
+{
     QString Type;
     QString Name;
 };
 
-struct APIFunction{
+struct APIFunction
+{
     QString DLLName;
     QString ReturnType;
     QString Name;

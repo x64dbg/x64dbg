@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
     //Create the tab widget
-	mTabWidget = new MHTabWidget(NULL);
+    mTabWidget = new MHTabWidget(NULL);
 
     //Setup tabs
     mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
@@ -162,12 +162,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::setTab(QWidget* widget)
 {
-	for(int i=0; i<mTabWidget->count(); i++)
-		if(mTabWidget->widget(i)==widget)
-		{
-			mTabWidget->setCurrentIndex(i);
-			break;
-		}
+    for(int i=0; i<mTabWidget->count(); i++)
+        if(mTabWidget->widget(i)==widget)
+        {
+            mTabWidget->setCurrentIndex(i);
+            break;
+        }
 }
 
 //Reads recent files list from settings

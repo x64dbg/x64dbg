@@ -64,7 +64,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
         Disassembly::mouseDoubleClickEvent(event);
-    break;
+        break;
     }
 }
 
@@ -140,18 +140,18 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                     {
                     case 0:
                         msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                    break;
+                        break;
                     case 1:
                         msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                    break;
+                        break;
                     case 2:
                         msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                    break;
+                        break;
                     case 3:
                         msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                    break;
+                        break;
                     default:
-                    break;
+                        break;
                     }
                 }
 

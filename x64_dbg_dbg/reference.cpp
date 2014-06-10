@@ -16,7 +16,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
             dputs("invalid memory page");
         return 0;
     }
-    
+
     if(!size) //assume the whole page
     {
         start_addr=base;

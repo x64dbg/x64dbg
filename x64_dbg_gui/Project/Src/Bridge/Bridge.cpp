@@ -276,13 +276,13 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
     {
     case GUI_DISASSEMBLY:
         emit selectionDisasmGet(selection);
-    break;
+        break;
     case GUI_DUMP:
         emit selectionDumpGet(selection);
-    break;
+        break;
     case GUI_STACK:
         emit selectionStackGet(selection);
-    break;
+        break;
     default:
         mBridgeMutex.unlock();
         return false;
@@ -309,13 +309,13 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
     {
     case GUI_DISASSEMBLY:
         emit selectionDisasmSet(selection);
-    break;
+        break;
     case GUI_DUMP:
         emit selectionDumpSet(selection);
-    break;
+        break;
     case GUI_STACK:
         emit selectionStackSet(selection);
-    break;
+        break;
     default:
         mBridgeMutex.unlock();
         return false;

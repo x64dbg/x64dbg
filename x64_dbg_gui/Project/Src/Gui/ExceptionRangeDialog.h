@@ -3,8 +3,9 @@
 
 #include <QDialog>
 
-namespace Ui {
-    class ExceptionRangeDialog;
+namespace Ui
+{
+class ExceptionRangeDialog;
 }
 
 class ExceptionRangeDialog : public QDialog

@@ -5,7 +5,8 @@
 #include <QPalette>
 #include "Bridge.h"
 
-namespace Ui {
+namespace Ui
+{
 class GotoDialog;
 }
 

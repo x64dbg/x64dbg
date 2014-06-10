@@ -119,17 +119,17 @@ void ProcessMemoryMap::printVirtualMemoryMap(QList<MEMORY_BASIC_INFORMATION> par
         // State
         switch(wMemInfo.State)
         {
-            case MEM_FREE:
-                wTmpStr = QString("Free");
-                break;
-            case MEM_COMMIT:
-                wTmpStr = QString("Commited");
-                break;
-            case MEM_RESERVE:
-                wTmpStr = QString("Reserved");
-                break;
-            default:
-                wTmpStr = QString("N/A");
+        case MEM_FREE:
+            wTmpStr = QString("Free");
+            break;
+        case MEM_COMMIT:
+            wTmpStr = QString("Commited");
+            break;
+        case MEM_RESERVE:
+            wTmpStr = QString("Reserved");
+            break;
+        default:
+            wTmpStr = QString("N/A");
         }
         wStr += wTmpStr + QString(" ").repeated(10 - wTmpStr.length());
         wStr += " | ";
@@ -145,36 +145,36 @@ void ProcessMemoryMap::printVirtualMemoryMap(QList<MEMORY_BASIC_INFORMATION> par
         {
             switch(wMemInfo.Protect & 0xFF)
             {
-                case PAGE_EXECUTE:
-                    wTmpStr = QString("Execute");
-                    break;
-                case PAGE_EXECUTE_READ:
-                    wTmpStr = QString("Execute/Read");
-                    break;
-                case PAGE_EXECUTE_READWRITE:
-                    wTmpStr = QString("Execute/Read/Write");
-                    break;
-                case PAGE_NOACCESS:
-                    wTmpStr = QString("No Access");
-                    break;
-                case PAGE_READONLY:
-                    wTmpStr = QString("Read");
-                    break;
-                case PAGE_READWRITE:
-                    wTmpStr = QString("Read/Write");
-                    break;
-                case PAGE_WRITECOPY:
-                    wTmpStr = QString("Copy on Write");
-                    break;
-                case PAGE_EXECUTE_WRITECOPY:
-                    wTmpStr = QString("Execute/Copy on Write");
-                    break;
+            case PAGE_EXECUTE:
+                wTmpStr = QString("Execute");
+                break;
+            case PAGE_EXECUTE_READ:
+                wTmpStr = QString("Execute/Read");
+                break;
+            case PAGE_EXECUTE_READWRITE:
+                wTmpStr = QString("Execute/Read/Write");
+                break;
+            case PAGE_NOACCESS:
+                wTmpStr = QString("No Access");
+                break;
+            case PAGE_READONLY:
+                wTmpStr = QString("Read");
+                break;
+            case PAGE_READWRITE:
+                wTmpStr = QString("Read/Write");
+                break;
+            case PAGE_WRITECOPY:
+                wTmpStr = QString("Copy on Write");
+                break;
+            case PAGE_EXECUTE_WRITECOPY:
+                wTmpStr = QString("Execute/Copy on Write");
+                break;
             }
 
             switch(wMemInfo.Protect & 0xFF00)
             {
-                case PAGE_GUARD:
-                    wTmpStr += QString(" + Guard");
+            case PAGE_GUARD:
+                wTmpStr += QString(" + Guard");
             }
 
             wStr += wTmpStr + QString(" ").repeated(30 - wTmpStr.length());
@@ -184,18 +184,18 @@ void ProcessMemoryMap::printVirtualMemoryMap(QList<MEMORY_BASIC_INFORMATION> par
         // Type
         switch(wMemInfo.Type)
         {
-            case MEM_IMAGE:
-                wTmpStr = QString("Image");
-                break;
-            case MEM_MAPPED:
-                wTmpStr = QString("Mapped");
-                break;
-            case MEM_PRIVATE:
-                wTmpStr = QString("Private");
-                break;
-            default:
-                wTmpStr = QString("N/A");
-                break;
+        case MEM_IMAGE:
+            wTmpStr = QString("Image");
+            break;
+        case MEM_MAPPED:
+            wTmpStr = QString("Mapped");
+            break;
+        case MEM_PRIVATE:
+            wTmpStr = QString("Private");
+            break;
+        default:
+            wTmpStr = QString("N/A");
+            break;
         }
         wStr += wTmpStr + QString(" ").repeated(10 - wTmpStr.length());
 

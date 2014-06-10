@@ -6,14 +6,15 @@
 #include <QPushButton>
 #include "Bridge.h"
 
-namespace Ui {
+namespace Ui
+{
 class WordEditDialog;
 }
 
 class WordEditDialog : public QDialog
 {
     Q_OBJECT
-    
+
 public:
     explicit WordEditDialog(QWidget *parent = 0);
     ~WordEditDialog();
@@ -22,7 +23,7 @@ public:
 
 public slots:
     void expressionChanged(QString s);
-    
+
 private:
     Ui::WordEditDialog *ui;
     uint_t mWord;

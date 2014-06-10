@@ -205,7 +205,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
             mRegNamesList->at(mSelected) == CIP ||
 
             mRegNamesList->at(mSelected) == EFLAGS)
-    { //double clicked general register
+    {
+        //double clicked general register
         displayEditDialog();
     }
     else if(mRegNamesList->at(mSelected) == CF ||
@@ -217,7 +218,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
             mRegNamesList->at(mSelected) == IF ||
             mRegNamesList->at(mSelected) == DF ||
             mRegNamesList->at(mSelected) == OF)
-    { //double clicked a flag
+    {
+        //double clicked a flag
         setRegister(mRegNamesList->at(mSelected), mRegList->at(mSelected)->text().toInt()^1); //toggle flag (stupid way in fact)
     }
 }

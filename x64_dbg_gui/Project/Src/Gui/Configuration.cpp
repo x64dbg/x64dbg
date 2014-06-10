@@ -16,11 +16,13 @@ Configuration *Configuration::instance()
     return mPtr;
 }
 
-void Configuration::load(QString filename){
+void Configuration::load(QString filename)
+{
     // load configuration file
     QFile configfile(filename);
 
-    if (!configfile.open(QIODevice::ReadOnly)) {
+    if (!configfile.open(QIODevice::ReadOnly))
+    {
         qWarning("Couldn't open config file.");
         return ;
     }
@@ -31,26 +33,31 @@ void Configuration::load(QString filename){
 
 }
 
-void Configuration::readColors() {
+void Configuration::readColors()
+{
     Colors.clear();
 
     QJsonArray ColorArray = Config["colors"].toArray();
-    for (int idx = 0; idx < ColorArray.size(); ++idx) {
+    for (int idx = 0; idx < ColorArray.size(); ++idx)
+    {
         QJsonArray colorObj = ColorArray[idx].toArray();
         Colors.insert(colorObj.at(0).toString(),QColor( colorObj.at(1).toString()));
     }
 }
 
-QList<QString> Configuration::ApiFingerprints(){
+QList<QString> Configuration::ApiFingerprints()
+{
     QList<QString> files;
     QJsonArray APIArray = Config["apifingerprints"].toArray();
-    for (int idx = 0; idx < APIArray.size(); ++idx) {
+    for (int idx = 0; idx < APIArray.size(); ++idx)
+    {
         QString filename = "data/"+APIArray.at(idx).toString()+".txt";
         QFile mFile(filename);
-                if(mFile.open(QFile::ReadOnly | QFile::Text)){
-                    files.append(APIArray.at(idx).toString());
-                    mFile.close();
-                }
+        if(mFile.open(QFile::ReadOnly | QFile::Text))
+        {
+            files.append(APIArray.at(idx).toString());
+            mFile.close();
+        }
 
     }
     return files;
