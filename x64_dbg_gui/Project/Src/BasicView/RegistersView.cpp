@@ -1,7 +1,7 @@
 #include "RegistersView.h"
 #include "Configuration.h"
 
-RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent)
+RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
 {
 
 
@@ -255,6 +255,23 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
     }
 }
 
+void RegistersView::wheelEvent(QWheelEvent *event)
+{
+    int numDegrees = event->delta() / 8;
+    // one wheel click ==> 2 lines
+    int numSteps = numDegrees / 15 *1 ;
+
+    if (event->orientation() == Qt::Vertical) {
+        if ( numSteps + mVScrollOffset <= 0)
+            mVScrollOffset = 0;
+        else
+            mVScrollOffset += numSteps;
+
+    }
+    emit refresh();
+    event->accept();
+}
+
 QSize RegistersView::sizeHint() const
 {
     // 32 character width
@@ -267,7 +284,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
         // padding to the left is at least one character (looks better)
         int offset = mCharWidth*(1 + mRegisterPlaces[reg].start);
         // draw name of value
-        p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
+        p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1 +mVScrollOffset),mRegisterMapping[reg]);
         p->save();
         if(mRegisterUpdates.contains(reg))
             p->setPen(ConfigColor("RegistersHighlightColor"));
@@ -275,10 +292,10 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
             p->setPen(ConfigColor("RegistersColor"));
 
         if(mSelected == reg){
-            p->fillRect(QRect(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
+            p->fillRect(QRect(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line +mVScrollOffset)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
         // draw value
-        p->drawText(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
+        p->drawText(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1+mVScrollOffset),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
         // do we have a label ?
         char label_text[MAX_LABEL_SIZE]="";
@@ -310,7 +327,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
         }
         // are there additional informations?
         if(hasLabel || hasModule || isASCII)
-            p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),newText);
+            p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1 +mVScrollOffset),newText);
 
         p->restore();
     }

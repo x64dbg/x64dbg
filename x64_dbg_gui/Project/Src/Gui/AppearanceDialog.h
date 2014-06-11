@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QColorDialog>
+#include <QMessageBox>
 #include "Configuration.h"
 
 namespace Ui {

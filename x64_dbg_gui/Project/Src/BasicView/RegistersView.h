@@ -72,6 +72,7 @@ protected:
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
+    virtual void wheelEvent(QWheelEvent *event);
 
     // use-in-class-only methods
     void drawRegister(QPainter *p, REGISTER_NAME reg, uint_t value);
@@ -92,6 +93,7 @@ protected slots:
 
 
 private:
+    unsigned int mVScrollOffset;
     // holds current selected register
     REGISTER_NAME mSelected;
     // general purposes register id s (cax, ..., r8, ....)

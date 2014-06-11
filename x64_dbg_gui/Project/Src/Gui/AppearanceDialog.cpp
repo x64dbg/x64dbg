@@ -431,8 +431,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Registers:", "", "");
     colorInfoListAppend("Background", "RegistersBackgroundColor", "");
     colorInfoListAppend("Text", "RegistersColor", "");
-    colorInfoListAppend("Modified Registers", "RegistersModifiedColor");
-    colorInfoListAppend("Selection", "RegistersSelectionColor");
+    colorInfoListAppend("Modified Registers", "RegistersModifiedColor","");
+    colorInfoListAppend("Selection", "RegistersSelectionColor","");
 
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);
