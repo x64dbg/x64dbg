@@ -167,7 +167,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
     painter->setPen(tmp);
 
     const int JumpPadding = 11;
-    const int x = viewport()->width() - jumpoffset*JumpPadding - 12;
+    int x = viewport()->width() - jumpoffset*JumpPadding - 12;
     int x_right = viewport()->width() - 12;
     const int y_start =  fontHeight*(1+startLine)-0.5*fontHeight;
     const int y_end =  fontHeight*(1+endLine)-0.5*fontHeight;
@@ -182,19 +182,85 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
         //horizontal
         painter->drawLine(x, y_end, x_right, y_end);
 
-        QPen temp=painter->pen();
-        temp.setStyle(Qt::SolidLine);
-        painter->setPen(temp);
-        QPoint wPoints[] =
+        if(endLine == viewableRows+6)
         {
-            QPoint(x_right - 3, y_end - 3),
-            QPoint(x_right, y_end),
-            QPoint(x_right - 3, y_end + 3),
-        };
-        painter->drawPolyline(wPoints, 3);
+            int y = this->viewport()->height()-1;
+            if(y>y_start)
+            {
+                QPen temp=painter->pen();
+                temp.setStyle(Qt::SolidLine);
+                painter->setPen(temp);
+                QPoint wPoints[] =
+                {
+                    QPoint(x - 3, y - 3),
+                    QPoint(x, y),
+                    QPoint(x + 3, y - 3),
+                };
+                painter->drawPolyline(wPoints, 3);
+            }
+        }
+        else if(endLine == -6)
+        {
+            int y = 0;
+            QPen temp=painter->pen();
+            temp.setStyle(Qt::SolidLine);
+            painter->setPen(temp);
+            QPoint wPoints[] =
+            {
+                QPoint(x - 3, y + 3),
+                QPoint(x, y),
+                QPoint(x + 3, y + 3),
+            };
+            painter->drawPolyline(wPoints, 3);
+        }
+        else
+        {
+            QPen temp=painter->pen();
+            temp.setStyle(Qt::SolidLine);
+            painter->setPen(temp);
+            QPoint wPoints[] =
+            {
+                QPoint(x_right - 3, y_end - 3),
+                QPoint(x_right, y_end),
+                QPoint(x_right - 3, y_end + 3),
+            };
+            painter->drawPolyline(wPoints, 3);
+        }
     }
     else
-        drawStraightArrow(painter, x, y_end, x_right, y_end);
+    {
+        if(endLine == viewableRows+6)
+        {
+            int y = this->viewport()->height()-1;
+            x--;
+            QPen temp=painter->pen();
+            temp.setStyle(Qt::SolidLine);
+            painter->setPen(temp);
+            QPoint wPoints[] =
+            {
+                QPoint(x - 3, y - 3),
+                QPoint(x, y),
+                QPoint(x + 3, y - 3),
+            };
+            painter->drawPolyline(wPoints, 3);
+        }
+        else if(endLine == -6)
+        {
+            int y = 0;
+            QPen temp=painter->pen();
+            temp.setStyle(Qt::SolidLine);
+            painter->setPen(temp);
+            QPoint wPoints[] =
+            {
+                QPoint(x - 3, y + 3),
+                QPoint(x, y),
+                QPoint(x + 3, y + 3),
+            };
+            painter->drawPolyline(wPoints, 3);
+        }
+        else
+            drawStraightArrow(painter, x, y_end, x_right, y_end);
+    }
     painter->restore();
 }
 
