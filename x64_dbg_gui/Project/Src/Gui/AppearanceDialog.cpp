@@ -428,6 +428,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Jump Lines (jump)", "SideBarJumpLineFalseColor", "");
     colorInfoListAppend("Jump Lines (no jump)", "SideBarJumpLineTrueColor", "");
 
+    colorInfoListAppend("Registers:", "", "");
+    colorInfoListAppend("Background", "RegistersBackgroundColor", "");
+    colorInfoListAppend("Text", "RegistersColor", "");
+    colorInfoListAppend("Modified Registers", "RegistersModifiedColor");
+    colorInfoListAppend("Selection", "RegistersSelectionColor");
+
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);
     defaultValueAction = new QAction("&Default Value", this);

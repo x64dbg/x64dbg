@@ -1,6 +1,5 @@
 #include "RegistersView.h"
-
-
+#include "Configuration.h"
 
 RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent)
 {
@@ -49,27 +48,27 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent)
      * (line , start, labelwidth, valuesize )
      */
 #ifdef _WIN64
-    mRegisterMapping.insert(CAX,"RAX");         mRegisterPlace.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBX,"RBX");         mRegisterPlace.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CCX,"RCX");         mRegisterPlace.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDX,"RDX");         mRegisterPlace.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSI,"RSI");         mRegisterPlace.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDI,"RDI");         mRegisterPlace.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBP,"RBP");         mRegisterPlace.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSP,"RSP");         mRegisterPlace.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CAX,"RAX");         mRegisterPlaces.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBX,"RBX");         mRegisterPlaces.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CCX,"RCX");         mRegisterPlaces.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDX,"RDX");         mRegisterPlaces.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSI,"RSI");         mRegisterPlaces.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDI,"RDI");         mRegisterPlaces.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBP,"RBP");         mRegisterPlaces.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSP,"RSP");         mRegisterPlaces.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(R8,"R8");           mRegisterPlace.insert(R8 ,Register_Position(9,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R9,"R9");           mRegisterPlace.insert(R9 ,Register_Position(10,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R10,"R10");         mRegisterPlace.insert(R10,Register_Position(11,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R11,"R11");         mRegisterPlace.insert(R11,Register_Position(12,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R12,"R12");         mRegisterPlace.insert(R12,Register_Position(13,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R13,"R13");         mRegisterPlace.insert(R13,Register_Position(14,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R14,"R14");         mRegisterPlace.insert(R14,Register_Position(15,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R15,"R15");         mRegisterPlace.insert(R15,Register_Position(16,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R8,"R8");           mRegisterPlaces.insert(R8 ,Register_Position(9,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R9,"R9");           mRegisterPlaces.insert(R9 ,Register_Position(10,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R10,"R10");         mRegisterPlaces.insert(R10,Register_Position(11,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R11,"R11");         mRegisterPlaces.insert(R11,Register_Position(12,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R12,"R12");         mRegisterPlaces.insert(R12,Register_Position(13,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R13,"R13");         mRegisterPlaces.insert(R13,Register_Position(14,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R14,"R14");         mRegisterPlaces.insert(R14,Register_Position(15,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R15,"R15");         mRegisterPlaces.insert(R15,Register_Position(16,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(CIP,"RIP");         mRegisterPlace.insert(CIP,Register_Position(18,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CIP,"RIP");         mRegisterPlaces.insert(CIP,Register_Position(18,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(EFLAGS,"RFLAGS");   mRegisterPlace.insert(EFLAGS,Register_Position(20,0, 9, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(EFLAGS,"RFLAGS");   mRegisterPlaces.insert(EFLAGS,Register_Position(20,0, 9, sizeof(uint_t) * 2));
 
     offset = 21;
 #else
@@ -113,13 +112,7 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent)
     mRegisterMapping.insert(DR6,"DR6");         mRegisterPlaces.insert(DR6,Register_Position(offset+15,0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR7,"DR7");         mRegisterPlaces.insert(DR7,Register_Position(offset+16,0, 4, sizeof(uint_t) * 2));
 
-
-    // Set background color
-    QPalette wPalette;
-    wPalette.setColor(QPalette::Window, QColor("#FFFBF0"));
-    this->setAutoFillBackground(true);
-    this->setPalette(wPalette);
-
+    //set font
     QFont font("Monospace", 8);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
@@ -149,8 +142,6 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent)
     connect(wCM_Modify,SIGNAL(triggered()),this,SLOT(onModifyAction()));
     connect(wCM_ToggleValue,SIGNAL(triggered()),this,SLOT(onToggleValueAction()));
     connect(wCM_CopyToClipboard,SIGNAL(triggered()),this,SLOT(onCopyToClipboardAction()));
-
-
 }
 
 RegistersView::~RegistersView()
@@ -219,6 +210,7 @@ void RegistersView::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
     QPainter wPainter(this->viewport());
+    wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     QMap<REGISTER_NAME,QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
@@ -278,12 +270,12 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
         p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
         p->save();
         if(mRegisterUpdates.contains(reg))
-            p->setPen(Qt::red);
+            p->setPen(ConfigColor("RegistersHighlightColor"));
         else
-            p->setPen(Qt::black);
+            p->setPen(ConfigColor("RegistersColor"));
 
         if(mSelected == reg){
-            p->fillRect(QRect(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(QColor("#eee")));
+            p->fillRect(QRect(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
         // draw value
         p->drawText(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
@@ -339,7 +331,7 @@ void RegistersView::updateRegistersSlot()
 void RegistersView::displayEditDialog()
 {
     WordEditDialog wEditDial(this);
-    QString wReg = registerValue(&wRegDumpStruct,mSelected);
+    //QString wReg = registerValue(&wRegDumpStruct,mSelected);
 
 #ifdef _WIN64
     wEditDial.setup(QString("Edit"),registerValue(&wRegDumpStruct,mSelected), 8);

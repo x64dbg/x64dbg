@@ -60,6 +60,11 @@ void Configuration::readColors()
     defaultColorMap.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
     defaultColorMap.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
 
+    defaultColorMap.insert("RegistersBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("RegistersColor", QColor("#000000"));
+    defaultColorMap.insert("RegistersModifiedColor", QColor("#FF0000"));
+    defaultColorMap.insert("RegistersSelectionColor", QColor("#EEEEEE"));
+
     Colors = defaultColors = defaultColorMap;
     //read config
     for(int i=0; i<Colors.size(); i++)
