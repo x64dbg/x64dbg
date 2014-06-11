@@ -290,7 +290,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
     if(mRegisterMapping.contains(reg)){
         // padding to the left is at least one character (looks better)
         int x = mCharWidth*(1 + mRegisterPlaces[reg].start);
-        int y = mRowHeight*(mRegisterPlaces[reg].line) + 3;
+        int y = mRowHeight*(mRegisterPlaces[reg].line + mVScrollOffset) + 3;
 
         //draw raster
         /*
@@ -302,6 +302,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
 
         // draw name of value
         int width=mCharWidth*mRegisterMapping[reg].length();
+        p->setPen(ConfigColor("RegistersLabelColor"));
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
         x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;
         //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
@@ -366,6 +367,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
         if(hasLabel || hasModule || isCharacter)
         {
             width = newText.length() * mCharWidth;
+            p->setPen(ConfigColor("RegistersExtraInfoColor"));
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
             //p->drawText(x,mRowHeight*(mRegisterPlaces[reg].line+1),newText);
         }
