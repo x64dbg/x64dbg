@@ -19,18 +19,11 @@ CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollAr
     InstrBuffer = CodePtr->instructionsBuffer();
 
     backgroundColor = ConfigColor("SideBarBackgroundColor");
-
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
 }
 
 QSize CPUSideBar::sizeHint() const
 {
     return QSize(40,this->viewport()->height());
-}
-
-void CPUSideBar::disassembleAt(int_t parVA, int_t parCIP)
-{
-    MessageBeep(0);
 }
 
 void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
@@ -104,7 +97,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
         int_t instrVA = instr.rva + CodePtr->getBase();
 
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) == bp_none);
+        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgGetBookmarkAt(instrVA));
 
         if(isJump(line)) //handle jumps
         {
@@ -160,55 +153,61 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
 {
     painter->save();
     if(!conditional)
-        painter->setPen(QPen(QColor("#000000"),1, Qt::SolidLine));  // jmp
+        painter->setPen(QPen(ConfigColor("SideBarJumpLineFalseColor"), 1, Qt::SolidLine));  // jmp
     else
-        painter->setPen(QPen(QColor("#000000"),1, Qt::DashLine));
+        painter->setPen(QPen(ConfigColor("SideBarJumpLineFalseColor"), 1, Qt::DashLine));
     QPen tmp = painter->pen();
 
-    if(isactive)
+    if(isactive) //selected
     {
         if(isexecute) //only highlight selected jumps
-            tmp.setColor(Qt::red);
+            tmp.setColor(ConfigColor("SideBarJumpLineTrueColor"));
         tmp.setWidth(2);
     }
     painter->setPen(tmp);
 
-    const int JumpPadding = 15;
-
-    const int x = viewport()->width()-jumpoffset*JumpPadding - 12;
-    const int x_right = viewport()->width()- 12;
+    const int JumpPadding = 11;
+    const int x = viewport()->width() - jumpoffset*JumpPadding - 12;
+    int x_right = viewport()->width() - 12;
     const int y_start =  fontHeight*(1+startLine)-0.5*fontHeight;
     const int y_end =  fontHeight*(1+endLine)-0.5*fontHeight;
 
-    // vertical
-    painter->drawLine(x,y_start,x,y_end);
-    // start horizontal
-    painter->drawLine(x,y_start,x_right,y_start);
-    painter->drawLine(x,y_end,x_right,y_end);
+    //horizontal
+    painter->drawLine(x_right, y_start, x, y_start);
+    //vertical
+    painter->drawLine(x, y_start, x, y_end);
+    //arrow
+    if(!isactive) //selected
+    {
+        //horizontal
+        painter->drawLine(x, y_end, x_right, y_end);
 
-    const int ArrowSizeX = 2;  // width  of arrow tip in pixel
-    const int ArrowSizeY = 3;  // height of arrow tip in pixel
-
-
-    tmp = painter->pen();
-    tmp.setStyle(Qt::SolidLine);
-    tmp.setWidth(2);
-    painter->setPen(tmp);
-    painter->drawLine(x_right-ArrowSizeX,y_end-ArrowSizeY,x_right,y_end);
-    painter->drawLine(x_right-ArrowSizeX,y_end+ArrowSizeY,x_right,y_end);
-
-
+        QPen temp=painter->pen();
+        temp.setStyle(Qt::SolidLine);
+        painter->setPen(temp);
+        QPoint wPoints[] =
+        {
+            QPoint(x_right - 3, y_end - 3),
+            QPoint(x_right, y_end),
+            QPoint(x_right - 3, y_end + 3),
+        };
+        painter->drawPolyline(wPoints, 3);
+    }
+    else
+        drawStraightArrow(painter, x, y_end, x_right, y_end);
     painter->restore();
 }
 
-void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp)
+void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbookmark)
 {
     painter->save();
 
-    if( isbp)
-        painter->setBrush(QBrush("#808080"));
+    if(isbp)
+        painter->setBrush(QBrush(ConfigColor("SideBarBulletBreakpointColor")));
+    else if(isbookmark)
+        painter->setBrush(QBrush(ConfigColor("SideBarBulletBookmarkColor")));
     else
-        painter->setBrush(QBrush(Qt::red));
+        painter->setBrush(QBrush(ConfigColor("SideBarBulletColor")));
 
     const int radius = fontHeight/2; //14/2=7
     const int y = line*fontHeight; //initial y
@@ -218,7 +217,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp)
     //painter->drawLine(0, y, viewport()->width(), y); //draw raster
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(QPen("#ffffff"));
+    painter->setPen(QPen("#FFFFFF"));
     painter->drawEllipse(x, y+yAdd, radius, radius);
 
     painter->restore();
@@ -230,8 +229,8 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     const int LineCoordinate = fontHeight*(1+Line);
     int length = Text.length();
 
-    const QColor IPLabel = ConfigColor("SideBarIpLabelColor");
-    const QColor IPLabelBG = ConfigColor("SideBarIpLabelBackgroundColor");
+    const QColor IPLabel = ConfigColor("SideBarCipLabelColor");
+    const QColor IPLabelBG = ConfigColor("SideBarCipLabelBackgroundColor");
 
     int width = length*fontWidth + 2;
     int x = 1;

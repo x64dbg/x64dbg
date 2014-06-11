@@ -19,34 +19,62 @@ void Configuration::load()
     readColors();
 }
 
+void Configuration::save()
+{
+    writeColors();
+}
+
 void Configuration::readColors()
 {
     //setup default color map
-    QMap<QString,QColor> defaultColorMap;
+    QMap<QString, QColor> defaultColorMap;
     defaultColorMap.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
     defaultColorMap.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
+
+    defaultColorMap.insert("DisassemblyCipColor", QColor("#FFFFFF"));
+    defaultColorMap.insert("DisassemblyCipBackgroundColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyBreakpointColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyBreakpointBackgroundColor", QColor("#FF0000"));
+    defaultColorMap.insert("DisassemblyHardwareBreakpointColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyHardwareBreakpointBackgroundColor", Qt::transparent);
+    defaultColorMap.insert("DisassemblyBookmarkColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
+    defaultColorMap.insert("DisassemblyLabelColor", QColor("#FF0000"));
+    defaultColorMap.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
     defaultColorMap.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
     defaultColorMap.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
+    defaultColorMap.insert("DisassemblyAddressColor", QColor("#808080"));
+    defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyJumpLineTrueColor", QColor("#FF0000"));
     defaultColorMap.insert("DisassemblyJumpLineFalseColor", QColor("#808080"));
-    defaultColorMap.insert("DisassemblyCipColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyMainBpColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyOtherBpColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("DisassemblyBookmarkColor", QColor("#FEE970"));
-    defaultColorMap.insert("DisassemblyMainLabelColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyOtherBpColor", QColor("#000000"));
-    defaultColorMap.insert("SideBarIpLabelColor", QColor("#FFFFFF"));
-    defaultColorMap.insert("SideBarIpLabelBackgroundColor", QColor("#4040FF"));
+
+    defaultColorMap.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
+    defaultColorMap.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
     defaultColorMap.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("SideBarJumpLineTrueColor", QColor("#FF0000"));
+    defaultColorMap.insert("SideBarJumpLineFalseColor", QColor("#808080"));
+    defaultColorMap.insert("SideBarBulletColor", QColor("#808080"));
+    defaultColorMap.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
+    defaultColorMap.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
+
     Colors = defaultColors = defaultColorMap;
     //read config
     for(int i=0; i<Colors.size(); i++)
     {
         QString id=Colors.keys().at(i);
         Colors[id]=colorFromConfig(id);
+    }
+}
+
+void Configuration::writeColors()
+{
+    //write config
+    for(int i=0; i<Colors.size(); i++)
+    {
+        QString id=Colors.keys().at(i);
+        colorToConfig(id, Colors[id]);
     }
 }
 
@@ -70,7 +98,10 @@ const QColor Configuration::color(QString id)
 
 bool Configuration::colorToConfig(const QString id, const QColor color)
 {
-    return BridgeSettingSet("Colors", id.toUtf8().constData(), color.name().toUpper().toUtf8().constData());
+    QString colorName=color.name().toUpper();
+    if(!color.alpha())
+        colorName="#XXXXXX";
+    return BridgeSettingSet("Colors", id.toUtf8().constData(), colorName.toUtf8().constData());
 }
 
 QColor Configuration::colorFromConfig(const QString id)

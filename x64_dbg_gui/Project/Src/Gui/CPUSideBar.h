@@ -15,7 +15,6 @@ public:
     void drawStraightArrow(QPainter *painter, int x1, int y1, int x2, int y2);
 
 public slots:
-    void disassembleAt(int_t parVA, int_t parCIP);
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
     void changeTopmostAddress(int i);
@@ -25,7 +24,7 @@ public slots:
 protected:
     void paintEvent(QPaintEvent *event);
     void drawLabel(QPainter* painter, int Line, QString Text);
-    void drawBullets(QPainter* painter, int line, bool ispb);
+    void drawBullets(QPainter* painter, int line, bool ispb, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
 

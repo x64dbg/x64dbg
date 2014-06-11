@@ -118,40 +118,63 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         painter->save();
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipColor"))); //DisassemblyCipColor
-            if(!isbookmark)
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
+            if(!isbookmark) //no bookmark
             {
-                if(bpxtype&bp_normal) //breakpoint
+                if(bpxtype&bp_normal) //normal breakpoint
                 {
-                    painter->setPen(QPen(ConfigColor("DisassemblyMainBpColor"))); //DisassemblyMainBpColor
+                    QColor bpColor=ConfigColor("DisassemblyBreakpointBackgroundColor");
+                    if(!bpColor.alpha()) //we don't want transparent text
+                        bpColor=ConfigColor("DisassemblyCipColor");
+                    painter->setPen(QPen(bpColor));
                 }
-                else
+                else if(bpxtype&bp_hardware) //hardware breakpoint only
                 {
-                    painter->setPen(QPen(ConfigColor("DisassemblyOtherBpColor"))); //DisassemblyOtherBpColor
+                    QColor hwbpColor=ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+                    if(!hwbpColor.alpha()) //we don't want transparent text
+                        hwbpColor=ConfigColor("DisassemblyCipColor");
+                    painter->setPen(hwbpColor);
+                }
+                else //no breakpoint
+                {
+                    painter->setPen(QPen(ConfigColor("DisassemblyCipColor")));
                 }
             }
-            else
+            else //bookmark
             {
-                painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
+                QColor bookmarkColor=ConfigColor("DisassemblyBookmarkBackgroundColor");
+                if(!bookmarkColor.alpha()) //we don't want transparent text
+                    bookmarkColor=ConfigColor("DisassemblyCipColor");
+                painter->setPen(QPen(bookmarkColor));
             }
         }
-        else //other address
+        else //non-cip address
         {
-            if(!isbookmark)
+            if(!isbookmark) //no bookmark
             {
                 if(*label) //label
                 {
                     if(bpxtype==bp_none) //label only
-                        painter->setPen(QPen(ConfigColor("DisassemblyMainLabelColor"))); //red -> address + label text (DisassemblyMainLabelColor)
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
+                    }
                     else //label+breakpoint
                     {
-                        if(bpxtype&bp_normal)
+                        if(bpxtype&bp_normal) //label + normal breakpoint
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
+                            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
                         }
-                        else
+                        else if(bpxtype&bp_hardware) //label + hardware breakpoint only
                         {
-                            painter->setPen(QPen(ConfigColor("DisassemblyOtherBpColor"))); //DisassemblyOtherBpColor
+                            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill ?
+                        }
+                        else //other cases -> do as normal
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
                         }
                     }
                 }
@@ -166,11 +189,17 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     }
                     else //breakpoint only
                     {
-                        if(bpxtype&bp_normal)
+                        if(bpxtype&bp_normal) //normal breakpoint
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyMainBpColor"))); //fill red (DisassemblyMainBpColor)
+                            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
                         }
-                        else
+                        else if(bpxtype&bp_hardware) //hardware breakpoint only
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
+                        }
+                        else //other cases (memory breakpoint in disassembly) -> do as normal
                         {
                             if(wIsSelected)
                                 painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
@@ -182,11 +211,57 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             }
             else //bookmark
             {
-                painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkColor"))); //DisassemblyBookmarkColor
-                if(wIsSelected)
-                    painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
-                else
-                    painter->setPen(QPen(ConfigColor("DisassemblyAddressColor")));
+                if(*label) //label + bookmark
+                {
+                    if(bpxtype==bp_none) //label + bookmark
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill label background
+                    }
+                    else //label+breakpoint+bookmark
+                    {
+                        QColor color=ConfigColor("DisassemblyBookmarkBackgroundColor");
+                        if(!color.alpha()) //we don't want transparent text
+                            color=ConfigColor("DisassemblyAddressColor");
+                        painter->setPen(QPen(color));
+                        if(bpxtype&bp_normal) //label + bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                        }
+                        else if(bpxtype&bp_hardware) //label + bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill ?
+                        }
+                    }
+                }
+                else //bookmark, no label
+                {
+                    if(bpxtype==bp_none) //bookmark only
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address (DisassemblySelectedAddressColor)
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
+                    }
+                    else //bookmark + breakpoint
+                    {
+                        QColor color=ConfigColor("DisassemblyBookmarkBackgroundColor");
+                        if(!color.alpha()) //we don't want transparent text
+                            color=ConfigColor("DisassemblyAddressColor");
+                        painter->setPen(QPen(color));
+                        if(bpxtype&bp_normal) //bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                        }
+                        else if(bpxtype&bp_hardware) //bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
+                        }
+                        else //other cases (bookmark + memory breakpoint in disassembly) -> do as normal
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address (DisassemblySelectedAddressColor)
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
+                        }
+                    }
+                }
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);

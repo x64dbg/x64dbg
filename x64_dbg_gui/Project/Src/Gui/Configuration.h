@@ -12,17 +12,20 @@
 
 class Configuration
 {
-    QMap<QString,QColor> Colors;
-    QMap<QString,QColor> defaultColors;
-
     static Configuration* mPtr;
 public:
     Configuration();
     static Configuration* instance();
     void load();
+    void save();
     void readColors();
+    void writeColors();
     const QList<QString> ApiFingerprints();
     const QColor color(QString id);
+
+    //public variables
+    QMap<QString, QColor> Colors;
+    QMap<QString, QColor> defaultColors;
 
 private:
     QColor colorFromConfig(const QString id);
