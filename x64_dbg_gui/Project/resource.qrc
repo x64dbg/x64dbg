@@ -30,5 +30,6 @@
         <file>images/arrow-threads.png</file>
         <file>images/settings.png</file>
         <file>images/strings.png</file>
+        <file>images/color-swatches.png</file>
     </qresource>
 </RCC>

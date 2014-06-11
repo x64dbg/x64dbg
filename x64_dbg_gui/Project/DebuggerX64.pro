@@ -11,8 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 # Removes all debug output when defined
 #DEFINES += QT_NO_DEBUG_OUTPUT
 
-QMAKE_CFLAGS_RELEASE += -O3
-QMAKE_CXXFLAGS_RELEASE += -O3
+#QMAKE_CFLAGS_RELEASE += -O3
+#QMAKE_CXXFLAGS_RELEASE += -O3
 
 
 !contains(QMAKE_HOST.arch, x86_64) {
@@ -67,7 +67,8 @@ SOURCES += \
     Src/BasicView/HistoryLineEdit.cpp \
     Src/Gui/Configuration.cpp \
     Src/Utils/ApiFingerprints.cpp \
-    Src/Gui/CPUSideBar.cpp
+    Src/Gui/CPUSideBar.cpp \
+    Src/Gui/AppearanceDialog.cpp
 
 
 HEADERS += \
@@ -115,7 +116,8 @@ HEADERS += \
     Src/BasicView/HistoryLineEdit.h \
     Src/Gui/Configuration.h \
     Src/Utils/ApiFingerprints.h \
-    Src/Gui/CPUSideBar.h
+    Src/Gui/CPUSideBar.h \
+    Src/Gui/AppearanceDialog.h
 
 
 INCLUDEPATH += \
@@ -141,7 +143,8 @@ FORMS += \
     Src/BasicView/SearchListView.ui \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
-    Src/BasicView/CommandHelpView.ui
+    Src/BasicView/CommandHelpView.ui \
+    Src/Gui/AppearanceDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
@@ -150,13 +153,13 @@ LIBS += -luser32
  DEFINES += NOMINMAX
 
 !contains(QMAKE_HOST.arch, x86_64) {
-    message("x86 build")
+    #message("x86 build")
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
     LIBS += -L"$$PWD/Src/Bridge/" -lx32_bridge
     FORMS += Src/BasicView/RegistersView32.ui
     ## Windows x86 (32bit) specific build here
 } else {
-    message("x86_64 build")
+    #message("x86_64 build")
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
     LIBS += -L"$$PWD/Src/Bridge/" -lx64_bridge
     FORMS += Src/BasicView/RegistersView64.ui

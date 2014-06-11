@@ -49,6 +49,7 @@ void Configuration::readColors()
     defaultColorMap.insert("DisassemblyJumpLineFalseColor", QColor("#808080"));
     defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
 
     defaultColorMap.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColorMap.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));

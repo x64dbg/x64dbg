@@ -135,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
     connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(openSettings()));
     connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
+    connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -522,6 +523,12 @@ void MainWindow::openSettings()
     SettingsDialog settings(this);
     settings.lastException=lastException;
     settings.exec();
+}
+
+void MainWindow::openAppearance()
+{
+    AppearanceDialog appearance(this);
+    appearance.exec();
 }
 
 void MainWindow::addRecentFile(QString file)

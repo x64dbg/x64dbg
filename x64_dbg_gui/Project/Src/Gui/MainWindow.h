@@ -20,6 +20,7 @@
 #include "tabwidget.h"
 #include "Configuration.h"
 #include "ApiFingerprints.h"
+#include "AppearanceDialog.h"
 
 namespace Ui
 {
@@ -62,6 +63,7 @@ public slots:
     void displayReferencesWidget();
     void displayThreadsWidget();
     void openSettings();
+    void openAppearance();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void findStrings();

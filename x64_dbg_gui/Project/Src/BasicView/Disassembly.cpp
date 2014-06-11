@@ -355,6 +355,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         {
             painter->save();
             painter->setPen(ConfigColor("DisassemblyCommentColor"));
+            int width = QFontMetrics(this->font()).width(comment)+4;
+            if(width > w)
+                width=w;
+            if(width)
+                painter->fillRect(QRect(x + 2, y, width, h), QBrush(ConfigColor("DisassemblyCommentBackgroundColor"))); //fill bookmark color
             painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
             painter->restore();
         }

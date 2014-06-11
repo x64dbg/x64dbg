@@ -91,6 +91,7 @@
      <string>&amp;Options</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="actionAppearance"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -495,6 +496,15 @@
    </property>
    <property name="toolTip">
     <string>Find Strings</string>
+   </property>
+  </action>
+  <action name="actionAppearance">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/color-swatches.png</normaloff>:/icons/images/color-swatches.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Appearance</string>
    </property>
   </action>
  </widget>

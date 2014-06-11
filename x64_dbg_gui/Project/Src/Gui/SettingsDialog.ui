@@ -421,6 +421,32 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>chkSystemBreakpoint</tabstop>
+  <tabstop>chkTlsCallbacks</tabstop>
+  <tabstop>chkEntryBreakpoint</tabstop>
+  <tabstop>chkDllEntry</tabstop>
+  <tabstop>chkThreadEntry</tabstop>
+  <tabstop>chkDllLoad</tabstop>
+  <tabstop>chkDllUnload</tabstop>
+  <tabstop>chkThreadStart</tabstop>
+  <tabstop>chkThreadEnd</tabstop>
+  <tabstop>chkDebugStrings</tabstop>
+  <tabstop>radioSigned</tabstop>
+  <tabstop>radioUnsigned</tabstop>
+  <tabstop>radioInt3Short</tabstop>
+  <tabstop>radioInt3Long</tabstop>
+  <tabstop>radioUd2</tabstop>
+  <tabstop>chkUndecorateSymbolNames</tabstop>
+  <tabstop>chkEnableDebugPrivilege</tabstop>
+  <tabstop>listExceptions</tabstop>
+  <tabstop>btnAddRange</tabstop>
+  <tabstop>btnDeleteRange</tabstop>
+  <tabstop>btnAddLast</tabstop>
+  <tabstop>btnSave</tabstop>
+  <tabstop>btnCancel</tabstop>
+ </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>
