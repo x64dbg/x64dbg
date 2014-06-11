@@ -163,7 +163,7 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
     QMap<REGISTER_NAME,Register_Position>::const_iterator it = mRegisterPlaces.begin();
     // iterate all registers that being displayed
     while (it != mRegisterPlaces.end()) {
-        if( (it.value().line == line)   /* same line ? */
+        if( (it.value().line == (line - mVScrollOffset))   /* same line ? */
                 && ( (1 + it.value().start) <= offset)  /* between start ... ? */
                 && ( offset<= (1+it.value().start+it.value().labelwidth+it.value().valuesize)) /* ... and end ? */
                 ){
