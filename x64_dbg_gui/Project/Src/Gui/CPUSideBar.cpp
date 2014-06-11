@@ -147,25 +147,26 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
             drawLabel(&painter, line, "EIP");
 #endif
 
-        // read registers
+        // read registers and add register labels
         REGDUMP z;
         memset(&z, 0, sizeof(REGDUMP));
         DbgGetRegDump(&z);
 
+        const int_t cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
 #ifdef _WIN64
-        if(InstrBuffer->at(line).rva == z.cax)  drawLabel(&painter, line, "RAX");
-        if(InstrBuffer->at(line).rva == z.cbx)  drawLabel(&painter, line, "RBX");
-        if(InstrBuffer->at(line).rva == z.ccx)  drawLabel(&painter, line, "RCX");
-        if(InstrBuffer->at(line).rva == z.cdx)  drawLabel(&painter, line, "RDX");
-        if(InstrBuffer->at(line).rva == z.csi)  drawLabel(&painter, line, "RSI");
-        if(InstrBuffer->at(line).rva == z.cdi)  drawLabel(&painter, line, "RDI");
+        if(cur_VA == z.cax)  drawLabel(&painter, line, "RAX");
+        if(cur_VA == z.cbx)  drawLabel(&painter, line, "RBX");
+        if(cur_VA == z.ccx)  drawLabel(&painter, line, "RCX");
+        if(cur_VA == z.cdx)  drawLabel(&painter, line, "RDX");
+        if(cur_VA == z.csi)  drawLabel(&painter, line, "RSI");
+        if(cur_VA == z.cdi)  drawLabel(&painter, line, "RDI");
 #else //x86
-        if(InstrBuffer->at(line).rva == z.cax)  drawLabel(&painter, line, "EAX");
-        if(InstrBuffer->at(line).rva == z.cbx)  drawLabel(&painter, line, "EBX");
-        if(InstrBuffer->at(line).rva == z.ccx)  drawLabel(&painter, line, "ECX");
-        if(InstrBuffer->at(line).rva == z.cdx)  drawLabel(&painter, line, "EDX");
-        if(InstrBuffer->at(line).rva == z.csi)  drawLabel(&painter, line, "ESI");
-        if(InstrBuffer->at(line).rva == z.cdi)  drawLabel(&painter, line, "EDI");
+        if(cur_VA == z.cax)  drawLabel(&painter, line, "EAX");
+        if(cur_VA == z.cbx)  drawLabel(&painter, line, "EBX");
+        if(cur_VA == z.ccx)  drawLabel(&painter, line, "ECX");
+        if(cur_VA == z.cdx)  drawLabel(&painter, line, "EDX");
+        if(cur_VA == z.csi)  drawLabel(&painter, line, "ESI");
+        if(cur_VA == z.cdi)  drawLabel(&painter, line, "EDI");
 #endif
 
 

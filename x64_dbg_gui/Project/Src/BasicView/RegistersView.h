@@ -92,6 +92,8 @@ protected slots:
     void onModifyAction();
     void onToggleValueAction();
     void onCopyToClipboardAction();
+    void onFollowInDisassembly();
+    void onFollowInDump();
 
 
 private:
@@ -120,6 +122,8 @@ private:
     QAction* wCM_Modify;
     QAction* wCM_ToggleValue;
     QAction* wCM_CopyToClipboard;
+    QAction* wCM_FollowInDisassembly;
+    QAction* wCM_FollowInDump;
 };
 
 #endif // REGISTERSVIEW_H
