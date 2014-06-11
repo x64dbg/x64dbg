@@ -118,6 +118,7 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     font.setStyleHint(QFont::Monospace);
     QAbstractScrollArea::setFont(font);
 
+
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
     wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
@@ -180,8 +181,10 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
 {
+    if(!DbgIsDebugging())
+        return;
     // get mouse position
-    const int y = event->y()/(double)mRowHeight;
+    const int y = (event->y()-3)/(double)mRowHeight;
     const int x = event->x()/(double)mCharWidth;
 
     REGISTER_NAME r;
@@ -198,6 +201,8 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
+    if(!DbgIsDebugging())
+        return;
     // is current register general purposes register ?
     if(mGPR.contains(mSelected)){
         wCM_Modify->trigger();
@@ -224,6 +229,8 @@ void RegistersView::paintEvent(QPaintEvent *event)
 
 void RegistersView::keyPressEvent(QKeyEvent *event)
 {
+    if(!DbgIsDebugging())
+        return;
     if(event->matches(QKeySequence::Copy)){
         wCM_CopyToClipboard->trigger();
         return;
@@ -282,35 +289,57 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
     // is the register-id known?
     if(mRegisterMapping.contains(reg)){
         // padding to the left is at least one character (looks better)
-        int offset = mCharWidth*(1 + mRegisterPlaces[reg].start);
-        // draw name of value
-        p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1 +mVScrollOffset),mRegisterMapping[reg]);
+        int x = mCharWidth*(1 + mRegisterPlaces[reg].start);
+        int y = mRowHeight*(mRegisterPlaces[reg].line) + 3;
+
+        //draw raster
+        /*
         p->save();
-        if(mRegisterUpdates.contains(reg))
-            p->setPen(ConfigColor("RegistersHighlightColor"));
+        p->setPen(QColor("#FF0000"));
+        p->drawLine(0, y, this->viewport()->width(), y);
+        p->restore();
+        */
+
+        // draw name of value
+        int width=mCharWidth*mRegisterMapping[reg].length();
+        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, mRegisterMapping[reg]);
+        x += (mRegisterPlaces[reg].labelwidth) * mCharWidth;
+        //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
+
+        //set highlighting
+        p->save();
+        if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
+            p->setPen(ConfigColor("RegistersModifiedColor"));
         else
             p->setPen(ConfigColor("RegistersColor"));
 
+        //selection
         if(mSelected == reg){
-            p->fillRect(QRect(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line +mVScrollOffset)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
+            p->fillRect(x, y, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
+            //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
-        // draw value
-        p->drawText(offset + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1+mVScrollOffset),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
+        // draw value
+        QString valueText = QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+
+        width = mCharWidth * valueText.length();
+        p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
+        //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
+        p->restore(); //do not highlight the labels
         // do we have a label ?
         char label_text[MAX_LABEL_SIZE]="";
         char module_text[MAX_MODULE_SIZE]="";
         bool hasLabel=DbgGetLabelAt(value, SEG_DEFAULT, label_text);
         bool hasModule=DbgGetModuleAt(value, module_text);
-        bool isASCII=false;
+        bool isCharacter=false;
 
-        offset += mRegisterPlaces[reg].labelwidth*mCharWidth + QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper().length()*mCharWidth;
-        offset += 5*mCharWidth;
+        x += valueText.length() * mCharWidth;
+        x += 5 * mCharWidth; //5 spaces
         QString newText = "";
         if(hasLabel && hasModule){
             newText="<"+QString(module_text)+"."+QString(label_text)+">";
         }else if(hasModule){
-            newText=QString(module_text)+"."+QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+            newText=QString(module_text)+"."+valueText;
         }else if(hasLabel ){
             newText="<"+QString(label_text)+">";
         }else{
@@ -320,16 +349,26 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
                     QChar c = QChar((char)value);
                     if(c.isPrint()){
                         newText=QString("'%1'").arg((char)value);
-                        isASCII=true;
+                        isCharacter=IsCharacterRegister(reg);
+                    }
+                }
+                else if(value == (value & 0xFFF)) //UNICODE?
+                {
+                    QChar c = QChar((wchar_t)value);
+                    if(c.isPrint()){
+                        newText="L'"+QString(c)+"'";
+                        isCharacter=IsCharacterRegister(reg);
                     }
                 }
             }
         }
         // are there additional informations?
-        if(hasLabel || hasModule || isASCII)
-            p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1 +mVScrollOffset),newText);
-
-        p->restore();
+        if(hasLabel || hasModule || isCharacter)
+        {
+            width = newText.length() * mCharWidth;
+            p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
+            //p->drawText(x,mRowHeight*(mRegisterPlaces[reg].line+1),newText);
+        }
     }
 
 }
@@ -410,6 +449,8 @@ void RegistersView::onCopyToClipboardAction()
 
 void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
+    if(!DbgIsDebugging())
+        return;
     QMenu wMenu(this);
 
     if(mSelected != UNKNOWN)

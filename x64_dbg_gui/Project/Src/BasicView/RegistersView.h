@@ -10,6 +10,8 @@
 #include "LineEditDialog.h"
 #include <QAbstractScrollArea>
 
+#define IsCharacterRegister(x) ((x>=CAX && x<CIP))
+
 namespace Ui {
 class RegistersView;
 }
