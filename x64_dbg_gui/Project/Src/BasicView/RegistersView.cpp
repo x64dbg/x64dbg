@@ -15,11 +15,14 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     wCM_SetToOne = new QAction(tr("Set to 1"),this);
     wCM_SetToOne->setShortcut(Qt::Key_1);
     wCM_Modify = new QAction(tr("Modify Value"),this);
-    wCM_Modify->setShortcut(Qt::Key_Enter);
+    wCM_Modify->setShortcut(Qt::Key_Return);
     wCM_ToggleValue = new QAction(tr("Toggle"),this);
     wCM_ToggleValue->setShortcut(Qt::Key_Space);
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"),this);
     wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
+    wCM_FollowInDisassembly = new QAction(tr("Follow in Diassembly"),this);
+    wCM_FollowInDump = new QAction(tr("Follow in Dump"),this);
+
 
 
 
@@ -143,6 +146,8 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     connect(wCM_Modify,SIGNAL(triggered()),this,SLOT(onModifyAction()));
     connect(wCM_ToggleValue,SIGNAL(triggered()),this,SLOT(onToggleValueAction()));
     connect(wCM_CopyToClipboard,SIGNAL(triggered()),this,SLOT(onCopyToClipboardAction()));
+    connect(wCM_FollowInDisassembly,SIGNAL(triggered()),this,SLOT(onFollowInDisassembly()));
+    connect(wCM_FollowInDump,SIGNAL(triggered()),this,SLOT(onFollowInDump()));
 }
 
 RegistersView::~RegistersView()
@@ -253,7 +258,7 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
         wCM_ToggleValue->trigger();
         break;
-    case Qt::Key_Enter:
+    case Qt::Key_Return:
         wCM_Modify->trigger();
         break;
 
@@ -449,6 +454,26 @@ void RegistersView::onCopyToClipboardAction()
     clipboard->setText(QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper());
 }
 
+void RegistersView::onFollowInDisassembly()
+{
+
+    if(mGPR.contains(mSelected)){
+        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
+                DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+    }
+}
+
+void RegistersView::onFollowInDump()
+{
+    if(mGPR.contains(mSelected)){
+        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
+            DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+    }
+
+}
+
 void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
     if(!DbgIsDebugging())
@@ -469,7 +494,16 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_Increment);
             wMenu.addAction(wCM_Decrement);
 
+            int_t addr = registerValue(&wRegDumpStruct,mSelected);
+            if(DbgMemIsValidReadPtr(addr)){
+                wMenu.addAction(wCM_FollowInDump);
+                //wMenu.addAction(wCM_FollowInDisassembly);
+            }
+
+
         }
+
+
         wMenu.addAction(wCM_CopyToClipboard);
         wMenu.exec(this->mapToGlobal(pos));
     }
