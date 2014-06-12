@@ -54,3 +54,5 @@ help/output/*
 *.autosave
 *.~vsd
 release/
+x64_dbg_dbg/test/mmx_sse_fpu/x32/*.exe
+x64_dbg_dbg/test/mmx_sse_fpu/x64/*.exe
