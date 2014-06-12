@@ -68,7 +68,8 @@ SOURCES += \
     Src/Gui/Configuration.cpp \
     Src/Utils/ApiFingerprints.cpp \
     Src/Gui/CPUSideBar.cpp \
-    Src/Gui/AppearanceDialog.cpp
+    Src/Gui/AppearanceDialog.cpp \
+    Src/Disassembler/BeaTokenizer.cpp
 
 
 HEADERS += \
@@ -117,7 +118,8 @@ HEADERS += \
     Src/Gui/Configuration.h \
     Src/Utils/ApiFingerprints.h \
     Src/Gui/CPUSideBar.h \
-    Src/Gui/AppearanceDialog.h
+    Src/Gui/AppearanceDialog.h \
+    Src/Disassembler/BeaTokenizer.h
 
 
 INCLUDEPATH += \
