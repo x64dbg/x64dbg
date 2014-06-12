@@ -907,6 +907,11 @@ BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
     _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
 }
 
+BRIDGE_IMPEXP void GuiAnalyseCode(duint base, duint size)
+{
+    _gui_sendmessage(GUI_ANALYSE_CODE, (void*)base, (void*)size);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
