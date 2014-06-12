@@ -40,7 +40,7 @@ void CPUSideBar::repaint()
     viewport()->repaint();
 }
 
-void CPUSideBar::changeTopmostAddress(int i)
+void CPUSideBar::changeTopmostAddress(int_t i)
 {
     if(i!=topVA)
     {
@@ -93,6 +93,8 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 
     for(int line=0; line<viewableRows; line++)
     {
+        if(line>=InstrBuffer->size()) //at the end of the page it will crash otherwise
+            break;
         Instruction_t instr = InstrBuffer->at(line);
         int_t instrVA = instr.rva + CodePtr->getBase();
 

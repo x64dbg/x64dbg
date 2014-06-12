@@ -17,7 +17,7 @@ public:
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
-    void changeTopmostAddress(int i);
+    void changeTopmostAddress(int_t i);
     void setViewableRows(int rows);
     void setSelection(int_t selVA);
 

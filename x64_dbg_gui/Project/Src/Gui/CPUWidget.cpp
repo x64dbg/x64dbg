@@ -8,7 +8,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     mDisas = new CPUDisassembly(0);
     mSideBar = new CPUSideBar(mDisas);
-    connect(mDisas,SIGNAL(tableOffsetChanged(int)),mSideBar,SLOT(changeTopmostAddress(int)));
+    connect(mDisas,SIGNAL(tableOffsetChanged(int_t)),mSideBar,SLOT(changeTopmostAddress(int_t)));
     connect(mDisas,SIGNAL(viewableRows(int)),mSideBar,SLOT(setViewableRows(int)));
     connect(mDisas,SIGNAL(repainted()),mSideBar,SLOT(repaint()));
     connect(mDisas,SIGNAL(selectionChanged(int_t)),mSideBar,SLOT(setSelection(int_t)));
