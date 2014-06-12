@@ -177,8 +177,9 @@ static void registercommands()
     dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-    dbgcmdnew("bpdll", cbBpDll, true); //set dll breakpoint
-    dbgcmdnew("bcdll", cbBcDll, true); //remove dll breakpoint
+    dbgcmdnew("bpdll", cbDebugBpDll, true); //set dll breakpoint
+    dbgcmdnew("bcdll", cbDebugBcDll, true); //remove dll breakpoint
+    dbgcmdnew("analyse\1analyze\1an", cbDebugAnalyse, true); //start analysis
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

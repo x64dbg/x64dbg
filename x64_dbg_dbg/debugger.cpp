@@ -2081,7 +2081,7 @@ CMDRESULT cbDebugContinue(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbBpDll(int argc, char* argv[])
+CMDRESULT cbDebugBpDll(int argc, char* argv[])
 {
     if(argc<2)
     {
@@ -2109,7 +2109,7 @@ CMDRESULT cbBpDll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbBcDll(int argc, char* argv[])
+CMDRESULT cbDebugBcDll(int argc, char* argv[])
 {
     if(argc<2)
     {
@@ -2122,5 +2122,24 @@ CMDRESULT cbBcDll(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("dll breakpoint removed!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugAnalyse(int argc, char* argv[])
+{
+    uint addr=GetContextData(UE_CIP);
+    if(argc>1 and !valfromstring(argv[1], &addr))
+    {
+        dprintf("invalid address \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    uint size;
+    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+    if(!base)
+    {
+        dprintf("invalid address "fhex"!\n", addr);
+        return STATUS_ERROR;
+    }
+    GuiAnalyseCode(base, size);
     return STATUS_CONTINUE;
 }
