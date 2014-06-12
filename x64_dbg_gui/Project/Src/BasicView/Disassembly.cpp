@@ -342,7 +342,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             depth++;
         }
 
-        QList<CustomRichText_t> richText;
+        QList<RichTextPainter::CustomRichText_t> richText;
         BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
         break;

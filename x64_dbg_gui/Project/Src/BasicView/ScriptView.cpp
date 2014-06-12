@@ -75,8 +75,8 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             painter->save();
             int charwidth=QFontMetrics(this->font()).width(QChar(' '));
             int xadd=charwidth; //for testing
-            QList<CustomRichText_t> richText;
-            CustomRichText_t newRichText;
+            QList<RichTextPainter::CustomRichText_t> richText;
+            RichTextPainter::CustomRichText_t newRichText;
             QString command=getCellContent(rowBase+rowOffset, col);
 
             //handle comments
@@ -98,21 +98,21 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             {
                 if(isScriptCommand(command, "ret"))
                 {
-                    newRichText.flags=FlagBackground;
+                    newRichText.flags=RichTextPainter::FlagBackground;
                     newRichText.textBackground=QColor("#00FFFF");
                     newRichText.text="ret";
                     richText.push_back(newRichText);
                     QString remainder=command.right(command.length()-3);
                     if(remainder.length())
                     {
-                        newRichText.flags=FlagNone;
+                        newRichText.flags=RichTextPainter::FlagNone;
                         newRichText.text=remainder;
                         richText.push_back(newRichText);
                     }
                 }
                 else
                 {
-                    newRichText.flags=FlagNone;
+                    newRichText.flags=RichTextPainter::FlagNone;
                     newRichText.text=command;
                     richText.push_back(newRichText);
                 }
@@ -128,7 +128,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 switch(branchinfo.type)
                 {
                 case scriptjmp: //unconditional jumps
-                    newRichText.flags=FlagBackground;
+                    newRichText.flags=RichTextPainter::FlagBackground;
                     newRichText.textBackground=QColor("#FFFF00");
                     break;
 
@@ -138,29 +138,29 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 case scriptjajg:
                 case scriptjbejle:
                 case scriptjaejge:
-                    newRichText.flags=FlagAll;
+                    newRichText.flags=RichTextPainter::FlagAll;
                     newRichText.textBackground=QColor("#FFFF00");
                     newRichText.textColor=QColor("#FF0000");
                     break;
 
                 case scriptcall: //calls
-                    newRichText.flags=FlagBackground;
+                    newRichText.flags=RichTextPainter::FlagBackground;
                     newRichText.textBackground=QColor("#00FFFF");
                     break;
 
                 default:
-                    newRichText.flags=FlagNone;
+                    newRichText.flags=RichTextPainter::FlagNone;
                     break;
                 }
                 newRichText.text=command.left(i);
                 richText.push_back(newRichText);
                 //space
-                newRichText.flags=FlagNone;
+                newRichText.flags=RichTextPainter::FlagNone;
                 newRichText.text=" ";
                 richText.push_back(newRichText);
                 //label
                 QString label=branchinfo.branchlabel;
-                newRichText.flags=FlagBackground;
+                newRichText.flags=RichTextPainter::FlagBackground;
                 newRichText.textBackground=QColor("#FFFF00");
                 newRichText.text=label;
                 richText.push_back(newRichText);
@@ -168,7 +168,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 QString remainder=command.right(command.length()-command.indexOf(label)-label.length());
                 if(remainder.length())
                 {
-                    newRichText.flags=FlagNone;
+                    newRichText.flags=RichTextPainter::FlagNone;
                     newRichText.text=remainder;
                     richText.push_back(newRichText);
                 }
@@ -177,7 +177,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
             case linelabel:
             {
-                newRichText.flags=FlagColor;
+                newRichText.flags=RichTextPainter::FlagColor;
                 newRichText.textColor=QColor("#808080");
                 newRichText.text=command;
                 richText.push_back(newRichText);
@@ -187,7 +187,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
             case linecomment:
             {
-                newRichText.flags=FlagColor;
+                newRichText.flags=RichTextPainter::FlagColor;
                 newRichText.textColor=QColor("#808080");
                 newRichText.text=command;
                 richText.push_back(newRichText);
@@ -203,11 +203,11 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             //append the comment (when present)
             if(comment.length())
             {
-                CustomRichText_t newRichText;
-                newRichText.flags=FlagNone;
+                RichTextPainter::CustomRichText_t newRichText;
+                newRichText.flags=RichTextPainter::FlagNone;
                 newRichText.text=" ";
                 richText.push_back(newRichText); //space
-                newRichText.flags=FlagColor;
+                newRichText.flags=RichTextPainter::FlagColor;
                 newRichText.textColor=QColor("#808080");
                 newRichText.text=comment;
                 richText.push_back(newRichText); //comment
