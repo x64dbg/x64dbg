@@ -92,7 +92,6 @@ public:
 
 signals:
     void selectionChanged(int_t parVA);
-    void repainted();
     void disassembledAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
 
 public slots:

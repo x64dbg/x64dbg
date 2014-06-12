@@ -8,14 +8,12 @@
 #include <QMap>
 #include "BeaEngine.h"
 #include "NewTypes.h"
+#include "RichTextPainter.h"
 
-class BeaTokenizer
+class BeaTokenizer : RichTextPainter
 {
 public:
     BeaTokenizer();
-
-    static unsigned long BeaHashInstruction(const DISASM* disasm);
-    static void BeaTokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm);
 
     enum BeaTokenType
     {
@@ -73,7 +71,25 @@ public:
         int x; //x of the first character
     };
 
+    struct BeaTokenColor
+    {
+        QString color;
+        QString backgroundColor;
+    };
+
+    static void Init();
+    static unsigned long HashInstruction(const DISASM* disasm);
+    static void TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm);
+    static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList);
+
 private:
+    //variables
+    static QMap<BeaTokenType, BeaTokenColor> colorNamesMap;
+    static QStringList segmentNames;
+    static QMap<int, QString> memSizeNames;
+    static QMap<int, QMap<ARGUMENTS_TYPE, QString>> registerMap;
+
+    //functions
     static void AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value);
     static void Prefix(BeaInstructionToken* instr, const DISASM* disasm);
     static bool IsNopInstruction(QString mnemonic, const DISASM* disasm);
@@ -81,6 +97,7 @@ private:
     static QString PrintValue(const BeaTokenValue* value);
     static QString RegisterToString(int size, int reg);
     static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg);
+    static void AddColorName(BeaTokenType type, QString color, QString backgroundColor);
 };
 
 #endif // BEATOKENIZER_H

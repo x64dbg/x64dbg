@@ -6,6 +6,7 @@
 
 #include "BeaEngine.h"
 #include "NewTypes.h"
+#include "BeaTokenizer.h"
 
 typedef struct _Instruction_t
 {
@@ -14,6 +15,7 @@ typedef struct _Instruction_t
     uint_t rva;
     int lentgh;
     DISASM disasm;
+    BeaTokenizer::BeaInstructionToken token;
 } Instruction_t;
 
 class QBeaEngine

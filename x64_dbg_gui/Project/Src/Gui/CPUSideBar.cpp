@@ -127,7 +127,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
             else if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine < viewableRows && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
+                while(destLine && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
                 {
                     if(destVA>instrVA) //jump goes up
                         destLine++;
