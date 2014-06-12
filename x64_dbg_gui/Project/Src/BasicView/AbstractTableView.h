@@ -77,7 +77,7 @@ public:
 signals:
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
-    void tableOffsetChanged(int i);
+    void tableOffsetChanged(int_t i);
     void viewableRows(int rows);
     void repainted();
 
