@@ -601,9 +601,7 @@ void CPUDump::setLabelSlot()
     if(!DbgIsDebugging())
         return;
 
-    int_t wBase = DbgMemFindBaseAddr(getSelectionStart(),0);
-    wBase = 0x401000;
-    uint_t wVA = getSelectionStart() + wBase;
+    uint_t wVA = getSelectionStart() + this->mBase;
     LineEditDialog mLineEdit(this);
     QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char label_text[MAX_COMMENT_SIZE]="";
