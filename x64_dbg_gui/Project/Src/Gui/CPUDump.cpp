@@ -131,7 +131,12 @@ void CPUDump::setupContextMenu()
     //Disassembly
     mDisassemblyAction = new QAction("&Disassembly", this);
     this->addAction(mDisassemblyAction);
+
+    mSetLabelAction = new QAction("Set Label", this);
+    this->addAction(mSetLabelAction);
+
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
+    connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -163,6 +168,11 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addMenu(mFloatMenu);
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
+
+    //if(mSelection.firstSelectedIndex)
+
+    wMenu->addAction(mSetLabelAction);
+
     wMenu->exec(event->globalPos()); //execute context menu
 }
 
@@ -584,6 +594,32 @@ void CPUDump::disassemblySlot()
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
+}
+
+void CPUDump::setLabelSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    int_t wBase = DbgMemFindBaseAddr(getSelectionStart(),0);
+    wBase = 0x401000;
+    uint_t wVA = getSelectionStart() + wBase;
+    LineEditDialog mLineEdit(this);
+    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label_text[MAX_COMMENT_SIZE]="";
+    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+        mLineEdit.setText(QString(label_text));
+    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    if(mLineEdit.exec()!=QDialog::Accepted)
+        return;
+    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
 }
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)

@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "NewTypes.h"
+#include "LineEditDialog.h"
 #include "HexDump.h"
 #include "Bridge.h"
 #include "GotoDialog.h"
@@ -45,6 +46,7 @@ public slots:
 
     void addressSlot();
     void disassemblySlot();
+    void setLabelSlot();
 
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
@@ -85,6 +87,8 @@ private:
 
     QAction* mAddressAction;
     QAction* mDisassemblyAction;
+
+    QAction* mSetLabelAction;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
