@@ -21,10 +21,12 @@ struct APIFunction
 
 class ApiFingerprints
 {
+    static ApiFingerprints* mPtr;
     QMap<QString,QMap<QString, APIFunction>> Library;
 public:
     ApiFingerprints();
     const APIFunction function(QString dllname, QString functionname) const;
+    static ApiFingerprints *instance();
 };
 
 #endif // APIFINGERPRINTS_H

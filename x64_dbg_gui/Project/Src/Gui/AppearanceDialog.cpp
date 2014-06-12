@@ -425,14 +425,20 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Bullets", "SideBarBulletColor", "");
     colorInfoListAppend("Breakpoints", "SideBarBulletBreakpointColor", "");
     colorInfoListAppend("Bookmarks", "SideBarBulletBookmarkColor", "");
-    colorInfoListAppend("Jump Lines (jump)", "SideBarJumpLineFalseColor", "");
-    colorInfoListAppend("Jump Lines (no jump)", "SideBarJumpLineTrueColor", "");
+    colorInfoListAppend("Jump Lines (conditional jump)", "SideBarConditionalJumpLineColor", "");
+    colorInfoListAppend("Jump Lines (unconditional jump)", "SideBarUnconditionalJumpLineColor", "");
+    colorInfoListAppend("Jump Lines (selected jump)", "SideBarJumpLineSelectionColor", "");
+    colorInfoListAppend("Background", "SideBarBackgroundColor", "");
 
     colorInfoListAppend("Registers:", "", "");
     colorInfoListAppend("Background", "RegistersBackgroundColor", "");
     colorInfoListAppend("Text", "RegistersColor", "");
     colorInfoListAppend("Modified Registers", "RegistersModifiedColor", "");
     colorInfoListAppend("Selection", "RegistersSelectionColor", "");
+    colorInfoListAppend("Name of Labels", "RegistersLabelColor", "");
+    colorInfoListAppend("Extra Info", "RegistersExtraInfoColor", "");
+
+
 
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);

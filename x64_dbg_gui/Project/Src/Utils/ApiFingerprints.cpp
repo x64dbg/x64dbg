@@ -2,6 +2,14 @@
 #include "Configuration.h"
 
 
+ApiFingerprints* ApiFingerprints::mPtr = NULL;
+
+
+ApiFingerprints *ApiFingerprints::instance()
+{
+    return mPtr;
+}
+
 
 /**
  * @brief retrieves information (name, arguments) for given api function from database
@@ -37,6 +45,7 @@ const APIFunction ApiFingerprints::function(QString dllname,QString functionname
 
 ApiFingerprints::ApiFingerprints()
 {
+    mPtr = this;
     // the config file should contain a list of possible data files for api calls
     QList<QString> files = Configuration::instance()->ApiFingerprints();
 

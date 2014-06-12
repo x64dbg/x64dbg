@@ -81,7 +81,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
     QPainter painter(this->viewport());
 
     // Paints background
-    painter.fillRect(painter.viewport(), QBrush(backgroundColor));
+    painter.fillRect(painter.viewport(), ConfigColor("SideBarBackgroundColor"));
 
     if(InstrBuffer->size() == 0)
         return;
@@ -148,6 +148,29 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 #else //x86
             drawLabel(&painter, line, "EIP");
 #endif
+
+        // read registers
+        REGDUMP z;
+        memset(&z, 0, sizeof(REGDUMP));
+        DbgGetRegDump(&z);
+
+#ifdef _WIN64
+        if(InstrBuffer->at(line).rva == z.cax)  drawLabel(&painter, line, "RAX");
+        if(InstrBuffer->at(line).rva == z.cbx)  drawLabel(&painter, line, "RBX");
+        if(InstrBuffer->at(line).rva == z.ccx)  drawLabel(&painter, line, "RCX");
+        if(InstrBuffer->at(line).rva == z.cdx)  drawLabel(&painter, line, "RDX");
+        if(InstrBuffer->at(line).rva == z.csi)  drawLabel(&painter, line, "RSI");
+        if(InstrBuffer->at(line).rva == z.cdi)  drawLabel(&painter, line, "RDI");
+#else //x86
+        if(InstrBuffer->at(line).rva == z.cax)  drawLabel(&painter, line, "EAX");
+        if(InstrBuffer->at(line).rva == z.cbx)  drawLabel(&painter, line, "EBX");
+        if(InstrBuffer->at(line).rva == z.ccx)  drawLabel(&painter, line, "ECX");
+        if(InstrBuffer->at(line).rva == z.cdx)  drawLabel(&painter, line, "EDX");
+        if(InstrBuffer->at(line).rva == z.csi)  drawLabel(&painter, line, "ESI");
+        if(InstrBuffer->at(line).rva == z.cdi)  drawLabel(&painter, line, "EDI");
+#endif
+
+
     }
 }
 
@@ -155,15 +178,15 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
 {
     painter->save();
     if(!conditional)
-        painter->setPen(QPen(ConfigColor("SideBarJumpLineFalseColor"), 1, Qt::SolidLine));  // jmp
+        painter->setPen(QPen(ConfigColor("SideBarConditionalJumpLineColor"), 1, Qt::SolidLine));  // jmp
     else
-        painter->setPen(QPen(ConfigColor("SideBarJumpLineFalseColor"), 1, Qt::DashLine));
+        painter->setPen(QPen(ConfigColor("SideBarUnconditionalJumpLineColor"), 1, Qt::DashLine));
     QPen tmp = painter->pen();
 
     if(isactive) //selected
     {
         if(isexecute) //only highlight selected jumps
-            tmp.setColor(ConfigColor("SideBarJumpLineTrueColor"));
+            tmp.setColor(ConfigColor("SideBarJumpLineSelectionColor"));
         tmp.setWidth(2);
     }
     painter->setPen(tmp);
@@ -277,6 +300,8 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbook
     else
         painter->setBrush(QBrush(ConfigColor("SideBarBulletColor")));
 
+    painter->setPen(ConfigColor("SideBarBackgroundColor"));
+
     const int radius = fontHeight/2; //14/2=7
     const int y = line*fontHeight; //initial y
     const int yAdd = (fontHeight-radius)/2+1;
@@ -285,7 +310,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbook
     //painter->drawLine(0, y, viewport()->width(), y); //draw raster
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(QPen("#FFFFFF"));
+    //painter->setPen(QPen("#FFFFFF"));
     painter->drawEllipse(x, y+yAdd, radius, radius);
 
     painter->restore();

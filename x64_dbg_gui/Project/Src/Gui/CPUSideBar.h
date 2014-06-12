@@ -6,9 +6,11 @@
 #include "CPUDisassembly.h"
 #include <QAbstractScrollArea>
 
+
 class CPUSideBar : public QAbstractScrollArea
 {
     Q_OBJECT
+    QPair<int_t,int_t> mHighlightedJump;
 public:
     explicit CPUSideBar(CPUDisassembly *Ptr, QWidget *parent = 0);
     QSize sizeHint() const;
