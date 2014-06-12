@@ -867,6 +867,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                 dputs("DetachDebuggerEx failed...");
             else
                 dputs("detached!");
+            isDetachedByUser=false;
             return;
         }
         else if(isPausedByUser)
@@ -2005,10 +2006,25 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static void cbDetach()
+{
+    if(!isDetachedByUser)
+        return;
+    PLUG_CB_DETACH detachInfo;
+    detachInfo.fdProcessInfo=fdProcessInfo;
+    plugincbcall(CB_DETACH, &detachInfo);
+    if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+        dputs("DetachDebuggerEx failed...");
+    else
+        dputs("detached!");
+    return;
+}
+
 CMDRESULT cbDebugDetach(int argc, char* argv[])
 {
     unlock(WAITID_RUN); //run
     isDetachedByUser=true; //detach when paused
+    StepInto((void*)cbDetach);
     DebugBreakProcess(fdProcessInfo->hProcess);
     return STATUS_CONTINUE;
 }
