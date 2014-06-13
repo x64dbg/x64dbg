@@ -78,22 +78,21 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
     else if(IsNopInstruction(mnemonic, disasm)) //nop instructions
         type=TokenMnemonicNop;
     AddToken(instr, type, mnemonic, 0);
-    AddToken(instr, TokenRequiredSpace, " ", 0);
 }
 
 QString BeaTokenizer::PrintValue(const BeaTokenValue* value)
 {
-    return QString("%1").arg(value->value, 0, 16, QChar('0'));
+    return QString("%1").arg(value->value&(uint_t)-1, 0, 16, QChar('0')).toUpper();
 }
 
 QString BeaTokenizer::RegisterToString(int size, int reg)
 {
     ARGUMENTS_TYPE regValue=(ARGUMENTS_TYPE)(reg&0xFFFF);
     if(!registerMap.contains(size)) //invalid size
-        return "UNKNOWN_REGISTER";
+        return QString("UNKNOWN_REGISTER(size:%1)").arg(size);
     QMap<ARGUMENTS_TYPE, QString>* currentMap=&registerMap.find(size).value();
     if(!currentMap->contains(regValue))
-        return "UNKNOWN_REGISTER";
+        return QString("UNKNOWN_REGISTER(reg:%1)").arg(reg);
     return currentMap->find(regValue).value();
 }
 
@@ -107,24 +106,12 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         AddToken(instr, TokenComma, ",", 0);
         AddToken(instr, TokenOptionalSpace, " ", 0);
     }
+    else //no arg yet (only prefix/mnemonic
+        AddToken(instr, TokenRequiredSpace, " ", 0);
 
     //print argument
     QString argMnemonic=QString(arg->ArgMnemonic).toLower().trimmed();
-    if(disasm->Instruction.BranchType != 0) //jump/call
-    {
-        BeaTokenValue value;
-        value.size=arg->ArgSize/16;
-        value.value=disasm->Instruction.AddrValue;
-        AddToken(instr, TokenCodeDest, PrintValue(&value), &value);
-    }
-    else if((arg->ArgType&CONSTANT_TYPE)==CONSTANT_TYPE) //immediat
-    {
-        BeaTokenValue value;
-        value.size=arg->ArgSize/16;
-        value.value=disasm->Instruction.Immediat;
-        AddToken(instr, TokenImmediat, PrintValue(&value), &value);
-    }
-    else if((arg->ArgType&MEMORY_TYPE)==MEMORY_TYPE) //memory argument
+    if((arg->ArgType&MEMORY_TYPE)==MEMORY_TYPE) //memory argument
     {
         //#size ptr #segment:[#BaseRegister + #IndexRegister*#Scale +/- #Displacement]
         if(memSizeNames.contains(arg->ArgSize))
@@ -140,7 +127,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         bool prependPlusMinus=false;
         if(arg->Memory.BaseRegister) //base register
         {
-            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(arg->ArgSize, arg->Memory.BaseRegister), 0);
+            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(int_t)*8, arg->Memory.BaseRegister), 0);
             prependPlusMinus=true;
         }
         if(arg->Memory.IndexRegister) //index register + scale
@@ -148,11 +135,18 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             if(prependPlusMinus)
             {
                 AddToken(instr, TokenMemorySpace, " ", 0);
-                AddToken(instr, TokenMemoryPlusMinus, "+", 0);
+                AddToken(instr, TokenMemoryOperator, "+", 0);
                 AddToken(instr, TokenMemorySpace, " ", 0);
             }
-            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(arg->ArgSize, arg->Memory.BaseRegister), 0);
-            AddToken(instr, TokenMemoryScale, QString("%1").arg(arg->Memory.Displacement), 0);
+            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(sizeof(int_t)*8, arg->Memory.IndexRegister), 0);
+            int scale=arg->Memory.Scale;
+            if(scale>1) //eax * 1 = eax
+            {
+                AddToken(instr, TokenMemorySpace, " ", 0);
+                AddToken(instr, TokenMemoryOperator, "*", 0);
+                AddToken(instr, TokenMemorySpace, " ", 0);
+                AddToken(instr, TokenMemoryScale, QString("%1").arg(arg->Memory.Scale), 0);
+            }
             prependPlusMinus=true;
         }
 
@@ -170,17 +164,32 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             if(printDisplacement.value<0) //negative -> '-(displacement*-1)'
             {
                 printDisplacement.value*=-1;
+                printDisplacement.size=arg->ArgSize/8;
                 plusMinus="-";
             }
             if(prependPlusMinus)
             {
                 AddToken(instr, TokenMemorySpace, " ", 0);
-                AddToken(instr, TokenMemoryPlusMinus, plusMinus, 0);
+                AddToken(instr, TokenMemoryOperator, plusMinus, 0);
                 AddToken(instr, TokenMemorySpace, " ", 0);
             }
             AddToken(instr, TokenMemoryDisplacement, PrintValue(&printDisplacement), &displacement);
         }
         AddToken(instr, TokenMemoryBrackets, "]", 0);
+    }
+    else if(disasm->Instruction.BranchType != 0) //jump/call
+    {
+        BeaTokenValue value;
+        value.size=arg->ArgSize/8;
+        value.value=disasm->Instruction.AddrValue;
+        AddToken(instr, TokenCodeDest, PrintValue(&value), &value);
+    }
+    else if((arg->ArgType&CONSTANT_TYPE)==CONSTANT_TYPE) //immediat
+    {
+        BeaTokenValue value;
+        value.size=arg->ArgSize/8;
+        value.value=disasm->Instruction.Immediat;
+        AddToken(instr, TokenImmediat, PrintValue(&value), &value);
     }
     else if((arg->ArgType&REGISTER_TYPE)==REGISTER_TYPE) //registers
     {
@@ -195,6 +204,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
     }
     else //other
         AddToken(instr, TokenGeneral, argMnemonic, 0);
+    *hadarg=true; //we now added an argument
 }
 
 void BeaTokenizer::AddColorName(BeaTokenType type, QString color, QString backgroundColor)
@@ -341,7 +351,7 @@ void BeaTokenizer::Init()
     AddColorName(TokenMemoryIndexRegister, "", "");
     AddColorName(TokenMemoryScale, "", "");
     AddColorName(TokenMemoryDisplacement, "", "");
-    AddColorName(TokenMemoryPlusMinus, "", "");
+    AddColorName(TokenMemoryOperator, "", "");
     //registers
     AddColorName(TokenGeneralRegister, "", "");
     AddColorName(TokenFpuRegister, "", "");
@@ -407,6 +417,10 @@ void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichT
                 richText.textBackground=ConfigColor(backgroundColor);
             }
         }
+        richTextList->append(richText);
+        richText.flags=FlagColor;
+        richText.textColor=Qt::red;
+        richText.text="|";
         richTextList->append(richText);
     }
 }

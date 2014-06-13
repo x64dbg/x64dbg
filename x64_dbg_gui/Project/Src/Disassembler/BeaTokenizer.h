@@ -43,7 +43,7 @@ public:
         TokenMemoryIndexRegister,
         TokenMemoryScale,
         TokenMemoryDisplacement,
-        TokenMemoryPlusMinus,
+        TokenMemoryOperator,
         //registers
         TokenGeneralRegister,
         TokenFpuRegister,
