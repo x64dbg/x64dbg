@@ -53,7 +53,7 @@ SOURCES += \
     Src/Utils/Breakpoints.cpp \
     Src/Gui/CPUInfoBox.cpp \
     Src/Gui/CPUDump.cpp \
-    Src/BasicView/ScriptView.cpp \
+    Src/Gui/ScriptView.cpp \
     Src/Gui/CPUStack.cpp \
     Src/Gui/SymbolView.cpp \
     Src/Gui/RegistersView.cpp \
@@ -104,7 +104,7 @@ HEADERS += \
     Src/Utils/Breakpoints.h \
     Src/Gui/CPUInfoBox.h \
     Src/Gui/CPUDump.h \
-    Src/BasicView/ScriptView.h \
+    Src/Gui/ScriptView.h \
     Src/Gui/CPUStack.h \
     Src/Gui/SymbolView.h \
     Src/BasicView/SearchListView.h \

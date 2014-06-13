@@ -1,5 +1,4 @@
 #include "AbstractTableView.h"
-#include "Configuration.h"
 
 AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(parent)
 {
@@ -20,7 +19,11 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
 
-    backgroundColor=QColor(ConfigColor("AbstractTableViewBackgroundColor"));
+    backgroundColor=ConfigColor("AbstractTableViewBackgroundColor");
+    textColor=ConfigColor("AbstractTableViewTextColor");
+    separatorColor=ConfigColor("AbstractTableViewSeparatorColor");
+    headerTextColor=ConfigColor("AbstractTableViewHeaderTextColor");
+    selectionColor=ConfigColor("AbstractTableViewSelectionColor");
 
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
@@ -47,8 +50,22 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
 
     // Signals/Slots Connections
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertSliderActionSlot(int)));
+    connect(Configuration::instance(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
 }
 
+void AbstractTableView::colorsUpdatedSlot()
+{
+    colorsUpdated();
+}
+
+void AbstractTableView::colorsUpdated()
+{
+    backgroundColor=ConfigColor("AbstractTableViewBackgroundColor");
+    textColor=ConfigColor("AbstractTableViewTextColor");
+    separatorColor=ConfigColor("AbstractTableViewSeparatorColor");
+    headerTextColor=ConfigColor("AbstractTableViewHeaderTextColor");
+    selectionColor=ConfigColor("AbstractTableViewSelectionColor");
+}
 
 /************************************************************************************
                             Painting Stuff
@@ -86,7 +103,6 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         for(int i = 0; i < getColumnCount(); i++)
         {
             QStyleOptionButton wOpt;
-
             if((mColumnList[i].header.isPressed == true) && (mColumnList[i].header.isMouseOver == true))
                 wOpt.state = QStyle::State_Sunken;
             else
@@ -96,7 +112,10 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
             mHeaderButtonSytle.style()->drawControl(QStyle::CE_PushButton, &wOpt, &wPainter,&mHeaderButtonSytle);
 
+            wPainter.save();
+            wPainter.setPen(headerTextColor);
             wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeight()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
+            wPainter.restore();
 
             x += getColumnWidth(i);
         }
@@ -114,12 +133,17 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             {
                 QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
                 if(wStr.length())
+                {
+                    wPainter.save();
+                    wPainter.setPen(textColor);
                     wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                    wPainter.restore();
+                }
             }
 
             // Paints cell right borders
             wPainter.save();
-            wPainter.setPen(ConfigColor("AbstractTableViewSeparatorColor"));
+            wPainter.setPen(separatorColor);
             wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
             wPainter.restore();
 

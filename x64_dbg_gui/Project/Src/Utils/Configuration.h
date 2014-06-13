@@ -6,14 +6,15 @@
 #include <QColor>
 #include <QMap>
 #include <QDebug>
-#include "Bridge.h"
+#include <QObject>
 
 #define ConfigColor(x) (Configuration::instance()->color(x))
 
-class Configuration
+class Configuration : public QObject
 {
-    static Configuration* mPtr;
+    Q_OBJECT
 public:
+    static Configuration* mPtr;
     Configuration();
     static Configuration* instance();
     void load();
@@ -26,6 +27,9 @@ public:
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QColor> defaultColors;
+
+signals:
+    void colorsUpdated();
 
 private:
     QColor colorFromConfig(const QString id);

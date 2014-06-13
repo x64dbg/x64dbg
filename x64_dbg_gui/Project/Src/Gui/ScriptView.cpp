@@ -24,6 +24,16 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
 
     setupContextMenu();
+
+    selectionColor=ConfigColor("DisassemblySelectionColor");
+    backgroundColor=ConfigColor("DisassemblyBackgroundColor");
+}
+
+void ScriptView::colorsUpdated()
+{
+    StdTable::colorsUpdated();
+    selectionColor=ConfigColor("DisassemblySelectionColor");
+    backgroundColor=ConfigColor("DisassemblyBackgroundColor");
 }
 
 QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -31,7 +41,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     bool wIsSelected=isSelected(rowBase, rowOffset);
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0"))); //ScriptViewSelectionColor
+        painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor)); //ScriptViewSelectionColor
     QString returnString;
     int line=rowBase+rowOffset+1;
     SCRIPTLINETYPE linetype=DbgScriptGetLineType(line);
@@ -43,23 +53,37 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         painter->save();
         if(line==mIpLine) //IP
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000"))); //ScriptViewIpColor
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
             if(DbgScriptBpGet(line)) //breakpoint
-                painter->setPen(QPen(QColor("#FF0000"))); //red address (ScriptViewMainBpColor)
+            {
+                QColor bpColor=ConfigColor("DisassemblyBreakpointBackgroundColor");
+                if(!bpColor.alpha()) //we don't want transparent text
+                    bpColor=ConfigColor("DisassemblyBreakpointColor");
+                painter->setPen(QPen(bpColor));
+            }
             else
-                painter->setPen(QPen(QColor("#FFFFFF"))); //white address (ScriptViewIpTextColor)
+                painter->setPen(QPen(ConfigColor("DisassemblyCipColor"))); //white address (ScriptViewIpTextColor)
         }
         else if(DbgScriptBpGet(line)) //breakpoint
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#FF0000"))); //ScriptViewMainBpColor
-            painter->setPen(QPen(QColor("#000000"))); //black address //ScripViewMainBpTextColor
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor")));
+            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //black address //ScripViewMainBpTextColor
         }
         else
         {
+            QColor background;
             if(linetype==linecommand || linetype==linebranch)
-                painter->setPen(QPen(QColor("#000000"))); //black address (ScriptViewMainTextColor)
+            {
+                background=ConfigColor("DisassemblySelectedAddressBackgroundColor");
+                painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+            }
             else
-                painter->setPen(QPen(QColor("#808080"))); //grey address (ScriptViewOtherTextColor)
+            {
+                background=ConfigColor("DisassemblyAddressBackgroundColor");
+                painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //grey address
+            }
+            if(background.alpha())
+                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
         painter->restore();
@@ -98,21 +122,26 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             {
                 if(isScriptCommand(command, "ret"))
                 {
-                    newRichText.flags=RichTextPainter::FlagBackground;
-                    newRichText.textBackground=QColor("#00FFFF");
+                    newRichText.flags=RichTextPainter::FlagAll;
+                    newRichText.textColor=ConfigColor("InstructionRetColor");
+                    newRichText.textBackground=ConfigColor("InstructionRetBackgroundColor");
                     newRichText.text="ret";
                     richText.push_back(newRichText);
                     QString remainder=command.right(command.length()-3);
                     if(remainder.length())
                     {
-                        newRichText.flags=RichTextPainter::FlagNone;
+                        newRichText.flags=RichTextPainter::FlagAll;
+                        newRichText.textColor=ConfigColor("InstructionUncategorizedColor");
+                        newRichText.textBackground=ConfigColor("InstructionUncategorizedBackgroundColor");
                         newRichText.text=remainder;
                         richText.push_back(newRichText);
                     }
                 }
                 else
                 {
-                    newRichText.flags=RichTextPainter::FlagNone;
+                    newRichText.flags=RichTextPainter::FlagAll;
+                    newRichText.textColor=ConfigColor("InstructionUncategorizedColor");
+                    newRichText.textBackground=ConfigColor("InstructionUncategorizedBackgroundColor");
                     newRichText.text=command;
                     richText.push_back(newRichText);
                 }
@@ -128,8 +157,9 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 switch(branchinfo.type)
                 {
                 case scriptjmp: //unconditional jumps
-                    newRichText.flags=RichTextPainter::FlagBackground;
-                    newRichText.textBackground=QColor("#FFFF00");
+                    newRichText.flags=RichTextPainter::FlagAll;
+                    newRichText.textColor=ConfigColor("InstructionUnconditionalJumpColor");
+                    newRichText.textBackground=ConfigColor("InstructionUnconditionalJumpBackgroundColor");
                     break;
 
                 case scriptjnejnz: //conditional jumps
@@ -139,17 +169,20 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 case scriptjbejle:
                 case scriptjaejge:
                     newRichText.flags=RichTextPainter::FlagAll;
-                    newRichText.textBackground=QColor("#FFFF00");
-                    newRichText.textColor=QColor("#FF0000");
+                    newRichText.textColor=ConfigColor("InstructionConditionalJumpColor");
+                    newRichText.textBackground=ConfigColor("InstructionConditionalJumpBackgroundColor");
                     break;
 
                 case scriptcall: //calls
-                    newRichText.flags=RichTextPainter::FlagBackground;
-                    newRichText.textBackground=QColor("#00FFFF");
+                    newRichText.flags=RichTextPainter::FlagAll;
+                    newRichText.textColor=ConfigColor("InstructionCallColor");
+                    newRichText.textBackground=ConfigColor("InstructionCallBackgroundColor");
                     break;
 
                 default:
-                    newRichText.flags=RichTextPainter::FlagNone;
+                    newRichText.flags=RichTextPainter::FlagAll;
+                    newRichText.textColor=ConfigColor("InstructionUncategorizedColor");
+                    newRichText.textBackground=ConfigColor("InstructionUncategorizedBackgroundColor");
                     break;
                 }
                 newRichText.text=command.left(i);
@@ -160,15 +193,17 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 richText.push_back(newRichText);
                 //label
                 QString label=branchinfo.branchlabel;
-                newRichText.flags=RichTextPainter::FlagBackground;
-                newRichText.textBackground=QColor("#FFFF00");
+                newRichText.flags=RichTextPainter::FlagAll;
+                newRichText.textColor=ConfigColor("InstructionAddressColor");
+                newRichText.textBackground=ConfigColor("InstructionAddressBackgroundColor");
                 newRichText.text=label;
                 richText.push_back(newRichText);
                 //remainder
                 QString remainder=command.right(command.length()-command.indexOf(label)-label.length());
                 if(remainder.length())
                 {
-                    newRichText.flags=RichTextPainter::FlagNone;
+                    newRichText.textColor=ConfigColor("InstructionUncategorizedColor");
+                    newRichText.textBackground=ConfigColor("InstructionUncategorizedBackgroundColor");
                     newRichText.text=remainder;
                     richText.push_back(newRichText);
                 }
@@ -177,8 +212,9 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
             case linelabel:
             {
-                newRichText.flags=RichTextPainter::FlagColor;
-                newRichText.textColor=QColor("#808080");
+                newRichText.flags=RichTextPainter::FlagAll;
+                newRichText.textColor=ConfigColor("DisassemblyAddressColor");
+                newRichText.textBackground=ConfigColor("DisassemblyAddressBackgroundColor");
                 newRichText.text=command;
                 richText.push_back(newRichText);
                 painter->drawLine(QPoint(x+xadd+2, y+h-2), QPoint(x+w-4, y+h-2));
@@ -187,8 +223,9 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
             case linecomment:
             {
-                newRichText.flags=RichTextPainter::FlagColor;
-                newRichText.textColor=QColor("#808080");
+                newRichText.flags=RichTextPainter::FlagAll;
+                newRichText.textColor=ConfigColor("DisassemblyAddressColor");
+                newRichText.textBackground=ConfigColor("DisassemblyAddressBackgroundColor");
                 newRichText.text=command;
                 richText.push_back(newRichText);
             }
@@ -207,8 +244,9 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 newRichText.flags=RichTextPainter::FlagNone;
                 newRichText.text=" ";
                 richText.push_back(newRichText); //space
-                newRichText.flags=RichTextPainter::FlagColor;
-                newRichText.textColor=QColor("#808080");
+                newRichText.flags=RichTextPainter::FlagAll;
+                newRichText.textColor=ConfigColor("DisassemblyAddressColor");
+                newRichText.textBackground=ConfigColor("DisassemblyAddressBackgroundColor");
                 newRichText.text=comment;
                 richText.push_back(newRichText); //comment
             }

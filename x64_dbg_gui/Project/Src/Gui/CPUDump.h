@@ -22,6 +22,7 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
 
 public slots:
+    void setLabelSlot();
     void gotoExpressionSlot();
 
     void hexAsciiSlot();
@@ -46,7 +47,6 @@ public slots:
 
     void addressSlot();
     void disassemblySlot();
-    void setLabelSlot();
 
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);

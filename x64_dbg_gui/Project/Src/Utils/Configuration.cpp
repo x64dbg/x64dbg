@@ -1,9 +1,9 @@
 #include "Configuration.h"
+#include "Bridge.h"
 
 Configuration* Configuration::mPtr = NULL;
 
-
-Configuration::Configuration()
+Configuration::Configuration() : QObject()
 {
     load();
     mPtr = this;
@@ -30,6 +30,9 @@ void Configuration::readColors()
     QMap<QString, QColor> defaultColorMap;
     defaultColorMap.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
     defaultColorMap.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("AbstractTableViewTextColor", QColor("#000000"));
+    defaultColorMap.insert("AbstractTableViewHeaderTextColor", QColor("#000000"));
+    defaultColorMap.insert("AbstractTableViewSelectionColor", QColor("#C0C0C0"));
 
     defaultColorMap.insert("DisassemblyCipColor", QColor("#FFFFFF"));
     defaultColorMap.insert("DisassemblyCipBackgroundColor", QColor("#000000"));
@@ -44,7 +47,9 @@ void Configuration::readColors()
     defaultColorMap.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
     defaultColorMap.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
     defaultColorMap.insert("DisassemblyAddressColor", QColor("#808080"));
+    defaultColorMap.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
     defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
+    defaultColorMap.insert("DisassemblySelectedAddressBackgroundColor", Qt::transparent);
     defaultColorMap.insert("DisassemblyConditionalJumpLineTrueColor", QColor("#FF0000"));
     defaultColorMap.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
     defaultColorMap.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
@@ -120,6 +125,30 @@ void Configuration::readColors()
     defaultColorMap.insert("InstructionSseRegisterColor", QColor("#000080"));
     defaultColorMap.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
 
+    defaultColorMap.insert("HexDumpTextColor", QColor("#000000"));
+    defaultColorMap.insert("HexDumpBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
+    defaultColorMap.insert("HexDumpAddressColor", QColor("#000000"));
+    defaultColorMap.insert("HexDumpAddressBackgroundColor", Qt::transparent);
+    defaultColorMap.insert("HexDumpLabelColor", QColor("#FF0000"));
+    defaultColorMap.insert("HexDumpLabelBackgroundColor", Qt::transparent);
+
+    defaultColorMap.insert("StackTextColor", QColor("#808080"));
+    defaultColorMap.insert("StackInactiveTextColor", QColor("#000000"));
+    defaultColorMap.insert("StackBackgroundColor", QColor("#FFFBF0"));
+    defaultColorMap.insert("StackSelectionColor", QColor("#C0C0C0"));
+    defaultColorMap.insert("StackCspColor", QColor("#FFFFFF"));
+    defaultColorMap.insert("StackCspBackgroundColor", QColor("#000000"));
+    defaultColorMap.insert("StackAddressColor", QColor("#808080"));
+    defaultColorMap.insert("StackAddressBackgroundColor", Qt::transparent);
+    defaultColorMap.insert("StackSelectedAddressColor", QColor("#000000"));
+    defaultColorMap.insert("StackSelectedAddressBackgroundColor", Qt::transparent);
+    defaultColorMap.insert("StackLabelColor", QColor("#FF0000"));
+    defaultColorMap.insert("StackLabelBackgroundColor", Qt::transparent);
+
+    defaultColorMap.insert("ThreadCurrentColor", QColor("#FFFFFF"));
+    defaultColorMap.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
+
     Colors = defaultColors = defaultColorMap;
     //read config
     for(int i=0; i<Colors.size(); i++)
@@ -137,6 +166,7 @@ void Configuration::writeColors()
         QString id=Colors.keys().at(i);
         colorToConfig(id, Colors[id]);
     }
+    emit colorsUpdated();
 }
 
 const QList<QString> Configuration::ApiFingerprints()
@@ -154,6 +184,10 @@ const QColor Configuration::color(QString id)
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
     return Qt::black;
 }
 

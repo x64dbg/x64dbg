@@ -43,7 +43,7 @@
       </rect>
      </property>
      <property name="title">
-      <string>Text Color</string>
+      <string>Color</string>
      </property>
      <property name="checkable">
       <bool>false</bool>

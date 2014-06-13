@@ -9,6 +9,7 @@
 #include <QScrollBar>
 #include <qdebug.h>
 #include <NewTypes.h>
+#include <Configuration.h>
 
 class AbstractTableView : public QAbstractScrollArea
 {
@@ -18,6 +19,9 @@ public:
 
     // Constructor
     explicit AbstractTableView(QWidget *parent = 0);
+
+    //color updates
+    virtual void colorsUpdated();
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
@@ -82,6 +86,8 @@ signals:
     void repainted();
 
 public slots:
+    void colorsUpdatedSlot();
+
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();
     void repaint();
@@ -149,6 +155,10 @@ private:
 
 protected:
     QColor backgroundColor;
+    QColor textColor;
+    QColor separatorColor;
+    QColor headerTextColor;
+    QColor selectionColor;
 };
 
 #endif // ABSTRACTTABLEVIEW_H

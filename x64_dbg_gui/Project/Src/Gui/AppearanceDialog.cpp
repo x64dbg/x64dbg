@@ -1,5 +1,6 @@
 #include "AppearanceDialog.h"
 #include "ui_AppearanceDialog.h"
+#include "Bridge.h"
 
 AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {
@@ -306,7 +307,7 @@ void AppearanceDialog::on_buttonSave_clicked()
 {
     Configuration::instance()->Colors=colorMap;
     Configuration::instance()->writeColors();
-    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved (you may have to restart)!");
+    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
@@ -393,8 +394,11 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoList.clear();
     //list entries
     colorInfoListAppend("AbstractTableView:", "", "");
+    colorInfoListAppend("Text", "AbstractTableViewTextColor", "");
+    colorInfoListAppend("Header Text", "AbstractTableViewHeaderTextColor", "");
     colorInfoListAppend("Background", "AbstractTableViewBackgroundColor", "");
-    colorInfoListAppend("Separator", "AbstractTableViewSeparatorColor", "");
+    colorInfoListAppend("Separators", "AbstractTableViewSeparatorColor", "");
+    colorInfoListAppend("Selection", "AbstractTableViewSelectionColor", "");
 
     colorInfoListAppend("Disassembly:", "", "");
 #ifdef _WIN64
@@ -407,12 +411,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Bookmarks", "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend("Comments", "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
-    colorInfoListAppend("Addresses", "DisassemblyAddressColor", "");
+    colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
+    colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
     colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
-    colorInfoListAppend("Selected Address Text", "DisassemblySelectedAddressColor", "");
     colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
     colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
 
@@ -467,6 +471,30 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Memory Scales", "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
     colorInfoListAppend("Memory Operators (+/-/*)", "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
 
+    colorInfoListAppend("HexDump:", "", "");
+    colorInfoListAppend("Text", "HexDumpTextColor", "");
+    colorInfoListAppend("Background", "HexDumpBackgroundColor", "");
+    colorInfoListAppend("Addresses", "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
+    colorInfoListAppend("Labels", "HexDumpLabelColor", "HexDumpLabelBackgroundColor");
+    colorInfoListAppend("Selection", "HexDumpSelectionColor", "");
+
+    colorInfoListAppend("Stack:", "", "");
+    colorInfoListAppend("Text", "StackTextColor", "");
+    colorInfoListAppend("Inactive Text", "StackInactiveTextColor", "");
+    colorInfoListAppend("Background", "StackBackgroundColor", "");
+    colorInfoListAppend("Selection", "StackSelectionColor", "");
+#ifdef _WIN64
+    colorInfoListAppend("RSP", "StackCspColor", "StackCspBackgroundColor");
+#else //x86
+    colorInfoListAppend("CSP", "StackCspColor", "StackCspBackgroundColor");
+#endif //_WIN64
+    colorInfoListAppend("Addresses", "StackAddressColor", "StackAddressBackgroundColor");
+    colorInfoListAppend("Selected Addresses", "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
+    colorInfoListAppend("Labels", "StackLabelColor", "StackLabelBackgroundColor");
+
+    colorInfoListAppend("Other:", "", "");
+    colorInfoListAppend("Current Thread", "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
+
     //dev helper
     const QMap<QString, QColor>* Colors=&Configuration::instance()->defaultColors;
     QString notFound;
@@ -488,7 +516,7 @@ void AppearanceDialog::colorInfoListInit()
     if(notFound.length())
     {
         QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", notFound);
-        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();

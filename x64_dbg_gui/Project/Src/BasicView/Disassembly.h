@@ -15,6 +15,7 @@ class Disassembly : public AbstractTableView
     Q_OBJECT
 public:
     explicit Disassembly(QWidget *parent = 0);
+    void colorsUpdated();
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
