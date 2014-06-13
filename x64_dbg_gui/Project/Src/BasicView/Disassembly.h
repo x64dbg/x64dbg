@@ -7,7 +7,6 @@
 #include "Bridge.h"
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
-#include "BeaHighlight.h"
 #include "RichTextPainter.h"
 
 class Disassembly : public AbstractTableView

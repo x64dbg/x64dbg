@@ -5,6 +5,135 @@ Configuration* Configuration::mPtr = NULL;
 
 Configuration::Configuration() : QObject()
 {
+    //setup default color map
+    defaultColors.clear();
+    defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
+    defaultColors.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("AbstractTableViewTextColor", QColor("#000000"));
+    defaultColors.insert("AbstractTableViewHeaderTextColor", QColor("#000000"));
+    defaultColors.insert("AbstractTableViewSelectionColor", QColor("#C0C0C0"));
+
+    defaultColors.insert("DisassemblyCipColor", QColor("#FFFFFF"));
+    defaultColors.insert("DisassemblyCipBackgroundColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyBreakpointColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyBreakpointBackgroundColor", QColor("#FF0000"));
+    defaultColors.insert("DisassemblyHardwareBreakpointColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyHardwareBreakpointBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyBookmarkColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
+    defaultColors.insert("DisassemblyLabelColor", QColor("#FF0000"));
+    defaultColors.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
+    defaultColors.insert("DisassemblyAddressColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblySelectedAddressColor", QColor("#000000"));
+    defaultColors.insert("DisassemblySelectedAddressBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyConditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColors.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
+    defaultColors.insert("DisassemblyBytesColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
+
+    defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
+    defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
+    defaultColors.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarConditionalJumpLineFalseColor", QColor("#808080"));
+    defaultColors.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#808080"));
+    defaultColors.insert("SideBarBulletColor", QColor("#808080"));
+    defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
+
+    defaultColors.insert("RegistersBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("RegistersColor", QColor("#000000"));
+    defaultColors.insert("RegistersModifiedColor", QColor("#FF0000"));
+    defaultColors.insert("RegistersSelectionColor", QColor("#EEEEEE"));
+    defaultColors.insert("RegistersLabelColor", QColor("#000000"));
+    defaultColors.insert("RegistersExtraInfoColor", QColor("#000000"));
+
+    defaultColors.insert("InstructionCommaColor", QColor("#000000"));
+    defaultColors.insert("InstructionCommaBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionPrefixColor", QColor("#000000"));
+    defaultColors.insert("InstructionPrefixBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionUncategorizedColor", QColor("#000000"));
+    defaultColors.insert("InstructionUncategorizedBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionAddressColor", QColor("#000000"));
+    defaultColors.insert("InstructionAddressBackgroundColor", QColor("#FFFF00"));
+    defaultColors.insert("InstructionValueColor", QColor("#808000"));
+    defaultColors.insert("InstructionValueBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMnemonicColor", QColor("#000000"));
+    defaultColors.insert("InstructionMnemonicBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionPushPopColor", QColor("#0000FF"));
+    defaultColors.insert("InstructionPushPopBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionCallColor", QColor("#000000"));
+    defaultColors.insert("InstructionCallBackgroundColor", QColor("#00FFFF"));
+    defaultColors.insert("InstructionRetColor", QColor("#000000"));
+    defaultColors.insert("InstructionRetBackgroundColor", QColor("#00FFFF"));
+    defaultColors.insert("InstructionConditionalJumpColor", QColor("#FF0000"));
+    defaultColors.insert("InstructionConditionalJumpBackgroundColor", QColor("#FFFF00"));
+    defaultColors.insert("InstructionUnconditionalJumpColor", QColor("#000000"));
+    defaultColors.insert("InstructionUnconditionalJumpBackgroundColor", QColor("#FFFF00"));
+    defaultColors.insert("InstructionNopColor", QColor("#808080"));
+    defaultColors.insert("InstructionNopBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemorySizeColor", QColor("#000080"));
+    defaultColors.insert("InstructionMemorySizeBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemorySegmentColor", QColor("#FF00FF"));
+    defaultColors.insert("InstructionMemorySegmentBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemoryBracketsColor", QColor("#000000"));
+    defaultColors.insert("InstructionMemoryBracketsBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemoryStackBracketsColor", QColor("#000000"));
+    defaultColors.insert("InstructionMemoryStackBracketsBackgroundColor",QColor("#00FFFF"));
+    defaultColors.insert("InstructionMemoryBaseRegisterColor", QColor("#E04343"));
+    defaultColors.insert("InstructionMemoryBaseRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemoryIndexRegisterColor", QColor("#4343E0"));
+    defaultColors.insert("InstructionMemoryIndexRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemoryScaleColor", QColor("#4CB951"));
+    defaultColors.insert("InstructionMemoryScaleBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMemoryOperatorColor", QColor("#F27711"));
+    defaultColors.insert("InstructionMemoryOperatorBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionGeneralRegisterColor", QColor("#22530D"));
+    defaultColors.insert("InstructionGeneralRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionFpuRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionFpuRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionMmxRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionMmxRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionSseRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
+
+    defaultColors.insert("HexDumpTextColor", QColor("#000000"));
+    defaultColors.insert("HexDumpBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
+    defaultColors.insert("HexDumpAddressColor", QColor("#000000"));
+    defaultColors.insert("HexDumpAddressBackgroundColor", Qt::transparent);
+    defaultColors.insert("HexDumpLabelColor", QColor("#FF0000"));
+    defaultColors.insert("HexDumpLabelBackgroundColor", Qt::transparent);
+
+    defaultColors.insert("StackTextColor", QColor("#808080"));
+    defaultColors.insert("StackInactiveTextColor", QColor("#000000"));
+    defaultColors.insert("StackBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("StackSelectionColor", QColor("#C0C0C0"));
+    defaultColors.insert("StackCspColor", QColor("#FFFFFF"));
+    defaultColors.insert("StackCspBackgroundColor", QColor("#000000"));
+    defaultColors.insert("StackAddressColor", QColor("#808080"));
+    defaultColors.insert("StackAddressBackgroundColor", Qt::transparent);
+    defaultColors.insert("StackSelectedAddressColor", QColor("#000000"));
+    defaultColors.insert("StackSelectedAddressBackgroundColor", Qt::transparent);
+    defaultColors.insert("StackLabelColor", QColor("#FF0000"));
+    defaultColors.insert("StackLabelBackgroundColor", Qt::transparent);
+
+    defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
+    defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
+
+    //bool settings
+    QMap<QString, bool> disassemblyBool;
+    disassemblyBool.insert("ArgumentSpaces", false);
+    disassemblyBool.insert("MemorySpaces", false);
+    defaultBools.insert("Disassembler", disassemblyBool);
+
     load();
     mPtr = this;
 }
@@ -17,139 +146,18 @@ Configuration *Configuration::instance()
 void Configuration::load()
 {
     readColors();
+    readBools();
 }
 
 void Configuration::save()
 {
     writeColors();
+    writeBools();
 }
 
 void Configuration::readColors()
 {
-    //setup default color map
-    QMap<QString, QColor> defaultColorMap;
-    defaultColorMap.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
-    defaultColorMap.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("AbstractTableViewTextColor", QColor("#000000"));
-    defaultColorMap.insert("AbstractTableViewHeaderTextColor", QColor("#000000"));
-    defaultColorMap.insert("AbstractTableViewSelectionColor", QColor("#C0C0C0"));
-
-    defaultColorMap.insert("DisassemblyCipColor", QColor("#FFFFFF"));
-    defaultColorMap.insert("DisassemblyCipBackgroundColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyBreakpointColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyBreakpointBackgroundColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyHardwareBreakpointColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyHardwareBreakpointBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("DisassemblyBookmarkColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
-    defaultColorMap.insert("DisassemblyLabelColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
-    defaultColorMap.insert("DisassemblyAddressColor", QColor("#808080"));
-    defaultColorMap.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblySelectedAddressBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("DisassemblyConditionalJumpLineTrueColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
-    defaultColorMap.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
-
-    defaultColorMap.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
-    defaultColorMap.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
-    defaultColorMap.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
-    defaultColorMap.insert("SideBarConditionalJumpLineFalseColor", QColor("#808080"));
-    defaultColorMap.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
-    defaultColorMap.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#808080"));
-    defaultColorMap.insert("SideBarBulletColor", QColor("#808080"));
-    defaultColorMap.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
-    defaultColorMap.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
-    defaultColorMap.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
-
-    defaultColorMap.insert("RegistersBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("RegistersColor", QColor("#000000"));
-    defaultColorMap.insert("RegistersModifiedColor", QColor("#FF0000"));
-    defaultColorMap.insert("RegistersSelectionColor", QColor("#EEEEEE"));
-    defaultColorMap.insert("RegistersLabelColor", QColor("#000000"));
-    defaultColorMap.insert("RegistersExtraInfoColor", QColor("#000000"));
-
-    defaultColorMap.insert("InstructionCommaColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionCommaBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionPrefixColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionPrefixBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionUncategorizedColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionUncategorizedBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionAddressColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionAddressBackgroundColor", QColor("#FFFF00"));
-    defaultColorMap.insert("InstructionValueColor", QColor("#808000"));
-    defaultColorMap.insert("InstructionValueBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMnemonicColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionMnemonicBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionPushPopColor", QColor("#0000FF"));
-    defaultColorMap.insert("InstructionPushPopBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionCallColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionCallBackgroundColor", QColor("#00FFFF"));
-    defaultColorMap.insert("InstructionRetColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionRetBackgroundColor", QColor("#00FFFF"));
-    defaultColorMap.insert("InstructionConditionalJumpColor", QColor("#FF0000"));
-    defaultColorMap.insert("InstructionConditionalJumpBackgroundColor", QColor("#FFFF00"));
-    defaultColorMap.insert("InstructionUnconditionalJumpColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionUnconditionalJumpBackgroundColor", QColor("#FFFF00"));
-    defaultColorMap.insert("InstructionNopColor", QColor("#808080"));
-    defaultColorMap.insert("InstructionNopBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemorySizeColor", QColor("#000080"));
-    defaultColorMap.insert("InstructionMemorySizeBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemorySegmentColor", QColor("#FF00FF"));
-    defaultColorMap.insert("InstructionMemorySegmentBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemoryBracketsColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionMemoryBracketsBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemoryStackBracketsColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionMemoryStackBracketsBackgroundColor",QColor("#00FFFF"));
-    defaultColorMap.insert("InstructionMemoryBaseRegisterColor", QColor("#E04343"));
-    defaultColorMap.insert("InstructionMemoryBaseRegisterBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemoryIndexRegisterColor", QColor("#4343E0"));
-    defaultColorMap.insert("InstructionMemoryIndexRegisterBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemoryScaleColor", QColor("#4CB951"));
-    defaultColorMap.insert("InstructionMemoryScaleBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMemoryOperatorColor", QColor("#F27711"));
-    defaultColorMap.insert("InstructionMemoryOperatorBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionGeneralRegisterColor", QColor("#22530D"));
-    defaultColorMap.insert("InstructionGeneralRegisterBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionFpuRegisterColor", QColor("#000080"));
-    defaultColorMap.insert("InstructionFpuRegisterBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionMmxRegisterColor", QColor("#000080"));
-    defaultColorMap.insert("InstructionMmxRegisterBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionSseRegisterColor", QColor("#000080"));
-    defaultColorMap.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
-
-    defaultColorMap.insert("HexDumpTextColor", QColor("#000000"));
-    defaultColorMap.insert("HexDumpBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
-    defaultColorMap.insert("HexDumpAddressColor", QColor("#000000"));
-    defaultColorMap.insert("HexDumpAddressBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("HexDumpLabelColor", QColor("#FF0000"));
-    defaultColorMap.insert("HexDumpLabelBackgroundColor", Qt::transparent);
-
-    defaultColorMap.insert("StackTextColor", QColor("#808080"));
-    defaultColorMap.insert("StackInactiveTextColor", QColor("#000000"));
-    defaultColorMap.insert("StackBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("StackSelectionColor", QColor("#C0C0C0"));
-    defaultColorMap.insert("StackCspColor", QColor("#FFFFFF"));
-    defaultColorMap.insert("StackCspBackgroundColor", QColor("#000000"));
-    defaultColorMap.insert("StackAddressColor", QColor("#808080"));
-    defaultColorMap.insert("StackAddressBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("StackSelectedAddressColor", QColor("#000000"));
-    defaultColorMap.insert("StackSelectedAddressBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("StackLabelColor", QColor("#FF0000"));
-    defaultColorMap.insert("StackLabelBackgroundColor", Qt::transparent);
-
-    defaultColorMap.insert("ThreadCurrentColor", QColor("#FFFFFF"));
-    defaultColorMap.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
-
-    Colors = defaultColors = defaultColorMap;
+    Colors = defaultColors;
     //read config
     for(int i=0; i<Colors.size(); i++)
     {
@@ -169,6 +177,37 @@ void Configuration::writeColors()
     emit colorsUpdated();
 }
 
+void Configuration::readBools()
+{
+    Bools = defaultBools;
+    //read config
+    for(int i=0; i<Bools.size(); i++)
+    {
+        QString category=Bools.keys().at(i);
+        QMap<QString, bool>* currentBool=&Bools[category];
+        for(int j=0; j<currentBool->size(); j++)
+        {
+            QString id=(*currentBool).keys().at(j);
+            (*currentBool)[id]=boolFromConfig(category, id);
+        }
+    }
+}
+
+void Configuration::writeBools()
+{
+    //write config
+    for(int i=0; i<Bools.size(); i++)
+    {
+        QString category=Bools.keys().at(i);
+        QMap<QString, bool>* currentBool=&Bools[category];
+        for(int j=0; j<currentBool->size(); j++)
+        {
+            QString id=(*currentBool).keys().at(j);
+            boolToConfig(category, id, (*currentBool)[id]);
+        }
+    }
+}
+
 const QList<QString> Configuration::ApiFingerprints()
 {
     char setting[MAX_SETTING_SIZE]="";
@@ -180,7 +219,7 @@ const QList<QString> Configuration::ApiFingerprints()
     return QString(setting).split(QChar(','), QString::SkipEmptyParts);
 }
 
-const QColor Configuration::color(QString id)
+const QColor Configuration::getColor(const QString id)
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
@@ -191,12 +230,23 @@ const QColor Configuration::color(QString id)
     return Qt::black;
 }
 
-bool Configuration::colorToConfig(const QString id, const QColor color)
+const bool Configuration::getBool(const QString category, const QString id)
 {
-    QString colorName=color.name().toUpper();
-    if(!color.alpha())
-        colorName="#XXXXXX";
-    return BridgeSettingSet("Colors", id.toUtf8().constData(), colorName.toUtf8().constData());
+    if(Bools.contains(category))
+    {
+        if(Bools[category].contains(id))
+            return Bools[category][id];
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return false;
+    }
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+    return false;
 }
 
 QColor Configuration::colorFromConfig(const QString id)
@@ -224,3 +274,31 @@ QColor Configuration::colorFromConfig(const QString id)
     return color;
 }
 
+bool Configuration::colorToConfig(const QString id, const QColor color)
+{
+    QString colorName=color.name().toUpper();
+    if(!color.alpha())
+        colorName="#XXXXXX";
+    return BridgeSettingSet("Colors", id.toUtf8().constData(), colorName.toUtf8().constData());
+}
+
+bool Configuration::boolFromConfig(const QString category, const QString id)
+{
+    duint setting;
+    if(!BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
+    {
+        if(defaultBools.contains(category) && defaultBools[category].contains(id))
+        {
+            bool ret = defaultBools[category][id];
+            boolToConfig(category, id, ret);
+            return ret;
+        }
+        return false; //DAFUG
+    }
+    return (setting != 0);
+}
+
+bool Configuration::boolToConfig(const QString category, const QString id, const bool bBool)
+{
+    return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), bBool);
+}

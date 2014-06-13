@@ -466,9 +466,15 @@ void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM*
 
 void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList)
 {
+    bool bPrintArgumentSpaces=ConfigBool("Disassembler", "ArgumentSpaces");
+    bool bPrintMemorySpaces=ConfigBool("Disassembler", "MemorySpaces");
     for(int i=0; i<instr->tokens.size(); i++)
     {
         BeaSingleToken token=instr->tokens.at(i);
+        if(!bPrintArgumentSpaces && token.type==TokenArgumentSpace)
+            continue;
+        else if(!bPrintMemorySpaces && token.type==TokenMemoryOperatorSpace)
+            continue;
         RichTextPainter::CustomRichText_t richText;
         richText.flags=FlagNone;
         richText.text=token.text;

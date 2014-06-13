@@ -44,7 +44,6 @@ SOURCES += \
     Src/Gui/MemoryMapView.cpp \
     Src/Gui/LogView.cpp \
     Src/Gui/GotoDialog.cpp \
-    Src/Disassembler/BeaHighlight.cpp \
     Src/Gui/StatusLabel.cpp \
     Src/Gui/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
@@ -94,7 +93,6 @@ HEADERS += \
     Src/Gui/MemoryMapView.h \
     Src/Gui/LogView.h \
     Src/Gui/GotoDialog.h \
-    Src/Disassembler/BeaHighlight.h \
     Src/Gui/RegistersView.h \
     Src/Gui/StatusLabel.h \
     Src/Gui/WordEditDialog.h \

@@ -49,6 +49,8 @@ void SettingsDialog::LoadSettings()
     settings.engineBreakpointType=break_int3short;
     settings.engineUndecorateSymbolNames=true;
     settings.exceptionRanges=&realExceptionRanges;
+    settings.disasmArgumentSpaces=false;
+    settings.disasmMemorySpaces=false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -139,6 +141,12 @@ void SettingsDialog::LoadSettings()
             }
         }
     }
+
+    //Disasm tab
+    GetSettingBool("Disassembler", "ArgumentSpaces", &settings.disasmArgumentSpaces);
+    GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
+    ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
+    ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
 }
 
 void SettingsDialog::SaveSettings()
@@ -171,7 +179,13 @@ void SettingsDialog::SaveSettings()
     else
         BridgeSettingSet("Exceptions", "IgnoreRange", "");
 
+    //Disasm tab
+    BridgeSettingSetUint("Disassembler", "ArgumentSpaces", settings.disasmArgumentSpaces);
+    BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
+
+    Configuration::instance()->load();
     DbgSettingsUpdated();
+    GuiUpdateAllViews();
 }
 
 void SettingsDialog::AddRangeToList(RangeStruct range)
@@ -374,4 +388,20 @@ void SettingsDialog::on_btnAddLast_clicked()
     range.start=lastException;
     range.end=lastException;
     AddRangeToList(range);
+}
+
+void SettingsDialog::on_chkArgumentSpaces_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.disasmArgumentSpaces=false;
+    else
+        settings.disasmArgumentSpaces=true;
+}
+
+void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.disasmMemorySpaces=false;
+    else
+        settings.disasmMemorySpaces=true;
 }

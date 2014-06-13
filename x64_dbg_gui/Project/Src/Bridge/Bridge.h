@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QDebug>
 #include <QtGui>
-#include "BeaHighlight.h"
 #include "NewTypes.h"
 #include "ReferenceView.h"
 
