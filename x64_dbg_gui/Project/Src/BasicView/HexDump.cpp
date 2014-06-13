@@ -136,7 +136,8 @@ void HexDump::mousePressEvent(QMouseEvent* event)
 
                         if(wEndingAddress < mSize)
                         {
-                            setSingleSelection(wStartingAddress);
+                            if(!GetAsyncKeyState(VK_SHIFT))
+                                setSingleSelection(wStartingAddress);
                             expandSelectionUpTo(wEndingAddress);
 
                             mGuiState = HexDump::MultiRowsSelectionState;
@@ -241,6 +242,10 @@ void HexDump::expandSelectionUpTo(int_t rva)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = rva;
+    }
+    else if(rva == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(rva);
     }
 }
 

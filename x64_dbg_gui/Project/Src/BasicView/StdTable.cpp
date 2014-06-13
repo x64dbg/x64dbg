@@ -75,7 +75,10 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    setSingleSelection(wRowIndex);
+                    if(mIsMultiSelctionAllowed && GetAsyncKeyState(VK_SHIFT))
+                        expandSelectionUpTo(wRowIndex);
+                    else
+                        setSingleSelection(wRowIndex);
 
                     mGuiState = StdTable::MultiRowsSelectionState;
 
@@ -171,6 +174,10 @@ void StdTable::expandSelectionUpTo(int to)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
+    }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
     }
 }
 

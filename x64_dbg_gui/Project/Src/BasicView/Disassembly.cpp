@@ -474,7 +474,10 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    setSingleSelection(wRowIndex);
+                    if(GetAsyncKeyState(VK_SHIFT)) //SHIFT pressed
+                        expandSelectionUpTo(wRowIndex);
+                    else
+                        setSingleSelection(wRowIndex);
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -564,11 +567,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else
-    {
         AbstractTableView::keyPressEvent(event);
-    }
 }
-
 
 /************************************************************************************
                             ScrollBar Management
@@ -988,6 +988,10 @@ void Disassembly::expandSelectionUpTo(int_t to)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
+    }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
     }
 }
 
