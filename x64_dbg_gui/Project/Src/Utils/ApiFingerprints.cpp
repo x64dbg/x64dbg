@@ -1,7 +1,6 @@
 #include "ApiFingerprints.h"
 #include "Configuration.h"
 
-
 ApiFingerprints* ApiFingerprints::mPtr = NULL;
 
 
@@ -10,12 +9,26 @@ ApiFingerprints *ApiFingerprints::instance()
     return mPtr;
 }
 
+bool ApiFingerprints::findFunction(QString dllname,QString functionname, const APIFunction* function) {
+    // find dll
+    QMap<QString,QMap<QString, APIFunction> >::const_iterator it = Library.constFind(dllname.toLower().trimmed());
+    if(it == Library.constEnd())
+        return false;
+    // find function
+    QMap<QString, APIFunction>::const_iterator it2 = it.value().constFind(functionname.toLower().trimmed());
+    if(it2 == it.value().constEnd())
+        return false;
+    function = &it2.value();
+
+    return true;
+}
 
 /**
  * @brief retrieves information (name, arguments) for given api function from database
  * @param name of dll without ".dll"
  * @param name of function
  * @remark upper or lower case doesn't matter
+ *         make sure that function exists or check it, or BETTER: use "findFunction"
  * @return
  */
 const APIFunction ApiFingerprints::function(QString dllname,QString functionname) const
@@ -126,5 +139,6 @@ ApiFingerprints::ApiFingerprints()
         }
 
     }
+
 
 }

@@ -1,9 +1,11 @@
 #ifndef APIFINGERPRINTS_H
 #define APIFINGERPRINTS_H
 
+#include <QThread>
 #include <QString>
 #include <QList>
 #include <QMap>
+#include "Bridge.h"
 
 struct APIArgument
 {
@@ -17,16 +19,21 @@ struct APIFunction
     QString ReturnType;
     QString Name;
     QList<APIArgument> Arguments;
+
 };
 
 class ApiFingerprints
 {
+
     static ApiFingerprints* mPtr;
     QMap<QString,QMap<QString, APIFunction>> Library;
 public:
     ApiFingerprints();
+    bool findFunction(QString dllname, QString functionname, const APIFunction *function);
     const APIFunction function(QString dllname, QString functionname) const;
     static ApiFingerprints *instance();
+
+
 };
 
 #endif // APIFINGERPRINTS_H
