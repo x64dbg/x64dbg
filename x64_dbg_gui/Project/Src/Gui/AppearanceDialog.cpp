@@ -10,7 +10,8 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     //Colors
-    colorMap=Configuration::instance()->Colors;
+    colorMap=&Configuration::instance()->Colors;
+    colorBackupMap=*colorMap;
     ui->groupColor->setEnabled(false);
     ui->groupBackgroundColor->setEnabled(false);
     colorInfoListInit();
@@ -99,7 +100,7 @@ void AppearanceDialog::on_buttonFFFF00_clicked()
 
 void AppearanceDialog::on_buttonFFFFFF_clicked()
 {
-    ui->editColor->setText("#FFFFFF");
+    ui->editColor->setText("#FFFBF0");
 }
 
 void AppearanceDialog::on_buttonBackground000000_clicked()
@@ -114,7 +115,7 @@ void AppearanceDialog::on_buttonBackgroundC0C0C0_clicked()
 
 void AppearanceDialog::on_buttonBackgroundFFFFFF_clicked()
 {
-    ui->editBackgroundColor->setText("#FFFFFF");
+    ui->editBackgroundColor->setText("#FFFBF0");
 }
 
 void AppearanceDialog::on_buttonBackground00FFFF_clicked()
@@ -162,10 +163,12 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
     {
         styleSheet = "border: 2px solid black; background-color: #C0C0C0";
         ui->buttonBackgroundColor->setText("X");
-        if(colorMap.contains(id))
+        if(colorMap->contains(id))
         {
-            colorMap[id]=Qt::transparent;
+            (*colorMap)[id]=Qt::transparent;
             ui->buttonSave->setEnabled(true);
+            Configuration::instance()->writeColors();
+            GuiUpdateAllViews();
         }
     }
     else
@@ -174,16 +177,18 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
         if(QColor(text).isValid())
         {
             styleSheet = "border: 2px solid black; background-color: " + text;
-            if(colorMap.contains(id))
+            if(colorMap->contains(id))
             {
-                colorMap[id]=QColor(text);
+                (*colorMap)[id]=QColor(text);
                 ui->buttonSave->setEnabled(true);
+                Configuration::instance()->writeColors();
+                GuiUpdateAllViews();
             }
         }
         else
         {
             styleSheet = "border: 2px solid red; background-color: #FFFFFF";
-            if(colorMap.contains(id))
+            if(colorMap->contains(id))
                 ui->buttonSave->setEnabled(false); //we cannot save with an invalid color
         }
     }
@@ -209,16 +214,18 @@ void AppearanceDialog::on_editColor_textChanged(const QString &arg1)
     if(QColor(text).isValid())
     {
         styleSheet = "border: 2px solid black; background-color: " + text;
-        if(colorMap.contains(id))
+        if(colorMap->contains(id))
         {
-            colorMap[id]=QColor(text);
+            (*colorMap)[id]=QColor(text);
             ui->buttonSave->setEnabled(true);
+            Configuration::instance()->writeColors();
+            GuiUpdateAllViews();
         }
     }
     else
     {
         styleSheet = "border: 2px solid red; background-color: #FFFFFF";
-        if(colorMap.contains(id))
+        if(colorMap->contains(id))
             ui->buttonSave->setEnabled(false); //we cannot save with an invalid color
     }
     ui->buttonColor->setStyleSheet(styleSheet);
@@ -261,14 +268,14 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
     if(info.colorName.length())
     {
         QString id=info.colorName;
-        if(colorMap.contains(id))
+        if(colorMap->contains(id))
         {
             ui->groupColor->setEnabled(true);
             ui->buttonSave->setEnabled(true);
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color=colorMap[id];
+            QColor color=(*colorMap)[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -283,14 +290,14 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
     if(info.backgroundColorName.length())
     {
         QString id=info.backgroundColorName;
-        if(colorMap.contains(id))
+        if(colorMap->contains(id))
         {
             ui->groupBackgroundColor->setEnabled(true);
             ui->buttonSave->setEnabled(true);
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color=colorMap[id];
+            QColor color=(*colorMap)[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -305,13 +312,19 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 
 void AppearanceDialog::on_buttonSave_clicked()
 {
-    Configuration::instance()->Colors=colorMap;
     Configuration::instance()->writeColors();
     QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_buttonCancel_clicked()
+{
+    Configuration::instance()->Colors=colorBackupMap;
+    Configuration::instance()->writeColors();
     GuiUpdateAllViews();
 }
 
@@ -350,9 +363,9 @@ void AppearanceDialog::currentSettingSlot()
     if(info.colorName.length())
     {
         QString id=info.colorName;
-        if(Configuration::instance()->Colors.contains(id))
+        if(colorBackupMap.contains(id))
         {
-            QColor color=Configuration::instance()->Colors[id];
+            QColor color=colorBackupMap[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -362,9 +375,9 @@ void AppearanceDialog::currentSettingSlot()
     if(info.backgroundColorName.length())
     {
         QString id=info.backgroundColorName;
-        if(Configuration::instance()->Colors.contains(id))
+        if(colorBackupMap.contains(id))
         {
-            QColor color=Configuration::instance()->Colors[id];
+            QColor color=colorBackupMap[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -397,10 +410,13 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Text", "AbstractTableViewTextColor", "");
     colorInfoListAppend("Header Text", "AbstractTableViewHeaderTextColor", "");
     colorInfoListAppend("Background", "AbstractTableViewBackgroundColor", "");
-    colorInfoListAppend("Separators", "AbstractTableViewSeparatorColor", "");
     colorInfoListAppend("Selection", "AbstractTableViewSelectionColor", "");
+    colorInfoListAppend("Separators", "AbstractTableViewSeparatorColor", "");
 
     colorInfoListAppend("Disassembly:", "", "");
+    colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
+    colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
+    colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
 #ifdef _WIN64
     colorInfoListAppend("RIP", "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86
@@ -413,12 +429,9 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
     colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
-    colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
-    colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
-    colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
 
     colorInfoListAppend("SideBar:", "", "");
 #ifdef _WIN64
@@ -438,12 +451,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Background", "SideBarBackgroundColor", "");
 
     colorInfoListAppend("Registers:", "", "");
-    colorInfoListAppend("Background", "RegistersBackgroundColor", "");
     colorInfoListAppend("Text", "RegistersColor", "");
-    colorInfoListAppend("Modified Registers", "RegistersModifiedColor", "");
+    colorInfoListAppend("Background", "RegistersBackgroundColor", "");
     colorInfoListAppend("Selection", "RegistersSelectionColor", "");
+    colorInfoListAppend("Modified Registers", "RegistersModifiedColor", "");
     colorInfoListAppend("Name of Labels", "RegistersLabelColor", "");
-    colorInfoListAppend("Extra Info", "RegistersExtraInfoColor", "");
+    colorInfoListAppend("Extra Information", "RegistersExtraInfoColor", "");
 
     colorInfoListAppend("Instructions:", "", "");
     colorInfoListAppend("Text", "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
@@ -474,9 +487,9 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("HexDump:", "", "");
     colorInfoListAppend("Text", "HexDumpTextColor", "");
     colorInfoListAppend("Background", "HexDumpBackgroundColor", "");
+    colorInfoListAppend("Selection", "HexDumpSelectionColor", "");
     colorInfoListAppend("Addresses", "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
     colorInfoListAppend("Labels", "HexDumpLabelColor", "HexDumpLabelBackgroundColor");
-    colorInfoListAppend("Selection", "HexDumpSelectionColor", "");
 
     colorInfoListAppend("Stack:", "", "");
     colorInfoListAppend("Text", "StackTextColor", "");
