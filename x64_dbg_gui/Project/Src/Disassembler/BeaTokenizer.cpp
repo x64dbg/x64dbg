@@ -111,8 +111,10 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
     int brtype=disasm->Instruction.BranchType;
     if(brtype) //jump/call
     {
-        if(brtype==RetType || brtype==CallType)
-            type=TokenMnemonicCallRet;
+        if(brtype==CallType)
+            type=TokenMnemonicCall;
+        else if(brtype==RetType)
+            type=TokenMnemonicRet;
         else if(brtype==JmpType)
             type=TokenMnemonicUncondJump;
         else //cond jump
@@ -413,7 +415,8 @@ void BeaTokenizer::Init()
     //mnemonics
     AddColorName(TokenMnemonicNormal, "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
     AddColorName(TokenMnemonicPushPop, "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
-    AddColorName(TokenMnemonicCallRet, "InstructionCallRetColor", "InstructionCallRetBackgroundColor");
+    AddColorName(TokenMnemonicCall, "InstructionCallColor", "InstructionCallBackgroundColor");
+    AddColorName(TokenMnemonicRet, "InstructionRetColor", "InstructionRetBackgroundColor");
     AddColorName(TokenMnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
     AddColorName(TokenMnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
     AddColorName(TokenMnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");

@@ -620,7 +620,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
             branchType == (Int32)JB      ||
             branchType == (Int32)JECXZ   ||
             branchType == (Int32)JmpType ||
-            branchType == (Int32)RetType ||
             branchType == (Int32)JNO     ||
             branchType == (Int32)JNC     ||
             branchType == (Int32)JNE     ||
@@ -658,12 +657,21 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         }
     }
 
-    painter->save() ;
+    painter->save();
 
-    if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(ConfigColor("DisassemblyJumpLineTrueColor"));
+    bool bIsExecute=DbgIsJumpGoingToExecute(instruction.rva+mBase);
+
+    if(branchType==JmpType) //unconditional
+    {
+        painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
+    }
     else
-        painter->setPen(ConfigColor("DisassemblyJumpLineFalseColor"));
+    {
+        if(bIsExecute)
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineTrueColor"));
+        else
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineFalseColor"));
+    }
 
     if(wPict == GD_Vert)
     {

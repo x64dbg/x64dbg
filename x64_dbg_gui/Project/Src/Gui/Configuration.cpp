@@ -45,8 +45,9 @@ void Configuration::readColors()
     defaultColorMap.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
     defaultColorMap.insert("DisassemblyAddressColor", QColor("#808080"));
     defaultColorMap.insert("DisassemblySelectedAddressColor", QColor("#000000"));
-    defaultColorMap.insert("DisassemblyJumpLineTrueColor", QColor("#FF0000"));
-    defaultColorMap.insert("DisassemblyJumpLineFalseColor", QColor("#808080"));
+    defaultColorMap.insert("DisassemblyConditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColorMap.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
+    defaultColorMap.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
     defaultColorMap.insert("DisassemblyBytesColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColorMap.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
@@ -84,8 +85,10 @@ void Configuration::readColors()
     defaultColorMap.insert("InstructionMnemonicBackgroundColor", Qt::transparent);
     defaultColorMap.insert("InstructionPushPopColor", QColor("#0000FF"));
     defaultColorMap.insert("InstructionPushPopBackgroundColor", Qt::transparent);
-    defaultColorMap.insert("InstructionCallRetColor", QColor("#000000"));
-    defaultColorMap.insert("InstructionCallRetBackgroundColor", QColor("#00FFFF"));
+    defaultColorMap.insert("InstructionCallColor", QColor("#000000"));
+    defaultColorMap.insert("InstructionCallBackgroundColor", QColor("#00FFFF"));
+    defaultColorMap.insert("InstructionRetColor", QColor("#000000"));
+    defaultColorMap.insert("InstructionRetBackgroundColor", QColor("#00FFFF"));
     defaultColorMap.insert("InstructionConditionalJumpColor", QColor("#FF0000"));
     defaultColorMap.insert("InstructionConditionalJumpBackgroundColor", QColor("#FFFF00"));
     defaultColorMap.insert("InstructionUnconditionalJumpColor", QColor("#000000"));

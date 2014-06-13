@@ -409,8 +409,9 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "");
     colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
-    colorInfoListAppend("Jump Lines (jump)", "DisassemblyJumpLineTrueColor", "");
-    colorInfoListAppend("Jump Lines (no jump)", "DisassemblyJumpLineFalseColor", "");
+    colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
+    colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
+    colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
     colorInfoListAppend("Selected Address Text", "DisassemblySelectedAddressColor", "");
     colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
     colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
@@ -439,6 +440,32 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selection", "RegistersSelectionColor", "");
     colorInfoListAppend("Name of Labels", "RegistersLabelColor", "");
     colorInfoListAppend("Extra Info", "RegistersExtraInfoColor", "");
+
+    colorInfoListAppend("Instructions:", "", "");
+    colorInfoListAppend("Text", "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
+    colorInfoListAppend("Commas", "InstructionCommaColor", "InstructionCommaBackgroundColor");
+    colorInfoListAppend("Prefixes", "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
+    colorInfoListAppend("Addresses", "InstructionAddressColor", "InstructionAddressBackgroundColor");
+    colorInfoListAppend("Values", "InstructionValueColor", "InstructionValueBackgroundColor");
+    colorInfoListAppend("Mnemonics", "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
+    colorInfoListAppend("Push/Pops", "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
+    colorInfoListAppend("Calls", "InstructionCallColor", "InstructionCallBackgroundColor");
+    colorInfoListAppend("Returns", "InstructionRetColor", "InstructionRetBackgroundColor");
+    colorInfoListAppend("Conditional Jumps", "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
+    colorInfoListAppend("Unconditional Jumps", "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
+    colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
+    colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
+    colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
+    colorInfoListAppend("SSE Registers", "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");
+    colorInfoListAppend("MMX Registers", "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
+    colorInfoListAppend("Memory Sizes", "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
+    colorInfoListAppend("Memory Segments", "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
+    colorInfoListAppend("Memory Brackets", "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
+    colorInfoListAppend("Memory Stack Brackets", "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
+    colorInfoListAppend("Memory Base Registers", "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
+    colorInfoListAppend("Memory Index Registers", "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
+    colorInfoListAppend("Memory Scales", "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
+    colorInfoListAppend("Memory Operators (+/-/*)", "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
 
     //dev helper
     const QMap<QString, QColor>* Colors=&Configuration::instance()->defaultColors;

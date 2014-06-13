@@ -30,7 +30,8 @@ public:
         //mnemonics
         TokenMnemonicNormal,
         TokenMnemonicPushPop,
-        TokenMnemonicCallRet,
+        TokenMnemonicCall,
+        TokenMnemonicRet,
         TokenMnemonicCondJump,
         TokenMnemonicUncondJump,
         TokenMnemonicNop,
