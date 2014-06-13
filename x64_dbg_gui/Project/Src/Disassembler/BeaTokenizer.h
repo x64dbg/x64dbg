@@ -19,14 +19,14 @@ public:
     {
         //filling
         TokenComma,
-        TokenRequiredSpace,
-        TokenOptionalSpace,
-        TokenMemorySpace,
+        TokenSpace,
+        TokenArgumentSpace,
+        TokenMemoryOperatorSpace,
         //general instruction parts
         TokenPrefix,
-        TokenGeneral,
-        TokenCodeDest, //jump/call destinations
-        TokenImmediat,
+        TokenUncategorized,
+        TokenAddress, //jump/call destinations or displacements inside memory
+        TokenValue,
         //mnemonics
         TokenMnemonicNormal,
         TokenMnemonicPushPop,
@@ -36,19 +36,18 @@ public:
         TokenMnemonicNop,
         //memory
         TokenMemorySize,
-        TokenMemoryText,
         TokenMemorySegment,
         TokenMemoryBrackets,
+        TokenMemoryStackBrackets,
         TokenMemoryBaseRegister,
         TokenMemoryIndexRegister,
         TokenMemoryScale,
-        TokenMemoryDisplacement,
-        TokenMemoryOperator,
+        TokenMemoryOperator, //'+', '-' and '*'
         //registers
         TokenGeneralRegister,
         TokenFpuRegister,
         TokenMmxRegister,
-        TokenSseRegister,
+        TokenSseRegister
     };
 
     struct BeaTokenValue
@@ -93,8 +92,10 @@ private:
     static void AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value);
     static void Prefix(BeaInstructionToken* instr, const DISASM* disasm);
     static bool IsNopInstruction(QString mnemonic, const DISASM* disasm);
+    static void StringInstructionMemory(BeaInstructionToken* instr, int size, QString segment, ARGUMENTS_TYPE reg);
+    static void StringInstruction(QString mnemonic, BeaInstructionToken* instr, const DISASM* disasm);
     static void Mnemonic(BeaInstructionToken* instr, const DISASM* disasm);
-    static QString PrintValue(const BeaTokenValue* value);
+    static QString PrintValue(const BeaTokenValue* value, bool module);
     static QString RegisterToString(int size, int reg);
     static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg);
     static void AddColorName(BeaTokenType type, QString color, QString backgroundColor);
