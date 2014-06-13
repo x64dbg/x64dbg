@@ -13,7 +13,7 @@ class StaticAnalysis : public QThread
     Q_OBJECT
 
     // number of instruction in buffer
-    const int mWindowToThePast = 10;
+    static const int mWindowToThePast = 10;
 
 public:
     explicit StaticAnalysis(QWidget *parent = 0);

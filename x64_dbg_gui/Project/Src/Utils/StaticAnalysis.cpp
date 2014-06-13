@@ -63,9 +63,52 @@ void StaticAnalysis::run()
      * TODO: use the gathered information in Disassembly.cpp in "Disassembly::paintContent()"
      */
 
+    //thread-safe variables
+    int_t addr=mBase;
+    int_t size=mSize;
 
+    //allocate+read data
+    unsigned char* data = new unsigned char[size];
+    if(!DbgMemRead(addr, data, size))
+    {
+        //ERROR
+        GuiScriptError(0, "DbgMemRead failed!"); //TODO: create a better error thing
+        return;
+    }
 
-    /********** dummy variables ****************/
+    //loop over all instructions
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(disasm));
+#ifdef _WIN64
+    disasm.Archi=64;
+#endif // _WIN64
+    disasm.EIP=(UIntPtr)data;
+    disasm.VirtualAddr=(UInt64)addr;
+    int_t i=0;
+    while(i<size)
+    {
+        if(!(i%0x1000)) //progress (optional)
+        {
+            double percent=(double)i/(double)size;
+            //GuiSetProgress((int)(percent*100)); //TODO: reference in statusbar (custom-drawn)
+        }
+        int len=Disasm(&disasm);
+        if(len!=UNKNOWN_OPCODE)
+        {
+            //TODO: ANALYSE HERE
+        }
+        else
+            len=1;
+        disasm.EIP+=len;
+        disasm.VirtualAddr+=len;
+        i+=len;
+    }
+    //GuiSetProgress(100);
+    GuiUpdateAllViews();
+    delete data;
+
+    /*
+    //dummy variables
     byte_t* data = NULL;
     uint size = 0;
     uint instrIndex = 0;
@@ -74,7 +117,7 @@ void StaticAnalysis::run()
     uint_t currentAddress = 0;
 
     // WARNING: currently an infinite loop
-    while(true/* disassembling of given range is not complete*/){
+    while(true){ // disassembling of given range is not complete
 
         // TODO make sure that everything works fine during disassembling, otherwise just set "mErrorDuringAnalysis=true" and stop
         Instruction_t curInstr = DisassembleAt(&data,size,instrIndex,origBase,origInstRVA);
@@ -110,7 +153,7 @@ void StaticAnalysis::run()
                         // the tokenizer currently only can tell if there is a "push/pop" and cannot distinguish between them
                         if(QString(rememberInstr.disasm.Instruction.Mnemonic).trimmed().toLower() == "Push"){
                             // there is a "push 0xDEADBEEF" , so add a comment
-                            comment = function.Arguments.at(back-1);
+                            comment = function.Arguments.at(back-1).Name;
                             ApiComments.insert(currentAddress,comment);
                         }else{
                             // no push instruction, but an argument left
@@ -129,6 +172,7 @@ void StaticAnalysis::run()
             }
         }
     }
+    */
     end();
 }
 
