@@ -144,7 +144,8 @@ enum DBGMSG
     DBG_LOOP_OVERLAPS,              // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_ADD,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_DEL,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
-    DBG_IS_RUN_LOCKED               // param1=unused,                    param2=unused
+    DBG_IS_RUN_LOCKED,              // param1=unused,                    param2=unused
+    DBG_IS_BP_DISABLED              // param1=duint addr,                param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -527,6 +528,7 @@ BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
 BRIDGE_IMPEXP bool DbgIsRunLocked();
+BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

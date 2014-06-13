@@ -129,6 +129,9 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     mCharWidth = QFontMetrics(this->font()).averageCharWidth();
 
     memset(&wRegDumpStruct, 0, sizeof(REGDUMP));
+    memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP));
+    mCip=0;
+    mRegisterUpdates.clear();
 
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -614,19 +617,29 @@ int_t RegistersView::registerValue(const REGDUMP* regd,const REGISTER_NAME reg){
 void RegistersView::setRegisters(REGDUMP* reg)
 {
     // tests if new-register-value == old-register-value holds
-    mRegisterUpdates.clear();
+    if(mCip!=reg->cip) //CIP changed
+    {
+        wCipRegDumpStruct=wRegDumpStruct;
+        mRegisterUpdates.clear();
+        mCip=reg->cip;
+    }
 
     QMap<REGISTER_NAME,QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all ids (CAX, CBX, ...)
     while (it != mRegisterMapping.end()) {
         // does a register-value change happens?
-        if(registerValue(reg,it.key()) != registerValue(&wRegDumpStruct,it.key()))
+        if(registerValue(reg,it.key()) != registerValue(&wCipRegDumpStruct,it.key()))
             mRegisterUpdates.insert(it.key());
+        else if(mRegisterUpdates.contains(it.key())) //registers are equal
+            mRegisterUpdates.remove(it.key());
         it++;
     }
 
     // now we can save the values
     wRegDumpStruct = (*reg);
+
+    if(mCip!=reg->cip)
+        wCipRegDumpStruct=wRegDumpStruct;
 
     // force repaint
     emit refresh();

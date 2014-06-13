@@ -17,10 +17,20 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 
     clearDescriptors();
 
-    backgroundColor=QColor("#FFFBF0"); //HexDumpBackgroundColor
+    backgroundColor=ConfigColor("HexDumpBackgroundColor");
+    textColor=ConfigColor("HexDumpTextColor");
+    selectionColor=ConfigColor("HexDumpSelectionColor");
 
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+}
+
+void HexDump::colorsUpdated()
+{
+    AbstractTableView::colorsUpdated();
+    backgroundColor=ConfigColor("HexDumpBackgroundColor");
+    textColor=ConfigColor("HexDumpTextColor");
+    selectionColor=ConfigColor("HexDumpSelectionColor");
 }
 
 void HexDump::printDumpAt(int_t parVA, bool select)
@@ -126,7 +136,8 @@ void HexDump::mousePressEvent(QMouseEvent* event)
 
                         if(wEndingAddress < mSize)
                         {
-                            setSingleSelection(wStartingAddress);
+                            if(!GetAsyncKeyState(VK_SHIFT))
+                                setSingleSelection(wStartingAddress);
                             expandSelectionUpTo(wEndingAddress);
 
                             mGuiState = HexDump::MultiRowsSelectionState;
@@ -210,8 +221,8 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
                 wSelectionX = x + wI * wItemPixWidth;
                 wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
-
-                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(QColor("#C0C0C0"))); //HexDumpSelectionColor
+                painter->setPen(textColor);
+                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(selectionColor));
             }
         }
     }
@@ -231,6 +242,10 @@ void HexDump::expandSelectionUpTo(int_t rva)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = rva;
+    }
+    else if(rva == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(rva);
     }
 }
 

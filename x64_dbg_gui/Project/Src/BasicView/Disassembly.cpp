@@ -1,5 +1,4 @@
 #include "Disassembly.h"
-#include "Configuration.h"
 
 Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 {
@@ -38,6 +37,12 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
+}
+
+void Disassembly::colorsUpdated()
+{
+    AbstractTableView::colorsUpdated();
+    backgroundColor=ConfigColor("DisassemblyBackgroundColor");
 }
 
 /************************************************************************************
@@ -125,14 +130,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 {
                     QColor bpColor=ConfigColor("DisassemblyBreakpointBackgroundColor");
                     if(!bpColor.alpha()) //we don't want transparent text
-                        bpColor=ConfigColor("DisassemblyCipColor");
+                        bpColor=ConfigColor("DisassemblyBreakpointColor");
                     painter->setPen(QPen(bpColor));
                 }
                 else if(bpxtype&bp_hardware) //hardware breakpoint only
                 {
                     QColor hwbpColor=ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
                     if(!hwbpColor.alpha()) //we don't want transparent text
-                        hwbpColor=ConfigColor("DisassemblyCipColor");
+                        hwbpColor=ConfigColor("DisassemblyHardwareBreakpointColor");
                     painter->setPen(hwbpColor);
                 }
                 else //no breakpoint
@@ -144,7 +149,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             {
                 QColor bookmarkColor=ConfigColor("DisassemblyBookmarkBackgroundColor");
                 if(!bookmarkColor.alpha()) //we don't want transparent text
-                    bookmarkColor=ConfigColor("DisassemblyCipColor");
+                    bookmarkColor=ConfigColor("DisassemblyBookmarkColor");
                 painter->setPen(QPen(bookmarkColor));
             }
         }
@@ -182,10 +187,19 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 {
                     if(bpxtype==bp_none) //no label, no breakpoint
                     {
+                        QColor background;
                         if(wIsSelected)
+                        {
+                            background=ConfigColor("DisassemblySelectedAddressBackgroundColor");
                             painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                        }
                         else
+                        {
+                            background=ConfigColor("DisassemblyAddressBackgroundColor");
                             painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                        }
+                        if(background.alpha())
+                            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
                     }
                     else //breakpoint only
                     {
@@ -201,10 +215,19 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                         }
                         else //other cases (memory breakpoint in disassembly) -> do as normal
                         {
+                            QColor background;
                             if(wIsSelected)
+                            {
+                                background=ConfigColor("DisassemblySelectedAddressBackgroundColor");
                                 painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                            }
                             else
-                                painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                            {
+                                background=ConfigColor("DisassemblyAddressBackgroundColor");
+                                painter->setPen(QPen(ConfigColor("DisassemblyAddressColor")));
+                            }
+                            if(background.alpha())
+                                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
                         }
                     }
                 }
@@ -238,7 +261,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 {
                     if(bpxtype==bp_none) //bookmark only
                     {
-                        painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address (DisassemblySelectedAddressColor)
+                        painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address
                         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
                     }
                     else //bookmark + breakpoint
@@ -343,8 +366,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         }
 
         QList<RichTextPainter::CustomRichText_t> richText;
-        BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
+
+        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].token;
+        BeaTokenizer::TokenToRichText(token, &richText);
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
+        token->x = x + loopsize;
         break;
     }
 
@@ -448,7 +474,10 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    setSingleSelection(wRowIndex);
+                    if(GetAsyncKeyState(VK_SHIFT)) //SHIFT pressed
+                        expandSelectionUpTo(wRowIndex);
+                    else
+                        setSingleSelection(wRowIndex);
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -538,11 +567,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else
-    {
         AbstractTableView::keyPressEvent(event);
-    }
 }
-
 
 /************************************************************************************
                             ScrollBar Management
@@ -617,7 +643,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
             branchType == (Int32)JB      ||
             branchType == (Int32)JECXZ   ||
             branchType == (Int32)JmpType ||
-            branchType == (Int32)RetType ||
             branchType == (Int32)JNO     ||
             branchType == (Int32)JNC     ||
             branchType == (Int32)JNE     ||
@@ -655,12 +680,21 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         }
     }
 
-    painter->save() ;
+    painter->save();
 
-    if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(ConfigColor("DisassemblyJumpLineTrueColor"));
+    bool bIsExecute=DbgIsJumpGoingToExecute(instruction.rva+mBase);
+
+    if(branchType==JmpType) //unconditional
+    {
+        painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
+    }
     else
-        painter->setPen(ConfigColor("DisassemblyJumpLineFalseColor"));
+    {
+        if(bIsExecute)
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineTrueColor"));
+        else
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineFalseColor"));
+    }
 
     if(wPict == GD_Vert)
     {
@@ -955,6 +989,10 @@ void Disassembly::expandSelectionUpTo(int_t to)
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
     }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
+    }
 }
 
 void Disassembly::setSingleSelection(int_t index)
@@ -1080,7 +1118,6 @@ void Disassembly::prepareData()
 void Disassembly::reloadData()
 {
     emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
-    emit repainted();
     AbstractTableView::reloadData();
 }
 

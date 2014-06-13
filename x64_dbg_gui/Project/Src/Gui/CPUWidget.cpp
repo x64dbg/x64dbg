@@ -22,7 +22,7 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopLeftUpperFrameLayout->addWidget(splitter);
 
-    mInfo = new InfoBox();
+    mInfo = new CPUInfoBox();
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
     int height = mInfo->getHeight();
     ui->mTopLeftLowerFrame->setMinimumHeight(height+2);

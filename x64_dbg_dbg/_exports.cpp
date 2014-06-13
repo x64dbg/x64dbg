@@ -905,6 +905,16 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         return (uint)waitislocked(WAITID_RUN);
     }
     break;
+
+    case DBG_IS_BP_DISABLED:
+    {
+        BREAKPOINT bp;
+        if(bpget((uint)param1, BPNORMAL, 0, &bp))
+            return !(uint)bp.enabled;
+        return (uint)false;
+    }
+    break;
+    
     }
     return 0;
 }

@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "NewTypes.h"
+#include "LineEditDialog.h"
 #include "HexDump.h"
 #include "Bridge.h"
 #include "GotoDialog.h"
@@ -21,6 +22,7 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
 
 public slots:
+    void setLabelSlot();
     void gotoExpressionSlot();
 
     void hexAsciiSlot();
@@ -85,6 +87,8 @@ private:
 
     QAction* mAddressAction;
     QAction* mDisassemblyAction;
+
+    QAction* mSetLabelAction;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

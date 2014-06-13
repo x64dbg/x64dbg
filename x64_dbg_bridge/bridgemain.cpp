@@ -643,6 +643,13 @@ BRIDGE_IMPEXP bool DbgIsRunLocked()
     return false;
 }
 
+BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
+{
+    if(_dbg_sendmessage(DBG_IS_BP_DISABLED, (void*)addr, 0))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

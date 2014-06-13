@@ -26,7 +26,7 @@ public slots:
 protected:
     void paintEvent(QPaintEvent *event);
     void drawLabel(QPainter* painter, int Line, QString Text);
-    void drawBullets(QPainter* painter, int line, bool ispb, bool isbookmark);
+    void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
 
@@ -40,6 +40,7 @@ private:
     CPUDisassembly *CodePtr;
     QList<Instruction_t> *InstrBuffer;
     QColor backgroundColor;
+    REGDUMP regDump;
 };
 
 #endif // CPUSIDEBAR_H

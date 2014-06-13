@@ -23,7 +23,7 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 QString StdTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset) == true)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
 
     //return "c " + QString::number(col) + " r " + QString::number(rowBase + rowOffset);
     return mData->at(col)->at(rowBase + rowOffset);
@@ -75,7 +75,10 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    setSingleSelection(wRowIndex);
+                    if(mIsMultiSelctionAllowed && GetAsyncKeyState(VK_SHIFT))
+                        expandSelectionUpTo(wRowIndex);
+                    else
+                        setSingleSelection(wRowIndex);
 
                     mGuiState = StdTable::MultiRowsSelectionState;
 
@@ -171,6 +174,10 @@ void StdTable::expandSelectionUpTo(int to)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
+    }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
     }
 }
 

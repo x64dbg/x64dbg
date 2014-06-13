@@ -6,11 +6,11 @@
 #include "Bridge.h"
 #include "CPUDisassembly.h"
 
-class InfoBox : public StdTable
+class CPUInfoBox : public StdTable
 {
     Q_OBJECT
 public:
-    explicit InfoBox(StdTable *parent = 0);
+    explicit CPUInfoBox(StdTable *parent = 0);
     int getHeight();
 
 public slots:

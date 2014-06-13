@@ -59,8 +59,6 @@ private:
 
     bool mIsMultiSelctionAllowed;
 
-
-
     QList< QList<QString>* >* mData;
 };
 

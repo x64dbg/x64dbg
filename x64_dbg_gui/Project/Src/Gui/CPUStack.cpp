@@ -32,6 +32,18 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     setupContextMenu();
 
     mGoto = 0;
+
+    backgroundColor=ConfigColor("StackBackgroundColor");
+    textColor=ConfigColor("StackTextColor");
+    selectionColor=ConfigColor("StackSelectionColor");
+}
+
+void CPUStack::colorsUpdated()
+{
+    HexDump::colorsUpdated();
+    backgroundColor=ConfigColor("StackBackgroundColor");
+    textColor=ConfigColor("StackTextColor");
+    selectionColor=ConfigColor("StackSelectionColor");
 }
 
 void CPUStack::setupContextMenu()
@@ -70,8 +82,6 @@ void CPUStack::setupContextMenu()
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    QString wStr=HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
     int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
@@ -79,7 +89,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
 
     bool wIsSelected=isSelected(wRva);
     if(wIsSelected) //highlight if selected
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
 
     bool wActiveStack=true;
     if(wVa<mCsp) //inactive stack
@@ -90,48 +100,85 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     if(col == 0) // paint stack address
     {
         painter->save();
-        if(wVa==mCsp) //CSP
+        char label[MAX_LABEL_SIZE]="";
+        QString addrText="";
+        int_t curAddr = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset + this->mBase;
+        addrText = QString("%1").arg(curAddr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
-            painter->setPen(QPen(QColor("#FFFBF0")));
+            char module[MAX_MODULE_SIZE]="";
+            if(DbgGetModuleAt(curAddr, module))
+                addrText+=" <"+QString(module)+"."+QString(label)+">";
+            else
+                addrText+=" <"+QString(label)+">";
         }
-        else if(wIsSelected)
-            painter->setPen(QPen(QColor("#000000"))); //black address
         else
-            painter->setPen(QPen(QColor("#808080")));
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            *label=0;
+        QColor background;
+        if(*label) //label
+        {
+            if(wVa==mCsp) //CSP
+            {
+                background=ConfigColor("StackCspBackgroundColor");
+                painter->setPen(QPen(ConfigColor("StackCspColor")));
+            }
+            else //no CSP
+            {
+                background=ConfigColor("StackLabelBackgroundColor");
+                painter->setPen(ConfigColor("StackLabelColor"));
+            }
+        }
+        else //no label
+        {
+            if(wVa==mCsp) //CSP
+            {
+                background=ConfigColor("StackCspBackgroundColor");
+                painter->setPen(QPen(ConfigColor("StackCspColor")));
+            }
+            else if(wIsSelected) //selected normal address
+            {
+                background=ConfigColor("StackSelectedAddressBackgroundColor");
+                painter->setPen(QPen(ConfigColor("StackSelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+            }
+            else //normal address
+            {
+                background=ConfigColor("StackAddressBackgroundColor");
+                painter->setPen(QPen(ConfigColor("StackAddressColor")));
+            }
+        }
+        if(background.alpha())
+            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background when defined
+        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
         painter->restore();
-        wStr = "";
     }
     else if(mDescriptor.at(col - 1).isData == true) //paint stack data
     {
+        QString wStr=HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
         painter->save();
         if(wActiveStack)
-            painter->setPen(QPen(QColor("#000000")));
+            painter->setPen(QPen(textColor));
         else
-            painter->setPen(QPen(QColor("#808080")));
+            painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
         painter->restore();
-        wStr = "";
     }
     else if(DbgStackCommentGet(mMemPage->getBase()+wRva, &comment)) //paint stack comments
     {
-        wStr = QString(comment.comment);
+        QString wStr = QString(comment.comment);
         painter->save();
         if(wActiveStack)
         {
             if(*comment.color)
                 painter->setPen(QPen(QColor(QString(comment.color))));
             else
-                painter->setPen(QPen(QColor("#000000")));
+                painter->setPen(QPen(textColor));
         }
         else
-            painter->setPen(QPen(QColor("#808080")));
+            painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
         painter->restore();
-        wStr = "";
     }
-    return wStr;
+    return "";
 }
 
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)

@@ -81,6 +81,7 @@ public:
     } ColumnDescriptor_t;
 
     explicit HexDump(QWidget *parent = 0);
+    void colorsUpdated();
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
     void mouseMoveEvent(QMouseEvent* event);
