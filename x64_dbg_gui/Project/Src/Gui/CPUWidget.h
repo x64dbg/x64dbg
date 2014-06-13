@@ -8,7 +8,7 @@
 #include "CPUDump.h"
 #include "CPUStack.h"
 #include "RegistersView.h"
-#include "InfoBox.h"
+#include "CPUInfoBox.h"
 #include "CPUSideBar.h"
 
 namespace Ui
@@ -34,7 +34,7 @@ public:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
     RegistersView* mGeneralRegs;
-    InfoBox* mInfo;
+    CPUInfoBox* mInfo;
     QTabWidget* mRegsTab;
 
 private:

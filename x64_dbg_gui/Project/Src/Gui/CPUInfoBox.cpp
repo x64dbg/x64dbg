@@ -1,6 +1,6 @@
-#include "InfoBox.h"
+#include "CPUInfoBox.h"
 
-InfoBox::InfoBox(StdTable *parent) : StdTable(parent)
+CPUInfoBox::CPUInfoBox(StdTable *parent) : StdTable(parent)
 {
     enableMultiSelection(false);
     setShowHeader(false);
@@ -15,12 +15,12 @@ InfoBox::InfoBox(StdTable *parent) : StdTable(parent)
     setMinimumHeight(height);
 }
 
-int InfoBox::getHeight()
+int CPUInfoBox::getHeight()
 {
     return (getRowHeight() + 1) * 3;
 }
 
-void InfoBox::setInfoLine(int line, QString text)
+void CPUInfoBox::setInfoLine(int line, QString text)
 {
     if(line < 0 || line > 2)
         return;
@@ -28,7 +28,7 @@ void InfoBox::setInfoLine(int line, QString text)
     reloadData();
 }
 
-void InfoBox::disasmSelectionChanged(int_t parVA)
+void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
     char label[MAX_LABEL_SIZE]="";
     QString info="";

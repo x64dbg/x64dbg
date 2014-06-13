@@ -41,33 +41,33 @@ SOURCES += \
     Src/Memory/MapViewOfMem.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
-    Src/BasicView/MemoryMapView.cpp \
-    Src/BasicView/LogView.cpp \
+    Src/Gui/MemoryMapView.cpp \
+    Src/Gui/LogView.cpp \
     Src/Gui/GotoDialog.cpp \
     Src/Disassembler/BeaHighlight.cpp \
     Src/Gui/StatusLabel.cpp \
-    Src/BasicView/WordEditDialog.cpp \
+    Src/Gui/WordEditDialog.cpp \
     Src/Gui/CPUDisassembly.cpp \
-    Src/BasicView/LineEditDialog.cpp \
+    Src/Gui/LineEditDialog.cpp \
     Src/Gui/BreakpointsView.cpp \
     Src/Utils/Breakpoints.cpp \
-    Src/BasicView/InfoBox.cpp \
+    Src/Gui/CPUInfoBox.cpp \
     Src/Gui/CPUDump.cpp \
     Src/BasicView/ScriptView.cpp \
     Src/Gui/CPUStack.cpp \
-    Src/BasicView/SymbolView.cpp \
-    Src/BasicView/RegistersView.cpp \
+    Src/Gui/SymbolView.cpp \
+    Src/Gui/RegistersView.cpp \
     Src/BasicView/SearchListView.cpp \
     Src/BasicView/ReferenceView.cpp \
-    Src/BasicView/ThreadView.cpp \
+    Src/Gui/ThreadView.cpp \
     Src/Gui/SettingsDialog.cpp \
     Src/Gui/ExceptionRangeDialog.cpp \
-    Src/BasicView/RichTextPainter.cpp \
+    Src/Utils/RichTextPainter.cpp \
     Src/Gui/TabBar.cpp \
     Src/Gui/TabWidget.cpp \
-    Src/BasicView/CommandHelpView.cpp \
+    Src/Gui/CommandHelpView.cpp \
     Src/BasicView/HistoryLineEdit.cpp \
-    Src/Gui/Configuration.cpp \
+    Src/Utils/Configuration.cpp \
     Src/Utils/ApiFingerprints.cpp \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
@@ -91,33 +91,33 @@ HEADERS += \
     Src/Exports.h \
     Src/Imports.h \
     Src/BasicView/StdTable.h \
-    Src/BasicView/MemoryMapView.h \
-    Src/BasicView/LogView.h \
+    Src/Gui/MemoryMapView.h \
+    Src/Gui/LogView.h \
     Src/Gui/GotoDialog.h \
     Src/Disassembler/BeaHighlight.h \
-    Src/BasicView/RegistersView.h \
+    Src/Gui/RegistersView.h \
     Src/Gui/StatusLabel.h \
-    Src/BasicView/WordEditDialog.h \
+    Src/Gui/WordEditDialog.h \
     Src/Gui/CPUDisassembly.h \
-    Src/BasicView/LineEditDialog.h \
+    Src/Gui/LineEditDialog.h \
     Src/Gui/BreakpointsView.h \
     Src/Utils/Breakpoints.h \
-    Src/BasicView/InfoBox.h \
+    Src/Gui/CPUInfoBox.h \
     Src/Gui/CPUDump.h \
     Src/BasicView/ScriptView.h \
     Src/Gui/CPUStack.h \
-    Src/BasicView/SymbolView.h \
+    Src/Gui/SymbolView.h \
     Src/BasicView/SearchListView.h \
     Src/BasicView/ReferenceView.h \
-    Src/BasicView/ThreadView.h \
+    Src/Gui/ThreadView.h \
     Src/Gui/SettingsDialog.h \
     Src/Gui/ExceptionRangeDialog.h \
-    Src/BasicView/RichTextPainter.h \
+    Src/Utils/RichTextPainter.h \
     Src/Gui/TabBar.h \
     Src/Gui/TabWidget.h \
-    Src/BasicView/CommandHelpView.h \
+    Src/Gui/CommandHelpView.h \
     Src/BasicView/HistoryLineEdit.h \
-    Src/Gui/Configuration.h \
+    Src/Utils/Configuration.h \
     Src/Utils/ApiFingerprints.h \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
@@ -141,13 +141,13 @@ FORMS += \
     Src/Dummy.ui \
     Src/Gui/CPUWidget.ui \
     Src/Gui/GotoDialog.ui \
-    Src/BasicView/WordEditDialog.ui \
-    Src/BasicView/LineEditDialog.ui \
-    Src/BasicView/SymbolView.ui \
+    Src/Gui/WordEditDialog.ui \
+    Src/Gui/LineEditDialog.ui \
+    Src/Gui/SymbolView.ui \
     Src/BasicView/SearchListView.ui \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
-    Src/BasicView/CommandHelpView.ui \
+    Src/Gui/CommandHelpView.ui \
     Src/Gui/AppearanceDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
