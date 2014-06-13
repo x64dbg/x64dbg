@@ -6,6 +6,8 @@
 #include <QtGui>
 #include "NewTypes.h"
 #include "ReferenceView.h"
+#include "BeaTokenizer.h"
+#include "QBeaEngine.h"
 
 #include "main.h"
 

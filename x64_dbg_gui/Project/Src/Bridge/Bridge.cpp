@@ -1,6 +1,4 @@
 #include "Bridge.h"
-#include "BeaTokenizer.h"
-#include "QBeaEngine.h"
 
 /************************************************************************************
                             Global Variables
