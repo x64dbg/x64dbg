@@ -133,6 +133,10 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     mCip=0;
     mRegisterUpdates.clear();
 
+    mRowsNeeded=offset+16;
+    mRowsNeeded++;
+    yTopSpacing=3; //set top spacing (in pixels)
+
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     // foreign messages
@@ -274,14 +278,21 @@ void RegistersView::wheelEvent(QWheelEvent *event)
 {
     int numDegrees = event->delta() / 8;
     // one wheel click ==> 2 lines
-    int numSteps = numDegrees / 15 *1 ;
+    int numSteps = numDegrees / 15 * 1 ;
 
-    if (event->orientation() == Qt::Vertical) {
-        if ( numSteps + mVScrollOffset <= 0)
-            mVScrollOffset = 0;
+    int rowsDisplayed=this->viewport()->height()/mRowHeight;
+    int vScrollEndOffset=0;
+    if(rowsDisplayed<mRowsNeeded)
+        vScrollEndOffset=-1*(mRowsNeeded-rowsDisplayed);
+
+    if (event->orientation() == Qt::Vertical)
+    {
+        if(numSteps > 0 && mVScrollOffset + numSteps > 0) //before the first register
+            mVScrollOffset=0;
+        else if(numSteps < 0 && mVScrollOffset + numSteps < vScrollEndOffset) //after the last register
+            mVScrollOffset = mVScrollOffset; //do nothing
         else
             mVScrollOffset += numSteps;
-
     }
     emit refresh();
     event->accept();
@@ -298,7 +309,10 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
     if(mRegisterMapping.contains(reg)){
         // padding to the left is at least one character (looks better)
         int x = mCharWidth*(1 + mRegisterPlaces[reg].start);
-        int y = mRowHeight*(mRegisterPlaces[reg].line + mVScrollOffset) + 3;
+        int ySpace=yTopSpacing;
+        if(mVScrollOffset!=0)
+            ySpace=0;
+        int y = mRowHeight*(mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
 
         //draw raster
         /*

@@ -97,7 +97,9 @@ protected slots:
 
 
 private:
-    unsigned int mVScrollOffset;
+    int mVScrollOffset;
+    int mRowsNeeded;
+    int yTopSpacing;
     // holds current selected register
     REGISTER_NAME mSelected;
     // general purposes register id s (cax, ..., r8, ....)
