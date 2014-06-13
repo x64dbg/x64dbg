@@ -415,7 +415,6 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
     colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
 
-
     colorInfoListAppend("SideBar:", "", "");
 #ifdef _WIN64
     colorInfoListAppend("RIP Label", "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
@@ -424,10 +423,13 @@ void AppearanceDialog::colorInfoListInit()
 #endif //_WIN64
     colorInfoListAppend("Bullets", "SideBarBulletColor", "");
     colorInfoListAppend("Breakpoints", "SideBarBulletBreakpointColor", "");
+    colorInfoListAppend("Disabled Breakpoints", "SideBarBulletDisabledBreakpointColor", "");
     colorInfoListAppend("Bookmarks", "SideBarBulletBookmarkColor", "");
-    colorInfoListAppend("Jump Lines (conditional jump)", "SideBarConditionalJumpLineColor", "");
-    colorInfoListAppend("Jump Lines (unconditional jump)", "SideBarUnconditionalJumpLineColor", "");
-    colorInfoListAppend("Jump Lines (selected jump)", "SideBarJumpLineSelectionColor", "");
+    colorInfoListAppend("Conditional Jump Lines (jump)", "SideBarConditionalJumpLineTrueColor", "");
+    colorInfoListAppend("Conditional Jump Lines (no jump)", "SideBarConditionalJumpLineFalseColor", "");
+    colorInfoListAppend("Unconditional Jump Lines (jump)", "SideBarUnconditionalJumpLineTrueColor", "");
+    colorInfoListAppend("Unconditional Jump Lines (no jump)", "SideBarUnconditionalJumpLineFalseColor", "");
+    colorInfoListAppend("Jump Lines (executing)", "SideBarJumpLineExecuteColor", "");
     colorInfoListAppend("Background", "SideBarBackgroundColor", "");
 
     colorInfoListAppend("Registers:", "", "");
@@ -438,7 +440,32 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Name of Labels", "RegistersLabelColor", "");
     colorInfoListAppend("Extra Info", "RegistersExtraInfoColor", "");
 
-
+    //dev helper
+    const QMap<QString, QColor>* Colors=&Configuration::instance()->defaultColors;
+    QString notFound;
+    for(int i=0; i<Colors->size(); i++)
+    {
+        QString id=Colors->keys().at(i);
+        bool bFound=false;
+        for(int j=0; j<colorInfoList.size(); j++)
+        {
+            if(colorInfoList.at(j).colorName==id || colorInfoList.at(j).backgroundColorName==id)
+            {
+                bFound=true;
+                break;
+            }
+        }
+        if(!bFound) //color not found in info list
+            notFound+=id+"\n";
+    }
+    if(notFound.length())
+    {
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", notFound);
+        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
 
     //setup context menu
     ui->listColorNames->setContextMenuPolicy(Qt::ActionsContextMenu);

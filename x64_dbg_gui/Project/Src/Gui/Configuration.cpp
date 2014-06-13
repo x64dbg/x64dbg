@@ -54,12 +54,13 @@ void Configuration::readColors()
     defaultColorMap.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColorMap.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
     defaultColorMap.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
-    defaultColorMap.insert("SideBarJumpLineSelectionColor", QColor("#FF0000"));
-    defaultColorMap.insert("SideBarUnconditionalJumpLineColor", QColor("#808080"));
-    defaultColorMap.insert("SideBarConditionalJumpLineColor", QColor("#808080"));
+    defaultColorMap.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColorMap.insert("SideBarConditionalJumpLineFalseColor", QColor("#808080"));
+    defaultColorMap.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColorMap.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#808080"));
     defaultColorMap.insert("SideBarBulletColor", QColor("#808080"));
     defaultColorMap.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
-    // TODO: defaultColorMap.insert("SideBarBulletBreakpointDisabledColor", QColor("#0F610F"));
+    defaultColorMap.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
     defaultColorMap.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
 
     defaultColorMap.insert("RegistersBackgroundColor", QColor("#FFFBF0"));
@@ -68,10 +69,6 @@ void Configuration::readColors()
     defaultColorMap.insert("RegistersSelectionColor", QColor("#EEEEEE"));
     defaultColorMap.insert("RegistersLabelColor", QColor("#000000"));
     defaultColorMap.insert("RegistersExtraInfoColor", QColor("#000000"));
-
-
-
-
 
     Colors = defaultColors = defaultColorMap;
     //read config

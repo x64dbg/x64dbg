@@ -343,8 +343,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         }
 
         QList<RichTextPainter::CustomRichText_t> richText;
-        BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
+
+        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].token;
+        BeaTokenizer::TokenToRichText(token, &richText);
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
+        token->x = x + loopsize;
         break;
     }
 
@@ -1080,7 +1083,6 @@ void Disassembly::prepareData()
 void Disassembly::reloadData()
 {
     emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
-    emit repainted();
     AbstractTableView::reloadData();
 }
 

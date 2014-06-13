@@ -928,6 +928,7 @@ void AbstractTableView::setTableOffset(int_t val)
 void AbstractTableView::reloadData()
 {
     mShouldReload = true;
+    emit tableOffsetChanged(mTableOffset);
     repaint();
 }
 
@@ -935,7 +936,6 @@ void AbstractTableView::reloadData()
 void AbstractTableView::repaint()
 {
     this->viewport()->repaint();
-
 }
 
 
