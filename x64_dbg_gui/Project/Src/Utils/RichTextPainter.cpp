@@ -1,6 +1,6 @@
 #include "RichTextPainter.h"
 
-void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText, int charwidth)
+void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText, int charwidth)
 {
     int len=richText->size();
     for(int i=0; i<len; i++)

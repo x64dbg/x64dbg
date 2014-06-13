@@ -45,7 +45,8 @@ void CPUSideBar::changeTopmostAddress(int_t i)
     if(i!=topVA)
     {
         topVA = i;
-        //qDebug() << i;
+        memset(&regDump, 0, sizeof(REGDUMP));
+        DbgGetRegDump(&regDump);
         repaint();
     }
 }
@@ -99,7 +100,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
         int_t instrVA = instr.rva + CodePtr->getBase();
 
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgGetBookmarkAt(instrVA));
+        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
 
         if(isJump(line)) //handle jumps
         {
@@ -127,7 +128,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
             else if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine < viewableRows && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
+                while(destLine>-1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
                 {
                     if(destVA>instrVA) //jump goes up
                         destLine++;
@@ -149,28 +150,22 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
             drawLabel(&painter, line, "EIP");
 #endif
 
-        // read registers and add register labels
-        REGDUMP z;
-        memset(&z, 0, sizeof(REGDUMP));
-        DbgGetRegDump(&z);
-
         const int_t cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
 #ifdef _WIN64
-        if(cur_VA == z.cax)  drawLabel(&painter, line, "RAX");
-        if(cur_VA == z.cbx)  drawLabel(&painter, line, "RBX");
-        if(cur_VA == z.ccx)  drawLabel(&painter, line, "RCX");
-        if(cur_VA == z.cdx)  drawLabel(&painter, line, "RDX");
-        if(cur_VA == z.csi)  drawLabel(&painter, line, "RSI");
-        if(cur_VA == z.cdi)  drawLabel(&painter, line, "RDI");
+        if(cur_VA == regDump.cax)  drawLabel(&painter, line, "RAX");
+        if(cur_VA == regDump.cbx)  drawLabel(&painter, line, "RBX");
+        if(cur_VA == regDump.ccx)  drawLabel(&painter, line, "RCX");
+        if(cur_VA == regDump.cdx)  drawLabel(&painter, line, "RDX");
+        if(cur_VA == regDump.csi)  drawLabel(&painter, line, "RSI");
+        if(cur_VA == regDump.cdi)  drawLabel(&painter, line, "RDI");
 #else //x86
-        if(cur_VA == z.cax)  drawLabel(&painter, line, "EAX");
-        if(cur_VA == z.cbx)  drawLabel(&painter, line, "EBX");
-        if(cur_VA == z.ccx)  drawLabel(&painter, line, "ECX");
-        if(cur_VA == z.cdx)  drawLabel(&painter, line, "EDX");
-        if(cur_VA == z.csi)  drawLabel(&painter, line, "ESI");
-        if(cur_VA == z.cdi)  drawLabel(&painter, line, "EDI");
+        if(cur_VA == regDump.cax)  drawLabel(&painter, line, "EAX");
+        if(cur_VA == regDump.cbx)  drawLabel(&painter, line, "EBX");
+        if(cur_VA == regDump.ccx)  drawLabel(&painter, line, "ECX");
+        if(cur_VA == regDump.cdx)  drawLabel(&painter, line, "EDX");
+        if(cur_VA == regDump.csi)  drawLabel(&painter, line, "ESI");
+        if(cur_VA == regDump.cdi)  drawLabel(&painter, line, "EDI");
 #endif
-
 
     }
 }
@@ -179,16 +174,21 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
 {
     painter->save();
     if(!conditional)
-        painter->setPen(QPen(ConfigColor("SideBarConditionalJumpLineColor"), 1, Qt::SolidLine));  // jmp
+        painter->setPen(QPen(ConfigColor("SideBarConditionalJumpLineFalseColor"), 1, Qt::SolidLine));  // jmp
     else
-        painter->setPen(QPen(ConfigColor("SideBarUnconditionalJumpLineColor"), 1, Qt::DashLine));
+        painter->setPen(QPen(ConfigColor("SideBarUnconditionalJumpLineFalseColor"), 1, Qt::DashLine));
     QPen tmp = painter->pen();
 
     if(isactive) //selected
     {
+        tmp.setWidth(2); //bold line = selected
         if(isexecute) //only highlight selected jumps
-            tmp.setColor(ConfigColor("SideBarJumpLineSelectionColor"));
-        tmp.setWidth(2);
+        {
+            if(!conditional)
+                tmp.setColor(ConfigColor("SideBarConditionalJumpLineTrueColor"));
+            else
+                tmp.setColor(ConfigColor("SideBarUnconditionalJumpLineTrueColor"));
+        }
     }
     painter->setPen(tmp);
 
@@ -290,7 +290,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
     painter->restore();
 }
 
-void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbookmark)
+void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdisabled, bool isbookmark)
 {
     painter->save();
 
@@ -311,7 +311,8 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbook
     //painter->drawLine(0, y, viewport()->width(), y); //draw raster
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    //painter->setPen(QPen("#FFFFFF"));
+    if(isbpdisabled) //disabled breakpoint
+        painter->setPen(ConfigColor("SideBarBulletDisabledBreakpointColor"));
     painter->drawEllipse(x, y+yAdd, radius, radius);
 
     painter->restore();

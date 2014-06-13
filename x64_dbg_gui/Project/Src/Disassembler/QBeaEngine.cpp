@@ -5,6 +5,7 @@ QBeaEngine::QBeaEngine()
 {
     // Reset the Disasm structure
     memset(&mDisasmStruct, 0, sizeof(DISASM));
+    BeaTokenizer::Init();
 }
 
 
@@ -183,6 +184,9 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     wInst.rva = origInstRVA;
     wInst.lentgh = len;
     wInst.disasm = mDisasmStruct;
+
+    //tokenize
+    BeaTokenizer::TokenizeInstruction(&wInst.token, &mDisasmStruct);
 
     return wInst;
 }

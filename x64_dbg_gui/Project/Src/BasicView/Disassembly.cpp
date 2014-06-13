@@ -342,9 +342,12 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             depth++;
         }
 
-        QList<CustomRichText_t> richText;
-        BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
+        QList<RichTextPainter::CustomRichText_t> richText;
+
+        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].token;
+        BeaTokenizer::TokenToRichText(token, &richText);
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
+        token->x = x + loopsize;
         break;
     }
 
@@ -617,7 +620,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
             branchType == (Int32)JB      ||
             branchType == (Int32)JECXZ   ||
             branchType == (Int32)JmpType ||
-            branchType == (Int32)RetType ||
             branchType == (Int32)JNO     ||
             branchType == (Int32)JNC     ||
             branchType == (Int32)JNE     ||
@@ -655,12 +657,21 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         }
     }
 
-    painter->save() ;
+    painter->save();
 
-    if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(ConfigColor("DisassemblyJumpLineTrueColor"));
+    bool bIsExecute=DbgIsJumpGoingToExecute(instruction.rva+mBase);
+
+    if(branchType==JmpType) //unconditional
+    {
+        painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
+    }
     else
-        painter->setPen(ConfigColor("DisassemblyJumpLineFalseColor"));
+    {
+        if(bIsExecute)
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineTrueColor"));
+        else
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineFalseColor"));
+    }
 
     if(wPict == GD_Vert)
     {
@@ -1080,7 +1091,6 @@ void Disassembly::prepareData()
 void Disassembly::reloadData()
 {
     emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
-    emit repainted();
     AbstractTableView::reloadData();
 }
 

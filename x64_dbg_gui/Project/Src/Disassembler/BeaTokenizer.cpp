@@ -1,25 +1,22 @@
 #include "BeaTokenizer.h"
+#include "Configuration.h"
 
+//variables
+QMap<BeaTokenizer::BeaTokenType, BeaTokenizer::BeaTokenColor> BeaTokenizer::colorNamesMap;
+QStringList BeaTokenizer::segmentNames;
+QMap<int, QString> BeaTokenizer::memSizeNames;
+QMap<int, QMap<ARGUMENTS_TYPE, QString>> BeaTokenizer::registerMap;
+
+//functions
 BeaTokenizer::BeaTokenizer()
 {
-}
-
-//djb2 (http://www.cse.yorku.ca/~oz/hash.html)
-unsigned long BeaTokenizer::BeaHashInstruction(const DISASM* disasm)
-{
-    const char* str=disasm->CompleteInstr;
-    unsigned long hash=5381;
-    int c;
-    while(c=*str++)
-        hash=((hash<<5)+hash)+c; /*hash*33+c*/
-    return hash;
 }
 
 void BeaTokenizer::AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value)
 {
     BeaSingleToken token;
     token.type=type;
-    if(type!=TokenRequiredSpace && type!=TokenOptionalSpace && type!=TokenMemorySpace)
+    if(type!=TokenSpace && type!=TokenArgumentSpace && type!=TokenMemoryOperatorSpace)
         token.text=text.trimmed(); //remove whitespaces from the start and end
     else
         token.text=text;
@@ -38,17 +35,17 @@ void BeaTokenizer::Prefix(BeaInstructionToken* instr, const DISASM* disasm)
     if(disasm->Prefix.LockPrefix)
     {
         AddToken(instr, TokenPrefix, "lock", 0);
-        AddToken(instr, TokenRequiredSpace, " ", 0);
+        AddToken(instr, TokenSpace, " ", 0);
     }
     if(disasm->Prefix.RepPrefix)
     {
         AddToken(instr, TokenPrefix, "rep", 0);
-        AddToken(instr, TokenRequiredSpace, " ", 0);
+        AddToken(instr, TokenSpace, " ", 0);
     }
     if(disasm->Prefix.RepnePrefix)
     {
         AddToken(instr, TokenPrefix, "repne", 0);
-        AddToken(instr, TokenRequiredSpace, " ", 0);
+        AddToken(instr, TokenSpace, " ", 0);
     }
 }
 
@@ -61,15 +58,63 @@ bool BeaTokenizer::IsNopInstruction(QString mnemonic, const DISASM* disasm)
     return false;
 }
 
+void BeaTokenizer::StringInstructionMemory(BeaInstructionToken* instr, int size, QString segment, ARGUMENTS_TYPE reg)
+{
+    if(memSizeNames.contains(size))
+        AddToken(instr, TokenMemorySize, memSizeNames.find(size).value()+" ptr", 0);
+    else
+        AddToken(instr, TokenMemorySize, "??? ptr", 0);
+    AddToken(instr, TokenSpace, " ", 0);
+    AddToken(instr, TokenMemorySegment, segment, 0);
+    AddToken(instr, TokenUncategorized, ":", 0);
+    AddToken(instr, TokenMemoryBrackets, "[", 0);
+    AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(int_t)*8, reg), 0); //EDI/RDI
+    AddToken(instr, TokenMemoryBrackets, "]", 0);
+}
+
+void BeaTokenizer::StringInstruction(QString mnemonic, BeaInstructionToken* instr, const DISASM* disasm)
+{
+    AddToken(instr, TokenMnemonicNormal, mnemonic, 0);
+    AddToken(instr, TokenSpace, " ", 0);
+    if(mnemonic=="movs")
+    {
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "es", REG7); //EDI/RDI
+        AddToken(instr, TokenComma, ",", 0);
+        AddToken(instr, TokenArgumentSpace, " ", 0);
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "ds", REG6); //ESI/RSI
+    }
+    else if(mnemonic=="cmps")
+    {
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "ds", REG6); //EDI/RDI
+        AddToken(instr, TokenComma, ",", 0);
+        AddToken(instr, TokenArgumentSpace, " ", 0);
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "es", REG7); //ESI/RSI
+    }
+    else if(mnemonic=="scas" || mnemonic=="stos")
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "es", REG7); //ESI/RSI
+    else if(mnemonic=="lods")
+        StringInstructionMemory(instr, disasm->Argument1.ArgSize, "ds", REG6); //ESI/RSI
+    else if(mnemonic=="outs")
+    {
+        AddToken(instr, TokenGeneralRegister, "dx", 0);
+        AddToken(instr, TokenComma, ",", 0);
+        AddToken(instr, TokenArgumentSpace, " ", 0);
+        StringInstructionMemory(instr, disasm->Argument2.ArgSize, "es", REG6); //EDI/RDI
+    }
+}
+
 void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
 {
     QString mnemonic=QString(disasm->Instruction.Mnemonic).trimmed().toLower();
+    QString completeInstr=QString(disasm->CompleteInstr).trimmed().toLower();
     BeaTokenType type=TokenMnemonicNormal;
     int brtype=disasm->Instruction.BranchType;
     if(brtype) //jump/call
     {
-        if(brtype==RetType || brtype==CallType)
-            type=TokenMnemonicCallRet;
+        if(brtype==CallType)
+            type=TokenMnemonicCall;
+        else if(brtype==RetType)
+            type=TokenMnemonicRet;
         else if(brtype==JmpType)
             type=TokenMnemonicUncondJump;
         else //cond jump
@@ -79,54 +124,45 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         type=TokenMnemonicPushPop;
     else if(IsNopInstruction(mnemonic, disasm)) //nop instructions
         type=TokenMnemonicNop;
+    else if(completeInstr.contains("movs") || completeInstr.contains("cmps") || completeInstr.contains("scas") || completeInstr.contains("lods") || completeInstr.contains("stos") || completeInstr.contains("outs"))
+    {
+        mnemonic.truncate(4);
+        StringInstruction(mnemonic, instr, disasm);
+        return;
+    }
     AddToken(instr, type, mnemonic, 0);
-    AddToken(instr, TokenRequiredSpace, " ", 0);
 }
 
-QString BeaTokenizer::PrintValue(const BeaTokenValue* value)
+QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module)
 {
-    return QString("%1").arg(value->value, 0, 16, QChar('0'));
+    char labelText[MAX_LABEL_SIZE]="";
+    char moduleText[MAX_MODULE_SIZE]="";
+    int_t addr=value->value;
+    bool bHasLabel=DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
+    bool bHasModule=(module && DbgGetModuleAt(addr, moduleText));
+    QString addrText;
+    addrText=QString("%1").arg(addr&(uint_t)-1, 0, 16, QChar('0')).toUpper();
+    QString finalText;
+    if(bHasLabel && bHasModule) //<module.label>
+        finalText=QString("<%1.%2>").arg(moduleText).arg(labelText);
+    else if(bHasModule) //module.addr
+        finalText=QString("%1.%2").arg(moduleText).arg(addrText);
+    else if(bHasLabel) //<label>
+        finalText=QString("<%1>").arg(labelText);
+    else
+        finalText=addrText;
+    return finalText;
 }
 
 QString BeaTokenizer::RegisterToString(int size, int reg)
 {
     ARGUMENTS_TYPE regValue=(ARGUMENTS_TYPE)(reg&0xFFFF);
-    QMap<ARGUMENTS_TYPE, int> registerValueMap;
-    registerValueMap.insert(REG0, 0);
-    registerValueMap.insert(REG1, 1);
-    registerValueMap.insert(REG2, 2);
-    registerValueMap.insert(REG3, 3);
-    registerValueMap.insert(REG4, 4);
-    registerValueMap.insert(REG5, 5);
-    registerValueMap.insert(REG6, 6);
-    registerValueMap.insert(REG7, 7);
-    registerValueMap.insert(REG8, 8);
-    registerValueMap.insert(REG9, 9);
-    registerValueMap.insert(REG10, 10);
-    registerValueMap.insert(REG11, 11);
-    registerValueMap.insert(REG12, 12);
-    registerValueMap.insert(REG13, 13);
-    registerValueMap.insert(REG14, 14);
-    registerValueMap.insert(REG15, 15);
-    if(!registerValueMap.contains(regValue)) //not a register
-        return "UNKNOWN_REGISTER";
-    QMap<int, const char**> registerMap;
-#ifdef _WIN64
-    const char Registers8Bits64[16][8] = {"al", "cl", "dl", "bl", "spl", "bpl", "sil", "dil", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b", "r14b", "r15b"};
-    registerMap.insert(8, (const char**)Registers8Bits64);
-    const char Registers64Bits[16][4] = {"rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"};
-    registerMap.insert(64, (const char**)Registers64Bits);
-#else //x86
-    const char Registers8Bits32[8][4] = {"al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
-    registerMap.insert(8, (const char**)Registers8Bits32);
-#endif //_WIN64
-    const char Registers16Bits[16][8] = {"ax", "cx", "dx", "bx", "sp", "bp", "si", "di", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"};
-    registerMap.insert(16, (const char**)Registers16Bits);
-    const char Registers32Bits[16][8] = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d"};
-    registerMap.insert(32, (const char**)Registers32Bits);
     if(!registerMap.contains(size)) //invalid size
-        return "UNKNOWN_REGISTER";
-    return registerMap[size][regValue];
+        return QString("UNKNOWN_REGISTER(size:%1)").arg(size);
+    QMap<ARGUMENTS_TYPE, QString>* currentMap=&registerMap.find(size).value();
+    if(!currentMap->contains(regValue))
+        return QString("UNKNOWN_REGISTER(reg:%1)").arg(reg);
+    return currentMap->find(regValue).value();
 }
 
 void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg)
@@ -137,63 +173,52 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
     if(*hadarg) //there already was an argument before this one
     {
         AddToken(instr, TokenComma, ",", 0);
-        AddToken(instr, TokenOptionalSpace, " ", 0);
+        AddToken(instr, TokenArgumentSpace, " ", 0);
     }
+    else //no arg yet (only prefix/mnemonic
+        AddToken(instr, TokenSpace, " ", 0);
 
     //print argument
     QString argMnemonic=QString(arg->ArgMnemonic).toLower().trimmed();
-    if(disasm->Instruction.BranchType != 0) //jump/call
+    if((arg->ArgType&MEMORY_TYPE)==MEMORY_TYPE && QString(disasm->CompleteInstr).contains('[')) //memory argument
     {
-        BeaTokenValue value;
-        value.size=arg->ArgSize/16;
-        value.value=disasm->Instruction.AddrValue;
-        AddToken(instr, TokenCodeDest, PrintValue(&value), &value);
-    }
-    else if((arg->ArgType&CONSTANT_TYPE)==CONSTANT_TYPE) //immediat
-    {
-        BeaTokenValue value;
-        value.size=arg->ArgSize/16;
-        value.value=disasm->Instruction.Immediat;
-        AddToken(instr, TokenImmediat, PrintValue(&value), &value);
-    }
-    else if((arg->ArgType&MEMORY_TYPE)==MEMORY_TYPE) //memory argument
-    {
-        //initialization
-        QStringList segmentNames;
-        segmentNames<<""<<"es"<<"ds"<<"fs"<<"gs"<<"cs"<<"ss";
-        QMap<int, QString> memSizeNames; //lookup table for memory sizes
-        memSizeNames.insert(8, "byte");
-        memSizeNames.insert(16, "word");
-        memSizeNames.insert(32, "dword");
-        memSizeNames.insert(64, "qword");
-        memSizeNames.insert(80, "tword");
-        memSizeNames.insert(128, "dqword");
-        memSizeNames.insert(256, "yword");
-        memSizeNames.insert(512, "zword");
         //#size ptr #segment:[#BaseRegister + #IndexRegister*#Scale +/- #Displacement]
-        AddToken(instr, TokenMemorySize, memSizeNames.find(arg->ArgSize).value(), 0);
-        AddToken(instr, TokenRequiredSpace, " ", 0);
-        AddToken(instr, TokenMemoryText, "ptr", 0);
-        AddToken(instr, TokenRequiredSpace, " ", 0);
+        if(memSizeNames.contains(arg->ArgSize))
+            AddToken(instr, TokenMemorySize, memSizeNames.find(arg->ArgSize).value() + " ptr", 0);
+        else
+            AddToken(instr, TokenMemorySize, "??? ptr", 0);
+        AddToken(instr, TokenSpace, " ", 0);
         AddToken(instr, TokenMemorySegment, segmentNames.at(arg->SegmentReg), 0);
-        AddToken(instr, TokenMemoryBrackets, ":[", 0);
+        AddToken(instr, TokenUncategorized, ":", 0);
+
+        BeaTokenType bracketsType=TokenMemoryBrackets;
+        if((arg->Memory.BaseRegister&REG4)==REG4 || (arg->Memory.BaseRegister&REG5)==REG5) //ESP/EBP
+            bracketsType=TokenMemoryStackBrackets;
+        AddToken(instr, bracketsType, "[", 0);
 
         bool prependPlusMinus=false;
         if(arg->Memory.BaseRegister) //base register
         {
-            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(arg->ArgSize, arg->Memory.BaseRegister), 0);
+            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(int_t)*8, arg->Memory.BaseRegister), 0);
             prependPlusMinus=true;
         }
         if(arg->Memory.IndexRegister) //index register + scale
         {
             if(prependPlusMinus)
             {
-                AddToken(instr, TokenMemorySpace, " ", 0);
-                AddToken(instr, TokenMemoryPlusMinus, "+", 0);
-                AddToken(instr, TokenMemorySpace, " ", 0);
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
+                AddToken(instr, TokenMemoryOperator, "+", 0);
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
             }
-            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(arg->ArgSize, arg->Memory.BaseRegister), 0);
-            AddToken(instr, TokenMemoryScale, QString("%1").arg(arg->Memory.Displacement), 0);
+            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(sizeof(int_t)*8, arg->Memory.IndexRegister), 0);
+            int scale=arg->Memory.Scale;
+            if(scale>1) //eax * 1 = eax
+            {
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
+                AddToken(instr, TokenMemoryOperator, "*", 0);
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
+                AddToken(instr, TokenMemoryScale, QString("%1").arg(arg->Memory.Scale), 0);
+            }
             prependPlusMinus=true;
         }
 
@@ -211,17 +236,38 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             if(printDisplacement.value<0) //negative -> '-(displacement*-1)'
             {
                 printDisplacement.value*=-1;
+                printDisplacement.size=arg->ArgSize/8;
                 plusMinus="-";
             }
             if(prependPlusMinus)
             {
-                AddToken(instr, TokenMemorySpace, " ", 0);
-                AddToken(instr, TokenMemoryPlusMinus, plusMinus, 0);
-                AddToken(instr, TokenMemorySpace, " ", 0);
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
+                AddToken(instr, TokenMemoryOperator, plusMinus, 0);
+                AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
             }
-            AddToken(instr, TokenMemoryDisplacement, PrintValue(&printDisplacement), &displacement);
+            BeaTokenType type=TokenValue;
+            if(DbgMemIsValidReadPtr(displacement.value)) //pointer
+                type=TokenAddress;
+            AddToken(instr, type, PrintValue(&printDisplacement, false), &displacement);
         }
-        AddToken(instr, TokenMemoryBrackets, "]", 0);
+        AddToken(instr, bracketsType, "]", 0);
+    }
+    else if(disasm->Instruction.BranchType != 0 && disasm->Instruction.AddrValue) //jump/call
+    {
+        BeaTokenValue value;
+        value.size=arg->ArgSize/8;
+        value.value=disasm->Instruction.AddrValue;
+        AddToken(instr, TokenAddress, PrintValue(&value, true), &value);
+    }
+    else if((arg->ArgType&CONSTANT_TYPE)==CONSTANT_TYPE) //immediat
+    {
+        BeaTokenValue value;
+        value.size=arg->ArgSize/8;
+        value.value=disasm->Instruction.Immediat;
+        BeaTokenType type=TokenValue;
+        if(DbgMemIsValidReadPtr(value.value)) //pointer
+            type=TokenAddress;
+        AddToken(instr, type, PrintValue(&value, true), &value);
     }
     else if((arg->ArgType&REGISTER_TYPE)==REGISTER_TYPE) //registers
     {
@@ -235,13 +281,176 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         AddToken(instr, type, argMnemonic, 0);
     }
     else //other
-        AddToken(instr, TokenGeneral, argMnemonic, 0);
+        AddToken(instr, TokenUncategorized, argMnemonic, 0);
+    *hadarg=true; //we now added an argument
 }
 
-void BeaTokenizer::BeaTokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm)
+void BeaTokenizer::AddColorName(BeaTokenType type, QString color, QString backgroundColor)
+{
+    BeaTokenColor tokenColor;
+    tokenColor.color=color;
+    tokenColor.backgroundColor=backgroundColor;
+    colorNamesMap.insert(type, tokenColor);
+}
+
+void BeaTokenizer::Init()
+{
+    registerMap.clear();
+#ifdef _WIN64
+    QMap<ARGUMENTS_TYPE, QString> Registers8Bits64;
+    Registers8Bits64.insert(REG0, "al");
+    Registers8Bits64.insert(REG1, "cl");
+    Registers8Bits64.insert(REG2, "dl");
+    Registers8Bits64.insert(REG3, "bl");
+    Registers8Bits64.insert(REG4, "spl");
+    Registers8Bits64.insert(REG5, "bpl");
+    Registers8Bits64.insert(REG6, "sil");
+    Registers8Bits64.insert(REG7, "dil");
+    Registers8Bits64.insert(REG8, "r8b");
+    Registers8Bits64.insert(REG9, "r9b");
+    Registers8Bits64.insert(REG10, "r10b");
+    Registers8Bits64.insert(REG11, "r11b");
+    Registers8Bits64.insert(REG12, "r12b");
+    Registers8Bits64.insert(REG13, "r13b");
+    Registers8Bits64.insert(REG14, "r14b");
+    Registers8Bits64.insert(REG15, "r15b");
+    registerMap.insert(8, Registers8Bits64);
+    QMap<ARGUMENTS_TYPE, QString> Registers64Bits;
+    Registers64Bits.insert(REG0, "rax");
+    Registers64Bits.insert(REG1, "rcx");
+    Registers64Bits.insert(REG2, "rdx");
+    Registers64Bits.insert(REG3, "rbx");
+    Registers64Bits.insert(REG4, "rsp");
+    Registers64Bits.insert(REG5, "rbp");
+    Registers64Bits.insert(REG6, "rsi");
+    Registers64Bits.insert(REG7, "rdi");
+    Registers64Bits.insert(REG8, "r8");
+    Registers64Bits.insert(REG9, "r9");
+    Registers64Bits.insert(REG10, "r10");
+    Registers64Bits.insert(REG11, "r11");
+    Registers64Bits.insert(REG12, "r12");
+    Registers64Bits.insert(REG13, "r13");
+    Registers64Bits.insert(REG14, "r14");
+    Registers64Bits.insert(REG15, "r15");
+    registerMap.insert(64, Registers64Bits);
+#else //x86
+    QMap<ARGUMENTS_TYPE, QString> Registers8Bits32;
+    Registers8Bits32.insert(REG0, "al");
+    Registers8Bits32.insert(REG1, "cl");
+    Registers8Bits32.insert(REG2, "dl");
+    Registers8Bits32.insert(REG3, "bl");
+    Registers8Bits32.insert(REG4, "ah");
+    Registers8Bits32.insert(REG5, "ch");
+    Registers8Bits32.insert(REG6, "dh");
+    Registers8Bits32.insert(REG7, "bh");
+    registerMap.insert(8, Registers8Bits32);
+#endif //_WIN64
+    QMap<ARGUMENTS_TYPE, QString> Registers16Bits;
+    Registers16Bits.insert(REG0, "ax");
+    Registers16Bits.insert(REG1, "cx");
+    Registers16Bits.insert(REG2, "dx");
+    Registers16Bits.insert(REG3, "bx");
+    Registers16Bits.insert(REG4, "sp");
+    Registers16Bits.insert(REG5, "bp");
+    Registers16Bits.insert(REG6, "si");
+    Registers16Bits.insert(REG7, "di");
+#ifdef _WIN64
+    Registers16Bits.insert(REG8, "r8w");
+    Registers16Bits.insert(REG9, "r9w");
+    Registers16Bits.insert(REG10, "r10w");
+    Registers16Bits.insert(REG11, "r11w");
+    Registers16Bits.insert(REG12, "r12w");
+    Registers16Bits.insert(REG13, "r13w");
+    Registers16Bits.insert(REG14, "r14w");
+    Registers16Bits.insert(REG15, "r15w");
+#endif //_WIN64
+    registerMap.insert(16, Registers16Bits);
+
+    QMap<ARGUMENTS_TYPE, QString> Registers32Bits;
+    Registers32Bits.insert(REG0, "eax");
+    Registers32Bits.insert(REG1, "ecx");
+    Registers32Bits.insert(REG2, "edx");
+    Registers32Bits.insert(REG3, "ebx");
+    Registers32Bits.insert(REG4, "esp");
+    Registers32Bits.insert(REG5, "ebp");
+    Registers32Bits.insert(REG6, "esi");
+    Registers32Bits.insert(REG7, "edi");
+#ifdef _WIN64
+    Registers32Bits.insert(REG8, "r8d");
+    Registers32Bits.insert(REG9, "r9d");
+    Registers32Bits.insert(REG10, "r10d");
+    Registers32Bits.insert(REG11, "r11d");
+    Registers32Bits.insert(REG12, "r12d");
+    Registers32Bits.insert(REG13, "r13d");
+    Registers32Bits.insert(REG14, "r14d");
+    Registers32Bits.insert(REG15, "r15d");
+#endif //_WIN64
+    registerMap.insert(32, Registers32Bits);
+
+    //memory parser
+    memSizeNames.clear();
+    memSizeNames.insert(8, "byte");
+    memSizeNames.insert(16, "word");
+    memSizeNames.insert(32, "dword");
+    memSizeNames.insert(64, "qword");
+    memSizeNames.insert(80, "tword");
+    memSizeNames.insert(128, "dqword");
+    memSizeNames.insert(256, "yword");
+    memSizeNames.insert(512, "zword");
+    segmentNames.clear();
+    segmentNames<<"??"<<"es"<<"ds"<<"fs"<<"gs"<<"cs"<<"ss";
+
+    //color names map
+    colorNamesMap.clear();
+    //filling
+    AddColorName(TokenComma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
+    AddColorName(TokenSpace, "", "");
+    AddColorName(TokenArgumentSpace, "", "");
+    AddColorName(TokenMemoryOperatorSpace, "", "");
+    //general instruction parts
+    AddColorName(TokenPrefix, "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
+    AddColorName(TokenUncategorized, "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
+    AddColorName(TokenAddress, "InstructionAddressColor", "InstructionAddressBackgroundColor"); //jump/call destinations
+    AddColorName(TokenValue, "InstructionValueColor", "InstructionValueBackgroundColor");
+    //mnemonics
+    AddColorName(TokenMnemonicNormal, "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
+    AddColorName(TokenMnemonicPushPop, "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
+    AddColorName(TokenMnemonicCall, "InstructionCallColor", "InstructionCallBackgroundColor");
+    AddColorName(TokenMnemonicRet, "InstructionRetColor", "InstructionRetBackgroundColor");
+    AddColorName(TokenMnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
+    AddColorName(TokenMnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
+    AddColorName(TokenMnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
+    //memory
+    AddColorName(TokenMemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
+    AddColorName(TokenMemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
+    AddColorName(TokenMemoryBrackets, "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
+    AddColorName(TokenMemoryStackBrackets, "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
+    AddColorName(TokenMemoryBaseRegister, "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
+    AddColorName(TokenMemoryIndexRegister, "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
+    AddColorName(TokenMemoryScale, "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
+    AddColorName(TokenMemoryOperator, "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
+    //registers
+    AddColorName(TokenGeneralRegister, "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
+    AddColorName(TokenFpuRegister, "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
+    AddColorName(TokenMmxRegister, "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
+    AddColorName(TokenSseRegister, "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");
+}
+
+//djb2 (http://www.cse.yorku.ca/~oz/hash.html)
+unsigned long BeaTokenizer::HashInstruction(const DISASM* disasm)
+{
+    const char* str=disasm->CompleteInstr;
+    unsigned long hash=5381;
+    int c;
+    while(c=*str++)
+        hash=((hash<<5)+hash)+c; /*hash*33+c*/
+    return hash;
+}
+
+void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm)
 {
     //initialization
-    instr->hash=BeaHashInstruction(disasm); //hash instruction
+    instr->hash=HashInstruction(disasm); //hash instruction
     instr->tokens.clear(); //clear token list
 
     //base instruction
@@ -253,4 +462,38 @@ void BeaTokenizer::BeaTokenizeInstruction(BeaInstructionToken* instr, const DISA
     Argument(instr, disasm, &disasm->Argument1, &hadarg);
     Argument(instr, disasm, &disasm->Argument2, &hadarg);
     Argument(instr, disasm, &disasm->Argument3, &hadarg);
+}
+
+void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList)
+{
+    for(int i=0; i<instr->tokens.size(); i++)
+    {
+        BeaSingleToken token=instr->tokens.at(i);
+        RichTextPainter::CustomRichText_t richText;
+        richText.flags=FlagNone;
+        richText.text=token.text;
+        if(colorNamesMap.contains(token.type))
+        {
+            BeaTokenColor tokenColor=colorNamesMap[token.type];
+            QString color=tokenColor.color;
+            QString backgroundColor=tokenColor.backgroundColor;
+            if(color.length() && backgroundColor.length())
+            {
+                richText.flags=FlagAll;
+                richText.textColor=ConfigColor(color);
+                richText.textBackground=ConfigColor(backgroundColor);
+            }
+            else if(color.length())
+            {
+                richText.flags=FlagColor;
+                richText.textColor=ConfigColor(color);
+            }
+            else if(backgroundColor.length())
+            {
+                richText.flags=FlagBackground;
+                richText.textBackground=ConfigColor(backgroundColor);
+            }
+        }
+        richTextList->append(richText);
+    }
 }

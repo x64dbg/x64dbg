@@ -112,6 +112,7 @@ private:
     QMap<REGISTER_NAME,Register_Position> mRegisterPlaces;
     // contains a dump of the current register values
     REGDUMP wRegDumpStruct;
+    REGDUMP wCipRegDumpStruct;
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
     // context menu actions
@@ -124,6 +125,7 @@ private:
     QAction* wCM_CopyToClipboard;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
+    int_t mCip;
 };
 
 #endif // REGISTERSVIEW_H
