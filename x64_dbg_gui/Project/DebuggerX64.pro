@@ -13,7 +13,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 #QMAKE_CFLAGS_RELEASE += -O3
 #QMAKE_CXXFLAGS_RELEASE += -O3
-
+#generate debug symbols in release mode
+QMAKE_CFLAGS_RELEASE += -Zi
+QMAKE_LFLAGS_RELEASE += /DEBUG
 
 !contains(QMAKE_HOST.arch, x86_64) {
     TARGET = x32_gui
