@@ -4,9 +4,10 @@
 #include <QObject>
 #include <QDebug>
 #include <QtGui>
-#include "BeaHighlight.h"
 #include "NewTypes.h"
 #include "ReferenceView.h"
+#include "BeaTokenizer.h"
+#include "QBeaEngine.h"
 
 #include "main.h"
 

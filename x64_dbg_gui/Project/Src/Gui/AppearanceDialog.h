@@ -6,7 +6,8 @@
 #include <QMessageBox>
 #include "Configuration.h"
 
-namespace Ui {
+namespace Ui
+{
 class AppearanceDialog;
 }
 
@@ -52,6 +53,8 @@ private slots:
     void defaultValueSlot();
     void currentSettingSlot();
 
+    void on_buttonCancel_clicked();
+
 private:
     Ui::AppearanceDialog *ui;
 
@@ -64,7 +67,8 @@ private:
 
     QList<ColorInfo> colorInfoList;
     int colorInfoIndex;
-    QMap<QString, QColor> colorMap;
+    QMap<QString, QColor>* colorMap;
+    QMap<QString, QColor> colorBackupMap;
 
     QAction* defaultValueAction;
     QAction* currentSettingAction;

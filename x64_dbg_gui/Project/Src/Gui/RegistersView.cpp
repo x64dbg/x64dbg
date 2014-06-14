@@ -27,17 +27,33 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
 
 
     // general purposes register (we allow the user to modify the value)
-    mGPR.insert(CAX); mGPR.insert(CBX); mGPR.insert(CCX); mGPR.insert(CDX);
-    mGPR.insert(CBP); mGPR.insert(CSP);
-    mGPR.insert(CSI); mGPR.insert(CDI);
-    mGPR.insert(R8);  mGPR.insert(R9);  mGPR.insert(R10);
-    mGPR.insert(R11); mGPR.insert(R12); mGPR.insert(R13);
-    mGPR.insert(R14); mGPR.insert(R15);
+    mGPR.insert(CAX);
+    mGPR.insert(CBX);
+    mGPR.insert(CCX);
+    mGPR.insert(CDX);
+    mGPR.insert(CBP);
+    mGPR.insert(CSP);
+    mGPR.insert(CSI);
+    mGPR.insert(CDI);
+    mGPR.insert(R8);
+    mGPR.insert(R9);
+    mGPR.insert(R10);
+    mGPR.insert(R11);
+    mGPR.insert(R12);
+    mGPR.insert(R13);
+    mGPR.insert(R14);
+    mGPR.insert(R15);
     mGPR.insert(EFLAGS);
 
     // flags (we allow the user to toggle them)
-    mFlags.insert(CF); mFlags.insert(PF); mFlags.insert(AF); mFlags.insert(ZF);
-    mFlags.insert(SF); mFlags.insert(TF); mFlags.insert(IF); mFlags.insert(DF);
+    mFlags.insert(CF);
+    mFlags.insert(PF);
+    mFlags.insert(AF);
+    mFlags.insert(ZF);
+    mFlags.insert(SF);
+    mFlags.insert(TF);
+    mFlags.insert(IF);
+    mFlags.insert(DF);
     mFlags.insert(OF);
 
 
@@ -51,69 +67,118 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
      * (line , start, labelwidth, valuesize )
      */
 #ifdef _WIN64
-    mRegisterMapping.insert(CAX,"RAX");         mRegisterPlaces.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBX,"RBX");         mRegisterPlaces.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CCX,"RCX");         mRegisterPlaces.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDX,"RDX");         mRegisterPlaces.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSI,"RSI");         mRegisterPlaces.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDI,"RDI");         mRegisterPlaces.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBP,"RBP");         mRegisterPlaces.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSP,"RSP");         mRegisterPlaces.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CAX,"RAX");
+    mRegisterPlaces.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBX,"RBX");
+    mRegisterPlaces.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CCX,"RCX");
+    mRegisterPlaces.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDX,"RDX");
+    mRegisterPlaces.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSI,"RSI");
+    mRegisterPlaces.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDI,"RDI");
+    mRegisterPlaces.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBP,"RBP");
+    mRegisterPlaces.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSP,"RSP");
+    mRegisterPlaces.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(R8,"R8");           mRegisterPlaces.insert(R8 ,Register_Position(9,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R9,"R9");           mRegisterPlaces.insert(R9 ,Register_Position(10,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R10,"R10");         mRegisterPlaces.insert(R10,Register_Position(11,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R11,"R11");         mRegisterPlaces.insert(R11,Register_Position(12,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R12,"R12");         mRegisterPlaces.insert(R12,Register_Position(13,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R13,"R13");         mRegisterPlaces.insert(R13,Register_Position(14,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R14,"R14");         mRegisterPlaces.insert(R14,Register_Position(15,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(R15,"R15");         mRegisterPlaces.insert(R15,Register_Position(16,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R8,"R8");
+    mRegisterPlaces.insert(R8 ,Register_Position(9,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R9,"R9");
+    mRegisterPlaces.insert(R9 ,Register_Position(10,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R10,"R10");
+    mRegisterPlaces.insert(R10,Register_Position(11,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R11,"R11");
+    mRegisterPlaces.insert(R11,Register_Position(12,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R12,"R12");
+    mRegisterPlaces.insert(R12,Register_Position(13,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R13,"R13");
+    mRegisterPlaces.insert(R13,Register_Position(14,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R14,"R14");
+    mRegisterPlaces.insert(R14,Register_Position(15,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(R15,"R15");
+    mRegisterPlaces.insert(R15,Register_Position(16,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(CIP,"RIP");         mRegisterPlaces.insert(CIP,Register_Position(18,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CIP,"RIP");
+    mRegisterPlaces.insert(CIP,Register_Position(18,0, 6, sizeof(uint_t) * 2));
 
-    mRegisterMapping.insert(EFLAGS,"RFLAGS");   mRegisterPlaces.insert(EFLAGS,Register_Position(20,0, 9, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(EFLAGS,"RFLAGS");
+    mRegisterPlaces.insert(EFLAGS,Register_Position(20,0, 9, sizeof(uint_t) * 2));
 
     offset = 21;
 #else
-    mRegisterMapping.insert(CAX,"EAX");         mRegisterPlaces.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBX,"EBX");         mRegisterPlaces.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CCX,"ECX");         mRegisterPlaces.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDX,"EDX");         mRegisterPlaces.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSI,"ESI");         mRegisterPlaces.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CDI,"EDI");         mRegisterPlaces.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CBP,"EBP");         mRegisterPlaces.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CSP,"ESP");         mRegisterPlaces.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(CIP,"EIP");         mRegisterPlaces.insert(CIP,Register_Position(9,0, 6, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(EFLAGS,"EFLAGS");   mRegisterPlaces.insert(EFLAGS,Register_Position(11,0, 9, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CAX,"EAX");
+    mRegisterPlaces.insert(CAX,Register_Position(0,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBX,"EBX");
+    mRegisterPlaces.insert(CBX,Register_Position(1,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CCX,"ECX");
+    mRegisterPlaces.insert(CCX,Register_Position(2,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDX,"EDX");
+    mRegisterPlaces.insert(CDX,Register_Position(3,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSI,"ESI");
+    mRegisterPlaces.insert(CSI,Register_Position(6,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CDI,"EDI");
+    mRegisterPlaces.insert(CDI,Register_Position(7,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CBP,"EBP");
+    mRegisterPlaces.insert(CBP,Register_Position(4,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CSP,"ESP");
+    mRegisterPlaces.insert(CSP,Register_Position(5,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(CIP,"EIP");
+    mRegisterPlaces.insert(CIP,Register_Position(9,0, 6, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(EFLAGS,"EFLAGS");
+    mRegisterPlaces.insert(EFLAGS,Register_Position(11,0, 9, sizeof(uint_t) * 2));
 
     offset = 12;
 #endif
-    mRegisterMapping.insert(CF,"CF");           mRegisterPlaces.insert(CF,Register_Position(offset+0,0, 3, 1));
-    mRegisterMapping.insert(PF,"PF");           mRegisterPlaces.insert(PF,Register_Position(offset+1,0, 3, 1));
-    mRegisterMapping.insert(AF,"AF");           mRegisterPlaces.insert(AF,Register_Position(offset+2,0, 3, 1));
-    mRegisterMapping.insert(ZF,"ZF");           mRegisterPlaces.insert(ZF,Register_Position(offset+3,0, 3, 1));
-    mRegisterMapping.insert(SF,"SF");           mRegisterPlaces.insert(SF,Register_Position(offset+4,0, 3, 1));
+    mRegisterMapping.insert(CF,"CF");
+    mRegisterPlaces.insert(CF,Register_Position(offset+0,0, 3, 1));
+    mRegisterMapping.insert(PF,"PF");
+    mRegisterPlaces.insert(PF,Register_Position(offset+1,0, 3, 1));
+    mRegisterMapping.insert(AF,"AF");
+    mRegisterPlaces.insert(AF,Register_Position(offset+2,0, 3, 1));
+    mRegisterMapping.insert(ZF,"ZF");
+    mRegisterPlaces.insert(ZF,Register_Position(offset+3,0, 3, 1));
+    mRegisterMapping.insert(SF,"SF");
+    mRegisterPlaces.insert(SF,Register_Position(offset+4,0, 3, 1));
 
-    mRegisterMapping.insert(TF,"TF");           mRegisterPlaces.insert(TF,Register_Position(offset+0, 10, 3,1));
-    mRegisterMapping.insert(IF,"IF");           mRegisterPlaces.insert(IF,Register_Position(offset+1, 10, 3,1));
-    mRegisterMapping.insert(DF,"DF");           mRegisterPlaces.insert(DF,Register_Position(offset+2, 10, 3,1));
-    mRegisterMapping.insert(OF,"OF");           mRegisterPlaces.insert(OF,Register_Position(offset+3, 10, 3,1));
+    mRegisterMapping.insert(TF,"TF");
+    mRegisterPlaces.insert(TF,Register_Position(offset+0, 10, 3,1));
+    mRegisterMapping.insert(IF,"IF");
+    mRegisterPlaces.insert(IF,Register_Position(offset+1, 10, 3,1));
+    mRegisterMapping.insert(DF,"DF");
+    mRegisterPlaces.insert(DF,Register_Position(offset+2, 10, 3,1));
+    mRegisterMapping.insert(OF,"OF");
+    mRegisterPlaces.insert(OF,Register_Position(offset+3, 10, 3,1));
 
     offset++;
-    mRegisterMapping.insert(GS,"GS");           mRegisterPlaces.insert(GS,Register_Position(offset+5,0, 3, 4));
-    mRegisterMapping.insert(FS,"FS");           mRegisterPlaces.insert(FS,Register_Position(offset+6,0, 3, 4));
-    mRegisterMapping.insert(ES,"ES");           mRegisterPlaces.insert(ES,Register_Position(offset+7,0, 3, 4));
-    mRegisterMapping.insert(DS,"DS");           mRegisterPlaces.insert(DS,Register_Position(offset+8,0, 3, 4));
-    mRegisterMapping.insert(CS,"CS");           mRegisterPlaces.insert(CS,Register_Position(offset+9,0, 3, 4));
-    mRegisterMapping.insert(SS,"SS");           mRegisterPlaces.insert(SS,Register_Position(offset+10,0, 3, 4));
+    mRegisterMapping.insert(GS,"GS");
+    mRegisterPlaces.insert(GS,Register_Position(offset+5,0, 3, 4));
+    mRegisterMapping.insert(FS,"FS");
+    mRegisterPlaces.insert(FS,Register_Position(offset+6,0, 3, 4));
+    mRegisterMapping.insert(ES,"ES");
+    mRegisterPlaces.insert(ES,Register_Position(offset+7,0, 3, 4));
+    mRegisterMapping.insert(DS,"DS");
+    mRegisterPlaces.insert(DS,Register_Position(offset+8,0, 3, 4));
+    mRegisterMapping.insert(CS,"CS");
+    mRegisterPlaces.insert(CS,Register_Position(offset+9,0, 3, 4));
+    mRegisterMapping.insert(SS,"SS");
+    mRegisterPlaces.insert(SS,Register_Position(offset+10,0, 3, 4));
 
     offset++;
-    mRegisterMapping.insert(DR0,"DR0");         mRegisterPlaces.insert(DR0,Register_Position(offset+11,0, 4, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(DR1,"DR1");         mRegisterPlaces.insert(DR1,Register_Position(offset+12,0, 4, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(DR2,"DR2");         mRegisterPlaces.insert(DR2,Register_Position(offset+13,0, 4, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(DR3,"DR3");         mRegisterPlaces.insert(DR3,Register_Position(offset+14,0, 4, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(DR6,"DR6");         mRegisterPlaces.insert(DR6,Register_Position(offset+15,0, 4, sizeof(uint_t) * 2));
-    mRegisterMapping.insert(DR7,"DR7");         mRegisterPlaces.insert(DR7,Register_Position(offset+16,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR0,"DR0");
+    mRegisterPlaces.insert(DR0,Register_Position(offset+11,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR1,"DR1");
+    mRegisterPlaces.insert(DR1,Register_Position(offset+12,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR2,"DR2");
+    mRegisterPlaces.insert(DR2,Register_Position(offset+13,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR3,"DR3");
+    mRegisterPlaces.insert(DR3,Register_Position(offset+14,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR6,"DR6");
+    mRegisterPlaces.insert(DR6,Register_Position(offset+15,0, 4, sizeof(uint_t) * 2));
+    mRegisterMapping.insert(DR7,"DR7");
+    mRegisterPlaces.insert(DR7,Register_Position(offset+16,0, 4, sizeof(uint_t) * 2));
 
     //set font
     QFont font("Monospace", 8);
@@ -132,6 +197,10 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP));
     mCip=0;
     mRegisterUpdates.clear();
+
+    mRowsNeeded=offset+16;
+    mRowsNeeded++;
+    yTopSpacing=3; //set top spacing (in pixels)
 
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -165,17 +234,20 @@ RegistersView::~RegistersView()
  * @param resulting register-id
  * @return true if register found
  */
-bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_NAME *clickedReg){
+bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_NAME *clickedReg)
+{
     // we start by an unknown register id
     *clickedReg = UNKNOWN;
     bool found_flag = false;
     QMap<REGISTER_NAME,Register_Position>::const_iterator it = mRegisterPlaces.begin();
     // iterate all registers that being displayed
-    while (it != mRegisterPlaces.end()) {
+    while (it != mRegisterPlaces.end())
+    {
         if( (it.value().line == (line - mVScrollOffset))   /* same line ? */
                 && ( (1 + it.value().start) <= offset)  /* between start ... ? */
                 && ( offset<= (1+it.value().start+it.value().labelwidth+it.value().valuesize)) /* ... and end ? */
-                ){
+          )
+        {
             // we found a matching register in the viewport
             *clickedReg = (REGISTER_NAME)it.key();
             found_flag = true;
@@ -197,7 +269,8 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 
     REGISTER_NAME r;
     // do we find a corresponding register?
-    if(identifyRegister(y,x,&r)){
+    if(identifyRegister(y,x,&r))
+    {
         mSelected = r;
         emit refresh();
     }
@@ -212,9 +285,11 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     if(!DbgIsDebugging())
         return;
     // is current register general purposes register ?
-    if(mGPR.contains(mSelected)){
+    if(mGPR.contains(mSelected))
+    {
         wCM_Modify->trigger();
-    }else if(mFlags.contains(mSelected)) // is flag ?
+    }
+    else if(mFlags.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
 
 }
@@ -227,7 +302,8 @@ void RegistersView::paintEvent(QPaintEvent *event)
 
     QMap<REGISTER_NAME,QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
-    while (it != mRegisterMapping.end()) {
+    while (it != mRegisterMapping.end())
+    {
         // paint register at given position
         drawRegister(&wPainter,it.key(),registerValue(&wRegDumpStruct,it.key()));
         it++;
@@ -239,13 +315,15 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
 {
     if(!DbgIsDebugging())
         return;
-    if(event->matches(QKeySequence::Copy)){
+    if(event->matches(QKeySequence::Copy))
+    {
         wCM_CopyToClipboard->trigger();
         return;
     }
 
 
-    switch(event->key()) {
+    switch(event->key())
+    {
     case Qt::Key_0:
         wCM_Zero->trigger();
         break;
@@ -274,14 +352,21 @@ void RegistersView::wheelEvent(QWheelEvent *event)
 {
     int numDegrees = event->delta() / 8;
     // one wheel click ==> 2 lines
-    int numSteps = numDegrees / 15 *1 ;
+    int numSteps = numDegrees / 15 * 1 ;
 
-    if (event->orientation() == Qt::Vertical) {
-        if ( numSteps + mVScrollOffset <= 0)
-            mVScrollOffset = 0;
+    int rowsDisplayed=this->viewport()->height()/mRowHeight;
+    int vScrollEndOffset=0;
+    if(rowsDisplayed<mRowsNeeded)
+        vScrollEndOffset=-1*(mRowsNeeded-rowsDisplayed);
+
+    if (event->orientation() == Qt::Vertical)
+    {
+        if(numSteps > 0 && mVScrollOffset + numSteps > 0) //before the first register
+            mVScrollOffset=0;
+        else if(numSteps < 0 && mVScrollOffset + numSteps < vScrollEndOffset) //after the last register
+            mVScrollOffset = mVScrollOffset; //do nothing
         else
             mVScrollOffset += numSteps;
-
     }
     emit refresh();
     event->accept();
@@ -293,12 +378,17 @@ QSize RegistersView::sizeHint() const
     return QSize(32*mCharWidth ,this->viewport()->height());
 }
 
-void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
+void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
+{
     // is the register-id known?
-    if(mRegisterMapping.contains(reg)){
+    if(mRegisterMapping.contains(reg))
+    {
         // padding to the left is at least one character (looks better)
         int x = mCharWidth*(1 + mRegisterPlaces[reg].start);
-        int y = mRowHeight*(mRegisterPlaces[reg].line + mVScrollOffset) + 3;
+        int ySpace=yTopSpacing;
+        if(mVScrollOffset!=0)
+            ySpace=0;
+        int y = mRowHeight*(mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
 
         //draw raster
         /*
@@ -323,7 +413,8 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
             p->setPen(ConfigColor("RegistersColor"));
 
         //selection
-        if(mSelected == reg){
+        if(mSelected == reg)
+        {
             p->fillRect(x, y, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight, QBrush(ConfigColor("RegistersSelectionColor")));
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
@@ -345,18 +436,28 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
         x += valueText.length() * mCharWidth;
         x += 5 * mCharWidth; //5 spaces
         QString newText = "";
-        if(hasLabel && hasModule){
+        if(hasLabel && hasModule)
+        {
             newText="<"+QString(module_text)+"."+QString(label_text)+">";
-        }else if(hasModule){
+        }
+        else if(hasModule)
+        {
             newText=QString(module_text)+"."+valueText;
-        }else if(hasLabel ){
+        }
+        else if(hasLabel )
+        {
             newText="<"+QString(label_text)+">";
-        }else{
+        }
+        else
+        {
             // can we interpret the character as ASCII ??
-            if(mGPR.contains(reg)){
-                if(value == (value & 0xFF)){
+            if(mGPR.contains(reg))
+            {
+                if(value == (value & 0xFF))
+                {
                     QChar c = QChar((char)value);
-                    if(c.isPrint()){
+                    if(c.isPrint())
+                    {
                         newText=QString("'%1'").arg((char)value);
                         isCharacter=IsCharacterRegister(reg);
                     }
@@ -364,7 +465,8 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value){
                 else if(value == (value & 0xFFF)) //UNICODE?
                 {
                     QChar c = QChar((wchar_t)value);
-                    if(c.isPrint()){
+                    if(c.isPrint())
+                    {
                         newText="L'"+QString(c)+"'";
                         isCharacter=IsCharacterRegister(reg);
                     }
@@ -442,7 +544,8 @@ void RegistersView::onToggleValueAction()
 {
     if(mFlags.contains(mSelected))
         setRegister(mSelected, ((int)registerValue(&wRegDumpStruct,mSelected))^1);
-    else{
+    else
+    {
         int_t val = registerValue(&wRegDumpStruct,mSelected);
         val++;
         val *= -1;
@@ -460,16 +563,18 @@ void RegistersView::onCopyToClipboardAction()
 void RegistersView::onFollowInDisassembly()
 {
 
-    if(mGPR.contains(mSelected)){
+    if(mGPR.contains(mSelected))
+    {
         QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
-                DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
 
 void RegistersView::onFollowInDump()
 {
-    if(mGPR.contains(mSelected)){
+    if(mGPR.contains(mSelected))
+    {
         QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
             DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
@@ -498,7 +603,8 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_Decrement);
 
             int_t addr = registerValue(&wRegDumpStruct,mSelected);
-            if(DbgMemIsValidReadPtr(addr)){
+            if(DbgMemIsValidReadPtr(addr))
+            {
                 wMenu.addAction(wCM_FollowInDump);
                 //wMenu.addAction(wCM_FollowInDisassembly);
             }
@@ -528,7 +634,8 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)
 {
     // is register-id known?
-    if(mRegisterMapping.contains(reg)){
+    if(mRegisterMapping.contains(reg))
+    {
         // map "cax" to "eax" or "rax"
         QString wRegName = mRegisterMapping.constFind(reg).value();
 
@@ -561,7 +668,8 @@ void RegistersView::repaint()
 }
 
 
-int_t RegistersView::registerValue(const REGDUMP* regd,const REGISTER_NAME reg){
+int_t RegistersView::registerValue(const REGDUMP* regd,const REGISTER_NAME reg)
+{
     // this is probably the most efficient general method to access the values of the struct
 
     if(reg==CAX) return regd->cax;
@@ -626,7 +734,8 @@ void RegistersView::setRegisters(REGDUMP* reg)
 
     QMap<REGISTER_NAME,QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all ids (CAX, CBX, ...)
-    while (it != mRegisterMapping.end()) {
+    while (it != mRegisterMapping.end())
+    {
         // does a register-value change happens?
         if(registerValue(reg,it.key()) != registerValue(&wCipRegDumpStruct,it.key()))
             mRegisterUpdates.insert(it.key());

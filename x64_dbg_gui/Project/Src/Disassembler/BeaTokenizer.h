@@ -80,7 +80,9 @@ public:
     static void Init();
     static unsigned long HashInstruction(const DISASM* disasm);
     static void TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm);
-    static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList);
+    static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList, const BeaSingleToken* highlightToken);
+    static bool TokenFromX(const BeaInstructionToken* instr, BeaSingleToken* token, int x, int charwidth);
+    static bool IsHighlightableToken(const BeaSingleToken* token);
 
 private:
     //variables
@@ -100,6 +102,7 @@ private:
     static QString RegisterToString(int size, int reg);
     static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg);
     static void AddColorName(BeaTokenType type, QString color, QString backgroundColor);
+    static bool TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b);
 };
 
 #endif // BEATOKENIZER_H

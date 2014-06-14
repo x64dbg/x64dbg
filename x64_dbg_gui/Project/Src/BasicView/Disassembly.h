@@ -7,8 +7,8 @@
 #include "Bridge.h"
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
-#include "BeaHighlight.h"
 #include "RichTextPainter.h"
+#include "BeaTokenizer.h"
 
 class Disassembly : public AbstractTableView
 {
@@ -133,6 +133,9 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
+    int mCharWidth;
+    BeaTokenizer::BeaSingleToken mHighlightToken;
+    bool mHighlightingMode;
 
 protected:
     bool mRvaDisplayEnabled;

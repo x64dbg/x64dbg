@@ -186,7 +186,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     wInst.disasm = mDisasmStruct;
 
     //tokenize
-    BeaTokenizer::TokenizeInstruction(&wInst.token, &mDisasmStruct);
+    BeaTokenizer::TokenizeInstruction(&wInst.tokens, &mDisasmStruct);
 
     return wInst;
 }

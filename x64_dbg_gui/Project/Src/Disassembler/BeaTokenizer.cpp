@@ -293,6 +293,22 @@ void BeaTokenizer::AddColorName(BeaTokenType type, QString color, QString backgr
     colorNamesMap.insert(type, tokenColor);
 }
 
+bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b)
+{
+    if(!a || !b)
+        return false;
+    if(a->value.size != 0) //we have a value
+    {
+        if(a->value.size != b->value.size)
+            return false;
+        else if(a->value.value != b->value.value)
+            return false;
+    }
+    else if(a->text != b->text) //text doesn't equal
+        return false;
+    return true; //passed all checks
+}
+
 void BeaTokenizer::Init()
 {
     registerMap.clear();
@@ -462,14 +478,28 @@ void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM*
     Argument(instr, disasm, &disasm->Argument1, &hadarg);
     Argument(instr, disasm, &disasm->Argument2, &hadarg);
     Argument(instr, disasm, &disasm->Argument3, &hadarg);
+
+    //remove spaces when needed
+    bool bArgumentSpaces=ConfigBool("Disassembler", "ArgumentSpaces");
+    bool bMemorySpaces=ConfigBool("Disassembler", "MemorySpaces");
+    for(int i=instr->tokens.size()-1; i>-1; i--)
+    {
+        if(!bArgumentSpaces && instr->tokens.at(i).type==TokenArgumentSpace)
+            instr->tokens.erase(instr->tokens.begin()+i);
+        if(!bMemorySpaces && instr->tokens.at(i).type==TokenMemoryOperatorSpace)
+            instr->tokens.erase(instr->tokens.begin()+i);
+    }
 }
 
-void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList)
+void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList, const BeaSingleToken* highlightToken)
 {
+    QColor highlightColor=ConfigColor("InstructionHighlightColor");
     for(int i=0; i<instr->tokens.size(); i++)
     {
         BeaSingleToken token=instr->tokens.at(i);
         RichTextPainter::CustomRichText_t richText;
+        richText.highlight=TokenEquals(&token, highlightToken);
+        richText.highlightColor=highlightColor;
         richText.flags=FlagNone;
         richText.text=token.text;
         if(colorNamesMap.contains(token.type))
@@ -496,4 +526,40 @@ void BeaTokenizer::TokenToRichText(const BeaInstructionToken* instr, QList<RichT
         }
         richTextList->append(richText);
     }
+}
+
+bool BeaTokenizer::TokenFromX(const BeaInstructionToken* instr, BeaSingleToken* token, int x, int charwidth)
+{
+    if(x<instr->x) //before the first token
+        return false;
+    for(int i=0,xStart=instr->x; i<instr->tokens.size(); i++)
+    {
+        const BeaSingleToken* curToken=&instr->tokens.at(i);
+        int curWidth=curToken->text.length()*charwidth;
+        int xEnd=xStart+curWidth;
+        if(x>=xStart && x<xEnd)
+        {
+            *token=*curToken;
+            return true;
+        }
+        xStart=xEnd;
+    }
+    return false; //not found
+}
+
+bool BeaTokenizer::IsHighlightableToken(const BeaSingleToken* token)
+{
+    switch(token->type)
+    {
+    case TokenComma:
+    case TokenSpace:
+    case TokenArgumentSpace:
+    case TokenMemoryOperatorSpace:
+    case TokenMemoryBrackets:
+    case TokenMemoryStackBrackets:
+    case TokenMemoryOperator:
+        return false;
+        break;
+    }
+    return true;
 }

@@ -15,6 +15,9 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     mCipRva = 0;
 
+    mHighlightToken.text="";
+    mHighlightingMode=false;
+
     mDisasm = new QBeaEngine();
 
     mIsLastInstDisplayed = false;
@@ -23,11 +26,11 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     setRowCount(mSize);
 
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    mCharWidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(charwidth*2*sizeof(int_t)+8, "", false); //address
-    addColumnAt(charwidth*2*12+8, "", false); //bytes
-    addColumnAt(charwidth*40, "", false); //disassembly
+    addColumnAt(mCharWidth*2*sizeof(int_t)+8, "", false); //address
+    addColumnAt(mCharWidth*2*12+8, "", false); //bytes
+    addColumnAt(mCharWidth*40, "", false); //disassembly
     addColumnAt(100, "", false); //comments
 
     setShowHeader(false); //hide header
@@ -65,8 +68,18 @@ void Disassembly::colorsUpdated()
  */
 QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    if(mHighlightingMode)
+    {
+        painter->save();
+        painter->setPen(Qt::red);
+        QRect rect=viewport()->rect();
+        rect.setWidth(rect.width()-1);
+        rect.setHeight(rect.height()-1);
+        painter->drawRect(rect);
+        painter->restore();
+    }
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
-    bool wIsSelected = isSelected(&mInstBuffer, rowOffset); // isSelected(rowBase, rowOffset);
+    bool wIsSelected = (isSelected(&mInstBuffer, rowOffset) && !mHighlightingMode); // isSelected(rowBase, rowOffset);
 
     // Highlight if selected
     if(wIsSelected)
@@ -367,10 +380,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         QList<RichTextPainter::CustomRichText_t> richText;
 
-        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].token;
-        BeaTokenizer::TokenToRichText(token, &richText);
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText, QFontMetrics(this->font()).width(QChar(' ')));
-        token->x = x + loopsize;
+        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].tokens;
+        if(mHighlightToken.text.length())
+            BeaTokenizer::TokenToRichText(token, &richText, &mHighlightToken);
+        else
+            BeaTokenizer::TokenToRichText(token, &richText, 0);
+        int xinc = 4;
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, QFontMetrics(this->font()).width(QChar(' ')));
+        token->x = x + loopsize + xinc;
         break;
     }
 
@@ -460,15 +477,38 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
  */
 void Disassembly::mousePressEvent(QMouseEvent* event)
 {
-    //qDebug() << "Disassembly::mousePressEvent";
-
     bool wAccept = false;
 
     if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeight())
+            if(mHighlightingMode)
+            {
+                if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
+                {
+                    int rowOffset=getIndexOffsetFromY(transY(event->y()));
+                    if(rowOffset<mInstBuffer.size())
+                    {
+                        BeaTokenizer::BeaSingleToken token;
+                        if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), mCharWidth))
+                        {
+                            if(BeaTokenizer::IsHighlightableToken(&token))
+                            {
+                                mHighlightToken=token;
+                                GuiAddStatusBarMessage(QString(token.text+"\n").toUtf8().constData());
+                            }
+                            else
+                                mHighlightToken.text="";
+                        }
+                        else
+                            mHighlightToken.text="";
+                    }
+                }
+                else
+                    mHighlightToken.text="";
+            }
+            else if(event->y() > getHeaderHeight())
             {
                 int_t wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
 
@@ -488,6 +528,8 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             }
         }
     }
+
+    mHighlightingMode=false;
 
     if(wAccept == false)
         AbstractTableView::mousePressEvent(event);
@@ -565,6 +607,11 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
             return;
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
+    }
+    else if(getRowCount() > 0 && key == Qt::Key_Control && this->hasFocus())
+    {
+        mHighlightingMode=true;
+        reloadData();
     }
     else
         AbstractTableView::keyPressEvent(event);
@@ -1276,6 +1323,8 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 
 void Disassembly::disassembleClear()
 {
+    mHighlightingMode=false;
+    mHighlightToken.text="";
     historyClear();
     mBase = 0;
     mSize = 0;

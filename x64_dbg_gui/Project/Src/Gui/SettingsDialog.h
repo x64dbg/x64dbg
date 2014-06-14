@@ -49,6 +49,9 @@ private slots:
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
     void on_btnAddLast_clicked();
+    //Disasm tab
+    void on_chkArgumentSpaces_stateChanged(int arg1);
+    void on_chkMemorySpaces_stateChanged(int arg1);
 
 private:
     //enums
@@ -100,6 +103,9 @@ private:
         bool engineEnableDebugPrivilege;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
+        //Disasm Tab
+        bool disasmArgumentSpaces;
+        bool disasmMemorySpaces;
     };
 
     //variables

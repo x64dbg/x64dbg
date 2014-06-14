@@ -390,6 +390,37 @@
      </layout>
     </widget>
    </widget>
+   <widget class="QWidget" name="tabDisasm">
+    <attribute name="title">
+     <string>Disasm</string>
+    </attribute>
+    <widget class="QCheckBox" name="chkArgumentSpaces">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Argument Spaces</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkMemorySpaces">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>101</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Memory Spaces</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QPushButton" name="btnSave">
    <property name="geometry">
