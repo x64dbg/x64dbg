@@ -8,23 +8,33 @@ ApiFingerprints *ApiFingerprints::instance()
 {
     return mPtr;
 }
+APIFunction ApiFingerprints::findFunction(QString functionname) {
 
+    QMap<QString,QMap<QString, APIFunction> >::const_iterator dll = Library.begin();
+
+    while(dll != Library.end()){
+        QMap<QString, APIFunction>::const_iterator it2 = dll.value().constFind(functionname.toLower().trimmed());
+        if(it2 != dll.value().constEnd()){
+            return it2.value();
+        }
+        dll++;
+    }
+    APIFunction f;
+    f.invalid = true;
+    return f;
+}
 bool ApiFingerprints::findFunction(QString functionname, const APIFunction* function) {
 
+    QMap<QString,QMap<QString, APIFunction> >::const_iterator dll = Library.begin();
 
-    foreach(QMap<QString, APIFunction> dll, Library){
-        // find function
-        QMap<QString, APIFunction>::const_iterator it2 = dll.constFind(functionname.toLower().trimmed());
-        if(it2 != it.value().constEnd()){
-            function = &it2.value();
+    while(dll != Library.end()){
+        QMap<QString, APIFunction>::const_iterator it2 = dll.value().constFind(functionname.toLower().trimmed());
+        if(it2 != dll.value().constEnd()){
+            function = &(it2.value());
             return true;
         }
-
-
+        dll++;
     }
-
-
-
     return false;
 }
 

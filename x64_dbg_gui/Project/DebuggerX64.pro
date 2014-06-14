@@ -71,7 +71,9 @@ SOURCES += \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
     Src/Disassembler/BeaTokenizer.cpp \
-    Src/Utils/StaticAnalysis.cpp
+    Src/Utils/StaticAnalysis.cpp \
+    Src/Utils/StaticAnalysis_Interface.cpp \
+    Src/Utils/StaticAnalysis_ApiCalls.cpp
 
 
 HEADERS += \
@@ -121,7 +123,9 @@ HEADERS += \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
     Src/Disassembler/BeaTokenizer.h \
-    Src/Utils/StaticAnalysis.h
+    Src/Utils/StaticAnalysis.h \
+    Src/Utils/StaticAnalysis_Interface.h \
+    Src/Utils/StaticAnalysis_ApiCalls.h
 
 
 INCLUDEPATH += \

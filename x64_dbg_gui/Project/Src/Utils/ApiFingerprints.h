@@ -19,6 +19,11 @@ struct APIFunction
     QString ReturnType;
     QString Name;
     QList<APIArgument> Arguments;
+    bool invalid;
+
+    APIFunction(){
+        invalid=false;
+    }
 
 };
 
@@ -35,6 +40,7 @@ public:
 
 
     bool findFunction(QString functionname, const APIFunction *function);
+    APIFunction findFunction(QString functionname);
 };
 
 #endif // APIFINGERPRINTS_H
