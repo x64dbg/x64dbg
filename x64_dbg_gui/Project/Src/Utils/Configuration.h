@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QDebug>
 #include <QObject>
+#include <QMessageBox>
 
 #define ConfigColor(x) (Configuration::instance()->color(x))
 

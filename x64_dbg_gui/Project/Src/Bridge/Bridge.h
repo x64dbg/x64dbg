@@ -133,7 +133,7 @@ signals:
     void autoCompleteDelCmd(const QString cmd);
     void autoCompleteClearAll();
     void addMsgToStatusBar(QString msg);
-    void analyseCode();
+    void analyseCode(int_t Base, int_t Size);
 
 private:
     QMutex mBridgeMutex;

@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // load config file
     mConfiguration = new Configuration;
     mAPIFingerprints = new ApiFingerprints;
+    mStaticAnalysis = new StaticAnalysis;
 
     //Load recent files
     loadMRUList(16);

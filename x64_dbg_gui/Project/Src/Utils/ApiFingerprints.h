@@ -34,6 +34,7 @@ public:
     static ApiFingerprints *instance();
 
 
+    bool findFunction(QString functionname, const APIFunction *function);
 };
 
 #endif // APIFINGERPRINTS_H

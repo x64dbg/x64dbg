@@ -23,19 +23,19 @@ signals:
     void staticAnalysisCompleted();
 
 public slots:
-    void setParameters(const int_t Base, const int_t Size);
-
+    void analyze(int_t Base, int_t Size);
 protected:
     void run();
     void end();
-    bool lastInstruction(const int back, Instruction_t *InstrANS);
-    void saveCurrentInstruction(Instruction_t Instr);
+    bool lastInstruction(const int back, DISASM *InstrANS);
+    void saveCurrentInstruction(DISASM Instr);
 
+    void detectApiCalls(DISASM curInstr);
 private:
     // current number of disassembled instruction during analysis
     unsigned int mInstructionCounter;
     // circular array as Buffer
-    Instruction_t mTempCircularMemoryArray[mWindowToThePast];
+    DISASM mTempCircularMemoryArray[mWindowToThePast];
     // we only can analyze if we have a memory buffer and an size the target region
     bool mHaveParameters;
     // flag for possible errors during disassembling

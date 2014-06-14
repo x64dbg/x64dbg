@@ -21,6 +21,7 @@
 #include "Configuration.h"
 #include "ApiFingerprints.h"
 #include "AppearanceDialog.h"
+#include "StaticAnalysis.h"
 
 namespace Ui
 {
@@ -94,6 +95,7 @@ private:
 
     Configuration* mConfiguration;
     ApiFingerprints* mAPIFingerprints;
+    StaticAnalysis* mStaticAnalysis;
 
     const char* mWindowMainTitle;
 

@@ -354,7 +354,7 @@ void Bridge::emitAutoCompleteClearAll()
 
 void Bridge::emitAnalyseCode(int_t Base, int_t Size)
 {
-    emit analyseCode();
+    emit analyseCode(Base,Size);
 }
 
 /************************************************************************************

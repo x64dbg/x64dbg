@@ -13,12 +13,26 @@
 StaticAnalysis::StaticAnalysis(QWidget *parent) :
     QThread(parent), mHaveParameters(false), mInstructionCounter(0), mErrorDuringAnalysis(false)
 {
+    connect(Bridge::getBridge(), SIGNAL(analyseCode(int_t,int_t)), this, SLOT(analyze(int_t,int_t)));
 }
 
-void StaticAnalysis::setParameters(const int_t Base,const int_t Size)
-{
+
+
+void StaticAnalysis::analyze(const int_t Base,const int_t Size){
     mBase = Base;
     mSize = Size;
+
+    char labelText[MAX_LABEL_SIZE];    // maybe there is a better way, since we allow the user to rename labels
+    char moduleText[MAX_MODULE_SIZE];
+    bool hasLabel = DbgGetLabelAt(0x00402024, SEG_DEFAULT, labelText);
+    bool hasModule = DbgGetModuleAt(0x0040116E, moduleText);
+
+    // we need both to look for informations
+    if(hasLabel && hasModule)
+        qDebug()<< " has "<< labelText << " and "<<moduleText;
+    return;
+
+    start();
 }
 
 /**
@@ -26,7 +40,7 @@ void StaticAnalysis::setParameters(const int_t Base,const int_t Size)
  * @param n
  * @return
  */
-inline bool StaticAnalysis::lastInstruction(const int back, Instruction_t* InstrANS){
+inline bool StaticAnalysis::lastInstruction(const int back, DISASM* InstrANS){
     // sorry there is no information
     if(mInstructionCounter - back < 0)
         return false;
@@ -40,13 +54,14 @@ inline bool StaticAnalysis::lastInstruction(const int back, Instruction_t* Instr
  * @brief stores an instruction in the buffer
  * @param Instr
  */
-void StaticAnalysis::saveCurrentInstruction(Instruction_t Instr){
+void StaticAnalysis::saveCurrentInstruction(DISASM Instr){
     const unsigned int realIndex = (mInstructionCounter) % mWindowToThePast;
     mTempCircularMemoryArray[realIndex] = Instr;
 }
 
 void StaticAnalysis::run()
 {
+
     // will be executed by "StaticAnalysis::start()"
 
     /* the idea is to disassemble a whole sections in O(number of instructions)
@@ -66,6 +81,8 @@ void StaticAnalysis::run()
     //thread-safe variables
     int_t addr=mBase;
     int_t size=mSize;
+
+
 
     //allocate+read data
     unsigned char* data = new unsigned char[size];
@@ -96,6 +113,16 @@ void StaticAnalysis::run()
         if(len!=UNKNOWN_OPCODE)
         {
             //TODO: ANALYSE HERE
+            if(disasm.Instruction.BranchType && disasm.Instruction.BranchType!=RetType && !(disasm.Argument1.ArgType &REGISTER_TYPE))
+            {
+
+                if(disasm.Instruction.Opcode == 0xE8){
+                    detectApiCalls(disasm);
+                }
+
+            }
+
+
         }
         else
             len=1;
@@ -107,76 +134,49 @@ void StaticAnalysis::run()
     GuiUpdateAllViews();
     delete data;
 
-    /*
-    //dummy variables
-    byte_t* data = NULL;
-    uint size = 0;
-    uint instrIndex = 0;
-    uint origBase = 0;
-    uint origInstRVA = 0;
-    uint_t currentAddress = 0;
 
-    // WARNING: currently an infinite loop
-    while(true){ // disassembling of given range is not complete
-
-        // TODO make sure that everything works fine during disassembling, otherwise just set "mErrorDuringAnalysis=true" and stop
-        Instruction_t curInstr = DisassembleAt(&data,size,instrIndex,origBase,origInstRVA);
-        // store the instruction
-        saveCurrentInstruction(curInstr);
-
-        // we check if there is an api call by asking the "Dbg...At()" function what it thinks
-        char labelText[MAX_LABEL_SIZE];    // maybe there is a better way, since we allow the user to rename labels
-        char moduleText[MAX_MODULE_SIZE];
-        bool hasLabel = DbgGetLabelAt(currentAddress,SEG_DEFAULT, labelText);
-        bool hasModule = DbgGetModuleAt(currentAddress, moduleText);
-
-        // we need both to look for informations
-        if(hasLabel && hasModule){
-            // now we have a chance to find everything
-            APIFunction function;
-            bool found = ApiFingerprints::instance()->findFunction(QString(moduleText).trimmed().replace(".dll",""),QString(labelText).trimmed(),&function);
-
-            if(found){
-                // ok we can become excited, since there is an api call and we detect it
-                const unsigned int numberOfArguments = function.Arguments.count();
-                // prepare a nice comment like "int MessageBoxA(...)"
-                QString comment = function.ReturnType + " " + function.Name + "(...)";
-                ApiComments.insert(currentAddress,comment);
-
-                // now we try to propagate back the arguments to the last numberOfArguments-th instructions
-                // if and only if the instruction is a push instruction
-                for(int back=1;back<=numberOfArguments;back++){  // back=1; is correct!
-                    Instruction_t rememberInstr;
-                    // extract the instruction from the buffer
-                    if(lastInstruction(back,&rememberInstr)){
-                        // check if the previous instruction (current-back)-th instruction is a "push" instruction
-                        // the tokenizer currently only can tell if there is a "push/pop" and cannot distinguish between them
-                        if(QString(rememberInstr.disasm.Instruction.Mnemonic).trimmed().toLower() == "Push"){
-                            // there is a "push 0xDEADBEEF" , so add a comment
-                            comment = function.Arguments.at(back-1).Name;
-                            ApiComments.insert(currentAddress,comment);
-                        }else{
-                            // no push instruction, but an argument left
-                            // for several reasons (otherwise unsafe code) we stop here
-                            // a possible solution would be a bigger InstructionBuffer
-                            break;
-                            // TODO in the future: not stopping; maybe there is another instruction between the "push" instructions
-                            //                     or there is something like "mov [esp+-0x42], arg"
-                        }
-
-                    }else{
-                        // we cannot reach the instruction in the buffer (there nothing)
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    */
     end();
+}
+
+void StaticAnalysis::detectApiCalls(DISASM curInstr){
+
+    saveCurrentInstruction(curInstr);
+    qDebug() << "analyse "<<curInstr.CompleteInstr;
+
+
+
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(disasm));
+#ifdef _WIN64
+    disasm.Archi=64;
+#endif // _WIN64
+    disasm.EIP=(UIntPtr)data;
+    disasm.VirtualAddr=(UInt64)curInstr.Instruction.AddrValue;
+
+
+    // we check if there is an api call by asking the "Dbg...At()" function what it thinks
+    char labelText[MAX_LABEL_SIZE];    // maybe there is a better way, since we allow the user to rename labels
+    char moduleText[MAX_MODULE_SIZE];
+    bool hasLabel = DbgGetLabelAt(curInstr.VirtualAddr, SEG_DEFAULT, labelText);
+    bool hasModule = DbgGetModuleAt(curInstr.VirtualAddr, moduleText);
+
+    // we need both to look for informations
+    if(hasLabel && hasModule){
+
+        qDebug() << curInstr.VirtualAddr << " has "<< labelText << " and "<<moduleText;
+        return;
+        // now we have a chance to find everything
+        APIFunction function;
+        bool found = ApiFingerprints::instance()->findFunction(QString(moduleText).trimmed().replace(".dll",""),QString(labelText).trimmed(),&function);
+
+
+    }
+
+
 }
 
 void StaticAnalysis::end(){
     if(!mErrorDuringAnalysis)
         emit staticAnalysisCompleted();
+    qDebug() << "finished";
 }
