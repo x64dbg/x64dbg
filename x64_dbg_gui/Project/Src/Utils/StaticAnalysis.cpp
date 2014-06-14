@@ -12,6 +12,7 @@ StaticAnalysis::StaticAnalysis(QWidget *parent) :
     QThread(parent), mHaveParameters(false), mInstructionCounter(0), mErrorDuringAnalysis(false), mWorking(false)
 {
     connect(Bridge::getBridge(), SIGNAL(analyseCode(int_t,int_t)), this, SLOT(analyze(int_t,int_t)));
+    connect(this,SIGNAL(endThread()),this,SLOT(end()));
 
     apicalls = new StaticAnalysis_ApiCalls();
     mPtr = this;
@@ -21,6 +22,7 @@ StaticAnalysis::StaticAnalysis(QWidget *parent) :
 
 void StaticAnalysis::analyze(const int_t Base,const int_t Size){
     if(!mWorking){
+        GuiAddLogMessage(QString("start static analysis\n").toUtf8().constData());
         mBase = Base;
         mSize = Size;
         mWorking=true;
@@ -28,7 +30,7 @@ void StaticAnalysis::analyze(const int_t Base,const int_t Size){
     }
 }
 
-const StaticAnalysis_ApiCalls* StaticAnalysis::calls() const{
+StaticAnalysis_ApiCalls* StaticAnalysis::calls() {
     return apicalls;
 }
 
@@ -81,7 +83,7 @@ void StaticAnalysis::run()
     delete data;
 
     think();
-    end();
+    emit endThread();
 }
 
 void StaticAnalysis::think(){
@@ -90,7 +92,9 @@ void StaticAnalysis::think(){
 
 void StaticAnalysis::end(){
     mWorking=false;
-    if(!mErrorDuringAnalysis)
-        emit staticAnalysisCompleted();
+    if(!mErrorDuringAnalysis){
+        GuiAddLogMessage(QString("start static analysis finished\n").toUtf8().constData());
+    }
+    emit staticAnalysisCompleted();
     qDebug() << "finished";
 }

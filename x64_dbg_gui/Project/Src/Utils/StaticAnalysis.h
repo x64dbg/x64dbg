@@ -24,16 +24,18 @@ public:
     explicit StaticAnalysis(QWidget *parent = 0);
 
     static StaticAnalysis *instance();
-    const StaticAnalysis_ApiCalls *calls() const;
+    StaticAnalysis_ApiCalls *calls() ;
 signals:
     void staticAnalysisCompleted();
+    void endThread();
 
 public slots:
     void analyze(int_t Base, int_t Size);
+protected slots:
+    void end();
 
 protected:
     void run();
-    void end();
 
     void think();
 private:
