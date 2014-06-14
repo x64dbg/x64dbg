@@ -15,7 +15,7 @@ typedef struct _Instruction_t
     uint_t rva;
     int lentgh;
     DISASM disasm;
-    BeaTokenizer::BeaInstructionToken token;
+    BeaTokenizer::BeaInstructionToken tokens;
 } Instruction_t;
 
 class QBeaEngine

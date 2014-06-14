@@ -8,7 +8,7 @@ Configuration::Configuration() : QObject()
     //setup default color map
     defaultColors.clear();
     defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
-    defaultColors.insert("AbstractTableViewBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("AbstractTableViewBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("AbstractTableViewTextColor", QColor("#000000"));
     defaultColors.insert("AbstractTableViewHeaderTextColor", QColor("#000000"));
     defaultColors.insert("AbstractTableViewSelectionColor", QColor("#C0C0C0"));
@@ -23,7 +23,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
     defaultColors.insert("DisassemblyLabelColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyLabelBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("DisassemblyBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("DisassemblySelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("DisassemblyAddressColor", QColor("#808080"));
     defaultColors.insert("DisassemblyAddressBackgroundColor", Qt::transparent);
@@ -38,7 +38,7 @@ Configuration::Configuration() : QObject()
 
     defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
-    defaultColors.insert("SideBarBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("SideBarBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
     defaultColors.insert("SideBarConditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
@@ -48,13 +48,14 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
 
-    defaultColors.insert("RegistersBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("RegistersBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("RegistersColor", QColor("#000000"));
     defaultColors.insert("RegistersModifiedColor", QColor("#FF0000"));
     defaultColors.insert("RegistersSelectionColor", QColor("#EEEEEE"));
     defaultColors.insert("RegistersLabelColor", QColor("#000000"));
     defaultColors.insert("RegistersExtraInfoColor", QColor("#000000"));
 
+    defaultColors.insert("InstructionHighlightColor", QColor("#FF0000"));
     defaultColors.insert("InstructionCommaColor", QColor("#000000"));
     defaultColors.insert("InstructionCommaBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionPrefixColor", QColor("#000000"));
@@ -63,7 +64,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionUncategorizedBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionAddressColor", QColor("#000000"));
     defaultColors.insert("InstructionAddressBackgroundColor", QColor("#FFFF00"));
-    defaultColors.insert("InstructionValueColor", QColor("#808000"));
+    defaultColors.insert("InstructionValueColor", QColor("#828200"));
     defaultColors.insert("InstructionValueBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMnemonicColor", QColor("#000000"));
     defaultColors.insert("InstructionMnemonicBackgroundColor", Qt::transparent);
@@ -87,15 +88,15 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionMemoryBracketsBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMemoryStackBracketsColor", QColor("#000000"));
     defaultColors.insert("InstructionMemoryStackBracketsBackgroundColor",QColor("#00FFFF"));
-    defaultColors.insert("InstructionMemoryBaseRegisterColor", QColor("#E04343"));
+    defaultColors.insert("InstructionMemoryBaseRegisterColor", QColor("#B03434"));
     defaultColors.insert("InstructionMemoryBaseRegisterBackgroundColor", Qt::transparent);
-    defaultColors.insert("InstructionMemoryIndexRegisterColor", QColor("#4343E0"));
+    defaultColors.insert("InstructionMemoryIndexRegisterColor", QColor("#3838BC"));
     defaultColors.insert("InstructionMemoryIndexRegisterBackgroundColor", Qt::transparent);
-    defaultColors.insert("InstructionMemoryScaleColor", QColor("#4CB951"));
+    defaultColors.insert("InstructionMemoryScaleColor", QColor("#B30059"));
     defaultColors.insert("InstructionMemoryScaleBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMemoryOperatorColor", QColor("#F27711"));
     defaultColors.insert("InstructionMemoryOperatorBackgroundColor", Qt::transparent);
-    defaultColors.insert("InstructionGeneralRegisterColor", QColor("#22530D"));
+    defaultColors.insert("InstructionGeneralRegisterColor", QColor("#008300"));
     defaultColors.insert("InstructionGeneralRegisterBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionFpuRegisterColor", QColor("#000080"));
     defaultColors.insert("InstructionFpuRegisterBackgroundColor", Qt::transparent);
@@ -105,7 +106,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
-    defaultColors.insert("HexDumpBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("HexDumpBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("HexDumpAddressColor", QColor("#000000"));
     defaultColors.insert("HexDumpAddressBackgroundColor", Qt::transparent);
@@ -114,7 +115,7 @@ Configuration::Configuration() : QObject()
 
     defaultColors.insert("StackTextColor", QColor("#808080"));
     defaultColors.insert("StackInactiveTextColor", QColor("#000000"));
-    defaultColors.insert("StackBackgroundColor", QColor("#FFFBF0"));
+    defaultColors.insert("StackBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StackSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("StackCspColor", QColor("#FFFFFF"));
     defaultColors.insert("StackCspBackgroundColor", QColor("#000000"));

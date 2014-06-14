@@ -22,6 +22,8 @@ public:
         QColor textColor;
         QColor textBackground;
         CustomRichTextFlags flags;
+        bool highlight;
+        QColor highlightColor;
     } CustomRichText_t;
 
     //functions

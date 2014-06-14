@@ -460,6 +460,7 @@ void AppearanceDialog::colorInfoListInit()
 
     colorInfoListAppend("Instructions:", "", "");
     colorInfoListAppend("Text", "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
+    colorInfoListAppend("Highlighting", "InstructionHighlightColor", "");
     colorInfoListAppend("Commas", "InstructionCommaColor", "InstructionCommaBackgroundColor");
     colorInfoListAppend("Prefixes", "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
     colorInfoListAppend("Addresses", "InstructionAddressColor", "InstructionAddressBackgroundColor");

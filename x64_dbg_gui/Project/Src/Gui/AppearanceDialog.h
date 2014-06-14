@@ -6,7 +6,8 @@
 #include <QMessageBox>
 #include "Configuration.h"
 
-namespace Ui {
+namespace Ui
+{
 class AppearanceDialog;
 }
 

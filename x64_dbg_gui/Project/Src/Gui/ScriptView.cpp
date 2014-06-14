@@ -101,6 +101,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             int xadd=charwidth; //for testing
             QList<RichTextPainter::CustomRichText_t> richText;
             RichTextPainter::CustomRichText_t newRichText;
+            newRichText.highlight=false;
             QString command=getCellContent(rowBase+rowOffset, col);
 
             //handle comments
@@ -241,6 +242,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
             if(comment.length())
             {
                 RichTextPainter::CustomRichText_t newRichText;
+                newRichText.highlight=false;
                 newRichText.flags=RichTextPainter::FlagNone;
                 newRichText.text=" ";
                 richText.push_back(newRichText); //space
