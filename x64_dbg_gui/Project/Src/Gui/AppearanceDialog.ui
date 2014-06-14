@@ -327,7 +327,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: #FFFFFF; border : 2px solid black</string>
+       <string notr="true">background-color: #FFFBF0; border : 2px solid black</string>
       </property>
       <property name="text">
        <string/>
@@ -417,7 +417,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: #FFFFFF; border : 2px solid black</string>
+       <string notr="true">background-color: #FFFBF0; border : 2px solid black</string>
       </property>
       <property name="text">
        <string/>

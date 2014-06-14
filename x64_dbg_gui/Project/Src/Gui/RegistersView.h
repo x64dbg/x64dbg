@@ -12,7 +12,8 @@
 
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
-namespace Ui {
+namespace Ui
+{
 class RegistersView;
 }
 
@@ -22,7 +23,8 @@ class RegistersView : public QAbstractScrollArea
 
 public:
     // all possible register ids
-    enum REGISTER_NAME {
+    enum REGISTER_NAME
+    {
         CAX,CCX,CDX,CBX,CDI,CBP,CSI,CSP,
         R8,R9,R10,R11,R12,R13,R14,R15,
         CIP,
@@ -33,19 +35,22 @@ public:
     };
 
     // contains viewport position of register
-    struct Register_Position{
+    struct Register_Position
+    {
         int line;
         int start;
         int valuesize;
         int labelwidth;
 
-        Register_Position(int l,int s,int w, int v){
+        Register_Position(int l,int s,int w, int v)
+        {
             line = l;
             start = s;
             valuesize = v;
             labelwidth = w;
         }
-        Register_Position(){
+        Register_Position()
+        {
             line = 0;
             start = 0;
             valuesize = 0;
@@ -97,7 +102,9 @@ protected slots:
 
 
 private:
-    unsigned int mVScrollOffset;
+    int mVScrollOffset;
+    int mRowsNeeded;
+    int yTopSpacing;
     // holds current selected register
     REGISTER_NAME mSelected;
     // general purposes register id s (cax, ..., r8, ....)
