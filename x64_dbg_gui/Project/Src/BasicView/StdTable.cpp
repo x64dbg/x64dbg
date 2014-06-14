@@ -75,7 +75,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    if(mIsMultiSelctionAllowed && GetAsyncKeyState(VK_SHIFT))
+                    if(mIsMultiSelctionAllowed && (event->modifiers() & Qt::ShiftModifier))
                         expandSelectionUpTo(wRowIndex);
                     else
                         setSingleSelection(wRowIndex);

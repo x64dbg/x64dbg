@@ -71,15 +71,16 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     if(mHighlightingMode)
     {
         painter->save();
-        painter->setPen(Qt::red);
+        QPen pen(ConfigColor("InstructionHighlightColor"));
+        pen.setWidth(2);
+        painter->setPen(pen);
         QRect rect=viewport()->rect();
-        rect.setWidth(rect.width()-1);
-        rect.setHeight(rect.height()-1);
+        rect.adjust(1, 1, -1, -1);
         painter->drawRect(rect);
         painter->restore();
     }
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
-    bool wIsSelected = (isSelected(&mInstBuffer, rowOffset) && !mHighlightingMode); // isSelected(rowBase, rowOffset);
+    bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
 
     // Highlight if selected
     if(wIsSelected)
@@ -493,11 +494,8 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                         BeaTokenizer::BeaSingleToken token;
                         if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), mCharWidth))
                         {
-                            if(BeaTokenizer::IsHighlightableToken(&token))
-                            {
+                            if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken=token;
-                                GuiAddStatusBarMessage(QString(token.text+"\n").toUtf8().constData());
-                            }
                             else
                                 mHighlightToken.text="";
                         }
@@ -514,7 +512,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    if(GetAsyncKeyState(VK_SHIFT)) //SHIFT pressed
+                    if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
                         expandSelectionUpTo(wRowIndex);
                     else
                         setSingleSelection(wRowIndex);
@@ -528,8 +526,6 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             }
         }
     }
-
-    mHighlightingMode=false;
 
     if(wAccept == false)
         AbstractTableView::mousePressEvent(event);
@@ -584,18 +580,22 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         int_t botRVA = getTableOffset();
         int_t topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
 
-        if(key == Qt::Key_Up)
-            selectPrevious();
-        else
-            selectNext();
+        bool expand=false;
+        if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
+            expand=true;
 
-        if(getInitialSelection() < botRVA)
+        if(key == Qt::Key_Up)
+            selectPrevious(expand);
+        else
+            selectNext(expand);
+
+        if(getSelectionStart() < botRVA)
         {
-            setTableOffset(getInitialSelection());
+            setTableOffset(getSelectionStart());
         }
-        else if(getInitialSelection() >= topRVA)
+        else if(getSelectionEnd() >= topRVA)
         {
-            setTableOffset(getInstructionRVA(getInitialSelection(),-getNbrOfLineToPrint() + 2));
+            setTableOffset(getInstructionRVA(getSelectionEnd(),-getNbrOfLineToPrint() + 2));
         }
 
         repaint();
@@ -608,13 +608,22 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(getRowCount() > 0 && key == Qt::Key_Control && this->hasFocus())
+    else if(key == Qt::Key_Control)
     {
         mHighlightingMode=true;
         reloadData();
     }
     else
         AbstractTableView::keyPressEvent(event);
+}
+
+void Disassembly::keyReleaseEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Control)
+    {
+        mHighlightingMode=false;
+        reloadData();
+    }
 }
 
 /************************************************************************************
@@ -1071,19 +1080,41 @@ int_t Disassembly::getSelectionEnd()
     return mSelection.toIndex;
 }
 
-void Disassembly::selectNext()
+void Disassembly::selectNext(bool expand)
 {
-    int_t wAddr = getInstructionRVA(getInitialSelection(), 1);
-
-    setSingleSelection(wAddr);
+    int_t wAddr;
+    if(expand)
+    {
+        if(getSelectionEnd()==getInitialSelection()) //decrease down
+            wAddr = getInstructionRVA(getSelectionStart(), 1);
+        else //expand down
+            wAddr = getInstructionRVA(getSelectionEnd(), 1);
+        expandSelectionUpTo(wAddr);
+    }
+    else
+    {
+        wAddr = getInstructionRVA(getSelectionEnd(), 1);
+        setSingleSelection(wAddr);
+    }
 }
 
 
-void Disassembly::selectPrevious()
+void Disassembly::selectPrevious(bool expand)
 {
-    int_t wAddr = getInstructionRVA(getInitialSelection(), -1);
-
-    setSingleSelection(wAddr);
+    int_t wAddr;
+    if(expand)
+    {
+        if(getSelectionStart()==getInitialSelection()) //decrease down
+            wAddr = getInstructionRVA(getSelectionEnd(), -1);
+        else //expand up
+            wAddr = getInstructionRVA(getSelectionStart(), -1);
+        expandSelectionUpTo(wAddr);
+    }
+    else
+    {
+        wAddr = getInstructionRVA(getSelectionStart(), -1);
+        setSingleSelection(wAddr);
+    }
 }
 
 

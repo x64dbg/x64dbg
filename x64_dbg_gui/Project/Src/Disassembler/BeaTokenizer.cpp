@@ -293,22 +293,6 @@ void BeaTokenizer::AddColorName(BeaTokenType type, QString color, QString backgr
     colorNamesMap.insert(type, tokenColor);
 }
 
-bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b)
-{
-    if(!a || !b)
-        return false;
-    if(a->value.size != 0) //we have a value
-    {
-        if(a->value.size != b->value.size)
-            return false;
-        else if(a->value.value != b->value.value)
-            return false;
-    }
-    else if(a->text != b->text) //text doesn't equal
-        return false;
-    return true; //passed all checks
-}
-
 void BeaTokenizer::Init()
 {
     registerMap.clear();
@@ -562,4 +546,20 @@ bool BeaTokenizer::IsHighlightableToken(const BeaSingleToken* token)
         break;
     }
     return true;
+}
+
+bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b)
+{
+    if(!a || !b)
+        return false;
+    if(a->value.size != 0) //we have a value
+    {
+        if(a->value.size != b->value.size)
+            return false;
+        else if(a->value.value != b->value.value)
+            return false;
+    }
+    else if(a->text != b->text) //text doesn't equal
+        return false;
+    return true; //passed all checks
 }

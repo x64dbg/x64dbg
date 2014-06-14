@@ -27,6 +27,7 @@ public:
 
     // Keyboard Management
     void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
 
     // ScrollBar Management
     int_t sliderMovedHook(int type, int_t value, int_t delta);
@@ -62,8 +63,8 @@ public:
     int_t getSelectionSize();
     int_t getSelectionStart();
     int_t getSelectionEnd();
-    void selectNext();
-    void selectPrevious();
+    void selectNext(bool expand);
+    void selectPrevious(bool expand);
     bool isSelected(int_t base, int_t offset);
     bool isSelected(QList<Instruction_t>* buffer, int index);
 

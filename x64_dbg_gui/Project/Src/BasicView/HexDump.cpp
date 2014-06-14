@@ -136,7 +136,7 @@ void HexDump::mousePressEvent(QMouseEvent* event)
 
                         if(wEndingAddress < mSize)
                         {
-                            if(!GetAsyncKeyState(VK_SHIFT))
+                            if(!(event->modifiers() & Qt::ShiftModifier))
                                 setSingleSelection(wStartingAddress);
                             expandSelectionUpTo(wEndingAddress);
 
