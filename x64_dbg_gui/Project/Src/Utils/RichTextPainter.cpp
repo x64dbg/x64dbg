@@ -42,8 +42,10 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
         if(curRichText.highlight)
         {
             painter->save();
-            painter->setPen(curRichText.highlightColor);
-            painter->drawLine(x+xinc, y+h-1, x+xinc+backgroundWidth-2, y+h-1);
+            QPen pen(curRichText.highlightColor);
+            pen.setWidth(2);
+            painter->setPen(pen);
+            painter->drawLine(x+xinc+1, y+h-1, x+xinc+backgroundWidth-1, y+h-1);
             painter->restore();
         }
         xinc+=charwidth*curRichTextLength;

@@ -494,10 +494,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                         if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), mCharWidth))
                         {
                             if(BeaTokenizer::IsHighlightableToken(&token))
-                            {
                                 mHighlightToken=token;
-                                GuiAddStatusBarMessage(QString(token.text+"\n").toUtf8().constData());
-                            }
                             else
                                 mHighlightToken.text="";
                         }
@@ -514,7 +511,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
                 if(wRowIndex < getRowCount())
                 {
-                    if(GetAsyncKeyState(VK_SHIFT)) //SHIFT pressed
+                    if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
                         expandSelectionUpTo(wRowIndex);
                     else
                         setSingleSelection(wRowIndex);
@@ -608,13 +605,22 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(getRowCount() > 0 && key == Qt::Key_Control && this->hasFocus())
+    else if(key == Qt::Key_Control)
     {
         mHighlightingMode=true;
         reloadData();
     }
     else
         AbstractTableView::keyPressEvent(event);
+}
+
+void Disassembly::keyReleaseEvent(QKeyEvent* event)
+{
+    if(event->key() == Qt::Key_Control)
+    {
+        mHighlightingMode=false;
+        reloadData();
+    }
 }
 
 /************************************************************************************

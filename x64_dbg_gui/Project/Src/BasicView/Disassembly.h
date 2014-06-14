@@ -27,6 +27,7 @@ public:
 
     // Keyboard Management
     void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
 
     // ScrollBar Management
     int_t sliderMovedHook(int type, int_t value, int_t delta);
