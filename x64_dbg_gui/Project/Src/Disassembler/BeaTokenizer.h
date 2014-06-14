@@ -83,6 +83,7 @@ public:
     static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList, const BeaSingleToken* highlightToken);
     static bool TokenFromX(const BeaInstructionToken* instr, BeaSingleToken* token, int x, int charwidth);
     static bool IsHighlightableToken(const BeaSingleToken* token);
+    static bool TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b);
 
 private:
     //variables
@@ -102,7 +103,6 @@ private:
     static QString RegisterToString(int size, int reg);
     static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg);
     static void AddColorName(BeaTokenType type, QString color, QString backgroundColor);
-    static bool TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b);
 };
 
 #endif // BEATOKENIZER_H

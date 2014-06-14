@@ -71,7 +71,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     if(mHighlightingMode)
     {
         painter->save();
-        QPen pen(Qt::red);
+        QPen pen(ConfigColor("InstructionHighlightColor"));
         pen.setWidth(2);
         painter->setPen(pen);
         QRect rect=viewport()->rect();
@@ -494,7 +494,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                         BeaTokenizer::BeaSingleToken token;
                         if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), mCharWidth))
                         {
-                            if(BeaTokenizer::IsHighlightableToken(&token))
+                            if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken=token;
                             else
                                 mHighlightToken.text="";
