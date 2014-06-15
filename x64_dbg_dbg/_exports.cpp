@@ -250,6 +250,21 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             }
         }
     }
+    if(addrinfo->flags&flagbookmark)
+    {
+        addrinfo->isbookmark=bookmarkget(addr);
+        retval=true;
+    }
+    if(addrinfo->flags&flagfunction)
+    {
+        if(functionget(addr, &addrinfo->function.start, &addrinfo->function.end))
+            retval=true;
+    }
+    if(addrinfo->flags&flagloop)
+    {
+        if(loopget(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+            retval=true;
+    }
     if(addrinfo->flags&flagcomment)
     {
         *addrinfo->comment=0;
@@ -274,19 +289,23 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             }
             else //no line number
             {
+                /*
                 DISASM_INSTR instr;
+                std::string temp_string;
+                ADDRINFO newinfo;
+                char ascii[256*2]="";
+                char unicode[256*2]="";
+
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
                 int len_left=MAX_COMMENT_SIZE;
                 for(int i=0,j=0; i<instr.argcount; i++)
                 {
-                    char temp_string[MAX_COMMENT_SIZE*2]="";
-                    ADDRINFO newinfo;
                     memset(&newinfo, 0, sizeof(ADDRINFO));
                     newinfo.flags=flaglabel;
-                    char ascii[256]="";
-                    char unicode[256]="";
+
                     STRING_TYPE strtype=str_none;
+
                     if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
                         if(instr.type==instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) or strtype==str_none)
@@ -296,14 +315,16 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         case str_none:
                             break;
                         case str_ascii:
-                            len_left-=sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string=instr.arg[i].mnemonic;
+                            temp_string.append(":\"");
+                            temp_string.append(ascii);
+                            temp_string.append("\"");
                             break;
                         case str_unicode:
-                            len_left-=sprintf(temp_string, "%s:L\"%s\"", instr.arg[i].mnemonic, unicode);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string=instr.arg[i].mnemonic;
+                            temp_string.append(":L\"");
+                            temp_string.append(unicode);
+                            temp_string.append("\"");
                             break;
                         }
                     }
@@ -313,19 +334,24 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         {
                         case str_none:
                             if(*newinfo.label)
-                                len_left-=sprintf(temp_string, "[%s]:%s", instr.arg[i].mnemonic, newinfo.label);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            {
+                                temp_string="[";
+                                temp_string.append(instr.arg[i].mnemonic);
+                                temp_string.append("]:");
+                                temp_string.append(newinfo.label);
+                            }
                             break;
                         case str_ascii:
-                            len_left-=sprintf(temp_string, "[%s]:\"%s\"", instr.arg[i].mnemonic, ascii);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string="[";
+                            temp_string.append(instr.arg[i].mnemonic);
+                            temp_string.append("]:");
+                            temp_string.append(ascii);
                             break;
                         case str_unicode:
-                            len_left-=sprintf(temp_string, "[%s]:L\"%s\"", instr.arg[i].mnemonic, unicode);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string="[";
+                            temp_string.append(instr.arg[i].mnemonic);
+                            temp_string.append("]:");
+                            temp_string.append(unicode);
                             break;
                         }
                     }
@@ -337,50 +363,44 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         {
                         case str_none:
                             if(*newinfo.label)
-                                len_left-=sprintf(temp_string, "%s:%s", instr.arg[i].mnemonic, newinfo.label);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            {
+                                temp_string=instr.arg[i].mnemonic;
+                                temp_string.append(":");
+                                temp_string.append(newinfo.label);
+                            }
                             break;
                         case str_ascii:
-                            len_left-=sprintf(temp_string, "%s:\"%s\"", instr.arg[i].mnemonic, ascii);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string=instr.arg[i].mnemonic;
+                            temp_string.append(":\"");
+                            temp_string.append(ascii);
+                            temp_string.append("\"");
                             break;
                         case str_unicode:
-                            len_left-=sprintf(temp_string, "%s:L\"%s\"", instr.arg[i].mnemonic, unicode);
-                            if(len_left<0)
-                                temp_string[MAX_COMMENT_SIZE]=0;
+                            temp_string=instr.arg[i].mnemonic;
+                            temp_string.append(":L\"");
+                            temp_string.append(unicode);
+                            temp_string.append("\"");
                             break;
                         }
                     }
                     else
                         continue;
-                    if(!strstr(addrinfo->comment, temp_string))
+
+                    if(!strstr(addrinfo->comment, temp_string.c_str()))
                     {
+                        unsigned int maxlen=MAX_COMMENT_SIZE-j-1;
+                        if(maxlen<temp_string.length())
+                            temp_string.at(maxlen-1)=0;
                         if(j)
-                            j+=sprintf(addrinfo->comment+j, ", %s", temp_string);
+                            j+=sprintf(addrinfo->comment+j, ", %s", temp_string.c_str());
                         else
-                            j+=sprintf(addrinfo->comment+j, "%s", temp_string);
+                            j+=sprintf(addrinfo->comment+j, "%s", temp_string.c_str());
                         retval=true;
                     }
                 }
+                */
             }
         }
-    }
-    if(addrinfo->flags&flagbookmark)
-    {
-        addrinfo->isbookmark=bookmarkget(addr);
-        retval=true;
-    }
-    if(addrinfo->flags&flagfunction)
-    {
-        if(functionget(addr, &addrinfo->function.start, &addrinfo->function.end))
-            retval=true;
-    }
-    if(addrinfo->flags&flagloop)
-    {
-        if(loopget(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
-            retval=true;
     }
     return retval;
 }
@@ -882,7 +902,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_LOOP_OVERLAPS:
     {
         FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopoverlaps(info->depth, info->start, info->end);
+        return (uint)loopoverlaps(info->depth, info->start, info->end, 0);
     }
     break;
 

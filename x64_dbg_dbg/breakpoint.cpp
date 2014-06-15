@@ -50,7 +50,6 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
         return false;
     }
     bpenumall(0); //update breakpoint list
-    dbsave();
     GuiUpdateBreakpointsView();
     return true;
 }
@@ -159,7 +158,6 @@ bool bpdel(uint addr, BP_TYPE type)
         return false;
     }
     bpenumall(0); //update breakpoint list
-    dbsave();
     GuiUpdateBreakpointsView();
     return true;
 }
@@ -181,7 +179,6 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
         return false;
     }
     bpenumall(0); //update breakpoint list
-    dbsave();
     GuiUpdateBreakpointsView();
     return true;
 }
@@ -204,7 +201,6 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
         return false;
     }
     bpenumall(0); //update breakpoint list
-    dbsave();
     GuiUpdateBreakpointsView();
     return true;
 }

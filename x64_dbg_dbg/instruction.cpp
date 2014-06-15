@@ -259,6 +259,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
         dputs("error deleting comment");
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -277,6 +278,7 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
         dputs("error setting label");
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -380,6 +382,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         dprintf("failed to assemble \"%s\"\n", argv[2]);
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -400,6 +403,7 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("function added!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -419,6 +423,7 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("function deleted!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

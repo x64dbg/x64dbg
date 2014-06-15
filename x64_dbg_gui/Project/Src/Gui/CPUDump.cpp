@@ -234,6 +234,7 @@ void CPUDump::setLabelSlot()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    GuiUpdateAllViews();
 }
 
 void CPUDump::gotoExpressionSlot()

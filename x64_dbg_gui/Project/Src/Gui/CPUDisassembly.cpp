@@ -495,6 +495,7 @@ void CPUDisassembly::setLabel()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::setComment()
@@ -518,6 +519,7 @@ void CPUDisassembly::setComment()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::setBookmark()
@@ -538,6 +540,7 @@ void CPUDisassembly::setBookmark()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::toggleFunction()
@@ -633,8 +636,7 @@ void CPUDisassembly::assembleAt()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
-
-
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::gotoExpression()

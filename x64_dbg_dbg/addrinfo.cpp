@@ -8,7 +8,12 @@
 #include "symbolinfo.h"
 
 sqlite3* userdb;
-static std::vector<MODINFO> modinfo;
+static ModulesInfo modinfo;
+static CommentsInfo comments;
+static LabelsInfo labels;
+static BookmarksInfo bookmarks;
+static FunctionsInfo functions;
+static LoopsInfo loops;
 
 ///basic database functions
 void dbinit()
@@ -35,7 +40,6 @@ void dbinit()
         dprintf("SQL Error: %s\n", sqllasterror());
     if(!sqlexec(userdb, "CREATE TABLE IF NOT EXISTS loops (id INTEGER PRIMARY KEY AUTOINCREMENT, mod TEXT, start INT64 NOT NULL, end INT64 NOT NULL, parent INT, depth INT NOT NULL, manual BOOL NOT NULL)"))
         dprintf("SQL Error: %s\n", sqllasterror());
-    dbsave();
     bpenumall(0); //update breakpoint list
     GuiUpdateBreakpointsView();
 }
@@ -122,7 +126,7 @@ bool modunload(uint base)
 
 void modclear()
 {
-    std::vector<MODINFO>().swap(modinfo);
+    ModulesInfo().swap(modinfo);
     symupdatemodulelist();
 }
 
@@ -130,6 +134,7 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
     if(!modname)
         return false;
+    *modname=0;
     int total=modinfo.size();
     for(int i=0; i<total; i++)
     {
@@ -262,6 +267,20 @@ bool commentset(uint addr, const char* text)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return commentdel(addr);
+    COMMENTSINFO info;
+    sqlstringescape(text, info.text);
+    modnamefromaddr(addr, info.mod, true);
+    info.addr=addr-modbasefromaddr(addr);
+    if(comments.count(addr)) //contains addr
+        comments[addr]=info;
+    else
+        comments.insert(std::make_pair(addr, info));
+    return true;
+    /*
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_COMMENT_SIZE-1)
+        return false;
+    if(!*text) //NOTE: delete when there is no text
+        return commentdel(addr);
     char commenttext[MAX_COMMENT_SIZE]="";
     sqlstringescape(text, commenttext);
     char modname[MAX_MODULE_SIZE]="";
@@ -289,13 +308,21 @@ bool commentset(uint addr, const char* text)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 bool commentget(uint addr, char* text)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(comments.count(addr)) //contains
+    {
+        strcpy(text, comments[addr].text);
+        return true;
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -305,10 +332,20 @@ bool commentget(uint addr, char* text)
     else
         sprintf(sql, "SELECT text FROM comments WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
     return sqlgettext(userdb, sql, text);
+    */
 }
 
 bool commentdel(uint addr)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(comments.count(addr)) //contains
+    {
+        comments.erase(addr);
+        return true;
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -330,9 +367,8 @@ bool commentdel(uint addr)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 ///label functions
@@ -342,10 +378,16 @@ bool labelset(uint addr, const char* text)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
-    char labeltext[MAX_LABEL_SIZE]="";
-    sqlstringescape(text, labeltext);
-    char modname[MAX_MODULE_SIZE]="";
-    char sql[deflen]="";
+    LABELSINFO label;
+    sqlstringescape(text, label.text);
+    modnamefromaddr(addr, label.mod, true);
+    label.addr=addr-modbasefromaddr(addr);
+    if(labels.count(addr)) //contains
+        labels[addr]=label;
+    else
+        labels.insert(std::make_pair(addr, label));
+    return true;
+    /*
     if(!modnamefromaddr(addr, modname, true)) //labels without module
     {
         sprintf(sql, "SELECT text FROM labels WHERE mod IS NULL AND addr=%"fext"d", addr);
@@ -369,13 +411,27 @@ bool labelset(uint addr, const char* text)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 bool labelfromstring(const char* text, uint* addr)
 {
+    if(!DbgIsDebugging())
+        return false;
+    char labeltext[MAX_LABEL_SIZE]="";
+    sqlstringescape(text, labeltext);
+    for(LabelsInfo::iterator i=labels.begin(); i!=labels.end(); ++i)
+    {
+        if(!strcmp(i->second.text, labeltext))
+        {
+            if(addr)
+                *addr=i->first;
+            return true;
+        }
+    }
+    return false;
+    /*
     if(!text or !strlen(text) or !addr)
         return 0;
     char labeltext[MAX_LABEL_SIZE]="";
@@ -413,10 +469,20 @@ bool labelfromstring(const char* text, uint* addr)
     sqlite3_finalize(stmt);
     unlock(WAITID_USERDB);
     return true;
+    */
 }
 
 bool labelget(uint addr, char* text)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(labels.count(addr)) //contains
+    {
+        strcpy(text, labels[addr].text);
+        return true;
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text)
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -426,10 +492,20 @@ bool labelget(uint addr, char* text)
     else
         sprintf(sql, "SELECT text FROM labels WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
     return sqlgettext(userdb, sql, text);
+    */
 }
 
 bool labeldel(uint addr)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(labels.count(addr))
+    {
+        labels.erase(addr);
+        return true;
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -451,9 +527,8 @@ bool labeldel(uint addr)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    dbsave();
-    GuiUpdateAllViews();
     return true;
+    */
 }
 
 ///bookmark functions
@@ -461,6 +536,12 @@ bool bookmarkset(uint addr)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
+    BOOKMARKSINFO bookmark;
+    modnamefromaddr(addr, bookmark.mod, true);
+    bookmark.addr=addr-modbasefromaddr(addr);
+    bookmarks.insert(std::make_pair(addr, bookmark));
+    return true;
+    /*
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true)) //bookmarks without module
@@ -486,13 +567,18 @@ bool bookmarkset(uint addr)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 bool bookmarkget(uint addr)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(bookmarks.count(addr))
+        return true;
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -502,10 +588,20 @@ bool bookmarkget(uint addr)
     else
         sprintf(sql, "SELECT * FROM bookmarks WHERE mod='%s' AND addr=%"fext"d", modname, addr-modbasefromaddr(addr));
     return sqlhasresult(userdb, sql);
+    */
 }
 
 bool bookmarkdel(uint addr)
 {
+    if(!DbgIsDebugging())
+        return false;
+    if(bookmarks.count(addr))
+    {
+        bookmarks.erase(addr);
+        return true;
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -527,14 +623,29 @@ bool bookmarkdel(uint addr)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    dbsave();
-    GuiUpdateAllViews();
     return true;
+    */
 }
 
 ///function database
-bool functionget(duint addr, duint* start, duint* end)
+bool functionget(uint addr, uint* start, uint* end)
 {
+    if(!DbgIsDebugging())
+        return false;
+    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
+    {
+        uint curAddr=addr-i->modbase;
+        if(i->start<=curAddr and i->end>=curAddr)
+        {
+            if(start)
+                *start=i->start+i->modbase;
+            if(end)
+                *end=i->end+i->modbase;
+            return true;
+        }
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -576,10 +687,22 @@ bool functionget(duint addr, duint* start, duint* end)
         *end=dbend;
     unlock(WAITID_USERDB);
     return true;
+    */
 }
 
 bool functionoverlaps(uint start, uint end)
 {
+    if(!DbgIsDebugging())
+        return false;
+    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
+    {
+        uint curStart=start-i->modbase;
+        uint curEnd=end-i->modbase;
+        if(i->start<=curEnd and i->end>=curStart)
+            return true;
+    }
+    return false;
+    /*
     char sql[deflen]="";
     char modname[MAX_MODULE_SIZE]="";
     //check for function overlaps
@@ -593,12 +716,24 @@ bool functionoverlaps(uint start, uint end)
     if(sqlhasresult(userdb, sql)) //functions overlap
         return true;
     return false;
+    */
 }
 
 bool functionadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
+    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
         return false;
+    if(functionoverlaps(start, end))
+        return false;
+    FUNCTIONSINFO function;
+    modnamefromaddr(start, function.mod, true);
+    function.modbase=modbasefromaddr(start);
+    function.start=start-function.modbase;
+    function.end=end-function.modbase;
+    function.manual=manual;
+    functions.push_back(function);
+    return true;
+    /*
     char sql[deflen]="";
     char modname[MAX_MODULE_SIZE]="";
     uint modbase=0;
@@ -621,15 +756,25 @@ bool functionadd(uint start, uint end, bool manual)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 bool functiondel(uint addr)
 {
-    if(!DbgIsDebugging() or !functionget(addr, 0, 0))
+    if(!DbgIsDebugging())
         return false;
+    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
+    {
+        uint curAddr=addr-i->modbase;
+        if(i->start<=curAddr and i->end>=curAddr)
+        {
+            functions.erase(i);
+            return true;
+        }
+    }
+    return false;
+    /*
     char modname[MAX_MODULE_SIZE]="";
     char sql[deflen]="";
     if(!modnamefromaddr(addr, modname, true))
@@ -644,13 +789,28 @@ bool functiondel(uint addr)
         dprintf("SQL Error: %s\nSQL Query: %s\n", sqllasterror(), sql);
         return false;
     }
-    GuiUpdateAllViews();
-    dbsave();
     return true;
+    */
 }
 
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
+    {
+        uint curAddr=addr-i->modbase;
+        if(i->start<=curAddr and i->end>=curAddr and i->depth==depth)
+        {
+            if(start)
+                *start=i->start+i->modbase;
+            if(end)
+                *end=i->end+i->modbase;
+            return true;
+        }
+    }
+    return false;
+    /*
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     char modname[MAX_MODULE_SIZE]="";
@@ -692,16 +852,57 @@ bool loopget(int depth, uint addr, uint* start, uint* end)
         *end=dbend;
     unlock(WAITID_USERDB);
     return true;
+    */
 }
 
 bool loopadd(uint start, uint end, bool manual)
 {
+    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
+        return false;
+    int finaldepth;
+    if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
+        return false;
+    LOOPSINFO loop;
+    modnamefromaddr(start, loop.mod, true);
+    loop.modbase=modbasefromaddr(start);
+    loop.start=start-loop.modbase;
+    loop.end=end-loop.modbase;
+    loop.depth=finaldepth;
+    if(finaldepth)
+        loop.parent=finaldepth-1;
+    else
+        loop.parent=0;
+    loop.manual=manual;
     return false;
 }
 
 //check if a loop overlaps a range, inside is not overlapping
-bool loopoverlaps(int depth, uint start, uint end)
+bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
 {
+    if(!DbgIsDebugging())
+        return false;
+    //check if the new loop fits in the old loop
+    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
+    {
+        uint curStart=start-i->modbase;
+        uint curEnd=end-i->modbase;
+        if(i->start<curStart and i->end>curEnd and i->depth==depth)
+            return loopoverlaps(depth+1, start, end, finaldepth);
+    }
+
+    if(finaldepth)
+        *finaldepth=depth;
+
+    //check for loop overlaps
+    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
+    {
+        uint curStart=start-i->modbase;
+        uint curEnd=end-i->modbase;
+        if(i->start<=curEnd and i->end>=curStart and i->depth==depth)
+            return true;
+    }
+    return false;
+    /*
     char sql[deflen]="";
     char modname[MAX_MODULE_SIZE]="";
 
@@ -724,10 +925,12 @@ bool loopoverlaps(int depth, uint start, uint end)
         uint modbase=modbasefromaddr(start);
         sprintf(sql, "SELECT manual FROM loops WHERE mod='%s' AND start<=%"fext"d AND end>=%"fext"d AND depth=%d", modname, end-modbase, start-modbase, depth);
     }
+    if(finaldepth)
+        *finaldepth=depth;
     if(sqlhasresult(userdb, sql)) //loops overlap
         return true;
     return false;
-
+    */
 }
 
 bool loopdel(int depth, uint addr)
