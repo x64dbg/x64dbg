@@ -2,7 +2,6 @@
 #define _ADDRINFO_H
 
 #include "_global.h"
-#include <map>
 
 //superglobal variables
 extern sqlite3* userdb;

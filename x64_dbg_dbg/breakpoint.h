@@ -28,6 +28,7 @@ struct BREAKPOINT
 
 //typedefs
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
+typedef std::map<uint addr, BREAKPOINT> BreakpointsMap;
 
 //functions
 int bpgetlist(BREAKPOINT** list);

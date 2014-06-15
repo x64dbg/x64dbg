@@ -60,8 +60,19 @@ bool dbsave()
     return sqlloadsavedb(userdb, dbpath, true);
 }
 
+void readcache()
+{
+
+}
+
+void writecache()
+{
+
+}
+
 void dbclose()
 {
+    writecache(); //write db structures to sqlite database
     //NOTE: remove breakpoints without module
     if(!sqlexec(userdb, "DELETE FROM breakpoints WHERE mod IS NULL"))
         dprintf("SQL Error: %s\n", sqllasterror());
