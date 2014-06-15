@@ -2,15 +2,16 @@
 #define STATICANALYSIS_INTERFACE_H
 
 #include "QBeaEngine.h"
-
+class StaticAnalysis;
 class StaticAnalysis_Interface
 {
 protected:
     int_t mBase;
     int_t mSize;
+    StaticAnalysis *mParent;
 
 public:
-    StaticAnalysis_Interface();
+    StaticAnalysis_Interface(StaticAnalysis *parent);
     virtual ~StaticAnalysis_Interface() {}
 
     // initialization before any analysis

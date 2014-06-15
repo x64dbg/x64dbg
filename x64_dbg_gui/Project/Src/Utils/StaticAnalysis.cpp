@@ -14,7 +14,8 @@ StaticAnalysis::StaticAnalysis(QWidget *parent) :
     connect(Bridge::getBridge(), SIGNAL(analyseCode(int_t,int_t)), this, SLOT(analyze(int_t,int_t)));
     connect(this,SIGNAL(endThread()),this,SLOT(end()));
 
-    apicalls = new StaticAnalysis_ApiCalls();
+    mApicalls = new StaticAnalysis_ApiCalls(this);
+    mFunctions = new StaticAnalysis_Functions(this);
     mPtr = this;
 }
 
@@ -22,7 +23,8 @@ StaticAnalysis::StaticAnalysis(QWidget *parent) :
 
 void StaticAnalysis::analyze(const int_t Base,const int_t Size){
     if(!mWorking){
-        GuiAddLogMessage(QString("start static analysis\n").toUtf8().constData());
+        GuiAddLogMessage(QString("static analysis started\n").toUtf8().constData());
+        clear();
         mBase = Base;
         mSize = Size;
         mWorking=true;
@@ -30,8 +32,11 @@ void StaticAnalysis::analyze(const int_t Base,const int_t Size){
     }
 }
 
-StaticAnalysis_ApiCalls* StaticAnalysis::calls() {
-    return apicalls;
+const StaticAnalysis_ApiCalls* StaticAnalysis::calls() {
+    return mApicalls;
+}
+const StaticAnalysis_Functions* StaticAnalysis::functions() {
+    return mFunctions;
 }
 
 
@@ -67,12 +72,14 @@ void StaticAnalysis::run()
         if(len!=UNKNOWN_OPCODE)
         {
             //TODO: ANALYSE HERE
-            apicalls->see(&disasm);
+            see(&disasm);
 
 
         }
-        else
+        else{
+            break; // ! otherwise we crash (some delphi targets produce a crash)
             len=1;
+        }
 
         disasm.EIP+=len;
         disasm.VirtualAddr+=len;
@@ -86,14 +93,31 @@ void StaticAnalysis::run()
     emit endThread();
 }
 
+void StaticAnalysis::see(DISASM *disasm){
+
+    mApicalls->see(disasm);
+    mFunctions->see(disasm);
+
+}
+
 void StaticAnalysis::think(){
-    apicalls->think();
+    mApicalls->think();
+    mFunctions->think();
+}
+
+void StaticAnalysis::clear(){
+    mApicalls->clear();
+    mFunctions->clear();
+}
+
+bool StaticAnalysis::isWorking() const{
+    return mWorking;
 }
 
 void StaticAnalysis::end(){
     mWorking=false;
     if(!mErrorDuringAnalysis){
-        GuiAddLogMessage(QString("start static analysis finished\n").toUtf8().constData());
+        GuiAddLogMessage(QString("static analysis finished\n").toUtf8().constData());
     }
     emit staticAnalysisCompleted();
     qDebug() << "finished";

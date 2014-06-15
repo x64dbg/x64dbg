@@ -1,20 +1,27 @@
 #include "StaticAnalysis_ApiCalls.h"
 #include "ApiFingerprints.h"
+#include "StaticAnalysis.h"
 
 #define _isPush(disasm)  (QString(disasm->Instruction.Mnemonic).trimmed().toLower() == "push")
 #define _isCall(disasm)  ((disasm->Instruction.Opcode == 0xE8) && disasm->Instruction.BranchType && disasm->Instruction.BranchType!=RetType && !(disasm->Argument1.ArgType &REGISTER_TYPE))
 
-StaticAnalysis_ApiCalls::StaticAnalysis_ApiCalls()
+StaticAnalysis_ApiCalls::StaticAnalysis_ApiCalls(StaticAnalysis *parent) : StaticAnalysis_Interface(parent)
 {
     clear();
 }
 
 bool StaticAnalysis_ApiCalls::hasComment(int_t va){
-    return mComments.contains(va);
+    if(!mParent->isWorking())
+        return mComments.contains(va);
+    else
+        return false;
 }
 
 QString StaticAnalysis_ApiCalls::comment(int_t va){
-    return mComments.find(va).value();
+    if(!mParent->isWorking())
+        return mComments.find(va).value();
+    else
+        return QString("");
 }
 
 
@@ -33,6 +40,7 @@ void StaticAnalysis_ApiCalls::see(DISASM *disasm)
         // there is "push ..." --> remember
         // bugfix!!!!! -1
         mCurrent.arguments.append(disasm->VirtualAddr );
+            qDebug() << "found push";
     }
     else if(disasm->Instruction.Opcode == 0xFF)
     {
@@ -45,8 +53,8 @@ void StaticAnalysis_ApiCalls::see(DISASM *disasm)
         if(hasLabel){
             // api calls have 0xFF-jumps as target addresses, we need to remember them
             ApiJumpStructure j;
-            j.rva = disasm->VirtualAddr;
-            j.target = disasm->Argument1.Memory.Displacement;
+            j.instruction_va = disasm->VirtualAddr;
+            j.target_va = disasm->Argument1.Memory.Displacement;
             j.label = QString(labelText);
             mApiJumps.append(j);
         }
@@ -56,8 +64,8 @@ void StaticAnalysis_ApiCalls::see(DISASM *disasm)
     else if(_isCall(disasm))
     {
         // set missing informations
-        mCurrent.rva = disasm->VirtualAddr ;
-        mCurrent.target_rva = disasm->Instruction.AddrValue ;
+        mCurrent.instruction_va = disasm->VirtualAddr ;
+        mCurrent.target_va = disasm->Instruction.AddrValue ;
         // copy structure
         CallStructure t = mCurrent;
         mCalls.append(t);
@@ -85,31 +93,23 @@ bool StaticAnalysis_ApiCalls::think()
         // iterate all 0xFF instructions
         for(int j=0;j<apijumps_count;j++){
             // is call a api call?
-            if(call->target_rva == mApiJumps.at(j).rva){
+            if(call->target_va == mApiJumps.at(j).instruction_va){
                     // having a label we can look in our database to get the arguments list
                     APIFunction f = ApiFingerprints::instance()->findFunction(mApiJumps.at(j).label);
-
                     if(!f.invalid){
                         // yeah we know everything about the api-call!
                         QString com = f.ReturnType+" "+f.Name;
-                        mComments.insert(call->rva,f.ReturnType+" "+f.Name);
-
+                        mComments.insert(call->instruction_va,f.ReturnType+" "+f.Name);
                         int pos=0;
                         // set comments for the arguments
                         for(int i=call->arguments.count() -1; i >=0;i--){
                             QString arg = f.Arguments.at(pos).Type +" "+ f.Arguments.at(pos).Name;
                             mComments.insert(call->arguments.at(i),arg);
                             pos++;
-
                             if(pos >=f.Arguments.count())
                                 break;
                         }
-
-
                     }
-
-
-
                 is_api = true;
                 numberOfApiCalls++;
                 break;

@@ -7,19 +7,19 @@
 class StaticAnalysis_ApiCalls : public StaticAnalysis_Interface
 {
     struct ApiJumpStructure{
-        int_t rva;
-        int_t target;
+        int_t instruction_va;
+        int_t target_va;
         QString label;
     };
 
     struct CallStructure{
         QList<int_t> arguments;
-        int_t rva;
-        int_t target_rva;
+        int_t instruction_va;
+        int_t target_va;
         void clear(){
             arguments.clear();
-            rva = 0;
-            target_rva = 0;
+            instruction_va = 0;
+            target_va = 0;
         }
         bool isApiCall;
     };
@@ -33,7 +33,7 @@ class StaticAnalysis_ApiCalls : public StaticAnalysis_Interface
     CallStructure mCurrent;
 
 public:
-    StaticAnalysis_ApiCalls();
+    StaticAnalysis_ApiCalls(StaticAnalysis *parent);
     // clear all extracted informations
     void clear();
     // each derived class will see each instruction only once (in a analysis step)

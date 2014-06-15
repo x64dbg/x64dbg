@@ -9,6 +9,7 @@
 
 
 #include "StaticAnalysis_ApiCalls.h"
+#include "StaticAnalysis_Functions.h"
 
 // we use QThread here to make sure that the GUI will not be frozen
 class StaticAnalysis : public QThread
@@ -24,19 +25,24 @@ public:
     explicit StaticAnalysis(QWidget *parent = 0);
 
     static StaticAnalysis *instance();
-    StaticAnalysis_ApiCalls *calls() ;
+    const StaticAnalysis_ApiCalls *calls() ;
+    const StaticAnalysis_Functions *functions();
+
+    bool isWorking() const;
+
 signals:
     void staticAnalysisCompleted();
     void endThread();
 
 public slots:
     void analyze(int_t Base, int_t Size);
+    void clear();
 protected slots:
     void end();
 
 protected:
     void run();
-
+    void see(DISASM *disasm);
     void think();
 private:
     // current number of disassembled instruction during analysis
@@ -52,7 +58,8 @@ private:
     int_t mSize;
 
 
-    StaticAnalysis_ApiCalls* apicalls;
+    StaticAnalysis_ApiCalls* mApicalls;
+    StaticAnalysis_Functions* mFunctions;
 
 };
 
