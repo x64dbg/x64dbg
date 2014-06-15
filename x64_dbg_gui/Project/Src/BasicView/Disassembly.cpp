@@ -303,8 +303,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
         painter->restore();
-        break;
     }
+    break;
 
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
@@ -343,14 +343,15 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wBytes);
         painter->restore();
-        break;
     }
+    break;
 
     case 2: //draw disassembly (with colours needed)
     {
         int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
         int loopsize=0;
         int depth=0;
+
         while(1) //paint all loop depths
         {
             LOOPTYPE loopType=DbgGetLoopTypeAt(cur_addr, depth);
@@ -389,8 +390,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int xinc = 4;
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, QFontMetrics(this->font()).width(QChar(' ')));
         token->x = x + loopsize + xinc;
-        break;
     }
+    break;
 
     case 3: //draw comments
     {
@@ -413,7 +414,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     default:
         break;
     }
-
     return "";
 }
 
@@ -608,7 +608,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(key == Qt::Key_Control)
+    else if(!event->isAutoRepeat() && key == Qt::Key_Z)
     {
         mHighlightingMode=true;
         reloadData();
@@ -619,7 +619,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 
 void Disassembly::keyReleaseEvent(QKeyEvent* event)
 {
-    if(event->key() == Qt::Key_Control)
+    if(!event->isAutoRepeat() && event->key() == Qt::Key_Z)
     {
         mHighlightingMode=false;
         reloadData();
@@ -1190,7 +1190,6 @@ void Disassembly::prepareData()
         mInstBuffer.append(wInst);
         wRVA += wInst.lentgh;
     }
-
 }
 
 void Disassembly::reloadData()

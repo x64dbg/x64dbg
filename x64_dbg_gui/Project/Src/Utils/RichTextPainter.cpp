@@ -1,5 +1,6 @@
 #include "RichTextPainter.h"
 
+//TODO: sometimes this function takes 15/16ms, it is not clear to me why this is (no noticable performance impact)
 void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<RichTextPainter::CustomRichText_t>* richText, int charwidth)
 {
     int len=richText->size();
