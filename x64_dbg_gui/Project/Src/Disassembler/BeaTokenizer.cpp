@@ -229,7 +229,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             displacement.value=disasm->Instruction.AddrValue;
         else //direct displacement
             displacement.value=arg->Memory.Displacement;
-        if(displacement.value)
+        if(displacement.value || !prependPlusMinus) //support dword ptr fs:[0]
         {
             BeaTokenValue printDisplacement=displacement;
             QString plusMinus="+";
