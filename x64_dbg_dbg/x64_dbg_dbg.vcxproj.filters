@@ -19,9 +19,6 @@
     <Filter Include="Header Files\dbghelp">
       <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\sqlite">
-      <UniqueIdentifier>{fa9d17d3-a464-4693-b1d8-0d0c10a88bd1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\dbg">
       <UniqueIdentifier>{c7d6554c-6b4c-42b2-8d0a-7968cdfdba63}</UniqueIdentifier>
     </Filter>
@@ -88,9 +85,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="x64_dbg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sqlhelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="plugin_loader.cpp">
@@ -179,9 +173,6 @@
     <ClInclude Include="x64_dbg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sqlhelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="plugin_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -238,9 +229,6 @@
     </ClInclude>
     <ClInclude Include="TitanEngine\TitanEngine.h">
       <Filter>Header Files\TitanEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlite\sqlite3.h">
-      <Filter>Header Files\sqlite</Filter>
     </ClInclude>
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
       <Filter>Header Files\DeviceNameResolver</Filter>

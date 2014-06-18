@@ -18,7 +18,6 @@
 #include <map>
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
-#include "sqlite\sqlite3.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"

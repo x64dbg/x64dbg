@@ -28,7 +28,6 @@
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
-    <ClCompile Include="sqlhelper.cpp" />
     <ClCompile Include="stackinfo.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="thread.cpp" />
@@ -66,8 +65,6 @@
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />
-    <ClInclude Include="sqlhelper.h" />
-    <ClInclude Include="sqlite\sqlite3.h" />
     <ClInclude Include="stackinfo.h" />
     <ClInclude Include="symbolinfo.h" />
     <ClInclude Include="thread.h" />
@@ -130,7 +127,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32_bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;sqlite\sqlite32.lib;BeaEngine\BeaEngine.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32_bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;BeaEngine\BeaEngine.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -145,7 +142,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64_bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;sqlite\sqlite64.lib;BeaEngine\BeaEngine_64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64_bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;BeaEngine\BeaEngine_64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

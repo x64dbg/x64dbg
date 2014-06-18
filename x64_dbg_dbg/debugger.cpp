@@ -46,7 +46,7 @@ static void cbUserBreakpoint();
 
 void dbgdisablebpx()
 {
-    BREAKPOINT* list;
+    std::vector<BREAKPOINT> list;
     int bpcount=bpgetlist(&list);
     for(int i=0; i<bpcount; i++)
     {
@@ -57,7 +57,7 @@ void dbgdisablebpx()
 
 void dbgenablebpx()
 {
-    BREAKPOINT* list;
+    std::vector<BREAKPOINT> list;
     int bpcount=bpgetlist(&list);
     for(int i=0; i<bpcount; i++)
     {
@@ -387,35 +387,36 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
 
 static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
-    //TODO: more breakpoint types
+    if(!bp->enabled)
+        return true;
     switch(bp->type)
     {
     case BPNORMAL:
-        if(bp->enabled)
-        {
-            if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
-                dprintf("could not set breakpoint "fhex"!\n", bp->addr);
-        }
-        break;
+    {
+        if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+            dprintf("could not set breakpoint "fhex"!\n", bp->addr);
+    }
+    break;
+
     case BPMEMORY:
-        if(bp->enabled)
-        {
-            uint size=0;
-            memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
-            bool restore=false;
-            if(!bp->singleshoot)
-                restore=true;
-            if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, restore, (void*)cbMemoryBreakpoint))
-                dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
-        }
-        break;
+    {
+        uint size=0;
+        memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
+        bool restore=false;
+        if(!bp->singleshoot)
+            restore=true;
+        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, restore, (void*)cbMemoryBreakpoint))
+            dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
+    }
+    break;
+
     case BPHARDWARE:
-        if(bp->enabled)
-        {
-            if(!SetHardwareBreakPoint(bp->addr, (bp->titantype>>8)&0xF, (bp->titantype>>4)&0xF, bp->titantype&0xF, (void*)cbHardwareBreakpoint))
-                dprintf("could not set hardware breakpoint "fhex"!\n", bp->addr);
-        }
-        break;
+    {
+        if(!SetHardwareBreakPoint(bp->addr, (bp->titantype>>8)&0xF, (bp->titantype>>4)&0xF, bp->titantype&0xF, (void*)cbHardwareBreakpoint))
+            dprintf("could not set hardware breakpoint "fhex"!\n", bp->addr);
+    }
+    break;
+
     default:
         break;
     }
@@ -528,10 +529,11 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     modInfo.SizeOfStruct=sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    bpenumall(0); //update breakpoint list
+    //bpenumall(0); //update breakpoint list
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
+    GuiUpdateBreakpointsView();
     if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage; //debugged base = executable
@@ -692,10 +694,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    bpenumall(0); //update breakpoint list
+    //bpenumall(0); //update breakpoint list
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
+    GuiUpdateBreakpointsView();
     bool bAlreadySetEntry=false;
     if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
@@ -756,6 +759,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     char modname[256]="???";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbRemoveModuleBreakpoints, modname);
+    GuiUpdateBreakpointsView();
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
 

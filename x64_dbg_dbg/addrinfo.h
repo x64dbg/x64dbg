@@ -3,9 +3,6 @@
 
 #include "_global.h"
 
-//superglobal variables
-extern sqlite3* userdb;
-
 //structures
 struct MODINFO
 {
@@ -68,28 +65,37 @@ typedef std::vector<LOOPSINFO> LoopsInfo;
 void dbinit();
 bool dbsave();
 bool dbload();
+void dbreadcache();
+void dbwritecache();
 void dbclose();
+
 bool modload(uint base, uint size, const char* fullpath);
 bool modunload(uint base);
 void modclear();
 bool modnamefromaddr(uint addr, char* modname, bool extension);
 uint modbasefromaddr(uint addr);
 uint modbasefromname(const char* modname);
+
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
+
 bool commentset(uint addr, const char* text);
 bool commentget(uint addr, char* text);
 bool commentdel(uint addr);
+
 bool labelset(uint addr, const char* text);
 bool labelfromstring(const char* text, uint* addr);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
+
 bool bookmarkset(uint addr);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
+
 bool functionget(uint addr, uint* start, uint* end);
 bool functionoverlaps(uint start, uint end);
 bool functionadd(uint start, uint end, bool manual);
 bool functiondel(uint addr);
+
 bool loopget(int depth, uint addr, uint* start, uint* end);
 bool loopoverlaps(int depth, uint start, uint end, int* finaldepth);
 bool loopadd(uint start, uint end, bool manual);

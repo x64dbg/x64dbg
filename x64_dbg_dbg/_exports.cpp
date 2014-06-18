@@ -558,7 +558,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 {
     if(!bpmap)
         return 0;
-    BREAKPOINT* list;
+    std::vector<BREAKPOINT> list;
     int bpcount=bpgetlist(&list);
     if(bpcount==0)
     {

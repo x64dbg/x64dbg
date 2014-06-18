@@ -15,6 +15,7 @@ enum BP_TYPE
 //structs
 struct BREAKPOINT
 {
+    uint modbase;
     uint addr;
     bool enabled;
     bool singleshoot;
@@ -28,10 +29,11 @@ struct BREAKPOINT
 
 //typedefs
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
-typedef std::map<uint addr, BREAKPOINT> BreakpointsMap;
+
+typedef std::map<std::pair<uint, BP_TYPE>, BREAKPOINT> BreakpointsMap;
 
 //functions
-int bpgetlist(BREAKPOINT** list);
+int bpgetlist(std::vector<BREAKPOINT>* list);
 bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name);
 bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp);
 bool bpdel(uint addr, BP_TYPE type);
