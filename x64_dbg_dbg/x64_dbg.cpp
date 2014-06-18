@@ -217,8 +217,9 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(dir[len]!='\\')
         len--;
     dir[len]=0;
-    strcpy(sqlitedb_basedir, dir); //debug directory
-    PathAppendA(sqlitedb_basedir, "db");
+    strcpy(dbbasepath, dir); //debug directory
+    PathAppendA(dbbasepath, "db");
+    CreateDirectoryA(dbbasepath, 0); //create database directory
     SetCurrentDirectoryA(dir);
     gMsgStack=msgallocstack();
     if(!gMsgStack)

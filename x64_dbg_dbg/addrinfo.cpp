@@ -26,7 +26,6 @@ bool dbload()
 
 bool dbsave()
 {
-    CreateDirectoryA(sqlitedb_basedir, 0); //create database directory
     return true;
 }
 

@@ -92,7 +92,7 @@ enum BITMASK
 
 //superglobal variables
 extern HINSTANCE hInst;
-extern char sqlitedb_basedir[deflen];
+extern char dbbasepath[deflen];
 extern char dbpath[3*deflen];
 
 //functions

@@ -516,7 +516,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 #else
     strcat(sqlitedb, ".dd32");
 #endif // _WIN64
-    sprintf(dbpath, "%s\\%s", sqlitedb_basedir, sqlitedb);
+    sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbinit();
     SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);

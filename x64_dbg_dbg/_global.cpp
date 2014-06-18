@@ -3,7 +3,7 @@
 #include <new>
 
 HINSTANCE hInst;
-char sqlitedb_basedir[deflen]="";
+char dbbasepath[deflen]="";
 char dbpath[3*deflen]="";
 
 void* emalloc(size_t size)
