@@ -143,6 +143,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     QColor bpColor=ConfigColor("DisassemblyBreakpointBackgroundColor");
                     if(!bpColor.alpha()) //we don't want transparent text
                         bpColor=ConfigColor("DisassemblyBreakpointColor");
+                    if(bpColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                        bpColor=ConfigColor("DisassemblyCipColor");
                     painter->setPen(QPen(bpColor));
                 }
                 else if(bpxtype&bp_hardware) //hardware breakpoint only
@@ -150,6 +152,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     QColor hwbpColor=ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
                     if(!hwbpColor.alpha()) //we don't want transparent text
                         hwbpColor=ConfigColor("DisassemblyHardwareBreakpointColor");
+                    if(hwbpColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                        hwbpColor=ConfigColor("DisassemblyCipColor");
                     painter->setPen(hwbpColor);
                 }
                 else //no breakpoint
@@ -162,6 +166,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 QColor bookmarkColor=ConfigColor("DisassemblyBookmarkBackgroundColor");
                 if(!bookmarkColor.alpha()) //we don't want transparent text
                     bookmarkColor=ConfigColor("DisassemblyBookmarkColor");
+                if(bookmarkColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                    bookmarkColor=ConfigColor("DisassemblyCipColor");
                 painter->setPen(QPen(bookmarkColor));
             }
         }
