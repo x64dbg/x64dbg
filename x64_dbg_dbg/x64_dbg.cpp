@@ -17,6 +17,8 @@
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
+static HANDLE hCommandLoopThread=0;
+static char alloctrace[MAX_PATH]="";
 
 //Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
 static void commandlinefree(int argc, char** argv)
@@ -209,7 +211,6 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
-    DeleteFileA("alloctrace.txt");
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";
@@ -217,6 +218,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(dir[len]!='\\')
         len--;
     dir[len]=0;
+    strcpy(alloctrace, dir);
+    PathAppendA(alloctrace, "\\alloctrace.txt");
+    DeleteFileA(alloctrace);
+    setalloctrace(alloctrace);
     strcpy(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
     CreateDirectoryA(dbbasepath, 0); //create database directory
@@ -226,7 +231,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Could not allocate message stack!";
     varinit();
     registercommands();
-    CloseHandle(CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0));
+    hCommandLoopThread=CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen]="";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
@@ -250,9 +255,18 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cbStopDebug(0, 0);
     wait(WAITID_STOP); //after this, debugging stopped
     pluginunload();
+    TerminateThread(hCommandLoopThread, 0);
     cmdfree(command_list);
     varfree();
     msgfreestack(gMsgStack);
+    if(memleaks())
+    {
+        char msg[256]="";
+        sprintf(msg, "%d memory leak(s) found!\n\nPlease send 'alloctrace.txt' to the authors of x64_dbg.", memleaks());
+        MessageBoxA(0, msg, "error", MB_ICONERROR|MB_SYSTEMMODAL);
+    }
+    else
+        DeleteFileA(alloctrace);
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)

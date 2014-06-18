@@ -4,6 +4,7 @@ del /Q *.sdf
 del /Q *.layout
 del /Q /A H *.suo
 rmdir /S /Q ipch
+rmdir /S /Q release
 echo cleaning x64_dbg_bridge...
 cd x64_dbg_bridge
 rmdir /S /Q obj

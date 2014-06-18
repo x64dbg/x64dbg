@@ -19,9 +19,6 @@
     <Filter Include="Header Files\dbghelp">
       <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\dbg">
-      <UniqueIdentifier>{c7d6554c-6b4c-42b2-8d0a-7968cdfdba63}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\TitanEngine">
       <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
     </Filter>
@@ -140,9 +137,6 @@
     <ClInclude Include="data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dbg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="debugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -220,9 +214,6 @@
     </ClInclude>
     <ClInclude Include="dbghelp\dbghelp.h">
       <Filter>Header Files\dbghelp</Filter>
-    </ClInclude>
-    <ClInclude Include="dbg\dbg.h">
-      <Filter>Header Files\dbg</Filter>
     </ClInclude>
     <ClInclude Include="XEDParse\XEDParse.h">
       <Filter>Header Files\XEDParse</Filter>
