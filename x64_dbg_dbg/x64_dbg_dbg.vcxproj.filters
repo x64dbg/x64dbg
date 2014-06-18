@@ -28,6 +28,9 @@
     <Filter Include="Header Files\DeviceNameResolver">
       <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\jansson">
+      <UniqueIdentifier>{b63305e2-2b10-46eb-839f-5e9080fa8ad8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_exports.cpp">
@@ -223,6 +226,12 @@
     </ClInclude>
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
       <Filter>Header Files\DeviceNameResolver</Filter>
+    </ClInclude>
+    <ClInclude Include="jansson\jansson.h">
+      <Filter>Header Files\jansson</Filter>
+    </ClInclude>
+    <ClInclude Include="jansson\jansson_config.h">
+      <Filter>Header Files\jansson</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

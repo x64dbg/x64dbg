@@ -54,6 +54,8 @@ typedef struct json_t
     size_t refcount;
 } json_t;
 
+typedef json_t* JSON;
+
 #ifndef JANSSON_USING_CMAKE /* disabled if using cmake */
 #if JSON_INTEGER_IS_LONG_LONG
 #ifdef _WIN32
@@ -90,6 +92,17 @@ __declspec(dllimport) json_t* json_stringn(const char *value, size_t len);
 __declspec(dllimport) json_t* json_string_nocheck(const char *value);
 __declspec(dllimport) json_t* json_stringn_nocheck(const char *value, size_t len);
 __declspec(dllimport) json_t* json_integer(json_int_t value);
+static JSON_INLINE
+json_t *json_hex(json_int_t value)
+{
+    char hexvalue[20];
+#ifdef _WIN64
+    sprintf(hexvalue, "0x%llX", value);
+#else //x64
+    sprintf(hexvalue, "0x%X", value);
+#endif //_WIN64
+    return json_string(hexvalue);
+}
 __declspec(dllimport) json_t* json_real(double value);
 __declspec(dllimport) json_t* json_true(void);
 __declspec(dllimport) json_t* json_false(void);
@@ -208,6 +221,21 @@ int json_array_insert(json_t *array, size_t ind, json_t *value)
 __declspec(dllimport) const char* json_string_value(const json_t *string);
 __declspec(dllimport) size_t json_string_length(const json_t *string);
 __declspec(dllimport) json_int_t json_integer_value(const json_t *integer);
+static JSON_INLINE
+json_int_t json_hex_value(const json_t* hex)
+{
+    json_int_t ret;
+    const char* hexvalue;
+    hexvalue=json_string_value(hex);
+    if(!hexvalue)
+        return 0;
+#ifdef _WIN64
+    sscanf(hexvalue, "0x%llX", &ret);
+#else //x64
+    sscanf(hexvalue, "0x%X", &ret);
+#endif //_WIN64
+    return ret;
+}
 __declspec(dllimport) double json_real_value(const json_t *real);
 __declspec(dllimport) double json_number_value(const json_t *json);
 
