@@ -599,7 +599,11 @@ bool scriptcmdexec(const char* command)
 void scriptabort()
 {
     if(bIsRunning)
+    {
         bAbort=true;
+        while(bIsRunning)
+            Sleep(1);
+    }
     else //reset the script
         scriptsetip(0);
 }
