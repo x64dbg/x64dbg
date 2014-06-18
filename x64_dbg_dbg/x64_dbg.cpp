@@ -209,8 +209,19 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
     return 0;
 }
 
+static void* emalloc_json(size_t size)
+{
+    return emalloc(size, "json:ptr");
+}
+
+static void efree_json(void* ptr)
+{
+    efree(ptr, "json:ptr");
+}
+
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
+    json_set_alloc_funcs(emalloc_json, efree_json);
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";

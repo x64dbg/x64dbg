@@ -13,35 +13,28 @@ static BookmarksInfo bookmarks;
 static FunctionsInfo functions;
 static LoopsInfo loops;
 
-///basic database functions
-void dbinit()
+//database functions
+void dbsave()
 {
-    dbreadcache();
+    JSON root=json_object();
+    commentcachesave(root);
+    json_dump_file(root, dbpath, JSON_INDENT(4)|JSON_SORT_KEYS);
+    json_decref(root); //free root
 }
 
-bool dbload()
+void dbload()
 {
-    return true;
+    JSON root=json_load_file(dbpath, 0, 0);
+    if(!root)
+        return;
+    commentcacheload(root);
+    json_decref(root); //free root
 }
 
-bool dbsave()
+void dbupdate()
 {
-    return true;
-}
-
-void dbreadcache()
-{
-
-}
-
-void dbwritecache()
-{
-
-}
-
-void dbclose()
-{
-    dbwritecache();
+    dbsave(); //flush cache to disk
+    dbload(); //load database to cache (and update the module bases + VAs)
 }
 
 ///module functions
@@ -74,11 +67,13 @@ bool modload(uint base, uint size, const char* fullpath)
     _strlwr(info.name);
     modinfo.push_back(info);
     symupdatemodulelist();
+    dbupdate();
     return true;
 }
 
 bool modunload(uint base)
 {
+    dbupdate();
     int total=modinfo.size();
     for(int i=0; i<total; i++)
     {
@@ -229,20 +224,21 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 }
 
 ///comment functions
-bool commentset(uint addr, const char* text)
+bool commentset(uint addr, const char* text, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_COMMENT_SIZE-1)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return commentdel(addr);
-    COMMENTSINFO info;
-    strcpy(info.text, text);
-    modnamefromaddr(addr, info.mod, true);
-    info.addr=addr-modbasefromaddr(addr);
+    COMMENTSINFO comment;
+    comment.manual=manual;
+    strcpy(comment.text, text);
+    modnamefromaddr(addr, comment.mod, true);
+    comment.addr=addr-modbasefromaddr(addr);
     if(comments.count(addr)) //contains addr
-        comments[addr]=info;
+        comments[addr]=comment;
     else
-        comments.insert(std::make_pair(addr, info));
+        comments.insert(std::make_pair(addr, comment));
     return true;
 }
 
@@ -270,14 +266,99 @@ bool commentdel(uint addr)
     return false;
 }
 
+void commentcachesave(JSON root)
+{
+    JSON jsoncomments=json_array();
+    JSON jsonautocomments=json_array();
+    for(CommentsInfo::iterator i=comments.begin(); i!=comments.end(); ++i)
+    {
+        COMMENTSINFO curComment=i->second;
+        JSON curjsoncomment=json_object();
+        if(*curComment.mod)
+            json_object_set_new(curjsoncomment, "module", json_string(curComment.mod));
+        else
+            json_object_set_new(curjsoncomment, "module", json_null());
+        json_object_set_new(curjsoncomment, "address", json_hex(curComment.addr));
+        json_object_set_new(curjsoncomment, "text", json_string(curComment.text));
+        if(curComment.manual)
+            json_array_append_new(jsoncomments, curjsoncomment);
+        else
+            json_array_append_new(jsonautocomments, curjsoncomment);
+    }
+    if(json_array_size(jsoncomments))
+        json_object_set(root, "comments", jsoncomments);
+    json_decref(jsoncomments);
+    if(json_array_size(jsonautocomments))
+        json_object_set(root, "autocomments", jsonautocomments);
+    json_decref(jsonautocomments);
+}
+
+void commentcacheload(JSON root)
+{
+    comments.clear();
+    JSON jsoncomments=json_object_get(root, "comments");
+    if(jsoncomments)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsoncomments, i, value)
+        {
+            COMMENTSINFO curComment;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curComment.mod, mod);
+            else
+                *curComment.mod='\0';
+            curComment.addr=json_hex_value(json_object_get(value, "address"));
+            if(!curComment.addr)
+                continue; //skip
+            curComment.manual=true;
+            const char* text=json_string_value(json_object_get(value, "text"));
+            if(text)
+                strcpy(curComment.text, text);
+            else
+                continue; //skip
+            uint modbase=modbasefromname(curComment.mod);
+            comments.insert(std::make_pair(curComment.addr+modbase, curComment));
+        }
+    }
+    JSON jsonautocomments=json_object_get(root, "autocomments");
+    if(jsonautocomments)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonautocomments, i, value)
+        {
+            COMMENTSINFO curComment;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curComment.mod, mod);
+            else
+                *curComment.mod='\0';
+            curComment.addr=json_hex_value(json_object_get(value, "address"));
+            if(!curComment.addr)
+                continue; //skip
+            curComment.manual=false;
+            const char* text=json_string_value(json_object_get(value, "text"));
+            if(text)
+                strcpy(curComment.text, text);
+            else
+                continue; //skip
+            uint modbase=modbasefromname(curComment.mod);
+            comments.insert(std::make_pair(curComment.addr+modbase, curComment));
+        }
+    }
+}
+
 ///label functions
-bool labelset(uint addr, const char* text)
+bool labelset(uint addr, const char* text, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_LABEL_SIZE-1)
         return false;
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
     LABELSINFO label;
+    label.manual=manual;
     strcpy(label.text, text);
     modnamefromaddr(addr, label.mod, true);
     label.addr=addr-modbasefromaddr(addr);
@@ -329,13 +410,14 @@ bool labeldel(uint addr)
 }
 
 ///bookmark functions
-bool bookmarkset(uint addr)
+bool bookmarkset(uint addr, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
     BOOKMARKSINFO bookmark;
     modnamefromaddr(addr, bookmark.mod, true);
     bookmark.addr=addr-modbasefromaddr(addr);
+    bookmark.manual=manual;
     bookmarks.insert(std::make_pair(addr, bookmark));
     return true;
 }
@@ -362,6 +444,22 @@ bool bookmarkdel(uint addr)
 }
 
 ///function database
+bool functionadd(uint start, uint end, bool manual)
+{
+    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
+        return false;
+    if(functionoverlaps(start, end))
+        return false;
+    FUNCTIONSINFO function;
+    modnamefromaddr(start, function.mod, true);
+    function.modbase=modbasefromaddr(start);
+    function.start=start-function.modbase;
+    function.end=end-function.modbase;
+    function.manual=manual;
+    functions.push_back(function);
+    return true;
+}
+
 bool functionget(uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
@@ -395,22 +493,6 @@ bool functionoverlaps(uint start, uint end)
     return false;
 }
 
-bool functionadd(uint start, uint end, bool manual)
-{
-    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
-        return false;
-    if(functionoverlaps(start, end))
-        return false;
-    FUNCTIONSINFO function;
-    modnamefromaddr(start, function.mod, true);
-    function.modbase=modbasefromaddr(start);
-    function.start=start-function.modbase;
-    function.end=end-function.modbase;
-    function.manual=manual;
-    functions.push_back(function);
-    return true;
-}
-
 bool functiondel(uint addr)
 {
     if(!DbgIsDebugging())
@@ -424,6 +506,28 @@ bool functiondel(uint addr)
             return true;
         }
     }
+    return false;
+}
+
+//loop database
+bool loopadd(uint start, uint end, bool manual)
+{
+    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
+        return false;
+    int finaldepth;
+    if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
+        return false;
+    LOOPSINFO loop;
+    modnamefromaddr(start, loop.mod, true);
+    loop.modbase=modbasefromaddr(start);
+    loop.start=start-loop.modbase;
+    loop.end=end-loop.modbase;
+    loop.depth=finaldepth;
+    if(finaldepth)
+        loop.parent=finaldepth-1;
+    else
+        loop.parent=0;
+    loop.manual=manual;
     return false;
 }
 
@@ -443,27 +547,6 @@ bool loopget(int depth, uint addr, uint* start, uint* end)
             return true;
         }
     }
-    return false;
-}
-
-bool loopadd(uint start, uint end, bool manual)
-{
-    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
-        return false;
-    int finaldepth;
-    if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
-        return false;
-    LOOPSINFO loop;
-    modnamefromaddr(start, loop.mod, true);
-    loop.modbase=modbasefromaddr(start);
-    loop.start=start-loop.modbase;
-    loop.end=end-loop.modbase;
-    loop.depth=finaldepth;
-    if(finaldepth)
-        loop.parent=finaldepth-1;
-    else
-        loop.parent=0;
-    loop.manual=manual;
     return false;
 }
 

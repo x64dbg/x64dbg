@@ -410,18 +410,18 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     bool retval=false;
     if(addrinfo->flags&flaglabel) //set label
     {
-        if(labelset(addr, addrinfo->label))
+        if(labelset(addr, addrinfo->label, true))
             retval=true;
     }
     if(addrinfo->flags&flagcomment) //set comment
     {
-        if(commentset(addr, addrinfo->comment))
+        if(commentset(addr, addrinfo->comment, true))
             retval=true;
     }
     if(addrinfo->flags&flagbookmark) //set bookmark
     {
         if(addrinfo->isbookmark)
-            retval=bookmarkset(addr);
+            retval=bookmarkset(addr, true);
         else
             retval=bookmarkdel(addr);
     }

@@ -518,7 +518,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 #endif // _WIN64
     sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
-    dbinit();
+    dbload();
     SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
     GuiSymbolLogClear();
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
@@ -1007,7 +1007,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    dbclose();
+    dbsave();
     modclear();
     threadclear();
     GuiSetDebugState(stopped);
@@ -1955,7 +1955,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    dbclose();
+    dbsave();
     modclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");

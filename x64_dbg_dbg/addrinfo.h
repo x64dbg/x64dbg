@@ -17,6 +17,7 @@ struct COMMENTSINFO
     char mod[MAX_MODULE_SIZE];
     uint addr;
     char text[MAX_COMMENT_SIZE];
+    bool manual;
 };
 
 struct LABELSINFO
@@ -24,12 +25,14 @@ struct LABELSINFO
     char mod[MAX_MODULE_SIZE];
     uint addr;
     char text[MAX_LABEL_SIZE];
+    bool manual;
 };
 
 struct BOOKMARKSINFO
 {
     char mod[MAX_MODULE_SIZE];
     uint addr;
+    bool manual;
 };
 
 struct FUNCTIONSINFO
@@ -62,12 +65,9 @@ typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 typedef std::vector<FUNCTIONSINFO> FunctionsInfo;
 typedef std::vector<LOOPSINFO> LoopsInfo;
 
-void dbinit();
-bool dbsave();
-bool dbload();
-void dbreadcache();
-void dbwritecache();
-void dbclose();
+void dbsave();
+void dbload();
+void dbupdate();
 
 bool modload(uint base, uint size, const char* fullpath);
 bool modunload(uint base);
@@ -78,27 +78,29 @@ uint modbasefromname(const char* modname);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
 
-bool commentset(uint addr, const char* text);
+bool commentset(uint addr, const char* text, bool manual);
 bool commentget(uint addr, char* text);
 bool commentdel(uint addr);
+void commentcachesave(JSON root);
+void commentcacheload(JSON root);
 
-bool labelset(uint addr, const char* text);
+bool labelset(uint addr, const char* text, bool manual);
 bool labelfromstring(const char* text, uint* addr);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
 
-bool bookmarkset(uint addr);
+bool bookmarkset(uint addr, bool manual);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
 
+bool functionadd(uint start, uint end, bool manual);
 bool functionget(uint addr, uint* start, uint* end);
 bool functionoverlaps(uint start, uint end);
-bool functionadd(uint start, uint end, bool manual);
 bool functiondel(uint addr);
 
+bool loopadd(uint start, uint end, bool manual);
 bool loopget(int depth, uint addr, uint* start, uint* end);
 bool loopoverlaps(int depth, uint start, uint end, int* finaldepth);
-bool loopadd(uint start, uint end, bool manual);
 bool loopdel(int depth, uint addr);
 
 #endif // _ADDRINFO_H
