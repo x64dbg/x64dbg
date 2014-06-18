@@ -37,8 +37,6 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     backgroundColor=ConfigColor("DisassemblyBackgroundColor");
 
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
 }
 
@@ -608,22 +606,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(!event->isAutoRepeat() && key == Qt::Key_Z)
-    {
-        mHighlightingMode=true;
-        reloadData();
-    }
     else
         AbstractTableView::keyPressEvent(event);
-}
-
-void Disassembly::keyReleaseEvent(QKeyEvent* event)
-{
-    if(!event->isAutoRepeat() && event->key() == Qt::Key_Z)
-    {
-        mHighlightingMode=false;
-        reloadData();
-    }
 }
 
 /************************************************************************************

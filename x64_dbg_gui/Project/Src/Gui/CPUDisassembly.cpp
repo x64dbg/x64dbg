@@ -5,6 +5,8 @@ CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
 
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
@@ -201,6 +203,9 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
 
+        wMenu->addSeparator();
+        wMenu->addAction(mToggleHighlightingMode);
+
         QAction* wAction = wMenu->exec(event->globalPos());
     }
 }
@@ -348,6 +353,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     // String References
     mSearchStrings = new QAction("&String references", this);
     connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
+
+    // Highlighting mode
+    mToggleHighlightingMode = new QAction("Toggle &highlighting mode", this);
+    mToggleHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
+    mToggleHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
+    connect(mToggleHighlightingMode, SIGNAL(triggered()), this, SLOT(toggleHighlightingMode()));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -714,4 +725,13 @@ void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
     expandSelectionUpTo(end - selMin);
     reloadData();
     Bridge::getBridge()->BridgeSetResult(1);
+}
+
+void CPUDisassembly::toggleHighlightingMode()
+{
+    if(mHighlightingMode)
+        mHighlightingMode=false;
+    else
+        mHighlightingMode=true;
+    reloadData();
 }
