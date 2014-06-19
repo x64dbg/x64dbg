@@ -16,12 +16,13 @@ DBG is the debugging part of the debugger. It handles debugging (using
 TitanEngine) and will provide data for the GUI.
 
 GUI is the graphical part of the debugger. It is built on top of Qt and it
-provides the user interaction, the dump window (not yet implemented), the
-disassembly, the register window, the memory map view, the log view etc.
+provides the user interaction, the dump window, the disassembly, 
+the register window, the memory map view, the log view etc.
 
 Bridge is the communication library for the DBG and GUI part (and maybe in
 the future more parts). The bridge can be used to work on new features,
-without having to update the code of the other parts.
+without having to update the code of the other parts. It also ensures
+low-level code stays (partially separated from the high level GUI code).
 
 >Features:
 - variables (with regard to the upcoming script feature)
@@ -34,13 +35,15 @@ without having to update the code of the other parts.
 - rtr (return from function)
 - memory allocation/deallocation in the debuggee
 - quickly accessing API addresses (GetProcAddress->76E13620)
-- highlighting (not yet customizable, but really helpful)
+- fully customizable GUI colors and instruction highlighting
+- IDA-like sidebar with jump arrows
+- IDA-like instruction token highlighting (hold 'Z' in disassembly)
 - memory map
 - basic module labeling
-- import reconstruction (plugin using Scylla)
+- import reconstruction (using Scylla)
 - drag&drop files
 - goto window
-- register/flags view with editing support
+- register/flags view with editing support and change highlighting
 - quite fast working in really big code pages (tested up to 5GB)
 - GUI hotkeys
 - dynamic jump arrow (just like OllyDbg)
@@ -49,9 +52,9 @@ without having to update the code of the other parts.
 - plugin support
 - (manual) function analysis
 - easily follow calls/jumps/ret (press ENTER when selecting)
-- (buggy) dynamic commenting
+- (buggy) dynamic commenting (strings)
 - scripting support (using the debugger commands)!
-- simple dump
+- simple dump window with various data modes
 - symbols (+ exports) view with search
 - simple stack view
 - programmable reference view
@@ -67,6 +70,8 @@ Disassembly powered by BeaEngine (http://beaengine.org/).
 
 The icon is taken from VisualPharm (http://www.visualpharm.com/)
 
+Licensed under GLPv3
+
 >Special thanks:
 - acidflash
 - Ahmadmansoor
@@ -79,6 +84,7 @@ The icon is taken from VisualPharm (http://www.visualpharm.com/)
 - Artic
 - Sorry if I forgot you!
 
->Lead developers:
+>Developers:
 - Mr. eXoDia
 - Sigma
+- tr4ceflow

@@ -27,7 +27,6 @@ public:
 
     // Keyboard Management
     void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
 
     // ScrollBar Management
     int_t sliderMovedHook(int type, int_t value, int_t delta);
@@ -136,12 +135,12 @@ private:
     int mCurrentVa;
     int mCharWidth;
     BeaTokenizer::BeaSingleToken mHighlightToken;
-    bool mHighlightingMode;
 
 protected:
     bool mRvaDisplayEnabled;
     uint_t mRvaDisplayBase;
     int_t mRvaDisplayPageBase;
+    bool mHighlightingMode;
 };
 
 #endif // DISASSEMBLY_H

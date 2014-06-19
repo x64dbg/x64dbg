@@ -37,8 +37,6 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     backgroundColor=ConfigColor("DisassemblyBackgroundColor");
 
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
 }
 
@@ -145,6 +143,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     QColor bpColor=ConfigColor("DisassemblyBreakpointBackgroundColor");
                     if(!bpColor.alpha()) //we don't want transparent text
                         bpColor=ConfigColor("DisassemblyBreakpointColor");
+                    if(bpColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                        bpColor=ConfigColor("DisassemblyCipColor");
                     painter->setPen(QPen(bpColor));
                 }
                 else if(bpxtype&bp_hardware) //hardware breakpoint only
@@ -152,6 +152,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                     QColor hwbpColor=ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
                     if(!hwbpColor.alpha()) //we don't want transparent text
                         hwbpColor=ConfigColor("DisassemblyHardwareBreakpointColor");
+                    if(hwbpColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                        hwbpColor=ConfigColor("DisassemblyCipColor");
                     painter->setPen(hwbpColor);
                 }
                 else //no breakpoint
@@ -164,6 +166,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 QColor bookmarkColor=ConfigColor("DisassemblyBookmarkBackgroundColor");
                 if(!bookmarkColor.alpha()) //we don't want transparent text
                     bookmarkColor=ConfigColor("DisassemblyBookmarkColor");
+                if(bookmarkColor==ConfigColor("DisassemblyCipBackgroundColor"))
+                    bookmarkColor=ConfigColor("DisassemblyCipColor");
                 painter->setPen(QPen(bookmarkColor));
             }
         }
@@ -608,22 +612,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
-    else if(!event->isAutoRepeat() && key == Qt::Key_Z)
-    {
-        mHighlightingMode=true;
-        reloadData();
-    }
     else
         AbstractTableView::keyPressEvent(event);
-}
-
-void Disassembly::keyReleaseEvent(QKeyEvent* event)
-{
-    if(!event->isAutoRepeat() && event->key() == Qt::Key_Z)
-    {
-        mHighlightingMode=false;
-        reloadData();
-    }
 }
 
 /************************************************************************************

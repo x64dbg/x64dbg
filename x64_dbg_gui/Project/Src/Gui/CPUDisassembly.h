@@ -56,6 +56,7 @@ public slots:
     void findStrings();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
+    void toggleHighlightingMode();
 
 private:
 
@@ -87,6 +88,7 @@ private:
     QAction* mReferenceSelectedAddress;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
+    QAction* mToggleHighlightingMode;
 
     GotoDialog* mGoto;
 };

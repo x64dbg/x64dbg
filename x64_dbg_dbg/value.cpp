@@ -1143,25 +1143,13 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
 {
     if(!value or !string)
         return false;
-    else if(*string=='.' and string[1]=='-' and string[2]) //negative decimal number
+    uint finalMul=1;
+    if(*string=='-') //negative
     {
-        uint finalMul=1;
-        if(value_size)
-            *value_size=0;
-        if(isvar)
-            *isvar=false;
-        int decAdd=1;
-        if(string[1]=='-') //negative number
-        {
-            decAdd++;
-            finalMul=~0;
-        }
-        uint newValue=0;
-        sscanf(string+decAdd, "%"fext"u", &newValue);
-        *value=newValue*finalMul;
-        return true;
+        finalMul=~0;
+        string++;
     }
-    else if(!*string)
+    if(!*string)
     {
         *value=0;
         return true;
@@ -1202,6 +1190,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         }
         bool ret=mathfromstring(string_+add, value, silent, baseonly, value_size, isvar);
         efree(string_, "valfromstring:string_");
+        *value*=finalMul;
         return ret;
     }
     else if(*string=='@' or strstr(string, "[")) //memory location
@@ -1265,6 +1254,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *value_size=read_size;
         if(isvar)
             *isvar=true;
+        *value*=finalMul;
         return true;
     }
     else if(isregister(string)) //register
@@ -1283,6 +1273,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         *value=getregister(value_size, string);
         if(isvar)
             *isvar=true;
+        *value*=finalMul;
         return true;
     }
     else if(*string=='!' and isflag(string+1)) //flag
@@ -1307,6 +1298,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *value_size=0;
         if(isvar)
             *isvar=true;
+        *value*=finalMul;
         return true;
     }
     else if(isdecnumber(string)) //decimal numbers come 'first'
@@ -1316,6 +1308,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         if(isvar)
             *isvar=false;
         sscanf(string+1, "%"fext"u", value);
+        *value*=finalMul;
         return true;
     }
     else if(ishexnumber(string)) //then hex numbers
@@ -1329,21 +1322,32 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         if(*string=='x')
             inc=1;
         sscanf(string+inc, "%"fext"x", value);
+        *value*=finalMul;
         return true;
     }
 
     if(baseonly)
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
+    {
+        *value*=finalMul;
         return true;
+    }
     else if(labelfromstring(string, value)) //then come labels
+    {
+        *value*=finalMul;
         return true;
+    }
     else if(symfromname(string, value)) //then come symbols
+    {
+        *value*=finalMul;
         return true;
+    }
     else if(varget(string, value, value_size, 0)) //finally variables
     {
         if(isvar)
             *isvar=true;
+        *value*=finalMul;
         return true;
     }
     if(!silent)
