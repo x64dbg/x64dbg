@@ -6,6 +6,9 @@
 #include "threading.h"
 #include "symbolinfo.h"
 
+//TODO: faster module lookup functions (http://bit.ly/TbJlu3)
+//TODO: use murmurhash(modname+rva) as key for the maps for "instant" lookup
+
 static ModulesInfo modinfo;
 static CommentsInfo comments;
 static LabelsInfo labels;

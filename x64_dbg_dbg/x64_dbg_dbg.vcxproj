@@ -25,6 +25,7 @@
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="msgqueue.cpp" />
+    <ClCompile Include="murmurhash.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="msgqueue.h" />
+    <ClInclude Include="murmurhash.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />

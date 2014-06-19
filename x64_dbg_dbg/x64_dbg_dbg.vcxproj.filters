@@ -114,6 +114,9 @@
     <ClCompile Include="reference.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="murmurhash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -232,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="jansson\jansson_config.h">
       <Filter>Header Files\jansson</Filter>
+    </ClInclude>
+    <ClInclude Include="murmurhash.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
