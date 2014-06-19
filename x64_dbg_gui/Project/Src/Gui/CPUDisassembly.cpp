@@ -24,7 +24,14 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         }
     }
     else
+    {
         Disassembly::mousePressEvent(event);
+        if(mHighlightingMode) //disable highlighting mode after clicked
+        {
+            mHighlightingMode=false;
+            reloadData();
+        }
+    }
 }
 
 void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
@@ -168,8 +175,13 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         }
         wMenu->addMenu(mBPMenu);
 
+        wMenu->addSeparator();
+        wMenu->addAction(mEnableHighlightingMode);
+
         // Separator
         wMenu->addSeparator();
+
+
 
         // New origin
         wMenu->addAction(mSetNewOriginHere);
@@ -202,9 +214,6 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
-
-        wMenu->addSeparator();
-        wMenu->addAction(mToggleHighlightingMode);
 
         QAction* wAction = wMenu->exec(event->globalPos());
     }
@@ -355,10 +364,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
 
     // Highlighting mode
-    mToggleHighlightingMode = new QAction("Toggle &highlighting mode", this);
-    mToggleHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
-    mToggleHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
-    connect(mToggleHighlightingMode, SIGNAL(triggered()), this, SLOT(toggleHighlightingMode()));
+    mEnableHighlightingMode = new QAction("&Highlighting mode", this);
+    mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
+    mEnableHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
+    this->addAction(mEnableHighlightingMode);
+    connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -729,7 +739,7 @@ void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
-void CPUDisassembly::toggleHighlightingMode()
+void CPUDisassembly::enableHighlightingMode()
 {
     if(mHighlightingMode)
         mHighlightingMode=false;
