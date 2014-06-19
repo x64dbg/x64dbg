@@ -1007,7 +1007,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    dbsave();
+    dbclose();
     modclear();
     threadclear();
     GuiSetDebugState(stopped);
@@ -1821,14 +1821,13 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbBenchmark(int argc, char* argv[])
 {
-    uint addr=GetContextData(UE_CIP);
+    uint addr=memfindbaseaddr(fdProcessInfo->hProcess, GetContextData(UE_CIP), 0);
     DWORD ticks=GetTickCount();
     char comment[MAX_COMMENT_SIZE]="";
-    for(uint i=addr; i<addr+100000; i++)
+    for(uint i=addr; i<addr+1000000; i++)
     {
-        DbgGetCommentAt(i, comment);
+        commentset(i, "test", false);
     }
-    //DbgGetCommentAt(addr+1493, comment);
     dprintf("%ums\n", GetTickCount()-ticks);
     return STATUS_CONTINUE;
 }
@@ -1955,7 +1954,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    dbsave();
+    dbclose();
     modclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");

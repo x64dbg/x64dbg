@@ -68,6 +68,7 @@ typedef std::vector<LOOPSINFO> LoopsInfo;
 void dbsave();
 void dbload();
 void dbupdate();
+void dbclose();
 
 bool modload(uint base, uint size, const char* fullpath);
 bool modunload(uint base);

@@ -16,25 +16,38 @@ static LoopsInfo loops;
 //database functions
 void dbsave()
 {
+    dprintf("saving database...");
+    DWORD ticks=GetTickCount();
     JSON root=json_object();
     commentcachesave(root);
-    json_dump_file(root, dbpath, JSON_INDENT(4)|JSON_SORT_KEYS);
+    if(json_object_size(root))
+        json_dump_file(root, dbpath, JSON_INDENT(4));
     json_decref(root); //free root
+    dprintf("%ums\n", GetTickCount()-ticks);
 }
 
 void dbload()
 {
+    dprintf("loading database...");
+    DWORD ticks=GetTickCount();
     JSON root=json_load_file(dbpath, 0, 0);
     if(!root)
         return;
     commentcacheload(root);
     json_decref(root); //free root
+    dprintf("%ums\n", GetTickCount()-ticks);
 }
 
 void dbupdate()
 {
     dbsave(); //flush cache to disk
     dbload(); //load database to cache (and update the module bases + VAs)
+}
+
+void dbclose()
+{
+    dbsave();
+    CommentsInfo().swap(comments);
 }
 
 ///module functions
@@ -73,7 +86,6 @@ bool modload(uint base, uint size, const char* fullpath)
 
 bool modunload(uint base)
 {
-    dbupdate();
     int total=modinfo.size();
     for(int i=0; i<total; i++)
     {
@@ -81,6 +93,7 @@ bool modunload(uint base)
         {
             modinfo.erase(modinfo.begin()+i);
             symupdatemodulelist();
+            dbupdate();
             return true;
         }
     }
