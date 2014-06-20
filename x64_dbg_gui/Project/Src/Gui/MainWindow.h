@@ -20,6 +20,7 @@
 #include "tabwidget.h"
 #include "Configuration.h"
 #include "AppearanceDialog.h"
+#include "CloseDialog.h"
 
 namespace Ui
 {
@@ -79,6 +80,7 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
+    CloseDialog* mCloseDialog;
 
     CommandLineEdit* mCmdLineEdit;
     MHTabWidget* mTabWidget;

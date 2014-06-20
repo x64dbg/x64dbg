@@ -154,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     initMenuApi();
 
     bClose=false;
+    mCloseDialog = new CloseDialog(this);
 }
 
 DWORD WINAPI MainWindow::closeThread(void* ptr)
@@ -171,6 +172,7 @@ DWORD WINAPI MainWindow::closeThread(void* ptr)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    mCloseDialog->show();
     CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
     if(bClose)
         event->accept();

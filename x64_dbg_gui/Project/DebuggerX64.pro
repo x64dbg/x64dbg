@@ -69,7 +69,8 @@ SOURCES += \
     Src/Utils/Configuration.cpp \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
-    Src/Disassembler/BeaTokenizer.cpp
+    Src/Disassembler/BeaTokenizer.cpp \
+    Src/Gui/CloseDialog.cpp
 
 
 HEADERS += \
@@ -117,7 +118,8 @@ HEADERS += \
     Src/Utils/Configuration.h \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
-    Src/Disassembler/BeaTokenizer.h
+    Src/Disassembler/BeaTokenizer.h \
+    Src/Gui/CloseDialog.h
 
 
 INCLUDEPATH += \
@@ -144,7 +146,8 @@ FORMS += \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
     Src/Gui/CommandHelpView.ui \
-    Src/Gui/AppearanceDialog.ui
+    Src/Gui/AppearanceDialog.ui \
+    Src/Gui/CloseDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
