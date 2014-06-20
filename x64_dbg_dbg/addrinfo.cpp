@@ -23,6 +23,8 @@ void dbsave()
     DWORD ticks=GetTickCount();
     JSON root=json_object();
     commentcachesave(root);
+    labelcachesave(root);
+    bookmarkcachesave(root);
     if(json_object_size(root))
         json_dump_file(root, dbpath, JSON_INDENT(4));
     json_decref(root); //free root
@@ -40,6 +42,8 @@ void dbload()
         return;
     }
     commentcacheload(root);
+    labelcacheload(root);
+    bookmarkcacheload(root);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
 }
@@ -358,10 +362,9 @@ bool labelset(uint addr, const char* text, bool manual)
     strcpy(label.text, text);
     modnamefromaddr(addr, label.mod, true);
     label.addr=addr-modbasefromaddr(addr);
-    if(labels.count(addr)) //contains
-        labels[addr]=label;
-    else
-        labels.insert(std::make_pair(addr, label));
+    uint key=modhashfromva(addr);
+    if(!labels.insert(std::make_pair(modhashfromva(key), label)).second) //already present
+        labels[key]=label;
     return true;
 }
 
@@ -374,7 +377,7 @@ bool labelfromstring(const char* text, uint* addr)
         if(!strcmp(i->second.text, text))
         {
             if(addr)
-                *addr=i->first;
+                *addr=i->second.addr+modbasefromname(i->second.mod);
             return true;
         }
     }
@@ -385,24 +388,99 @@ bool labelget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
         return false;
-    if(labels.count(addr)) //contains
-    {
-        strcpy(text, labels[addr].text);
-        return true;
-    }
-    return false;
+    LabelsInfo::iterator found=labels.find(modhashfromva(addr));
+    if(found==labels.end()) //not found
+        return false;
+    if(text)
+        strcpy(text, found->second.text);
+    return true;
 }
 
 bool labeldel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
-    if(labels.count(addr))
+    return (labels.erase(modhashfromva(addr))>0);
+}
+
+void labelcachesave(JSON root)
+{
+    const JSON jsonlabels=json_array();
+    const JSON jsonautolabels=json_array();
+    for(LabelsInfo::iterator i=labels.begin(); i!=labels.end(); ++i)
     {
-        labels.erase(addr);
-        return true;
+        const LABELSINFO curLabel=i->second;
+        JSON curjsonlabel=json_object();
+        if(*curLabel.mod)
+            json_object_set_new(curjsonlabel, "module", json_string(curLabel.mod));
+        else
+            json_object_set_new(curjsonlabel, "module", json_null());
+        json_object_set_new(curjsonlabel, "address", json_hex(curLabel.addr));
+        json_object_set_new(curjsonlabel, "text", json_string(curLabel.text));
+        if(curLabel.manual)
+            json_array_append_new(jsonlabels, curjsonlabel);
+        else
+            json_array_append_new(jsonautolabels, curjsonlabel);
     }
-    return false;
+    if(json_array_size(jsonlabels))
+        json_object_set(root, "labels", jsonlabels);
+    json_decref(jsonlabels);
+    if(json_array_size(jsonautolabels))
+        json_object_set(root, "autolabels", jsonautolabels);
+    json_decref(jsonautolabels);
+}
+
+void labelcacheload(JSON root)
+{
+    labels.clear();
+    const JSON jsonlabels=json_object_get(root, "labels");
+    if(jsonlabels)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonlabels, i, value)
+        {
+            LABELSINFO curLabel;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curLabel.mod, mod);
+            else
+                *curLabel.mod='\0';
+            curLabel.addr=json_hex_value(json_object_get(value, "address"));
+            curLabel.manual=true;
+            const char* text=json_string_value(json_object_get(value, "text"));
+            if(text)
+                strcpy(curLabel.text, text);
+            else
+                continue; //skip
+            const uint key=modhashfromname(curLabel.mod)+curLabel.addr;
+            labels.insert(std::make_pair(key, curLabel));
+        }
+    }
+    JSON jsonautolabels=json_object_get(root, "autolabels");
+    if(jsonautolabels)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonautolabels, i, value)
+        {
+            LABELSINFO curLabel;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curLabel.mod, mod);
+            else
+                *curLabel.mod='\0';
+            curLabel.addr=json_hex_value(json_object_get(value, "address"));
+            curLabel.manual=false;
+            const char* text=json_string_value(json_object_get(value, "text"));
+            if(text)
+                strcpy(curLabel.text, text);
+            else
+                continue; //skip
+            const uint key=modhashfromname(curLabel.mod)+curLabel.addr;
+            labels.insert(std::make_pair(key, curLabel));
+        }
+    }
 }
 
 ///bookmark functions
@@ -414,7 +492,8 @@ bool bookmarkset(uint addr, bool manual)
     modnamefromaddr(addr, bookmark.mod, true);
     bookmark.addr=addr-modbasefromaddr(addr);
     bookmark.manual=manual;
-    bookmarks.insert(std::make_pair(addr, bookmark));
+    if(!bookmarks.insert(std::make_pair(modhashfromva(addr), bookmark)).second)
+        return bookmarkdel(addr);
     return true;
 }
 
@@ -422,7 +501,7 @@ bool bookmarkget(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
-    if(bookmarks.count(addr))
+    if(bookmarks.count(modhashfromva(addr)))
         return true;
     return false;
 }
@@ -431,12 +510,76 @@ bool bookmarkdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
-    if(bookmarks.count(addr))
+    return (bookmarks.erase(modhashfromva(addr))>0);
+}
+
+void bookmarkcachesave(JSON root)
+{
+    const JSON jsonbookmarks=json_array();
+    const JSON jsonautobookmarks=json_array();
+    for(BookmarksInfo::iterator i=bookmarks.begin(); i!=bookmarks.end(); ++i)
     {
-        bookmarks.erase(addr);
-        return true;
+        const BOOKMARKSINFO curBookmark=i->second;
+        JSON curjsonbookmark=json_object();
+        if(*curBookmark.mod)
+            json_object_set_new(curjsonbookmark, "module", json_string(curBookmark.mod));
+        else
+            json_object_set_new(curjsonbookmark, "module", json_null());
+        json_object_set_new(curjsonbookmark, "address", json_hex(curBookmark.addr));
+        if(curBookmark.manual)
+            json_array_append_new(jsonbookmarks, curjsonbookmark);
+        else
+            json_array_append_new(jsonautobookmarks, curjsonbookmark);
     }
-    return false;
+    if(json_array_size(jsonbookmarks))
+        json_object_set(root, "bookmarks", jsonbookmarks);
+    json_decref(jsonbookmarks);
+    if(json_array_size(jsonautobookmarks))
+        json_object_set(root, "autobookmarks", jsonautobookmarks);
+    json_decref(jsonautobookmarks);
+}
+
+void bookmarkcacheload(JSON root)
+{
+    bookmarks.clear();
+    const JSON jsonbookmarks=json_object_get(root, "bookmarks");
+    if(jsonbookmarks)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonbookmarks, i, value)
+        {
+            BOOKMARKSINFO curBookmark;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curBookmark.mod, mod);
+            else
+                *curBookmark.mod='\0';
+            curBookmark.addr=json_hex_value(json_object_get(value, "address"));
+            curBookmark.manual=true;
+            const uint key=modhashfromname(curBookmark.mod)+curBookmark.addr;
+            bookmarks.insert(std::make_pair(key, curBookmark));
+        }
+    }
+    JSON jsonautobookmarks=json_object_get(root, "autobookmarks");
+    if(jsonautobookmarks)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonautobookmarks, i, value)
+        {
+            BOOKMARKSINFO curBookmark;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curBookmark.mod, mod);
+            else
+                *curBookmark.mod='\0';
+            curBookmark.addr=json_hex_value(json_object_get(value, "address"));
+            curBookmark.manual=false;
+            const uint key=modhashfromname(curBookmark.mod)+curBookmark.addr;
+            bookmarks.insert(std::make_pair(key, curBookmark));
+        }
+    }
 }
 
 ///function database

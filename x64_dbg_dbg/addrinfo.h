@@ -49,6 +49,7 @@ struct LABELSINFO
     char text[MAX_LABEL_SIZE];
     bool manual;
 };
+typedef std::map<uint, LABELSINFO> LabelsInfo;
 
 struct BOOKMARKSINFO
 {
@@ -56,6 +57,7 @@ struct BOOKMARKSINFO
     uint addr;
     bool manual;
 };
+typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 
 struct FUNCTIONSINFO
 {
@@ -80,8 +82,6 @@ struct LOOPSINFO
 //typedefs
 typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
 
-typedef std::map<uint, LABELSINFO> LabelsInfo;
-typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 typedef std::vector<FUNCTIONSINFO> FunctionsInfo;
 typedef std::vector<LOOPSINFO> LoopsInfo;
 
@@ -110,10 +110,15 @@ bool labelset(uint addr, const char* text, bool manual);
 bool labelfromstring(const char* text, uint* addr);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
+void labelcachesave(JSON root);
+void labelcacheload(JSON root);
 
 bool bookmarkset(uint addr, bool manual);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
+void bookmarkcachesave(JSON root);
+void bookmarkcacheload(JSON root);
+
 
 bool functionadd(uint start, uint end, bool manual);
 bool functionget(uint addr, uint* start, uint* end);
