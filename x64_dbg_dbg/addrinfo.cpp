@@ -6,8 +6,7 @@
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
-
-//TODO: use modinfo.hash+rva as key for the maps for "instant" lookup
+#include "lz4\lz4file.h"
 
 static ModulesInfo modinfo;
 static CommentsInfo comments;
@@ -29,7 +28,10 @@ void dbsave()
     loopcachesave(root);
     bpcachesave(root);
     if(json_object_size(root))
+    {
         json_dump_file(root, dbpath, JSON_INDENT(4));
+        LZ4_compress_file(dbpath, dbpath);
+    }
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
 }
@@ -38,10 +40,18 @@ void dbload()
 {
     dprintf("loading database...");
     DWORD ticks=GetTickCount();
+    LZ4_STATUS status=LZ4_decompress_file(dbpath, dbpath);
+    if(status!=LZ4_SUCCESS && status!=LZ4_INVALID_ARCHIVE)
+    {
+        dputs("\ninvalid database file!");
+        return;
+    }
     JSON root=json_load_file(dbpath, 0, 0);
+    if(status!=LZ4_INVALID_ARCHIVE)
+        LZ4_compress_file(dbpath, dbpath);
     if(!root)
     {
-        dputs("");
+        dputs("\ninvalid database file (JSON)!");        
         return;
     }
     commentcacheload(root);
@@ -586,16 +596,15 @@ void bookmarkcacheload(JSON root)
 ///function database
 bool functionadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end<start)
+    if(!DbgIsDebugging() or end<start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
         return false;
-    uint page=memfindbaseaddr(fdProcessInfo->hProcess, start, 0);
-    if(!page or page!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
+    const uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end)) //the function boundaries are not in the same module
         return false;
     if(functionoverlaps(start, end))
         return false;
     FUNCTIONSINFO function;
     modnamefromaddr(start, function.mod, true);
-    uint modbase=modbasefromaddr(start);
     function.start=start-modbase;
     function.end=end-modbase;
     function.manual=manual;
@@ -710,17 +719,16 @@ void functioncacheload(JSON root)
 //loop database
 bool loopadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end<start)
+    if(!DbgIsDebugging() or end<start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
         return false;
-    uint page=memfindbaseaddr(fdProcessInfo->hProcess, start, 0);
-    if(!page or page!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
+    const uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end)) //the function boundaries are not in the same mem page
         return false;
     int finaldepth;
     if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
         return false;
     LOOPSINFO loop;
     modnamefromaddr(start, loop.mod, true);
-    const uint modbase=modbasefromaddr(start);
     loop.start=start-modbase;
     loop.end=end-modbase;
     loop.depth=finaldepth;
@@ -735,7 +743,7 @@ bool loopadd(uint start, uint end, bool manual)
 
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging())
         return false;
     const uint modbase=modbasefromaddr(addr);
     LoopsInfo::iterator found=loops.find(DepthModuleRange(depth, ModuleRange(modhashfromva(modbase), Range(addr-modbase, addr-modbase))));

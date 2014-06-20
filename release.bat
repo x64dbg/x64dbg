@@ -26,6 +26,7 @@ copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\bin\x32\dbghelp.dll
 copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\bin\x32\DeviceNameResolver.dll
 copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\bin\x32\Scylla.dll
 copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\bin\x32\jansson.dll
+copy bin\x32\lz4.dll %RELEASEDIR%\bin_base\bin\x32\lz4.dll
 copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\bin\x32\TitanEngine.dll
 copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\bin\x32\XEDParse.dll
 copy bin\x64\BeaEngine.dll %RELEASEDIR%\bin_base\bin\x64\BeaEngine.dll
@@ -33,6 +34,7 @@ copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\bin\x64\dbghelp.dll
 copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\bin\x64\DeviceNameResolver.dll
 copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\bin\x64\Scylla.dll
 copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\bin\x64\jansson.dll
+copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\bin\x64\lz4.dll
 copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\bin\x64\TitanEngine.dll
 copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\bin\x64\XEDParse.dll
 
@@ -65,6 +67,7 @@ mkdir %RELEASEDIR%\pluginsdk\BeaEngine
 mkdir %RELEASEDIR%\pluginsdk\dbghelp
 mkdir %RELEASEDIR%\pluginsdk\DeviceNameResolver
 mkdir %RELEASEDIR%\pluginsdk\jansson
+mkdir %RELEASEDIR%\pluginsdk\lz4
 mkdir %RELEASEDIR%\pluginsdk\TitanEngine
 mkdir %RELEASEDIR%\pluginsdk\XEDParse
 
@@ -72,6 +75,7 @@ xcopy x64_dbg_dbg\BeaEngine %RELEASEDIR%\pluginsdk\BeaEngine /S /Y
 xcopy x64_dbg_dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
 xcopy x64_dbg_dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
 xcopy x64_dbg_dbg\jansson %RELEASEDIR%\pluginsdk\jansson /S /Y
+xcopy x64_dbg_dbg\lz4 %RELEASEDIR%\pluginsdk\lz4 /S /Y
 xcopy x64_dbg_dbg\TitanEngine %RELEASEDIR%\pluginsdk\TitanEngine /S /Y
 del %RELEASEDIR%\pluginsdk\TitanEngine\TitanEngine.txt /F /Q
 xcopy x64_dbg_dbg\XEDParse %RELEASEDIR%\pluginsdk\XEDParse /S /Y

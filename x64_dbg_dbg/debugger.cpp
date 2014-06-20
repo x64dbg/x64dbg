@@ -1826,9 +1826,12 @@ CMDRESULT cbBenchmark(int argc, char* argv[])
     uint addr=memfindbaseaddr(fdProcessInfo->hProcess, GetContextData(UE_CIP), 0);
     DWORD ticks=GetTickCount();
     char comment[MAX_COMMENT_SIZE]="";
-    for(uint i=addr; i<addr+1000000; i++)
+    for(uint i=addr; i<addr+100000; i++)
     {
         commentset(i, "test", false);
+        labelset(i, "test", false);
+        bookmarkset(i, false);
+        functionadd(i, i, false);
     }
     dprintf("%ums\n", GetTickCount()-ticks);
     return STATUS_CONTINUE;

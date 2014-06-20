@@ -31,6 +31,9 @@
     <Filter Include="Header Files\jansson">
       <UniqueIdentifier>{b63305e2-2b10-46eb-839f-5e9080fa8ad8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\lz4">
+      <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_exports.cpp">
@@ -238,6 +241,15 @@
     </ClInclude>
     <ClInclude Include="murmurhash.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4.h">
+      <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4file.h">
+      <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4hc.h">
+      <Filter>Header Files\lz4</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
