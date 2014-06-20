@@ -237,7 +237,8 @@ RegistersView::~RegistersView()
 bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_NAME *clickedReg)
 {
     // we start by an unknown register id
-    *clickedReg = UNKNOWN;
+    if(clickedReg)
+        *clickedReg = UNKNOWN;
     bool found_flag = false;
     QMap<REGISTER_NAME,Register_Position>::const_iterator it = mRegisterPlaces.begin();
     // iterate all registers that being displayed
@@ -249,7 +250,8 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
           )
         {
             // we found a matching register in the viewport
-            *clickedReg = (REGISTER_NAME)it.key();
+            if(clickedReg)
+                *clickedReg = (REGISTER_NAME)it.key();
             found_flag = true;
             break;
 
@@ -283,6 +285,13 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
     if(!DbgIsDebugging())
+        return;
+    // get mouse position
+    const int y = (event->y()-3)/(double)mRowHeight;
+    const int x = event->x()/(double)mCharWidth;
+
+    // do we find a corresponding register?
+    if(!identifyRegister(y,x,0))
         return;
     // is current register general purposes register ?
     if(mGPR.contains(mSelected))
