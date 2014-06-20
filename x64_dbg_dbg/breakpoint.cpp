@@ -5,7 +5,7 @@
 #include "memory.h"
 #include "threading.h"
 
-static BreakpointsMap breakpoints;
+static BreakpointsInfo breakpoints;
 
 int bpgetlist(std::vector<BREAKPOINT>* list)
 {
@@ -13,10 +13,10 @@ int bpgetlist(std::vector<BREAKPOINT>* list)
         return false;
     BREAKPOINT curBp;
     int count=0;
-    for(BreakpointsMap::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
     {
         curBp=i->second;
-        curBp.addr+=curBp.modbase;
+        curBp.addr+=modbasefromname(curBp.mod);
         curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
         count++;
         if(list)
@@ -31,9 +31,9 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
         return false;
     BREAKPOINT bp;
     modnamefromaddr(addr, bp.mod, true);
-    bp.modbase=modbasefromaddr(addr);
+    uint modbase=modbasefromaddr(addr);
     bp.active=true;
-    bp.addr=addr-bp.modbase;
+    bp.addr=addr-modbase;
     bp.enabled=enabled;
     if(name and *name)
         strcpy(bp.name, name);
@@ -43,7 +43,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     bp.singleshoot=singleshoot;
     bp.titantype=titantype;
     bp.type=type;
-    breakpoints.insert(std::make_pair(std::make_pair(addr, type), bp));
+    breakpoints.insert(std::make_pair(BreakpointKey(type, modhashfromva(addr)), bp));
     return true;
 }
 
@@ -52,25 +52,34 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     if(!DbgIsDebugging())
         return false;
     BREAKPOINT curBp;
-    for(BreakpointsMap::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    if(!name)
+    {
+        BreakpointsInfo::iterator found=breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+        if(found==breakpoints.end()) //not found
+            return false;
+        if(!bp)
+            return true;
+        curBp=found->second;
+        curBp.addr+=modbasefromaddr(addr);
+        curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
+        *bp=curBp;
+        return true;
+    }
+    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
     {
         curBp=i->second;
-        curBp.addr+=curBp.modbase;
-        curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
         if(name and *name)
         {
-            if(i->first==std::make_pair(addr, type) or !strcmp(name, curBp.name))
+            if(!strcmp(name, curBp.name))
             {
                 if(bp)
+                {
+                    curBp.addr+=modbasefromname(curBp.mod);
+                    curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
                     *bp=curBp;
+                }
                 return true;
             }
-        }
-        else if(i->first==std::make_pair(addr, type))
-        {
-            if(bp)
-                *bp=curBp;
-            return true;
         }
     }
     return false;
@@ -80,36 +89,29 @@ bool bpdel(uint addr, BP_TYPE type)
 {
     if(!DbgIsDebugging())
         return false;
-    if(breakpoints.count(std::make_pair(addr, type)))
-    {
-        breakpoints.erase(std::make_pair(addr, type));
-        return true;
-    }
-    return false;
+    return (breakpoints.erase(BreakpointKey(type, modhashfromva(addr)))>0);
 }
 
 bool bpenable(uint addr, BP_TYPE type, bool enable)
 {
     if(!DbgIsDebugging())
         return false;
-    if(breakpoints.count(std::make_pair(addr, type)))
-    {
-        breakpoints[std::make_pair(addr, type)].enabled=true;
-        return true;
-    }
-    return false;
+    BreakpointsInfo::iterator found=breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    if(found==breakpoints.end()) //not found
+        return false;
+    breakpoints[found->first].enabled=enable;
+    return true;
 }
 
 bool bpsetname(uint addr, BP_TYPE type, const char* name)
 {
     if(!DbgIsDebugging() or !name or !*name)
         return false;
-    if(breakpoints.count(std::make_pair(addr, type)))
-    {
-        strcpy(breakpoints[std::make_pair(addr, type)].name, name);
-        return true;
-    }
-    return false;
+    BreakpointsInfo::iterator found=breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    if(found==breakpoints.end()) //not found
+        return false;
+    strcpy(breakpoints[found->first].name, name);
+    return true;
 }
 
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
@@ -118,10 +120,10 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         return false;
     bool retval=true;
     BREAKPOINT curBp;
-    for(BreakpointsMap::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
     {
         curBp=i->second;
-        curBp.addr+=curBp.modbase; //RVA to VA
+        curBp.addr+=modbasefromname(curBp.mod); //RVA to VA
         curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr); //TODO: wtf am I doing?
         if(module and *module)
         {
@@ -148,7 +150,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum)
 int bpgetcount(BP_TYPE type)
 {
     int count=0;
-    for(BreakpointsMap::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
     {
         if(i->first.first==type)
             count++;
@@ -179,5 +181,59 @@ void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
         bridge->type=bp_memory;
     default:
         bridge->type=bp_none;
+    }
+}
+
+void bpcachesave(JSON root)
+{
+    const JSON jsonbreakpoints=json_array();
+    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    {
+        const BREAKPOINT curBreakpoint=i->second;
+        if(curBreakpoint.singleshoot)
+            continue; //skip
+        JSON curjsonbreakpoint=json_object();
+        json_object_set_new(curjsonbreakpoint, "address", json_hex(curBreakpoint.addr));
+        json_object_set_new(curjsonbreakpoint, "enabled", json_boolean(curBreakpoint.enabled));
+        if(curBreakpoint.type==BPNORMAL)
+            json_object_set_new(curjsonbreakpoint, "oldbytes", json_hex(curBreakpoint.oldbytes));
+        json_object_set_new(curjsonbreakpoint, "type", json_integer(curBreakpoint.type));
+        json_object_set_new(curjsonbreakpoint, "titantype", json_hex(curBreakpoint.titantype));
+        json_object_set_new(curjsonbreakpoint, "name", json_string(curBreakpoint.name));
+        json_object_set_new(curjsonbreakpoint, "module", json_string(curBreakpoint.mod));
+        json_array_append_new(jsonbreakpoints, curjsonbreakpoint);
+    }
+    if(json_array_size(jsonbreakpoints))
+        json_object_set(root, "breakpoints", jsonbreakpoints);
+    json_decref(jsonbreakpoints);
+}
+
+void bpcacheload(JSON root)
+{
+    breakpoints.clear();
+    const JSON jsonbreakpoints=json_object_get(root, "breakpoints");
+    if(jsonbreakpoints)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonbreakpoints, i, value)
+        {
+            BREAKPOINT curBreakpoint;
+            memset(&curBreakpoint, 0, sizeof(BREAKPOINT));
+            curBreakpoint.type=(BP_TYPE)json_integer_value(json_object_get(value, "type"));
+            if(curBreakpoint.type==BPNORMAL)
+                curBreakpoint.oldbytes=(short)json_hex_value(json_object_get(value, "oldbytes"));
+            curBreakpoint.addr=(uint)json_hex_value(json_object_get(value, "address"));
+            curBreakpoint.enabled=json_boolean_value(json_object_get(value, "enabled"));
+            curBreakpoint.titantype=(DWORD)json_hex_value(json_object_get(value, "titantype"));
+            const char* name=json_string_value(json_object_get(value, "name"));
+            if(name)
+                strcpy(curBreakpoint.name, name);
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curBreakpoint.mod, mod);
+            const uint key=modhashfromname(curBreakpoint.mod)+curBreakpoint.addr;
+            breakpoints.insert(std::make_pair(BreakpointKey(curBreakpoint.type, key), curBreakpoint));
+        }
     }
 }

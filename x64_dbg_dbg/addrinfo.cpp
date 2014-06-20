@@ -27,6 +27,7 @@ void dbsave()
     bookmarkcachesave(root);
     functioncachesave(root);
     loopcachesave(root);
+    bpcachesave(root);
     if(json_object_size(root))
         json_dump_file(root, dbpath, JSON_INDENT(4));
     json_decref(root); //free root
@@ -48,6 +49,7 @@ void dbload()
     bookmarkcacheload(root);
     functioncacheload(root);
     loopcacheload(root);
+    bpcacheload(root);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
 }
@@ -286,10 +288,7 @@ void commentcachesave(JSON root)
     {
         const COMMENTSINFO curComment=i->second;
         JSON curjsoncomment=json_object();
-        if(*curComment.mod)
-            json_object_set_new(curjsoncomment, "module", json_string(curComment.mod));
-        else
-            json_object_set_new(curjsoncomment, "module", json_null());
+        json_object_set_new(curjsoncomment, "module", json_string(curComment.mod));
         json_object_set_new(curjsoncomment, "address", json_hex(curComment.addr));
         json_object_set_new(curjsoncomment, "text", json_string(curComment.text));
         if(curComment.manual)
@@ -321,7 +320,7 @@ void commentcacheload(JSON root)
                 strcpy(curComment.mod, mod);
             else
                 *curComment.mod='\0';
-            curComment.addr=json_hex_value(json_object_get(value, "address"));
+            curComment.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curComment.manual=true;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
@@ -345,7 +344,7 @@ void commentcacheload(JSON root)
                 strcpy(curComment.mod, mod);
             else
                 *curComment.mod='\0';
-            curComment.addr=json_hex_value(json_object_get(value, "address"));
+            curComment.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curComment.manual=false;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
@@ -419,10 +418,7 @@ void labelcachesave(JSON root)
     {
         const LABELSINFO curLabel=i->second;
         JSON curjsonlabel=json_object();
-        if(*curLabel.mod)
-            json_object_set_new(curjsonlabel, "module", json_string(curLabel.mod));
-        else
-            json_object_set_new(curjsonlabel, "module", json_null());
+        json_object_set_new(curjsonlabel, "module", json_string(curLabel.mod));
         json_object_set_new(curjsonlabel, "address", json_hex(curLabel.addr));
         json_object_set_new(curjsonlabel, "text", json_string(curLabel.text));
         if(curLabel.manual)
@@ -454,7 +450,7 @@ void labelcacheload(JSON root)
                 strcpy(curLabel.mod, mod);
             else
                 *curLabel.mod='\0';
-            curLabel.addr=json_hex_value(json_object_get(value, "address"));
+            curLabel.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curLabel.manual=true;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
@@ -478,7 +474,7 @@ void labelcacheload(JSON root)
                 strcpy(curLabel.mod, mod);
             else
                 *curLabel.mod='\0';
-            curLabel.addr=json_hex_value(json_object_get(value, "address"));
+            curLabel.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curLabel.manual=false;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
@@ -529,10 +525,7 @@ void bookmarkcachesave(JSON root)
     {
         const BOOKMARKSINFO curBookmark=i->second;
         JSON curjsonbookmark=json_object();
-        if(*curBookmark.mod)
-            json_object_set_new(curjsonbookmark, "module", json_string(curBookmark.mod));
-        else
-            json_object_set_new(curjsonbookmark, "module", json_null());
+        json_object_set_new(curjsonbookmark, "module", json_string(curBookmark.mod));
         json_object_set_new(curjsonbookmark, "address", json_hex(curBookmark.addr));
         if(curBookmark.manual)
             json_array_append_new(jsonbookmarks, curjsonbookmark);
@@ -563,7 +556,7 @@ void bookmarkcacheload(JSON root)
                 strcpy(curBookmark.mod, mod);
             else
                 *curBookmark.mod='\0';
-            curBookmark.addr=json_hex_value(json_object_get(value, "address"));
+            curBookmark.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curBookmark.manual=true;
             const uint key=modhashfromname(curBookmark.mod)+curBookmark.addr;
             bookmarks.insert(std::make_pair(key, curBookmark));
@@ -582,7 +575,7 @@ void bookmarkcacheload(JSON root)
                 strcpy(curBookmark.mod, mod);
             else
                 *curBookmark.mod='\0';
-            curBookmark.addr=json_hex_value(json_object_get(value, "address"));
+            curBookmark.addr=(uint)json_hex_value(json_object_get(value, "address"));
             curBookmark.manual=false;
             const uint key=modhashfromname(curBookmark.mod)+curBookmark.addr;
             bookmarks.insert(std::make_pair(key, curBookmark));
@@ -649,10 +642,7 @@ void functioncachesave(JSON root)
     {
         const FUNCTIONSINFO curFunction=i->second;
         JSON curjsonfunction=json_object();
-        if(*curFunction.mod)
-            json_object_set_new(curjsonfunction, "module", json_string(curFunction.mod));
-        else
-            json_object_set_new(curjsonfunction, "module", json_null());
+        json_object_set_new(curjsonfunction, "module", json_string(curFunction.mod));
         json_object_set_new(curjsonfunction, "start", json_hex(curFunction.start));
         json_object_set_new(curjsonfunction, "end", json_hex(curFunction.end));
         if(curFunction.manual)
@@ -684,8 +674,8 @@ void functioncacheload(JSON root)
                 strcpy(curFunction.mod, mod);
             else
                 *curFunction.mod='\0';
-            curFunction.start=json_hex_value(json_object_get(value, "start"));
-            curFunction.end=json_hex_value(json_object_get(value, "end"));
+            curFunction.start=(uint)json_hex_value(json_object_get(value, "start"));
+            curFunction.end=(uint)json_hex_value(json_object_get(value, "end"));
             if(curFunction.end < curFunction.start)
                 continue; //invalid function
             curFunction.manual=true;
@@ -706,8 +696,8 @@ void functioncacheload(JSON root)
                 strcpy(curFunction.mod, mod);
             else
                 *curFunction.mod='\0';
-            curFunction.start=json_hex_value(json_object_get(value, "start"));
-            curFunction.end=json_hex_value(json_object_get(value, "end"));
+            curFunction.start=(uint)json_hex_value(json_object_get(value, "start"));
+            curFunction.end=(uint)json_hex_value(json_object_get(value, "end"));
             if(curFunction.end < curFunction.start)
                 continue; //invalid function
             curFunction.manual=true;
@@ -807,10 +797,7 @@ void loopcachesave(JSON root)
     {
         const LOOPSINFO curLoop=i->second;
         JSON curjsonloop=json_object();
-        if(*curLoop.mod)
-            json_object_set_new(curjsonloop, "module", json_string(curLoop.mod));
-        else
-            json_object_set_new(curjsonloop, "module", json_null());
+        json_object_set_new(curjsonloop, "module", json_string(curLoop.mod));
         json_object_set_new(curjsonloop, "start", json_hex(curLoop.start));
         json_object_set_new(curjsonloop, "end", json_hex(curLoop.end));
         json_object_set_new(curjsonloop, "depth", json_integer(curLoop.depth));
@@ -844,10 +831,10 @@ void loopcacheload(JSON root)
                 strcpy(curLoop.mod, mod);
             else
                 *curLoop.mod='\0';
-            curLoop.start=json_hex_value(json_object_get(value, "start"));
-            curLoop.end=json_hex_value(json_object_get(value, "end"));
-            curLoop.depth=json_integer_value(json_object_get(value, "depth"));
-            curLoop.parent=json_hex_value(json_object_get(value, "parent"));
+            curLoop.start=(uint)json_hex_value(json_object_get(value, "start"));
+            curLoop.end=(uint)json_hex_value(json_object_get(value, "end"));
+            curLoop.depth=(int)json_integer_value(json_object_get(value, "depth"));
+            curLoop.parent=(uint)json_hex_value(json_object_get(value, "parent"));
             if(curLoop.end < curLoop.start)
                 continue; //invalid loop
             curLoop.manual=true;
@@ -867,10 +854,10 @@ void loopcacheload(JSON root)
                 strcpy(curLoop.mod, mod);
             else
                 *curLoop.mod='\0';
-            curLoop.start=json_hex_value(json_object_get(value, "start"));
-            curLoop.end=json_hex_value(json_object_get(value, "end"));
-            curLoop.depth=json_integer_value(json_object_get(value, "depth"));
-            curLoop.parent=json_hex_value(json_object_get(value, "parent"));
+            curLoop.start=(uint)json_hex_value(json_object_get(value, "start"));
+            curLoop.end=(uint)json_hex_value(json_object_get(value, "end"));
+            curLoop.depth=(int)json_integer_value(json_object_get(value, "depth"));
+            curLoop.parent=(uint)json_hex_value(json_object_get(value, "parent"));
             if(curLoop.end < curLoop.start)
                 continue; //invalid loop
             curLoop.manual=false;
