@@ -17,15 +17,6 @@ x64_dbg_*/x64/*
 *.sdf
 *.suo
 
-#whitelisted bin files
-!bin/*/TitanEngine.dll
-!bin/*/test.dll
-!bin/*/test.exe
-!bin/*/dbghelp.dll
-!bin/*/sqlite.dll
-!bin/*/BeaEngine.dll
-!bin/*/Scylla.dll
-
 #files to ignore
 todo_bridge.txt
 help/x64_dbg.chm
