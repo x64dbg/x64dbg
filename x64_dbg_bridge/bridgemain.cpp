@@ -132,7 +132,6 @@ BRIDGE_IMPEXP const char* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     _gui_guiinit(0, 0); //remove arguments
-    _dbg_dbgexitsignal(); //send exit signal to debugger
     return 0;
 }
 
@@ -358,6 +357,11 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
 BRIDGE_IMPEXP const char* DbgInit()
 {
     return _dbg_dbginit();
+}
+
+BRIDGE_IMPEXP void DbgExit()
+{
+    _dbg_dbgexitsignal(); //send exit signal to debugger
 }
 
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
