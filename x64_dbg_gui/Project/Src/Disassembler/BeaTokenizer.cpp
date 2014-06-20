@@ -126,8 +126,18 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         type=TokenMnemonicNop;
     else if(completeInstr.contains("movs") || completeInstr.contains("cmps") || completeInstr.contains("scas") || completeInstr.contains("lods") || completeInstr.contains("stos") || completeInstr.contains("outs"))
     {
-        mnemonic.truncate(4);
-        StringInstruction(mnemonic, instr, disasm);
+        if(mnemonic.length()<5)
+        {
+            AddToken(instr, type, mnemonic, 0);
+            return;
+        }
+        if(mnemonic[4]=='b' || mnemonic[4]=='w' || mnemonic[4]=='d' || mnemonic[4]=='q')
+        {
+            mnemonic.truncate(4);
+            StringInstruction(mnemonic, instr, disasm);
+        }
+        else
+            AddToken(instr, type, mnemonic, 0);
         return;
     }
     AddToken(instr, type, mnemonic, 0);

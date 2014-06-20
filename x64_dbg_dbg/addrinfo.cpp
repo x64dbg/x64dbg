@@ -72,6 +72,7 @@ void dbclose()
     BookmarksInfo().swap(bookmarks);
     FunctionsInfo().swap(functions);
     LoopsInfo().swap(loops);
+    bpclear();
 }
 
 ///module functions

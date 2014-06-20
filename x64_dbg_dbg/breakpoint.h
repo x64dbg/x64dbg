@@ -44,5 +44,6 @@ int bpgetcount(BP_TYPE type);
 void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge);
 void bpcachesave(JSON root);
 void bpcacheload(JSON root);
+void bpclear();
 
 #endif // _BREAKPOINT_H

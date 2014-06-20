@@ -237,3 +237,8 @@ void bpcacheload(JSON root)
         }
     }
 }
+
+void bpclear()
+{
+    BreakpointsInfo().swap(breakpoints);
+}
