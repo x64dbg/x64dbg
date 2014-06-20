@@ -3,14 +3,37 @@
 
 #include "_global.h"
 
+//ranges
+typedef std::pair<uint, uint> Range;
+
+struct RangeCompare
+{
+    bool operator()(const Range& a, const Range& b) //a before b?
+    {
+        return a.second < b.first;
+    }
+};
+
+struct OverlappingRangeCompare
+{
+    bool operator()(const Range& a, const Range& b) //a before b?
+    {
+        return a.second < b.first || a.second < b.second;
+    }
+};
+
 //structures
 struct MODINFO
 {
-    uint base;
-    uint size;
-    char name[MAX_MODULE_SIZE];
-    char extension[MAX_MODULE_SIZE];
+    uint base; //module base
+    uint size; //module size
+    uint hash; //full module name hash
+    char name[MAX_MODULE_SIZE]; //module name (without extension)
+    char extension[MAX_MODULE_SIZE]; //file extension
 };
+
+typedef std::map<Range, MODINFO, RangeCompare> ModulesInfo;
+
 
 struct COMMENTSINFO
 {
@@ -58,7 +81,6 @@ struct LOOPSINFO
 //typedefs
 typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
 
-typedef std::vector<MODINFO> ModulesInfo;
 typedef std::map<uint, COMMENTSINFO> CommentsInfo;
 typedef std::map<uint, LABELSINFO> LabelsInfo;
 typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
@@ -75,6 +97,7 @@ bool modunload(uint base);
 void modclear();
 bool modnamefromaddr(uint addr, char* modname, bool extension);
 uint modbasefromaddr(uint addr);
+uint modhashfromaddr(uint addr);
 uint modbasefromname(const char* modname);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);

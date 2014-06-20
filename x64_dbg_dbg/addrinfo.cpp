@@ -5,8 +5,8 @@
 #include "breakpoint.h"
 #include "threading.h"
 #include "symbolinfo.h"
+#include "murmurhash.h"
 
-//TODO: faster module lookup functions (http://bit.ly/TbJlu3)
 //TODO: use murmurhash(modname+rva) as key for the maps for "instant" lookup
 
 static ModulesInfo modinfo;
@@ -35,7 +35,10 @@ void dbload()
     DWORD ticks=GetTickCount();
     JSON root=json_load_file(dbpath, 0, 0);
     if(!root)
+    {
+        dputs("");
         return;
+    }
     commentcacheload(root);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
@@ -71,6 +74,7 @@ bool modload(uint base, uint size, const char* fullpath)
         len--;
     MODINFO info;
     memset(&info, 0, sizeof(MODINFO));
+    info.hash=murmurhash(name, strlen(name));
     if(len)
     {
         strcpy(info.extension, name+len);
@@ -81,7 +85,7 @@ bool modload(uint base, uint size, const char* fullpath)
     info.size=size;
     strcpy(info.name, name);
     _strlwr(info.name);
-    modinfo.push_back(info);
+    modinfo.insert(std::make_pair(Range(base, base+size-1), info));
     symupdatemodulelist();
     dbupdate();
     return true;
@@ -89,18 +93,12 @@ bool modload(uint base, uint size, const char* fullpath)
 
 bool modunload(uint base)
 {
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        if(modinfo.at(i).base==base)
-        {
-            modinfo.erase(modinfo.begin()+i);
-            symupdatemodulelist();
-            dbupdate();
-            return true;
-        }
-    }
-    return false;
+    ModulesInfo::iterator found=modinfo.find(Range(base, base));
+    if(found==modinfo.end()) //not found
+        return false;
+    modinfo.erase(found);
+    symupdatemodulelist();
+    return true;
 }
 
 void modclear()
@@ -113,52 +111,45 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
     if(!modname)
         return false;
-    *modname=0;
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        uint modstart=modinfo.at(i).base;
-        uint modend=modstart+modinfo.at(i).size;
-        if(addr>=modstart and addr<modend) //found module
-        {
-            strcpy(modname, modinfo.at(i).name);
-            if(extension)
-                strcat(modname, modinfo.at(i).extension); //append extension
-            return true;
-        }
-    }
-    return false;
+    *modname='\0';
+    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    if(found==modinfo.end()) //not found
+        return false;
+    strcpy(modname, found->second.name);
+    if(extension)
+        strcat(modname, found->second.extension); //append extension
+    return true;
 }
 
 uint modbasefromaddr(uint addr)
 {
-    int total=modinfo.size();
-    for(int i=0; i<total; i++)
-    {
-        uint modstart=modinfo.at(i).base;
-        uint modend=modstart+modinfo.at(i).size;
-        if(addr>=modstart and addr<modend) //found module
-            return modstart;
-    }
-    return 0;
+    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    if(found==modinfo.end()) //not found
+        return 0;
+    return found->second.base;
+}
+
+uint modhashfromaddr(uint addr)
+{
+    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    if(found==modinfo.end()) //not found
+        return 0;
+    return found->second.hash;
 }
 
 uint modbasefromname(const char* modname)
 {
-    if(!modname)
+    if(!modname or strlen(modname)>=MAX_MODULE_SIZE)
         return 0;
-    int total=modinfo.size();
-    int modname_len=strlen(modname);
-    if(modname_len>=MAX_MODULE_SIZE)
-        return 0;
-    for(int i=0; i<total; i++)
+    for(ModulesInfo::iterator i=modinfo.begin(); i!=modinfo.end(); ++i)
     {
+        MODINFO* curMod=&i->second;
         char curmodname[MAX_MODULE_SIZE]="";
-        sprintf(curmodname, "%s%s", modinfo.at(i).name, modinfo.at(i).extension);
+        sprintf(curmodname, "%s%s", curMod->name, curMod->extension);
         if(!_stricmp(curmodname, modname)) //with extension
-            return modinfo.at(i).base;
-        if(!_stricmp(modinfo.at(i).name, modname)) //without extension
-            return modinfo.at(i).base;
+            return curMod->base;
+        if(!_stricmp(curMod->name, modname)) //without extension
+            return curMod->base;
     }
     return 0;
 }
