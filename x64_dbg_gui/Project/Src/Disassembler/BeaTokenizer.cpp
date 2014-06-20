@@ -186,7 +186,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         if(memSizeNames.contains(arg->ArgSize))
             AddToken(instr, TokenMemorySize, memSizeNames.find(arg->ArgSize).value() + " ptr", 0);
         else
-            AddToken(instr, TokenMemorySize, "??? ptr", 0);
+            AddToken(instr, TokenMemorySize, QString().sprintf("???(%d) ptr", arg->ArgSize, 0);
         AddToken(instr, TokenSpace, " ", 0);
         AddToken(instr, TokenMemorySegment, segmentNames.at(arg->SegmentReg), 0);
         AddToken(instr, TokenUncategorized, ":", 0);
