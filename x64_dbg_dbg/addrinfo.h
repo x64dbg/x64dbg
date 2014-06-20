@@ -31,9 +31,7 @@ struct MODINFO
     char name[MAX_MODULE_SIZE]; //module name (without extension)
     char extension[MAX_MODULE_SIZE]; //file extension
 };
-
 typedef std::map<Range, MODINFO, RangeCompare> ModulesInfo;
-
 
 struct COMMENTSINFO
 {
@@ -42,6 +40,7 @@ struct COMMENTSINFO
     char text[MAX_COMMENT_SIZE];
     bool manual;
 };
+typedef std::map<uint, COMMENTSINFO> CommentsInfo;
 
 struct LABELSINFO
 {
@@ -81,7 +80,6 @@ struct LOOPSINFO
 //typedefs
 typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
 
-typedef std::map<uint, COMMENTSINFO> CommentsInfo;
 typedef std::map<uint, LABELSINFO> LabelsInfo;
 typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 typedef std::vector<FUNCTIONSINFO> FunctionsInfo;
@@ -89,7 +87,6 @@ typedef std::vector<LOOPSINFO> LoopsInfo;
 
 void dbsave();
 void dbload();
-void dbupdate();
 void dbclose();
 
 bool modload(uint base, uint size, const char* fullpath);
@@ -97,7 +94,8 @@ bool modunload(uint base);
 void modclear();
 bool modnamefromaddr(uint addr, char* modname, bool extension);
 uint modbasefromaddr(uint addr);
-uint modhashfromaddr(uint addr);
+uint modhashfromva(uint va);
+uint modhashfromname(const char* mod);
 uint modbasefromname(const char* modname);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);

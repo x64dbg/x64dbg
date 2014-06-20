@@ -7,7 +7,7 @@
 #include "symbolinfo.h"
 #include "murmurhash.h"
 
-//TODO: use murmurhash(modname+rva) as key for the maps for "instant" lookup
+//TODO: use modinfo.hash+rva as key for the maps for "instant" lookup
 
 static ModulesInfo modinfo;
 static CommentsInfo comments;
@@ -44,12 +44,6 @@ void dbload()
     dprintf("%ums\n", GetTickCount()-ticks);
 }
 
-void dbupdate()
-{
-    dbsave(); //flush cache to disk
-    dbload(); //load database to cache (and update the module bases + VAs)
-}
-
 void dbclose()
 {
     dbsave();
@@ -68,32 +62,30 @@ bool modload(uint base, uint size, const char* fullpath)
     if(len)
         len++;
     strcpy(name, fullpath+len);
+    _strlwr(name);
     len=strlen(name);
     name[MAX_MODULE_SIZE-1]=0; //ignore later characters
     while(name[len]!='.' and len)
         len--;
     MODINFO info;
     memset(&info, 0, sizeof(MODINFO));
-    info.hash=murmurhash(name, strlen(name));
+    info.hash=modhashfromname(name);
     if(len)
     {
         strcpy(info.extension, name+len);
-        _strlwr(info.extension);
         name[len]=0; //remove extension
     }
     info.base=base;
     info.size=size;
     strcpy(info.name, name);
-    _strlwr(info.name);
     modinfo.insert(std::make_pair(Range(base, base+size-1), info));
     symupdatemodulelist();
-    dbupdate();
     return true;
 }
 
 bool modunload(uint base)
 {
-    ModulesInfo::iterator found=modinfo.find(Range(base, base));
+    const ModulesInfo::iterator found=modinfo.find(Range(base, base));
     if(found==modinfo.end()) //not found
         return false;
     modinfo.erase(found);
@@ -112,7 +104,7 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     if(!modname)
         return false;
     *modname='\0';
-    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    const ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
     if(found==modinfo.end()) //not found
         return false;
     strcpy(modname, found->second.name);
@@ -123,18 +115,26 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
 
 uint modbasefromaddr(uint addr)
 {
-    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    const ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
     if(found==modinfo.end()) //not found
         return 0;
     return found->second.base;
 }
 
-uint modhashfromaddr(uint addr)
+uint modhashfromva(uint va) //return a unique hash from a VA
 {
-    ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    const ModulesInfo::iterator found=modinfo.find(Range(va, va));
     if(found==modinfo.end()) //not found
+        return va;
+    return found->second.hash+(va-found->second.base);
+}
+
+uint modhashfromname(const char* mod) //return MODINFO.hash
+{
+    if(!mod or !*mod)
         return 0;
-    return found->second.hash;
+    int len=strlen(mod);
+    return murmurhash(mod, len);
 }
 
 uint modbasefromname(const char* modname)
@@ -242,10 +242,9 @@ bool commentset(uint addr, const char* text, bool manual)
     strcpy(comment.text, text);
     modnamefromaddr(addr, comment.mod, true);
     comment.addr=addr-modbasefromaddr(addr);
-    if(comments.count(addr)) //contains addr
-        comments[addr]=comment;
-    else
-        comments.insert(std::make_pair(addr, comment));
+    const uint key=modhashfromva(addr);
+    if(!comments.insert(std::make_pair(key, comment)).second) //key already present
+        comments[key]=comment;
     return true;
 }
 
@@ -253,33 +252,27 @@ bool commentget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
         return false;
-    if(comments.count(addr)) //contains
-    {
-        strcpy(text, comments[addr].text);
-        return true;
-    }
-    return false;
+    const CommentsInfo::iterator found=comments.find(modhashfromva(addr));
+    if(found==comments.end()) //not found
+        return false;
+    strcpy(text, found->second.text);
+    return true;
 }
 
 bool commentdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
-    if(comments.count(addr)) //contains
-    {
-        comments.erase(addr);
-        return true;
-    }
-    return false;
+    return (comments.erase(modhashfromva(addr))==1);
 }
 
 void commentcachesave(JSON root)
 {
-    JSON jsoncomments=json_array();
-    JSON jsonautocomments=json_array();
+    const JSON jsoncomments=json_array();
+    const JSON jsonautocomments=json_array();
     for(CommentsInfo::iterator i=comments.begin(); i!=comments.end(); ++i)
     {
-        COMMENTSINFO curComment=i->second;
+        const COMMENTSINFO curComment=i->second;
         JSON curjsoncomment=json_object();
         if(*curComment.mod)
             json_object_set_new(curjsoncomment, "module", json_string(curComment.mod));
@@ -303,7 +296,7 @@ void commentcachesave(JSON root)
 void commentcacheload(JSON root)
 {
     comments.clear();
-    JSON jsoncomments=json_object_get(root, "comments");
+    const JSON jsoncomments=json_object_get(root, "comments");
     if(jsoncomments)
     {
         size_t i;
@@ -317,16 +310,14 @@ void commentcacheload(JSON root)
             else
                 *curComment.mod='\0';
             curComment.addr=json_hex_value(json_object_get(value, "address"));
-            if(!curComment.addr)
-                continue; //skip
             curComment.manual=true;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
                 strcpy(curComment.text, text);
             else
                 continue; //skip
-            uint modbase=modbasefromname(curComment.mod);
-            comments.insert(std::make_pair(curComment.addr+modbase, curComment));
+            const uint key=modhashfromname(curComment.mod)+curComment.addr;
+            comments.insert(std::make_pair(key, curComment));
         }
     }
     JSON jsonautocomments=json_object_get(root, "autocomments");
@@ -343,16 +334,14 @@ void commentcacheload(JSON root)
             else
                 *curComment.mod='\0';
             curComment.addr=json_hex_value(json_object_get(value, "address"));
-            if(!curComment.addr)
-                continue; //skip
             curComment.manual=false;
             const char* text=json_string_value(json_object_get(value, "text"));
             if(text)
                 strcpy(curComment.text, text);
             else
                 continue; //skip
-            uint modbase=modbasefromname(curComment.mod);
-            comments.insert(std::make_pair(curComment.addr+modbase, curComment));
+            const uint key=modhashfromname(curComment.mod)+curComment.addr;
+            comments.insert(std::make_pair(key, curComment));
         }
     }
 }

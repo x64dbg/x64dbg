@@ -777,6 +777,8 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
+
+    modunload((uint)base);
 }
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
