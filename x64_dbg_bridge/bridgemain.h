@@ -145,7 +145,15 @@ enum DBGMSG
     DBG_LOOP_ADD,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_DEL,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_IS_RUN_LOCKED,              // param1=unused,                    param2=unused
-    DBG_IS_BP_DISABLED              // param1=duint addr,                param2=unused
+    DBG_IS_BP_DISABLED,             // param1=duint addr,                param2=unused
+    DBG_SET_AUTO_COMMENT_AT,        // param1=duint addr,                param2=const char* text
+    DBG_DELETE_AUTO_COMMENT_RANGE,  // param1=duint start,               param2=duint end
+    DBG_SET_AUTO_LABEL_AT,          // param1=duint addr,                param2=const char* text
+    DBG_DELETE_AUTO_LABEL_RANGE,    // param1=duint start,               param2=duint end
+    DBG_SET_AUTO_BOOKMARK_AT,       // param1=duint addr,                param2=const char* text
+    DBG_DELETE_AUTO_BOOKMARK_RANGE, // param1=duint start,               param2=duint end
+    DBG_SET_AUTO_FUNCTION_AT,       // param1=duint addr,                param2=const char* text
+    DBG_DELETE_AUTO_FUNCTION_RANGE, // param1=duint start,               param2=duint end
 };
 
 enum SCRIPTLINETYPE
@@ -530,6 +538,14 @@ BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end);
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr);
 BRIDGE_IMPEXP bool DbgIsRunLocked();
 BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr);
+BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text);
+BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end);
+BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text);
+BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end);
+BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr);
+BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end);
+BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end);
+BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

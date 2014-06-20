@@ -654,6 +654,54 @@ BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
     return false;
 }
 
+BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_COMMENT_AT, (void*)addr, (void*)text))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_COMMENT_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_LABEL_AT, (void*)addr, (void*)text))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_LABEL_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_BOOKMARK_AT, (void*)addr, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_BOOKMARK_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_FUNCTION_AT, (void*)start, (void*)end))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

@@ -290,6 +290,29 @@ bool commentdel(uint addr)
     return (comments.erase(modhashfromva(addr))==1);
 }
 
+void commentdelrange(uint start, uint end)
+{
+    bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
+    uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end))
+        return;
+    start-=modbase;
+    end-=modbase;
+    CommentsInfo::iterator i=comments.begin();
+    while(i!=comments.end())
+    {
+        if(i->second.manual) //ignore manual
+        {
+            i++;
+            continue;
+        }
+        if(bDelAll || (i->second.addr>=start && i->second.addr<end))
+            comments.erase(i++);
+        else
+            i++;
+    }
+}
+
 void commentcachesave(JSON root)
 {
     const JSON jsoncomments=json_array();
@@ -420,6 +443,29 @@ bool labeldel(uint addr)
     return (labels.erase(modhashfromva(addr))>0);
 }
 
+void labeldelrange(uint start, uint end)
+{
+    bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
+    uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end))
+        return;
+    start-=modbase;
+    end-=modbase;
+    LabelsInfo::iterator i=labels.begin();
+    while(i!=labels.end())
+    {
+        if(i->second.manual) //ignore manual
+        {
+            i++;
+            continue;
+        }
+        if(bDelAll || (i->second.addr>=start && i->second.addr<end))
+            labels.erase(i++);
+        else
+            i++;
+    }
+}
+
 void labelcachesave(JSON root)
 {
     const JSON jsonlabels=json_array();
@@ -525,6 +571,29 @@ bool bookmarkdel(uint addr)
     if(!DbgIsDebugging())
         return false;
     return (bookmarks.erase(modhashfromva(addr))>0);
+}
+
+void bookmarkdelrange(uint start, uint end)
+{
+    bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
+    uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end))
+        return;
+    start-=modbase;
+    end-=modbase;
+    BookmarksInfo::iterator i=bookmarks.begin();
+    while(i!=bookmarks.end())
+    {
+        if(i->second.manual) //ignore manual
+        {
+            i++;
+            continue;
+        }
+        if(bDelAll || (i->second.addr>=start && i->second.addr<end))
+            bookmarks.erase(i++);
+        else
+            i++;
+    }
 }
 
 void bookmarkcachesave(JSON root)
@@ -641,6 +710,29 @@ bool functiondel(uint addr)
         return false;
     const uint modbase=modbasefromaddr(addr);
     return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr-modbase, addr-modbase)))>0);
+}
+
+void functiondelrange(uint start, uint end)
+{
+    bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
+    uint modbase=modbasefromaddr(start);
+    if(modbase!=modbasefromaddr(end))
+        return;
+    start-=modbase;
+    end-=modbase;
+    FunctionsInfo::iterator i=functions.begin();
+    while(i!=functions.end())
+    {
+        if(i->second.manual) //ignore manual
+        {
+            i++;
+            continue;
+        }
+        if(bDelAll or !(i->second.start<=end and i->second.end>=start))
+            functions.erase(i++);
+        else
+            i++;
+    }
 }
 
 void functioncachesave(JSON root)

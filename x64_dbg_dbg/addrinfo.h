@@ -130,6 +130,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
 bool commentset(uint addr, const char* text, bool manual);
 bool commentget(uint addr, char* text);
 bool commentdel(uint addr);
+void commentdelrange(uint start, uint end);
 void commentcachesave(JSON root);
 void commentcacheload(JSON root);
 
@@ -137,12 +138,14 @@ bool labelset(uint addr, const char* text, bool manual);
 bool labelfromstring(const char* text, uint* addr);
 bool labelget(uint addr, char* text);
 bool labeldel(uint addr);
+void labeldelrange(uint start, uint end);
 void labelcachesave(JSON root);
 void labelcacheload(JSON root);
 
 bool bookmarkset(uint addr, bool manual);
 bool bookmarkget(uint addr);
 bool bookmarkdel(uint addr);
+void bookmarkdelrange(uint start, uint end);
 void bookmarkcachesave(JSON root);
 void bookmarkcacheload(JSON root);
 
@@ -150,6 +153,7 @@ bool functionadd(uint start, uint end, bool manual);
 bool functionget(uint addr, uint* start, uint* end);
 bool functionoverlaps(uint start, uint end);
 bool functiondel(uint addr);
+void functiondelrange(uint start, uint end);
 void functioncachesave(JSON root);
 void functioncacheload(JSON root);
 
