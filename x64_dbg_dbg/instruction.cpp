@@ -236,7 +236,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     uint addr=0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!commentset(addr, argv[2]))
+    if(!commentset(addr, argv[2], true))
     {
         dputs("error setting comment");
         return STATUS_ERROR;
@@ -259,6 +259,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
         dputs("error deleting comment");
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -272,11 +273,12 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
     uint addr=0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!labelset(addr, argv[2]))
+    if(!labelset(addr, argv[2], true))
     {
         dputs("error setting label");
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -308,7 +310,7 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
     uint addr=0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!bookmarkset(addr))
+    if(!bookmarkset(addr, true))
     {
         dputs("failed to set bookmark!");
         return STATUS_ERROR;
@@ -338,22 +340,14 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 
 CMDRESULT cbLoaddb(int argc, char* argv[])
 {
-    if(!dbload())
-    {
-        dputs("failed to load database from disk!");
-        return STATUS_ERROR;
-    }
+    dbload();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbSavedb(int argc, char* argv[])
 {
-    if(!dbsave())
-    {
-        dputs("failed to save database to disk!");
-        return STATUS_ERROR;
-    }
+    dbsave();
     return STATUS_CONTINUE;
 }
 
@@ -380,6 +374,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         dprintf("failed to assemble \"%s\"\n", argv[2]);
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -400,6 +395,7 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("function added!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -419,6 +415,7 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("function deleted!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

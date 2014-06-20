@@ -15,9 +15,10 @@
 #include <stdarg.h>
 #include <psapi.h>
 #include <vector>
+#include <map>
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
-#include "sqlite\sqlite3.h"
+#include "jansson\jansson.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"
@@ -36,8 +37,6 @@
 #ifndef DLL_IMPORT
 #define DLL_IMPORT __declspec(dllimport)
 #endif //DLL_IMPORT
-
-#include "dbg.h"
 
 //defines
 #define deflen 1024
@@ -92,7 +91,7 @@ enum BITMASK
 
 //superglobal variables
 extern HINSTANCE hInst;
-extern char sqlitedb_basedir[deflen];
+extern char dbbasepath[deflen];
 extern char dbpath[3*deflen];
 
 //functions
@@ -100,6 +99,8 @@ void* emalloc(size_t size);
 void efree(void* ptr);
 void* emalloc(size_t size, const char* reason);
 void efree(void* ptr, const char* reason);
+int memleaks();
+void setalloctrace(const char* file);
 bool arraycontains(const char* cmd_list, const char* cmd);
 bool scmp(const char* a, const char* b);
 void formathex(char* string);

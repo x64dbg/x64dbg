@@ -28,9 +28,11 @@ struct BREAKPOINT
 
 //typedefs
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
+typedef std::pair<BP_TYPE, uint> BreakpointKey;
+typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
 
 //functions
-int bpgetlist(BREAKPOINT** list);
+int bpgetlist(std::vector<BREAKPOINT>* list);
 bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name);
 bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp);
 bool bpdel(uint addr, BP_TYPE type);
@@ -40,5 +42,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum);
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module);
 int bpgetcount(BP_TYPE type);
 void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge);
+void bpcachesave(JSON root);
+void bpcacheload(JSON root);
 
 #endif // _BREAKPOINT_H

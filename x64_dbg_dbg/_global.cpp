@@ -3,7 +3,7 @@
 #include <new>
 
 HINSTANCE hInst;
-char sqlitedb_basedir[deflen]="";
+char dbbasepath[deflen]="";
 char dbpath[3*deflen]="";
 
 void* emalloc(size_t size)
@@ -17,32 +17,45 @@ void efree(void* ptr)
 }
 
 static int emalloc_count=0;
+static char alloctrace[MAX_PATH]="";
 
 void* emalloc(size_t size, const char* reason)
 {
-    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size+0x1000, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    unsigned char* a=new (std::nothrow)unsigned char[size+0x1000];
+    unsigned char* a=new (std::nothrow)unsigned char[size];
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
         ExitProcess(1);
     }
-    memset(a, 0, size+0x1000);
+    memset(a, 0, size);
     emalloc_count++;
-    /*FILE* file=fopen("alloctrace.txt", "a+");
+    /*
+    FILE* file=fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
-    fclose(file);*/
+    fclose(file);
+    */
     return a;
 }
 
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
-    /*FILE* file=fopen("alloctrace.txt", "a+");
+    /*
+    FILE* file=fopen(alloctrace, "a+");
     fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
-    fclose(file);*/
-    //VirtualFree(ptr, 0, MEM_RELEASE);
+    fclose(file);
+    */
     delete[] (unsigned char*)ptr;
+}
+
+int memleaks()
+{
+    return emalloc_count;
+}
+
+void setalloctrace(const char* file)
+{
+    strcpy(alloctrace, file);
 }
 
 bool arraycontains(const char* cmd_list, const char* cmd)

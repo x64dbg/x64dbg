@@ -19,12 +19,6 @@
     <Filter Include="Header Files\dbghelp">
       <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\sqlite">
-      <UniqueIdentifier>{fa9d17d3-a464-4693-b1d8-0d0c10a88bd1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\dbg">
-      <UniqueIdentifier>{c7d6554c-6b4c-42b2-8d0a-7968cdfdba63}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\TitanEngine">
       <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
     </Filter>
@@ -33,6 +27,12 @@
     </Filter>
     <Filter Include="Header Files\DeviceNameResolver">
       <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\jansson">
+      <UniqueIdentifier>{b63305e2-2b10-46eb-839f-5e9080fa8ad8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\lz4">
+      <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -90,9 +90,6 @@
     <ClCompile Include="x64_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sqlhelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="plugin_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -120,6 +117,9 @@
     <ClCompile Include="reference.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="murmurhash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -144,9 +144,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="data.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dbg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debugger.h">
@@ -177,9 +174,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="x64_dbg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sqlhelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="plugin_loader.h">
@@ -230,20 +224,32 @@
     <ClInclude Include="dbghelp\dbghelp.h">
       <Filter>Header Files\dbghelp</Filter>
     </ClInclude>
-    <ClInclude Include="dbg\dbg.h">
-      <Filter>Header Files\dbg</Filter>
-    </ClInclude>
     <ClInclude Include="XEDParse\XEDParse.h">
       <Filter>Header Files\XEDParse</Filter>
     </ClInclude>
     <ClInclude Include="TitanEngine\TitanEngine.h">
       <Filter>Header Files\TitanEngine</Filter>
     </ClInclude>
-    <ClInclude Include="sqlite\sqlite3.h">
-      <Filter>Header Files\sqlite</Filter>
-    </ClInclude>
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
       <Filter>Header Files\DeviceNameResolver</Filter>
+    </ClInclude>
+    <ClInclude Include="jansson\jansson.h">
+      <Filter>Header Files\jansson</Filter>
+    </ClInclude>
+    <ClInclude Include="jansson\jansson_config.h">
+      <Filter>Header Files\jansson</Filter>
+    </ClInclude>
+    <ClInclude Include="murmurhash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4.h">
+      <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4file.h">
+      <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="lz4\lz4hc.h">
+      <Filter>Header Files\lz4</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

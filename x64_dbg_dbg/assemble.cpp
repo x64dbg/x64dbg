@@ -13,6 +13,5 @@ bool assembleat(uint addr, const char* instruction)
     if(XEDParseAssemble(&parse)==XEDPARSE_ERROR)
         return false;
     bool ret=memwrite(fdProcessInfo->hProcess, (void*)addr, parse.dest, parse.dest_size, 0);
-    GuiUpdateAllViews();
     return ret;
 }
