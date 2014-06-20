@@ -25,6 +25,8 @@ void dbsave()
     commentcachesave(root);
     labelcachesave(root);
     bookmarkcachesave(root);
+    functioncachesave(root);
+    loopcachesave(root);
     if(json_object_size(root))
         json_dump_file(root, dbpath, JSON_INDENT(4));
     json_decref(root); //free root
@@ -44,6 +46,8 @@ void dbload()
     commentcacheload(root);
     labelcacheload(root);
     bookmarkcacheload(root);
+    functioncacheload(root);
+    loopcacheload(root);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
 }
@@ -52,6 +56,10 @@ void dbclose()
 {
     dbsave();
     CommentsInfo().swap(comments);
+    LabelsInfo().swap(labels);
+    BookmarksInfo().swap(bookmarks);
+    FunctionsInfo().swap(functions);
+    LoopsInfo().swap(loops);
 }
 
 ///module functions
@@ -388,7 +396,7 @@ bool labelget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
         return false;
-    LabelsInfo::iterator found=labels.find(modhashfromva(addr));
+    const LabelsInfo::iterator found=labels.find(modhashfromva(addr));
     if(found==labels.end()) //not found
         return false;
     if(text)
@@ -585,17 +593,20 @@ void bookmarkcacheload(JSON root)
 ///function database
 bool functionadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
+    if(!DbgIsDebugging() or end<start)
+        return false;
+    uint page=memfindbaseaddr(fdProcessInfo->hProcess, start, 0);
+    if(!page or page!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
         return false;
     if(functionoverlaps(start, end))
         return false;
     FUNCTIONSINFO function;
     modnamefromaddr(start, function.mod, true);
-    function.modbase=modbasefromaddr(start);
-    function.start=start-function.modbase;
-    function.end=end-function.modbase;
+    uint modbase=modbasefromaddr(start);
+    function.start=start-modbase;
+    function.end=end-modbase;
     function.manual=manual;
-    functions.push_back(function);
+    functions.insert(std::make_pair(ModuleRange(modhashfromva(modbase), Range(function.start, function.end)), function));
     return true;
 }
 
@@ -603,90 +614,148 @@ bool functionget(uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
         return false;
-    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
-    {
-        uint curAddr=addr-i->modbase;
-        if(i->start<=curAddr and i->end>=curAddr)
-        {
-            if(start)
-                *start=i->start+i->modbase;
-            if(end)
-                *end=i->end+i->modbase;
-            return true;
-        }
-    }
-    return false;
+    uint modbase=modbasefromaddr(addr);
+    const FunctionsInfo::iterator found=functions.find(ModuleRange(modhashfromva(modbase), Range(addr-modbase, addr-modbase)));
+    if(found==functions.end()) //not found
+        return false;
+    if(start)
+        *start=found->second.start+modbase;
+    if(end)
+        *end=found->second.end+modbase;
+    return true;
 }
 
 bool functionoverlaps(uint start, uint end)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() or end<start)
         return false;
-    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
-    {
-        uint curStart=start-i->modbase;
-        uint curEnd=end-i->modbase;
-        if(i->start<=curEnd and i->end>=curStart)
-            return true;
-    }
-    return false;
+    const uint modbase=modbasefromaddr(start);
+    return (functions.count(ModuleRange(modhashfromva(modbase), Range(start-modbase, end-modbase)))>0);
 }
 
 bool functiondel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
+    const uint modbase=modbasefromaddr(addr);
+    return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr-modbase, addr-modbase)))>0);
+}
+
+void functioncachesave(JSON root)
+{
+    const JSON jsonfunctions=json_array();
+    const JSON jsonautofunctions=json_array();
     for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i)
     {
-        uint curAddr=addr-i->modbase;
-        if(i->start<=curAddr and i->end>=curAddr)
+        const FUNCTIONSINFO curFunction=i->second;
+        JSON curjsonfunction=json_object();
+        if(*curFunction.mod)
+            json_object_set_new(curjsonfunction, "module", json_string(curFunction.mod));
+        else
+            json_object_set_new(curjsonfunction, "module", json_null());
+        json_object_set_new(curjsonfunction, "start", json_hex(curFunction.start));
+        json_object_set_new(curjsonfunction, "end", json_hex(curFunction.end));
+        if(curFunction.manual)
+            json_array_append_new(jsonfunctions, curjsonfunction);
+        else
+            json_array_append_new(jsonautofunctions, curjsonfunction);
+    }
+    if(json_array_size(jsonfunctions))
+        json_object_set(root, "functions", jsonfunctions);
+    json_decref(jsonfunctions);
+    if(json_array_size(jsonautofunctions))
+        json_object_set(root, "autofunctions", jsonautofunctions);
+    json_decref(jsonautofunctions);
+}
+
+void functioncacheload(JSON root)
+{
+    functions.clear();
+    const JSON jsonfunctions=json_object_get(root, "functions");
+    if(jsonfunctions)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonfunctions, i, value)
         {
-            functions.erase(i);
-            return true;
+            FUNCTIONSINFO curFunction;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curFunction.mod, mod);
+            else
+                *curFunction.mod='\0';
+            curFunction.start=json_hex_value(json_object_get(value, "start"));
+            curFunction.end=json_hex_value(json_object_get(value, "end"));
+            if(curFunction.end < curFunction.start)
+                continue; //invalid function
+            curFunction.manual=true;
+            const uint key=modhashfromname(curFunction.mod);
+            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
         }
     }
-    return false;
+    JSON jsonautofunctions=json_object_get(root, "autofunctions");
+    if(jsonautofunctions)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonautofunctions, i, value)
+        {
+            FUNCTIONSINFO curFunction;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curFunction.mod, mod);
+            else
+                *curFunction.mod='\0';
+            curFunction.start=json_hex_value(json_object_get(value, "start"));
+            curFunction.end=json_hex_value(json_object_get(value, "end"));
+            if(curFunction.end < curFunction.start)
+                continue; //invalid function
+            curFunction.manual=true;
+            const uint key=modhashfromname(curFunction.mod);
+            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
+        }
+    }
 }
 
 //loop database
 bool loopadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end<start or memfindbaseaddr(fdProcessInfo->hProcess, start, 0)!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)!=0) //the function boundaries are not in the same mem page
+    if(!DbgIsDebugging() or end<start)
+        return false;
+    uint page=memfindbaseaddr(fdProcessInfo->hProcess, start, 0);
+    if(!page or page!=memfindbaseaddr(fdProcessInfo->hProcess, end, 0)) //the function boundaries are not in the same mem page
         return false;
     int finaldepth;
     if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
         return false;
     LOOPSINFO loop;
     modnamefromaddr(start, loop.mod, true);
-    loop.modbase=modbasefromaddr(start);
-    loop.start=start-loop.modbase;
-    loop.end=end-loop.modbase;
+    const uint modbase=modbasefromaddr(start);
+    loop.start=start-modbase;
+    loop.end=end-modbase;
     loop.depth=finaldepth;
     if(finaldepth)
-        loop.parent=finaldepth-1;
+        loopget(finaldepth-1, start, &loop.parent, 0);
     else
         loop.parent=0;
     loop.manual=manual;
-    return false;
+    loops.insert(std::make_pair(DepthModuleRange(finaldepth, ModuleRange(modhashfromva(modbase), Range(loop.start, loop.end))), loop));
+    return true;
 }
 
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return false;
-    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
-    {
-        uint curAddr=addr-i->modbase;
-        if(i->start<=curAddr and i->end>=curAddr and i->depth==depth)
-        {
-            if(start)
-                *start=i->start+i->modbase;
-            if(end)
-                *end=i->end+i->modbase;
-            return true;
-        }
-    }
-    return false;
+    const uint modbase=modbasefromaddr(addr);
+    LoopsInfo::iterator found=loops.find(DepthModuleRange(depth, ModuleRange(modhashfromva(modbase), Range(addr-modbase, addr-modbase))));
+    if(found==loops.end()) //not found
+        return false;
+    if(start)
+        *start=found->second.start+modbase;
+    if(end)
+        *end=found->second.end+modbase;
+    return true;
 }
 
 //check if a loop overlaps a range, inside is not overlapping
@@ -694,13 +763,20 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
 {
     if(!DbgIsDebugging())
         return false;
+
+    const uint modbase=modbasefromaddr(start);
+    uint curStart=start-modbase;
+    uint curEnd=end-modbase;
+    const uint key=modhashfromva(modbase);
+
     //check if the new loop fits in the old loop
     for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
     {
-        uint curStart=start-i->modbase;
-        uint curEnd=end-i->modbase;
-        if(i->start<curStart and i->end>curEnd and i->depth==depth)
-            return loopoverlaps(depth+1, start, end, finaldepth);
+        if(i->first.second.first!=key) //only look in the current module
+            continue;
+        LOOPSINFO* curLoop=&i->second;
+        if(curLoop->start<curStart and curLoop->end>curEnd and curLoop->depth==depth)
+            return loopoverlaps(depth+1, curStart, curEnd, finaldepth);
     }
 
     if(finaldepth)
@@ -709,9 +785,10 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     //check for loop overlaps
     for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
     {
-        uint curStart=start-i->modbase;
-        uint curEnd=end-i->modbase;
-        if(i->start<=curEnd and i->end>=curStart and i->depth==depth)
+        if(i->first.second.first!=key) //only look in the current module
+            continue;
+        LOOPSINFO* curLoop=&i->second;
+        if(curLoop->start<=curEnd and curLoop->end>=curStart and curLoop->depth==depth)
             return true;
     }
     return false;
@@ -720,4 +797,84 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
 bool loopdel(int depth, uint addr)
 {
     return false;
+}
+
+void loopcachesave(JSON root)
+{
+    const JSON jsonloops=json_array();
+    const JSON jsonautoloops=json_array();
+    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i)
+    {
+        const LOOPSINFO curLoop=i->second;
+        JSON curjsonloop=json_object();
+        if(*curLoop.mod)
+            json_object_set_new(curjsonloop, "module", json_string(curLoop.mod));
+        else
+            json_object_set_new(curjsonloop, "module", json_null());
+        json_object_set_new(curjsonloop, "start", json_hex(curLoop.start));
+        json_object_set_new(curjsonloop, "end", json_hex(curLoop.end));
+        json_object_set_new(curjsonloop, "depth", json_integer(curLoop.depth));
+        json_object_set_new(curjsonloop, "parent", json_hex(curLoop.parent));
+        if(curLoop.manual)
+            json_array_append_new(jsonloops, curjsonloop);
+        else
+            json_array_append_new(jsonautoloops, curjsonloop);
+    }
+    if(json_array_size(jsonloops))
+        json_object_set(root, "loops", jsonloops);
+    json_decref(jsonloops);
+    if(json_array_size(jsonautoloops))
+        json_object_set(root, "autoloops", jsonautoloops);
+    json_decref(jsonautoloops);
+}
+
+void loopcacheload(JSON root)
+{
+    loops.clear();
+    const JSON jsonloops=json_object_get(root, "loops");
+    if(jsonloops)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonloops, i, value)
+        {
+            LOOPSINFO curLoop;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curLoop.mod, mod);
+            else
+                *curLoop.mod='\0';
+            curLoop.start=json_hex_value(json_object_get(value, "start"));
+            curLoop.end=json_hex_value(json_object_get(value, "end"));
+            curLoop.depth=json_integer_value(json_object_get(value, "depth"));
+            curLoop.parent=json_hex_value(json_object_get(value, "parent"));
+            if(curLoop.end < curLoop.start)
+                continue; //invalid loop
+            curLoop.manual=true;
+            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
+        }
+    }
+    JSON jsonautoloops=json_object_get(root, "autoloops");
+    if(jsonautoloops)
+    {
+        size_t i;
+        JSON value;
+        json_array_foreach(jsonautoloops, i, value)
+        {
+            LOOPSINFO curLoop;
+            const char* mod=json_string_value(json_object_get(value, "module"));
+            if(mod && *mod && strlen(mod)<MAX_MODULE_SIZE)
+                strcpy(curLoop.mod, mod);
+            else
+                *curLoop.mod='\0';
+            curLoop.start=json_hex_value(json_object_get(value, "start"));
+            curLoop.end=json_hex_value(json_object_get(value, "end"));
+            curLoop.depth=json_integer_value(json_object_get(value, "depth"));
+            curLoop.parent=json_hex_value(json_object_get(value, "parent"));
+            if(curLoop.end < curLoop.start)
+                continue; //invalid loop
+            curLoop.manual=false;
+            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
+        }
+    }
 }

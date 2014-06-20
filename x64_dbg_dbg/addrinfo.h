@@ -5,10 +5,12 @@
 
 //ranges
 typedef std::pair<uint, uint> Range;
+typedef std::pair<uint, Range> ModuleRange; //modhash + RVA range
+typedef std::pair<int, ModuleRange> DepthModuleRange; //depth + modulerange
 
 struct RangeCompare
 {
-    bool operator()(const Range& a, const Range& b) //a before b?
+    bool operator()(const Range& a, const Range& b) const //a before b?
     {
         return a.second < b.first;
     }
@@ -16,9 +18,37 @@ struct RangeCompare
 
 struct OverlappingRangeCompare
 {
-    bool operator()(const Range& a, const Range& b) //a before b?
+    bool operator()(const Range& a, const Range& b) const //a before b?
     {
         return a.second < b.first || a.second < b.second;
+    }
+};
+
+struct ModuleRangeCompare
+{
+    bool operator()(const ModuleRange& a, const ModuleRange& b) const
+    {
+        if(a.first < b.first) //module hash is smaller
+            return true;
+        if(a.first != b.first) //module hashes are not equal
+            return false;
+        return a.second.second < b.second.first; //a.second is before b.second
+    }
+};
+
+struct DepthModuleRangeCompare
+{
+    bool operator()(const DepthModuleRange& a, const DepthModuleRange& b) const
+    {
+        if(a.first < b.first) //module depth is smaller
+            return true;
+        if(a.first != b.first) //module depths are not equal
+            return false;
+        if(a.second.first < b.second.first) //module hash is smaller
+            return true;
+        if(a.second.first != b.second.first) //module hashes are not equal
+            return false;
+        return a.second.second.second < b.second.second.first; //a.second.second is before b.second.second
     }
 };
 
@@ -62,28 +92,25 @@ typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 struct FUNCTIONSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint modbase;
     uint start;
     uint end;
     bool manual;
 };
+typedef std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> FunctionsInfo;
 
 struct LOOPSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint modbase;
     uint start;
     uint end;
-    int parent;
+    uint parent;
     int depth;
     bool manual;
 };
+typedef std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> LoopsInfo;
 
 //typedefs
 typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
-
-typedef std::vector<FUNCTIONSINFO> FunctionsInfo;
-typedef std::vector<LOOPSINFO> LoopsInfo;
 
 void dbsave();
 void dbload();
@@ -119,15 +146,18 @@ bool bookmarkdel(uint addr);
 void bookmarkcachesave(JSON root);
 void bookmarkcacheload(JSON root);
 
-
 bool functionadd(uint start, uint end, bool manual);
 bool functionget(uint addr, uint* start, uint* end);
 bool functionoverlaps(uint start, uint end);
 bool functiondel(uint addr);
+void functioncachesave(JSON root);
+void functioncacheload(JSON root);
 
 bool loopadd(uint start, uint end, bool manual);
 bool loopget(int depth, uint addr, uint* start, uint* end);
 bool loopoverlaps(int depth, uint start, uint end, int* finaldepth);
 bool loopdel(int depth, uint addr);
+void loopcachesave(JSON root);
+void loopcacheload(JSON root);
 
 #endif // _ADDRINFO_H
