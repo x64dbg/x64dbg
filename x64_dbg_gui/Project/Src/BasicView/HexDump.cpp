@@ -166,7 +166,7 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
         {
             mGuiState = HexDump::NoState;
 
-            this->viewport()->repaint();
+            repaint();
 
             wAccept = false;
         }
@@ -221,8 +221,10 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
                 wSelectionX = x + wI * wItemPixWidth;
                 wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
+                painter->save();
                 painter->setPen(textColor);
                 painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(selectionColor));
+                painter->restore();
             }
         }
     }
