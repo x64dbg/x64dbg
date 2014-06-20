@@ -153,6 +153,30 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //setup menu api
     initMenuApi();
+
+    bClose=false;
+}
+
+DWORD WINAPI MainWindow::closeThread(void* ptr)
+{
+    static bool closing=false;
+    if(closing)
+        return 0;
+    closing=true;
+    DbgExit();
+    MainWindow* mainWindow=(MainWindow*)ptr;
+    mainWindow->bClose=true;
+    mainWindow->close();
+    return 0;
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+    if(bClose)
+        event->accept();
+    else
+        event->ignore();
 }
 
 MainWindow::~MainWindow()

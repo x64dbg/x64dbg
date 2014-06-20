@@ -49,7 +49,7 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
                 else
                     setSingleSelection(wRowIndex);
 
-                this->viewport()->repaint();
+                repaint();
 
                 wAccept = false;
             }
@@ -82,7 +82,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                     mGuiState = StdTable::MultiRowsSelectionState;
 
-                    viewport()->repaint();
+                    repaint();
 
                     wAccept = true;
                 }
@@ -111,7 +111,7 @@ void StdTable::mouseReleaseEvent(QMouseEvent* event)
         {
             mGuiState = StdTable::NoState;
 
-            this->viewport()->repaint();
+            repaint();
 
             wAccept = false;
         }
