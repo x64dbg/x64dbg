@@ -112,10 +112,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
             mHeaderButtonSytle.style()->drawControl(QStyle::CE_PushButton, &wOpt, &wPainter,&mHeaderButtonSytle);
 
-            wPainter.save();
             wPainter.setPen(headerTextColor);
             wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeight()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
-            wPainter.restore();
 
             x += getColumnWidth(i);
         }
@@ -134,18 +132,14 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                 QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
                 if(wStr.length())
                 {
-                    wPainter.save();
                     wPainter.setPen(textColor);
                     wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-                    wPainter.restore();
                 }
             }
 
             // Paints cell right borders
-            wPainter.save();
             wPainter.setPen(separatorColor);
             wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
-            wPainter.restore();
 
             // Update y for the next iteration
             y += getRowHeight();

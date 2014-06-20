@@ -160,7 +160,6 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         }
         else
             *label=0;
-        painter->save();
         if(*label) //label
         {
             QColor background=ConfigColor("HexDumpLabelBackgroundColor");
@@ -176,7 +175,6 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
             painter->setPen(ConfigColor("HexDumpAddressColor")); //TODO: config
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
-        painter->restore();
     }
     else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col -1).itemCount == 1) //print comments
     {

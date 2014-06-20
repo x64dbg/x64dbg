@@ -68,14 +68,12 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 {
     if(mHighlightingMode)
     {
-        painter->save();
         QPen pen(ConfigColor("InstructionHighlightColor"));
         pen.setWidth(2);
         painter->setPen(pen);
         QRect rect=viewport()->rect();
         rect.adjust(1, 1, -1, -1);
         painter->drawRect(rect);
-        painter->restore();
     }
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
     bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
@@ -132,7 +130,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             *label=0;
         BPXTYPE bpxtype=DbgGetBpxTypeAt(cur_addr);
         bool isbookmark=DbgGetBookmarkAt(cur_addr);
-        painter->save();
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
@@ -306,7 +303,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
-        painter->restore();
     }
     break;
 
@@ -339,14 +335,12 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
-        painter->save();
         painter->setPen(ConfigColor("DisassemblyBytesColor"));
         QString wBytes = "";
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
             wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper()+" ";
 
         painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wBytes);
-        painter->restore();
     }
     break;
 
@@ -402,7 +396,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         char comment[MAX_COMMENT_SIZE]="";
         if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mBase, comment))
         {
-            painter->save();
             painter->setPen(ConfigColor("DisassemblyCommentColor"));
             int width = QFontMetrics(this->font()).width(comment)+4;
             if(width > w)
@@ -410,7 +403,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             if(width)
                 painter->fillRect(QRect(x + 2, y, width, h), QBrush(ConfigColor("DisassemblyCommentBackgroundColor"))); //fill bookmark color
             painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
-            painter->restore();
         }
     }
     break;
@@ -726,8 +718,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         }
     }
 
-    painter->save();
-
     bool bIsExecute=DbgIsJumpGoingToExecute(instruction.rva+mBase);
 
     if(branchType==JmpType) //unconditional
@@ -783,8 +773,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawPolyline(wPoints, 3);
     }
 
-    painter->restore();
-
     return 7;
 }
 
@@ -806,7 +794,6 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
 {
     if(loop && funcType==Function_none)
         return 0;
-    painter->save();
     painter->setPen(QPen(Qt::black, 2)); //thick black line
     int height=getRowHeight();
     int x_add=5;
@@ -874,7 +861,6 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     }
     break;
     }
-    painter->restore();
     return x_add+line_width+end_add;
 }
 

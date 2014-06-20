@@ -99,7 +99,6 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
 
     if(col == 0) // paint stack address
     {
-        painter->save();
         char label[MAX_LABEL_SIZE]="";
         QString addrText="";
         int_t curAddr = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset + this->mBase;
@@ -149,23 +148,19 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
         if(background.alpha())
             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background when defined
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
-        painter->restore();
     }
     else if(mDescriptor.at(col - 1).isData == true) //paint stack data
     {
         QString wStr=HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-        painter->save();
         if(wActiveStack)
             painter->setPen(QPen(textColor));
         else
             painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-        painter->restore();
     }
     else if(DbgStackCommentGet(mMemPage->getBase()+wRva, &comment)) //paint stack comments
     {
         QString wStr = QString(comment.comment);
-        painter->save();
         if(wActiveStack)
         {
             if(*comment.color)
@@ -176,7 +171,6 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
         else
             painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
-        painter->restore();
     }
     return "";
 }

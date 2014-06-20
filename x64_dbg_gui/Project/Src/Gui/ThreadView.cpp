@@ -199,11 +199,9 @@ QString ThreadView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     QString ret=StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     if(rowBase+rowOffset==mCurrentThread && !col)
     {
-        painter->save();
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
         painter->setPen(QPen(ConfigColor("ThreadCurrentColor"))); //white text
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, ret);
-        painter->restore();
         ret="";
     }
     return ret;

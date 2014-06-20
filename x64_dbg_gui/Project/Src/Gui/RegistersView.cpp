@@ -406,7 +406,6 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
         //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
 
         //set highlighting
-        p->save();
         if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
             p->setPen(ConfigColor("RegistersModifiedColor"));
         else
@@ -425,7 +424,6 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
         width = mCharWidth * valueText.length();
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
-        p->restore(); //do not highlight the labels
         // do we have a label ?
         char label_text[MAX_LABEL_SIZE]="";
         char module_text[MAX_MODULE_SIZE]="";

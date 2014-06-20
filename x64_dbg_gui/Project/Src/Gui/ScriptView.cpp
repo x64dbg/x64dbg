@@ -50,7 +50,6 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     case 0: //line number
     {
         returnString=returnString.sprintf("%.4d", line);
-        painter->save();
         if(line==mIpLine) //IP
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
@@ -86,7 +85,6 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
                 painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, returnString);
-        painter->restore();
         returnString="";
     }
     break;
@@ -96,7 +94,6 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         if(mEnableSyntaxHighlighting)
         {
             //initialize
-            painter->save();
             int charwidth=QFontMetrics(this->font()).width(QChar(' '));
             int xadd=charwidth; //for testing
             QList<RichTextPainter::CustomRichText_t> richText;
@@ -255,7 +252,6 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 
             //paint the rich text
             RichTextPainter::paintRichText(painter, x+1, y, w, h, xadd, &richText, charwidth);
-            painter->restore();
             returnString="";
         }
         else //no syntax highlighting
