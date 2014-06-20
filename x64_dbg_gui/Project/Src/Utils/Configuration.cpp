@@ -210,17 +210,6 @@ void Configuration::writeBools()
     }
 }
 
-const QList<QString> Configuration::ApiFingerprints()
-{
-    char setting[MAX_SETTING_SIZE]="";
-    if(!BridgeSettingGet("Engine", "APIFingerprints", setting))
-    {
-        strcpy(setting, "gdi32,kernel32,shell32,stdio,user32"); //default setting
-        BridgeSettingSet("Engine", "APIFingerprints", setting);
-    }
-    return QString(setting).split(QChar(','), QString::SkipEmptyParts);
-}
-
 const QColor Configuration::getColor(const QString id)
 {
     if(Colors.contains(id))

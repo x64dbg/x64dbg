@@ -19,7 +19,6 @@
 #include "SettingsDialog.h"
 #include "tabwidget.h"
 #include "Configuration.h"
-#include "ApiFingerprints.h"
 #include "AppearanceDialog.h"
 
 namespace Ui
@@ -96,7 +95,6 @@ private:
     StatusLabel* mLastLogLabel;
 
     Configuration* mConfiguration;
-    ApiFingerprints* mAPIFingerprints;
 
     const char* mWindowMainTitle;
 

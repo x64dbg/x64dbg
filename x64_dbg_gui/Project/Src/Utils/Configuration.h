@@ -24,7 +24,7 @@ public:
     void writeColors();
     void readBools();
     void writeBools();
-    const QList<QString> ApiFingerprints();
+
     const QColor getColor(const QString id);
     const bool getBool(const QString category, const QString id);
 

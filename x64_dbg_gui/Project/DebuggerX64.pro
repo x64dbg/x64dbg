@@ -67,7 +67,6 @@ SOURCES += \
     Src/Gui/CommandHelpView.cpp \
     Src/BasicView/HistoryLineEdit.cpp \
     Src/Utils/Configuration.cpp \
-    Src/Utils/ApiFingerprints.cpp \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
     Src/Disassembler/BeaTokenizer.cpp
@@ -116,7 +115,6 @@ HEADERS += \
     Src/Gui/CommandHelpView.h \
     Src/BasicView/HistoryLineEdit.h \
     Src/Utils/Configuration.h \
-    Src/Utils/ApiFingerprints.h \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
     Src/Disassembler/BeaTokenizer.h
