@@ -608,7 +608,9 @@ enum GUIMSG
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_CLEARALL,      // param1=ununsed,              param2=unused
     GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
-    GUI_ADD_MSG_TO_STATUSBAR        // param1=const char* msg,      param2=unused
+    GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
+    GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
+    GUI_REPAINT_REGISTER_VIEW       // param1=unused,               param2=unused
 };
 
 //GUI structures
@@ -677,6 +679,7 @@ BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd);
 BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd);
 BRIDGE_IMPEXP void GuiAutoCompleteClearAll();
 BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg);
+BRIDGE_IMPEXP void GuiupdateSideBar();
 
 #ifdef __cplusplus
 }

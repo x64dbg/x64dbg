@@ -352,6 +352,11 @@ void Bridge::emitAutoCompleteClearAll()
     emit autoCompleteClearAll();
 }
 
+void Bridge::emitUpdateSideBar()
+{
+    emit updateSideBar();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -699,6 +704,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_ADD_MSG_TO_STATUSBAR:
     {
         Bridge::getBridge()->emitAddMsgToStatusBar(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_UPDATE_SIDEBAR:
+    {
+        Bridge::getBridge()->emitUpdateSideBar();
     }
     break;
 

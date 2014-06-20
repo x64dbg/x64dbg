@@ -730,6 +730,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateBreakpointsView();
     GuiUpdateDumpView();
     GuiUpdateThreadView();
+    GuiupdateSideBar();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -964,6 +965,11 @@ BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
 BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
 {
     _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
+}
+
+BRIDGE_IMPEXP void GuiupdateSideBar()
+{
+    _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
 }
 
 //Main
