@@ -91,6 +91,7 @@ private:
     static QStringList segmentNames;
     static QMap<int, QString> memSizeNames;
     static QMap<int, QMap<ARGUMENTS_TYPE, QString>> registerMap;
+    static QSet<int> repSet;
 
     //functions
     static void AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value);

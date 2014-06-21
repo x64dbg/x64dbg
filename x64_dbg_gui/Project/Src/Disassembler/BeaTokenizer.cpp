@@ -6,6 +6,7 @@ QMap<BeaTokenizer::BeaTokenType, BeaTokenizer::BeaTokenColor> BeaTokenizer::colo
 QStringList BeaTokenizer::segmentNames;
 QMap<int, QString> BeaTokenizer::memSizeNames;
 QMap<int, QMap<ARGUMENTS_TYPE, QString>> BeaTokenizer::registerMap;
+QSet<int> BeaTokenizer::repSet;
 
 //functions
 BeaTokenizer::BeaTokenizer()
@@ -39,13 +40,19 @@ void BeaTokenizer::Prefix(BeaInstructionToken* instr, const DISASM* disasm)
     }
     if(disasm->Prefix.RepPrefix)
     {
-        AddToken(instr, TokenPrefix, "rep", 0);
-        AddToken(instr, TokenSpace, " ", 0);
+        if(repSet.contains(disasm->Instruction.Opcode))
+        {
+            AddToken(instr, TokenPrefix, "rep", 0);
+            AddToken(instr, TokenSpace, " ", 0);
+        }
     }
     if(disasm->Prefix.RepnePrefix)
     {
-        AddToken(instr, TokenPrefix, "repne", 0);
-        AddToken(instr, TokenSpace, " ", 0);
+        if(repSet.contains(disasm->Instruction.Opcode))
+        {
+            AddToken(instr, TokenPrefix, "repne", 0);
+            AddToken(instr, TokenSpace, " ", 0);
+        }
     }
 }
 
@@ -273,7 +280,8 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
     {
         BeaTokenValue value;
         value.size=arg->ArgSize/8;
-        value.value=disasm->Instruction.Immediat;
+        uint_t mask=(uint_t)~0>>(sizeof(uint_t)*8-arg->ArgSize);
+        value.value=disasm->Instruction.Immediat & mask;
         BeaTokenType type=TokenValue;
         if(DbgMemIsValidReadPtr(value.value)) //pointer
             type=TokenAddress;
@@ -444,6 +452,24 @@ void BeaTokenizer::Init()
     AddColorName(TokenFpuRegister, "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     AddColorName(TokenMmxRegister, "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
     AddColorName(TokenSseRegister, "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");
+
+    //valid instructions with the REP prefix
+    repSet.clear();
+    repSet.insert(0x6C);
+    repSet.insert(0x6D);
+    repSet.insert(0x6E);
+    repSet.insert(0x6F);
+    repSet.insert(0xA4);
+    repSet.insert(0xA5);
+    repSet.insert(0xA6);
+    repSet.insert(0xA7);
+    repSet.insert(0xAA);
+    repSet.insert(0xAB);
+    repSet.insert(0xAC);
+    repSet.insert(0xAD);
+    repSet.insert(0xAE);
+    repSet.insert(0xAF);
+
 }
 
 //djb2 (http://www.cse.yorku.ca/~oz/hash.html)
