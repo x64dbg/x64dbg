@@ -172,7 +172,9 @@ DWORD WINAPI MainWindow::closeThread(void* ptr)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    hide(); //hide main window
     mCloseDialog->show();
+    mCloseDialog->setFocus();
     CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
     if(bClose)
         event->accept();
