@@ -1,9 +1,10 @@
 #ignore directories
-*/obj/
-bin/*/*
-ipch/*
-x64_dbg_*/Win32/*
-x64_dbg_*/x64/*
+bin/
+obj/
+ipch/
+Win32/
+x64/
+release/
 
 #global filetypes to ignore
 *.depend
@@ -16,10 +17,15 @@ x64_dbg_*/x64/*
 *.opensdf
 *.sdf
 *.suo
+*.autosave
+*.~vsd
+*.dll
+*.exe
 
-#files to ignore
+#project to ignore
 todo_bridge.txt
 help/x64_dbg.chm
+help/output/
 
 #debugger files to ignore
 x64_dbg_dbg/ODbgScript.chm
@@ -41,9 +47,3 @@ x64_dbg_gui/Project/Src/Bridge/libx32_bridge.a
 x64_dbg_gui/Project/Src/Bridge/libx64_bridge.a
 x64_dbg_gui/Project/Src/Bridge/x32_bridge.lib
 x64_dbg_gui/Project/Src/Bridge/x64_bridge.lib
-help/output/*
-*.autosave
-*.~vsd
-release/
-x64_dbg_dbg/test/mmx_sse_fpu/x32/*.exe
-x64_dbg_dbg/test/mmx_sse_fpu/x64/*.exe
