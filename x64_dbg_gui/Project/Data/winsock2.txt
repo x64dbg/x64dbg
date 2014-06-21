@@ -1,7 +1,0 @@
-SOCKET;accept;SOCKET s; sockaddr *addr;int *addrlen;
-int;bind;SOCKET s;const sockaddr *name;int namelen;
-int;listen;SOCKET s;int backlog;
-int;recv;SOCKET s;char *buf;int len;int flags;
-int;send;SOCKET s;const char *buf;int len;int flags;
-SOCKET;socket;int af;int type;int protocol;
-int;WSAStartup;WORD wVersionRequested;LPWSADATA lpWSAData;

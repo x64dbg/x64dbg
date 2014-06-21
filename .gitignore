@@ -21,6 +21,7 @@ release/
 *.~vsd
 *.dll
 *.exe
+*.pro.user.*
 
 #project to ignore
 todo_bridge.txt
