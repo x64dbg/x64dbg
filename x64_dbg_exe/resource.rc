@@ -45,7 +45,7 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
             VALUE "OriginalFilename", ""
             VALUE "PrivateBuild", ""
             VALUE "ProductName", "x64_dbg"
-            VALUE "ProductVersion", "V1.7ALPHA"
+            VALUE "ProductVersion", "V1.9ALPHA"
             VALUE "SpecialBuild", ""
         }
     }
