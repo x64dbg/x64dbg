@@ -277,7 +277,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
         repaint();
     }
     default:
-        break;
+    break;
     }
 }
 
@@ -477,19 +477,19 @@ void AbstractTableView::vertSliderActionSlot(int action)
     switch(action)
     {
     case QAbstractSlider::SliderNoAction:
-        break;
+    break;
     case QAbstractSlider::SliderSingleStepAdd:
         wDelta = 1;
-        break;
+    break;
     case QAbstractSlider::SliderSingleStepSub:
         wDelta = -1;
-        break;
+    break;
     case QAbstractSlider::SliderPageStepAdd:
         wDelta = 30;
-        break;
+    break;
     case QAbstractSlider::SliderPageStepSub:
         wDelta = -30;
-        break;
+    break;
     case QAbstractSlider::SliderToMinimum:
     case QAbstractSlider::SliderToMaximum:
     case QAbstractSlider::SliderMove:
@@ -498,9 +498,9 @@ void AbstractTableView::vertSliderActionSlot(int action)
 #else
         wDelta = wSliderPos - mTableOffset;
 #endif
-        break;
+    break;
     default:
-        break;
+    break;
     }
 
     // Call the hook (Usefull for disassembly)
@@ -519,8 +519,6 @@ void AbstractTableView::vertSliderActionSlot(int action)
     // Update scrollbar attributes
     verticalScrollBar()->setValue(wNewScrollBarValue);
     verticalScrollBar()->setSliderPosition(wNewScrollBarValue);
-
-
 }
 
 
@@ -539,7 +537,7 @@ int_t AbstractTableView::sliderMovedHook(int type, int_t value, int_t delta)
 {
     Q_UNUSED(type);
     int_t wValue = value + delta;
-    int_t wMax = getRowCount() - 1;
+    int_t wMax = getRowCount() - getViewableRowsCount() + 1;
 
     // Bounding
     wValue = wValue > wMax ? wMax : wValue;
@@ -613,7 +611,7 @@ int_t AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
  */
 void AbstractTableView::updateScrollBarRange(int_t range)
 {
-    int_t wMax = range - 1;
+    int_t wMax = range - getViewableRowsCount() + 1;
 
     if(wMax > 0)
     {
@@ -799,7 +797,8 @@ void AbstractTableView::addColumnAt(int width, QString title, bool isClickable)
 
 void AbstractTableView::setRowCount(int_t count)
 {
-    updateScrollBarRange(count);
+    if(count> getViewableRowsCount())
+        updateScrollBarRange(count);
     mRowCount = count;
 }
 
@@ -926,6 +925,10 @@ int_t AbstractTableView::getTableOffset()
 
 void AbstractTableView::setTableOffset(int_t val)
 {
+    int_t wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
+    wMaxOffset = wMaxOffset > 0 ? wMaxOffset : 0;
+    if(val > wMaxOffset)
+        return;
     mTableOffset = val;
     emit tableOffsetChanged(val);
 
