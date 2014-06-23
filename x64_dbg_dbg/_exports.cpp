@@ -289,7 +289,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             }
             else //no line number
             {
-                /*
                 DISASM_INSTR instr;
                 std::string temp_string;
                 ADDRINFO newinfo;
@@ -398,7 +397,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval=true;
                     }
                 }
-                */
             }
         }
     }
@@ -982,7 +980,22 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         functiondelrange((uint)param1, (uint)param2);
     }
     break;
-    
+
+    case DBG_GET_STRING_AT:
+    {
+        STRING_TYPE strtype;
+        char string[512]="";
+        if(disasmgetstringat((uint)param1, &strtype, string, string, 500))
+        {
+            if(strtype==str_ascii)
+                sprintf((char*)param2, "\"%s\"", string);
+            else //unicode
+                sprintf((char*)param2, "L\"%s\"", string);
+            return true;
+        }
+        return false;
+    }
+    break;
     }
     return 0;
 }

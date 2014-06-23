@@ -702,6 +702,13 @@ BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
     _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
 }
 
+BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
+{
+    if(_dbg_sendmessage(DBG_GET_STRING_AT, (void*)addr, text))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

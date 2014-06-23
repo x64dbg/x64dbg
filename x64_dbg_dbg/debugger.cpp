@@ -1095,7 +1095,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         return STATUS_ERROR;
     if(!FileExists(arg1))
     {
-        dputs("file does not exsist!");
+        dputs("file does not exist!");
         return STATUS_ERROR;
     }
     HANDLE hFile=CreateFileA(arg1, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);

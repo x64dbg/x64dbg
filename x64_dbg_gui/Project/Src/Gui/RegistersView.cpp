@@ -436,6 +436,8 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
         // do we have a label ?
         char label_text[MAX_LABEL_SIZE]="";
         char module_text[MAX_MODULE_SIZE]="";
+        char string_text[MAX_STRING_SIZE]="";
+        bool hasString=DbgGetStringAt(value, string_text);
         bool hasLabel=DbgGetLabelAt(value, SEG_DEFAULT, label_text);
         bool hasModule=DbgGetModuleAt(value, module_text);
         bool isCharacter=false;
@@ -443,7 +445,11 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
         x += valueText.length() * mCharWidth;
         x += 5 * mCharWidth; //5 spaces
         QString newText = "";
-        if(hasLabel && hasModule)
+        if(hasString)
+        {
+            newText=string_text;
+        }
+        else if(hasLabel && hasModule)
         {
             newText="<"+QString(module_text)+"."+QString(label_text)+">";
         }
@@ -451,7 +457,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
         {
             newText=QString(module_text)+"."+valueText;
         }
-        else if(hasLabel )
+        else if(hasLabel)
         {
             newText="<"+QString(label_text)+">";
         }
@@ -481,7 +487,7 @@ void RegistersView::drawRegister(QPainter *p,REGISTER_NAME reg, uint_t value)
             }
         }
         // are there additional informations?
-        if(hasLabel || hasModule || isCharacter)
+        if(hasString || hasLabel || hasModule || isCharacter)
         {
             width = newText.length() * mCharWidth;
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
@@ -613,17 +619,13 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
-                //wMenu.addAction(wCM_FollowInDisassembly);
+                wMenu.addAction(wCM_FollowInDisassembly);
             }
-
-
         }
-
-
         wMenu.addAction(wCM_CopyToClipboard);
         wMenu.exec(this->mapToGlobal(pos));
     }
-    else if(DbgIsDebugging())
+    else
     {
         wMenu.addSeparator();
 #ifdef _WIN64

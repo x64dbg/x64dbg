@@ -53,6 +53,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
+#define MAX_STRING_SIZE 512
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -155,6 +156,7 @@ enum DBGMSG
     DBG_DELETE_AUTO_BOOKMARK_RANGE, // param1=duint start,               param2=duint end
     DBG_SET_AUTO_FUNCTION_AT,       // param1=duint addr,                param2=const char* text
     DBG_DELETE_AUTO_FUNCTION_RANGE, // param1=duint start,               param2=duint end
+    DBG_GET_STRING_AT               // param1=duint addr,                param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -548,6 +550,7 @@ BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr);
 BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end);
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end);
+BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
