@@ -129,8 +129,8 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
                     for(int k=0; k<len; k++)
                         if(SectionName[k]=='\\' or SectionName[k]=='\"' or !isprint(SectionName[k]))
                             escape_count++;
-                    char* SectionNameEscaped=(char*)emalloc(len+escape_count+1, "_dbg_memmap:SectionNameEscaped");
-                    memset(SectionNameEscaped, 0, len+escape_count+1);
+                    char* SectionNameEscaped=(char*)emalloc(len+escape_count*3+1, "_dbg_memmap:SectionNameEscaped");
+                    memset(SectionNameEscaped, 0, len+escape_count*3+1);
                     for(int k=0,l=0; k<len; k++)
                     {
                         switch(SectionName[k])

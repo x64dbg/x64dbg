@@ -38,6 +38,8 @@ void dbsave()
 
 void dbload()
 {
+    if(!FileExists(dbpath)) //no database to load
+        return;
     dprintf("loading database...");
     DWORD ticks=GetTickCount();
     LZ4_STATUS status=LZ4_decompress_file(dbpath, dbpath);

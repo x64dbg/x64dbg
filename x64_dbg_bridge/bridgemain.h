@@ -52,6 +52,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_MODULE_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
+#define MAX_THREAD_NAME_SIZE 256
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -422,6 +423,7 @@ struct THREADINFO
     DWORD dwThreadId;
     duint ThreadStartAddress;
     duint ThreadLocalBase;
+    char threadName[MAX_THREAD_NAME_SIZE];
 };
 
 struct THREADALLINFO

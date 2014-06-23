@@ -798,8 +798,8 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             for(int i=0; i<len; i++)
                 if(DebugText[i]=='\\' or DebugText[i]=='\"' or !isprint(DebugText[i]))
                     escape_count++;
-            char* DebugTextEscaped=(char*)emalloc(len+escape_count+1, "cbOutputDebugString:DebugTextEscaped");
-            memset(DebugTextEscaped, 0, len+escape_count+1);
+            char* DebugTextEscaped=(char*)emalloc(len+escape_count*3+1, "cbOutputDebugString:DebugTextEscaped");
+            memset(DebugTextEscaped, 0, len+escape_count*3+1);
             for(int i=0,j=0; i<len; i++)
             {
                 switch(DebugText[i])
@@ -894,6 +894,68 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             return;
         }
         SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
+    }
+    else if(ExceptionData->ExceptionRecord.ExceptionCode==0x406D1388) //SetThreadName exception
+    {
+        if(ExceptionData->ExceptionRecord.NumberParameters==sizeof(THREADNAME_INFO)/sizeof(uint))
+        {
+            THREADNAME_INFO nameInfo;
+            memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
+            if(nameInfo.dwThreadID==-1) //current thread
+                nameInfo.dwThreadID=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+            if(nameInfo.dwType==0x1000 and nameInfo.dwFlags==0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
+            {
+                char* ThreadName=(char*)emalloc(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+                memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
+                if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE-1, 0))
+                {
+                    int len=strlen(ThreadName);
+                    int escape_count=0;
+                    for(int i=0; i<len; i++)
+                        if(ThreadName[i]=='\\' or ThreadName[i]=='\"' or !isprint(ThreadName[i]))
+                            escape_count++;
+                    char* ThreadNameEscaped=(char*)emalloc(len+escape_count*3+1, "cbException:ThreadNameEscaped");
+                    memset(ThreadNameEscaped, 0, len+escape_count*3+1);
+                    for(int i=0,j=0; i<len; i++)
+                    {
+                        switch(ThreadName[i])
+                        {
+                        case '\t':
+                            j+=sprintf(ThreadNameEscaped+j, "\\t");
+                            break;
+                        case '\f':
+                            j+=sprintf(ThreadNameEscaped+j, "\\f");
+                            break;
+                        case '\v':
+                            j+=sprintf(ThreadNameEscaped+j, "\\v");
+                            break;
+                        case '\n':
+                            j+=sprintf(ThreadNameEscaped+j, "\\n");
+                            break;
+                        case '\r':
+                            j+=sprintf(ThreadNameEscaped+j, "\\r");
+                            break;
+                        case '\\':
+                            j+=sprintf(ThreadNameEscaped+j, "\\\\");
+                            break;
+                        case '\"':
+                            j+=sprintf(ThreadNameEscaped+j, "\\\"");
+                            break;
+                        default:
+                            if(!isprint(ThreadName[i])) //unknown unprintable character
+                                j+=sprintf(ThreadNameEscaped+j, "\\%.2x", ThreadName[i]);
+                            else
+                                j+=sprintf(ThreadNameEscaped+j, "%c", ThreadName[i]);
+                            break;
+                        }
+                    }
+                    dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped);
+                    threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
+                    efree(ThreadNameEscaped, "cbException:ThreadNameEscaped");
+                }
+                efree(ThreadName, "cbException:ThreadName");
+            }
+        }
     }
 
     if(ExceptionData->dwFirstChance) //first chance exception

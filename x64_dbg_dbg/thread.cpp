@@ -15,6 +15,9 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     curInfo.dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     curInfo.ThreadStartAddress=(uint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase=(uint)CreateThread->lpThreadLocalBase;
+    *curInfo.threadName='\0';
+    if(!threadNum)
+        strcpy(curInfo.threadName, "Main Thread");
     threadList.push_back(curInfo);
     threadNum++;
     GuiUpdateThreadView();
@@ -74,4 +77,25 @@ void threadgetlist(THREADLIST* list)
         list->list[i].LastError=GetThreadLastError(list->list[i].BasicInfo.ThreadLocalBase);
     }
     list->CurrentThread=currentThread;
+}
+
+bool threadisvalid(DWORD dwThreadId)
+{
+    for(unsigned int i=0; i<threadList.size(); i++)
+        if(threadList.at(i).dwThreadId==dwThreadId)
+            return true;
+    return false;
+}
+
+bool threadsetname(DWORD dwThreadId, const char* name)
+{
+    for(unsigned int i=0; i<threadList.size(); i++)
+        if(threadList.at(i).dwThreadId==dwThreadId)
+        {
+            if(name)
+                strcpy(threadList.at(i).threadName, name);
+            else
+                *threadList.at(i).threadName='\0';
+        }
+    return false;
 }

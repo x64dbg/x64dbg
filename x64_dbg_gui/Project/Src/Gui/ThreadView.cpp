@@ -16,7 +16,7 @@ ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*12, "Priority", false);
     addColumnAt(8+charwidth*16, "WaitReason", false);
     addColumnAt(8+charwidth*10, "LastError", false);
-    addColumnAt(0, "", false);
+    addColumnAt(0, "Name", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
 }
@@ -187,6 +187,7 @@ void ThreadView::updateThreadList()
         }
         setCellContent(i, 7, waitReasonString);
         setCellContent(i, 8, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());
+        setCellContent(i, 9, threadList.list[i].BasicInfo.threadName);
     }
     if(threadList.count)
         BridgeFree(threadList.list);
