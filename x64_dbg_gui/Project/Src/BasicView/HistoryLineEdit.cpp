@@ -1,4 +1,5 @@
 #include "HistoryLineEdit.h"
+#include "Bridge.h"
 
 HistoryLineEdit::HistoryLineEdit(QWidget *parent) : QLineEdit(parent)
 {
@@ -19,6 +20,19 @@ void HistoryLineEdit::addLineToHistory(QString parLine)
 void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
 {
     int wKey = event->key();
+
+    //This fixes a very annoying bug on some systems
+    if(bSixPressed)
+    {
+        bSixPressed=false;
+        if(event->text()=="^")
+        {
+            event->ignore();
+            return;
+        }
+    }
+    if(wKey == Qt::Key_6)
+        bSixPressed=true;
 
     if(wKey == Qt::Key_Up || wKey == Qt::Key_Down)
     {

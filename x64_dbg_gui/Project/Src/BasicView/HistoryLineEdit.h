@@ -17,12 +17,10 @@ public:
 signals:
     void keyPressed(int parKey);
 
-public slots:
-
-
 private:
     QList<QString> mCmdHistory;
     int mCmdIndex;
+    bool bSixPressed;
 
 };
 
