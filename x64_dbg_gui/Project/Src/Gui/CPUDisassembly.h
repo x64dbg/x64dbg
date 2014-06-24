@@ -54,6 +54,7 @@ public slots:
     void findReferences();
     void findConstant();
     void findStrings();
+    void findCalls();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
     void enableHighlightingMode();
@@ -88,6 +89,7 @@ private:
     QAction* mReferenceSelectedAddress;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
+    QAction* mSearchCalls;
     QAction* mEnableHighlightingMode;
 
     GotoDialog* mGoto;

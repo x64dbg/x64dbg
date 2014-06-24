@@ -62,12 +62,12 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
             char label[MAX_LABEL_SIZE]="";
             if(DbgGetLabelAt(addr, SEG_DEFAULT, label)) //has label
             {
-                if(DbgGetModuleAt(addr, module))
+                if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
                     addrText=QString(module)+"."+QString(label);
                 else
                     addrText=QString(label);
             }
-            else if(DbgGetModuleAt(addr, module))
+            else if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
                 addrText=QString(module)+"."+QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
             else
                 addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();

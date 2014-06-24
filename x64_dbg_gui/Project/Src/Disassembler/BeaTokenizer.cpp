@@ -156,7 +156,7 @@ QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module)
     char moduleText[MAX_MODULE_SIZE]="";
     int_t addr=value->value;
     bool bHasLabel=DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
-    bool bHasModule=(module && DbgGetModuleAt(addr, moduleText));
+    bool bHasModule=(module && DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
     QString addrText;
     addrText=QString("%1").arg(addr&(uint_t)-1, 0, 16, QChar('0')).toUpper();
     QString finalText;

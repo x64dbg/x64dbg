@@ -36,7 +36,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     {
         QString fullLabel="<"+QString(label)+">";
         char mod[MAX_MODULE_SIZE]="";
-        if(DbgGetModuleAt(parVA, mod))
+        if(DbgGetModuleAt(parVA, mod) && !QString(label).startsWith("JMP.&"))
             fullLabel="<"+QString(mod)+"."+QString(label)+">";
         info=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper() + " " + fullLabel;
     }

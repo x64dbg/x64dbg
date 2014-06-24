@@ -133,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionThreads,SIGNAL(triggered()),this,SLOT(displayThreadsWidget()));
     connect(ui->actionSettings,SIGNAL(triggered()),this,SLOT(openSettings()));
     connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
+    connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
@@ -572,6 +573,12 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 void MainWindow::findStrings()
 {
     DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    displayReferencesWidget();
+}
+
+void MainWindow::findModularCalls()
+{
+    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 

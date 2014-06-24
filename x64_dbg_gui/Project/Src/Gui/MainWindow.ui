@@ -140,6 +140,7 @@
    <addaction name="actionScylla"/>
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
+   <addaction name="actionCalls"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
@@ -505,6 +506,18 @@
    </property>
    <property name="text">
     <string>&amp;Appearance</string>
+   </property>
+  </action>
+  <action name="actionCalls">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/call.png</normaloff>:/icons/images/call.png</iconset>
+   </property>
+   <property name="text">
+    <string>Find Intermodular Calls</string>
+   </property>
+   <property name="toolTip">
+    <string>Find Intermodular Calls</string>
    </property>
   </action>
  </widget>

@@ -31,5 +31,6 @@
         <file>images/settings.png</file>
         <file>images/strings.png</file>
         <file>images/color-swatches.png</file>
+        <file>images/call.png</file>
     </qresource>
 </RCC>

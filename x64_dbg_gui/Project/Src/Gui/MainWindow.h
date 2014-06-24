@@ -70,6 +70,7 @@ public slots:
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void findStrings();
+    void findModularCalls();
     void addMenu(int hMenu, QString title);
     void addMenuEntry(int hMenu, QString title);
     void addSeparator(int hMenu);

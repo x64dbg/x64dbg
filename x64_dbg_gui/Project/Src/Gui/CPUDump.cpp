@@ -153,7 +153,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE]="";
-            if(DbgGetModuleAt(curAddr, module))
+            if(DbgGetModuleAt(curAddr, module) && !QString(label).startsWith("JMP.&"))
                 addrText+=" <"+QString(module)+"."+QString(label)+">";
             else
                 addrText+=" <"+QString(label)+">";

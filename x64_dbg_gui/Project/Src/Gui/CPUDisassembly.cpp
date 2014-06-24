@@ -210,6 +210,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         mSearchMenu->addAction(mSearchConstant);
         mSearchMenu->addAction(mSearchStrings);
+        mSearchMenu->addAction(mSearchCalls);
         wMenu->addMenu(mSearchMenu);
 
         mReferencesMenu->addAction(mReferenceSelectedAddress);
@@ -362,6 +363,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     // String References
     mSearchStrings = new QAction("&String references", this);
     connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
+
+    // Intermodular Calls
+    mSearchCalls = new QAction("&Intermodular calls", this);
+    connect(mSearchCalls, SIGNAL(triggered()), this, SLOT(findCalls()));
 
     // Highlighting mode
     mEnableHighlightingMode = new QAction("&Highlighting mode", this);
@@ -712,6 +717,13 @@ void CPUDisassembly::findStrings()
 {
     QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findCalls()
+{
+    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("modcallfind " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
 

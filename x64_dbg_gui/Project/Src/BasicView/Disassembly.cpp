@@ -121,7 +121,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE]="";
-            if(DbgGetModuleAt(cur_addr, module))
+            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
                 addrText+=" <"+QString(module)+"."+QString(label)+">";
             else
                 addrText+=" <"+QString(label)+">";
