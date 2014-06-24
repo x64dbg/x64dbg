@@ -156,7 +156,8 @@ enum DBGMSG
     DBG_DELETE_AUTO_BOOKMARK_RANGE, // param1=duint start,               param2=duint end
     DBG_SET_AUTO_FUNCTION_AT,       // param1=duint addr,                param2=const char* text
     DBG_DELETE_AUTO_FUNCTION_RANGE, // param1=duint start,               param2=duint end
-    DBG_GET_STRING_AT               // param1=duint addr,                param2=unused
+    DBG_GET_STRING_AT,              // param1=duint addr,                param2=unused
+    DBG_GET_FUNCTIONS               // param1=unused,                    param2=unused
 };
 
 enum SCRIPTLINETYPE
@@ -265,6 +266,7 @@ enum MEMORY_SIZE
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
 struct SYMBOLINFO;
+struct DBGFUNCTIONS;
 
 typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
 
@@ -552,6 +554,7 @@ BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end);
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text);
+BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

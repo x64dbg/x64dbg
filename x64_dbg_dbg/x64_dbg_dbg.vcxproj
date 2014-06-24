@@ -37,6 +37,7 @@
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
     <ClCompile Include="_exports.cpp" />
+    <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
     <ClCompile Include="_plugins.cpp" />
   </ItemGroup>
@@ -81,6 +82,7 @@
     <ClInclude Include="x64_dbg.h" />
     <ClInclude Include="XEDParse\XEDParse.h" />
     <ClInclude Include="_exports.h" />
+    <ClInclude Include="_dbgfunctions.h" />
     <ClInclude Include="_global.h" />
     <ClInclude Include="_plugins.h" />
     <ClInclude Include="_plugin_types.h" />

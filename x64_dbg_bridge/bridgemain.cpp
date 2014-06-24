@@ -709,6 +709,11 @@ BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
     return false;
 }
 
+BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
+{
+    return (const DBGFUNCTIONS*)_dbg_sendmessage(DBG_GET_FUNCTIONS, 0, 0);
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

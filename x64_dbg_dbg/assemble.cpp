@@ -15,7 +15,7 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
     return true;
 }
 
-bool assembleat(uint addr, const char* instruction, char* error)
+bool assembleat(uint addr, const char* instruction, char* error, bool fillnop)
 {
     if(strlen(instruction)>=XEDPARSE_MAXBUFSIZE)
         return false;

@@ -120,6 +120,9 @@
     <ClCompile Include="murmurhash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="_dbgfunctions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -250,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="lz4\lz4hc.h">
       <Filter>Header Files\lz4</Filter>
+    </ClInclude>
+    <ClInclude Include="_dbgfunctions.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

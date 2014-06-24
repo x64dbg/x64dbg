@@ -654,9 +654,10 @@ void CPUDisassembly::assembleAt()
     if(mLineEdit.exec()!=QDialog::Accepted)
         return;
 
-    if(!DbgAssembleAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    char error[256]="";
+    if(!DbgFunctions()->DbgAssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, true))
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + QString("\""));
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));

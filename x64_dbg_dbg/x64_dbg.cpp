@@ -14,6 +14,7 @@
 #include "threading.h"
 #include "plugin_loader.h"
 #include "assemble.h"
+#include "_dbgfunctions.h"
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
@@ -222,6 +223,7 @@ static void efree_json(void* ptr)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
+    dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))

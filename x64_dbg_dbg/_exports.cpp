@@ -14,6 +14,7 @@
 #include "thread.h"
 #include "disasm_fast.h"
 #include "plugin_loader.h"
+#include "_dbgfunctions.h"
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -767,7 +768,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_ASSEMBLE_AT:
     {
-        return assembleat((duint)param1, (const char*)param2, 0);
+        return assembleat((duint)param1, (const char*)param2, 0, false);
     }
     break;
 
@@ -1012,6 +1013,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
             return true;
         }
         return false;
+    }
+    break;
+
+    case DBG_GET_FUNCTIONS:
+    {
+        return (uint)dbgfunctionsget();
     }
     break;
     }

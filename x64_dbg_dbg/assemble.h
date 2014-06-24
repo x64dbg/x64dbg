@@ -3,6 +3,6 @@
 
 #include "_global.h"
 
-bool assembleat(uint addr, const char* instruction, char* error);
+bool assembleat(uint addr, const char* instruction, char* error, bool fillnop);
 
 #endif // _ASSEMBLE_H
