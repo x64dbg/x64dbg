@@ -21,7 +21,7 @@ static char alloctrace[MAX_PATH]="";
 
 void* emalloc(size_t size, const char* reason)
 {
-    unsigned char* a=new (std::nothrow)unsigned char[size];
+    unsigned char* a=(unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -45,7 +45,7 @@ void efree(void* ptr, const char* reason)
     fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
     fclose(file);
     */
-    delete[] (unsigned char*)ptr;
+    GlobalFree(ptr);
 }
 
 int memleaks()

@@ -137,8 +137,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    unsigned char* a=new (std::nothrow)unsigned char[size];
+    unsigned char* a=(unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -150,8 +149,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
-    //VirtualFree(ptr, 0, MEM_RELEASE);
-    delete[] (unsigned char*)ptr;
+    GlobalFree(ptr);
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)

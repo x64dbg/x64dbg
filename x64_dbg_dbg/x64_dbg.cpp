@@ -269,6 +269,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     wait(WAITID_STOP); //after this, debugging stopped
     pluginunload();
     TerminateThread(hCommandLoopThread, 0);
+    CloseHandle(hCommandLoopThread);
     cmdfree(command_list);
     varfree();
     msgfreestack(gMsgStack);

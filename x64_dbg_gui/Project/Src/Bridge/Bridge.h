@@ -19,6 +19,7 @@ class Bridge : public QObject
     Q_OBJECT
 public:
     explicit Bridge(QObject *parent = 0);
+    ~Bridge();
 
     static Bridge* getBridge();
     static void initBridge();
@@ -137,7 +138,7 @@ signals:
     void updateSideBar();
 
 private:
-    QMutex mBridgeMutex;
+    QMutex* mBridgeMutex;
     int_t bridgeResult;
     bool hasBridgeResult;
 

@@ -10,7 +10,12 @@ static Bridge* mBridge;
 ************************************************************************************/
 Bridge::Bridge(QObject *parent) : QObject(parent)
 {
+    mBridgeMutex = new QMutex();
+}
 
+Bridge::~Bridge()
+{
+    delete mBridgeMutex;
 }
 
 void Bridge::CopyToClipboard(const char* text)
@@ -90,12 +95,12 @@ void Bridge::emitDumpAt(int_t va)
 
 void Bridge::emitScriptAdd(int count, const char** lines)
 {
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     emit scriptAdd(count, lines);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
 }
 
 void Bridge::emitScriptClear()
@@ -130,12 +135,12 @@ void Bridge::emitScriptMessage(QString message)
 
 int Bridge::emitScriptQuestion(QString message)
 {
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     emit scriptQuestion(message);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
@@ -231,23 +236,23 @@ void Bridge::emitSetLastException(unsigned int exceptionCode)
 
 int Bridge::emitMenuAddMenu(int hMenu, QString title)
 {
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     emit menuAddMenu(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
 int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
 {
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     emit menuAddMenuEntry(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
@@ -270,7 +275,7 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
     if(!DbgIsDebugging())
         return false;
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     switch(hWindow)
     {
@@ -284,12 +289,12 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
         emit selectionStackGet(selection);
         break;
     default:
-        mBridgeMutex.unlock();
+        mBridgeMutex->unlock();
         return false;
     }
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     if(selection->start > selection->end) //swap start and end
     {
         int_t temp=selection->end;
@@ -303,7 +308,7 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
     if(!DbgIsDebugging())
         return false;
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     switch(hWindow)
     {
@@ -317,23 +322,23 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
         emit selectionStackSet(selection);
         break;
     default:
-        mBridgeMutex.unlock();
+        mBridgeMutex->unlock();
         return false;
     }
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
 bool Bridge::emitGetStrWindow(const QString title, QString* text)
 {
-    mBridgeMutex.lock();
+    mBridgeMutex->lock();
     hasBridgeResult=false;
     emit getStrWindow(title, text);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
