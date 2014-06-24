@@ -5,6 +5,7 @@ ipch/
 Win32/
 x64/
 release/
+My Amplifier XE Results*/
 
 #global filetypes to ignore
 *.depend
