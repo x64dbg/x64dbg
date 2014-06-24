@@ -465,6 +465,7 @@ struct BASIC_INSTRUCTION_INFO
     MEMORY_INFO memory;
     ULONG_PTR addr; //addrvalue (jumps + calls)
     bool branch; //jumps/calls
+    bool call; //instruction is a call
 };
 
 struct SCRIPTBRANCH

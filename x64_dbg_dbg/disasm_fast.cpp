@@ -1,4 +1,6 @@
 #include "disasm_fast.h"
+#include "debugger.h"
+#include "memory.h"
 
 static MEMORY_SIZE argsize2memsize(int argsize)
 {
@@ -37,7 +39,13 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
         }
     }
     else //branch
+    {
         basicinfo->branch=true;
+        if(disasm->Instruction.BranchType==CallType)
+            basicinfo->call=true;
+        if(disasm->Instruction.BranchType==RetType)
+            basicinfo->branch=false;
+    }
     //find memory displacement
     if((disasm->Argument1.ArgType&MEMORY_TYPE)==MEMORY_TYPE || (disasm->Argument2.ArgType&MEMORY_TYPE)==MEMORY_TYPE)
     {
@@ -80,4 +88,30 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
             basicinfo->memory.size=argsize2memsize(disasm->Argument2.ArgSize);
         }
     }
+}
+
+bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+{
+    if(!data or !basicinfo)
+        return false;
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(disasm));
+#ifdef _WIN64
+    disasm.Archi=64;
+#endif // _WIN64
+    disasm.EIP=(UIntPtr)data;
+    disasm.VirtualAddr=(UInt64)addr;
+    int len=Disasm(&disasm);
+    if(len==UNKNOWN_OPCODE)
+        return false;
+    fillbasicinfo(&disasm, basicinfo);
+    return true;
+}
+
+bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+{
+    unsigned int data[16];
+    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+        return false;
+    return disasmfast((unsigned char*)data, addr, basicinfo);
 }

@@ -5,5 +5,7 @@
 #include "BeaEngine\BeaEngine.h"
 
 void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo);
+bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo);
+bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 
 #endif //_DISASM_FAST_H
