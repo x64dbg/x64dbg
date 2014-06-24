@@ -1,4 +1,5 @@
 #include "CPUDisassembly.h"
+#include "Configuration.h"
 
 CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
 {
@@ -651,11 +652,16 @@ void CPUDisassembly::assembleAt()
 
     mLineEdit.setText(instr.instStr);
     mLineEdit.setWindowTitle("Assemble at " + addr_text);
+    mLineEdit.setCheckBoxText("&Fill with NOP's");
+    mLineEdit.enableCheckBox(true);
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
     if(mLineEdit.exec()!=QDialog::Accepted)
         return;
+    Configuration::instance()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+    Configuration::instance()->writeBools();
 
     char error[256]="";
-    if(!DbgFunctions()->DbgAssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, true))
+    if(!DbgFunctions()->DbgAssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));

@@ -27,6 +27,7 @@ public:
 
     const QColor getColor(const QString id);
     const bool getBool(const QString category, const QString id);
+    void setBool(const QString category, const QString id, const bool b);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;

@@ -134,6 +134,7 @@ Configuration::Configuration() : QObject()
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
     disassemblyBool.insert("MemorySpaces", false);
+    disassemblyBool.insert("FillNOPs", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     load();
@@ -238,6 +239,27 @@ const bool Configuration::getBool(const QString category, const QString id)
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
     return false;
+}
+
+void Configuration::setBool(const QString category, const QString id, const bool b)
+{
+    if(Bools.contains(category))
+    {
+        if(Bools[category].contains(id))
+        {
+            Bools[category][id]=b;
+            return;
+        }
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }
 
 QColor Configuration::colorFromConfig(const QString id)
