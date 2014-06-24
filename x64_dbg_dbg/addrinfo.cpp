@@ -396,7 +396,7 @@ void commentcacheload(JSON root)
 ///label functions
 bool labelset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_LABEL_SIZE-1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text)>=MAX_LABEL_SIZE-1 or strstr(text, "&"))
         return false;
     if(!*text) //NOTE: delete when there is no text
         return labeldel(addr);
@@ -516,6 +516,10 @@ void labelcacheload(JSON root)
                 strcpy(curLabel.text, text);
             else
                 continue; //skip
+            int len=strlen(curLabel.text);
+            for(int i=0; i<len; i++)
+                if(curLabel.text[i]=='&')
+                    curLabel.text[i]=' ';
             const uint key=modhashfromname(curLabel.mod)+curLabel.addr;
             labels.insert(std::make_pair(key, curLabel));
         }

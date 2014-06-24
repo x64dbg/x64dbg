@@ -11,7 +11,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
 bool valfromstring(const char* string, uint* value, bool silent, bool baseonly);
 bool valfromstring(const char* string, uint* value, bool silent);
 bool valfromstring(const char* string, uint* value);
-bool valflagfromstring(unsigned int eflags, const char* string);
+bool valflagfromstring(uint eflags, const char* string);
 bool valtostring(const char* string, uint* value, bool silent);
 
 #endif // _VALUE_H

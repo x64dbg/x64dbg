@@ -35,7 +35,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     memset(memmap, 0, sizeof(MEMMAP));
 
     MEMORY_BASIC_INFORMATION mbi;
-    DWORD numBytes;
+    SIZE_T numBytes;
     uint MyAddress=0, newAddress=0;
     uint curAllocationBase=0;
 
@@ -247,6 +247,24 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy(addrinfo->label, pSymbol->Name);
                 retval=true;
+            }
+            if(!retval) //search for CALL <jmp.&user32.MessageBoxA>
+            {
+                BASIC_INSTRUCTION_INFO basicinfo;
+                memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
+                if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
+                {
+                    uint val=0;
+                    if(memread(fdProcessInfo->hProcess, (const void*)basicinfo.memory.value, &val, sizeof(val), 0))
+                    {
+                        if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
+                        {
+                            if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                                sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
+                            retval=true;
+                        }
+                    }
+                }
             }
         }
     }

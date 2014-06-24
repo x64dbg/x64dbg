@@ -181,6 +181,7 @@ static void registercommands()
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("bpdll", cbBpDll, true); //set dll breakpoint
     dbgcmdnew("bcdll", cbBcDll, true); //remove dll breakpoint
+    dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

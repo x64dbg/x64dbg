@@ -794,7 +794,7 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
             size=0;
     uint ticks=GetTickCount();
     int found=reffind(addr, size, cbRefFind, (void*)value, false);
-    dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
+    dprintf("%u reference(s) in %ums\n", found, GetTickCount()-ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -859,7 +859,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
             size=0;
     uint ticks=GetTickCount();
     int found=reffind(addr, size, cbRefStr, 0, false);
-    dprintf("%u references in %ums\n", found, GetTickCount()-ticks);
+    dprintf("%u string(s) in %ums\n", found, GetTickCount()-ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -974,5 +974,54 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         result=addr+foundoffset;
     varset("$result", result, false);
     DbgCmdExec("$result");
+    return STATUS_CONTINUE;
+}
+
+//modcallfind [page]
+static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!refinfo) //initialize
+    {
+        GuiReferenceDeleteAllColumns();
+        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceReloadData();
+        return true;
+    }
+    bool found=false;
+    if(basicinfo->call) //we are looking for calls
+    {
+        uint ptr=basicinfo->memory.value > 0 ? basicinfo->memory.value : basicinfo->addr;
+        char label[MAX_LABEL_SIZE]="";
+        found=DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
+    }
+    if(found)
+    {
+        char addrText[20]="";
+        sprintf(addrText, "%p", disasm->VirtualAddr);
+        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+    }
+    return found;
+}
+
+CMDRESULT cbInstrModCallFind(int argc, char* argv[])
+{
+    uint addr;
+    if(argc<2 or !valfromstring(argv[1], &addr, true))
+        addr=GetContextData(UE_CIP);
+    uint size=0;
+    if(argc>=3)
+        if(!valfromstring(argv[2], &size, true))
+            size=0;
+    uint ticks=GetTickCount();
+    int found=reffind(addr, size, cbModCallFind, 0, false);
+    dprintf("%u call(s) in %ums\n", found, GetTickCount()-ticks);
+    varset("$result", found, false);
     return STATUS_CONTINUE;
 }

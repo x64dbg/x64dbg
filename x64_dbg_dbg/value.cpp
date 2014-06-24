@@ -257,7 +257,7 @@ static bool isregister(const char* string)
     return false;
 }
 
-bool valflagfromstring(unsigned int eflags, const char* string)
+bool valflagfromstring(uint eflags, const char* string)
 {
     if(scmp(string, "cf"))
         return (bool)((int)(eflags&0x1)!=0);
