@@ -419,3 +419,27 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     efree(data, "disasmgetstringat:data");
     return false;
 }
+
+int disasmgetsize(uint addr, unsigned char* data)
+{
+    DISASM disasm;
+    memset(&disasm, 0, sizeof(DISASM));
+    disasm.Options=NoformatNumeral;
+#ifdef _WIN64
+    disasm.Archi=64;
+#endif // _WIN64
+    disasm.VirtualAddr=addr;
+    disasm.EIP=(UIntPtr)data;
+    int len=Disasm(&disasm);
+    if(len==UNKNOWN_OPCODE)
+        len=1;
+    return len;
+}
+
+int disasmgetsize(uint addr)
+{
+    char data[16];
+    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+        return 1;
+    return disasmgetsize(addr, (unsigned char*)data);
+}

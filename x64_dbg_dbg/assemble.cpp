@@ -3,6 +3,8 @@
 #include "debugger.h"
 #include "XEDParse\XEDParse.h"
 #include "value.h"
+#include "disasm_helper.h"
+#include "console.h"
 
 static bool cbUnknown(const char* text, ULONGLONG* value)
 {
@@ -35,6 +37,19 @@ bool assembleat(uint addr, const char* instruction, char* error, bool fillnop)
             strcpy(error, parse.error);
         return false;
     }
-    bool ret=memwrite(fdProcessInfo->hProcess, (void*)addr, parse.dest, parse.dest_size, 0);
-    return ret;
+
+    //calculate the number of NOPs to insert
+    int destSize=parse.dest_size;
+    int origLen=disasmgetsize(addr);
+    while(origLen<destSize)
+        origLen+=disasmgetsize(addr+origLen);
+    int nopsize=origLen-destSize;
+    unsigned char nops[16];
+    memset(nops, 0x90, sizeof(nops));
+
+    bool ret=memwrite(fdProcessInfo->hProcess, (void*)addr, parse.dest, destSize, 0);
+    if(ret && fillnop && nopsize)
+        if(!memwrite(fdProcessInfo->hProcess, (void*)(addr+destSize), nops, nopsize, 0))
+            ret=false;
+    return true;
 }

@@ -12,5 +12,7 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr);
 void disasmget(uint addr, DISASM_INSTR* instr);
 bool disasmispossiblestring(uint addr);
 bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen);
+int disasmgetsize(uint addr, unsigned char* data);
+int disasmgetsize(uint addr);
 
 #endif // _DISASM_HELPER_H
