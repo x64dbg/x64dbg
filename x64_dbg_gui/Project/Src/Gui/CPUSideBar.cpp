@@ -70,7 +70,10 @@ bool CPUSideBar::isJump(int i) const
     int BranchType=InstrBuffer->at(i).disasm.Instruction.BranchType;
     if(BranchType && BranchType!=RetType && BranchType!=CallType)
     {
-        return true;
+        uint_t start=CodePtr->getBase();
+        uint_t end=start+CodePtr->getSize();
+        uint_t addr=InstrBuffer->at(i).disasm.Instruction.AddrValue;
+        return addr>=start && addr<end; //do not draw jumps that go out of the section
     }
     return false;
 }
