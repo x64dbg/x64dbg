@@ -995,7 +995,7 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     bool found=false;
     if(basicinfo->call) //we are looking for calls
     {
-        uint ptr=basicinfo->memory.value > 0 ? basicinfo->memory.value : basicinfo->addr;
+        uint ptr=basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
         char label[MAX_LABEL_SIZE]="";
         found=DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
     }
