@@ -667,32 +667,15 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     int_t rva = addr;
     Instruction_t instruction = DisassembleAt(selHeadRVA);
     Int32 branchType = instruction.disasm.Instruction.BranchType;
+
     GraphicDump_t wPict = GD_Nothing;
 
-    if(     branchType == (Int32)JO      ||
-            branchType == (Int32)JC      ||
-            branchType == (Int32)JE      ||
-            branchType == (Int32)JA      ||
-            branchType == (Int32)JS      ||
-            branchType == (Int32)JP      ||
-            branchType == (Int32)JL      ||
-            branchType == (Int32)JG      ||
-            branchType == (Int32)JB      ||
-            branchType == (Int32)JECXZ   ||
-            branchType == (Int32)JmpType ||
-            branchType == (Int32)JNO     ||
-            branchType == (Int32)JNC     ||
-            branchType == (Int32)JNE     ||
-            branchType == (Int32)JNA     ||
-            branchType == (Int32)JNS     ||
-            branchType == (Int32)JNP     ||
-            branchType == (Int32)JNL     ||
-            branchType == (Int32)JNG     ||
-            branchType == (Int32)JNB)
+    if(branchType && branchType!=RetType && branchType!=CallType)
     {
         int_t destRVA = (int_t)instruction.disasm.Instruction.AddrValue;
 
-        if(destRVA > (int_t)mMemPage->getBase())
+        int_t base=mMemPage->getBase();
+        if(destRVA >= base && destRVA < base + mMemPage->getSize())
         {
             destRVA -= (int_t)mMemPage->getBase();
 
@@ -740,7 +723,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
         painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
     }
-    if(wPict == GD_FootToTop)
+    else if(wPict == GD_FootToTop)
     {
         painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
         painter->drawLine(x, y, x, y + getRowHeight() / 2);
@@ -758,7 +741,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
         painter->drawPolyline(wPoints, 3);
     }
-    if(wPict == GD_HeadFromTop)
+    else if(wPict == GD_HeadFromTop)
     {
         QPoint wPoints[] =
         {
