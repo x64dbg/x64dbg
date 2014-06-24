@@ -369,9 +369,10 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         dprintf("invalid address: "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    if(!assembleat(addr, argv[2]))
+    char error[256]="";
+    if(!assembleat(addr, argv[2], error))
     {
-        dprintf("failed to assemble \"%s\"\n", argv[2]);
+        dprintf("failed to assemble \"%s\" (%s)\n", argv[2], error);
         return STATUS_ERROR;
     }
     GuiUpdateAllViews();
