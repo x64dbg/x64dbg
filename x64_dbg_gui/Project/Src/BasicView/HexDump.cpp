@@ -57,7 +57,11 @@ void HexDump::printDumpAt(int_t parVA, bool select)
     setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
 
     if(select)
+    {
         setSingleSelection(wRVA);
+        int_t wEndingAddress = wRVA + getSizeOf(mDescriptor.at(0).data.itemSize) - 1;
+        expandSelectionUpTo(wEndingAddress);
+    }
 
     reloadData();
 }
@@ -890,7 +894,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
         int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
         clearDescriptors();
         appendDescriptor(width, title, clickable, descriptor);
-        printDumpAt(rvaToVa(wRVA), false);
+        printDumpAt(rvaToVa(wRVA));
     }
     else
         appendDescriptor(width, title, clickable, descriptor);

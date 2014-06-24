@@ -504,13 +504,13 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             else if(event->y() > getHeaderHeight())
             {
                 int_t wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
+                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
-                    if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
-                        expandSelectionUpTo(wRowIndex);
-                    else
+                    if(!(event->modifiers() & Qt::ShiftModifier)) //SHIFT pressed
                         setSingleSelection(wRowIndex);
+                    expandSelectionUpTo(wRowIndex+wInstrSize);
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -1060,16 +1060,24 @@ void Disassembly::selectNext(bool expand)
     int_t wAddr;
     if(expand)
     {
-        if(getSelectionEnd()==getInitialSelection()) //decrease down
+        if(getSelectionEnd()==getInitialSelection() && getSelectionStart()!=getSelectionEnd()) //decrease down
+        {
             wAddr = getInstructionRVA(getSelectionStart(), 1);
+            expandSelectionUpTo(wAddr);
+        }
         else //expand down
-            wAddr = getInstructionRVA(getSelectionEnd(), 1);
-        expandSelectionUpTo(wAddr);
+        {
+            wAddr = getSelectionEnd() + 1;
+            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            expandSelectionUpTo(wAddr + wInstrSize);
+        }
     }
     else
     {
-        wAddr = getInstructionRVA(getSelectionEnd(), 1);
+        wAddr = getSelectionEnd() + 1;
         setSingleSelection(wAddr);
+        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        expandSelectionUpTo(wAddr + wInstrSize);
     }
 }
 
@@ -1079,16 +1087,24 @@ void Disassembly::selectPrevious(bool expand)
     int_t wAddr;
     if(expand)
     {
-        if(getSelectionStart()==getInitialSelection()) //decrease down
-            wAddr = getInstructionRVA(getSelectionEnd(), -1);
+        if(getSelectionStart()==getInitialSelection() && getSelectionStart()!=getSelectionEnd()) //decrease down
+        {
+            wAddr = getInstructionRVA(getSelectionEnd() + 1, -2);
+            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            expandSelectionUpTo(wAddr + wInstrSize);
+        }
         else //expand up
+        {
             wAddr = getInstructionRVA(getSelectionStart(), -1);
-        expandSelectionUpTo(wAddr);
+            expandSelectionUpTo(wAddr);
+        }
     }
     else
     {
         wAddr = getInstructionRVA(getSelectionStart(), -1);
         setSingleSelection(wAddr);
+        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        expandSelectionUpTo(wAddr + wInstrSize);
     }
 }
 
@@ -1228,6 +1244,8 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     setRowCount(wSize);
 
     setSingleSelection(wRVA);               // Selects disassembled instruction
+    int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+    expandSelectionUpTo(wRVA + wInstrSize);
 
     //set CIP rva
     mCipRva = wCipRva;
