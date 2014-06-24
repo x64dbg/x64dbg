@@ -132,6 +132,7 @@ public:
     void clearDescriptors();
 
     void printDumpAt(int_t parVA, bool select);
+    uint_t rvaToVa(int_t rva);
     
 public slots:
     void printDumpAt(int_t parVA);
@@ -153,8 +154,6 @@ private:
 
 protected:
     MemoryPage* mMemPage;
-    int_t mBase;
-    int_t mSize;
     int mByteOffset;
     QList<ColumnDescriptor_t> mDescriptor;
 };

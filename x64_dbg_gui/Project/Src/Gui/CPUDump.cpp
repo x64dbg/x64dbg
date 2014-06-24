@@ -148,7 +148,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     {
         char label[MAX_LABEL_SIZE]="";
         QString addrText="";
-        int_t curAddr = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset + this->mBase;
+        int_t curAddr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
         addrText = QString("%1").arg(curAddr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
@@ -180,7 +180,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     {
         uint_t data=0;
         int_t wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
-        mMemPage->readOriginalMemory((byte_t*)&data, wRva, sizeof(uint_t));
+        mMemPage->read((byte_t*)&data, wRva, sizeof(uint_t));
         char label_text[MAX_LABEL_SIZE]="";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr=QString(label_text);
@@ -215,7 +215,7 @@ void CPUDump::setLabelSlot()
     if(!DbgIsDebugging())
         return;
 
-    uint_t wVA = getSelectionStart() + this->mBase;
+    uint_t wVA = rvaToVa(getSelectionStart());
     LineEditDialog mLineEdit(this);
     QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char label_text[MAX_COMMENT_SIZE]="";
@@ -657,15 +657,15 @@ void CPUDump::disassemblySlot()
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=getSelectionStart() + mBase;
-    selection->end=getSelectionEnd() + mBase;
+    selection->start=rvaToVa(getSelectionStart());
+    selection->end=rvaToVa(getSelectionEnd());
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUDump::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin=mBase;
-    int_t selMax=selMin + mSize;
+    int_t selMin=mMemPage->getBase();
+    int_t selMax=selMin + mMemPage->getSize();
     int_t start=selection->start;
     int_t end=selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range

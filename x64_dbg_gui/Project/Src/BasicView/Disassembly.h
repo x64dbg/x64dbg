@@ -9,6 +9,7 @@
 #include "QBeaEngine.h"
 #include "RichTextPainter.h"
 #include "BeaTokenizer.h"
+#include "MemoryPage.h"
 
 class Disassembly : public AbstractTableView
 {
@@ -118,9 +119,6 @@ private:
 
     GuiState_t mGuiState;
 
-    int_t mBase;
-    int_t mSize;
-
     int_t mCipRva;
 
     QList<Instruction_t> mInstBuffer;
@@ -141,6 +139,7 @@ protected:
     uint_t mRvaDisplayBase;
     int_t mRvaDisplayPageBase;
     bool mHighlightingMode;
+    MemoryPage* mMemPage;
 };
 
 #endif // DISASSEMBLY_H

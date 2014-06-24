@@ -9,9 +9,9 @@ MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject *parent) : QObjec
 }
 
 
-void MemoryPage::readOriginalMemory(byte_t* parDest, uint_t parRVA, uint_t parSize)
+bool MemoryPage::read(byte_t* parDest, uint_t parRVA, uint_t parSize)
 {
-    DbgMemRead(mBase + parRVA, parDest, parSize);
+    return DbgMemRead(mBase + parRVA, parDest, parSize);
 }
 
 
@@ -26,6 +26,10 @@ uint_t MemoryPage::getBase()
     return mBase;
 }
 
+uint_t MemoryPage::va(int_t rva)
+{
+    return mBase + rva;
+}
 
 void MemoryPage::setAttributes(uint_t base, uint_t size)
 {

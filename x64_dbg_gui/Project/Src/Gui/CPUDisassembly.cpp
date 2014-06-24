@@ -644,7 +644,7 @@ void CPUDisassembly::assembleAt()
 
     wBuffer.resize(wMaxByteCountToRead);
 
-    DbgMemRead(wVA, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
+    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
 
     QBeaEngine* disasm = new QBeaEngine();
     Instruction_t instr=disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);

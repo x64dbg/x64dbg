@@ -85,7 +85,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
     int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
-    uint_t wVa = wRva + mMemPage->getBase();
+    uint_t wVa = rvaToVa(wRva);
 
     bool wIsSelected=isSelected(wRva);
     if(wIsSelected) //highlight if selected
@@ -101,7 +101,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     {
         char label[MAX_LABEL_SIZE]="";
         QString addrText="";
-        int_t curAddr = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset + this->mBase;
+        int_t curAddr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
         addrText = QString("%1").arg(curAddr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
@@ -158,7 +158,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
             painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
     }
-    else if(DbgStackCommentGet(mMemPage->getBase()+wRva, &comment)) //paint stack comments
+    else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
     {
         QString wStr = QString(comment.comment);
         if(wActiveStack)
@@ -185,9 +185,8 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mGotoBp);
     wMenu->addAction(mGotoExpression);
 
-    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
     uint_t selectedData;
-    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             uint_t stackBegin = mMemPage->getBase();
@@ -244,15 +243,15 @@ void CPUStack::gotoExpressionSlot()
 
 void CPUStack::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=getSelectionStart() + mBase;
-    selection->end=getSelectionEnd() + mBase;
+    selection->start=rvaToVa(getSelectionStart());
+    selection->end=rvaToVa(getSelectionEnd());
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUStack::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin=mBase;
-    int_t selMax=selMin + mSize;
+    int_t selMin=mMemPage->getBase();
+    int_t selMax=selMin + mMemPage->getSize();
     int_t start=selection->start;
     int_t end=selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
@@ -268,9 +267,8 @@ void CPUStack::selectionSet(const SELECTIONDATA* selection)
 
 void CPUStack::followDisasmSlot()
 {
-    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
     uint_t selectedData;
-    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
@@ -280,9 +278,8 @@ void CPUStack::followDisasmSlot()
 
 void CPUStack::followDumpSlot()
 {
-    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
     uint_t selectedData;
-    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
@@ -292,9 +289,8 @@ void CPUStack::followDumpSlot()
 
 void CPUStack::followStackSlot()
 {
-    int_t selectedVa = getInitialSelection() + mMemPage->getBase();
     uint_t selectedData;
-    if(DbgMemRead(selectedVa, (unsigned char*)&selectedData, sizeof(uint_t)))
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
