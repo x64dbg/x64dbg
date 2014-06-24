@@ -663,6 +663,12 @@ void CPUDisassembly::assembleAt()
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+    //select next instruction after assembling
+    setSingleSelection(wRVA);
+    int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+    expandSelectionUpTo(wRVA + wInstrSize);
+    selectNext(false);
+    //refresh view
     GuiUpdateAllViews();
 }
 
