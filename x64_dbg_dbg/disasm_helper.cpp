@@ -336,7 +336,10 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     uint test=0;
     memcpy(&test, data, sizeof(uint));
     if(memisvalidreadptr(fdProcessInfo->hProcess, test))
+    {
+        efree(data, "disasmgetstringat:data");
         return false;
+    }
     if(isasciistring(data, maxlen))
     {
         if(type)
