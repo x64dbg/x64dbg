@@ -96,7 +96,7 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
                     int_t wStartingAddress = getItemStartingAddress(event->x(), event->y());
                     int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
 
-                    if(wEndingAddress < mMemPage->getSize())
+                    if(wEndingAddress < (int_t)mMemPage->getSize())
                     {
                         if(wStartingAddress < getInitialSelection())
                             expandSelectionUpTo(wStartingAddress);
@@ -139,7 +139,7 @@ void HexDump::mousePressEvent(QMouseEvent* event)
                         int_t wStartingAddress = getItemStartingAddress(event->x(), event->y());
                         int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
 
-                        if(wEndingAddress < mMemPage->getSize())
+                        if(wEndingAddress < (int_t)mMemPage->getSize())
                         {
                             if(!(event->modifiers() & Qt::ShiftModifier))
                                 setSingleSelection(wStartingAddress);
@@ -295,20 +295,20 @@ QString HexDump::getString(int col, int_t rva)
     int wByteCount = getSizeOf(mDescriptor.at(col).data.itemSize);
     int wBufferByteCount = mDescriptor.at(col).itemCount * wByteCount;
 
-    wBufferByteCount = wBufferByteCount > (mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
+    wBufferByteCount = wBufferByteCount > (int_t)(mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : wBufferByteCount;
 
     byte_t* wData = new byte_t[wBufferByteCount];
     //byte_t wData[mDescriptor.at(col).itemCount * wByteCount];
 
     mMemPage->read(wData, rva, wBufferByteCount);
 
-    for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < mMemPage->getSize(); wI++)
+    for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < (int_t)mMemPage->getSize(); wI++)
     {
         int maxLen = getStringMaxLength(mDescriptor.at(col).data);
         QString append = " ";
         if(!maxLen)
             append="";
-        if((rva + wI + wByteCount - 1) < mMemPage->getSize())
+        if((rva + wI + wByteCount - 1) < (int_t)mMemPage->getSize())
             wStr += toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
         else
             wStr += QString("?").rightJustified(maxLen, ' ') + append;

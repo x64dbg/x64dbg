@@ -22,6 +22,7 @@ ExceptionRangeDialog::~ExceptionRangeDialog()
 
 void ExceptionRangeDialog::on_editStart_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if(!ui->editStart->text().size()) //nothing entered
     {
         ui->btnOk->setEnabled(false);
@@ -46,6 +47,7 @@ void ExceptionRangeDialog::on_editStart_textChanged(const QString &arg1)
 
 void ExceptionRangeDialog::on_editEnd_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     if(!ui->editEnd->text().size() || !ui->editStart->text().size())
     {
         ui->btnOk->setEnabled(false);

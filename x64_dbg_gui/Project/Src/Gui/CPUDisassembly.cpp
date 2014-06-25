@@ -217,7 +217,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
 
-        QAction* wAction = wMenu->exec(event->globalPos());
+        wMenu->exec(event->globalPos());
     }
 }
 
@@ -598,7 +598,7 @@ void CPUDisassembly::toggleFunction()
     }
     else
     {
-        for(int_t i=start; i<=end; i++)
+        for(uint_t i=start; i<=end; i++)
         {
             if(DbgFunctionGet(i, &function_start, &function_end))
                 break;

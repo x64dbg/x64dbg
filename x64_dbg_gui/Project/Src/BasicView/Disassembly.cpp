@@ -66,6 +66,7 @@ void Disassembly::colorsUpdated()
  */
 QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    Q_UNUSED(rowBase)
     if(mHighlightingMode)
     {
         QPen pen(ConfigColor("InstructionHighlightColor"));
@@ -676,7 +677,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         int_t destRVA = (int_t)instruction.disasm.Instruction.AddrValue;
 
         int_t base=mMemPage->getBase();
-        if(destRVA >= base && destRVA < base + mMemPage->getSize())
+        if(destRVA >= base && destRVA < base + (int_t)mMemPage->getSize())
         {
             destRVA -= (int_t)mMemPage->getBase();
 
@@ -1113,7 +1114,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 {
     if(buffer->size() > 0 && index >= 0 && index < buffer->size())
     {
-        if(buffer->at(index).rva >= mSelection.fromIndex && buffer->at(index).rva <= mSelection.toIndex)
+        if((int_t)buffer->at(index).rva >= mSelection.fromIndex && (int_t)buffer->at(index).rva <= mSelection.toIndex)
             return true;
         else
             return false;
