@@ -2,10 +2,12 @@
 #define _DBGFUNCTIONS_H
 
 typedef bool (*DBGASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
+typedef bool (*DBGSECTIONFROMADDR)(duint addr, char* section);
 
 struct DBGFUNCTIONS
 {
     DBGASSEMBLEATEX DbgAssembleAtEx;
+    DBGSECTIONFROMADDR DbgSectionFromAddr;
 };
 
 #ifdef BUILD_DBG

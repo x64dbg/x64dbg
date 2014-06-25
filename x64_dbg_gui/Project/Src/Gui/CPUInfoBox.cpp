@@ -31,16 +31,24 @@ void CPUInfoBox::setInfoLine(int line, QString text)
 
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
-    char label[MAX_LABEL_SIZE]="";
+    if(!DbgIsDebugging())
+        return;
     QString info="";
+    char section[10]="";
+    bool bSection = DbgFunctions()->DbgSectionFromAddr(parVA, section);
+    char label[MAX_LABEL_SIZE]="";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
     {
         QString fullLabel="<"+QString(label)+">";
         char mod[MAX_MODULE_SIZE]="";
         if(DbgGetModuleAt(parVA, mod) && !QString(label).startsWith("JMP.&"))
             fullLabel="<"+QString(mod)+"."+QString(label)+">";
-        info=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper() + " " + fullLabel;
+        if(bSection)
+            info=QString(section)+":";
+        info+=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper() + " " + fullLabel;
     }
+    else if(bSection)
+        info=QString(section)+":"+QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     setInfoLine(2, info);
     //setInfoLine(0, QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
 }
