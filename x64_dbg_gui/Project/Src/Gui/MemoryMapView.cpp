@@ -16,6 +16,98 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
+
+    setupContextMenu();
+}
+
+void MemoryMapView::setupContextMenu()
+{
+    //Breakpoint menu
+    mBreakpointMenu = new QMenu("Memory &Breakpoint", this);
+
+    //Breakpoint->Memory Access
+    mMemoryAccessMenu = new QMenu("Access", this);
+    mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
+    mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
+    mMemoryAccessRestore = new QAction("&Restore", this);
+    connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
+    mMemoryAccessMenu->addAction(mMemoryAccessRestore);
+    mBreakpointMenu->addMenu(mMemoryAccessMenu);
+
+    //Breakpoint->Memory Write
+    mMemoryWriteMenu = new QMenu("Write", this);
+    mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
+    connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
+    mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
+    mMemoryWriteRestore = new QAction("&Restore", this);
+    connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
+    mMemoryWriteMenu->addAction(mMemoryWriteRestore);
+    mBreakpointMenu->addMenu(mMemoryWriteMenu);
+
+    //Breakpoint->Memory Execute
+    mMemoryExecuteMenu = new QMenu("Execute", this);
+    mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
+    mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
+    mMemoryExecuteSingleshoot->setShortcut(QKeySequence("f2"));
+    connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
+    mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
+    mMemoryExecuteRestore = new QAction("&Restore", this);
+    connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
+    mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
+    mBreakpointMenu->addMenu(mMemoryExecuteMenu);
+
+    //Breakpoint->Remove
+    mMemoryRemove = new QAction("&Remove", this);
+    mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
+    mMemoryRemove->setShortcut(QKeySequence("f2"));
+    connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
+    mBreakpointMenu->addAction(mMemoryRemove);
+
+    //Action shortcut action that does something
+    mMemoryExecuteSingleshootToggle = new QAction(this);
+    mMemoryExecuteSingleshootToggle->setShortcutContext(Qt::WidgetShortcut);
+    mMemoryExecuteSingleshootToggle->setShortcut(QKeySequence("f2"));
+    this->addAction(mMemoryExecuteSingleshootToggle);
+    connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
+}
+
+void MemoryMapView::contextMenuEvent(QContextMenuEvent* event)
+{
+    if(!DbgIsDebugging())
+        return;
+    QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addMenu(mBreakpointMenu);
+    QMenu wCopyMenu("&Copy", this);
+    setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu->addSeparator();
+        wMenu->addMenu(&wCopyMenu);
+    }
+
+    QString wStr = getCellContent(getInitialSelection(), 0);
+#ifdef _WIN64
+    uint_t selectedAddr=wStr.toULongLong(0, 16);
+#else //x86
+    uint_t selectedAddr=wStr.toULong(0, 16);
+#endif //_WIN64
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+    {
+        mMemoryAccessMenu->menuAction()->setVisible(false);
+        mMemoryWriteMenu->menuAction()->setVisible(false);
+        mMemoryExecuteMenu->menuAction()->setVisible(false);
+        mMemoryRemove->setVisible(true);
+    }
+    else //memory breakpoint not set
+    {
+        mMemoryAccessMenu->menuAction()->setVisible(true);
+        mMemoryWriteMenu->menuAction()->setVisible(true);
+        mMemoryExecuteMenu->menuAction()->setVisible(true);
+        mMemoryRemove->setVisible(false);
+    }
+
+    wMenu->exec(event->globalPos()); //execute context menu
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)
@@ -160,4 +252,60 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
         reloadData(); //refresh memory map
     }
 
+}
+
+void MemoryMapView::memoryAccessSingleshootSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 0, r").toUtf8().constData());
+}
+
+void MemoryMapView::memoryAccessRestoreSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 1, r").toUtf8().constData());
+}
+
+void MemoryMapView::memoryWriteSingleshootSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 0, w").toUtf8().constData());
+}
+
+void MemoryMapView::memoryWriteRestoreSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 1, w").toUtf8().constData());
+}
+
+void MemoryMapView::memoryExecuteSingleshootSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 0, x").toUtf8().constData());
+}
+
+void MemoryMapView::memoryExecuteRestoreSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpm "+addr_text+", 1, x").toUtf8().constData());
+}
+
+void MemoryMapView::memoryRemoveSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExec(QString("bpmc "+addr_text).toUtf8().constData());
+}
+
+void MemoryMapView::memoryExecuteSingleshootToggleSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+#ifdef _WIN64
+    uint_t selectedAddr=addr_text.toULongLong(0, 16);
+#else //x86
+    uint_t selectedAddr=addr_text.toULong(0, 16);
+#endif //_WIN64
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+        memoryRemoveSlot();
+    else
+        memoryExecuteSingleshootSlot();
 }
