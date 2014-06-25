@@ -32,7 +32,6 @@ QString StdTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     return mData->at(col)->at(rowBase + rowOffset);
 }
 
-
 void StdTable::mouseMoveEvent(QMouseEvent* event)
 {
     bool wAccept = true;
@@ -239,7 +238,7 @@ bool StdTable::isSelected(int base, int offset)
 /************************************************************************************
                                 Data Management
 ************************************************************************************/
-void StdTable::addColumnAt(int width, QString title, bool isClickable)
+void StdTable::addColumnAt(int width, QString title, bool isClickable, QString copyTitle)
 {
     AbstractTableView::addColumnAt(width, title, isClickable);
 
@@ -249,6 +248,12 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable)
     {
         mData->last()->append(QString(""));
     }
+
+    //Append copy title
+    if(!copyTitle.length())
+        mCopyTitles.append(title);
+    else
+        mCopyTitles.append(copyTitle);
 }
 
 
@@ -277,6 +282,7 @@ void StdTable::deleteAllColumns()
 {
     setRowCount(0);
     AbstractTableView::deleteAllColumns();
+    mCopyTitles.clear();
 }
 
 void StdTable::setCellContent(int r, int c, QString s)
@@ -311,5 +317,53 @@ bool StdTable::isValidIndex(int r, int c)
     else
     {
         return false;
+    }
+}
+
+void StdTable::copyLineSlot()
+{
+
+}
+
+void StdTable::copyTableSlot()
+{
+
+}
+
+void StdTable::copyEntrySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+    int col=action->objectName().toInt();
+    Bridge::CopyToClipboard(getCellContent(getInitialSelection(), col).toUtf8().constData());
+}
+
+void StdTable::setupCopyMenu(QMenu* copyMenu)
+{
+    //Copy->Whole Line
+    QAction* mCopyLine = new QAction("Whole &Line", this);
+    connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
+    mCopyLine->setEnabled(false);
+    copyMenu->addAction(mCopyLine);
+    //Copy->Whole Table
+    QAction* mCopyTable = new QAction("Whole &Table", this);
+    connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
+    mCopyTable->setEnabled(false);
+    copyMenu->addAction(mCopyTable);
+    //Copy->Separatoe
+    copyMenu->addSeparator();
+    //Copy->ColName
+    for(int i=0; i<getColumnCount(); i++)
+    {
+        if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
+            continue;
+        QString title=mCopyTitles.at(i);
+        if(!title.length()) //skip empty copy titles
+            continue;
+        QAction* mCopyAction = new QAction(title, this);
+        mCopyAction->setObjectName(QString::number(i));
+        connect(mCopyAction, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
+        copyMenu->addAction(mCopyAction);
     }
 }

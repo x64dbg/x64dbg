@@ -2,6 +2,7 @@
 #define STDTABLE_H
 
 #include <QtGui>
+#include <QMenu>
 #include "NewTypes.h"
 #include "AbstractTableView.h"
 
@@ -29,12 +30,15 @@ public:
     bool isSelected(int base, int offset);
 
     // Data Management
-    void addColumnAt(int width, QString title, bool isClickable);
+    void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "");
     void setRowCount(int count);
     void deleteAllColumns();
     void setCellContent(int r, int c, QString s);
     QString getCellContent(int r, int c);
     bool isValidIndex(int r, int c);
+
+    //context menu helpers
+    void setupCopyMenu(QMenu* copyMenu);
 
 signals:
     void selectionChangedSignal(int index);
@@ -42,6 +46,9 @@ signals:
     void doubleClickedSignal();
     
 public slots:
+    void copyLineSlot();
+    void copyTableSlot();
+    void copyEntrySlot();
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -60,6 +67,7 @@ private:
     bool mIsMultiSelctionAllowed;
 
     QList< QList<QString>* >* mData;
+    QList<QString> mCopyTitles;
 };
 
 #endif // STDTABLE_H
