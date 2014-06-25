@@ -30,10 +30,7 @@ private slots:
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
     void symbolFollowDump();
-    void symbolContextMenu(const QPoint & pos);
-    void symbolAddressCopy();
-    void symbolDecoratedCopy();
-    void symbolUndecoratedCopy();
+    void symbolContextMenu(QMenu* wMenu);
 
 signals:
     void showCpu();
@@ -48,9 +45,6 @@ private:
     QList<uint_t> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
-    QAction* mCopySymbolAddress;
-    QAction* mCopyDecoratedSymbolAction;
-    QAction* mCopyUndecoratedSymbolAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

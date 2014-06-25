@@ -70,7 +70,7 @@ SymbolView::SymbolView(QWidget *parent) :
     connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
-    connect(mSearchListView, SIGNAL(listContextMenuSignal(QPoint)), this, SLOT(symbolContextMenu(QPoint)));
+    connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(symbolFollow()));
 }
 
@@ -86,15 +86,6 @@ void SymbolView::setupContextMenu()
 
     mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
-
-    mCopySymbolAddress = new QAction("Copy &Address", this);
-    connect(mCopySymbolAddress, SIGNAL(triggered()), this, SLOT(symbolAddressCopy()));
-
-    mCopyDecoratedSymbolAction = new QAction("Copy &Symbol", this);
-    connect(mCopyDecoratedSymbolAction, SIGNAL(triggered()), this, SLOT(symbolDecoratedCopy()));
-
-    mCopyUndecoratedSymbolAction = new QAction("Copy Symbol (&undecorated)", this);
-    connect(mCopyUndecoratedSymbolAction, SIGNAL(triggered()), this, SLOT(symbolUndecoratedCopy()));
 }
 
 void SymbolView::addMsgToSymbolLogSlot(QString msg)
@@ -160,19 +151,12 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         BridgeFree(modules);
 }
 
-void SymbolView::symbolContextMenu(const QPoint & pos)
+void SymbolView::symbolContextMenu(QMenu* wMenu)
 {
     if(!mSearchListView->mCurList->getRowCount())
         return;
-    QMenu* wMenu = new QMenu(this);
     wMenu->addAction(mFollowSymbolAction);
     wMenu->addAction(mFollowSymbolDumpAction);
-    wMenu->addSeparator();
-    wMenu->addAction(mCopySymbolAddress);
-    wMenu->addAction(mCopyDecoratedSymbolAction);
-    if(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 2).length())
-        wMenu->addAction(mCopyUndecoratedSymbolAction);
-    wMenu->exec(pos);
 }
 
 void SymbolView::symbolFollow()
@@ -185,19 +169,4 @@ void SymbolView::symbolFollowDump()
 {
     DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
-}
-
-void SymbolView::symbolAddressCopy()
-{
-    Bridge::CopyToClipboard(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData());
-}
-
-void SymbolView::symbolDecoratedCopy()
-{
-    Bridge::CopyToClipboard(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 1).toUtf8().constData());
-}
-
-void SymbolView::symbolUndecoratedCopy()
-{
-    Bridge::CopyToClipboard(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 2).toUtf8().constData());
 }

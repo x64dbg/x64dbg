@@ -36,7 +36,7 @@ private slots:
 
 signals:
     void enterPressedSignal();
-    void listContextMenuSignal(const QPoint & pos);
+    void listContextMenuSignal(QMenu* wMenu);
 
 private:
     Ui::SearchListView* ui;

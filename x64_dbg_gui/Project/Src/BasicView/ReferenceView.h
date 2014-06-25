@@ -23,10 +23,9 @@ private slots:
     void reloadData();
     void setSingleSelection(int index, bool scroll);
     void setSearchStartCol(int col);
-    void referenceContextMenu(const QPoint & pos);
+    void referenceContextMenu(QMenu* wMenu);
     void followAddress();
     void followDumpAddress();
-    void copySlot();
 
 signals:
     void showCpu();
