@@ -133,7 +133,7 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         type=TokenMnemonicNop;
     else if(completeInstr.contains("movs") || completeInstr.contains("cmps") || completeInstr.contains("scas") || completeInstr.contains("lods") || completeInstr.contains("stos") || completeInstr.contains("outs"))
     {
-        if(mnemonic.length()<5)
+        if(completeInstr.length()!=5)
         {
             AddToken(instr, type, mnemonic, 0);
             return;
