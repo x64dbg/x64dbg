@@ -52,5 +52,10 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[]);
 
 CMDRESULT cbInstrFind(int argc, char* argv[]);
 CMDRESULT cbInstrModCallFind(int argc, char* argv[]);
+CMDRESULT cbInstrCommentList(int argc, char* argv[]);
+CMDRESULT cbInstrLabelList(int argc, char* argv[]);
+CMDRESULT cbInstrBookmarkList(int argc, char* argv[]);
+CMDRESULT cbInstrFunctionList(int argc, char* argv[]);
+CMDRESULT cbInstrLoopList(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

@@ -183,6 +183,11 @@ static void registercommands()
     dbgcmdnew("bpdll", cbBpDll, true); //set dll breakpoint
     dbgcmdnew("bcdll", cbBcDll, true); //remove dll breakpoint
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
+    dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
+    dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
+    dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
+    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
+    dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

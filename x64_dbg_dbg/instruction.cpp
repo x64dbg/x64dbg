@@ -1029,3 +1029,198 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrCommentList(int argc, char* argv[])
+{
+    size_t cbsize;
+    commentenum(0, &cbsize);
+    if(!cbsize)
+    {
+        puts("no comments");
+        return STATUS_CONTINUE;
+    }
+    COMMENTSINFO* comments=(COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
+    commentenum(comments, 0);
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(64, "Disassembly");
+    GuiReferenceAddColumn(0, "Comment");
+    GuiReferenceReloadData();
+    int count=cbsize/sizeof(COMMENTSINFO);
+    for(int i=0; i<count; i++)
+    {
+        GuiReferenceSetRowCount(i+1);
+        char addrText[20]="";
+        sprintf(addrText, "%p", comments[i].addr);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly(comments[i].addr, disassembly))
+            GuiReferenceSetCellContent(i, 1, disassembly);
+        GuiReferenceSetCellContent(i, 2, comments[i].text);
+    }
+    efree(comments, "cbInstrCommentList:comments");
+    dprintf("%d comment(s) listed in Reference View\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrLabelList(int argc, char* argv[])
+{
+    size_t cbsize;
+    labelenum(0, &cbsize);
+    if(!cbsize)
+    {
+        puts("no labels");
+        return STATUS_CONTINUE;
+    }
+    LABELSINFO* labels=(LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
+    labelenum(labels, 0);
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(64, "Disassembly");
+    GuiReferenceAddColumn(0, "Label");
+    GuiReferenceReloadData();
+    int count=cbsize/sizeof(LABELSINFO);
+    for(int i=0; i<count; i++)
+    {
+        GuiReferenceSetRowCount(i+1);
+        char addrText[20]="";
+        sprintf(addrText, "%p", labels[i].addr);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly(labels[i].addr, disassembly))
+            GuiReferenceSetCellContent(i, 1, disassembly);
+        GuiReferenceSetCellContent(i, 2, labels[i].text);
+    }
+    efree(labels, "cbInstrLabelList:labels");
+    dprintf("%d label(s) listed in Reference View\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
+{
+    size_t cbsize;
+    bookmarkenum(0, &cbsize);
+    if(!cbsize)
+    {
+        puts("no bookmarks");
+        return STATUS_CONTINUE;
+    }
+    BOOKMARKSINFO* bookmarks=(BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
+    bookmarkenum(bookmarks, 0);
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(0, "Disassembly");
+    GuiReferenceReloadData();
+    int count=cbsize/sizeof(BOOKMARKSINFO);
+    for(int i=0; i<count; i++)
+    {
+        GuiReferenceSetRowCount(i+1);
+        char addrText[20]="";
+        sprintf(addrText, "%p", bookmarks[i].addr);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly(bookmarks[i].addr, disassembly))
+            GuiReferenceSetCellContent(i, 1, disassembly);
+    }
+    efree(bookmarks, "cbInstrBookmarkList:bookmarks");
+    dprintf("%d bookmark(s) listed in Reference View\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrFunctionList(int argc, char* argv[])
+{
+    size_t cbsize;
+    functionenum(0, &cbsize);
+    if(!cbsize)
+    {
+        puts("no functions");
+        return STATUS_CONTINUE;
+    }
+    FUNCTIONSINFO* functions=(FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
+    functionenum(functions, 0);
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Start");
+    GuiReferenceAddColumn(2*sizeof(uint), "End");
+    GuiReferenceAddColumn(64, "Disassembly (Start)");
+    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceReloadData();
+    int count=cbsize/sizeof(FUNCTIONSINFO);
+    for(int i=0; i<count; i++)
+    {
+        GuiReferenceSetRowCount(i+1);
+        char addrText[20]="";
+        sprintf(addrText, "%p", functions[i].start);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        sprintf(addrText, "%p", functions[i].end);
+        GuiReferenceSetCellContent(i, 1, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly(functions[i].start, disassembly))
+            GuiReferenceSetCellContent(i, 2, disassembly);
+        char label[MAX_LABEL_SIZE]="";
+        if(labelget(functions[i].start, label))
+            GuiReferenceSetCellContent(i, 3, label);
+        else
+        {
+            char comment[MAX_COMMENT_SIZE]="";
+            if(commentget(functions[i].start, comment))
+                GuiReferenceSetCellContent(i, 3, comment);
+        }
+    }
+    efree(functions, "cbInstrFunctionList:functions");
+    dprintf("%d function(s) listed in Reference View\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrLoopList(int argc, char* argv[])
+{
+    size_t cbsize;
+    loopenum(0, &cbsize);
+    if(!cbsize)
+    {
+        puts("no loops");
+        return STATUS_CONTINUE;
+    }
+    LOOPSINFO* loops=(LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
+    loopenum(loops, 0);
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Start");
+    GuiReferenceAddColumn(2*sizeof(uint), "End");
+    GuiReferenceAddColumn(64, "Disassembly (Start)");
+    GuiReferenceAddColumn(0, "Label/Comment");
+    GuiReferenceReloadData();
+    int count=cbsize/sizeof(LOOPSINFO);
+    for(int i=0; i<count; i++)
+    {
+        GuiReferenceSetRowCount(i+1);
+        char addrText[20]="";
+        sprintf(addrText, "%p", loops[i].start);
+        GuiReferenceSetCellContent(i, 0, addrText);
+        sprintf(addrText, "%p", loops[i].end);
+        GuiReferenceSetCellContent(i, 1, addrText);
+        char disassembly[2048]="";
+        if(GuiGetDisassembly(loops[i].start, disassembly))
+            GuiReferenceSetCellContent(i, 2, disassembly);
+        char label[MAX_LABEL_SIZE]="";
+        if(labelget(loops[i].start, label))
+            GuiReferenceSetCellContent(i, 3, label);
+        else
+        {
+            char comment[MAX_COMMENT_SIZE]="";
+            if(commentget(loops[i].start, comment))
+                GuiReferenceSetCellContent(i, 3, comment);
+        }
+    }
+    efree(loops, "cbInstrLoopList:loops");
+    dprintf("%d loop(s) listed in Reference View\n", count);
+    GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
