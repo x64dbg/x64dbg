@@ -393,6 +393,24 @@ void commentcacheload(JSON root)
     }
 }
 
+bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
+{
+    if(!commentlist && !cbsize)
+        return false;
+    if(!commentlist && cbsize)
+    {
+        *cbsize=comments.size()*sizeof(COMMENTSINFO);
+        return true;
+    }
+    int j=0;
+    for(CommentsInfo::iterator i=comments.begin(); i!=comments.end(); ++i,j++)
+    {
+        commentlist[j]=i->second;
+        commentlist[j].addr+=modbasefromname(commentlist[j].mod);
+    }
+    return true;
+}
+
 ///label functions
 bool labelset(uint addr, const char* text, bool manual)
 {
@@ -550,6 +568,24 @@ void labelcacheload(JSON root)
     }
 }
 
+bool labelenum(LABELSINFO* labellist, size_t* cbsize)
+{
+    if(!labellist && !cbsize)
+        return false;
+    if(!labellist && cbsize)
+    {
+        *cbsize=labels.size()*sizeof(LABELSINFO);
+        return true;
+    }
+    int j=0;
+    for(LabelsInfo::iterator i=labels.begin(); i!=labels.end(); ++i,j++)
+    {
+        labellist[j]=i->second;
+        labellist[j].addr+=modbasefromname(labellist[j].mod);
+    }
+    return true;
+}
+
 ///bookmark functions
 bool bookmarkset(uint addr, bool manual)
 {
@@ -667,6 +703,24 @@ void bookmarkcacheload(JSON root)
             bookmarks.insert(std::make_pair(key, curBookmark));
         }
     }
+}
+
+bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
+{
+    if(!bookmarklist && !cbsize)
+        return false;
+    if(!bookmarklist && cbsize)
+    {
+        *cbsize=bookmarks.size()*sizeof(BOOKMARKSINFO);
+        return true;
+    }
+    int j=0;
+    for(BookmarksInfo::iterator i=bookmarks.begin(); i!=bookmarks.end(); ++i,j++)
+    {
+        bookmarklist[j]=i->second;
+        bookmarklist[j].addr+=modbasefromname(bookmarklist[j].mod);
+    }
+    return true;
 }
 
 ///function database
@@ -813,6 +867,26 @@ void functioncacheload(JSON root)
             functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
         }
     }
+}
+
+bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
+{
+    if(!functionlist && !cbsize)
+        return false;
+    if(!functionlist && cbsize)
+    {
+        *cbsize=functions.size()*sizeof(FUNCTIONSINFO);
+        return true;
+    }
+    int j=0;
+    for(FunctionsInfo::iterator i=functions.begin(); i!=functions.end(); ++i,j++)
+    {
+        functionlist[j]=i->second;
+        uint modbase=modbasefromname(functionlist[j].mod);
+        functionlist[j].start+=modbase;
+        functionlist[j].end+=modbase;
+    }
+    return true;
 }
 
 //loop database
@@ -971,4 +1045,24 @@ void loopcacheload(JSON root)
             loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
         }
     }
+}
+
+bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
+{
+    if(!looplist && !cbsize)
+        return false;
+    if(!looplist && cbsize)
+    {
+        *cbsize=loops.size()*sizeof(LOOPSINFO);
+        return true;
+    }
+    int j=0;
+    for(LoopsInfo::iterator i=loops.begin(); i!=loops.end(); ++i,j++)
+    {
+        looplist[j]=i->second;
+        uint modbase=modbasefromname(looplist[j].mod);
+        looplist[j].start+=modbase;
+        looplist[j].end+=modbase;
+    }
+    return true;
 }

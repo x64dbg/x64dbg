@@ -133,6 +133,7 @@ bool commentdel(uint addr);
 void commentdelrange(uint start, uint end);
 void commentcachesave(JSON root);
 void commentcacheload(JSON root);
+bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize);
 
 bool labelset(uint addr, const char* text, bool manual);
 bool labelfromstring(const char* text, uint* addr);
@@ -141,6 +142,7 @@ bool labeldel(uint addr);
 void labeldelrange(uint start, uint end);
 void labelcachesave(JSON root);
 void labelcacheload(JSON root);
+bool labelenum(LABELSINFO* labellist, size_t* cbsize);
 
 bool bookmarkset(uint addr, bool manual);
 bool bookmarkget(uint addr);
@@ -148,6 +150,7 @@ bool bookmarkdel(uint addr);
 void bookmarkdelrange(uint start, uint end);
 void bookmarkcachesave(JSON root);
 void bookmarkcacheload(JSON root);
+bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize);
 
 bool functionadd(uint start, uint end, bool manual);
 bool functionget(uint addr, uint* start, uint* end);
@@ -156,6 +159,7 @@ bool functiondel(uint addr);
 void functiondelrange(uint start, uint end);
 void functioncachesave(JSON root);
 void functioncacheload(JSON root);
+bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize);
 
 bool loopadd(uint start, uint end, bool manual);
 bool loopget(int depth, uint addr, uint* start, uint* end);
@@ -163,5 +167,6 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth);
 bool loopdel(int depth, uint addr);
 void loopcachesave(JSON root);
 void loopcacheload(JSON root);
+bool loopenum(LOOPSINFO* looplist, size_t* cbsize);
 
 #endif // _ADDRINFO_H
