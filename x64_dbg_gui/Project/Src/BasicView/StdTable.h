@@ -39,16 +39,19 @@ public:
 
     //context menu helpers
     void setupCopyMenu(QMenu* copyMenu);
+    void setCopyMenuOnly(bool bSet);
 
 signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
     void doubleClickedSignal();
+    void contextMenuSignal(const QPoint &pos);
     
 public slots:
     void copyLineSlot();
     void copyTableSlot();
     void copyEntrySlot();
+    void contextMenuRequestedSlot(const QPoint &pos);
 
 private:
     enum GuiState_t {NoState, MultiRowsSelectionState};
@@ -65,6 +68,7 @@ private:
     SelectionData_t mSelection;
 
     bool mIsMultiSelctionAllowed;
+    bool mCopyMenuOnly;
 
     QList< QList<QString>* >* mData;
     QList<QString> mCopyTitles;

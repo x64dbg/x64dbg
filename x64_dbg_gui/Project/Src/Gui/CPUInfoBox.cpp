@@ -13,6 +13,7 @@ CPUInfoBox::CPUInfoBox(StdTable *parent) : StdTable(parent)
     int height = getHeight();
     setMaximumHeight(height);
     setMinimumHeight(height);
+    setCopyMenuOnly(true);
 }
 
 int CPUInfoBox::getHeight()

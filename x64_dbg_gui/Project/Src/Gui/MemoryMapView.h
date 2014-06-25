@@ -12,7 +12,6 @@ public:
     explicit MemoryMapView(StdTable *parent = 0);
     QString paintContent(QPainter *painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
-    void contextMenuEvent(QContextMenuEvent* event);
     
 signals:
     
@@ -26,6 +25,7 @@ public slots:
     void memoryExecuteRestoreSlot();
     void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
+    void contextMenuSlot(const QPoint &pos);
 
 private:
     QString getProtectionString(DWORD Protect);

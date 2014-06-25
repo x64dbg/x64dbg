@@ -25,6 +25,7 @@ SymbolView::SymbolView(QWidget *parent) :
 
     // Create module list
     mModuleList = new StdTable();
+    mModuleList->setCopyMenuOnly(true);
     mModuleList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Base", false);
     mModuleList->addColumnAt(0, "Module", true);
 

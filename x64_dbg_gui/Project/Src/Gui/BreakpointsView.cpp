@@ -2,29 +2,29 @@
 
 BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
 {
-    // Hardware
-    mHardBPTable = new StdTable(this);
-    int wCharWidth = QFontMetrics(mHardBPTable->font()).width(QChar(' '));
-    mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Hardware", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Comment", false);
-
     // Software
     mSoftBPTable = new StdTable(this);
+    int wCharWidth = QFontMetrics(mSoftBPTable->font()).width(QChar(' '));
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false);
+    mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false, "Address");
     mSoftBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
     mSoftBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
     mSoftBPTable->addColumnAt(8+wCharWidth*8, "State", false);
     mSoftBPTable->addColumnAt(wCharWidth*10, "Comment", false);
 
+    // Hardware
+    mHardBPTable = new StdTable(this);
+    mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    mHardBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Hardware", false, "Address");
+    mHardBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
+    mHardBPTable->addColumnAt(8+wCharWidth*8, "State", false);
+    mHardBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Memory", false);
+    mMemBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Memory", false, "Address");
     mMemBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
     mMemBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
     mMemBPTable->addColumnAt(8+wCharWidth*8, "State", false);
@@ -33,8 +33,8 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
     // Splitter
     mSplitter = new QSplitter(this);
     mSplitter->setOrientation(Qt::Vertical);
-    mSplitter->addWidget(mHardBPTable);
     mSplitter->addWidget(mSoftBPTable);
+    mSplitter->addWidget(mHardBPTable);
     mSplitter->addWidget(mMemBPTable);
 
     // Layout
@@ -51,9 +51,9 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
 
     // Signals/Slots
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(reloadData()));
-    connect(mHardBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
-    connect(mSoftBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
-    connect(mMemBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
+    connect(mHardBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
+    connect(mSoftBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
+    connect(mMemBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
 }
 
 
@@ -228,6 +228,15 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mHardBPRemoveAllAction);
 
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        mHardBPTable->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
+
         wMenu->exec(mHardBPTable->mapToGlobal(pos));
     }
 }
@@ -318,6 +327,15 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mSoftBPRemoveAllAction);
 
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        mSoftBPTable->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
+
         wMenu->exec(mSoftBPTable->mapToGlobal(pos));
     }
 }
@@ -406,6 +424,15 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 
         // Remove All
         wMenu->addAction(mMemBPRemoveAllAction);
+
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        mMemBPTable->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
 
         wMenu->exec(mMemBPTable->mapToGlobal(pos));
     }

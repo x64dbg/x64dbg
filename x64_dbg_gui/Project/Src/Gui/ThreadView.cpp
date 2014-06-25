@@ -19,6 +19,8 @@ ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*10, "LastError", false);
     addColumnAt(0, "Name", false);
 
+    setCopyMenuOnly(true);
+
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
 }
 

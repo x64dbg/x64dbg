@@ -16,6 +16,7 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
+    connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
 }
@@ -72,7 +73,7 @@ void MemoryMapView::setupContextMenu()
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 }
 
-void MemoryMapView::contextMenuEvent(QContextMenuEvent* event)
+void MemoryMapView::contextMenuSlot(const QPoint &pos)
 {
     if(!DbgIsDebugging())
         return;
@@ -107,7 +108,7 @@ void MemoryMapView::contextMenuEvent(QContextMenuEvent* event)
         mMemoryRemove->setVisible(false);
     }
 
-    wMenu->exec(event->globalPos()); //execute context menu
+    wMenu->exec(mapToGlobal(pos)); //execute context menu
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)

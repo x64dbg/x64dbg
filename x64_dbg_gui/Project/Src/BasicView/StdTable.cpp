@@ -19,7 +19,11 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 
     mData = new QList< QList<QString>* >();
 
+    mCopyMenuOnly = false;
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
+    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequestedSlot(QPoint)));
 }
 
 
@@ -365,5 +369,28 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
         mCopyAction->setObjectName(QString::number(i));
         connect(mCopyAction, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
         copyMenu->addAction(mCopyAction);
+    }
+}
+
+void StdTable::setCopyMenuOnly(bool bSet)
+{
+    mCopyMenuOnly = bSet;
+}
+
+void StdTable::contextMenuRequestedSlot(const QPoint &pos)
+{
+    if(!mCopyMenuOnly)
+    {
+        emit contextMenuSignal(pos);
+        return;
+    }
+    QMenu* wMenu = new QMenu(this);
+    QMenu wCopyMenu("&Copy", this);
+    setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu->addSeparator();
+        wMenu->addMenu(&wCopyMenu);
+        wMenu->exec(mapToGlobal(pos));
     }
 }
