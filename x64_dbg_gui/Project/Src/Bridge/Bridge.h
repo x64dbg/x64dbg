@@ -78,6 +78,7 @@ public:
     void emitAutoCompleteClearAll();
     void emitAddMsgToStatusBar(QString msg);
     void emitUpdateSideBar();
+    void emitRepaintTableView();
 
     //Public variables
     void* winId;
@@ -136,6 +137,7 @@ signals:
     void autoCompleteClearAll();
     void addMsgToStatusBar(QString msg);
     void updateSideBar();
+    void repaintTableView();
 
 private:
     QMutex* mBridgeMutex;

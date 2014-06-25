@@ -742,7 +742,8 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateBreakpointsView();
     GuiUpdateDumpView();
     GuiUpdateThreadView();
-    GuiupdateSideBar();
+    GuiUpdateSideBar();
+    GuiRepaintTableView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -979,9 +980,14 @@ BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
     _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
 }
 
-BRIDGE_IMPEXP void GuiupdateSideBar()
+BRIDGE_IMPEXP void GuiUpdateSideBar()
 {
     _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiRepaintTableView()
+{
+    _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
 
 //Main

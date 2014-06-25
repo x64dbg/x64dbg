@@ -509,6 +509,7 @@ void AppearanceDialog::colorInfoListInit()
 
     colorInfoListAppend("Other:", "", "");
     colorInfoListAppend("Current Thread", "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
+    colorInfoListAppend("Memory Map Breakpoint", "MemoryMapBreakpointColor", "MemoryMapBreakpointBackgroundColor");
 
     //dev helper
     const QMap<QString, QColor>* Colors=&Config()->defaultColors;

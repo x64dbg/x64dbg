@@ -130,6 +130,9 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
 
+    defaultColors.insert("MemoryMapBreakpointColor", QColor("#FFFBF0"));
+    defaultColors.insert("MemoryMapBreakpointBackgroundColor", QColor("#FF0000"));
+
     //bool settings
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);

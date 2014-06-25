@@ -10,6 +10,7 @@ class MemoryMapView : public StdTable
     Q_OBJECT
 public:
     explicit MemoryMapView(StdTable *parent = 0);
+    QString paintContent(QPainter *painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     
 signals:
     

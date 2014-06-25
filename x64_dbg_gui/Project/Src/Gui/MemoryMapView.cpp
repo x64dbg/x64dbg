@@ -1,4 +1,5 @@
 #include "MemoryMapView.h"
+#include "Configuration.h"
 
 MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
 {
@@ -52,6 +53,32 @@ QString MemoryMapView::getProtectionString(DWORD Protect)
     else
         wS+=QString("-");
     return wS;
+}
+
+QString MemoryMapView::paintContent(QPainter *painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+{
+    if(col==0) //address
+    {
+        QString wStr = getCellContent(rowBase + rowOffset, col);
+#ifdef _WIN64
+        uint_t addr=wStr.toULongLong(0, 16);
+#else //x86
+        uint_t addr=wStr.toULong(0, 16);
+#endif //_WIN64
+        if((DbgGetBpxTypeAt(addr)&bp_memory)==bp_memory)
+        {
+            QString wStr = getCellContent(rowBase + rowOffset, col);
+            QColor bpBackgroundColor=ConfigColor("MemoryMapBreakpointBackgroundColor");
+            if(bpBackgroundColor.alpha())
+                painter->fillRect(QRect(x, y, w - 1, h), QBrush(bpBackgroundColor));
+            painter->setPen(ConfigColor("MemoryMapBreakpointColor"));
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            return "";
+        }
+        else if(isSelected(rowBase, rowOffset) == true)
+            painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+    }
+    return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
 void MemoryMapView::stateChangedSlot(DBGSTATE state)

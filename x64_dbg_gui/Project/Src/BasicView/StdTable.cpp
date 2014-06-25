@@ -1,4 +1,5 @@
 #include "StdTable.h"
+#include "Bridge.h"
 
 
 /*
@@ -17,6 +18,8 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
     mIsMultiSelctionAllowed = false;
 
     mData = new QList< QList<QString>* >();
+
+    connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
 }
 
 
