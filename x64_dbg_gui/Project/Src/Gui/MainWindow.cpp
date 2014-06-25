@@ -185,6 +185,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 MainWindow::~MainWindow()
 {
+    mConfiguration->save(); //save config on exit
     delete ui;
 }
 

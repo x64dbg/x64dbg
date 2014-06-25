@@ -1,4 +1,5 @@
 #include "HexDump.h"
+#include "Configuration.h"
 
 HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 {
@@ -215,6 +216,9 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
         int wBytePerRowCount = getBytePerRowCount();
         int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         int wItemPixWidth = getItemPixelWidth(mDescriptor.at(col - 1));
+        int wCharWidth = QFontMetrics(this->font()).width(QChar('C'));
+        if(wItemPixWidth == wCharWidth)
+            x += 4;
         int wSelectionX;
         int wSelectionWidth;
 
@@ -300,10 +304,14 @@ QString HexDump::getString(int col, int_t rva)
 
     for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < mMemPage->getSize(); wI++)
     {
+        int maxLen = getStringMaxLength(mDescriptor.at(col).data);
+        QString append = " ";
+        if(!maxLen)
+            append="";
         if((rva + wI + wByteCount - 1) < mMemPage->getSize())
-            wStr += toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(getStringMaxLength(mDescriptor.at(col).data), ' ') + " ";
+            wStr += toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
         else
-            wStr += QString("?").rightJustified(getStringMaxLength(mDescriptor.at(col).data), ' ') + " ";
+            wStr += QString("?").rightJustified(maxLen, ' ') + append;
     }
 
     delete[] wData;
@@ -659,7 +667,7 @@ int HexDump::byteStringMaxLength(ByteViewMode_e mode)
 
     case AsciiByte:
     {
-        wLength = 1;
+        wLength = 0;
     }
     break;
 
@@ -699,7 +707,7 @@ int HexDump::wordStringMaxLength(WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        wLength = 1;
+        wLength = 0;
     }
     break;
 
@@ -837,6 +845,9 @@ int HexDump::getItemIndexFromX(int x)
         int wRelativeX = x - wColStartingPos;
 
         int wItemPixWidth = getItemPixelWidth(mDescriptor.at(wColIndex - 1));
+        int wCharWidth = QFontMetrics(this->font()).width(QChar('C'));
+        if(wItemPixWidth == wCharWidth)
+            wRelativeX -= 4;
 
         int wItemIndex = wRelativeX / wItemPixWidth;
 

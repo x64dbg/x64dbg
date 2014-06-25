@@ -1,4 +1,5 @@
 #include "CPUDump.h"
+#include "Configuration.h"
 
 CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 {
@@ -364,7 +365,7 @@ void CPUDump::hexAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(8+charwidth*31, "ASCII", false, wColDesc);
+    appendDescriptor(8+charwidth*16, "ASCII", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -394,7 +395,7 @@ void CPUDump::hexUnicodeSlot()
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendDescriptor(8+charwidth*15, "UNICODE", false, wColDesc);
+    appendDescriptor(8+charwidth*8, "UNICODE", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -413,11 +414,11 @@ void CPUDump::textAsciiSlot()
     DataDescriptor_t dDesc;
 
     wColDesc.isData = true; //ascii byte
-    wColDesc.itemCount = 32;
+    wColDesc.itemCount = 64;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*63, "ASCII", false, wColDesc);
+    appendResetDescriptor(8+charwidth*64, "ASCII", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -436,11 +437,11 @@ void CPUDump::textUnicodeSlot()
     DataDescriptor_t dDesc;
 
     wColDesc.isData = true; //unicode short
-    wColDesc.itemCount = 32;
+    wColDesc.itemCount = 64;
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*63, "UNICODE", false, wColDesc);
+    appendResetDescriptor(8+charwidth*64, "UNICODE", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
