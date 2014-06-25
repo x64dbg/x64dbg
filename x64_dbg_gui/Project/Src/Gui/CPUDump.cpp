@@ -22,13 +22,97 @@ void CPUDump::setupContextMenu()
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 
+    //Breakpoint menu
+    mBreakpointMenu = new QMenu("&Breakpoint", this);
+
+    //Breakpoint->Hardware, on access
+    mHardwareAccessMenu = new QMenu("Hardware, &Access", this);
+    mHardwareAccess1 = new QAction("&Byte", this);
+    connect(mHardwareAccess1, SIGNAL(triggered()), this, SLOT(hardwareAccess1Slot()));
+    mHardwareAccessMenu->addAction(mHardwareAccess1);
+    mHardwareAccess2 = new QAction("&Word", this);
+    connect(mHardwareAccess2, SIGNAL(triggered()), this, SLOT(hardwareAccess2Slot()));
+    mHardwareAccessMenu->addAction(mHardwareAccess2);
+    mHardwareAccess4 = new QAction("&Dword", this);
+    connect(mHardwareAccess4, SIGNAL(triggered()), this, SLOT(hardwareAccess4Slot()));
+    mHardwareAccessMenu->addAction(mHardwareAccess4);
+#ifdef _WIN64
+    mHardwareAccess8 = new QAction("&Qword", this);
+    connect(mHardwareAccess8, SIGNAL(triggered()), this, SLOT(hardwareAccess8Slot()));
+    mHardwareAccessMenu->addAction(mHardwareAccess8);
+#endif //_WIN64
+    mBreakpointMenu->addMenu(mHardwareAccessMenu);
+
+    //Breakpoint->Hardware, on write
+    mHardwareWriteMenu = new QMenu("Hardware, &Write", this);
+    mHardwareWrite1 = new QAction("&Byte", this);
+    connect(mHardwareWrite1, SIGNAL(triggered()), this, SLOT(hardwareWrite1Slot()));
+    mHardwareWriteMenu->addAction(mHardwareWrite1);
+    mHardwareWrite2 = new QAction("&Word", this);
+    connect(mHardwareWrite2, SIGNAL(triggered()), this, SLOT(hardwareWrite2Slot()));
+    mHardwareWriteMenu->addAction(mHardwareWrite2);
+    mHardwareWrite4 = new QAction("&Dword", this);
+    connect(mHardwareWrite4, SIGNAL(triggered()), this, SLOT(hardwareWrite4Slot()));
+    mHardwareWriteMenu->addAction(mHardwareWrite4);
+#ifdef _WIN64
+    mHardwareWrite8 = new QAction("&Qword", this);
+    connect(mHardwareWrite8, SIGNAL(triggered()), this, SLOT(hardwareWrite8Slot()));
+    mHardwareWriteMenu->addAction(mHardwareWrite8);
+#endif //_WIN64
+    mBreakpointMenu->addMenu(mHardwareWriteMenu);
+
+    mHardwareExecute = new QAction("Hardware, &Execute", this);
+    connect(mHardwareExecute, SIGNAL(triggered()), this, SLOT(hardwareExecuteSlot()));
+    mBreakpointMenu->addAction(mHardwareExecute);
+
+    mHardwareRemove = new QAction("Remove &Hardware", this);
+    connect(mHardwareRemove, SIGNAL(triggered()), this, SLOT(hardwareRemoveSlot()));
+    mBreakpointMenu->addAction(mHardwareRemove);
+
+    //Breakpoint Separator
+    mBreakpointMenu->addSeparator();
+
+    //Breakpoint->Memory Access
+    mMemoryAccessMenu = new QMenu("Memory, Access", this);
+    mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
+    connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
+    mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
+    mMemoryAccessRestore = new QAction("&Restore", this);
+    connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
+    mMemoryAccessMenu->addAction(mMemoryAccessRestore);
+    mBreakpointMenu->addMenu(mMemoryAccessMenu);
+
+    //Breakpoint->Memory Write
+    mMemoryWriteMenu = new QMenu("Memory, Write", this);
+    mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
+    connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
+    mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
+    mMemoryWriteRestore = new QAction("&Restore", this);
+    connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
+    mMemoryWriteMenu->addAction(mMemoryWriteRestore);
+    mBreakpointMenu->addMenu(mMemoryWriteMenu);
+
+    //Breakpoint->Memory Execute
+    mMemoryExecuteMenu = new QMenu("Memory, Execute", this);
+    mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
+    connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
+    mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
+    mMemoryExecuteRestore = new QAction("&Restore", this);
+    connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
+    mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
+    mBreakpointMenu->addMenu(mMemoryExecuteMenu);
+
+    //Breakpoint->Remove Memory
+    mMemoryRemove = new QAction("Remove &Memory", this);
+    connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
+    mBreakpointMenu->addAction(mMemoryRemove);
+
     //Goto menu
     mGotoMenu = new QMenu("&Goto", this);
     //Goto->Expression
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
-    this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 
@@ -36,12 +120,10 @@ void CPUDump::setupContextMenu()
     mHexMenu = new QMenu("&Hex", this);
     //Hex->Ascii
     mHexAsciiAction = new QAction("&Ascii", this);
-    this->addAction(mHexAsciiAction);
     connect(mHexAsciiAction, SIGNAL(triggered()), this, SLOT(hexAsciiSlot()));
     mHexMenu->addAction(mHexAsciiAction);
     //Hex->Unicode
     mHexUnicodeAction = new QAction("&Unicode", this);
-    this->addAction(mHexUnicodeAction);
     connect(mHexUnicodeAction, SIGNAL(triggered()), this, SLOT(hexUnicodeSlot()));
     mHexMenu->addAction(mHexUnicodeAction);
 
@@ -49,12 +131,10 @@ void CPUDump::setupContextMenu()
     mTextMenu = new QMenu("&Text", this);
     //Text->Ascii
     mTextAsciiAction = new QAction("&Ascii", this);
-    this->addAction(mTextAsciiAction);
     connect(mTextAsciiAction, SIGNAL(triggered()), this, SLOT(textAsciiSlot()));
     mTextMenu->addAction(mTextAsciiAction);
     //Text->Unicode
     mTextUnicodeAction = new QAction("&Unicode", this);
-    this->addAction(mTextUnicodeAction);
     connect(mTextUnicodeAction, SIGNAL(triggered()), this, SLOT(textUnicodeSlot()));
     mTextMenu->addAction(mTextUnicodeAction);
 
@@ -62,52 +142,43 @@ void CPUDump::setupContextMenu()
     mIntegerMenu = new QMenu("&Integer", this);
     //Integer->Signed short
     mIntegerSignedShortAction = new QAction("Signed short (16-bit)", this);
-    this->addAction(mIntegerSignedShortAction);
     connect(mIntegerSignedShortAction, SIGNAL(triggered()), this, SLOT(integerSignedShortSlot()));
     mIntegerMenu->addAction(mIntegerSignedShortAction);
     //Integer->Signed long
     mIntegerSignedLongAction = new QAction("Signed long (32-bit)", this);
-    this->addAction(mIntegerSignedLongAction);
     connect(mIntegerSignedLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongAction);
 #ifdef _WIN64
     //Integer->Signed long long
     mIntegerSignedLongLongAction = new QAction("Signed long long (64-bit)", this);
-    this->addAction(mIntegerSignedLongLongAction);
     connect(mIntegerSignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerSignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerSignedLongLongAction);
 #endif //_WIN64
     //Integer->Unsigned short
     mIntegerUnsignedShortAction = new QAction("Unsigned short (16-bit)", this);
-    this->addAction(mIntegerUnsignedShortAction);
     connect(mIntegerUnsignedShortAction, SIGNAL(triggered()), this, SLOT(integerUnsignedShortSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedShortAction);
     //Integer->Unsigned long
     mIntegerUnsignedLongAction = new QAction("Unsigned long (32-bit)", this);
-    this->addAction(mIntegerUnsignedLongAction);
     connect(mIntegerUnsignedLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongAction);
 #ifdef _WIN64
     //Integer->Unsigned long long
     mIntegerUnsignedLongLongAction = new QAction("Unsigned long long (64-bit)", this);
-    this->addAction(mIntegerUnsignedLongLongAction);
     connect(mIntegerUnsignedLongLongAction, SIGNAL(triggered()), this, SLOT(integerUnsignedLongLongSlot()));
     mIntegerMenu->addAction(mIntegerUnsignedLongLongAction);
 #endif //_WIN64
     //Integer->Hex short
     mIntegerHexShortAction = new QAction("Hex short (16-bit)", this);
-    this->addAction(mIntegerHexShortAction);
     connect(mIntegerHexShortAction, SIGNAL(triggered()), this, SLOT(integerHexShortSlot()));
     mIntegerMenu->addAction(mIntegerHexShortAction);
     //Integer->Hex long
     mIntegerHexLongAction = new QAction("Hex long (32-bit)", this);
-    this->addAction(mIntegerHexLongAction);
     connect(mIntegerHexLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongAction);
 #ifdef _WIN64
     //Integer->Hex long long
     mIntegerHexLongLongAction = new QAction("Hex long long (64-bit)", this);
-    this->addAction(mIntegerHexLongLongAction);
     connect(mIntegerHexLongLongAction, SIGNAL(triggered()), this, SLOT(integerHexLongLongSlot()));
     mIntegerMenu->addAction(mIntegerHexLongLongAction);
 #endif //_WIN64
@@ -116,28 +187,23 @@ void CPUDump::setupContextMenu()
     mFloatMenu = new QMenu("&Float", this);
     //Float->float
     mFloatFloatAction = new QAction("&Float (32-bit)", this);
-    this->addAction(mFloatFloatAction);
     connect(mFloatFloatAction, SIGNAL(triggered()), this, SLOT(floatFloatSlot()));
     mFloatMenu->addAction(mFloatFloatAction);
     //Float->double
     mFloatDoubleAction = new QAction("&Double (64-bit)", this);
-    this->addAction(mFloatDoubleAction);
     connect(mFloatDoubleAction, SIGNAL(triggered()), this, SLOT(floatDoubleSlot()));
     mFloatMenu->addAction(mFloatDoubleAction);
     //Float->long double
     mFloatLongDoubleAction = new QAction("&Long double (80-bit)", this);
-    this->addAction(mFloatLongDoubleAction);
     connect(mFloatLongDoubleAction, SIGNAL(triggered()), this, SLOT(floatLongDoubleSlot()));
     mFloatMenu->addAction(mFloatLongDoubleAction);
 
     //Address
     mAddressAction = new QAction("&Address", this);
-    this->addAction(mAddressAction);
     connect(mAddressAction, SIGNAL(triggered()), this, SLOT(addressSlot()));
 
     //Disassembly
     mDisassemblyAction = new QAction("&Disassembly", this);
-    this->addAction(mDisassemblyAction);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
 }
 
@@ -198,14 +264,45 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mSetLabelAction);
+    wMenu->addMenu(mBreakpointMenu);
     wMenu->addMenu(mGotoMenu);
-
+    wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
     wMenu->addMenu(mTextMenu);
     wMenu->addMenu(mIntegerMenu);
     wMenu->addMenu(mFloatMenu);
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
+
+    int_t selectedAddr = rvaToVa(getInitialSelection());
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_hardware)==bp_hardware) //hardware breakpoint set
+    {
+        mHardwareAccessMenu->menuAction()->setVisible(false);
+        mHardwareWriteMenu->menuAction()->setVisible(false);
+        mHardwareExecute->setVisible(false);
+        mHardwareRemove->setVisible(true);
+    }
+    else //hardware breakpoint not set
+    {
+        mHardwareAccessMenu->menuAction()->setVisible(true);
+        mHardwareWriteMenu->menuAction()->setVisible(true);
+        mHardwareExecute->setVisible(true);
+        mHardwareRemove->setVisible(false);
+    }
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+    {
+        mMemoryAccessMenu->menuAction()->setVisible(false);
+        mMemoryWriteMenu->menuAction()->setVisible(false);
+        mMemoryExecuteMenu->menuAction()->setVisible(false);
+        mMemoryRemove->setVisible(true);
+    }
+    else //memory breakpoint not set
+    {
+        mMemoryAccessMenu->menuAction()->setVisible(true);
+        mMemoryWriteMenu->menuAction()->setVisible(true);
+        mMemoryExecuteMenu->menuAction()->setVisible(true);
+        mMemoryRemove->setVisible(false);
+    }
 
     wMenu->exec(event->globalPos()); //execute context menu
 }
@@ -677,4 +774,106 @@ void CPUDump::selectionSet(const SELECTIONDATA* selection)
     expandSelectionUpTo(end - selMin);
     reloadData();
     Bridge::getBridge()->BridgeSetResult(1);
+}
+
+void CPUDump::memoryAccessSingleshootSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 0, r").toUtf8().constData());
+}
+
+void CPUDump::memoryAccessRestoreSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 1, r").toUtf8().constData());
+}
+
+void CPUDump::memoryWriteSingleshootSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 0, w").toUtf8().constData());
+}
+
+void CPUDump::memoryWriteRestoreSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 1, w").toUtf8().constData());
+}
+
+void CPUDump::memoryExecuteSingleshootSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 0, x").toUtf8().constData());
+}
+
+void CPUDump::memoryExecuteRestoreSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm "+addr_text+", 1, x").toUtf8().constData());
+}
+
+void CPUDump::memoryRemoveSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpmc "+addr_text).toUtf8().constData());
+}
+
+void CPUDump::hardwareAccess1Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", r, 1").toUtf8().constData());
+}
+
+void CPUDump::hardwareAccess2Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", r, 2").toUtf8().constData());
+}
+
+void CPUDump::hardwareAccess4Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", r, 4").toUtf8().constData());
+}
+
+void CPUDump::hardwareAccess8Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", r, 8").toUtf8().constData());
+}
+
+void CPUDump::hardwareWrite1Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", w, 1").toUtf8().constData());
+}
+
+void CPUDump::hardwareWrite2Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", w, 2").toUtf8().constData());
+}
+
+void CPUDump::hardwareWrite4Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", w, 4").toUtf8().constData());
+}
+
+void CPUDump::hardwareWrite8Slot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", w, 8").toUtf8().constData());
+}
+
+void CPUDump::hardwareExecuteSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws "+addr_text+", x").toUtf8().constData());
+}
+
+void CPUDump::hardwareRemoveSlot()
+{
+    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphwc "+addr_text).toUtf8().constData());
 }

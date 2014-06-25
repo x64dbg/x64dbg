@@ -22,6 +22,24 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
 
 public slots:
+    void memoryAccessSingleshootSlot();
+    void memoryAccessRestoreSlot();
+    void memoryWriteSingleshootSlot();
+    void memoryWriteRestoreSlot();
+    void memoryExecuteSingleshootSlot();
+    void memoryExecuteRestoreSlot();
+    void memoryRemoveSlot();
+    void hardwareAccess1Slot();
+    void hardwareAccess2Slot();
+    void hardwareAccess4Slot();
+    void hardwareAccess8Slot();
+    void hardwareWrite1Slot();
+    void hardwareWrite2Slot();
+    void hardwareWrite4Slot();
+    void hardwareWrite8Slot();
+    void hardwareExecuteSlot();
+    void hardwareRemoveSlot();
+
     void setLabelSlot();
     void gotoExpressionSlot();
 
@@ -52,6 +70,35 @@ public slots:
     void selectionSet(const SELECTIONDATA* selection);
 
 private:
+    QMenu* mBreakpointMenu;
+
+    QMenu* mMemoryAccessMenu;
+    QAction* mMemoryAccessSingleshoot;
+    QAction* mMemoryAccessRestore;
+    QMenu* mMemoryWriteMenu;
+    QAction* mMemoryWriteSingleshoot;
+    QAction* mMemoryWriteRestore;
+    QMenu* mMemoryExecuteMenu;
+    QAction* mMemoryExecuteSingleshoot;
+    QAction* mMemoryExecuteRestore;
+    QAction* mMemoryRemove;
+    QMenu* mHardwareAccessMenu;
+    QAction* mHardwareAccess1;
+    QAction* mHardwareAccess2;
+    QAction* mHardwareAccess4;
+#ifdef _WIN64
+    QAction* mHardwareAccess8;
+#endif //_WIN64
+    QMenu* mHardwareWriteMenu;
+    QAction* mHardwareWrite1;
+    QAction* mHardwareWrite2;
+    QAction* mHardwareWrite4;
+#ifdef _WIN64
+    QAction* mHardwareWrite8;
+#endif //_WIN64
+    QAction* mHardwareExecute;
+    QAction* mHardwareRemove;
+
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
 
