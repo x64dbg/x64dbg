@@ -1,4 +1,5 @@
 #include "CPUStack.h"
+#include "Configuration.h"
 
 CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
 {

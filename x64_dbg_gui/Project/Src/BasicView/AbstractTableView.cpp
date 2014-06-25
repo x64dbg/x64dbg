@@ -1,4 +1,5 @@
 #include "AbstractTableView.h"
+#include "Configuration.h"
 
 AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(parent)
 {
@@ -50,7 +51,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
 
     // Signals/Slots Connections
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertSliderActionSlot(int)));
-    connect(Configuration::instance(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
 }
 
 void AbstractTableView::colorsUpdatedSlot()

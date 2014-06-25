@@ -1,4 +1,5 @@
 #include "ThreadView.h"
+#include "Configuration.h"
 
 ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
 {

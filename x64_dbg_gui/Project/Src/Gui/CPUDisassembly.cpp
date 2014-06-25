@@ -657,8 +657,7 @@ void CPUDisassembly::assembleAt()
     mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
     if(mLineEdit.exec()!=QDialog::Accepted)
         return;
-    Configuration::instance()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
-    Configuration::instance()->writeBools();
+    Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
     char error[256]="";
     if(!DbgFunctions()->DbgAssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))

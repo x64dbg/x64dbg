@@ -137,11 +137,16 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("FillNOPs", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
+    //uint settings
+    QMap<QString, uint_t> hexdumpUint;
+    hexdumpUint.insert("DefaultSelection", 0);
+    defaultUints.insert("HexDump", hexdumpUint);
+
     load();
     mPtr = this;
 }
 
-Configuration *Configuration::instance()
+Configuration *Config()
 {
     return mPtr;
 }
@@ -150,12 +155,14 @@ void Configuration::load()
 {
     readColors();
     readBools();
+    readUints();
 }
 
 void Configuration::save()
 {
     writeColors();
     writeBools();
+    writeUints();
 }
 
 void Configuration::readColors()
@@ -211,6 +218,37 @@ void Configuration::writeBools()
     }
 }
 
+void Configuration::readUints()
+{
+    Uints = defaultUints;
+    //read config
+    for(int i=0; i<Bools.size(); i++)
+    {
+        QString category=Uints.keys().at(i);
+        QMap<QString, uint_t>* currentUint=&Uints[category];
+        for(int j=0; j<currentUint->size(); j++)
+        {
+            QString id=(*currentUint).keys().at(j);
+            (*currentUint)[id]=uintFromConfig(category, id);
+        }
+    }
+}
+
+void Configuration::writeUints()
+{
+    //write config
+    for(int i=0; i<Bools.size(); i++)
+    {
+        QString category=Uints.keys().at(i);
+        QMap<QString, uint_t>* currentUint=&Uints[category];
+        for(int j=0; j<currentUint->size(); j++)
+        {
+            QString id=(*currentUint).keys().at(j);
+            uintToConfig(category, id, (*currentUint)[id]);
+        }
+    }
+}
+
 const QColor Configuration::getColor(const QString id)
 {
     if(Colors.contains(id))
@@ -248,6 +286,46 @@ void Configuration::setBool(const QString category, const QString id, const bool
         if(Bools[category].contains(id))
         {
             Bools[category][id]=b;
+            return;
+        }
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+}
+
+const uint_t Configuration::getUint(const QString category, const QString id)
+{
+    if(Uints.contains(category))
+    {
+        if(Uints[category].contains(id))
+            return Uints[category][id];
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return 0;
+    }
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+    return 0;
+}
+
+void Configuration::setUint(const QString category, const QString id, const uint_t i)
+{
+    if(Uints.contains(category))
+    {
+        if(Uints[category].contains(id))
+        {
+            Uints[category][id]=i;
             return;
         }
         QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
@@ -314,4 +392,25 @@ bool Configuration::boolFromConfig(const QString category, const QString id)
 bool Configuration::boolToConfig(const QString category, const QString id, const bool bBool)
 {
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), bBool);
+}
+
+uint_t Configuration::uintFromConfig(const QString category, const QString id)
+{
+    duint setting;
+    if(!BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
+    {
+        if(defaultUints.contains(category) && defaultUints[category].contains(id))
+        {
+            setting = defaultUints[category][id];
+            uintToConfig(category, id, setting);
+            return setting;
+        }
+        return 0; //DAFUG
+    }
+    return setting;
+}
+
+bool Configuration::uintToConfig(const QString category, const QString id, uint_t i)
+{
+    return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), i);
 }

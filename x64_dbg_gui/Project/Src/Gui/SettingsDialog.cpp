@@ -1,5 +1,6 @@
 #include "SettingsDialog.h"
 #include "ui_SettingsDialog.h"
+#include "Configuration.h"
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent),
@@ -183,7 +184,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "ArgumentSpaces", settings.disasmArgumentSpaces);
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
 
-    Configuration::instance()->load();
+    Config()->load();
     DbgSettingsUpdated();
     GuiUpdateAllViews();
 }

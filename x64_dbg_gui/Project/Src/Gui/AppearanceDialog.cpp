@@ -1,6 +1,7 @@
 #include "AppearanceDialog.h"
 #include "ui_AppearanceDialog.h"
 #include "Bridge.h"
+#include "Configuration.h"
 
 AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {
@@ -10,7 +11,7 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     //Colors
-    colorMap=&Configuration::instance()->Colors;
+    colorMap=&Config()->Colors;
     colorBackupMap=*colorMap;
     ui->groupColor->setEnabled(false);
     ui->groupBackgroundColor->setEnabled(false);
@@ -167,7 +168,7 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
         {
             (*colorMap)[id]=Qt::transparent;
             ui->buttonSave->setEnabled(true);
-            Configuration::instance()->writeColors();
+            Config()->writeColors();
             GuiUpdateAllViews();
         }
     }
@@ -181,7 +182,7 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
             {
                 (*colorMap)[id]=QColor(text);
                 ui->buttonSave->setEnabled(true);
-                Configuration::instance()->writeColors();
+                Config()->writeColors();
                 GuiUpdateAllViews();
             }
         }
@@ -218,7 +219,7 @@ void AppearanceDialog::on_editColor_textChanged(const QString &arg1)
         {
             (*colorMap)[id]=QColor(text);
             ui->buttonSave->setEnabled(true);
-            Configuration::instance()->writeColors();
+            Config()->writeColors();
             GuiUpdateAllViews();
         }
     }
@@ -312,7 +313,7 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 
 void AppearanceDialog::on_buttonSave_clicked()
 {
-    Configuration::instance()->writeColors();
+    Config()->writeColors();
     QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
@@ -323,8 +324,8 @@ void AppearanceDialog::on_buttonSave_clicked()
 
 void AppearanceDialog::on_buttonCancel_clicked()
 {
-    Configuration::instance()->Colors=colorBackupMap;
-    Configuration::instance()->writeColors();
+    Config()->Colors=colorBackupMap;
+    Config()->writeColors();
     GuiUpdateAllViews();
 }
 
@@ -334,9 +335,9 @@ void AppearanceDialog::defaultValueSlot()
     if(info.colorName.length())
     {
         QString id=info.colorName;
-        if(Configuration::instance()->defaultColors.contains(id))
+        if(Config()->defaultColors.contains(id))
         {
-            QColor color=Configuration::instance()->defaultColors[id];
+            QColor color=Config()->defaultColors[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -346,9 +347,9 @@ void AppearanceDialog::defaultValueSlot()
     if(info.backgroundColorName.length())
     {
         QString id=info.backgroundColorName;
-        if(Configuration::instance()->defaultColors.contains(id))
+        if(Config()->defaultColors.contains(id))
         {
-            QColor color=Configuration::instance()->defaultColors[id];
+            QColor color=Config()->defaultColors[id];
             QString colorText=color.name().toUpper();
             if(!color.alpha())
                 colorText="#XXXXXX";
@@ -510,7 +511,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Current Thread", "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
 
     //dev helper
-    const QMap<QString, QColor>* Colors=&Configuration::instance()->defaultColors;
+    const QMap<QString, QColor>* Colors=&Config()->defaultColors;
     QString notFound;
     for(int i=0; i<Colors->size(); i++)
     {

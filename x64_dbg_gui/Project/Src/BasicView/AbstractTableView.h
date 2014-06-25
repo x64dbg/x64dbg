@@ -9,7 +9,6 @@
 #include <QScrollBar>
 #include <qdebug.h>
 #include <NewTypes.h>
-#include <Configuration.h>
 
 class AbstractTableView : public QAbstractScrollArea
 {
