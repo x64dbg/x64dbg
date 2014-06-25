@@ -114,8 +114,8 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("HexDumpLabelColor", QColor("#FF0000"));
     defaultColors.insert("HexDumpLabelBackgroundColor", Qt::transparent);
 
-    defaultColors.insert("StackTextColor", QColor("#808080"));
-    defaultColors.insert("StackInactiveTextColor", QColor("#000000"));
+    defaultColors.insert("StackTextColor", QColor("#000000"));
+    defaultColors.insert("StackInactiveTextColor", QColor("#808080"));
     defaultColors.insert("StackBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StackSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("StackCspColor", QColor("#FFFFFF"));
