@@ -7,12 +7,12 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
 
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
 
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false); //addr
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false); //size
-    addColumnAt(8+charwidth*32, "INFO", false); //page information
-    addColumnAt(8+charwidth*3, "TYP", false); //allocation type
-    addColumnAt(8+charwidth*5, "CPROT", false); //current protection
-    addColumnAt(8+charwidth*5, "APROT", false); //allocation protection
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false, "Address"); //addr
+    addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false, "Size"); //size
+    addColumnAt(8+charwidth*32, "INFO", false, "Page Information"); //page information
+    addColumnAt(8+charwidth*3, "TYP", false, "Allocation Type"); //allocation type
+    addColumnAt(8+charwidth*5, "CPROT", false, "Current Protection"); //current protection
+    addColumnAt(8+charwidth*5, "APROT", false, "Allocation Protection"); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
@@ -170,6 +170,16 @@ QString MemoryMapView::paintContent(QPainter *painter, int_t rowBase, int rowOff
         }
         else if(isSelected(rowBase, rowOffset) == true)
             painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+    }
+    else if(col == 2) //info
+    {
+        QString wStr = getCellContent(rowBase + rowOffset, col);
+        if(wStr.startsWith(" \""))
+        {
+            painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            return "";
+        }
     }
     return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }

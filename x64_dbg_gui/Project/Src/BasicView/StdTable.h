@@ -39,7 +39,7 @@ public:
 
     //context menu helpers
     void setupCopyMenu(QMenu* copyMenu);
-    void setCopyMenuOnly(bool bSet);
+    void setCopyMenuOnly(bool bSet, bool bDebugOnly = true);
 
 signals:
     void selectionChangedSignal(int index);
@@ -69,6 +69,7 @@ private:
 
     bool mIsMultiSelctionAllowed;
     bool mCopyMenuOnly;
+    bool mCopyMenuDebugOnly;
 
     QList< QList<QString>* >* mData;
     QList<QString> mCopyTitles;

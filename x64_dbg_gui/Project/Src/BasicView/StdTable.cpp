@@ -20,6 +20,7 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
     mData = new QList< QList<QString>* >();
 
     mCopyMenuOnly = false;
+    mCopyMenuDebugOnly = true;
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
@@ -326,12 +327,74 @@ bool StdTable::isValidIndex(int r, int c)
 
 void StdTable::copyLineSlot()
 {
-
+    int colCount = getColumnCount();
+    QString finalText = "";
+    if(colCount == 1)
+        finalText = getCellContent(getInitialSelection(), 0);
+    else
+    {
+        for(int i=0; i<colCount; i++)
+        {
+            QString cellContent = getCellContent(getInitialSelection(), i);
+            if(!cellContent.length()) //skip empty cells
+                continue;
+            QString title = mCopyTitles.at(i);
+            if(title.length())
+                finalText += title + "=";
+            finalText += cellContent;
+            finalText += "\r\n";
+        }
+    }
+    Bridge::CopyToClipboard(finalText.toUtf8().constData());
 }
 
 void StdTable::copyTableSlot()
 {
-
+    int colCount = getColumnCount();
+    int rowCount = getRowCount();
+    QString finalText = "";
+    if(colCount == 1)
+    {
+        for(int i=0; i<rowCount; i++)
+        {
+            QString cellContent = getCellContent(i, 0);
+            if(!cellContent.length()) //skip empty cells
+                continue;
+            finalText += cellContent + "\r\n";
+        }
+    }
+    else
+    {
+        int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+        for(int i=0; i<colCount; i++)
+        {
+            if(i)
+                finalText += " ";
+            int colWidth = getColumnWidth(i)/charwidth;
+            if(colWidth)
+                finalText += getColTitle(i).leftJustified(colWidth, QChar(' '), true);
+            else
+                finalText += getColTitle(i);
+        }
+        finalText += "\r\n";
+        for(int i=0; i<rowCount; i++)
+        {
+            QString finalRowText = "";
+            for(int j=0; j<colCount; j++)
+            {
+                if(j)
+                    finalRowText += " ";
+                QString cellContent = getCellContent(i, j);
+                int colWidth = getColumnWidth(j)/charwidth;
+                if(colWidth)
+                    finalRowText += cellContent.leftJustified(colWidth, QChar(' '), true);
+                else
+                    finalRowText += cellContent;
+            }
+            finalText += finalRowText + "\r\n";
+        }
+    }
+    Bridge::CopyToClipboard(finalText.toUtf8().constData());
 }
 
 void StdTable::copyEntrySlot()
@@ -345,15 +408,15 @@ void StdTable::copyEntrySlot()
 
 void StdTable::setupCopyMenu(QMenu* copyMenu)
 {
+    if(!getColumnCount())
+        return;
     //Copy->Whole Line
     QAction* mCopyLine = new QAction("Whole &Line", this);
     connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
-    mCopyLine->setEnabled(false);
     copyMenu->addAction(mCopyLine);
     //Copy->Whole Table
     QAction* mCopyTable = new QAction("Whole &Table", this);
     connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
-    mCopyTable->setEnabled(false);
     copyMenu->addAction(mCopyTable);
     //Copy->Separatoe
     copyMenu->addSeparator();
@@ -372,9 +435,10 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     }
 }
 
-void StdTable::setCopyMenuOnly(bool bSet)
+void StdTable::setCopyMenuOnly(bool bSet, bool bDebugOnly)
 {
     mCopyMenuOnly = bSet;
+    mCopyMenuDebugOnly = bDebugOnly;
 }
 
 void StdTable::contextMenuRequestedSlot(const QPoint &pos)
@@ -384,6 +448,8 @@ void StdTable::contextMenuRequestedSlot(const QPoint &pos)
         emit contextMenuSignal(pos);
         return;
     }
+    if(mCopyMenuDebugOnly && !DbgIsDebugging())
+        return;
     QMenu* wMenu = new QMenu(this);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
