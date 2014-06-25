@@ -1011,6 +1011,12 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             else
             {
                 uint addr=(uint)GetProcAddress(mod, apiname);
+                if(!addr) //not found
+                {
+                    uint ordinal;
+                    if(valfromstring(apiname, &ordinal))
+                        addr=(uint)GetProcAddress(mod, (LPCSTR)(ordinal&0xFFFF));
+                }
                 FreeLibrary(mod);
                 if(addr) //found!
                 {

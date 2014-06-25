@@ -17,6 +17,12 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     curSymbol.decoratedSymbol=(char*)BridgeAlloc(len+1);
     strcpy(curSymbol.decoratedSymbol, pSymInfo->Name);
     curSymbol.undecoratedSymbol=(char*)BridgeAlloc(MAX_SYM_NAME);
+    if(strstr(pSymInfo->Name, "Ordinal"))
+    {
+        //skip bad ordinals
+        if(pSymInfo->Address == pSymInfo->ModBase)
+            return TRUE;
+    }
     if(!UnDecorateSymbolName(pSymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
@@ -69,7 +75,7 @@ void symupdatemodulelist()
 
 bool symfromname(const char* name, uint* addr)
 {
-    if(!name or !strlen(name) or !addr)
+    if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
         return false;
     char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
     PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
