@@ -81,7 +81,7 @@ void SearchListView::listKeyPressed(QKeyEvent* event)
         }
         mSearchBox->setText(newText);
     }
-    else if((event->key()==Qt::Key_Return || event->key()==Qt::Key_Enter) && event->modifiers()==Qt::NoModifier) //user pressed enter
+    else if((event->key()==Qt::Key_Return || event->key()==Qt::Key_Enter)) //user pressed enter
         emit enterPressedSignal();
 }
 

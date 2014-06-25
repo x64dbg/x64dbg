@@ -83,6 +83,8 @@ SymbolView::~SymbolView()
 void SymbolView::setupContextMenu()
 {
     mFollowSymbolAction = new QAction("&Follow in Disassembler", this);
+    mFollowSymbolAction->setShortcutContext(Qt::WidgetShortcut);
+    mFollowSymbolAction->setShortcut(QKeySequence("enter"));
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
     mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);

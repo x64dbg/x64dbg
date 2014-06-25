@@ -20,7 +20,7 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     wCM_ToggleValue->setShortcut(Qt::Key_Space);
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"),this);
     wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
-    wCM_FollowInDisassembly = new QAction(tr("Follow in Diassembly"),this);
+    wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"),this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"),this);
 
 

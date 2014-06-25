@@ -21,8 +21,27 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
     setupContextMenu();
 }
 
+void MemoryMapView::keyPressEvent(QKeyEvent* event)
+{
+    int key = event->key();
+    if(key == Qt::Key_Enter || key == Qt::Key_Return)
+        followDisassemblerSlot();
+    else
+        StdTable::keyPressEvent(event);
+}
+
 void MemoryMapView::setupContextMenu()
 {
+    //Follow in Dump
+    mFollowDump = new QAction("&Follow in Dump", this);
+    connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+
+    //Follow in Disassembler
+    mFollowDisassembly = new QAction("Follow in &Disassembler", this);
+    mFollowDisassembly->setShortcutContext(Qt::WidgetShortcut);
+    mFollowDisassembly->setShortcut(QKeySequence("enter"));
+    connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
+
     //Breakpoint menu
     mBreakpointMenu = new QMenu("Memory &Breakpoint", this);
 
@@ -78,6 +97,9 @@ void MemoryMapView::contextMenuSlot(const QPoint &pos)
     if(!DbgIsDebugging())
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mFollowDisassembly);
+    wMenu->addAction(mFollowDump);
+    wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
@@ -173,7 +195,7 @@ QString MemoryMapView::paintContent(QPainter *painter, int_t rowBase, int rowOff
     }
     else if(col == 2) //info
     {
-        QString wStr = getCellContent(rowBase + rowOffset, col);
+        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
         if(wStr.startsWith(" \""))
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
@@ -262,7 +284,20 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             BridgeFree(wMemMapStruct.page);
         reloadData(); //refresh memory map
     }
+}
 
+void MemoryMapView::followDumpSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("dump "+addr_text).toUtf8().constData());
+    emit showCpu();
+}
+
+void MemoryMapView::followDisassemblerSlot()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm "+addr_text).toUtf8().constData());
+    emit showCpu();
 }
 
 void MemoryMapView::memoryAccessSingleshootSlot()

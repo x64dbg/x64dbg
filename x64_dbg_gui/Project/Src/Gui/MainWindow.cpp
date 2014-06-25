@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Memory Map View
     mMemMapView = new MemoryMapView();
+    connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mMemMapView->setWindowTitle("Memory Map");
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
