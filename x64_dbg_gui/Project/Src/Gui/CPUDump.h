@@ -141,6 +141,27 @@ private:
     QMenu* mCustomMenu;
 
     GotoDialog* mGoto;
+
+    enum ViewEnum_t
+    {
+        ViewHexAscii = 0,
+        ViewHexUnicode,
+        ViewTextAscii,
+        ViewTextUnicode,
+        ViewIntegerSignedShort,
+        ViewIntegerSignedLong,
+        ViewIntegerSignedLongLong,
+        ViewIntegerUnsignedShort,
+        ViewIntegerUnsignedLong,
+        ViewIntegerUnsignedLongLong,
+        ViewIntegerHexShort,
+        ViewIntegerHexLong,
+        ViewIntegerHexLongLong,
+        ViewFloatFloat,
+        ViewFloatDouble,
+        ViewFloatLongDouble,
+        ViewAddress
+    };
 };
 
 #endif // CPUDUMP_H

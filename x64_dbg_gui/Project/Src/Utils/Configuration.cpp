@@ -139,7 +139,7 @@ Configuration::Configuration() : QObject()
 
     //uint settings
     QMap<QString, uint_t> hexdumpUint;
-    hexdumpUint.insert("DefaultSelection", 0);
+    hexdumpUint.insert("DefaultView", 0);
     defaultUints.insert("HexDump", hexdumpUint);
 
     load();

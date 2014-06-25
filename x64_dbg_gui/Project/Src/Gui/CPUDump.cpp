@@ -3,7 +3,69 @@
 
 CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 {
-    hexAsciiSlot();
+    switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
+    {
+    case ViewHexAscii:
+        hexAsciiSlot();
+    break;
+    case ViewHexUnicode:
+        hexUnicodeSlot();
+    break;
+    case ViewTextAscii:
+        textAsciiSlot();
+    break;
+    case ViewTextUnicode:
+        textUnicodeSlot();
+    break;
+    case ViewIntegerSignedShort:
+        integerSignedShortSlot();
+    break;
+    case ViewIntegerSignedLong:
+        integerSignedLongSlot();
+    break;
+#ifdef _WIN64
+    case ViewIntegerSignedLongLong:
+        integerSignedLongLongSlot();
+    break;
+#endif //_WIN64
+    case ViewIntegerUnsignedShort:
+        integerUnsignedShortSlot();
+    break;
+    case ViewIntegerUnsignedLong:
+        integerUnsignedLongSlot();
+    break;
+#ifdef _WIN64
+    case ViewIntegerUnsignedLongLong:
+        integerUnsignedLongLongSlot();
+    break;
+#endif //_WIN64
+    case ViewIntegerHexShort:
+        integerHexShortSlot();
+    break;
+    case ViewIntegerHexLong:
+        integerHexLongSlot();
+    break;
+#ifdef _WIN64
+    case ViewIntegerHexLongLong:
+        integerHexLongLongSlot();
+    break;
+#endif //_WIN64
+    case ViewFloatFloat:
+        floatFloatSlot();
+    break;
+    case ViewFloatDouble:
+        floatDoubleSlot();
+    break;
+    case ViewFloatLongDouble:
+        floatLongDoubleSlot();
+    break;
+    case ViewAddress:
+        addressSlot();
+    break;
+    default:
+        hexAsciiSlot();
+    break;
+    }
 
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
@@ -349,6 +411,7 @@ void CPUDump::gotoExpressionSlot()
 
 void CPUDump::hexAsciiSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewHexAscii);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -379,6 +442,7 @@ void CPUDump::hexAsciiSlot()
 
 void CPUDump::hexUnicodeSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewHexUnicode);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -409,6 +473,7 @@ void CPUDump::hexUnicodeSlot()
 
 void CPUDump::textAsciiSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewTextAscii);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -432,6 +497,7 @@ void CPUDump::textAsciiSlot()
 
 void CPUDump::textUnicodeSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewTextUnicode);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -455,6 +521,7 @@ void CPUDump::textUnicodeSlot()
 
 void CPUDump::integerSignedShortSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedShort);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -477,6 +544,7 @@ void CPUDump::integerSignedShortSlot()
 
 void CPUDump::integerSignedLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -499,6 +567,7 @@ void CPUDump::integerSignedLongSlot()
 
 void CPUDump::integerSignedLongLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedLongLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -521,6 +590,7 @@ void CPUDump::integerSignedLongLongSlot()
 
 void CPUDump::integerUnsignedShortSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedShort);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -543,6 +613,7 @@ void CPUDump::integerUnsignedShortSlot()
 
 void CPUDump::integerUnsignedLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -565,6 +636,7 @@ void CPUDump::integerUnsignedLongSlot()
 
 void CPUDump::integerUnsignedLongLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedLongLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -587,6 +659,7 @@ void CPUDump::integerUnsignedLongLongSlot()
 
 void CPUDump::integerHexShortSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexShort);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -609,6 +682,7 @@ void CPUDump::integerHexShortSlot()
 
 void CPUDump::integerHexLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -631,6 +705,7 @@ void CPUDump::integerHexLongSlot()
 
 void CPUDump::integerHexLongLongSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexLongLong);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -653,6 +728,7 @@ void CPUDump::integerHexLongLongSlot()
 
 void CPUDump::floatFloatSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatFloat);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -675,6 +751,7 @@ void CPUDump::floatFloatSlot()
 
 void CPUDump::floatDoubleSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatDouble);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -697,6 +774,7 @@ void CPUDump::floatDoubleSlot()
 
 void CPUDump::floatLongDoubleSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatLongDouble);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
@@ -719,6 +797,7 @@ void CPUDump::floatLongDoubleSlot()
 
 void CPUDump::addressSlot()
 {
+    Config()->setUint("HexDump", "DefaultView", (uint_t)ViewAddress);
     int charwidth=QFontMetrics(this->font()).width(QChar(' '));
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
