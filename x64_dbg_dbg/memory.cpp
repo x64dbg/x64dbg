@@ -190,8 +190,11 @@ uint memfindpattern(unsigned char* data, uint size, const char* pattern)
             if(pos==searchpatternsize) //everything matched
                 return i-searchpatternsize+1;
         }
-        else
-            pos=0; //reset current pattern position
+        else if (pos>0) //fix by Computer_Angel
+        {
+            i-=pos; // return to previous byte 
+            pos=0; //reset current pattern position 
+        }
     }
     return -1;
 }
