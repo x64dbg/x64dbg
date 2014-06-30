@@ -176,6 +176,7 @@ void CPUDump::setupContextMenu()
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 

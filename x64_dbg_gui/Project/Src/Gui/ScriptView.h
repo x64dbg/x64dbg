@@ -19,11 +19,11 @@ public:
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
-    void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void keyPressEvent(QKeyEvent* event);
 
 public slots:
+    void contextMenuSlot(const QPoint &pos);
     void add(int count, const char** lines);
     void clear();
     void setIp(int line);

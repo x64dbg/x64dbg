@@ -23,6 +23,7 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
+    connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
 
@@ -269,7 +270,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     return returnString;
 }
 
-void ScriptView::contextMenuEvent(QContextMenuEvent* event)
+void ScriptView::contextMenuSlot(const QPoint &pos)
 {
     QMenu* wMenu = new QMenu(this);
     wMenu->addMenu(mLoadMenu);
@@ -286,7 +287,7 @@ void ScriptView::contextMenuEvent(QContextMenuEvent* event)
     }
     wMenu->addSeparator();
     wMenu->addAction(mScriptCmdExec);
-    wMenu->exec(event->globalPos());
+    wMenu->exec(mapToGlobal(pos));
 }
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
