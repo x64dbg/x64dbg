@@ -263,7 +263,7 @@ bool vardel(const char* name, bool delsystem)
     return true;
 }
 
-bool vargettype(const char* name, VAR_TYPE* type)
+bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
     char newname[deflen]="$";
     int add=0;
@@ -273,6 +273,8 @@ bool vargettype(const char* name, VAR_TYPE* type)
     VAR* found=varfind(newname, 0);
     if(!found)
         return false;
+    if(valtype)
+        *valtype=found->value.type;
     if(type)
         *type=found->type;
     return true;

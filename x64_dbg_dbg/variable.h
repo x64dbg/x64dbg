@@ -48,6 +48,6 @@ bool varget(const char* name, char* string, int* size, VAR_TYPE* type);
 bool varset(const char* name, uint value, bool setreadonly);
 bool varset(const char* name, const char* string, bool setreadonly);
 bool vardel(const char* name, bool delsystem);
-bool vargettype(const char* name, VAR_TYPE* type);
+bool vargettype(const char* name, VAR_TYPE* type = 0, VAR_VALUE_TYPE* valtype = 0);
 
 #endif // _VARIABLE_H

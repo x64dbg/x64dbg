@@ -899,13 +899,13 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    VAR_TYPE vartype;
-    if(!vargettype(argv[1], &vartype))
+    VAR_VALUE_TYPE valtype;
+    if(!vargettype(argv[1], 0, &valtype))
     {
         dprintf("no such variable \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(vartype!=VAR_STRING)
+    if(valtype!=VAR_STRING)
     {
         dprintf("variable \"%s\" is not a string!\n", argv[1]);
         return STATUS_ERROR;
@@ -920,11 +920,63 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
     memset(string, 0, size+1);
     if(!varget(argv[1], string, &size, 0))
     {
+        efree(string, "cbInstrGetstr:string");
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
     dprintf("%s=\"%s\"\n", argv[1], string);
     efree(string, "cbInstrGetstr:string");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrCopystr(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    VAR_VALUE_TYPE valtype;
+    if(!vargettype(argv[2], 0, &valtype))
+    {
+        dprintf("no such variable \"%s\"!\n", argv[2]);
+        return STATUS_ERROR;
+    }
+    if(valtype!=VAR_STRING)
+    {
+        dprintf("variable \"%s\" is not a string!\n", argv[2]);
+        return STATUS_ERROR;
+    }
+    int size;
+    if(!varget(argv[2], (char*)0, &size, 0) or !size)
+    {
+        dprintf("failed to get variable size \"%s\"!\n", argv[2]);
+        return STATUS_ERROR;
+    }
+    char* string=(char*)emalloc(size+1, "cbInstrGetstr:string");
+    memset(string, 0, size+1);
+    if(!varget(argv[2], string, &size, 0))
+    {
+        efree(string, "cbInstrCopystr:string");
+        dprintf("failed to get variable data \"%s\"!\n", argv[2]);
+        return STATUS_ERROR;
+    }
+    uint addr;
+    if(!valfromstring(argv[1], &addr))
+    {
+        efree(string, "cbInstrCopystr:string");
+        dprintf("invalid address \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    if(!memwrite(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
+    {
+        efree(string, "cbInstrCopystr:string");
+        dputs("memwrite failed!");
+        return STATUS_ERROR;
+    }
+    efree(string, "cbInstrCopystr:string");
+    dputs("string written!");
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
