@@ -120,9 +120,12 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         return false;
     bool retval=true;
     BREAKPOINT curBp;
-    for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
+    BreakpointsInfo::iterator i=breakpoints.begin();
+    while(i!=breakpoints.end())
     {
-        curBp=i->second;
+        BreakpointsInfo::iterator j=i;
+        ++i;
+        curBp=j->second;
         curBp.addr+=modbasefromname(curBp.mod); //RVA to VA
         curBp.active=memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr); //TODO: wtf am I doing?
         if(module and *module)
