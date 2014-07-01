@@ -660,13 +660,14 @@ void CPUDisassembly::assembleAt()
     Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
     char error[256]="";
-    if(!DbgFunctions()->DbgAssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+    if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
+        return;
     }
     //select next instruction after assembling
     setSingleSelection(wRVA);
