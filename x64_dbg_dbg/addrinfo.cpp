@@ -181,6 +181,14 @@ uint modbasefromname(const char* modname)
     return 0;
 }
 
+uint modsizefromaddr(uint addr)
+{
+    const ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    if(found==modinfo.end()) //not found
+        return 0;
+    return found->second.size;
+}
+
 ///api functions
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 {

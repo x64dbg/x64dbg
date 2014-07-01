@@ -124,6 +124,7 @@ uint modbasefromaddr(uint addr);
 uint modhashfromva(uint va);
 uint modhashfromname(const char* mod);
 uint modbasefromname(const char* modname);
+uint modsizefromaddr(uint addr);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
 

@@ -42,6 +42,11 @@ static bool sectionfromaddr(duint addr, char* section)
 
 void dbgfunctionsinit()
 {
-    _dbgfunctions.DbgAssembleAtEx=assembleat;
-    _dbgfunctions.DbgSectionFromAddr=sectionfromaddr;
+    _dbgfunctions.AssembleAtEx=assembleat;
+    _dbgfunctions.SectionFromAddr=sectionfromaddr;
+    _dbgfunctions.ModNameFromAddr=modnamefromaddr;
+    _dbgfunctions.ModBaseFromAddr=modbasefromaddr;
+    _dbgfunctions.ModBaseFromName=modbasefromname;
+    _dbgfunctions.ModSizeFromAddr=modsizefromaddr;
+    _dbgfunctions.Assemble=assemble;
 }
