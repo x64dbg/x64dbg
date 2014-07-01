@@ -2,87 +2,66 @@
 [here: https://bitbucket.org/mrexodia/x64_dbg_old                       ]
 
 >Downloads:
-These can be found at https://sf.net/projects/x64dbg/
+Releases of x64_dbg can be found at http://download.x64dbg.com
 
 >Overview:
-This is a x64/x32 debugger that is currently in active development.
-
-The debugger has (currently) three parts:
-- DBG
-- GUI
-- Bridge
-
-DBG is the debugging part of the debugger. It handles debugging (using
-TitanEngine) and will provide data for the GUI.
-
-GUI is the graphical part of the debugger. It is built on top of Qt and it
-provides the user interaction, the dump window, the disassembly, 
-the register window, the memory map view, the log view etc.
-
-Bridge is the communication library for the DBG and GUI part (and maybe in
-the future more parts). The bridge can be used to work on new features,
-without having to update the code of the other parts. It also ensures
-low-level code stays (partially separated from the high level GUI code).
+x64_dbg is an open-source x32/x64 debugger for windows.
 
 >Features:
-- variables (with regard to the upcoming script feature)
-- basic calculations (var*@401000+.45^4A)
-- hide debugger (very basic)
-- software breakpoints (INT3, LONG INT3, UD2)
-- memory breakpoints (read, write, execute)
-- hardware breakpoints (access, write, execute)
-- stepping (into, over, n instructions)
-- rtr (return from function)
-- memory allocation/deallocation in the debuggee
-- quickly accessing API addresses (GetProcAddress->76E13620)
-- fully customizable GUI colors and instruction highlighting
+- Open-source
+- Intuitive and familiar, yet new user interface
+- C-like expression parser
+- Full-featured debugging of DLL and EXE files (TitanEngine)
 - IDA-like sidebar with jump arrows
-- IDA-like instruction token highlighting (hold 'Z' in disassembly)
-- memory map
-- basic module labeling
-- import reconstruction (using Scylla)
-- drag&drop files
-- goto window
-- register/flags view with editing support and change highlighting
-- quite fast working in really big code pages (tested up to 5GB)
-- GUI hotkeys
-- dynamic jump arrow (just like OllyDbg)
-- user databases for labels/comments/breakpoints/bookmarks (*.dd64 or *.dd32 files)
-- easy context menu in disassembly (to set breakpoints etc)
-- plugin support
-- (manual) function analysis
-- easily follow calls/jumps/ret (press ENTER when selecting)
-- (buggy) dynamic commenting (strings)
-- scripting support (using the debugger commands)!
-- simple dump window with various data modes
-- symbols (+ exports) view with search
-- simple stack view
-- programmable reference view
+- IDA-like instruction token highlighter (highlight registers etc.)
+- Memory map
+- Symbol view
+- Thread view
+- Content-sensitive register view
+- Fully customizable color scheme
+- Dynamically recognize modules and strings
+- Import reconstructor integrated (Scylla)
+- Fast disassembler (BeaEngine)
+- User database (JSON) for comments, labels, bookmarks etc.
+- Plugin support with growing API
+- Extendable, debuggable scripting language for automation
+- Multi-datatype memory dump
+- Basic debug symbol (PDB) support
+- Dynamic stack view
+- Built-in assembler (XEDParse)
 
 >Known bugs:
-- memory breakpoints sometimes fail (TitanEngine bug)
+- Memory breakpoints sometimes fail (TitanEngine bug)
 
->Last words:
-The debugger core is based on TitanEngine (an updated version,
-https://bitbucket.org/mrexodia/titanengine-update)
+>License:
+x64_dbg is licensed under GLPv3, which means you can freely distribute
+and modify the source of x64_dbg, as long as you share your changes
+with us. The only exception of is that plugins you write do not have
+to comply with the original GLPv3 license (they do not have to be open-
+source), except if you directly use code from inside x64_dbg. In that
+case you would still have to share the changes with us.
 
-Disassembly powered by BeaEngine (http://beaengine.org/).
+>Credits:
+- Debugger core by TitanEngine Community Edition
+- Disassembly powered by BeaEngine (Updated)
+- Assembly powered by XEDParse
+- Import reconstruction powered by Scylla
+- JSON powered by Jansson
+- Database compression powered by lz4
+- Bug icon by VisualPharm
+- Interface icons by Fugue
+- Website by tr4ceflow
 
-The icon is taken from VisualPharm (http://www.visualpharm.com/)
-
-Licensed under GLPv3
-
->Special thanks:
+>Special Thanks:
 - acidflash
-- Ahmadmansoor
 - cyberbob
 - Teddy Rogers
 - EXETools community
 - Tuts4You community
 - DMichael
-- TEAM DVT
 - Artic
-- Sorry if I forgot you!
+- Nukem
+- ahmadmansoor
 
 >Developers:
 - Mr. eXoDia
