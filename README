@@ -34,12 +34,9 @@ x64_dbg is an open-source x32/x64 debugger for windows.
 - Memory breakpoints sometimes fail (TitanEngine bug)
 
 >License:
-x64_dbg is licensed under GLPv3, which means you can freely distribute
+x64_dbg is licensed under LGLPv3, which means you can freely distribute
 and modify the source of x64_dbg, as long as you share your changes
-with us. The only exception of is that plugins you write do not have
-to comply with the original GLPv3 license (they do not have to be open-
-source), except if you directly use code from inside x64_dbg. In that
-case you would still have to share the changes with us.
+with us. Plugins do not have to be open source or free to distribute.
 
 >Credits:
 - Debugger core by TitanEngine Community Edition
