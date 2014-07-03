@@ -70,7 +70,8 @@ SOURCES += \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
     Src/Disassembler/BeaTokenizer.cpp \
-    Src/Gui/CloseDialog.cpp
+    Src/Gui/CloseDialog.cpp \
+    Src/BasicView/XBytesLineEdit.cpp
 
 
 HEADERS += \
@@ -119,7 +120,8 @@ HEADERS += \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
     Src/Disassembler/BeaTokenizer.h \
-    Src/Gui/CloseDialog.h
+    Src/Gui/CloseDialog.h \
+    Src/BasicView/XBytesLineEdit.h
 
 
 INCLUDEPATH += \
