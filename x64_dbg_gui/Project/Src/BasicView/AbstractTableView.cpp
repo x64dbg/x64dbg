@@ -278,7 +278,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
         repaint();
     }
     default:
-    break;
+        break;
     }
 }
 
@@ -478,19 +478,19 @@ void AbstractTableView::vertSliderActionSlot(int action)
     switch(action)
     {
     case QAbstractSlider::SliderNoAction:
-    break;
+        break;
     case QAbstractSlider::SliderSingleStepAdd:
         wDelta = 1;
-    break;
+        break;
     case QAbstractSlider::SliderSingleStepSub:
         wDelta = -1;
-    break;
+        break;
     case QAbstractSlider::SliderPageStepAdd:
         wDelta = 30;
-    break;
+        break;
     case QAbstractSlider::SliderPageStepSub:
         wDelta = -30;
-    break;
+        break;
     case QAbstractSlider::SliderToMinimum:
     case QAbstractSlider::SliderToMaximum:
     case QAbstractSlider::SliderMove:
@@ -499,9 +499,9 @@ void AbstractTableView::vertSliderActionSlot(int action)
 #else
         wDelta = wSliderPos - mTableOffset;
 #endif
-    break;
+        break;
     default:
-    break;
+        break;
     }
 
     // Call the hook (Usefull for disassembly)

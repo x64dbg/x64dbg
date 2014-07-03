@@ -7,64 +7,64 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
     {
     case ViewHexAscii:
         hexAsciiSlot();
-    break;
+        break;
     case ViewHexUnicode:
         hexUnicodeSlot();
-    break;
+        break;
     case ViewTextAscii:
         textAsciiSlot();
-    break;
+        break;
     case ViewTextUnicode:
         textUnicodeSlot();
-    break;
+        break;
     case ViewIntegerSignedShort:
         integerSignedShortSlot();
-    break;
+        break;
     case ViewIntegerSignedLong:
         integerSignedLongSlot();
-    break;
+        break;
 #ifdef _WIN64
     case ViewIntegerSignedLongLong:
         integerSignedLongLongSlot();
-    break;
+        break;
 #endif //_WIN64
     case ViewIntegerUnsignedShort:
         integerUnsignedShortSlot();
-    break;
+        break;
     case ViewIntegerUnsignedLong:
         integerUnsignedLongSlot();
-    break;
+        break;
 #ifdef _WIN64
     case ViewIntegerUnsignedLongLong:
         integerUnsignedLongLongSlot();
-    break;
+        break;
 #endif //_WIN64
     case ViewIntegerHexShort:
         integerHexShortSlot();
-    break;
+        break;
     case ViewIntegerHexLong:
         integerHexLongSlot();
-    break;
+        break;
 #ifdef _WIN64
     case ViewIntegerHexLongLong:
         integerHexLongLongSlot();
-    break;
+        break;
 #endif //_WIN64
     case ViewFloatFloat:
         floatFloatSlot();
-    break;
+        break;
     case ViewFloatDouble:
         floatDoubleSlot();
-    break;
+        break;
     case ViewFloatLongDouble:
         floatLongDoubleSlot();
-    break;
+        break;
     case ViewAddress:
         addressSlot();
-    break;
+        break;
     default:
         hexAsciiSlot();
-    break;
+        break;
     }
 
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));

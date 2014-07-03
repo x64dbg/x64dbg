@@ -1,4 +1,3 @@
-
 #include "XBytesLineEdit.h"
 #include <QClipboard>
 #include <QApplication>
@@ -20,7 +19,8 @@ void XBytesLineEdit::autoMask(QString content)
     int remainder = len%2;
     int parts = (len-remainder)/2;
 
-    if(parts != mParts){
+    if(parts != mParts)
+    {
         QString m("HH ");
         int backupPosition = cursorPosition();
         setInputMask(m.repeated(parts+1));
@@ -29,7 +29,8 @@ void XBytesLineEdit::autoMask(QString content)
     }
 }
 
-void XBytesLineEdit::paste(){
+void XBytesLineEdit::paste()
+{
 
     QString rawClipboardText = QApplication::clipboard()->text().replace(' ',"").toUpper();
 
@@ -42,13 +43,15 @@ void XBytesLineEdit::paste(){
 
 }
 
-void XBytesLineEdit::copy(){
+void XBytesLineEdit::copy()
+{
     // copy whole content
     QApplication::clipboard()->setText(text());
     //QApplication::clipboard()->setText(selectedText().replace(' ',"").toUpper());
 }
 
-void XBytesLineEdit::cut(){
+void XBytesLineEdit::cut()
+{
     // prevent cutting
 }
 
@@ -59,15 +62,22 @@ QString XBytesLineEdit::text()
 
 
 
-void XBytesLineEdit::keyPressEvent(QKeyEvent *event){
-    if(event->matches(QKeySequence::Paste)){
+void XBytesLineEdit::keyPressEvent(QKeyEvent *event)
+{
+    if(event->matches(QKeySequence::Paste))
+    {
         paste();
-    }else if(event->matches(QKeySequence::Copy)){
+    }
+    else if(event->matches(QKeySequence::Copy))
+    {
         copy();
-    }else if(event->matches(QKeySequence::Cut)){
+    }
+    else if(event->matches(QKeySequence::Cut))
+    {
         //prevent cutting
     }
-    else{
+    else
+    {
         return QLineEdit::keyPressEvent(event);
     }
 }
