@@ -35,7 +35,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
         return;
     QString info="";
     char section[10]="";
-    bool bSection = DbgFunctions()->DbgSectionFromAddr(parVA, section);
+    bool bSection = DbgFunctions()->SectionFromAddr(parVA, section);
     char label[MAX_LABEL_SIZE]="";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
     {
