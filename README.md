@@ -4,7 +4,7 @@
 **This is a new version of this repository. The old version can be found [here](https://bitbucket.org/mrexodia/x64_dbg_old).**
 
 ## Downloads
-Releases of *x64_dbg* can be found on [*x64_dbg*'s SourceForge page](http://download.x64dbg.com).
+Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 
 ## Overview
 *x64_dbg* is an open-source x32/x64 debugger for Windows.
