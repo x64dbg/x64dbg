@@ -1,19 +1,21 @@
-[This is a new version of this repository. The old version can be found ]
-[here: https://bitbucket.org/mrexodia/x64_dbg_old                       ]
+# x64dbg
 
->Downloads:
-Releases of x64_dbg can be found at http://download.x64dbg.com
+## Note
+**This is a new version of this repository. The old version can be found [here](https://bitbucket.org/mrexodia/x64_dbg_old).**
 
->Overview:
-x64_dbg is an open-source x32/x64 debugger for windows.
+## Downloads
+Releases of *x64_dbg* can be found at [our SourceForge page](http://download.x64dbg.com).
 
->Features:
+## Overview
+*x64_dbg* is an open-source x32/x64 debugger for Windows.
+
+## Features
 - Open-source
 - Intuitive and familiar, yet new user interface
 - C-like expression parser
 - Full-featured debugging of DLL and EXE files (TitanEngine)
 - IDA-like sidebar with jump arrows
-- IDA-like instruction token highlighter (highlight registers etc.)
+- IDA-like instruction token highlighter (highlight registers, etc.)
 - Memory map
 - Symbol view
 - Thread view
@@ -22,7 +24,7 @@ x64_dbg is an open-source x32/x64 debugger for windows.
 - Dynamically recognize modules and strings
 - Import reconstructor integrated (Scylla)
 - Fast disassembler (BeaEngine)
-- User database (JSON) for comments, labels, bookmarks etc.
+- User database (JSON) for comments, labels, bookmarks, etc.
 - Plugin support with growing API
 - Extendable, debuggable scripting language for automation
 - Multi-datatype memory dump
@@ -30,18 +32,13 @@ x64_dbg is an open-source x32/x64 debugger for windows.
 - Dynamic stack view
 - Built-in assembler (XEDParse)
 
->Known bugs:
+## Known bugs
 - Memory breakpoints sometimes fail (TitanEngine bug)
 
->License:
-x64_dbg is licensed under GLPv3, which means you can freely distribute
-and modify the source of x64_dbg, as long as you share your changes
-with us. The only exception of is that plugins you write do not have
-to comply with the original GLPv3 license (they do not have to be open-
-source), except if you directly use code from inside x64_dbg. In that
-case you would still have to share the changes with us.
+## License
+*x64_dbg* is licensed under GLPv3, which means you can freely distribute and modify the source of *x64_dbg*, as long as you share your changes with us. The only exception of is that plugins you write do not have to comply with the original GLPv3 license (they do not have to be open-source), except if you directly use code from inside *x64_dbg*. In that case you would still have to share the changes with us.
 
->Credits:
+## Credits
 - Debugger core by TitanEngine Community Edition
 - Disassembly powered by BeaEngine (Updated)
 - Assembly powered by XEDParse
@@ -52,18 +49,18 @@ case you would still have to share the changes with us.
 - Interface icons by Fugue
 - Website by tr4ceflow
 
->Special Thanks:
+## Special Thanks
+- EXETools community
+- Tuts4You community
 - acidflash
 - cyberbob
 - Teddy Rogers
-- EXETools community
-- Tuts4You community
 - DMichael
 - Artic
 - Nukem
 - ahmadmansoor
 
->Developers:
+## Developers
 - Mr. eXoDia
 - Sigma
 - tr4ceflow
