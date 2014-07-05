@@ -303,6 +303,8 @@ bool commentdel(uint addr)
 
 void commentdelrange(uint start, uint end)
 {
+    if(!DbgIsDebugging())
+        return;
     bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
     uint modbase=modbasefromaddr(start);
     if(modbase!=modbasefromaddr(end))
@@ -403,6 +405,8 @@ void commentcacheload(JSON root)
 
 bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(!commentlist && !cbsize)
         return false;
     if(!commentlist && cbsize)
@@ -474,6 +478,8 @@ bool labeldel(uint addr)
 
 void labeldelrange(uint start, uint end)
 {
+    if(!DbgIsDebugging())
+        return;
     bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
     uint modbase=modbasefromaddr(start);
     if(modbase!=modbasefromaddr(end))
@@ -578,6 +584,8 @@ void labelcacheload(JSON root)
 
 bool labelenum(LABELSINFO* labellist, size_t* cbsize)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(!labellist && !cbsize)
         return false;
     if(!labellist && cbsize)
@@ -626,6 +634,8 @@ bool bookmarkdel(uint addr)
 
 void bookmarkdelrange(uint start, uint end)
 {
+    if(!DbgIsDebugging())
+        return;
     bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
     uint modbase=modbasefromaddr(start);
     if(modbase!=modbasefromaddr(end))
@@ -715,6 +725,8 @@ void bookmarkcacheload(JSON root)
 
 bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(!bookmarklist && !cbsize)
         return false;
     if(!bookmarklist && cbsize)
@@ -783,6 +795,8 @@ bool functiondel(uint addr)
 
 void functiondelrange(uint start, uint end)
 {
+    if(!DbgIsDebugging())
+        return;
     bool bDelAll=(start==0 && end==~0); //0x00000000-0xFFFFFFFF
     uint modbase=modbasefromaddr(start);
     if(modbase!=modbasefromaddr(end))
@@ -879,6 +893,8 @@ void functioncacheload(JSON root)
 
 bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(!functionlist && !cbsize)
         return false;
     if(!functionlist && cbsize)
@@ -1057,6 +1073,8 @@ void loopcacheload(JSON root)
 
 bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
 {
+    if(!DbgIsDebugging())
+        return false;
     if(!looplist && !cbsize)
         return false;
     if(!looplist && cbsize)
