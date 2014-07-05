@@ -618,6 +618,8 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
         for (int idx = getSelectionBegin(); idx < getSelectionEnd(); idx++)
         {
             QString byte = _xData.data().mid(idx, 1).toHex();
+            if(!byte.length())
+                break;
             QString mask = _xMask.data().mid(idx, 1).toHex();
             if(mask[0] == '1')
                 result += "?";
@@ -630,8 +632,11 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
             result += " ";
         }
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setText(result.toUpper().trimmed());
-        QApplication::beep();
+        if(result.length())
+        {
+            clipboard->setText(result.toUpper().trimmed());
+            QApplication::beep();
+        }
     }
 
     // Switch between insert/overwrite mode
