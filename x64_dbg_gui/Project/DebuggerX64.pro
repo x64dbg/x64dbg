@@ -71,7 +71,11 @@ SOURCES += \
     Src/Gui/AppearanceDialog.cpp \
     Src/Disassembler/BeaTokenizer.cpp \
     Src/Gui/CloseDialog.cpp \
-    Src/BasicView/XBytesLineEdit.cpp
+    Src/Gui/HexEditDialog.cpp \
+    Src/QHexEdit/ArrayCommand.cpp \
+    Src/QHexEdit/QHexEdit.cpp \
+    Src/QHexEdit/QHexEditPrivate.cpp \
+    Src/QHexEdit/XByteArray.cpp
 
 
 HEADERS += \
@@ -121,7 +125,11 @@ HEADERS += \
     Src/Gui/AppearanceDialog.h \
     Src/Disassembler/BeaTokenizer.h \
     Src/Gui/CloseDialog.h \
-    Src/BasicView/XBytesLineEdit.h
+    Src/Gui/HexEditDialog.h \
+    Src/QHexEdit/ArrayCommand.h \
+    Src/QHexEdit/QHexEdit.h \
+    Src/QHexEdit/QHexEditPrivate.h \
+    Src/QHexEdit/XByteArray.h
 
 
 INCLUDEPATH += \
@@ -149,7 +157,8 @@ FORMS += \
     Src/Gui/ExceptionRangeDialog.ui \
     Src/Gui/CommandHelpView.ui \
     Src/Gui/AppearanceDialog.ui \
-    Src/Gui/CloseDialog.ui
+    Src/Gui/CloseDialog.ui \
+    Src/Gui/HexEditDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

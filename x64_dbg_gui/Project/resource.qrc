@@ -32,5 +32,6 @@
         <file>images/strings.png</file>
         <file>images/color-swatches.png</file>
         <file>images/call.png</file>
+        <file>images/document-binary.png</file>
     </qresource>
 </RCC>
