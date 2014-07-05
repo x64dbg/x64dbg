@@ -21,7 +21,8 @@ public:
     void insert(int i, const QByteArray & ba, const QByteArray & mask);
     void insert(int i, char ch, char mask);
     void remove(int pos, int len=1);
-    void replace( int pos, int len, const QByteArray & after, const QByteArray & mask);
+    void replace(int pos, int len, const QByteArray & after, const QByteArray & mask);
+    void fill(int index, const QString & pattern);
 
     //properties
     void setCursorPosition(int cusorPos);

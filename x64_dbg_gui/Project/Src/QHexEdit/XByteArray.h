@@ -27,9 +27,6 @@ public slots:
 
 private:
     QByteArray _data; //raw byte array
-    QByteArray _mask; //masked byte array
-
-    int _oldSize;                           // size of data
 };
 
 #endif // XBYTEARRAY_H

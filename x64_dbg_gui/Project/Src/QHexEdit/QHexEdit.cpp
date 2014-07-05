@@ -36,6 +36,35 @@ void QHexEdit::replace( int pos, int len, const QByteArray & after, const QByteA
     qHexEdit_p->replace(pos, len, after, mask);
 }
 
+void QHexEdit::fill(int index, const QString & pattern)
+{
+    QString convert;
+    for(int i=0; i<pattern.length(); i++)
+    {
+        QChar ch = pattern[i].toLower();
+        if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
+            convert += ch;
+    }
+    if(convert.length()%2) //odd length
+        convert += "0";
+    QByteArray data(convert.length(), 0);
+    QByteArray mask(data.length(), 0);
+    for(int i=0; i<convert.length(); i++)
+    {
+        if(convert[i] == '?')
+        {
+            data[i]='0';
+            mask[i]='1';
+        }
+        else
+        {
+            data[i]=convert[i].toAscii();
+            mask[i]='0';
+        }
+    }
+    qHexEdit_p->fill(index, QByteArray().fromHex(data), QByteArray().fromHex(mask));
+}
+
 void QHexEdit::redo()
 {
     qHexEdit_p->redo();

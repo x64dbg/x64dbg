@@ -149,6 +149,25 @@ void QHexEditPrivate::replace(int pos, int len, const QByteArray &after, const Q
     emit dataChanged();
 }
 
+void QHexEditPrivate::fill(int index, const QByteArray & ba, const QByteArray & mask)
+{
+    int dataSize = _xData.size();
+    if(index >= dataSize)
+        return;
+    int repeat = dataSize / ba.size() + 1;
+    QByteArray fillData = ba.repeated(repeat);
+    fillData.resize(dataSize);
+    fillData = fillData.toHex();
+    QByteArray fillMask = mask.repeated(repeat);
+    fillMask.resize(dataSize);
+    fillMask = fillMask.toHex();
+    QByteArray origData = _xData.data().mid(index).toHex();
+    for(int i=0; i<dataSize*2; i++)
+        if(fillMask[i]=='1')
+            fillData[i]=origData[i];
+    this->replace(index, QByteArray().fromHex(fillData), QByteArray().fromHex(fillMask));
+}
+
 void QHexEditPrivate::setOverwriteMode(bool overwriteMode)
 {
     _overwriteMode = overwriteMode;
@@ -183,6 +202,7 @@ void QHexEditPrivate::setHorizontalSpacing(int x)
 {
     _horizonalSpacing = x;
     adjust();
+    setCursorPos(cursorPos());
     this->repaint();
 }
 

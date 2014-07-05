@@ -2,7 +2,6 @@
 
 XByteArray::XByteArray()
 {
-    _oldSize = -99;
 }
 
 QByteArray & XByteArray::data()

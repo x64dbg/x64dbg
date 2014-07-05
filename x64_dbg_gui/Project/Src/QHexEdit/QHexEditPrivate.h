@@ -40,6 +40,7 @@ public:
     void replace(int index, char ch, char mask);
     void replace(int index, const QByteArray & ba, const QByteArray & mask);
     void replace(int pos, int len, const QByteArray & after, const QByteArray & mask);
+    void fill(int index, const QByteArray & ba, const QByteArray & mask);
     void undo();
     void redo();
 
