@@ -176,6 +176,13 @@ your copyrighted material outside their relationship with you.
 the conditions stated below.  Sublicensing is not allowed; section 10
 makes it unnecessary.
 
+  This license does not affect plugins, i.e., dynamically linked
+libraries, that use the provided plugin interface mechanism of x64_dbg
+for contibuting additional features to the x64_dbg project and can only
+be run from x64dbg. In fact you are allowed to create and share
+(non-)commercial, non-standalone closed-source plugins for x64dbg without
+distributing the source of the specific plugin.
+
   3. Protecting Users' Legal Rights From Anti-Circumvention Law.
 
   No covered work shall be deemed part of an effective technological
