@@ -26,6 +26,7 @@ private slots:
     void referenceContextMenu(QMenu* wMenu);
     void followAddress();
     void followDumpAddress();
+    void followGenericAddress();
 
 signals:
     void showCpu();
@@ -34,6 +35,7 @@ private:
     QProgressBar* mSearchProgress;
     QAction* mFollowAddress;
     QAction* mFollowDumpAddress;
+    bool mFollowDumpDefault;
 };
 
 #endif // REFERENCEVIEW_H

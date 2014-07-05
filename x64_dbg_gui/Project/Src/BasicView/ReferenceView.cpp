@@ -24,7 +24,7 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followAddress()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
 
     setupContextMenu();
 }
@@ -49,6 +49,11 @@ void ReferenceView::addColumnAt(int width, QString title)
     else
         width=0;
     mSearchBox->setText("");
+    if(title.toLower() == "&data&")
+    {
+        mFollowDumpDefault=true;
+        title="Data";
+    }
     mList->addColumnAt(width, title, true);
     mSearchList->addColumnAt(width, title, true);
 }
@@ -71,6 +76,7 @@ void ReferenceView::deleteAllColumns()
     mSearchList->deleteAllColumns();
     mSearchList->reloadData();
     mSearchStartCol = 1;
+    mFollowDumpDefault = false;
 }
 
 void ReferenceView::setCellContent(int r, int c, QString s)
@@ -123,4 +129,12 @@ void ReferenceView::followDumpAddress()
 {
     DbgCmdExecDirect(QString("dump " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
+}
+
+void ReferenceView::followGenericAddress()
+{
+    if(mFollowDumpDefault)
+        followDumpAddress();
+    else
+        followAddress();
 }
