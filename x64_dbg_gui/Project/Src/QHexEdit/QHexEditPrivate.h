@@ -50,6 +50,7 @@ signals:
     void overwriteModeChanged(bool state);
 
 protected:
+    void focusInEvent(QFocusEvent* event);
     void resizeEvent(QResizeEvent* event);
     void keyPressEvent(QKeyEvent * event);
     void mouseMoveEvent(QMouseEvent * event);

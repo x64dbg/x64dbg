@@ -16,6 +16,8 @@ public:
     explicit HexEditDialog(QWidget *parent = 0);
     ~HexEditDialog();
 
+    QHexEdit* mHexEdit;
+
 private slots:
     void on_btnAscii2Hex_clicked();
     void on_btnUnicode2Hex_clicked();
@@ -24,7 +26,6 @@ private slots:
 
 private:
     Ui::HexEditDialog *ui;
-    QHexEdit* mHexEdit;
 };
 
 #endif // HEXEDITDIALOG_H

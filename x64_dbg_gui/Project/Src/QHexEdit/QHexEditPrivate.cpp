@@ -254,6 +254,12 @@ void QHexEditPrivate::undo()
     update();
 }
 
+void QHexEditPrivate::focusInEvent(QFocusEvent *event)
+{
+    ensureVisible();
+    QWidget::focusInEvent(event);
+}
+
 void QHexEditPrivate::resizeEvent(QResizeEvent* event)
 {
     adjust();
@@ -412,7 +418,10 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
         if (_overwriteMode == false)
         {
             if(_keepSize && _xData.size() >= _initSize)
+            {
+                QWidget::keyPressEvent(event);
                 return;
+            }
             if ((charX % 3) == 0)
                 insert(posBa, char(0), char(0));
         }
@@ -615,6 +624,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
 
     ensureVisible();
     update();
+    QWidget::keyPressEvent(event);
 }
 
 void QHexEditPrivate::mouseMoveEvent(QMouseEvent * event)
@@ -624,6 +634,7 @@ void QHexEditPrivate::mouseMoveEvent(QMouseEvent * event)
     int actPos = cursorPos(event->pos());
     setCursorPos(actPos);
     setSelection(actPos);
+    QWidget::mouseMoveEvent(event);
 }
 
 void QHexEditPrivate::mousePressEvent(QMouseEvent * event)
@@ -641,6 +652,7 @@ void QHexEditPrivate::mousePressEvent(QMouseEvent * event)
         resetSelection(cPos);
         setCursorPos(cPos);
     }
+    QWidget::mousePressEvent(event);
 }
 
 void QHexEditPrivate::paintEvent(QPaintEvent *event)

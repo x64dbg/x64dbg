@@ -27,7 +27,7 @@
     </rect>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::StrongFocus</enum>
+    <enum>Qt::NoFocus</enum>
    </property>
    <property name="widgetResizable">
     <bool>true</bool>
@@ -193,9 +193,9 @@
   </widget>
  </widget>
  <tabstops>
-  <tabstop>lineEditUnicode</tabstop>
   <tabstop>lineEditAscii</tabstop>
   <tabstop>btnAscii2Hex</tabstop>
+  <tabstop>lineEditUnicode</tabstop>
   <tabstop>btnUnicode2Hex</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>chkKeepSize</tabstop>

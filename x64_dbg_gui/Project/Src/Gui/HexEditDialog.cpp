@@ -11,18 +11,22 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     setModal(true); //modal window
-    mHexEdit = new QHexEdit(this);
-    mHexEdit->setHorizontalSpacing(6);
-    connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
-    mHexEdit->setData(QString("11223344556677889900aabbccddeeff"));
-    ui->scrollArea->setWidget(mHexEdit);
 
+    //setup text fields
     QFont font("Monospace", 8);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
     ui->lineEditAscii->setFont(font);
     ui->lineEditUnicode->setFont(font);
-    ui->lineEditAscii->setFocus();
+
+    //setup hex editor
+    mHexEdit = new QHexEdit(this);
+    mHexEdit->setHorizontalSpacing(6);
+    connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
+    mHexEdit->setData(QByteArray(1,0));
+    ui->scrollArea->setWidget(mHexEdit);
+    mHexEdit->widget()->setFocus();
+    mHexEdit->setTabOrder(ui->btnUnicode2Hex, mHexEdit->widget());
 }
 
 HexEditDialog::~HexEditDialog()
