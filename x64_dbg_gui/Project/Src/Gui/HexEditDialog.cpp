@@ -29,7 +29,6 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     mHexEdit->setBackgroundColor(ConfigColor("HexEditBackgroundColor"));
     mHexEdit->setSelectionColor(ConfigColor("HexEditSelectionColor"));
     connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
-    mHexEdit->setData(QByteArray(1,0));
     ui->scrollArea->setWidget(mHexEdit);
     mHexEdit->widget()->setFocus();
     mHexEdit->setTabOrder(ui->btnUnicode2Hex, mHexEdit->widget());
