@@ -31,10 +31,13 @@ public slots:
     void followDisasmSlot();
     void followDumpSlot();
     void followStackSlot();
+    void binaryEditSlot();
 
 private:
     uint_t mCsp;
 
+    QMenu* mBinaryMenu;
+    QAction* mBinaryEditAction;
     QAction* mGotoSp;
     QAction* mGotoBp;
     QAction* mGotoExpression;
