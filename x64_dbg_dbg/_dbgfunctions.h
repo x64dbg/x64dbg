@@ -8,6 +8,9 @@ typedef duint (*MODBASEFROMADDR)(duint addr);
 typedef duint (*MODBASEFROMNAME)(const char* modname);
 typedef duint (*MODSIZEFROMADDR)(duint addr);
 typedef bool (*ASSEMBLE)(duint addr, unsigned char* dest, int* size, const char* instruction, char* error);
+typedef bool (*PATCHGET)(duint addr);
+typedef bool (*PATCHINRANGE)(duint start, duint end);
+typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
 
 struct DBGFUNCTIONS
 {
@@ -18,6 +21,9 @@ struct DBGFUNCTIONS
     MODBASEFROMNAME ModBaseFromName;
     MODSIZEFROMADDR ModSizeFromAddr;
     ASSEMBLE Assemble;
+    PATCHGET PatchGet;
+    PATCHINRANGE PatchInRange;
+    MEMPATCH MemPatch;
 };
 
 #ifdef BUILD_DBG

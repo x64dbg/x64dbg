@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "debugger.h"
+#include "patches.h"
 
 uint memfindbaseaddr(HANDLE hProcess, uint addr, uint* size)
 {
@@ -81,6 +82,23 @@ bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
         }
     }
     return true;
+}
+
+bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+{
+    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+        return false;
+    unsigned char* olddata=(unsigned char*)emalloc(nSize, "mempatch:olddata");
+    if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
+    {
+        efree(olddata, "mempatch:olddata");
+        return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+    }
+    unsigned char* newdata=(unsigned char*)lpBuffer;
+    for(uint i=0; i<nSize; i++)
+        patchset((uint)lpBaseAddress+i, olddata[i], newdata[i]);
+    efree(olddata, "mempatch:olddata");
+    return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
 }
 
 bool memisvalidreadptr(HANDLE hProcess, uint addr)

@@ -3,6 +3,8 @@
 #include "assemble.h"
 #include "debugger.h"
 #include "addrinfo.h"
+#include "patches.h"
+#include "memory.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -11,7 +13,7 @@ const DBGFUNCTIONS* dbgfunctionsget()
     return &_dbgfunctions;
 }
 
-static bool sectionfromaddr(duint addr, char* section)
+static bool _sectionfromaddr(duint addr, char* section)
 {
     HMODULE hMod=(HMODULE)modbasefromaddr(addr);
     if(!hMod)
@@ -40,13 +42,40 @@ static bool sectionfromaddr(duint addr, char* section)
     return false;
 }
 
+static bool _patchget(duint addr)
+{
+    return patchget(addr, 0);
+}
+
+static bool _patchinrange(duint start, duint end)
+{
+    if(start > end)
+    {
+        duint a=start;
+        start=end;
+        end=a;
+    }
+    for(duint i=start; i<end+1; i++)
+        if(_patchget(i))
+            return true;
+    return false;
+}
+
+static bool _mempatch(duint va, const unsigned char* src, duint size)
+{
+    return mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx=assembleat;
-    _dbgfunctions.SectionFromAddr=sectionfromaddr;
+    _dbgfunctions.SectionFromAddr=_sectionfromaddr;
     _dbgfunctions.ModNameFromAddr=modnamefromaddr;
     _dbgfunctions.ModBaseFromAddr=modbasefromaddr;
     _dbgfunctions.ModBaseFromName=modbasefromname;
     _dbgfunctions.ModSizeFromAddr=modsizefromaddr;
     _dbgfunctions.Assemble=assemble;
+    _dbgfunctions.PatchGet=_patchget;
+    _dbgfunctions.PatchInRange=_patchinrange;
+    _dbgfunctions.MemPatch=_mempatch;
 }
