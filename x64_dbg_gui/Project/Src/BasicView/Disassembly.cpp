@@ -447,10 +447,16 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 wI = wI < 0 ? 0 : wI;
 
                 int_t wRowIndex = mInstBuffer.at(wI).rva;
+                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
-                    expandSelectionUpTo(wRowIndex);
+                    setSingleSelection(getInitialSelection());
+                    expandSelectionUpTo(getInstructionRVA(getInitialSelection(), 1)-1);
+                    if(wRowIndex > getInitialSelection()) //select down
+                        expandSelectionUpTo(wRowIndex+wInstrSize);
+                    else
+                        expandSelectionUpTo(wRowIndex);
 
                     repaint();
 
@@ -512,7 +518,17 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                 {
                     if(!(event->modifiers() & Qt::ShiftModifier)) //SHIFT pressed
                         setSingleSelection(wRowIndex);
-                    expandSelectionUpTo(wRowIndex+wInstrSize);
+                    if(getSelectionStart() > wRowIndex) //select up
+                    {
+                        setSingleSelection(getInitialSelection());
+                        expandSelectionUpTo(getInstructionRVA(getInitialSelection(), 1)-1);
+                        expandSelectionUpTo(wRowIndex);
+                    }
+                    else //select down
+                    {
+                        setSingleSelection(getInitialSelection());
+                        expandSelectionUpTo(wRowIndex+wInstrSize);
+                    }
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -998,11 +1014,9 @@ void Disassembly::expandSelectionUpTo(int_t to)
     if(to < mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = to;
-        mSelection.toIndex = mSelection.firstSelectedIndex;
     }
     else if(to > mSelection.firstSelectedIndex)
     {
-        mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
     }
     else if(to == mSelection.firstSelectedIndex)
@@ -1043,9 +1057,10 @@ int_t Disassembly::getSelectionEnd()
 void Disassembly::selectNext(bool expand)
 {
     int_t wAddr;
+    int_t wStart = getInstructionRVA(getSelectionStart(), 1)-1;
     if(expand)
     {
-        if(getSelectionEnd()==getInitialSelection() && getSelectionStart()!=getSelectionEnd()) //decrease down
+        if(getSelectionEnd()==getInitialSelection() && wStart!=getSelectionEnd()) //decrease down
         {
             wAddr = getInstructionRVA(getSelectionStart(), 1);
             expandSelectionUpTo(wAddr);
@@ -1057,7 +1072,7 @@ void Disassembly::selectNext(bool expand)
             expandSelectionUpTo(wAddr + wInstrSize);
         }
     }
-    else
+    else //select next instruction
     {
         wAddr = getSelectionEnd() + 1;
         setSingleSelection(wAddr);
@@ -1070,9 +1085,10 @@ void Disassembly::selectNext(bool expand)
 void Disassembly::selectPrevious(bool expand)
 {
     int_t wAddr;
+    int_t wStart = getInstructionRVA(getSelectionStart(), 1)-1;
     if(expand)
     {
-        if(getSelectionStart()==getInitialSelection() && getSelectionStart()!=getSelectionEnd()) //decrease down
+        if(getSelectionStart()==getInitialSelection() && wStart!=getSelectionEnd()) //decrease up
         {
             wAddr = getInstructionRVA(getSelectionEnd() + 1, -2);
             int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
@@ -1080,7 +1096,7 @@ void Disassembly::selectPrevious(bool expand)
         }
         else //expand up
         {
-            wAddr = getInstructionRVA(getSelectionStart(), -1);
+            wAddr = getInstructionRVA(wStart+1, -2);
             expandSelectionUpTo(wAddr);
         }
     }
