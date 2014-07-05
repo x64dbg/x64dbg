@@ -507,6 +507,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selected Addresses", "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
     colorInfoListAppend("Labels", "StackLabelColor", "StackLabelBackgroundColor");
 
+    colorInfoListAppend("HexEdit:", "", "");
+    colorInfoListAppend("Text", "HexEditTextColor", "");
+    colorInfoListAppend("Wildcards", "HexEditWildcardColor", "");
+    colorInfoListAppend("Background", "HexEditBackgroundColor", "");
+    colorInfoListAppend("Selection", "HexEditSelectionColor", "");
+
     colorInfoListAppend("Other:", "", "");
     colorInfoListAppend("Current Thread", "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
     colorInfoListAppend("Memory Map Breakpoint", "MemoryMapBreakpointColor", "MemoryMapBreakpointBackgroundColor");

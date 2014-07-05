@@ -1,6 +1,7 @@
 #include "HexEditDialog.h"
 #include "ui_HexEditDialog.h"
 #include "QHexEdit/QHexEdit.h"
+#include "Configuration.h"
 
 HexEditDialog::HexEditDialog(QWidget *parent) :
     QDialog(parent),
@@ -22,6 +23,11 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     //setup hex editor
     mHexEdit = new QHexEdit(this);
     mHexEdit->setHorizontalSpacing(6);
+    mHexEdit->setOverwriteMode(true);
+    mHexEdit->setTextColor(ConfigColor("HexEditTextColor"));
+    mHexEdit->setWildcardColor(ConfigColor("HexEditWildcardColor"));
+    mHexEdit->setBackgroundColor(ConfigColor("HexEditBackgroundColor"));
+    mHexEdit->setSelectionColor(ConfigColor("HexEditSelectionColor"));
     connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
     mHexEdit->setData(QByteArray(1,0));
     ui->scrollArea->setWidget(mHexEdit);

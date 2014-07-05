@@ -127,6 +127,11 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("StackLabelColor", QColor("#FF0000"));
     defaultColors.insert("StackLabelBackgroundColor", Qt::transparent);
 
+    defaultColors.insert("HexEditTextColor", QColor("#000000"));
+    defaultColors.insert("HexEditWildcardColor", QColor("#FF0000"));
+    defaultColors.insert("HexEditBackgroundColor", QColor("#FFF8F0"));
+    defaultColors.insert("HexEditSelectionColor", QColor("#C0C0C0"));
+
     defaultColors.insert("ThreadCurrentColor", QColor("#FFFFFF"));
     defaultColors.insert("ThreadCurrentBackgroundColor", QColor("#000000"));
     defaultColors.insert("MemoryMapBreakpointColor", QColor("#FFFBF0"));
