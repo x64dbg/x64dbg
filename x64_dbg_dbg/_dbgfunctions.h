@@ -1,6 +1,14 @@
 #ifndef _DBGFUNCTIONS_H
 #define _DBGFUNCTIONS_H
 
+struct DBGPATCHINFO
+{
+    char mod[MAX_MODULE_SIZE];
+    uint addr;
+    unsigned char oldbyte;
+    unsigned char newbyte;
+};
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -12,6 +20,7 @@ typedef bool (*PATCHGET)(duint addr);
 typedef bool (*PATCHINRANGE)(duint start, duint end);
 typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
 typedef void (*PATCHRESTORERANGE)(duint start, duint end);
+typedef bool (*PATCHENUM)(DBGPATCHINFO* patchinfo, size_t* cbsize);
 
 struct DBGFUNCTIONS
 {
@@ -26,6 +35,7 @@ struct DBGFUNCTIONS
     PATCHINRANGE PatchInRange;
     MEMPATCH MemPatch;
     PATCHRESTORERANGE PatchRestoreRange;
+    PATCHENUM PatchEnum;
 };
 
 #ifdef BUILD_DBG
