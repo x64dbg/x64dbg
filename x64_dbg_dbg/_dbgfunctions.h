@@ -11,6 +11,7 @@ typedef bool (*ASSEMBLE)(duint addr, unsigned char* dest, int* size, const char*
 typedef bool (*PATCHGET)(duint addr);
 typedef bool (*PATCHINRANGE)(duint start, duint end);
 typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
+typedef void (*PATCHRESTORERANGE)(duint start, duint end);
 
 struct DBGFUNCTIONS
 {
@@ -24,6 +25,7 @@ struct DBGFUNCTIONS
     PATCHGET PatchGet;
     PATCHINRANGE PatchInRange;
     MEMPATCH MemPatch;
+    PATCHRESTORERANGE PatchRestoreRange;
 };
 
 #ifdef BUILD_DBG

@@ -66,6 +66,18 @@ static bool _mempatch(duint va, const unsigned char* src, duint size)
     return mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
 }
 
+static void _patchrestorerange(duint start, duint end)
+{
+    if(start > end)
+    {
+        duint a=start;
+        start=end;
+        end=a;
+    }
+    for(duint i=start; i<end+1; i++)
+        patchdel(i, true);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx=assembleat;
@@ -78,4 +90,5 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchGet=_patchget;
     _dbgfunctions.PatchInRange=_patchinrange;
     _dbgfunctions.MemPatch=_mempatch;
+    _dbgfunctions.PatchRestoreRange=_patchrestorerange;
 }

@@ -52,14 +52,20 @@ bool patchget(uint addr, PATCHINFO* patch)
     return (found->second.oldbyte != found->second.newbyte);
 }
 
-bool patchdel(uint addr)
+bool patchdel(uint addr, bool restore)
 {
     if(!DbgIsDebugging())
         return false;
-    return (patches.erase(modhashfromva(addr))==1);
+    PatchesInfo::iterator found=patches.find(modhashfromva(addr));
+    if(found==patches.end()) //not found
+        return false;
+    if(restore)
+        memwrite(fdProcessInfo->hProcess, (void*)(found->second.addr+modbasefromaddr(addr)), &found->second.oldbyte, sizeof(char), 0);
+    patches.erase(found);
+    return true;
 }
 
-void patchdelrange(uint start, uint end)
+void patchdelrange(uint start, uint end, bool restore)
 {
     if(!DbgIsDebugging())
         return;
@@ -73,7 +79,11 @@ void patchdelrange(uint start, uint end)
     while(i!=patches.end())
     {
         if(bDelAll || (i->second.addr>=start && i->second.addr<end))
+        {
+            if(restore)
+                memwrite(fdProcessInfo->hProcess, (void*)(i->second.addr+modbase), &i->second.oldbyte, sizeof(char), 0);
             patches.erase(i++);
+        }
         else
             i++;
     }

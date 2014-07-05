@@ -14,8 +14,8 @@ typedef std::map<uint, PATCHINFO> PatchesInfo;
 
 bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte);
 bool patchget(uint addr, PATCHINFO* patch);
-bool patchdel(uint addr);
-void patchdelrange(uint start, uint end);
+bool patchdel(uint addr, bool restore);
+void patchdelrange(uint start, uint end, bool restore);
 void patchclear(const char* mod);
 bool patchenum(PATCHINFO* patchlist, size_t* cbsize);
 
