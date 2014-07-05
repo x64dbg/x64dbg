@@ -990,6 +990,11 @@ BRIDGE_IMPEXP void GuiRepaintTableView()
     _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdatePatches()
+{
+    _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
