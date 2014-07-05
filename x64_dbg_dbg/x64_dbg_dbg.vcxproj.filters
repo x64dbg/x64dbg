@@ -123,6 +123,9 @@
     <ClCompile Include="_dbgfunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="patches.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -255,6 +258,9 @@
       <Filter>Header Files\lz4</Filter>
     </ClInclude>
     <ClInclude Include="_dbgfunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="patches.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
