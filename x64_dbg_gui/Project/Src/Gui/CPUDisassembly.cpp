@@ -243,6 +243,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Separator
     mBinaryMenu->addSeparator();
 
+    //Binary->Fill
+    mBinaryFillAction = new QAction("&Fill...", this);
+    connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
+    mBinaryMenu->addAction(mBinaryFillAction);
+
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
@@ -818,6 +823,26 @@ void CPUDisassembly::binaryEditSlot()
     reloadData();
 }
 
+void CPUDisassembly::binaryFillSlot()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    int_t selStart = getSelectionStart();
+    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    QString pattern = hexEdit.mHexEdit->pattern();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    hexEdit.mHexEdit->fill(0, QString(pattern));
+    QByteArray patched(hexEdit.mHexEdit->data());
+    mMemPage->write(patched, selStart, patched.size());
+    reloadData();
+}
+
 void CPUDisassembly::binaryCopySlot()
 {
     HexEditDialog hexEdit(this);
@@ -837,7 +862,7 @@ void CPUDisassembly::binaryPasteSlot()
     int_t selSize = getSelectionEnd() - selStart + 1;
     QClipboard *clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
-    GuiAddStatusBarMessage(QString(hexEdit.mHexEdit->pattern(true) + "\n").toUtf8().constData());
+
     byte_t* data = new byte_t[selSize];
     mMemPage->read(data, selStart, selSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
