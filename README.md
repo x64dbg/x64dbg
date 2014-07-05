@@ -36,7 +36,7 @@ Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 - Memory breakpoints sometimes fail (TitanEngine bug)
 
 ## License
-*x64_dbg* is licensed under GLPv3, which means you can freely distribute and modify the source of *x64_dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the original GLPv3 license (they do not have to be open-source and they can be commercial and/or private), except if you directly use code from inside *x64_dbg*. In that case you would still have to share the changes to *x64_dbg* with us.
+*x64_dbg* is licensed under GLPv3, which means you can freely distribute and/or modify the source of *x64_dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the GLPv3 license. They do not have to be open-source and they can be commercial and/or private. The only exception to this is when your plugin uses code copied from *x64_dbg*. In that case you would still have to share the changes to *x64_dbg* with us.
 
 ## Credits
 - Debugger core by TitanEngine Community Edition
