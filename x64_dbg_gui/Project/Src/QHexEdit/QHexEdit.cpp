@@ -74,7 +74,7 @@ void QHexEdit::setData(const QString & pattern)
     for(int i=0; i<pattern.length(); i++)
     {
         QChar ch = pattern[i].toLower();
-        if((ch >= '1' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
+        if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
             convert += ch;
     }
     if(convert.length()%2) //odd length
@@ -140,7 +140,7 @@ QString QHexEdit::pattern(bool space)
         if(space)
             result += " ";
     }
-    return result.toUpper();
+    return result.toUpper().trimmed();
 }
 
 void QHexEdit::setOverwriteMode(bool overwriteMode)

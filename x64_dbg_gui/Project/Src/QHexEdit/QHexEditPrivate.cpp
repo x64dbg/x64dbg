@@ -19,7 +19,6 @@ QHexEditPrivate::QHexEditPrivate(QScrollArea *parent) : QWidget(parent)
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
 
-
     _size = 0;
     _horizonalSpacing = 3;
     resetSelection(0);
@@ -491,7 +490,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
         for(int i=0; i<pattern.length(); i++)
         {
             QChar ch = pattern[i].toLower();
-            if((ch >= '1' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (_wildcardEnabled && ch == '?'))
+            if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (_wildcardEnabled && ch == '?'))
                 convert += ch;
         }
         if(convert.length()%2) //odd length
@@ -611,7 +610,8 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
             result += " ";
         }
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setText(result.toUpper());
+        clipboard->setText(result.toUpper().trimmed());
+        QApplication::beep();
     }
 
     // Switch between insert/overwrite mode
