@@ -8,12 +8,25 @@ MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject *parent) : QObjec
     mSize = 0;
 }
 
+bool MemoryPage::read(void* parDest, uint_t parRVA, uint_t parSize)
+{
+    return DbgMemRead(mBase + parRVA, (unsigned char*)parDest, parSize);
+}
 
 bool MemoryPage::read(byte_t* parDest, uint_t parRVA, uint_t parSize)
 {
-    return DbgMemRead(mBase + parRVA, parDest, parSize);
+    return read((void*)parDest, parRVA, parSize);
 }
 
+bool MemoryPage::write(const void* parDest, uint_t parRVA, uint_t parSize)
+{
+    return DbgMemWrite(mBase + parRVA, (unsigned char*)parDest, parSize);
+}
+
+bool MemoryPage::write(const byte_t* parDest, uint_t parRVA, uint_t parSize)
+{
+    return write((const void*)parDest, parRVA, parSize);
+}
 
 uint_t MemoryPage::getSize()
 {

@@ -1,5 +1,6 @@
 #include "CPUDump.h"
 #include "Configuration.h"
+#include "HexEditDialog.h"
 
 CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 {
@@ -78,6 +79,17 @@ CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
 
 void CPUDump::setupContextMenu()
 {
+    //Binary menu
+    mBinaryMenu = new QMenu("B&inary", this);
+
+    //Binary->Edit
+    mBinaryEditAction = new QAction("&Edit", this);
+    mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
+    this->addAction(mBinaryEditAction);
+    connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
+    mBinaryMenu->addAction(mBinaryEditAction);
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -327,6 +339,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     if(!DbgIsDebugging())
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addMenu(mBinaryMenu);
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addMenu(mGotoMenu);
@@ -957,4 +970,24 @@ void CPUDump::hardwareRemoveSlot()
 {
     QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphwc "+addr_text).toUtf8().constData());
+}
+
+void CPUDump::binaryEditSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    hexEdit.setWindowTitle("Edit data at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    int_t dataSize = hexEdit.mHexEdit->data().size();
+    int_t newSize = selSize > dataSize ? selSize : dataSize;
+    data = new byte_t[newSize];
+    mMemPage->read(data, selStart, newSize);
+    QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
+    mMemPage->write(patched.constData(), selStart, patched.size());
 }
