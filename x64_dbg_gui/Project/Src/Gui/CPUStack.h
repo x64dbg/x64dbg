@@ -32,12 +32,16 @@ public slots:
     void followDumpSlot();
     void followStackSlot();
     void binaryEditSlot();
+    void binaryCopySlot();
+    void binaryPasteSlot();
 
 private:
     uint_t mCsp;
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;
+    QAction* mBinaryCopyAction;
+    QAction* mBinaryPasteAction;
     QAction* mGotoSp;
     QAction* mGotoBp;
     QAction* mGotoExpression;

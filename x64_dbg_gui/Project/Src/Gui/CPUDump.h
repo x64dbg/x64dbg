@@ -70,6 +70,8 @@ public slots:
     void selectionSet(const SELECTIONDATA* selection);
 
     void binaryEditSlot();
+    void binaryCopySlot();
+    void binaryPasteSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -141,6 +143,8 @@ private:
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;
+    QAction* mBinaryCopyAction;
+    QAction* mBinaryPasteAction;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

@@ -61,6 +61,19 @@ void CPUStack::setupContextMenu()
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
+    //Binary->Separator
+    mBinaryMenu->addSeparator();
+
+    //Binary->Copy
+    mBinaryCopyAction = new QAction("&Copy", this);
+    connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
+    mBinaryMenu->addAction(mBinaryCopyAction);
+
+    //Binary->Paste
+    mBinaryPasteAction = new QAction("&Paste", this);
+    connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
+    mBinaryMenu->addAction(mBinaryPasteAction);
+
 #ifdef _WIN64
     mGotoSp = new QAction("Follow R&SP", this);
     mGotoBp = new QAction("Follow R&BP", this);
@@ -330,5 +343,34 @@ void CPUStack::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
+    reloadData();
+}
+
+void CPUStack::binaryCopySlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true).toUtf8().constData());
+}
+
+void CPUStack::binaryPasteSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QClipboard *clipboard = QApplication::clipboard();
+    hexEdit.mHexEdit->setData(clipboard->text());
+
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
+    if(patched.size() < selSize)
+        selSize = patched.size();
+    mMemPage->write(patched.constData(), selStart, selSize);
     reloadData();
 }
