@@ -77,6 +77,7 @@ public slots:
     void binaryCopySlot();
     void binaryPasteSlot();
     void findPattern();
+    void undoSelectionSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -152,6 +153,7 @@ private:
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
     QAction* mFindPatternAction;
+    QAction* mUndoSelection;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

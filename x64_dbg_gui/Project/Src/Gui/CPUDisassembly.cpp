@@ -101,6 +101,10 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Build Menu
         wMenu->addMenu(mBinaryMenu);
+        int_t start = rvaToVa(getSelectionStart());
+        int_t end = rvaToVa(getSelectionEnd());
+        if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
+            wMenu->addAction(mUndoSelection);
         wMenu->addAction(mSetLabel);
         wMenu->addAction(mSetComment);
         wMenu->addAction(mSetBookmark);
@@ -254,6 +258,13 @@ void CPUDisassembly::setupRightClickContextMenu()
     mBinaryPasteAction = new QAction("&Paste", this);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
+
+    // Restore Selection
+    mUndoSelection = new QAction("&Restore selection", this);
+    mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
+    mUndoSelection->setShortcut(QKeySequence("alt+backspace"));
+    this->addAction(mUndoSelection);
+    connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Labels
     mSetLabel = new QAction("Label", this);
@@ -893,5 +904,15 @@ void CPUDisassembly::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
+    reloadData();
+}
+
+void CPUDisassembly::undoSelectionSlot()
+{
+    int_t start = rvaToVa(getSelectionStart());
+    int_t end = rvaToVa(getSelectionEnd());
+    if(!DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
+        return;
+    DbgFunctions()->PatchRestoreRange(start, end);
     reloadData();
 }

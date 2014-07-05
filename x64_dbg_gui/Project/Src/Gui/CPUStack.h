@@ -39,6 +39,7 @@ public slots:
     void binaryCopySlot();
     void binaryPasteSlot();
     void findPattern();
+    void undoSelectionSlot();
 
 private:
     uint_t mCsp;
@@ -48,6 +49,7 @@ private:
     QAction* mBinaryFillAction;
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
+    QAction* mUndoSelection;
     QAction* mGotoSp;
     QAction* mGotoBp;
     QAction* mGotoExpression;

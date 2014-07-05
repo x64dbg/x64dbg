@@ -79,6 +79,13 @@ void CPUStack::setupContextMenu()
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
+    // Restore Selection
+    mUndoSelection = new QAction("&Restore selection", this);
+    mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
+    mUndoSelection->setShortcut(QKeySequence("alt+backspace"));
+    this->addAction(mUndoSelection);
+    connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
+
 #ifdef _WIN64
     mGotoSp = new QAction("Follow R&SP", this);
     mGotoBp = new QAction("Follow R&BP", this);
@@ -229,6 +236,10 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addMenu(mBinaryMenu);
+    int_t start = rvaToVa(getSelectionStart());
+    int_t end = rvaToVa(getSelectionEnd());
+    if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
+        wMenu->addAction(mUndoSelection);
     wMenu->addAction(mFindPatternAction);
     wMenu->addAction(mGotoSp);
     wMenu->addAction(mGotoBp);
@@ -431,4 +442,14 @@ void CPUStack::findPattern()
     QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
+}
+
+void CPUStack::undoSelectionSlot()
+{
+    int_t start = rvaToVa(getSelectionStart());
+    int_t end = rvaToVa(getSelectionEnd());
+    if(!DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
+        return;
+    DbgFunctions()->PatchRestoreRange(start, end);
+    reloadData();
 }
