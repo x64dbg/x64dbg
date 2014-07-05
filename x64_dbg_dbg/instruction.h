@@ -52,6 +52,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[]);
 CMDRESULT cbInstrCopystr(int argc, char* argv[]);
 
 CMDRESULT cbInstrFind(int argc, char* argv[]);
+CMDRESULT cbInstrFindAll(int argc, char* argv[]);
 CMDRESULT cbInstrModCallFind(int argc, char* argv[]);
 CMDRESULT cbInstrCommentList(int argc, char* argv[]);
 CMDRESULT cbInstrLabelList(int argc, char* argv[]);

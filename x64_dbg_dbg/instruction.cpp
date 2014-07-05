@@ -1029,7 +1029,84 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(foundoffset!=-1)
         result=addr+foundoffset;
     varset("$result", result, false);
-    DbgCmdExec("$result");
+    efree(data, "cbInstrFind:data");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrFindAll(int argc, char* argv[])
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr=0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+
+    char pattern[deflen]="";
+    //remove # from the start and end of the pattern (ODBGScript support)
+    if(argv[2][0]=='#')
+        strcpy(pattern, argv[2]+1);
+    else
+        strcpy(pattern, argv[2]);
+    int len=strlen(pattern);
+    if(pattern[len-1]=='#')
+        pattern[len-1]='\0';
+    uint size=0;
+    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+    if(!base)
+    {
+        dprintf("invalid memory address "fhex"!\n", addr);
+        return STATUS_ERROR;
+    }
+    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFind:data");
+    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    {
+        efree(data, "cbInstrFind:data");
+        dputs("failed to read memory!");
+        return STATUS_ERROR;
+    }
+    uint start=addr-base;
+    uint find_size=0;
+    if(argc>=4)
+    {
+        if(!valfromstring(argv[3], &find_size))
+            find_size=size-start;
+        if(find_size>(size-start))
+            find_size=size-start;
+    }
+    else
+        find_size=size-start;
+    //setup reference view
+    GuiReferenceDeleteAllColumns();
+    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(0, "Disassembly");
+    GuiReferenceReloadData();
+    DWORD ticks=GetTickCount();
+    int refCount=0;
+    uint i=0;
+    uint result=0;
+    while(true)
+    {
+        uint foundoffset=memfindpattern(data+start+i, find_size-i, pattern);
+        if(foundoffset==-1)
+            break;
+        i+=foundoffset+1;
+        result=addr+i-1;
+        char msg[deflen]="";
+        sprintf(msg, fhex, result);
+        GuiReferenceSetRowCount(refCount+1);
+        GuiReferenceSetCellContent(refCount, 0, msg);
+        GuiGetDisassembly(result, msg);
+        GuiReferenceSetCellContent(refCount, 1, msg);
+        result++;
+        refCount++;
+    }
+    GuiReferenceReloadData();
+    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount()-ticks);
+    efree(data, "cbInstrFind:data");
+    varset("$result", refCount, false);
     return STATUS_CONTINUE;
 }
 

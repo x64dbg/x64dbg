@@ -169,6 +169,7 @@ static void registercommands()
     dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true);
     dbgcmdnew("refstr\1strref", cbInstrRefStr, true);
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
+    dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
 
     //undocumented
     dbgcmdnew("bench", cbBenchmark, true); //benchmark test (readmem etc)
