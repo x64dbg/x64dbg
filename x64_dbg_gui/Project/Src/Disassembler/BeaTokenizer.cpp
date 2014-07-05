@@ -278,7 +278,6 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
     }
     else if((arg->ArgType&CONSTANT_TYPE)==CONSTANT_TYPE) //immediat
     {
-        uint_t extValue;
         BeaTokenValue value;
         value.size=arg->ArgSize/8;
         switch(value.size)
@@ -296,9 +295,6 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             value.value=(long long)disasm->Instruction.Immediat;
             break;
         }
-
-        //uint_t mask=(uint_t)~0>>(sizeof(uint_t)*8-arg->ArgSize);
-        //value.value=disasm->Instruction.Immediat & mask;
         BeaTokenType type=TokenValue;
         if(DbgMemIsValidReadPtr(value.value)) //pointer
             type=TokenAddress;
