@@ -92,6 +92,13 @@ void CPUStack::setupContextMenu()
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
+    //Find Pattern
+    mFindPatternAction = new QAction("&Find Pattern...", this);
+    mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
+    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
+    this->addAction(mFindPatternAction);
+    connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
+
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
@@ -213,6 +220,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addMenu(mBinaryMenu);
+    wMenu->addAction(mFindPatternAction);
     wMenu->addAction(mGotoSp);
     wMenu->addAction(mGotoBp);
     wMenu->addAction(mGotoExpression);
@@ -398,4 +406,20 @@ void CPUStack::binaryPasteSlot()
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
     reloadData();
+}
+
+void CPUStack::findPattern()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.showEntireBlock(true);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    hexEdit.setWindowTitle("Find Pattern...");
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    int_t addr = rvaToVa(getSelectionStart());
+    if(hexEdit.entireBlock())
+        addr = DbgMemFindBaseAddr(addr, 0);
+    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
+    emit displayReferencesWidget();
 }

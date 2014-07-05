@@ -33,6 +33,8 @@ public:
 public:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
+    CPUDump* mDump;
+    CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
     QTabWidget* mRegsTab;

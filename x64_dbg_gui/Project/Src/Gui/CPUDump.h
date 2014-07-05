@@ -21,6 +21,9 @@ public:
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
 
+signals:
+    void displayReferencesWidget();
+
 public slots:
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
@@ -73,6 +76,7 @@ public slots:
     void binaryFillSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
+    void findPattern();
 
 private:
     QMenu* mBreakpointMenu;
@@ -147,6 +151,7 @@ private:
     QAction* mBinaryFillAction;
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
+    QAction* mFindPatternAction;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

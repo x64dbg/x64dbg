@@ -21,6 +21,9 @@ public:
 
     void setupContextMenu();
 
+signals:
+    void displayReferencesWidget();
+
 public slots:
     void stackDumpAt(uint_t addr, uint_t csp);
     void gotoSpSlot();
@@ -35,6 +38,7 @@ public slots:
     void binaryFillSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
+    void findPattern();
 
 private:
     uint_t mCsp;
@@ -47,6 +51,7 @@ private:
     QAction* mGotoSp;
     QAction* mGotoBp;
     QAction* mGotoExpression;
+    QAction* mFindPatternAction;
     QAction* mFollowDisasm;
     QAction* mFollowDump;
     QAction* mFollowStack;

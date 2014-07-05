@@ -39,11 +39,11 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopRightFrameLayout->addWidget(mRegsTab);
 
-    CPUDump* hx = new CPUDump(0); //dump widget
-    ui->mBotLeftFrameLayout->addWidget(hx);
+    mDump = new CPUDump(0); //dump widget
+    ui->mBotLeftFrameLayout->addWidget(mDump);
 
-    CPUStack* st = new CPUStack(0); //stack widget
-    ui->mBotRightFrameLayout->addWidget(st);
+    mStack = new CPUStack(0); //stack widget
+    ui->mBotRightFrameLayout->addWidget(mStack);
 }
 
 CPUWidget::~CPUWidget()

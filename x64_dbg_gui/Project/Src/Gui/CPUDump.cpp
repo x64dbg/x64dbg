@@ -200,6 +200,13 @@ void CPUDump::setupContextMenu()
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
 
+    //Find Pattern
+    mFindPatternAction = new QAction("&Find Pattern...", this);
+    mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
+    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
+    this->addAction(mFindPatternAction);
+    connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
+
     //Goto menu
     mGotoMenu = new QMenu("&Goto", this);
     //Goto->Expression
@@ -360,6 +367,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addMenu(mBinaryMenu);
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
+    wMenu->addAction(mFindPatternAction);
     wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
@@ -1058,4 +1066,20 @@ void CPUDump::binaryPasteSlot()
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
     reloadData();
+}
+
+void CPUDump::findPattern()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.showEntireBlock(true);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    hexEdit.setWindowTitle("Find Pattern...");
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    int_t addr = rvaToVa(getSelectionStart());
+    if(hexEdit.entireBlock())
+        addr = DbgMemFindBaseAddr(addr, 0);
+    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
+    emit displayReferencesWidget();
 }
