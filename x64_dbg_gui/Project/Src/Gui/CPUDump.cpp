@@ -990,4 +990,5 @@ void CPUDump::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
+    reloadData();
 }

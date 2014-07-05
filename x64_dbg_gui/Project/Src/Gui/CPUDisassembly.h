@@ -58,10 +58,12 @@ public slots:
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
     void enableHighlightingMode();
+    void binaryEditSlot();
 
 private:
 
     // Menus
+    QMenu* mBinaryMenu;
     QMenu* mGotoMenu;
     QMenu* mFollowMenu;
     QMenu* mBPMenu;
@@ -69,6 +71,7 @@ private:
     QMenu* mReferencesMenu;
     QMenu* mSearchMenu;
 
+    QAction* mBinaryEditAction;
     QAction* mToggleInt3BpAction;
     QAction* mSetHwBpAction;
     QAction* mClearHwBpAction;
