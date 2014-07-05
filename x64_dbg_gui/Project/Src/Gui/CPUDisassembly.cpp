@@ -211,9 +211,6 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         wMenu->addSeparator();
 
-        mSearchMenu->addAction(mSearchConstant);
-        mSearchMenu->addAction(mSearchStrings);
-        mSearchMenu->addAction(mSearchCalls);
         wMenu->addMenu(mSearchMenu);
 
         mReferencesMenu->addAction(mReferenceSelectedAddress);
@@ -389,14 +386,25 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Constant
     mSearchConstant = new QAction("&Constant", this);
     connect(mSearchConstant, SIGNAL(triggered()), this, SLOT(findConstant()));
+    mSearchMenu->addAction(mSearchConstant);
 
     // String References
     mSearchStrings = new QAction("&String references", this);
     connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
+    mSearchMenu->addAction(mSearchStrings);
 
     // Intermodular Calls
     mSearchCalls = new QAction("&Intermodular calls", this);
     connect(mSearchCalls, SIGNAL(triggered()), this, SLOT(findCalls()));
+    mSearchMenu->addAction(mSearchCalls);
+
+    // Pattern
+    mSearchPattern = new QAction("&Pattern", this);
+    mSearchPattern->setShortcutContext(Qt::WidgetShortcut);
+    mSearchPattern->setShortcut(QKeySequence("ctrl+b"));
+    this->addAction(mSearchPattern);
+    connect(mSearchPattern, SIGNAL(triggered()), this, SLOT(findPattern()));
+    mSearchMenu->addAction(mSearchPattern);
 
     // Highlighting mode
     mEnableHighlightingMode = new QAction("&Highlighting mode", this);
@@ -769,6 +777,22 @@ void CPUDisassembly::findCalls()
     emit displayReferencesWidget();
 }
 
+void CPUDisassembly::findPattern()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.showEntireBlock(true);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    hexEdit.setWindowTitle("Find Pattern...");
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    int_t addr = rvaToVa(getSelectionStart());
+    if(hexEdit.entireBlock())
+        addr = DbgMemFindBaseAddr(addr, 0);
+    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern()).toUtf8().constData());
+    emit displayReferencesWidget();
+}
+
 void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
 {
     selection->start=rvaToVa(getSelectionStart());
@@ -828,7 +852,7 @@ void CPUDisassembly::binaryFillSlot()
     HexEditDialog hexEdit(this);
     hexEdit.mHexEdit->setOverwriteMode(false);
     int_t selStart = getSelectionStart();
-    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle("Fill code at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();

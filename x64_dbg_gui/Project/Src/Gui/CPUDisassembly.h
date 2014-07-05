@@ -55,6 +55,7 @@ public slots:
     void findConstant();
     void findStrings();
     void findCalls();
+    void findPattern();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
     void enableHighlightingMode();
@@ -99,6 +100,7 @@ private:
     QAction* mSearchConstant;
     QAction* mSearchStrings;
     QAction* mSearchCalls;
+    QAction* mSearchPattern;
     QAction* mEnableHighlightingMode;
 
     GotoDialog* mGoto;
