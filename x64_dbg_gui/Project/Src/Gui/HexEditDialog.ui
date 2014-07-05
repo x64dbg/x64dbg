@@ -191,6 +191,19 @@
     <string>&amp;Keep Size</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="chkEntireBlock">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>240</y>
+     <width>81</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&amp;Entire Block</string>
+   </property>
+  </widget>
  </widget>
  <tabstops>
   <tabstop>lineEditAscii</tabstop>

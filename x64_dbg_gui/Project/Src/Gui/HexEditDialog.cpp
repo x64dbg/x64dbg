@@ -19,6 +19,7 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     font.setStyleHint(QFont::Monospace);
     ui->lineEditAscii->setFont(font);
     ui->lineEditUnicode->setFont(font);
+    ui->chkEntireBlock->hide();
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
@@ -37,6 +38,19 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
 HexEditDialog::~HexEditDialog()
 {
     delete ui;
+}
+
+void HexEditDialog::showEntireBlock(bool show)
+{
+    if(show)
+        ui->chkEntireBlock->show();
+    else
+        ui->chkEntireBlock->hide();
+}
+
+bool HexEditDialog::entireBlock()
+{
+    return ui->chkEntireBlock->isChecked();
 }
 
 void HexEditDialog::on_btnAscii2Hex_clicked()
