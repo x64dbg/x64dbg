@@ -1060,20 +1060,26 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFind:data");
+    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFindAll:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
-        efree(data, "cbInstrFind:data");
+        efree(data, "cbInstrFindAll:data");
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
     uint start=addr-base;
     uint find_size=0;
+    bool findData=false;
     if(argc>=4)
     {
-        if(!valfromstring(argv[3], &find_size))
+        if(!_stricmp(argv[3], "&data&"))
+        {
             find_size=size-start;
-        if(find_size>(size-start))
+            findData=true;
+        }
+        else if(!valfromstring(argv[3], &find_size))
+            find_size=size-start;
+        else if(find_size>(size-start))
             find_size=size-start;
     }
     else
@@ -1081,15 +1087,19 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Address");
-    GuiReferenceAddColumn(0, "Disassembly");
+    if(findData)
+        GuiReferenceAddColumn(0, "&Data&");
+    else
+        GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
     DWORD ticks=GetTickCount();
     int refCount=0;
     uint i=0;
     uint result=0;
-    while(true)
+    while(refCount < 5000)
     {
-        uint foundoffset=memfindpattern(data+start+i, find_size-i, pattern);
+        int patternsize=0;
+        uint foundoffset=memfindpattern(data+start+i, find_size-i, pattern, &patternsize);
         if(foundoffset==-1)
             break;
         i+=foundoffset+1;
@@ -1098,14 +1108,27 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         sprintf(msg, fhex, result);
         GuiReferenceSetRowCount(refCount+1);
         GuiReferenceSetCellContent(refCount, 0, msg);
-        GuiGetDisassembly(result, msg);
+        if(findData)
+        {
+            unsigned char* printData=(unsigned char*)emalloc(patternsize, "cbInstrFindAll:printData");
+            memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
+            for(int j=0,k=0; j<patternsize; j++)
+            {
+                if(j)
+                    k+=sprintf(msg+k, " ");
+                k+=sprintf(msg+k, "%.2X", printData[j]);
+            }
+            efree(printData, "cbInstrFindAll:printData");
+        }
+        else
+            GuiGetDisassembly(result, msg);
         GuiReferenceSetCellContent(refCount, 1, msg);
         result++;
         refCount++;
     }
     GuiReferenceReloadData();
     dprintf("%d occurrences found in %ums\n", refCount, GetTickCount()-ticks);
-    efree(data, "cbInstrFind:data");
+    efree(data, "cbInstrFindAll:data");
     varset("$result", refCount, false);
     return STATUS_CONTINUE;
 }

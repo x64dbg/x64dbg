@@ -22,6 +22,6 @@ bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
 bool memisvalidreadptr(HANDLE hProcess, uint addr);
 void* memalloc(HANDLE hProcess, uint addr, DWORD size, DWORD fdProtect);
 void memfree(HANDLE hProcess, uint addr);
-uint memfindpattern(unsigned char* data, uint size, const char* pattern);
+uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize = 0);
 
 #endif // _MEMORY_H

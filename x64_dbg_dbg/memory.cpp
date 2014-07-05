@@ -176,12 +176,14 @@ static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
     return (matched==2);
 }
 
-uint memfindpattern(unsigned char* data, uint size, const char* pattern)
+uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
 {
     std::vector<PATTERNBYTE> searchpattern;
     if(!patterntransform(pattern, &searchpattern))
         return -1;
     int searchpatternsize=searchpattern.size();
+    if(patternsize)
+        *patternsize=searchpatternsize;
     for(uint i=0,pos=0; i<size; i++) //search for the pattern
     {
         if(patternmatchbyte(data[i], &searchpattern.at(pos))) //check if our pattern matches the current byte
