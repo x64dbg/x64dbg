@@ -6,7 +6,7 @@ ScriptView::ScriptView(StdTable *parent) : StdTable(parent)
     mEnableSyntaxHighlighting=false;
     enableMultiSelection(false);
 
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    int charwidth=getCharWidth();
 
     addColumnAt(8+charwidth*4, "Line", false);
     addColumnAt(8+charwidth*60, "Text", false);
@@ -96,7 +96,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         if(mEnableSyntaxHighlighting)
         {
             //initialize
-            int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+            int charwidth=getCharWidth();
             int xadd=charwidth; //for testing
             QList<RichTextPainter::CustomRichText_t> richText;
             RichTextPainter::CustomRichText_t newRichText;

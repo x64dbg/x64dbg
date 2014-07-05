@@ -5,7 +5,7 @@
 CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
 {
     setShowHeader(false);
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    int charwidth=getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -189,12 +189,21 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     }
     else if(mDescriptor.at(col - 1).isData == true) //paint stack data
     {
-        QString wStr=HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-        if(wActiveStack)
-            painter->setPen(QPen(textColor));
-        else
-            painter->setPen(QPen(ConfigColor("StackInactiveTextColor")));
-        painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+        int wBytePerRowCount = getBytePerRowCount();
+        int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
+        printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
+        QList<RichTextPainter::CustomRichText_t> richText;
+        getString(col - 1, wRva, &richText);
+        if(!wActiveStack)
+        {
+            QColor inactiveColor = ConfigColor("StackInactiveTextColor");
+            for(int i=0; i<richText.size(); i++)
+            {
+                richText[i].flags == RichTextPainter::FlagColor;
+                richText[i].textColor = inactiveColor;
+            }
+        }
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
     }
     else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
     {

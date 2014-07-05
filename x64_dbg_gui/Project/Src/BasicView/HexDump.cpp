@@ -29,6 +29,7 @@ void HexDump::colorsUpdated()
     backgroundColor=ConfigColor("HexDumpBackgroundColor");
     textColor=ConfigColor("HexDumpTextColor");
     selectionColor=ConfigColor("HexDumpSelectionColor");
+    reloadData();
 }
 
 void HexDump::printDumpAt(int_t parVA, bool select)
@@ -199,7 +200,9 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     else if(mDescriptor.at(col - 1).isData == true) //paint data
     {
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
-        wStr += getString(col - 1, wRva);
+        QList<RichTextPainter::CustomRichText_t> richText;
+        getString(col - 1, wRva, &richText);
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
     }
     else //paint non-data
     {
@@ -216,7 +219,7 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
         int wBytePerRowCount = getBytePerRowCount();
         int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         int wItemPixWidth = getItemPixelWidth(mDescriptor.at(col - 1));
-        int wCharWidth = QFontMetrics(this->font()).width(QChar('C'));
+        int wCharWidth = getCharWidth();
         if(wItemPixWidth == wCharWidth)
             x += 4;
         int wSelectionX;
@@ -287,7 +290,7 @@ bool HexDump::isSelected(int_t rva)
         return false;
 }
 
-QString HexDump::getString(int col, int_t rva)
+void HexDump::getString(int col, int_t rva, QList<RichTextPainter::CustomRichText_t>* richText)
 {
     int wI;
     QString wStr = "";
@@ -302,6 +305,12 @@ QString HexDump::getString(int col, int_t rva)
 
     mMemPage->read(wData, rva, wBufferByteCount);
 
+    RichTextPainter::CustomRichText_t curData;
+    curData.highlight = false;
+    curData.flags = RichTextPainter::FlagColor;
+
+    QColor highlightColor = ConfigColor("HexDumpModifiedBytesColor");
+
     for(wI = 0; wI < mDescriptor.at(col).itemCount && (rva + wI) < (int_t)mMemPage->getSize(); wI++)
     {
         int maxLen = getStringMaxLength(mDescriptor.at(col).data);
@@ -309,14 +318,17 @@ QString HexDump::getString(int col, int_t rva)
         if(!maxLen)
             append="";
         if((rva + wI + wByteCount - 1) < (int_t)mMemPage->getSize())
-            wStr += toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
+            wStr = toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
         else
-            wStr += QString("?").rightJustified(maxLen, ' ') + append;
+            wStr = QString("?").rightJustified(maxLen, ' ') + append;
+        curData.text = wStr;
+        int_t start = rvaToVa(rva + wI * wByteCount);
+        int_t end = start + wByteCount - 1;
+        curData.textColor = DbgFunctions()->PatchInRange(start, end) ? highlightColor : textColor;
+        richText->push_back(curData);
     }
 
     delete[] wData;
-
-    return wStr;
 }
 
 QString HexDump::toString(DataDescriptor_t desc, void* data) //convert data to string
@@ -845,7 +857,7 @@ int HexDump::getItemIndexFromX(int x)
         int wRelativeX = x - wColStartingPos;
 
         int wItemPixWidth = getItemPixelWidth(mDescriptor.at(wColIndex - 1));
-        int wCharWidth = QFontMetrics(this->font()).width(QChar('C'));
+        int wCharWidth = getCharWidth();
         if(wItemPixWidth == wCharWidth)
             wRelativeX -= 4;
 
@@ -885,7 +897,7 @@ int HexDump::getBytePerRowCount()
 
 int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
 {
-    int wCharWidth = QFontMetrics(this->font()).width(QChar('C'));
+    int wCharWidth = getCharWidth();
     int wItemPixWidth = getStringMaxLength(desc.data) * wCharWidth + wCharWidth;
 
     return wItemPixWidth;
@@ -915,7 +927,7 @@ void HexDump::clearDescriptors()
 {
     deleteAllColumns();
     mDescriptor.clear();
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    int charwidth=getCharWidth();
     addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
 }
 

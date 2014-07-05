@@ -40,10 +40,7 @@ void ReferenceView::setupContextMenu()
 
 void ReferenceView::addColumnAt(int width, QString title)
 {
-    QFont wFont("Monospace", 8);
-    wFont.setStyleHint(QFont::Monospace);
-    wFont.setFixedPitch(true);
-    int charwidth=QFontMetrics(wFont).width(QChar(' '));
+    int charwidth=mList->getCharWidth();
     if(width)
         width=charwidth*width+8;
     else

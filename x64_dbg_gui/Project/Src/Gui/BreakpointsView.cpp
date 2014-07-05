@@ -4,7 +4,7 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
 {
     // Software
     mSoftBPTable = new StdTable(this);
-    int wCharWidth = QFontMetrics(mSoftBPTable->font()).width(QChar(' '));
+    int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
     mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false, "Address");
     mSoftBPTable->addColumnAt(8+wCharWidth*32, "Name", false);

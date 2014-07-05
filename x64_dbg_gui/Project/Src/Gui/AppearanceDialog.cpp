@@ -418,6 +418,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Background", "DisassemblyBackgroundColor", "");
     colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
     colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
+    colorInfoListAppend("Modified Bytes", "DisassemblyModifiedBytesColor", "");
 #ifdef _WIN64
     colorInfoListAppend("RIP", "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86
@@ -488,6 +489,7 @@ void AppearanceDialog::colorInfoListInit()
 
     colorInfoListAppend("HexDump:", "", "");
     colorInfoListAppend("Text", "HexDumpTextColor", "");
+    colorInfoListAppend("Modified Bytes", "HexDumpModifiedBytesColor", "");
     colorInfoListAppend("Background", "HexDumpBackgroundColor", "");
     colorInfoListAppend("Selection", "HexDumpSelectionColor", "");
     colorInfoListAppend("Addresses", "HexDumpAddressColor", "HexDumpAddressBackgroundColor");

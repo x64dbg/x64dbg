@@ -5,7 +5,7 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
 {
     enableMultiSelection(false);
 
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    int charwidth=getCharWidth();
 
     addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false, "Address"); //addr
     addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false, "Size"); //size

@@ -3,7 +3,7 @@
 
 ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
 {
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+    int charwidth=getCharWidth();
     addColumnAt(8+charwidth*sizeof(unsigned int)*2, "Number", false);
     addColumnAt(8+charwidth*sizeof(unsigned int)*2, "ID", false);
     addColumnAt(8+charwidth*sizeof(uint_t)*2, "Entry", false);

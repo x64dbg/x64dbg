@@ -9,6 +9,7 @@
 #include "QBeaEngine.h"
 #include "Bridge.h"
 #include <sstream>
+#include "RichTextPainter.h"
 
 class HexDump : public AbstractTableView
 {
@@ -101,7 +102,7 @@ public:
     int_t getSelectionEnd();
     bool isSelected(int_t rva);
 
-    QString getString(int col, int_t rva);
+    void getString(int col, int_t rva, QList<RichTextPainter::CustomRichText_t>* richText);
     int getSizeOf(DataSize_e size);
 
     QString toString(DataDescriptor_t desc, void *data);

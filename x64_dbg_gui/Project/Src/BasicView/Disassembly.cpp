@@ -26,11 +26,9 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     setRowCount(mMemPage->getSize());
 
-    mCharWidth=QFontMetrics(this->font()).width(QChar(' '));
-
-    addColumnAt(mCharWidth*2*sizeof(int_t)+8, "", false); //address
-    addColumnAt(mCharWidth*2*12+8, "", false); //bytes
-    addColumnAt(mCharWidth*40, "", false); //disassembly
+    addColumnAt(getCharWidth()*2*sizeof(int_t)+8, "", false); //address
+    addColumnAt(getCharWidth()*2*12+8, "", false); //bytes
+    addColumnAt(getCharWidth()*40, "", false); //disassembly
     addColumnAt(100, "", false); //comments
 
     setShowHeader(false); //hide header
@@ -336,12 +334,24 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
-        painter->setPen(ConfigColor("DisassemblyBytesColor"));
-        QString wBytes = "";
-        for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
-            wBytes += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper()+" ";
-
-        painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wBytes);
+        QColor bytesColor = ConfigColor("DisassemblyBytesColor");
+        QColor patchedBytesColor = ConfigColor("DisassemblyModifiedBytesColor");
+        QList<RichTextPainter::CustomRichText_t> richBytes;
+        RichTextPainter::CustomRichText_t space;
+        space.highlight=false;
+        space.flags=RichTextPainter::FlagNone;
+        space.text=" ";
+        RichTextPainter::CustomRichText_t curByte;
+        curByte.highlight = false;
+        curByte.flags = RichTextPainter::FlagColor;
+        for(int i=0; i<mInstBuffer.at(rowOffset).dump.size(); i++)
+        {
+            curByte.text = QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
+            curByte.textColor = DbgFunctions()->PatchGet(cur_addr+i) ? patchedBytesColor : bytesColor;
+            richBytes.push_back(curByte);
+            richBytes.push_back(space);
+        }
+        RichTextPainter::paintRichText(painter, x + jumpsize + funcsize, y, getColumnWidth(col), getRowHeight(), 0, &richBytes, getCharWidth());
     }
     break;
 
@@ -398,7 +408,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         if(DbgGetCommentAt(rvaToVa(mInstBuffer.at(rowOffset).rva), comment))
         {
             painter->setPen(ConfigColor("DisassemblyCommentColor"));
-            int width = QFontMetrics(this->font()).width(comment)+4;
+            int width = getCharWidth() * QString(comment).length() + 4;
             if(width > w)
                 width=w;
             if(width)
@@ -495,7 +505,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                     if(rowOffset<mInstBuffer.size())
                     {
                         BeaTokenizer::BeaSingleToken token;
-                        if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), mCharWidth))
+                        if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), getCharWidth()))
                         {
                             if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken=token;

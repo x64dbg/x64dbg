@@ -17,14 +17,9 @@ SymbolView::SymbolView(QWidget *parent) :
     mSearchListView = new SearchListView();
     mSearchListView->mSearchStartCol = 1;
 
-    // Get font information
-    QFont wFont("Monospace", 8);
-    wFont.setStyleHint(QFont::Monospace);
-    wFont.setFixedPitch(true);
-    int charwidth=QFontMetrics(wFont).width(QChar(' '));
-
     // Create module list
     mModuleList = new StdTable();
+    int charwidth = mModuleList->getCharWidth();
     mModuleList->setCopyMenuOnly(true);
     mModuleList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Base", false);
     mModuleList->addColumnAt(0, "Module", true);
@@ -53,7 +48,7 @@ SymbolView::SymbolView(QWidget *parent) :
 #endif //_WIN64
 
     // Setup log edit
-    ui->symbolLogEdit->setFont(wFont);
+    ui->symbolLogEdit->setFont(mModuleList->font());
     ui->symbolLogEdit->setStyleSheet("QTextEdit { background-color: rgb(255, 251, 240) }");
     ui->symbolLogEdit->setUndoRedoEnabled(false);
     ui->symbolLogEdit->setReadOnly(true);

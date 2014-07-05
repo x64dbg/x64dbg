@@ -34,6 +34,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyConditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyBytesColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyModifiedBytesColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
 
@@ -107,6 +108,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
+    defaultColors.insert("HexDumpModifiedBytesColor", QColor("#FF0000"));
     defaultColors.insert("HexDumpBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("HexDumpSelectionColor", QColor("#C0C0C0"));
     defaultColors.insert("HexDumpAddressColor", QColor("#000000"));

@@ -69,6 +69,7 @@ public:
     int getNbrOfLineToPrint();
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
+    int getCharWidth();
 
     // Table Offset Management
     int_t getTableOffset();

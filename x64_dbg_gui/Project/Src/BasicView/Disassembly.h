@@ -131,7 +131,6 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
-    int mCharWidth;
     BeaTokenizer::BeaSingleToken mHighlightToken;
 
 protected:

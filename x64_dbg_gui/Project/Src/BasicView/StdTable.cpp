@@ -365,7 +365,7 @@ void StdTable::copyTableSlot()
     }
     else
     {
-        int charwidth=QFontMetrics(this->font()).width(QChar(' '));
+        int charwidth=getCharWidth();
         for(int i=0; i<colCount; i++)
         {
             if(i)

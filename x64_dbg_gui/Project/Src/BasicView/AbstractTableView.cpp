@@ -825,7 +825,6 @@ QString AbstractTableView::getColTitle(int index)
     return "";
 }
 
-
 /************************************************************************************
                                 Getter & Setter
 ************************************************************************************/
@@ -834,18 +833,15 @@ int_t AbstractTableView::getRowCount()
     return mRowCount;
 }
 
-
 int AbstractTableView::getColumnCount()
 {
     return mColumnList.size();
 }
 
-
 int AbstractTableView::getRowHeight()
 {
     return mRowHeight;
 }
-
 
 int AbstractTableView::getColumnWidth(int index)
 {
@@ -870,12 +866,10 @@ int AbstractTableView::getColumnWidth(int index)
     return 0;
 }
 
-
 void AbstractTableView::setColumnWidth(int index, int width)
 {
     mColumnList[index].width = width;
 }
-
 
 int AbstractTableView::getHeaderHeight()
 {
@@ -885,24 +879,20 @@ int AbstractTableView::getHeaderHeight()
         return 0;
 }
 
-
 int AbstractTableView::getTableHeigth()
 {
     return this->height() - getHeaderHeight();
 }
-
 
 int AbstractTableView::getGuiState()
 {
     return mGuiState;
 }
 
-
 int AbstractTableView::getNbrOfLineToPrint()
 {
     return mNbrOfLineToPrint;
 }
-
 
 void AbstractTableView::setNbrOfLineToPrint(int parNbrOfLineToPrint)
 {
@@ -914,6 +904,10 @@ void AbstractTableView::setShowHeader(bool show)
     mHeader.isVisible=show;
 }
 
+int AbstractTableView::getCharWidth()
+{
+    return QFontMetrics(this->font()).width(QChar(' '));
+}
 
 /************************************************************************************
                            Table Offset Management
