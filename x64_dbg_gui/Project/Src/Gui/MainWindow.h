@@ -21,6 +21,7 @@
 #include "Configuration.h"
 #include "AppearanceDialog.h"
 #include "CloseDialog.h"
+#include "PatchDialog.h"
 
 namespace Ui
 {
@@ -78,6 +79,7 @@ public slots:
     void menuEntrySlot();
     void runSelection();
     void getStrWindow(const QString title, QString* text);
+    void patchWindow();
 
 private:
     Ui::MainWindow *ui;
@@ -93,6 +95,7 @@ private:
     ScriptView* mScriptView;
     ReferenceView* mReferenceView;
     ThreadView* mThreadView;
+    PatchDialog* mPatchDialog;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

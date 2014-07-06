@@ -53,6 +53,7 @@
     <addaction name="actionSymbolInfo"/>
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
+    <addaction name="actionPatches"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -518,6 +519,21 @@
    </property>
    <property name="toolTip">
     <string>Find Intermodular Calls</string>
+   </property>
+  </action>
+  <action name="actionPatches">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/patch.png</normaloff>:/icons/images/patch.png</iconset>
+   </property>
+   <property name="text">
+    <string>Patches</string>
+   </property>
+   <property name="toolTip">
+    <string>Patches</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>

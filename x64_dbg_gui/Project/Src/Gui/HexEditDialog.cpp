@@ -8,7 +8,7 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     ui(new Ui::HexEditDialog)
 {
     ui->setupUi(this);
-    setModal(true);
+
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     setModal(true); //modal window

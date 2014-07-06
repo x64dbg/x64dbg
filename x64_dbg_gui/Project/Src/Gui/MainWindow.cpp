@@ -102,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mLastLogLabel=new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
-
+    mPatchDialog = new PatchDialog(this);
 
     // Setup Signals/Slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -136,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
     connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
+    connect(ui->actionPatches,SIGNAL(triggered()),this,SLOT(patchWindow()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -741,4 +742,10 @@ void MainWindow::getStrWindow(const QString title, QString *text)
         bResult = false;
     *text=mLineEdit.editText;
     Bridge::getBridge()->BridgeSetResult(bResult);
+}
+
+void MainWindow::patchWindow()
+{
+    mPatchDialog->show();
+    mPatchDialog->setFocus();
 }

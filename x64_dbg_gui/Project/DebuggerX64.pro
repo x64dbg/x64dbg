@@ -75,7 +75,8 @@ SOURCES += \
     Src/QHexEdit/ArrayCommand.cpp \
     Src/QHexEdit/QHexEdit.cpp \
     Src/QHexEdit/QHexEditPrivate.cpp \
-    Src/QHexEdit/XByteArray.cpp
+    Src/QHexEdit/XByteArray.cpp \
+    Src/Gui/PatchDialog.cpp
 
 
 HEADERS += \
@@ -129,7 +130,8 @@ HEADERS += \
     Src/QHexEdit/ArrayCommand.h \
     Src/QHexEdit/QHexEdit.h \
     Src/QHexEdit/QHexEditPrivate.h \
-    Src/QHexEdit/XByteArray.h
+    Src/QHexEdit/XByteArray.h \
+    Src/Gui/PatchDialog.h
 
 
 INCLUDEPATH += \
@@ -158,7 +160,8 @@ FORMS += \
     Src/Gui/CommandHelpView.ui \
     Src/Gui/AppearanceDialog.ui \
     Src/Gui/CloseDialog.ui \
-    Src/Gui/HexEditDialog.ui
+    Src/Gui/HexEditDialog.ui \
+    Src/Gui/PatchDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

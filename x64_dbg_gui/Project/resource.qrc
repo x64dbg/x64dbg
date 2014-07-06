@@ -33,5 +33,6 @@
         <file>images/color-swatches.png</file>
         <file>images/call.png</file>
         <file>images/document-binary.png</file>
+        <file>images/patch.png</file>
     </qresource>
 </RCC>
