@@ -113,6 +113,9 @@ void BeaTokenizer::StringInstruction(QString mnemonic, BeaInstructionToken* inst
 void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
 {
     QString mnemonic=QString(disasm->Instruction.Mnemonic).trimmed().toLower();
+    bool farMnemonic = mnemonic.contains(" far");
+    if(farMnemonic)
+        mnemonic.truncate(mnemonic.indexOf(" far"));
     QString completeInstr=QString(disasm->CompleteInstr).trimmed().toLower();
     BeaTokenType type=TokenMnemonicNormal;
     int brtype=disasm->Instruction.BranchType;
@@ -148,6 +151,11 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         return;
     }
     AddToken(instr, type, mnemonic, 0);
+    if(farMnemonic)
+    {
+        AddToken(instr, TokenSpace, " ", 0);
+        AddToken(instr, TokenMnemonicFar, "far", 0);
+    }
 }
 
 QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module)
@@ -269,7 +277,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         }
         AddToken(instr, bracketsType, "]", 0);
     }
-    else if(disasm->Instruction.BranchType != 0 && disasm->Instruction.AddrValue) //jump/call
+    else if(disasm->Instruction.BranchType != 0 && disasm->Instruction.BranchType != RetType) //jump/call
     {
         BeaTokenValue value;
         value.size=arg->ArgSize/8;
@@ -423,6 +431,7 @@ void BeaTokenizer::Init()
     memSizeNames.insert(8, "byte");
     memSizeNames.insert(16, "word");
     memSizeNames.insert(32, "dword");
+    memSizeNames.insert(48, "fword");
     memSizeNames.insert(64, "qword");
     memSizeNames.insert(80, "tword");
     memSizeNames.insert(128, "dqword");
@@ -451,6 +460,7 @@ void BeaTokenizer::Init()
     AddColorName(TokenMnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
     AddColorName(TokenMnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
     AddColorName(TokenMnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
+    AddColorName(TokenMnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
     //memory
     AddColorName(TokenMemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     AddColorName(TokenMemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
@@ -507,10 +517,29 @@ void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM*
     Mnemonic(instr, disasm);
 
     //arguments
-    bool hadarg=false;
-    Argument(instr, disasm, &disasm->Argument1, &hadarg);
-    Argument(instr, disasm, &disasm->Argument2, &hadarg);
-    Argument(instr, disasm, &disasm->Argument3, &hadarg);
+    QString mnemonic = QString(disasm->Instruction.Mnemonic).trimmed();
+    if(mnemonic.contains("far") && !QString(disasm->CompleteInstr).contains("[")) //far jumps / calls (not the memory ones)
+    {
+        unsigned int segment=0;
+        unsigned int address=0;
+        sscanf(disasm->Argument1.ArgMnemonic, "%X : %X", &segment, &address);
+        AddToken(instr, TokenSpace, QString(" "), 0);
+        BeaTokenValue val;
+        val.size=2;
+        val.value=segment;
+        AddToken(instr, TokenValue, PrintValue(&val, true), &val);
+        AddToken(instr, TokenUncategorized, ":", 0);
+        val.size=4;
+        val.value=address;
+        AddToken(instr, TokenAddress, PrintValue(&val, true), &val);
+    }
+    else
+    {
+        bool hadarg=false;
+        Argument(instr, disasm, &disasm->Argument1, &hadarg);
+        Argument(instr, disasm, &disasm->Argument2, &hadarg);
+        Argument(instr, disasm, &disasm->Argument3, &hadarg);
+    }
 
     //remove spaces when needed
     bool bArgumentSpaces=ConfigBool("Disassembler", "ArgumentSpaces");

@@ -63,6 +63,7 @@ public slots:
     void binaryFillSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
+    void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
 
 private:
@@ -80,6 +81,7 @@ private:
     QAction* mBinaryFillAction;
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
+    QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mUndoSelection;
     QAction* mToggleInt3BpAction;
     QAction* mSetHwBpAction;

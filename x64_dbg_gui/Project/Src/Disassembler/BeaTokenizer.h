@@ -35,6 +35,7 @@ public:
         TokenMnemonicCondJump,
         TokenMnemonicUncondJump,
         TokenMnemonicNop,
+        TokenMnemonicFar,
         //memory
         TokenMemorySize,
         TokenMemorySegment,

@@ -474,6 +474,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Conditional Jumps", "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
     colorInfoListAppend("Unconditional Jumps", "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
     colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
+    colorInfoListAppend("FAR", "InstructionFarColor", "InstructionFarBackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend("SSE Registers", "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");

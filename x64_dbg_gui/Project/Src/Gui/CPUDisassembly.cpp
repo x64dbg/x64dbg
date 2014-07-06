@@ -265,6 +265,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     mUndoSelection->setShortcut(QKeySequence("alt+backspace"));
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
+    
+    //Binary->Paste (Ignore Size)
+    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
+    connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
+    mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
     // Labels
     mSetLabel = new QAction("Label", this);
@@ -855,7 +860,7 @@ void CPUDisassembly::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::binaryFillSlot()
@@ -875,7 +880,7 @@ void CPUDisassembly::binaryFillSlot()
     hexEdit.mHexEdit->fill(0, QString(pattern));
     QByteArray patched(hexEdit.mHexEdit->data());
     mMemPage->write(patched, selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::binaryCopySlot()
@@ -904,7 +909,7 @@ void CPUDisassembly::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::undoSelectionSlot()
@@ -916,3 +921,20 @@ void CPUDisassembly::undoSelectionSlot()
     DbgFunctions()->PatchRestoreRange(start, end);
     reloadData();
 }
+
+void CPUDisassembly::binaryPasteIgnoreSizeSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QClipboard *clipboard = QApplication::clipboard();
+    hexEdit.mHexEdit->setData(clipboard->text());
+
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    mMemPage->write(patched.constData(), selStart, patched.size());
+    GuiUpdateAllViews();
+}
+

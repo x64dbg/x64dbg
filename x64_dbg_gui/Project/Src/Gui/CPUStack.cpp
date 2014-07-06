@@ -79,6 +79,11 @@ void CPUStack::setupContextMenu()
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
+    //Binary->Paste (Ignore Size)
+    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
+    connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
+    mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
+
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
@@ -376,7 +381,7 @@ void CPUStack::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::binaryFillSlot()
@@ -396,7 +401,7 @@ void CPUStack::binaryFillSlot()
     hexEdit.mHexEdit->fill(0, QString(pattern));
     QByteArray patched(hexEdit.mHexEdit->data());
     mMemPage->write(patched, selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::binaryCopySlot()
@@ -425,7 +430,23 @@ void CPUStack::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
-    reloadData();
+    GuiUpdateAllViews();
+}
+
+void CPUStack::binaryPasteIgnoreSizeSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QClipboard *clipboard = QApplication::clipboard();
+    hexEdit.mHexEdit->setData(clipboard->text());
+
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    mMemPage->write(patched.constData(), selStart, patched.size());
+    GuiUpdateAllViews();
 }
 
 void CPUStack::findPattern()

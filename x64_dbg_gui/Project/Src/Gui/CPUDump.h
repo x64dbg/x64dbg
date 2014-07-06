@@ -76,6 +76,7 @@ public slots:
     void binaryFillSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
+    void binaryPasteIgnoreSizeSlot();
     void findPattern();
     void undoSelectionSlot();
 
@@ -152,6 +153,7 @@ private:
     QAction* mBinaryFillAction;
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
+    QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mFindPatternAction;
     QAction* mUndoSelection;
 
