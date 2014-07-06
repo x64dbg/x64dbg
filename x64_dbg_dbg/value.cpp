@@ -1413,13 +1413,14 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         efree(newstring, "valfromstring::newstring");
-        if(!memwrite(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
+        if(!mempatch(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");
             return false;
         }
         GuiUpdateAllViews(); //repaint gui
+        GuiUpdatePatches(); //update patch dialog
         return true;
     }
     else if(isregister(string)) //register

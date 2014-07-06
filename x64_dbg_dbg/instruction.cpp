@@ -968,7 +968,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!memwrite(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
+    if(!mempatch(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
     {
         efree(string, "cbInstrCopystr:string");
         dputs("memwrite failed!");
@@ -977,6 +977,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
     efree(string, "cbInstrCopystr:string");
     dputs("string written!");
     GuiUpdateAllViews();
+    GuiUpdatePatches();
     return STATUS_CONTINUE;
 }
 

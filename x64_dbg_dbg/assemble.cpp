@@ -60,9 +60,10 @@ bool assembleat(uint addr, const char* instruction, char* error, bool fillnop)
     unsigned char nops[16];
     memset(nops, 0x90, sizeof(nops));
 
-    bool ret=memwrite(fdProcessInfo->hProcess, (void*)addr, dest, destSize, 0);
+    bool ret=mempatch(fdProcessInfo->hProcess, (void*)addr, dest, destSize, 0);
     if(ret && fillnop && nopsize)
-        if(!memwrite(fdProcessInfo->hProcess, (void*)(addr+destSize), nops, nopsize, 0))
+        if(!mempatch(fdProcessInfo->hProcess, (void*)(addr+destSize), nops, nopsize, 0))
             ret=false;
+    GuiUpdatePatches();
     return true;
 }
