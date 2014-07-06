@@ -844,7 +844,7 @@ void CPUDisassembly::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::binaryFillSlot()
@@ -864,7 +864,7 @@ void CPUDisassembly::binaryFillSlot()
     hexEdit.mHexEdit->fill(0, QString(pattern));
     QByteArray patched(hexEdit.mHexEdit->data());
     mMemPage->write(patched, selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDisassembly::binaryCopySlot()
@@ -893,5 +893,5 @@ void CPUDisassembly::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
-    reloadData();
+    GuiUpdateAllViews();
 }

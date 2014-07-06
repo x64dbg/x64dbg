@@ -356,7 +356,7 @@ void CPUStack::binaryEditSlot()
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
     mMemPage->write(patched.constData(), selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::binaryFillSlot()
@@ -376,7 +376,7 @@ void CPUStack::binaryFillSlot()
     hexEdit.mHexEdit->fill(0, QString(pattern));
     QByteArray patched(hexEdit.mHexEdit->data());
     mMemPage->write(patched, selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::binaryCopySlot()
@@ -405,7 +405,7 @@ void CPUStack::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUStack::findPattern()
