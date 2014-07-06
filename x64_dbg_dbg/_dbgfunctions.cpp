@@ -78,6 +78,12 @@ static void _patchrestorerange(duint start, duint end)
     }
     for(duint i=start; i<end+1; i++)
         patchdel(i, true);
+    GuiUpdatePatches();
+}
+
+static bool _patchrestore(duint addr)
+{
+    return patchdel(addr, true); 
 }
 
 void dbgfunctionsinit()
@@ -94,4 +100,5 @@ void dbgfunctionsinit()
     _dbgfunctions.MemPatch=_mempatch;
     _dbgfunctions.PatchRestoreRange=_patchrestorerange;
     _dbgfunctions.PatchEnum=(PATCHENUM)patchenum;
+    _dbgfunctions.PatchRestore=_patchrestore;
 }

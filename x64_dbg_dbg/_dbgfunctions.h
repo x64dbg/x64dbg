@@ -4,7 +4,7 @@
 struct DBGPATCHINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint addr;
+    duint addr;
     unsigned char oldbyte;
     unsigned char newbyte;
 };
@@ -21,6 +21,7 @@ typedef bool (*PATCHINRANGE)(duint start, duint end);
 typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
 typedef void (*PATCHRESTORERANGE)(duint start, duint end);
 typedef bool (*PATCHENUM)(DBGPATCHINFO* patchinfo, size_t* cbsize);
+typedef bool (*PATCHRESTORE)(duint addr);
 
 struct DBGFUNCTIONS
 {
@@ -36,6 +37,7 @@ struct DBGFUNCTIONS
     MEMPATCH MemPatch;
     PATCHRESTORERANGE PatchRestoreRange;
     PATCHENUM PatchEnum;
+    PATCHRESTORE PatchRestore;
 };
 
 #ifdef BUILD_DBG
