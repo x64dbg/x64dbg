@@ -209,3 +209,28 @@ void PatchDialog::on_btnRestoreSelected_clicked()
         ui->listModules->setCurrentRow(selModIdx);
     GuiUpdateAllViews();
 }
+
+void PatchDialog::on_listPatches_itemSelectionChanged()
+{
+    if(!ui->listModules->selectedItems().size() || !ui->listPatches->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+    PatchPair & patch = curPatchList[ui->listPatches->row(ui->listPatches->selectedItems().at(0))]; //selected item
+    int group=patch.second.group;
+    int_t groupStart = 0;
+    for(int i=0; i<curPatchList.size(); i++)
+        if(curPatchList.at(i).second.group==group)
+        {
+            groupStart = curPatchList.at(i).first.addr;
+            break;
+        }
+    if(!groupStart)
+        return;
+    QString addrText = QString("%1").arg(groupStart, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
+}
