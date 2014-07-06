@@ -367,6 +367,11 @@ void Bridge::emitRepaintTableView()
     emit repaintTableView();
 }
 
+void Bridge::emitUpdatePatches()
+{
+    emit updatePatches();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -726,6 +731,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_REPAINT_TABLE_VIEW:
     {
         Bridge::getBridge()->emitRepaintTableView();
+    }
+    break;
+
+    case GUI_UPDATE_PATCHES:
+    {
+        emit Bridge::getBridge()->emitUpdatePatches();
     }
     break;
 

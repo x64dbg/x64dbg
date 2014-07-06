@@ -79,6 +79,7 @@ public:
     void emitAddMsgToStatusBar(QString msg);
     void emitUpdateSideBar();
     void emitRepaintTableView();
+    void emitUpdatePatches();
 
     //Public variables
     void* winId;
@@ -138,6 +139,7 @@ signals:
     void addMsgToStatusBar(QString msg);
     void updateSideBar();
     void repaintTableView();
+    void updatePatches();
 
 private:
     QMutex* mBridgeMutex;
