@@ -31,6 +31,7 @@ typedef struct _THREADNAME_INFO
 #pragma pack(pop)
 
 //functions
+void dbginit();
 void dbgdisablebpx();
 void dbgenablebpx();
 bool dbgisrunning();

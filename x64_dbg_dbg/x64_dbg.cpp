@@ -230,6 +230,7 @@ static void efree_json(void* ptr)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
+    dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
     char dir[deflen]="";
