@@ -61,6 +61,7 @@ public slots:
     void enableHighlightingMode();
     void binaryEditSlot();
     void binaryFillSlot();
+    void binaryFillNopsSlot();
     void binaryCopySlot();
     void binaryPasteSlot();
     void binaryPasteIgnoreSizeSlot();
@@ -79,6 +80,7 @@ private:
 
     QAction* mBinaryEditAction;
     QAction* mBinaryFillAction;
+    QAction* mBinaryFillNopsAction;
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
     QAction* mBinaryPasteIgnoreSizeAction;

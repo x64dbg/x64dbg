@@ -90,9 +90,6 @@ void CPUDump::setupContextMenu()
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
 
-    //Binary->Separator
-    mBinaryMenu->addSeparator();
-
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
@@ -100,6 +97,9 @@ void CPUDump::setupContextMenu()
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
+
+    //Binary->Separator
+    mBinaryMenu->addSeparator();
 
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);

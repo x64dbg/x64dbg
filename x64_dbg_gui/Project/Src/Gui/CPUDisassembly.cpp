@@ -241,9 +241,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     mBinaryMenu->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
 
-    //Binary->Separator
-    mBinaryMenu->addSeparator();
-
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
@@ -251,6 +248,17 @@ void CPUDisassembly::setupRightClickContextMenu()
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
+
+    //Binary->Fill with NOPs
+    mBinaryFillNopsAction = new QAction("Fill with &NOPs", this);
+    mBinaryFillNopsAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryFillNopsAction->setShortcut(QKeySequence("ctrl+9"));
+    this->addAction(mBinaryFillNopsAction);
+    connect(mBinaryFillNopsAction, SIGNAL(triggered()), this, SLOT(binaryFillNopsSlot()));
+    mBinaryMenu->addAction(mBinaryFillNopsAction);
+
+    //Binary->Separator
+    mBinaryMenu->addSeparator();
 
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
@@ -895,6 +903,21 @@ void CPUDisassembly::binaryFillSlot()
     GuiUpdateAllViews();
 }
 
+void CPUDisassembly::binaryFillNopsSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    hexEdit.mHexEdit->fill(0, QString("90"));
+    QByteArray patched(hexEdit.mHexEdit->data());
+    mMemPage->write(patched, selStart, patched.size());
+    GuiUpdateAllViews();
+}
+
 void CPUDisassembly::binaryCopySlot()
 {
     HexEditDialog hexEdit(this);
@@ -949,4 +972,3 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
 }
-
