@@ -7,6 +7,7 @@
 #include "symbolinfo.h"
 #include "murmurhash.h"
 #include "lz4\lz4file.h"
+#include "patches.h"
 
 static ModulesInfo modinfo;
 static CommentsInfo comments;
@@ -75,6 +76,7 @@ void dbclose()
     FunctionsInfo().swap(functions);
     LoopsInfo().swap(loops);
     bpclear();
+    patchclear();
 }
 
 ///module functions

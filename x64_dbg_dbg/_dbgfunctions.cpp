@@ -63,8 +63,7 @@ static bool _patchinrange(duint start, duint end)
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    bool ret=mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
-    GuiUpdatePatches();
+    return mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
     return ret;
 }
 
