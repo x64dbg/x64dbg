@@ -13,7 +13,16 @@ PatchDialog::PatchDialog(QWidget *parent) :
 
     connect(Bridge::getBridge(), SIGNAL(updatePatches()), this, SLOT(updatePatches()));
 
+    mGroupSelector = new PatchDialogGroupSelector(parent);
+    mGroupSelector->setGroup(0);
+    connect(mGroupSelector, SIGNAL(rejected()), this, SLOT(showNormal()));
+    connect(mGroupSelector, SIGNAL(rejected()), this, SLOT(setFocus()));
+    connect(mGroupSelector, SIGNAL(groupToggle()), this, SLOT(groupToggle()));
+    connect(mGroupSelector, SIGNAL(groupPrevious()), this, SLOT(groupPrevious()));
+    connect(mGroupSelector, SIGNAL(groupNext()), this, SLOT(groupNext()));
+
     mPatches = new PatchMap();
+    mIsWorking = false;
 }
 
 PatchDialog::~PatchDialog()
@@ -21,7 +30,7 @@ PatchDialog::~PatchDialog()
     delete ui;
 }
 
-bool PatchDialog::isPartOfPreviousGroup(PatchInfoList & patchList, int index)
+bool PatchDialog::isPartOfPreviousGroup(const PatchInfoList & patchList, int index)
 {
     if(!index)
         return true;
@@ -33,9 +42,43 @@ bool PatchDialog::isPartOfPreviousGroup(PatchInfoList & patchList, int index)
     return false;
 }
 
+bool PatchDialog::isGroupEnabled(const PatchInfoList & patchList, int group)
+{
+    for(int i=0; i<patchList.size(); i++)
+        if(patchList.at(i).second.group == group && !patchList.at(i).second.checked)
+            return false;
+    return true;
+}
+
+bool PatchDialog::hasPreviousGroup(const PatchInfoList & patchList, int group)
+{
+    for(int i=0; i<patchList.size(); i++)
+        if(patchList.at(i).second.group < group)
+            return true;
+    return false;
+}
+
+bool PatchDialog::hasNextGroup(const PatchInfoList & patchList, int group)
+{
+    for(int i=0; i<patchList.size(); i++)
+        if(patchList.at(i).second.group > group)
+            return true;
+    return false;
+}
+
+int_t PatchDialog::getGroupAddress(const PatchInfoList & patchList, int group)
+{
+    for(int i=0; i<patchList.size(); i++)
+        if(patchList.at(i).second.group == group)
+            return patchList.at(i).first.addr;
+    return -1;
+}
+
 void PatchDialog::updatePatches()
 {
-    mIsAdding=true;
+    if(this->isVisible())
+        mGroupSelector->reject();
+    mIsWorking=true;
     //clear GUI
     ui->listModules->clear();
     ui->listPatches->clear();
@@ -54,7 +97,7 @@ void PatchDialog::updatePatches()
     if(!DbgFunctions()->PatchEnum(patches, 0))
     {
         delete [] patches;
-        mIsAdding=false;
+        mIsWorking=false;
         return;
     }
 
@@ -93,7 +136,89 @@ void PatchDialog::updatePatches()
         }
         ui->listModules->addItem(i.key());
     }
-    mIsAdding=false;
+    mIsWorking=false;
+}
+
+void PatchDialog::groupToggle()
+{
+    int group=mGroupSelector->group();
+    if(mIsWorking || !ui->listModules->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+    bool enabled = !isGroupEnabled(curPatchList, group);
+    Qt::CheckState checkState = enabled ? Qt::Checked : Qt::Unchecked;
+    mIsWorking=true;
+    for(int i=0; i<curPatchList.size(); i++)
+    {
+        if(curPatchList.at(i).second.group!=group)
+            continue;
+        ui->listPatches->item(i)->setCheckState(checkState);
+        curPatchList[i].second.checked=enabled;
+    }
+    mIsWorking=false;
+    int_t groupStart = getGroupAddress(curPatchList, group);
+    if(!groupStart)
+        return;
+    QString color = enabled ? "#00DD00" : "red";
+    QString addrText = QString("%1").arg(groupStart, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
+    mGroupSelector->setGroupTitle(title);
+    DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
+}
+
+void PatchDialog::groupPrevious()
+{
+    int group=mGroupSelector->group();
+    if(!ui->listModules->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+    if(!hasPreviousGroup(curPatchList, group))
+        return;
+    group--;
+    QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
+    mGroupSelector->setGroupTitle(title);
+    mGroupSelector->setGroup(group);
+    mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
+    mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
+    mGroupSelector->showNormal();
+    DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
+}
+
+void PatchDialog::groupNext()
+{
+    int group=mGroupSelector->group();
+    if(!ui->listModules->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+    if(!hasNextGroup(curPatchList, group))
+        return;
+    group++;
+    QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
+    mGroupSelector->setGroupTitle(title);
+    mGroupSelector->setGroup(group);
+    mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
+    mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
+    mGroupSelector->showNormal();
+    DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
 }
 
 void PatchDialog::on_listModules_itemSelectionChanged()
@@ -104,8 +229,8 @@ void PatchDialog::on_listModules_itemSelectionChanged()
     PatchMap::iterator found = mPatches->find(mod);
     if(found == mPatches->end()) //not found
         return;
-    mIsAdding=true;
-    PatchInfoList patchList = found.value();
+    mIsWorking=true;
+    PatchInfoList & patchList = found.value();
     ui->listPatches->clear();
     for(int i=0; i<patchList.size(); i++)
     {
@@ -115,12 +240,12 @@ void PatchDialog::on_listModules_itemSelectionChanged()
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(Qt::Unchecked);
     }
-    mIsAdding=false;
+    mIsWorking=false;
 }
 
 void PatchDialog::on_listPatches_itemChanged(QListWidgetItem *item) //checkbox changed
 {
-    if(mIsAdding || !ui->listModules->selectedItems().size())
+    if(mIsWorking || !ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
     PatchMap::iterator found = mPatches->find(mod);
@@ -133,17 +258,26 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem *item) //checkbox c
         return;
     patch.second.checked = checked;
     //check state changed
-    if((QApplication::keyboardModifiers() & Qt::ControlModifier) == Qt::ControlModifier)
-        return; //control held down -> do not check/uncheck group
-    mIsAdding=true;
-    //check/uncheck the complete group
-    for(int i=0; i<curPatchList.size(); i++)
-        if(curPatchList.at(i).second.group==patch.second.group)
-        {
-            curPatchList[i].second.checked=checked;
-            ui->listPatches->item(i)->setCheckState(item->checkState());
-        }
-    mIsAdding=false;
+    if((QApplication::keyboardModifiers() & Qt::ControlModifier) != Qt::ControlModifier)
+    {
+        mIsWorking=true;
+        //check/uncheck the complete group
+        for(int i=0; i<curPatchList.size(); i++)
+            if(curPatchList.at(i).second.group==patch.second.group)
+            {
+                curPatchList[i].second.checked=checked;
+                ui->listPatches->item(i)->setCheckState(item->checkState());
+            }
+        mIsWorking=false;
+    }
+    int group = mGroupSelector->group();
+    QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
+    mGroupSelector->setGroupTitle(title);
+    mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
+    mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
+    mGroupSelector->show();
 }
 
 void PatchDialog::on_btnSelectAll_clicked()
@@ -154,14 +288,14 @@ void PatchDialog::on_btnSelectAll_clicked()
     PatchMap::iterator found = mPatches->find(mod);
     if(found == mPatches->end()) //not found
         return;
-    mIsAdding=true;
+    mIsWorking=true;
     PatchInfoList & curPatchList = found.value();
     for(int i=0; i<curPatchList.size(); i++)
     {
         ui->listPatches->item(i)->setCheckState(Qt::Checked);
         curPatchList[i].second.checked=true;
     }
-    mIsAdding=false;
+    mIsWorking=false;
 }
 
 void PatchDialog::on_btnDeselectAll_clicked()
@@ -172,14 +306,14 @@ void PatchDialog::on_btnDeselectAll_clicked()
     PatchMap::iterator found = mPatches->find(mod);
     if(found == mPatches->end()) //not found
         return;
-    mIsAdding=true;
+    mIsWorking=true;
     PatchInfoList & curPatchList = found.value();
     for(int i=0; i<curPatchList.size(); i++)
     {
         ui->listPatches->item(i)->setCheckState(Qt::Unchecked);
         curPatchList[i].second.checked=false;
     }
-    mIsAdding=false;
+    mIsWorking=false;
 }
 
 void PatchDialog::on_btnRestoreSelected_clicked()
@@ -191,7 +325,7 @@ void PatchDialog::on_btnRestoreSelected_clicked()
     PatchMap::iterator found = mPatches->find(mod);
     if(found == mPatches->end()) //not found
         return;
-    mIsAdding=true;
+    mIsWorking=true;
     PatchInfoList & curPatchList = found.value();
     int removed=0;
     int total=curPatchList.size();
@@ -203,7 +337,7 @@ void PatchDialog::on_btnRestoreSelected_clicked()
             removed++;
         }
     }
-    mIsAdding=false;
+    mIsWorking=false;
     updatePatches();
     if(removed!=total)
         ui->listModules->setCurrentRow(selModIdx);
@@ -220,17 +354,35 @@ void PatchDialog::on_listPatches_itemSelectionChanged()
         return;
     PatchInfoList & curPatchList = found.value();
     PatchPair & patch = curPatchList[ui->listPatches->row(ui->listPatches->selectedItems().at(0))]; //selected item
-    int group=patch.second.group;
-    int_t groupStart = 0;
-    for(int i=0; i<curPatchList.size(); i++)
-        if(curPatchList.at(i).second.group==group)
-        {
-            groupStart = curPatchList.at(i).first.addr;
-            break;
-        }
+    int_t groupStart = getGroupAddress(curPatchList, patch.second.group);
     if(!groupStart)
         return;
     QString addrText = QString("%1").arg(groupStart, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
+}
+
+void PatchDialog::on_btnPickGroups_clicked()
+{
+    if(!ui->listModules->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+    if(!curPatchList.size())
+        return;
+    this->showMinimized();
+
+    int group = mGroupSelector->group();
+    QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
+    mGroupSelector->setGroupTitle(title);
+    mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
+    mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
+    mGroupSelector->show();
     DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
     DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
 }

@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "Bridge.h"
+#include "PatchDialogGroupSelector.h"
 
 namespace Ui {
     class PatchDialog;
@@ -34,18 +35,27 @@ public:
 private:
     Ui::PatchDialog *ui;
     PatchMap* mPatches;
-    bool mIsAdding;
+    PatchDialogGroupSelector* mGroupSelector;
+    bool mIsWorking;
 
-    bool isPartOfPreviousGroup(PatchInfoList & patchList, int index);
+    bool isPartOfPreviousGroup(const PatchInfoList & patchList, int index);
+    bool isGroupEnabled(const PatchInfoList & patchList, int group);
+    bool hasPreviousGroup(const PatchInfoList & patchList, int group);
+    bool hasNextGroup(const PatchInfoList & patchList, int group);
+    int_t getGroupAddress(const PatchInfoList & patchList, int group);
 
 private slots:
     void updatePatches();
+    void groupToggle();
+    void groupPrevious();
+    void groupNext();
     void on_listModules_itemSelectionChanged();
     void on_listPatches_itemChanged(QListWidgetItem *item);
     void on_btnSelectAll_clicked();
     void on_btnDeselectAll_clicked();
     void on_btnRestoreSelected_clicked();
     void on_listPatches_itemSelectionChanged();
+    void on_btnPickGroups_clicked();
 };
 
 #endif // PATCHDIALOG_H
