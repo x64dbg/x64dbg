@@ -351,7 +351,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             richBytes.push_back(curByte);
             richBytes.push_back(space);
         }
-        RichTextPainter::paintRichText(painter, x + jumpsize + funcsize, y, getColumnWidth(col), getRowHeight(), 0, &richBytes, getCharWidth());
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes, getCharWidth());
     }
     break;
 
@@ -700,7 +700,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 
     if(branchType && branchType!=RetType && branchType!=CallType)
     {
-        int_t destRVA = (int_t)instruction.disasm.Instruction.AddrValue;
+        int_t destRVA = (int_t)DbgGetBranchDestination(rvaToVa(instruction.rva));
 
         int_t base=mMemPage->getBase();
         if(destRVA >= base && destRVA < base + (int_t)mMemPage->getSize())

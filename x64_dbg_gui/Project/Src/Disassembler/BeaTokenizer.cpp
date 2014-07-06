@@ -277,7 +277,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         }
         AddToken(instr, bracketsType, "]", 0);
     }
-    else if(disasm->Instruction.BranchType != 0 && disasm->Instruction.BranchType != RetType) //jump/call
+    else if(disasm->Instruction.BranchType != 0 && disasm->Instruction.BranchType != RetType && (arg->ArgType&RELATIVE_)==RELATIVE_) //jump/call
     {
         BeaTokenValue value;
         value.size=arg->ArgSize/8;
@@ -288,6 +288,11 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
     {
         BeaTokenValue value;
         value.size=arg->ArgSize/8;
+        //nice little hack
+        LONGLONG val;
+        sscanf(arg->ArgMnemonic, "%llX", &val);
+        value.value=val;
+        /*
         switch(value.size)
         {
         case 1:
@@ -303,6 +308,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             value.value=(long long)disasm->Instruction.Immediat;
             break;
         }
+        */
         BeaTokenType type=TokenValue;
         if(DbgMemIsValidReadPtr(value.value)) //pointer
             type=TokenAddress;

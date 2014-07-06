@@ -72,7 +72,7 @@ bool CPUSideBar::isJump(int i) const
     {
         uint_t start=CodePtr->getBase();
         uint_t end=start+CodePtr->getSize();
-        uint_t addr=InstrBuffer->at(i).disasm.Instruction.AddrValue;
+        uint_t addr=DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
         return addr>=start && addr<end; //do not draw jumps that go out of the section
     }
     return false;
@@ -117,7 +117,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 
             jumpoffset++;
 
-            int_t destVA = (int_t)instr.disasm.Instruction.AddrValue;
+            int_t destVA = (int_t)DbgGetBranchDestination(CodePtr->rvaToVa(instr.rva));
 
             if(instr.disasm.Instruction.Opcode == 0xFF)
                 continue;
