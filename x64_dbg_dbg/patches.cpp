@@ -126,3 +126,8 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
     }
     return true;
 }
+
+bool patchfile(const PATCHINFO* patchlist, int count, const char* szFileName)
+{
+    return true;
+}

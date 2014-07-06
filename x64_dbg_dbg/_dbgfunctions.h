@@ -20,8 +20,9 @@ typedef bool (*PATCHGET)(duint addr);
 typedef bool (*PATCHINRANGE)(duint start, duint end);
 typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
 typedef void (*PATCHRESTORERANGE)(duint start, duint end);
-typedef bool (*PATCHENUM)(DBGPATCHINFO* patchinfo, size_t* cbsize);
+typedef bool (*PATCHENUM)(DBGPATCHINFO* patchlist, size_t* cbsize);
 typedef bool (*PATCHRESTORE)(duint addr);
+typedef bool (*PATCHFILE)(DBGPATCHINFO* patchlist, int count, const char* szFileName);
 
 struct DBGFUNCTIONS
 {
@@ -38,6 +39,7 @@ struct DBGFUNCTIONS
     PATCHRESTORERANGE PatchRestoreRange;
     PATCHENUM PatchEnum;
     PATCHRESTORE PatchRestore;
+    PATCHFILE PatchFile;
 };
 
 #ifdef BUILD_DBG

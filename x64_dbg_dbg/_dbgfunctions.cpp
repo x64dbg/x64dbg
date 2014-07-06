@@ -101,4 +101,5 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchRestoreRange=_patchrestorerange;
     _dbgfunctions.PatchEnum=(PATCHENUM)patchenum;
     _dbgfunctions.PatchRestore=_patchrestore;
+    _dbgfunctions.PatchFile=(PATCHFILE)patchfile;
 }
