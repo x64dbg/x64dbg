@@ -20,7 +20,9 @@ bool MemoryPage::read(byte_t* parDest, uint_t parRVA, uint_t parSize)
 
 bool MemoryPage::write(const void* parDest, uint_t parRVA, uint_t parSize)
 {
-    return DbgFunctions()->MemPatch(mBase + parRVA, (unsigned char*)parDest, parSize);
+    bool ret = DbgFunctions()->MemPatch(mBase + parRVA, (unsigned char*)parDest, parSize);
+    GuiUpdatePatches();
+    return ret;
 }
 
 bool MemoryPage::write(const byte_t* parDest, uint_t parRVA, uint_t parSize)

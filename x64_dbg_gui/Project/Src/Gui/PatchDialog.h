@@ -45,6 +45,7 @@ private:
     int_t getGroupAddress(const PatchInfoList & patchList, int group);
 
 private slots:
+    void dbgStateChanged(DBGSTATE state);
     void updatePatches();
     void groupToggle();
     void groupPrevious();
@@ -57,6 +58,8 @@ private slots:
     void on_listPatches_itemSelectionChanged();
     void on_btnPickGroups_clicked();
     void on_btnPatchFile_clicked();
+    void on_btnImport_clicked();
+    void on_btnExport_clicked();
 };
 
 #endif // PATCHDIALOG_H

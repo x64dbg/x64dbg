@@ -749,6 +749,14 @@ void MainWindow::getStrWindow(const QString title, QString *text)
 
 void MainWindow::patchWindow()
 {
+    if(!DbgIsDebugging())
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", QString("Patches cannot be shown when not debugging..."));
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
     GuiUpdatePatches();
     mPatchDialog->showNormal();
     mPatchDialog->setFocus();

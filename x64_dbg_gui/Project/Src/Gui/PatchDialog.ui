@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>511</width>
-    <height>452</height>
+    <height>451</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,7 +51,7 @@
      <x>10</x>
      <y>10</y>
      <width>211</width>
-     <height>431</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="title">
@@ -63,7 +63,7 @@
       <x>10</x>
       <y>20</y>
       <width>191</width>
-      <height>401</height>
+      <height>361</height>
      </rect>
     </property>
     <property name="font">
@@ -76,8 +76,8 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>380</y>
+     <x>231</x>
+     <y>381</y>
      <width>271</width>
      <height>58</height>
     </rect>
@@ -88,21 +88,21 @@
       <item>
        <widget class="QPushButton" name="btnSelectAll">
         <property name="text">
-         <string>Select All</string>
+         <string>&amp;Select All</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btnDeselectAll">
         <property name="text">
-         <string>Deselect All</string>
+         <string>&amp;Deselect All</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btnRestoreSelected">
         <property name="text">
-         <string>Restore Selected</string>
+         <string>&amp;Restore Selected</string>
         </property>
        </widget>
       </item>
@@ -116,7 +116,7 @@
          <bool>true</bool>
         </property>
         <property name="text">
-         <string>Pick Groups</string>
+         <string>Pick &amp;Groups</string>
         </property>
        </widget>
       </item>
@@ -126,11 +126,37 @@
          <bool>true</bool>
         </property>
         <property name="text">
-         <string>Patch File</string>
+         <string>&amp;Patch File</string>
         </property>
        </widget>
       </item>
      </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>7</x>
+     <y>410</y>
+     <width>211</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <item>
+     <widget class="QPushButton" name="btnImport">
+      <property name="text">
+       <string>&amp;Import</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnExport">
+      <property name="text">
+       <string>&amp;Export</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
