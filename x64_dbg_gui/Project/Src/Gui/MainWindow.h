@@ -80,6 +80,10 @@ public slots:
     void runSelection();
     void getStrWindow(const QString title, QString* text);
     void patchWindow();
+    void displayComments();
+    void displayLabels();
+    void displayBookmarks();
+    void displayFunctions();
 
 private:
     Ui::MainWindow *ui;

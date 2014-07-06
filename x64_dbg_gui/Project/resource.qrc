@@ -34,5 +34,9 @@
         <file>images/call.png</file>
         <file>images/document-binary.png</file>
         <file>images/patch.png</file>
+        <file>images/bookmarks.png</file>
+        <file>images/functions.png</file>
+        <file>images/labels.png</file>
+        <file>images/comments.png</file>
     </qresource>
 </RCC>

@@ -54,6 +54,10 @@
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
     <addaction name="actionPatches"/>
+    <addaction name="actionComments"/>
+    <addaction name="actionLabels"/>
+    <addaction name="actionBookmarks"/>
+    <addaction name="actionFunctions"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -534,6 +538,54 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionComments">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/comments.png</normaloff>:/icons/images/comments.png</iconset>
+   </property>
+   <property name="text">
+    <string>Comments</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+C</string>
+   </property>
+  </action>
+  <action name="actionLabels">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/labels.png</normaloff>:/icons/images/labels.png</iconset>
+   </property>
+   <property name="text">
+    <string>Labels</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+L</string>
+   </property>
+  </action>
+  <action name="actionBookmarks">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/bookmarks.png</normaloff>:/icons/images/bookmarks.png</iconset>
+   </property>
+   <property name="text">
+    <string>Bookmarks</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+B</string>
+   </property>
+  </action>
+  <action name="actionFunctions">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/functions.png</normaloff>:/icons/images/functions.png</iconset>
+   </property>
+   <property name="text">
+    <string>Functions</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F</string>
    </property>
   </action>
  </widget>

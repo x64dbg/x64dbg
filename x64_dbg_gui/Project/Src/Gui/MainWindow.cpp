@@ -137,6 +137,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
     connect(ui->actionPatches,SIGNAL(triggered()),this,SLOT(patchWindow()));
+    connect(ui->actionComments,SIGNAL(triggered()),this,SLOT(displayComments()));
+    connect(ui->actionLabels,SIGNAL(triggered()),this,SLOT(displayLabels()));
+    connect(ui->actionBookmarks,SIGNAL(triggered()),this,SLOT(displayBookmarks()));
+    connect(ui->actionFunctions,SIGNAL(triggered()),this,SLOT(displayFunctions()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -760,4 +764,36 @@ void MainWindow::patchWindow()
     GuiUpdatePatches();
     mPatchDialog->showNormal();
     mPatchDialog->setFocus();
+}
+
+void MainWindow::displayComments()
+{
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("commentlist");
+    displayReferencesWidget();
+}
+
+void MainWindow::displayLabels()
+{
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("labellist");
+    displayReferencesWidget();
+}
+
+void MainWindow::displayBookmarks()
+{
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("bookmarklist");
+    displayReferencesWidget();
+}
+
+void MainWindow::displayFunctions()
+{
+    if(!DbgIsDebugging())
+        return;
+    DbgCmdExec("functionlist");
+    displayReferencesWidget();
 }
