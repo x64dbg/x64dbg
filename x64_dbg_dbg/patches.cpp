@@ -2,6 +2,7 @@
 #include "addrinfo.h"
 #include "memory.h"
 #include "debugger.h"
+#include "console.h"
 
 PatchesInfo patches;
 
@@ -127,7 +128,68 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
     return true;
 }
 
-bool patchfile(const PATCHINFO* patchlist, int count, const char* szFileName)
+int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, char* error)
 {
-    return true;
+    if(!count)
+    {
+        if(error)
+            strcpy(error, "no patches to apply");
+        return -1;
+    }
+    char modname[MAX_MODULE_SIZE]="";
+    strcpy(modname, patchlist[0].mod);
+    //check if all patches are in the same module
+    for(int i=0; i<count; i++)
+        if(_stricmp(patchlist[i].mod, modname))
+        {
+            if(error)
+                sprintf(error, "not all patches are in module %s", modname);
+            return -1;
+        }
+    uint modbase=modbasefromname(modname);
+    if(!modbase) //module not loaded
+    {
+        if(error)
+            sprintf(error, "failed to get base of module %s", modname);
+        return -1;
+    }
+    char szOriginalName[MAX_PATH]="";
+    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szOriginalName, MAX_PATH))
+    {
+        if(error)
+            sprintf(error, "failed to get module path of module %s", modname);
+        return -1;
+    }
+    if(!CopyFileA(szOriginalName, szFileName, false))
+    {
+        if(error)
+            strcpy(error, "failed to make a copy of the original file (patch target is in use?)");
+        return -1;
+    }
+    HANDLE FileHandle;
+    DWORD LoadedSize;
+    HANDLE FileMap;
+    ULONG_PTR FileMapVA;
+    if(StaticFileLoad((char*)szFileName, UE_ACCESS_ALL, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    {
+        int patched=0;
+        for(int i=0; i<count; i++)
+        {
+            unsigned char* ptr = (unsigned char*)ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, modbase, patchlist[i].addr, false, true);
+            if(!ptr) //skip patches that do not have a raw address
+                continue;
+            dprintf("patch%.4d|%s[%.8X]:%.2X/%.2X->%.2X\n", i+1, modname, ptr-FileMapVA, *ptr, patchlist[i].oldbyte, patchlist[i].newbyte);
+            *ptr=patchlist[i].newbyte;
+            patched++;
+        }
+        if(!StaticFileUnload((char*)szFileName, true, FileHandle, LoadedSize, FileMap, FileMapVA))
+        {
+            if(error)
+                strcpy(error, "StaticFileUnload failed");
+            return -1;
+        }
+        return patched;
+    }
+    strcpy(error, "StaticFileLoad failed");
+    return -1;
 }

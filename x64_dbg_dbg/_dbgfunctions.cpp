@@ -86,6 +86,16 @@ static bool _patchrestore(duint addr)
     return patchdel(addr, true); 
 }
 
+static int _modpathfromaddr(duint addr, char* path, int size)
+{
+    return GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), path, size);
+}
+
+static int _modpathfromname(const char* modname, char* path, int size)
+{
+    return _modpathfromaddr(modbasefromname(modname), path, size);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx=assembleat;
@@ -102,4 +112,6 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchEnum=(PATCHENUM)patchenum;
     _dbgfunctions.PatchRestore=_patchrestore;
     _dbgfunctions.PatchFile=(PATCHFILE)patchfile;
+    _dbgfunctions.ModPathFromAddr=_modpathfromaddr;
+    _dbgfunctions.ModPathFromName=_modpathfromname;
 }

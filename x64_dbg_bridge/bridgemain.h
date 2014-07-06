@@ -54,6 +54,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
+#define MAX_ERROR_SIZE 512
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2

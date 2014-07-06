@@ -22,7 +22,9 @@ typedef bool (*MEMPATCH)(duint va, const unsigned char* src, duint size);
 typedef void (*PATCHRESTORERANGE)(duint start, duint end);
 typedef bool (*PATCHENUM)(DBGPATCHINFO* patchlist, size_t* cbsize);
 typedef bool (*PATCHRESTORE)(duint addr);
-typedef bool (*PATCHFILE)(DBGPATCHINFO* patchlist, int count, const char* szFileName);
+typedef int (*PATCHFILE)(DBGPATCHINFO* patchlist, int count, const char* szFileName, char* error);
+typedef int (*MODPATHFROMADDR)(duint addr, char* path, int size);
+typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
 
 struct DBGFUNCTIONS
 {
@@ -40,6 +42,8 @@ struct DBGFUNCTIONS
     PATCHENUM PatchEnum;
     PATCHRESTORE PatchRestore;
     PATCHFILE PatchFile;
+    MODPATHFROMADDR ModPathFromAddr;
+    MODPATHFROMNAME ModPathFromName;
 };
 
 #ifdef BUILD_DBG

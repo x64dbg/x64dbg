@@ -18,6 +18,6 @@ bool patchdel(uint addr, bool restore);
 void patchdelrange(uint start, uint end, bool restore);
 void patchclear(const char* mod);
 bool patchenum(PATCHINFO* patchlist, size_t* cbsize);
-bool patchfile(const PATCHINFO* patchlist, int count, const char* szFileName);
+int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, char* error);
 
 #endif //_PATCHES_H
