@@ -61,6 +61,8 @@ void MHTabWidget::setCurrentIndex(int index)
         // Otherwise it's going to be a window (just bring it up)
         MHDetachedWindow* window = dynamic_cast<MHDetachedWindow*>(widget(index)->parent());
         window->activateWindow();
+        window->showNormal();
+        window->setFocus();
     }
 }
 
@@ -107,15 +109,15 @@ void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
     detachedWidget->setCentralWidget(tearOffWidget);
 
     // Needs to be done explicitly
-    tearOffWidget->show();
+    tearOffWidget->showNormal();
     QRect screenGeometry = QApplication::desktop()->screenGeometry();
     int w = 640;
     int h = 480;
     int x = (screenGeometry.width() - w) / 2;
     int y = (screenGeometry.height() - h) / 2;
-    detachedWidget->show();
+    detachedWidget->showNormal();
     detachedWidget->setGeometry(x, y, w, h);
-    detachedWidget->show();
+    detachedWidget->showNormal();
 }
 
 //////////////////////////////////////////////////////////////////////////////

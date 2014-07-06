@@ -12,9 +12,9 @@ GotoDialog::GotoDialog(QWidget *parent) :
     setFixedSize(this->size()); //fixed size
     //initialize stuff
     if(!DbgIsDebugging()) //not debugging
-        ui->labelError->setText("<font color='red'><b>Not debugging...</b></color>");
+        ui->labelError->setText("<font color='red'><b>Not debugging...</b></font>");
     else
-        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></color>");
+        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
     ui->buttonOk->setEnabled(false);
     ui->editExpression->setFocus();
     validRangeStart=0;
@@ -30,13 +30,13 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
 {
     if(!DbgIsDebugging()) //not debugging
     {
-        ui->labelError->setText("<font color='red'><b>Not debugging...</b></color>");
+        ui->labelError->setText("<font color='red'><b>Not debugging...</b></font>");
         ui->buttonOk->setEnabled(false);
         expressionText.clear();
     }
     else if(!DbgIsValidExpression(arg1.toUtf8().constData())) //invalid expression
     {
-        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></color>");
+        ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
         ui->buttonOk->setEnabled(false);
         expressionText.clear();
     }
@@ -45,13 +45,13 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
         uint_t addr=DbgValFromString(arg1.toUtf8().constData());
         if(!DbgMemIsValidReadPtr(addr))
         {
-            ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></color>");
+            ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
             ui->buttonOk->setEnabled(false);
             expressionText.clear();
         }
         else if(!IsValidMemoryRange(addr))
         {
-            ui->labelError->setText("<font color='red'><b>Memory out of range...</b></color>");
+            ui->labelError->setText("<font color='red'><b>Memory out of range...</b></font>");
             ui->buttonOk->setEnabled(false);
             expressionText.clear();
         }
@@ -71,7 +71,7 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
                 addrText=QString(module)+"."+QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
             else
                 addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
-            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></color>" + addrText));
+            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
             ui->buttonOk->setEnabled(true);
             expressionText=arg1;
         }
