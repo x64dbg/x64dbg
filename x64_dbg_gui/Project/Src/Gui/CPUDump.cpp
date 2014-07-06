@@ -108,6 +108,11 @@ void CPUDump::setupContextMenu()
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
+    //Binary->Paste
+    mBinaryPasteIgnoreSizeAction = new QAction("&Paste (Ignore Size)", this);
+    connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
+    mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -1065,6 +1070,22 @@ void CPUDump::binaryPasteSlot()
     if(patched.size() < selSize)
         selSize = patched.size();
     mMemPage->write(patched.constData(), selStart, selSize);
+    reloadData();
+}
+
+void CPUDump::binaryPasteIgnoreSizeSlot()
+{
+    HexEditDialog hexEdit(this);
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QClipboard *clipboard = QApplication::clipboard();
+    hexEdit.mHexEdit->setData(clipboard->text());
+
+    byte_t* data = new byte_t[selSize];
+    mMemPage->read(data, selStart, selSize);
+    QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
+    delete [] data;
+    mMemPage->write(patched.constData(), selStart, patched.size());
     reloadData();
 }
 
