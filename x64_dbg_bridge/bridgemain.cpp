@@ -990,15 +990,9 @@ BRIDGE_IMPEXP void GuiRepaintTableView()
     _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
 
-static DWORD WINAPI updatePatchesThread(void* a)
-{
-    _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
-    return 0;
-}
-
 BRIDGE_IMPEXP void GuiUpdatePatches()
 {
-    CloseHandle(CreateThread(0, 0, updatePatchesThread, 0, 0, 0));
+    _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
 }
 
 //Main
