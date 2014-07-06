@@ -746,6 +746,7 @@ void MainWindow::getStrWindow(const QString title, QString *text)
 
 void MainWindow::patchWindow()
 {
+    GuiUpdatePatches();
     mPatchDialog->showNormal();
     mPatchDialog->setFocus();
 }

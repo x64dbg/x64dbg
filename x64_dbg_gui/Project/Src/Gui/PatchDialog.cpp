@@ -277,7 +277,6 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem *item) //checkbox c
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
     mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
-    mGroupSelector->show();
 }
 
 void PatchDialog::on_btnSelectAll_clicked()
@@ -385,4 +384,77 @@ void PatchDialog::on_btnPickGroups_clicked()
     mGroupSelector->show();
     DbgCmdExecDirect(QString("disasm "+addrText).toUtf8().constData());
     DbgCmdExecDirect(QString("dump "+addrText).toUtf8().constData());
+}
+
+void PatchDialog::on_btnPatchFile_clicked()
+{
+    //get current module
+    if(!ui->listModules->selectedItems().size())
+        return;
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches->find(mod);
+    if(found == mPatches->end()) //not found
+        return;
+    PatchInfoList & curPatchList = found.value();
+
+    //get patches to save
+    QList<DBGPATCHINFO> patchList;
+    for(int i=0; i<curPatchList.size(); i++)
+        if(curPatchList.at(i).second.checked)
+            patchList.push_back(curPatchList.at(i).first);
+    if(!curPatchList.size() || !patchList.size())
+    {
+        QMessageBox msg(QMessageBox::Information, "Information", "Nothing to patch!");
+        msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+    int_t modBase=DbgFunctions()->ModBaseFromName(mod.toUtf8().constData());
+    if(!modBase)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to get module base...");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+    char szModName[MAX_PATH]="";
+    if(!GetModuleFileNameA((HMODULE)modBase, szModName, MAX_PATH))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to get module filename...");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+
+    //open the save file dialog
+    int len=strlen(szModName);
+    while(szModName[len]!='\\')
+        len--;
+    char szDirName[MAX_PATH]="";
+    strcpy(szDirName, szModName);
+    szDirName[len]='\0';
+
+    QString filename = QDir::toNativeSeparators(QFileDialog::getSaveFileName(this, "Open file", szDirName, "All files (*.*)"));
+
+    //call patchSave function
+    DBGPATCHINFO* dbgPatchList = new DBGPATCHINFO[patchList.size()];
+    bool patched=DbgFunctions()->PatchFile(dbgPatchList, patchList.size(), filename.toUtf8().constData());
+    delete [] dbgPatchList;
+    if(!patched)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to save patched file...");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+    QMessageBox msg(QMessageBox::Information, "Information", "Patched file saved!");
+    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }

@@ -56,6 +56,7 @@ private slots:
     void on_btnRestoreSelected_clicked();
     void on_listPatches_itemSelectionChanged();
     void on_btnPickGroups_clicked();
+    void on_btnPatchFile_clicked();
 };
 
 #endif // PATCHDIALOG_H

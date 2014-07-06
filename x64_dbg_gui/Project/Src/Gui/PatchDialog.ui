@@ -123,7 +123,7 @@
       <item>
        <widget class="QPushButton" name="btnPatchFile">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>Patch File</string>
