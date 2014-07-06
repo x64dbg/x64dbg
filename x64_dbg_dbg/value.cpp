@@ -1134,7 +1134,9 @@ check whether a string is a valid hex number
 static bool ishexnumber(const char* string)
 {
     int add=0;
-    if(*string=='x') //hex indicator
+    if(*string=='0' and string[1]=='x')
+        add=2;
+    else if(*string=='x') //hex indicator
         add=1;
     if(!string[add]) //only an indicator, no number
         return false;
