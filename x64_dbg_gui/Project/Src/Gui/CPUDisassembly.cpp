@@ -724,7 +724,7 @@ void CPUDisassembly::assembleAt()
         return;
     Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
-    char error[256]="";
+    char error[MAX_ERROR_SIZE]="";
     if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");

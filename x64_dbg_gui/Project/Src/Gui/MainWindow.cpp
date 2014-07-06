@@ -212,7 +212,7 @@ void MainWindow::loadMRUList(int maxItems)
         char currentFile[MAX_PATH]="";
         if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), currentFile))
             break;
-        if(QString(currentFile).size())
+        if(QString(currentFile).size() && QFile(currentFile).exists())
             mMRUList.push_back(currentFile);
     }
     updateMRUMenu();
@@ -223,7 +223,10 @@ void MainWindow::saveMRUList()
 {
     int mruSize=mMRUList.size();
     for(int i=0; i<mruSize; i++)
-        BridgeSettingSet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), mMRUList.at(i).toUtf8().constData());
+    {
+        if(QFile(mMRUList.at(i)).exists())
+            BridgeSettingSet("Recent Files", QString().sprintf("%.2d", i+1).toUtf8().constData(), mMRUList.at(i).toUtf8().constData());
+    }
 }
 
 void MainWindow::addMRUEntry(QString entry)
@@ -453,15 +456,15 @@ void MainWindow::startScylla() //this is executed
 void MainWindow::restartDebugging()
 {
     char filename[MAX_SETTING_SIZE]="";
-    if(!BridgeSettingGet("Recent Files", "01", filename)) //most recent file
+    if(!mMRUList.size())
         return;
+    strcpy(filename, mMRUList.at(0).toUtf8().constData());
     if(DbgIsDebugging())
     {
         DbgCmdExec("stop"); //close current file (when present)
         Sleep(400);
     }
-    QString cmd;
-    DbgCmdExec(cmd.sprintf("init \"%s\"", filename).toUtf8().constData());
+    DbgCmdExec(QString().sprintf("init \"%s\"", filename).toUtf8().constData());
 }
 
 void MainWindow::displayBreakpointWidget()

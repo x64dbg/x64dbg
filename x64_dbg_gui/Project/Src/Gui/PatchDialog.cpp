@@ -411,17 +411,8 @@ void PatchDialog::on_btnPatchFile_clicked()
         msg.exec();
         return;
     }
-    int_t modBase=DbgFunctions()->ModBaseFromName(mod.toUtf8().constData());
-    if(!modBase)
-    {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to get module base...");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        return;
-    }
     char szModName[MAX_PATH]="";
-    if(!GetModuleFileNameA((HMODULE)modBase, szModName, MAX_PATH))
+    if(!DbgFunctions()->ModPathFromAddr(DbgFunctions()->ModBaseFromName(mod.toUtf8().constData()), szModName, MAX_PATH))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to get module filename...");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
@@ -442,17 +433,20 @@ void PatchDialog::on_btnPatchFile_clicked()
 
     //call patchSave function
     DBGPATCHINFO* dbgPatchList = new DBGPATCHINFO[patchList.size()];
-    bool patched=DbgFunctions()->PatchFile(dbgPatchList, patchList.size(), filename.toUtf8().constData());
+    for(int i=0; i<patchList.size(); i++)
+        dbgPatchList[i]=patchList.at(i);
+    char error[MAX_ERROR_SIZE]="";
+    int patched=DbgFunctions()->PatchFile(dbgPatchList, patchList.size(), filename.toUtf8().constData(), error);
     delete [] dbgPatchList;
-    if(!patched)
+    if(patched==-1)
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to save patched file...");
+        QMessageBox msg(QMessageBox::Critical, "Error!", QString("Failed to save patched file (" + QString(error) + ")"));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
-    QMessageBox msg(QMessageBox::Information, "Information", "Patched file saved!");
+    QMessageBox msg(QMessageBox::Information, "Information", QString().sprintf("%d/%d patch(es) applied!", patched, patchList.size()));
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
