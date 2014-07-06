@@ -95,24 +95,36 @@ void CPUDump::setupContextMenu()
 
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
+    mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryFillAction->setShortcut(QKeySequence("f"));
+    this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
 
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
+    mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryCopyAction->setShortcut(QKeySequence("c"));
+    this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
 
     //Binary->Paste
     mBinaryPasteAction = new QAction("&Paste", this);
+    mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryPasteAction->setShortcut(QKeySequence("p"));
+    this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
     //Binary->Paste (Ignore Size)
     mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
+    mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
+    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("shift+p"));
+    this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
-    
+
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
