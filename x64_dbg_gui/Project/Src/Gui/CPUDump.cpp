@@ -108,8 +108,8 @@ void CPUDump::setupContextMenu()
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
 
-    //Binary->Paste
-    mBinaryPasteIgnoreSizeAction = new QAction("&Paste (Ignore Size)", this);
+    //Binary->Paste (Ignore Size)
+    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
@@ -1086,7 +1086,7 @@ void CPUDump::binaryPasteIgnoreSizeSlot()
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, selSize));
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
-    reloadData();
+    GuiUpdateAllViews();
 }
 
 void CPUDump::findPattern()
