@@ -180,6 +180,8 @@ bool dbgcmddel(const char* name)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
+        return;
     uint cip=GetContextData(UE_CIP);
     GuiDisasmAt(disasm_addr, cip);
     if(stack)
