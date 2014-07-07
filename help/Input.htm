@@ -75,11 +75,13 @@ the "x" prefix. Decimal numbers can be used by prefixing the number with a "."
            See "Calculations" for more 
 information.</SPAN></P>
 <P class=rvps3><SPAN class=rvts9><U>DLL exports</U>: Type 'GetProcAddress' and it will 
-automatically be resolved to the actual address of the function. To explicitly define from 
-which module to load the  
+automatically be resolved to the actual address of the function. To explicitly 
+define from which module to load the API, use: "kernel32.dll:GetProcAddress" or "kernel32:GetProcAddress". In a similar way 
+you can resolve ordinals, try "ntdll:1". Another macro allows you to get the loaded 
+base of a module. Try  
                 
-           API, use: "kernel32.dll:GetProcAddress" or 
-"kernel32:GetProcAddress"</SPAN></P>
+           "ntdll:0", "ntdll:base", "ntdll:imagebase" or 
+"ntdll:header".</SPAN></P>
 <P class=rvps3><SPAN class=rvts9><U>labels/symbols</U>      
   : user-defined labels  
                 
@@ -90,4 +92,4 @@ expressions.</SPAN></P>
 Input  
                 
 for arguments can always be done in any of the above forms, except if stated 
-otherwise.</SPAN></P></body></HTML>
+otherwise.</SPAN></P></body>
