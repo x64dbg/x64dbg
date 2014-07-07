@@ -1,5 +1,4 @@
 #include "_global.h"
-#include "DeviceNameResolver\DeviceNameResolver.h"
 #include <new>
 
 HINSTANCE hInst;

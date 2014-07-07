@@ -565,7 +565,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     void* base=CreateProcessInfo->lpBaseOfImage;
     char DebugFileName[deflen]="";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
-        strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+    {
+        if(!DevicePathFromFileHandleA(CreateProcessInfo->hFile, DebugFileName, deflen))
+            strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+    }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     //init program database
@@ -750,8 +753,10 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     void* base=LoadDll->lpBaseOfDll;
     char DLLDebugFileName[deflen]="";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
-        strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
-
+    {
+        if(!DevicePathFromFileHandleA(LoadDll->hFile, DLLDebugFileName, deflen))
+            strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+    }
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));

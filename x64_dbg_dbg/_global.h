@@ -19,6 +19,7 @@
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"
+#include "DeviceNameResolver\DeviceNameResolver.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"
