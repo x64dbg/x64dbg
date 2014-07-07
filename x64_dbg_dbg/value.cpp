@@ -988,6 +988,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         strcpy(modname, name);
         modname[apiname-name]=0;
         apiname++;
+        if(!strlen(apiname))
+            return false;
         uint modbase=modbasefromname(modname);
         char szModName[MAX_PATH];
         if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
@@ -1013,9 +1015,18 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 uint addr=(uint)GetProcAddress(mod, apiname);
                 if(!addr) //not found
                 {
-                    uint ordinal;
-                    if(valfromstring(apiname, &ordinal))
-                        addr=(uint)GetProcAddress(mod, (LPCSTR)(ordinal&0xFFFF));
+                    if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
+                        addr=modbase;
+                    else
+                    {
+                        uint ordinal;
+                        if(valfromstring(apiname, &ordinal))
+                        {
+                            addr=(uint)GetProcAddress(mod, (LPCSTR)(ordinal&0xFFFF));
+                            if(!addr and !ordinal)
+                                addr=modbase;
+                        }
+                    }
                 }
                 FreeLibrary(mod);
                 if(addr) //found!
