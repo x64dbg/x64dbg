@@ -13,6 +13,11 @@ const DBGFUNCTIONS* dbgfunctionsget()
     return &_dbgfunctions;
 }
 
+static bool _assembleatex(duint addr, const char* instruction, char* error, bool fillnop)
+{
+    return assembleat(addr, instruction, 0, error, fillnop);
+}
+
 static bool _sectionfromaddr(duint addr, char* section)
 {
     HMODULE hMod=(HMODULE)modbasefromaddr(addr);
@@ -96,7 +101,7 @@ static int _modpathfromname(const char* modname, char* path, int size)
 
 void dbgfunctionsinit()
 {
-    _dbgfunctions.AssembleAtEx=assembleat;
+    _dbgfunctions.AssembleAtEx=_assembleatex;
     _dbgfunctions.SectionFromAddr=_sectionfromaddr;
     _dbgfunctions.ModNameFromAddr=modnamefromaddr;
     _dbgfunctions.ModBaseFromAddr=modbasefromaddr;

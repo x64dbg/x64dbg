@@ -92,6 +92,9 @@ static void registercommands()
     dbgcmdnew("eSingleStep\1esstep\1esst", cbDebugeSingleStep, true); //SingleStep arg1:count + skip first chance exceptions
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
+    dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
+    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbBpDll, true); //set dll breakpoint
+    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbBcDll, true); //remove dll breakpoint
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -119,6 +122,9 @@ static void registercommands()
     dbgcmdnew("HideDebugger\1dbh\1hide", cbDebugHide, true); //HideDebugger
     dbgcmdnew("dump", cbDebugDump, true); //dump at address
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
+    dbgcmdnew("refinit", cbInstrRefinit, false);
+    dbgcmdnew("refadd", cbInstrRefadd, false);
+    dbgcmdnew("asm", cbAssemble, true); //assemble instruction
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment
@@ -131,6 +137,10 @@ static void registercommands()
     dbgcmdnew("loaddb\1dbload", cbLoaddb, true); //load program database
     dbgcmdnew("functionadd\1func", cbFunctionAdd, true); //function
     dbgcmdnew("functiondel\1funcc", cbFunctionDel, true); //function
+    dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
+    dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
+    dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
+    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
 
     //memory operations
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
@@ -170,25 +180,15 @@ static void registercommands()
     dbgcmdnew("refstr\1strref", cbInstrRefStr, true);
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
+    dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
 
     //undocumented
     dbgcmdnew("bench", cbBenchmark, true); //benchmark test (readmem etc)
     dbgcmdnew("memwrite", cbMemWrite, true); //memwrite test
-    dbgcmdnew("asm", cbAssemble, true); //assemble instruction
     dbgcmdnew("dprintf", cbPrintf, false); //printf
-    dbgcmdnew("refinit", cbInstrRefinit, false);
-    dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
-    dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-    dbgcmdnew("bpdll", cbBpDll, true); //set dll breakpoint
-    dbgcmdnew("bcdll", cbBcDll, true); //remove dll breakpoint
-    dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
-    dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
-    dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
-    dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
-    dbgcmdnew("functionlist", cbInstrFunctionList, true); //list functions
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
 }
 

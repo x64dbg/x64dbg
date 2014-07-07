@@ -46,7 +46,7 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
     return true;
 }
 
-bool assembleat(uint addr, const char* instruction, char* error, bool fillnop)
+bool assembleat(uint addr, const char* instruction, int* size, char* error, bool fillnop)
 {
     int destSize;
     unsigned char dest[16];
@@ -60,10 +60,17 @@ bool assembleat(uint addr, const char* instruction, char* error, bool fillnop)
     unsigned char nops[16];
     memset(nops, 0x90, sizeof(nops));
 
+    if(size)
+        *size=destSize;
+
     bool ret=mempatch(fdProcessInfo->hProcess, (void*)addr, dest, destSize, 0);
     if(ret && fillnop && nopsize)
+    {
+        if(size)
+            *size+=nopsize;
         if(!mempatch(fdProcessInfo->hProcess, (void*)(addr+destSize), nops, nopsize, 0))
             ret=false;
+    }
     GuiUpdatePatches();
     return true;
 }

@@ -768,7 +768,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_ASSEMBLE_AT:
     {
-        return assembleat((duint)param1, (const char*)param2, 0, false);
+        return assembleat((duint)param1, (const char*)param2, 0, 0, false);
     }
     break;
 
