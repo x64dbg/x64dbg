@@ -23,8 +23,8 @@ IDI_ICON1          ICON           "..\\bug.ico"
 //
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 1 VERSIONINFO
-    FILEVERSION     0,0,1,9
-    PRODUCTVERSION  0,0,1,9
+    FILEVERSION     0,0,2,0
+    PRODUCTVERSION  0,0,2,0
     FILEOS          VOS_UNKNOWN
     FILETYPE        VFT_UNKNOWN
     FILESUBTYPE     VFT2_UNKNOWN
@@ -40,12 +40,12 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
             VALUE "FileDescription", "x64_dbg"
             VALUE "FileVersion", ""
             VALUE "InternalName", ""
-            VALUE "LegalCopyright", "x64_dbg.com"
+            VALUE "LegalCopyright", "x64dbg.com"
             VALUE "LegalTrademarks", ""
             VALUE "OriginalFilename", ""
             VALUE "PrivateBuild", ""
             VALUE "ProductName", "x64_dbg"
-            VALUE "ProductVersion", "V1.9ALPHA"
+            VALUE "ProductVersion", "V2.0ALPHA"
             VALUE "SpecialBuild", ""
         }
     }
