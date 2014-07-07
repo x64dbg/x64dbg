@@ -420,6 +420,19 @@
       <string>Memory Spaces</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkUppercase">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>71</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Uppercase</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="btnSave">

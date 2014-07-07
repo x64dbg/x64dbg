@@ -52,6 +52,7 @@ void SettingsDialog::LoadSettings()
     settings.exceptionRanges=&realExceptionRanges;
     settings.disasmArgumentSpaces=false;
     settings.disasmMemorySpaces=false;
+    settings.disasmUppercase=false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -146,8 +147,10 @@ void SettingsDialog::LoadSettings()
     //Disasm tab
     GetSettingBool("Disassembler", "ArgumentSpaces", &settings.disasmArgumentSpaces);
     GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
+    GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
+    ui->chkUppercase->setChecked(settings.disasmUppercase);
 }
 
 void SettingsDialog::SaveSettings()
@@ -183,6 +186,7 @@ void SettingsDialog::SaveSettings()
     //Disasm tab
     BridgeSettingSetUint("Disassembler", "ArgumentSpaces", settings.disasmArgumentSpaces);
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
+    BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
 
     Config()->load();
     DbgSettingsUpdated();
@@ -405,4 +409,12 @@ void SettingsDialog::on_chkMemorySpaces_stateChanged(int arg1)
         settings.disasmMemorySpaces=false;
     else
         settings.disasmMemorySpaces=true;
+}
+
+void SettingsDialog::on_chkUppercase_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.disasmUppercase=false;
+    else
+        settings.disasmUppercase=true;
 }

@@ -147,6 +147,7 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("ArgumentSpaces", false);
     disassemblyBool.insert("MemorySpaces", false);
     disassemblyBool.insert("FillNOPs", false);
+    disassemblyBool.insert("Uppercase", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     //uint settings

@@ -52,6 +52,7 @@ private slots:
     //Disasm tab
     void on_chkArgumentSpaces_stateChanged(int arg1);
     void on_chkMemorySpaces_stateChanged(int arg1);
+    void on_chkUppercase_stateChanged(int arg1);
 
 private:
     //enums
@@ -106,6 +107,7 @@ private:
         //Disasm Tab
         bool disasmArgumentSpaces;
         bool disasmMemorySpaces;
+        bool disasmUppercase;
     };
 
     //variables
