@@ -14,6 +14,7 @@ CPUInfoBox::CPUInfoBox(StdTable *parent) : StdTable(parent)
     setMaximumHeight(height);
     setMinimumHeight(height);
     setCopyMenuOnly(true);
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 }
 
 int CPUInfoBox::getHeight()
@@ -29,26 +30,40 @@ void CPUInfoBox::setInfoLine(int line, QString text)
     reloadData();
 }
 
+void CPUInfoBox::clear()
+{
+    setInfoLine(0, "");
+    setInfoLine(1, "");
+    setInfoLine(2, "");
+}
+
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
     if(!DbgIsDebugging())
         return;
-    QString info="";
+    clear();
+    QString info;
+    char mod[MAX_MODULE_SIZE]="";
+    if(DbgFunctions()->ModNameFromAddr(parVA, mod, true))
+    {
+        int_t modbase=DbgFunctions()->ModBaseFromAddr(parVA);
+        if(modbase)
+            info=QString(mod)+"["+QString("%1").arg(parVA-modbase, 0, 16, QChar('0')).toUpper()+"] | ";
+        else
+            info=QString(mod)+" | ";
+    }
     char section[10]="";
-    bool bSection = DbgFunctions()->SectionFromAddr(parVA, section);
+    if(DbgFunctions()->SectionFromAddr(parVA, section))
+        info+=QString(section)+":";
+    info+=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char label[MAX_LABEL_SIZE]="";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-    {
-        QString fullLabel="<"+QString(label)+">";
-        char mod[MAX_MODULE_SIZE]="";
-        if(DbgGetModuleAt(parVA, mod) && !QString(label).startsWith("JMP.&"))
-            fullLabel="<"+QString(mod)+"."+QString(label)+">";
-        if(bSection)
-            info=QString(section)+":";
-        info+=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper() + " " + fullLabel;
-    }
-    else if(bSection)
-        info=QString(section)+":"+QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        info+=" <"+QString(label)+">";
     setInfoLine(2, info);
-    //setInfoLine(0, QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+}
+
+void CPUInfoBox::dbgStateChanged(DBGSTATE state)
+{
+    if(state==stopped)
+        clear();
 }

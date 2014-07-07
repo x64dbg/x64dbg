@@ -15,9 +15,11 @@ public:
 
 public slots:
     void disasmSelectionChanged(int_t parVA);
+    void dbgStateChanged(DBGSTATE state);
 
 private:
     void setInfoLine(int line, QString text);
+    void clear();
 };
 
 #endif // INFOBOX_H
