@@ -55,7 +55,7 @@ mathformat:
 */
 void mathformat(char* text)
 {
-    int len=strlen(text);
+    int len=(int)strlen(text);
     char* temp=(char*)emalloc(len+1, "mathformat:temp");
     memset(temp, 0, len+1);
     for(int i=0,j=0; i<len; i++)
@@ -70,7 +70,7 @@ void mathformat(char* text)
 */
 bool mathcontains(const char* text)
 {
-    int len=strlen(text);
+    int len=(int)strlen(text);
     for(int i=0; i<len; i++)
         if(mathisoperator(text[i]))
             return true;
@@ -236,13 +236,13 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 {
     int layer=endlayer;
-    int len=strlen(expression);
+    int len=(int)strlen(expression);
     for(int i=0; i<len; i++)
     {
         if(expression[i]=='(')
         {
             layer++;
-            int pos=expression+i-expstruct->expression;
+            int pos=(int)(expression+i-expstruct->expression);
             fillpair(expstruct, pos, layer);
             i+=matchpairs(expstruct, expression+i+1, layer);
         }
@@ -250,7 +250,7 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
         {
             if(layer==endlayer)
             {
-                int pos=expression+i-expstruct->expression;
+                int pos=(int)(expression+i-expstruct->expression);
                 fillpair(expstruct, pos, layer);
                 return i;
             }
@@ -263,7 +263,7 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 
 static int expressionformat(char* exp)
 {
-    int len=strlen(exp);
+    int len=(int)strlen(exp);
     int open=0;
     int close=0;
     for(int i=0; i<len; i++)
@@ -362,7 +362,7 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
 {
     int highestop=0;
     int highestop_pos=0;
-    int len=strlen(string);
+    int len=(int)strlen(string);
     for(int i=0; i<len; i++)
     {
         int curop=mathisoperator(string[i]);

@@ -57,7 +57,7 @@ static DWORD GetThreadLastError(uint tebAddress)
 
 void threadgetlist(THREADLIST* list)
 {
-    int count=threadList.size();
+    int count=(int)threadList.size();
     list->count=count;
     if(!count)
         return;

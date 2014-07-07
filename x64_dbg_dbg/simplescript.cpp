@@ -42,7 +42,7 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 
 static int scriptlabelfind(const char* labelname)
 {
-    int linecount=linemap.size();
+    int linecount=(int)linemap.size();
     for(int i=0; i<linecount; i++)
         if(linemap.at(i).type==linelabel && !strcmp(linemap.at(i).u.label, labelname))
             return i+1;
@@ -51,7 +51,7 @@ static int scriptlabelfind(const char* labelname)
 
 static int scriptinternalstep(int fromIp) //internal step routine
 {
-    int maxIp=linemap.size(); //maximum ip
+    int maxIp=(int)linemap.size(); //maximum ip
     if(fromIp>=maxIp) //script end
         return fromIp;
     while((linemap.at(fromIp).type==lineempty or linemap.at(fromIp).type==linecomment or linemap.at(fromIp).type==linelabel) and fromIp<maxIp) //skip empty lines
@@ -86,7 +86,7 @@ static bool scriptcreatelinemap(const char* filename)
         return false;
     }
     CloseHandle(hFile);
-    int len=strlen(filedata);
+    int len=(int)strlen(filedata);
     char temp[256]="";
     LINEMAPENTRY entry;
     memset(&entry, 0, sizeof(entry));
@@ -137,7 +137,7 @@ static bool scriptcreatelinemap(const char* filename)
         linemap.push_back(entry);
     }
     efree(filedata, "createlinemap:filedata");
-    unsigned int linemapsize=linemap.size();
+    unsigned int linemapsize=(unsigned int)linemap.size();
     while(!*linemap.at(linemapsize-1).raw) //remove empty lines from the end
     {
         linemapsize--;
@@ -164,7 +164,7 @@ static bool scriptcreatelinemap(const char* filename)
             }
         }
 
-        int rawlen=strlen(cur.raw);
+        int rawlen=(int)strlen(cur.raw);
         if(!strlen(cur.raw)) //empty
         {
             cur.type=lineempty;
@@ -205,7 +205,7 @@ static bool scriptcreatelinemap(const char* filename)
             char newraw[MAX_SCRIPT_LINE_SIZE]="";
             strcpy(newraw, cur.raw);
             argformat(newraw);
-            int len=strlen(newraw);
+            int len=(int)strlen(newraw);
             for(int i=0; i<len; i++)
                 if(newraw[i]==' ')
                 {
@@ -224,7 +224,7 @@ static bool scriptcreatelinemap(const char* filename)
             sprintf(cur.raw+rawlen, " %s", line_comment);
         linemap.at(i)=cur;
     }
-    linemapsize=linemap.size();
+    linemapsize=(int)linemap.size();
     for(unsigned int i=0; i<linemapsize; i++)
     {
         if(linemap.at(i).type==linebranch) //invalid branch label
@@ -255,7 +255,7 @@ static bool scriptcreatelinemap(const char* filename)
 
 static bool scriptinternalbpget(int line) //internal bpget routine
 {
-    int bpcount=scriptbplist.size();
+    int bpcount=(int)scriptbplist.size();
     for(int i=0; i<bpcount; i++)
         if(scriptbplist.at(i).line==line)
             return true;
@@ -269,7 +269,7 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
     line=scriptinternalstep(line-1); //no breakpoints on non-executable locations
     if(scriptinternalbpget(line)) //remove breakpoint
     {
-        int bpcount=scriptbplist.size();
+        int bpcount=(int)scriptbplist.size();
         for(int i=0; i<bpcount; i++)
             if(scriptbplist.at(i).line==line)
             {
@@ -312,8 +312,8 @@ static bool scriptisruncommand(const char* cmdlist)
 
 static bool scriptisinternalcommand(const char* text, const char* cmd)
 {
-    int len=strlen(text);
-    int cmdlen=strlen(cmd);
+    int len=(int)strlen(text);
+    int cmdlen=(int)strlen(cmd);
     if(cmdlen>len)
         return false;
     else if(cmdlen==len)
@@ -487,7 +487,7 @@ static DWORD WINAPI scriptLoadThread(void* filename)
     bAbort=false;
     if(!scriptcreatelinemap((const char*)filename))
         return 0;
-    int lines=linemap.size();
+    int lines=(int)linemap.size();
     const char** script=(const char**)BridgeAlloc(lines*sizeof(const char*));
     for(int i=0; i<lines; i++) //add script lines
         script[i]=linemap.at(i).raw;
@@ -551,7 +551,7 @@ bool scriptbptoggle(int line)
     line=scriptinternalstep(line-1); //no breakpoints on non-executable locations
     if(scriptbpget(line)) //remove breakpoint
     {
-        int bpcount=scriptbplist.size();
+        int bpcount=(int)scriptbplist.size();
         for(int i=0; i<bpcount; i++)
             if(scriptbplist.at(i).line==line && !scriptbplist.at(i).silent)
             {
@@ -571,7 +571,7 @@ bool scriptbptoggle(int line)
 
 bool scriptbpget(int line)
 {
-    int bpcount=scriptbplist.size();
+    int bpcount=(int)scriptbplist.size();
     for(int i=0; i<bpcount; i++)
         if(scriptbplist.at(i).line==line && !scriptbplist.at(i).silent)
             return true;

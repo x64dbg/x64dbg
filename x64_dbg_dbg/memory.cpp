@@ -5,7 +5,7 @@
 uint memfindbaseaddr(HANDLE hProcess, uint addr, uint* size)
 {
     MEMORY_BASIC_INFORMATION mbi;
-    DWORD numBytes;
+    SIZE_T numBytes;
     uint MyAddress=0, newAddress=0;
     do
     {
@@ -107,7 +107,7 @@ bool memisvalidreadptr(HANDLE hProcess, uint addr)
     return memread(hProcess, (void*)addr, &a, 1, 0);
 }
 
-void* memalloc(HANDLE hProcess, uint addr, DWORD size, DWORD fdProtect)
+void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
 {
     return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE|MEM_COMMIT, fdProtect);
 }
@@ -119,7 +119,7 @@ void memfree(HANDLE hProcess, uint addr)
 
 static int formathexpattern(char* string)
 {
-    int len=strlen(string);
+    int len=(int)strlen(string);
     _strupr(string);
     char* new_string=(char*)emalloc(len+1, "formathexpattern:new_string");
     memset(new_string, 0, len+1);
@@ -128,7 +128,7 @@ static int formathexpattern(char* string)
             j+=sprintf(new_string+j, "%c", string[i]);
     strcpy(string, new_string);
     efree(new_string, "formathexpattern:new_string");
-    return strlen(string);
+    return (int)strlen(string);
 }
 
 static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
@@ -136,7 +136,7 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     if(!text or !pattern)
         return false;
     pattern->clear();
-    int len=strlen(text);
+    int len=(int)strlen(text);
     if(!len)
         return false;
     char* newtext=(char*)emalloc(len+2, "transformpattern:newtext");
@@ -199,7 +199,7 @@ uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* pa
     std::vector<PATTERNBYTE> searchpattern;
     if(!patterntransform(pattern, &searchpattern))
         return -1;
-    int searchpatternsize=searchpattern.size();
+    int searchpatternsize=(int)searchpattern.size();
     if(patternsize)
         *patternsize=searchpatternsize;
     for(uint i=0,pos=0; i<size; i++) //search for the pattern

@@ -7,7 +7,7 @@
 #include <cwctype>
 #include <cwchar>
 
-unsigned int disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
+uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
 {
     int i;
     uint abuf[131], addr, back, cmdsize;
@@ -71,7 +71,7 @@ unsigned int disasmback(unsigned char* data, uint base, uint size, uint ip, int 
         return abuf[(i - n + 128) % 128];
 }
 
-unsigned int disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
+uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 {
     int i;
     uint cmdsize;
@@ -101,7 +101,7 @@ unsigned int disasmnext(unsigned char* data, uint base, uint size, uint ip, int 
     for(i = 0; i < n && size > 0; i++)
     {
         disasm.EIP = (UIntPtr)pdata;
-        disasm.SecurityBlock = (UIntPtr)size;
+        disasm.SecurityBlock = (UInt32)size;
         len = Disasm(&disasm);
         cmdsize = (len < 1) ? 1 : len;
 
@@ -281,7 +281,7 @@ void disasmprint(uint addr)
 
 static bool isasciistring(const unsigned char* data, int maxlen)
 {
-    int len=strlen((const char*)data);
+    int len=(int)strlen((const char*)data);
     if(len<2 or len+1>=maxlen)
         return false;
     for(int i=0; i<len; i++)
@@ -292,7 +292,7 @@ static bool isasciistring(const unsigned char* data, int maxlen)
 
 static bool isunicodestring(const unsigned char* data, int maxlen)
 {
-    int len=wcslen((const wchar_t*)data);
+    int len=(int)wcslen((const wchar_t*)data);
     if(len<2 or len+1>=maxlen)
         return false;
     for(int i=0; i<len*2; i+=2)
@@ -344,7 +344,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     {
         if(type)
             *type=str_ascii;
-        int len=strlen((const char*)data);
+        int len=(int)strlen((const char*)data);
         for(int i=0,j=0; i<len; i++)
         {
             switch(data[i])
@@ -382,7 +382,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     {
         if(type)
             *type=str_unicode;
-        int len=wcslen((const wchar_t*)data);
+        int len=(int)wcslen((const wchar_t*)data);
         for(int i=0,j=0; i<len*2; i+=2)
         {
             switch(data[i])

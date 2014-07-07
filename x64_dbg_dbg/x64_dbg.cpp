@@ -206,7 +206,7 @@ static bool cbCommandProvider(char* cmd, int maxlen)
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
-    int len=strlen(cmd);
+    int len=(int)strlen(cmd);
     char* newcmd=(char*)emalloc((len+1)*sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
@@ -236,7 +236,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char dir[deflen]="";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";
-    int len=strlen(dir);
+    int len=(int)strlen(dir);
     while(dir[len]!='\\')
         len--;
     dir[len]=0;

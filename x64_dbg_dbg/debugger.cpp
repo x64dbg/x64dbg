@@ -399,7 +399,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     {
         evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
         const char* text=(const char*)evt->desc;
-        int len=strlen(text);
+        int len=(int)strlen(text);
         bool suspress=false;
         for(int i=0; i<len; i++)
             if(text[i]==0x08)
@@ -569,7 +569,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     //init program database
-    int len=strlen(szFileName);
+    int len=(int)strlen(szFileName);
     while(szFileName[len]!='\\' && len!=0)
         len--;
     if(len)
@@ -857,7 +857,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         memset(DebugText, 0, DebugString->nDebugStringLength+1);
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
-            int len=strlen(DebugText);
+            int len=(int)strlen(DebugText);
             int escape_count=0;
             for(int i=0; i<len; i++)
                 if(DebugText[i]=='\\' or DebugText[i]=='\"' or !isprint(DebugText[i]))
@@ -973,7 +973,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                 memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
                 if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE-1, 0))
                 {
-                    int len=strlen(ThreadName);
+                    int len=(int)strlen(ThreadName);
                     int escape_count=0;
                     for(int i=0; i<len; i++)
                         if(ThreadName[i]=='\\' or ThreadName[i]=='\"' or !isprint(ThreadName[i]))
@@ -1123,7 +1123,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     GuiSetDebugState(initialized);
     //set GUI title
     strcpy(szBaseFileName, szFileName);
-    int len=strlen(szBaseFileName);
+    int len=(int)strlen(szBaseFileName);
     while(szBaseFileName[len]!='\\' and len)
         len--;
     if(len)
@@ -1190,7 +1190,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 
     static char currentfolder[deflen]="";
     strcpy(currentfolder, arg1);
-    int len=strlen(currentfolder);
+    int len=(int)strlen(currentfolder);
     while(currentfolder[len]!='\\' and len!=0)
         len--;
     currentfolder[len]=0;
@@ -1243,7 +1243,7 @@ CMDRESULT cbDebugErun(int argc, char* argv[])
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
     char argtype[deflen]="";
-    uint type=0;
+    DWORD type=0;
     if(!argget(*argv, argtype, 0, false))
         return STATUS_ERROR;
     const char* a=0;
@@ -1629,7 +1629,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         else
             strcpy(arg3, arg2);
     }
-    uint type=UE_MEMORY;
+    DWORD type=UE_MEMORY;
     if(*arg3)
     {
         switch(*arg3)
@@ -1749,7 +1749,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     uint addr;
     if(!valfromstring(arg1, &addr))
         return STATUS_ERROR;
-    uint type=UE_HARDWARE_EXECUTE;
+    DWORD type=UE_HARDWARE_EXECUTE;
     char arg2[deflen]=""; //type
     if(argget(*argv, arg2, 1, true))
     {
@@ -1803,14 +1803,14 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         dputs("no free debug register");
         return STATUS_ERROR;
     }
-    int titantype=(drx<<8)|(type<<4)|size;
+    int titantype=(drx<<8)|(type<<4)|(DWORD)size;
     //TODO: hwbp in multiple threads TEST
     if(bpget(addr, BPHARDWARE, 0, 0))
     {
         dputs("hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
-    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0) or !SetHardwareBreakPoint(addr, drx, type, size, (void*)cbHardwareBreakpoint))
+    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0) or !SetHardwareBreakPoint(addr, drx, type, (DWORD)size, (void*)cbHardwareBreakpoint))
     {
         dputs("error setting hardware breakpoint!");
         return STATUS_ERROR;
@@ -2049,7 +2049,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     lock(WAITID_STOP);
     bIsAttached=true;
     bSkipExceptions=false;
-    uint pid=(uint)lpParameter;
+    DWORD pid=(DWORD)lpParameter;
     static PROCESS_INFORMATION pi_attached;
     fdProcessInfo=&pi_attached;
     //do some init stuff
@@ -2070,7 +2070,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     GuiSetDebugState(initialized);
     //set GUI title
     strcpy(szBaseFileName, szFileName);
-    int len=strlen(szBaseFileName);
+    int len=(int)strlen(szBaseFileName);
     while(szBaseFileName[len]!='\\' and len)
         len--;
     if(len)
@@ -2082,7 +2082,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     plugincbcall(CB_INITDEBUG, &initInfo);
     //call plugin callback (attach)
     PLUG_CB_ATTACH attachInfo;
-    attachInfo.dwProcessId=pid;
+    attachInfo.dwProcessId=(DWORD)pid;
     plugincbcall(CB_ATTACH, &attachInfo);
     //run debug loop (returns when process debugging is stopped)
     AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
@@ -2123,7 +2123,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dputs("terminate the current session!");
         return STATUS_ERROR;
     }
-    HANDLE hProcess=TitanOpenProcess(PROCESS_ALL_ACCESS, false, pid);
+    HANDLE hProcess=TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
         dprintf("could not open process %X!\n", pid);

@@ -10,7 +10,7 @@ struct SYMBOLCBDATA
 
 static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
-    int len=strlen(pSymInfo->Name);
+    int len=(int)strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
     curSymbol.addr=(duint)pSymInfo->Address;
@@ -66,7 +66,7 @@ void symupdatemodulelist()
     std::vector<SYMBOLMODULEINFO> modList;
     modList.clear();
     SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
-    int modcount=modList.size();
+    int modcount=(int)modList.size();
     SYMBOLMODULEINFO* modListBridge=(SYMBOLMODULEINFO*)BridgeAlloc(sizeof(SYMBOLMODULEINFO)*modcount);
     for(int i=0; i<modcount; i++)
         memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));

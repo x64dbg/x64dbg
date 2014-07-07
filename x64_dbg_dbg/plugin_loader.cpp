@@ -100,7 +100,7 @@ void pluginload(const char* pluginDir)
 
 static void plugincmdunregisterall(int pluginHandle)
 {
-    int listsize=pluginCommandList.size();
+    int listsize=(int)pluginCommandList.size();
     for(int i=listsize-1; i>=0; i--)
     {
         if(pluginCommandList.at(i).pluginHandle==pluginHandle)
@@ -113,7 +113,7 @@ static void plugincmdunregisterall(int pluginHandle)
 
 void pluginunload()
 {
-    int pluginCount=pluginList.size();
+    int pluginCount=(int)pluginList.size();
     for(int i=0; i<pluginCount; i++)
     {
         PLUGSTOP stop=pluginList.at(i).plugstop;
@@ -140,7 +140,7 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 {
-    int pluginCallbackCount=pluginCallbackList.size();
+    int pluginCallbackCount=(int)pluginCallbackList.size();
     for(int i=0; i<pluginCallbackCount; i++)
     {
         if(pluginCallbackList.at(i).pluginHandle==pluginHandle and pluginCallbackList.at(i).cbType==cbType)
@@ -154,7 +154,7 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
-    int pluginCallbackCount=pluginCallbackList.size();
+    int pluginCallbackCount=(int)pluginCallbackList.size();
     for(int i=0; i<pluginCallbackCount; i++)
     {
         if(pluginCallbackList.at(i).cbType==cbType)
@@ -183,7 +183,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 {
     if(!command or strlen(command)>=deflen or strstr(command, "\1"))
         return false;
-    int listsize=pluginCommandList.size();
+    int listsize=(int)pluginCommandList.size();
     for(int i=0; i<listsize; i++)
     {
         if(pluginCommandList.at(i).pluginHandle==pluginHandle and !strcmp(pluginCommandList.at(i).command, command))
@@ -297,7 +297,7 @@ void pluginmenucall(int hEntry)
         {
             PLUG_CB_MENUENTRY menuEntryInfo;
             menuEntryInfo.hEntry=pluginMenuList.at(i).hEntryPlugin;
-            int pluginCallbackCount=pluginCallbackList.size();
+            int pluginCallbackCount=(int)pluginCallbackList.size();
             int pluginHandle=pluginMenuList.at(i).pluginHandle;
             for(int j=0; j<pluginCallbackCount; j++)
             {

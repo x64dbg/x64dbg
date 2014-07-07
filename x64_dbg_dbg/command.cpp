@@ -76,7 +76,7 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 {
     char new_cmd[deflen]="";
     strcpy(new_cmd, cmd);
-    int len=strlen(new_cmd);
+    int len=(int)strlen(new_cmd);
     int start=0;
     while(new_cmd[start]!=' ' and start<len)
         start++;
@@ -205,7 +205,7 @@ static bool isvalidexpression(const char* expression)
 
 static void specialformat(char* string)
 {
-    int len=strlen(string);
+    int len=(int)strlen(string);
     char* found=strstr(string, "=");
     char* str=(char*)emalloc(len*2, "specialformat:str");
     char* backup=(char*)emalloc(len+1, "specialformat:backup");
@@ -223,7 +223,7 @@ static void specialformat(char* string)
             efree(backup, "specialformat:backup");
             return;
         }
-        int flen=strlen(found); //n(+)=n++
+        int flen=(int)strlen(found); //n(+)=n++
         if((found[flen-1]=='+' and found[flen-2]=='+') or (found[flen-1]=='-' and found[flen-2]=='-')) //eax++/eax--
         {
             found[flen-2]=0;

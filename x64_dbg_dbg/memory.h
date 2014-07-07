@@ -21,7 +21,7 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
 bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
 bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
 bool memisvalidreadptr(HANDLE hProcess, uint addr);
-void* memalloc(HANDLE hProcess, uint addr, DWORD size, DWORD fdProtect);
+void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect);
 void memfree(HANDLE hProcess, uint addr);
 uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize = 0);
 

@@ -73,7 +73,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     //filter executable sections
     if(bListAllPages)
     {
-        pagecount=pageVector.size();
+        pagecount=(int)pageVector.size();
         char curMod[MAX_MODULE_SIZE]="";
         for(int i=pagecount-1,curIdx=0; i>-1; i--)
         {
@@ -95,7 +95,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     }
 
     //process file sections
-    pagecount=pageVector.size();
+    pagecount=(int)pageVector.size();
     char curMod[MAX_MODULE_SIZE]="";
     for(int i=pagecount-1; i>-1; i--)
     {
@@ -110,7 +110,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
                 char curModPath[MAX_PATH]="";
                 if(!GetModuleFileNameExA(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
                     continue;
-                int SectionNumber=GetPE32Data(curModPath, 0, UE_SECTIONNUMBER);
+                ULONG_PTR SectionNumber=GetPE32Data(curModPath, 0, UE_SECTIONNUMBER);
                 MEMPAGE newPage;
                 pageVector.erase(pageVector.begin()+i); //remove the SizeOfImage page
                 for(int j=SectionNumber-1; j>-1; j--)
@@ -125,7 +125,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
                     const char* SectionName=(const char*)GetPE32Data(curModPath, j, UE_SECTIONNAME);
                     if(!SectionName)
                         SectionName="";
-                    int len=strlen(SectionName);
+                    int len=(int)strlen(SectionName);
                     int escape_count=0;
                     for(int k=0; k<len; k++)
                         if(SectionName[k]=='\\' or SectionName[k]=='\"' or !isprint(SectionName[k]))
@@ -178,7 +178,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     }
 
     //process vector
-    memmap->count=pagecount=pageVector.size();
+    memmap->count=pagecount=(int)pageVector.size();
     memmap->page=(MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE)*pagecount);
     memset(memmap->page, 0, sizeof(MEMPAGE)*pagecount);
     for(int i=0; i<pagecount; i++)
@@ -298,7 +298,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             {
                 char filename[deflen]="";
                 strcpy(filename, line.FileName);
-                int len=strlen(filename);
+                int len=(int)strlen(filename);
                 while(filename[len]!='\\' and len!=0)
                     len--;
                 if(len)
@@ -539,7 +539,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 #endif // _WIN64
     r.csp=(duint)GetContextData(UE_CSP);
     r.cip=(duint)GetContextData(UE_CIP);
-    r.eflags=(duint)GetContextData(UE_EFLAGS);
+    r.eflags=(unsigned int)GetContextData(UE_EFLAGS);
     r.gs=(unsigned short)(GetContextData(UE_SEG_GS)&0xFFFF);
     r.fs=(unsigned short)(GetContextData(UE_SEG_FS)&0xFFFF);
     r.es=(unsigned short)(GetContextData(UE_SEG_ES)&0xFFFF);

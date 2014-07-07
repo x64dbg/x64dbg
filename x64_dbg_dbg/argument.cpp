@@ -31,7 +31,7 @@ void argformat(char* cmd)
     strcpy(command, cmd);
     while(*command==' ')
         command++;
-    int len=strlen(command);
+    int len=(int)strlen(command);
     int start=0;
     for(int i=0; i<len; i++)
         if(command[i]==' ')
@@ -46,7 +46,7 @@ void argformat(char* cmd)
     char* arguments=arguments_;
     strcpy(arguments, command+start);
     char temp[deflen]="";
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0,j=0; i<len; i++)
     {
         if(arguments[i]=='"' and arguments[i+1]=='"')
@@ -54,7 +54,7 @@ void argformat(char* cmd)
         j+=sprintf(temp+j, "%c", arguments[i]);
     }
     strcpy(arguments, temp);
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0; i<len; i++)
         if(arguments[i]=='\\' and arguments[i+1]=='\\')
         {
@@ -63,11 +63,11 @@ void argformat(char* cmd)
         }
     while((*arguments==',' or *arguments==' ') and *(arguments-1)!='\\')
         arguments++;
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     while((arguments[len-1]==' ' or arguments[len-1]==',') and arguments[len-2]!='\\')
         len--;
     arguments[len]=0;
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     int quote_count=0;
     for(int i=0; i<len; i++)
         if(arguments[i]=='"')
@@ -90,7 +90,7 @@ void argformat(char* cmd)
             if(!arguments[i])
             {
                 i++;
-                int len2=strlen(arguments+i);
+                int len2=(int)strlen(arguments+i);
                 for(int k=0; k<len2; k++)
                 {
                     if(arguments[i+k]==',' or arguments[i+k]==' ' or arguments[i+k]=='\\')
@@ -106,14 +106,14 @@ void argformat(char* cmd)
         arguments=arguments_;
         strcpy(arguments, temp);
     }
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0; i<len; i++)
         if(arguments[i]=='\\' and arguments[i+1]=='\\')
         {
             arguments[i]=1;
             arguments[i+1]=1;
         }
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0,j=0; i<len; i++)
     {
         if(arguments[i]==',' and arguments[i+1]==',')
@@ -121,7 +121,7 @@ void argformat(char* cmd)
         j+=sprintf(temp+j, "%c", arguments[i]);
     }
     strcpy(arguments, temp);
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0,j=0; i<len; i++)
     {
         while(arguments[i]==' ' and arguments[i-1]!='\\')
@@ -129,7 +129,7 @@ void argformat(char* cmd)
         j+=sprintf(temp+j, "%c", arguments[i]);
     }
     strcpy(arguments, temp);
-    len=strlen(arguments);
+    len=(int)strlen(arguments);
     for(int i=0; i<len; i++)
         if(arguments[i]==1 and arguments[i+1]==1)
         {
@@ -148,7 +148,7 @@ void argformat(char* cmd)
 */
 int arggetcount(const char* cmd)
 {
-    int len=strlen(cmd);
+    int len=(int)strlen(cmd);
     if(!len or len>=deflen)
         return -1;
 
@@ -202,7 +202,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
     char temp_[deflen]="";
     char* temp=temp_+1;
     strcpy(temp, cmd+start);
-    int len=strlen(temp);
+    int len=(int)strlen(temp);
     for(int i=0; i<len; i++)
         if(temp[i]=='\\' and temp[i+1]=='\\')
         {

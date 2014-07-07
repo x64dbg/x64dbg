@@ -4,8 +4,8 @@
 #include "_global.h"
 
 //functions
-unsigned int disasmback(unsigned char* data, uint base, uint size, uint ip, int n);
-unsigned int disasmnext(unsigned char* data, uint base, uint size, uint ip, int n);
+uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n);
+uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n);
 const char* disasmtext(uint addr);
 void disasmprint(uint addr);
 void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr);

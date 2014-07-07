@@ -1000,7 +1000,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         else
         {
             char szBaseName[256]="";
-            int len=strlen(szModName);
+            int len=(int)strlen(szModName);
             while(szModName[len]!='\\')
                 len--;
             strcpy(szBaseName, szModName+len+1);
@@ -1132,7 +1132,7 @@ static bool isdecnumber(const char* string)
             return false;
         decAdd++;
     }
-    int len=strlen(string+decAdd);
+    int len=(int)strlen(string+decAdd);
     for(int i=0; i<len; i++)
         if(!isdigit(string[i+decAdd]))
             return false;
@@ -1145,13 +1145,13 @@ check whether a string is a valid hex number
 static bool ishexnumber(const char* string)
 {
     int add=0;
-    if(*string=='0' and string[1]=='x')
+    if(*string=='0' and string[1]=='x') //0x prefix
         add=2;
     else if(*string=='x') //hex indicator
         add=1;
     if(!string[add]) //only an indicator, no number
         return false;
-    int len=strlen(string+add);
+    int len=(int)strlen(string+add);
     for(int i=0; i<len; i++)
         if(!isxdigit(string[i+add])) //all must be hex digits
             return false;
@@ -1179,7 +1179,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(mathcontains(string)) //handle math
     {
-        int len=strlen(string);
+        int len=(int)strlen(string);
         char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
@@ -1228,7 +1228,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 *isvar=true;
             return true;
         }
-        int len=strlen(string);
+        int len=(int)strlen(string);
         char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
         if(strstr(string, "["))
         {
@@ -1389,7 +1389,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
-        int len=strlen(string);
+        int len=(int)strlen(string);
         char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {

@@ -85,14 +85,14 @@ bool modload(uint base, uint size, const char* fullpath)
     if(!base or !size or !fullpath)
         return false;
     char name[deflen]="";
-    int len=strlen(fullpath);
+    int len=(int)strlen(fullpath);
     while(fullpath[len]!='\\' and len)
         len--;
     if(len)
         len++;
     strcpy(name, fullpath+len);
     _strlwr(name);
-    len=strlen(name);
+    len=(int)strlen(name);
     name[MAX_MODULE_SIZE-1]=0; //ignore later characters
     while(name[len]!='.' and len)
         len--;
@@ -162,7 +162,7 @@ uint modhashfromname(const char* mod) //return MODINFO.hash
 {
     if(!mod or !*mod)
         return 0;
-    int len=strlen(mod);
+    int len=(int)strlen(mod);
     return murmurhash(mod, len);
 }
 
@@ -240,7 +240,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
             char forwarded_api[deflen]="";
             memset(forwarded_api, 0, deflen);
             memread(fdProcessInfo->hProcess, (void*)(curFunctionRva+base), forwarded_api, deflen, 0);
-            int len=strlen(forwarded_api);
+            int len=(int)strlen(forwarded_api);
             int j=0;
             while(forwarded_api[j]!='.' and j<len)
                 j++;
@@ -550,7 +550,7 @@ void labelcacheload(JSON root)
                 strcpy(curLabel.text, text);
             else
                 continue; //skip
-            int len=strlen(curLabel.text);
+            int len=(int)strlen(curLabel.text);
             for(int i=0; i<len; i++)
                 if(curLabel.text[i]=='&')
                     curLabel.text[i]=' ';

@@ -65,7 +65,7 @@ bool arraycontains(const char* cmd_list, const char* cmd)
         return false;
     char temp[deflen]="";
     strcpy(temp, cmd_list);
-    int len=strlen(cmd_list);
+    int len=(int)strlen(cmd_list);
     if(len>=deflen)
         return false;
     for(int i=0; i<len; i++)
@@ -73,13 +73,13 @@ bool arraycontains(const char* cmd_list, const char* cmd)
             temp[i]=0;
     if(!_stricmp(temp, cmd))
         return true;
-    for(int i=strlen(temp); i<len; i++)
+    for(int i=(int)strlen(temp); i<len; i++)
     {
         if(!temp[i])
         {
             if(!_stricmp(temp+i+1, cmd))
                 return true;
-            i+=strlen(temp+i+1);
+            i+=(int)strlen(temp+i+1);
         }
     }
     return false;
@@ -94,7 +94,7 @@ bool scmp(const char* a, const char* b)
 
 void formathex(char* string)
 {
-    int len=strlen(string);
+    int len=(int)strlen(string);
     _strupr(string);
     char* new_string=(char*)emalloc(len+1, "formathex:new_string");
     memset(new_string, 0, len+1);
@@ -107,7 +107,7 @@ void formathex(char* string)
 
 void formatdec(char* string)
 {
-    int len=strlen(string);
+    int len=(int)strlen(string);
     _strupr(string);
     char* new_string=(char*)emalloc(len+1, "formatdec:new_string");
     memset(new_string, 0, len+1);

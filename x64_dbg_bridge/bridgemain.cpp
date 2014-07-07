@@ -20,7 +20,7 @@ BRIDGE_IMPEXP const char* BridgeInit()
     ///Settings load
     if(!GetModuleFileNameA(0, szIniFile, 1024))
         return "Error getting module path!";
-    int len=strlen(szIniFile);
+    int len=(int)strlen(szIniFile);
     while(szIniFile[len]!='.' && szIniFile[len]!='\\')
         len--;
     if(szIniFile[len]=='\\')
@@ -500,7 +500,7 @@ BRIDGE_IMPEXP void DbgScriptSetIp(int line)
 
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 {
-    return (bool)(duint)_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
+    return !!_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
 }
 
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
@@ -531,7 +531,7 @@ BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
 
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
 {
-    return (bool)(duint)_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
+    return !!_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
 }
 
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
@@ -922,7 +922,7 @@ BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
 
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
 {
-    return (bool)(duint)_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
+    return !!_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
 }
 
 BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
@@ -947,17 +947,17 @@ BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
 
 BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
-    return (bool)(duint)_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
+    return !!_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
 }
 
 BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
-    return (bool)(duint)_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
+    return !!_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
 }
 
 BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
 {
-    return (bool)(duint)_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
+    return !!_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
 }
 
 BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)

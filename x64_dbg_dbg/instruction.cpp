@@ -177,7 +177,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
     {
         char name[deflen]="";
         strcpy(name, cur->name);
-        int len=strlen(name);
+        int len=(int)strlen(name);
         for(int i=0; i<len; i++)
             if(name[i]==1)
                 name[i]='/';
@@ -1000,7 +1000,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         strcpy(pattern, argv[2]+1);
     else
         strcpy(pattern, argv[2]);
-    int len=strlen(pattern);
+    int len=(int)strlen(pattern);
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
@@ -1054,7 +1054,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         strcpy(pattern, argv[2]+1);
     else
         strcpy(pattern, argv[2]);
-    int len=strlen(pattern);
+    int len=(int)strlen(pattern);
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
@@ -1203,7 +1203,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
-    int count=cbsize/sizeof(COMMENTSINFO);
+    int count=(int)(cbsize/sizeof(COMMENTSINFO));
     for(int i=0; i<count; i++)
     {
         GuiReferenceSetRowCount(i+1);
@@ -1239,7 +1239,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Label");
     GuiReferenceReloadData();
-    int count=cbsize/sizeof(LABELSINFO);
+    int count=(int)(cbsize/sizeof(LABELSINFO));
     for(int i=0; i<count; i++)
     {
         GuiReferenceSetRowCount(i+1);
@@ -1274,7 +1274,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     GuiReferenceAddColumn(2*sizeof(uint), "Address");
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
-    int count=cbsize/sizeof(BOOKMARKSINFO);
+    int count=(int)(cbsize/sizeof(BOOKMARKSINFO));
     for(int i=0; i<count; i++)
     {
         GuiReferenceSetRowCount(i+1);
@@ -1310,7 +1310,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
-    int count=cbsize/sizeof(FUNCTIONSINFO);
+    int count=(int)(cbsize/sizeof(FUNCTIONSINFO));
     for(int i=0; i<count; i++)
     {
         GuiReferenceSetRowCount(i+1);
@@ -1357,7 +1357,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
-    int count=cbsize/sizeof(LOOPSINFO);
+    int count=(int)(cbsize/sizeof(LOOPSINFO));
     for(int i=0; i<count; i++)
     {
         GuiReferenceSetRowCount(i+1);
