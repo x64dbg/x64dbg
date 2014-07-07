@@ -51,6 +51,65 @@ void pluginload(const char* pluginDir)
         }
         pluginData.plugstop=(PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
         pluginData.plugsetup=(PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
+        //auto-register callbacks for certain export names
+        CBPLUGIN cbPlugin;
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBINITDEBUG");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_INITDEBUG, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBSTOPDEBUG");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_STOPDEBUG, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBCREATEPROCESS");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_CREATEPROCESS, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBEXITPROCESS");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_EXITPROCESS, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBCREATETHREAD");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_CREATETHREAD, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBEXITTHREAD");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_EXITTHREAD, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBSYSTEMBREAKPOINT");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_SYSTEMBREAKPOINT, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBLOADDLL");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_LOADDLL, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBUNLOADDLL");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_UNLOADDLL, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBOUTPUTDEBUGSTRING");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_OUTPUTDEBUGSTRING, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBEXCEPTION");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_EXCEPTION, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBBREAKPOINT");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_BREAKPOINT, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBPAUSEDEBUG");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_PAUSEDEBUG, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBRESUMEDEBUG");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_RESUMEDEBUG, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBSTEPPED");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_STEPPED, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBATTACH");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_ATTACH, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBDETACH");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_DETACH, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBDEBUGEVENT");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_DEBUGEVENT, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBMENUENTRY");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_MENUENTRY, cbPlugin);
         //init plugin
         //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))

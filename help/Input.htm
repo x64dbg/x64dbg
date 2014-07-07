@@ -47,7 +47,7 @@ above.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM>
 class=rvts9><BR>         
        @<EM>n</EM>:addr&nbsp;&nbsp; - same as 
 above.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to 
-read, this can be anything smaller then 4 on x32 and smaller then 8 on x64 when 
+read, this can be anything smaller than 4 on x32 and smaller than 8 on x64 when 
 specified, otherwise there will be an error.<BR>- addr is directly interpreted 
 as a value, when you want to read [addr+1] you should use 
 brackets:<BR>         
@@ -63,15 +63,15 @@ class=rvts9>
                
             
      </SPAN><SPAN 
-class=rvts9><U>flags</U>: Debug flags (interpreted as integer) can be used 
-as input. Flags are prefixed with a '!' following the flag name or the bit number their on. 
+class=rvts9><U>flags</U>      : Debug flags 
+(interpreted as integer) can be used as input. Flags are prefixed with a '!' following the flag name. 
 Valid flags are: !cf, !pf, !af, !zf, !sf, !tf, !if, !df, !of, !rf, !vm, !ac, !vif, !vip and !id.</SPAN><SPAN class=rvts9></P></SPAN>
-<P class=rvps3><SPAN class=rvts11><U>numbers</U></SPAN><SPAN class=rvts9>: All 
-numbers are interpreted as hex by default. If you want to be sure, you can use 
-the "x" prefix. Decimal numbers can be used by prefixing the number with a "." 
+<P class=rvps3><SPAN class=rvts11><U>numbers</U></SPAN><SPAN class=rvts9>: 
+All numbers are interpreted as 
+hex by default. If you want to be sure, you can use the "x" prefix or 
+the "0x" prefix. Decimal numbers can be used by prefixing the number with a "." 
 (.123=7B).</SPAN></P>
-<P class=rvps3><SPAN class=rvts9><U>basic calculations</U> :  
-                
+<P class=rvps3><SPAN class=rvts9><U>basic calculations</U>:
            See "Calculations" for more 
 information.</SPAN></P>
 <P class=rvps3><SPAN class=rvts9><U>DLL exports</U>: Type 'GetProcAddress' and it will 
@@ -87,9 +87,10 @@ base of a module. Try
                 
            and symbols&nbsp;are a valid 
 expressions.</SPAN></P>
-<P class=rvps3><SPAN class=rvts9>  
+<P class=rvps3><SPAN class=rvts9><STRONG>Input for arguments can always be done in any of 
+the above forms, except if stated otherwise.</STRONG>  
                 
-Input  
+  
                 
-for arguments can always be done in any of the above forms, except if stated 
-otherwise.</SPAN></P></body>
+               
+</SPAN></P></BODY></HTML>

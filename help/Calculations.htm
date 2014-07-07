@@ -21,6 +21,9 @@ command window and the result will be displayed in the console. Apart from
 calculations, it allows quick&nbsp;variable changes using a C-like syntax.</P>
 <P><STRONG>Operators</STRONG><BR>  You can use the 
 following operators in your expression. They are processed in the following order:</P>
+<P><U>0:negative</U>      
+      : Negative numbers can be prefixed by a 
+'-' sign.</P>
 <P><U>1:</U><U>brackets</U>: '(' and ')' Brackets are 
 resolved first, there is no need for a terminating bracket, unless you want to 
 use one.</P>
@@ -30,8 +33,7 @@ number of a variable, like in C.</P>
 multiplication (signed/unsigned), '$' = get the higher part of the 
 multiplication, '/' = regular devision (signed/unsigned, devide by zero=error) 
 and '%' = get the modulo (remainder) of the devision.</P>
-<P><U>4:addition/substraction</U>  
-: '+' and '-'</P>
+<P><U>4:addition/substraction</U>: '+' and '-'</P>
 <P><U>5:shift</U>: '&lt;' = shift left (shl for unsigned, 
 sal for signed), '&gt;' = shift right (shr for unsigned, sar for signed).</P>
 <P><U>6:and</U>: '&amp;' Just the regular AND operation like 
@@ -47,4 +49,4 @@ syntax:</P>
 can be any register, flag, variable or memory location. 'b' can be anything that is recognized as a mathmatical 
 input.</P>
 <P><U>a++/a--</U>: 'a' can be any register, flag, variable or memory 
-location.</P></BODY></HTML>
+location.</P></body>
