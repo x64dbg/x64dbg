@@ -3,8 +3,6 @@
 
 RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
 {
-
-
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"),this);
     wCM_Increment->setShortcut(Qt::Key_Plus);
@@ -22,9 +20,7 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"),this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"),this);
-
-
-
+    wCM_FollowInStack = new QAction("Follow in Stack", this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -56,6 +52,20 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     mFlags.insert(DF);
     mFlags.insert(OF);
 
+    //registers that should not be changed
+    mNoChange.insert(GS);
+    mNoChange.insert(FS);
+    mNoChange.insert(ES);
+    mNoChange.insert(DS);
+    mNoChange.insert(CS);
+    mNoChange.insert(SS);
+    mNoChange.insert(DR0);
+    mNoChange.insert(DR1);
+    mNoChange.insert(DR2);
+    mNoChange.insert(DR3);
+    mNoChange.insert(DR6);
+    mNoChange.insert(DR7);
+    mNoChange.insert(CIP);
 
     // create mapping from internal id to name
     mRegisterMapping.clear();
@@ -220,11 +230,11 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     connect(wCM_CopyToClipboard,SIGNAL(triggered()),this,SLOT(onCopyToClipboardAction()));
     connect(wCM_FollowInDisassembly,SIGNAL(triggered()),this,SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump,SIGNAL(triggered()),this,SLOT(onFollowInDump()));
+    connect(wCM_FollowInStack,SIGNAL(triggered()),this,SLOT(onFollowInStack()));
 }
 
 RegistersView::~RegistersView()
 {
-
 }
 
 /**
@@ -247,7 +257,7 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
         if( (it.value().line == (line - mVScrollOffset))   /* same line ? */
                 && ( (1 + it.value().start) <= offset)  /* between start ... ? */
                 && ( offset<= (1+it.value().start+it.value().labelwidth+it.value().valuesize)) /* ... and end ? */
-          )
+                )
         {
             // we found a matching register in the viewport
             if(clickedReg)
@@ -276,10 +286,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
         mSelected = r;
         emit refresh();
     }
-
 }
-
-
 
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
@@ -317,7 +324,6 @@ void RegistersView::paintEvent(QPaintEvent *event)
         drawRegister(&wPainter,it.key(),registerValue(&wRegDumpStruct,it.key()));
         it++;
     }
-
 }
 
 void RegistersView::keyPressEvent(QKeyEvent *event)
@@ -329,31 +335,28 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
         wCM_CopyToClipboard->trigger();
         return;
     }
-
-
     switch(event->key())
     {
     case Qt::Key_0:
         wCM_Zero->trigger();
-        break;
+    break;
     case Qt::Key_1:
         wCM_SetToOne->trigger();
-        break;
+    break;
     case Qt::Key_Plus:
         wCM_Increment->trigger();
-        break;
+    break;
     case Qt::Key_Minus:
         wCM_Decrement->trigger();
-        break;
+    break;
     case Qt::Key_Space:
         wCM_ToggleValue->trigger();
-        break;
+    break;
     case Qt::Key_Return:
         wCM_Modify->trigger();
-        break;
-
+    break;
     default:
-        break;
+    break;
     }
 }
 
@@ -508,21 +511,17 @@ void RegistersView::updateRegistersSlot()
     setRegisters(&z);
 }
 
-
 void RegistersView::displayEditDialog()
 {
     WordEditDialog wEditDial(this);
     //QString wReg = registerValue(&wRegDumpStruct,mSelected);
-
 #ifdef _WIN64
     wEditDial.setup(QString("Edit"),registerValue(&wRegDumpStruct,mSelected), 8);
 #else
     wEditDial.setup(QString("Edit"), registerValue(&wRegDumpStruct,mSelected), 4);
 #endif
-
     if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
         setRegister(mSelected, wEditDial.getVal());
-
 }
 
 void RegistersView::onIncrementAction()
@@ -539,12 +538,14 @@ void RegistersView::onDecrementAction()
 
 void RegistersView::onZeroAction()
 {
-    setRegister(mSelected, 0);
+    if(!mNoChange.contains(mSelected))
+        setRegister(mSelected, 0);
 }
 
 void RegistersView::onSetToOneAction()
 {
-    setRegister(mSelected, 1);
+    if(!mNoChange.contains(mSelected))
+        setRegister(mSelected, 1);
 }
 
 void RegistersView::onModifyAction()
@@ -564,7 +565,6 @@ void RegistersView::onToggleValueAction()
         val *= -1;
         setRegister(mSelected,val);
     }
-
 }
 
 void RegistersView::onCopyToClipboardAction()
@@ -592,7 +592,16 @@ void RegistersView::onFollowInDump()
         if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
             DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
+}
 
+void RegistersView::onFollowInStack()
+{
+    if(mGPR.contains(mSelected))
+    {
+        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct,mSelected)))
+            DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+    }
 }
 
 void RegistersView::displayCustomContextMenuSlot(QPoint pos)
@@ -603,11 +612,14 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
     if(mSelected != UNKNOWN)
     {
-        if(registerValue(&wRegDumpStruct,mSelected) >= 1)
-            wMenu.addAction(wCM_Zero);
-        if(registerValue(&wRegDumpStruct,mSelected) == 0)
-            wMenu.addAction(wCM_SetToOne);
-        wMenu.addAction(wCM_ToggleValue);
+        if(!mNoChange.contains(mSelected))
+        {
+            if(registerValue(&wRegDumpStruct,mSelected) >= 1)
+                wMenu.addAction(wCM_Zero);
+            if(registerValue(&wRegDumpStruct,mSelected) == 0)
+                wMenu.addAction(wCM_SetToOne);
+            wMenu.addAction(wCM_ToggleValue);
+        }
 
         if(mGPR.contains(mSelected))
         {
@@ -615,11 +627,15 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             wMenu.addAction(wCM_Increment);
             wMenu.addAction(wCM_Decrement);
 
-            int_t addr = registerValue(&wRegDumpStruct,mSelected);
+            uint_t addr = registerValue(&wRegDumpStruct,mSelected);
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
                 wMenu.addAction(wCM_FollowInDisassembly);
+                duint size=0;
+                duint base=DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
+                if(addr>=base && addr<base+size)
+                    wMenu.addAction(wCM_FollowInStack);
             }
         }
         wMenu.addAction(wCM_CopyToClipboard);
@@ -662,7 +678,6 @@ void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)
     }
 }
 
-
 void RegistersView::debugStateChangedSlot(DBGSTATE state)
 {
     if(state==stopped)
@@ -675,7 +690,6 @@ void RegistersView::repaint()
 {
     this->viewport()->repaint();
 }
-
 
 int_t RegistersView::registerValue(const REGDUMP* regd,const REGISTER_NAME reg)
 {

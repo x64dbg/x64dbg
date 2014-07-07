@@ -99,7 +99,7 @@ protected slots:
     void onCopyToClipboardAction();
     void onFollowInDisassembly();
     void onFollowInDump();
-
+    void onFollowInStack();
 
 private:
     int mVScrollOffset;
@@ -113,6 +113,8 @@ private:
     QSet<REGISTER_NAME> mFlags;
     // contains all id's of registers if there occurs a change
     QSet<REGISTER_NAME> mRegisterUpdates;
+    // registers that do not allow changes
+    QSet<REGISTER_NAME> mNoChange;
     // maps from id to name
     QMap<REGISTER_NAME,QString> mRegisterMapping;
     // contains viewport positions
@@ -132,6 +134,7 @@ private:
     QAction* wCM_CopyToClipboard;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
+    QAction* wCM_FollowInStack;
     int_t mCip;
 };
 
