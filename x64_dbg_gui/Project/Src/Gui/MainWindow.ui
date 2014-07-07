@@ -146,6 +146,12 @@
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
+   <addaction name="separator"/>
+   <addaction name="actionPatches"/>
+   <addaction name="actionComments"/>
+   <addaction name="actionLabels"/>
+   <addaction name="actionBookmarks"/>
+   <addaction name="actionFunctions"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
