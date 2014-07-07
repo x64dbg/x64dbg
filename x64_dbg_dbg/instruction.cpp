@@ -1216,7 +1216,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 2, comments[i].text);
     }
     efree(comments, "cbInstrCommentList:comments");
-    varset("$result", loops, false);
+    varset("$result", count, false);
     dprintf("%d comment(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
@@ -1252,7 +1252,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 2, labels[i].text);
     }
     efree(labels, "cbInstrLabelList:labels");
-    varset("$result", loops, false);
+    varset("$result", count, false);
     dprintf("%d label(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
@@ -1286,7 +1286,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
     efree(bookmarks, "cbInstrBookmarkList:bookmarks");
-    varset("$result", loops, false);
+    varset("$result", count, false);
     dprintf("%d bookmark(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
@@ -1333,7 +1333,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         }
     }
     efree(functions, "cbInstrFunctionList:functions");
-    varset("$result", loops, false);
+    varset("$result", count, false);
     dprintf("%d function(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
@@ -1380,7 +1380,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         }
     }
     efree(loops, "cbInstrLoopList:loops");
-    varset("$result", loops, false);
+    varset("$result", count, false);
     dprintf("%d loop(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
