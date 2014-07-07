@@ -1,4 +1,5 @@
 #include "LogView.h"
+#include "Configuration.h"
 
 LogView::LogView(QWidget *parent) : QTextEdit(parent)
 {
@@ -8,14 +9,19 @@ LogView::LogView(QWidget *parent) : QTextEdit(parent)
 
     this->setFont(wFont);
 
-    this->setStyleSheet("QTextEdit { background-color: rgb(255, 251, 240) }");
+    updateStyle();
     this->setUndoRedoEnabled(false);
     this->setReadOnly(true);
 
+    connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
 }
 
+void LogView::updateStyle()
+{
+    setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
+}
 
 void LogView::addMsgToLogSlot(QString msg)
 {

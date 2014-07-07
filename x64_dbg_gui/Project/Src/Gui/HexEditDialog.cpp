@@ -20,6 +20,8 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     ui->lineEditAscii->setFont(font);
     ui->lineEditUnicode->setFont(font);
     ui->chkEntireBlock->hide();
+    connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
+    updateStyle();
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
@@ -51,6 +53,13 @@ void HexEditDialog::showEntireBlock(bool show)
 bool HexEditDialog::entireBlock()
 {
     return ui->chkEntireBlock->isChecked();
+}
+
+void HexEditDialog::updateStyle()
+{
+    QString style = QString("QLineEdit { border-style: outset; border-width: 1px; border-color: %1; color: %1; background-color: %2 }").arg(ConfigColor("HexEditTextColor").name(), ConfigColor("HexEditBackgroundColor").name());
+    ui->lineEditAscii->setStyleSheet(style);
+    ui->lineEditUnicode->setStyleSheet(style);
 }
 
 void HexEditDialog::on_btnAscii2Hex_clicked()

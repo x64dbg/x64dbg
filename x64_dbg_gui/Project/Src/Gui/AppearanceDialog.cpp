@@ -407,7 +407,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoIndex=0;
     colorInfoList.clear();
     //list entries
-    colorInfoListAppend("AbstractTableView:", "", "");
+    colorInfoListAppend("General:", "", "");
     colorInfoListAppend("Text", "AbstractTableViewTextColor", "");
     colorInfoListAppend("Header Text", "AbstractTableViewHeaderTextColor", "");
     colorInfoListAppend("Background", "AbstractTableViewBackgroundColor", "");

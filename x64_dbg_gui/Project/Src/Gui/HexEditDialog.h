@@ -22,6 +22,7 @@ public:
     QHexEdit* mHexEdit;
 
 private slots:
+    void updateStyle();
     void on_btnAscii2Hex_clicked();
     void on_btnUnicode2Hex_clicked();
     void on_chkKeepSize_toggled(bool checked);

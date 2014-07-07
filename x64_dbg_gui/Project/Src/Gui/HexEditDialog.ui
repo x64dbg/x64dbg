@@ -55,11 +55,17 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+   </property>
    <property name="inputMask">
     <string/>
    </property>
    <property name="maxLength">
     <number>32767</number>
+   </property>
+   <property name="frame">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEditAscii">
@@ -71,11 +77,17 @@
      <height>20</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+   </property>
    <property name="inputMask">
     <string/>
    </property>
    <property name="maxLength">
     <number>32767</number>
+   </property>
+   <property name="frame">
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="labelAscii">

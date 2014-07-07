@@ -1,5 +1,6 @@
 #include "SymbolView.h"
 #include "ui_SymbolView.h"
+#include "Configuration.h"
 
 SymbolView::SymbolView(QWidget *parent) :
     QWidget(parent),
@@ -60,6 +61,7 @@ SymbolView::SymbolView(QWidget *parent) :
     setupContextMenu();
 
     //Signals and slots
+    connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
@@ -84,6 +86,11 @@ void SymbolView::setupContextMenu()
 
     mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
+}
+
+void SymbolView::updateStyle()
+{
+    ui->symbolLogEdit->setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 
 void SymbolView::addMsgToSymbolLogSlot(QString msg)

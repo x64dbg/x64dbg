@@ -24,6 +24,7 @@ public:
     void setupContextMenu();
 
 private slots:
+    void updateStyle();
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
     void moduleSelectionChanged(int index);

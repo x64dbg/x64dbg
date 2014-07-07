@@ -14,6 +14,7 @@ public:
 signals:
     
 public slots:
+    void updateStyle();
     void addMsgToLogSlot(QString msg);
     void clearLogSlot();
 
