@@ -469,6 +469,8 @@ struct BASIC_INSTRUCTION_INFO
     ULONG_PTR addr; //addrvalue (jumps + calls)
     bool branch; //jumps/calls
     bool call; //instruction is a call
+    int size;
+    char instruction[MAX_MNEMONIC_SIZE*4];
 };
 
 struct SCRIPTBRANCH

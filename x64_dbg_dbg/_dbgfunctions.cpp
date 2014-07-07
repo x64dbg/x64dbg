@@ -5,6 +5,7 @@
 #include "addrinfo.h"
 #include "patches.h"
 #include "memory.h"
+#include "disasm_fast.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -117,4 +118,5 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchFile=(PATCHFILE)patchfile;
     _dbgfunctions.ModPathFromAddr=_modpathfromaddr;
     _dbgfunctions.ModPathFromName=_modpathfromname;
+    _dbgfunctions.DisasmFast=disasmfast;
 }

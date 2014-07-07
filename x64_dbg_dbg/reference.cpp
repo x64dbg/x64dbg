@@ -62,6 +62,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
         int len=Disasm(&disasm);
         if(len!=UNKNOWN_OPCODE)
         {
+            basicinfo.size=len;
             fillbasicinfo(&disasm, &basicinfo);
             if(cbRef(&disasm, &basicinfo, &refinfo))
                 refinfo.refcount++;

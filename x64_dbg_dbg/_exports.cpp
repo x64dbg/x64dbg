@@ -869,8 +869,11 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 #endif // _WIN64
         disasm.EIP=(UIntPtr)data;
         disasm.VirtualAddr=(UInt64)param1;
+        int len=Disasm(&disasm);
         uint i=0;
-        fillbasicinfo(&disasm, (BASIC_INSTRUCTION_INFO*)param2);
+        BASIC_INSTRUCTION_INFO* basicinfo=(BASIC_INSTRUCTION_INFO*)param2;
+        basicinfo->size=len;
+        fillbasicinfo(&disasm, basicinfo);
     }
     break;
 

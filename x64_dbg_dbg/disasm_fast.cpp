@@ -22,6 +22,8 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
+    //copy instruction text
+    strcpy(basicinfo->instruction, disasm->CompleteInstr);
     //find immidiat
     if(disasm->Instruction.BranchType==0) //no branch
     {
@@ -104,6 +106,7 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
     int len=Disasm(&disasm);
     if(len==UNKNOWN_OPCODE)
         return false;
+    basicinfo->size=len;
     fillbasicinfo(&disasm, basicinfo);
     return true;
 }
