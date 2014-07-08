@@ -9,7 +9,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
     uint start_size;
     uint base;
     uint base_size;
-    base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &base_size);
+    base=memfindbaseaddr(addr, &base_size);
     if(!base or !base_size)
     {
         if(!silent)

@@ -26,6 +26,7 @@ typedef int (*PATCHFILE)(DBGPATCHINFO* patchlist, int count, const char* szFileN
 typedef int (*MODPATHFROMADDR)(duint addr, char* path, int size);
 typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
 typedef bool (*DISASMFAST)(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
+typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 
 struct DBGFUNCTIONS
 {
@@ -46,6 +47,7 @@ struct DBGFUNCTIONS
     MODPATHFROMADDR ModPathFromAddr;
     MODPATHFROMNAME ModPathFromName;
     DISASMFAST DisasmFast;
+    MEMUPDATEMAP MemUpdateMap;
 };
 
 #ifdef BUILD_DBG

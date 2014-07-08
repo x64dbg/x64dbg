@@ -119,4 +119,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ModPathFromAddr=_modpathfromaddr;
     _dbgfunctions.ModPathFromName=_modpathfromname;
     _dbgfunctions.DisasmFast=disasmfast;
+    _dbgfunctions.MemUpdateMap=memupdatemap;
 }

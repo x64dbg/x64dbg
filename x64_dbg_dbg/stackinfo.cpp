@@ -15,13 +15,13 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         return false;
 
     uint size=0;
-    uint base=memfindbaseaddr(fdProcessInfo->hProcess, data, &size);
+    uint base=memfindbaseaddr(data, &size);
     uint readStart=data-16*4;
     if(readStart<base)
         readStart=base;
     unsigned char disasmData[256];
     memread(fdProcessInfo->hProcess, (const void*)readStart, disasmData, sizeof(disasmData), 0);
-    unsigned int prev=disasmback(disasmData, 0, sizeof(disasmData), data-readStart, 1);
+    uint prev=disasmback(disasmData, 0, sizeof(disasmData), data-readStart, 1);
     uint previousInstr=readStart+prev;
     DISASM disasm;
     disasm.Options=NoformatNumeral;

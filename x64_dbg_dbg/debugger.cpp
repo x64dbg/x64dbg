@@ -182,6 +182,7 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     if(!memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         return;
+    memupdatemap(fdProcessInfo->hProcess); //update memory map
     uint cip=GetContextData(UE_CIP);
     GuiDisasmAt(disasm_addr, cip);
     if(stack)
@@ -325,7 +326,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
 {
     uint cip=GetContextData(UE_CIP);
     uint size;
-    uint base=memfindbaseaddr(fdProcessInfo->hProcess, (uint)ExceptionAddress, &size);
+    uint base=memfindbaseaddr((uint)ExceptionAddress, &size);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -465,7 +466,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     case BPMEMORY:
     {
         uint size=0;
-        memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
+        memfindbaseaddr(bp->addr, &size);
         bool restore=false;
         if(!bp->singleshoot)
             restore=true;
@@ -726,7 +727,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
     uint cip=GetContextData(UE_CIP);
-    GuiDumpAt(memfindbaseaddr(fdProcessInfo->hProcess, cip, 0)); //dump somewhere
+    GuiDumpAt(memfindbaseaddr(cip, 0)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -1654,7 +1655,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         }
     }
     uint size=0;
-    uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+    uint base=memfindbaseaddr(addr, &size);
     bool singleshoot=false;
     if(!restore)
         singleshoot=true;
@@ -1678,7 +1679,7 @@ static bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     if(!bp->enabled)
         return true;
     uint size;
-    memfindbaseaddr(fdProcessInfo->hProcess, bp->addr, &size);
+    memfindbaseaddr(bp->addr, &size);
     if(!bpdel(bp->addr, BPMEMORY) or !RemoveMemoryBPX(bp->addr, size))
     {
         dprintf("delete memory breakpoint failed: "fhex"\n", bp->addr);
@@ -1707,7 +1708,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     if(bpget(0, BPMEMORY, arg1, &found)) //found a breakpoint with name
     {
         uint size;
-        memfindbaseaddr(fdProcessInfo->hProcess, found.addr, &size);
+        memfindbaseaddr(found.addr, &size);
         if(!bpdel(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
         {
             dprintf("delete memory breakpoint failed: "fhex"\n", found.addr);
@@ -1722,7 +1723,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint size;
-    memfindbaseaddr(fdProcessInfo->hProcess, found.addr, &size);
+    memfindbaseaddr(found.addr, &size);
     if(!bpdel(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
     {
         dprintf("delete memory breakpoint failed: "fhex"\n", found.addr);
@@ -1942,7 +1943,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     }
     else
     {
-        uint base=memfindbaseaddr(fdProcessInfo->hProcess, addr, &size);
+        uint base=memfindbaseaddr(addr, &size);
         if(!base)
         {
             dputs("invalid address specified");
@@ -1962,7 +1963,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbBenchmark(int argc, char* argv[])
 {
-    uint addr=memfindbaseaddr(fdProcessInfo->hProcess, GetContextData(UE_CIP), 0);
+    uint addr=memfindbaseaddr(GetContextData(UE_CIP), 0);
     DWORD ticks=GetTickCount();
     char comment[MAX_COMMENT_SIZE]="";
     for(uint i=addr; i<addr+100000; i++)
@@ -2214,7 +2215,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     }
     duint csp=GetContextData(UE_CSP);
     duint size=0;
-    duint base=memfindbaseaddr(fdProcessInfo->hProcess, csp, &size);
+    duint base=memfindbaseaddr(csp, &size);
     if(base && addr>=base && addr<(base+size))
         GuiStackDumpAt(addr, csp);
     else
