@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -77,7 +77,8 @@ SOURCES += \
     Src/QHexEdit/QHexEditPrivate.cpp \
     Src/QHexEdit/XByteArray.cpp \
     Src/Gui/PatchDialog.cpp \
-    Src/Gui/PatchDialogGroupSelector.cpp
+    Src/Gui/PatchDialogGroupSelector.cpp \
+    Src/Utils/UpdateChecker.cpp
 
 
 HEADERS += \
@@ -133,7 +134,8 @@ HEADERS += \
     Src/QHexEdit/QHexEditPrivate.h \
     Src/QHexEdit/XByteArray.h \
     Src/Gui/PatchDialog.h \
-    Src/Gui/PatchDialogGroupSelector.h
+    Src/Gui/PatchDialogGroupSelector.h \
+    Src/Utils/UpdateChecker.h
 
 
 INCLUDEPATH += \

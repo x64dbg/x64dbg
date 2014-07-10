@@ -141,6 +141,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionLabels,SIGNAL(triggered()),this,SLOT(displayLabels()));
     connect(ui->actionBookmarks,SIGNAL(triggered()),this,SLOT(displayBookmarks()));
     connect(ui->actionFunctions,SIGNAL(triggered()),this,SLOT(displayFunctions()));
+    connect(ui->actionCheckUpdates,SIGNAL(triggered()),this,SLOT(checkUpdates()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -158,6 +159,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     SettingsDialog defaultSettings;
     lastException=0;
     defaultSettings.SaveSettings();
+
+    //Create updatechecker
+    mUpdateChecker = new UpdateChecker(this);
 
     //setup menu api
     initMenuApi();
@@ -796,4 +800,9 @@ void MainWindow::displayFunctions()
         return;
     DbgCmdExec("functionlist");
     displayReferencesWidget();
+}
+
+void MainWindow::checkUpdates()
+{
+    mUpdateChecker->checkForUpdates();
 }

@@ -22,6 +22,7 @@
 #include "AppearanceDialog.h"
 #include "CloseDialog.h"
 #include "PatchDialog.h"
+#include "UpdateChecker.h"
 
 namespace Ui
 {
@@ -84,6 +85,7 @@ public slots:
     void displayLabels();
     void displayBookmarks();
     void displayFunctions();
+    void checkUpdates();
 
 private:
     Ui::MainWindow *ui;
@@ -105,6 +107,8 @@ private:
     StatusLabel* mLastLogLabel;
 
     Configuration* mConfiguration;
+
+    UpdateChecker* mUpdateChecker;
 
     const char* mWindowMainTitle;
 

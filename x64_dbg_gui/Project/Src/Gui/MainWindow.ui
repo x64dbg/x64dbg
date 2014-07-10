@@ -84,6 +84,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionCheckUpdates"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
@@ -592,6 +593,15 @@
    </property>
    <property name="shortcut">
     <string>Alt+F</string>
+   </property>
+  </action>
+  <action name="actionCheckUpdates">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/update.png</normaloff>:/icons/images/update.png</iconset>
+   </property>
+   <property name="text">
+    <string>Check for &amp;Updates</string>
    </property>
   </action>
  </widget>
