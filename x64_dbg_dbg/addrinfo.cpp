@@ -97,7 +97,7 @@ bool modload(uint base, uint size, const char* fullpath)
     while(name[len]!='.' and len)
         len--;
     MODINFO info;
-    memset(&info, 0, sizeof(MODINFO));
+    info.sections.clear();
     info.hash=modhashfromname(name);
     if(len)
     {
@@ -107,6 +107,30 @@ bool modload(uint base, uint size, const char* fullpath)
     info.base=base;
     info.size=size;
     strcpy(info.name, name);
+
+    //process module sections
+    HANDLE FileHandle;
+    DWORD LoadedSize;
+    HANDLE FileMap;
+    ULONG_PTR FileMapVA;
+    if(StaticFileLoad((char*)fullpath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    {
+        int SectionCount=(int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
+        if(SectionCount > 0)
+        {
+            for(int i=0; i<SectionCount; i++)
+            {
+                MODSECTIONINFO curSection;
+                curSection.addr=GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET)+base;
+                curSection.size=GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
+                strcpy_s(curSection.name, (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME));
+                info.sections.push_back(curSection);
+            }
+        }
+        StaticFileUnload((char*)fullpath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
+    }
+
+    //add module to list
     modinfo.insert(std::make_pair(Range(base, base+size-1), info));
     symupdatemodulelist();
     return true;
@@ -189,6 +213,15 @@ uint modsizefromaddr(uint addr)
     if(found==modinfo.end()) //not found
         return 0;
     return found->second.size;
+}
+
+bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
+{
+    const ModulesInfo::iterator found=modinfo.find(Range(addr, addr));
+    if(found==modinfo.end()) //not found
+        return false;
+    *sections=found->second.sections;
+    return true;
 }
 
 ///api functions

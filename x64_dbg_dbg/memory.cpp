@@ -7,7 +7,6 @@ MemoryMap memoryPages;
 
 void memupdatemap(HANDLE hProcess)
 {
-    DWORD ticks=GetTickCount();
     MEMORY_BASIC_INFORMATION mbi;
     SIZE_T numBytes;
     uint MyAddress=0, newAddress=0;
@@ -41,12 +40,8 @@ void memupdatemap(HANDLE hProcess)
     }
     while(numBytes);
 
-    dprintf("memupdatemap[1], %ums\n", GetTickCount()-ticks);
-    ticks=GetTickCount();
-
+    //list all pages when needed
     int pagecount;
-
-    //filter executable sections
     if(bListAllPages)
     {
         pagecount=(int)pageVector.size();
@@ -70,9 +65,6 @@ void memupdatemap(HANDLE hProcess)
         }
     }
 
-    dprintf("memupdatemap[2], %ums\n", GetTickCount()-ticks);
-    ticks=GetTickCount();
-
     //process file sections
     pagecount=(int)pageVector.size();
     char curMod[MAX_MODULE_SIZE]="";
@@ -82,28 +74,26 @@ void memupdatemap(HANDLE hProcess)
         {
             if(!scmp(curMod, pageVector.at(i).info)) //mod is not the current mod
             {
-                strcpy(curMod, pageVector.at(i).info);
-                HMODULE hMod=(HMODULE)modbasefromname(curMod);
-                if(!hMod)
+                uint base=modbasefromname(pageVector.at(i).info);
+                if(!base)
                     continue;
-                char curModPath[MAX_PATH]="";
-                if(!GetModuleFileNameExA(hProcess, hMod, curModPath, MAX_PATH))
+                std::vector<MODSECTIONINFO> sections;
+                if(!modsectionsfromaddr(base, &sections))
                     continue;
-                int SectionNumber=(int)GetPE32Data(curModPath, 0, UE_SECTIONNUMBER);
+                int SectionNumber=(int)sections.size();
                 MEMPAGE newPage;
                 pageVector.erase(pageVector.begin()+i); //remove the SizeOfImage page
                 for(int j=SectionNumber-1; j>-1; j--)
                 {
                     memset(&newPage, 0, sizeof(MEMPAGE));
-                    VirtualQueryEx(hProcess, (LPCVOID)((uint)hMod+GetPE32Data(curModPath, j, UE_SECTIONVIRTUALOFFSET)), &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                    uint SectionSize=GetPE32Data(curModPath, j, UE_SECTIONVIRTUALSIZE);
+                    
+                    VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                    uint SectionSize=sections.at(j).size;
                     if(SectionSize%PAGE_SIZE) //unaligned page size
                         SectionSize+=PAGE_SIZE-(SectionSize%PAGE_SIZE); //fix this
                     if(SectionSize)
                         newPage.mbi.RegionSize=SectionSize;
-                    const char* SectionName=(const char*)GetPE32Data(curModPath, j, UE_SECTIONNAME);
-                    if(!SectionName)
-                        SectionName="";
+                    const char* SectionName=&sections.at(j).name[0];
                     int len=(int)strlen(SectionName);
                     int escape_count=0;
                     for(int k=0; k<len; k++)
@@ -149,16 +139,14 @@ void memupdatemap(HANDLE hProcess)
                     pageVector.insert(pageVector.begin()+i, newPage);
                 }
                 memset(&newPage, 0, sizeof(MEMPAGE));
-                VirtualQueryEx(hProcess, (LPCVOID)hMod, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 strcpy(newPage.info, curMod);
                 pageVector.insert(pageVector.begin()+i, newPage);
             }
         }
     }
 
-    dprintf("memupdatemap[3], %ums\n", GetTickCount()-ticks);
-    ticks=GetTickCount();
-
+    //convert to memoryPages map
     pagecount=(int)pageVector.size();
     memoryPages.clear();
     for(int i=0; i<pagecount; i++)
@@ -168,8 +156,6 @@ void memupdatemap(HANDLE hProcess)
         uint size=curPage.mbi.RegionSize;
         memoryPages.insert(std::make_pair(std::make_pair(start, start+size-1), curPage));
     }
-
-    dprintf("memupdatemap[4], %ums\n", GetTickCount()-ticks);
 }
 
 uint memfindbaseaddr(uint addr, uint* size)

@@ -180,11 +180,10 @@ bool dbgcmddel(const char* name)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
-        return;
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     uint cip=GetContextData(UE_CIP);
-    GuiDisasmAt(disasm_addr, cip);
+    if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
+        GuiDisasmAt(disasm_addr, cip);
     if(stack)
     {
         uint csp=GetContextData(UE_CSP);
@@ -1610,6 +1609,8 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &addr))
             addr=GetContextData(UE_CIP);
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return STATUS_CONTINUE;
     DebugUpdateGui(addr, false);
     return STATUS_CONTINUE;
 }
