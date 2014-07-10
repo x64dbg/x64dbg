@@ -11,8 +11,10 @@ mkdir %RELEASEDIR%\qt_base\bin\x64
 
 copy bin\x32\QtCore4.dll %RELEASEDIR%\qt_base\bin\x32\QtCore4.dll
 copy bin\x32\QtGui4.dll %RELEASEDIR%\qt_base\bin\x32\QtGui4.dll
+copy bin\x32\QtNetwork4.dll %RELEASEDIR%\qt_base\bin\x32\QtNetwork4.dll
 copy bin\x64\QtCore4.dll %RELEASEDIR%\qt_base\bin\x64\QtCore4.dll
 copy bin\x64\QtGui4.dll %RELEASEDIR%\qt_base\bin\x64\QtGui4.dll
+copy bin\x64\QtNetwork4.dll %RELEASEDIR%\qt_base\bin\x64\QtNetwork4.dll
 
 echo bin_base
 
