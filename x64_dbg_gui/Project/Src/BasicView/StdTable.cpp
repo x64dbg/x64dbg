@@ -1,14 +1,6 @@
 #include "StdTable.h"
 #include "Bridge.h"
 
-
-/*
- * TODO
- * Pass all variables in 32/64bits
- *
- */
-
-
 StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 {
     SelectionData_t data;
@@ -17,7 +9,8 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 
     mIsMultiSelctionAllowed = false;
 
-    mData = new QList< QList<QString>* >();
+    mData.clear();
+    mSort.first=-1;
 
     mCopyMenuOnly = false;
     mCopyMenuDebugOnly = true;
@@ -25,16 +18,14 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequestedSlot(QPoint)));
+    connect(this, SIGNAL(headerButtonPressed(int)), this, SLOT(headerButtonPressedSlot(int)));
 }
-
 
 QString StdTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset) == true)
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
-
-    //return "c " + QString::number(col) + " r " + QString::number(rowBase + rowOffset);
-    return mData->at(col)->at(rowBase + rowOffset);
+    return getCellContent(rowBase + rowOffset, col);
 }
 
 void StdTable::mouseMoveEvent(QMouseEvent* event)
@@ -66,7 +57,6 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
     if(wAccept == true)
         AbstractTableView::mouseMoveEvent(event);
 }
-
 
 void StdTable::mousePressEvent(QMouseEvent* event)
 {
@@ -103,7 +93,8 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
 void StdTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if(event->button() == Qt::LeftButton)
+    int wRowOffset = getIndexOffsetFromY(transY(event->y()));
+    if(wRowOffset && event->button() == Qt::LeftButton)
         emit doubleClickedSignal();
     AbstractTableView::mouseDoubleClickEvent(event);
 }
@@ -127,7 +118,6 @@ void StdTable::mouseReleaseEvent(QMouseEvent* event)
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);
 }
-
 
 void StdTable::keyPressEvent(QKeyEvent* event)
 {
@@ -161,7 +151,6 @@ void StdTable::keyPressEvent(QKeyEvent* event)
     }
 }
 
-
 void StdTable::enableMultiSelection(bool enabled)
 {
     mIsMultiSelctionAllowed = enabled;
@@ -188,7 +177,6 @@ void StdTable::expandSelectionUpTo(int to)
     }
 }
 
-
 void StdTable::setSingleSelection(int index)
 {
     mSelection.firstSelectedIndex = index;
@@ -197,12 +185,10 @@ void StdTable::setSingleSelection(int index)
     emit selectionChangedSignal(index);
 }
 
-
 int StdTable::getInitialSelection()
 {
     return mSelection.firstSelectedIndex;
 }
-
 
 void StdTable::selectNext()
 {
@@ -215,7 +201,6 @@ void StdTable::selectNext()
     setSingleSelection(wNext);
 }
 
-
 void StdTable::selectPrevious()
 {
     int wNext = getInitialSelection() - 1;
@@ -227,7 +212,6 @@ void StdTable::selectPrevious()
     setSingleSelection(wNext);
 }
 
-
 bool StdTable::isSelected(int base, int offset)
 {
     int wIndex = base + offset;
@@ -238,8 +222,6 @@ bool StdTable::isSelected(int base, int offset)
         return false;
 }
 
-
-
 /************************************************************************************
                                 Data Management
 ************************************************************************************/
@@ -247,12 +229,9 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
 {
     AbstractTableView::addColumnAt(width, title, isClickable);
 
-    mData->append(new QList<QString>());
-
-    for(int wI = 0; wI < (getRowCount() - mData->last()->size()); wI++)
-    {
-        mData->last()->append(QString(""));
-    }
+    //append empty column to list of rows
+    for(int i=0; i<mData.size(); i++)
+        mData[i].append("");
 
     //Append copy title
     if(!copyTitle.length())
@@ -261,25 +240,20 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
         mCopyTitles.append(copyTitle);
 }
 
-
-
 void StdTable::setRowCount(int count)
 {
-    int wI, wJ;
-
-    for(wJ = 0; wJ < getColumnCount(); wJ++)
+    int wRowToAddOrRemove = count - mData.size();
+    for(int i=0; i<qAbs(wRowToAddOrRemove); i++)
     {
-        int  wRowToAddOrRemove = count - mData->at(wJ)->size();
-
-        for(wI = 0; wI < qAbs(wRowToAddOrRemove); wI++)
+        if(wRowToAddOrRemove > 0)
         {
-            if(wRowToAddOrRemove > 0)
-                mData->at(wJ)->append(QString(""));
-            else
-                mData->at(wJ)->removeLast();
+            mData.append(QList<QString>());
+            for(int j=0; j<getColumnCount(); j++)
+                mData.last().append("");
         }
+        else
+            mData.removeLast();
     }
-
     AbstractTableView::setRowCount(count);
 }
 
@@ -293,36 +267,22 @@ void StdTable::deleteAllColumns()
 void StdTable::setCellContent(int r, int c, QString s)
 {
     if(isValidIndex(r, c) == true)
-        mData->at(c)->replace(r, s);
+        mData[r].replace(c, s);
 }
-
 
 QString StdTable::getCellContent(int r, int c)
 {
     if(isValidIndex(r, c) == true)
-        return QString(mData->at(c)->at(r));
+        return mData[r][c];
     else
         return QString("");
 }
 
-
 bool StdTable::isValidIndex(int r, int c)
 {
-    if(mData->isEmpty() == false && c >= 0 && c < mData->size())
-    {
-        if(mData->at(c)->isEmpty() == false && r >= 0 && r < mData->at(c)->size())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
-    {
+    if(r < 0 || c < 0 || r >= mData.size())
         return false;
-    }
+    return c < mData.at(r).size();
 }
 
 void StdTable::copyLineSlot()
@@ -459,4 +419,17 @@ void StdTable::contextMenuRequestedSlot(const QPoint &pos)
         wMenu->addMenu(&wCopyMenu);
         wMenu->exec(mapToGlobal(pos));
     }
+}
+
+void StdTable::headerButtonPressedSlot(int col)
+{
+    if(mSort.first != -1)
+    {
+        mSort.first=col;
+        mSort.second=false;
+    }
+    else
+        mSort.second=!mSort.second;
+    qSort(mData.begin(), mData.end(), ColumnCompare(col, mSort.second));
+    reloadData();
 }

@@ -52,8 +52,30 @@ public slots:
     void copyTableSlot();
     void copyEntrySlot();
     void contextMenuRequestedSlot(const QPoint &pos);
+    void headerButtonPressedSlot(int col);
 
 private:
+    class ColumnCompare
+    {
+    public:
+        ColumnCompare(int col, bool greater)
+        {
+            mCol=col;
+            mGreater=greater;
+        }
+
+        inline bool operator()(const QList<QString> & a, const QList<QString> & b) const
+        {
+            bool less=QString::compare(a.at(mCol), b.at(mCol), Qt::CaseInsensitive) < 0;
+            if(mGreater)
+                return !less;
+            return less;
+        }
+    private:
+        int mCol;
+        int mGreater;
+    };
+
     enum GuiState_t {NoState, MultiRowsSelectionState};
 
     typedef struct _SelectionData_t
@@ -71,8 +93,9 @@ private:
     bool mCopyMenuOnly;
     bool mCopyMenuDebugOnly;
 
-    QList< QList<QString>* >* mData;
+    QList<QList<QString>> mData;
     QList<QString> mCopyTitles;
+    QPair<int, bool> mSort;
 };
 
 #endif // STDTABLE_H

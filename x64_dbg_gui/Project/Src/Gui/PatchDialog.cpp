@@ -487,12 +487,12 @@ void PatchDialog::on_btnImport_clicked()
         msg.exec();
         return;
     }
-    typedef struct IMPORTSTATUS
+
+    typedef struct _IMPORTSTATUS
     {
         bool nomatchoriginal;
         bool matchold;
-    };
-
+    } IMPORTSTATUS;
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
     int_t modbase=0;
