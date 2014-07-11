@@ -47,7 +47,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#00AA00"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
 
     defaultColors.insert("RegistersBackgroundColor", QColor("#FFF8F0"));

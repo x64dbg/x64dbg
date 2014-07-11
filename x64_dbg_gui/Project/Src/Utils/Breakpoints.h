@@ -27,6 +27,7 @@ public:
 
     static void toogleBPByRemoving(BPXTYPE type, uint_t va);
     
+    static BPXSTATE BPState(BPXTYPE type, uint_t va);
 signals:
     
 public slots:
