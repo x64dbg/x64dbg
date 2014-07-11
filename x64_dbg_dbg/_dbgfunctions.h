@@ -1,13 +1,17 @@
 #ifndef _DBGFUNCTIONS_H
 #define _DBGFUNCTIONS_H
 
-struct DBGPATCHINFO
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
+typedef struct
 {
     char mod[MAX_MODULE_SIZE];
     duint addr;
     unsigned char oldbyte;
     unsigned char newbyte;
-};
+} DBGPATCHINFO;
 
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
@@ -28,7 +32,7 @@ typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
 typedef bool (*DISASMFAST)(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 
-struct DBGFUNCTIONS
+typedef struct DBGFUNCTIONS_
 {
     ASSEMBLEATEX AssembleAtEx;
     SECTIONFROMADDR SectionFromAddr;
@@ -48,7 +52,7 @@ struct DBGFUNCTIONS
     MODPATHFROMNAME ModPathFromName;
     DISASMFAST DisasmFast;
     MEMUPDATEMAP MemUpdateMap;
-};
+} DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
 

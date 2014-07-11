@@ -3,6 +3,10 @@
 
 #include <windows.h>
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 //default structure alignments forced
 #ifdef _WIN64
 #pragma pack(push, 16)
@@ -62,15 +66,15 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_MNEMONIC_SIZE 64
 
 //Debugger enums
-enum DBGSTATE
+typedef enum
 {
     initialized,
     paused,
     running,
     stopped
-};
+} DBGSTATE;
 
-enum SEGMENTREG
+typedef enum
 {
     SEG_DEFAULT,
     SEG_ES,
@@ -79,9 +83,9 @@ enum SEGMENTREG
     SEG_GS,
     SEG_CS,
     SEG_SS
-};
+} SEGMENTREG;
 
-enum ADDRINFOFLAGS
+typedef enum
 {
     flagmodule=1,
     flaglabel=2,
@@ -89,35 +93,35 @@ enum ADDRINFOFLAGS
     flagbookmark=8,
     flagfunction=16,
     flagloop=32
-};
+} ADDRINFOFLAGS;
 
-enum BPXTYPE
+typedef enum
 {
     bp_none=0,
     bp_normal=1,
     bp_hardware=2,
     bp_memory=4
-};
+} BPXTYPE;
 
-enum FUNCTYPE
+typedef enum
 {
     FUNC_NONE,
     FUNC_BEGIN,
     FUNC_MIDDLE,
     FUNC_END,
     FUNC_SINGLE
-};
+} FUNCTYPE;
 
-enum LOOPTYPE
+typedef enum
 {
     LOOP_NONE,
     LOOP_BEGIN,
     LOOP_MIDDLE,
     LOOP_ENTRY,
     LOOP_END
-};
+} LOOPTYPE;
 
-enum DBGMSG
+typedef enum
 {
     DBG_SCRIPT_LOAD,                // param1=const char* filename,      param2=unused
     DBG_SCRIPT_UNLOAD,              // param1=unused,                    param2=unused
@@ -159,18 +163,18 @@ enum DBGMSG
     DBG_DELETE_AUTO_FUNCTION_RANGE, // param1=duint start,               param2=duint end
     DBG_GET_STRING_AT,              // param1=duint addr,                param2=unused
     DBG_GET_FUNCTIONS               // param1=unused,                    param2=unused
-};
+} DBGMSG;
 
-enum SCRIPTLINETYPE
+typedef enum
 {
     linecommand,
     linebranch,
     linelabel,
     linecomment,
     lineempty,
-};
+} SCRIPTLINETYPE;
 
-enum SCRIPTBRANCHTYPE
+typedef enum
 {
     scriptnobranch,
     scriptjmp,
@@ -181,29 +185,29 @@ enum SCRIPTBRANCHTYPE
     scriptjbejle,
     scriptjaejge,
     scriptcall
-};
+} SCRIPTBRANCHTYPE;
 
-enum DISASM_INSTRTYPE
+typedef enum
 {
     instr_normal,
     instr_branch,
     instr_stack
-};
+} DISASM_INSTRTYPE;
 
-enum DISASM_ARGTYPE
+typedef enum
 {
     arg_normal,
     arg_memory
-};
+} DISASM_ARGTYPE;
 
-enum STRING_TYPE
+typedef enum
 {
     str_none,
     str_ascii,
     str_unicode
-};
+} STRING_TYPE;
 
-enum THREADPRIORITY
+typedef enum
 {
     _PriorityIdle = -15,
     _PriorityAboveNormal = 1,
@@ -213,9 +217,9 @@ enum THREADPRIORITY
     _PriorityNormal = 0,
     _PriorityTimeCritical = 15,
     _PriorityUnknown = 0x7FFFFFFF
-};
+} THREADPRIORITY;
 
-enum THREADWAITREASON
+typedef enum
 {
     _Executive = 0,
     _FreePage = 1,
@@ -254,37 +258,37 @@ enum THREADWAITREASON
     _WrFastMutex = 34,
     _WrGuardedMutex = 35,
     _WrRundown = 36,
-};
+} THREADWAITREASON;
 
-enum MEMORY_SIZE
+typedef enum
 {
     size_byte,
     size_word,
     size_dword,
     size_qword
-};
+} MEMORY_SIZE;
 
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
-struct SYMBOLINFO;
-struct DBGFUNCTIONS;
+typedef struct SYMBOLINFO_ SYMBOLINFO;
+typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 
 typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
 
 //Debugger structs
-struct MEMPAGE
+typedef struct
 {
     MEMORY_BASIC_INFORMATION mbi;
     char info[MAX_MODULE_SIZE];
-};
+} MEMPAGE;
 
-struct MEMMAP
+typedef struct
 {
     int count;
     MEMPAGE* page;
-};
+} MEMMAP;
 
-struct BRIDGEBP
+typedef struct
 {
     BPXTYPE type;
     duint addr;
@@ -294,28 +298,28 @@ struct BRIDGEBP
     char name[MAX_BREAKPOINT_SIZE];
     char mod[MAX_MODULE_SIZE];
     unsigned short slot;
-};
+} BRIDGEBP;
 
-struct BPMAP
+typedef struct
 {
     int count;
     BRIDGEBP* bp;
-};
+} BPMAP;
 
-struct FUNCTION
+typedef struct
 {
     duint start; //OUT
     duint end; //OUT
-};
+} FUNCTION;
 
-struct LOOP
+typedef struct
 {
     int depth; //IN
     duint start; //OUT
     duint end; //OUT
-};
+} LOOP;
 
-struct ADDRINFO
+typedef struct
 {
     int flags; //ADDRINFOFLAGS (IN)
     char module[MAX_MODULE_SIZE]; //module the address is in
@@ -324,29 +328,29 @@ struct ADDRINFO
     bool isbookmark;
     FUNCTION function;
     LOOP loop;
-};
+} ADDRINFO;
 
-struct SYMBOLINFO
+struct SYMBOLINFO_
 {
     duint addr;
     char* decoratedSymbol;
     char* undecoratedSymbol;
 };
 
-struct SYMBOLMODULEINFO
+typedef struct
 {
     duint base;
     char name[MAX_MODULE_SIZE];
-};
+} SYMBOLMODULEINFO;
 
-struct SYMBOLCBINFO
+typedef struct
 {
     duint base;
     CBSYMBOLENUM cbSymbolEnum;
     void* user;
-};
+} SYMBOLCBINFO;
 
-struct FLAGS
+typedef struct
 {
     bool c;
     bool p;
@@ -357,9 +361,9 @@ struct FLAGS
     bool i;
     bool d;
     bool o;
-};
+} FLAGS;
 
-struct REGDUMP
+typedef struct
 {
     duint cax;
     duint ccx;
@@ -394,9 +398,9 @@ struct REGDUMP
     duint dr3;
     duint dr6;
     duint dr7;
-};
+} REGDUMP;
 
-struct DISASM_ARG
+typedef struct
 {
     DISASM_ARGTYPE type;
     SEGMENTREG segment;
@@ -404,24 +408,24 @@ struct DISASM_ARG
     duint constant;
     duint value;
     duint memvalue;
-};
+} DISASM_ARG;
 
-struct DISASM_INSTR
+typedef struct
 {
     char instruction[64];
     DISASM_INSTRTYPE type;
     int argcount;
     int instr_size;
     DISASM_ARG arg[3];
-};
+} DISASM_INSTR;
 
-struct STACK_COMMENT
+typedef struct
 {
     char color[8]; //hex color-code
     char comment[MAX_COMMENT_SIZE];
-};
+} STACK_COMMENT;
 
-struct THREADINFO
+typedef struct
 {
     int ThreadNumber;
     HANDLE hThread;
@@ -429,9 +433,9 @@ struct THREADINFO
     duint ThreadStartAddress;
     duint ThreadLocalBase;
     char threadName[MAX_THREAD_NAME_SIZE];
-};
+} THREADINFO;
 
-struct THREADALLINFO
+typedef struct
 {
     THREADINFO BasicInfo;
     duint ThreadCip;
@@ -439,29 +443,29 @@ struct THREADALLINFO
     THREADPRIORITY Priority;
     THREADWAITREASON WaitReason;
     DWORD LastError;
-};
+} THREADALLINFO;
 
-struct THREADLIST
+typedef struct
 {
     int count;
     THREADALLINFO* list;
     int CurrentThread;
-};
+} THREADLIST;
 
-struct MEMORY_INFO
+typedef struct
 {
     ULONG_PTR value; //displacement / addrvalue (rip-relative)
     MEMORY_SIZE size; //byte/word/dword/qword
     char mnemonic[MAX_MNEMONIC_SIZE];
-};
+} MEMORY_INFO;
 
-struct VALUE_INFO
+typedef struct
 {
     ULONG_PTR value;
     VALUE_SIZE size;
-};
+} VALUE_INFO;
 
-struct BASIC_INSTRUCTION_INFO
+typedef struct
 {
     DWORD type; //value|memory|addr
     VALUE_INFO value; //immediat
@@ -471,23 +475,23 @@ struct BASIC_INSTRUCTION_INFO
     bool call; //instruction is a call
     int size;
     char instruction[MAX_MNEMONIC_SIZE*4];
-};
+} BASIC_INSTRUCTION_INFO;
 
-struct SCRIPTBRANCH
+typedef struct
 {
     SCRIPTBRANCHTYPE type;
     int dest;
     char branchlabel[256];
-};
+} SCRIPTBRANCH;
 
-struct FUNCTION_LOOP_INFO
+typedef struct
 {
     duint addr;
     duint start;
     duint end;
     bool manual;
     int depth;
-};
+} FUNCTION_LOOP_INFO;
 
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
@@ -569,7 +573,7 @@ BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 #define GUI_MAX_LINE_SIZE 65536
 
 //Gui enums
-enum GUIMSG
+typedef enum
 {
     GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
     GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
@@ -624,21 +628,21 @@ enum GUIMSG
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES              // param1=unused,               param2=unused
-};
+} GUIMSG;
 
 //GUI structures
-struct CELLINFO
+typedef struct
 {
     int row;
     int col;
     const char* str;
-};
+} CELLINFO;
 
-struct SELECTIONDATA
+typedef struct
 {
     duint start;
     duint end;
-};
+} SELECTIONDATA;
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
