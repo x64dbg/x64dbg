@@ -2,9 +2,7 @@
 #include "ui_SymbolView.h"
 #include "Configuration.h"
 
-SymbolView::SymbolView(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::SymbolView)
+SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
     ui->setupUi(this);
 
@@ -124,8 +122,11 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
 void SymbolView::moduleSelectionChanged(int index)
 {
+    QString mod = mModuleList->getCellContent(index, 1);
+    if(!mModuleBaseList.count(mod))
+        return;
     mSearchListView->mList->setRowCount(0);
-    DbgSymbolEnum(mModuleBaseList.at(index), cbSymbolEnum, mSearchListView->mList);
+    DbgSymbolEnum(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
@@ -142,12 +143,10 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mSearchListView->mList->setSingleSelection(0);
         mModuleList->setSingleSelection(0);
     }
-    QList<uint_t> empty;
-    empty.clear();
-    empty.swap(mModuleBaseList);
+    mModuleBaseList.clear();
     for(int i=0; i<module_count; i++)
     {
-        mModuleBaseList.push_back(modules[i].base);
+        mModuleBaseList.insert(modules[i].name, modules[i].base);
         mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t)*2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
