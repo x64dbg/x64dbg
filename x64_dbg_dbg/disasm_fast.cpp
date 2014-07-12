@@ -106,8 +106,8 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
     int len=Disasm(&disasm);
     if(len==UNKNOWN_OPCODE)
         return false;
-    basicinfo->size=len;
     fillbasicinfo(&disasm, basicinfo);
+    basicinfo->size=len;
     return true;
 }
 
