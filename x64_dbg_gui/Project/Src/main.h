@@ -8,6 +8,7 @@ class MyApplication : public QApplication
 public:
     MyApplication(int& argc, char** argv);
     bool notify(QObject* receiver, QEvent* event);
+    bool winEventFilter(MSG* message, long* result);
 };
 
 int main(int argc, char *argv[]);

@@ -883,6 +883,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         return (uint)dbgfunctionsget();
     }
     break;
+
+    case DBG_WIN_EVENT:
+    {
+        return (uint)pluginwinevent((MSG*)param1, (long*)param2);
+    }
+    break;
     }
     return 0;
 }

@@ -162,7 +162,8 @@ typedef enum
     DBG_SET_AUTO_FUNCTION_AT,       // param1=duint addr,                param2=const char* text
     DBG_DELETE_AUTO_FUNCTION_RANGE, // param1=duint start,               param2=duint end
     DBG_GET_STRING_AT,              // param1=duint addr,                param2=unused
-    DBG_GET_FUNCTIONS               // param1=unused,                    param2=unused
+    DBG_GET_FUNCTIONS,              // param1=unused,                    param2=unused
+    DBG_WIN_EVENT,                  // param1=MSG* message,              param2=long* result
 } DBGMSG;
 
 typedef enum
@@ -562,6 +563,7 @@ BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end);
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text);
 BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
+BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

@@ -8,6 +8,11 @@ MyApplication::MyApplication(int& argc, char** argv) : QApplication(argc, argv)
 {
 }
 
+bool MyApplication::winEventFilter(MSG* message, long* result)
+{
+    return DbgWinEvent(message, result);
+}
+
 bool MyApplication::notify(QObject* receiver, QEvent* event)
 {
     bool done = true;
