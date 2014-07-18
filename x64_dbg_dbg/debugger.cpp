@@ -192,8 +192,10 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     char modname[MAX_MODULE_SIZE]="";
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;
+	else
+		sprintf(modname, "Module: %s - ", modname);
     char title[1024]="";
-    sprintf(title, "File: %s - PID: %X - Module: %s - Thread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modname, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modname, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
