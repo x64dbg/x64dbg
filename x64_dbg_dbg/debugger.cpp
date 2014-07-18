@@ -1356,7 +1356,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 
 static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bpdel(bp->addr, BPNORMAL) and DeleteBPX(bp->addr))
+    if(bpdel(bp->addr, BPNORMAL) and (!bp->enabled or DeleteBPX(bp->addr)))
         return true;
     dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
     return false;
@@ -1381,9 +1381,15 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
     {
-        if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
+        if(!bpdel(found.addr, BPNORMAL))
         {
-            dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+            dprintf("delete breakpoint failed (bpdel): "fhex"\n", found.addr);
+            return STATUS_ERROR;
+        }
+        else if(found.enabled && !DeleteBPX(found.addr))
+        {
+            dprintf("delete breakpoint failed (DeleteBPX): "fhex"\n", found.addr);
+            GuiUpdateAllViews();
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -1394,9 +1400,15 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
+    if(!bpdel(found.addr, BPNORMAL))
     {
-        dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+        dprintf("delete breakpoint failed (bpdel): "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    else if(found.enabled && !DeleteBPX(found.addr))
+    {
+        dprintf("delete breakpoint failed (DeleteBPX): "fhex"\n", found.addr);
+        GuiUpdateAllViews();
         return STATUS_ERROR;
     }
     dputs("breakpoint deleted!");

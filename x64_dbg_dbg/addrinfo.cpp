@@ -33,6 +33,8 @@ void dbsave()
         json_dump_file(root, dbpath, JSON_INDENT(4));
         LZ4_compress_file(dbpath, dbpath);
     }
+    else //remove database when nothing is in there
+        DeleteFileA(dbpath);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount()-ticks);
 }
