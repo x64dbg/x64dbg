@@ -2075,6 +2075,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
     SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
