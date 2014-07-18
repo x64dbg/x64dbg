@@ -99,13 +99,6 @@ enum BPXTYPE
     bp_memory=4
 };
 
-enum BPXSTATE
-{
-    bp_enabled = 0,
-    bp_disabled = 1,
-    bp_non_existent = -1
-};
-
 enum FUNCTYPE
 {
     FUNC_NONE,

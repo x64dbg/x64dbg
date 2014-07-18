@@ -9,6 +9,13 @@ class Breakpoints : public QObject
 {
     Q_OBJECT
 public:
+    enum BPXSTATE
+    {
+        bp_enabled = 0,
+        bp_disabled = 1,
+        bp_non_existent = -1
+    };
+
     explicit Breakpoints(QObject *parent = 0);
 
     static void setBP(BPXTYPE type, uint_t va);
