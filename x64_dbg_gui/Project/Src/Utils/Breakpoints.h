@@ -5,6 +5,13 @@
 #include "Bridge.h"
 #include <QDebug>
 
+enum BPXSTATE
+{
+    bp_enabled = 0,
+    bp_disabled = 1,
+    bp_non_existent = -1
+};
+
 class Breakpoints : public QObject
 {
     Q_OBJECT
@@ -27,6 +34,7 @@ public:
 
     static void toogleBPByRemoving(BPXTYPE type, uint_t va);
     
+    static BPXSTATE BPState(BPXTYPE type, uint_t va);
 signals:
     
 public slots:

@@ -284,6 +284,39 @@ void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
         BridgeFree(wBPList.bp);
 }
 
+/**
+ * @brief       returns if a breakpoint is disabled or not
+ *
+ * @param[in]   type    Type of the breakpoint.
+ * @param[in]   va      Virtual Address
+ *
+ * @return      enabled/disabled.
+ */
+BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
+{
+    int wI = 0;
+    BPMAP wBPList;
+
+    // Get breakpoints list
+    DbgGetBpList(type, &wBPList);
+
+    // Find breakpoint at address VA
+    for(wI = 0; wI < wBPList.count; wI++)
+    {
+        if(wBPList.bp[wI].addr == va)
+        {
+            if(wBPList.bp[wI].enabled)
+                return bp_enabled;
+            else
+                return bp_disabled;
+        }
+    }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+
+    return bp_non_existent;
+}
+
 
 /**
  * @brief       Toogle the given breakpoint by disabling it when enabled.@n
