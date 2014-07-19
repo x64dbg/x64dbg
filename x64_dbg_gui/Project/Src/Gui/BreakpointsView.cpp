@@ -263,7 +263,6 @@ void BreakpointsView::enableDisableHardBPActionSlot()
 
 void BreakpointsView::doubleClickHardwareSlot()
 {
-    GuiAddStatusBarMessage("double click!");
     QString addrText=mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();

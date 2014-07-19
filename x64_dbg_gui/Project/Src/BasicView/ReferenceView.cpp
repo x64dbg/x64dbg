@@ -36,6 +36,22 @@ void ReferenceView::setupContextMenu()
 
     mFollowDumpAddress = new QAction("Follow in &Dump", this);
     connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
+
+    mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
+    mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
+    mToggleBreakpoint->setShortcut(QKeySequence("F2"));
+    this->addAction(mToggleBreakpoint);
+    mList->addAction(mToggleBreakpoint);
+    mSearchList->addAction(mToggleBreakpoint);
+    connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
+
+    mToggleBookmark = new QAction("Toggle Bookmark", this);
+    mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
+    mToggleBookmark->setShortcut(QKeySequence("ctrl+d"));
+    this->addAction(mToggleBookmark);
+    mList->addAction(mToggleBookmark);
+    mSearchList->addAction(mToggleBookmark);
+    connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)
@@ -114,6 +130,9 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowDumpAddress);
+    wMenu->addSeparator();
+    wMenu->addAction(mToggleBreakpoint);
+    wMenu->addAction(mToggleBookmark);
 }
 
 void ReferenceView::followAddress()
@@ -134,4 +153,63 @@ void ReferenceView::followGenericAddress()
         followDumpAddress();
     else
         followAddress();
+}
+
+void ReferenceView::toggleBreakpoint()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!this->mCurList->getRowCount())
+        return;
+    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+    QString wCmd;
+
+    if((wBpType & bp_normal) == bp_normal)
+    {
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    else
+    {
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+
+    DbgCmdExec(wCmd.toUtf8().constData());
+}
+
+void ReferenceView::toggleBookmark()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!this->mCurList->getRowCount())
+        return;
+    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    bool result;
+    if(DbgGetBookmarkAt(wVA))
+        result=DbgSetBookmarkAt(wVA, false);
+    else
+        result=DbgSetBookmarkAt(wVA, true);
+    if(!result)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    GuiUpdateAllViews();
 }
