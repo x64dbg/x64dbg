@@ -1035,7 +1035,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                         *value_size=sizeof(uint);
                     if(hexonly)
                         *hexonly=true;
-                    uint rva=addr-(uint)mod;
+                    uint rva;
+                    if(addr==modbase)
+                        rva=0;
+                    else
+                        rva=addr-(uint)mod;
                     *value=modbase+rva;
                     return true;
                 }

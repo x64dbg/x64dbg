@@ -821,7 +821,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     }
     bool found=false;
     STRING_TYPE strtype;
-    char string[512]="";
+    char string[1024]="";
     if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
     if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
@@ -840,7 +840,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount+1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[4096]="";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
