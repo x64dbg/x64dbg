@@ -104,6 +104,9 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
     exceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
     exceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
+    exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
+    exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
 }
 
 void dbgdisablebpx()
@@ -180,7 +183,6 @@ bool dbgcmddel(const char* name)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    memupdatemap(fdProcessInfo->hProcess); //update memory map
     uint cip=GetContextData(UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
@@ -190,12 +192,13 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
         GuiStackDumpAt(csp, csp);
     }
     char modname[MAX_MODULE_SIZE]="";
+    char modtext[MAX_MODULE_SIZE*2]="";
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;
-	else
-		sprintf(modname, "Module: %s - ", modname);
+    else
+        sprintf(modtext, "Module: %s - ", modname);
     char title[1024]="";
-    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modname, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
@@ -327,7 +330,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
 {
     uint cip=GetContextData(UE_CIP);
     uint size;
-    uint base=memfindbaseaddr((uint)ExceptionAddress, &size);
+    uint base=memfindbaseaddr((uint)ExceptionAddress, &size, true);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -598,7 +601,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     modInfo.SizeOfStruct=sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    //bpenumall(0); //update breakpoint list
+    memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
@@ -684,6 +687,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadStart"))
     {
+        memupdatemap(fdProcessInfo->hProcess); //update memory map
         //update GUI
         DebugUpdateGui(GetContextData(UE_CIP), true);
         GuiSetDebugState(paused);
@@ -728,7 +732,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
     uint cip=GetContextData(UE_CIP);
-    GuiDumpAt(memfindbaseaddr(cip, 0)); //dump somewhere
+    GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -765,7 +769,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    //bpenumall(0); //update breakpoint list
+    memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
@@ -1670,7 +1674,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         }
     }
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     bool singleshoot=false;
     if(!restore)
         singleshoot=true;
@@ -1958,7 +1962,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     }
     else
     {
-        uint base=memfindbaseaddr(addr, &size);
+        uint base=memfindbaseaddr(addr, &size, true);
         if(!base)
         {
             dputs("invalid address specified");

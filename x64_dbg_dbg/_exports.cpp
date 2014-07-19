@@ -33,6 +33,7 @@ extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, d
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 {
+    CriticalSectionLocker locker(LockMemoryPages);
     int pagecount=(int)memoryPages.size();
     memset(memmap, 0, sizeof(MEMMAP));
     memmap->count=pagecount;

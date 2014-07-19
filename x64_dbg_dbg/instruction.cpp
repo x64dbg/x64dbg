@@ -1004,7 +1004,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
@@ -1058,7 +1058,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);

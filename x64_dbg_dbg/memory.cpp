@@ -2,11 +2,13 @@
 #include "debugger.h"
 #include "patches.h"
 #include "console.h"
+#include "threading.h"
 
 MemoryMap memoryPages;
 
 void memupdatemap(HANDLE hProcess)
 {
+    CriticalSectionLocker locker(LockMemoryPages);
     MEMORY_BASIC_INFORMATION mbi;
     SIZE_T numBytes;
     uint MyAddress=0, newAddress=0;
@@ -157,8 +159,11 @@ void memupdatemap(HANDLE hProcess)
     }
 }
 
-uint memfindbaseaddr(uint addr, uint* size)
+uint memfindbaseaddr(uint addr, uint* size, bool refresh)
 {
+    if(refresh)
+        memupdatemap(fdProcessInfo->hProcess); //update memory map
+    CriticalSectionLocker locker(LockMemoryPages);
     MemoryMap::iterator found=memoryPages.find(std::make_pair(addr, addr));
     if(found==memoryPages.end())
         return 0;
