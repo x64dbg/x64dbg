@@ -177,7 +177,18 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
 {
     // get clicked line
-    const int line = (e->pos().y())/fontHeight;
+    const int x = e->pos().x();
+    const int y = e->pos().y();
+    const int line = y/fontHeight;
+
+    const int bulletRadius = fontHeight/2; //14/2=7
+    const int bulletY = line*fontHeight + (fontHeight-bulletRadius)/2+1; //initial y
+    const int bulletX = viewport()->width() - 10; //initial x
+
+    if(x < bulletX || x > bulletX + bulletRadius)
+        return;
+    if(y < bulletY || y > bulletY + bulletRadius)
+        return;
 
     if(!DbgIsDebugging())
         return;
