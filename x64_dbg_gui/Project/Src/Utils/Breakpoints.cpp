@@ -237,7 +237,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
 }
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *
@@ -245,7 +245,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
+void Breakpoints::toggleBPByDisabling(BRIDGEBP bp)
 {
     if(bp.enabled == true)
         disableBP(bp);
@@ -254,7 +254,7 @@ void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
 }
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *              If breakpoint was previously removed, this method has no effect.@n
@@ -264,7 +264,7 @@ void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
 {
     int wI = 0;
     BPMAP wBPList;
@@ -277,7 +277,7 @@ void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
     {
         if(wBPList.bp[wI].addr == va)
         {
-            toogleBPByDisabling(wBPList.bp[wI]);
+            toggleBPByDisabling(wBPList.bp[wI]);
         }
     }
     if(wBPList.count)
@@ -319,7 +319,7 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
 
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *              If breakpoint was previously removed, this method has no effect.@n
@@ -329,7 +329,7 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
 {
     int wI = 0;
     BPMAP wBPList;

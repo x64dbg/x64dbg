@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mBreakpointsView->setWindowTitle("Breakpoints");
     mBreakpointsView->setWindowIcon(QIcon(":/icons/images/breakpoint.png"));
     mBreakpointsView->hide();
+    connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Memory Map View
     mMemMapView = new MemoryMapView();

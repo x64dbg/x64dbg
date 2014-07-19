@@ -29,10 +29,10 @@ public:
     static void removeBP(BRIDGEBP bp);
     static void removeBP(BPXTYPE type, uint_t va);
 
-    static void toogleBPByDisabling(BRIDGEBP bp);
-    static void toogleBPByDisabling(BPXTYPE type, uint_t va);
+    static void toggleBPByDisabling(BRIDGEBP bp);
+    static void toggleBPByDisabling(BPXTYPE type, uint_t va);
 
-    static void toogleBPByRemoving(BPXTYPE type, uint_t va);
+    static void toggleBPByRemoving(BPXTYPE type, uint_t va);
     
     static BPXSTATE BPState(BPXTYPE type, uint_t va);
 signals:
