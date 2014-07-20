@@ -191,7 +191,7 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     mRegisterPlaces.insert(DR7,Register_Position(offset+16,0, 4, sizeof(uint_t) * 2));
 
     //set font
-    QFont font("Monospace", 8);
+    QFont font("Monospace", 8, QFont::Normal, false);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
     QAbstractScrollArea::setFont(font);
@@ -307,7 +307,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     }
     else if(mFlags.contains(mSelected))  // is flag ?
         wCM_ToggleValue->trigger();
-
+    else if(mSelected == CIP) //double clicked on CIP register
+        DbgCmdExec("disasm cip");
 }
 
 void RegistersView::paintEvent(QPaintEvent *event)
