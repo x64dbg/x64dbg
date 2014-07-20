@@ -19,6 +19,7 @@ GotoDialog::GotoDialog(QWidget *parent) :
     ui->editExpression->setFocus();
     validRangeStart=0;
     validRangeEnd=0;
+    connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
 
 GotoDialog::~GotoDialog()
@@ -89,4 +90,11 @@ void GotoDialog::on_buttonOk_clicked()
     ui->editExpression->addLineToHistory(expression);
     ui->editExpression->setText("");
     expressionText = expression;
+}
+
+void GotoDialog::finishedSlot(int result)
+{
+    if(result == QDialog::Rejected)
+        ui->editExpression->setText("");
+    ui->editExpression->setFocus();
 }

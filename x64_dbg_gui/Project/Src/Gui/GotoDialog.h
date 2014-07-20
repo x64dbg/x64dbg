@@ -23,8 +23,8 @@ public:
 
 private slots:
     void on_editExpression_textChanged(const QString &arg1);
-
     void on_buttonOk_clicked();
+    void finishedSlot(int result);
 
 private:
     Ui::GotoDialog *ui;
