@@ -14,7 +14,7 @@ QHexEditPrivate::QHexEditPrivate(QScrollArea *parent) : QWidget(parent)
     _scrollArea = parent;
     setOverwriteMode(true);
 
-    QFont font("Monospace", 8);
+    QFont font("Monospace", 8, QFont::Normal, false);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);

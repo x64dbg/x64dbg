@@ -12,13 +12,10 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     data.activeButtonIndex=-1;
     mHeader = data;
 
-    QFont font("Monospace", 8);
-    //QFont font("Terminal", 7);
-    //font.setBold(true); //bold
-
+    QFont font("Lucida Console", 8, QFont::Normal, false);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
-    this->setFont(font);
+    setFont(font);
 
     backgroundColor=ConfigColor("AbstractTableViewBackgroundColor");
     textColor=ConfigColor("AbstractTableViewTextColor");

@@ -42,6 +42,10 @@ int main(int argc, char *argv[])
 {
     MyApplication a(argc, argv);
 
+    QFont font("Tahoma", 9, QFont::Bold, true);
+    font=QApplication::font();
+    QApplication::setFont(font);
+
     // Register custom data types
     //qRegisterMetaType<int32>("int32");
     //qRegisterMetaType<uint_t>("uint_t");
