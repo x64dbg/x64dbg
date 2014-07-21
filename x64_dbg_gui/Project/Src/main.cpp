@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<uint_t>("uint_t");
 
     qRegisterMetaType<byte_t>("byte_t");
+    qRegisterMetaType<DBGSTATE>("DBGSTATE");
 
     qRegisterMetaType<DBGSTATE>("DBGSTATE");
 

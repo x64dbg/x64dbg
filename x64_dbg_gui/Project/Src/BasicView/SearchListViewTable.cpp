@@ -14,16 +14,17 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
     if(!getRowCount())
         isaddr=false;
     const char* addrText = text.toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    ULONGLONG val=0;
+    uint_t wVA;
+    if(sscanf(addrText, "%llX", &val)!=1)
         isaddr=false;
-    uint_t wVA = DbgValFromString(addrText);
-    if(!DbgMemIsValidReadPtr(wVA))
-        isaddr=false;
+    else
+        wVA=val;
     if(col==0 && isaddr)
     {
         BPXTYPE bpxtype=DbgGetBpxTypeAt(wVA);
         bool isbookmark=DbgGetBookmarkAt(wVA);
-
+        painter->setPen(ConfigColor("AbstractTableViewTextColor"));
         if(!isbookmark)
         {
             if(bpxtype&bp_normal) //normal breakpoint
