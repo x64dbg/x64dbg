@@ -72,6 +72,7 @@ private slots:
     void on_fontHexEditStyle_currentIndexChanged(int index);
     void on_fontHexEditSize_currentIndexChanged(const QString &arg1);
     void on_buttonApplicationFont_clicked();
+    void on_buttonFontDefaults_clicked();
 
 private:
     Ui::AppearanceDialog *ui;
@@ -92,6 +93,8 @@ private:
 
     QAction* defaultValueAction;
     QAction* currentSettingAction;
+
+    bool isInit;
 
     void colorInfoListAppend(QString propertyName, QString colorName, QString backgroundColorName);
     void colorInfoListInit();

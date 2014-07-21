@@ -25,6 +25,7 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
+    mHexEdit->setEditFont(ConfigFont("HexEdit"));
     mHexEdit->setHorizontalSpacing(6);
     mHexEdit->setOverwriteMode(true);
     mHexEdit->setTextColor(ConfigColor("HexEditTextColor"));

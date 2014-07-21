@@ -3,6 +3,7 @@
 
 Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 {
+    fontsUpdated();
     mMemPage = new MemoryPage(0, 0);
 
     mInstBuffer.clear();
@@ -42,6 +43,11 @@ void Disassembly::colorsUpdated()
 {
     AbstractTableView::colorsUpdated();
     backgroundColor=ConfigColor("DisassemblyBackgroundColor");
+}
+
+void Disassembly::fontsUpdated()
+{
+    setFont(ConfigFont("Disassembly"));
 }
 
 /************************************************************************************
@@ -397,7 +403,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         else
             BeaTokenizer::TokenToRichText(token, &richText, 0);
         int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, QFontMetrics(this->font()).width(QChar(' ')));
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, getCharWidth());
         token->x = x + loopsize + xinc;
     }
     break;

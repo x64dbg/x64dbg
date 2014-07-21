@@ -4,6 +4,7 @@
 
 CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
 {
+    fontsUpdated();
     setShowHeader(false);
     int charwidth=getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -46,6 +47,11 @@ void CPUStack::colorsUpdated()
     backgroundColor=ConfigColor("StackBackgroundColor");
     textColor=ConfigColor("StackTextColor");
     selectionColor=ConfigColor("StackSelectionColor");
+}
+
+void CPUStack::fontsUpdated()
+{
+    setFont(ConfigFont("Stack"));
 }
 
 void CPUStack::setupContextMenu()

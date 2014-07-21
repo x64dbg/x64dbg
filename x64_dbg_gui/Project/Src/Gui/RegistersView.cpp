@@ -190,18 +190,8 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     mRegisterMapping.insert(DR7,"DR7");
     mRegisterPlaces.insert(DR7,Register_Position(offset+16,0, 4, sizeof(uint_t) * 2));
 
-    //set font
-    QFont font("Monospace", 8, QFont::Normal, false);
-    font.setFixedPitch(true);
-    font.setStyleHint(QFont::Monospace);
-    QAbstractScrollArea::setFont(font);
-
-
-    int wRowsHeight = QFontMetrics(this->font()).height();
-    wRowsHeight = (wRowsHeight * 105) / 100;
-    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
-    mRowHeight = wRowsHeight;
-    mCharWidth = QFontMetrics(this->font()).averageCharWidth();
+    fontsUpdatedSlot();
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
 
     memset(&wRegDumpStruct, 0, sizeof(REGDUMP));
     memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP));
@@ -235,6 +225,17 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
 
 RegistersView::~RegistersView()
 {
+}
+
+void RegistersView::fontsUpdatedSlot()
+{
+    setFont(ConfigFont("Registers"));
+    int wRowsHeight = QFontMetrics(this->font()).height();
+    wRowsHeight = (wRowsHeight * 105) / 100;
+    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
+    mRowHeight = wRowsHeight;
+    mCharWidth = QFontMetrics(this->font()).averageCharWidth();
+    repaint();
 }
 
 /**

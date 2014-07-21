@@ -90,6 +90,7 @@ protected:
     void displayEditDialog();
 
 protected slots:
+    void fontsUpdatedSlot();
     void onIncrementAction();
     void onDecrementAction();
     void onZeroAction();

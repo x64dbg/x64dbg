@@ -16,6 +16,7 @@ class CPUStack : public HexDump
 public:
     explicit CPUStack(QWidget *parent = 0);
     void colorsUpdated();
+    void fontsUpdated();
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void contextMenuEvent(QContextMenuEvent* event);
 
