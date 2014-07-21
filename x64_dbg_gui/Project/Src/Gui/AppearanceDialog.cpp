@@ -16,6 +16,9 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     ui->groupColor->setEnabled(false);
     ui->groupBackgroundColor->setEnabled(false);
     colorInfoListInit();
+    //Fonts
+    fontMap=&Config()->Fonts;
+    fontBackupMap=*fontMap;
 }
 
 AppearanceDialog::~AppearanceDialog()
@@ -326,6 +329,8 @@ void AppearanceDialog::on_buttonCancel_clicked()
 {
     Config()->Colors=colorBackupMap;
     Config()->writeColors();
+    Config()->Fonts=fontBackupMap;
+    Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
@@ -558,4 +563,99 @@ void AppearanceDialog::colorInfoListInit()
     connect(currentSettingAction, SIGNAL(triggered()), this, SLOT(currentSettingSlot()));
     ui->listColorNames->addAction(defaultValueAction);
     ui->listColorNames->addAction(currentSettingAction);
+}
+
+void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontAbstractTablesStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontAbstractTablesSize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontDisassemblyStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontDisassemblySize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontHexDumpStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontHexDumpSize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_fontStack_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontStackStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontStackSize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontRegistersStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontRegistersSize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont &f)
+{
+
+}
+
+void AppearanceDialog::on_fontHexEditStyle_currentIndexChanged(int index)
+{
+
+}
+
+void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString &arg1)
+{
+
+}
+
+void AppearanceDialog::on_buttonApplicationFont_clicked()
+{
+
 }

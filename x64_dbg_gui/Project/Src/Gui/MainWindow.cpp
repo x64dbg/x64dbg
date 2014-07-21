@@ -21,9 +21,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     DestroyIcon(hIcon);
 
-    // load config file
-    mConfiguration = new Configuration;
-
     //Load recent files
     loadMRUList(16);
 
@@ -198,7 +195,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 MainWindow::~MainWindow()
 {
-    mConfiguration->save(); //save config on exit
     delete ui;
 }
 
