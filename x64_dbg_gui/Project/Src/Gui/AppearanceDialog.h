@@ -95,6 +95,7 @@ private:
 
     void colorInfoListAppend(QString propertyName, QString colorName, QString backgroundColorName);
     void colorInfoListInit();
+    void fontInit();
 };
 
 #endif // APPEARANCEDIALOG_H

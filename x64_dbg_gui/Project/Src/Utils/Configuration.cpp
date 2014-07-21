@@ -494,6 +494,8 @@ QFont Configuration::fontFromConfig(const QString id)
             fontToConfig(id, ret);
             return ret;
         }
+        if(id=="Application")
+            return QApplication::font();
         QFont ret("Lucida Console", 8, QFont::Normal, false);
         ret.setFixedPitch(true);
         ret.setStyleHint(QFont::Monospace);
@@ -508,6 +510,8 @@ QFont Configuration::fontFromConfig(const QString id)
             fontToConfig(id, ret);
             return ret;
         }
+        if(id=="Application")
+            return QApplication::font();
         QFont ret("Lucida Console", 8, QFont::Normal, false);
         ret.setFixedPitch(true);
         ret.setStyleHint(QFont::Monospace);
