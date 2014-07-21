@@ -890,8 +890,9 @@ void QHexEditPrivate::updateCursor()
 
 void QHexEditPrivate::adjust()
 {
-    _charWidth = fontMetrics().width(QLatin1Char('9'));
-    _charHeight = fontMetrics().height();
+    QFontMetrics metrics(this->font());
+    _charWidth = metrics.width(QLatin1Char('9'));
+    _charHeight = metrics.height();
 
     _xPosHex = _horizonalSpacing;
 

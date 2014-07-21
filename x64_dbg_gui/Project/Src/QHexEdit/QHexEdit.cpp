@@ -16,6 +16,11 @@ QHexEdit::QHexEdit(QWidget *parent) : QScrollArea(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 }
 
+void QHexEdit::setEditFont(const QFont & font)
+{
+    qHexEdit_p->setFont(font);
+}
+
 void QHexEdit::insert(int i, const QByteArray & ba, const QByteArray & mask)
 {
     qHexEdit_p->insert(i, ba, mask);
