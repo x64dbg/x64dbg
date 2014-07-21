@@ -106,8 +106,6 @@ private:
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
 
-    Configuration* mConfiguration;
-
     UpdateChecker* mUpdateChecker;
 
     const char* mWindowMainTitle;

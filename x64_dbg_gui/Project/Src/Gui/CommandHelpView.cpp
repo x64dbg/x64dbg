@@ -18,7 +18,7 @@ CommandHelpView::CommandHelpView(QWidget *parent) :
     mSearchListView->mSearchStartCol = 1;
 
     // Get font information
-    QFont wFont("Monospace", 8);
+    QFont wFont("Monospace", 8, QFont::Normal, false);
     wFont.setStyleHint(QFont::Monospace);
     wFont.setFixedPitch(true);
     //int charwidth=QFontMetrics(wFont).width(QChar(' '));

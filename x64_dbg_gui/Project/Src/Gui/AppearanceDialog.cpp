@@ -2,6 +2,7 @@
 #include "ui_AppearanceDialog.h"
 #include "Bridge.h"
 #include "Configuration.h"
+#include <QFontDialog>
 
 AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {
@@ -16,6 +17,10 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     ui->groupColor->setEnabled(false);
     ui->groupBackgroundColor->setEnabled(false);
     colorInfoListInit();
+    //Fonts
+    fontMap=&Config()->Fonts;
+    fontBackupMap=*fontMap;
+    fontInit();
 }
 
 AppearanceDialog::~AppearanceDialog()
@@ -326,6 +331,8 @@ void AppearanceDialog::on_buttonCancel_clicked()
 {
     Config()->Colors=colorBackupMap;
     Config()->writeColors();
+    Config()->Fonts=fontBackupMap;
+    Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
@@ -407,7 +414,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoIndex=0;
     colorInfoList.clear();
     //list entries
-    colorInfoListAppend("General:", "", "");
+    colorInfoListAppend("General Tables:", "", "");
     colorInfoListAppend("Text", "AbstractTableViewTextColor", "");
     colorInfoListAppend("Header Text", "AbstractTableViewHeaderTextColor", "");
     colorInfoListAppend("Background", "AbstractTableViewBackgroundColor", "");
@@ -558,4 +565,367 @@ void AppearanceDialog::colorInfoListInit()
     connect(currentSettingAction, SIGNAL(triggered()), this, SLOT(currentSettingSlot()));
     ui->listColorNames->addAction(defaultValueAction);
     ui->listColorNames->addAction(currentSettingAction);
+}
+
+void AppearanceDialog::fontInit()
+{
+    isInit=true;
+    //AbstractTableView
+    QFont font=fontMap->find("AbstractTableView").value();
+    ui->fontAbstractTables->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontAbstractTablesStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontAbstractTablesStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontAbstractTablesStyle->setCurrentIndex(1);
+    else
+        ui->fontAbstractTablesStyle->setCurrentIndex(0);
+    int index=ui->fontAbstractTablesSize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontAbstractTablesSize->setCurrentIndex(index);
+    //Disassembly
+    font=fontMap->find("Disassembly").value();
+    ui->fontDisassembly->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontDisassemblyStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontDisassemblyStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontDisassemblyStyle->setCurrentIndex(1);
+    else
+        ui->fontDisassemblyStyle->setCurrentIndex(0);
+    index=ui->fontDisassemblySize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontDisassemblySize->setCurrentIndex(index);
+    //HexDump
+    font=fontMap->find("HexDump").value();
+    ui->fontHexDump->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontHexDumpStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontHexDumpStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontHexDumpStyle->setCurrentIndex(1);
+    else
+        ui->fontHexDumpStyle->setCurrentIndex(0);
+    index=ui->fontHexDumpSize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontHexDumpSize->setCurrentIndex(index);
+    //Stack
+    font=fontMap->find("Stack").value();
+    ui->fontStack->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontStackStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontStackStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontStackStyle->setCurrentIndex(1);
+    else
+        ui->fontStackStyle->setCurrentIndex(0);
+    index=ui->fontStackSize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontStackSize->setCurrentIndex(index);
+    //Registers
+    font=fontMap->find("Registers").value();
+    ui->fontRegisters->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontRegistersStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontRegistersStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontRegistersStyle->setCurrentIndex(1);
+    else
+        ui->fontRegistersStyle->setCurrentIndex(0);
+    index=ui->fontRegistersSize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontRegistersSize->setCurrentIndex(index);
+    //HexEdit
+    font=fontMap->find("HexEdit").value();
+    ui->fontHexEdit->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontHexEditStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontHexEditStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontHexEditStyle->setCurrentIndex(1);
+    else
+        ui->fontHexEditStyle->setCurrentIndex(0);
+    index=ui->fontHexEditSize->findText(QString("%1").arg(font.pointSize()));
+    if(index!=-1)
+        ui->fontHexEditSize->setCurrentIndex(index);
+    //Application
+    ui->labelApplicationFont->setText(fontMap->find("Application").value().family());
+    isInit=false;
+}
+
+void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont &f)
+{
+    QString id="AbstractTableView";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontAbstractTablesStyle_currentIndexChanged(int index)
+{
+    QString id="AbstractTableView";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontAbstractTablesSize_currentIndexChanged(const QString &arg1)
+{
+    QString id="AbstractTableView";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont &f)
+{
+    QString id="Disassembly";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontDisassemblyStyle_currentIndexChanged(int index)
+{
+    QString id="Disassembly";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontDisassemblySize_currentIndexChanged(const QString &arg1)
+{
+    QString id="Disassembly";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont &f)
+{
+    QString id="HexDump";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexDumpStyle_currentIndexChanged(int index)
+{
+    QString id="HexDump";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexDumpSize_currentIndexChanged(const QString &arg1)
+{
+    QString id="HexDump";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontStack_currentFontChanged(const QFont &f)
+{
+    QString id="Stack";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontStackStyle_currentIndexChanged(int index)
+{
+    QString id="Stack";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontStackSize_currentIndexChanged(const QString &arg1)
+{
+    QString id="Stack";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont &f)
+{
+    QString id="Registers";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontRegistersStyle_currentIndexChanged(int index)
+{
+    QString id="Registers";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontRegistersSize_currentIndexChanged(const QString &arg1)
+{
+    QString id="Registers";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont &f)
+{
+    QString id="HexEdit";
+    QFont font=fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexEditStyle_currentIndexChanged(int index)
+{
+    QString id="HexEdit";
+    QFont font=fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index==1 || index==3)
+        font.setBold(true);
+    if(index==2 || index==3)
+        font.setItalic(true);
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString &arg1)
+{
+    QString id="HexEdit";
+    QFont font=fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id]=font;
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_buttonApplicationFont_clicked()
+{
+    QString id="Application";
+    QFontDialog fontDialog(this);
+    fontDialog.setCurrentFont(fontMap->find(id).value());
+    if(fontDialog.exec()!=QDialog::Accepted)
+        return;
+    (*fontMap)[id]=fontDialog.currentFont();
+    ui->labelApplicationFont->setText(fontDialog.currentFont().family());
+    if(isInit)
+        return;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_buttonFontDefaults_clicked()
+{
+    (*fontMap)=Config()->defaultFonts;
+    isInit=true;
+    fontInit();
+    isInit=false;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
 }

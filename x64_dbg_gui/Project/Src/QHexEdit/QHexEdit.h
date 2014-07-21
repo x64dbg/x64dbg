@@ -43,6 +43,7 @@ public:
     QColor backgroundColor();
     void setSelectionColor(QColor color);
     QColor selectionColor();
+    void setEditFont(const QFont & font);
 
 public slots:
     void redo();

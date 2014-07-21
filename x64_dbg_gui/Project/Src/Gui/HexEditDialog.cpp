@@ -14,7 +14,7 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
     setModal(true); //modal window
 
     //setup text fields
-    QFont font("Monospace", 8);
+    QFont font("Monospace", 8, QFont::Normal, false);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
     ui->lineEditAscii->setFont(font);
@@ -25,6 +25,7 @@ HexEditDialog::HexEditDialog(QWidget *parent) :
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
+    mHexEdit->setEditFont(ConfigFont("HexEdit"));
     mHexEdit->setHorizontalSpacing(6);
     mHexEdit->setOverwriteMode(true);
     mHexEdit->setTextColor(ConfigColor("HexEditTextColor"));
