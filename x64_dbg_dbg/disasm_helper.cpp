@@ -274,9 +274,9 @@ void disasmprint(uint addr)
     DISASM_INSTR instr;
     memset(&instr, 0, sizeof(instr));
     disasmget(addr, &instr);
-    printf(">%d:\"%s\":\n", instr.type, instr.instruction);
+    dprintf(">%d:\"%s\":\n", instr.type, instr.instruction);
     for(int i=0; i<instr.argcount; i++)
-        printf(" %d:%d:%"fext"X:%"fext"X:%"fext"X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
+        dprintf(" %d:%d:%"fext"X:%"fext"X:%"fext"X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
 }
 
 static bool isasciistring(const unsigned char* data, int maxlen)
