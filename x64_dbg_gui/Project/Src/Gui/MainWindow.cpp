@@ -53,6 +53,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
 
+    // Callstack View
+    mCallStackView = new CallStackView();
+    mCallStackView->setWindowTitle("Call Stack");
+    mCallStackView->setWindowIcon(QIcon(":/icons/images/callstack.png"));
+    connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle("Script");
@@ -64,11 +70,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setWindowTitle("CPU");
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
+    // Reference View
     mReferenceView = new ReferenceView();
     Bridge::getBridge()->referenceView = mReferenceView;
     mReferenceView->setWindowTitle("References");
     mReferenceView->setWindowIcon(QIcon(":/icons/images/search.png"));
 
+    // Thread View
     mThreadView = new ThreadView();
     mThreadView->setWindowTitle("Threads");
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
@@ -81,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mLogView, mLogView->windowIcon(), mLogView->windowTitle());
     mTabWidget->addTab(mBreakpointsView, mBreakpointsView->windowIcon(), mBreakpointsView->windowTitle());
     mTabWidget->addTab(mMemMapView, mMemMapView->windowIcon(), mMemMapView->windowTitle());
+    mTabWidget->addTab(mCallStackView, mCallStackView->windowIcon(), mCallStackView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
     mTabWidget->addTab(mReferenceView, mReferenceView->windowIcon(),mReferenceView->windowTitle());
@@ -140,6 +149,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionBookmarks,SIGNAL(triggered()),this,SLOT(displayBookmarks()));
     connect(ui->actionFunctions,SIGNAL(triggered()),this,SLOT(displayFunctions()));
     connect(ui->actionCheckUpdates,SIGNAL(triggered()),this,SLOT(checkUpdates()));
+    connect(ui->actionCallStack,SIGNAL(triggered()),this,SLOT(displayCallstack()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -149,6 +159,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString,QString*)), this, SLOT(getStrWindow(QString,QString*)));
@@ -802,4 +813,11 @@ void MainWindow::displayFunctions()
 void MainWindow::checkUpdates()
 {
     mUpdateChecker->checkForUpdates();
+}
+
+void MainWindow::displayCallstack()
+{
+    mCallStackView->show();
+    mCallStackView->setFocus();
+    setTab(mCallStackView);
 }

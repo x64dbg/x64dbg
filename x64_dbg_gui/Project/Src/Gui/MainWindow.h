@@ -23,6 +23,7 @@
 #include "CloseDialog.h"
 #include "PatchDialog.h"
 #include "UpdateChecker.h"
+#include "CallStackView.h"
 
 namespace Ui
 {
@@ -86,6 +87,7 @@ public slots:
     void displayBookmarks();
     void displayFunctions();
     void checkUpdates();
+    void displayCallstack();
 
 private:
     Ui::MainWindow *ui;
@@ -95,6 +97,7 @@ private:
     MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
+    CallStackView* mCallStackView;
     LogView* mLogView;
     SymbolView* mSymbolView;
     BreakpointsView* mBreakpointsView;

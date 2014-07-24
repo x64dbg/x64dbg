@@ -79,7 +79,8 @@ SOURCES += \
     Src/Gui/PatchDialog.cpp \
     Src/Gui/PatchDialogGroupSelector.cpp \
     Src/Utils/UpdateChecker.cpp \
-    Src/BasicView/SearchListViewTable.cpp
+    Src/BasicView/SearchListViewTable.cpp \
+    Src/Gui/CallStackView.cpp
 
 
 HEADERS += \
@@ -137,7 +138,8 @@ HEADERS += \
     Src/Gui/PatchDialog.h \
     Src/Gui/PatchDialogGroupSelector.h \
     Src/Utils/UpdateChecker.h \
-    Src/BasicView/SearchListViewTable.h
+    Src/BasicView/SearchListViewTable.h \
+    Src/Gui/CallStackView.h
 
 
 INCLUDEPATH += \

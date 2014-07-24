@@ -32,6 +32,7 @@ public:
 
 signals:
     void displayReferencesWidget();
+    void showPatches();
 
 public slots:
     void toggleInt3BPAction();
@@ -66,6 +67,7 @@ public slots:
     void binaryPasteSlot();
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
+    void showPatchesSlot();
 
 private:
 
@@ -108,6 +110,7 @@ private:
     QAction* mSearchCalls;
     QAction* mSearchPattern;
     QAction* mEnableHighlightingMode;
+    QAction* mPatchesAction;
 
     GotoDialog* mGoto;
 };

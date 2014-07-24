@@ -46,9 +46,10 @@
      <string>&amp;View</string>
     </property>
     <addaction name="actionCpu"/>
-    <addaction name="actionMemoryMap"/>
     <addaction name="actionLog"/>
     <addaction name="actionBreakpoints"/>
+    <addaction name="actionMemoryMap"/>
+    <addaction name="actionCallStack"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
     <addaction name="actionReferences"/>
@@ -138,6 +139,7 @@
    <addaction name="actionLog"/>
    <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
+   <addaction name="actionCallStack"/>
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
    <addaction name="actionReferences"/>
@@ -145,14 +147,14 @@
    <addaction name="separator"/>
    <addaction name="actionScylla"/>
    <addaction name="separator"/>
-   <addaction name="actionStrings"/>
-   <addaction name="actionCalls"/>
-   <addaction name="separator"/>
    <addaction name="actionPatches"/>
    <addaction name="actionComments"/>
    <addaction name="actionLabels"/>
    <addaction name="actionBookmarks"/>
    <addaction name="actionFunctions"/>
+   <addaction name="separator"/>
+   <addaction name="actionStrings"/>
+   <addaction name="actionCalls"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
@@ -602,6 +604,21 @@
    </property>
    <property name="text">
     <string>Check for &amp;Updates</string>
+   </property>
+  </action>
+  <action name="actionCallStack">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/callstack.png</normaloff>:/icons/images/callstack.png</iconset>
+   </property>
+   <property name="text">
+    <string>Call Stack</string>
+   </property>
+   <property name="toolTip">
+    <string>Call Stack</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+K</string>
    </property>
   </action>
  </widget>
