@@ -141,9 +141,9 @@
   <widget class="QPushButton" name="btnAscii2Hex">
    <property name="geometry">
     <rect>
-     <x>297</x>
+     <x>271</x>
      <y>53</y>
-     <width>75</width>
+     <width>101</width>
      <height>23</height>
     </rect>
    </property>
@@ -154,9 +154,9 @@
   <widget class="QPushButton" name="btnUnicode2Hex">
    <property name="geometry">
     <rect>
-     <x>297</x>
+     <x>271</x>
      <y>103</y>
-     <width>75</width>
+     <width>101</width>
      <height>23</height>
     </rect>
    </property>
