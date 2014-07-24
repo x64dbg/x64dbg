@@ -1012,6 +1012,11 @@ BRIDGE_IMPEXP void GuiUpdatePatches()
     _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdateCallStack()
+{
+    _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {

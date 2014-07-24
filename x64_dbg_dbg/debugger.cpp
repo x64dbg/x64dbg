@@ -181,15 +181,25 @@ bool dbgcmddel(const char* name)
     return true;
 }
 
+DWORD WINAPI updateCallStackThread(void* ptr)
+{
+    GuiUpdateCallStack();
+    return 0;
+}
+
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     uint cip=GetContextData(UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
+    uint csp=GetContextData(UE_CSP);
     if(stack)
-    {
-        uint csp=GetContextData(UE_CSP);
         GuiStackDumpAt(csp, csp);
+    static uint cacheCsp=0;
+    if(csp!=cacheCsp)
+    {
+        cacheCsp=csp;
+        CloseHandle(CreateThread(0, 0, updateCallStackThread, 0, 0, 0));
     }
     char modname[MAX_MODULE_SIZE]="";
     char modtext[MAX_MODULE_SIZE*2]="";

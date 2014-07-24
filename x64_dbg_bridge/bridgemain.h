@@ -629,7 +629,8 @@ typedef enum
     GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
-    GUI_UPDATE_PATCHES              // param1=unused,               param2=unused
+    GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
+    GUI_UPDATE_CALLSTACK            // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI structures
@@ -701,6 +702,7 @@ BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg);
 BRIDGE_IMPEXP void GuiUpdateSideBar();
 BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
+BRIDGE_IMPEXP void GuiUpdateCallStack();
 
 #ifdef __cplusplus
 }

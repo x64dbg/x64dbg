@@ -6,6 +6,7 @@
 #include "patches.h"
 #include "memory.h"
 #include "disasm_fast.h"
+#include "stackinfo.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -100,6 +101,11 @@ static int _modpathfromname(const char* modname, char* path, int size)
     return _modpathfromaddr(modbasefromname(modname), path, size);
 }
 
+static void _getcallstack(DBGCALLSTACK* callstack)
+{
+    stackgetcallstack(GetContextData(UE_CSP), (CALLSTACK*)callstack);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx=_assembleatex;
@@ -120,4 +126,5 @@ void dbgfunctionsinit()
     _dbgfunctions.ModPathFromName=_modpathfromname;
     _dbgfunctions.DisasmFast=disasmfast;
     _dbgfunctions.MemUpdateMap=memupdatemap;
+    _dbgfunctions.GetCallStack=_getcallstack;
 }
