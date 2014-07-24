@@ -21,8 +21,10 @@ public:
     void setup(QString title, uint_t defVal, int byteCount);
     uint_t getVal();
 
-public slots:
-    void expressionChanged(QString s);
+private slots:
+    void on_expressionLineEdit_textChanged(const QString &arg1);
+    void on_signedLineEdit_textEdited(const QString &arg1);
+    void on_unsignedLineEdit_textEdited(const QString &arg1);
 
 private:
     Ui::WordEditDialog *ui;

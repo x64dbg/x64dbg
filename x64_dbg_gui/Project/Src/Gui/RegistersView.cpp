@@ -516,12 +516,7 @@ void RegistersView::updateRegistersSlot()
 void RegistersView::displayEditDialog()
 {
     WordEditDialog wEditDial(this);
-    //QString wReg = registerValue(&wRegDumpStruct,mSelected);
-#ifdef _WIN64
-    wEditDial.setup(QString("Edit"),registerValue(&wRegDumpStruct,mSelected), 8);
-#else
-    wEditDial.setup(QString("Edit"), registerValue(&wRegDumpStruct,mSelected), 4);
-#endif
+    wEditDial.setup(QString("Edit"),registerValue(&wRegDumpStruct,mSelected), sizeof(int_t));
     if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
         setRegister(mSelected, wEditDial.getVal());
 }

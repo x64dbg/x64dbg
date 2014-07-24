@@ -76,8 +76,13 @@
      <height>0</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <family>Lucida Console</family>
+    </font>
+   </property>
    <property name="readOnly">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLineEdit" name="unsignedLineEdit">
@@ -98,8 +103,13 @@
      <height>0</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <family>Lucida Console</family>
+    </font>
+   </property>
    <property name="readOnly">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
@@ -139,6 +149,11 @@
      <height>0</height>
     </size>
    </property>
+   <property name="font">
+    <font>
+     <family>Lucida Console</family>
+    </font>
+   </property>
    <property name="readOnly">
     <bool>true</bool>
    </property>
@@ -153,7 +168,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Hexadecimal:</string>
+    <string>Bytes:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label">
@@ -190,11 +205,10 @@
      <height>0</height>
     </size>
    </property>
-   <property name="maximumSize">
-    <size>
-     <width>160</width>
-     <height>16777215</height>
-    </size>
+   <property name="font">
+    <font>
+     <family>Lucida Console</family>
+    </font>
    </property>
   </widget>
  </widget>

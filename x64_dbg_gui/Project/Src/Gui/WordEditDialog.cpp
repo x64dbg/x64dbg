@@ -9,8 +9,6 @@ WordEditDialog::WordEditDialog(QWidget *parent) : QDialog(parent), ui(new Ui::Wo
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
 
     mWord = 0;
-
-    connect(ui->expressionLineEdit, SIGNAL(textChanged(const QString)), this, SLOT(expressionChanged(QString)));
 }
 
 WordEditDialog::~WordEditDialog()
@@ -18,15 +16,54 @@ WordEditDialog::~WordEditDialog()
     delete ui;
 }
 
-void WordEditDialog::expressionChanged(QString s)
+void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
 {
-    if(DbgIsValidExpression(s.toUtf8().constData()))
+    this->setWindowTitle(title);
+    ui->hexLineEdit->setInputMask(QString("hh").repeated(byteCount));
+    ui->expressionLineEdit->setText(QString("%1").arg(defVal, byteCount * 2, 16, QChar('0')).toUpper());
+
+    ui->expressionLineEdit->selectAll();
+    ui->expressionLineEdit->setFocus();
+}
+
+uint_t WordEditDialog::getVal()
+{
+    return mWord;
+}
+
+void WordEditDialog::on_expressionLineEdit_textChanged(const QString &arg1)
+{
+    if(DbgIsValidExpression(arg1.toUtf8().constData()))
     {
         ui->expressionLineEdit->setStyleSheet("");
+        ui->unsignedLineEdit->setStyleSheet("");
+        ui->signedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        mWord = DbgValFromString(s.toUtf8().constData());
-        ui->hexLineEdit->setText(QString("%1").arg(mWord, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+
+        //hex
+        mWord = DbgValFromString(arg1.toUtf8().constData());
+        int_t hexWord=0;
+        unsigned char* hex = (unsigned char*)&hexWord;
+        unsigned char* word = (unsigned char*)&mWord;
+#ifdef _WIN64
+        hex[0]=word[7];
+        hex[1]=word[6];
+        hex[2]=word[5];
+        hex[3]=word[4];
+        hex[4]=word[3];
+        hex[5]=word[2];
+        hex[6]=word[1];
+        hex[7]=word[0];
+#else //x86
+        hex[0]=word[3];
+        hex[1]=word[2];
+        hex[2]=word[1];
+        hex[3]=word[0];
+#endif //_WIN64
+        ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+        //signed
         ui->signedLineEdit->setText(QString::number((int_t)mWord));
+        //unsigned
         ui->unsignedLineEdit->setText(QString::number((uint_t)mWord));
     }
     else
@@ -36,19 +73,34 @@ void WordEditDialog::expressionChanged(QString s)
     }
 }
 
-void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
+void WordEditDialog::on_signedLineEdit_textEdited(const QString &arg1)
 {
-    this->setWindowTitle(title);
-    ui->expressionLineEdit->setText(QString("%1").arg(defVal, byteCount * 2, 16, QChar('0')).toUpper());
-    ui->hexLineEdit->setText(QString("%1").arg(defVal, byteCount * 2, 16, QChar('0')).toUpper());
-    ui->signedLineEdit->setText(QString::number((int_t)defVal));
-    ui->unsignedLineEdit->setText(QString::number((uint_t)defVal));
-    ui->hexLineEdit->setInputMask(QString("hh ").repeated(byteCount));
-    ui->expressionLineEdit->selectAll();
-    ui->expressionLineEdit->setFocus();
+    LONGLONG value;
+    if(sscanf(arg1.toUtf8().constData(), "%lld", &value)==1)
+    {
+        ui->signedLineEdit->setStyleSheet("");
+        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->expressionLineEdit->setText(QString("%1").arg((uint_t)value, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+    }
+    else
+    {
+        ui->signedLineEdit->setStyleSheet("border: 1px solid red");
+        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+    }
 }
 
-uint_t WordEditDialog::getVal()
+void WordEditDialog::on_unsignedLineEdit_textEdited(const QString &arg1)
 {
-    return mWord;
+    LONGLONG value;
+    if(sscanf(arg1.toUtf8().constData(), "%llu", &value)==1)
+    {
+        ui->unsignedLineEdit->setStyleSheet("");
+        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
+        ui->expressionLineEdit->setText(QString("%1").arg((uint_t)value, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+    }
+    else
+    {
+        ui->unsignedLineEdit->setStyleSheet("border: 1px solid red");
+        ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+    }
 }
