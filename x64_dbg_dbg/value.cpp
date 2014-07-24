@@ -1449,15 +1449,19 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok=setregister(string, *value);
-        if(strstr(string, "ip"))
+        char* regName=(char*)emalloc(strlen(string)+1, "valtostring:regname");
+        strcpy(regName, string);
+        _strlwr(regName);
+        if(strstr(regName, "ip"))
             DebugUpdateGui(GetContextData(UE_CIP), false); //update disassembly + register view
-        else if(strstr(string, "sp")) //update stack
+        else if(strstr(regName, "sp")) //update stack
         {
             uint csp=GetContextData(UE_CSP);
             GuiStackDumpAt(csp, csp);
         }
         else
             GuiUpdateAllViews(); //repaint gui
+        efree(regName, "valtostring:regname");
         return ok;
     }
     else if(*string=='!' and isflag(string+1)) //flag
