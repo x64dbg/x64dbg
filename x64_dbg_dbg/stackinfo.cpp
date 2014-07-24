@@ -184,7 +184,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     sprintf_s(curEntry.comment, "return to %s from %s", returnToAddr, returnFromAddr);
                 }
                 else
-                    sprintf_s(curEntry.comment, "return to %s from ???", i, returnToAddr);
+                    sprintf_s(curEntry.comment, "return to %s from ???", returnToAddr);
                 callstackVector.push_back(curEntry);
             }
         }
