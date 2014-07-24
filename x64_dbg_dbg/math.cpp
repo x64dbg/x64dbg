@@ -70,6 +70,8 @@ void mathformat(char* text)
 */
 bool mathcontains(const char* text)
 {
+    if(*text=='-') //ignore negative values
+        text++;
     int len=(int)strlen(text);
     for(int i=0; i<len; i++)
         if(mathisoperator(text[i]))
@@ -363,6 +365,12 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
     int highestop=0;
     int highestop_pos=0;
     int len=(int)strlen(string);
+    bool negative=false;
+    if(*string=='-')
+    {
+        negative=true;
+        string++;
+    }
     for(int i=0; i<len; i++)
     {
         int curop=mathisoperator(string[i]);
@@ -374,11 +382,11 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
     }
     if(!highestop)
         return valfromstring(string, value, silent, baseonly, value_size, isvar, 0);
-    char* strleft=(char*)emalloc(len+1, "mathfromstring:strleft");
+    char* strleft=(char*)emalloc(len+1+negative, "mathfromstring:strleft");
     char* strright=(char*)emalloc(len+1, "mathfromstring:strright");
     memset(strleft, 0, len+1);
     memset(strright, 0, len+1);
-    strncpy(strleft, string, highestop_pos);
+    strncpy(strleft, string-negative, highestop_pos+negative);
     strcpy(strright, string+highestop_pos+1);
     //dprintf("left: %s, right: %s, op: %c\n", strleft, strright, string[highestop_pos]);
     if(!*strright)

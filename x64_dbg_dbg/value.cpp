@@ -1166,16 +1166,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
 {
     if(!value or !string)
         return false;
-    if(*string=='-') //negative
-    {
-        uint val;
-        if(!valfromstring(string+1, &val, silent, baseonly, value_size, isvar, hexonly))
-            return false;
-        val*=~0;
-        if(value)
-            *value=val;
-        return true;
-    }
     if(!*string)
     {
         *value=0;
@@ -1208,7 +1198,8 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         strcpy(string_, newstring);
         efree(newstring, "valfromstring::newstring");
         int add=0;
-        while(mathisoperator(string_[add])>2)
+        bool negative=(*string_=='-');
+        while(mathisoperator(string_[add+negative])>2)
             add++;
         if(!mathhandlebrackets(string_+add, silent, baseonly))
         {
@@ -1218,6 +1209,16 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         bool ret=mathfromstring(string_+add, value, silent, baseonly, value_size, isvar);
         efree(string_, "valfromstring:string_");
         return ret;
+    }
+    else if(*string=='-') //negative value
+    {
+        uint val;
+        if(!valfromstring(string+1, &val, silent, baseonly, value_size, isvar, hexonly))
+            return false;
+        val*=~0;
+        if(value)
+            *value=val;
+        return true;
     }
     else if(*string=='@' or strstr(string, "[")) //memory location
     {
