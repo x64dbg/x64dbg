@@ -88,7 +88,7 @@ static void _patchrestorerange(duint start, duint end)
 
 static bool _patchrestore(duint addr)
 {
-    return patchdel(addr, true); 
+    return patchdel(addr, true);
 }
 
 static int _modpathfromaddr(duint addr, char* path, int size)

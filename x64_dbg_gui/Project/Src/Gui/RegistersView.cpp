@@ -258,7 +258,7 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
         if( (it.value().line == (line - mVScrollOffset))   /* same line ? */
                 && ( (1 + it.value().start) <= offset)  /* between start ... ? */
                 && ( offset<= (1+it.value().start+it.value().labelwidth+it.value().valuesize)) /* ... and end ? */
-                )
+          )
         {
             // we found a matching register in the viewport
             if(clickedReg)
@@ -341,24 +341,24 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
     {
     case Qt::Key_0:
         wCM_Zero->trigger();
-    break;
+        break;
     case Qt::Key_1:
         wCM_SetToOne->trigger();
-    break;
+        break;
     case Qt::Key_Plus:
         wCM_Increment->trigger();
-    break;
+        break;
     case Qt::Key_Minus:
         wCM_Decrement->trigger();
-    break;
+        break;
     case Qt::Key_Space:
         wCM_ToggleValue->trigger();
-    break;
+        break;
     case Qt::Key_Return:
         wCM_Modify->trigger();
-    break;
+        break;
     default:
-    break;
+        break;
     }
 }
 

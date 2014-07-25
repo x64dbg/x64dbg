@@ -4,8 +4,9 @@
 #include <QDialog>
 #include "QHexEdit/QHexEdit.h"
 
-namespace Ui {
-    class HexEditDialog;
+namespace Ui
+{
+class HexEditDialog;
 }
 
 class HexEditDialog : public QDialog

@@ -4,8 +4,9 @@
 #include <QDialog>
 #include <QKeyEvent>
 
-namespace Ui {
-    class PatchDialogGroupSelector;
+namespace Ui
+{
+class PatchDialogGroupSelector;
 }
 
 class PatchDialogGroupSelector : public QDialog

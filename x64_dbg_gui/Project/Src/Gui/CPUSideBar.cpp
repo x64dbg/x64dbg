@@ -198,7 +198,8 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
 
     QString wCmd;
     // create --> disable --> delete --> create --> ...
-    switch(Breakpoints::BPState(bp_normal,wVA)){
+    switch(Breakpoints::BPState(bp_normal,wVA))
+    {
     case bp_enabled:
         // breakpoint exists and is enabled --> disable breakpoint
         wCmd = "bd " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();

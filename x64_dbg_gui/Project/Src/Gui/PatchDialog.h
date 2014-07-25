@@ -5,8 +5,9 @@
 #include "Bridge.h"
 #include "PatchDialogGroupSelector.h"
 
-namespace Ui {
-    class PatchDialog;
+namespace Ui
+{
+class PatchDialog;
 }
 
 class PatchDialog : public QDialog
