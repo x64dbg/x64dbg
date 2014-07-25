@@ -644,7 +644,7 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
 {
     FUNCTION_LOOP_INFO info;
     info.addr=addr;
-    info.depth;
+    info.depth=depth;
     if(!_dbg_sendmessage(DBG_LOOP_DEL, &info, 0))
         return false;
     return true;
