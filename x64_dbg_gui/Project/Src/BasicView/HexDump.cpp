@@ -3,6 +3,7 @@
 
 HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 {
+    fontsUpdated();
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
     mSelection = data;
@@ -30,6 +31,11 @@ void HexDump::colorsUpdated()
     textColor=ConfigColor("HexDumpTextColor");
     selectionColor=ConfigColor("HexDumpSelectionColor");
     reloadData();
+}
+
+void HexDump::fontsUpdated()
+{
+    setFont(ConfigFont("HexDump"));
 }
 
 void HexDump::printDumpAt(int_t parVA, bool select)

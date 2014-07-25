@@ -24,11 +24,14 @@ public slots:
     void setSelection(int_t selVA);
 
 protected:
-    void paintEvent(QPaintEvent *event);
+    virtual void paintEvent(QPaintEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *e);
+
     void drawLabel(QPainter* painter, int Line, QString Text);
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
+
 
 private:
     int_t topVA;

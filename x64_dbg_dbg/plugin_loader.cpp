@@ -110,6 +110,9 @@ void pluginload(const char* pluginDir)
         cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBMENUENTRY");
         if(cbPlugin)
             pluginregistercallback(curPluginHandle, CB_MENUENTRY, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBWINEVENT");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_WINEVENT, cbPlugin);
         //init plugin
         //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))
@@ -369,4 +372,14 @@ void pluginmenucall(int hEntry)
             }
         }
     }
+}
+
+bool pluginwinevent(MSG* message, long* result)
+{
+    PLUG_CB_WINEVENT winevent;
+    winevent.message=message;
+    winevent.result=result;
+    winevent.retval=false;
+    plugincbcall(CB_WINEVENT, &winevent);
+    return winevent.retval;
 }

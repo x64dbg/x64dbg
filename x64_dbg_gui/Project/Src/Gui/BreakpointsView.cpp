@@ -52,8 +52,11 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
     // Signals/Slots
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(reloadData()));
     connect(mHardBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
+    connect(mHardBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickHardwareSlot()));
     connect(mSoftBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
+    connect(mSoftBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickSoftwareSlot()));
     connect(mMemBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
+    connect(mMemBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickMemorySlot()));
 }
 
 
@@ -250,12 +253,19 @@ void BreakpointsView::removeHardBPActionSlot()
 
 void BreakpointsView::removeAllHardBPActionSlot()
 {
-
+    DbgCmdExec("bphwc");
 }
 
 void BreakpointsView::enableDisableHardBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_hardware, mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    Breakpoints::toggleBPByDisabling(bp_hardware, mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+}
+
+void BreakpointsView::doubleClickHardwareSlot()
+{
+    QString addrText=mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }
 
 
@@ -348,12 +358,19 @@ void BreakpointsView::removeSoftBPActionSlot()
 
 void BreakpointsView::removeAllSoftBPActionSlot()
 {
-
+    DbgCmdExec("bc");
 }
 
 void BreakpointsView::enableDisableSoftBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_normal, mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    Breakpoints::toggleBPByDisabling(bp_normal, mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+}
+
+void BreakpointsView::doubleClickSoftwareSlot()
+{
+    QString addrText=mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }
 
 
@@ -446,10 +463,17 @@ void BreakpointsView::removeMemBPActionSlot()
 
 void BreakpointsView::removeAllMemBPActionSlot()
 {
-
+    DbgCmdExec("bpmc");
 }
 
 void BreakpointsView::enableDisableMemBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_memory, mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    Breakpoints::toggleBPByDisabling(bp_memory, mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+}
+
+void BreakpointsView::doubleClickMemorySlot()
+{
+    QString addrText=mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }

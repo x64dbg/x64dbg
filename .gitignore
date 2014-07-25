@@ -49,3 +49,4 @@ x64_dbg_gui/Project/Src/Bridge/libx32_bridge.a
 x64_dbg_gui/Project/Src/Bridge/libx64_bridge.a
 x64_dbg_gui/Project/Src/Bridge/x32_bridge.lib
 x64_dbg_gui/Project/Src/Bridge/x64_bridge.lib
+tools/

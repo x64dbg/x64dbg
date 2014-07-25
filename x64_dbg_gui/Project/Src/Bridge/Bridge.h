@@ -80,6 +80,7 @@ public:
     void emitUpdateSideBar();
     void emitRepaintTableView();
     void emitUpdatePatches();
+    void emitUpdateCallStack();
 
     //Public variables
     void* winId;
@@ -140,6 +141,7 @@ signals:
     void updateSideBar();
     void repaintTableView();
     void updatePatches();
+    void updateCallStack();
 
 private:
     QMutex* mBridgeMutex;

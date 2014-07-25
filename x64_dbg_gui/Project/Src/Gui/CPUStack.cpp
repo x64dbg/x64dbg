@@ -1,9 +1,11 @@
 #include "CPUStack.h"
 #include "Configuration.h"
 #include "HexEditDialog.h"
+#include "WordEditDialog.h"
 
 CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
 {
+    fontsUpdated();
     setShowHeader(false);
     int charwidth=getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -46,6 +48,11 @@ void CPUStack::colorsUpdated()
     backgroundColor=ConfigColor("StackBackgroundColor");
     textColor=ConfigColor("StackTextColor");
     selectionColor=ConfigColor("StackSelectionColor");
+}
+
+void CPUStack::fontsUpdated()
+{
+    setFont(ConfigFont("Stack"));
 }
 
 void CPUStack::setupContextMenu()
@@ -102,6 +109,10 @@ void CPUStack::setupContextMenu()
     mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
+
+    // Modify
+    mModifyAction = new QAction("Modify", this);
+    connect(mModifyAction, SIGNAL(triggered()), this, SLOT(modifySlot()));
 
 #ifdef _WIN64
     mGotoSp = new QAction("Follow R&SP", this);
@@ -252,6 +263,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
         return;
 
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mModifyAction);
     wMenu->addMenu(mBinaryMenu);
     int_t start = rvaToVa(getSelectionStart());
     int_t end = rvaToVa(getSelectionEnd());
@@ -484,5 +496,19 @@ void CPUStack::undoSelectionSlot()
     if(!DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
         return;
     DbgFunctions()->PatchRestoreRange(start, end);
+    reloadData();
+}
+
+void CPUStack::modifySlot()
+{
+    int_t addr = getInitialSelection();
+    WordEditDialog wEditDialog(this);
+    int_t value=0;
+    mMemPage->read(&value, addr, sizeof(int_t));
+    wEditDialog.setup("Modify", value, sizeof(int_t));
+    if(wEditDialog.exec()!=QDialog::Accepted)
+        return;
+    value=wEditDialog.getVal();
+    mMemPage->write(&value, addr, sizeof(int_t));
     reloadData();
 }

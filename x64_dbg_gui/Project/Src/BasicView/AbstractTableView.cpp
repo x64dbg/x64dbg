@@ -12,24 +12,8 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     data.activeButtonIndex=-1;
     mHeader = data;
 
-    QFont font("Monospace", 8);
-    //QFont font("Terminal", 7);
-    //font.setBold(true); //bold
-
-    font.setFixedPitch(true);
-    font.setStyleHint(QFont::Monospace);
-    this->setFont(font);
-
-    backgroundColor=ConfigColor("AbstractTableViewBackgroundColor");
-    textColor=ConfigColor("AbstractTableViewTextColor");
-    separatorColor=ConfigColor("AbstractTableViewSeparatorColor");
-    headerTextColor=ConfigColor("AbstractTableViewHeaderTextColor");
-    selectionColor=ConfigColor("AbstractTableViewSelectionColor");
-
-    int wRowsHeight = QFontMetrics(this->font()).height();
-    wRowsHeight = (wRowsHeight * 105) / 100;
-    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
-    mRowHeight = wRowsHeight;
+    fontsUpdated();
+    colorsUpdated();
 
     mRowCount = 0;
 
@@ -52,6 +36,7 @@ AbstractTableView::AbstractTableView(QWidget *parent) : QAbstractScrollArea(pare
     // Signals/Slots Connections
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertSliderActionSlot(int)));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
 }
 
 void AbstractTableView::colorsUpdatedSlot()
@@ -66,6 +51,16 @@ void AbstractTableView::colorsUpdated()
     separatorColor=ConfigColor("AbstractTableViewSeparatorColor");
     headerTextColor=ConfigColor("AbstractTableViewHeaderTextColor");
     selectionColor=ConfigColor("AbstractTableViewSelectionColor");
+}
+
+void AbstractTableView::fontsUpdatedSlot()
+{
+    fontsUpdated();
+}
+
+void AbstractTableView::fontsUpdated()
+{
+    setFont(ConfigFont("AbstractTableView"));
 }
 
 /************************************************************************************
@@ -840,7 +835,10 @@ int AbstractTableView::getColumnCount()
 
 int AbstractTableView::getRowHeight()
 {
-    return mRowHeight;
+    int wRowsHeight = QFontMetrics(this->font()).height();
+    wRowsHeight = (wRowsHeight * 105) / 100;
+    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
+    return wRowsHeight;
 }
 
 int AbstractTableView::getColumnWidth(int index)

@@ -8,11 +8,11 @@ SearchListView::SearchListView(QWidget *parent) :
     ui->setupUi(this);
 
     // Create the reference list
-    mList = new StdTable();
+    mList = new SearchListViewTable();
     mList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // Create the search list
-    mSearchList = new StdTable();
+    mSearchList = new SearchListViewTable();
     mSearchList->setContextMenuPolicy(Qt::CustomContextMenu);
     mSearchList->hide();
 
@@ -85,7 +85,7 @@ void SearchListView::listKeyPressed(QKeyEvent* event)
         emit enterPressedSignal();
 }
 
-bool SearchListView::findTextInList(StdTable* list, QString text, int row, int startcol, bool startswith)
+bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)
 {
     int count=list->getColumnCount();
     if(startcol+1>count)

@@ -93,8 +93,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
 void StdTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    int wRowOffset = getIndexOffsetFromY(transY(event->y()));
-    if(wRowOffset && event->button() == Qt::LeftButton)
+    if(event->y() > getHeaderHeight() && event->button() == Qt::LeftButton)
         emit doubleClickedSignal();
     AbstractTableView::mouseDoubleClickEvent(event);
 }

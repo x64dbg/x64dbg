@@ -9,7 +9,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
     uint start_size;
     uint base;
     uint base_size;
-    base=memfindbaseaddr(addr, &base_size);
+    base=memfindbaseaddr(addr, &base_size, true);
     if(!base or !base_size)
     {
         if(!silent)
@@ -62,8 +62,8 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
         int len=Disasm(&disasm);
         if(len!=UNKNOWN_OPCODE)
         {
-            basicinfo.size=len;
             fillbasicinfo(&disasm, &basicinfo);
+            basicinfo.size=len;
             if(cbRef(&disasm, &basicinfo, &refinfo))
                 refinfo.refcount++;
         }

@@ -1,5 +1,6 @@
 #include "CPUSideBar.h"
 #include "Configuration.h"
+#include "Breakpoints.h"
 
 CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollArea(parent)
 {
@@ -173,6 +174,50 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
     }
 }
 
+void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
+{
+    // get clicked line
+    const int x = e->pos().x();
+    const int y = e->pos().y();
+    const int line = y/fontHeight;
+
+    const int bulletRadius = fontHeight/2; //14/2=7
+    const int bulletY = line*fontHeight + (fontHeight-bulletRadius)/2+1; //initial y
+    const int bulletX = viewport()->width() - 10; //initial x
+
+    if(x < bulletX || x > bulletX + bulletRadius)
+        return;
+    if(y < bulletY || y > bulletY + bulletRadius)
+        return;
+
+    if(!DbgIsDebugging())
+        return;
+
+    // calculate virtual adress of clicked line
+    uint_t wVA = InstrBuffer->at(line).rva + CodePtr->getBase();
+
+    QString wCmd;
+    // create --> disable --> delete --> create --> ...
+    switch(Breakpoints::BPState(bp_normal,wVA)){
+    case bp_enabled:
+        // breakpoint exists and is enabled --> disable breakpoint
+        wCmd = "bd " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(wCmd.toUtf8().constData());
+        break;
+    case bp_disabled:
+        // is disabled --> delete
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(wCmd.toUtf8().constData());
+        break;
+    case bp_non_existent:
+        // no breakpoint was found --> create breakpoint
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(wCmd.toUtf8().constData());
+        break;
+
+    }
+}
+
 void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute, bool isactive)
 {
     painter->save();
@@ -315,7 +360,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
-        painter->setPen(ConfigColor("SideBarBulletDisabledBreakpointColor"));
+        painter->setBrush(QBrush(ConfigColor("SideBarBulletDisabledBreakpointColor")));
     painter->drawEllipse(x, y+yAdd, radius, radius);
 
     painter->restore();

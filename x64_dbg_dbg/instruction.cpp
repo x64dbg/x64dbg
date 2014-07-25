@@ -821,7 +821,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     }
     bool found=false;
     STRING_TYPE strtype;
-    char string[512]="";
+    char string[1024]="";
     if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
     if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
@@ -840,7 +840,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount+1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[4096]="";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -1004,7 +1004,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
@@ -1058,7 +1058,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(pattern[len-1]=='#')
         pattern[len-1]='\0';
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
@@ -1188,21 +1188,21 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 
 CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
-    size_t cbsize;
-    commentenum(0, &cbsize);
-    if(!cbsize)
-    {
-        puts("no comments");
-        return STATUS_CONTINUE;
-    }
-    COMMENTSINFO* comments=(COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
-    commentenum(comments, 0);
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
+    size_t cbsize;
+    commentenum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("no comments");
+        return STATUS_CONTINUE;
+    }
+    COMMENTSINFO* comments=(COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
+    commentenum(comments, 0);
     int count=(int)(cbsize/sizeof(COMMENTSINFO));
     for(int i=0; i<count; i++)
     {
@@ -1224,21 +1224,21 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
 
 CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
-    size_t cbsize;
-    labelenum(0, &cbsize);
-    if(!cbsize)
-    {
-        puts("no labels");
-        return STATUS_CONTINUE;
-    }
-    LABELSINFO* labels=(LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
-    labelenum(labels, 0);
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Label");
     GuiReferenceReloadData();
+    size_t cbsize;
+    labelenum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("no labels");
+        return STATUS_CONTINUE;
+    }
+    LABELSINFO* labels=(LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
+    labelenum(labels, 0);
     int count=(int)(cbsize/sizeof(LABELSINFO));
     for(int i=0; i<count; i++)
     {
@@ -1260,20 +1260,20 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
-    size_t cbsize;
-    bookmarkenum(0, &cbsize);
-    if(!cbsize)
-    {
-        puts("no bookmarks");
-        return STATUS_CONTINUE;
-    }
-    BOOKMARKSINFO* bookmarks=(BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
-    bookmarkenum(bookmarks, 0);
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Address");
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
+    size_t cbsize;
+    bookmarkenum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("no bookmarks");
+        return STATUS_CONTINUE;
+    }
+    BOOKMARKSINFO* bookmarks=(BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
+    bookmarkenum(bookmarks, 0);
     int count=(int)(cbsize/sizeof(BOOKMARKSINFO));
     for(int i=0; i<count; i++)
     {
@@ -1294,15 +1294,6 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 
 CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
-    size_t cbsize;
-    functionenum(0, &cbsize);
-    if(!cbsize)
-    {
-        puts("no functions");
-        return STATUS_CONTINUE;
-    }
-    FUNCTIONSINFO* functions=(FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
-    functionenum(functions, 0);
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Start");
@@ -1310,6 +1301,15 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
+    size_t cbsize;
+    functionenum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("no functions");
+        return STATUS_CONTINUE;
+    }
+    FUNCTIONSINFO* functions=(FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
+    functionenum(functions, 0);
     int count=(int)(cbsize/sizeof(FUNCTIONSINFO));
     for(int i=0; i<count; i++)
     {
@@ -1341,15 +1341,6 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 
 CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
-    size_t cbsize;
-    loopenum(0, &cbsize);
-    if(!cbsize)
-    {
-        puts("no loops");
-        return STATUS_CONTINUE;
-    }
-    LOOPSINFO* loops=(LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
-    loopenum(loops, 0);
     //setup reference view
     GuiReferenceDeleteAllColumns();
     GuiReferenceAddColumn(2*sizeof(uint), "Start");
@@ -1357,6 +1348,15 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
+    size_t cbsize;
+    loopenum(0, &cbsize);
+    if(!cbsize)
+    {
+        dputs("no loops");
+        return STATUS_CONTINUE;
+    }
+    LOOPSINFO* loops=(LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
+    loopenum(loops, 0);
     int count=(int)(cbsize/sizeof(LOOPSINFO));
     for(int i=0; i<count; i++)
     {

@@ -39,5 +39,6 @@
         <file>images/labels.png</file>
         <file>images/comments.png</file>
         <file>images/update.png</file>
+        <file>images/callstack.png</file>
     </qresource>
 </RCC>

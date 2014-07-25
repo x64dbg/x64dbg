@@ -16,6 +16,7 @@ class CPUStack : public HexDump
 public:
     explicit CPUStack(QWidget *parent = 0);
     void colorsUpdated();
+    void fontsUpdated();
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void contextMenuEvent(QContextMenuEvent* event);
 
@@ -41,6 +42,7 @@ public slots:
     void findPattern();
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
+    void modifySlot();
 
 private:
     uint_t mCsp;
@@ -51,6 +53,7 @@ private:
     QAction* mBinaryCopyAction;
     QAction* mBinaryPasteAction;
     QAction* mBinaryPasteIgnoreSizeAction;
+    QAction* mModifyAction;
     QAction* mUndoSelection;
     QAction* mGotoSp;
     QAction* mGotoBp;

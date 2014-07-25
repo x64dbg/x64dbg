@@ -104,6 +104,9 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
     exceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
     exceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
+    exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
+    exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
 }
 
 void dbgdisablebpx()
@@ -178,22 +181,34 @@ bool dbgcmddel(const char* name)
     return true;
 }
 
+DWORD WINAPI updateCallStackThread(void* ptr)
+{
+    GuiUpdateCallStack();
+    return 0;
+}
+
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    memupdatemap(fdProcessInfo->hProcess); //update memory map
     uint cip=GetContextData(UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
+    uint csp=GetContextData(UE_CSP);
     if(stack)
-    {
-        uint csp=GetContextData(UE_CSP);
         GuiStackDumpAt(csp, csp);
+    static uint cacheCsp=0;
+    if(csp!=cacheCsp)
+    {
+        cacheCsp=csp;
+        CloseHandle(CreateThread(0, 0, updateCallStackThread, 0, 0, 0));
     }
     char modname[MAX_MODULE_SIZE]="";
+    char modtext[MAX_MODULE_SIZE*2]="";
     if(!modnamefromaddr(disasm_addr, modname, true))
         *modname=0;
+    else
+        sprintf(modtext, "Module: %s - ", modname);
     char title[1024]="";
-    sprintf(title, "File: %s - PID: %X - Module: %s - Thread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modname, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
@@ -325,7 +340,7 @@ static void cbMemoryBreakpoint(void* ExceptionAddress)
 {
     uint cip=GetContextData(UE_CIP);
     uint size;
-    uint base=memfindbaseaddr((uint)ExceptionAddress, &size);
+    uint base=memfindbaseaddr((uint)ExceptionAddress, &size, true);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -596,7 +611,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     modInfo.SizeOfStruct=sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    //bpenumall(0); //update breakpoint list
+    memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
@@ -682,6 +697,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadStart"))
     {
+        memupdatemap(fdProcessInfo->hProcess); //update memory map
         //update GUI
         DebugUpdateGui(GetContextData(UE_CIP), true);
         GuiSetDebugState(paused);
@@ -726,7 +742,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
     uint cip=GetContextData(UE_CIP);
-    GuiDumpAt(memfindbaseaddr(cip, 0)); //dump somewhere
+    GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -763,7 +779,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    //bpenumall(0); //update breakpoint list
+    memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
@@ -1354,7 +1370,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 
 static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bpdel(bp->addr, BPNORMAL) and DeleteBPX(bp->addr))
+    if(bpdel(bp->addr, BPNORMAL) and (!bp->enabled or DeleteBPX(bp->addr)))
         return true;
     dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
     return false;
@@ -1379,9 +1395,15 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(bpget(0, BPNORMAL, arg1, &found)) //found a breakpoint with name
     {
-        if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
+        if(!bpdel(found.addr, BPNORMAL))
         {
-            dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+            dprintf("delete breakpoint failed (bpdel): "fhex"\n", found.addr);
+            return STATUS_ERROR;
+        }
+        else if(found.enabled && !DeleteBPX(found.addr))
+        {
+            dprintf("delete breakpoint failed (DeleteBPX): "fhex"\n", found.addr);
+            GuiUpdateAllViews();
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -1392,9 +1414,15 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         dprintf("no such breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!bpdel(found.addr, BPNORMAL) or !DeleteBPX(found.addr))
+    if(!bpdel(found.addr, BPNORMAL))
     {
-        dprintf("delete breakpoint failed: "fhex"\n", found.addr);
+        dprintf("delete breakpoint failed (bpdel): "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    else if(found.enabled && !DeleteBPX(found.addr))
+    {
+        dprintf("delete breakpoint failed (DeleteBPX): "fhex"\n", found.addr);
+        GuiUpdateAllViews();
         return STATUS_ERROR;
     }
     dputs("breakpoint deleted!");
@@ -1656,7 +1684,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         }
     }
     uint size=0;
-    uint base=memfindbaseaddr(addr, &size);
+    uint base=memfindbaseaddr(addr, &size, true);
     bool singleshoot=false;
     if(!restore)
         singleshoot=true;
@@ -1944,7 +1972,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     }
     else
     {
-        uint base=memfindbaseaddr(addr, &size);
+        uint base=memfindbaseaddr(addr, &size, true);
         if(!base)
         {
             dputs("invalid address specified");
@@ -2073,6 +2101,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
     SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
     SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
     //set GUI title

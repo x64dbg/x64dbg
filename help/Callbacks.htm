@@ -116,4 +116,12 @@ here</U>, this will slow the debugger down a lot!<BR>struct <STRONG>PLUG_CB_DEBU
 <STRONG>DEBUG_EVENT*</STRONG> DebugEvent;<BR>};</P>
 <P>//Called when a menu entry created by the plugin has 
 been clicked, the GUI will resume when this callback returns.<BR>struct <STRONG>PLUG_CB_MENUENTRY</STRONG><BR>{<BR>&nbsp;&nbsp;&nbsp; 
-<STRONG>int</STRONG> hEntry;<BR>};</P></body></HTML>
+<STRONG>int</STRONG> hEntry;<BR>};</P>
+<P>//Called before TranslateMessage and DispatchMessage 
+Windows functions (PreTranslateMessage). Avoid calling user32 functions without 
+precautions here, there <STRONG>will</STRONG> be a recursive call if you fail 
+to take countermeasures.<BR>struct 
+<STRONG>PLUG_CB_WINEVENT<BR></STRONG>{<BR>&nbsp;&nbsp;&nbsp; <STRONG>MSG*</STRONG> 
+message;<BR>&nbsp;&nbsp;&nbsp; <STRONG>long*</STRONG> 
+result;<BR>&nbsp;&nbsp;&nbsp; <STRONG>bool</STRONG> 
+retval;<BR>};</P></body>

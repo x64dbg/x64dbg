@@ -14,7 +14,7 @@ QHexEditPrivate::QHexEditPrivate(QScrollArea *parent) : QWidget(parent)
     _scrollArea = parent;
     setOverwriteMode(true);
 
-    QFont font("Monospace", 8);
+    QFont font("Monospace", 8, QFont::Normal, false);
     font.setFixedPitch(true);
     font.setStyleHint(QFont::Monospace);
     this->setFont(font);
@@ -890,8 +890,9 @@ void QHexEditPrivate::updateCursor()
 
 void QHexEditPrivate::adjust()
 {
-    _charWidth = fontMetrics().width(QLatin1Char('9'));
-    _charHeight = fontMetrics().height();
+    QFontMetrics metrics(this->font());
+    _charWidth = metrics.width(QLatin1Char('9'));
+    _charHeight = metrics.height();
 
     _xPosHex = _horizonalSpacing;
 

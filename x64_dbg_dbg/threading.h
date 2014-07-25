@@ -18,4 +18,24 @@ void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
 
+enum CriticalSectionLock
+{
+    LockMemoryPages,
+    LockLast
+};
+
+void CriticalSectionDeleteLocks();
+
+class CriticalSectionLocker
+{
+public:
+    CriticalSectionLocker(CriticalSectionLock lock);
+    ~CriticalSectionLocker();
+    void unlock();
+    void relock();
+
+private:
+    CriticalSectionLock gLock;
+};
+
 #endif // _THREADING_H

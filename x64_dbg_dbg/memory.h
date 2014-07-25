@@ -22,7 +22,7 @@ struct PATTERNBYTE
 };
 
 void memupdatemap(HANDLE hProcess);
-uint memfindbaseaddr(uint addr, uint* size);
+uint memfindbaseaddr(uint addr, uint* size, bool refresh = false);
 bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
 bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
 bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);

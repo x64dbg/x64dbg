@@ -291,6 +291,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     }
     else
         DeleteFileA(alloctrace);
+    CriticalSectionDeleteLocks();
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)

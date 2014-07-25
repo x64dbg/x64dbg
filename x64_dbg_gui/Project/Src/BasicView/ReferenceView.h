@@ -27,6 +27,8 @@ private slots:
     void followAddress();
     void followDumpAddress();
     void followGenericAddress();
+    void toggleBreakpoint();
+    void toggleBookmark();
 
 signals:
     void showCpu();
@@ -35,7 +37,9 @@ private:
     QProgressBar* mSearchProgress;
     QAction* mFollowAddress;
     QAction* mFollowDumpAddress;
-    bool mFollowDumpDefault;
+    QAction* mToggleBreakpoint;
+    QAction* mToggleBookmark;
+    bool mFollowDumpDefault;    
 };
 
 #endif // REFERENCEVIEW_H

@@ -53,5 +53,6 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title);
 bool pluginmenuaddseparator(int hMenu);
 bool pluginmenuclear(int hMenu);
 void pluginmenucall(int hEntry);
+bool pluginwinevent(MSG* message, long* result);
 
 #endif // _PLUGIN_LOADER_H

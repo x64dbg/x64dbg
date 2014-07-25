@@ -19,8 +19,9 @@ public:
     // Constructor
     explicit AbstractTableView(QWidget *parent = 0);
 
-    //color updates
+    //config updates
     virtual void colorsUpdated();
+    virtual void fontsUpdated();
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
@@ -87,6 +88,7 @@ signals:
 
 public slots:
     void colorsUpdatedSlot();
+    void fontsUpdatedSlot();
 
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();
@@ -138,7 +140,6 @@ private:
 
     QList<Column_t> mColumnList;
 
-    int mRowHeight;
     int_t mRowCount;
 
 

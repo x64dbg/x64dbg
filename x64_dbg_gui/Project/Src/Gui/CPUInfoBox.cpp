@@ -39,7 +39,7 @@ void CPUInfoBox::clear()
 
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || !parVA)
         return;
     clear();
     QString info;
@@ -54,11 +54,11 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     }
     char section[10]="";
     if(DbgFunctions()->SectionFromAddr(parVA, section))
-        info+=QString(section)+":";
+        info+="\"" + QString(section) + "\":";
     info+=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char label[MAX_LABEL_SIZE]="";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info+=" <"+QString(label)+">";
+        info+=" <" + QString(label) + ">";
     setInfoLine(2, info);
 }
 

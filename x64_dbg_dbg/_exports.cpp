@@ -33,6 +33,7 @@ extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, d
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 {
+    CriticalSectionLocker locker(LockMemoryPages);
     int pagecount=(int)memoryPages.size();
     memset(memmap, 0, sizeof(MEMMAP));
     memmap->count=pagecount;
@@ -731,8 +732,8 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         int len=Disasm(&disasm);
         uint i=0;
         BASIC_INSTRUCTION_INFO* basicinfo=(BASIC_INSTRUCTION_INFO*)param2;
-        basicinfo->size=len;
         fillbasicinfo(&disasm, basicinfo);
+        basicinfo->size=len;
     }
     break;
 
@@ -881,6 +882,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_GET_FUNCTIONS:
     {
         return (uint)dbgfunctionsget();
+    }
+    break;
+
+    case DBG_WIN_EVENT:
+    {
+        return (uint)pluginwinevent((MSG*)param1, (long*)param2);
     }
     break;
     }

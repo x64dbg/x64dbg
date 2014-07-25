@@ -8,6 +8,11 @@ MyApplication::MyApplication(int& argc, char** argv) : QApplication(argc, argv)
 {
 }
 
+bool MyApplication::winEventFilter(MSG* message, long* result)
+{
+    return DbgWinEvent(message, result);
+}
+
 bool MyApplication::notify(QObject* receiver, QEvent* event)
 {
     bool done = true;
@@ -32,31 +37,31 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
     return done;
 }
 
+static Configuration* mConfiguration;
 
 int main(int argc, char *argv[])
 {
-    MyApplication a(argc, argv);
+    MyApplication application(argc, argv);
+
+    // load config file + set config font
+    mConfiguration = new Configuration;
+    application.setFont(ConfigFont("Application"));
 
     // Register custom data types
-    //qRegisterMetaType<int32>("int32");
-    //qRegisterMetaType<uint_t>("uint_t");
-
     qRegisterMetaType<int_t>("int_t");
     qRegisterMetaType<uint_t>("uint_t");
-
     qRegisterMetaType<byte_t>("byte_t");
-
     qRegisterMetaType<DBGSTATE>("DBGSTATE");
 
     // Init communication with debugger
     Bridge::initBridge();
 
     // Start GUI
-    MainWindow w;
-    w.show();
+    MainWindow mainWindow;
+    mainWindow.show();
 
     // Set some data
-    Bridge::getBridge()->winId=(void*)w.winId();
+    Bridge::getBridge()->winId=(void*)mainWindow.winId();
 
     // Init debugger
     const char* errormsg=DbgInit();
@@ -69,7 +74,10 @@ int main(int argc, char *argv[])
         ExitProcess(1);
     }
 
-    return a.exec();
+    //execute the application
+    int result = application.exec();
+    mConfiguration->save(); //save config on exit
+    return result;
 }
 
 

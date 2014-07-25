@@ -83,6 +83,7 @@ public:
 
     explicit HexDump(QWidget *parent = 0);
     void colorsUpdated();
+    void fontsUpdated();
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
     void mouseMoveEvent(QMouseEvent* event);

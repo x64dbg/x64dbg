@@ -20,6 +20,7 @@ public:
     void setupMemBPRightClickContextMenu();
 
 signals:
+    void showCpu();
     
 public slots:
     void reloadData();
@@ -29,18 +30,21 @@ public slots:
     void removeHardBPActionSlot();
     void removeAllHardBPActionSlot();
     void enableDisableHardBPActionSlot();
+    void doubleClickHardwareSlot();
 
     // Software
     void softwareBPContextMenuSlot(const QPoint & pos);
     void removeSoftBPActionSlot();
     void removeAllSoftBPActionSlot();
     void enableDisableSoftBPActionSlot();
+    void doubleClickSoftwareSlot();
 
     // Memory
     void memoryBPContextMenuSlot(const QPoint & pos);
     void removeMemBPActionSlot();
     void removeAllMemBPActionSlot();
     void enableDisableMemBPActionSlot();
+    void doubleClickMemorySlot();
 
 private:
     QVBoxLayout* mVertLayout;

@@ -724,6 +724,13 @@ BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
     return (const DBGFUNCTIONS*)_dbg_sendmessage(DBG_GET_FUNCTIONS, 0, 0);
 }
 
+BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
+{
+    if(_dbg_sendmessage(DBG_WIN_EVENT, message, result))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
@@ -1003,6 +1010,11 @@ BRIDGE_IMPEXP void GuiRepaintTableView()
 BRIDGE_IMPEXP void GuiUpdatePatches()
 {
     _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateCallStack()
+{
+    _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
 }
 
 //Main

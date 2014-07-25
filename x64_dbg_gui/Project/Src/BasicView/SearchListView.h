@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLineEdit>
-#include "StdTable.h"
+#include "SearchListViewTable.h"
 
 namespace Ui
 {
@@ -20,13 +20,13 @@ public:
     ~SearchListView();
 
     QVBoxLayout* mMainLayout;
-    StdTable* mList;
-    StdTable* mSearchList;
-    StdTable* mCurList;
+    SearchListViewTable* mList;
+    SearchListViewTable* mSearchList;
+    SearchListViewTable* mCurList;
     QLineEdit* mSearchBox;
     int mSearchStartCol;
 
-    bool findTextInList(StdTable* list, QString text, int row, int startcol, bool startswith);
+    bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
 
 private slots:
     void searchTextChanged(const QString &arg1);

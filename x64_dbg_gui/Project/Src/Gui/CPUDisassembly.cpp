@@ -181,6 +181,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 BridgeFree(wBPList.bp);
         }
         wMenu->addMenu(mBPMenu);
+        wMenu->addAction(mPatchesAction);
 
         wMenu->addSeparator();
         wMenu->addAction(mEnableHighlightingMode);
@@ -357,6 +358,11 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     msetHwBPOnSlot3Action = new QAction("Set Hardware on Execution on Slot 3 (Free)", this);
     connect(msetHwBPOnSlot3Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot3ActionSlot()));
+
+    mPatchesAction = new QAction(QIcon(":/icons/images/patch.png"), "Patches", this);
+    mPatchesAction->setShortcutContext(Qt::WidgetShortcut);
+    mPatchesAction->setShortcut(QKeySequence("ctrl+p"));
+    connect(mPatchesAction, SIGNAL(triggered()), this, SLOT(showPatchesSlot()));
 
     //--------------------------------------------------------------------
 
@@ -971,4 +977,9 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
+}
+
+void CPUDisassembly::showPatchesSlot()
+{
+    emit showPatches();
 }

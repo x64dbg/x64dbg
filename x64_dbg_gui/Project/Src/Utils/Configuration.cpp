@@ -47,7 +47,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#00AA00"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
 
     defaultColors.insert("RegistersBackgroundColor", QColor("#FFF8F0"));
@@ -155,6 +155,16 @@ Configuration::Configuration() : QObject()
     hexdumpUint.insert("DefaultView", 0);
     defaultUints.insert("HexDump", hexdumpUint);
 
+    //font settings
+    QFont font("Lucida Console", 8, QFont::Normal, false);
+    defaultFonts.insert("AbstractTableView", font);
+    defaultFonts.insert("Disassembly", font);
+    defaultFonts.insert("HexDump", font);
+    defaultFonts.insert("Stack", font);
+    defaultFonts.insert("Registers", font);
+    defaultFonts.insert("HexEdit", font);
+    defaultFonts.insert("Application", QApplication::font());
+
     load();
     mPtr = this;
 }
@@ -169,6 +179,7 @@ void Configuration::load()
     readColors();
     readBools();
     readUints();
+    readFonts();
 }
 
 void Configuration::save()
@@ -176,6 +187,7 @@ void Configuration::save()
     writeColors();
     writeBools();
     writeUints();
+    writeFonts();
 }
 
 void Configuration::readColors()
@@ -260,6 +272,31 @@ void Configuration::writeUints()
             uintToConfig(category, id, (*currentUint)[id]);
         }
     }
+}
+
+void Configuration::readFonts()
+{
+    Fonts = defaultFonts;
+    //read config
+    for(int i=0; i<Fonts.size(); i++)
+    {
+        QString id=Fonts.keys().at(i);
+        QFont font=fontFromConfig(id);
+        QFontInfo fontInfo(font);
+        if(id=="Application" || fontInfo.fixedPitch())
+            Fonts[id]=font;
+    }
+}
+
+void Configuration::writeFonts()
+{
+    //write config
+    for(int i=0; i<Fonts.size(); i++)
+    {
+        QString id=Fonts.keys().at(i);
+        fontToConfig(id, Fonts[id]);
+    }
+    emit fontsUpdated();
 }
 
 const QColor Configuration::getColor(const QString id)
@@ -353,6 +390,20 @@ void Configuration::setUint(const QString category, const QString id, const uint
     msg.exec();
 }
 
+const QFont Configuration::getFont(const QString id)
+{
+    if(Fonts.contains(id))
+        return Fonts.constFind(id).value();
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+    QFont ret("Lucida Console", 8, QFont::Normal, false);
+    ret.setFixedPitch(true);
+    ret.setStyleHint(QFont::Monospace);
+    return ret;
+}
+
 QColor Configuration::colorFromConfig(const QString id)
 {
     char setting[MAX_SETTING_SIZE]="";
@@ -371,9 +422,13 @@ QColor Configuration::colorFromConfig(const QString id)
     QColor color(setting);
     if(!color.isValid())
     {
-        QColor ret = defaultColors.find(id).value(); //return default
-        colorToConfig(id, ret);
-        return ret;
+        if(defaultColors.contains(id))
+        {
+            QColor ret = defaultColors.find(id).value();
+            colorToConfig(id, ret);
+            return ret;
+        }
+        return Qt::black; //black is default
     }
     return color;
 }
@@ -426,4 +481,46 @@ uint_t Configuration::uintFromConfig(const QString category, const QString id)
 bool Configuration::uintToConfig(const QString category, const QString id, uint_t i)
 {
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), i);
+}
+
+QFont Configuration::fontFromConfig(const QString id)
+{
+    char setting[MAX_SETTING_SIZE]="";
+    if(!BridgeSettingGet("Fonts", id.toUtf8().constData(), setting))
+    {
+        if(defaultFonts.contains(id))
+        {
+            QFont ret = defaultFonts.find(id).value();
+            fontToConfig(id, ret);
+            return ret;
+        }
+        if(id=="Application")
+            return QApplication::font();
+        QFont ret("Lucida Console", 8, QFont::Normal, false);
+        ret.setFixedPitch(true);
+        ret.setStyleHint(QFont::Monospace);
+        return ret;
+    }
+    QFont font;
+    if(!font.fromString(setting))
+    {
+        if(defaultFonts.contains(id))
+        {
+            QFont ret = defaultFonts.find(id).value();
+            fontToConfig(id, ret);
+            return ret;
+        }
+        if(id=="Application")
+            return QApplication::font();
+        QFont ret("Lucida Console", 8, QFont::Normal, false);
+        ret.setFixedPitch(true);
+        ret.setStyleHint(QFont::Monospace);
+        return ret;
+    }
+    return font;
+}
+
+bool Configuration::fontToConfig(const QString id, const QFont font)
+{
+    return BridgeSettingSet("Fonts", id.toUtf8().constData(), font.toString().toUtf8().constData());
 }
