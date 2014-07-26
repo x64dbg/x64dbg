@@ -281,7 +281,13 @@ void disasmprint(uint addr)
 
 static bool isasciistring(const unsigned char* data, int maxlen)
 {
-    int len=(int)strlen((const char*)data);
+    int len = 0;
+    for (char *p = (char *)data; *p; len++, p++)
+    {
+        if (len >= maxlen)
+            break;
+    }
+
     if(len<2 or len+1>=maxlen)
         return false;
     for(int i=0; i<len; i++)
@@ -292,7 +298,13 @@ static bool isasciistring(const unsigned char* data, int maxlen)
 
 static bool isunicodestring(const unsigned char* data, int maxlen)
 {
-    int len=(int)wcslen((const wchar_t*)data);
+	int len = 0;
+	for (wchar_t *p = (wchar_t *)data; *p; len++, p++)
+	{
+		if (len >= maxlen)
+			break;
+	}
+
     if(len<2 or len+1>=maxlen)
         return false;
     for(int i=0; i<len*2; i+=2)
