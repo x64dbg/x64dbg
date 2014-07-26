@@ -40,7 +40,7 @@ static char** commandlineparse(int* argc)
     {
         int bufSize=WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
         argv[i]=(char*)emalloc(bufSize+1);
-        WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], bufSize*sizeof(WCHAR), argv[i], bufSize, NULL, NULL);
+        WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], bufSize, argv[i], bufSize * sizeof(char), NULL, NULL);
     }
     LocalFree(argw);
     return argv;
