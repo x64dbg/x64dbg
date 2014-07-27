@@ -731,6 +731,13 @@ BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
     return false;
 }
 
+BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
+{
+    if(_dbg_sendmessage(DBG_WIN_EVENT_GLOBAL, message, 0))
+        return true;
+    return false;
+}
+
 //GUI
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {

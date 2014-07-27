@@ -64,7 +64,7 @@ void threadgetlist(THREADLIST* list)
     list->list=(THREADALLINFO*)BridgeAlloc(count*sizeof(THREADALLINFO));
     for(int i=0; i<count; i++)
     {
-        if(((DEBUG_EVENT*)GetDebugData())->dwThreadId==threadList.at(i).dwThreadId)
+        if(hActiveThread==threadList.at(i).hThread)
             currentThread=i;
         memset(&list->list[i], 0, sizeof(THREADALLINFO));
         memcpy(&list->list[i].BasicInfo, &threadList.at(i), sizeof(THREADINFO));
@@ -98,4 +98,20 @@ bool threadsetname(DWORD dwThreadId, const char* name)
                 *threadList.at(i).threadName='\0';
         }
     return false;
+}
+
+HANDLE threadgethandle(DWORD dwThreadId)
+{
+    for(unsigned int i=0; i<threadList.size(); i++)
+        if(threadList.at(i).dwThreadId==dwThreadId)
+            return threadList.at(i).hThread;
+    return 0;
+}
+
+DWORD threadgetid(HANDLE hThread)
+{
+    for(unsigned int i=0; i<threadList.size(); i++)
+        if(threadList.at(i).hThread==hThread)
+            return threadList.at(i).dwThreadId;
+    return 0;
 }

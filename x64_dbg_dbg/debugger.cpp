@@ -35,15 +35,43 @@ static bool bBreakOnNextDll=false;
 static int ecount=0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static std::map<unsigned int, const char*> exceptionNames;
+static SIZE_T cachePrivateUsage=0;
 
 //Superglobal variables
 char sqlitedb[deflen]="";
 PROCESS_INFORMATION* fdProcessInfo=&g_pi;
+HANDLE hActiveThread;
 
 //static functions
 static void cbStep();
 static void cbSystemBreakpoint(void* ExceptionData);
 static void cbUserBreakpoint();
+
+static SIZE_T getprivateusage(HANDLE hProcess)
+{
+    PROCESS_MEMORY_COUNTERS_EX memoryCounters;
+    memoryCounters.cb = sizeof(PROCESS_MEMORY_COUNTERS_EX);
+    if(!GetProcessMemoryInfo(fdProcessInfo->hProcess, (PPROCESS_MEMORY_COUNTERS)&memoryCounters, sizeof(PROCESS_MEMORY_COUNTERS_EX)))
+        return 0;
+    return memoryCounters.PrivateUsage;
+}
+
+static DWORD WINAPI memMapThread(void* ptr)
+{
+    while(true)
+    {
+        while(!DbgIsDebugging())
+            Sleep(1);
+        const SIZE_T PrivateUsage=getprivateusage(fdProcessInfo->hProcess);
+        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when 
+        {
+            cachePrivateUsage = PrivateUsage;
+            memupdatemap(fdProcessInfo->hProcess);
+        }
+        Sleep(1000);
+    }
+    return 0;
+}
 
 void dbginit()
 {
@@ -107,6 +135,7 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
+    CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
 void dbgdisablebpx()
@@ -189,10 +218,10 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    uint cip=GetContextData(UE_CIP);
+    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
-    uint csp=GetContextData(UE_CSP);
+    uint csp=GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         GuiStackDumpAt(csp, csp);
     static uint cacheCsp=0;
@@ -208,18 +237,19 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     else
         sprintf(modtext, "Module: %s - ", modname);
     char title[1024]="";
-    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadgetid(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
 
 static void cbUserBreakpoint()
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint=0;
-    if(!bpget(GetContextData(UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
+    if(!bpget(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
         dputs("breakpoint reached not in list!");
     else
     {
@@ -249,7 +279,7 @@ static void cbUserBreakpoint()
         bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint=&pluginBp;
     }
-    DebugUpdateGui(GetContextData(UE_CIP), true);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -264,7 +294,8 @@ static void cbUserBreakpoint()
 
 static void cbHardwareBreakpoint(void* ExceptionAddress)
 {
-    uint cip=GetContextData(UE_CIP);
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -338,7 +369,8 @@ static void cbHardwareBreakpoint(void* ExceptionAddress)
 
 static void cbMemoryBreakpoint(void* ExceptionAddress)
 {
-    uint cip=GetContextData(UE_CIP);
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     uint size;
     uint base=memfindbaseaddr((uint)ExceptionAddress, &size, true);
     BREAKPOINT bp;
@@ -527,8 +559,9 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 
 static void cbStep()
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     isStepping=false;
-    DebugUpdateGui(GetContextData(UE_CIP), true);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     PLUG_CB_STEPPED stepInfo;
     stepInfo.reserved=0;
@@ -545,7 +578,8 @@ static void cbStep()
 
 static void cbRtrFinalStep()
 {
-    DebugUpdateGui(GetContextData(UE_CIP), true);
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -560,7 +594,7 @@ static void cbRtrFinalStep()
 static unsigned char getCIPch()
 {
     unsigned char ch=0x90;
-    uint cip=GetContextData(UE_CIP);
+    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
     return ch;
 }
@@ -611,6 +645,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     modInfo.SizeOfStruct=sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
+    cachePrivateUsage=getprivateusage(fdProcessInfo->hProcess);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
@@ -680,6 +715,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
     DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    hActiveThread=threadgethandle(dwThreadId);
 
     if(settingboolget("Events", "ThreadEntry"))
     {
@@ -697,9 +733,10 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadStart"))
     {
+        cachePrivateUsage=getprivateusage(fdProcessInfo->hProcess);
         memupdatemap(fdProcessInfo->hProcess); //update memory map
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -713,6 +750,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread=ExitThread;
@@ -724,7 +762,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     if(settingboolget("Events", "ThreadEnd"))
     {
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -738,10 +776,11 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 
 static void cbSystemBreakpoint(void* ExceptionData)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     //log message
     dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
-    uint cip=GetContextData(UE_CIP);
+    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
@@ -766,6 +805,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     void* base=LoadDll->lpBaseOfDll;
     char DLLDebugFileName[deflen]="";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
@@ -779,6 +819,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
+    cachePrivateUsage=getprivateusage(fdProcessInfo->hProcess);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256]="";
     if(modnamefromaddr((uint)base, modname, true))
@@ -822,7 +863,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         bBreakOnNextDll=false;
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -836,6 +877,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_UNLOADDLL callbackInfo;
     callbackInfo.UnloadDll=UnloadDll;
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
@@ -852,7 +894,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     {
         bBreakOnNextDll=false;
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -868,6 +910,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString=DebugString;
     plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
@@ -927,7 +970,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     if(settingboolget("Events", "DebugStrings"))
     {
         //update GUI
-        DebugUpdateGui(GetContextData(UE_CIP), true);
+        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
         //lock
         lock(WAITID_RUN);
@@ -941,6 +984,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
+    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception=ExceptionData;
     unsigned int ExceptionCode=ExceptionData->ExceptionRecord.ExceptionCode;
@@ -965,7 +1009,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         {
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
-            DebugUpdateGui(GetContextData(UE_CIP), true);
+            DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
             GuiSetDebugState(paused);
             //lock
             lock(WAITID_RUN);
@@ -978,7 +1022,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             wait(WAITID_RUN);
             return;
         }
-        SetContextData(UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
+        SetContextDataEx(hActiveThread, UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
     else if(ExceptionData->ExceptionRecord.ExceptionCode==0x406D1388) //SetThreadName exception
     {
@@ -1064,7 +1108,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
-    DebugUpdateGui(GetContextData(UE_CIP), true);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
@@ -1129,6 +1173,7 @@ static DWORD WINAPI threadDebugLoop(void* lpParameter)
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount=0;
+    cachePrivateUsage=0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -1633,10 +1678,10 @@ CMDRESULT cbDebugHide(int argc, char* argv[])
 CMDRESULT cbDebugDisasm(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    uint addr=GetContextData(UE_CIP);
+    uint addr=GetContextDataEx(hActiveThread, UE_CIP);
     if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &addr))
-            addr=GetContextData(UE_CIP);
+            addr=GetContextDataEx(hActiveThread, UE_CIP);
     if(!memisvalidreadptr(fdProcessInfo->hProcess, addr))
         return STATUS_CONTINUE;
     DebugUpdateGui(addr, false);
@@ -1923,6 +1968,8 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         dprintf(fhex"\n", mem);
     if(mem)
         varset("$lastalloc", mem, true);
+    cachePrivateUsage=getprivateusage(fdProcessInfo->hProcess);
+    memupdatemap(fdProcessInfo->hProcess);
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
@@ -1948,6 +1995,8 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     bool ok=!!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs("VirtualFreeEx failed");
+    cachePrivateUsage=getprivateusage(fdProcessInfo->hProcess);
+    memupdatemap(fdProcessInfo->hProcess);
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }
@@ -1992,7 +2041,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbBenchmark(int argc, char* argv[])
 {
-    uint addr=memfindbaseaddr(GetContextData(UE_CIP), 0);
+    uint addr=memfindbaseaddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
     DWORD ticks=GetTickCount();
     char comment[MAX_COMMENT_SIZE]="";
     for(uint i=addr; i<addr+100000; i++)
@@ -2091,6 +2140,7 @@ static DWORD WINAPI threadAttachLoop(void* lpParameter)
     bFileIsDll=IsFileDLL(szFileName, 0);
     GuiAddRecentFile(szFileName);
     ecount=0;
+    cachePrivateUsage=0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -2237,13 +2287,13 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
 {
     duint addr=0;
     if(argc<2)
-        addr=GetContextData(UE_CSP);
+        addr=GetContextDataEx(hActiveThread, UE_CSP);
     else if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    duint csp=GetContextData(UE_CSP);
+    duint csp=GetContextDataEx(hActiveThread, UE_CSP);
     duint size=0;
     duint base=memfindbaseaddr(csp, &size);
     if(base && addr>=base && addr<(base+size))
@@ -2309,5 +2359,22 @@ CMDRESULT cbBcDll(int argc, char* argv[])
         return STATUS_ERROR;
     }
     dputs("dll breakpoint removed!");
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
+{
+    uint threadid=fdProcessInfo->dwThreadId; //main thread
+    if(argc>1)
+        if(!valfromstring(argv[1], &threadid, false))
+            return STATUS_ERROR;
+    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    {
+        dprintf("invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    //switch thread
+    hActiveThread=threadgethandle((DWORD)threadid);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     return STATUS_CONTINUE;
 }

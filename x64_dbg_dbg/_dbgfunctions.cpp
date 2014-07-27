@@ -103,7 +103,7 @@ static int _modpathfromname(const char* modname, char* path, int size)
 
 static void _getcallstack(DBGCALLSTACK* callstack)
 {
-    stackgetcallstack(GetContextData(UE_CSP), (CALLSTACK*)callstack);
+    stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
 void dbgfunctionsinit()

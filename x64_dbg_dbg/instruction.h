@@ -59,5 +59,6 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[]);
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionList(int argc, char* argv[]);
 CMDRESULT cbInstrLoopList(int argc, char* argv[]);
+CMDRESULT cbInstrSleep(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

@@ -121,8 +121,10 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
         return;
     std::vector<CALLSTACKENTRY> callstackVector;
     DWORD ticks=GetTickCount();
-    uint stacksize;
+    uint stacksize=0;
     uint stackbase=memfindbaseaddr(csp, &stacksize, false);
+    if(!stackbase) //super-fail (invalid stack address)
+        return;
     //walk up the stack
     uint i=csp;
     while(i!=stackbase+stacksize)

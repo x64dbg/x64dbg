@@ -442,7 +442,10 @@ void PatchDialog::on_btnPatchFile_clicked()
     strcpy(szDirName, szModName);
     szDirName[len]='\0';
 
-    QString filename = QDir::toNativeSeparators(QFileDialog::getSaveFileName(this, "Open file", szDirName, "All files (*.*)"));
+    QString filename = QFileDialog::getSaveFileName(this, "Save file", szDirName, "All files (*.*)");
+    if(!filename.length())
+        return;
+    filename=QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
 
     //call patchSave function
     DBGPATCHINFO* dbgPatchList = new DBGPATCHINFO[patchList.size()];

@@ -794,7 +794,7 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
         return STATUS_ERROR;
     uint addr=0;
     if(argc<3 or !valfromstring(argv[2], &addr))
-        addr=GetContextData(UE_CIP);
+        addr=GetContextDataEx(hActiveThread, UE_CIP);
     uint size=0;
     if(argc>=4)
         if(!valfromstring(argv[3], &size))
@@ -859,7 +859,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
     uint addr;
     if(argc<2 or !valfromstring(argv[1], &addr, true))
-        addr=GetContextData(UE_CIP);
+        addr=GetContextDataEx(hActiveThread, UE_CIP);
     uint size=0;
     if(argc>=3)
         if(!valfromstring(argv[2], &size, true))
@@ -1174,7 +1174,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 {
     uint addr;
     if(argc<2 or !valfromstring(argv[1], &addr, true))
-        addr=GetContextData(UE_CIP);
+        addr=GetContextDataEx(hActiveThread, UE_CIP);
     uint size=0;
     if(argc>=3)
         if(!valfromstring(argv[2], &size, true))
@@ -1383,5 +1383,17 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     varset("$result", count, false);
     dprintf("%d loop(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrSleep(int argc, char* argv[])
+{
+    uint ms=100;
+    if(argc>1)
+        if(!valfromstring(argv[1], &ms, false))
+            return STATUS_ERROR;
+    if(ms>=0xFFFFFFFF)
+        ms=100;
+    Sleep((DWORD)ms);
     return STATUS_CONTINUE;
 }

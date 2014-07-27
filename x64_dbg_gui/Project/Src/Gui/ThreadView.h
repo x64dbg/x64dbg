@@ -13,6 +13,10 @@ public:
 
 public slots:
     void updateThreadList();
+    void doubleClickedSlot();
+
+signals:
+    void showCpu();
 
 private:
     int mCurrentThread;

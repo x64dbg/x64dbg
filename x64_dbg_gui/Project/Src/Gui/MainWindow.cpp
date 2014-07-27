@@ -78,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Thread View
     mThreadView = new ThreadView();
+    connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle("Threads");
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 

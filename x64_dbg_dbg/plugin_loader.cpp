@@ -53,6 +53,31 @@ void pluginload(const char* pluginDir)
         pluginData.plugsetup=(PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
         //auto-register callbacks for certain export names
         CBPLUGIN cbPlugin;
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBALLEVENTS");
+        if(cbPlugin)
+        {
+            pluginregistercallback(curPluginHandle, CB_INITDEBUG, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_STOPDEBUG, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_CREATEPROCESS, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_EXITPROCESS, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_CREATETHREAD, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_EXITTHREAD, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_SYSTEMBREAKPOINT, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_LOADDLL, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_UNLOADDLL, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_OUTPUTDEBUGSTRING, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_EXCEPTION, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_BREAKPOINT, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_PAUSEDEBUG, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_RESUMEDEBUG, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_STEPPED, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_ATTACH, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_DETACH, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_DEBUGEVENT, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_MENUENTRY, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_WINEVENT, cbPlugin);
+            pluginregistercallback(curPluginHandle, CB_WINEVENTGLOBAL, cbPlugin);
+        }
         cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBINITDEBUG");
         if(cbPlugin)
             pluginregistercallback(curPluginHandle, CB_INITDEBUG, cbPlugin);
@@ -113,6 +138,9 @@ void pluginload(const char* pluginDir)
         cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBWINEVENT");
         if(cbPlugin)
             pluginregistercallback(curPluginHandle, CB_WINEVENT, cbPlugin);
+        cbPlugin=(CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBWINEVENTGLOBAL");
+        if(cbPlugin)
+            pluginregistercallback(curPluginHandle, CB_WINEVENTGLOBAL, cbPlugin);
         //init plugin
         //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))
@@ -381,5 +409,14 @@ bool pluginwinevent(MSG* message, long* result)
     winevent.result=result;
     winevent.retval=false;
     plugincbcall(CB_WINEVENT, &winevent);
+    return winevent.retval;
+}
+
+bool pluginwineventglobal(MSG* message)
+{
+    PLUG_CB_WINEVENTGLOBAL winevent;
+    winevent.message=message;
+    winevent.retval=false;
+    plugincbcall(CB_WINEVENTGLOBAL, &winevent);
     return winevent.retval;
 }

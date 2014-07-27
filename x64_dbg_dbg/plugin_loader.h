@@ -54,5 +54,6 @@ bool pluginmenuaddseparator(int hMenu);
 bool pluginmenuclear(int hMenu);
 void pluginmenucall(int hEntry);
 bool pluginwinevent(MSG* message, long* result);
+bool pluginwineventglobal(MSG* message);
 
 #endif // _PLUGIN_LOADER_H

@@ -294,7 +294,7 @@ bool valflagfromstring(uint eflags, const char* string)
 
 static bool setflag(const char* string, bool set)
 {
-    uint eflags=GetContextData(UE_CFLAGS);
+    uint eflags=GetContextDataEx(hActiveThread, UE_CFLAGS);
     uint xorval=0;
     uint flag=0;
     if(scmp(string, "cf"))
@@ -331,7 +331,7 @@ static bool setflag(const char* string, bool set)
         xorval=flag;
     else if(set)
         xorval=flag;
-    return SetContextData(UE_CFLAGS, eflags^xorval);
+    return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags^xorval);
 }
 
 static uint getregister(int* size, const char* string)
@@ -340,115 +340,115 @@ static uint getregister(int* size, const char* string)
         *size=4;
     if(scmp(string, "eax"))
     {
-        return GetContextData(UE_EAX);
+        return GetContextDataEx(hActiveThread, UE_EAX);
     }
     if(scmp(string, "ebx"))
     {
-        return GetContextData(UE_EBX);
+        return GetContextDataEx(hActiveThread, UE_EBX);
     }
     if(scmp(string, "ecx"))
     {
-        return GetContextData(UE_ECX);
+        return GetContextDataEx(hActiveThread, UE_ECX);
     }
     if(scmp(string, "edx"))
     {
-        return GetContextData(UE_EDX);
+        return GetContextDataEx(hActiveThread, UE_EDX);
     }
     if(scmp(string, "edi"))
     {
-        return GetContextData(UE_EDI);
+        return GetContextDataEx(hActiveThread, UE_EDI);
     }
     if(scmp(string, "esi"))
     {
-        return GetContextData(UE_ESI);
+        return GetContextDataEx(hActiveThread, UE_ESI);
     }
     if(scmp(string, "ebp"))
     {
-        return GetContextData(UE_EBP);
+        return GetContextDataEx(hActiveThread, UE_EBP);
     }
     if(scmp(string, "esp"))
     {
-        return GetContextData(UE_ESP);
+        return GetContextDataEx(hActiveThread, UE_ESP);
     }
     if(scmp(string, "eip"))
     {
-        return GetContextData(UE_EIP);
+        return GetContextDataEx(hActiveThread, UE_EIP);
     }
     if(scmp(string, "eflags"))
     {
-        return GetContextData(UE_EFLAGS);
+        return GetContextDataEx(hActiveThread, UE_EFLAGS);
     }
 
     if(scmp(string, "gs"))
     {
-        return GetContextData(UE_SEG_GS);
+        return GetContextDataEx(hActiveThread, UE_SEG_GS);
     }
     if(scmp(string, "fs"))
     {
-        return GetContextData(UE_SEG_FS);
+        return GetContextDataEx(hActiveThread, UE_SEG_FS);
     }
     if(scmp(string, "es"))
     {
-        return GetContextData(UE_SEG_ES);
+        return GetContextDataEx(hActiveThread, UE_SEG_ES);
     }
     if(scmp(string, "ds"))
     {
-        return GetContextData(UE_SEG_DS);
+        return GetContextDataEx(hActiveThread, UE_SEG_DS);
     }
     if(scmp(string, "cs"))
     {
-        return GetContextData(UE_SEG_CS);
+        return GetContextDataEx(hActiveThread, UE_SEG_CS);
     }
     if(scmp(string, "ss"))
     {
-        return GetContextData(UE_SEG_SS);
+        return GetContextDataEx(hActiveThread, UE_SEG_SS);
     }
 
     if(size)
         *size=2;
     if(scmp(string, "ax"))
     {
-        uint val=GetContextData(UE_EAX);
+        uint val=GetContextDataEx(hActiveThread, UE_EAX);
         return val&0xFFFF;
     }
     if(scmp(string, "bx"))
     {
-        uint val=GetContextData(UE_EBX);
+        uint val=GetContextDataEx(hActiveThread, UE_EBX);
         return val&0xFFFF;
     }
     if(scmp(string, "cx"))
     {
-        uint val=GetContextData(UE_ECX);
+        uint val=GetContextDataEx(hActiveThread, UE_ECX);
         return val&0xFFFF;
     }
     if(scmp(string, "dx"))
     {
-        uint val=GetContextData(UE_EDX);
+        uint val=GetContextDataEx(hActiveThread, UE_EDX);
         return val&0xFFFF;
     }
     if(scmp(string, "si"))
     {
-        uint val=GetContextData(UE_ESI);
+        uint val=GetContextDataEx(hActiveThread, UE_ESI);
         return val&0xFFFF;
     }
     if(scmp(string, "di"))
     {
-        uint val=GetContextData(UE_EDI);
+        uint val=GetContextDataEx(hActiveThread, UE_EDI);
         return val&0xFFFF;
     }
     if(scmp(string, "bp"))
     {
-        uint val=GetContextData(UE_EBP);
+        uint val=GetContextDataEx(hActiveThread, UE_EBP);
         return val&0xFFFF;
     }
     if(scmp(string, "sp"))
     {
-        uint val=GetContextData(UE_ESP);
+        uint val=GetContextDataEx(hActiveThread, UE_ESP);
         return val&0xFFFF;
     }
     if(scmp(string, "ip"))
     {
-        uint val=GetContextData(UE_EIP);
+        uint val=GetContextDataEx(hActiveThread, UE_EIP);
         return val&0xFFFF;
     }
 
@@ -456,92 +456,92 @@ static uint getregister(int* size, const char* string)
         *size=1;
     if(scmp(string, "ah"))
     {
-        uint val=GetContextData(UE_EAX);
+        uint val=GetContextDataEx(hActiveThread, UE_EAX);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "al"))
     {
-        uint val=GetContextData(UE_EAX);
+        uint val=GetContextDataEx(hActiveThread, UE_EAX);
         return val&0xFF;
     }
     if(scmp(string, "bh"))
     {
-        uint val=GetContextData(UE_EBX);
+        uint val=GetContextDataEx(hActiveThread, UE_EBX);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "bl"))
     {
-        uint val=GetContextData(UE_EBX);
+        uint val=GetContextDataEx(hActiveThread, UE_EBX);
         return val&0xFF;
     }
     if(scmp(string, "ch"))
     {
-        uint val=GetContextData(UE_ECX);
+        uint val=GetContextDataEx(hActiveThread, UE_ECX);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "cl"))
     {
-        uint val=GetContextData(UE_ECX);
+        uint val=GetContextDataEx(hActiveThread, UE_ECX);
         return val&0xFF;
     }
     if(scmp(string, "dh"))
     {
-        uint val=GetContextData(UE_EDX);
+        uint val=GetContextDataEx(hActiveThread, UE_EDX);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "dl"))
     {
-        uint val=GetContextData(UE_EDX);
+        uint val=GetContextDataEx(hActiveThread, UE_EDX);
         return val&0xFF;
     }
     if(scmp(string, "sih"))
     {
-        uint val=GetContextData(UE_ESI);
+        uint val=GetContextDataEx(hActiveThread, UE_ESI);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "sil"))
     {
-        uint val=GetContextData(UE_ESI);
+        uint val=GetContextDataEx(hActiveThread, UE_ESI);
         return val&0xFF;
     }
     if(scmp(string, "dih"))
     {
-        uint val=GetContextData(UE_EDI);
+        uint val=GetContextDataEx(hActiveThread, UE_EDI);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "dil"))
     {
-        uint val=GetContextData(UE_EDI);
+        uint val=GetContextDataEx(hActiveThread, UE_EDI);
         return val&0xFF;
     }
     if(scmp(string, "bph"))
     {
-        uint val=GetContextData(UE_EBP);
+        uint val=GetContextDataEx(hActiveThread, UE_EBP);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "bpl"))
     {
-        uint val=GetContextData(UE_EBP);
+        uint val=GetContextDataEx(hActiveThread, UE_EBP);
         return val&0xFF;
     }
     if(scmp(string, "sph"))
     {
-        uint val=GetContextData(UE_ESP);
+        uint val=GetContextDataEx(hActiveThread, UE_ESP);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "spl"))
     {
-        uint val=GetContextData(UE_ESP);
+        uint val=GetContextDataEx(hActiveThread, UE_ESP);
         return val&0xFF;
     }
     if(scmp(string, "iph"))
     {
-        uint val=GetContextData(UE_EIP);
+        uint val=GetContextDataEx(hActiveThread, UE_EIP);
         return (val>>8)&0xFF;
     }
     if(scmp(string, "ipl"))
     {
-        uint val=GetContextData(UE_EIP);
+        uint val=GetContextDataEx(hActiveThread, UE_EIP);
         return val&0xFF;
     }
 
@@ -549,40 +549,40 @@ static uint getregister(int* size, const char* string)
         *size=sizeof(uint);
     if(scmp(string, "dr0"))
     {
-        return GetContextData(UE_DR0);
+        return GetContextDataEx(hActiveThread, UE_DR0);
     }
     if(scmp(string, "dr1"))
     {
-        return GetContextData(UE_DR1);
+        return GetContextDataEx(hActiveThread, UE_DR1);
     }
     if(scmp(string, "dr2"))
     {
-        return GetContextData(UE_DR2);
+        return GetContextDataEx(hActiveThread, UE_DR2);
     }
     if(scmp(string, "dr3"))
     {
-        return GetContextData(UE_DR3);
+        return GetContextDataEx(hActiveThread, UE_DR3);
     }
     if(scmp(string, "dr6") or scmp(string, "dr4"))
     {
-        return GetContextData(UE_DR6);
+        return GetContextDataEx(hActiveThread, UE_DR6);
     }
     if(scmp(string, "dr7") or scmp(string, "dr5"))
     {
-        return GetContextData(UE_DR7);
+        return GetContextDataEx(hActiveThread, UE_DR7);
     }
 
     if(scmp(string, "cip"))
     {
-        return GetContextData(UE_CIP);
+        return GetContextDataEx(hActiveThread, UE_CIP);
     }
     if(scmp(string, "csp"))
     {
-        return GetContextData(UE_CSP);
+        return GetContextDataEx(hActiveThread, UE_CSP);
     }
     if(scmp(string, "cflags"))
     {
-        return GetContextData(UE_CFLAGS);
+        return GetContextDataEx(hActiveThread, UE_CFLAGS);
     }
 
 #ifdef _WIN64
@@ -590,180 +590,180 @@ static uint getregister(int* size, const char* string)
         *size=8;
     if(scmp(string, "rax"))
     {
-        return GetContextData(UE_RAX);
+        return GetContextDataEx(hActiveThread, UE_RAX);
     }
     if(scmp(string, "rbx"))
     {
-        return GetContextData(UE_RBX);
+        return GetContextDataEx(hActiveThread, UE_RBX);
     }
     if(scmp(string, "rcx"))
     {
-        return GetContextData(UE_RCX);
+        return GetContextDataEx(hActiveThread, UE_RCX);
     }
     if(scmp(string, "rdx"))
     {
-        return GetContextData(UE_RDX);
+        return GetContextDataEx(hActiveThread, UE_RDX);
     }
     if(scmp(string, "rdi"))
     {
-        return GetContextData(UE_RDI);
+        return GetContextDataEx(hActiveThread, UE_RDI);
     }
     if(scmp(string, "rsi"))
     {
-        return GetContextData(UE_RSI);
+        return GetContextDataEx(hActiveThread, UE_RSI);
     }
     if(scmp(string, "rbp"))
     {
-        return GetContextData(UE_RBP);
+        return GetContextDataEx(hActiveThread, UE_RBP);
     }
     if(scmp(string, "rsp"))
     {
-        return GetContextData(UE_RSP);
+        return GetContextDataEx(hActiveThread, UE_RSP);
     }
     if(scmp(string, "rip"))
     {
-        return GetContextData(UE_RIP);
+        return GetContextDataEx(hActiveThread, UE_RIP);
     }
     if(scmp(string, "rflags"))
     {
-        return GetContextData(UE_RFLAGS);
+        return GetContextDataEx(hActiveThread, UE_RFLAGS);
     }
     if(scmp(string, "r8"))
     {
-        return GetContextData(UE_R8);
+        return GetContextDataEx(hActiveThread, UE_R8);
     }
     if(scmp(string, "r9"))
     {
-        return GetContextData(UE_R9);
+        return GetContextDataEx(hActiveThread, UE_R9);
     }
     if(scmp(string, "r10"))
     {
-        return GetContextData(UE_R10);
+        return GetContextDataEx(hActiveThread, UE_R10);
     }
     if(scmp(string, "r11"))
     {
-        return GetContextData(UE_R11);
+        return GetContextDataEx(hActiveThread, UE_R11);
     }
     if(scmp(string, "r12"))
     {
-        return GetContextData(UE_R12);
+        return GetContextDataEx(hActiveThread, UE_R12);
     }
     if(scmp(string, "r13"))
     {
-        return GetContextData(UE_R13);
+        return GetContextDataEx(hActiveThread, UE_R13);
     }
     if(scmp(string, "r14"))
     {
-        return GetContextData(UE_R14);
+        return GetContextDataEx(hActiveThread, UE_R14);
     }
     if(scmp(string, "r15"))
     {
-        return GetContextData(UE_R15);
+        return GetContextDataEx(hActiveThread, UE_R15);
     }
 
     if(size)
         *size=4;
     if(scmp(string, "r8d"))
     {
-        return GetContextData(UE_R8)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFF;
     }
     if(scmp(string, "r9d"))
     {
-        return GetContextData(UE_R9)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFF;
     }
     if(scmp(string, "r10d"))
     {
-        return GetContextData(UE_R10)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFF;
     }
     if(scmp(string, "r11d"))
     {
-        return GetContextData(UE_R11)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFF;
     }
     if(scmp(string, "r12d"))
     {
-        return GetContextData(UE_R12)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFF;
     }
     if(scmp(string, "r13d"))
     {
-        return GetContextData(UE_R13)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFF;
     }
     if(scmp(string, "r14d"))
     {
-        return GetContextData(UE_R14)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFF;
     }
     if(scmp(string, "r15d"))
     {
-        return GetContextData(UE_R15)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFF;
     }
 
     if(size)
         *size=2;
     if(scmp(string, "r8w"))
     {
-        return GetContextData(UE_R8)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R8)&0xFFFF;
     }
     if(scmp(string, "r9w"))
     {
-        return GetContextData(UE_R9)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R9)&0xFFFF;
     }
     if(scmp(string, "r10w"))
     {
-        return GetContextData(UE_R10)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R10)&0xFFFF;
     }
     if(scmp(string, "r11w"))
     {
-        return GetContextData(UE_R11)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R11)&0xFFFF;
     }
     if(scmp(string, "r12w"))
     {
-        return GetContextData(UE_R12)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R12)&0xFFFF;
     }
     if(scmp(string, "r13w"))
     {
-        return GetContextData(UE_R13)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R13)&0xFFFF;
     }
     if(scmp(string, "r14w"))
     {
-        return GetContextData(UE_R14)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R14)&0xFFFF;
     }
     if(scmp(string, "r15w"))
     {
-        return GetContextData(UE_R15)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R15)&0xFFFF;
     }
 
     if(size)
         *size=1;
     if(scmp(string, "r8b"))
     {
-        return GetContextData(UE_R8)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R8)&0xFF;
     }
     if(scmp(string, "r9b"))
     {
-        return GetContextData(UE_R9)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R9)&0xFF;
     }
     if(scmp(string, "r10b"))
     {
-        return GetContextData(UE_R10)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R10)&0xFF;
     }
     if(scmp(string, "r11b"))
     {
-        return GetContextData(UE_R11)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R11)&0xFF;
     }
     if(scmp(string, "r12b"))
     {
-        return GetContextData(UE_R12)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R12)&0xFF;
     }
     if(scmp(string, "r13b"))
     {
-        return GetContextData(UE_R13)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R13)&0xFF;
     }
     if(scmp(string, "r14b"))
     {
-        return GetContextData(UE_R14)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R14)&0xFF;
     }
     if(scmp(string, "r15b"))
     {
-        return GetContextData(UE_R15)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R15)&0xFF;
     }
 #endif //_WIN64
 
@@ -775,202 +775,202 @@ static uint getregister(int* size, const char* string)
 static bool setregister(const char* string, uint value)
 {
     if(scmp(string, "eax"))
-        return SetContextData(UE_EAX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EAX, value&0xFFFFFFFF);
     if(scmp(string, "ebx"))
-        return SetContextData(UE_EBX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EBX, value&0xFFFFFFFF);
     if(scmp(string, "ecx"))
-        return SetContextData(UE_ECX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ECX, value&0xFFFFFFFF);
     if(scmp(string, "edx"))
-        return SetContextData(UE_EDX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EDX, value&0xFFFFFFFF);
     if(scmp(string, "edi"))
-        return SetContextData(UE_EDI, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EDI, value&0xFFFFFFFF);
     if(scmp(string, "esi"))
-        return SetContextData(UE_ESI, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ESI, value&0xFFFFFFFF);
     if(scmp(string, "ebp"))
-        return SetContextData(UE_EBP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EBP, value&0xFFFFFFFF);
     if(scmp(string, "esp"))
-        return SetContextData(UE_ESP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ESP, value&0xFFFFFFFF);
     if(scmp(string, "eip"))
-        return SetContextData(UE_EIP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EIP, value&0xFFFFFFFF);
     if(scmp(string, "eflags"))
-        return SetContextData(UE_EFLAGS, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EFLAGS, value&0xFFFFFFFF);
 
     if(scmp(string, "gs"))
-        return SetContextData(UE_SEG_GS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_GS, value&0xFFFF);
     if(scmp(string, "fs"))
-        return SetContextData(UE_SEG_FS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_FS, value&0xFFFF);
     if(scmp(string, "es"))
-        return SetContextData(UE_SEG_ES, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_ES, value&0xFFFF);
     if(scmp(string, "ds"))
-        return SetContextData(UE_SEG_DS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_DS, value&0xFFFF);
     if(scmp(string, "cs"))
-        return SetContextData(UE_SEG_CS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_CS, value&0xFFFF);
     if(scmp(string, "ss"))
-        return SetContextData(UE_SEG_SS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_SS, value&0xFFFF);
 
     if(scmp(string, "ax"))
-        return SetContextData(UE_EAX, (value&0xFFFF)|(GetContextData(UE_EAX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EAX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFF0000));
     if(scmp(string, "bx"))
-        return SetContextData(UE_EBX, (value&0xFFFF)|(GetContextData(UE_EBX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EBX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFF0000));
     if(scmp(string, "cx"))
-        return SetContextData(UE_ECX, (value&0xFFFF)|(GetContextData(UE_ECX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ECX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFF0000));
     if(scmp(string, "dx"))
-        return SetContextData(UE_EDX, (value&0xFFFF)|(GetContextData(UE_EDX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EDX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFF0000));
     if(scmp(string, "si"))
-        return SetContextData(UE_ESI, (value&0xFFFF)|(GetContextData(UE_ESI)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ESI, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFF0000));
     if(scmp(string, "di"))
-        return SetContextData(UE_EDI, (value&0xFFFF)|(GetContextData(UE_EDI)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EDI, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFF0000));
     if(scmp(string, "bp"))
-        return SetContextData(UE_EBP, (value&0xFFFF)|(GetContextData(UE_EBP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EBP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFF0000));
     if(scmp(string, "sp"))
-        return SetContextData(UE_ESP, (value&0xFFFF)|(GetContextData(UE_ESP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ESP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFF0000));
     if(scmp(string, "ip"))
-        return SetContextData(UE_EIP, (value&0xFFFF)|(GetContextData(UE_EIP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EIP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFF0000));
 
     if(scmp(string, "ah"))
-        return SetContextData(UE_EAX, ((value&0xFF)<<8)|(GetContextData(UE_EAX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EAX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFF00FF));
     if(scmp(string, "al"))
-        return SetContextData(UE_EAX, (value&0xFF)|(GetContextData(UE_EAX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EAX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFFFF00));
     if(scmp(string, "bh"))
-        return SetContextData(UE_EBX, ((value&0xFF)<<8)|(GetContextData(UE_EBX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EBX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFF00FF));
     if(scmp(string, "bl"))
-        return SetContextData(UE_EBX, (value&0xFF)|(GetContextData(UE_EBX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EBX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFFFF00));
     if(scmp(string, "ch"))
-        return SetContextData(UE_ECX, ((value&0xFF)<<8)|(GetContextData(UE_ECX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ECX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFF00FF));
     if(scmp(string, "cl"))
-        return SetContextData(UE_ECX, (value&0xFF)|(GetContextData(UE_ECX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ECX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFFFF00));
     if(scmp(string, "dh"))
-        return SetContextData(UE_EDX, ((value&0xFF)<<8)|(GetContextData(UE_EDX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EDX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFF00FF));
     if(scmp(string, "dl"))
-        return SetContextData(UE_EDX, (value&0xFF)|(GetContextData(UE_EDX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EDX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFFFF00));
     if(scmp(string, "sih"))
-        return SetContextData(UE_ESI, ((value&0xFF)<<8)|(GetContextData(UE_ESI)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ESI, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFF00FF));
     if(scmp(string, "sil"))
-        return SetContextData(UE_ESI, (value&0xFF)|(GetContextData(UE_ESI)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ESI, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFFFF00));
     if(scmp(string, "dih"))
-        return SetContextData(UE_EDI, ((value&0xFF)<<8)|(GetContextData(UE_EDI)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EDI, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFF00FF));
     if(scmp(string, "dil"))
-        return SetContextData(UE_EDI, (value&0xFF)|(GetContextData(UE_EDI)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EDI, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFFFF00));
     if(scmp(string, "bph"))
-        return SetContextData(UE_EBP, ((value&0xFF)<<8)|(GetContextData(UE_EBP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EBP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFF00FF));
     if(scmp(string, "bpl"))
-        return SetContextData(UE_EBP, (value&0xFF)|(GetContextData(UE_EBP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EBP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFFFF00));
     if(scmp(string, "sph"))
-        return SetContextData(UE_ESP, ((value&0xFF)<<8)|(GetContextData(UE_ESP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ESP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFF00FF));
     if(scmp(string, "spl"))
-        return SetContextData(UE_ESP, (value&0xFF)|(GetContextData(UE_ESP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ESP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFFFF00));
     if(scmp(string, "iph"))
-        return SetContextData(UE_EIP, ((value&0xFF)<<8)|(GetContextData(UE_EIP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EIP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFF00FF));
     if(scmp(string, "ipl"))
-        return SetContextData(UE_EIP, (value&0xFF)|(GetContextData(UE_EIP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EIP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFFFF00));
 
     if(scmp(string, "dr0"))
-        return SetContextData(UE_DR0, value);
+        return SetContextDataEx(hActiveThread, UE_DR0, value);
     if(scmp(string, "dr1"))
-        return SetContextData(UE_DR1, value);
+        return SetContextDataEx(hActiveThread, UE_DR1, value);
     if(scmp(string, "dr2"))
-        return SetContextData(UE_DR2, value);
+        return SetContextDataEx(hActiveThread, UE_DR2, value);
     if(scmp(string, "dr3"))
-        return SetContextData(UE_DR3, value);
+        return SetContextDataEx(hActiveThread, UE_DR3, value);
     if(scmp(string, "dr6") or scmp(string, "dr4"))
-        return SetContextData(UE_DR6, value);
+        return SetContextDataEx(hActiveThread, UE_DR6, value);
     if(scmp(string, "dr7") or scmp(string, "dr5"))
-        return SetContextData(UE_DR7, value);
+        return SetContextDataEx(hActiveThread, UE_DR7, value);
 
     if(scmp(string, "cip"))
-        return SetContextData(UE_CIP, value);
+        return SetContextDataEx(hActiveThread, UE_CIP, value);
     if(scmp(string, "csp"))
-        return SetContextData(UE_CSP, value);
+        return SetContextDataEx(hActiveThread, UE_CSP, value);
     if(scmp(string, "cflags"))
-        return SetContextData(UE_CFLAGS, value);
+        return SetContextDataEx(hActiveThread, UE_CFLAGS, value);
 
 #ifdef _WIN64
     if(scmp(string, "rax"))
-        return SetContextData(UE_RAX, value);
+        return SetContextDataEx(hActiveThread, UE_RAX, value);
     if(scmp(string, "rbx"))
-        return SetContextData(UE_RBX, value);
+        return SetContextDataEx(hActiveThread, UE_RBX, value);
     if(scmp(string, "rcx"))
-        return SetContextData(UE_RCX, value);
+        return SetContextDataEx(hActiveThread, UE_RCX, value);
     if(scmp(string, "rdx"))
-        return SetContextData(UE_RDX, value);
+        return SetContextDataEx(hActiveThread, UE_RDX, value);
     if(scmp(string, "rdi"))
-        return SetContextData(UE_RDI, value);
+        return SetContextDataEx(hActiveThread, UE_RDI, value);
     if(scmp(string, "rsi"))
-        return SetContextData(UE_RSI, value);
+        return SetContextDataEx(hActiveThread, UE_RSI, value);
     if(scmp(string, "rbp"))
-        return SetContextData(UE_RBP, value);
+        return SetContextDataEx(hActiveThread, UE_RBP, value);
     if(scmp(string, "rsp"))
-        return SetContextData(UE_RSP, value);
+        return SetContextDataEx(hActiveThread, UE_RSP, value);
     if(scmp(string, "rip"))
-        return SetContextData(UE_RIP, value);
+        return SetContextDataEx(hActiveThread, UE_RIP, value);
     if(scmp(string, "rflags"))
-        return SetContextData(UE_RFLAGS, value);
+        return SetContextDataEx(hActiveThread, UE_RFLAGS, value);
     if(scmp(string, "r8"))
-        return SetContextData(UE_R8, value);
+        return SetContextDataEx(hActiveThread, UE_R8, value);
     if(scmp(string, "r9"))
-        return SetContextData(UE_R9, value);
+        return SetContextDataEx(hActiveThread, UE_R9, value);
     if(scmp(string, "r10"))
-        return SetContextData(UE_R10, value);
+        return SetContextDataEx(hActiveThread, UE_R10, value);
     if(scmp(string, "r11"))
-        return SetContextData(UE_R11, value);
+        return SetContextDataEx(hActiveThread, UE_R11, value);
     if(scmp(string, "r12"))
-        return SetContextData(UE_R12, value);
+        return SetContextDataEx(hActiveThread, UE_R12, value);
     if(scmp(string, "r13"))
-        return SetContextData(UE_R13, value);
+        return SetContextDataEx(hActiveThread, UE_R13, value);
     if(scmp(string, "r14"))
-        return SetContextData(UE_R14, value);
+        return SetContextDataEx(hActiveThread, UE_R14, value);
     if(scmp(string, "r15"))
-        return SetContextData(UE_R15, value);
+        return SetContextDataEx(hActiveThread, UE_R15, value);
 
     if(scmp(string, "r8d"))
-        return SetContextData(UE_R8, (value&0xFFFFFFFF)|(GetContextData(UE_R8)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFF00000000));
     if(scmp(string, "r9d"))
-        return SetContextData(UE_R9, (value&0xFFFFFFFF)|(GetContextData(UE_R9)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFF00000000));
     if(scmp(string, "r10d"))
-        return SetContextData(UE_R10, (value&0xFFFFFFFF)|(GetContextData(UE_R10)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFF00000000));
     if(scmp(string, "r11d"))
-        return SetContextData(UE_R11, (value&0xFFFFFFFF)|(GetContextData(UE_R11)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFF00000000));
     if(scmp(string, "r12d"))
-        return SetContextData(UE_R12, (value&0xFFFFFFFF)|(GetContextData(UE_R12)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFF00000000));
     if(scmp(string, "r13d"))
-        return SetContextData(UE_R13, (value&0xFFFFFFFF)|(GetContextData(UE_R13)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFF00000000));
     if(scmp(string, "r14d"))
-        return SetContextData(UE_R14, (value&0xFFFFFFFF)|(GetContextData(UE_R14)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFF00000000));
     if(scmp(string, "r15d"))
-        return SetContextData(UE_R15, (value&0xFFFFFFFF)|(GetContextData(UE_R15)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFF00000000));
 
     if(scmp(string, "r8w"))
-        return SetContextData(UE_R8, (value&0xFFFF)|(GetContextData(UE_R8)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r9w"))
-        return SetContextData(UE_R9, (value&0xFFFF)|(GetContextData(UE_R9)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r10w"))
-        return SetContextData(UE_R10, (value&0xFFFF)|(GetContextData(UE_R10)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r11w"))
-        return SetContextData(UE_R11, (value&0xFFFF)|(GetContextData(UE_R11)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r12w"))
-        return SetContextData(UE_R12, (value&0xFFFF)|(GetContextData(UE_R12)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r13w"))
-        return SetContextData(UE_R13, (value&0xFFFF)|(GetContextData(UE_R13)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r14w"))
-        return SetContextData(UE_R14, (value&0xFFFF)|(GetContextData(UE_R14)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r15w"))
-        return SetContextData(UE_R15, (value&0xFFFF)|(GetContextData(UE_R15)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFFFFFF0000));
     if(scmp(string, "r8b"))
-        return SetContextData(UE_R8, (value&0xFF)|(GetContextData(UE_R8)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r9b"))
-        return SetContextData(UE_R9, (value&0xFF)|(GetContextData(UE_R9)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r10b"))
-        return SetContextData(UE_R10, (value&0xFF)|(GetContextData(UE_R10)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r11b"))
-        return SetContextData(UE_R11, (value&0xFF)|(GetContextData(UE_R11)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r12b"))
-        return SetContextData(UE_R12, (value&0xFF)|(GetContextData(UE_R12)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r13b"))
-        return SetContextData(UE_R13, (value&0xFF)|(GetContextData(UE_R13)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r14b"))
-        return SetContextData(UE_R14, (value&0xFF)|(GetContextData(UE_R14)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r15b"))
-        return SetContextData(UE_R15, (value&0xFF)|(GetContextData(UE_R15)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFFFFFFFF00));
 #endif // _WIN64
 
     return false;
@@ -1314,7 +1314,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 *isvar=true;
             return true;
         }
-        uint eflags=GetContextData(UE_CFLAGS);
+        uint eflags=GetContextDataEx(hActiveThread, UE_CFLAGS);
         if(valflagfromstring(eflags, string+1))
             *value=1;
         else
@@ -1454,10 +1454,10 @@ bool valtostring(const char* string, uint* value, bool silent)
         strcpy(regName, string);
         _strlwr(regName);
         if(strstr(regName, "ip"))
-            DebugUpdateGui(GetContextData(UE_CIP), false); //update disassembly + register view
+            DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
         else if(strstr(regName, "sp")) //update stack
         {
-            uint csp=GetContextData(UE_CSP);
+            uint csp=GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);
         }
         else

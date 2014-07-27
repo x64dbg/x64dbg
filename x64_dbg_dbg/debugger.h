@@ -82,9 +82,10 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[]);
 CMDRESULT cbDebugContinue(int argc, char* argv[]);
 CMDRESULT cbBpDll(int argc, char* argv[]);
 CMDRESULT cbBcDll(int argc, char* argv[]);
+CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
-extern BREAKPOINT* bplist;
+extern HANDLE hActiveThread;
 
 #endif // _DEBUGGER_H

@@ -9,6 +9,7 @@ public:
     MyApplication(int& argc, char** argv);
     bool notify(QObject* receiver, QEvent* event);
     bool winEventFilter(MSG* message, long* result);
+    static bool globalEventFilter(void* message);
 };
 
 int main(int argc, char *argv[]);

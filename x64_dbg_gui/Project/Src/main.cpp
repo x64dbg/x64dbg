@@ -3,6 +3,7 @@
 #include "NewTypes.h"
 #include "Bridge.h"
 #include "main.h"
+#include <QAbstractEventDispatcher>
 
 MyApplication::MyApplication(int& argc, char** argv) : QApplication(argc, argv)
 {
@@ -11,6 +12,11 @@ MyApplication::MyApplication(int& argc, char** argv) : QApplication(argc, argv)
 bool MyApplication::winEventFilter(MSG* message, long* result)
 {
     return DbgWinEvent(message, result);
+}
+
+bool MyApplication::globalEventFilter(void* message)
+{
+    return DbgWinEventGlobal((MSG*)message);
 }
 
 bool MyApplication::notify(QObject* receiver, QEvent* event)
@@ -42,6 +48,7 @@ static Configuration* mConfiguration;
 int main(int argc, char *argv[])
 {
     MyApplication application(argc, argv);
+    QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 
     // load config file + set config font
     mConfiguration = new Configuration;

@@ -95,6 +95,7 @@ static void registercommands()
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbBcDll, true); //remove dll breakpoint
+    dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true);
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -125,6 +126,7 @@ static void registercommands()
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
     dbgcmdnew("asm", cbAssemble, true); //assemble instruction
+    dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
 
     //user database
     dbgcmdnew("cmt\1cmtset\1commentset", cbInstrCmt, true); //set/edit comment

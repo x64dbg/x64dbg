@@ -153,6 +153,12 @@ typedef struct
     bool retval;
 } PLUG_CB_WINEVENT;
 
+typedef struct
+{
+    MSG* message;
+    bool retval;
+} PLUG_CB_WINEVENTGLOBAL;
+
 //enums
 typedef enum
 {
@@ -175,7 +181,8 @@ typedef enum
     CB_DETACH, //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
     CB_DEBUGEVENT, //PLUG_CB_DEBUGEVENT (called on any debug event)
     CB_MENUENTRY, //PLUG_CB_MENUENTRY
-    CB_WINEVENT //PLUG_CB_WINEVENT
+    CB_WINEVENT, //PLUG_CB_WINEVENT
+    CB_WINEVENTGLOBAL //PLUG_CB_WINEVENTGLOBAL
 } CBTYPE;
 
 //typedefs

@@ -42,7 +42,7 @@ PLUG_IMPEXP void _plugin_logputs(const char* text)
 
 PLUG_IMPEXP void _plugin_debugpause()
 {
-    DebugUpdateGui(GetContextData(UE_CIP), true);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());

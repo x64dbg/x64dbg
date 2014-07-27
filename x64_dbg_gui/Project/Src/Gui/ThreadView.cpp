@@ -22,6 +22,7 @@ ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
     setCopyMenuOnly(true);
 
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
 }
 
 void ThreadView::updateThreadList()
@@ -40,7 +41,7 @@ void ThreadView::updateThreadList()
         setCellContent(i, 2, QString("%1").arg(threadList.list[i].BasicInfo.ThreadStartAddress, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 3, QString("%1").arg(threadList.list[i].BasicInfo.ThreadLocalBase, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 4, QString("%1").arg(threadList.list[i].ThreadCip, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 5, QString("%1").arg(threadList.list[i].SuspendCount, 0, 10));
+        setCellContent(i, 5, QString().sprintf("%d", threadList.list[i].SuspendCount));
         QString priorityString;
         switch(threadList.list[i].Priority)
         {
@@ -209,4 +210,11 @@ QString ThreadView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         ret="";
     }
     return ret;
+}
+
+void ThreadView::doubleClickedSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
+    emit showCpu();
 }
