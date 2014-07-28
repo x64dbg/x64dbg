@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QDebug>
 #include <QObject>
+#include <QKeySequence>
 #include "Bridge.h"
 
 #define Config() (Configuration::instance())
@@ -14,6 +15,13 @@
 #define ConfigBool(x,y) (Config()->getBool(x,y))
 #define ConfigUint(x,y) (Config()->getUint(x,y))
 #define ConfigFont(x) (Config()->getFont(x))
+#define ConfigHotkey(x) (Config()->getHotkey(x))
+
+// X64dbgHotkeys
+// ^     ^
+namespace XH{
+    enum Hotkeys{STEPIN,STEPOVER,RUN};
+};
 
 class Configuration : public QObject
 {
@@ -33,24 +41,28 @@ public:
     void readFonts();
     void writeFonts();
 
-    const QColor getColor(const QString id);
-    const bool getBool(const QString category, const QString id);
+    const QColor getColor(const QString id) const;
+    const bool getBool(const QString category, const QString id) const;
     void setBool(const QString category, const QString id, const bool b);
-    const uint_t getUint(const QString category, const QString id);
+    const uint_t getUint(const QString category, const QString id) const;
     void setUint(const QString category, const QString id, const uint_t i);
-    const QFont getFont(const QString id);
+    const QFont getFont(const QString id) const;
+    const QKeySequence getHotkey(const unsigned int key_id) const;
+    void setHotkey(const unsigned int key_id, const QKeySequence key_sequence);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
     QMap<QString, QMap<QString, bool>> defaultBools;
     QMap<QString, QMap<QString, uint_t>> defaultUints;
     QMap<QString, QFont> defaultFonts;
+    QMap<unsigned int,QKeySequence> defaultHotkeys;
 
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QMap<QString, bool>> Bools;
     QMap<QString, QMap<QString, uint_t>> Uints;
     QMap<QString, QFont> Fonts;
+    QMap<unsigned int,QKeySequence> Hotkeys;
 
 signals:
     void colorsUpdated();

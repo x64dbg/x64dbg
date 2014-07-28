@@ -165,11 +165,14 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
 
+    // hotkeys settings
+    defaultHotkeys.insert(XH::Hotkeys::RUN,QKeySequence("F9"));
+
     load();
     mPtr = this;
 }
 
-Configuration *Config()
+*Configuration Config()
 {
     return mPtr;
 }
@@ -299,7 +302,7 @@ void Configuration::writeFonts()
     emit fontsUpdated();
 }
 
-const QColor Configuration::getColor(const QString id)
+const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
@@ -310,7 +313,7 @@ const QColor Configuration::getColor(const QString id)
     return Qt::black;
 }
 
-const bool Configuration::getBool(const QString category, const QString id)
+const bool Configuration::getBool(const QString category, const QString id) const
 {
     if(Bools.contains(category))
     {
@@ -350,7 +353,7 @@ void Configuration::setBool(const QString category, const QString id, const bool
     msg.exec();
 }
 
-const uint_t Configuration::getUint(const QString category, const QString id)
+const uint_t Configuration::getUint(const QString category, const QString id) const
 {
     if(Uints.contains(category))
     {
@@ -390,7 +393,7 @@ void Configuration::setUint(const QString category, const QString id, const uint
     msg.exec();
 }
 
-const QFont Configuration::getFont(const QString id)
+const QFont Configuration::getFont(const QString id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
@@ -402,6 +405,16 @@ const QFont Configuration::getFont(const QString id)
     ret.setFixedPitch(true);
     ret.setStyleHint(QFont::Monospace);
     return ret;
+}
+
+const QKeySequence Configuration::getHotkey(const unsigned int key_id) const
+{
+    return Hotkeys.find(key_id).value();
+}
+
+void Configuration::setHotkey(const unsigned int key_id, const QKeySequence key_sequence)
+{
+    Hotkeys.insert(key_id,key_sequence);
 }
 
 QColor Configuration::colorFromConfig(const QString id)
