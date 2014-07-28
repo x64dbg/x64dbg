@@ -80,7 +80,9 @@ SOURCES += \
     Src/Gui/PatchDialogGroupSelector.cpp \
     Src/Utils/UpdateChecker.cpp \
     Src/BasicView/SearchListViewTable.cpp \
-    Src/Gui/CallStackView.cpp
+    Src/Gui/CallStackView.cpp \
+    Src/Gui/ShortcutsDialog.cpp \
+    Src/BasicView/ShortcutEdit.cpp
 
 
 HEADERS += \
@@ -139,7 +141,9 @@ HEADERS += \
     Src/Gui/PatchDialogGroupSelector.h \
     Src/Utils/UpdateChecker.h \
     Src/BasicView/SearchListViewTable.h \
-    Src/Gui/CallStackView.h
+    Src/Gui/CallStackView.h \
+    Src/Gui/ShortcutsDialog.h \
+    Src/BasicView/ShortcutEdit.h
 
 
 INCLUDEPATH += \
@@ -169,7 +173,8 @@ FORMS += \
     Src/Gui/CloseDialog.ui \
     Src/Gui/HexEditDialog.ui \
     Src/Gui/PatchDialog.ui \
-    Src/Gui/PatchDialogGroupSelector.ui
+    Src/Gui/PatchDialogGroupSelector.ui \
+    Src/Gui/ShortcutsDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

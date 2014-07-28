@@ -15,12 +15,13 @@
 #define ConfigBool(x,y) (Config()->getBool(x,y))
 #define ConfigUint(x,y) (Config()->getUint(x,y))
 #define ConfigFont(x) (Config()->getFont(x))
-#define ConfigHotkey(x) (Config()->getHotkey(x))
+#define ConfigShortcut(x) (Config()->getShortcut(x))
 
 // X64dbgHotkeys
 // ^     ^
 namespace XH{
-    enum Hotkeys{STEPIN,STEPOVER,RUN};
+    enum Hotkeys{FILE_OPEN, APP_EXIT,
+                 DBG_STEPIN,DBG_STEPOVER,DBG_RUN};
 };
 
 class Configuration : public QObject
@@ -47,22 +48,22 @@ public:
     const uint_t getUint(const QString category, const QString id) const;
     void setUint(const QString category, const QString id, const uint_t i);
     const QFont getFont(const QString id) const;
-    const QKeySequence getHotkey(const unsigned int key_id) const;
-    void setHotkey(const unsigned int key_id, const QKeySequence key_sequence);
+    const QKeySequence getShortcut(const QString key_id) const;
+    void setShortcut(const QString key_id, const QKeySequence key_sequence);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
     QMap<QString, QMap<QString, bool>> defaultBools;
     QMap<QString, QMap<QString, uint_t>> defaultUints;
     QMap<QString, QFont> defaultFonts;
-    QMap<unsigned int,QKeySequence> defaultHotkeys;
+    QMap<QString,QKeySequence> defaultShortcuts;
 
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QMap<QString, bool>> Bools;
     QMap<QString, QMap<QString, uint_t>> Uints;
     QMap<QString, QFont> Fonts;
-    QMap<unsigned int,QKeySequence> Hotkeys;
+    QMap<QString,QKeySequence> Shortcuts;
 
 signals:
     void colorsUpdated();

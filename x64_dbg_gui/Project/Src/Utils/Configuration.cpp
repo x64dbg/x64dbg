@@ -166,16 +166,35 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Application", QApplication::font());
 
     // hotkeys settings
-    defaultHotkeys.insert(XH::Hotkeys::RUN,QKeySequence("F9"));
+    defaultShortcuts.insert("HK::DBG_RUN",QKeySequence(Qt::Key_F4));
+    defaultShortcuts.insert("HK::FILE_OPEN",QKeySequence(Qt::Key_F3));
+    defaultShortcuts.insert("HK::APP_EXIT",QKeySequence(Qt::ALT+Qt::Key_X));
+
+    defaultShortcuts.insert("HK::VIEW_CPU",QKeySequence(Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert("HK::VIEW_MEMORY",QKeySequence(Qt::ALT+Qt::Key_M));
+    defaultShortcuts.insert("HK::VIEW_LOG",QKeySequence(Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert("HK::VIEW_BREAKPOINTS",QKeySequence(Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert("HK::VIEW_SCRIPT",QKeySequence(Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert("HK::VIEW_SYMINFO",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert("HK::VIEW_REFERENCES",QKeySequence(Qt::ALT+Qt::Key_R));
+    defaultShortcuts.insert("HK::VIEW_THREADS",QKeySequence(Qt::ALT+Qt::Key_T));
+    defaultShortcuts.insert("HK::VIEW_PATCHES",QKeySequence(Qt::CTRL+Qt::Key_P));
+    defaultShortcuts.insert("HK::VIEW_COMMENTS",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert("HK::VIEW_LABELS",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert("HK::VIEW_BOOKMARKS",QKeySequence(Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert("HK::VIEW_FUNCTIONS",QKeySequence(Qt::ALT+Qt::Key_F));
+
+    Shortcuts = defaultShortcuts;
 
     load();
     mPtr = this;
 }
 
-*Configuration Config()
+Configuration *Config()
 {
     return mPtr;
 }
+
 
 void Configuration::load()
 {
@@ -407,14 +426,14 @@ const QFont Configuration::getFont(const QString id) const
     return ret;
 }
 
-const QKeySequence Configuration::getHotkey(const unsigned int key_id) const
+const QKeySequence Configuration::getShortcut(const QString key_id) const
 {
-    return Hotkeys.find(key_id).value();
+    return Shortcuts.find(key_id).value();
 }
 
-void Configuration::setHotkey(const unsigned int key_id, const QKeySequence key_sequence)
+void Configuration::setShortcut(QString key_id, const QKeySequence key_sequence)
 {
-    Hotkeys.insert(key_id,key_sequence);
+    Shortcuts.insert(key_id,key_sequence);
 }
 
 QColor Configuration::colorFromConfig(const QString id)

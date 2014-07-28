@@ -144,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
     connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
+    connect(ui->actionShortcuts,SIGNAL(triggered()),this,SLOT(openShortcuts()));
     connect(ui->actionPatches,SIGNAL(triggered()),this,SLOT(patchWindow()));
     connect(ui->actionComments,SIGNAL(triggered()),this,SLOT(displayComments()));
     connect(ui->actionLabels,SIGNAL(triggered()),this,SLOT(displayLabels()));
@@ -175,6 +176,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //setup menu api
     initMenuApi();
+
+    refreshShortcuts();
 
     bClose=false;
     mCloseDialog = new CloseDialog(this);
@@ -218,6 +221,27 @@ void MainWindow::setTab(QWidget* widget)
             mTabWidget->setCurrentIndex(i);
             break;
         }
+}
+
+void MainWindow::refreshShortcuts(){
+    ui->actionOpen->setShortcut(ConfigShortcut("HK::FILE_OPEN"));
+    ui->actionClose->setShortcut(ConfigShortcut("HK::APP_EXIT"));
+
+    ui->actionRun->setShortcut(ConfigShortcut("HK::DBG_RUN"));
+
+    ui->actionCpu->setShortcut(ConfigShortcut("HK::VIEW_CPU"));
+    ui->actionMemoryMap->setShortcut(ConfigShortcut("HK::VIEW_MEMORY"));
+    ui->actionLog->setShortcut(ConfigShortcut("HK::VIEW_LOG"));
+    ui->actionBreakpoints->setShortcut(ConfigShortcut("HK::VIEW_BREAKPOINTS"));
+    ui->actionScript->setShortcut(ConfigShortcut("HK::VIEW_SCRIPT"));
+    ui->actionSymbolInfo->setShortcut(ConfigShortcut("HK::VIEW_SYMINFO"));
+    ui->actionReferences->setShortcut(ConfigShortcut("HK::VIEW_REFERENCES"));
+    ui->actionThreads->setShortcut(ConfigShortcut("HK::VIEW_THREADS"));
+    ui->actionPatches->setShortcut(ConfigShortcut("HK::VIEW_PATCHES"));
+    ui->actionComments->setShortcut(ConfigShortcut("HK::VIEW_COMMENTS"));
+    ui->actionLabels->setShortcut(ConfigShortcut("HK::VIEW_LABELS"));
+    ui->actionBookmarks->setShortcut(ConfigShortcut("HK::VIEW_BOOKMARKS"));
+    ui->actionFunctions->setShortcut(ConfigShortcut("HK::VIEW_FUNCTIONS"));
 }
 
 //Reads recent files list from settings
@@ -581,6 +605,12 @@ void MainWindow::openAppearance()
 {
     AppearanceDialog appearance(this);
     appearance.exec();
+}
+
+void MainWindow::openShortcuts()
+{
+    ShortcutsDialog shortcuts(this);
+    shortcuts.exec();
 }
 
 void MainWindow::addRecentFile(QString file)
