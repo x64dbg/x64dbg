@@ -24,7 +24,7 @@ static char szIniFile[1024]="";
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
     if(!name) \
     { \
-        sprintf(szError, "Export \"%s\":\"%s\" could not be found!", szLib, #name); \
+        sprintf(szError, "Export %s:%s could not be found!", szLib, #name); \
         return szError; \
     }
 
@@ -48,8 +48,8 @@ BRIDGE_IMPEXP const char* BridgeInit()
 
     //GUI Load
     LOADLIBRARY(gui_lib);
-    LOADEXPORT(_gui_guiinit, "_gui_guiinit");
-    LOADEXPORT(_gui_sendmessage, "_gui_sendmessage");
+    LOADEXPORT(_gui_guiinit);
+    LOADEXPORT(_gui_sendmessage);
 
     //DBG Load
     LOADLIBRARY(dbg_lib);
