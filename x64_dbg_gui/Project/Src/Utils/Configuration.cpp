@@ -165,6 +165,42 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
 
+    // hotkeys settings
+    defaultShortcuts.insert(XH::FILE_OPEN,XH::Shortcut(XH::FILE_OPEN,tr("open file"),Qt::Key_F3));
+    defaultShortcuts.insert(XH::APP_EXIT,XH::Shortcut(XH::APP_EXIT,tr("exit app"),Qt::ALT+Qt::Key_X));
+
+    defaultShortcuts.insert(XH::VIEW_CPU,XH::Shortcut(XH::VIEW_CPU,tr("view cpu"),Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert(XH::VIEW_MEMORY,XH::Shortcut(XH::VIEW_MEMORY,tr("view memory map"),Qt::ALT+Qt::Key_M));
+    defaultShortcuts.insert(XH::VIEW_LOG,XH::Shortcut(XH::VIEW_LOG,tr("view log"),Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert(XH::VIEW_BREAKPOINTS,XH::Shortcut(XH::VIEW_BREAKPOINTS,tr("view breakpoint"),Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert(XH::VIEW_SCRIPT,XH::Shortcut(XH::VIEW_SCRIPT,tr("view script"),Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert(XH::VIEW_SYMINFO,XH::Shortcut(XH::VIEW_SYMINFO,tr("view symbolinfo"),Qt::CTRL+Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert(XH::VIEW_REFERENCES,XH::Shortcut(XH::VIEW_REFERENCES,tr("view references"),Qt::ALT+Qt::Key_R));
+    defaultShortcuts.insert(XH::VIEW_THREADS,XH::Shortcut(XH::VIEW_THREADS,tr("view threads"),Qt::ALT+Qt::Key_T));
+    defaultShortcuts.insert(XH::VIEW_PATCHES,XH::Shortcut(XH::VIEW_PATCHES,tr("view patches"),Qt::CTRL+Qt::Key_P));
+    defaultShortcuts.insert(XH::VIEW_COMMENTS,XH::Shortcut(XH::VIEW_COMMENTS,tr("view comments"),Qt::CTRL+Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert(XH::VIEW_LABELS,XH::Shortcut(XH::VIEW_LABELS,tr("view labels"),Qt::CTRL+Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert(XH::VIEW_BOOKMARKS,XH::Shortcut(XH::VIEW_BOOKMARKS,tr("view bookmarks"),Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert(XH::VIEW_FUNCTIONS,XH::Shortcut(XH::VIEW_FUNCTIONS,tr("view functions"),Qt::ALT+Qt::Key_F));
+
+    defaultShortcuts.insert(XH::DEBUG_RUN,XH::Shortcut(XH::DEBUG_RUN,tr("run debugger"),Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_SKIPEXC,XH::Shortcut(XH::DEBUG_SKIPEXC,tr("run debugger (skip exception)"),Qt::SHIFT+ Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_RUNUNTIL,XH::Shortcut(XH::DEBUG_RUNUNTIL,tr("run debugger until selection"),Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_PAUSE,XH::Shortcut(XH::DEBUG_PAUSE,tr("pause debugger"),Qt::Key_F12));
+    defaultShortcuts.insert(XH::DEBUG_RESTART,XH::Shortcut(XH::DEBUG_RESTART,tr("restart debugger"),Qt::CTRL+ Qt::Key_F2));
+    defaultShortcuts.insert(XH::DEBUG_CLOSE,XH::Shortcut(XH::DEBUG_CLOSE,tr("close debugger"),Qt::ALT+Qt::Key_X));
+    defaultShortcuts.insert(XH::DEBUG_STEPIN,XH::Shortcut(XH::DEBUG_STEPIN,tr("step into"),Qt::Key_F7));
+    defaultShortcuts.insert(XH::DEBUG_STEPINSKIP,XH::Shortcut(XH::DEBUG_STEPINSKIP,tr("step into (skip execptions)"),Qt::SHIFT+ Qt::Key_F7));
+    defaultShortcuts.insert(XH::DEBUG_STEPOVER,XH::Shortcut(XH::DEBUG_STEPOVER,tr("step over"),Qt::Key_F8));
+    defaultShortcuts.insert(XH::DEBUG_STEPOVERSKIP,XH::Shortcut(XH::DEBUG_STEPOVERSKIP,tr("step over (skip execption)"),Qt::SHIFT+ Qt::Key_F8));
+    defaultShortcuts.insert(XH::DEBUG_EXECTILL,XH::Shortcut(XH::DEBUG_EXECTILL,tr("execute debugger till return"),Qt::CTRL+Qt::Key_F9));
+    defaultShortcuts.insert(XH::DEBUG_EXECTILLSKIP,XH::Shortcut(XH::DEBUG_EXECTILLSKIP,tr("execute debugger till return"),Qt::CTRL+Qt::SHIFT+ Qt::Key_F9));
+    defaultShortcuts.insert(XH::DEBUG_COMMAND,XH::Shortcut(XH::DEBUG_COMMAND,tr("execute command"),Qt::CTRL+Qt::Key_Return));
+
+    //,,,,,,,,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
+
+    Shortcuts = defaultShortcuts;
+
     load();
     mPtr = this;
 }
@@ -174,12 +210,14 @@ Configuration *Config()
     return mPtr;
 }
 
+
 void Configuration::load()
 {
     readColors();
     readBools();
     readUints();
     readFonts();
+    readShortcuts();
 }
 
 void Configuration::save()
@@ -188,6 +226,7 @@ void Configuration::save()
     writeBools();
     writeUints();
     writeFonts();
+    writeShortcuts();
 }
 
 void Configuration::readColors()
@@ -299,7 +338,38 @@ void Configuration::writeFonts()
     emit fontsUpdated();
 }
 
-const QColor Configuration::getColor(const QString id)
+
+void Configuration::readShortcuts()
+{
+    Shortcuts = defaultShortcuts;
+    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+
+    while(it!=Shortcuts.end()){
+        const int id = it.value().Id;
+        QString key = shortcutFromConfig(id);
+        if(key != ""){
+            QKeySequence KeySequence(shortcutFromConfig(id));
+            Shortcuts[it.key()].Hotkey = KeySequence;
+        }
+        it++;
+
+    }
+
+    emit shortcutsUpdated();
+}
+void Configuration::writeShortcuts()
+{
+
+    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+
+    while(it!=Shortcuts.end()){
+        shortcutToConfig(it.value().Id,it.value().Hotkey);
+        it++;
+    }
+
+}
+
+const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
@@ -310,7 +380,7 @@ const QColor Configuration::getColor(const QString id)
     return Qt::black;
 }
 
-const bool Configuration::getBool(const QString category, const QString id)
+const bool Configuration::getBool(const QString category, const QString id) const
 {
     if(Bools.contains(category))
     {
@@ -350,7 +420,7 @@ void Configuration::setBool(const QString category, const QString id, const bool
     msg.exec();
 }
 
-const uint_t Configuration::getUint(const QString category, const QString id)
+const uint_t Configuration::getUint(const QString category, const QString id) const
 {
     if(Uints.contains(category))
     {
@@ -390,7 +460,7 @@ void Configuration::setUint(const QString category, const QString id, const uint
     msg.exec();
 }
 
-const QFont Configuration::getFont(const QString id)
+const QFont Configuration::getFont(const QString id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
@@ -403,6 +473,21 @@ const QFont Configuration::getFont(const QString id)
     ret.setStyleHint(QFont::Monospace);
     return ret;
 }
+
+const XH::Shortcut Configuration::getShortcut(const XH::ShortcutId key_id) const
+{
+    return Shortcuts.find(key_id).value();
+}
+
+void Configuration::setShortcut(const XH::ShortcutId key_id, const int key_sequence)
+{
+    XH::Shortcut sh = Shortcuts.find(key_id).value();
+    sh.Hotkey = QKeySequence(key_sequence);
+    Shortcuts.insert(key_id,sh);
+    emit shortcutsUpdated();
+}
+
+
 
 QColor Configuration::colorFromConfig(const QString id)
 {
@@ -523,4 +608,22 @@ QFont Configuration::fontFromConfig(const QString id)
 bool Configuration::fontToConfig(const QString id, const QFont font)
 {
     return BridgeSettingSet("Fonts", id.toUtf8().constData(), font.toString().toUtf8().constData());
+}
+
+QString Configuration::shortcutFromConfig(const int id)
+{
+    QString _id = QString("%1").arg(id);
+    char setting[MAX_SETTING_SIZE]="";
+    if(BridgeSettingGet("Shortcuts", _id.toUtf8().constData(), setting))
+    {
+        return QString(setting);
+    }
+    return "";
+}
+
+bool Configuration::shortcutToConfig(const int id, const QKeySequence shortcut)
+{
+    QString _id = QString("%1").arg(id);
+    QString _key = shortcut.toString(QKeySequence::NativeText);
+    return BridgeSettingSet("Shortcuts",_id.toUtf8().constData(),_key.toUtf8().constData());
 }

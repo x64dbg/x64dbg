@@ -20,6 +20,7 @@
 #include "tabwidget.h"
 #include "Configuration.h"
 #include "AppearanceDialog.h"
+#include "ShortcutsDialog.h"
 #include "CloseDialog.h"
 #include "PatchDialog.h"
 #include "UpdateChecker.h"
@@ -88,7 +89,8 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
-
+    void refreshShortcuts();
+    void openShortcuts();
 private:
     Ui::MainWindow *ui;
     CloseDialog* mCloseDialog;
@@ -149,6 +151,7 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
+
 };
 
 #endif // MAINWINDOW_H
