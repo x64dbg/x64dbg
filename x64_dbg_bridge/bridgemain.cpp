@@ -14,6 +14,16 @@ static char szIniFile[1024]="";
 #define gui_lib "x32_gui.dll"
 #endif // _WIN64
 
+#define LOADLIBRARY(var, name) \
+    var=LoadLibraryA(name); \
+    if(!var) \
+        return "Error loading library \""name"\"!"
+
+#define LOADEXPORT(var, type, lib, name) \
+    var=(type)GetProcAddress(lib, name); \
+    if(!var) \
+        return "Export \""name"\" could not be found!"
+
 //Bridge
 BRIDGE_IMPEXP const char* BridgeInit()
 {
@@ -27,103 +37,34 @@ BRIDGE_IMPEXP const char* BridgeInit()
         strcat(szIniFile, ".ini");
     else
         strcpy(&szIniFile[len], ".ini");
-    ///GUI Load
-    hInstGui=LoadLibraryA(gui_lib); //Sigma
-    if(!hInstGui)
-        return "Error loading GUI library ("gui_lib")!";
-    //_gui_guiinit
-    _gui_guiinit=(GUIGUIINIT)GetProcAddress(hInstGui, "_gui_guiinit");
-    if(!_gui_guiinit)
-        return "Export \"_gui_guiinit\" could not be found!";
-    //_gui_sendmessage;
-    _gui_sendmessage=(GUISENDMESSAGE)GetProcAddress(hInstGui, "_gui_sendmessage");
-    if(!_gui_sendmessage)
-        return "Export \"_gui_sendmessage\" could not be found!";
 
-    ///DBG Load
-    hInstDbg=LoadLibraryA(dbg_lib); //Mr. eXoDia
-    if(!hInstDbg)
-        return "Error loading debugger library ("dbg_lib")!";
-    //_dbg_dbginit
-    _dbg_dbginit=(DBGDBGINIT)GetProcAddress(hInstDbg, "_dbg_dbginit");
-    if(!_dbg_dbginit)
-        return "Export \"_dbg_dbginit\" could not be found!";
-    //_dbg_memfindbaseaddr
-    _dbg_memfindbaseaddr=(DBGMEMFINDBASEADDR)GetProcAddress(hInstDbg, "_dbg_memfindbaseaddr");
-    if(!_dbg_memfindbaseaddr)
-        return "Export \"_dbg_memfindbaseaddr\" could not be found!";
-    //_dbg_memread
-    _dbg_memread=(DBGMEMREAD)GetProcAddress(hInstDbg, "_dbg_memread");
-    if(!_dbg_memread)
-        return "Export \"_dbg_memread\" could not be found!";
-    //_dbg_memwrite
-    _dbg_memwrite=(DBGMEMWRITE)GetProcAddress(hInstDbg, "_dbg_memwrite");
-    if(!_dbg_memwrite)
-        return "Export \"_dbg_memwrite\" could not be found!";
-    //_dbg_dbgcmdexec
-    _dbg_dbgcmdexec=(DBGDBGCMDEXEC)GetProcAddress(hInstDbg, "_dbg_dbgcmdexec");
-    if(!_dbg_dbgcmdexec)
-        return "Export \"_dbg_dbgcmdexec\" could not be found!";
-    //_dbg_memmap
-    _dbg_memmap=(DBGMEMMAP)GetProcAddress(hInstDbg, "_dbg_memmap");
-    if(!_dbg_memmap)
-        return "Export \"_dbg_memmap\" could not be found!";
-    //_dbg_dbgexitsignal
-    _dbg_dbgexitsignal=(DBGDBGEXITSIGNAL)GetProcAddress(hInstDbg, "_dbg_dbgexitsignal");
-    if(!_dbg_dbgexitsignal)
-        return "Export \"_dbg_dbgexitsignal\" could not be found!";
-    //_dbg_valfromstring
-    _dbg_valfromstring=(DBGVALFROMSTRING)GetProcAddress(hInstDbg, "_dbg_valfromstring");
-    if(!_dbg_valfromstring)
-        return "Export \"_dbg_valfromstring\" could not be found!";
-    //_dbg_isdebugging
-    _dbg_isdebugging=(DBGISDEBUGGING)GetProcAddress(hInstDbg, "_dbg_isdebugging");
-    if(!_dbg_isdebugging)
-        return "Export \"_dbg_isdebugging\" could not be found!";
-    //_dbg_isjumpgoingtoexecute
-    _dbg_isjumpgoingtoexecute=(DBGISJUMPGOINGTOEXECUTE)GetProcAddress(hInstDbg, "_dbg_isjumpgoingtoexecute");
-    if(!_dbg_isjumpgoingtoexecute)
-        return "Export \"_dbg_isjumpgoingtoexecute\" could not be found!";
-    //_dbg_addrinfoget
-    _dbg_addrinfoget=(DBGADDRINFOGET)GetProcAddress(hInstDbg, "_dbg_addrinfoget");
-    if(!_dbg_addrinfoget)
-        return "Export \"_dbg_addrinfoget\" could not be found!";
-    //_dbg_addrinfoset
-    _dbg_addrinfoset=(DBGADDRINFOSET)GetProcAddress(hInstDbg, "_dbg_addrinfoset");
-    if(!_dbg_addrinfoset)
-        return "Export \"_dbg_addrinfoset\" could not be found!";
-    //_dbg_bpgettypeat
-    _dbg_bpgettypeat=(DBGBPGETTYPEAT)GetProcAddress(hInstDbg, "_dbg_bpgettypeat");
-    if(!_dbg_bpgettypeat)
-        return "Export \"_dbg_bpgettypeat\" could not be found!";
-    //_dbg_getregdump
-    _dbg_getregdump=(DBGGETREGDUMP)GetProcAddress(hInstDbg, "_dbg_getregdump");
-    if(!_dbg_getregdump)
-        return "Export \"_dbg_getregdump\" could not be found!";
-    //_dbg_valtostring
-    _dbg_valtostring=(DBGVALTOSTRING)GetProcAddress(hInstDbg, "_dbg_valtostring");
-    if(!_dbg_valtostring)
-        return "Export \"_dbg_valtostring\" could not be found!";
-    //_dbg_memisvalidreadptr
-    _dbg_memisvalidreadptr=(DBGMEMISVALIDREADPTR)GetProcAddress(hInstDbg, "_dbg_memisvalidreadptr");
-    if(!_dbg_memisvalidreadptr)
-        return "Export \"_dbg_memisvalidreadptr\" could not be found!";
-    //_dbg_getbplist
-    _dbg_getbplist=(DBGGETBPLIST)GetProcAddress(hInstDbg, "_dbg_getbplist");
-    if(!_dbg_getbplist)
-        return "Export \"_dbg_getbplist\" could not be found!";
-    //_dbg_dbgcmddirectexec
-    _dbg_dbgcmddirectexec=(DBGDBGCMDEXECDIRECT)GetProcAddress(hInstDbg, "_dbg_dbgcmddirectexec");
-    if(!_dbg_dbgcmddirectexec)
-        return "Export \"_dbg_dbgcmddirectexec\" could not be found!";
-    //_dbg_getbranchdestination
-    _dbg_getbranchdestination=(DBGGETBRANCHDESTINATION)GetProcAddress(hInstDbg, "_dbg_getbranchdestination");
-    if(!_dbg_getbranchdestination)
-        return "Export \"_dbg_getbranchdestination\" could not be found!";
-    //_dbg_sendmessage
-    _dbg_sendmessage=(DBGSENDMESSAGE)GetProcAddress(hInstDbg, "_dbg_sendmessage");
-    if(!_dbg_sendmessage)
-        return "Export \"_dbg_sendmessage\" could not be found!";
+    //GUI Load
+    LOADLIBRARY(hInstGui, gui_lib);
+    LOADEXPORT(_gui_guiinit, GUIGUIINIT, hInstGui, "_gui_guiinit");
+    LOADEXPORT(_gui_sendmessage, GUISENDMESSAGE, hInstGui, "_gui_sendmessage");
+
+    //DBG Load
+    LOADLIBRARY(hInstDbg, dbg_lib);
+    LOADEXPORT(_dbg_dbginit, DBGDBGINIT, hInstDbg, "_dbg_dbginit");
+    LOADEXPORT(_dbg_memfindbaseaddr, DBGMEMFINDBASEADDR, hInstDbg, "_dbg_memfindbaseaddr");
+    LOADEXPORT(_dbg_memread, DBGMEMREAD, hInstDbg, "_dbg_memread");
+    LOADEXPORT(_dbg_memwrite, DBGMEMWRITE, hInstDbg, "_dbg_memwrite");
+    LOADEXPORT(_dbg_dbgcmdexec, DBGDBGCMDEXEC, hInstDbg, "_dbg_dbgcmdexec");
+    LOADEXPORT(_dbg_memmap, DBGMEMMAP, hInstDbg, "_dbg_memmap");
+    LOADEXPORT(_dbg_dbgexitsignal, DBGDBGEXITSIGNAL, hInstDbg, "_dbg_dbgexitsignal");
+    LOADEXPORT(_dbg_valfromstring, DBGVALFROMSTRING, hInstDbg, "_dbg_valfromstring");
+    LOADEXPORT(_dbg_isdebugging, DBGISDEBUGGING, hInstDbg, "_dbg_isdebugging");
+    LOADEXPORT(_dbg_isjumpgoingtoexecute, DBGISJUMPGOINGTOEXECUTE, hInstDbg, "_dbg_isjumpgoingtoexecute");
+    LOADEXPORT(_dbg_addrinfoget, DBGADDRINFOGET, hInstDbg, "_dbg_addrinfoget");
+    LOADEXPORT(_dbg_addrinfoset, DBGADDRINFOSET, hInstDbg, "_dbg_addrinfoset");
+    LOADEXPORT(_dbg_bpgettypeat, DBGBPGETTYPEAT, hInstDbg, "_dbg_bpgaettypeat");
+    LOADEXPORT(_dbg_getregdump, DBGGETREGDUMP, hInstDbg, "_dbg_getregdump");
+    LOADEXPORT(_dbg_valtostring, DBGVALTOSTRING, hInstDbg, "_dbg_valtostring");
+    LOADEXPORT(_dbg_memisvalidreadptr, DBGMEMISVALIDREADPTR, hInstDbg, "_dbg_memisvalidreadptr");
+    LOADEXPORT(_dbg_getbplist, DBGGETBPLIST, hInstDbg, "_dbg_getbplist");
+    LOADEXPORT(_dbg_dbgcmddirectexec, DBGDBGCMDEXECDIRECT, hInstDbg, "_dbg_dbgcmddirectexec");
+    LOADEXPORT(_dbg_getbranchdestination, DBGGETBRANCHDESTINATION, hInstDbg, "_dbg_getbranchdestination");
+    LOADEXPORT(_dbg_sendmessage, DBGSENDMESSAGE, hInstDbg, "_dbg_sendmessage");
     return 0;
 }
 
