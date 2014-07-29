@@ -623,6 +623,10 @@
    </property>
   </action>
   <action name="actionShortcuts">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/shortcut.png</normaloff>:/icons/images/shortcut.png</iconset>
+   </property>
    <property name="text">
     <string>Shortcuts</string>
    </property>
