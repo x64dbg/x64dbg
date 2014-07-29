@@ -166,6 +166,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString,QString*)), this, SLOT(getStrWindow(QString,QString*)));
 
+    connect(Config(),SIGNAL(shortcutsUpdated()),this, SLOT(refreshShortcuts()));
+
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException=0;
@@ -224,24 +226,24 @@ void MainWindow::setTab(QWidget* widget)
 }
 
 void MainWindow::refreshShortcuts(){
-    ui->actionOpen->setShortcut(ConfigShortcut("HK::FILE_OPEN"));
-    ui->actionClose->setShortcut(ConfigShortcut("HK::APP_EXIT"));
+    ui->actionOpen->setShortcut(ConfigShortcut(XH::FILE_OPEN));
+    ui->actionClose->setShortcut(ConfigShortcut(XH::APP_EXIT));
 
-    ui->actionRun->setShortcut(ConfigShortcut("HK::DBG_RUN"));
+    ui->actionRun->setShortcut(ConfigShortcut(XH::DBG_RUN));
 
-    ui->actionCpu->setShortcut(ConfigShortcut("HK::VIEW_CPU"));
-    ui->actionMemoryMap->setShortcut(ConfigShortcut("HK::VIEW_MEMORY"));
-    ui->actionLog->setShortcut(ConfigShortcut("HK::VIEW_LOG"));
-    ui->actionBreakpoints->setShortcut(ConfigShortcut("HK::VIEW_BREAKPOINTS"));
-    ui->actionScript->setShortcut(ConfigShortcut("HK::VIEW_SCRIPT"));
-    ui->actionSymbolInfo->setShortcut(ConfigShortcut("HK::VIEW_SYMINFO"));
-    ui->actionReferences->setShortcut(ConfigShortcut("HK::VIEW_REFERENCES"));
-    ui->actionThreads->setShortcut(ConfigShortcut("HK::VIEW_THREADS"));
-    ui->actionPatches->setShortcut(ConfigShortcut("HK::VIEW_PATCHES"));
-    ui->actionComments->setShortcut(ConfigShortcut("HK::VIEW_COMMENTS"));
-    ui->actionLabels->setShortcut(ConfigShortcut("HK::VIEW_LABELS"));
-    ui->actionBookmarks->setShortcut(ConfigShortcut("HK::VIEW_BOOKMARKS"));
-    ui->actionFunctions->setShortcut(ConfigShortcut("HK::VIEW_FUNCTIONS"));
+    ui->actionCpu->setShortcut(ConfigShortcut(XH::VIEW_CPU));
+    ui->actionMemoryMap->setShortcut(ConfigShortcut(XH::VIEW_MEMORY));
+    ui->actionLog->setShortcut(ConfigShortcut(XH::VIEW_LOG));
+    ui->actionBreakpoints->setShortcut(ConfigShortcut(XH::VIEW_BREAKPOINTS));
+    ui->actionScript->setShortcut(ConfigShortcut(XH::VIEW_SCRIPT));
+    ui->actionSymbolInfo->setShortcut(ConfigShortcut(XH::VIEW_SYMINFO));
+    ui->actionReferences->setShortcut(ConfigShortcut(XH::VIEW_REFERENCES));
+    ui->actionThreads->setShortcut(ConfigShortcut(XH::VIEW_THREADS));
+    ui->actionPatches->setShortcut(ConfigShortcut(XH::VIEW_PATCHES));
+    ui->actionComments->setShortcut(ConfigShortcut(XH::VIEW_COMMENTS));
+    ui->actionLabels->setShortcut(ConfigShortcut(XH::VIEW_LABELS));
+    ui->actionBookmarks->setShortcut(ConfigShortcut(XH::VIEW_BOOKMARKS));
+    ui->actionFunctions->setShortcut(ConfigShortcut(XH::VIEW_FUNCTIONS));
 }
 
 //Reads recent files list from settings

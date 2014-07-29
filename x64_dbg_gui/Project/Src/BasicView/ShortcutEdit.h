@@ -6,11 +6,17 @@
 class ShortcutEdit : public QLineEdit
 {
     Q_OBJECT
+    QKeySequence key;
+    int keyInt;
 public:
     explicit ShortcutEdit(QWidget *parent = 0);
 
-signals:
+    const QKeySequence getKeysequence() const;
 
+public slots:
+    void setErrorState(bool error);
+signals:
+    void askForSave();
 protected:
     void keyPressEvent ( QKeyEvent * event );
 
