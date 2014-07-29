@@ -52,7 +52,6 @@ private slots:
     void on_listColorNames_itemSelectionChanged();
     void defaultValueSlot();
     void currentSettingSlot();
-    void on_buttonCancel_clicked();
     void on_fontAbstractTables_currentFontChanged(const QFont &f);
     void on_fontAbstractTablesStyle_currentIndexChanged(int index);
     void on_fontAbstractTablesSize_currentIndexChanged(const QString &arg1);
@@ -73,6 +72,7 @@ private slots:
     void on_fontHexEditSize_currentIndexChanged(const QString &arg1);
     void on_buttonApplicationFont_clicked();
     void on_buttonFontDefaults_clicked();
+    void rejectedSlot();
 
 private:
     Ui::AppearanceDialog *ui;

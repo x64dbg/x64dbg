@@ -1,12 +1,7 @@
 #include "ShortcutsDialog.h"
 #include "ui_ShortcutsDialog.h"
 
-
-
-
-ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ShortcutsDialog)
+ShortcutsDialog::ShortcutsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::ShortcutsDialog)
 {
     ui->setupUi(this);
     //set window flags
@@ -39,11 +34,11 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
         tbl->setItem(j, 1, shortcutKey);
     }
 
-    connect(ui->tblShortcuts, SIGNAL(clicked(QModelIndex)), this, SLOT(syncTextfield()));
-
+    connect(ui->tblShortcuts, SIGNAL(itemSelectionChanged()), this, SLOT(syncTextfield()));
     connect(ui->shortcutEdit, SIGNAL(askForSave()), this, SLOT(updateShortcut()));
-
+    connect(this, SIGNAL(rejected()), this, SLOT(rejectedSlot()));
 }
+
 void ShortcutsDialog::updateShortcut()
 {
     const QKeySequence newKey = ui->shortcutEdit->getKeysequence();
@@ -97,7 +92,7 @@ void ShortcutsDialog::syncTextfield()
     }
     ui->shortcutEdit->setErrorState(false);
     ui->shortcutEdit->setText(currentShortcut.Hotkey.toString(QKeySequence::NativeText));
-
+    ui->shortcutEdit->setFocus();
 }
 
 ShortcutsDialog::~ShortcutsDialog()
@@ -105,11 +100,17 @@ ShortcutsDialog::~ShortcutsDialog()
     delete ui;
 }
 
-void ShortcutsDialog::on_buttonBox_clicked(QAbstractButton *button)
+void ShortcutsDialog::on_btnSave_clicked()
 {
+    Config()->save();
     QMessageBox msg(QMessageBox::Information, "Information", "Shortcuts updated!\n\nYou may need to restart the debugger for all changes to take in effect.");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
+}
+
+void ShortcutsDialog::rejectedSlot()
+{
+    Config()->readShortcuts();
 }

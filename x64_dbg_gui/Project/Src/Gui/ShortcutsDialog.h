@@ -29,10 +29,12 @@ protected slots:
     void updateShortcut();
 
 private slots:
-    void on_buttonBox_clicked(QAbstractButton *button);
+    void on_btnSave_clicked();
+    void rejectedSlot();
 
 private:
     Ui::ShortcutsDialog *ui;
+    QMap<QString, Configuration::Shortcut> ShortcutsBackup;
 };
 
 #endif // SHORTCUTSDIALOG_H

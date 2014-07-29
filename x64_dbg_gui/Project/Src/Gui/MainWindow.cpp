@@ -260,6 +260,17 @@ void MainWindow::refreshShortcuts()
     ui->actionCommand->setShortcut(ConfigShortcut("DebugCommand"));
 
     ui->actionScylla->setShortcut(ConfigShortcut("PluginsScylla"));
+
+    ui->actionSettings->setShortcut(ConfigShortcut("OptionsPreferences"));
+    ui->actionAppearance->setShortcut(ConfigShortcut("OptionsAppearance"));
+    ui->actionShortcuts->setShortcut(ConfigShortcut("OptionsShortcuts"));
+
+    ui->actionAbout->setShortcut(ConfigShortcut("HelpAbout"));
+    ui->actionDonate->setShortcut(ConfigShortcut("HelpDonate"));
+    ui->actionCheckUpdates->setShortcut(ConfigShortcut("HelpCheckForUpdates"));
+
+    ui->actionStrings->setShortcut(ConfigShortcut("ActionFindStrings"));
+    ui->actionCalls->setShortcut(ConfigShortcut("ActionFindIntermodularCalls"));
 }
 
 //Reads recent files list from settings

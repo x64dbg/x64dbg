@@ -200,6 +200,17 @@ Configuration::Configuration() : QObject()
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I"));
 
+    defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences")));
+    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Preferences")));
+    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Preferences")));
+
+    defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About")));
+    defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate")));
+    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates")));
+
+    defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings")));
+    defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls")));
+
     Shortcuts = defaultShortcuts;
 
     load();
@@ -349,13 +360,16 @@ void Configuration::readShortcuts()
     {
         const QString id = it.key();
         QString key = shortcutFromConfig(id);
-        if(key != "")
+        if(key != "NOT_SET")
         {
-            QKeySequence KeySequence(shortcutFromConfig(id));
-            Shortcuts[it.key()].Hotkey = KeySequence;
+            if(key != "")
+            {
+                QKeySequence KeySequence(key);
+                Shortcuts[it.key()].Hotkey = KeySequence;
+            }
+            else
+                Shortcuts[it.key()].Hotkey = QKeySequence();
         }
-        else
-            Shortcuts[it.key()].Hotkey = QKeySequence();
         it++;
     }
     emit shortcutsUpdated();
@@ -642,7 +656,7 @@ QString Configuration::shortcutFromConfig(const QString id)
     {
         return QString(setting);
     }
-    return "";
+    return "NOT_SET";
 }
 
 bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)

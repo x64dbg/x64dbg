@@ -21,6 +21,7 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     fontMap=&Config()->Fonts;
     fontBackupMap=*fontMap;
     fontInit();
+    connect(this, SIGNAL(rejected()), this, SLOT(rejectedSlot()));
 }
 
 AppearanceDialog::~AppearanceDialog()
@@ -324,15 +325,6 @@ void AppearanceDialog::on_buttonSave_clicked()
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
-    GuiUpdateAllViews();
-}
-
-void AppearanceDialog::on_buttonCancel_clicked()
-{
-    Config()->Colors=colorBackupMap;
-    Config()->writeColors();
-    Config()->Fonts=fontBackupMap;
-    Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
@@ -926,6 +918,15 @@ void AppearanceDialog::on_buttonFontDefaults_clicked()
     isInit=true;
     fontInit();
     isInit=false;
+    Config()->writeFonts();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::rejectedSlot()
+{
+    Config()->Colors=colorBackupMap;
+    Config()->writeColors();
+    Config()->Fonts=fontBackupMap;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
