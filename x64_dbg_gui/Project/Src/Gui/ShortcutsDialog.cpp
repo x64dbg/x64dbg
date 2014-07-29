@@ -53,10 +53,7 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
 
 }
 void ShortcutsDialog::updateShortcut(){
-
-
        const QKeySequence newKey = shortcutfield->getKeysequence();
-
        if(newKey != currentShortcut.Hotkey){
            bool good=true;
            foreach(XH::Shortcut S,Config()->Shortcuts ){
@@ -65,7 +62,6 @@ void ShortcutsDialog::updateShortcut(){
                    break;
                }
            }
-
            if(good){
                Config()->setShortcut(currentShortcut.Id,newKey);
                ui->tblShortcuts->item(currentRow,2)->setText(newKey.toString(QKeySequence::NativeText));
@@ -73,28 +69,17 @@ void ShortcutsDialog::updateShortcut(){
            }else{
                 shortcutfield->setErrorState(true);
            }
-
-
-
        }
-
-
-
 }
 
 void ShortcutsDialog::syncTextfield(){
-
-
     QModelIndexList indexes = ui->tblShortcuts->selectionModel()->selectedRows();
     if(indexes.count()<1)
         return;
-
     currentRow = indexes.at(0).row();
     currentShortcut = Config()->getShortcut(static_cast<XH::ShortcutId>(indexes.at(0).row()));
     shortcutfield->setErrorState(false);
     shortcutfield->setText(currentShortcut.Hotkey.toString(QKeySequence::NativeText));
-
-
 
 }
 

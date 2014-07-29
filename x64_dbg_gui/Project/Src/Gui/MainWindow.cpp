@@ -229,8 +229,6 @@ void MainWindow::refreshShortcuts(){
     ui->actionOpen->setShortcut(ConfigShortcut(XH::FILE_OPEN));
     ui->actionClose->setShortcut(ConfigShortcut(XH::APP_EXIT));
 
-    ui->actionRun->setShortcut(ConfigShortcut(XH::DBG_RUN));
-
     ui->actionCpu->setShortcut(ConfigShortcut(XH::VIEW_CPU));
     ui->actionMemoryMap->setShortcut(ConfigShortcut(XH::VIEW_MEMORY));
     ui->actionLog->setShortcut(ConfigShortcut(XH::VIEW_LOG));
@@ -244,6 +242,21 @@ void MainWindow::refreshShortcuts(){
     ui->actionLabels->setShortcut(ConfigShortcut(XH::VIEW_LABELS));
     ui->actionBookmarks->setShortcut(ConfigShortcut(XH::VIEW_BOOKMARKS));
     ui->actionFunctions->setShortcut(ConfigShortcut(XH::VIEW_FUNCTIONS));
+
+    ui->actionRun->setShortcut(ConfigShortcut(XH::DEBUG_RUN));
+    ui->actioneRun->setShortcut(ConfigShortcut(XH::DEBUG_SKIPEXC));
+    ui->actionRunSelection->setShortcut(ConfigShortcut(XH::DEBUG_RUNUNTIL));
+    ui->actionPause->setShortcut(ConfigShortcut(XH::DEBUG_PAUSE));
+    ui->actionRestart->setShortcut(ConfigShortcut(XH::DEBUG_RESTART));
+    ui->actionClose->setShortcut(ConfigShortcut(XH::DEBUG_CLOSE));
+    ui->actionStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPIN));
+    ui->actioneStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPINSKIP));
+    ui->actionStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVER));
+    ui->actioneStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVERSKIP));
+    ui->actionRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILL));
+    ui->actioneRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILLSKIP));
+    ui->actionCommand->setShortcut(ConfigShortcut(XH::DEBUG_COMMAND));
+
 }
 
 //Reads recent files list from settings

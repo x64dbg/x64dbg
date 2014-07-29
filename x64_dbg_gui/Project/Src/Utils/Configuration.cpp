@@ -166,9 +166,9 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Application", QApplication::font());
 
     // hotkeys settings
-    defaultShortcuts.insert(XH::DBG_RUN,XH::Shortcut(XH::DBG_RUN,tr("run debugger"),Qt::Key_F4));
     defaultShortcuts.insert(XH::FILE_OPEN,XH::Shortcut(XH::FILE_OPEN,tr("open file"),Qt::Key_F3));
     defaultShortcuts.insert(XH::APP_EXIT,XH::Shortcut(XH::APP_EXIT,tr("exit app"),Qt::ALT+Qt::Key_X));
+
     defaultShortcuts.insert(XH::VIEW_CPU,XH::Shortcut(XH::VIEW_CPU,tr("view cpu"),Qt::ALT+Qt::Key_C));
     defaultShortcuts.insert(XH::VIEW_MEMORY,XH::Shortcut(XH::VIEW_MEMORY,tr("view memory map"),Qt::ALT+Qt::Key_M));
     defaultShortcuts.insert(XH::VIEW_LOG,XH::Shortcut(XH::VIEW_LOG,tr("view log"),Qt::ALT+Qt::Key_L));
@@ -182,6 +182,22 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert(XH::VIEW_LABELS,XH::Shortcut(XH::VIEW_LABELS,tr("view labels"),Qt::CTRL+Qt::ALT+Qt::Key_L));
     defaultShortcuts.insert(XH::VIEW_BOOKMARKS,XH::Shortcut(XH::VIEW_BOOKMARKS,tr("view bookmarks"),Qt::ALT+Qt::Key_B));
     defaultShortcuts.insert(XH::VIEW_FUNCTIONS,XH::Shortcut(XH::VIEW_FUNCTIONS,tr("view functions"),Qt::ALT+Qt::Key_F));
+
+    defaultShortcuts.insert(XH::DEBUG_RUN,XH::Shortcut(XH::DEBUG_RUN,tr("run debugger"),Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_SKIPEXC,XH::Shortcut(XH::DEBUG_SKIPEXC,tr("run debugger (skip exception)"),Qt::SHIFT+ Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_RUNUNTIL,XH::Shortcut(XH::DEBUG_RUNUNTIL,tr("run debugger until selection"),Qt::Key_F4));
+    defaultShortcuts.insert(XH::DEBUG_PAUSE,XH::Shortcut(XH::DEBUG_PAUSE,tr("pause debugger"),Qt::Key_F12));
+    defaultShortcuts.insert(XH::DEBUG_RESTART,XH::Shortcut(XH::DEBUG_RESTART,tr("restart debugger"),Qt::CTRL+ Qt::Key_F2));
+    defaultShortcuts.insert(XH::DEBUG_CLOSE,XH::Shortcut(XH::DEBUG_CLOSE,tr("close debugger"),Qt::ALT+Qt::Key_X));
+    defaultShortcuts.insert(XH::DEBUG_STEPIN,XH::Shortcut(XH::DEBUG_STEPIN,tr("step into"),Qt::Key_F7));
+    defaultShortcuts.insert(XH::DEBUG_STEPINSKIP,XH::Shortcut(XH::DEBUG_STEPINSKIP,tr("step into (skip execptions)"),Qt::SHIFT+ Qt::Key_F7));
+    defaultShortcuts.insert(XH::DEBUG_STEPOVER,XH::Shortcut(XH::DEBUG_STEPOVER,tr("step over"),Qt::Key_F8));
+    defaultShortcuts.insert(XH::DEBUG_STEPOVERSKIP,XH::Shortcut(XH::DEBUG_STEPOVERSKIP,tr("step over (skip execption)"),Qt::SHIFT+ Qt::Key_F8));
+    defaultShortcuts.insert(XH::DEBUG_EXECTILL,XH::Shortcut(XH::DEBUG_EXECTILL,tr("execute debugger till return"),Qt::CTRL+Qt::Key_F9));
+    defaultShortcuts.insert(XH::DEBUG_EXECTILLSKIP,XH::Shortcut(XH::DEBUG_EXECTILLSKIP,tr("execute debugger till return"),Qt::CTRL+Qt::SHIFT+ Qt::Key_F9));
+    defaultShortcuts.insert(XH::DEBUG_COMMAND,XH::Shortcut(XH::DEBUG_COMMAND,tr("execute command"),Qt::CTRL+Qt::Key_Return));
+
+    //,,,,,,,,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
 
     Shortcuts = defaultShortcuts;
 

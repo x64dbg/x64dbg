@@ -20,11 +20,11 @@
 
 
 
-// X64dbgHotkeys
+// X64RUNHotkeys
 // ^     ^
 namespace XH{
-enum ShortcutId{DBG_RUN,
-                FILE_OPEN,
+enum ShortcutId{
+                FILE_OPEN=0,
                 APP_EXIT,
                 VIEW_CPU,
                 VIEW_MEMORY,
@@ -38,7 +38,8 @@ enum ShortcutId{DBG_RUN,
                 VIEW_COMMENTS,
                 VIEW_LABELS,
                 VIEW_BOOKMARKS,
-                VIEW_FUNCTIONS
+                VIEW_FUNCTIONS,
+                DEBUG_RUN, DEBUG_SKIPEXC,DEBUG_RUNUNTIL,DEBUG_PAUSE,DEBUG_RESTART,DEBUG_CLOSE,DEBUG_STEPIN,DEBUG_STEPINSKIP,DEBUG_STEPOVER,DEBUG_STEPOVERSKIP,DEBUG_EXECTILL,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
                };
 
 struct Shortcut{
