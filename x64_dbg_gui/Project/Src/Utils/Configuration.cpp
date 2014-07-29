@@ -166,23 +166,22 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Application", QApplication::font());
 
     // hotkeys settings
-    defaultShortcuts.insert("HK::DBG_RUN",QKeySequence(Qt::Key_F4));
-    defaultShortcuts.insert("HK::FILE_OPEN",QKeySequence(Qt::Key_F3));
-    defaultShortcuts.insert("HK::APP_EXIT",QKeySequence(Qt::ALT+Qt::Key_X));
-
-    defaultShortcuts.insert("HK::VIEW_CPU",QKeySequence(Qt::ALT+Qt::Key_C));
-    defaultShortcuts.insert("HK::VIEW_MEMORY",QKeySequence(Qt::ALT+Qt::Key_M));
-    defaultShortcuts.insert("HK::VIEW_LOG",QKeySequence(Qt::ALT+Qt::Key_L));
-    defaultShortcuts.insert("HK::VIEW_BREAKPOINTS",QKeySequence(Qt::ALT+Qt::Key_B));
-    defaultShortcuts.insert("HK::VIEW_SCRIPT",QKeySequence(Qt::ALT+Qt::Key_S));
-    defaultShortcuts.insert("HK::VIEW_SYMINFO",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_S));
-    defaultShortcuts.insert("HK::VIEW_REFERENCES",QKeySequence(Qt::ALT+Qt::Key_R));
-    defaultShortcuts.insert("HK::VIEW_THREADS",QKeySequence(Qt::ALT+Qt::Key_T));
-    defaultShortcuts.insert("HK::VIEW_PATCHES",QKeySequence(Qt::CTRL+Qt::Key_P));
-    defaultShortcuts.insert("HK::VIEW_COMMENTS",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_C));
-    defaultShortcuts.insert("HK::VIEW_LABELS",QKeySequence(Qt::CTRL+Qt::ALT+Qt::Key_L));
-    defaultShortcuts.insert("HK::VIEW_BOOKMARKS",QKeySequence(Qt::ALT+Qt::Key_B));
-    defaultShortcuts.insert("HK::VIEW_FUNCTIONS",QKeySequence(Qt::ALT+Qt::Key_F));
+    defaultShortcuts.insert(XH::DBG_RUN,XH::Shortcut(XH::DBG_RUN,tr("run debugger"),Qt::Key_F4));
+    defaultShortcuts.insert(XH::FILE_OPEN,XH::Shortcut(XH::FILE_OPEN,tr("open file"),Qt::Key_F3));
+    defaultShortcuts.insert(XH::APP_EXIT,XH::Shortcut(XH::APP_EXIT,tr("exit app"),Qt::ALT+Qt::Key_X));
+    defaultShortcuts.insert(XH::VIEW_CPU,XH::Shortcut(XH::VIEW_CPU,tr("view cpu"),Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert(XH::VIEW_MEMORY,XH::Shortcut(XH::VIEW_MEMORY,tr("view memory map"),Qt::ALT+Qt::Key_M));
+    defaultShortcuts.insert(XH::VIEW_LOG,XH::Shortcut(XH::VIEW_LOG,tr("view log"),Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert(XH::VIEW_BREAKPOINTS,XH::Shortcut(XH::VIEW_BREAKPOINTS,tr("view breakpoint"),Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert(XH::VIEW_SCRIPT,XH::Shortcut(XH::VIEW_SCRIPT,tr("view script"),Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert(XH::VIEW_SYMINFO,XH::Shortcut(XH::VIEW_SYMINFO,tr("view symbolinfo"),Qt::CTRL+Qt::ALT+Qt::Key_S));
+    defaultShortcuts.insert(XH::VIEW_REFERENCES,XH::Shortcut(XH::VIEW_REFERENCES,tr("view references"),Qt::ALT+Qt::Key_R));
+    defaultShortcuts.insert(XH::VIEW_THREADS,XH::Shortcut(XH::VIEW_THREADS,tr("view threads"),Qt::ALT+Qt::Key_T));
+    defaultShortcuts.insert(XH::VIEW_PATCHES,XH::Shortcut(XH::VIEW_PATCHES,tr("view patches"),Qt::CTRL+Qt::Key_P));
+    defaultShortcuts.insert(XH::VIEW_COMMENTS,XH::Shortcut(XH::VIEW_COMMENTS,tr("view comments"),Qt::CTRL+Qt::ALT+Qt::Key_C));
+    defaultShortcuts.insert(XH::VIEW_LABELS,XH::Shortcut(XH::VIEW_LABELS,tr("view labels"),Qt::CTRL+Qt::ALT+Qt::Key_L));
+    defaultShortcuts.insert(XH::VIEW_BOOKMARKS,XH::Shortcut(XH::VIEW_BOOKMARKS,tr("view bookmarks"),Qt::ALT+Qt::Key_B));
+    defaultShortcuts.insert(XH::VIEW_FUNCTIONS,XH::Shortcut(XH::VIEW_FUNCTIONS,tr("view functions"),Qt::ALT+Qt::Key_F));
 
     Shortcuts = defaultShortcuts;
 
@@ -202,6 +201,7 @@ void Configuration::load()
     readBools();
     readUints();
     readFonts();
+    readShortcuts();
 }
 
 void Configuration::save()
@@ -210,6 +210,7 @@ void Configuration::save()
     writeBools();
     writeUints();
     writeFonts();
+    writeShortcuts();
 }
 
 void Configuration::readColors()
@@ -321,6 +322,37 @@ void Configuration::writeFonts()
     emit fontsUpdated();
 }
 
+
+void Configuration::readShortcuts()
+{
+    Shortcuts = defaultShortcuts;
+    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+
+    while(it!=Shortcuts.end()){
+        const int id = it.value().Id;
+        QString key = shortcutFromConfig(id);
+        if(key != ""){
+            QKeySequence KeySequence(shortcutFromConfig(id));
+            Shortcuts[it.key()].Hotkey = KeySequence;
+        }
+        it++;
+
+    }
+
+    emit shortcutsUpdated();
+}
+void Configuration::writeShortcuts()
+{
+
+    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+
+    while(it!=Shortcuts.end()){
+        shortcutToConfig(it.value().Id,it.value().Hotkey);
+        it++;
+    }
+
+}
+
 const QColor Configuration::getColor(const QString id) const
 {
     if(Colors.contains(id))
@@ -426,15 +458,20 @@ const QFont Configuration::getFont(const QString id) const
     return ret;
 }
 
-const QKeySequence Configuration::getShortcut(const QString key_id) const
+const XH::Shortcut Configuration::getShortcut(const XH::ShortcutId key_id) const
 {
     return Shortcuts.find(key_id).value();
 }
 
-void Configuration::setShortcut(QString key_id, const QKeySequence key_sequence)
+void Configuration::setShortcut(const XH::ShortcutId key_id, const int key_sequence)
 {
-    Shortcuts.insert(key_id,key_sequence);
+    XH::Shortcut sh = Shortcuts.find(key_id).value();
+    sh.Hotkey = QKeySequence(key_sequence);
+    Shortcuts.insert(key_id,sh);
+    emit shortcutsUpdated();
 }
+
+
 
 QColor Configuration::colorFromConfig(const QString id)
 {
@@ -555,4 +592,22 @@ QFont Configuration::fontFromConfig(const QString id)
 bool Configuration::fontToConfig(const QString id, const QFont font)
 {
     return BridgeSettingSet("Fonts", id.toUtf8().constData(), font.toString().toUtf8().constData());
+}
+
+QString Configuration::shortcutFromConfig(const int id)
+{
+    QString _id = QString("%1").arg(id);
+    char setting[MAX_SETTING_SIZE]="";
+    if(BridgeSettingGet("Shortcuts", _id.toUtf8().constData(), setting))
+    {
+        return QString(setting);
+    }
+    return "";
+}
+
+bool Configuration::shortcutToConfig(const int id, const QKeySequence shortcut)
+{
+    QString _id = QString("%1").arg(id);
+    QString _key = shortcut.toString(QKeySequence::NativeText);
+    return BridgeSettingSet("Shortcuts",_id.toUtf8().constData(),_key.toUtf8().constData());
 }

@@ -15,13 +15,41 @@
 #define ConfigBool(x,y) (Config()->getBool(x,y))
 #define ConfigUint(x,y) (Config()->getUint(x,y))
 #define ConfigFont(x) (Config()->getFont(x))
-#define ConfigShortcut(x) (Config()->getShortcut(x))
+#define ConfigShortcut(x) (Config()->getShortcut(x).Hotkey)
+
+
+
 
 // X64dbgHotkeys
 // ^     ^
 namespace XH{
-    enum Hotkeys{FILE_OPEN, APP_EXIT,
-                 DBG_STEPIN,DBG_STEPOVER,DBG_RUN};
+enum ShortcutId{DBG_RUN,
+                FILE_OPEN,
+                APP_EXIT,
+                VIEW_CPU,
+                VIEW_MEMORY,
+                VIEW_LOG,
+                VIEW_BREAKPOINTS,
+                VIEW_SCRIPT,
+                VIEW_SYMINFO,
+                VIEW_REFERENCES,
+                VIEW_THREADS,
+                VIEW_PATCHES,
+                VIEW_COMMENTS,
+                VIEW_LABELS,
+                VIEW_BOOKMARKS,
+                VIEW_FUNCTIONS
+               };
+
+struct Shortcut{
+    ShortcutId Id;
+    QString Name;
+    QKeySequence Hotkey;
+
+    Shortcut(int i,QString n,int h) : Id(static_cast<XH::ShortcutId>(i)),Name(n),Hotkey(QKeySequence(h)){}
+    Shortcut() : Id(),Name(""),Hotkey(NULL){}
+
+};
 };
 
 class Configuration : public QObject
@@ -41,6 +69,8 @@ public:
     void writeUints();
     void readFonts();
     void writeFonts();
+    void readShortcuts();
+    void writeShortcuts();
 
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;
@@ -48,26 +78,28 @@ public:
     const uint_t getUint(const QString category, const QString id) const;
     void setUint(const QString category, const QString id, const uint_t i);
     const QFont getFont(const QString id) const;
-    const QKeySequence getShortcut(const QString key_id) const;
-    void setShortcut(const QString key_id, const QKeySequence key_sequence);
+    const XH::Shortcut getShortcut(const XH::ShortcutId key_id) const;
+    void setShortcut(const XH::ShortcutId key_id, const int key_sequence);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
     QMap<QString, QMap<QString, bool>> defaultBools;
     QMap<QString, QMap<QString, uint_t>> defaultUints;
     QMap<QString, QFont> defaultFonts;
-    QMap<QString,QKeySequence> defaultShortcuts;
+    QMap<XH::ShortcutId,XH::Shortcut> defaultShortcuts;
 
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QMap<QString, bool>> Bools;
     QMap<QString, QMap<QString, uint_t>> Uints;
     QMap<QString, QFont> Fonts;
-    QMap<QString,QKeySequence> Shortcuts;
+    QMap<XH::ShortcutId,XH::Shortcut> Shortcuts;
+
 
 signals:
     void colorsUpdated();
     void fontsUpdated();
+    void shortcutsUpdated();
 
 private:
     QColor colorFromConfig(const QString id);
@@ -78,6 +110,8 @@ private:
     bool uintToConfig(const QString category, const QString id, uint_t i);
     QFont fontFromConfig(const QString id);
     bool fontToConfig(const QString id, const QFont font);
+    QString shortcutFromConfig(const int id);
+    bool shortcutToConfig(const int id, const QKeySequence shortcut);
 };
 
 #endif // CONFIGURATION_H
