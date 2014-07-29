@@ -43,24 +43,24 @@
 #ifndef bea__api_export__
 # if defined(__BEOS__)
 #  if defined(__GNUC__)
-#   define bea__api_export__		__declspec(dllexport)
+#   define bea__api_export__        __declspec(dllexport)
 #  else
-#   define bea__api_export__		__declspec(export)
+#   define bea__api_export__        __declspec(export)
 #  endif
 # elif defined(_WIN32) || defined(_WIN64)
 #  ifdef __BORLANDC__
 #    define bea__api_export__   __declspec(dllexport)
-#    define bea__api_import__ 	__declspec(dllimport)
+#    define bea__api_import__     __declspec(dllimport)
 #  elif defined(__WATCOMC__)
-#    define bea__api_export__	__declspec(dllexport)
+#    define bea__api_export__    __declspec(dllexport)
 #    define bea__api_import__
 #  else
-#   define bea__api_export__		__declspec(dllexport)
-#   define bea__api_import__		__declspec(dllimport)
+#   define bea__api_export__        __declspec(dllexport)
+#   define bea__api_import__        __declspec(dllimport)
 #  endif
 # elif defined(__OS2__)
 #  ifdef __WATCOMC__
-#    define bea__api_export__	__declspec(dllexport)
+#    define bea__api_export__    __declspec(dllexport)
 #    define bea__api_import__
 #  else
 #   define bea__api_export__
@@ -68,8 +68,8 @@
 #  endif
 # else
 #  if defined(_WIN32) && defined(__GNUC__) && __GNUC__ >= 4
-#   define bea__api_export__		__attribubea__ ((visibility("default")))
-#   define bea__api_import__		__attribubea__ ((visibility("default")))
+#   define bea__api_export__        __attribubea__ ((visibility("default")))
+#   define bea__api_import__        __attribubea__ ((visibility("default")))
 #  else
 #   define bea__api_export__
 #   define bea__api_import__
@@ -83,7 +83,7 @@
 #if defined(BEA_USE_STDCALL)
 #if defined(__WIN32__) || defined(WIN32) || defined(_WIN32) || defined(_WIN64)
 #if defined(__BORLANDC__) || defined(__WATCOMC__) || defined(_MSC_VER) || defined(__MINGW32__) || defined(__POCC__)
-#define __bea_callspec__	 __stdcall
+#define __bea_callspec__     __stdcall
 #else
 #define __bea_callspec__
 #endif
@@ -100,17 +100,17 @@
 #endif
 
 #ifdef __SYMBIAN32__
-#	ifndef EKA2
-#		undef bea__api_export__
-#		undef bea__api_import__
-#		define bea__api_export__
-#		define bea__api_import__
-#	elif !defined(__WINS__)
-#		undef bea__api_export__
-#		undef bea__api_import__
-#		define bea__api_export__ __declspec(dllexport)
-#		define bea__api_import__ __declspec(dllexport)
-#	endif /* !EKA2 */
+#    ifndef EKA2
+#        undef bea__api_export__
+#        undef bea__api_import__
+#        define bea__api_export__
+#        define bea__api_import__
+#    elif !defined(__WINS__)
+#        undef bea__api_export__
+#        undef bea__api_import__
+#        define bea__api_export__ __declspec(dllexport)
+#        define bea__api_import__ __declspec(dllexport)
+#    endif /* !EKA2 */
 #endif /* __SYMBIAN32__ */
 
 
@@ -129,12 +129,12 @@
 #define BEA_HAS_INLINE
 #else
 /* Add any special compiler-specific cases here */
-#if defined(_MSC_VER) || defined(__BORLANDC__) ||	\
-  defined(__DMC__) || defined(__SC__) ||		\
-  defined(__WATCOMC__) || defined(__LCC__) ||		\
+#if defined(_MSC_VER) || defined(__BORLANDC__) ||    \
+  defined(__DMC__) || defined(__SC__) ||        \
+  defined(__WATCOMC__) || defined(__LCC__) ||        \
   defined(__DECC) || defined(__EABI__)
 #ifndef __inline__
-#define __inline__	__inline
+#define __inline__    __inline
 #endif
 #define BEA_HAS_INLINE
 #else

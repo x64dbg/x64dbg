@@ -298,12 +298,12 @@ static bool isasciistring(const unsigned char* data, int maxlen)
 
 static bool isunicodestring(const unsigned char* data, int maxlen)
 {
-	int len = 0;
-	for (wchar_t *p = (wchar_t *)data; *p; len++, p++)
-	{
-		if (len >= maxlen)
-			break;
-	}
+    int len = 0;
+    for (wchar_t *p = (wchar_t *)data; *p; len++, p++)
+    {
+        if (len >= maxlen)
+            break;
+    }
 
     if(len<2 or len+1>=maxlen)
         return false;

@@ -169,9 +169,9 @@ __declspec(dllimport) int json_object_iter_set_new(json_t *object, void *iter, j
         key = json_object_iter_key(json_object_iter_next(object, json_object_key_to_iter(key))))
 
 #define json_array_foreach(array, index, value) \
-	for(index = 0; \
-		index < json_array_size(array) && (value = json_array_get(array, index)); \
-		index++)
+    for(index = 0; \
+        index < json_array_size(array) && (value = json_array_get(array, index)); \
+        index++)
 
 static JSON_INLINE
 int json_object_set(json_t *object, const char *key, json_t *value)
