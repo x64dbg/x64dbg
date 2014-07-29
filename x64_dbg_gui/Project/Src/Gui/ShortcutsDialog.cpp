@@ -33,7 +33,8 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
     const unsigned int numShortcuts = Config()->Shortcuts.count();
     tbl->setRowCount(numShortcuts);
 
-    for(unsigned int i=0;i<numShortcuts;i++){
+    for(unsigned int i=0; i<numShortcuts; i++)
+    {
         QTableWidgetItem* shortcutName = new QTableWidgetItem(Config()->getShortcut(static_cast<XH::ShortcutId>(i)).Name);
         QTableWidgetItem* shortcutKey = new QTableWidgetItem(Config()->getShortcut(static_cast<XH::ShortcutId>(i)).Hotkey.toString(QKeySequence::NativeText));
 
@@ -50,27 +51,35 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
     connect(shortcutfield,SIGNAL(askForSave()),this,SLOT(updateShortcut()));
 
 }
-void ShortcutsDialog::updateShortcut(){
-       const QKeySequence newKey = shortcutfield->getKeysequence();
-       if(newKey != currentShortcut.Hotkey){
-           bool good=true;
-           foreach(XH::Shortcut S,Config()->Shortcuts ){
-               if((S.Hotkey == newKey) && (S.Id != currentShortcut.Id)){
-                   good=false;
-                   break;
-               }
-           }
-           if(good){
-               Config()->setShortcut(currentShortcut.Id,newKey);
-               ui->tblShortcuts->item(currentRow,1)->setText(newKey.toString(QKeySequence::NativeText));
-               shortcutfield->setErrorState(false);
-           }else{
-                shortcutfield->setErrorState(true);
-           }
-       }
+void ShortcutsDialog::updateShortcut()
+{
+    const QKeySequence newKey = shortcutfield->getKeysequence();
+    if(newKey != currentShortcut.Hotkey)
+    {
+        bool good=true;
+        foreach(XH::Shortcut S,Config()->Shortcuts )
+        {
+            if((S.Hotkey == newKey) && (S.Id != currentShortcut.Id))
+            {
+                good=false;
+                break;
+            }
+        }
+        if(good)
+        {
+            Config()->setShortcut(currentShortcut.Id,newKey);
+            ui->tblShortcuts->item(currentRow,1)->setText(newKey.toString(QKeySequence::NativeText));
+            shortcutfield->setErrorState(false);
+        }
+        else
+        {
+            shortcutfield->setErrorState(true);
+        }
+    }
 }
 
-void ShortcutsDialog::syncTextfield(){
+void ShortcutsDialog::syncTextfield()
+{
     QModelIndexList indexes = ui->tblShortcuts->selectionModel()->selectedRows();
     if(indexes.count()<1)
         return;

@@ -6,7 +6,8 @@
 #include "ShortcutEdit.h"
 #include "Configuration.h"
 
-namespace Ui {
+namespace Ui
+{
 class ShortcutsDialog;
 }
 

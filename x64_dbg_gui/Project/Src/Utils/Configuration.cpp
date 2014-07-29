@@ -344,10 +344,12 @@ void Configuration::readShortcuts()
     Shortcuts = defaultShortcuts;
     QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
 
-    while(it!=Shortcuts.end()){
+    while(it!=Shortcuts.end())
+    {
         const int id = it.value().Id;
         QString key = shortcutFromConfig(id);
-        if(key != ""){
+        if(key != "")
+        {
             QKeySequence KeySequence(shortcutFromConfig(id));
             Shortcuts[it.key()].Hotkey = KeySequence;
         }
@@ -362,7 +364,8 @@ void Configuration::writeShortcuts()
 
     QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
 
-    while(it!=Shortcuts.end()){
+    while(it!=Shortcuts.end())
+    {
         shortcutToConfig(it.value().Id,it.value().Hotkey);
         it++;
     }

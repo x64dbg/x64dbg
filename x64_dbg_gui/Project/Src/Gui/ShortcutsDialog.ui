@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Shortcuts</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../resource.qrc">

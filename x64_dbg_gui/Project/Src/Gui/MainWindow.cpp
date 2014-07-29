@@ -225,7 +225,8 @@ void MainWindow::setTab(QWidget* widget)
         }
 }
 
-void MainWindow::refreshShortcuts(){
+void MainWindow::refreshShortcuts()
+{
     ui->actionOpen->setShortcut(ConfigShortcut(XH::FILE_OPEN));
     ui->actionClose->setShortcut(ConfigShortcut(XH::APP_EXIT));
 

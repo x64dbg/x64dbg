@@ -15,10 +15,14 @@ const QKeySequence ShortcutEdit::getKeysequence() const
     return QKeySequence(keyInt);
 }
 
-void ShortcutEdit::setErrorState(bool error){
-    if(error){
+void ShortcutEdit::setErrorState(bool error)
+{
+    if(error)
+    {
         setStyleSheet("color: #FF0000");
-    }else{
+    }
+    else
+    {
         setStyleSheet("color: #000000");
     }
 }
@@ -52,8 +56,10 @@ void ShortcutEdit::keyPressEvent(QKeyEvent *event)
 
     // some strange cases (only Ctrl)
     QString KeyText = QKeySequence(keyInt).toString(QKeySequence::NativeText) ;
-    for(int i=0;i<KeyText.length();i++){
-        if(KeyText[i].toAscii()==0){
+    for(int i=0; i<KeyText.length(); i++)
+    {
+        if(KeyText[i].toAscii()==0)
+        {
             setText("");
             return;
         }

@@ -22,33 +22,36 @@
 
 // X64RUNHotkeys
 // ^     ^
-namespace XH{
-enum ShortcutId{
-                FILE_OPEN=0,
-                APP_EXIT,
-                VIEW_CPU,
-                VIEW_MEMORY,
-                VIEW_LOG,
-                VIEW_BREAKPOINTS,
-                VIEW_SCRIPT,
-                VIEW_SYMINFO,
-                VIEW_REFERENCES,
-                VIEW_THREADS,
-                VIEW_PATCHES,
-                VIEW_COMMENTS,
-                VIEW_LABELS,
-                VIEW_BOOKMARKS,
-                VIEW_FUNCTIONS,
-                DEBUG_RUN, DEBUG_SKIPEXC,DEBUG_RUNUNTIL,DEBUG_PAUSE,DEBUG_RESTART,DEBUG_CLOSE,DEBUG_STEPIN,DEBUG_STEPINSKIP,DEBUG_STEPOVER,DEBUG_STEPOVERSKIP,DEBUG_EXECTILL,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
-               };
+namespace XH
+{
+enum ShortcutId
+{
+    FILE_OPEN=0,
+    APP_EXIT,
+    VIEW_CPU,
+    VIEW_MEMORY,
+    VIEW_LOG,
+    VIEW_BREAKPOINTS,
+    VIEW_SCRIPT,
+    VIEW_SYMINFO,
+    VIEW_REFERENCES,
+    VIEW_THREADS,
+    VIEW_PATCHES,
+    VIEW_COMMENTS,
+    VIEW_LABELS,
+    VIEW_BOOKMARKS,
+    VIEW_FUNCTIONS,
+    DEBUG_RUN, DEBUG_SKIPEXC,DEBUG_RUNUNTIL,DEBUG_PAUSE,DEBUG_RESTART,DEBUG_CLOSE,DEBUG_STEPIN,DEBUG_STEPINSKIP,DEBUG_STEPOVER,DEBUG_STEPOVERSKIP,DEBUG_EXECTILL,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
+};
 
-struct Shortcut{
+struct Shortcut
+{
     ShortcutId Id;
     QString Name;
     QKeySequence Hotkey;
 
-    Shortcut(int i,QString n,int h) : Id(static_cast<XH::ShortcutId>(i)),Name(n),Hotkey(QKeySequence(h)){}
-    Shortcut() : Id(),Name(""),Hotkey(NULL){}
+    Shortcut(int i,QString n,int h) : Id(static_cast<XH::ShortcutId>(i)),Name(n),Hotkey(QKeySequence(h)) {}
+    Shortcut() : Id(),Name(""),Hotkey(NULL) {}
 
 };
 };
