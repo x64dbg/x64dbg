@@ -4,10 +4,6 @@
 #include <windows.h>
 #include "bridgemain.h"
 
-//hInst GUI/DBG
-extern HINSTANCE hInstGui;
-extern HINSTANCE hInstDbg;
-
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
 typedef void* (*GUISENDMESSAGE)(GUIMSG type, void* param1, void* param2);

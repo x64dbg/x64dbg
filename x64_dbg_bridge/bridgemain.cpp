@@ -14,15 +14,19 @@ static char szIniFile[1024]="";
 #define gui_lib "x32_gui.dll"
 #endif // _WIN64
 
-#define LOADLIBRARY(var, name) \
-    var=LoadLibraryA(name); \
-    if(!var) \
+#define LOADLIBRARY(name) \
+    szLib=name; \
+    hInst=LoadLibraryA(name); \
+    if(!hInst) \
         return "Error loading library \""name"\"!"
 
-#define LOADEXPORT(var, type, lib, name) \
-    var=(type)GetProcAddress(lib, name); \
-    if(!var) \
-        return "Export \""name"\" could not be found!"
+#define LOADEXPORT(name) \
+    *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
+    if(!name) \
+    { \
+        sprintf(szError, "Export \"%s\":\"%s\" could not be found!", szLib, #name); \
+        return szError; \
+    }
 
 //Bridge
 BRIDGE_IMPEXP const char* BridgeInit()
@@ -38,33 +42,37 @@ BRIDGE_IMPEXP const char* BridgeInit()
     else
         strcpy(&szIniFile[len], ".ini");
 
+    HINSTANCE hInst;
+    const char* szLib;
+    static char szError[256]="";
+
     //GUI Load
-    LOADLIBRARY(hInstGui, gui_lib);
-    LOADEXPORT(_gui_guiinit, GUIGUIINIT, hInstGui, "_gui_guiinit");
-    LOADEXPORT(_gui_sendmessage, GUISENDMESSAGE, hInstGui, "_gui_sendmessage");
+    LOADLIBRARY(gui_lib);
+    LOADEXPORT(_gui_guiinit, "_gui_guiinit");
+    LOADEXPORT(_gui_sendmessage, "_gui_sendmessage");
 
     //DBG Load
-    LOADLIBRARY(hInstDbg, dbg_lib);
-    LOADEXPORT(_dbg_dbginit, DBGDBGINIT, hInstDbg, "_dbg_dbginit");
-    LOADEXPORT(_dbg_memfindbaseaddr, DBGMEMFINDBASEADDR, hInstDbg, "_dbg_memfindbaseaddr");
-    LOADEXPORT(_dbg_memread, DBGMEMREAD, hInstDbg, "_dbg_memread");
-    LOADEXPORT(_dbg_memwrite, DBGMEMWRITE, hInstDbg, "_dbg_memwrite");
-    LOADEXPORT(_dbg_dbgcmdexec, DBGDBGCMDEXEC, hInstDbg, "_dbg_dbgcmdexec");
-    LOADEXPORT(_dbg_memmap, DBGMEMMAP, hInstDbg, "_dbg_memmap");
-    LOADEXPORT(_dbg_dbgexitsignal, DBGDBGEXITSIGNAL, hInstDbg, "_dbg_dbgexitsignal");
-    LOADEXPORT(_dbg_valfromstring, DBGVALFROMSTRING, hInstDbg, "_dbg_valfromstring");
-    LOADEXPORT(_dbg_isdebugging, DBGISDEBUGGING, hInstDbg, "_dbg_isdebugging");
-    LOADEXPORT(_dbg_isjumpgoingtoexecute, DBGISJUMPGOINGTOEXECUTE, hInstDbg, "_dbg_isjumpgoingtoexecute");
-    LOADEXPORT(_dbg_addrinfoget, DBGADDRINFOGET, hInstDbg, "_dbg_addrinfoget");
-    LOADEXPORT(_dbg_addrinfoset, DBGADDRINFOSET, hInstDbg, "_dbg_addrinfoset");
-    LOADEXPORT(_dbg_bpgettypeat, DBGBPGETTYPEAT, hInstDbg, "_dbg_bpgaettypeat");
-    LOADEXPORT(_dbg_getregdump, DBGGETREGDUMP, hInstDbg, "_dbg_getregdump");
-    LOADEXPORT(_dbg_valtostring, DBGVALTOSTRING, hInstDbg, "_dbg_valtostring");
-    LOADEXPORT(_dbg_memisvalidreadptr, DBGMEMISVALIDREADPTR, hInstDbg, "_dbg_memisvalidreadptr");
-    LOADEXPORT(_dbg_getbplist, DBGGETBPLIST, hInstDbg, "_dbg_getbplist");
-    LOADEXPORT(_dbg_dbgcmddirectexec, DBGDBGCMDEXECDIRECT, hInstDbg, "_dbg_dbgcmddirectexec");
-    LOADEXPORT(_dbg_getbranchdestination, DBGGETBRANCHDESTINATION, hInstDbg, "_dbg_getbranchdestination");
-    LOADEXPORT(_dbg_sendmessage, DBGSENDMESSAGE, hInstDbg, "_dbg_sendmessage");
+    LOADLIBRARY(dbg_lib);
+    LOADEXPORT(_dbg_dbginit);
+    LOADEXPORT(_dbg_memfindbaseaddr);
+    LOADEXPORT(_dbg_memread);
+    LOADEXPORT(_dbg_memwrite);
+    LOADEXPORT(_dbg_dbgcmdexec);
+    LOADEXPORT(_dbg_memmap);
+    LOADEXPORT(_dbg_dbgexitsignal);
+    LOADEXPORT(_dbg_valfromstring);
+    LOADEXPORT(_dbg_isdebugging);
+    LOADEXPORT(_dbg_isjumpgoingtoexecute);
+    LOADEXPORT(_dbg_addrinfoget);
+    LOADEXPORT(_dbg_addrinfoset);
+    LOADEXPORT(_dbg_bpgettypeat);
+    LOADEXPORT(_dbg_getregdump);
+    LOADEXPORT(_dbg_valtostring);
+    LOADEXPORT(_dbg_memisvalidreadptr);
+    LOADEXPORT(_dbg_getbplist);
+    LOADEXPORT(_dbg_dbgcmddirectexec);
+    LOADEXPORT(_dbg_getbranchdestination);
+    LOADEXPORT(_dbg_sendmessage);
     return 0;
 }
 

@@ -1,9 +1,5 @@
 #include "_global.h"
 
-//hInst GUI/DBG
-HINSTANCE hInstGui;
-HINSTANCE hInstDbg;
-
 //GUI functions
 GUIGUIINIT _gui_guiinit;
 GUISENDMESSAGE _gui_sendmessage;
