@@ -55,6 +55,7 @@ Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 - acidflash
 - cyberbob
 - Teddy Rogers
+- TEAM DVT
 - DMichael
 - Artic
 - Nukem
