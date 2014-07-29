@@ -41,5 +41,6 @@
         <file>images/update.png</file>
         <file>images/callstack.png</file>
         <file>images/shortcut.png</file>
+        <file>images/donate.png</file>
     </qresource>
 </RCC>

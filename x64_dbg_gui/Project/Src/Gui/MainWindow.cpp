@@ -152,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionFunctions,SIGNAL(triggered()),this,SLOT(displayFunctions()));
     connect(ui->actionCheckUpdates,SIGNAL(triggered()),this,SLOT(checkUpdates()));
     connect(ui->actionCallStack,SIGNAL(triggered()),this,SLOT(displayCallstack()));
+    connect(ui->actionDonate,SIGNAL(triggered()),this,SLOT(donate()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -165,8 +166,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString,QString*)), this, SLOT(getStrWindow(QString,QString*)));
-
-    connect(Config(),SIGNAL(shortcutsUpdated()),this, SLOT(refreshShortcuts()));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
@@ -227,37 +227,39 @@ void MainWindow::setTab(QWidget* widget)
 
 void MainWindow::refreshShortcuts()
 {
-    ui->actionOpen->setShortcut(ConfigShortcut(XH::FILE_OPEN));
-    ui->actionClose->setShortcut(ConfigShortcut(XH::APP_EXIT));
+    ui->actionOpen->setShortcut(ConfigShortcut("FileOpen"));
+    ui->actionExit->setShortcut(ConfigShortcut("FileExit"));
 
-    ui->actionCpu->setShortcut(ConfigShortcut(XH::VIEW_CPU));
-    ui->actionMemoryMap->setShortcut(ConfigShortcut(XH::VIEW_MEMORY));
-    ui->actionLog->setShortcut(ConfigShortcut(XH::VIEW_LOG));
-    ui->actionBreakpoints->setShortcut(ConfigShortcut(XH::VIEW_BREAKPOINTS));
-    ui->actionScript->setShortcut(ConfigShortcut(XH::VIEW_SCRIPT));
-    ui->actionSymbolInfo->setShortcut(ConfigShortcut(XH::VIEW_SYMINFO));
-    ui->actionReferences->setShortcut(ConfigShortcut(XH::VIEW_REFERENCES));
-    ui->actionThreads->setShortcut(ConfigShortcut(XH::VIEW_THREADS));
-    ui->actionPatches->setShortcut(ConfigShortcut(XH::VIEW_PATCHES));
-    ui->actionComments->setShortcut(ConfigShortcut(XH::VIEW_COMMENTS));
-    ui->actionLabels->setShortcut(ConfigShortcut(XH::VIEW_LABELS));
-    ui->actionBookmarks->setShortcut(ConfigShortcut(XH::VIEW_BOOKMARKS));
-    ui->actionFunctions->setShortcut(ConfigShortcut(XH::VIEW_FUNCTIONS));
+    ui->actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
+    ui->actionLog->setShortcut(ConfigShortcut("ViewLog"));
+    ui->actionBreakpoints->setShortcut(ConfigShortcut("ViewBreakpoints"));
+    ui->actionMemoryMap->setShortcut(ConfigShortcut("ViewMemoryMap"));
+    ui->actionCallStack->setShortcut(ConfigShortcut("ViewCallStack"));
+    ui->actionScript->setShortcut(ConfigShortcut("ViewScript"));
+    ui->actionSymbolInfo->setShortcut(ConfigShortcut("ViewSymbolInfo"));
+    ui->actionReferences->setShortcut(ConfigShortcut("ViewReferences"));
+    ui->actionThreads->setShortcut(ConfigShortcut("ViewThreads"));
+    ui->actionPatches->setShortcut(ConfigShortcut("ViewPatches"));
+    ui->actionComments->setShortcut(ConfigShortcut("ViewComments"));
+    ui->actionLabels->setShortcut(ConfigShortcut("ViewLabels"));
+    ui->actionBookmarks->setShortcut(ConfigShortcut("ViewBookmarks"));
+    ui->actionFunctions->setShortcut(ConfigShortcut("ViewFunctions"));
 
-    ui->actionRun->setShortcut(ConfigShortcut(XH::DEBUG_RUN));
-    ui->actioneRun->setShortcut(ConfigShortcut(XH::DEBUG_SKIPEXC));
-    ui->actionRunSelection->setShortcut(ConfigShortcut(XH::DEBUG_RUNUNTIL));
-    ui->actionPause->setShortcut(ConfigShortcut(XH::DEBUG_PAUSE));
-    ui->actionRestart->setShortcut(ConfigShortcut(XH::DEBUG_RESTART));
-    ui->actionClose->setShortcut(ConfigShortcut(XH::DEBUG_CLOSE));
-    ui->actionStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPIN));
-    ui->actioneStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPINSKIP));
-    ui->actionStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVER));
-    ui->actioneStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVERSKIP));
-    ui->actionRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILL));
-    ui->actioneRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILLSKIP));
-    ui->actionCommand->setShortcut(ConfigShortcut(XH::DEBUG_COMMAND));
+    ui->actionRun->setShortcut(ConfigShortcut("DebugRun"));
+    ui->actioneRun->setShortcut(ConfigShortcut("DebugeRun"));
+    ui->actionRunSelection->setShortcut(ConfigShortcut("DebugRunSelection"));
+    ui->actionPause->setShortcut(ConfigShortcut("DebugPause"));
+    ui->actionRestart->setShortcut(ConfigShortcut("DebugRestart"));
+    ui->actionClose->setShortcut(ConfigShortcut("DebugClose"));
+    ui->actionStepInto->setShortcut(ConfigShortcut("DebugStepInto"));
+    ui->actioneStepInto->setShortcut(ConfigShortcut("DebugeStepInfo"));
+    ui->actionStepOver->setShortcut(ConfigShortcut("DebugStepOver"));
+    ui->actioneStepOver->setShortcut(ConfigShortcut("DebugeStepOver"));
+    ui->actionRtr->setShortcut(ConfigShortcut("DebugRtr"));
+    ui->actioneRtr->setShortcut(ConfigShortcut("DebugeRtr"));
+    ui->actionCommand->setShortcut(ConfigShortcut("DebugCommand"));
 
+    ui->actionScylla->setShortcut(ConfigShortcut("PluginsScylla"));
 }
 
 //Reads recent files list from settings
@@ -867,4 +869,17 @@ void MainWindow::displayCallstack()
     mCallStackView->show();
     mCallStackView->setFocus();
     setTab(mCallStackView);
+}
+
+void MainWindow::donate()
+{
+    QMessageBox msg(QMessageBox::Information, "Donate", "All the money will go to x64_dbg development.");
+    msg.setWindowIcon(QIcon(":/icons/images/donate.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msg.setDefaultButton(QMessageBox::Ok);
+    if(msg.exec() != QMessageBox::Ok)
+        return;
+    QDesktopServices::openUrl(QUrl("https://blockchain.info/address/1GuXgtCrLk4aYgivAT7xAi8zVHWk5CkEoY"));
 }

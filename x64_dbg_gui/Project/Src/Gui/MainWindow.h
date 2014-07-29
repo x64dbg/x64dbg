@@ -91,6 +91,8 @@ public slots:
     void displayCallstack();
     void refreshShortcuts();
     void openShortcuts();
+    void donate();
+
 private:
     Ui::MainWindow *ui;
     CloseDialog* mCloseDialog;

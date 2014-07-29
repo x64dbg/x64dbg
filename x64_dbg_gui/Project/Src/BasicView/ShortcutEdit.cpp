@@ -1,16 +1,14 @@
 #include "ShortcutEdit.h"
 #include <QKeyEvent>
-#include <QDebug>
 
-
-ShortcutEdit::ShortcutEdit(QWidget *parent) :
-    QLineEdit(parent)
+ShortcutEdit::ShortcutEdit(QWidget *parent) : QLineEdit(parent)
 {
 }
 
-
 const QKeySequence ShortcutEdit::getKeysequence() const
 {
+    if(keyInt == -1) //return empty on -1
+        return QKeySequence();
     // returns current keystroke combination
     return QKeySequence(keyInt);
 }
@@ -18,30 +16,31 @@ const QKeySequence ShortcutEdit::getKeysequence() const
 void ShortcutEdit::setErrorState(bool error)
 {
     if(error)
-    {
         setStyleSheet("color: #FF0000");
-    }
     else
-    {
         setStyleSheet("color: #000000");
-    }
 }
 
 void ShortcutEdit::keyPressEvent(QKeyEvent *event)
 {
-
     keyInt = event->key();
     // find key-id
     const Qt::Key key = static_cast<Qt::Key>(keyInt);
 
     // we do not know how to handle this case
     if( key == Qt::Key_unknown )
+    {
+        keyInt = -1;
+        emit askForSave();
         return;
+    }
 
     // these keys will be ignored
     if( key == Qt::Key_Escape || key == Qt::Key_Backspace )
     {
         setText("");
+        keyInt = -1;
+        emit askForSave();
         return;
     }
 
@@ -61,6 +60,8 @@ void ShortcutEdit::keyPressEvent(QKeyEvent *event)
         if(KeyText[i].toAscii()==0)
         {
             setText("");
+            keyInt = -1;
+            emit askForSave();
             return;
         }
     }

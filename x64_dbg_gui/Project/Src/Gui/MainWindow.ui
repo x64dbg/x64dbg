@@ -85,6 +85,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionDonate"/>
     <addaction name="actionCheckUpdates"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
@@ -156,6 +157,9 @@
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
+   <addaction name="separator"/>
+   <addaction name="actionDonate"/>
+   <addaction name="actionCheckUpdates"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
@@ -183,9 +187,6 @@
    <property name="text">
     <string>&amp;Open</string>
    </property>
-   <property name="shortcut">
-    <string>F3</string>
-   </property>
   </action>
   <action name="actionExit">
    <property name="icon">
@@ -194,9 +195,6 @@
    </property>
    <property name="text">
     <string>E&amp;xit</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+X</string>
    </property>
   </action>
   <action name="actionRun">
@@ -207,9 +205,6 @@
    <property name="text">
     <string>&amp;Run</string>
    </property>
-   <property name="shortcut">
-    <string>F9</string>
-   </property>
   </action>
   <action name="actionPause">
    <property name="icon">
@@ -218,9 +213,6 @@
    </property>
    <property name="text">
     <string>&amp;Pause</string>
-   </property>
-   <property name="shortcut">
-    <string>F12</string>
    </property>
   </action>
   <action name="actionRestart">
@@ -231,9 +223,6 @@
    <property name="text">
     <string>Re&amp;start</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+F2</string>
-   </property>
   </action>
   <action name="actionClose">
    <property name="icon">
@@ -242,9 +231,6 @@
    </property>
    <property name="text">
     <string>&amp;Close</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+F2</string>
    </property>
   </action>
   <action name="actionStepInto">
@@ -255,9 +241,6 @@
    <property name="text">
     <string>Step &amp;into</string>
    </property>
-   <property name="shortcut">
-    <string>F7</string>
-   </property>
   </action>
   <action name="actionStepOver">
    <property name="icon">
@@ -266,9 +249,6 @@
    </property>
    <property name="text">
     <string>Step &amp;over</string>
-   </property>
-   <property name="shortcut">
-    <string>F8</string>
    </property>
   </action>
   <action name="actionCommand">
@@ -279,9 +259,6 @@
    <property name="text">
     <string>Co&amp;mmand</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Return</string>
-   </property>
   </action>
   <action name="actionRtr">
    <property name="icon">
@@ -290,9 +267,6 @@
    </property>
    <property name="text">
     <string>E&amp;xecute till return</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+F9</string>
    </property>
   </action>
   <action name="actionMemoryMap">
@@ -303,9 +277,6 @@
    <property name="text">
     <string>&amp;Memory Map</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+M</string>
-   </property>
   </action>
   <action name="actionLog">
    <property name="icon">
@@ -314,9 +285,6 @@
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+L</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -336,9 +304,6 @@
    <property name="text">
     <string>Scylla</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+I</string>
-   </property>
   </action>
   <action name="actionBreakpoints">
    <property name="icon">
@@ -347,9 +312,6 @@
    </property>
    <property name="text">
     <string>&amp;Breakpoints</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+B</string>
    </property>
   </action>
   <action name="actioneStepInto">
@@ -360,9 +322,6 @@
    <property name="text">
     <string>Step into (skip exceptions)</string>
    </property>
-   <property name="shortcut">
-    <string>Shift+F7</string>
-   </property>
   </action>
   <action name="actioneStepOver">
    <property name="icon">
@@ -371,9 +330,6 @@
    </property>
    <property name="text">
     <string>Step over (skip exceptions)</string>
-   </property>
-   <property name="shortcut">
-    <string>Shift+F8</string>
    </property>
   </action>
   <action name="actioneRun">
@@ -384,9 +340,6 @@
    <property name="text">
     <string>Run (&amp;skip exceptions)</string>
    </property>
-   <property name="shortcut">
-    <string>Shift+F9</string>
-   </property>
   </action>
   <action name="actioneRtr">
    <property name="icon">
@@ -395,9 +348,6 @@
    </property>
    <property name="text">
     <string>Execute till return (skip exceptions)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+F9</string>
    </property>
   </action>
   <action name="actionScript">
@@ -411,9 +361,6 @@
    <property name="toolTip">
     <string>Script</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+S</string>
-   </property>
   </action>
   <action name="actionRunSelection">
    <property name="icon">
@@ -425,9 +372,6 @@
    </property>
    <property name="toolTip">
     <string>Run until selection</string>
-   </property>
-   <property name="shortcut">
-    <string>F4</string>
    </property>
   </action>
   <action name="actionCpu">
@@ -441,9 +385,6 @@
    <property name="toolTip">
     <string>CPU</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+C</string>
-   </property>
   </action>
   <action name="actionSymbolInfo">
    <property name="icon">
@@ -455,9 +396,6 @@
    </property>
    <property name="toolTip">
     <string>Symbol Info</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Alt+S</string>
    </property>
   </action>
   <action name="actionReferences">
@@ -471,9 +409,6 @@
    <property name="toolTip">
     <string>References</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+R</string>
-   </property>
   </action>
   <action name="actionThreads">
    <property name="icon">
@@ -485,9 +420,6 @@
    </property>
    <property name="toolTip">
     <string>Threads</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+T</string>
    </property>
   </action>
   <action name="actionSettings">
@@ -546,9 +478,6 @@
    <property name="toolTip">
     <string>Patches</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+P</string>
-   </property>
   </action>
   <action name="actionComments">
    <property name="icon">
@@ -557,9 +486,6 @@
    </property>
    <property name="text">
     <string>Comments</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Alt+C</string>
    </property>
   </action>
   <action name="actionLabels">
@@ -570,9 +496,6 @@
    <property name="text">
     <string>Labels</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Alt+L</string>
-   </property>
   </action>
   <action name="actionBookmarks">
    <property name="icon">
@@ -582,9 +505,6 @@
    <property name="text">
     <string>Bookmarks</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+B</string>
-   </property>
   </action>
   <action name="actionFunctions">
    <property name="icon">
@@ -593,9 +513,6 @@
    </property>
    <property name="text">
     <string>Functions</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+F</string>
    </property>
   </action>
   <action name="actionCheckUpdates">
@@ -618,9 +535,6 @@
    <property name="toolTip">
     <string>Call Stack</string>
    </property>
-   <property name="shortcut">
-    <string>Alt+K</string>
-   </property>
   </action>
   <action name="actionShortcuts">
    <property name="icon">
@@ -629,6 +543,18 @@
    </property>
    <property name="text">
     <string>Shortcuts</string>
+   </property>
+  </action>
+  <action name="actionDonate">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/donate.png</normaloff>:/icons/images/donate.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Donate</string>
+   </property>
+   <property name="toolTip">
+    <string>Donate</string>
    </property>
   </action>
  </widget>

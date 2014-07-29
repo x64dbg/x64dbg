@@ -15,8 +15,7 @@ class ShortcutsDialog : public QDialog
 {
     Q_OBJECT
     QTableWidget* tbl;
-    ShortcutEdit *shortcutfield;
-    XH::Shortcut currentShortcut;
+    Configuration::Shortcut currentShortcut;
     int currentRow;
     bool editLock;
 public:
@@ -28,6 +27,10 @@ signals:
 protected slots:
     void syncTextfield();
     void updateShortcut();
+
+private slots:
+    void on_buttonBox_clicked(QAbstractButton *button);
+
 private:
     Ui::ShortcutsDialog *ui;
 };

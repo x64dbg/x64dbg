@@ -55,27 +55,25 @@
    <property name="title">
     <string>Shortcut</string>
    </property>
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="ShortcutEdit" name="shortcutEdit">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>20</y>
-      <width>561</width>
-      <height>22</height>
+      <width>581</width>
+      <height>20</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>current Shortcut</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </widget>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ShortcutEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ShortcutEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>

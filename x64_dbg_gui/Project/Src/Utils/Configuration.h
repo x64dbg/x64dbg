@@ -17,50 +17,24 @@
 #define ConfigFont(x) (Config()->getFont(x))
 #define ConfigShortcut(x) (Config()->getShortcut(x).Hotkey)
 
-
-
-
-// X64RUNHotkeys
-// ^     ^
-namespace XH
-{
-enum ShortcutId
-{
-    FILE_OPEN=0,
-    APP_EXIT,
-    VIEW_CPU,
-    VIEW_MEMORY,
-    VIEW_LOG,
-    VIEW_BREAKPOINTS,
-    VIEW_SCRIPT,
-    VIEW_SYMINFO,
-    VIEW_REFERENCES,
-    VIEW_THREADS,
-    VIEW_PATCHES,
-    VIEW_COMMENTS,
-    VIEW_LABELS,
-    VIEW_BOOKMARKS,
-    VIEW_FUNCTIONS,
-    DEBUG_RUN, DEBUG_SKIPEXC,DEBUG_RUNUNTIL,DEBUG_PAUSE,DEBUG_RESTART,DEBUG_CLOSE,DEBUG_STEPIN,DEBUG_STEPINSKIP,DEBUG_STEPOVER,DEBUG_STEPOVERSKIP,DEBUG_EXECTILL,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
-};
-
-struct Shortcut
-{
-    ShortcutId Id;
-    QString Name;
-    QKeySequence Hotkey;
-
-    Shortcut(int i,QString n,int h) : Id(static_cast<XH::ShortcutId>(i)),Name(n),Hotkey(QKeySequence(h)) {}
-    Shortcut() : Id(),Name(""),Hotkey(NULL) {}
-
-};
-};
-
 class Configuration : public QObject
 {
     Q_OBJECT
 public:
-    static Configuration* mPtr;
+    //Structures
+    struct Shortcut
+    {
+        QString Name;
+        QKeySequence Hotkey;
+
+        Shortcut(QString n = QString(), QString h = QString())
+        {
+            Name = n;
+            Hotkey = QKeySequence(h);
+        }
+    };
+
+    //Functions
     Configuration();
     static Configuration* instance();
     void load();
@@ -82,23 +56,24 @@ public:
     const uint_t getUint(const QString category, const QString id) const;
     void setUint(const QString category, const QString id, const uint_t i);
     const QFont getFont(const QString id) const;
-    const XH::Shortcut getShortcut(const XH::ShortcutId key_id) const;
-    void setShortcut(const XH::ShortcutId key_id, const int key_sequence);
+    const Shortcut getShortcut(const QString key_id) const;
+    void setShortcut(const QString key_id, const QKeySequence key_sequence);
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
     QMap<QString, QMap<QString, bool>> defaultBools;
     QMap<QString, QMap<QString, uint_t>> defaultUints;
     QMap<QString, QFont> defaultFonts;
-    QMap<XH::ShortcutId,XH::Shortcut> defaultShortcuts;
+    QMap<QString, Shortcut> defaultShortcuts;
 
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QMap<QString, bool>> Bools;
     QMap<QString, QMap<QString, uint_t>> Uints;
     QMap<QString, QFont> Fonts;
-    QMap<XH::ShortcutId,XH::Shortcut> Shortcuts;
+    QMap<QString, Shortcut> Shortcuts;
 
+    static Configuration* mPtr;
 
 signals:
     void colorsUpdated();
@@ -114,8 +89,8 @@ private:
     bool uintToConfig(const QString category, const QString id, uint_t i);
     QFont fontFromConfig(const QString id);
     bool fontToConfig(const QString id, const QFont font);
-    QString shortcutFromConfig(const int id);
-    bool shortcutToConfig(const int id, const QKeySequence shortcut);
+    QString shortcutFromConfig(const QString id);
+    bool shortcutToConfig(const QString id, const QKeySequence shortcut);
 };
 
 #endif // CONFIGURATION_H

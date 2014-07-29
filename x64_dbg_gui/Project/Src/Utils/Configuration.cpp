@@ -166,38 +166,39 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Application", QApplication::font());
 
     // hotkeys settings
-    defaultShortcuts.insert(XH::FILE_OPEN,XH::Shortcut(XH::FILE_OPEN,tr("open file"),Qt::Key_F3));
-    defaultShortcuts.insert(XH::APP_EXIT,XH::Shortcut(XH::APP_EXIT,tr("exit app"),Qt::ALT+Qt::Key_X));
+    defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3"));
+    defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X"));
 
-    defaultShortcuts.insert(XH::VIEW_CPU,XH::Shortcut(XH::VIEW_CPU,tr("view cpu"),Qt::ALT+Qt::Key_C));
-    defaultShortcuts.insert(XH::VIEW_MEMORY,XH::Shortcut(XH::VIEW_MEMORY,tr("view memory map"),Qt::ALT+Qt::Key_M));
-    defaultShortcuts.insert(XH::VIEW_LOG,XH::Shortcut(XH::VIEW_LOG,tr("view log"),Qt::ALT+Qt::Key_L));
-    defaultShortcuts.insert(XH::VIEW_BREAKPOINTS,XH::Shortcut(XH::VIEW_BREAKPOINTS,tr("view breakpoint"),Qt::ALT+Qt::Key_B));
-    defaultShortcuts.insert(XH::VIEW_SCRIPT,XH::Shortcut(XH::VIEW_SCRIPT,tr("view script"),Qt::ALT+Qt::Key_S));
-    defaultShortcuts.insert(XH::VIEW_SYMINFO,XH::Shortcut(XH::VIEW_SYMINFO,tr("view symbolinfo"),Qt::CTRL+Qt::ALT+Qt::Key_S));
-    defaultShortcuts.insert(XH::VIEW_REFERENCES,XH::Shortcut(XH::VIEW_REFERENCES,tr("view references"),Qt::ALT+Qt::Key_R));
-    defaultShortcuts.insert(XH::VIEW_THREADS,XH::Shortcut(XH::VIEW_THREADS,tr("view threads"),Qt::ALT+Qt::Key_T));
-    defaultShortcuts.insert(XH::VIEW_PATCHES,XH::Shortcut(XH::VIEW_PATCHES,tr("view patches"),Qt::CTRL+Qt::Key_P));
-    defaultShortcuts.insert(XH::VIEW_COMMENTS,XH::Shortcut(XH::VIEW_COMMENTS,tr("view comments"),Qt::CTRL+Qt::ALT+Qt::Key_C));
-    defaultShortcuts.insert(XH::VIEW_LABELS,XH::Shortcut(XH::VIEW_LABELS,tr("view labels"),Qt::CTRL+Qt::ALT+Qt::Key_L));
-    defaultShortcuts.insert(XH::VIEW_BOOKMARKS,XH::Shortcut(XH::VIEW_BOOKMARKS,tr("view bookmarks"),Qt::ALT+Qt::Key_B));
-    defaultShortcuts.insert(XH::VIEW_FUNCTIONS,XH::Shortcut(XH::VIEW_FUNCTIONS,tr("view functions"),Qt::ALT+Qt::Key_F));
+    defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C"));
+    defaultShortcuts.insert("ViewLog", Shortcut(tr("View -> Log"), "Alt+L"));
+    defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B"));
+    defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M"));
+    defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K"));
+    defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S"));
+    defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S"));
+    defaultShortcuts.insert("ViewReferences", Shortcut(tr("View -> References"), "Alt+R"));
+    defaultShortcuts.insert("ViewThreads", Shortcut(tr("View -> Threads"), "Alt+T"));
+    defaultShortcuts.insert("ViewPatches", Shortcut(tr("View -> Patches"), "Ctrl+P"));
+    defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C"));
+    defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L"));
+    defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B"));
+    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F"));
 
-    defaultShortcuts.insert(XH::DEBUG_RUN,XH::Shortcut(XH::DEBUG_RUN,tr("run debugger"),Qt::Key_F4));
-    defaultShortcuts.insert(XH::DEBUG_SKIPEXC,XH::Shortcut(XH::DEBUG_SKIPEXC,tr("run debugger (skip exception)"),Qt::SHIFT+ Qt::Key_F4));
-    defaultShortcuts.insert(XH::DEBUG_RUNUNTIL,XH::Shortcut(XH::DEBUG_RUNUNTIL,tr("run debugger until selection"),Qt::Key_F4));
-    defaultShortcuts.insert(XH::DEBUG_PAUSE,XH::Shortcut(XH::DEBUG_PAUSE,tr("pause debugger"),Qt::Key_F12));
-    defaultShortcuts.insert(XH::DEBUG_RESTART,XH::Shortcut(XH::DEBUG_RESTART,tr("restart debugger"),Qt::CTRL+ Qt::Key_F2));
-    defaultShortcuts.insert(XH::DEBUG_CLOSE,XH::Shortcut(XH::DEBUG_CLOSE,tr("close debugger"),Qt::ALT+Qt::Key_X));
-    defaultShortcuts.insert(XH::DEBUG_STEPIN,XH::Shortcut(XH::DEBUG_STEPIN,tr("step into"),Qt::Key_F7));
-    defaultShortcuts.insert(XH::DEBUG_STEPINSKIP,XH::Shortcut(XH::DEBUG_STEPINSKIP,tr("step into (skip execptions)"),Qt::SHIFT+ Qt::Key_F7));
-    defaultShortcuts.insert(XH::DEBUG_STEPOVER,XH::Shortcut(XH::DEBUG_STEPOVER,tr("step over"),Qt::Key_F8));
-    defaultShortcuts.insert(XH::DEBUG_STEPOVERSKIP,XH::Shortcut(XH::DEBUG_STEPOVERSKIP,tr("step over (skip execption)"),Qt::SHIFT+ Qt::Key_F8));
-    defaultShortcuts.insert(XH::DEBUG_EXECTILL,XH::Shortcut(XH::DEBUG_EXECTILL,tr("execute debugger till return"),Qt::CTRL+Qt::Key_F9));
-    defaultShortcuts.insert(XH::DEBUG_EXECTILLSKIP,XH::Shortcut(XH::DEBUG_EXECTILLSKIP,tr("execute debugger till return"),Qt::CTRL+Qt::SHIFT+ Qt::Key_F9));
-    defaultShortcuts.insert(XH::DEBUG_COMMAND,XH::Shortcut(XH::DEBUG_COMMAND,tr("execute command"),Qt::CTRL+Qt::Key_Return));
+    defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9"));
+    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9"));
+    defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4"));
+    defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12"));
+    defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2"));
+    defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2"));
+    defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7"));
+    defaultShortcuts.insert("DebugeStepInfo", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7"));
+    defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8"));
+    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8"));
+    defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9"));
+    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> execute till return (skip exceptions)"), "Ctrl+Shift+F9"));
+    defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return"));
 
-    //,,,,,,,,DEBUG_EXECTILLSKIP,DEBUG_COMMAND
+    defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I"));
 
     Shortcuts = defaultShortcuts;
 
@@ -342,34 +343,34 @@ void Configuration::writeFonts()
 void Configuration::readShortcuts()
 {
     Shortcuts = defaultShortcuts;
-    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+    QMap<QString, Shortcut>::const_iterator it = Shortcuts.begin();
 
     while(it!=Shortcuts.end())
     {
-        const int id = it.value().Id;
+        const QString id = it.key();
         QString key = shortcutFromConfig(id);
         if(key != "")
         {
             QKeySequence KeySequence(shortcutFromConfig(id));
             Shortcuts[it.key()].Hotkey = KeySequence;
         }
+        else
+            Shortcuts[it.key()].Hotkey = QKeySequence();
         it++;
-
     }
-
     emit shortcutsUpdated();
 }
+
 void Configuration::writeShortcuts()
 {
-
-    QMap<XH::ShortcutId,XH::Shortcut>::const_iterator it = Shortcuts.begin();
+    QMap<QString, Shortcut>::const_iterator it = Shortcuts.begin();
 
     while(it!=Shortcuts.end())
     {
-        shortcutToConfig(it.value().Id,it.value().Hotkey);
+        shortcutToConfig(it.key(), it.value().Hotkey);
         it++;
     }
-
+    emit shortcutsUpdated();
 }
 
 const QColor Configuration::getColor(const QString id) const
@@ -477,20 +478,40 @@ const QFont Configuration::getFont(const QString id) const
     return ret;
 }
 
-const XH::Shortcut Configuration::getShortcut(const XH::ShortcutId key_id) const
+const Configuration::Shortcut Configuration::getShortcut(const QString key_id) const
 {
-    return Shortcuts.find(key_id).value();
+    if(Shortcuts.contains(key_id))
+        return Shortcuts.constFind(key_id).value();
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
+    return QKeySequence();
 }
 
-void Configuration::setShortcut(const XH::ShortcutId key_id, const int key_sequence)
+void Configuration::setShortcut(const QString key_id, const QKeySequence key_sequence)
 {
-    XH::Shortcut sh = Shortcuts.find(key_id).value();
-    sh.Hotkey = QKeySequence(key_sequence);
-    Shortcuts.insert(key_id,sh);
-    emit shortcutsUpdated();
+    if(Shortcuts.contains(key_id))
+    {
+        for(QMap<QString, Shortcut>::iterator i=Shortcuts.begin(); i!=Shortcuts.end(); ++i)
+        {
+            if(!key_sequence.isEmpty() && i.value().Hotkey == key_sequence)
+            {
+                QMessageBox msg(QMessageBox::Warning, "DUPLICATE SHORTCUT", key_id + ": " + key_sequence.toString());
+                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+                msg.exec();
+                return;
+            }
+        }
+        Shortcuts[key_id].Hotkey=key_sequence;
+        return;
+    }
+    QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }
-
-
 
 QColor Configuration::colorFromConfig(const QString id)
 {
@@ -613,7 +634,7 @@ bool Configuration::fontToConfig(const QString id, const QFont font)
     return BridgeSettingSet("Fonts", id.toUtf8().constData(), font.toString().toUtf8().constData());
 }
 
-QString Configuration::shortcutFromConfig(const int id)
+QString Configuration::shortcutFromConfig(const QString id)
 {
     QString _id = QString("%1").arg(id);
     char setting[MAX_SETTING_SIZE]="";
@@ -624,9 +645,11 @@ QString Configuration::shortcutFromConfig(const int id)
     return "";
 }
 
-bool Configuration::shortcutToConfig(const int id, const QKeySequence shortcut)
+bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)
 {
     QString _id = QString("%1").arg(id);
-    QString _key = shortcut.toString(QKeySequence::NativeText);
+    QString _key = "";
+    if(!shortcut.isEmpty())
+        _key = shortcut.toString(QKeySequence::NativeText);
     return BridgeSettingSet("Shortcuts",_id.toUtf8().constData(),_key.toUtf8().constData());
 }
