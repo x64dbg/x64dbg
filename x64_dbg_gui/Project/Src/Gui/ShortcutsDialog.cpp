@@ -16,9 +16,9 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
 
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
-    tblHeader << "Instruction" << "Description" << "Shortcut";
+    tblHeader << "Instruction" << "Shortcut";
     QTableWidget* tbl = ui->tblShortcuts;
-    tbl->setColumnCount(3);
+    tbl->setColumnCount(2);
     tbl->verticalHeader()->setVisible(false);
     tbl->setHorizontalHeaderLabels(tblHeader);
     tbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -35,12 +35,10 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) :
 
     for(unsigned int i=0;i<numShortcuts;i++){
         QTableWidgetItem* shortcutName = new QTableWidgetItem(Config()->getShortcut(static_cast<XH::ShortcutId>(i)).Name);
-        QTableWidgetItem* shortcutDummy = new QTableWidgetItem("");
         QTableWidgetItem* shortcutKey = new QTableWidgetItem(Config()->getShortcut(static_cast<XH::ShortcutId>(i)).Hotkey.toString(QKeySequence::NativeText));
 
-        tbl->setItem(i,1,shortcutDummy);
         tbl->setItem(i,0,shortcutName);
-        tbl->setItem(i,2,shortcutKey);
+        tbl->setItem(i,1,shortcutKey);
     }
 
     connect(ui->tblShortcuts,SIGNAL(clicked(QModelIndex)),this,SLOT(syncTextfield()));
@@ -64,7 +62,7 @@ void ShortcutsDialog::updateShortcut(){
            }
            if(good){
                Config()->setShortcut(currentShortcut.Id,newKey);
-               ui->tblShortcuts->item(currentRow,2)->setText(newKey.toString(QKeySequence::NativeText));
+               ui->tblShortcuts->item(currentRow,1)->setText(newKey.toString(QKeySequence::NativeText));
                shortcutfield->setErrorState(false);
            }else{
                 shortcutfield->setErrorState(true);
