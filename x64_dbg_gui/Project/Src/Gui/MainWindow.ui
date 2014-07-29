@@ -99,6 +99,7 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
+    <addaction name="actionShortcuts"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -619,6 +620,15 @@
    </property>
    <property name="shortcut">
     <string>Alt+K</string>
+   </property>
+  </action>
+  <action name="actionShortcuts">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/shortcut.png</normaloff>:/icons/images/shortcut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Shortcuts</string>
    </property>
   </action>
  </widget>

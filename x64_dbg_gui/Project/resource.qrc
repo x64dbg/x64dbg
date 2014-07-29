@@ -40,5 +40,6 @@
         <file>images/comments.png</file>
         <file>images/update.png</file>
         <file>images/callstack.png</file>
+        <file>images/shortcut.png</file>
     </qresource>
 </RCC>

@@ -144,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionStrings,SIGNAL(triggered()),this,SLOT(findStrings()));
     connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
+    connect(ui->actionShortcuts,SIGNAL(triggered()),this,SLOT(openShortcuts()));
     connect(ui->actionPatches,SIGNAL(triggered()),this,SLOT(patchWindow()));
     connect(ui->actionComments,SIGNAL(triggered()),this,SLOT(displayComments()));
     connect(ui->actionLabels,SIGNAL(triggered()),this,SLOT(displayLabels()));
@@ -165,6 +166,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString,QString*)), this, SLOT(getStrWindow(QString,QString*)));
 
+    connect(Config(),SIGNAL(shortcutsUpdated()),this, SLOT(refreshShortcuts()));
+
     //Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException=0;
@@ -175,6 +178,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //setup menu api
     initMenuApi();
+
+    refreshShortcuts();
 
     bClose=false;
     mCloseDialog = new CloseDialog(this);
@@ -218,6 +223,40 @@ void MainWindow::setTab(QWidget* widget)
             mTabWidget->setCurrentIndex(i);
             break;
         }
+}
+
+void MainWindow::refreshShortcuts(){
+    ui->actionOpen->setShortcut(ConfigShortcut(XH::FILE_OPEN));
+    ui->actionClose->setShortcut(ConfigShortcut(XH::APP_EXIT));
+
+    ui->actionCpu->setShortcut(ConfigShortcut(XH::VIEW_CPU));
+    ui->actionMemoryMap->setShortcut(ConfigShortcut(XH::VIEW_MEMORY));
+    ui->actionLog->setShortcut(ConfigShortcut(XH::VIEW_LOG));
+    ui->actionBreakpoints->setShortcut(ConfigShortcut(XH::VIEW_BREAKPOINTS));
+    ui->actionScript->setShortcut(ConfigShortcut(XH::VIEW_SCRIPT));
+    ui->actionSymbolInfo->setShortcut(ConfigShortcut(XH::VIEW_SYMINFO));
+    ui->actionReferences->setShortcut(ConfigShortcut(XH::VIEW_REFERENCES));
+    ui->actionThreads->setShortcut(ConfigShortcut(XH::VIEW_THREADS));
+    ui->actionPatches->setShortcut(ConfigShortcut(XH::VIEW_PATCHES));
+    ui->actionComments->setShortcut(ConfigShortcut(XH::VIEW_COMMENTS));
+    ui->actionLabels->setShortcut(ConfigShortcut(XH::VIEW_LABELS));
+    ui->actionBookmarks->setShortcut(ConfigShortcut(XH::VIEW_BOOKMARKS));
+    ui->actionFunctions->setShortcut(ConfigShortcut(XH::VIEW_FUNCTIONS));
+
+    ui->actionRun->setShortcut(ConfigShortcut(XH::DEBUG_RUN));
+    ui->actioneRun->setShortcut(ConfigShortcut(XH::DEBUG_SKIPEXC));
+    ui->actionRunSelection->setShortcut(ConfigShortcut(XH::DEBUG_RUNUNTIL));
+    ui->actionPause->setShortcut(ConfigShortcut(XH::DEBUG_PAUSE));
+    ui->actionRestart->setShortcut(ConfigShortcut(XH::DEBUG_RESTART));
+    ui->actionClose->setShortcut(ConfigShortcut(XH::DEBUG_CLOSE));
+    ui->actionStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPIN));
+    ui->actioneStepInto->setShortcut(ConfigShortcut(XH::DEBUG_STEPINSKIP));
+    ui->actionStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVER));
+    ui->actioneStepOver->setShortcut(ConfigShortcut(XH::DEBUG_STEPOVERSKIP));
+    ui->actionRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILL));
+    ui->actioneRtr->setShortcut(ConfigShortcut(XH::DEBUG_EXECTILLSKIP));
+    ui->actionCommand->setShortcut(ConfigShortcut(XH::DEBUG_COMMAND));
+
 }
 
 //Reads recent files list from settings
@@ -581,6 +620,12 @@ void MainWindow::openAppearance()
 {
     AppearanceDialog appearance(this);
     appearance.exec();
+}
+
+void MainWindow::openShortcuts()
+{
+    ShortcutsDialog shortcuts(this);
+    shortcuts.exec();
 }
 
 void MainWindow::addRecentFile(QString file)
