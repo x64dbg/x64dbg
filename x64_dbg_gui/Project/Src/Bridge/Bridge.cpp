@@ -32,10 +32,7 @@ void Bridge::CopyToClipboard(const char* text)
 
     OpenClipboard(0);
     EmptyClipboard();
-    if(!SetClipboardData(CF_OEMTEXT, hText))
-        MessageBeep(MB_ICONERROR);
-    else
-        MessageBeep(MB_ICONINFORMATION);
+    SetClipboardData(CF_OEMTEXT, hText);
     CloseClipboard();
 }
 

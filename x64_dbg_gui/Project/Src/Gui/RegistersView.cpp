@@ -305,7 +305,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || event->button() != Qt::LeftButton)
         return;
     // get mouse position
     const int y = (event->y()-3)/(double)mRowHeight;

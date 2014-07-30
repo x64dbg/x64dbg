@@ -292,6 +292,8 @@ void ScriptView::contextMenuSlot(const QPoint &pos)
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    if(event->button() != Qt::LeftButton)
+        return;
     Q_UNUSED(event);
     if(!getRowCount())
         return;

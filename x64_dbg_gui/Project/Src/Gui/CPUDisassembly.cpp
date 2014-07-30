@@ -38,6 +38,8 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
 
 void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    if(event->button() != Qt::LeftButton)
+        return;
     switch(getColumnIndexFromX(event->x()))
     {
     case 0: //address
