@@ -23,6 +23,7 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
 public slots:
+    void refreshShortcutsSlot();
     void contextMenuSlot(const QPoint &pos);
     void add(int count, const char** lines);
     void clear();

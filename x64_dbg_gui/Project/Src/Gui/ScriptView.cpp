@@ -339,50 +339,42 @@ void ScriptView::setupContextMenu()
 
     mScriptLoad = new QAction("Open...", this);
     mScriptLoad->setShortcutContext(Qt::WidgetShortcut);
-    mScriptLoad->setShortcut(QKeySequence("ctrl+o"));
     this->addAction(mScriptLoad);
     connect(mScriptLoad, SIGNAL(triggered()), this, SLOT(openFile()));
     mLoadMenu->addAction(mScriptLoad);
 
     mScriptUnload = new QAction("Unload Script", this);
     mScriptUnload->setShortcutContext(Qt::WidgetShortcut);
-    mScriptUnload->setShortcut(QKeySequence("ctrl+u"));
     this->addAction(mScriptUnload);
     connect(mScriptUnload, SIGNAL(triggered()), this, SLOT(unload()));
 
     mScriptRun = new QAction("Run", this);
     mScriptRun->setShortcutContext(Qt::WidgetShortcut);
-    mScriptRun->setShortcut(QKeySequence("space"));
     this->addAction(mScriptRun);
     connect(mScriptRun, SIGNAL(triggered()), this, SLOT(run()));
 
     mScriptBpToggle = new QAction("Toggle BP", this);
     mScriptBpToggle->setShortcutContext(Qt::WidgetShortcut);
-    mScriptBpToggle->setShortcut(QKeySequence("F2"));
     this->addAction(mScriptBpToggle);
     connect(mScriptBpToggle, SIGNAL(triggered()), this, SLOT(bpToggle()));
 
     mScriptRunCursor = new QAction("Run until selection", this);
     mScriptRunCursor->setShortcutContext(Qt::WidgetShortcut);
-    mScriptRunCursor->setShortcut(QKeySequence("F4"));
     this->addAction(mScriptRunCursor);
     connect(mScriptRunCursor, SIGNAL(triggered()), this, SLOT(runCursor()));
 
     mScriptStep = new QAction("Step", this);
     mScriptStep->setShortcutContext(Qt::WidgetShortcut);
-    mScriptStep->setShortcut(QKeySequence("tab"));
     this->addAction(mScriptStep);
     connect(mScriptStep, SIGNAL(triggered()), this, SLOT(step()));
 
     mScriptAbort = new QAction("Abort", this);
     mScriptAbort->setShortcutContext(Qt::WidgetShortcut);
-    mScriptAbort->setShortcut(QKeySequence("esc"));
     this->addAction(mScriptAbort);
     connect(mScriptAbort, SIGNAL(triggered()), this, SLOT(abort()));
 
     mScriptCmdExec = new QAction("Execute Command...", this);
     mScriptCmdExec->setShortcutContext(Qt::WidgetShortcut);
-    mScriptCmdExec->setShortcut(QKeySequence("x"));
     this->addAction(mScriptCmdExec);
     connect(mScriptCmdExec, SIGNAL(triggered()), this, SLOT(cmdExec()));
 
@@ -390,6 +382,21 @@ void ScriptView::setupContextMenu()
     mScriptNewIp->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptNewIp);
     connect(mScriptNewIp, SIGNAL(triggered()), this, SLOT(newIp()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void ScriptView::refreshShortcutsSlot()
+{
+    mScriptLoad->setShortcut(QKeySequence("ctrl+o"));
+    mScriptUnload->setShortcut(QKeySequence("ctrl+u"));
+    mScriptRun->setShortcut(QKeySequence("space"));
+    mScriptBpToggle->setShortcut(QKeySequence("F2"));
+    mScriptRunCursor->setShortcut(QKeySequence("F4"));
+    mScriptStep->setShortcut(QKeySequence("tab"));
+    mScriptAbort->setShortcut(QKeySequence("esc"));
+    mScriptCmdExec->setShortcut(QKeySequence("x"));
 }
 
 bool ScriptView::isScriptCommand(QString text, QString cmd)

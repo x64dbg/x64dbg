@@ -26,6 +26,7 @@ signals:
     void displayReferencesWidget();
 
 public slots:
+    void refreshShortcutsSlot();
     void stackDumpAt(uint_t addr, uint_t csp);
     void gotoSpSlot();
     void gotoBpSlot();

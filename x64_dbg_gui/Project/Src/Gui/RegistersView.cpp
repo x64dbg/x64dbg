@@ -5,19 +5,19 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
 {
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"),this);
-    wCM_Increment->setShortcut(Qt::Key_Plus);
+    this->addAction(wCM_Increment);
     wCM_Decrement = new QAction(tr("Decrement"),this);
-    wCM_Decrement->setShortcut(Qt::Key_Minus);
+    this->addAction(wCM_Decrement);
     wCM_Zero = new QAction(tr("Zero"),this);
-    wCM_Zero->setShortcut(Qt::Key_0);
+    this->addAction(wCM_Zero);
     wCM_SetToOne = new QAction(tr("Set to 1"),this);
-    wCM_SetToOne->setShortcut(Qt::Key_1);
+    this->addAction(wCM_SetToOne);
     wCM_Modify = new QAction(tr("Modify Value"),this);
-    wCM_Modify->setShortcut(Qt::Key_Return);
+    wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = new QAction(tr("Toggle"),this);
-    wCM_ToggleValue->setShortcut(Qt::Key_Space);
+    this->addAction(wCM_ToggleValue);
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"),this);
-    wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
+    this->addAction(wCM_CopyToClipboard);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"),this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"),this);
     wCM_FollowInStack = new QAction("Follow in Stack", this);
@@ -221,6 +221,19 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
     connect(wCM_FollowInDisassembly,SIGNAL(triggered()),this,SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump,SIGNAL(triggered()),this,SLOT(onFollowInDump()));
     connect(wCM_FollowInStack,SIGNAL(triggered()),this,SLOT(onFollowInStack()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void RegistersView::refreshShortcutsSlot()
+{
+    wCM_Increment->setShortcut(QKeySequence(Qt::Key_Plus));
+    wCM_Decrement->setShortcut(QKeySequence(Qt::Key_Minus));
+    wCM_Zero->setShortcut(QKeySequence(Qt::Key_0));
+    wCM_SetToOne->setShortcut(QKeySequence(Qt::Key_1));
+    wCM_ToggleValue->setShortcut(QKeySequence(Qt::Key_Space));
+    wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
 }
 
 RegistersView::~RegistersView()
@@ -332,34 +345,8 @@ void RegistersView::keyPressEvent(QKeyEvent *event)
 {
     if(!DbgIsDebugging())
         return;
-    if(event->matches(QKeySequence::Copy))
-    {
-        wCM_CopyToClipboard->trigger();
-        return;
-    }
-    switch(event->key())
-    {
-    case Qt::Key_0:
-        wCM_Zero->trigger();
-        break;
-    case Qt::Key_1:
-        wCM_SetToOne->trigger();
-        break;
-    case Qt::Key_Plus:
-        wCM_Increment->trigger();
-        break;
-    case Qt::Key_Minus:
-        wCM_Decrement->trigger();
-        break;
-    case Qt::Key_Space:
-        wCM_ToggleValue->trigger();
-        break;
-    case Qt::Key_Return:
+    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
         wCM_Modify->trigger();
-        break;
-    default:
-        break;
-    }
 }
 
 void RegistersView::wheelEvent(QWheelEvent *event)
@@ -567,12 +554,11 @@ void RegistersView::onToggleValueAction()
 void RegistersView::onCopyToClipboardAction()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper());
+    clipboard->setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct,mSelected), sizeof(int_t)*2, 16, QChar('0')).toUpper());
 }
 
 void RegistersView::onFollowInDisassembly()
 {
-
     if(mGPR.contains(mSelected))
     {
         QString addr = QString("%1").arg(registerValue(&wRegDumpStruct,mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();

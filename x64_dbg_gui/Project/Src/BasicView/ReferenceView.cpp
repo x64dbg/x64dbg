@@ -1,4 +1,5 @@
 #include "ReferenceView.h"
+#include "Configuration.h"
 
 ReferenceView::ReferenceView()
 {
@@ -39,7 +40,6 @@ void ReferenceView::setupContextMenu()
 
     mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
-    mToggleBreakpoint->setShortcut(QKeySequence("F2"));
     this->addAction(mToggleBreakpoint);
     mList->addAction(mToggleBreakpoint);
     mSearchList->addAction(mToggleBreakpoint);
@@ -47,11 +47,19 @@ void ReferenceView::setupContextMenu()
 
     mToggleBookmark = new QAction("Toggle Bookmark", this);
     mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
-    mToggleBookmark->setShortcut(QKeySequence("ctrl+d"));
     this->addAction(mToggleBookmark);
     mList->addAction(mToggleBookmark);
     mSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void ReferenceView::refreshShortcutsSlot()
+{
+    mToggleBreakpoint->setShortcut(QKeySequence("F2"));
+    mToggleBookmark->setShortcut(QKeySequence("ctrl+d"));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)

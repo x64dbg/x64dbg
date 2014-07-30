@@ -29,6 +29,7 @@ private slots:
     void followGenericAddress();
     void toggleBreakpoint();
     void toggleBookmark();
+    void refreshShortcutsSlot();
 
 signals:
     void showCpu();

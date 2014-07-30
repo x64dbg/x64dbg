@@ -65,6 +65,7 @@ public:
     QSize sizeHint() const;
 
 public slots:
+    void refreshShortcutsSlot();
     void updateRegistersSlot();
     void displayCustomContextMenuSlot(QPoint pos);
     void setRegister(REGISTER_NAME reg, uint_t value);

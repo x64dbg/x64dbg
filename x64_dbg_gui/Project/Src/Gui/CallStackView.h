@@ -9,7 +9,6 @@ class CallStackView : public StdTable
 public:
     explicit CallStackView(StdTable* parent = 0);
     void setupContextMenu();
-    void keyPressEvent(QKeyEvent* event);
 
 signals:
     void showCpu();

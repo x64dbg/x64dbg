@@ -21,15 +21,6 @@ MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
     setupContextMenu();
 }
 
-void MemoryMapView::keyPressEvent(QKeyEvent* event)
-{
-    int key = event->key();
-    if(key == Qt::Key_Enter || key == Qt::Key_Return)
-        followDisassemblerSlot();
-    else
-        StdTable::keyPressEvent(event);
-}
-
 void MemoryMapView::setupContextMenu()
 {
     //Follow in Dump
@@ -41,6 +32,7 @@ void MemoryMapView::setupContextMenu()
     mFollowDisassembly->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu("Memory &Breakpoint", this);
@@ -69,7 +61,6 @@ void MemoryMapView::setupContextMenu()
     mMemoryExecuteMenu = new QMenu("Execute", this);
     mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
     mMemoryExecuteSingleshoot->setShortcutContext(Qt::WidgetShortcut);
-    mMemoryExecuteSingleshoot->setShortcut(QKeySequence("f2"));
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
     mMemoryExecuteRestore = new QAction("&Restore", this);
@@ -80,16 +71,24 @@ void MemoryMapView::setupContextMenu()
     //Breakpoint->Remove
     mMemoryRemove = new QAction("&Remove", this);
     mMemoryRemove->setShortcutContext(Qt::WidgetShortcut);
-    mMemoryRemove->setShortcut(QKeySequence("f2"));
     connect(mMemoryRemove, SIGNAL(triggered()), this, SLOT(memoryRemoveSlot()));
     mBreakpointMenu->addAction(mMemoryRemove);
 
     //Action shortcut action that does something
     mMemoryExecuteSingleshootToggle = new QAction(this);
     mMemoryExecuteSingleshootToggle->setShortcutContext(Qt::WidgetShortcut);
-    mMemoryExecuteSingleshootToggle->setShortcut(QKeySequence("f2"));
     this->addAction(mMemoryExecuteSingleshootToggle);
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void MemoryMapView::refreshShortcutsSlot()
+{
+    mMemoryExecuteSingleshoot->setShortcut(QKeySequence("f2"));
+    mMemoryRemove->setShortcut(QKeySequence("f2"));
+    mMemoryExecuteSingleshootToggle->setShortcut(QKeySequence("f2"));
 }
 
 void MemoryMapView::contextMenuSlot(const QPoint &pos)

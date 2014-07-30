@@ -1,4 +1,5 @@
 #include "BreakpointsView.h"
+#include "Configuration.h"
 
 BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
 {
@@ -48,6 +49,9 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
     setupHardBPRightClickContextMenu();
     setupSoftBPRightClickContextMenu();
     setupMemBPRightClickContextMenu();
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 
     // Signals/Slots
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(reloadData()));
@@ -171,7 +175,6 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     // Remove
     mHardBPRemoveAction = new QAction("Remove", this);
     mHardBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mHardBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mHardBPTable->addAction(mHardBPRemoveAction);
     connect(mHardBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeHardBPActionSlot()));
 
@@ -182,9 +185,20 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     // Enable/Disable
     mHardBPEnableDisableAction = new QAction("Enable", this);
     mHardBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mHardBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mHardBPTable->addAction(mHardBPEnableDisableAction);
     connect(mHardBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableHardBPActionSlot()));
+}
+
+void BreakpointsView::refreshShortcutsSlot()
+{
+    mHardBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
+    mHardBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
+
+    mSoftBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
+    mSoftBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
+
+    mMemBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
+    mMemBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
 }
 
 void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
@@ -277,7 +291,6 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     // Remove
     mSoftBPRemoveAction = new QAction("Remove", this);
     mSoftBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mSoftBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mSoftBPTable->addAction(mSoftBPRemoveAction);
     connect(mSoftBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeSoftBPActionSlot()));
 
@@ -288,7 +301,6 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     // Enable/Disable
     mSoftBPEnableDisableAction = new QAction("Enable", this);
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mSoftBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
 }
@@ -382,7 +394,6 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     // Remove
     mMemBPRemoveAction = new QAction("Remove", this);
     mMemBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mMemBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mMemBPTable->addAction(mMemBPRemoveAction);
     connect(mMemBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeMemBPActionSlot()));
 
@@ -393,7 +404,6 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     // Enable/Disable
     mMemBPEnableDisableAction = new QAction("Enable", this);
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mMemBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
 }

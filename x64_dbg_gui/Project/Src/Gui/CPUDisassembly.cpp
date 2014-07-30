@@ -237,7 +237,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
     this->addAction(mBinaryEditAction);
     mBinaryMenu->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
@@ -245,7 +244,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryFillAction->setShortcut(QKeySequence("f"));
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
@@ -253,7 +251,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Fill with NOPs
     mBinaryFillNopsAction = new QAction("Fill with &NOPs", this);
     mBinaryFillNopsAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryFillNopsAction->setShortcut(QKeySequence("ctrl+9"));
     this->addAction(mBinaryFillNopsAction);
     connect(mBinaryFillNopsAction, SIGNAL(triggered()), this, SLOT(binaryFillNopsSlot()));
     mBinaryMenu->addAction(mBinaryFillNopsAction);
@@ -264,7 +261,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
@@ -272,7 +268,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Paste
     mBinaryPasteAction = new QAction("&Paste", this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
@@ -280,7 +275,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //Binary->Paste (Ignore Size)
     mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
@@ -288,42 +282,36 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
-    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Labels
     mSetLabel = new QAction("Label", this);
     mSetLabel->setShortcutContext(Qt::WidgetShortcut);
-    mSetLabel->setShortcut(QKeySequence(":"));
     this->addAction(mSetLabel);
     connect(mSetLabel, SIGNAL(triggered()), this, SLOT(setLabel()));
 
     // Comments
     mSetComment = new QAction("Comment", this);
     mSetComment->setShortcutContext(Qt::WidgetShortcut);
-    mSetComment->setShortcut(QKeySequence(";"));
     this->addAction(mSetComment);
     connect(mSetComment, SIGNAL(triggered()), this, SLOT(setComment()));
 
     // Bookmarks
     mSetBookmark = new QAction("Bookmark", this);
     mSetBookmark->setShortcutContext(Qt::WidgetShortcut);
-    mSetBookmark->setShortcut(QKeySequence("ctrl+d"));
     this->addAction(mSetBookmark);
     connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
 
     // Functions
     mToggleFunction = new QAction("Function", this);
     mToggleFunction->setShortcutContext(Qt::WidgetShortcut);
-    mToggleFunction->setShortcut(QKeySequence("shift+f"));
     this->addAction(mToggleFunction);
     connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
 
     // Assemble
     mAssemble = new QAction("Assemble", this);
     mAssemble->setShortcutContext(Qt::WidgetShortcut);
-    mAssemble->setShortcut(QKeySequence("space"));
     this->addAction(mAssemble);
     connect(mAssemble, SIGNAL(triggered()), this, SLOT(assembleAt()));
 
@@ -334,7 +322,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Standard breakpoint (option set using SetBPXOption)
     mToggleInt3BpAction = new QAction("Toggle", this);
     mToggleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
-    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
     this->addAction(mToggleInt3BpAction);
     connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
 
@@ -361,7 +348,6 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mPatchesAction = new QAction(QIcon(":/icons/images/patch.png"), "Patches", this);
     mPatchesAction->setShortcutContext(Qt::WidgetShortcut);
-    mPatchesAction->setShortcut(QKeySequence("ctrl+p"));
     connect(mPatchesAction, SIGNAL(triggered()), this, SLOT(showPatchesSlot()));
 
     //--------------------------------------------------------------------
@@ -369,7 +355,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- New origin here -----------------------------
     mSetNewOriginHere = new QAction("Set New Origin Here", this);
     mSetNewOriginHere->setShortcutContext(Qt::WidgetShortcut);
-    mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
     this->addAction(mSetNewOriginHere);
     connect(mSetNewOriginHere, SIGNAL(triggered()), this, SLOT(setNewOriginHereActionSlot()));
 
@@ -381,28 +366,24 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Origin action
     mGotoOrigin = new QAction("Origin", this);
     mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
-    mGotoOrigin->setShortcut(QKeySequence("*"));
     this->addAction(mGotoOrigin);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOrigin()));
 
     // Previous action
     mGotoPrevious = new QAction("Previous", this);
     mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
-    mGotoPrevious->setShortcut(QKeySequence("-"));
     this->addAction(mGotoPrevious);
     connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevious()));
 
     // Next action
     mGotoNext = new QAction("Next", this);
     mGotoNext->setShortcutContext(Qt::WidgetShortcut);
-    mGotoNext->setShortcut(QKeySequence("+"));
     this->addAction(mGotoNext);
     connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNext()));
 
     // Address action
     mGotoExpression = new QAction("Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
-    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpression()));
 
@@ -417,7 +398,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Selected address
     mReferenceSelectedAddress = new QAction("&Selected address", this);
     mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
-    mReferenceSelectedAddress->setShortcut(QKeySequence("ctrl+r"));
     this->addAction(mReferenceSelectedAddress);
     connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
 
@@ -443,7 +423,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Pattern
     mSearchPattern = new QAction("&Pattern", this);
     mSearchPattern->setShortcutContext(Qt::WidgetShortcut);
-    mSearchPattern->setShortcut(QKeySequence("ctrl+b"));
     this->addAction(mSearchPattern);
     connect(mSearchPattern, SIGNAL(triggered()), this, SLOT(findPattern()));
     mSearchMenu->addAction(mSearchPattern);
@@ -451,9 +430,37 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Highlighting mode
     mEnableHighlightingMode = new QAction("&Highlighting mode", this);
     mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
-    mEnableHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
     this->addAction(mEnableHighlightingMode);
     connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void CPUDisassembly::refreshShortcutsSlot()
+{
+    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
+    mBinaryFillAction->setShortcut(QKeySequence("f"));
+    mBinaryFillNopsAction->setShortcut(QKeySequence("ctrl+9"));
+    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
+    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
+    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
+    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
+    mSetLabel->setShortcut(QKeySequence(":"));
+    mSetComment->setShortcut(QKeySequence(";"));
+    mSetBookmark->setShortcut(QKeySequence("ctrl+d"));
+    mToggleFunction->setShortcut(QKeySequence("shift+f"));
+    mAssemble->setShortcut(QKeySequence("space"));
+    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
+    mPatchesAction->setShortcut(QKeySequence("ctrl+p"));
+    mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
+    mGotoOrigin->setShortcut(QKeySequence("*"));
+    mGotoPrevious->setShortcut(QKeySequence("-"));
+    mGotoNext->setShortcut(QKeySequence("+"));
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    mReferenceSelectedAddress->setShortcut(QKeySequence("ctrl+r"));
+    mSearchPattern->setShortcut(QKeySequence("ctrl+b"));
+    mEnableHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
 }
 
 void CPUDisassembly::gotoOrigin()

@@ -35,6 +35,7 @@ signals:
     void showPatches();
 
 public slots:
+    void refreshShortcutsSlot();
     void toggleInt3BPAction();
     void toggleHwBpActionSlot();
     void setHwBpOnSlot0ActionSlot();

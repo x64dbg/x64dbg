@@ -25,17 +25,9 @@ void CallStackView::setupContextMenu()
     mFollowTo->setShortcutContext(Qt::WidgetShortcut);
     mFollowTo->setShortcut(QKeySequence("enter"));
     connect(mFollowTo, SIGNAL(triggered()), this, SLOT(followTo()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followTo()));
     mFollowFrom = new QAction("Follow &From", this);
     connect(mFollowFrom, SIGNAL(triggered()), this, SLOT(followFrom()));
-}
-
-void CallStackView::keyPressEvent(QKeyEvent* event)
-{
-    int key = event->key();
-    if(key == Qt::Key_Enter || key == Qt::Key_Return)
-        followTo();
-    else
-        StdTable::keyPressEvent(event);
 }
 
 void CallStackView::updateCallStack()

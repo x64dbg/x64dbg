@@ -25,6 +25,7 @@ signals:
     void displayReferencesWidget();
 
 public slots:
+    void refreshShortcutsSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
     void memoryWriteSingleshootSlot();

@@ -23,6 +23,7 @@ signals:
     void showCpu();
     
 public slots:
+    void refreshShortcutsSlot();
     void reloadData();
 
     // Hardware

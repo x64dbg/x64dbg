@@ -85,7 +85,6 @@ void CPUDump::setupContextMenu()
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
@@ -93,7 +92,6 @@ void CPUDump::setupContextMenu()
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryFillAction->setShortcut(QKeySequence("f"));
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
@@ -104,7 +102,6 @@ void CPUDump::setupContextMenu()
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
@@ -112,7 +109,6 @@ void CPUDump::setupContextMenu()
     //Binary->Paste
     mBinaryPasteAction = new QAction("&Paste", this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
@@ -120,7 +116,6 @@ void CPUDump::setupContextMenu()
     //Binary->Paste (Ignore Size)
     mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
@@ -128,14 +123,12 @@ void CPUDump::setupContextMenu()
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
-    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
-    mSetLabelAction->setShortcut(QKeySequence(":"));
     this->addAction(mSetLabelAction);
     connect(mSetLabelAction, SIGNAL(triggered()), this, SLOT(setLabelSlot()));
 
@@ -227,7 +220,6 @@ void CPUDump::setupContextMenu()
     //Find Pattern
     mFindPatternAction = new QAction("&Find Pattern...", this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
-    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
@@ -236,7 +228,6 @@ void CPUDump::setupContextMenu()
     //Goto->Expression
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
-    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
@@ -330,6 +321,22 @@ void CPUDump::setupContextMenu()
     //Disassembly
     mDisassemblyAction = new QAction("&Disassembly", this);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void CPUDump::refreshShortcutsSlot()
+{
+    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
+    mBinaryFillAction->setShortcut(QKeySequence("f"));
+    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
+    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
+    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
+    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
+    mSetLabelAction->setShortcut(QKeySequence(":"));
+    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)

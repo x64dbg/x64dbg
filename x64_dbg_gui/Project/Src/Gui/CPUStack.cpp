@@ -63,7 +63,6 @@ void CPUStack::setupContextMenu()
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
     mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
     this->addAction(mBinaryEditAction);
     connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
     mBinaryMenu->addAction(mBinaryEditAction);
@@ -71,7 +70,6 @@ void CPUStack::setupContextMenu()
     //Binary->Fill
     mBinaryFillAction = new QAction("&Fill...", this);
     mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryFillAction->setShortcut(QKeySequence("f"));
     this->addAction(mBinaryFillAction);
     connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
     mBinaryMenu->addAction(mBinaryFillAction);
@@ -82,7 +80,6 @@ void CPUStack::setupContextMenu()
     //Binary->Copy
     mBinaryCopyAction = new QAction("&Copy", this);
     mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
     this->addAction(mBinaryCopyAction);
     connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
     mBinaryMenu->addAction(mBinaryCopyAction);
@@ -90,7 +87,6 @@ void CPUStack::setupContextMenu()
     //Binary->Paste
     mBinaryPasteAction = new QAction("&Paste", this);
     mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
     this->addAction(mBinaryPasteAction);
     connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
     mBinaryMenu->addAction(mBinaryPasteAction);
@@ -98,7 +94,6 @@ void CPUStack::setupContextMenu()
     //Binary->Paste (Ignore Size)
     mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
     mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
-    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
@@ -106,7 +101,6 @@ void CPUStack::setupContextMenu()
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
-    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
@@ -122,7 +116,6 @@ void CPUStack::setupContextMenu()
     mGotoBp = new QAction("Follow E&BP", this);
 #endif //_WIN64
     mGotoSp->setShortcutContext(Qt::WidgetShortcut);
-    mGotoSp->setShortcut(QKeySequence("*"));
     this->addAction(mGotoSp);
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
@@ -130,13 +123,11 @@ void CPUStack::setupContextMenu()
     //Find Pattern
     mFindPatternAction = new QAction("&Find Pattern...", this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
-    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
-    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
 
@@ -145,12 +136,29 @@ void CPUStack::setupContextMenu()
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     this->addAction(mFollowDisasm);
     connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
 
     mFollowDump = new QAction("Follow in &Dump", this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
     mFollowStack = new QAction("Follow in &Stack", this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void CPUStack::refreshShortcutsSlot()
+{
+    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
+    mBinaryFillAction->setShortcut(QKeySequence("f"));
+    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
+    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
+    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
+    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
+    mGotoSp->setShortcut(QKeySequence("*"));
+    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
+    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
 }
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
