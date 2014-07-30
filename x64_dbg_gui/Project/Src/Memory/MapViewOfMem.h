@@ -2,7 +2,6 @@
 #define MAPVIEWOFMEM_H
 
 #include <QtGui>
-#include <QDebug>
 #include "NewTypes.h"
 
 

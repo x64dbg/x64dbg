@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include "Bridge.h"
-#include <QDebug>
 
 enum BPXSTATE
 {

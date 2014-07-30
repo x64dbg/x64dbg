@@ -2,7 +2,6 @@
 #define HISTORYLINEEDIT_H
 
 #include <QtGui>
-#include <QDebug>
 #include <QLineEdit>
 
 class HistoryLineEdit : public QLineEdit

@@ -2,7 +2,6 @@
 #define QBEAENGINE_H
 
 #include <QtGui>
-#include <QDebug>
 
 #include "BeaEngine.h"
 #include "NewTypes.h"

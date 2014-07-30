@@ -2,7 +2,6 @@
 #define MEMORYPAGE_H
 
 #include <QObject>
-#include <QDebug>
 #include <QtGui>
 #include "NewTypes.h"
 #include "windows.h"

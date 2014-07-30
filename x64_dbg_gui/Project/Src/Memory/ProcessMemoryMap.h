@@ -2,7 +2,6 @@
 #define MEMORYMAP_H
 
 #include <QObject>
-#include <QDebug>
 #include <QtGui>
 #include <QWidget>
 #include "NewTypes.h"
