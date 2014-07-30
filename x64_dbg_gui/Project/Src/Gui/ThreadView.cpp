@@ -1,6 +1,159 @@
 #include "ThreadView.h"
 #include "Configuration.h"
 
+// Dreg code x86_64dbg GPLv3
+
+void ThreadView::contextMenuSlot(const QPoint &pos)
+{
+    if(!DbgIsDebugging())
+        return;
+
+    QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mSuspendThread);
+    wMenu->addAction(mResumeThread);
+    wMenu->addAction(mKillThread);
+    wMenu->addSeparator();
+    wMenu->addMenu(mSetPriority);
+    wMenu->addSeparator();
+    QMenu wCopyMenu("&Copy", this);
+    setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu->addSeparator();
+        wMenu->addMenu(&wCopyMenu);
+    }
+
+
+    foreach(QAction* action, mSetPriority->actions())
+    {
+        action->setCheckable(true);
+        action->setChecked(false);
+    }
+
+    QString priority=getCellContent(getInitialSelection(), 6);
+    if ( priority == "Normal" )
+        mSetPriorityNormal->setChecked(true);
+    else if ( priority == "AboveNormal" )
+        mSetPriorityAboveNormal->setChecked(true);
+    else if ( priority == "TimeCritical" )
+        mSetPriorityTimeCritical ->setChecked(true);
+    else if ( priority == "Idle" )
+        mSetPriorityIdle->setChecked(true);
+    else if ( priority == "BelowNormal" )
+        mSetPriorityBelowNormal->setChecked(true);
+    else if ( priority == "Highest" )
+        mSetPriorityHighest->setChecked(true);
+    else if ( priority == "Lowest" )
+        mSetPriorityLowest->setChecked(true);
+
+    wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void ThreadView::SuspendThread()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("suspendthread " + threadId).toUtf8().constData());
+}
+
+void ThreadView::ResumeThread()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("resumethread " + threadId).toUtf8().constData());
+}
+
+void ThreadView::KillThread()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("killthread " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityIdleSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadidle " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityAboveNormalSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadabovenormal " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityBelowNormalSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadbelownormal " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityHighestSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadhighest " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityLowestSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadlowest " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityNormalSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadnormal " + threadId).toUtf8().constData());
+}
+
+void ThreadView::SetPriorityTimeCriticalSlot()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadtimecritical " + threadId).toUtf8().constData());
+}
+
+void ThreadView::setupContextMenu()
+{
+    //Suspend thread menu
+    mSuspendThread = new QAction("Suspend Thread", this);
+    connect(mSuspendThread, SIGNAL(triggered()), this, SLOT(SuspendThread()));
+
+    //Resume thread menu
+    mResumeThread = new QAction("Resume Thread", this);
+    connect(mResumeThread, SIGNAL(triggered()), this, SLOT(ResumeThread()));
+
+    //Kill thread menu
+    mKillThread = new QAction("Kill Thread", this);
+    connect(mKillThread, SIGNAL(triggered()), this, SLOT(KillThread()));
+
+    mSetPriority = new QMenu("Set Priority", this);
+
+    mSetPriorityIdle = new QAction("Idle", this);
+    connect(mSetPriorityIdle, SIGNAL(triggered()), this, SLOT(SetPriorityIdleSlot()));
+    mSetPriority->addAction(mSetPriorityIdle);
+
+    mSetPriorityAboveNormal = new QAction("Above Normal", this);
+    connect(mSetPriorityAboveNormal, SIGNAL(triggered()), this, SLOT(SetPriorityAboveNormalSlot()));
+    mSetPriority->addAction(mSetPriorityAboveNormal);
+
+    mSetPriorityBelowNormal = new QAction("Below Normal", this);
+    connect(mSetPriorityBelowNormal, SIGNAL(triggered()), this, SLOT(SetPriorityBelowNormalSlot()));
+    mSetPriority->addAction(mSetPriorityBelowNormal);
+
+    mSetPriorityHighest = new QAction("Highest", this);
+    connect(mSetPriorityHighest, SIGNAL(triggered()), this, SLOT(SetPriorityHighestSlot()));
+    mSetPriority->addAction(mSetPriorityHighest);
+
+    mSetPriorityLowest = new QAction("Lowest", this);
+    connect(mSetPriorityLowest, SIGNAL(triggered()), this, SLOT(SetPriorityLowestSlot()));
+    mSetPriority->addAction(mSetPriorityLowest);
+
+    mSetPriorityNormal = new QAction("Normal", this);
+    connect(mSetPriorityNormal, SIGNAL(triggered()), this, SLOT(SetPriorityNormalSlot()));
+    mSetPriority->addAction(mSetPriorityNormal);
+
+    mSetPriorityTimeCritical = new QAction("Time Critical", this);
+    connect(mSetPriorityTimeCritical, SIGNAL(triggered()), this, SLOT(SetPriorityTimeCriticalSlot()));
+    mSetPriority->addAction(mSetPriorityTimeCritical);
+}
+
 ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
 {
     int charwidth=getCharWidth();
@@ -19,10 +172,13 @@ ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
     addColumnAt(8+charwidth*10, "LastError", false);
     addColumnAt(0, "Name", false);
 
-    setCopyMenuOnly(true);
+    //setCopyMenuOnly(true);
 
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+
+    setupContextMenu();
 }
 
 void ThreadView::updateThreadList()
