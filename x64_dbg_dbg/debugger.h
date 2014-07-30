@@ -87,14 +87,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
 CMDRESULT cbDebugResumethread(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
-CMDRESULT cbDebugSetPriorityIdle(int argc, char* argv[]);
-CMDRESULT cbDebugSetPriorityAboveNormal(int argc, char* argv[]);
-CMDRESULT cbDebugSetPriorityBelowNormal(int argc, char**);
-CMDRESULT cbDebugSetPriorityHighest(int, char**);
-CMDRESULT cbDebugSetPriorityLowest(int, char**);
-CMDRESULT cbDebugSetPriorityNormal(int, char**);
-CMDRESULT cbDebugSetPriorityTimeCritical(int, char** );
-
+CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
