@@ -446,6 +446,8 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
     }
+    else if(wKey==Qt::Key_Return || wKey==Qt::Key_Enter) //user pressed enter
+        emit enterPressedSignal();
 }
 
 

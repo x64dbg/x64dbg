@@ -80,6 +80,7 @@ public:
     virtual void prepareData();
 
 signals:
+    void enterPressedSignal();
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
     void tableOffsetChanged(int_t i);
