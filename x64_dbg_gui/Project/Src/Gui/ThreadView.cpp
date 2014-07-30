@@ -1,6 +1,7 @@
 #include "ThreadView.h"
 #include "Configuration.h"
 
+// Dreg code x86_64dbg GPLv3
 
 void ThreadView::contextMenuSlot(const QPoint &pos)
 {
@@ -56,52 +57,56 @@ void ThreadView::SuspendThread()
 
 void ThreadView::ResumeThread()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("resumethread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::KillThread()
 {
-
-}
-
-void ThreadView::SetPriority()
-{
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("killthread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityIdleSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadidle " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityAboveNormalSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadabovenormal " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityBelowNormalSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadbelownormal " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityHighestSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadhighest " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityLowestSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadlowest " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityNormalSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadnormal " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityTimeCriticalSlot()
 {
-
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("setprioritythreadtimecritical " + threadId).toUtf8().constData());
 }
 
 void ThreadView::setupContextMenu()
@@ -125,7 +130,7 @@ void ThreadView::setupContextMenu()
     mSetPriority->addAction(mSetPriorityIdle);
 
     mSetPriorityAboveNormal = new QAction("Above Normal", this);
-    connect(mSetPriorityAboveNormal, SIGNAL(triggered()), this, SLOT(mSetPriorityAboveNormalSlot()));
+    connect(mSetPriorityAboveNormal, SIGNAL(triggered()), this, SLOT(SetPriorityAboveNormalSlot()));
     mSetPriority->addAction(mSetPriorityAboveNormal);
 
     mSetPriorityBelowNormal = new QAction("Below Normal", this);

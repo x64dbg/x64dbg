@@ -18,7 +18,6 @@ public slots:
     void SuspendThread();
     void ResumeThread();
     void KillThread();
-    void SetPriority();
     void contextMenuSlot(const QPoint &pos);
     void SetPriorityIdleSlot();
     void SetPriorityAboveNormalSlot();

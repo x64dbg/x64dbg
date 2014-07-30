@@ -42,6 +42,7 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
+CMDRESULT _ChangeThreadPriority( uint, int );
 
 //callbacks
 CMDRESULT cbDebugInit(int argc, char* argv[]);
@@ -83,6 +84,16 @@ CMDRESULT cbDebugContinue(int argc, char* argv[]);
 CMDRESULT cbBpDll(int argc, char* argv[]);
 CMDRESULT cbBcDll(int argc, char* argv[]);
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
+CMDRESULT cbDebugResumethread(int argc, char* argv[]);
+CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
+CMDRESULT cbDebugKillthread(int argc, char* argv[]);
+CMDRESULT cbDebugSetPriorityIdle(int argc, char* argv[]);
+CMDRESULT cbDebugSetPriorityAboveNormal(int argc, char* argv[]);
+CMDRESULT cbDebugSetPriorityBelowNormal(int argc, char**);
+CMDRESULT cbDebugSetPriorityHighest(int, char**);
+CMDRESULT cbDebugSetPriorityLowest(int, char**);
+CMDRESULT cbDebugSetPriorityNormal(int, char**);
+CMDRESULT cbDebugSetPriorityTimeCritical(int, char** );
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
