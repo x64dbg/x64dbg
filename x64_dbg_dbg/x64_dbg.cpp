@@ -96,16 +96,10 @@ static void registercommands()
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbBcDll, true); //remove dll breakpoint
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true);
-	dbgcmdnew("suspendthread\1suspendthread", cbDebugSuspendthread, true);
-	dbgcmdnew("resumethread\1resumethread", cbDebugResumethread, true);
-	dbgcmdnew("killthread\1killthread", cbDebugKillthread, true);
-	dbgcmdnew("setprioritythreadidle\1setprioritythreadidle", cbDebugSetPriorityIdle, true);
-	dbgcmdnew("setprioritythreadabovenormal\1setprioritythreadabovenormal", cbDebugSetPriorityAboveNormal, true);
-	dbgcmdnew("setprioritythreadbelownormal\1setprioritythreadbelownormal", cbDebugSetPriorityBelowNormal, true);
-	dbgcmdnew("setprioritythreadhighest\1setprioritythreadhighest", cbDebugSetPriorityHighest, true);
-	dbgcmdnew("setprioritythreadlowest\1setprioritythreadlowest", cbDebugSetPriorityLowest, true);
-	dbgcmdnew("setprioritythreadnormal\1setprioritythreadnormal", cbDebugSetPriorityNormal, true);
-	dbgcmdnew("setprioritythreadtimecritical\1setprioritythreadtimecritical", cbDebugSetPriorityTimeCritical, true);
+	dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true);
+	dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true);
+	dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true);
+	dbgcmdnew("setprioritythread\1threadsetpriority", cbDebugSetPriority, true);
 
 
     //breakpoints

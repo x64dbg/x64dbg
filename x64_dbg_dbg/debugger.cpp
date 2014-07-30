@@ -2413,11 +2413,12 @@ CMDRESULT _ChangeThreadPriority( uint threadid, int priority )
 	return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugSetPriorityIdle(int argc, char* argv[]) 
+CMDRESULT cbDebugSetPriority(int argc, char* argv[]) 
 {
 	uint threadid;
+	int priority;
 
-	if(argc<2)
+	if(argc<3)
 	{
 		dputs("not enough arguments!");
 		return STATUS_ERROR;
@@ -2426,103 +2427,31 @@ CMDRESULT cbDebugSetPriorityIdle(int argc, char* argv[])
 	if(!valfromstring(argv[1], &threadid, false))
 		return STATUS_ERROR;
 
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_IDLE );
-}
-
-CMDRESULT cbDebugSetPriorityAboveNormal(int argc, char* argv[]) 
-{
-	uint threadid;
-
-	if(argc<2)
+	if ( _strcmpi( argv[2], "Normal" ) == 0 )
+		priority = THREAD_PRIORITY_NORMAL;
+	else if ( _strcmpi( argv[2], "AboveNormal" ) == 0 )
+		priority = THREAD_PRIORITY_ABOVE_NORMAL;
+	else if ( _strcmpi( argv[2], "TimeCritical" ) == 0 )
+		priority = THREAD_PRIORITY_TIME_CRITICAL;
+	else if ( _strcmpi( argv[2], "Idle" ) == 0 )
+		priority = THREAD_PRIORITY_IDLE;
+	else if ( _strcmpi( argv[2], "BelowNormal" ) == 0 )
+		priority = THREAD_PRIORITY_BELOW_NORMAL;
+	else if ( _strcmpi( argv[2], "Highest" ) == 0 )
+		priority = THREAD_PRIORITY_HIGHEST;
+	else if ( _strcmpi( argv[2], "Lowest" ) == 0 )
+		priority = THREAD_PRIORITY_LOWEST;
+	else
 	{
-		dputs("not enough arguments!");
+		dputs("unkown state read the help!");
 		return STATUS_ERROR;
 	}
 
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_ABOVE_NORMAL );
+	return _ChangeThreadPriority( threadid, priority );
 }
 
-CMDRESULT cbDebugSetPriorityBelowNormal(int argc, char* argv[]) 
-{
-	uint threadid;
 
-	if(argc<2)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
 
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_BELOW_NORMAL );
-}
-
-CMDRESULT cbDebugSetPriorityHighest(int argc, char* argv[]) 
-{
-	uint threadid;
-
-	if(argc<2)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
-
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_HIGHEST );
-}
-
-CMDRESULT cbDebugSetPriorityLowest(int argc, char* argv[]) 
-{
-	uint threadid;
-
-	if(argc<2)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
-
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_LOWEST );
-}
-
-CMDRESULT cbDebugSetPriorityNormal(int argc, char* argv[]) 
-{
-	uint threadid;
-
-	if(argc<2)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
-
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_NORMAL );
-}
-
-CMDRESULT cbDebugSetPriorityTimeCritical(int argc, char* argv[]) 
-{
-	uint threadid;
-	if(argc<2)
-	{
-		dputs("not enough arguments!");
-		return STATUS_ERROR;
-	}
-
-	if(!valfromstring(argv[1], &threadid, false))
-		return STATUS_ERROR;
-
-	return _ChangeThreadPriority( threadid, THREAD_PRIORITY_TIME_CRITICAL );
-}
 
 CMDRESULT cbDebugResumethread(int argc, char* argv[])
 {

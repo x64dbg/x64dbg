@@ -70,43 +70,43 @@ void ThreadView::KillThread()
 void ThreadView::SetPriorityIdleSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadidle " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Idle").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityAboveNormalSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadabovenormal " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", AboveNormal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityBelowNormalSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadbelownormal " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", BelowNormal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityHighestSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadhighest " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Highest").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityLowestSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadlowest " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Lowest").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityNormalSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadnormal " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Normal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityTimeCriticalSlot()
 {
     QString threadId=getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("setprioritythreadtimecritical " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("setprioritythread " + threadId + ", TimeCritical").toUtf8().constData());
 }
 
 void ThreadView::setupContextMenu()
