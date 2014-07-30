@@ -166,50 +166,89 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Application", QApplication::font());
 
     // hotkeys settings
-    defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3"));
-    defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X"));
+    defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));
+    defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
 
-    defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C"));
-    defaultShortcuts.insert("ViewLog", Shortcut(tr("View -> Log"), "Alt+L"));
-    defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B"));
-    defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M"));
-    defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K"));
-    defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S"));
-    defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S"));
-    defaultShortcuts.insert("ViewReferences", Shortcut(tr("View -> References"), "Alt+R"));
-    defaultShortcuts.insert("ViewThreads", Shortcut(tr("View -> Threads"), "Alt+T"));
-    defaultShortcuts.insert("ViewPatches", Shortcut(tr("View -> Patches"), "Ctrl+P"));
-    defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C"));
-    defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L"));
-    defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B"));
-    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F"));
+    defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));
+    defaultShortcuts.insert("ViewLog", Shortcut(tr("View -> Log"), "Alt+L", true));
+    defaultShortcuts.insert("ViewBreakpoints", Shortcut(tr("View -> Breakpoints"), "Alt+B", true));
+    defaultShortcuts.insert("ViewMemoryMap", Shortcut(tr("View -> Memory Map"), "Alt+M", true));
+    defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
+    defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
+    defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
+    defaultShortcuts.insert("ViewReferences", Shortcut(tr("View -> References"), "Alt+R", true));
+    defaultShortcuts.insert("ViewThreads", Shortcut(tr("View -> Threads"), "Alt+T", true));
+    defaultShortcuts.insert("ViewPatches", Shortcut(tr("View -> Patches"), "Ctrl+P", true));
+    defaultShortcuts.insert("ViewComments", Shortcut(tr("View -> Comments"), "Ctrl+Alt+C", true));
+    defaultShortcuts.insert("ViewLabels", Shortcut(tr("View -> Labels"), "Ctrl+Alt+L", true));
+    defaultShortcuts.insert("ViewBookmarks", Shortcut(tr("View -> Bookmarks"), "Ctrl+Alt+B", true));
+    defaultShortcuts.insert("ViewFunctions", Shortcut(tr("View -> Functions"), "Alt+F", true));
 
-    defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9"));
-    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9"));
-    defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4"));
-    defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12"));
-    defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2"));
-    defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2"));
-    defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7"));
-    defaultShortcuts.insert("DebugeStepInfo", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7"));
-    defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8"));
-    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8"));
-    defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9"));
-    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> execute till return (skip exceptions)"), "Ctrl+Shift+F9"));
-    defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return"));
+    defaultShortcuts.insert("DebugRun", Shortcut(tr("Debug -> Run"), "F9", true));
+    defaultShortcuts.insert("DebugeRun", Shortcut(tr("Debug -> Run (skip exceptions)"), "Shift+F9", true));
+    defaultShortcuts.insert("DebugRunSelection", Shortcut(tr("Debug -> Run until selection"), "F4", true));
+    defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12", true));
+    defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
+    defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));
+    defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7", true));
+    defaultShortcuts.insert("DebugeStepInfo", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7", true));
+    defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));
+    defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8", true));
+    defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
+    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> execute till return (skip exceptions)"), "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
 
-    defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I"));
+    defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
-    defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences")));
-    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Preferences")));
-    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Preferences")));
+    defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences"), "", true));
+    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Preferences"), "", true));
+    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Preferences"), "", true));
 
-    defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About")));
-    defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate")));
-    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates")));
+    defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
+    defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
+    defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
 
-    defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings")));
-    defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls")));
+    defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings"), "", true));
+    defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls"), "", true));
+    defaultShortcuts.insert("ActionToggleBreakpoint", Shortcut(tr("Actions -> Toggle Breakpoint"), "F2"));
+    defaultShortcuts.insert("ActionToggleBookmark", Shortcut(tr("Actions -> Toggle Bookmark"), "Ctrl+D"));
+    defaultShortcuts.insert("ActionDeleteBreakpoint", Shortcut(tr("Actions -> Delete Breakpoint"), "Delete"));
+    defaultShortcuts.insert("ActionEnableDisableBreakpoint", Shortcut(tr("Actions -> Enable/Disable Breakpoint"), "Space"));
+
+    defaultShortcuts.insert("ActionBinaryEdit", Shortcut(tr("Actions -> Binary Edit"), "Ctrl+E"));
+    defaultShortcuts.insert("ActionBinaryFill", Shortcut(tr("Actions -> Binary Fill"), "F"));
+    defaultShortcuts.insert("ActionBinaryFillNops", Shortcut(tr("Actions -> Binary Fill NOPs"), "Ctrl+9"));
+    defaultShortcuts.insert("ActionBinaryCopy", Shortcut(tr("Actions -> Binary Copy"), "Shift+C"));
+    defaultShortcuts.insert("ActionBinaryPaste", Shortcut(tr("Actions -> Binary Paste"), "Shift+V"));
+    defaultShortcuts.insert("ActionBinaryPasteIgnoreSize", Shortcut(tr("Actions -> Binary Paste (Ignore Size)"), "Ctrl+Shift+V"));
+    defaultShortcuts.insert("ActionUndoSelection", Shortcut(tr("Actions -> Undo Selection"), "Ctrl+Backspace"));
+    defaultShortcuts.insert("ActionSetLabel", Shortcut(tr("Actions -> Set Label"), ":"));
+    defaultShortcuts.insert("ActionSetComment", Shortcut(tr("Actions -> Set Comment"), ";"));
+    defaultShortcuts.insert("ActionToggleFunction", Shortcut(tr("Actions -> Toggle Function"), "Shift+F"));
+    defaultShortcuts.insert("ActionAssemble", Shortcut(tr("Actions -> Assemble"), "Space"));
+    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut(tr("Actions -> Set New Origin Here"), "Ctrl+*"));
+    defaultShortcuts.insert("ActionGotoOrigin", Shortcut(tr("Actions -> Goto Origin"), "*"));
+    defaultShortcuts.insert("ActionGotoPrevious", Shortcut(tr("Actions -> Goto Previous"), "-"));
+    defaultShortcuts.insert("ActionGotoNext", Shortcut(tr("Actions -> Goto Next"), "+"));
+    defaultShortcuts.insert("ActionGotoExpression", Shortcut(tr("Actions -> Goto Expression"), "Ctrl+G"));
+    defaultShortcuts.insert("ActionFindReferencesToSelectedAddress", Shortcut(tr("Actions -> Find References to Selected Address"), "Ctrl+R"));
+    defaultShortcuts.insert("ActionFindPattern", Shortcut(tr("Actions -> Find Pattern"), "Ctrl+B"));
+    defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));
+
+    defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
+    defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));
+    defaultShortcuts.insert("ActionZeroRegister", Shortcut(tr("Actions -> Zero Register"), "0"));
+    defaultShortcuts.insert("ActionSetOneRegister", Shortcut(tr("Actions -> Set Register to One"), "1"));
+    defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut(tr("Actions -> Toggle Register Value"), "Space"));
+    defaultShortcuts.insert("ActionCopy", Shortcut(tr("Actions -> Copy"), "Ctrl+C"));
+    defaultShortcuts.insert("ActionLoadScript", Shortcut(tr("Actions -> Load Script"), "Ctrl+O"));
+    defaultShortcuts.insert("ActionUnloadScript", Shortcut(tr("Actions -> Unload Script"), "Ctrl+U"));
+    defaultShortcuts.insert("ActionRunScript", Shortcut(tr("Actions -> Run Script"), "Space"));
+    defaultShortcuts.insert("ActionToggleBreakpointScript", Shortcut(tr("Actions -> Toggle Script Breakpoint"), "F2"));
+    defaultShortcuts.insert("ActionRunToCursorScript", Shortcut(tr("Actions -> Run Script to Cursor"), "Shift+F4"));
+    defaultShortcuts.insert("ActionStepScript", Shortcut(tr("Actions -> Step Script"), "Tab"));
+    defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
+    defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
 
     Shortcuts = defaultShortcuts;
 
@@ -350,7 +389,6 @@ void Configuration::writeFonts()
     emit fontsUpdated();
 }
 
-
 void Configuration::readShortcuts()
 {
     Shortcuts = defaultShortcuts;
@@ -360,15 +398,15 @@ void Configuration::readShortcuts()
     {
         const QString id = it.key();
         QString key = shortcutFromConfig(id);
-        if(key != "NOT_SET")
+        if(key != "")
         {
-            if(key != "")
+            if(key == "NOT_SET")
+                Shortcuts[it.key()].Hotkey = QKeySequence();
+            else
             {
                 QKeySequence KeySequence(key);
                 Shortcuts[it.key()].Hotkey = KeySequence;
             }
-            else
-                Shortcuts[it.key()].Hotkey = QKeySequence();
         }
         it++;
     }
@@ -507,17 +545,6 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
 {
     if(Shortcuts.contains(key_id))
     {
-        for(QMap<QString, Shortcut>::iterator i=Shortcuts.begin(); i!=Shortcuts.end(); ++i)
-        {
-            if(!key_sequence.isEmpty() && i.value().Hotkey == key_sequence)
-            {
-                QMessageBox msg(QMessageBox::Warning, "DUPLICATE SHORTCUT", key_id + ": " + key_sequence.toString());
-                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-                msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-                msg.exec();
-                return;
-            }
-        }
         Shortcuts[key_id].Hotkey=key_sequence;
         return;
     }
@@ -656,7 +683,7 @@ QString Configuration::shortcutFromConfig(const QString id)
     {
         return QString(setting);
     }
-    return "NOT_SET";
+    return "";
 }
 
 bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)
@@ -665,5 +692,7 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
     QString _key = "";
     if(!shortcut.isEmpty())
         _key = shortcut.toString(QKeySequence::NativeText);
+    else
+        _key = "NOT_SET";
     return BridgeSettingSet("Shortcuts",_id.toUtf8().constData(),_key.toUtf8().constData());
 }

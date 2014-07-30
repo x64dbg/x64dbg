@@ -5,7 +5,6 @@
 #include <QString>
 #include <QColor>
 #include <QMap>
-#include <QDebug>
 #include <QObject>
 #include <QKeySequence>
 #include "Bridge.h"
@@ -26,11 +25,13 @@ public:
     {
         QString Name;
         QKeySequence Hotkey;
+        bool GlobalShortcut;
 
-        Shortcut(QString n = QString(), QString h = QString())
+        Shortcut(QString n = QString(), QString h = QString(), bool g = false)
         {
             Name = n;
             Hotkey = QKeySequence(h);
+            GlobalShortcut = g;
         }
     };
 

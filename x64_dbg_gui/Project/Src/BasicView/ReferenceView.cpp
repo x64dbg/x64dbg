@@ -58,8 +58,8 @@ void ReferenceView::setupContextMenu()
 
 void ReferenceView::refreshShortcutsSlot()
 {
-    mToggleBreakpoint->setShortcut(QKeySequence("F2"));
-    mToggleBookmark->setShortcut(QKeySequence("ctrl+d"));
+    mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mToggleBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)

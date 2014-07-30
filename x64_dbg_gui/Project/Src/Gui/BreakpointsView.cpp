@@ -191,14 +191,14 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
 
 void BreakpointsView::refreshShortcutsSlot()
 {
-    mHardBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
-    mHardBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
+    mHardBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mHardBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
 
-    mSoftBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
-    mSoftBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
+    mSoftBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mSoftBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
 
-    mMemBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
-    mMemBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
+    mMemBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mMemBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
 }
 
 void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)

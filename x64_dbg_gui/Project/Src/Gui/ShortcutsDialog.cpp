@@ -12,26 +12,26 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
     tblHeader << "Instruction" << "Shortcut";
-    QTableWidget* tbl = ui->tblShortcuts;
-    tbl->setColumnCount(2);
-    tbl->verticalHeader()->setVisible(false);
-    tbl->setHorizontalHeaderLabels(tblHeader);
-    tbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    tbl->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tbl->setSelectionMode(QAbstractItemView::SingleSelection);
-    tbl->setShowGrid(false);
-    tbl->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
-    tbl->verticalHeader()->setDefaultSectionSize(15);
+
+    ui->tblShortcuts->setColumnCount(2);
+    ui->tblShortcuts->verticalHeader()->setVisible(false);
+    ui->tblShortcuts->setHorizontalHeaderLabels(tblHeader);
+    ui->tblShortcuts->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->tblShortcuts->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->tblShortcuts->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tblShortcuts->setShowGrid(false);
+    ui->tblShortcuts->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+    ui->tblShortcuts->verticalHeader()->setDefaultSectionSize(15);
 
     const unsigned int numShortcuts = Config()->Shortcuts.count();
-    tbl->setRowCount(numShortcuts);
+    ui->tblShortcuts->setRowCount(numShortcuts);
     int j=0;
     for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i,j++)
     {
         QTableWidgetItem* shortcutName = new QTableWidgetItem(i.value().Name);
         QTableWidgetItem* shortcutKey = new QTableWidgetItem(i.value().Hotkey.toString(QKeySequence::NativeText));
-        tbl->setItem(j, 0, shortcutName);
-        tbl->setItem(j, 1, shortcutKey);
+        ui->tblShortcuts->setItem(j, 0, shortcutName);
+        ui->tblShortcuts->setItem(j, 1, shortcutKey);
     }
 
     connect(ui->tblShortcuts, SIGNAL(itemSelectionChanged()), this, SLOT(syncTextfield()));
@@ -45,12 +45,23 @@ void ShortcutsDialog::updateShortcut()
     if(newKey != currentShortcut.Hotkey)
     {
         bool good=true;
-        foreach(Configuration::Shortcut S, Config()->Shortcuts)
+        if(!newKey.isEmpty())
         {
-            if(!newKey.isEmpty() && S.Hotkey == newKey && S.Name != currentShortcut.Name)
+            int idx=0;
+            for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i,idx++)
             {
-                good=false;
-                break;
+                if(i.value().Name == currentShortcut.Name) //skip current shortcut in list
+                    continue;
+                if(i.value().GlobalShortcut && i.value().Hotkey == newKey) //newkey is trying to override a global shortcut
+                {
+                    good=false;
+                    break;
+                }
+                else if(currentShortcut.GlobalShortcut && i.value().Hotkey == newKey) //current shortcut is global and overrides another local hotkey
+                {
+                    ui->tblShortcuts->setItem(idx, 1, new QTableWidgetItem(""));
+                    Config()->setShortcut(i.key(), QKeySequence());
+                }
             }
         }
         if(good)
@@ -102,8 +113,8 @@ ShortcutsDialog::~ShortcutsDialog()
 
 void ShortcutsDialog::on_btnSave_clicked()
 {
-    Config()->save();
-    QMessageBox msg(QMessageBox::Information, "Information", "Shortcuts updated!\n\nYou may need to restart the debugger for all changes to take in effect.");
+    Config()->writeShortcuts();
+    QMessageBox msg(QMessageBox::Information, "Information", "Shortcuts updated!");
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));

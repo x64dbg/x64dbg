@@ -328,15 +328,15 @@ void CPUDump::setupContextMenu()
 
 void CPUDump::refreshShortcutsSlot()
 {
-    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
-    mBinaryFillAction->setShortcut(QKeySequence("f"));
-    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
-    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
-    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
-    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
-    mSetLabelAction->setShortcut(QKeySequence(":"));
-    mFindPatternAction->setShortcut(QKeySequence("ctrl+b"));
-    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
+    mBinaryEditAction->setShortcut(ConfigShortcut("ActionBinaryEdit"));
+    mBinaryFillAction->setShortcut(ConfigShortcut("ActionBinaryFill"));
+    mBinaryCopyAction->setShortcut(ConfigShortcut("ActionBinaryCopy"));
+    mBinaryPasteAction->setShortcut(ConfigShortcut("ActionBinaryPaste"));
+    mBinaryPasteIgnoreSizeAction->setShortcut(ConfigShortcut("ActionBinaryPasteIgnoreSize"));
+    mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
+    mSetLabelAction->setShortcut(ConfigShortcut("ActionSetLabel"));
+    mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)

@@ -439,28 +439,28 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 void CPUDisassembly::refreshShortcutsSlot()
 {
-    mBinaryEditAction->setShortcut(QKeySequence("ctrl+e"));
-    mBinaryFillAction->setShortcut(QKeySequence("f"));
-    mBinaryFillNopsAction->setShortcut(QKeySequence("ctrl+9"));
-    mBinaryCopyAction->setShortcut(QKeySequence("shift+c"));
-    mBinaryPasteAction->setShortcut(QKeySequence("shift+v"));
-    mBinaryPasteIgnoreSizeAction->setShortcut(QKeySequence("ctrl+shift+v"));
-    mUndoSelection->setShortcut(QKeySequence("ctrl+backspace"));
-    mSetLabel->setShortcut(QKeySequence(":"));
-    mSetComment->setShortcut(QKeySequence(";"));
-    mSetBookmark->setShortcut(QKeySequence("ctrl+d"));
-    mToggleFunction->setShortcut(QKeySequence("shift+f"));
-    mAssemble->setShortcut(QKeySequence("space"));
-    mToggleInt3BpAction->setShortcut(QKeySequence(Qt::Key_F2));
-    mPatchesAction->setShortcut(QKeySequence("ctrl+p"));
-    mSetNewOriginHere->setShortcut(QKeySequence("ctrl+*"));
-    mGotoOrigin->setShortcut(QKeySequence("*"));
-    mGotoPrevious->setShortcut(QKeySequence("-"));
-    mGotoNext->setShortcut(QKeySequence("+"));
-    mGotoExpression->setShortcut(QKeySequence("ctrl+g"));
-    mReferenceSelectedAddress->setShortcut(QKeySequence("ctrl+r"));
-    mSearchPattern->setShortcut(QKeySequence("ctrl+b"));
-    mEnableHighlightingMode->setShortcut(QKeySequence("ctrl+h"));
+    mBinaryEditAction->setShortcut(ConfigShortcut("ActionBinaryEdit"));
+    mBinaryFillAction->setShortcut(ConfigShortcut("ActionBinaryFill"));
+    mBinaryFillNopsAction->setShortcut(ConfigShortcut("ActionBinaryFillNops"));
+    mBinaryCopyAction->setShortcut(ConfigShortcut("ActionBinaryCopy"));
+    mBinaryPasteAction->setShortcut(ConfigShortcut("ActionBinaryPaste"));
+    mBinaryPasteIgnoreSizeAction->setShortcut(ConfigShortcut("ActionBinaryPasteIgnoreSize"));
+    mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
+    mSetLabel->setShortcut(ConfigShortcut("ActionSetLabel"));
+    mSetComment->setShortcut(ConfigShortcut("ActionSetComment"));
+    mSetBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
+    mToggleFunction->setShortcut(ConfigShortcut("ActionToggleFunction"));
+    mAssemble->setShortcut(ConfigShortcut("ActionAssemble"));
+    mToggleInt3BpAction->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mPatchesAction->setShortcut(ConfigShortcut("ViewPatches"));
+    mSetNewOriginHere->setShortcut(ConfigShortcut("ActionSetNewOriginHere"));
+    mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
+    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
+    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
+    mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mReferenceSelectedAddress->setShortcut(ConfigShortcut("ActionFindReferencesToSelectedAddress"));
+    mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
 }
 
 void CPUDisassembly::gotoOrigin()

@@ -86,9 +86,9 @@ void MemoryMapView::setupContextMenu()
 
 void MemoryMapView::refreshShortcutsSlot()
 {
-    mMemoryExecuteSingleshoot->setShortcut(QKeySequence("f2"));
-    mMemoryRemove->setShortcut(QKeySequence("f2"));
-    mMemoryExecuteSingleshootToggle->setShortcut(QKeySequence("f2"));
+    mMemoryExecuteSingleshoot->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mMemoryRemove->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
 }
 
 void MemoryMapView::contextMenuSlot(const QPoint &pos)

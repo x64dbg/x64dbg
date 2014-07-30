@@ -389,14 +389,14 @@ void ScriptView::setupContextMenu()
 
 void ScriptView::refreshShortcutsSlot()
 {
-    mScriptLoad->setShortcut(QKeySequence("ctrl+o"));
-    mScriptUnload->setShortcut(QKeySequence("ctrl+u"));
-    mScriptRun->setShortcut(QKeySequence("space"));
-    mScriptBpToggle->setShortcut(QKeySequence("F2"));
-    mScriptRunCursor->setShortcut(QKeySequence("F4"));
-    mScriptStep->setShortcut(QKeySequence("tab"));
-    mScriptAbort->setShortcut(QKeySequence("esc"));
-    mScriptCmdExec->setShortcut(QKeySequence("x"));
+    mScriptLoad->setShortcut(ConfigShortcut("ActionLoadScript"));
+    mScriptUnload->setShortcut(ConfigShortcut("ActionUnloadScript"));
+    mScriptRun->setShortcut(ConfigShortcut("ActionRunScript"));
+    mScriptBpToggle->setShortcut(ConfigShortcut("ActionToggleBreakpointScript"));
+    mScriptRunCursor->setShortcut(ConfigShortcut("ActionRunToCursorScript"));
+    mScriptStep->setShortcut(ConfigShortcut("ActionStepScript"));
+    mScriptAbort->setShortcut(ConfigShortcut("ActionAbortScript"));
+    mScriptCmdExec->setShortcut(ConfigShortcut("ActionExecuteCommandScript"));
 }
 
 bool ScriptView::isScriptCommand(QString text, QString cmd)

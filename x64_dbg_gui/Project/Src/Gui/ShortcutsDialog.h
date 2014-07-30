@@ -14,7 +14,6 @@ class ShortcutsDialog;
 class ShortcutsDialog : public QDialog
 {
     Q_OBJECT
-    QTableWidget* tbl;
     Configuration::Shortcut currentShortcut;
     int currentRow;
     bool editLock;

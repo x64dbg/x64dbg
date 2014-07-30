@@ -228,12 +228,12 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
 
 void RegistersView::refreshShortcutsSlot()
 {
-    wCM_Increment->setShortcut(QKeySequence(Qt::Key_Plus));
-    wCM_Decrement->setShortcut(QKeySequence(Qt::Key_Minus));
-    wCM_Zero->setShortcut(QKeySequence(Qt::Key_0));
-    wCM_SetToOne->setShortcut(QKeySequence(Qt::Key_1));
-    wCM_ToggleValue->setShortcut(QKeySequence(Qt::Key_Space));
-    wCM_CopyToClipboard->setShortcut(QKeySequence::Copy);
+    wCM_Increment->setShortcut(ConfigShortcut("ActionIncreaseRegister"));
+    wCM_Decrement->setShortcut(ConfigShortcut("ActionDecreaseRegister"));
+    wCM_Zero->setShortcut(ConfigShortcut("ActionZeroRegister"));
+    wCM_SetToOne->setShortcut(ConfigShortcut("ActionSetOneRegister"));
+    wCM_ToggleValue->setShortcut(ConfigShortcut("ActionToggleRegisterValue"));
+    wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
 RegistersView::~RegistersView()
