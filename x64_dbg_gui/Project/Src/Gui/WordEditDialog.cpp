@@ -42,7 +42,7 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString &arg1)
 
         //hex
         mWord = DbgValFromString(arg1.toUtf8().constData());
-        int_t hexWord=0;
+        uint_t hexWord=0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;
 #ifdef _WIN64
