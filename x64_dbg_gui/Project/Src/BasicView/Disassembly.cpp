@@ -316,7 +316,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         //draw functions
         int_t cur_addr=rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
-        switch(DbgGetFunctionTypeAt(cur_addr))
+        FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr+mInstBuffer.at(rowOffset).lentgh - 1);
+        if(funcLast == FUNC_END)
+            funcFirst = funcLast;
+        switch(funcFirst)
         {
         case FUNC_SINGLE:
             funcType=Function_single;
