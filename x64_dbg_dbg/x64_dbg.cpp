@@ -15,6 +15,7 @@
 #include "plugin_loader.h"
 #include "assemble.h"
 #include "_dbgfunctions.h"
+#include "debugger_commands.h"
 
 static MESSAGE_STACK* gMsgStack=0;
 static COMMAND* command_list=0;
@@ -93,8 +94,8 @@ static void registercommands()
     dbgcmdnew("StepOut\1rtr", cbDebugRtr, true); //rtr
     dbgcmdnew("eStepOut\1ertr", cbDebugeRtr, true); //rtr + skip first chance exceptions
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
-    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbBpDll, true); //set dll breakpoint
-    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbBcDll, true); //remove dll breakpoint
+    dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
+    dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
     dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true);
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true);
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true);
@@ -155,7 +156,7 @@ static void registercommands()
     dbgcmdnew("Fill\1memset", cbDebugMemset, true); //memset
 
     //plugins
-    dbgcmdnew("StartScylla\1scylla\1imprec", cbStartScylla, false); //start scylla
+    dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla
 
     //general purpose
     dbgcmdnew("cmp", cbInstrCmp, false); //compare
@@ -190,8 +191,7 @@ static void registercommands()
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
 
     //undocumented
-    dbgcmdnew("bench", cbBenchmark, true); //benchmark test (readmem etc)
-    dbgcmdnew("memwrite", cbMemWrite, true); //memwrite test
+    dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
     dbgcmdnew("dprintf", cbPrintf, false); //printf
     dbgcmdnew("setstr\1strset", cbInstrSetstr, false); //set a string variable
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
