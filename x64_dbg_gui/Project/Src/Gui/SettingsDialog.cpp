@@ -46,6 +46,7 @@ void SettingsDialog::LoadSettings()
     settings.eventSystemBreakpoint=true;
     settings.eventTlsCallbacks=true;
     settings.eventEntryBreakpoint=true;
+    settings.eventAttachBreakpoint=true;
     settings.engineCalcType=calc_unsigned;
     settings.engineBreakpointType=break_int3short;
     settings.engineUndecorateSymbolNames=true;
@@ -61,6 +62,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Events", "EntryBreakpoint", &settings.eventEntryBreakpoint);
     GetSettingBool("Events", "DllEntry", &settings.eventDllEntry);
     GetSettingBool("Events", "ThreadEntry", &settings.eventThreadEntry);
+    GetSettingBool("Events", "AttachBreakpoint", &settings.eventAttachBreakpoint);
     GetSettingBool("Events", "DllLoad", &settings.eventDllLoad);
     GetSettingBool("Events", "DllUnload", &settings.eventDllUnload);
     GetSettingBool("Events", "ThreadStart", &settings.eventThreadStart);
@@ -71,6 +73,7 @@ void SettingsDialog::LoadSettings()
     ui->chkEntryBreakpoint->setCheckState(bool2check(settings.eventEntryBreakpoint));
     ui->chkDllEntry->setCheckState(bool2check(settings.eventDllEntry));
     ui->chkThreadEntry->setCheckState(bool2check(settings.eventThreadEntry));
+    ui->chkAttachBreakpoint->setCheckState(bool2check(settings.eventAttachBreakpoint));
     ui->chkDllLoad->setCheckState(bool2check(settings.eventDllLoad));
     ui->chkDllUnload->setCheckState(bool2check(settings.eventDllUnload));
     ui->chkThreadStart->setCheckState(bool2check(settings.eventThreadStart));
@@ -164,6 +167,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Events", "EntryBreakpoint", settings.eventEntryBreakpoint);
     BridgeSettingSetUint("Events", "DllEntry", settings.eventDllEntry);
     BridgeSettingSetUint("Events", "ThreadEntry", settings.eventThreadEntry);
+    BridgeSettingSetUint("Events", "AttachBreakpoint", settings.eventAttachBreakpoint);
     BridgeSettingSetUint("Events", "DllLoad", settings.eventDllLoad);
     BridgeSettingSetUint("Events", "DllUnload", settings.eventDllUnload);
     BridgeSettingSetUint("Events", "ThreadStart", settings.eventThreadStart);
@@ -278,6 +282,14 @@ void SettingsDialog::on_chkThreadEntry_stateChanged(int arg1)
         settings.eventThreadEntry=false;
     else
         settings.eventThreadEntry=true;
+}
+
+void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.eventAttachBreakpoint=false;
+    else
+        settings.eventAttachBreakpoint=true;
 }
 
 void SettingsDialog::on_chkDllLoad_stateChanged(int arg1)

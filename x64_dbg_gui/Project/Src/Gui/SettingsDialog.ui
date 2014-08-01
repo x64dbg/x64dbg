@@ -197,6 +197,19 @@
       <string>Thread Entry</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkAttachBreakpoint">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>130</y>
+       <width>121</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Attach Breakpoint</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabEngine">
     <attribute name="title">

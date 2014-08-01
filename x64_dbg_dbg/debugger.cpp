@@ -778,7 +778,10 @@ static void cbSystemBreakpoint(void* ExceptionData)
 {
     hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     //log message
-    dputs("system breakpoint reached!");
+    if(bIsAttached)
+        dputs("attach breakpoint reached!");
+    else
+        dputs("system breakpoint reached!");
     bSkipExceptions=false; //we are not skipping first-chance exceptions
     uint cip=GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
@@ -788,7 +791,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
     callbackInfo.reserved=0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
 
-    if(settingboolget("Events", "SystemBreakpoint"))
+    if(bIsAttached ? settingboolget("Events", "AttachBreakpoint") : settingboolget("Events", "SystemBreakpoint"))
     {
         //update GUI
         DebugUpdateGui(cip, true);
@@ -1249,7 +1252,6 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     switch(GetFileArchitecture(arg1))
     {
     case invalid:
-    case notfound:
         dputs("invalid PE file!");
         return STATUS_ERROR;
 #ifdef _WIN64
@@ -1261,7 +1263,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 #endif //_WIN64
         return STATUS_ERROR;
     default:
-        return STATUS_ERROR;
+        break;
     }
 
     static char arg2[deflen]="";
