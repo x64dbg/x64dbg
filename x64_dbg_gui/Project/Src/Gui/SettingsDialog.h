@@ -53,6 +53,7 @@ private slots:
     void on_chkArgumentSpaces_stateChanged(int arg1);
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
+    void on_chkOnlyCipAutoComments_stateChanged(int arg1);
 
 private:
     //enums
@@ -108,6 +109,7 @@ private:
         bool disasmArgumentSpaces;
         bool disasmMemorySpaces;
         bool disasmUppercase;
+        bool disasmOnlyCipAutoComments;
     };
 
     //variables

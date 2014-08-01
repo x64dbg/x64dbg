@@ -16,6 +16,8 @@
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
 
+static bool bOnlyCipAutoComments = false;
+
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
     return memfindbaseaddr(addr, size);
@@ -166,7 +168,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 sprintf(addrinfo->comment, "%s:%u", filename+len, line.LineNumber);
                 retval=true;
             }
-            else //no line number
+            else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
                 std::string temp_string;
@@ -711,6 +713,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 }
                 entry=strtok(0, ",");
             }
+        }
+        if(BridgeSettingGetUint("Disassembler", "OnlyCipAutoComments", &setting))
+        {
+            if(setting)
+                bOnlyCipAutoComments = true;
+            else
+                bOnlyCipAutoComments = false;
         }
     }
     break;

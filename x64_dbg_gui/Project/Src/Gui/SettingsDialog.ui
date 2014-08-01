@@ -39,7 +39,7 @@
     <bool>true</bool>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabEvents">
     <attribute name="title">
@@ -399,7 +399,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>131</width>
+       <width>241</width>
        <height>17</height>
       </rect>
      </property>
@@ -412,7 +412,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>131</width>
+       <width>241</width>
        <height>17</height>
       </rect>
      </property>
@@ -425,12 +425,25 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>131</width>
+       <width>241</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
       <string>Uppercase</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkOnlyCipAutoComments">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Autocomments only on CIP</string>
      </property>
     </widget>
    </widget>

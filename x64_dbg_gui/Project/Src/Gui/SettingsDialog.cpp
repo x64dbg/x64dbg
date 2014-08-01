@@ -53,6 +53,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmArgumentSpaces=false;
     settings.disasmMemorySpaces=false;
     settings.disasmUppercase=false;
+    settings.disasmOnlyCipAutoComments=false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -148,9 +149,11 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "ArgumentSpaces", &settings.disasmArgumentSpaces);
     GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
+    GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
+    ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
 }
 
 void SettingsDialog::SaveSettings()
@@ -187,6 +190,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "ArgumentSpaces", settings.disasmArgumentSpaces);
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
+    BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
 
     Config()->load();
     DbgSettingsUpdated();
@@ -417,4 +421,12 @@ void SettingsDialog::on_chkUppercase_stateChanged(int arg1)
         settings.disasmUppercase=false;
     else
         settings.disasmUppercase=true;
+}
+
+void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.disasmOnlyCipAutoComments=false;
+    else
+        settings.disasmOnlyCipAutoComments=true;
 }
