@@ -5,18 +5,24 @@ RegistersView::RegistersView(QWidget * parent) : QAbstractScrollArea(parent), mV
 {
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"),this);
+    wCM_Increment->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Increment);
     wCM_Decrement = new QAction(tr("Decrement"),this);
+    wCM_Decrement->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Decrement);
     wCM_Zero = new QAction(tr("Zero"),this);
+    wCM_Zero->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_Zero);
     wCM_SetToOne = new QAction(tr("Set to 1"),this);
+    wCM_SetToOne->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_SetToOne);
     wCM_Modify = new QAction(tr("Modify Value"),this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = new QAction(tr("Toggle"),this);
+    wCM_ToggleValue->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_ToggleValue);
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"),this);
+    wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyToClipboard);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"),this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"),this);
