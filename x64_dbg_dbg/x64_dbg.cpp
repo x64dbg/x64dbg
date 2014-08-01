@@ -99,7 +99,7 @@ static void registercommands()
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true);
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true);
     dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true);
-    dbgcmdnew("setprioritythread\1threadsetpriority", cbDebugSetPriority, true);
+    dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true);
 
 
     //breakpoints

@@ -2362,154 +2362,6 @@ CMDRESULT cbBcDll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbDebugKillthread(int argc, char* argv[])
-{
-    uint threadid=fdProcessInfo->dwThreadId; //main thread
-    DWORD exit_thread_code;
-
-    if(argc<2)
-    {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-
-    if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
-    {
-        dprintf("invalid thread %X\n", threadid);
-        return STATUS_ERROR;
-    }
-
-    if ( TerminateThread( threadgethandle((DWORD)threadid), GetExitCodeThread(threadgethandle((DWORD)threadid), & exit_thread_code ) ) != 0 )
-    {
-        threadid=fdProcessInfo->dwThreadId; //main thread
-        hActiveThread=threadgethandle((DWORD)threadid);
-
-        DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-
-        return STATUS_CONTINUE;
-    }
-    
-    return STATUS_ERROR;
-}
-
-CMDRESULT _ChangeThreadPriority( uint threadid, int priority )
-{
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
-    {
-        dprintf("invalid thread %X\n", threadid);
-        return STATUS_ERROR;
-    }
-
-    if ( SetThreadPriority( threadgethandle((DWORD)threadid), priority ) == 0 )
-        return STATUS_ERROR;
-
-    threadid=fdProcessInfo->dwThreadId; //main thread
-    hActiveThread=threadgethandle((DWORD)threadid);
-
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbDebugSetPriority(int argc, char* argv[]) 
-{
-    uint threadid;
-    int priority;
-
-    if(argc<3)
-    {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-
-    if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
-
-    if ( _strcmpi( argv[2], "Normal" ) == 0 )
-        priority = THREAD_PRIORITY_NORMAL;
-    else if ( _strcmpi( argv[2], "AboveNormal" ) == 0 )
-        priority = THREAD_PRIORITY_ABOVE_NORMAL;
-    else if ( _strcmpi( argv[2], "TimeCritical" ) == 0 )
-        priority = THREAD_PRIORITY_TIME_CRITICAL;
-    else if ( _strcmpi( argv[2], "Idle" ) == 0 )
-        priority = THREAD_PRIORITY_IDLE;
-    else if ( _strcmpi( argv[2], "BelowNormal" ) == 0 )
-        priority = THREAD_PRIORITY_BELOW_NORMAL;
-    else if ( _strcmpi( argv[2], "Highest" ) == 0 )
-        priority = THREAD_PRIORITY_HIGHEST;
-    else if ( _strcmpi( argv[2], "Lowest" ) == 0 )
-        priority = THREAD_PRIORITY_LOWEST;
-    else
-    {
-        dputs("unkown state read the help!");
-        return STATUS_ERROR;
-    }
-
-    return _ChangeThreadPriority( threadid, priority );
-}
-
-
-
-
-CMDRESULT cbDebugResumethread(int argc, char* argv[])
-{
-    uint threadid;
-    if(argc<2)
-    {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-
-    if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
-    {
-        dprintf("invalid thread %X\n", threadid);
-        return STATUS_ERROR;
-    }
-
-    if ( ResumeThread( threadgethandle((DWORD)threadid) ) == -1 )
-        return STATUS_ERROR;
-
-    threadid=fdProcessInfo->dwThreadId; //main thread
-    hActiveThread=threadgethandle((DWORD)threadid);
-
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
-{
-    uint threadid;
-
-    if(argc<2)
-    {
-        dputs("not enough arguments!");
-        return STATUS_ERROR;
-    }
-
-    if(!valfromstring(argv[1], &threadid, false))
-        return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
-    {
-        dprintf("invalid thread %X\n", threadid);
-        return STATUS_ERROR;
-    }
-
-    if ( SuspendThread( threadgethandle((DWORD)threadid) ) == -1 )
-        return STATUS_ERROR;
-
-    threadid=fdProcessInfo->dwThreadId; //main thread
-    hActiveThread=threadgethandle((DWORD)threadid);
-
-    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
-
-    return STATUS_CONTINUE;
-}
-
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
 {
     uint threadid=fdProcessInfo->dwThreadId; //main thread
@@ -2524,5 +2376,127 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
     //switch thread
     hActiveThread=threadgethandle((DWORD)threadid);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
+{
+    uint threadid = fdProcessInfo->dwThreadId;
+    if(argc>1)
+        if(!valfromstring(argv[1], &threadid, false))
+            return STATUS_ERROR;
+    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    {
+        dprintf("invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    //suspend thread
+    if(SuspendThread(threadgethandle((DWORD)threadid)) == -1)
+        return STATUS_ERROR;
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugResumethread(int argc, char* argv[])
+{
+    uint threadid = fdProcessInfo->dwThreadId;
+    if(argc>1)
+        if(!valfromstring(argv[1], &threadid, false))
+            return STATUS_ERROR;
+    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    {
+        dprintf("invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    //resume thread
+    if(ResumeThread(threadgethandle((DWORD)threadid)) == -1)
+        return STATUS_ERROR;
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugKillthread(int argc, char* argv[])
+{
+    uint threadid = fdProcessInfo->dwThreadId;
+    if(argc>1)
+        if(!valfromstring(argv[1], &threadid, false))
+            return STATUS_ERROR;
+    uint exitcode = 0;
+    if(argc>2)
+        if(!valfromstring(argv[2], &exitcode, false))
+            return STATUS_ERROR;
+    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    {
+        dprintf("invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    //terminate thread
+    if(TerminateThread(threadgethandle((DWORD)threadid), (DWORD)exitcode) != 0)
+    {
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    return STATUS_ERROR;
+}
+
+CMDRESULT cbDebugSetPriority(int argc, char* argv[]) 
+{
+    if(argc<3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint threadid;
+    if(!valfromstring(argv[1], &threadid, false))
+        return STATUS_ERROR;
+    uint priority;
+    if(!valfromstring(argv[2], &priority))
+    {
+        if(_strcmpi(argv[2], "Normal") == 0)
+            priority = THREAD_PRIORITY_NORMAL;
+        else if(_strcmpi(argv[2], "AboveNormal") == 0)
+            priority = THREAD_PRIORITY_ABOVE_NORMAL;
+        else if(_strcmpi(argv[2], "TimeCritical") == 0)
+            priority = THREAD_PRIORITY_TIME_CRITICAL;
+        else if(_strcmpi(argv[2], "Idle") == 0)
+            priority = THREAD_PRIORITY_IDLE;
+        else if(_strcmpi(argv[2], "BelowNormal") == 0)
+            priority = THREAD_PRIORITY_BELOW_NORMAL;
+        else if(_strcmpi(argv[2], "Highest") == 0)
+            priority = THREAD_PRIORITY_HIGHEST;
+        else if(_strcmpi(argv[2], "Lowest") == 0)
+            priority = THREAD_PRIORITY_LOWEST;
+        else
+        {
+            dputs("unknown priority value, read the help!");
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        switch(priority) //check if the priority value is valid
+        {
+        case THREAD_PRIORITY_NORMAL:
+        case THREAD_PRIORITY_ABOVE_NORMAL:
+        case THREAD_PRIORITY_TIME_CRITICAL:
+        case THREAD_PRIORITY_IDLE:
+        case THREAD_PRIORITY_BELOW_NORMAL:
+        case THREAD_PRIORITY_HIGHEST:
+        case THREAD_PRIORITY_LOWEST:
+            break;
+        default:
+            dputs("unknown priority value, read the help!");
+            return STATUS_ERROR;
+        }
+    }
+    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    {
+        dprintf("invalid thread %X\n", threadid);
+        return STATUS_ERROR;
+    }
+    //set thread priority
+    if(SetThreadPriority(threadgethandle((DWORD)threadid), (int)priority) == 0)
+        return STATUS_ERROR;
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
