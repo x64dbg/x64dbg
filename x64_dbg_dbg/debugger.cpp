@@ -1245,6 +1245,25 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
     CloseHandle(hFile);
 
+    //do some basic checks
+    switch(GetFileArchitecture(arg1))
+    {
+    case invalid:
+    case notfound:
+        dputs("invalid PE file!");
+        return STATUS_ERROR;
+#ifdef _WIN64
+    case x32:
+        dputs("use x32_dbg to debug this file!");
+#else //x86
+    case x64:
+        dputs("use x64_dbg to debug this file!");
+#endif //_WIN64
+        return STATUS_ERROR;
+    default:
+        return STATUS_ERROR;
+    }
+
     static char arg2[deflen]="";
     argget(*argv, arg2, 1, true);
     char* commandline=0;

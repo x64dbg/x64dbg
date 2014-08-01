@@ -143,3 +143,36 @@ bool settingboolget(const char* section, const char* name)
         return true;
     return false;
 }
+
+arch GetFileArchitecture(const char* szFileName)
+{
+    arch retval = notfound;
+    HANDLE hFile = CreateFileA(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        unsigned char data[0x1000];
+        DWORD read = 0;
+        DWORD fileSize = GetFileSize(hFile, 0);
+        DWORD readSize = sizeof(data);
+        if(readSize > fileSize)
+            readSize = fileSize;
+        if(ReadFile(hFile, data, readSize, &read, 0))
+        {
+            retval = invalid;
+            IMAGE_DOS_HEADER* pdh = (IMAGE_DOS_HEADER*)data;
+            if(pdh->e_magic == IMAGE_DOS_SIGNATURE && (size_t)pdh->e_lfanew < readSize)
+            {
+                IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)(data + pdh->e_lfanew);
+                if(pnth->Signature == IMAGE_NT_SIGNATURE)
+                {
+                    if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) //x32
+                        retval = x32;
+                    else if(pnth->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64) //x64
+                        retval = x64;
+                }
+            }
+        }
+        CloseHandle(hFile);
+    }
+    return retval;
+}

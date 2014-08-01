@@ -90,6 +90,14 @@ enum BITMASK
     BIT32=0x80000000
 };
 
+enum arch
+{
+    notfound,
+    invalid,
+    x32,
+    x64
+};
+
 //superglobal variables
 extern HINSTANCE hInst;
 extern char dbbasepath[deflen];
@@ -110,5 +118,6 @@ bool FileExists(const char* file);
 bool DirExists(const char* dir);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool settingboolget(const char* section, const char* name);
+arch GetFileArchitecture(const char* szFileName);
 
 #endif // _GLOBAL_H
