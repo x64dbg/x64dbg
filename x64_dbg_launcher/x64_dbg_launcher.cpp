@@ -4,6 +4,7 @@
 
 enum arch
 {
+    notfound,
     invalid,
     x32,
     x64
@@ -11,7 +12,7 @@ enum arch
 
 static arch GetFileArchitecture(const char* szFileName)
 {
-    arch retval = invalid;
+    arch retval = notfound;
     HANDLE hFile = CreateFileA(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
@@ -23,6 +24,7 @@ static arch GetFileArchitecture(const char* szFileName)
             readSize = fileSize;
         if(ReadFile(hFile, data, readSize, &read, 0))
         {
+            retval = invalid;
             IMAGE_DOS_HEADER* pdh = (IMAGE_DOS_HEADER*)data;
             if(pdh->e_magic == IMAGE_DOS_SIGNATURE && (size_t)pdh->e_lfanew < readSize)
             {
@@ -82,33 +84,51 @@ static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, c
     return !!GetOpenFileNameA(&ofstruct);
 }
 
+#define SHELLEXT_EXE_KEY "exefile\\shell\\Debug with x64_dbg\\Command"
+#define SHELLEXT_DLL_KEY "dllfile\\shell\\Debug with x64_dbg\\Command"
+
+void RegisterShellExtension(const char* key, const char* command)
+{
+    HKEY hKey;
+    if(RegCreateKeyA(HKEY_CLASSES_ROOT, key, &hKey) != ERROR_SUCCESS)
+    {
+        MessageBoxA(0, "RegCreateKeyA failed!", "Running as Admin?", MB_ICONERROR);
+        return;
+    }
+    if(RegSetValueExA(hKey, 0, 0, REG_EXPAND_SZ, (LPBYTE)command, strlen(command) + 1) != ERROR_SUCCESS)
+        MessageBoxA(0, "RegSetValueExA failed!", "Running as Admin?", MB_ICONERROR);
+    RegCloseKey(hKey);
+}
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     //Get INI file path
-    char szIniFile[MAX_PATH] = "";
-    if(!GetModuleFileNameA(0, szIniFile, MAX_PATH))
+    char szModulePath[MAX_PATH] = "";
+    if(!GetModuleFileNameA(0, szModulePath, MAX_PATH))
     {
         MessageBoxA(0, "Error getting module path!", "Error", MB_ICONERROR|MB_SYSTEMMODAL);
         return 0;
     }
+    char szIniPath[MAX_PATH] = "";
+    strcpy(szIniPath, szModulePath);
     char szCurrentDir[MAX_PATH] = "";
-    strcpy(szCurrentDir, szIniFile);
+    strcpy(szCurrentDir, szModulePath);
     int len = (int)strlen(szCurrentDir);
     while(szCurrentDir[len] != '\\' && len)
         len--;
     if(len)
         szCurrentDir[len] = '\0';
-    len = (int)strlen(szIniFile);
-    while(szIniFile[len] != '.' && szIniFile[len] != '\\' && len)
+    len = (int)strlen(szIniPath);
+    while(szIniPath[len] != '.' && szIniPath[len] != '\\' && len)
         len--;
-    if(szIniFile[len] == '\\')
-        strcat(szIniFile, ".ini");
+    if(szIniPath[len] == '\\')
+        strcat(szIniPath, ".ini");
     else
-        strcpy(&szIniFile[len], ".ini");
+        strcpy(&szIniPath[len], ".ini");
 
     //Load settings
     char sz32Path[MAX_PATH] = "";
-    GetPrivateProfileStringA("Launcher", "x32_dbg", "", sz32Path, MAX_PATH, szIniFile);
+    GetPrivateProfileStringA("Launcher", "x32_dbg", "", sz32Path, MAX_PATH, szIniPath);
     char sz32Dir[MAX_PATH] = "";
     strcpy(sz32Dir, sz32Path);
     len = (int)strlen(sz32Dir);
@@ -117,7 +137,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(len)
         sz32Dir[len] = '\0';
     char sz64Path[MAX_PATH] = "";
-    GetPrivateProfileStringA("Launcher", "x64_dbg", "", sz64Path, MAX_PATH, szIniFile);
+    GetPrivateProfileStringA("Launcher", "x64_dbg", "", sz64Path, MAX_PATH, szIniPath);
     char sz64Dir[MAX_PATH] = "";
     strcpy(sz64Dir, sz64Path);
     len = (int)strlen(sz64Dir);
@@ -131,58 +151,47 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     char** argv=commandlineparse(&argc);
     if(argc <= 1) //no arguments -> set configuration
     {
-        //TODO: Shell Extension
-        //TODO: JIT Debugger
         if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
-            WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniFile);
+            WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
         if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
-            WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniFile);
+            WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
+        if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO|MB_ICONQUESTION) == IDYES)
+        {
+            char szLauncherCommand[MAX_PATH] = "";
+            sprintf_s(szLauncherCommand, "\"%s\" \"%%1\"", szModulePath);
+            RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
+            RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
+        }
         MessageBoxA(0, "New configuration written!", "Done!", MB_ICONINFORMATION);
     }
     if(argc == 2) //one argument -> execute debugger
     {
-        if(argv[1][1] == ':' && argv[1][2] == '\\') // check for "?:\"
+        std::string cmdLine = "\"";
+        cmdLine += argv[1];
+        cmdLine += "\"";
+        switch(GetFileArchitecture(argv[1]))
         {
-            std::string cmdLine = "\"";
-            cmdLine += argv[1];
-            cmdLine += "\"";
-            switch(GetFileArchitecture(argv[1]))
-            {
-            case x32:
-            {
-                if(sz32Path[0])
-                    ShellExecuteA(0, "open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
-                else
-                    MessageBoxA(0, "Path to x32_dbg not specified in launcher configuration...", "Error!", MB_ICONERROR);
-            }
+        case x32:
+            if(sz32Path[0])
+                ShellExecuteA(0, "open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
+            else
+                MessageBoxA(0, "Path to x32_dbg not specified in launcher configuration...", "Error!", MB_ICONERROR);
             break;
 
-            case x64:
-            {
-                if(sz64Path[0])
-                    ShellExecuteA(0, "open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
-                else
-                    MessageBoxA(0, "Path to x64_dbg not specified in launcher configuration...", "Error!", MB_ICONERROR);
-            }
+        case x64:
+            if(sz64Path[0])
+                ShellExecuteA(0, "open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+            else
+                MessageBoxA(0, "Path to x64_dbg not specified in launcher configuration...", "Error!", MB_ICONERROR);
             break;
 
-            case invalid:
-            {
-                MessageBoxA(0, argv[1], "Invalid PE File!", MB_ICONERROR);
-            }
+        case invalid:
+            MessageBoxA(0, argv[1], "Invalid PE File!", MB_ICONERROR);
             break;
-            }
-        }
-    }
-    else if(argc == 3) //two arguments -> JIT
-    {
-        if(!_stricmp(argv[1], "-a"))
-        {
-            //TODO: Handle JIT Debugger
-            std::string cmdLine(argv[1]);
-            cmdLine += " ";
-            cmdLine += argv[2];
-            MessageBoxA(0, cmdLine.c_str(), "JIT Debugger", MB_ICONINFORMATION);
+
+        case notfound:
+            MessageBoxA(0, argv[1], "File not found or in use!", MB_ICONERROR);
+            break;
         }
     }
     commandlinefree(argc, argv);
