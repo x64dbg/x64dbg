@@ -35,7 +35,7 @@ BRIDGE_IMPEXP const char* BridgeInit()
     if(!GetModuleFileNameA(0, szIniFile, 1024))
         return "Error getting module path!";
     int len=(int)strlen(szIniFile);
-    while(szIniFile[len]!='.' && szIniFile[len]!='\\')
+    while(szIniFile[len]!='.' && szIniFile[len]!='\\' && len)
         len--;
     if(szIniFile[len]=='\\')
         strcat(szIniFile, ".ini");
