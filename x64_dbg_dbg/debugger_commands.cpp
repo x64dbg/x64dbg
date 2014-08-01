@@ -280,14 +280,14 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
 CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
 {
     char arg1[deflen]="";
-    if(!argget(*argv, arg1, 0, true)) //delete all breakpoints
+    if(!argget(*argv, arg1, 0, true)) //enable all breakpoints
     {
         if(!bpgetcount(BPNORMAL))
         {
             dputs("no breakpoints to enable!");
             return STATUS_CONTINUE;
         }
-        if(!bpenumall(cbEnableAllBreakpoints)) //at least one deletion failed
+        if(!bpenumall(cbEnableAllBreakpoints)) //at least one enable failed
             return STATUS_ERROR;
         dputs("all breakpoints enabled!");
         GuiUpdateAllViews();
@@ -626,7 +626,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     DWORD drx=0;
     if(!GetUnusedHardwareBreakPointRegister(&drx))
     {
-        dputs("no free debug register");
+        dputs("you can only set 4 hardware breakpoints");
         return STATUS_ERROR;
     }
     int titantype=(drx<<8)|(type<<4)|(DWORD)size;
@@ -644,18 +644,6 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     dprintf("hardware breakpoint at "fhex" set!\n", addr);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
-}
-
-static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
-{
-    if(!bp->enabled)
-        return true;
-    if(!bpdel(bp->addr, BPHARDWARE) or !DeleteHardwareBreakPoint((bp->titantype>>8)&0xF))
-    {
-        dprintf("delete hardware breakpoint failed: "fhex"\n", bp->addr);
-        return STATUS_ERROR;
-    }
-    return true;
 }
 
 CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
@@ -1145,6 +1133,89 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     //set thread priority
     if(SetThreadPriority(threadgethandle((DWORD)threadid), (int)priority) == 0)
         return STATUS_ERROR;
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
+{
+    char arg1[deflen]="";
+    DWORD drx=0;
+    if(!GetUnusedHardwareBreakPointRegister(0))
+    {
+        dputs("you can only set 4 hardware breakpoints");
+        return STATUS_ERROR;
+    }
+    if(!argget(*argv, arg1, 0, true)) //enable all hardware breakpoints
+    {
+        if(!bpgetcount(BPHARDWARE))
+        {
+            dputs("no hardware breakpoints to enable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbEnableAllHardwareBreakpoints)) //at least one enable failed
+            return STATUS_ERROR;
+        dputs("all hardware breakpoints enabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
+    {
+        dprintf("no such hardware breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(found.enabled)
+    {
+        dputs("hardware breakpoint already enabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    if(!bpenable(found.addr, BPHARDWARE, true) or !SetHardwareBreakPoint(found.addr, 0, (found.titantype>>4)&0xF, found.titantype&0xF, (void*)cbHardwareBreakpoint))
+    {
+        dprintf("could not enable "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("hardware breakpoint enabled!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
+{
+    char arg1[deflen]="";
+    if(!argget(*argv, arg1, 0, true)) //delete all hardware breakpoints
+    {
+        if(!bpgetcount(BPNORMAL))
+        {
+            dputs("no hardware breakpoints to disable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbDisableAllHardwareBreakpoints)) //at least one deletion failed
+            return STATUS_ERROR;
+        dputs("all hardware breakpoints disabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
+    {
+        dprintf("no such hardware breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!found.enabled)
+    {
+        dputs("hardware breakpoint already disabled!");
+        return STATUS_CONTINUE;
+    }
+    if(!bpenable(found.addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint((found.titantype>>8)&0xF))
+    {
+        dprintf("could not disable "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("hardware breakpoint disabled!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

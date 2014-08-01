@@ -143,7 +143,13 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
             BPMAP wBPList;
             DbgGetBpList(bp_hardware, &wBPList);
 
-            if(wBPList.count < 4)
+            //get enabled hwbp count
+            int enabledCount = wBPList.count;
+            for(int i=0; i<wBPList.count; i++)
+                if(!wBPList.bp[i].enabled)
+                    enabledCount--;
+
+            if(enabledCount < 4)
             {
                 mBPMenu->addAction(mSetHwBpAction);
             }

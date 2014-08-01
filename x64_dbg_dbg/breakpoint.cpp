@@ -150,12 +150,12 @@ bool bpenumall(BPENUMCALLBACK cbEnum)
     return bpenumall(cbEnum, 0);
 }
 
-int bpgetcount(BP_TYPE type)
+int bpgetcount(BP_TYPE type, bool enabledonly)
 {
     int count=0;
     for(BreakpointsInfo::iterator i=breakpoints.begin(); i!=breakpoints.end(); ++i)
     {
-        if(i->first.first==type)
+        if(i->first.first==type && (!enabledonly || i->second.enabled))
             count++;
     }
     return count;

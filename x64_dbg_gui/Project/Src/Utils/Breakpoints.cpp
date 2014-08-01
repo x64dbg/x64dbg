@@ -61,7 +61,7 @@ void Breakpoints::enableBP(BRIDGEBP bp)
 
     if(bp.type == bp_hardware)
     {
-        // Todo
+        wCmd = "bphwe " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {
@@ -119,7 +119,7 @@ void Breakpoints::disableBP(BRIDGEBP bp)
 
     if(bp.type == bp_hardware)
     {
-        // Todo
+        wCmd = "bphwd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {

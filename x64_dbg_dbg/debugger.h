@@ -60,8 +60,11 @@ DWORD WINAPI threadDebugLoop(void* lpParameter);
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp);
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp);
 bool cbDisableAllBreakpoints(const BREAKPOINT* bp);
+bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp);
+bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp);
 bool cbBreakpointList(const BREAKPOINT* bp);
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp);
+bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
 

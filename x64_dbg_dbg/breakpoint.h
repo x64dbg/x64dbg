@@ -40,7 +40,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable);
 bool bpsetname(uint addr, BP_TYPE type, const char* name);
 bool bpenumall(BPENUMCALLBACK cbEnum);
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module);
-int bpgetcount(BP_TYPE type);
+int bpgetcount(BP_TYPE type, bool enabledonly = false);
 void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge);
 void bpcachesave(JSON root);
 void bpcacheload(JSON root);

@@ -46,5 +46,7 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
+CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
+CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
 
 #endif //_DEBUGGER_COMMANDS_H
