@@ -2439,7 +2439,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
     return STATUS_ERROR;
 }
 
-CMDRESULT cbDebugSetPriority(int argc, char* argv[]) 
+CMDRESULT cbDebugSetPriority(int argc, char* argv[])
 {
     if(argc<3)
     {
