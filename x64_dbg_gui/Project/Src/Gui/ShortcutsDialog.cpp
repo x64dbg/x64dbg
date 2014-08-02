@@ -114,11 +114,6 @@ ShortcutsDialog::~ShortcutsDialog()
 void ShortcutsDialog::on_btnSave_clicked()
 {
     Config()->writeShortcuts();
-    QMessageBox msg(QMessageBox::Information, "Information", "Shortcuts updated!");
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-    msg.exec();
 }
 
 void ShortcutsDialog::rejectedSlot()
