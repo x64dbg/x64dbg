@@ -19,7 +19,6 @@ SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView
     // Create module list
     mModuleList = new StdTable();
     int charwidth = mModuleList->getCharWidth();
-    mModuleList->setCopyMenuOnly(true);
     mModuleList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Base", false);
     mModuleList->addColumnAt(0, "Module", true);
 
@@ -64,6 +63,9 @@ SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(moduleContextMenu(QPoint)));
+    connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
+    connect(mModuleList, SIGNAL(doubleClickedSignal()), this, SLOT(moduleFollow()));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
@@ -85,6 +87,14 @@ void SymbolView::setupContextMenu()
 
     mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
+
+    mFollowModuleAction = new QAction("&Follow in Disassembler", this);
+    mFollowModuleAction->setShortcutContext(Qt::WidgetShortcut);
+    mFollowModuleAction->setShortcut(QKeySequence("enter"));
+    connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
+
+    mDownloadSymbolsAction = new QAction("&Download Symbols", this);
+    connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 }
 
 void SymbolView::updateStyle()
@@ -179,4 +189,32 @@ void SymbolView::symbolFollowDump()
 {
     DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
+}
+
+void SymbolView::moduleContextMenu(const QPoint & pos)
+{
+    if(!DbgIsDebugging())
+        return;
+    QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mFollowModuleAction);
+    wMenu->addAction(mDownloadSymbolsAction);
+    QMenu wCopyMenu("&Copy", this);
+    mModuleList->setupCopyMenu(&wCopyMenu);
+    if(wCopyMenu.actions().length())
+    {
+        wMenu->addSeparator();
+        wMenu->addMenu(&wCopyMenu);
+    }
+    wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void SymbolView::moduleFollow()
+{
+    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
+    emit showCpu();
+}
+
+void SymbolView::moduleDownloadSymbols()
+{
+    DbgCmdExec(QString("symdownload " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1)).toUtf8().constData());
 }
