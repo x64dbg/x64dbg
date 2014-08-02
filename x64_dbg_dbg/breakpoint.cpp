@@ -151,7 +151,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         {
             if(!cbEnum(&curBp))
                 retval=false;
-        }        
+        }
     }
     return retval;
 }

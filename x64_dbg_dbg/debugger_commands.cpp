@@ -1336,7 +1336,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     {
         strcpy(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore);
-    }    
+    }
     if(argc < 2) //no arguments
     {
         symdownloadallsymbols(szSymbolStore); //download symbols for all modules

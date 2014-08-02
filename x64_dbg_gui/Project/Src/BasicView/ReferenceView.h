@@ -40,7 +40,7 @@ private:
     QAction* mFollowDumpAddress;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
-    bool mFollowDumpDefault;    
+    bool mFollowDumpDefault;
 };
 
 #endif // REFERENCEVIEW_H

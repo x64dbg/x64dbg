@@ -67,7 +67,7 @@ struct MODINFO
     uint hash; //full module name hash
     char name[MAX_MODULE_SIZE]; //module name (without extension)
     char extension[MAX_MODULE_SIZE]; //file extension
-    std::vector<MODSECTIONINFO> sections; 
+    std::vector<MODSECTIONINFO> sections;
 };
 typedef std::map<Range, MODINFO, RangeCompare> ModulesInfo;
 

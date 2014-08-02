@@ -20,7 +20,7 @@ public:
 
 signals:
     void showCpu();
-    
+
 public slots:
     void refreshShortcutsSlot();
     void reloadData();
@@ -62,7 +62,7 @@ private:
     QAction* mSoftBPRemoveAction;
     QAction* mSoftBPRemoveAllAction;
     QAction* mSoftBPEnableDisableAction;
-    
+
     // Memory BP Context Menu
     QAction* mMemBPRemoveAction;
     QAction* mMemBPRemoveAllAction;

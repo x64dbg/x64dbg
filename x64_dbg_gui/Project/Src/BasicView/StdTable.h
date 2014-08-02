@@ -20,7 +20,7 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
     void enableMultiSelection(bool enabled);
-    
+
     // Selection Management
     void expandSelectionUpTo(int to);
     void setSingleSelection(int index);
@@ -46,7 +46,7 @@ signals:
     void keyPressedSignal(QKeyEvent* event);
     void doubleClickedSignal();
     void contextMenuSignal(const QPoint &pos);
-    
+
 public slots:
     void copyLineSlot();
     void copyTableSlot();

@@ -86,7 +86,7 @@ public:
     void* winId;
     QWidget* scriptView;
     SearchListView* referenceView;
-    
+
 signals:
     void disassembleAt(int_t va, int_t eip);
     void repaintGui();

@@ -12,10 +12,10 @@ public:
     explicit MemoryMapView(StdTable *parent = 0);
     QString paintContent(QPainter *painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
-    
+
 signals:
     void showCpu();
-    
+
 public slots:
     void refreshShortcutsSlot();
     void stateChangedSlot(DBGSTATE state);
@@ -49,7 +49,7 @@ private:
     QAction* mMemoryExecuteRestore;
     QAction* mMemoryRemove;
     QAction* mMemoryExecuteSingleshootToggle;
-    
+
 };
 
 #endif // MEMORYMAPVIEW_H

@@ -16,9 +16,9 @@ public:
     QList<MEMORY_BASIC_INFORMATION> BruteForceProcessMemory();
     void printVirtualMemoryMap(QList<MEMORY_BASIC_INFORMATION> parList);
 
-    
+
 signals:
-    
+
 public slots:
 
 private:
@@ -28,7 +28,7 @@ private:
 
     QList<QByteArray> mMemoryRegionsDataList;
     QList<MEMORY_BASIC_INFORMATION> mMemoryRegionsList;
-    
+
 };
 
 #endif // MEMORYMAP_H

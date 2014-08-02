@@ -10,9 +10,9 @@ class LogView : public QTextEdit
     Q_OBJECT
 public:
     explicit LogView(QWidget *parent = 0);
-    
+
 signals:
-    
+
 public slots:
     void updateStyle();
     void addMsgToLogSlot(QString msg);
@@ -21,7 +21,7 @@ public slots:
 private:
 
 
-    
+
 };
 
 #endif // LOGVIEW_H

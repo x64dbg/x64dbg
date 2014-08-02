@@ -41,7 +41,7 @@ static DWORD WINAPI memMapThread(void* ptr)
         while(!DbgIsDebugging())
             Sleep(1);
         const SIZE_T PrivateUsage=dbggetprivateusage(fdProcessInfo->hProcess);
-        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when 
+        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when
         {
             cachePrivateUsage = PrivateUsage;
             memupdatemap(fdProcessInfo->hProcess);
@@ -923,7 +923,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
 
-    if(bBreakOnNextDll || settingboolget("Events", "DllÙnload"))
+    if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))
     {
         bBreakOnNextDll=false;
         //update GUI

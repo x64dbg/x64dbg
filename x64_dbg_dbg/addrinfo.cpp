@@ -56,7 +56,7 @@ void dbload()
         LZ4_compress_file(dbpath, dbpath);
     if(!root)
     {
-        dputs("\ninvalid database file (JSON)!");        
+        dputs("\ninvalid database file (JSON)!");
         return;
     }
     commentcacheload(root);

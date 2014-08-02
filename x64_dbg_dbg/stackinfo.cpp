@@ -167,7 +167,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                 curEntry.from=basicinfo.addr;
 
                 data=basicinfo.addr;
-                
+
                 if(data)
                 {
                     *label=0;
@@ -182,7 +182,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     if(!*label)
                         sprintf(label, fhex, data);
                     strcat(returnFromAddr, label);
-    
+
                     sprintf_s(curEntry.comment, "return to %s from %s", returnToAddr, returnFromAddr);
                 }
                 else

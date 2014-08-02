@@ -135,7 +135,7 @@ public:
 
     void printDumpAt(int_t parVA, bool select);
     uint_t rvaToVa(int_t rva);
-    
+
 public slots:
     void printDumpAt(int_t parVA);
     void debugStateChanged(DBGSTATE state);
@@ -151,7 +151,7 @@ private:
     } SelectionData_t;
 
     SelectionData_t mSelection;
-    
+
     GuiState_t mGuiState;
 
 protected:

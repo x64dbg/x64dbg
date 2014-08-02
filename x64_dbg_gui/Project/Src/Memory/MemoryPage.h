@@ -25,7 +25,7 @@ public:
 
 private:
     uint_t mBase;
-    uint_t mSize;    
+    uint_t mSize;
 };
 
 #endif // MEMORYPAGE_H

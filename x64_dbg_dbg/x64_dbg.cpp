@@ -259,7 +259,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     PathAppendA(dbbasepath, "db");
     CreateDirectoryA(dbbasepath, 0); //create database directory
     strcpy(szSymbolCachePath, dir);
-    PathAppendA(szSymbolCachePath, "symbols");    
+    PathAppendA(szSymbolCachePath, "symbols");
     SetCurrentDirectoryA(dir);
     gMsgStack=msgallocstack();
     if(!gMsgStack)

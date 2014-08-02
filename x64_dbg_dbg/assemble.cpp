@@ -42,7 +42,7 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
         memcpy(dest, parse.dest, parse.dest_size);
     if(size)
         *size=parse.dest_size;
-    
+
     return true;
 }
 

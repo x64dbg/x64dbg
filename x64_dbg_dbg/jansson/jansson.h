@@ -37,7 +37,8 @@ extern "C"
 
 /* types */
 
-typedef enum {
+typedef enum
+{
     JSON_OBJECT,
     JSON_ARRAY,
     JSON_STRING,
