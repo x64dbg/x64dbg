@@ -36,6 +36,7 @@ private slots:
     void moduleContextMenu(const QPoint & pos);
     void moduleFollow();
     void moduleDownloadSymbols();
+    void moduleDownloadAllSymbols();
 
 signals:
     void showCpu();
@@ -52,6 +53,7 @@ private:
     QAction* mFollowSymbolDumpAction;
     QAction* mFollowModuleAction;
     QAction* mDownloadSymbolsAction;
+    QAction* mDownloadAllSymbolsAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

@@ -93,8 +93,11 @@ void SymbolView::setupContextMenu()
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
-    mDownloadSymbolsAction = new QAction("&Download Symbols", this);
+    mDownloadSymbolsAction = new QAction("&Download Symbols for This Module", this);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
+
+    mDownloadAllSymbolsAction = new QAction("Download Symbols for &All Modules", this);
+    connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 }
 
 void SymbolView::updateStyle()
@@ -198,6 +201,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowModuleAction);
     wMenu->addAction(mDownloadSymbolsAction);
+    wMenu->addAction(mDownloadAllSymbolsAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -217,4 +221,9 @@ void SymbolView::moduleFollow()
 void SymbolView::moduleDownloadSymbols()
 {
     DbgCmdExec(QString("symdownload " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1)).toUtf8().constData());
+}
+
+void SymbolView::moduleDownloadAllSymbols()
+{
+    DbgCmdExec("symdownload");
 }
