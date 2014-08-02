@@ -4,6 +4,14 @@
 #include "_global.h"
 #include "TitanEngine\TitanEngine.h"
 
+//macros
+#define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
+#define TITANGETDRX(titantype) (titantype >> 8) & 0xF
+#define TITANSETTYPE(titantype, type) titantype &= 0xF0F; titantype |= (type<<4)
+#define TITANGETTYPE(titantype) (titantype >> 4) & 0xF
+#define TITANSETSIZE(titantype, size) titantype &= 0xFF0; titantype |= size;
+#define TITANGETSIZE(titantype) titantype & 0xF
+
 //enums
 enum BP_TYPE
 {
@@ -38,6 +46,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp);
 bool bpdel(uint addr, BP_TYPE type);
 bool bpenable(uint addr, BP_TYPE type, bool enable);
 bool bpsetname(uint addr, BP_TYPE type, const char* name);
+bool bpsettitantype(uint addr, BP_TYPE type, int titantype);
 bool bpenumall(BPENUMCALLBACK cbEnum);
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module);
 int bpgetcount(BP_TYPE type, bool enabledonly = false);

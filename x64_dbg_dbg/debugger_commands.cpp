@@ -630,7 +630,10 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         dputs("you can only set 4 hardware breakpoints");
         return STATUS_ERROR;
     }
-    int titantype=(drx<<8)|(type<<4)|(DWORD)size;
+    int titantype=0;
+    TITANSETDRX(titantype, drx);
+    TITANSETTYPE(titantype, type);
+    TITANSETSIZE(titantype, size);
     //TODO: hwbp in multiple threads TEST
     if(bpget(addr, BPHARDWARE, 0, 0))
     {
@@ -666,7 +669,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     BREAKPOINT found;
     if(bpget(0, BPHARDWARE, arg1, &found)) //found a breakpoint with name
     {
-        if(!bpdel(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint((found.titantype>>8)&0xF))
+        if(!bpdel(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
         {
             dprintf("delete hardware breakpoint failed: "fhex"\n", found.addr);
             return STATUS_ERROR;
@@ -679,7 +682,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         dprintf("no such hardware breakpoint \"%s\"\n", arg1);
         return STATUS_ERROR;
     }
-    if(!bpdel(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint((found.titantype>>8)&0xF))
+    if(!bpdel(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
         dprintf("delete hardware breakpoint failed: "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1142,7 +1145,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen]="";
     DWORD drx=0;
-    if(!GetUnusedHardwareBreakPointRegister(0))
+    if(!GetUnusedHardwareBreakPointRegister(&drx))
     {
         dputs("you can only set 4 hardware breakpoints");
         return STATUS_ERROR;
@@ -1173,7 +1176,9 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    if(!bpenable(found.addr, BPHARDWARE, true) or !SetHardwareBreakPoint(found.addr, 0, (found.titantype>>4)&0xF, found.titantype&0xF, (void*)cbHardwareBreakpoint))
+    TITANSETDRX(found.titantype, drx);
+    bpsettitantype(found.addr, BPHARDWARE, found.titantype);
+    if(!bpenable(found.addr, BPHARDWARE, true) or !SetHardwareBreakPoint(found.addr, drx, TITANGETTYPE(found.titantype), TITANGETSIZE(found.titantype), (void*)cbHardwareBreakpoint))
     {
         dprintf("could not enable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1211,7 +1216,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
         dputs("hardware breakpoint already disabled!");
         return STATUS_CONTINUE;
     }
-    if(!bpenable(found.addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint((found.titantype>>8)&0xF))
+    if(!bpenable(found.addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
         dprintf("could not disable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;

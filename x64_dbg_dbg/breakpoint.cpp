@@ -114,6 +114,17 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
     return true;
 }
 
+bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
+{
+    if(!DbgIsDebugging())
+        return false;
+    BreakpointsInfo::iterator found=breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    if(found==breakpoints.end()) //not found
+        return false;
+    breakpoints[found->first].titantype=titantype;
+    return true;
+}
+
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
 {
     if(!DbgIsDebugging())
