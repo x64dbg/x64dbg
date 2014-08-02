@@ -237,11 +237,6 @@ void SettingsDialog::setLastException(unsigned int exceptionCode)
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
-    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-    msg.exec();
 }
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)

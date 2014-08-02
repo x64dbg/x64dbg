@@ -17,6 +17,11 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QMAKE_CFLAGS_RELEASE += -Zi
 QMAKE_LFLAGS_RELEASE += /DEBUG
 
+QMAKE_CXXFLAGS+= -std=c++11
+QMAKE_CXXFLAGS += -std=c++0x
+
+
+
 !contains(QMAKE_HOST.arch, x86_64) {
     TARGET = x32_gui
 } else {

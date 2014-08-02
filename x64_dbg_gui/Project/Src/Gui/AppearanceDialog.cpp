@@ -320,11 +320,6 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 void AppearanceDialog::on_buttonSave_clicked()
 {
     Config()->writeColors();
-    QMessageBox msg(QMessageBox::Information, "Information", "Settings saved!");
-    msg.setWindowIcon(QIcon(":/icons/images/information.png"));
-    msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
-    msg.exec();
     GuiUpdateAllViews();
 }
 
