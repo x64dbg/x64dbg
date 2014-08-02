@@ -1246,6 +1246,8 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 {
+    if(bp->type!=BPNORMAL or bp->enabled)
+        return true;
     if(!bpenable(bp->addr, BPNORMAL, true) or !SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
     {
         dprintf("could not enable breakpoint "fhex"\n", bp->addr);
@@ -1256,6 +1258,8 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 {
+    if(bp->type!=BPNORMAL or !bp->enabled)
+        return true;
     if(!bpenable(bp->addr, BPNORMAL, false) or !DeleteBPX(bp->addr))
     {
         dprintf("could not disable breakpoint "fhex"\n", bp->addr);
@@ -1266,6 +1270,13 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
+    if(bp->type!=BPHARDWARE or bp->enabled)
+        return true;
+    if(!GetUnusedHardwareBreakPointRegister(0))
+    {
+        dprintf("did not enable hardware breakpoint "fhex" (all slots full)\n", bp->addr);
+        return true;
+    }
     if(!bpenable(bp->addr, BPHARDWARE, true) or !SetHardwareBreakPoint(bp->addr, (bp->titantype>>8)&0xF, (bp->titantype>>4)&0xF, bp->titantype&0xF, (void*)cbHardwareBreakpoint))
     {
         dprintf("could not enable hardware breakpoint "fhex"\n", bp->addr);
@@ -1276,6 +1287,8 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
+    if(bp->type!=BPHARDWARE or !bp->enabled)
+        return true;
     if(!bpenable(bp->addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint((bp->titantype>>8)&0xF))
     {
         dprintf("could not disable hardware breakpoint "fhex"\n", bp->addr);
