@@ -1016,6 +1016,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
     //switch thread
     hActiveThread=threadgethandle((DWORD)threadid);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    dputs("thread switched!");
     return STATUS_CONTINUE;
 }
 
@@ -1032,7 +1033,11 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
     }
     //suspend thread
     if(SuspendThread(threadgethandle((DWORD)threadid)) == -1)
+    {
+        dputs("error suspending thread");
         return STATUS_ERROR;
+    }
+    dputs("thread suspended");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -1050,7 +1055,11 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
     }
     //resume thread
     if(ResumeThread(threadgethandle((DWORD)threadid)) == -1)
+    {
+        dputs("error resuming thread");
         return STATUS_ERROR;
+    }
+    dputs("thread resumed!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -1074,8 +1083,10 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
     if(TerminateThread(threadgethandle((DWORD)threadid), (DWORD)exitcode) != 0)
     {
         GuiUpdateAllViews();
+        dputs("thread terminated");
         return STATUS_CONTINUE;
     }
+    dputs("error terminating thread!");
     return STATUS_ERROR;
 }
 
@@ -1136,7 +1147,11 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     }
     //set thread priority
     if(SetThreadPriority(threadgethandle((DWORD)threadid), (int)priority) == 0)
+    {
+        dputs("error setting thread priority");
         return STATUS_ERROR;
+    }
+    dputs("thread priority changed!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
