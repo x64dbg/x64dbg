@@ -66,6 +66,7 @@ SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
+    connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(symbolFollow()));
 }
@@ -161,6 +162,11 @@ void SymbolView::symbolContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowSymbolAction);
     wMenu->addAction(mFollowSymbolDumpAction);
+}
+
+void SymbolView::symbolRefreshCurrent()
+{
+    mModuleList->setSingleSelection(mModuleList->getInitialSelection());
 }
 
 void SymbolView::symbolFollow()

@@ -819,6 +819,11 @@ BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
     _gui_sendmessage(GUI_REF_ADDCOLUMN, (void*)(duint)width, (void*)title);
 }
 
+BRIDGE_IMPEXP void GuiSymbolRefreshCurrent()
+{
+    _gui_sendmessage(GUI_SYMBOL_REFRESH_CURRENT, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
 {
     _gui_sendmessage(GUI_REF_SETROWCOUNT, (void*)(duint)count, 0);

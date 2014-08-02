@@ -32,6 +32,7 @@ private slots:
     void symbolFollow();
     void symbolFollowDump();
     void symbolContextMenu(QMenu* wMenu);
+    void symbolRefreshCurrent();
 
 signals:
     void showCpu();

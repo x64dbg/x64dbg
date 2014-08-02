@@ -632,7 +632,8 @@ typedef enum
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
-    GUI_UPDATE_CALLSTACK            // param1=unused,               param2=unused
+    GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
+    GUI_SYMBOL_REFRESH_CURRENT      // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI structures
@@ -674,6 +675,7 @@ BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message);
 BRIDGE_IMPEXP void GuiSymbolLogClear();
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent);
 BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules);
+BRIDGE_IMPEXP void GuiSymbolRefreshCurrent();
 BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
 BRIDGE_IMPEXP int GuiReferenceGetRowCount();

@@ -374,6 +374,11 @@ void Bridge::emitUpdateCallStack()
     emit updateCallStack();
 }
 
+void Bridge::emitSymbolRefreshCurrent()
+{
+    emit symbolRefreshCurrent();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -738,13 +743,19 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_UPDATE_PATCHES:
     {
-        emit Bridge::getBridge()->emitUpdatePatches();
+        Bridge::getBridge()->emitUpdatePatches();
     }
     break;
 
     case GUI_UPDATE_CALLSTACK:
     {
-        emit Bridge::getBridge()->emitUpdateCallStack();
+        Bridge::getBridge()->emitUpdateCallStack();
+    }
+    break;
+
+    case GUI_SYMBOL_REFRESH_CURRENT:
+    {
+        Bridge::getBridge()->emitSymbolRefreshCurrent();
     }
     break;
 
