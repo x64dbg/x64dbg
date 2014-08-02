@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "disasm_fast.h"
 #include "stackinfo.h"
+#include "symbolinfo.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -127,4 +128,5 @@ void dbgfunctionsinit()
     _dbgfunctions.DisasmFast=disasmfast;
     _dbgfunctions.MemUpdateMap=memupdatemap;
     _dbgfunctions.GetCallStack=_getcallstack;
+    _dbgfunctions.SymbolDownloadAllSymbols=symdownloadallsymbols;
 }

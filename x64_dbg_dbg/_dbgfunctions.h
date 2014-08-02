@@ -46,6 +46,7 @@ typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
 typedef bool (*DISASMFAST)(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
+typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -68,6 +69,7 @@ typedef struct DBGFUNCTIONS_
     DISASMFAST DisasmFast;
     MEMUPDATEMAP MemUpdateMap;
     GETCALLSTACK GetCallStack;
+    SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
