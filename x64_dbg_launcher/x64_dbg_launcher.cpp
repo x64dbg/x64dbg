@@ -77,7 +77,7 @@ static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, c
     ofstruct.hInstance = GetModuleHandleA(0);
     ofstruct.lpstrFilter = filter;
     ofstruct.lpstrFile = filename;
-    ofstruct.nMaxFile = filename_size;
+    ofstruct.nMaxFile = filename_size - 1;
     ofstruct.lpstrInitialDir = init_dir;
     ofstruct.lpstrDefExt = defext;
     ofstruct.Flags = OFN_EXTENSIONDIFFERENT | OFN_HIDEREADONLY | OFN_NONETWORKBUTTON;
