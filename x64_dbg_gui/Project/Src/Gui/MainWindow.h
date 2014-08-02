@@ -25,6 +25,7 @@
 #include "PatchDialog.h"
 #include "UpdateChecker.h"
 #include "CallStackView.h"
+#include "CalculatorDialog.h"
 
 namespace Ui
 {
@@ -71,6 +72,7 @@ public slots:
     void displayThreadsWidget();
     void openSettings();
     void openAppearance();
+    void openCalculator();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void findStrings();

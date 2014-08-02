@@ -82,7 +82,8 @@ SOURCES += \
     Src/BasicView/SearchListViewTable.cpp \
     Src/Gui/CallStackView.cpp \
     Src/Gui/ShortcutsDialog.cpp \
-    Src/BasicView/ShortcutEdit.cpp
+    Src/BasicView/ShortcutEdit.cpp \
+    Src/Gui/CalculatorDialog.cpp
 
 
 HEADERS += \
@@ -143,7 +144,8 @@ HEADERS += \
     Src/BasicView/SearchListViewTable.h \
     Src/Gui/CallStackView.h \
     Src/Gui/ShortcutsDialog.h \
-    Src/BasicView/ShortcutEdit.h
+    Src/BasicView/ShortcutEdit.h \
+    Src/Gui/CalculatorDialog.h
 
 
 INCLUDEPATH += \
@@ -174,7 +176,8 @@ FORMS += \
     Src/Gui/HexEditDialog.ui \
     Src/Gui/PatchDialog.ui \
     Src/Gui/PatchDialogGroupSelector.ui \
-    Src/Gui/ShortcutsDialog.ui
+    Src/Gui/ShortcutsDialog.ui \
+    Src/Gui/CalculatorDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
