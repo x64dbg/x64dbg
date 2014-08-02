@@ -404,7 +404,6 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     // Enable/Disable
     mMemBPEnableDisableAction = new QAction("Enable", this);
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mMemBPEnableDisableAction->setEnabled(false);
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
 }
