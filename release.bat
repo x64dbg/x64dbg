@@ -23,6 +23,7 @@ mkdir %RELEASEDIR%\bin_base\x64
 
 copy bin\x32\BeaEngine.dll %RELEASEDIR%\bin_base\x32\BeaEngine.dll
 copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\x32\dbghelp.dll
+copy bin\x32\symsrv.dll %RELEASEDIR%\bin_base\x32\symsrv.dll
 copy bin\x32\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x32\DeviceNameResolver.dll
 copy bin\x32\Scylla.dll %RELEASEDIR%\bin_base\x32\Scylla.dll
 copy bin\x32\jansson.dll %RELEASEDIR%\bin_base\x32\jansson.dll
@@ -31,6 +32,7 @@ copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\TitanEngine.dll
 copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\XEDParse.dll
 copy bin\x64\BeaEngine.dll %RELEASEDIR%\bin_base\x64\BeaEngine.dll
 copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\x64\dbghelp.dll
+copy bin\x64\symsrv.dll %RELEASEDIR%\bin_base\x64\symsrv.dll
 copy bin\x64\DeviceNameResolver.dll %RELEASEDIR%\bin_base\x64\DeviceNameResolver.dll
 copy bin\x64\Scylla.dll %RELEASEDIR%\bin_base\x64\Scylla.dll
 copy bin\x64\jansson.dll %RELEASEDIR%\bin_base\x64\jansson.dll
