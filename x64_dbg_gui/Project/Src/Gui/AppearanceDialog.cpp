@@ -321,6 +321,7 @@ void AppearanceDialog::on_buttonSave_clicked()
 {
     Config()->writeColors();
     GuiUpdateAllViews();
+    GuiAddStatusBarMessage("Settings saved!\n");
 }
 
 void AppearanceDialog::defaultValueSlot()

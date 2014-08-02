@@ -237,6 +237,7 @@ void SettingsDialog::setLastException(unsigned int exceptionCode)
 void SettingsDialog::on_btnSave_clicked()
 {
     SaveSettings();
+    GuiAddStatusBarMessage("Settings saved!\n");
 }
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
