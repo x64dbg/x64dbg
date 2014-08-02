@@ -251,8 +251,6 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
     defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
 
-
-
     Shortcuts = defaultShortcuts;
 
     load();
@@ -541,7 +539,7 @@ const Configuration::Shortcut Configuration::getShortcut(const QString key_id) c
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
     msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
     msg.exec();
-    return QKeySequence();
+    return Shortcut();
 }
 
 void Configuration::setShortcut(const QString key_id, const QKeySequence key_sequence)

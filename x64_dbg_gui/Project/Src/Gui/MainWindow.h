@@ -111,6 +111,7 @@ private:
     ReferenceView* mReferenceView;
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
+    CalculatorDialog* mCalculatorDialog;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;

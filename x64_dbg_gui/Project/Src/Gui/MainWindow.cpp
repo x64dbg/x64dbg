@@ -111,6 +111,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
     mPatchDialog = new PatchDialog(this);
+    mCalculatorDialog = new CalculatorDialog(this);
+    connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Setup Signals/Slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -642,8 +644,9 @@ void MainWindow::openAppearance()
 
 void MainWindow::openCalculator()
 {
-    CalculatorDialog calculator(this);
-    calculator.exec();
+    mCalculatorDialog->showNormal();
+    mCalculatorDialog->setFocus();
+    mCalculatorDialog->setExpressionFocus();
 }
 
 void MainWindow::openShortcuts()

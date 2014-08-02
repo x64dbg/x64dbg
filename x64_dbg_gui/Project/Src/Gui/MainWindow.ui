@@ -158,10 +158,9 @@
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
-   <addaction name="actionCalculator"/>
    <addaction name="separator"/>
-   <addaction name="actionDonate"/>
    <addaction name="actionCheckUpdates"/>
+   <addaction name="actionCalculator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">

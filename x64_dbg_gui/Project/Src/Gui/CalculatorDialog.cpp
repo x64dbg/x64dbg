@@ -2,9 +2,7 @@
 #include "ui_CalculatorDialog.h"
 #include <QString>
 
-CalculatorDialog::CalculatorDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::CalculatorDialog)
+CalculatorDialog::CalculatorDialog(QWidget *parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
@@ -13,7 +11,6 @@ CalculatorDialog::CalculatorDialog(QWidget *parent) :
     connect(this,SIGNAL(validAddress(bool)),ui->btnGoto,SLOT(setEnabled(bool)));
     emit validAddress(false);
     ui->txtExpression->setFocus();
-
 }
 
 CalculatorDialog::~CalculatorDialog()
@@ -21,17 +18,25 @@ CalculatorDialog::~CalculatorDialog()
     delete ui;
 }
 
+void CalculatorDialog::setExpressionFocus()
+{
+    ui->txtExpression->setFocus();
+}
 
-void CalculatorDialog::answerExpression(QString expression){
+void CalculatorDialog::answerExpression(QString expression)
+{
 
-    if(!DbgIsValidExpression(expression.toUtf8().constData())){
+    if(!DbgIsValidExpression(expression.toUtf8().constData()))
+    {
         ui->txtBin->setText("");
         ui->txtDec->setText("");
         ui->txtHex->setText("");
         ui->txtOct->setText("");
         ui->txtAscii->setText("");
         ui->txtUnicode->setText("");
-    }else{
+    }
+    else
+    {
         uint_t ans = DbgValFromString(expression.toUtf8().constData());
         ui->txtHex->setText(inFormat(ans,N_HEX));
         ui->txtDec->setText(inFormat(ans,N_DEC));
@@ -44,7 +49,9 @@ void CalculatorDialog::answerExpression(QString expression){
                 ui->txtAscii->setText(QString(c));
             else
                 ui->txtAscii->setText("???");
-        }else{
+        }
+        else
+        {
             ui->txtAscii->setText("???");
             if((ans == (ans & 0xFFF)) ) //UNICODE?
             {
@@ -53,19 +60,20 @@ void CalculatorDialog::answerExpression(QString expression){
                     ui->txtUnicode->setText(QString(c));
                 else
                     ui->txtUnicode->setText("???");
-            }else{
+            }
+            else
+            {
                 ui->txtUnicode->setText("???");
             }
         }
-
-
         emit validAddress(DbgMemIsValidReadPtr(ans));
     }
 }
 
 QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const
 {
-    switch(NF){
+    switch(NF)
+    {
     default:
     case N_HEX:
         // 0,...,9 in hex is the same as in dec
@@ -77,15 +85,18 @@ QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFOR
         if(val<10 && val>=0)
             return QString("%1").arg(val);
         return QString("%1").arg(val);
-    case N_BIN:{
+    case N_BIN:
+    {
         QString binary = QString("%1").arg(val,8*4,2,QChar('0')).toUpper();
         QString ans = "";
-        for(int i=0;i<4*8;i++){
+        for(int i=0; i<4*8; i++)
+        {
             ans += binary[i];
             if((i%4==0) && (i!=0))
                 ans += " ";
         }
-        return ans +"b";}
+        return ans +"b";
+    }
     case N_OCT:
         return QString("%1").arg(val,1,8,QChar('0')).toUpper()+"o";
     case N_ASCII:
@@ -93,3 +104,8 @@ QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFOR
     }
 }
 
+void CalculatorDialog::on_btnGoto_clicked()
+{
+    DbgCmdExecDirect(QString("disasm " + ui->txtExpression->text()).toUtf8().constData());
+    emit showCpu();
+}

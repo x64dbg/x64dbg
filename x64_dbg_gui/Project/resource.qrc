@@ -44,5 +44,4 @@
         <file>images/donate.png</file>
         <file>images/calculator.png</file>
     </qresource>
-    <qresource prefix="/"/>
 </RCC>

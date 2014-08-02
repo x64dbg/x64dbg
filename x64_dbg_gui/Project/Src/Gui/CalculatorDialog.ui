@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>254</height>
+    <width>402</width>
+    <height>242</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,48 +17,32 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Calculator</string>
   </property>
   <property name="windowIcon">
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/calculator.png</normaloff>:/icons/images/calculator.png</iconset>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>210</y>
-     <width>341</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Close</set>
-   </property>
-  </widget>
   <widget class="QPushButton" name="btnGoto">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>210</y>
-     <width>101</width>
+     <width>141</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>goto Expression</string>
+    <string>&amp;Follow in Disassembler</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>11</x>
-     <y>21</y>
-     <width>371</width>
-     <height>178</height>
+     <y>8</y>
+     <width>381</width>
+     <height>191</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -158,40 +142,37 @@
     </item>
    </layout>
   </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>210</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&amp;Close</string>
+   </property>
+  </widget>
  </widget>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
    <receiver>CalculatorDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>347</x>
+     <y>216</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>CalculatorDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>284</x>
+     <y>215</y>
     </hint>
    </hints>
   </connection>
