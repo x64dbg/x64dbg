@@ -109,6 +109,7 @@ void RegisterShellExtension(const char* key, const char* command)
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    CoInitialize(NULL); //fixed some crash
     //Get INI file path
     char szModulePath[MAX_PATH] = "";
     if(!GetModuleFileNameA(0, szModulePath, MAX_PATH))
@@ -170,6 +171,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     char** argv=commandlineparse(&argc);
     if(argc <= 1) //no arguments -> set configuration
     {
+        if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+            WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
+        if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+            WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
         if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
             char szLauncherCommand[MAX_PATH] = "";
@@ -187,11 +192,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         switch(GetFileArchitecture(argv[1]))
         {
         case x32:
-            if(!sz32Path[0])
-            {
-                if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
-                    WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
-            }
             if(sz32Path[0])
                 ShellExecuteA(0, "open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
@@ -199,11 +199,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             break;
 
         case x64:
-            if(!sz64Path[0])
-            {
-                if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
-                    WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
-            }
             if(sz64Path[0])
                 ShellExecuteA(0, "open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
