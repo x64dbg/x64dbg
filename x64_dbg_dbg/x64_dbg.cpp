@@ -96,12 +96,12 @@ static void registercommands()
     dbgcmdnew("DebugContinue\1con", cbDebugContinue, true); //set continue status
     dbgcmdnew("LibrarianSetBreakPoint\1bpdll", cbDebugBpDll, true); //set dll breakpoint
     dbgcmdnew("LibrarianRemoveBreakPoint\1bcdll", cbDebugBcDll, true); //remove dll breakpoint
-    dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true);
-    dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true);
-    dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true);
-    dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true);
-    dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true);
-
+    dbgcmdnew("switchthread\1threadswitch", cbDebugSwitchthread, true); //switch thread
+    dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
+    dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
+    dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
+    dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
+    dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -258,6 +258,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
     CreateDirectoryA(dbbasepath, 0); //create database directory
+    strcpy(szSymbolCachePath, dir);
+    PathAppendA(szSymbolCachePath, "symbols");    
     SetCurrentDirectoryA(dir);
     gMsgStack=msgallocstack();
     if(!gMsgStack)

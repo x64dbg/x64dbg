@@ -50,5 +50,6 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[]);
+CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[]);
 
 #endif //_DEBUGGER_COMMANDS_H

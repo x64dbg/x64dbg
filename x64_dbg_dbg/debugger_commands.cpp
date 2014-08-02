@@ -9,6 +9,7 @@
 #include "argument.h"
 #include "plugin_loader.h"
 #include "simplescript.h"
+#include "symbolinfo.h"
 
 static bool bScyllaLoaded=false;
 
@@ -1304,5 +1305,71 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     }
     dputs("memory breakpoint disabled!");
     GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
+{
+    char szDefaultStore[MAX_PATH] = "";
+    const char* szSymbolStore = szDefaultStore;
+    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
+    {
+        strcpy(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
+        BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore);
+    }    
+    if(argc < 2) //no arguments
+    {
+        symdownloadallsymbols(szSymbolStore); //download symbols for all modules
+        GuiSymbolRefreshCurrent();
+        dputs("done! See symbol log for more information");
+        return STATUS_CONTINUE;
+    }
+    //get some module information
+    uint modbase = modbasefromname(argv[1]);
+    if(!modbase)
+    {
+        dprintf("invalid module \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    char szModulePath[MAX_PATH] = "";
+    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+    {
+        dputs("GetModuleFileNameExA failed!");
+        return STATUS_ERROR;
+    }
+    char szOldSearchPath[MAX_PATH] = "";
+    if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
+    {
+        dputs("SymGetSearchPath failed!");
+        return STATUS_ERROR;
+    }
+    char szServerSearchPath[MAX_PATH * 2] = "";
+    if(argc > 2)
+        szSymbolStore = argv[2];
+    sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
+    if(!SymSetSearchPath(fdProcessInfo->hProcess, szServerSearchPath)) //set new search path
+    {
+        dputs("SymSetSearchPath (1) failed!");
+        return STATUS_ERROR;
+    }
+    if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
+    {
+        SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
+        dputs("SymUnloadModule64 failed!");
+        return STATUS_ERROR;
+    }
+    if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
+    {
+        dputs("SymLoadModuleEx failed!");
+        SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
+        return STATUS_ERROR;
+    }
+    if(!SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath))
+    {
+        dputs("SymSetSearchPath (2) failed!");
+        return STATUS_ERROR;
+    }
+    GuiSymbolRefreshCurrent();
+    dputs("done! See symbol log for more information");
     return STATUS_CONTINUE;
 }

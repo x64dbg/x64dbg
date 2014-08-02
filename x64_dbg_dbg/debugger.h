@@ -74,5 +74,6 @@ void cbDetach();
 extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
 extern char szFileName[MAX_PATH];
+extern char szSymbolCachePath[MAX_PATH];
 
 #endif // _DEBUGGER_H

@@ -29,6 +29,7 @@ static SIZE_T cachePrivateUsage=0;
 
 //Superglobal variables
 char szFileName[MAX_PATH]="";
+char szSymbolCachePath[MAX_PATH]="";
 char sqlitedb[deflen]="";
 PROCESS_INFORMATION* fdProcessInfo=&g_pi;
 HANDLE hActiveThread;
@@ -459,6 +460,10 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     {
         evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
         const char* text=(const char*)evt->desc;
+        if(strstr(text, "Successfully received a response from the server."))
+            break;
+        if(strstr(text, "Waiting for the server to respond to a request."))
+            break;
         int len=(int)strlen(text);
         bool suspress=false;
         for(int i=0; i<len; i++)
@@ -653,7 +658,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dbload();
     SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES|SYMOPT_ALLOW_ABSOLUTE_SYMBOLS|SYMOPT_FAVOR_COMPRESSED|SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
-    SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
+    SymInitialize(fdProcessInfo->hProcess, szSymbolCachePath, false); //initialize symbols
     SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;

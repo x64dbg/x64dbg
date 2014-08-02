@@ -1,6 +1,7 @@
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "addrinfo.h"
+#include "console.h"
 
 struct SYMBOLCBDATA
 {
@@ -71,6 +72,55 @@ void symupdatemodulelist()
     for(int i=0; i<modcount; i++)
         memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
     GuiSymbolUpdateModuleList(modcount, modListBridge);
+}
+
+void symdownloadallsymbols(const char* szSymbolStore)
+{
+    if(!szSymbolStore)
+        szSymbolStore = "http://msdl.microsoft.com/download/symbols";
+    std::vector<SYMBOLMODULEINFO> modList;
+    modList.clear();
+    SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
+    int modcount=(int)modList.size();
+    if(!modcount)
+        return;
+    char szOldSearchPath[MAX_PATH] = "";
+    if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current path
+    {
+        dputs("SymGetSearchPath failed!");
+        return;
+    }
+    char szServerSearchPath[MAX_PATH * 2] = "";
+    sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
+    if(!SymSetSearchPath(fdProcessInfo->hProcess, szServerSearchPath)) //update search path
+    {
+        dputs("SymSetSearchPath (1) failed!");
+        return;
+    }
+    for(int i=0; i<modcount; i++) //reload all modules
+    {
+        uint modbase = modList.at(i).base;
+        char szModulePath[MAX_PATH] = "";
+        if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+        {
+            dprintf("GetModuleFileNameExA("fhex") failed!\n", modbase);
+            continue;
+        }
+        if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase))
+        {
+            dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
+            continue;
+        }
+        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0))
+        {
+            dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
+            continue;
+        }
+    }
+    if(!SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath)) //restore search path
+    {
+        dputs("SymSetSearchPath (2) failed!");
+    }
 }
 
 bool symfromname(const char* name, uint* addr)
