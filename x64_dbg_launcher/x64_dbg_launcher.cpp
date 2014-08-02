@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <string>
+#include <shlwapi.h>
 
 enum arch
 {
@@ -9,6 +10,12 @@ enum arch
     x32,
     x64
 };
+
+static bool FileExists(const char* file)
+{
+    DWORD attrib=GetFileAttributes(file);
+    return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
 
 static arch GetFileArchitecture(const char* szFileName)
 {
@@ -128,7 +135,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Load settings
     char sz32Path[MAX_PATH] = "";
-    GetPrivateProfileStringA("Launcher", "x32_dbg", "", sz32Path, MAX_PATH, szIniPath);
+    if(!GetPrivateProfileStringA("Launcher", "x32_dbg", "", sz32Path, MAX_PATH, szIniPath))
+    {
+        strcpy(sz32Path, szCurrentDir);
+        PathAppendA(sz32Path, "x32\\x32_dbg.exe");
+        if(FileExists(sz32Path))
+            WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
+    }
     char sz32Dir[MAX_PATH] = "";
     strcpy(sz32Dir, sz32Path);
     len = (int)strlen(sz32Dir);
@@ -137,7 +150,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(len)
         sz32Dir[len] = '\0';
     char sz64Path[MAX_PATH] = "";
-    GetPrivateProfileStringA("Launcher", "x64_dbg", "", sz64Path, MAX_PATH, szIniPath);
+    if(!GetPrivateProfileStringA("Launcher", "x64_dbg", "", sz64Path, MAX_PATH, szIniPath))
+    {
+        strcpy(sz64Path, szCurrentDir);
+        PathAppendA(sz64Path, "x64\\x64_dbg.exe");
+        if(FileExists(sz64Path))
+            WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
+    }
     char sz64Dir[MAX_PATH] = "";
     strcpy(sz64Dir, sz64Path);
     len = (int)strlen(sz64Dir);
@@ -151,10 +170,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     char** argv=commandlineparse(&argc);
     if(argc <= 1) //no arguments -> set configuration
     {
-        if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
-            WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
-        if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
-            WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
         if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
             char szLauncherCommand[MAX_PATH] = "";
@@ -172,6 +187,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         switch(GetFileArchitecture(argv[1]))
         {
         case x32:
+            if(!sz32Path[0])
+            {
+                if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+                    WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
+            }
             if(sz32Path[0])
                 ShellExecuteA(0, "open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
@@ -179,6 +199,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             break;
 
         case x64:
+            if(!sz64Path[0])
+            {
+                if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+                    WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
+            }
             if(sz64Path[0])
                 ShellExecuteA(0, "open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
