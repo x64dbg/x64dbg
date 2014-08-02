@@ -145,6 +145,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCalls,SIGNAL(triggered()),this,SLOT(findModularCalls()));
     connect(ui->actionAppearance,SIGNAL(triggered()),this,SLOT(openAppearance()));
     connect(ui->actionShortcuts,SIGNAL(triggered()),this,SLOT(openShortcuts()));
+    connect(ui->actionCalculator,SIGNAL(triggered()),this,SLOT(openCalculator()));
     connect(ui->actionPatches,SIGNAL(triggered()),this,SLOT(patchWindow()));
     connect(ui->actionComments,SIGNAL(triggered()),this,SLOT(displayComments()));
     connect(ui->actionLabels,SIGNAL(triggered()),this,SLOT(displayLabels()));
@@ -268,9 +269,12 @@ void MainWindow::refreshShortcuts()
     ui->actionAbout->setShortcut(ConfigShortcut("HelpAbout"));
     ui->actionDonate->setShortcut(ConfigShortcut("HelpDonate"));
     ui->actionCheckUpdates->setShortcut(ConfigShortcut("HelpCheckForUpdates"));
+    ui->actionCalculator->setShortcut(ConfigShortcut("HelpCalculator"));
 
     ui->actionStrings->setShortcut(ConfigShortcut("ActionFindStrings"));
     ui->actionCalls->setShortcut(ConfigShortcut("ActionFindIntermodularCalls"));
+
+
 }
 
 //Reads recent files list from settings
@@ -634,6 +638,12 @@ void MainWindow::openAppearance()
 {
     AppearanceDialog appearance(this);
     appearance.exec();
+}
+
+void MainWindow::openCalculator()
+{
+    CalculatorDialog calculator(this);
+    calculator.exec();
 }
 
 void MainWindow::openShortcuts()

@@ -42,5 +42,7 @@
         <file>images/callstack.png</file>
         <file>images/shortcut.png</file>
         <file>images/donate.png</file>
+        <file>images/calculator.png</file>
     </qresource>
+    <qresource prefix="/"/>
 </RCC>

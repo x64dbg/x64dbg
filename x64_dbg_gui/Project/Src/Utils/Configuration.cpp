@@ -207,6 +207,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));
     defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
+    defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
 
     defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings"), "", true));
     defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls"), "", true));
@@ -249,6 +250,8 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionStepScript", Shortcut(tr("Actions -> Step Script"), "Tab"));
     defaultShortcuts.insert("ActionAbortScript", Shortcut(tr("Actions -> Abort Script"), "Esc"));
     defaultShortcuts.insert("ActionExecuteCommandScript", Shortcut(tr("Actions -> Execute Script Command"), "X"));
+
+
 
     Shortcuts = defaultShortcuts;
 

@@ -87,6 +87,7 @@
     <addaction name="actionAbout"/>
     <addaction name="actionDonate"/>
     <addaction name="actionCheckUpdates"/>
+    <addaction name="actionCalculator"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
@@ -157,6 +158,7 @@
    <addaction name="separator"/>
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
+   <addaction name="actionCalculator"/>
    <addaction name="separator"/>
    <addaction name="actionDonate"/>
    <addaction name="actionCheckUpdates"/>
@@ -555,6 +557,15 @@
    </property>
    <property name="toolTip">
     <string>Donate</string>
+   </property>
+  </action>
+  <action name="actionCalculator">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/calculator.png</normaloff>:/icons/images/calculator.png</iconset>
+   </property>
+   <property name="text">
+    <string>Calculator</string>
    </property>
   </action>
  </widget>
