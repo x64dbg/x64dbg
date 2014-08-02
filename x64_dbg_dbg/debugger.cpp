@@ -501,6 +501,12 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     }
     break;
 
+    case CBA_DEBUG_INFO:
+    {
+        GuiSymbolLogAdd((const char*)CallbackData);
+    }
+    break;
+
     default:
     {
         return FALSE;
@@ -645,7 +651,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbload();
-    SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES);
+    SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES|SYMOPT_ALLOW_ABSOLUTE_SYMBOLS|SYMOPT_FAVOR_COMPRESSED|SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
     SymInitialize(fdProcessInfo->hProcess, 0, false); //initialize symbols
     SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
