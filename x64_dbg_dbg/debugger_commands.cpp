@@ -298,7 +298,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     {
         if(!bpenable(found.addr, BPNORMAL, true) or !SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
         {
-            dprintf("could not enable "fhex"\n", found.addr);
+            dprintf("could not enable breakpoint "fhex"\n", found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -318,7 +318,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     }
     if(!bpenable(found.addr, BPNORMAL, true) or !SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
     {
-        dprintf("could not enable "fhex"\n", found.addr);
+        dprintf("could not enable breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("breakpoint enabled!");
@@ -347,7 +347,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     {
         if(!bpenable(found.addr, BPNORMAL, false) or !DeleteBPX(found.addr))
         {
-            dprintf("could not disable "fhex"\n", found.addr);
+            dprintf("could not disable breakpoint "fhex"\n", found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -366,7 +366,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     }
     if(!bpenable(found.addr, BPNORMAL, false) or !DeleteBPX(found.addr))
     {
-        dprintf("could not disable "fhex"\n", found.addr);
+        dprintf("could not disable breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("breakpoint disabled!");
@@ -1174,7 +1174,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     }
     if(!bpenable(found.addr, BPHARDWARE, true) or !SetHardwareBreakPoint(found.addr, 0, (found.titantype>>4)&0xF, found.titantype&0xF, (void*)cbHardwareBreakpoint))
     {
-        dprintf("could not enable "fhex"\n", found.addr);
+        dprintf("could not enable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("hardware breakpoint enabled!");
@@ -1187,7 +1187,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     char arg1[deflen]="";
     if(!argget(*argv, arg1, 0, true)) //delete all hardware breakpoints
     {
-        if(!bpgetcount(BPNORMAL))
+        if(!bpgetcount(BPHARDWARE))
         {
             dputs("no hardware breakpoints to disable!");
             return STATUS_CONTINUE;
@@ -1212,10 +1212,97 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     }
     if(!bpenable(found.addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint((found.titantype>>8)&0xF))
     {
-        dprintf("could not disable "fhex"\n", found.addr);
+        dprintf("could not disable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("hardware breakpoint disabled!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
+{
+    char arg1[deflen]="";
+    DWORD drx=0;
+    if(!GetUnusedHardwareBreakPointRegister(0))
+    {
+        dputs("you can only set 4 hardware breakpoints");
+        return STATUS_ERROR;
+    }
+    if(!argget(*argv, arg1, 0, true)) //enable all memory breakpoints
+    {
+        if(!bpgetcount(BPMEMORY))
+        {
+            dputs("no hardware breakpoints to enable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbEnableAllHardwareBreakpoints)) //at least one enable failed
+            return STATUS_ERROR;
+        dputs("all memory breakpoints enabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
+    {
+        dprintf("no such memory breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(found.enabled)
+    {
+        dputs("hardware memory already enabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    uint size=0;
+    memfindbaseaddr(found.addr, &size);
+    if(!bpenable(found.addr, BPMEMORY, true) or !SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
+    {
+        dprintf("could not enable memory breakpoint "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("memory breakpoint enabled!");
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
+{
+    char arg1[deflen]="";
+    if(!argget(*argv, arg1, 0, true)) //delete all memory breakpoints
+    {
+        if(!bpgetcount(BPMEMORY))
+        {
+            dputs("no memory breakpoints to disable!");
+            return STATUS_CONTINUE;
+        }
+        if(!bpenumall(cbDisableAllMemoryBreakpoints)) //at least one deletion failed
+            return STATUS_ERROR;
+        dputs("all memory breakpoints disabled!");
+        GuiUpdateAllViews();
+        return STATUS_CONTINUE;
+    }
+    BREAKPOINT found;
+    uint addr=0;
+    if(!valfromstring(arg1, &addr) or !bpget(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
+    {
+        dprintf("no such memory breakpoint \"%s\"\n", arg1);
+        return STATUS_ERROR;
+    }
+    if(!found.enabled)
+    {
+        dputs("memory breakpoint already disabled!");
+        return STATUS_CONTINUE;
+    }
+    uint size=0;
+    memfindbaseaddr(found.addr, &size);
+    if(!bpenable(found.addr, BPMEMORY, false) or !RemoveMemoryBPX(found.addr, size))
+    {
+        dprintf("could not disable memory breakpoint "fhex"\n", found.addr);
+        return STATUS_ERROR;
+    }
+    dputs("memory breakpoint disabled!");
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

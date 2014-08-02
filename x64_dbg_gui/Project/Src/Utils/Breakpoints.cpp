@@ -69,7 +69,7 @@ void Breakpoints::enableBP(BRIDGEBP bp)
     }
     else if(bp.type == bp_memory)
     {
-        // Todo
+        wCmd = "bpme " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -127,7 +127,7 @@ void Breakpoints::disableBP(BRIDGEBP bp)
     }
     else if(bp.type == bp_memory)
     {
-        // Todo
+        wCmd = "bpmd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());

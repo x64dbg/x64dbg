@@ -48,5 +48,7 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
 CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
+CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[]);
+CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[]);
 
 #endif //_DEBUGGER_COMMANDS_H

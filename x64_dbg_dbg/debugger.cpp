@@ -526,10 +526,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     {
         uint size=0;
         memfindbaseaddr(bp->addr, &size);
-        bool restore=false;
-        if(!bp->singleshoot)
-            restore=true;
-        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, restore, (void*)cbMemoryBreakpoint))
+        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
             dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
     }
     break;
@@ -1292,6 +1289,32 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
     if(!bpenable(bp->addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint((bp->titantype>>8)&0xF))
     {
         dprintf("could not disable hardware breakpoint "fhex"\n", bp->addr);
+        return false;
+    }
+    return true;
+}
+
+bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->type!=BPMEMORY or bp->enabled)
+        return true;
+    uint size=0;
+    memfindbaseaddr(bp->addr, &size);
+    if(!bpenable(bp->addr, BPMEMORY, true) or !SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
+    {
+        dprintf("could not enable memory breakpoint "fhex"\n", bp->addr);
+        return false;
+    }
+    return true;
+}
+
+bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->type!=BPMEMORY or !bp->enabled)
+        return true;
+    if(!bpenable(bp->addr, BPMEMORY, false) or !DeleteHardwareBreakPoint((bp->titantype>>8)&0xF))
+    {
+        dprintf("could not disable memory breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
