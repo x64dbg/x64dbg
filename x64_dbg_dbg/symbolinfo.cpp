@@ -99,6 +99,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
     }
     for(int i=0; i<modcount; i++) //reload all modules
     {
+        dprintf("downloading symbols for %s...\n", modList.at(i).name);
         uint modbase = modList.at(i).base;
         char szModulePath[MAX_PATH] = "";
         if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))

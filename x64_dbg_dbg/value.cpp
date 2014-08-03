@@ -1078,8 +1078,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                                 addrfound[found]=(uint)hMods[i]+rva;
                                 found++;
                             }
+                            FreeLibrary(hModule);
                         }
-                        break;
                     }
                 }
             }
@@ -1088,7 +1088,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     }
     if(!found)
     {
-        efree(addrfound, "valapifromstring:addrfound");
+        if(addrfound)
+            efree(addrfound, "valapifromstring:addrfound");
         return false;
     }
     if(value_size)

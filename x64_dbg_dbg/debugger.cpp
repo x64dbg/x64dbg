@@ -667,7 +667,9 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dbload();
     SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES|SYMOPT_ALLOW_ABSOLUTE_SYMBOLS|SYMOPT_FAVOR_COMPRESSED|SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
-    SymInitialize(fdProcessInfo->hProcess, szSymbolCachePath, false); //initialize symbols
+    char szServerSearchPath[MAX_PATH * 2] = "";
+    sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
+    SymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
     SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
