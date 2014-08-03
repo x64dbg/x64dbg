@@ -37,9 +37,12 @@
 #include <QScreen>
 
 template<class T>
-T findClosestParent(QWidget* widget) {
-    while(widget) {
-        if (qobject_cast<T>(widget)) {
+T findClosestParent(QWidget* widget)
+{
+    while(widget)
+    {
+        if (qobject_cast<T>(widget))
+        {
             return static_cast<T>(widget);
         }
         widget = widget->parentWidget();
@@ -70,21 +73,27 @@ PaneWidget::PaneWidget(QWidget *parent) :
     m_lineRubberBand = new QRubberBand(QRubberBand::Line, this);
 }
 
-PaneWidget::~PaneWidget() {
-    while(!mPanes.isEmpty()) {
+PaneWidget::~PaneWidget()
+{
+    while(!mPanes.isEmpty())
+    {
         delete mPanes.first();
     }
-    while(!m_wrappers.isEmpty()) {
+    while(!m_wrappers.isEmpty())
+    {
         delete m_wrappers.first();
     }
 }
 
-void PaneWidget::addWidget(QWidget *widget, const AreaPointer &area) {
-    if (!widget) {
+void PaneWidget::addWidget(QWidget *widget, const AreaPointer &area)
+{
+    if (!widget)
+    {
         qWarning("cannot add null widget");
         return;
     }
-    if (m_widgets.contains(widget)) {
+    if (m_widgets.contains(widget))
+    {
         qWarning("this widget has already been added");
         return;
     }
@@ -94,103 +103,144 @@ void PaneWidget::addWidget(QWidget *widget, const AreaPointer &area) {
     moveWidget(widget, area);
 }
 
-void PaneWidget::addWidgets(QList<QWidget *> widgets, const PaneWidget::AreaPointer &area) {
-    foreach(QWidget* widget, widgets) {
+void PaneWidget::addWidgets(QList<QWidget *> widgets, const PaneWidget::AreaPointer &area)
+{
+    foreach(QWidget* widget, widgets)
+    {
         addWidget(widget,area);
     }
 }
 
-Pane *PaneWidget::areaOf(QWidget *widget) const {
+Pane *PaneWidget::areaOf(QWidget *widget) const
+{
     return findClosestParent<Pane*>(widget);
 }
 
-void PaneWidget::moveWidget(QWidget *widget, AreaPointer area) {
+void PaneWidget::moveWidget(QWidget *widget, AreaPointer area)
+{
 
-    if (!m_widgets.contains(widget)) {
+    if (!m_widgets.contains(widget))
+    {
         qWarning("unknown widget");
         return;
     }
-    if (widget->parentWidget() != 0) {
+    if (widget->parentWidget() != 0)
+    {
         releasewidget(widget);
     }
 
 
-    if (area.type() == InLastUsedArea && !m_lastUsedArea) {
+    if (area.type() == InLastUsedArea && !m_lastUsedArea)
+    {
         Pane* foundArea = findChild<Pane*>();
-        if (foundArea) {
+        if (foundArea)
+        {
             area = AreaPointer(AddTo, foundArea);
-        } else {
+        }
+        else
+        {
             area = InEmptySpace;
         }
     }
 
-    if (area.type() == NoArea) {
+    if (area.type() == NoArea)
+    {
         //do nothing
-    } else if (area.type() == InNewFloatingArea) {
+    }
+    else if (area.type() == InNewFloatingArea)
+    {
         Pane* area = createArea();
         area->addWidget(widget);
         PaneSerialize* wrapper = new PaneSerialize(this);
         wrapper->layout()->addWidget(area);
         wrapper->move(QCursor::pos());
         wrapper->show();
-    } else if (area.type() == AddTo) {
+    }
+    else if (area.type() == AddTo)
+    {
         area.area()->addWidget(widget);
-    } else if (area.type() == LeftOf || area.type() == RightOf ||
-               area.type() == TopOf || area.type() == BottomOf) {
+    }
+    else if (area.type() == LeftOf || area.type() == RightOf ||
+             area.type() == TopOf || area.type() == BottomOf)
+    {
         QSplitter* parentSplitter = qobject_cast<QSplitter*>(area.widget()->parentWidget());
         PaneSerialize* wrapper = qobject_cast<PaneSerialize*>(area.widget()->parentWidget());
-        if (!parentSplitter && !wrapper) {
+        if (!parentSplitter && !wrapper)
+        {
             qWarning("unknown parent type");
             return;
         }
         bool useParentSplitter = false;
         int indexInParentSplitter = 0;
-        if (parentSplitter) {
+        if (parentSplitter)
+        {
             indexInParentSplitter = parentSplitter->indexOf(area.widget());
-            if (parentSplitter->orientation() == Qt::Vertical) {
+            if (parentSplitter->orientation() == Qt::Vertical)
+            {
                 useParentSplitter = area.type() == TopOf || area.type() == BottomOf;
-            } else {
+            }
+            else
+            {
                 useParentSplitter = area.type() == LeftOf || area.type() == RightOf;
             }
         }
-        if (useParentSplitter) {
-            if (area.type() == BottomOf || area.type() == RightOf) {
+        if (useParentSplitter)
+        {
+            if (area.type() == BottomOf || area.type() == RightOf)
+            {
                 indexInParentSplitter++;
             }
             Pane* newArea = createArea();
             newArea->addWidget(widget);
             parentSplitter->insertWidget(indexInParentSplitter, newArea);
-        } else {
+        }
+        else
+        {
             area.widget()->hide();
             area.widget()->setParent(0);
             QSplitter* splitter = createSplitter();
-            if (area.type() == TopOf || area.type() == BottomOf) {
+            if (area.type() == TopOf || area.type() == BottomOf)
+            {
                 splitter->setOrientation(Qt::Vertical);
-            } else {
+            }
+            else
+            {
                 splitter->setOrientation(Qt::Horizontal);
             }
             splitter->addWidget(area.widget());
             area.widget()->show();
             Pane* newArea = createArea();
-            if (area.type() == TopOf || area.type() == LeftOf) {
+            if (area.type() == TopOf || area.type() == LeftOf)
+            {
                 splitter->insertWidget(0, newArea);
-            } else {
+            }
+            else
+            {
                 splitter->addWidget(newArea);
             }
-            if (parentSplitter) {
+            if (parentSplitter)
+            {
                 parentSplitter->insertWidget(indexInParentSplitter, splitter);
-            } else {
+            }
+            else
+            {
                 wrapper->layout()->addWidget(splitter);
             }
             newArea->addWidget(widget);
         }
-    } else if (area.type() == InEmptySpace) {
+    }
+    else if (area.type() == InEmptySpace)
+    {
         Pane* newArea = createArea();
         findChild<PaneSerialize*>()->layout()->addWidget(newArea);
         newArea->addWidget(widget);
-    } else if (area.type() == InLastUsedArea) {
+    }
+    else if (area.type() == InLastUsedArea)
+    {
         m_lastUsedArea->addWidget(widget);
-    } else {
+    }
+    else
+    {
         qWarning("invalid type");
     }
     simplifyLayout();
@@ -201,15 +251,19 @@ void PaneWidget::moveWidget(QWidget *widget, AreaPointer area) {
 }
 
 void PaneWidget::moveWidgets(QList<QWidget *> widgets,
-                                 PaneWidget::AreaPointer area) {
-    foreach(QWidget* widget, widgets) {
+                             PaneWidget::AreaPointer area)
+{
+    foreach(QWidget* widget, widgets)
+    {
         moveWidget(widget,area);
     }
 
 }
 
-void PaneWidget::removeWidget(QWidget *widget) {
-    if (!m_widgets.contains(widget)) {
+void PaneWidget::removeWidget(QWidget *widget)
+{
+    if (!m_widgets.contains(widget))
+    {
         qWarning("unknown widget");
         return;
     }
@@ -217,66 +271,85 @@ void PaneWidget::removeWidget(QWidget *widget) {
     m_widgets.removeOne(widget);
 }
 
-void PaneWidget::setSuggestionSwitchInterval(int msec) {
+void PaneWidget::setSuggestionSwitchInterval(int msec)
+{
     m_dropSuggestionSwitchTimer.setInterval(msec);
 }
 
-int PaneWidget::suggestionSwitchInterval() {
+int PaneWidget::suggestionSwitchInterval()
+{
     return m_dropSuggestionSwitchTimer.interval();
 }
 
-void PaneWidget::setBorderSensitivity(int pixels) {
+void PaneWidget::setBorderSensitivity(int pixels)
+{
     m_borderSensitivity = pixels;
 }
 
-void PaneWidget::setRubberBandLineWidth(int pixels) {
+void PaneWidget::setRubberBandLineWidth(int pixels)
+{
     m_rubberBandLineWidth = pixels;
 }
 
-QVariant PaneWidget::saveState() {
+QVariant PaneWidget::saveState()
+{
     QVariantMap result;
     result["PaneWidgetStateFormat"] = 1;
     PaneSerialize* mainWrapper = findChild<PaneSerialize*>();
-    if (!mainWrapper) {
+    if (!mainWrapper)
+    {
         qWarning("can't find main wrapper");
         return QVariant();
     }
     result["mainWrapper"] = mainWrapper->saveState();
     QVariantList floatingWindowsData;
-    foreach(PaneSerialize* wrapper, m_wrappers) {
-        if (!wrapper->isWindow()) { continue; }
+    foreach(PaneSerialize* wrapper, m_wrappers)
+    {
+        if (!wrapper->isWindow())
+        {
+            continue;
+        }
         floatingWindowsData << wrapper->saveState();
     }
     result["floatingWindows"] = floatingWindowsData;
     return result;
 }
 
-void PaneWidget::restoreState(const QVariant &data) {
-    if (!data.isValid()) { return; }
+void PaneWidget::restoreState(const QVariant &data)
+{
+    if (!data.isValid())
+    {
+        return;
+    }
     QVariantMap dataMap = data.toMap();
-    if (dataMap["PaneWidgetStateFormat"].toInt() != 1) {
+    if (dataMap["PaneWidgetStateFormat"].toInt() != 1)
+    {
         qWarning("state format is not recognized");
         return;
     }
     moveWidgets(m_widgets, NoArea);
     PaneSerialize* mainWrapper = findChild<PaneSerialize*>();
-    if (!mainWrapper) {
+    if (!mainWrapper)
+    {
         qWarning("can't find main wrapper");
         return;
     }
     mainWrapper->restoreState(dataMap["mainWrapper"].toMap());
-    foreach(QVariant windowData, dataMap["floatingWindows"].toList()) {
+    foreach(QVariant windowData, dataMap["floatingWindows"].toList())
+    {
         PaneSerialize* wrapper = new PaneSerialize(this);
         wrapper->restoreState(windowData.toMap());
         wrapper->show();
     }
     simplifyLayout();
-    foreach(QWidget* widget, m_widgets) {
+    foreach(QWidget* widget, m_widgets)
+    {
         emit widgetVisibilityChanged(widget, widget->parentWidget() != 0);
     }
 }
 
-Pane *PaneWidget::createArea() {
+Pane *PaneWidget::createArea()
+{
     Pane* area = new Pane(this, 0);
     connect(area, SIGNAL(tabCloseRequested(int)),
             this, SLOT(tabCloseRequested(int)));
@@ -284,21 +357,25 @@ Pane *PaneWidget::createArea() {
 }
 
 
-void PaneWidget::handleNoSuggestions() {
+void PaneWidget::handleNoSuggestions()
+{
     m_rectRubberBand->hide();
     m_lineRubberBand->hide();
     m_lineRubberBand->setParent(this);
     m_rectRubberBand->setParent(this);
     m_suggestions.clear();
     m_dropCurrentSuggestionIndex = 0;
-    if (m_dropSuggestionSwitchTimer.isActive()) {
+    if (m_dropSuggestionSwitchTimer.isActive())
+    {
         m_dropSuggestionSwitchTimer.stop();
     }
 }
 
-void PaneWidget::releasewidget(QWidget *widget) {
+void PaneWidget::releasewidget(QWidget *widget)
+{
     Pane* previousTabWidget = findClosestParent<Pane*>(widget);
-    if (!previousTabWidget) {
+    if (!previousTabWidget)
+    {
         qWarning("cannot find tab widget for widget");
         return;
     }
@@ -308,11 +385,18 @@ void PaneWidget::releasewidget(QWidget *widget) {
 
 }
 
-void PaneWidget::simplifyLayout() {
-    foreach(Pane* area, mPanes) {
-        if (area->parentWidget() == 0) {
-            if (area->count() == 0) {
-                if (area == m_lastUsedArea) { m_lastUsedArea = 0; }
+void PaneWidget::simplifyLayout()
+{
+    foreach(Pane* area, mPanes)
+    {
+        if (area->parentWidget() == 0)
+        {
+            if (area->count() == 0)
+            {
+                if (area == m_lastUsedArea)
+                {
+                    m_lastUsedArea = 0;
+                }
                 //QTimer::singleShot(1000, area, SLOT(deleteLater()));
                 area->deleteLater();
             }
@@ -321,81 +405,112 @@ void PaneWidget::simplifyLayout() {
         QSplitter* splitter = qobject_cast<QSplitter*>(area->parentWidget());
         QSplitter* validSplitter = 0; // least top level splitter that should remain
         QSplitter* invalidSplitter = 0; //most top level splitter that should be deleted
-        while(splitter) {
-            if (splitter->count() > 1) {
+        while(splitter)
+        {
+            if (splitter->count() > 1)
+            {
                 validSplitter = splitter;
                 break;
-            } else {
+            }
+            else
+            {
                 invalidSplitter = splitter;
                 splitter = qobject_cast<QSplitter*>(splitter->parentWidget());
             }
         }
-        if (!validSplitter) {
+        if (!validSplitter)
+        {
             PaneSerialize* wrapper = findClosestParent<PaneSerialize*>(area);
-            if (!wrapper) {
+            if (!wrapper)
+            {
                 qWarning("can't find wrapper");
                 return;
             }
-            if (area->count() == 0 && wrapper->isWindow()) {
+            if (area->count() == 0 && wrapper->isWindow())
+            {
                 wrapper->hide();
                 // can't deleteLater immediately (strange MacOS bug)
                 //QTimer::singleShot(1000, wrapper, SLOT(deleteLater()));
                 wrapper->deleteLater();
-            } else if (area->parent() != wrapper) {
+            }
+            else if (area->parent() != wrapper)
+            {
                 wrapper->layout()->addWidget(area);
             }
-        } else {
-            if (area->count() > 0) {
-                if (validSplitter && area->parent() != validSplitter) {
+        }
+        else
+        {
+            if (area->count() > 0)
+            {
+                if (validSplitter && area->parent() != validSplitter)
+                {
                     int index = validSplitter->indexOf(invalidSplitter);
                     validSplitter->insertWidget(index, area);
                 }
             }
         }
-        if (invalidSplitter) {
+        if (invalidSplitter)
+        {
             invalidSplitter->hide();
             invalidSplitter->setParent(0);
             //QTimer::singleShot(1000, invalidSplitter, SLOT(deleteLater()));
             invalidSplitter->deleteLater();
         }
-        if (area->count() == 0) {
+        if (area->count() == 0)
+        {
             area->hide();
             area->setParent(0);
-            if (area == m_lastUsedArea) { m_lastUsedArea = 0; }
+            if (area == m_lastUsedArea)
+            {
+                m_lastUsedArea = 0;
+            }
             //QTimer::singleShot(1000, area, SLOT(deleteLater()));
             area->deleteLater();
         }
     }
 }
 
-void PaneWidget::startDrag(const QList<QWidget *> &widgets) {
-    if (dragInProgress()) {
+void PaneWidget::startDrag(const QList<QWidget *> &widgets)
+{
+    if (dragInProgress())
+    {
         qWarning("PaneWidget::execDrag: drag is already in progress");
         return;
     }
-    if (widgets.isEmpty()) { return; }
+    if (widgets.isEmpty())
+    {
+        return;
+    }
     m_draggedwidgets = widgets;
     m_dragIndicator->setPixmap(generateDragPixmap(widgets));
     updateDragPosition();
     m_dragIndicator->show();
 }
 
-QVariantMap PaneWidget::saveSplitterState(QSplitter *splitter) {
+QVariantMap PaneWidget::saveSplitterState(QSplitter *splitter)
+{
     QVariantMap result;
     result["state"] = splitter->saveState();
     result["type"] = "splitter";
     QVariantList items;
-    for(int i = 0; i < splitter->count(); i++) {
+    for(int i = 0; i < splitter->count(); i++)
+    {
         QWidget* item = splitter->widget(i);
         QVariantMap itemValue;
         Pane* area = qobject_cast<Pane*>(item);
-        if (area) {
+        if (area)
+        {
             itemValue = area->saveState();
-        } else {
+        }
+        else
+        {
             QSplitter* childSplitter = qobject_cast<QSplitter*>(item);
-            if (childSplitter) {
+            if (childSplitter)
+            {
                 itemValue = saveSplitterState(childSplitter);
-            } else {
+            }
+            else
+            {
                 qWarning("unknown splitter item");
             }
         }
@@ -405,22 +520,30 @@ QVariantMap PaneWidget::saveSplitterState(QSplitter *splitter) {
     return result;
 }
 
-QSplitter *PaneWidget::restoreSplitterState(const QVariantMap &data) {
-    if (data["items"].toList().count() < 2) {
+QSplitter *PaneWidget::restoreSplitterState(const QVariantMap &data)
+{
+    if (data["items"].toList().count() < 2)
+    {
         qWarning("invalid splitter encountered");
     }
     QSplitter* splitter = createSplitter();
 
-    foreach(QVariant itemData, data["items"].toList()) {
+    foreach(QVariant itemData, data["items"].toList())
+    {
         QVariantMap itemValue = itemData.toMap();
         QString itemType = itemValue["type"].toString();
-        if (itemType == "splitter") {
+        if (itemType == "splitter")
+        {
             splitter->addWidget(restoreSplitterState(itemValue));
-        } else if (itemType == "area") {
+        }
+        else if (itemType == "area")
+        {
             Pane* area = createArea();
             area->restoreState(itemValue);
             splitter->addWidget(area);
-        } else {
+        }
+        else
+        {
             qWarning("unknown item type");
         }
     }
@@ -428,10 +551,12 @@ QSplitter *PaneWidget::restoreSplitterState(const QVariantMap &data) {
     return splitter;
 }
 
-QPixmap PaneWidget::generateDragPixmap(const QList<QWidget *> &widgets) {
+QPixmap PaneWidget::generateDragPixmap(const QList<QWidget *> &widgets)
+{
     QTabBar widgett;
     widgett.setDocumentMode(true);
-    foreach(QWidget* widget, widgets) {
+    foreach(QWidget* widget, widgets)
+    {
         widgett.addTab(widget->windowIcon(), widget->windowTitle());
     }
 #if QT_VERSION >= 0x050000 // Qt5
@@ -441,173 +566,238 @@ QPixmap PaneWidget::generateDragPixmap(const QList<QWidget *> &widgets) {
 #endif
 }
 
-void PaneWidget::showNextDropSuggestion() {
-    if (m_suggestions.isEmpty()) {
+void PaneWidget::showNextDropSuggestion()
+{
+    if (m_suggestions.isEmpty())
+    {
         qWarning("showNextDropSuggestion called but no suggestions");
         return;
     }
     m_dropCurrentSuggestionIndex++;
-    if (m_dropCurrentSuggestionIndex >= m_suggestions.count()) {
+    if (m_dropCurrentSuggestionIndex >= m_suggestions.count())
+    {
         m_dropCurrentSuggestionIndex = 0;
     }
     const AreaPointer& suggestion = m_suggestions[m_dropCurrentSuggestionIndex];
-    if (suggestion.type() == AddTo || suggestion.type() == InEmptySpace) {
+    if (suggestion.type() == AddTo || suggestion.type() == InEmptySpace)
+    {
         QWidget* widget;
-        if (suggestion.type() == InEmptySpace) {
+        if (suggestion.type() == InEmptySpace)
+        {
             widget = findChild<PaneSerialize*>();
-        } else {
+        }
+        else
+        {
             widget = suggestion.widget();
         }
         QWidget* placeHolderParent;
-        if (widget->topLevelWidget() == topLevelWidget()) {
+        if (widget->topLevelWidget() == topLevelWidget())
+        {
             placeHolderParent = this;
-        } else {
+        }
+        else
+        {
             placeHolderParent = widget->topLevelWidget();
         }
         QRect placeHolderGeometry = widget->rect();
         placeHolderGeometry.moveTopLeft(widget->mapTo(placeHolderParent,
-                                                      placeHolderGeometry.topLeft()));
+                                        placeHolderGeometry.topLeft()));
         m_rectRubberBand->setGeometry(placeHolderGeometry);
         m_rectRubberBand->setParent(placeHolderParent);
         m_rectRubberBand->show();
         m_lineRubberBand->hide();
-    } else if (suggestion.type() == LeftOf || suggestion.type() == RightOf ||
-               suggestion.type() == TopOf || suggestion.type() == BottomOf) {
+    }
+    else if (suggestion.type() == LeftOf || suggestion.type() == RightOf ||
+             suggestion.type() == TopOf || suggestion.type() == BottomOf)
+    {
         QWidget* placeHolderParent;
-        if (suggestion.widget()->topLevelWidget() == topLevelWidget()) {
+        if (suggestion.widget()->topLevelWidget() == topLevelWidget())
+        {
             placeHolderParent = this;
-        } else {
+        }
+        else
+        {
             placeHolderParent = suggestion.widget()->topLevelWidget();
         }
         QRect placeHolderGeometry = sidePlaceHolderRect(suggestion.widget(), suggestion.type());
         placeHolderGeometry.moveTopLeft(suggestion.widget()->mapTo(placeHolderParent,
-                                                                   placeHolderGeometry.topLeft()));
+                                        placeHolderGeometry.topLeft()));
 
         m_lineRubberBand->setGeometry(placeHolderGeometry);
         m_lineRubberBand->setParent(placeHolderParent);
         m_lineRubberBand->show();
         m_rectRubberBand->hide();
-    } else {
+    }
+    else
+    {
         qWarning("unsupported suggestion type");
     }
 }
 
-void PaneWidget::findSuggestions(PaneSerialize* wrapper) {
+void PaneWidget::findSuggestions(PaneSerialize* wrapper)
+{
     m_suggestions.clear();
     m_dropCurrentSuggestionIndex = -1;
     QPoint globalPos = QCursor::pos();
     QList<QWidget*> candidates;
-    foreach(QSplitter* splitter, wrapper->findChildren<QSplitter*>()) {
+    foreach(QSplitter* splitter, wrapper->findChildren<QSplitter*>())
+    {
         candidates << splitter;
     }
-    foreach(Pane* area, mPanes) {
-        if (area->topLevelWidget() == wrapper->topLevelWidget()) {
+    foreach(Pane* area, mPanes)
+    {
+        if (area->topLevelWidget() == wrapper->topLevelWidget())
+        {
             candidates << area;
         }
     }
-    foreach(QWidget* widget, candidates) {
+    foreach(QWidget* widget, candidates)
+    {
         QSplitter* splitter = qobject_cast<QSplitter*>(widget);
         Pane* area = qobject_cast<Pane*>(widget);
-        if (!splitter && !area) {
+        if (!splitter && !area)
+        {
             qWarning("unexpected widget type");
             continue;
         }
         QSplitter* parentSplitter = qobject_cast<QSplitter*>(widget->parentWidget());
         bool lastInSplitter = parentSplitter &&
-                parentSplitter->indexOf(widget) == parentSplitter->count() - 1;
+                              parentSplitter->indexOf(widget) == parentSplitter->count() - 1;
 
         QList<AreaPointerType> allowedSides;
-        if (!splitter || splitter->orientation() == Qt::Vertical) {
+        if (!splitter || splitter->orientation() == Qt::Vertical)
+        {
             allowedSides << LeftOf;
         }
-        if (!splitter || splitter->orientation() == Qt::Horizontal) {
+        if (!splitter || splitter->orientation() == Qt::Horizontal)
+        {
             allowedSides << TopOf;
         }
-        if (!parentSplitter || parentSplitter->orientation() == Qt::Vertical || lastInSplitter) {
-            if (!splitter || splitter->orientation() == Qt::Vertical) {
+        if (!parentSplitter || parentSplitter->orientation() == Qt::Vertical || lastInSplitter)
+        {
+            if (!splitter || splitter->orientation() == Qt::Vertical)
+            {
                 allowedSides << RightOf;
             }
         }
-        if (!parentSplitter || parentSplitter->orientation() == Qt::Horizontal || lastInSplitter) {
-            if (!splitter || splitter->orientation() == Qt::Horizontal) {
+        if (!parentSplitter || parentSplitter->orientation() == Qt::Horizontal || lastInSplitter)
+        {
+            if (!splitter || splitter->orientation() == Qt::Horizontal)
+            {
                 allowedSides << BottomOf;
             }
         }
-        foreach(AreaPointerType side, allowedSides) {
-            if (sideSensitiveArea(widget, side).contains(widget->mapFromGlobal(globalPos))) {
+        foreach(AreaPointerType side, allowedSides)
+        {
+            if (sideSensitiveArea(widget, side).contains(widget->mapFromGlobal(globalPos)))
+            {
                 m_suggestions << AreaPointer(side, widget);
             }
         }
-        if (area && area->rect().contains(area->mapFromGlobal(globalPos))) {
+        if (area && area->rect().contains(area->mapFromGlobal(globalPos)))
+        {
             m_suggestions << AreaPointer(AddTo, area);
         }
     }
-    if (candidates.isEmpty()) {
+    if (candidates.isEmpty())
+    {
         m_suggestions << InEmptySpace;
     }
 
-    if (m_suggestions.isEmpty()) {
+    if (m_suggestions.isEmpty())
+    {
         handleNoSuggestions();
-    } else {
+    }
+    else
+    {
         showNextDropSuggestion();
     }
 }
 
-QRect PaneWidget::sideSensitiveArea(QWidget *widget, PaneWidget::AreaPointerType side) {
+QRect PaneWidget::sideSensitiveArea(QWidget *widget, PaneWidget::AreaPointerType side)
+{
     QRect widgetRect = widget->rect();
-    if (side == TopOf) {
+    if (side == TopOf)
+    {
         return QRect(QPoint(widgetRect.left(), widgetRect.top() - m_borderSensitivity),
                      QSize(widgetRect.width(), m_borderSensitivity * 2));
-    } else if (side == LeftOf) {
+    }
+    else if (side == LeftOf)
+    {
         return QRect(QPoint(widgetRect.left() - m_borderSensitivity, widgetRect.top()),
                      QSize(m_borderSensitivity * 2, widgetRect.height()));
 
-    } else if (side == BottomOf) {
+    }
+    else if (side == BottomOf)
+    {
         return QRect(QPoint(widgetRect.left(), widgetRect.top() + widgetRect.height() - m_borderSensitivity),
                      QSize(widgetRect.width(), m_borderSensitivity * 2));
-    } else if (side == RightOf) {
+    }
+    else if (side == RightOf)
+    {
         return QRect(QPoint(widgetRect.left() + widgetRect.width() - m_borderSensitivity, widgetRect.top()),
                      QSize(m_borderSensitivity * 2, widgetRect.height()));
-    } else {
+    }
+    else
+    {
         qWarning("invalid side");
         return QRect();
     }
 }
 
-QRect PaneWidget::sidePlaceHolderRect(QWidget *widget, PaneWidget::AreaPointerType side) {
+QRect PaneWidget::sidePlaceHolderRect(QWidget *widget, PaneWidget::AreaPointerType side)
+{
     QRect widgetRect = widget->rect();
     QSplitter* parentSplitter = qobject_cast<QSplitter*>(widget->parentWidget());
-    if (parentSplitter && parentSplitter->indexOf(widget) > 0) {
+    if (parentSplitter && parentSplitter->indexOf(widget) > 0)
+    {
         int delta = parentSplitter->handleWidth() / 2 + m_rubberBandLineWidth / 2;
-        if (side == TopOf && parentSplitter->orientation() == Qt::Vertical) {
+        if (side == TopOf && parentSplitter->orientation() == Qt::Vertical)
+        {
             return QRect(QPoint(widgetRect.left(), widgetRect.top() - delta),
                          QSize(widgetRect.width(), m_rubberBandLineWidth));
-        } else if (side == LeftOf && parentSplitter->orientation() == Qt::Horizontal) {
+        }
+        else if (side == LeftOf && parentSplitter->orientation() == Qt::Horizontal)
+        {
             return QRect(QPoint(widgetRect.left() - delta, widgetRect.top()),
                          QSize(m_rubberBandLineWidth, widgetRect.height()));
         }
     }
-    if (side == TopOf) {
+    if (side == TopOf)
+    {
         return QRect(QPoint(widgetRect.left(), widgetRect.top()),
                      QSize(widgetRect.width(), m_rubberBandLineWidth));
-    } else if (side == LeftOf) {
+    }
+    else if (side == LeftOf)
+    {
         return QRect(QPoint(widgetRect.left(), widgetRect.top()),
                      QSize(m_rubberBandLineWidth, widgetRect.height()));
-    } else if (side == BottomOf) {
+    }
+    else if (side == BottomOf)
+    {
         return QRect(QPoint(widgetRect.left(), widgetRect.top() + widgetRect.height() - m_rubberBandLineWidth),
                      QSize(widgetRect.width(), m_rubberBandLineWidth));
-    } else if (side == RightOf) {
+    }
+    else if (side == RightOf)
+    {
         return QRect(QPoint(widgetRect.left() + widgetRect.width() - m_rubberBandLineWidth, widgetRect.top()),
                      QSize(m_rubberBandLineWidth, widgetRect.height()));
-    } else {
+    }
+    else
+    {
         qWarning("invalid side");
         return QRect();
     }
 }
 
-void PaneWidget::updateDragPosition() {
-    if (!dragInProgress()) { return; }
-    if (!(qApp->mouseButtons() & Qt::LeftButton)) {
+void PaneWidget::updateDragPosition()
+{
+    if (!dragInProgress())
+    {
+        return;
+    }
+    if (!(qApp->mouseButtons() & Qt::LeftButton))
+    {
         finishDrag();
         return;
     }
@@ -617,13 +807,18 @@ void PaneWidget::updateDragPosition() {
     bool foundWrapper = false;
 
     QWidget* window = qApp->topLevelAt(pos);
-    foreach(PaneSerialize* wrapper, m_wrappers) {
-        if (wrapper->window() == window) {
-            if (wrapper->rect().contains(wrapper->mapFromGlobal(pos))) {
+    foreach(PaneSerialize* wrapper, m_wrappers)
+    {
+        if (wrapper->window() == window)
+        {
+            if (wrapper->rect().contains(wrapper->mapFromGlobal(pos)))
+            {
                 findSuggestions(wrapper);
-                if (!m_suggestions.isEmpty()) {
+                if (!m_suggestions.isEmpty())
+                {
                     //starting or restarting timer
-                    if (m_dropSuggestionSwitchTimer.isActive()) {
+                    if (m_dropSuggestionSwitchTimer.isActive())
+                    {
                         m_dropSuggestionSwitchTimer.stop();
                     }
                     m_dropSuggestionSwitchTimer.start();
@@ -633,21 +828,28 @@ void PaneWidget::updateDragPosition() {
             break;
         }
     }
-    if (!foundWrapper) {
+    if (!foundWrapper)
+    {
         handleNoSuggestions();
     }
 }
 
-void PaneWidget::finishDrag() {
-    if (!dragInProgress()) {
+void PaneWidget::finishDrag()
+{
+    if (!dragInProgress())
+    {
         qWarning("unexpected finishDrag");
         return;
     }
-    if (m_suggestions.isEmpty()) {
+    if (m_suggestions.isEmpty())
+    {
         moveWidgets(m_draggedwidgets, InNewFloatingArea);
 
-    } else {
-        if (m_dropCurrentSuggestionIndex >= m_suggestions.count()) {
+    }
+    else
+    {
+        if (m_dropCurrentSuggestionIndex >= m_suggestions.count())
+        {
             qWarning("invalid m_dropCurrentSuggestionIndex");
             return;
         }
@@ -661,58 +863,76 @@ void PaneWidget::finishDrag() {
     m_draggedwidgets.clear();
 }
 
-void PaneWidget::tabCloseRequested(int index) {
+void PaneWidget::tabCloseRequested(int index)
+{
     Pane* tabWidget = qobject_cast<Pane*>(sender());
-    if (!tabWidget) {
+    if (!tabWidget)
+    {
         qWarning("sender is not a Pane");
         return;
     }
     QWidget* widget = tabWidget->widget(index);
-    if (!m_widgets.contains(widget)) {
+    if (!m_widgets.contains(widget))
+    {
         qWarning("unknown tab in tab widget");
         return;
     }
     hidewidget(widget);
 }
 
-QSplitter *PaneWidget::createSplitter() {
+QSplitter *PaneWidget::createSplitter()
+{
     QSplitter* splitter = new QSplitter();
     splitter->setChildrenCollapsible(false);
     return splitter;
 }
 
-PaneWidget::AreaPointer::AreaPointer(PaneWidget::AreaPointerType type, Pane *area) {
+PaneWidget::AreaPointer::AreaPointer(PaneWidget::AreaPointerType type, Pane *area)
+{
     m_type = type;
     setWidget(area);
 }
 
-void PaneWidget::AreaPointer::setWidget(QWidget *widget) {
-    if (m_type == InLastUsedArea || m_type == InNewFloatingArea || m_type == NoArea || m_type == InEmptySpace) {
-        if (widget != 0) {
+void PaneWidget::AreaPointer::setWidget(QWidget *widget)
+{
+    if (m_type == InLastUsedArea || m_type == InNewFloatingArea || m_type == NoArea || m_type == InEmptySpace)
+    {
+        if (widget != 0)
+        {
             qWarning("area parameter ignored for this type");
         }
         m_widget = 0;
-    } else if (m_type == AddTo) {
+    }
+    else if (m_type == AddTo)
+    {
         m_widget = qobject_cast<Pane*>(widget);
-        if (!m_widget) {
+        if (!m_widget)
+        {
             qWarning("only Pane can be used with this type");
         }
-    } else {
+    }
+    else
+    {
         if (!qobject_cast<Pane*>(widget) &&
-                !qobject_cast<QSplitter*>(widget)) {
+                !qobject_cast<QSplitter*>(widget))
+        {
             qWarning("only Pane or splitter can be used with this type");
             m_widget = 0;
-        } else {
+        }
+        else
+        {
             m_widget = widget;
         }
     }
 }
 
-Pane *PaneWidget::AreaPointer::area() const {
+Pane *PaneWidget::AreaPointer::area() const
+{
     return qobject_cast<Pane*>(m_widget);
 }
 
-PaneWidget::AreaPointer::AreaPointer(PaneWidget::AreaPointerType type, QWidget *widget) {
+PaneWidget::AreaPointer::AreaPointer(PaneWidget::AreaPointerType type, QWidget *widget)
+{
     m_type = type;
     setWidget(widget);
 }

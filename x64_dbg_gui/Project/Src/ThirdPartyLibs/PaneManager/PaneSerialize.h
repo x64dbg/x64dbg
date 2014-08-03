@@ -30,24 +30,25 @@
 
 
 class PaneWidget;
-class PaneSerialize : public QWidget {
-  Q_OBJECT
+class PaneSerialize : public QWidget
+{
+    Q_OBJECT
 public:
 
-  explicit PaneSerialize(PaneWidget* manager);
-  virtual ~PaneSerialize();
+    explicit PaneSerialize(PaneWidget* manager);
+    virtual ~PaneSerialize();
 
 protected:
-  //! Reimplemented to register hiding of contained widgets when user closes the floating window.
-  virtual void closeEvent(QCloseEvent *);
+    //! Reimplemented to register hiding of contained widgets when user closes the floating window.
+    virtual void closeEvent(QCloseEvent *);
 
 private:
-  PaneWidget* mPaneWidget;
+    PaneWidget* mPaneWidget;
 
-  QVariantMap saveState();
-  void restoreState(const QVariantMap& data);
+    QVariantMap saveState();
+    void restoreState(const QVariantMap& data);
 
-  friend class PaneWidget;
+    friend class PaneWidget;
 
 };
 

@@ -32,66 +32,83 @@
 #include <QApplication>
 
 PaneSerialize::PaneSerialize(PaneWidget *manager) :
-  QWidget(manager)
-, mPaneWidget(manager)
+    QWidget(manager)
+    , mPaneWidget(manager)
 {
-  setWindowFlags(windowFlags() | Qt::Tool);
-  setWindowTitle(" ");
+    setWindowFlags(windowFlags() | Qt::Tool);
+    setWindowTitle(" ");
 
-  QVBoxLayout* mainLayout = new QVBoxLayout(this);
-  mainLayout->setContentsMargins(0, 0, 0, 0);
-  mPaneWidget->m_wrappers << this;
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mPaneWidget->m_wrappers << this;
 }
 
-PaneSerialize::~PaneSerialize() {
-  mPaneWidget->m_wrappers.removeOne(this);
+PaneSerialize::~PaneSerialize()
+{
+    mPaneWidget->m_wrappers.removeOne(this);
 }
 
-void PaneSerialize::closeEvent(QCloseEvent *) {
-  QList<QWidget*> widgets;
-  foreach(Pane* tabWidget, findChildren<Pane*>()) {
-    widgets << tabWidget->widgets();
-  }
-  mPaneWidget->moveWidgets(widgets, PaneWidget::NoArea);
-}
-
-QVariantMap PaneSerialize::saveState() {
-  if (layout()->count() > 1) {
-    qWarning("too many children for wrapper");
-    return QVariantMap();
-  }
-  if (isWindow() && layout()->count() == 0) {
-    qWarning("empty top level wrapper");
-    return QVariantMap();
-  }
-  QVariantMap result;
-  result["geometry"] = saveGeometry();
-  QSplitter* splitter = findChild<QSplitter*>();
-  if (splitter) {
-    result["splitter"] = mPaneWidget->saveSplitterState(splitter);
-  } else {
-    Pane* area = findChild<Pane*>();
-    if (area) {
-      result["area"] = area->saveState();
-    } else if (layout()->count() > 0) {
-      qWarning("unknown child");
-      return QVariantMap();
+void PaneSerialize::closeEvent(QCloseEvent *)
+{
+    QList<QWidget*> widgets;
+    foreach(Pane* tabWidget, findChildren<Pane*>())
+    {
+        widgets << tabWidget->widgets();
     }
-  }
-  return result;
+    mPaneWidget->moveWidgets(widgets, PaneWidget::NoArea);
 }
 
-void PaneSerialize::restoreState(const QVariantMap &data) {
-  restoreGeometry(data["geometry"].toByteArray());
-  if (layout()->count() > 0) {
-    qWarning("wrapper is not empty");
-    return;
-  }
-  if (data.contains("splitter")) {
-    layout()->addWidget(mPaneWidget->restoreSplitterState(data["splitter"].toMap()));
-  } else if (data.contains("area")) {
-    Pane* area = mPaneWidget->createArea();
-    area->restoreState(data["area"].toMap());
-    layout()->addWidget(area);
-  }
+QVariantMap PaneSerialize::saveState()
+{
+    if (layout()->count() > 1)
+    {
+        qWarning("too many children for wrapper");
+        return QVariantMap();
+    }
+    if (isWindow() && layout()->count() == 0)
+    {
+        qWarning("empty top level wrapper");
+        return QVariantMap();
+    }
+    QVariantMap result;
+    result["geometry"] = saveGeometry();
+    QSplitter* splitter = findChild<QSplitter*>();
+    if (splitter)
+    {
+        result["splitter"] = mPaneWidget->saveSplitterState(splitter);
+    }
+    else
+    {
+        Pane* area = findChild<Pane*>();
+        if (area)
+        {
+            result["area"] = area->saveState();
+        }
+        else if (layout()->count() > 0)
+        {
+            qWarning("unknown child");
+            return QVariantMap();
+        }
+    }
+    return result;
+}
+
+void PaneSerialize::restoreState(const QVariantMap &data)
+{
+    restoreGeometry(data["geometry"].toByteArray());
+    if (layout()->count() > 0)
+    {
+        qWarning("wrapper is not empty");
+        return;
+    }
+    if (data.contains("splitter"))
+    {
+        layout()->addWidget(mPaneWidget->restoreSplitterState(data["splitter"].toMap()));
+    }
+    else if (data.contains("area"))
+    {
+        Pane* area = mPaneWidget->createArea();
+        area->restoreState(data["area"].toMap());
+        layout()->addWidget(area);
+    }
 }

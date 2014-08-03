@@ -34,57 +34,58 @@ class PaneWidget;
  * \brief The Pane class is a tab widget used to store widgets.
  * It implements dragging of its tab or the whole tab widget.
  */
-class Pane : public QTabWidget {
-  Q_OBJECT
+class Pane : public QTabWidget
+{
+    Q_OBJECT
 public:
-  //! Creates new area.
-  explicit Pane(PaneWidget* manager, QWidget *parent = 0);
-  //! Destroys the area.
-  virtual ~Pane();
+    //! Creates new area.
+    explicit Pane(PaneWidget* manager, QWidget *parent = 0);
+    //! Destroys the area.
+    virtual ~Pane();
 
-  /*!
-   * Add \a widget to this area.
-   */
-  void addWidget(QWidget* widget);
+    /*!
+     * Add \a widget to this area.
+     */
+    void addWidget(QWidget* widget);
 
-  /*!
-   * Add \a widgets to this area.
-   */
-  void addWidgets(const QList<QWidget*>& widgets);
+    /*!
+     * Add \a widgets to this area.
+     */
+    void addWidgets(const QList<QWidget*>& widgets);
 
-  /*!
-   * Returns a list of all widgets in this area.
-   */
-  QList<QWidget*> widgets();
+    /*!
+     * Returns a list of all widgets in this area.
+     */
+    QList<QWidget*> widgets();
 
 protected:
-  //! Reimplemented from QTabWidget::mousePressEvent.
-  virtual void mousePressEvent(QMouseEvent *);
-  //! Reimplemented from QTabWidget::mouseReleaseEvent.
-  virtual void mouseReleaseEvent(QMouseEvent *);
-  //! Reimplemented from QTabWidget::mouseMoveEvent.
-  virtual void mouseMoveEvent(QMouseEvent *);
-  //! Reimplemented from QTabWidget::eventFilter.
-  virtual bool eventFilter(QObject *object, QEvent *event);
+    //! Reimplemented from QTabWidget::mousePressEvent.
+    virtual void mousePressEvent(QMouseEvent *);
+    //! Reimplemented from QTabWidget::mouseReleaseEvent.
+    virtual void mouseReleaseEvent(QMouseEvent *);
+    //! Reimplemented from QTabWidget::mouseMoveEvent.
+    virtual void mouseMoveEvent(QMouseEvent *);
+    //! Reimplemented from QTabWidget::eventFilter.
+    virtual bool eventFilter(QObject *object, QEvent *event);
 
 private:
-  PaneWidget* mPaneWidget;
-  bool m_dragCanStart; // indicates that user has started mouse movement on QTabWidget
-                       // that can be considered as dragging it if the cursor will leave
-                       // its area
+    PaneWidget* mPaneWidget;
+    bool m_dragCanStart; // indicates that user has started mouse movement on QTabWidget
+    // that can be considered as dragging it if the cursor will leave
+    // its area
 
-  bool m_tabDragCanStart; // indicates that user has started mouse movement on QTabWidget
-                          // that can be considered as dragging current tab
-                          // if the cursor will leave the tab bar area
+    bool m_tabDragCanStart; // indicates that user has started mouse movement on QTabWidget
+    // that can be considered as dragging current tab
+    // if the cursor will leave the tab bar area
 
-  QVariantMap saveState(); // dump contents to variable
-  void restoreState(const QVariantMap& data); //restore contents from given variable
+    QVariantMap saveState(); // dump contents to variable
+    void restoreState(const QVariantMap& data); //restore contents from given variable
 
-  //check if mouse left tab widget area so that dragging should start
-  void check_mouse_move();
+    //check if mouse left tab widget area so that dragging should start
+    void check_mouse_move();
 
-  friend class PaneWidget;
-  friend class PaneSerialize;
+    friend class PaneWidget;
+    friend class PaneSerialize;
 
 };
 
