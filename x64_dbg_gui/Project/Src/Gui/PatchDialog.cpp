@@ -148,6 +148,10 @@ void PatchDialog::updatePatches()
         }
         ui->listModules->addItem(i.key());
     }
+
+    if(mPatches->size())
+        ui->listModules->item(0)->setSelected(true); //select first module
+
     mIsWorking=false;
 }
 
