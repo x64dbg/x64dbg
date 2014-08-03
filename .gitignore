@@ -52,3 +52,7 @@ x64_dbg_gui/Project/Src/Bridge/x64_bridge.lib
 tools/
 RCa*
 *.aps
+
+#exceptions
+!/AStyleWhore.exe
+!/AStyle.dll
