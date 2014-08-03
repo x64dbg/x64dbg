@@ -45,6 +45,15 @@ del /Q Project\Src\Bridge\libx64_bridge.a
 del /Q Project\Src\Bridge\x32_bridge.lib
 del /Q Project\Src\Bridge\x64_bridge.lib
 cd ..
+echo cleaning bin\
+cd bin
+del /Q *.pdb
+del /Q *.exp
+del /Q *.a
+del /Q *.lib
+del /Q *.def
+del /Q launcher.exe
+cd..
 echo cleaning bin\x32...
 cd bin\x32
 rmdir /S /Q db
