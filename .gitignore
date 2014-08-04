@@ -56,3 +56,4 @@ RCa*
 #exceptions
 !/AStyleWhore.exe
 !/AStyle.dll
+*.orig
