@@ -178,6 +178,8 @@ void SettingsDialog::LoadSettings()
         else
             settings.eventSetJIT=false;
 
+        ui->editJIT->setText(jit_entry);
+
         ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
     }
 }
