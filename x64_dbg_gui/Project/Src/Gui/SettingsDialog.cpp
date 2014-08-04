@@ -161,6 +161,17 @@ void SettingsDialog::LoadSettings()
     //Misc tab
     GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
     ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+
+    bool isx64=true;
+    #ifndef _WIN64
+        isx64=false;
+    #endif
+
+    static char jit[MAX_SETTING_SIZE]="";
+
+    DbgFunctions()->GetJit(jit, isx64);
+
+    //settings.eventSetJIT = true;
 }
 
 void SettingsDialog::SaveSettings()
@@ -205,7 +216,7 @@ void SettingsDialog::SaveSettings()
 
     Config()->load();
     DbgSettingsUpdated();
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();    
 }
 
 void SettingsDialog::AddRangeToList(RangeStruct range)
@@ -297,10 +308,12 @@ void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
 
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 {
+    /*
     if(arg1==Qt::Unchecked)
         settings.eventSetJIT=false;
     else
         settings.eventSetJIT=true;
+        */
 }
 
 

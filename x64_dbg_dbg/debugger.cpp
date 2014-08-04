@@ -1526,11 +1526,19 @@ bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
         return false;
 
     * jit_entry_out = (char *) emalloc( jit_entry_size, "dbggetjit:*jit_entry_out");
-    //internal allocation functions cannot fail (application will exit with an error)
-    //if ( * jit_entry_out == NULL )
-        //return false;
 
     strcpy( * jit_entry_out, jit_entry );
+
+    return true;
+}
+
+bool dbggetdefjit(char * jit_entry)
+{
+    char path[JIT_ENTRY_DEF_SIZE];
+    path[0] = '"';
+    GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
+    strcat(path, ATTACH_CMD_LINE);
+    strcpy( jit_entry, path );
 
     return true;
 }

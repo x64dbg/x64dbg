@@ -6,6 +6,9 @@
 #include "command.h"
 #include "breakpoint.h"
 
+#define ATTACH_CMD_LINE "\" -a %ld"
+#define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
+
 //structures
 struct INIT_STRUCT
 {
@@ -50,6 +53,7 @@ bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
 bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
+bool dbggetdefjit(char *);
 
 void cbStep();
 void cbRtrStep();

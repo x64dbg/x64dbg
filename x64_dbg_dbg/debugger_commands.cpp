@@ -1394,20 +1394,16 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-#define ATTACH_CMD_LINE "\" -a %ld"
-
 CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch;
     char * jit_debugger_cmd;
     if(argc < 2)
     {
-        char path[MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2];
-        path[0] = '"';
-        GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
-        strcat(path, ATTACH_CMD_LINE);
-        jit_debugger_cmd = path;
+        char path[JIT_ENTRY_DEF_SIZE];
+        dbggetdefjit(path);
 
+        jit_debugger_cmd = path;
         if (!dbgsetjit( jit_debugger_cmd, notfound, & actual_arch ))
         {
             dprintf( "Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
