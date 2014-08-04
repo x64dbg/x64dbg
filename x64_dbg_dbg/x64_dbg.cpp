@@ -284,6 +284,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         DbgCmdExec(str.c_str());
     }
     commandlinefree(argc, argv);
+    char jit[MAX_SETTING_SIZE]="";
+    bool isx64=true;
+#ifndef _WIN64
+    isx64=false;
+#endif
+    DbgFunctions()->GetJit(jit, isx64);
+    MessageBoxA(0,jit,0,0);
     return 0;
 }
 

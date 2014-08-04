@@ -47,6 +47,7 @@ typedef bool (*DISASMFAST)(unsigned char* data, duint addr, BASIC_INSTRUCTION_IN
 typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
+typedef bool (*GETJIT)(char* jit, bool x64);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -70,6 +71,7 @@ typedef struct DBGFUNCTIONS_
     MEMUPDATEMAP MemUpdateMap;
     GETCALLSTACK GetCallStack;
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
+    GETJIT GetJit;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

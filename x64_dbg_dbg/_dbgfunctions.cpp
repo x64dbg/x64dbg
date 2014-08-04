@@ -107,6 +107,24 @@ static void _getcallstack(DBGCALLSTACK* callstack)
     stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
+static bool _getjit(char* jit, bool jit64)
+{
+    char* currentJit = 0;
+    arch dummy;
+    if(!dbggetjit(&currentJit, jit64 ? x64 : x32, &dummy))
+        return false;
+    //get out the actual jit path
+    char* copyJit=currentJit;
+    if(*copyJit=='\"')
+        copyJit++;
+    char* last=strchr(copyJit, '\"');
+    if(last)
+        *last=0;
+    strcpy_s(jit, MAX_SETTING_SIZE, copyJit);
+    efree(currentJit, "dbggetjit:*jit_entry_out");
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx=_assembleatex;
@@ -129,4 +147,5 @@ void dbgfunctionsinit()
     _dbgfunctions.MemUpdateMap=memupdatemap;
     _dbgfunctions.GetCallStack=_getcallstack;
     _dbgfunctions.SymbolDownloadAllSymbols=symdownloadallsymbols;
+    _dbgfunctions.GetJit=_getjit;
 }

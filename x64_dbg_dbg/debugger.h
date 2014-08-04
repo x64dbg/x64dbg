@@ -48,6 +48,8 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
+bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
+bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
 
 void cbStep();
 void cbRtrStep();
