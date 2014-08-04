@@ -3,6 +3,8 @@
 ## Note
 **This is a new version of this repository. The old version can be found [here](https://bitbucket.org/mrexodia/x64_dbg_old).**
 
+Also please run install.bat before you start committing code, this ensures your code is auto-formatted to the *x64_dbg* standards.
+
 ## Downloads
 Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 
