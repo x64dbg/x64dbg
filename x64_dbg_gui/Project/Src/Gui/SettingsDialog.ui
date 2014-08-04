@@ -480,8 +480,8 @@
     <widget class="QLabel" name="label">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>40</y>
+       <x>10</x>
+       <y>30</y>
        <width>21</width>
        <height>16</height>
       </rect>
@@ -490,14 +490,17 @@
       <string>JIT:</string>
      </property>
     </widget>
-    <widget class="QListView" name="listJIT">
+    <widget class="QLineEdit" name="editJIT">
      <property name="geometry">
       <rect>
-       <x>50</x>
+       <x>30</x>
        <y>30</y>
-       <width>231</width>
-       <height>41</height>
+       <width>251</width>
+       <height>20</height>
       </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
