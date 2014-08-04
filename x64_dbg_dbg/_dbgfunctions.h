@@ -48,6 +48,7 @@ typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 typedef bool (*GETJIT)(char* jit, bool x64);
+typedef bool (*GETDEFJIT)(char*);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -72,6 +73,7 @@ typedef struct DBGFUNCTIONS_
     GETCALLSTACK GetCallStack;
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
     GETJIT GetJit;
+    GETDEFJIT GetDefJit;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

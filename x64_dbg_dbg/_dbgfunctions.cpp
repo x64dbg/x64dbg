@@ -109,19 +109,16 @@ static void _getcallstack(DBGCALLSTACK* callstack)
 
 static bool _getjit(char* jit, bool jit64)
 {
-    char* currentJit = 0;
     arch dummy;
-    if(!dbggetjit(&currentJit, jit64 ? x64 : x32, &dummy))
+    char * jit_tmp;
+    if(!dbggetjit(&jit_tmp, jit64 ? x64 : x32, &dummy))
         return false;
     //get out the actual jit path
-    char* copyJit=currentJit;
-    if(*copyJit=='\"')
-        copyJit++;
-    char* last=strchr(copyJit, '\"');
-    if(last)
-        *last=0;
-    strcpy_s(jit, MAX_SETTING_SIZE, copyJit);
-    efree(currentJit, "dbggetjit:*jit_entry_out");
+
+    strcpy( jit, jit_tmp );
+
+    efree(jit_tmp);
+
     return true;
 }
 
@@ -148,4 +145,5 @@ void dbgfunctionsinit()
     _dbgfunctions.GetCallStack=_getcallstack;
     _dbgfunctions.SymbolDownloadAllSymbols=symdownloadallsymbols;
     _dbgfunctions.GetJit=_getjit;
+    _dbgfunctions.GetDefJit=dbggetdefjit;
 }

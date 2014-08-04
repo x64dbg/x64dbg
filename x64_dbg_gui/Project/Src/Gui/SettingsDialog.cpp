@@ -162,16 +162,19 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
     ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
 
+    char jit_entry[MAX_SETTING_SIZE]="";
+    char jit_def_entry[MAX_SETTING_SIZE]="";
     bool isx64=true;
-    #ifndef _WIN64
-        isx64=false;
-    #endif
+#ifndef _WIN64
+    isx64=false;
+#endif
+    DbgFunctions()->GetJit(jit_entry, isx64);
+    DbgFunctions()->GetDefJit(jit_def_entry);
 
-    static char jit[MAX_SETTING_SIZE]="";
-
-    DbgFunctions()->GetJit(jit, isx64);
-
-    //settings.eventSetJIT = true;
+    if (_strcmpi(jit_entry, jit_def_entry) == 0)
+        settings.eventSetJIT=true;
+    else
+        settings.eventSetJIT=false;
 }
 
 void SettingsDialog::SaveSettings()
