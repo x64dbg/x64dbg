@@ -15,6 +15,7 @@ public:
 public slots:
     void updateThreadList();
     void doubleClickedSlot();
+    void SwitchThread();
     void SuspendThread();
     void ResumeThread();
     void KillThread();
@@ -33,6 +34,7 @@ signals:
 
 private:
     int mCurrentThread;
+    QAction* mSwitchThread;
     QAction* mSuspendThread;
     QAction* mResumeThread;
     QAction* mKillThread;
