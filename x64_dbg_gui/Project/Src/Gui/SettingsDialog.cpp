@@ -170,6 +170,8 @@ void SettingsDialog::LoadSettings()
     #ifndef _WIN64
         isx64=false;
     #endif
+    if(DbgFunctions()->GetJit)
+    {
         DbgFunctions()->GetJit(jit_entry, isx64);
         DbgFunctions()->GetDefJit(jit_def_entry);
 
