@@ -2,7 +2,7 @@
 #include "ui_SymbolView.h"
 #include "Configuration.h"
 
-SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView)
+SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
     ui->setupUi(this);
 
@@ -19,17 +19,17 @@ SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView
     // Create module list
     mModuleList = new StdTable();
     int charwidth = mModuleList->getCharWidth();
-    mModuleList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Base", false);
+    mModuleList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Base", false);
     mModuleList->addColumnAt(0, "Module", true);
 
     // Setup symbol list
-    mSearchListView->mList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Address", true);
-    mSearchListView->mList->addColumnAt(charwidth*80, "Symbol", true);
+    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
+    mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mList->addColumnAt(0, "Symbol (undecorated)", true);
 
     // Setup search list
-    mSearchListView->mSearchList->addColumnAt(charwidth*2*sizeof(int_t)+8, "Address", true);
-    mSearchListView->mSearchList->addColumnAt(charwidth*80, "Symbol", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mSearchList->addColumnAt(0, "Symbol (undecorated)", true);
 
     // Setup list splitter
@@ -66,7 +66,7 @@ SymbolView::SymbolView(QWidget *parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(mModuleList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(moduleContextMenu(QPoint)));
     connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
     connect(mModuleList, SIGNAL(doubleClickedSignal()), this, SLOT(moduleFollow()));
-    connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int,SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int,SYMBOLMODULEINFO*)));
+    connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int, SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int, SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
@@ -118,10 +118,10 @@ void SymbolView::clearSymbolLogSlot()
 
 void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 {
-    StdTable* symbolList=(StdTable*)user;
-    int_t index=symbolList->getRowCount();
-    symbolList->setRowCount(index+1);
-    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(int_t)*2, 16, QChar('0')).toUpper());
+    StdTable* symbolList = (StdTable*)user;
+    int_t index = symbolList->getRowCount();
+    symbolList->setRowCount(index + 1);
+    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 1, symbol->decoratedSymbol);
@@ -158,10 +158,10 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mModuleList->setSingleSelection(0);
     }
     mModuleBaseList.clear();
-    for(int i=0; i<module_count; i++)
+    for(int i = 0; i < module_count; i++)
     {
         mModuleBaseList.insert(modules[i].name, modules[i].base);
-        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t)*2, 16, QChar('0')).toUpper());
+        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->reloadData();

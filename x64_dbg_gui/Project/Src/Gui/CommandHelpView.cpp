@@ -1,7 +1,7 @@
 #include "CommandHelpView.h"
 #include "ui_CommandHelpView.h"
 
-CommandHelpView::CommandHelpView(QWidget *parent) :
+CommandHelpView::CommandHelpView(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::CommandHelpView)
 {
@@ -75,17 +75,17 @@ void CommandHelpView::moduleSelectionChanged(int index)
 {
     mSearchListView->mList->setRowCount(0);
 
-    if(index==0) //x64_dbg
+    if(index == 0) //x64_dbg
     {
-        mCurrentMode=0;
+        mCurrentMode = 0;
         mSearchListView->mList->setRowCount(3);
         mSearchListView->mList->setCellContent(0, 0, "InitDebug");
         mSearchListView->mList->setCellContent(1, 0, "StopDebug");
         mSearchListView->mList->setCellContent(2, 0, "run");
     }
-    else if(index==1) //testplugin
+    else if(index == 1) //testplugin
     {
-        mCurrentMode=1;
+        mCurrentMode = 1;
         mSearchListView->mList->setRowCount(2);
         mSearchListView->mList->setCellContent(0, 0, "plugin1");
         mSearchListView->mList->setCellContent(1, 0, "grs");
@@ -100,31 +100,31 @@ void CommandHelpView::moduleSelectionChanged(int index)
 
 void CommandHelpView::symbolSelectionChanged(int index)
 {
-    QString info="";
-    if(mCurrentMode==0) //x64_dbg
+    QString info = "";
+    if(mCurrentMode == 0) //x64_dbg
     {
         switch(index)
         {
         case 0: //InitDebug
-            info="Initialize debugging a file.\n\nExample:\nInitDebug \"C:\\test.exe\", commandline, \"C:\\homeDir\"";
+            info = "Initialize debugging a file.\n\nExample:\nInitDebug \"C:\\test.exe\", commandline, \"C:\\homeDir\"";
             break;
         case 1: //StopDebug
-            info="Stop debugging (terminate the target).\n\nExample:\nStopDebug";
+            info = "Stop debugging (terminate the target).\n\nExample:\nStopDebug";
             break;
         case 2: //run
-            info="Resume debugging.\n\nExample:\nrun";
+            info = "Resume debugging.\n\nExample:\nrun";
             break;
         }
     }
-    else if(mCurrentMode==1) //testplugin
+    else if(mCurrentMode == 1) //testplugin
     {
         switch(index)
         {
         case 0: //plugin1
-            info="Just a simple plugin test command.\n\nExample:\nplugin1";
+            info = "Just a simple plugin test command.\n\nExample:\nplugin1";
             break;
         case 1: //grs
-            info="Get relocation table size.\n\nExample:\ngrs 404000";
+            info = "Get relocation table size.\n\nExample:\ngrs 404000";
             break;
         }
 

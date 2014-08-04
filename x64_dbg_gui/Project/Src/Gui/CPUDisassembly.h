@@ -18,7 +18,7 @@ class CPUDisassembly : public Disassembly
 {
     Q_OBJECT
 public:
-    explicit CPUDisassembly(QWidget *parent = 0);
+    explicit CPUDisassembly(QWidget* parent = 0);
 
     // Mouse Management
     void contextMenuEvent(QContextMenuEvent* event);

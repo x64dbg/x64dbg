@@ -9,13 +9,13 @@ struct COMMAND;
 
 enum CMDRESULT
 {
-    STATUS_ERROR=false,
-    STATUS_CONTINUE=true,
-    STATUS_EXIT=2,
-    STATUS_PAUSE=3
+    STATUS_ERROR = false,
+    STATUS_CONTINUE = true,
+    STATUS_EXIT = 2,
+    STATUS_PAUSE = 3
 };
 
-typedef CMDRESULT (*CBCOMMAND)(int, char**);
+typedef CMDRESULT(*CBCOMMAND)(int, char**);
 typedef bool (*CBCOMMANDPROVIDER)(char*, int);
 typedef COMMAND* (*CBCOMMANDFINDER)(COMMAND*, char*);
 

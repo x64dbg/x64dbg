@@ -8,7 +8,7 @@
 #include "symbolinfo.h"
 #include <psapi.h>
 
-static bool dosignedcalc=false;
+static bool dosignedcalc = false;
 
 bool valuesignedcalc()
 {
@@ -17,7 +17,7 @@ bool valuesignedcalc()
 
 void valuesetsignedcalc(bool a)
 {
-    dosignedcalc=a;
+    dosignedcalc = a;
 }
 
 static bool isflag(const char* string)
@@ -260,84 +260,84 @@ static bool isregister(const char* string)
 bool valflagfromstring(uint eflags, const char* string)
 {
     if(scmp(string, "cf"))
-        return (bool)((int)(eflags&0x1)!=0);
+        return (bool)((int)(eflags & 0x1) != 0);
     if(scmp(string, "pf"))
-        return (bool)((int)(eflags&0x4)!=0);
+        return (bool)((int)(eflags & 0x4) != 0);
     if(scmp(string, "af"))
-        return (bool)((int)(eflags&0x10)!=0);
+        return (bool)((int)(eflags & 0x10) != 0);
     if(scmp(string, "zf"))
-        return (bool)((int)(eflags&0x40)!=0);
+        return (bool)((int)(eflags & 0x40) != 0);
     if(scmp(string, "sf"))
-        return (bool)((int)(eflags&0x80)!=0);
+        return (bool)((int)(eflags & 0x80) != 0);
     if(scmp(string, "tf"))
-        return (bool)((int)(eflags&0x100)!=0);
+        return (bool)((int)(eflags & 0x100) != 0);
     if(scmp(string, "if"))
-        return (bool)((int)(eflags&0x200)!=0);
+        return (bool)((int)(eflags & 0x200) != 0);
     if(scmp(string, "df"))
-        return (bool)((int)(eflags&0x400)!=0);
+        return (bool)((int)(eflags & 0x400) != 0);
     if(scmp(string, "of"))
-        return (bool)((int)(eflags&0x800)!=0);
+        return (bool)((int)(eflags & 0x800) != 0);
     if(scmp(string, "rf"))
-        return (bool)((int)(eflags&0x10000)!=0);
+        return (bool)((int)(eflags & 0x10000) != 0);
     if(scmp(string, "vm"))
-        return (bool)((int)(eflags&0x20000)!=0);
+        return (bool)((int)(eflags & 0x20000) != 0);
     if(scmp(string, "ac"))
-        return (bool)((int)(eflags&0x40000)!=0);
+        return (bool)((int)(eflags & 0x40000) != 0);
     if(scmp(string, "vif"))
-        return (bool)((int)(eflags&0x80000)!=0);
+        return (bool)((int)(eflags & 0x80000) != 0);
     if(scmp(string, "vip"))
-        return (bool)((int)(eflags&0x100000)!=0);
+        return (bool)((int)(eflags & 0x100000) != 0);
     if(scmp(string, "id"))
-        return (bool)((int)(eflags&0x200000)!=0);
+        return (bool)((int)(eflags & 0x200000) != 0);
     return false;
 }
 
 static bool setflag(const char* string, bool set)
 {
-    uint eflags=GetContextDataEx(hActiveThread, UE_CFLAGS);
-    uint xorval=0;
-    uint flag=0;
+    uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
+    uint xorval = 0;
+    uint flag = 0;
     if(scmp(string, "cf"))
-        flag=0x1;
+        flag = 0x1;
     else if(scmp(string, "pf"))
-        flag=0x4;
+        flag = 0x4;
     else if(scmp(string, "af"))
-        flag=0x10;
+        flag = 0x10;
     else if(scmp(string, "zf"))
-        flag=0x40;
+        flag = 0x40;
     else if(scmp(string, "sf"))
-        flag=0x80;
+        flag = 0x80;
     else if(scmp(string, "tf"))
-        flag=0x100;
+        flag = 0x100;
     else if(scmp(string, "if"))
-        flag=0x200;
+        flag = 0x200;
     else if(scmp(string, "df"))
-        flag=0x400;
+        flag = 0x400;
     else if(scmp(string, "of"))
-        flag=0x800;
+        flag = 0x800;
     else if(scmp(string, "rf"))
-        flag=0x10000;
+        flag = 0x10000;
     else if(scmp(string, "vm"))
-        flag=0x20000;
+        flag = 0x20000;
     else if(scmp(string, "ac"))
-        flag=0x40000;
+        flag = 0x40000;
     else if(scmp(string, "vif"))
-        flag=0x80000;
+        flag = 0x80000;
     else if(scmp(string, "vip"))
-        flag=0x100000;
+        flag = 0x100000;
     else if(scmp(string, "id"))
-        flag=0x200000;
-    if(eflags&flag and !set)
-        xorval=flag;
+        flag = 0x200000;
+    if(eflags & flag and !set)
+        xorval = flag;
     else if(set)
-        xorval=flag;
-    return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags^xorval);
+        xorval = flag;
+    return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags ^ xorval);
 }
 
 static uint getregister(int* size, const char* string)
 {
     if(size)
-        *size=4;
+        *size = 4;
     if(scmp(string, "eax"))
     {
         return GetContextDataEx(hActiveThread, UE_EAX);
@@ -405,148 +405,148 @@ static uint getregister(int* size, const char* string)
     }
 
     if(size)
-        *size=2;
+        *size = 2;
     if(scmp(string, "ax"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EAX);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        return val & 0xFFFF;
     }
     if(scmp(string, "bx"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBX);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        return val & 0xFFFF;
     }
     if(scmp(string, "cx"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ECX);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        return val & 0xFFFF;
     }
     if(scmp(string, "dx"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDX);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        return val & 0xFFFF;
     }
     if(scmp(string, "si"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESI);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        return val & 0xFFFF;
     }
     if(scmp(string, "di"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDI);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        return val & 0xFFFF;
     }
     if(scmp(string, "bp"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBP);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        return val & 0xFFFF;
     }
     if(scmp(string, "sp"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESP);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        return val & 0xFFFF;
     }
     if(scmp(string, "ip"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EIP);
-        return val&0xFFFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        return val & 0xFFFF;
     }
 
     if(size)
-        *size=1;
+        *size = 1;
     if(scmp(string, "ah"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EAX);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "al"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EAX);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        return val & 0xFF;
     }
     if(scmp(string, "bh"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBX);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "bl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBX);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        return val & 0xFF;
     }
     if(scmp(string, "ch"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ECX);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "cl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ECX);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        return val & 0xFF;
     }
     if(scmp(string, "dh"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDX);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "dl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDX);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        return val & 0xFF;
     }
     if(scmp(string, "sih"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESI);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "sil"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESI);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        return val & 0xFF;
     }
     if(scmp(string, "dih"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDI);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "dil"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EDI);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        return val & 0xFF;
     }
     if(scmp(string, "bph"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBP);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "bpl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EBP);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        return val & 0xFF;
     }
     if(scmp(string, "sph"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESP);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "spl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_ESP);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        return val & 0xFF;
     }
     if(scmp(string, "iph"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EIP);
-        return (val>>8)&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        return (val >> 8) & 0xFF;
     }
     if(scmp(string, "ipl"))
     {
-        uint val=GetContextDataEx(hActiveThread, UE_EIP);
-        return val&0xFF;
+        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        return val & 0xFF;
     }
 
     if(size)
-        *size=sizeof(uint);
+        *size = sizeof(uint);
     if(scmp(string, "dr0"))
     {
         return GetContextDataEx(hActiveThread, UE_DR0);
@@ -587,7 +587,7 @@ static uint getregister(int* size, const char* string)
 
 #ifdef _WIN64
     if(size)
-        *size=8;
+        *size = 8;
     if(scmp(string, "rax"))
     {
         return GetContextDataEx(hActiveThread, UE_RAX);
@@ -662,207 +662,207 @@ static uint getregister(int* size, const char* string)
     }
 
     if(size)
-        *size=4;
+        *size = 4;
     if(scmp(string, "r8d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R8) & 0xFFFFFFFF;
     }
     if(scmp(string, "r9d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R9) & 0xFFFFFFFF;
     }
     if(scmp(string, "r10d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R10) & 0xFFFFFFFF;
     }
     if(scmp(string, "r11d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R11) & 0xFFFFFFFF;
     }
     if(scmp(string, "r12d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R12) & 0xFFFFFFFF;
     }
     if(scmp(string, "r13d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R13) & 0xFFFFFFFF;
     }
     if(scmp(string, "r14d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R14) & 0xFFFFFFFF;
     }
     if(scmp(string, "r15d"))
     {
-        return GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFF;
+        return GetContextDataEx(hActiveThread, UE_R15) & 0xFFFFFFFF;
     }
 
     if(size)
-        *size=2;
+        *size = 2;
     if(scmp(string, "r8w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R8)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R8) & 0xFFFF;
     }
     if(scmp(string, "r9w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R9)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R9) & 0xFFFF;
     }
     if(scmp(string, "r10w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R10)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R10) & 0xFFFF;
     }
     if(scmp(string, "r11w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R11)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R11) & 0xFFFF;
     }
     if(scmp(string, "r12w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R12)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R12) & 0xFFFF;
     }
     if(scmp(string, "r13w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R13)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R13) & 0xFFFF;
     }
     if(scmp(string, "r14w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R14)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R14) & 0xFFFF;
     }
     if(scmp(string, "r15w"))
     {
-        return GetContextDataEx(hActiveThread, UE_R15)&0xFFFF;
+        return GetContextDataEx(hActiveThread, UE_R15) & 0xFFFF;
     }
 
     if(size)
-        *size=1;
+        *size = 1;
     if(scmp(string, "r8b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R8)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R8) & 0xFF;
     }
     if(scmp(string, "r9b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R9)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R9) & 0xFF;
     }
     if(scmp(string, "r10b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R10)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R10) & 0xFF;
     }
     if(scmp(string, "r11b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R11)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R11) & 0xFF;
     }
     if(scmp(string, "r12b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R12)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R12) & 0xFF;
     }
     if(scmp(string, "r13b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R13)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R13) & 0xFF;
     }
     if(scmp(string, "r14b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R14)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R14) & 0xFF;
     }
     if(scmp(string, "r15b"))
     {
-        return GetContextDataEx(hActiveThread, UE_R15)&0xFF;
+        return GetContextDataEx(hActiveThread, UE_R15) & 0xFF;
     }
 #endif //_WIN64
 
     if(size)
-        *size=0;
+        *size = 0;
     return 0;
 }
 
 static bool setregister(const char* string, uint value)
 {
     if(scmp(string, "eax"))
-        return SetContextDataEx(hActiveThread, UE_EAX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EAX, value & 0xFFFFFFFF);
     if(scmp(string, "ebx"))
-        return SetContextDataEx(hActiveThread, UE_EBX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EBX, value & 0xFFFFFFFF);
     if(scmp(string, "ecx"))
-        return SetContextDataEx(hActiveThread, UE_ECX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ECX, value & 0xFFFFFFFF);
     if(scmp(string, "edx"))
-        return SetContextDataEx(hActiveThread, UE_EDX, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EDX, value & 0xFFFFFFFF);
     if(scmp(string, "edi"))
-        return SetContextDataEx(hActiveThread, UE_EDI, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EDI, value & 0xFFFFFFFF);
     if(scmp(string, "esi"))
-        return SetContextDataEx(hActiveThread, UE_ESI, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ESI, value & 0xFFFFFFFF);
     if(scmp(string, "ebp"))
-        return SetContextDataEx(hActiveThread, UE_EBP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EBP, value & 0xFFFFFFFF);
     if(scmp(string, "esp"))
-        return SetContextDataEx(hActiveThread, UE_ESP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_ESP, value & 0xFFFFFFFF);
     if(scmp(string, "eip"))
-        return SetContextDataEx(hActiveThread, UE_EIP, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EIP, value & 0xFFFFFFFF);
     if(scmp(string, "eflags"))
-        return SetContextDataEx(hActiveThread, UE_EFLAGS, value&0xFFFFFFFF);
+        return SetContextDataEx(hActiveThread, UE_EFLAGS, value & 0xFFFFFFFF);
 
     if(scmp(string, "gs"))
-        return SetContextDataEx(hActiveThread, UE_SEG_GS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_GS, value & 0xFFFF);
     if(scmp(string, "fs"))
-        return SetContextDataEx(hActiveThread, UE_SEG_FS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_FS, value & 0xFFFF);
     if(scmp(string, "es"))
-        return SetContextDataEx(hActiveThread, UE_SEG_ES, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_ES, value & 0xFFFF);
     if(scmp(string, "ds"))
-        return SetContextDataEx(hActiveThread, UE_SEG_DS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_DS, value & 0xFFFF);
     if(scmp(string, "cs"))
-        return SetContextDataEx(hActiveThread, UE_SEG_CS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_CS, value & 0xFFFF);
     if(scmp(string, "ss"))
-        return SetContextDataEx(hActiveThread, UE_SEG_SS, value&0xFFFF);
+        return SetContextDataEx(hActiveThread, UE_SEG_SS, value & 0xFFFF);
 
     if(scmp(string, "ax"))
-        return SetContextDataEx(hActiveThread, UE_EAX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EAX, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EAX) & 0xFFFF0000));
     if(scmp(string, "bx"))
-        return SetContextDataEx(hActiveThread, UE_EBX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EBX, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EBX) & 0xFFFF0000));
     if(scmp(string, "cx"))
-        return SetContextDataEx(hActiveThread, UE_ECX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ECX, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_ECX) & 0xFFFF0000));
     if(scmp(string, "dx"))
-        return SetContextDataEx(hActiveThread, UE_EDX, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EDX, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EDX) & 0xFFFF0000));
     if(scmp(string, "si"))
-        return SetContextDataEx(hActiveThread, UE_ESI, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ESI, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_ESI) & 0xFFFF0000));
     if(scmp(string, "di"))
-        return SetContextDataEx(hActiveThread, UE_EDI, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EDI, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EDI) & 0xFFFF0000));
     if(scmp(string, "bp"))
-        return SetContextDataEx(hActiveThread, UE_EBP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EBP, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EBP) & 0xFFFF0000));
     if(scmp(string, "sp"))
-        return SetContextDataEx(hActiveThread, UE_ESP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_ESP, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_ESP) & 0xFFFF0000));
     if(scmp(string, "ip"))
-        return SetContextDataEx(hActiveThread, UE_EIP, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_EIP, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_EIP) & 0xFFFF0000));
 
     if(scmp(string, "ah"))
-        return SetContextDataEx(hActiveThread, UE_EAX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EAX, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EAX) & 0xFFFF00FF));
     if(scmp(string, "al"))
-        return SetContextDataEx(hActiveThread, UE_EAX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EAX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EAX, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EAX) & 0xFFFFFF00));
     if(scmp(string, "bh"))
-        return SetContextDataEx(hActiveThread, UE_EBX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EBX, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EBX) & 0xFFFF00FF));
     if(scmp(string, "bl"))
-        return SetContextDataEx(hActiveThread, UE_EBX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EBX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EBX, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EBX) & 0xFFFFFF00));
     if(scmp(string, "ch"))
-        return SetContextDataEx(hActiveThread, UE_ECX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ECX, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_ECX) & 0xFFFF00FF));
     if(scmp(string, "cl"))
-        return SetContextDataEx(hActiveThread, UE_ECX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ECX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ECX, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_ECX) & 0xFFFFFF00));
     if(scmp(string, "dh"))
-        return SetContextDataEx(hActiveThread, UE_EDX, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EDX, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EDX) & 0xFFFF00FF));
     if(scmp(string, "dl"))
-        return SetContextDataEx(hActiveThread, UE_EDX, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EDX)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EDX, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EDX) & 0xFFFFFF00));
     if(scmp(string, "sih"))
-        return SetContextDataEx(hActiveThread, UE_ESI, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ESI, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_ESI) & 0xFFFF00FF));
     if(scmp(string, "sil"))
-        return SetContextDataEx(hActiveThread, UE_ESI, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ESI)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ESI, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_ESI) & 0xFFFFFF00));
     if(scmp(string, "dih"))
-        return SetContextDataEx(hActiveThread, UE_EDI, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EDI, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EDI) & 0xFFFF00FF));
     if(scmp(string, "dil"))
-        return SetContextDataEx(hActiveThread, UE_EDI, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EDI)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EDI, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EDI) & 0xFFFFFF00));
     if(scmp(string, "bph"))
-        return SetContextDataEx(hActiveThread, UE_EBP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EBP, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EBP) & 0xFFFF00FF));
     if(scmp(string, "bpl"))
-        return SetContextDataEx(hActiveThread, UE_EBP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EBP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EBP, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EBP) & 0xFFFFFF00));
     if(scmp(string, "sph"))
-        return SetContextDataEx(hActiveThread, UE_ESP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_ESP, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_ESP) & 0xFFFF00FF));
     if(scmp(string, "spl"))
-        return SetContextDataEx(hActiveThread, UE_ESP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_ESP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_ESP, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_ESP) & 0xFFFFFF00));
     if(scmp(string, "iph"))
-        return SetContextDataEx(hActiveThread, UE_EIP, ((value&0xFF)<<8)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFF00FF));
+        return SetContextDataEx(hActiveThread, UE_EIP, ((value & 0xFF) << 8) | (GetContextDataEx(hActiveThread, UE_EIP) & 0xFFFF00FF));
     if(scmp(string, "ipl"))
-        return SetContextDataEx(hActiveThread, UE_EIP, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_EIP)&0xFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_EIP, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_EIP) & 0xFFFFFF00));
 
     if(scmp(string, "dr0"))
         return SetContextDataEx(hActiveThread, UE_DR0, value);
@@ -923,54 +923,54 @@ static bool setregister(const char* string, uint value)
         return SetContextDataEx(hActiveThread, UE_R15, value);
 
     if(scmp(string, "r8d"))
-        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R8, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R8) & 0xFFFFFFFF00000000));
     if(scmp(string, "r9d"))
-        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R9, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R9) & 0xFFFFFFFF00000000));
     if(scmp(string, "r10d"))
-        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R10, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R10) & 0xFFFFFFFF00000000));
     if(scmp(string, "r11d"))
-        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R11, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R11) & 0xFFFFFFFF00000000));
     if(scmp(string, "r12d"))
-        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R12, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R12) & 0xFFFFFFFF00000000));
     if(scmp(string, "r13d"))
-        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R13, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R13) & 0xFFFFFFFF00000000));
     if(scmp(string, "r14d"))
-        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R14, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R14) & 0xFFFFFFFF00000000));
     if(scmp(string, "r15d"))
-        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFFFFFFFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFF00000000));
+        return SetContextDataEx(hActiveThread, UE_R15, (value & 0xFFFFFFFF) | (GetContextDataEx(hActiveThread, UE_R15) & 0xFFFFFFFF00000000));
 
     if(scmp(string, "r8w"))
-        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R8, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R8) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r9w"))
-        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R9, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R9) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r10w"))
-        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R10, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R10) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r11w"))
-        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R11, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R11) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r12w"))
-        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R12, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R12) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r13w"))
-        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R13, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R13) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r14w"))
-        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R14, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R14) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r15w"))
-        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFFFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFFFFFF0000));
+        return SetContextDataEx(hActiveThread, UE_R15, (value & 0xFFFF) | (GetContextDataEx(hActiveThread, UE_R15) & 0xFFFFFFFFFFFF0000));
     if(scmp(string, "r8b"))
-        return SetContextDataEx(hActiveThread, UE_R8, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R8)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R8, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R8) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r9b"))
-        return SetContextDataEx(hActiveThread, UE_R9, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R9)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R9, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R9) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r10b"))
-        return SetContextDataEx(hActiveThread, UE_R10, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R10)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R10, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R10) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r11b"))
-        return SetContextDataEx(hActiveThread, UE_R11, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R11)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R11, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R11) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r12b"))
-        return SetContextDataEx(hActiveThread, UE_R12, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R12)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R12, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R12) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r13b"))
-        return SetContextDataEx(hActiveThread, UE_R13, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R13)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R13, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R13) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r14b"))
-        return SetContextDataEx(hActiveThread, UE_R14, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R14)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R14, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R14) & 0xFFFFFFFFFFFFFF00));
     if(scmp(string, "r15b"))
-        return SetContextDataEx(hActiveThread, UE_R15, (value&0xFF)|(GetContextDataEx(hActiveThread, UE_R15)&0xFFFFFFFFFFFFFF00));
+        return SetContextDataEx(hActiveThread, UE_R15, (value & 0xFF) | (GetContextDataEx(hActiveThread, UE_R15) & 0xFFFFFFFFFFFFFF00));
 #endif // _WIN64
 
     return false;
@@ -981,16 +981,16 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(!value or !DbgIsDebugging())
         return false;
     //explicit API handling
-    const char* apiname=strstr(name, ":");
+    const char* apiname = strstr(name, ":");
     if(apiname)
     {
-        char modname[MAX_MODULE_SIZE]="";
+        char modname[MAX_MODULE_SIZE] = "";
         strcpy(modname, name);
-        modname[apiname-name]=0;
+        modname[apiname - name] = 0;
         apiname++;
         if(!strlen(apiname))
             return false;
-        uint modbase=modbasefromname(modname);
+        uint modbase = modbasefromname(modname);
         char szModName[MAX_PATH];
         if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
@@ -999,12 +999,12 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         }
         else
         {
-            char szBaseName[256]="";
-            int len=(int)strlen(szModName);
-            while(szModName[len]!='\\')
+            char szBaseName[256] = "";
+            int len = (int)strlen(szModName);
+            while(szModName[len] != '\\')
                 len--;
-            strcpy(szBaseName, szModName+len+1);
-            HMODULE mod=LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
+            strcpy(szBaseName, szModName + len + 1);
+            HMODULE mod = LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
             if(!mod)
             {
                 if(!silent)
@@ -1012,19 +1012,19 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             }
             else
             {
-                uint addr=(uint)GetProcAddress(mod, apiname);
+                uint addr = (uint)GetProcAddress(mod, apiname);
                 if(!addr) //not found
                 {
                     if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
-                        addr=modbase;
+                        addr = modbase;
                     else
                     {
                         uint ordinal;
                         if(valfromstring(apiname, &ordinal))
                         {
-                            addr=(uint)GetProcAddress(mod, (LPCSTR)(ordinal&0xFFFF));
+                            addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
                             if(!addr and !ordinal)
-                                addr=modbase;
+                                addr = modbase;
                         }
                     }
                 }
@@ -1032,50 +1032,50 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 if(addr) //found!
                 {
                     if(value_size)
-                        *value_size=sizeof(uint);
+                        *value_size = sizeof(uint);
                     if(hexonly)
-                        *hexonly=true;
+                        *hexonly = true;
                     uint rva;
-                    if(addr==modbase)
-                        rva=0;
+                    if(addr == modbase)
+                        rva = 0;
                     else
-                        rva=addr-(uint)mod;
-                    *value=modbase+rva;
+                        rva = addr - (uint)mod;
+                    *value = modbase + rva;
                     return true;
                 }
             }
         }
         return false;
     }
-    int found=0;
-    int kernelbase=-1;
-    DWORD cbNeeded=0;
-    uint* addrfound=0;
+    int found = 0;
+    int kernelbase = -1;
+    DWORD cbNeeded = 0;
+    uint* addrfound = 0;
     if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
     {
-        addrfound=(uint*)emalloc(cbNeeded*sizeof(uint), "valapifromstring:addrfound");
-        HMODULE* hMods=(HMODULE*)emalloc(cbNeeded*sizeof(HMODULE), "valapifromstring:hMods");
+        addrfound = (uint*)emalloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
+        HMODULE* hMods = (HMODULE*)emalloc(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
         if(EnumProcessModules(fdProcessInfo->hProcess, hMods, cbNeeded, &cbNeeded))
         {
-            for(unsigned int i=0; i<cbNeeded/sizeof(HMODULE); i++)
+            for(unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); i++)
             {
-                char szModuleName[MAX_PATH]="";
+                char szModuleName[MAX_PATH] = "";
                 if(GetModuleFileNameExA(fdProcessInfo->hProcess, hMods[i], szModuleName, sizeof(szModuleName)))
                 {
-                    char* szBaseName=strchr(szModuleName, '\\');
+                    char* szBaseName = strchr(szModuleName, '\\');
                     if(szBaseName)
                     {
                         szBaseName++;
-                        HMODULE hModule = LoadLibraryExA(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES|LOAD_LIBRARY_AS_DATAFILE);
-                        if (hModule)
+                        HMODULE hModule = LoadLibraryExA(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+                        if(hModule)
                         {
-                            ULONG_PTR funcAddress=(ULONG_PTR)GetProcAddress(hModule, name);
+                            ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
                             if(funcAddress)
                             {
                                 if(!_stricmp(szBaseName, "kernelbase.dll"))
-                                    kernelbase=found;
-                                uint rva=funcAddress-(uint)hModule;
-                                addrfound[found]=(uint)hMods[i]+rva;
+                                    kernelbase = found;
+                                uint rva = funcAddress - (uint)hModule;
+                                addrfound[found] = (uint)hMods[i] + rva;
                                 found++;
                             }
                             FreeLibrary(hModule);
@@ -1093,30 +1093,30 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         return false;
     }
     if(value_size)
-        *value_size=sizeof(uint);
+        *value_size = sizeof(uint);
     if(hexonly)
-        *hexonly=true;
-    if(kernelbase!=-1)
+        *hexonly = true;
+    if(kernelbase != -1)
     {
-        *value=addrfound[kernelbase];
+        *value = addrfound[kernelbase];
         if(!printall or silent)
         {
             efree(addrfound, "valapifromstring:addrfound");
             return true;
         }
-        for(int i=0; i<found; i++)
-            if(i!=kernelbase)
+        for(int i = 0; i < found; i++)
+            if(i != kernelbase)
                 dprintf(fhex"\n", addrfound[i]);
     }
     else
     {
-        *value=*addrfound;
+        *value = *addrfound;
         if(!printall or silent)
         {
             efree(addrfound, "valapifromstring:addrfound");
             return true;
         }
-        for(int i=1; i<found; i++)
+        for(int i = 1; i < found; i++)
             dprintf(fhex"\n", addrfound[i]);
     }
     efree(addrfound, "valapifromstring:addrfound");
@@ -1128,18 +1128,18 @@ check whether a string is a valid dec number
 */
 static bool isdecnumber(const char* string)
 {
-    if(*string!='.' or !string[1]) //dec indicator/no number
+    if(*string != '.' or !string[1]) //dec indicator/no number
         return false;
-    int decAdd=1;
-    if(string[1]=='-') //minus
+    int decAdd = 1;
+    if(string[1] == '-') //minus
     {
         if(!string[2]) //no number
             return false;
         decAdd++;
     }
-    int len=(int)strlen(string+decAdd);
-    for(int i=0; i<len; i++)
-        if(!isdigit(string[i+decAdd]))
+    int len = (int)strlen(string + decAdd);
+    for(int i = 0; i < len; i++)
+        if(!isdigit(string[i + decAdd]))
             return false;
     return true;
 }
@@ -1149,16 +1149,16 @@ check whether a string is a valid hex number
 */
 static bool ishexnumber(const char* string)
 {
-    int add=0;
-    if(*string=='0' and string[1]=='x') //0x prefix
-        add=2;
-    else if(*string=='x') //hex indicator
-        add=1;
+    int add = 0;
+    if(*string == '0' and string[1] == 'x') //0x prefix
+        add = 2;
+    else if(*string == 'x') //hex indicator
+        add = 1;
     if(!string[add]) //only an indicator, no number
         return false;
-    int len=(int)strlen(string+add);
-    for(int i=0; i<len; i++)
-        if(!isxdigit(string[i+add])) //all must be hex digits
+    int len = (int)strlen(string + add);
+    for(int i = 0; i < len; i++)
+        if(!isxdigit(string[i + add])) //all must be hex digits
             return false;
     return true;
 }
@@ -1169,109 +1169,109 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         return false;
     if(!*string)
     {
-        *value=0;
+        *value = 0;
         return true;
     }
     else if(mathcontains(string)) //handle math
     {
-        int len=(int)strlen(string);
-        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        int len = (int)strlen(string);
+        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
-            for(int i=0,j=0; i<len; i++)
+            for(int i = 0, j = 0; i < len; i++)
             {
-                if(string[i]==']')
-                    j+=sprintf(newstring+j, ")");
-                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                if(string[i] == ']')
+                    j += sprintf(newstring + j, ")");
+                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
                 {
-                    j+=sprintf(newstring+j, "@%c:(", string[i]);
-                    i+=2;
+                    j += sprintf(newstring + j, "@%c:(", string[i]);
+                    i += 2;
                 }
-                else if(string[i]=='[')
-                    j+=sprintf(newstring+j, "@(");
+                else if(string[i] == '[')
+                    j += sprintf(newstring + j, "@(");
                 else
-                    j+=sprintf(newstring+j, "%c", string[i]);
+                    j += sprintf(newstring + j, "%c", string[i]);
             }
         }
         else
             strcpy(newstring, string);
-        char* string_=(char*)emalloc(len+256, "valfromstring:string_");
+        char* string_ = (char*)emalloc(len + 256, "valfromstring:string_");
         strcpy(string_, newstring);
         efree(newstring, "valfromstring::newstring");
-        int add=0;
-        bool negative=(*string_=='-');
-        while(mathisoperator(string_[add+negative])>2)
+        int add = 0;
+        bool negative = (*string_ == '-');
+        while(mathisoperator(string_[add + negative]) > 2)
             add++;
-        if(!mathhandlebrackets(string_+add, silent, baseonly))
+        if(!mathhandlebrackets(string_ + add, silent, baseonly))
         {
             efree(string_, "valfromstring:string_");
             return false;
         }
-        bool ret=mathfromstring(string_+add, value, silent, baseonly, value_size, isvar);
+        bool ret = mathfromstring(string_ + add, value, silent, baseonly, value_size, isvar);
         efree(string_, "valfromstring:string_");
         return ret;
     }
-    else if(*string=='-') //negative value
+    else if(*string == '-') //negative value
     {
         uint val;
-        if(!valfromstring(string+1, &val, silent, baseonly, value_size, isvar, hexonly))
+        if(!valfromstring(string + 1, &val, silent, baseonly, value_size, isvar, hexonly))
             return false;
-        val*=~0;
+        val *= ~0;
         if(value)
-            *value=val;
+            *value = val;
         return true;
     }
-    else if(*string=='@' or strstr(string, "[")) //memory location
+    else if(*string == '@' or strstr(string, "[")) //memory location
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");
-            *value=0;
+            *value = 0;
             if(value_size)
-                *value_size=0;
+                *value_size = 0;
             if(isvar)
-                *isvar=true;
+                *isvar = true;
             return true;
         }
-        int len=(int)strlen(string);
-        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        int len = (int)strlen(string);
+        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
         if(strstr(string, "["))
         {
-            for(int i=0,j=0; i<len; i++)
+            for(int i = 0, j = 0; i < len; i++)
             {
-                if(string[i]==']')
-                    j+=sprintf(newstring+j, ")");
-                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                if(string[i] == ']')
+                    j += sprintf(newstring + j, ")");
+                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
                 {
-                    j+=sprintf(newstring+j, "@%c:(", string[i]);
-                    i+=2;
+                    j += sprintf(newstring + j, "@%c:(", string[i]);
+                    i += 2;
                 }
-                else if(string[i]=='[')
-                    j+=sprintf(newstring+j, "@(");
+                else if(string[i] == '[')
+                    j += sprintf(newstring + j, "@(");
                 else
-                    j+=sprintf(newstring+j, "%c", string[i]);
+                    j += sprintf(newstring + j, "%c", string[i]);
             }
         }
         else
             strcpy(newstring, string);
-        int read_size=sizeof(uint);
-        int add=1;
-        if(newstring[2]==':' and isdigit((newstring[1]))) //@n: (number of bytes to read)
+        int read_size = sizeof(uint);
+        int add = 1;
+        if(newstring[2] == ':' and isdigit((newstring[1]))) //@n: (number of bytes to read)
         {
-            add+=2;
-            int new_size=newstring[1]-0x30;
-            if(new_size<read_size)
-                read_size=new_size;
+            add += 2;
+            int new_size = newstring[1] - 0x30;
+            if(new_size < read_size)
+                read_size = new_size;
         }
-        if(!valfromstring(newstring+add, value, silent, baseonly))
+        if(!valfromstring(newstring + add, value, silent, baseonly))
         {
             efree(newstring, "valfromstring::newstring");
             return false;
         }
         efree(newstring, "valfromstring::newstring");
-        uint addr=*value;
-        *value=0;
+        uint addr = *value;
+        *value = 0;
         if(!memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0))
         {
             if(!silent)
@@ -1279,9 +1279,9 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return false;
         }
         if(value_size)
-            *value_size=read_size;
+            *value_size = read_size;
         if(isvar)
-            *isvar=true;
+            *isvar = true;
         return true;
     }
     else if(isregister(string)) //register
@@ -1290,62 +1290,62 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         {
             if(!silent)
                 dputs("not debugging!");
-            *value=0;
+            *value = 0;
             if(value_size)
-                *value_size=0;
+                *value_size = 0;
             if(isvar)
-                *isvar=true;
+                *isvar = true;
             return true;
         }
-        *value=getregister(value_size, string);
+        *value = getregister(value_size, string);
         if(isvar)
-            *isvar=true;
+            *isvar = true;
         return true;
     }
-    else if(*string=='!' and isflag(string+1)) //flag
+    else if(*string == '!' and isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {
             if(!silent)
                 dputs("not debugging");
-            *value=0;
+            *value = 0;
             if(value_size)
-                *value_size=0;
+                *value_size = 0;
             if(isvar)
-                *isvar=true;
+                *isvar = true;
             return true;
         }
-        uint eflags=GetContextDataEx(hActiveThread, UE_CFLAGS);
-        if(valflagfromstring(eflags, string+1))
-            *value=1;
+        uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
+        if(valflagfromstring(eflags, string + 1))
+            *value = 1;
         else
-            *value=0;
+            *value = 0;
         if(value_size)
-            *value_size=0;
+            *value_size = 0;
         if(isvar)
-            *isvar=true;
+            *isvar = true;
         return true;
     }
     else if(isdecnumber(string)) //decimal numbers come 'first'
     {
         if(value_size)
-            *value_size=0;
+            *value_size = 0;
         if(isvar)
-            *isvar=false;
-        sscanf(string+1, "%"fext"u", value);
+            *isvar = false;
+        sscanf(string + 1, "%"fext"u", value);
         return true;
     }
     else if(ishexnumber(string)) //then hex numbers
     {
         if(value_size)
-            *value_size=0;
+            *value_size = 0;
         if(isvar)
-            *isvar=false;
+            *isvar = false;
         //hexadecimal value
-        int inc=0;
-        if(*string=='x')
-            inc=1;
-        sscanf(string+inc, "%"fext"x", value);
+        int inc = 0;
+        if(*string == 'x')
+            inc = 1;
+        sscanf(string + inc, "%"fext"x", value);
         return true;
     }
 
@@ -1360,7 +1360,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     else if(varget(string, value, value_size, 0)) //finally variables
     {
         if(isvar)
-            *isvar=true;
+            *isvar = true;
         return true;
     }
     if(!silent)
@@ -1387,7 +1387,7 @@ bool valtostring(const char* string, uint* value, bool silent)
 {
     if(!*string or !value)
         return false;
-    else if(*string=='@' or strstr(string, "[")) //memory location
+    else if(*string == '@' or strstr(string, "[")) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -1395,38 +1395,38 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
-        int len=(int)strlen(string);
-        char* newstring=(char*)emalloc(len*2, "valfromstring:newstring");
+        int len = (int)strlen(string);
+        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
-            for(int i=0,j=0; i<len; i++)
+            for(int i = 0, j = 0; i < len; i++)
             {
-                if(string[i]==']')
-                    j+=sprintf(newstring+j, ")");
-                else if(isdigit(string[i]) and string[i+1]==':' and string[i+2]=='[') //n:[
+                if(string[i] == ']')
+                    j += sprintf(newstring + j, ")");
+                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
                 {
-                    j+=sprintf(newstring+j, "@%c:(", string[i]);
-                    i+=2;
+                    j += sprintf(newstring + j, "@%c:(", string[i]);
+                    i += 2;
                 }
-                else if(string[i]=='[')
-                    j+=sprintf(newstring+j, "@(");
+                else if(string[i] == '[')
+                    j += sprintf(newstring + j, "@(");
                 else
-                    j+=sprintf(newstring+j, "%c", string[i]);
+                    j += sprintf(newstring + j, "%c", string[i]);
             }
         }
         else
             strcpy(newstring, string);
-        int read_size=sizeof(uint);
-        int add=1;
-        if(newstring[2]==':' and isdigit((newstring[1])))
+        int read_size = sizeof(uint);
+        int add = 1;
+        if(newstring[2] == ':' and isdigit((newstring[1])))
         {
-            add+=2;
-            int new_size=newstring[1]-0x30;
-            if(new_size<read_size)
-                read_size=new_size;
+            add += 2;
+            int new_size = newstring[1] - 0x30;
+            if(new_size < read_size)
+                read_size = new_size;
         }
         uint temp;
-        if(!valfromstring(newstring+add, &temp, silent, false))
+        if(!valfromstring(newstring + add, &temp, silent, false))
         {
             efree(newstring, "valfromstring::newstring");
             return false;
@@ -1450,15 +1450,15 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging!");
             return false;
         }
-        bool ok=setregister(string, *value);
-        char* regName=(char*)emalloc(strlen(string)+1, "valtostring:regname");
+        bool ok = setregister(string, *value);
+        char* regName = (char*)emalloc(strlen(string) + 1, "valtostring:regname");
         strcpy(regName, string);
         _strlwr(regName);
         if(strstr(regName, "ip"))
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
         else if(strstr(regName, "sp")) //update stack
         {
-            uint csp=GetContextDataEx(hActiveThread, UE_CSP);
+            uint csp = GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);
         }
         else
@@ -1466,7 +1466,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         efree(regName, "valtostring:regname");
         return ok;
     }
-    else if(*string=='!' and isflag(string+1)) //flag
+    else if(*string == '!' and isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1474,10 +1474,10 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
-        bool set=false;
+        bool set = false;
         if(*value)
-            set=true;
-        setflag(string+1, set);
+            set = true;
+        setflag(string + 1, set);
         GuiUpdateAllViews(); //repaint gui
         return true;
     }

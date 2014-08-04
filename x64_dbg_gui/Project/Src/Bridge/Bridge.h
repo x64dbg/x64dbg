@@ -17,7 +17,7 @@ class Bridge : public QObject
 {
     Q_OBJECT
 public:
-    explicit Bridge(QObject *parent = 0);
+    explicit Bridge(QObject* parent = 0);
     ~Bridge();
 
     static Bridge* getBridge();

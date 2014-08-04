@@ -81,7 +81,7 @@ public:
         DataDescriptor_t data;
     } ColumnDescriptor_t;
 
-    explicit HexDump(QWidget *parent = 0);
+    explicit HexDump(QWidget* parent = 0);
     void colorsUpdated();
     void fontsUpdated();
 
@@ -106,7 +106,7 @@ public:
     void getString(int col, int_t rva, QList<RichTextPainter::CustomRichText_t>* richText);
     int getSizeOf(DataSize_e size);
 
-    QString toString(DataDescriptor_t desc, void *data);
+    QString toString(DataDescriptor_t desc, void* data);
 
     QString byteToString(byte_t byte, ByteViewMode_e mode);
     QString wordToString(uint16 word, WordViewMode_e mode);

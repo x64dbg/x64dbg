@@ -2,7 +2,7 @@
 #include "ui_LineEditDialog.h"
 #include "Bridge.h"
 
-LineEditDialog::LineEditDialog(QWidget *parent) : QDialog(parent), ui(new Ui::LineEditDialog)
+LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::LineEditDialog)
 {
     ui->setupUi(this);
     setModal(true);
@@ -17,7 +17,7 @@ LineEditDialog::~LineEditDialog()
     delete ui;
 }
 
-void LineEditDialog::setText(const QString &text)
+void LineEditDialog::setText(const QString & text)
 {
     ui->textEdit->setText(text);
     ui->textEdit->selectAll();
@@ -34,20 +34,20 @@ void LineEditDialog::enableCheckBox(bool bEnable)
 void LineEditDialog::setCheckBox(bool bSet)
 {
     ui->checkBox->setChecked(bSet);
-    bChecked=bSet;
+    bChecked = bSet;
 }
 
-void LineEditDialog::setCheckBoxText(const QString &text)
+void LineEditDialog::setCheckBoxText(const QString & text)
 {
     ui->checkBox->setText(text);
 }
 
-void LineEditDialog::on_textEdit_textChanged(const QString &arg1)
+void LineEditDialog::on_textEdit_textChanged(const QString & arg1)
 {
-    editText=arg1;
+    editText = arg1;
 }
 
 void LineEditDialog::on_checkBox_toggled(bool checked)
 {
-    bChecked=checked;
+    bChecked = checked;
 }

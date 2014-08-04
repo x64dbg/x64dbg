@@ -3,11 +3,11 @@
 #include "HexEditDialog.h"
 #include "WordEditDialog.h"
 
-CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
+CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
 {
     fontsUpdated();
     setShowHeader(false);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -20,7 +20,7 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendDescriptor(8+charwidth*2*sizeof(uint_t), "void*", false, wColDesc);
+    appendDescriptor(8 + charwidth * 2 * sizeof(uint_t), "void*", false, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
@@ -29,7 +29,7 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
     wColDesc.data = dDesc;
     appendDescriptor(0, "Comments", false, wColDesc);
 
-    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t,uint_t)), this, SLOT(stackDumpAt(uint_t,uint_t)));
+    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t, uint_t)), this, SLOT(stackDumpAt(uint_t, uint_t)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
@@ -37,17 +37,17 @@ CPUStack::CPUStack(QWidget *parent) : HexDump(parent)
 
     mGoto = 0;
 
-    backgroundColor=ConfigColor("StackBackgroundColor");
-    textColor=ConfigColor("StackTextColor");
-    selectionColor=ConfigColor("StackSelectionColor");
+    backgroundColor = ConfigColor("StackBackgroundColor");
+    textColor = ConfigColor("StackTextColor");
+    selectionColor = ConfigColor("StackSelectionColor");
 }
 
 void CPUStack::colorsUpdated()
 {
     HexDump::colorsUpdated();
-    backgroundColor=ConfigColor("StackBackgroundColor");
-    textColor=ConfigColor("StackTextColor");
-    selectionColor=ConfigColor("StackSelectionColor");
+    backgroundColor = ConfigColor("StackBackgroundColor");
+    textColor = ConfigColor("StackTextColor");
+    selectionColor = ConfigColor("StackSelectionColor");
 }
 
 void CPUStack::fontsUpdated()
@@ -168,61 +168,61 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
     uint_t wVa = rvaToVa(wRva);
 
-    bool wIsSelected=isSelected(wRva);
+    bool wIsSelected = isSelected(wRva);
     if(wIsSelected) //highlight if selected
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
 
-    bool wActiveStack=true;
-    if(wVa<mCsp) //inactive stack
-        wActiveStack=false;
+    bool wActiveStack = true;
+    if(wVa < mCsp) //inactive stack
+        wActiveStack = false;
 
     STACK_COMMENT comment;
 
     if(col == 0) // paint stack address
     {
-        char label[MAX_LABEL_SIZE]="";
-        QString addrText="";
+        char label[MAX_LABEL_SIZE] = "";
+        QString addrText = "";
         int_t curAddr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        addrText = QString("%1").arg(curAddr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        addrText = QString("%1").arg(curAddr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
-            char module[MAX_MODULE_SIZE]="";
+            char module[MAX_MODULE_SIZE] = "";
             if(DbgGetModuleAt(curAddr, module) && !QString(label).startsWith("JMP.&"))
-                addrText+=" <"+QString(module)+"."+QString(label)+">";
+                addrText += " <" + QString(module) + "." + QString(label) + ">";
             else
-                addrText+=" <"+QString(label)+">";
+                addrText += " <" + QString(label) + ">";
         }
         else
-            *label=0;
+            *label = 0;
         QColor background;
         if(*label) //label
         {
-            if(wVa==mCsp) //CSP
+            if(wVa == mCsp) //CSP
             {
-                background=ConfigColor("StackCspBackgroundColor");
+                background = ConfigColor("StackCspBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackCspColor")));
             }
             else //no CSP
             {
-                background=ConfigColor("StackLabelBackgroundColor");
+                background = ConfigColor("StackLabelBackgroundColor");
                 painter->setPen(ConfigColor("StackLabelColor"));
             }
         }
         else //no label
         {
-            if(wVa==mCsp) //CSP
+            if(wVa == mCsp) //CSP
             {
-                background=ConfigColor("StackCspBackgroundColor");
+                background = ConfigColor("StackCspBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackCspColor")));
             }
             else if(wIsSelected) //selected normal address
             {
-                background=ConfigColor("StackSelectedAddressBackgroundColor");
+                background = ConfigColor("StackSelectedAddressBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackSelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
             }
             else //normal address
             {
-                background=ConfigColor("StackAddressBackgroundColor");
+                background = ConfigColor("StackAddressBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackAddressColor")));
             }
         }
@@ -240,7 +240,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
         if(!wActiveStack)
         {
             QColor inactiveColor = ConfigColor("StackInactiveTextColor");
-            for(int i=0; i<richText.size(); i++)
+            for(int i = 0; i < richText.size(); i++)
             {
                 richText[i].flags = RichTextPainter::FlagColor;
                 richText[i].textColor = inactiveColor;
@@ -300,7 +300,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
 
 void CPUStack::stackDumpAt(uint_t addr, uint_t csp)
 {
-    mCsp=csp;
+    mCsp = csp;
     printDumpAt(addr);
 }
 
@@ -324,14 +324,14 @@ void CPUStack::gotoExpressionSlot()
 {
     if(!DbgIsDebugging())
         return;
-    uint_t size=0;
-    uint_t base=DbgMemFindBaseAddr(mCsp, &size);
+    uint_t size = 0;
+    uint_t base = DbgMemFindBaseAddr(mCsp, &size);
     if(!mGoto)
         mGoto = new GotoDialog(this);
-    mGoto->validRangeStart=base;
-    mGoto->validRangeEnd=base+size;
+    mGoto->validRangeStart = base;
+    mGoto->validRangeEnd = base + size;
     mGoto->setWindowTitle("Enter expression to follow in Stack...");
-    if(mGoto->exec()==QDialog::Accepted)
+    if(mGoto->exec() == QDialog::Accepted)
     {
         QString cmd;
         DbgCmdExec(cmd.sprintf("sdump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
@@ -340,17 +340,17 @@ void CPUStack::gotoExpressionSlot()
 
 void CPUStack::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=rvaToVa(getSelectionStart());
-    selection->end=rvaToVa(getSelectionEnd());
+    selection->start = rvaToVa(getSelectionStart());
+    selection->end = rvaToVa(getSelectionEnd());
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUStack::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin=mMemPage->getBase();
-    int_t selMax=selMin + mMemPage->getSize();
-    int_t start=selection->start;
-    int_t end=selection->end;
+    int_t selMin = mMemPage->getBase();
+    int_t selMax = selMin + mMemPage->getSize();
+    int_t start = selection->start;
+    int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
         Bridge::getBridge()->BridgeSetResult(0);
@@ -368,7 +368,7 @@ void CPUStack::followDisasmSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
         }
 }
@@ -379,7 +379,7 @@ void CPUStack::followDumpSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("dump " + addrText).toUtf8().constData());
         }
 }
@@ -390,7 +390,7 @@ void CPUStack::followStackSlot()
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText=QString("%1").arg(selectedData, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
         }
 }
@@ -453,7 +453,7 @@ void CPUStack::binaryPasteSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];
@@ -470,7 +470,7 @@ void CPUStack::binaryPasteIgnoreSizeSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];
@@ -492,7 +492,7 @@ void CPUStack::findPattern()
     int_t addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
 }
@@ -511,12 +511,12 @@ void CPUStack::modifySlot()
 {
     int_t addr = getInitialSelection();
     WordEditDialog wEditDialog(this);
-    int_t value=0;
+    int_t value = 0;
     mMemPage->read(&value, addr, sizeof(int_t));
     wEditDialog.setup("Modify", value, sizeof(int_t));
-    if(wEditDialog.exec()!=QDialog::Accepted)
+    if(wEditDialog.exec() != QDialog::Accepted)
         return;
-    value=wEditDialog.getVal();
+    value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(int_t));
     reloadData();
 }

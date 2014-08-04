@@ -2,7 +2,7 @@
 #include "Configuration.h"
 #include "HexEditDialog.h"
 
-CPUDump::CPUDump(QWidget *parent) : HexDump(parent)
+CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
@@ -344,44 +344,44 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
     QString wStr = "";
     if(!col) //address
     {
-        char label[MAX_LABEL_SIZE]="";
-        QString addrText="";
+        char label[MAX_LABEL_SIZE] = "";
+        QString addrText = "";
         int_t curAddr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        addrText = QString("%1").arg(curAddr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        addrText = QString("%1").arg(curAddr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
         {
-            char module[MAX_MODULE_SIZE]="";
+            char module[MAX_MODULE_SIZE] = "";
             if(DbgGetModuleAt(curAddr, module) && !QString(label).startsWith("JMP.&"))
-                addrText+=" <"+QString(module)+"."+QString(label)+">";
+                addrText += " <" + QString(module) + "." + QString(label) + ">";
             else
-                addrText+=" <"+QString(label)+">";
+                addrText += " <" + QString(label) + ">";
         }
         else
-            *label=0;
+            *label = 0;
         if(*label) //label
         {
-            QColor background=ConfigColor("HexDumpLabelBackgroundColor");
+            QColor background = ConfigColor("HexDumpLabelBackgroundColor");
             if(background.alpha())
                 painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill bookmark color
             painter->setPen(ConfigColor("HexDumpLabelColor")); //TODO: config
         }
         else
         {
-            QColor background=ConfigColor("HexDumpAddressBackgroundColor");
+            QColor background = ConfigColor("HexDumpAddressBackgroundColor");
             if(background.alpha())
                 painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill bookmark color
             painter->setPen(ConfigColor("HexDumpAddressColor")); //TODO: config
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
     }
-    else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col -1).itemCount == 1) //print comments
+    else if(col && mDescriptor.at(col - 1).isData == false && mDescriptor.at(col - 1).itemCount == 1) //print comments
     {
-        uint_t data=0;
+        uint_t data = 0;
         int_t wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(uint_t));
-        char label_text[MAX_LABEL_SIZE]="";
+        char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
-            wStr=QString(label_text);
+            wStr = QString(label_text);
     }
     else //data
     {
@@ -413,7 +413,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mDisassemblyAction);
 
     int_t selectedAddr = rvaToVa(getInitialSelection());
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_hardware)==bp_hardware) //hardware breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_hardware) == bp_hardware) //hardware breakpoint set
     {
         mHardwareAccessMenu->menuAction()->setVisible(false);
         mHardwareWriteMenu->menuAction()->setVisible(false);
@@ -427,7 +427,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mHardwareExecute->setVisible(true);
         mHardwareRemove->setVisible(false);
     }
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
         mMemoryWriteMenu->menuAction()->setVisible(false);
@@ -452,19 +452,19 @@ void CPUDump::setLabelSlot()
 
     uint_t wVA = rvaToVa(getSelectionStart());
     LineEditDialog mLineEdit(this);
-    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    char label_text[MAX_COMMENT_SIZE]="";
+    QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle("Add label at " + addr_text);
-    if(mLineEdit.exec()!=QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();
@@ -477,7 +477,7 @@ void CPUDump::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle("Enter expression to follow in Dump...");
-    if(mGoto->exec()==QDialog::Accepted)
+    if(mGoto->exec() == QDialog::Accepted)
     {
         QString cmd;
         DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
@@ -487,7 +487,7 @@ void CPUDump::gotoExpressionSlot()
 void CPUDump::hexAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewHexAscii);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -496,14 +496,14 @@ void CPUDump::hexAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*47, "Hex", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, "Hex", false, wColDesc);
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 16;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(8+charwidth*16, "ASCII", false, wColDesc);
+    appendDescriptor(8 + charwidth * 16, "ASCII", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -518,7 +518,7 @@ void CPUDump::hexAsciiSlot()
 void CPUDump::hexUnicodeSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewHexUnicode);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -527,14 +527,14 @@ void CPUDump::hexUnicodeSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*47, "Hex", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, "Hex", false, wColDesc);
 
     wColDesc.isData = true; //unicode short
     wColDesc.itemCount = 8;
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendDescriptor(8+charwidth*8, "UNICODE", false, wColDesc);
+    appendDescriptor(8 + charwidth * 8, "UNICODE", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -549,7 +549,7 @@ void CPUDump::hexUnicodeSlot()
 void CPUDump::textAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewTextAscii);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -558,7 +558,7 @@ void CPUDump::textAsciiSlot()
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*64, "ASCII", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 64, "ASCII", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -573,7 +573,7 @@ void CPUDump::textAsciiSlot()
 void CPUDump::textUnicodeSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewTextUnicode);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -582,7 +582,7 @@ void CPUDump::textUnicodeSlot()
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendResetDescriptor(8+charwidth*64, "UNICODE", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 64, "UNICODE", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -597,7 +597,7 @@ void CPUDump::textUnicodeSlot()
 void CPUDump::integerSignedShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedShort);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -605,7 +605,7 @@ void CPUDump::integerSignedShortSlot()
     wColDesc.itemCount = 8;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = SignedDecWord;
-    appendResetDescriptor(8+charwidth*55, "Signed short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 55, "Signed short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -620,7 +620,7 @@ void CPUDump::integerSignedShortSlot()
 void CPUDump::integerSignedLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -628,7 +628,7 @@ void CPUDump::integerSignedLongSlot()
     wColDesc.itemCount = 4;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = SignedDecDword;
-    appendResetDescriptor(8+charwidth*47, "Signed long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, "Signed long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -643,7 +643,7 @@ void CPUDump::integerSignedLongSlot()
 void CPUDump::integerSignedLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerSignedLongLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -651,7 +651,7 @@ void CPUDump::integerSignedLongLongSlot()
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = SignedDecQword;
-    appendResetDescriptor(8+charwidth*41, "Signed long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 41, "Signed long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -666,7 +666,7 @@ void CPUDump::integerSignedLongLongSlot()
 void CPUDump::integerUnsignedShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedShort);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -674,7 +674,7 @@ void CPUDump::integerUnsignedShortSlot()
     wColDesc.itemCount = 8;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = UnsignedDecWord;
-    appendResetDescriptor(8+charwidth*47, "Unsigned short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, "Unsigned short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -689,7 +689,7 @@ void CPUDump::integerUnsignedShortSlot()
 void CPUDump::integerUnsignedLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -697,7 +697,7 @@ void CPUDump::integerUnsignedLongSlot()
     wColDesc.itemCount = 4;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = UnsignedDecDword;
-    appendResetDescriptor(8+charwidth*43, "Unsigned long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 43, "Unsigned long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -712,7 +712,7 @@ void CPUDump::integerUnsignedLongSlot()
 void CPUDump::integerUnsignedLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerUnsignedLongLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -720,7 +720,7 @@ void CPUDump::integerUnsignedLongLongSlot()
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = UnsignedDecQword;
-    appendResetDescriptor(8+charwidth*41, "Unsigned long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 41, "Unsigned long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -735,7 +735,7 @@ void CPUDump::integerUnsignedLongLongSlot()
 void CPUDump::integerHexShortSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexShort);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -743,7 +743,7 @@ void CPUDump::integerHexShortSlot()
     wColDesc.itemCount = 8;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = HexWord;
-    appendResetDescriptor(8+charwidth*34, "Hex short (16-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 34, "Hex short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -758,7 +758,7 @@ void CPUDump::integerHexShortSlot()
 void CPUDump::integerHexLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -766,7 +766,7 @@ void CPUDump::integerHexLongSlot()
     wColDesc.itemCount = 4;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
-    appendResetDescriptor(8+charwidth*35, "Hex long (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 35, "Hex long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -781,7 +781,7 @@ void CPUDump::integerHexLongSlot()
 void CPUDump::integerHexLongLongSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewIntegerHexLongLong);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -789,7 +789,7 @@ void CPUDump::integerHexLongLongSlot()
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = HexQword;
-    appendResetDescriptor(8+charwidth*33, "Hex long long (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 33, "Hex long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -804,7 +804,7 @@ void CPUDump::integerHexLongLongSlot()
 void CPUDump::floatFloatSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatFloat);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -812,7 +812,7 @@ void CPUDump::floatFloatSlot()
     wColDesc.itemCount = 4;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = FloatDword;
-    appendResetDescriptor(8+charwidth*55, "Float (32-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 55, "Float (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -827,7 +827,7 @@ void CPUDump::floatFloatSlot()
 void CPUDump::floatDoubleSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatDouble);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -835,7 +835,7 @@ void CPUDump::floatDoubleSlot()
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = DoubleQword;
-    appendResetDescriptor(8+charwidth*47, "Double (64-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 47, "Double (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -850,7 +850,7 @@ void CPUDump::floatDoubleSlot()
 void CPUDump::floatLongDoubleSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewFloatLongDouble);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -858,7 +858,7 @@ void CPUDump::floatLongDoubleSlot()
     wColDesc.itemCount = 2;
     wColDesc.data.itemSize = Tword;
     wColDesc.data.twordMode = FloatTword;
-    appendResetDescriptor(8+charwidth*59, "Long double (80-bit)", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 59, "Long double (80-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
@@ -873,7 +873,7 @@ void CPUDump::floatLongDoubleSlot()
 void CPUDump::addressSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewAddress);
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
@@ -886,7 +886,7 @@ void CPUDump::addressSlot()
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendResetDescriptor(8+charwidth*2*sizeof(uint_t), "Address", false, wColDesc);
+    appendResetDescriptor(8 + charwidth * 2 * sizeof(uint_t), "Address", false, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 1;
@@ -903,23 +903,23 @@ void CPUDump::disassemblySlot()
     QMessageBox msg(QMessageBox::Critical, "Error!", "Not yet supported!");
     msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
     msg.setParent(this, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=rvaToVa(getSelectionStart());
-    selection->end=rvaToVa(getSelectionEnd());
+    selection->start = rvaToVa(getSelectionStart());
+    selection->end = rvaToVa(getSelectionEnd());
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUDump::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin=mMemPage->getBase();
-    int_t selMax=selMin + mMemPage->getSize();
-    int_t start=selection->start;
-    int_t end=selection->end;
+    int_t selMin = mMemPage->getBase();
+    int_t selMax = selMin + mMemPage->getSize();
+    int_t start = selection->start;
+    int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
         Bridge::getBridge()->BridgeSetResult(0);
@@ -933,104 +933,104 @@ void CPUDump::selectionSet(const SELECTIONDATA* selection)
 
 void CPUDump::memoryAccessSingleshootSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 0, r").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
 }
 
 void CPUDump::memoryAccessRestoreSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 1, r").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
 }
 
 void CPUDump::memoryWriteSingleshootSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 0, w").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
 }
 
 void CPUDump::memoryWriteRestoreSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 1, w").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
 }
 
 void CPUDump::memoryExecuteSingleshootSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 0, x").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, x").toUtf8().constData());
 }
 
 void CPUDump::memoryExecuteRestoreSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpm "+addr_text+", 1, x").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, x").toUtf8().constData());
 }
 
 void CPUDump::memoryRemoveSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bpmc "+addr_text).toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
 }
 
 void CPUDump::hardwareAccess1Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", r, 1").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 1").toUtf8().constData());
 }
 
 void CPUDump::hardwareAccess2Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", r, 2").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 2").toUtf8().constData());
 }
 
 void CPUDump::hardwareAccess4Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", r, 4").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 4").toUtf8().constData());
 }
 
 void CPUDump::hardwareAccess8Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", r, 8").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 8").toUtf8().constData());
 }
 
 void CPUDump::hardwareWrite1Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", w, 1").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 1").toUtf8().constData());
 }
 
 void CPUDump::hardwareWrite2Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", w, 2").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 2").toUtf8().constData());
 }
 
 void CPUDump::hardwareWrite4Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", w, 4").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 4").toUtf8().constData());
 }
 
 void CPUDump::hardwareWrite8Slot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", w, 8").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 8").toUtf8().constData());
 }
 
 void CPUDump::hardwareExecuteSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphws "+addr_text+", x").toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphws " + addr_text + ", x").toUtf8().constData());
 }
 
 void CPUDump::hardwareRemoveSlot()
 {
-    QString addr_text=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("bphwc "+addr_text).toUtf8().constData());
+    QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
 }
 
 void CPUDump::binaryEditSlot()
@@ -1091,7 +1091,7 @@ void CPUDump::binaryPasteSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];
@@ -1108,7 +1108,7 @@ void CPUDump::binaryPasteIgnoreSizeSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];
@@ -1130,7 +1130,7 @@ void CPUDump::findPattern()
     int_t addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
 }

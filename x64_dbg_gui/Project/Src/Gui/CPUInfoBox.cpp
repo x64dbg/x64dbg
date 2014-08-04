@@ -1,6 +1,6 @@
 #include "CPUInfoBox.h"
 
-CPUInfoBox::CPUInfoBox(StdTable *parent) : StdTable(parent)
+CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 {
     enableMultiSelection(false);
     setShowHeader(false);
@@ -43,27 +43,27 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
         return;
     clear();
     QString info;
-    char mod[MAX_MODULE_SIZE]="";
+    char mod[MAX_MODULE_SIZE] = "";
     if(DbgFunctions()->ModNameFromAddr(parVA, mod, true))
     {
-        int_t modbase=DbgFunctions()->ModBaseFromAddr(parVA);
+        int_t modbase = DbgFunctions()->ModBaseFromAddr(parVA);
         if(modbase)
-            info=QString(mod)+"["+QString("%1").arg(parVA-modbase, 0, 16, QChar('0')).toUpper()+"] | ";
+            info = QString(mod) + "[" + QString("%1").arg(parVA - modbase, 0, 16, QChar('0')).toUpper() + "] | ";
         else
-            info=QString(mod)+" | ";
+            info = QString(mod) + " | ";
     }
-    char section[10]="";
+    char section[10] = "";
     if(DbgFunctions()->SectionFromAddr(parVA, section))
-        info+="\"" + QString(section) + "\":";
-    info+=QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    char label[MAX_LABEL_SIZE]="";
+        info += "\"" + QString(section) + "\":";
+    info += QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info+=" <" + QString(label) + ">";
+        info += " <" + QString(label) + ">";
     setInfoLine(2, info);
 }
 
 void CPUInfoBox::dbgStateChanged(DBGSTATE state)
 {
-    if(state==stopped)
+    if(state == stopped)
         clear();
 }

@@ -4,7 +4,7 @@
 
 UpdateChecker::UpdateChecker(QWidget* parent)
 {
-    mParent=parent;
+    mParent = parent;
     connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(finishedSlot(QNetworkReply*)));
 }
 
@@ -20,7 +20,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         QMessageBox msg(QMessageBox::Critical, "Network Error!", reply->errorString());
         msg.setParent(mParent, Qt::Dialog);
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
@@ -32,7 +32,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         QMessageBox msg(QMessageBox::Critical, "Error!", "File on server could not be parsed...");
         msg.setParent(mParent);
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
@@ -47,6 +47,6 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     QMessageBox msg(QMessageBox::Information, "Information", info);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(mParent, Qt::Dialog);
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }

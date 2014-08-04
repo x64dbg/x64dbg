@@ -52,7 +52,7 @@ QByteArray & XByteArray::replace(int index, const QByteArray & ba)
 QByteArray & XByteArray::replace(int index, int length, const QByteArray & ba)
 {
     int len;
-    if ((index + length) > _data.length())
+    if((index + length) > _data.length())
         len = _data.length() - index;
     else
         len = length;

@@ -91,7 +91,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionMemoryBracketsColor", QColor("#000000"));
     defaultColors.insert("InstructionMemoryBracketsBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMemoryStackBracketsColor", QColor("#000000"));
-    defaultColors.insert("InstructionMemoryStackBracketsBackgroundColor",QColor("#00FFFF"));
+    defaultColors.insert("InstructionMemoryStackBracketsBackgroundColor", QColor("#00FFFF"));
     defaultColors.insert("InstructionMemoryBaseRegisterColor", QColor("#B03434"));
     defaultColors.insert("InstructionMemoryBaseRegisterBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMemoryIndexRegisterColor", QColor("#3838BC"));
@@ -257,7 +257,7 @@ Configuration::Configuration() : QObject()
     mPtr = this;
 }
 
-Configuration *Config()
+Configuration* Config()
 {
     return mPtr;
 }
@@ -285,19 +285,19 @@ void Configuration::readColors()
 {
     Colors = defaultColors;
     //read config
-    for(int i=0; i<Colors.size(); i++)
+    for(int i = 0; i < Colors.size(); i++)
     {
-        QString id=Colors.keys().at(i);
-        Colors[id]=colorFromConfig(id);
+        QString id = Colors.keys().at(i);
+        Colors[id] = colorFromConfig(id);
     }
 }
 
 void Configuration::writeColors()
 {
     //write config
-    for(int i=0; i<Colors.size(); i++)
+    for(int i = 0; i < Colors.size(); i++)
     {
-        QString id=Colors.keys().at(i);
+        QString id = Colors.keys().at(i);
         colorToConfig(id, Colors[id]);
     }
     emit colorsUpdated();
@@ -307,14 +307,14 @@ void Configuration::readBools()
 {
     Bools = defaultBools;
     //read config
-    for(int i=0; i<Bools.size(); i++)
+    for(int i = 0; i < Bools.size(); i++)
     {
-        QString category=Bools.keys().at(i);
-        QMap<QString, bool>* currentBool=&Bools[category];
-        for(int j=0; j<currentBool->size(); j++)
+        QString category = Bools.keys().at(i);
+        QMap<QString, bool>* currentBool = &Bools[category];
+        for(int j = 0; j < currentBool->size(); j++)
         {
-            QString id=(*currentBool).keys().at(j);
-            (*currentBool)[id]=boolFromConfig(category, id);
+            QString id = (*currentBool).keys().at(j);
+            (*currentBool)[id] = boolFromConfig(category, id);
         }
     }
 }
@@ -322,13 +322,13 @@ void Configuration::readBools()
 void Configuration::writeBools()
 {
     //write config
-    for(int i=0; i<Bools.size(); i++)
+    for(int i = 0; i < Bools.size(); i++)
     {
-        QString category=Bools.keys().at(i);
-        QMap<QString, bool>* currentBool=&Bools[category];
-        for(int j=0; j<currentBool->size(); j++)
+        QString category = Bools.keys().at(i);
+        QMap<QString, bool>* currentBool = &Bools[category];
+        for(int j = 0; j < currentBool->size(); j++)
         {
-            QString id=(*currentBool).keys().at(j);
+            QString id = (*currentBool).keys().at(j);
             boolToConfig(category, id, (*currentBool)[id]);
         }
     }
@@ -338,14 +338,14 @@ void Configuration::readUints()
 {
     Uints = defaultUints;
     //read config
-    for(int i=0; i<Bools.size(); i++)
+    for(int i = 0; i < Bools.size(); i++)
     {
-        QString category=Uints.keys().at(i);
-        QMap<QString, uint_t>* currentUint=&Uints[category];
-        for(int j=0; j<currentUint->size(); j++)
+        QString category = Uints.keys().at(i);
+        QMap<QString, uint_t>* currentUint = &Uints[category];
+        for(int j = 0; j < currentUint->size(); j++)
         {
-            QString id=(*currentUint).keys().at(j);
-            (*currentUint)[id]=uintFromConfig(category, id);
+            QString id = (*currentUint).keys().at(j);
+            (*currentUint)[id] = uintFromConfig(category, id);
         }
     }
 }
@@ -353,13 +353,13 @@ void Configuration::readUints()
 void Configuration::writeUints()
 {
     //write config
-    for(int i=0; i<Bools.size(); i++)
+    for(int i = 0; i < Bools.size(); i++)
     {
-        QString category=Uints.keys().at(i);
-        QMap<QString, uint_t>* currentUint=&Uints[category];
-        for(int j=0; j<currentUint->size(); j++)
+        QString category = Uints.keys().at(i);
+        QMap<QString, uint_t>* currentUint = &Uints[category];
+        for(int j = 0; j < currentUint->size(); j++)
         {
-            QString id=(*currentUint).keys().at(j);
+            QString id = (*currentUint).keys().at(j);
             uintToConfig(category, id, (*currentUint)[id]);
         }
     }
@@ -369,22 +369,22 @@ void Configuration::readFonts()
 {
     Fonts = defaultFonts;
     //read config
-    for(int i=0; i<Fonts.size(); i++)
+    for(int i = 0; i < Fonts.size(); i++)
     {
-        QString id=Fonts.keys().at(i);
-        QFont font=fontFromConfig(id);
+        QString id = Fonts.keys().at(i);
+        QFont font = fontFromConfig(id);
         QFontInfo fontInfo(font);
-        if(id=="Application" || fontInfo.fixedPitch())
-            Fonts[id]=font;
+        if(id == "Application" || fontInfo.fixedPitch())
+            Fonts[id] = font;
     }
 }
 
 void Configuration::writeFonts()
 {
     //write config
-    for(int i=0; i<Fonts.size(); i++)
+    for(int i = 0; i < Fonts.size(); i++)
     {
-        QString id=Fonts.keys().at(i);
+        QString id = Fonts.keys().at(i);
         fontToConfig(id, Fonts[id]);
     }
     emit fontsUpdated();
@@ -395,7 +395,7 @@ void Configuration::readShortcuts()
     Shortcuts = defaultShortcuts;
     QMap<QString, Shortcut>::const_iterator it = Shortcuts.begin();
 
-    while(it!=Shortcuts.end())
+    while(it != Shortcuts.end())
     {
         const QString id = it.key();
         QString key = shortcutFromConfig(id);
@@ -418,7 +418,7 @@ void Configuration::writeShortcuts()
 {
     QMap<QString, Shortcut>::const_iterator it = Shortcuts.begin();
 
-    while(it!=Shortcuts.end())
+    while(it != Shortcuts.end())
     {
         shortcutToConfig(it.key(), it.value().Hotkey);
         it++;
@@ -432,7 +432,7 @@ const QColor Configuration::getColor(const QString id) const
         return Colors.constFind(id).value();
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
     return Qt::black;
 }
@@ -443,15 +443,15 @@ const bool Configuration::getBool(const QString category, const QString id) cons
     {
         if(Bools[category].contains(id))
             return Bools[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return false;
     }
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
     return false;
 }
@@ -462,18 +462,18 @@ void Configuration::setBool(const QString category, const QString id, const bool
     {
         if(Bools[category].contains(id))
         {
-            Bools[category][id]=b;
+            Bools[category][id] = b;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
@@ -483,15 +483,15 @@ const uint_t Configuration::getUint(const QString category, const QString id) co
     {
         if(Uints[category].contains(id))
             return Uints[category][id];
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return 0;
     }
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
     return 0;
 }
@@ -502,18 +502,18 @@ void Configuration::setUint(const QString category, const QString id, const uint
     {
         if(Uints[category].contains(id))
         {
-            Uints[category][id]=i;
+            Uints[category][id] = i;
             return;
         }
-        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category+":"+id);
+        QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category + ":" + id);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", category);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
@@ -523,7 +523,7 @@ const QFont Configuration::getFont(const QString id) const
         return Fonts.constFind(id).value();
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", id);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
     QFont ret("Lucida Console", 8, QFont::Normal, false);
     ret.setFixedPitch(true);
@@ -537,7 +537,7 @@ const Configuration::Shortcut Configuration::getShortcut(const QString key_id) c
         return Shortcuts.constFind(key_id).value();
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
     return Shortcut();
 }
@@ -546,18 +546,18 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
 {
     if(Shortcuts.contains(key_id))
     {
-        Shortcuts[key_id].Hotkey=key_sequence;
+        Shortcuts[key_id].Hotkey = key_sequence;
         return;
     }
     QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", key_id);
     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-    msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
 }
 
 QColor Configuration::colorFromConfig(const QString id)
 {
-    char setting[MAX_SETTING_SIZE]="";
+    char setting[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet("Colors", id.toUtf8().constData(), setting))
     {
         if(defaultColors.contains(id))
@@ -568,7 +568,7 @@ QColor Configuration::colorFromConfig(const QString id)
         }
         return Qt::black; //black is default
     }
-    if(QString(setting).toUpper()=="#XXXXXX") //support custom transparent color name
+    if(QString(setting).toUpper() == "#XXXXXX") //support custom transparent color name
         return Qt::transparent;
     QColor color(setting);
     if(!color.isValid())
@@ -586,9 +586,9 @@ QColor Configuration::colorFromConfig(const QString id)
 
 bool Configuration::colorToConfig(const QString id, const QColor color)
 {
-    QString colorName=color.name().toUpper();
+    QString colorName = color.name().toUpper();
     if(!color.alpha())
-        colorName="#XXXXXX";
+        colorName = "#XXXXXX";
     return BridgeSettingSet("Colors", id.toUtf8().constData(), colorName.toUtf8().constData());
 }
 
@@ -636,7 +636,7 @@ bool Configuration::uintToConfig(const QString category, const QString id, uint_
 
 QFont Configuration::fontFromConfig(const QString id)
 {
-    char setting[MAX_SETTING_SIZE]="";
+    char setting[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet("Fonts", id.toUtf8().constData(), setting))
     {
         if(defaultFonts.contains(id))
@@ -645,7 +645,7 @@ QFont Configuration::fontFromConfig(const QString id)
             fontToConfig(id, ret);
             return ret;
         }
-        if(id=="Application")
+        if(id == "Application")
             return QApplication::font();
         QFont ret("Lucida Console", 8, QFont::Normal, false);
         ret.setFixedPitch(true);
@@ -661,7 +661,7 @@ QFont Configuration::fontFromConfig(const QString id)
             fontToConfig(id, ret);
             return ret;
         }
-        if(id=="Application")
+        if(id == "Application")
             return QApplication::font();
         QFont ret("Lucida Console", 8, QFont::Normal, false);
         ret.setFixedPitch(true);
@@ -679,7 +679,7 @@ bool Configuration::fontToConfig(const QString id, const QFont font)
 QString Configuration::shortcutFromConfig(const QString id)
 {
     QString _id = QString("%1").arg(id);
-    char setting[MAX_SETTING_SIZE]="";
+    char setting[MAX_SETTING_SIZE] = "";
     if(BridgeSettingGet("Shortcuts", _id.toUtf8().constData(), setting))
     {
         return QString(setting);
@@ -695,5 +695,5 @@ bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortc
         _key = shortcut.toString(QKeySequence::NativeText);
     else
         _key = "NOT_SET";
-    return BridgeSettingSet("Shortcuts",_id.toUtf8().constData(),_key.toUtf8().constData());
+    return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }

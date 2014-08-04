@@ -13,7 +13,7 @@ class BreakpointsView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit BreakpointsView(QWidget *parent = 0);
+    explicit BreakpointsView(QWidget* parent = 0);
     void setupHardBPRightClickContextMenu();
     void setupSoftBPRightClickContextMenu();
     void setupMemBPRightClickContextMenu();
@@ -26,7 +26,7 @@ public slots:
     void reloadData();
 
     // Hardware
-    void hardwareBPContextMenuSlot(const QPoint &pos);
+    void hardwareBPContextMenuSlot(const QPoint & pos);
     void removeHardBPActionSlot();
     void removeAllHardBPActionSlot();
     void enableDisableHardBPActionSlot();

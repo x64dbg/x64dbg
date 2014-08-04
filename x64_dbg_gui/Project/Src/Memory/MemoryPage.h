@@ -12,7 +12,7 @@ class MemoryPage : public QObject
 {
     Q_OBJECT
 public:
-    explicit MemoryPage(uint_t parBase, uint_t parSize, QObject *parent = 0);
+    explicit MemoryPage(uint_t parBase, uint_t parSize, QObject* parent = 0);
 
     bool read(void* parDest, uint_t parRVA, uint_t parSize);
     bool read(byte_t* parDest, uint_t parRVA, uint_t parSize);

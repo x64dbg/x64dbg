@@ -14,7 +14,7 @@ class HexEditDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HexEditDialog(QWidget *parent = 0);
+    explicit HexEditDialog(QWidget* parent = 0);
     ~HexEditDialog();
 
     void showEntireBlock(bool show);
@@ -30,7 +30,7 @@ private slots:
     void dataChangedSlot();
 
 private:
-    Ui::HexEditDialog *ui;
+    Ui::HexEditDialog* ui;
 };
 
 #endif // HEXEDITDIALOG_H

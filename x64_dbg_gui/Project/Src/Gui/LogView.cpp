@@ -1,7 +1,7 @@
 #include "LogView.h"
 #include "Configuration.h"
 
-LogView::LogView(QWidget *parent) : QTextEdit(parent)
+LogView::LogView(QWidget* parent) : QTextEdit(parent)
 {
     QFont wFont("Monospace", 8, QFont::Normal, false);
     wFont.setStyleHint(QFont::Monospace);

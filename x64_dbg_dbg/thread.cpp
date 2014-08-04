@@ -10,12 +10,12 @@ static int currentThread;
 void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     THREADINFO curInfo;
-    curInfo.ThreadNumber=threadNum;
-    curInfo.hThread=CreateThread->hThread;
-    curInfo.dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    curInfo.ThreadStartAddress=(uint)CreateThread->lpStartAddress;
-    curInfo.ThreadLocalBase=(uint)CreateThread->lpThreadLocalBase;
-    *curInfo.threadName='\0';
+    curInfo.ThreadNumber = threadNum;
+    curInfo.hThread = CreateThread->hThread;
+    curInfo.dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    curInfo.ThreadStartAddress = (uint)CreateThread->lpStartAddress;
+    curInfo.ThreadLocalBase = (uint)CreateThread->lpThreadLocalBase;
+    *curInfo.threadName = '\0';
     if(!threadNum)
         strcpy(curInfo.threadName, "Main Thread");
     threadList.push_back(curInfo);
@@ -25,10 +25,10 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 void threadexit(DWORD dwThreadId)
 {
-    for(unsigned int i=0; i<threadList.size(); i++)
-        if(threadList.at(i).dwThreadId==dwThreadId)
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).dwThreadId == dwThreadId)
         {
-            threadList.erase(threadList.begin()+i);
+            threadList.erase(threadList.begin() + i);
             break;
         }
     GuiUpdateThreadView();
@@ -36,7 +36,7 @@ void threadexit(DWORD dwThreadId)
 
 void threadclear()
 {
-    threadNum=0;
+    threadNum = 0;
     std::vector<THREADINFO>().swap(threadList);
     GuiUpdateThreadView();
 }
@@ -57,61 +57,61 @@ static DWORD GetThreadLastError(uint tebAddress)
 
 void threadgetlist(THREADLIST* list)
 {
-    int count=(int)threadList.size();
-    list->count=count;
+    int count = (int)threadList.size();
+    list->count = count;
     if(!count)
         return;
-    list->list=(THREADALLINFO*)BridgeAlloc(count*sizeof(THREADALLINFO));
-    for(int i=0; i<count; i++)
+    list->list = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
+    for(int i = 0; i < count; i++)
     {
-        if(hActiveThread==threadList.at(i).hThread)
-            currentThread=i;
+        if(hActiveThread == threadList.at(i).hThread)
+            currentThread = i;
         memset(&list->list[i], 0, sizeof(THREADALLINFO));
         memcpy(&list->list[i].BasicInfo, &threadList.at(i), sizeof(THREADINFO));
-        HANDLE hThread=list->list[i].BasicInfo.hThread;
-        list->list[i].ThreadCip=GetContextDataEx(hThread, UE_CIP);
-        list->list[i].SuspendCount=SuspendThread(hThread);
+        HANDLE hThread = list->list[i].BasicInfo.hThread;
+        list->list[i].ThreadCip = GetContextDataEx(hThread, UE_CIP);
+        list->list[i].SuspendCount = SuspendThread(hThread);
         ResumeThread(hThread);
-        list->list[i].Priority=(THREADPRIORITY)GetThreadPriority(list->list[i].BasicInfo.hThread);
-        list->list[i].WaitReason=GetThreadWaitReason(list->list[i].BasicInfo.dwThreadId);
-        list->list[i].LastError=GetThreadLastError(list->list[i].BasicInfo.ThreadLocalBase);
+        list->list[i].Priority = (THREADPRIORITY)GetThreadPriority(list->list[i].BasicInfo.hThread);
+        list->list[i].WaitReason = GetThreadWaitReason(list->list[i].BasicInfo.dwThreadId);
+        list->list[i].LastError = GetThreadLastError(list->list[i].BasicInfo.ThreadLocalBase);
     }
-    list->CurrentThread=currentThread;
+    list->CurrentThread = currentThread;
 }
 
 bool threadisvalid(DWORD dwThreadId)
 {
-    for(unsigned int i=0; i<threadList.size(); i++)
-        if(threadList.at(i).dwThreadId==dwThreadId)
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).dwThreadId == dwThreadId)
             return true;
     return false;
 }
 
 bool threadsetname(DWORD dwThreadId, const char* name)
 {
-    for(unsigned int i=0; i<threadList.size(); i++)
-        if(threadList.at(i).dwThreadId==dwThreadId)
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).dwThreadId == dwThreadId)
         {
             if(name)
                 strcpy(threadList.at(i).threadName, name);
             else
-                *threadList.at(i).threadName='\0';
+                *threadList.at(i).threadName = '\0';
         }
     return false;
 }
 
 HANDLE threadgethandle(DWORD dwThreadId)
 {
-    for(unsigned int i=0; i<threadList.size(); i++)
-        if(threadList.at(i).dwThreadId==dwThreadId)
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).dwThreadId == dwThreadId)
             return threadList.at(i).hThread;
     return 0;
 }
 
 DWORD threadgetid(HANDLE hThread)
 {
-    for(unsigned int i=0; i<threadList.size(); i++)
-        if(threadList.at(i).hThread==hThread)
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).hThread == hThread)
             return threadList.at(i).dwThreadId;
     return 0;
 }

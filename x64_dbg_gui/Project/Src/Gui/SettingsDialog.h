@@ -16,7 +16,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = 0);
+    explicit SettingsDialog(QWidget* parent = 0);
     ~SettingsDialog();
     void SaveSettings();
     unsigned int lastException;
@@ -62,15 +62,15 @@ private:
     //enums
     enum CalcType
     {
-        calc_signed=0,
-        calc_unsigned=1
+        calc_signed = 0,
+        calc_unsigned = 1
     };
 
     enum BreakpointType
     {
-        break_int3short=0,
-        break_int3long=1,
-        break_ud2=2
+        break_int3short = 0,
+        break_int3long = 1,
+        break_ud2 = 2
     };
 
     //structures
@@ -119,7 +119,7 @@ private:
     };
 
     //variables
-    Ui::SettingsDialog *ui;
+    Ui::SettingsDialog* ui;
     SettingsStruct settings;
     QList<RangeStruct> realExceptionRanges;
 

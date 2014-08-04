@@ -15,19 +15,19 @@ class GotoDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GotoDialog(QWidget *parent = 0);
+    explicit GotoDialog(QWidget* parent = 0);
     ~GotoDialog();
     QString expressionText;
     uint_t validRangeStart;
     uint_t validRangeEnd;
 
 private slots:
-    void on_editExpression_textChanged(const QString &arg1);
+    void on_editExpression_textChanged(const QString & arg1);
     void on_buttonOk_clicked();
     void finishedSlot(int result);
 
 private:
-    Ui::GotoDialog *ui;
+    Ui::GotoDialog* ui;
     bool IsValidMemoryRange(uint_t addr);
 };
 

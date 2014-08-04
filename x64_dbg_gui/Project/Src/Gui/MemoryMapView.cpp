@@ -1,18 +1,18 @@
 #include "MemoryMapView.h"
 #include "Configuration.h"
 
-MemoryMapView::MemoryMapView(StdTable *parent) : StdTable(parent)
+MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
     enableMultiSelection(false);
 
-    int charwidth=getCharWidth();
+    int charwidth = getCharWidth();
 
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "ADDR", false, "Address"); //addr
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "SIZE", false, "Size"); //size
-    addColumnAt(8+charwidth*32, "INFO", false, "Page Information"); //page information
-    addColumnAt(8+charwidth*3, "TYP", false, "Allocation Type"); //allocation type
-    addColumnAt(8+charwidth*5, "CPROT", false, "Current Protection"); //current protection
-    addColumnAt(8+charwidth*5, "APROT", false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "ADDR", false, "Address"); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "SIZE", false, "Size"); //size
+    addColumnAt(8 + charwidth * 32, "INFO", false, "Page Information"); //page information
+    addColumnAt(8 + charwidth * 3, "TYP", false, "Allocation Type"); //allocation type
+    addColumnAt(8 + charwidth * 5, "CPROT", false, "Current Protection"); //current protection
+    addColumnAt(8 + charwidth * 5, "APROT", false, "Allocation Protection"); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
@@ -91,7 +91,7 @@ void MemoryMapView::refreshShortcutsSlot()
     mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
 }
 
-void MemoryMapView::contextMenuSlot(const QPoint &pos)
+void MemoryMapView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
@@ -110,11 +110,11 @@ void MemoryMapView::contextMenuSlot(const QPoint &pos)
 
     QString wStr = getCellContent(getInitialSelection(), 0);
 #ifdef _WIN64
-    uint_t selectedAddr=wStr.toULongLong(0, 16);
+    uint_t selectedAddr = wStr.toULongLong(0, 16);
 #else //x86
-    uint_t selectedAddr=wStr.toULong(0, 16);
+    uint_t selectedAddr = wStr.toULong(0, 16);
 #endif //_WIN64
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
         mMemoryWriteMenu->menuAction()->setVisible(false);
@@ -162,27 +162,27 @@ QString MemoryMapView::getProtectionString(DWORD Protect)
         wS = QString("-RWC");
         break;
     }
-    if(Protect&PAGE_GUARD)
-        wS+=QString("G");
+    if(Protect & PAGE_GUARD)
+        wS += QString("G");
     else
-        wS+=QString("-");
+        wS += QString("-");
     return wS;
 }
 
-QString MemoryMapView::paintContent(QPainter *painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    if(col==0) //address
+    if(col == 0) //address
     {
         QString wStr = getCellContent(rowBase + rowOffset, col);
 #ifdef _WIN64
-        uint_t addr=wStr.toULongLong(0, 16);
+        uint_t addr = wStr.toULongLong(0, 16);
 #else //x86
-        uint_t addr=wStr.toULong(0, 16);
+        uint_t addr = wStr.toULong(0, 16);
 #endif //_WIN64
-        if((DbgGetBpxTypeAt(addr)&bp_memory)==bp_memory)
+        if((DbgGetBpxTypeAt(addr)&bp_memory) == bp_memory)
         {
             QString wStr = getCellContent(rowBase + rowOffset, col);
-            QColor bpBackgroundColor=ConfigColor("MemoryMapBreakpointBackgroundColor");
+            QColor bpBackgroundColor = ConfigColor("MemoryMapBreakpointBackgroundColor");
             if(bpBackgroundColor.alpha())
                 painter->fillRect(QRect(x, y, w - 1, h), QBrush(bpBackgroundColor));
             painter->setPen(ConfigColor("MemoryMapBreakpointColor"));
@@ -224,11 +224,11 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
 
             // Base address
-            wS = QString("%1").arg((uint_t)wMbi.BaseAddress, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
+            wS = QString("%1").arg((uint_t)wMbi.BaseAddress, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
             setCellContent(wI, 0, wS);
 
             // Size
-            wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t)*2, 16, QChar('0')).toUpper();
+            wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
             setCellContent(wI, 1, wS);
 
             // Information
@@ -271,11 +271,11 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
             setCellContent(wI, 3, wS);
 
             // current access protection
-            wS=getProtectionString(wMbi.Protect);
+            wS = getProtectionString(wMbi.Protect);
             setCellContent(wI, 4, wS);
 
             // allocation protection
-            wS=getProtectionString(wMbi.AllocationProtect);
+            wS = getProtectionString(wMbi.AllocationProtect);
             setCellContent(wI, 5, wS);
 
         }
@@ -288,68 +288,68 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 void MemoryMapView::followDumpSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("dump "+addr_text).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + addr_text).toUtf8().constData());
     emit showCpu();
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("disasm "+addr_text).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
     emit showCpu();
 }
 
 void MemoryMapView::memoryAccessSingleshootSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 0, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, r").toUtf8().constData());
 }
 
 void MemoryMapView::memoryAccessRestoreSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 1, r").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, r").toUtf8().constData());
 }
 
 void MemoryMapView::memoryWriteSingleshootSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 0, w").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
 }
 
 void MemoryMapView::memoryWriteRestoreSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 1, w").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
 }
 
 void MemoryMapView::memoryExecuteSingleshootSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 0, x").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, x").toUtf8().constData());
 }
 
 void MemoryMapView::memoryExecuteRestoreSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpm "+addr_text+", 1, x").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, x").toUtf8().constData());
 }
 
 void MemoryMapView::memoryRemoveSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExec(QString("bpmc "+addr_text).toUtf8().constData());
+    DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
 }
 
 void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
 #ifdef _WIN64
-    uint_t selectedAddr=addr_text.toULongLong(0, 16);
+    uint_t selectedAddr = addr_text.toULongLong(0, 16);
 #else //x86
-    uint_t selectedAddr=addr_text.toULong(0, 16);
+    uint_t selectedAddr = addr_text.toULong(0, 16);
 #endif //_WIN64
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory)==bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();

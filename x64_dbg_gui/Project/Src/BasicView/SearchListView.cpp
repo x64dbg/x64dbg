@@ -1,7 +1,7 @@
 #include "SearchListView.h"
 #include "ui_SearchListView.h"
 
-SearchListView::SearchListView(QWidget *parent) :
+SearchListView::SearchListView(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::SearchListView)
 {
@@ -46,7 +46,7 @@ SearchListView::SearchListView(QWidget *parent) :
     ui->mainSplitter->setStretchFactor(0, 1);
 
     // Disable main splitter
-    for(int i=0; i<ui->mainSplitter->count(); i++)
+    for(int i = 0; i < ui->mainSplitter->count(); i++)
         ui->mainSplitter->handle(i)->setEnabled(false);
 
     // Setup signals
@@ -66,84 +66,84 @@ SearchListView::~SearchListView()
 
 void SearchListView::listKeyPressed(QKeyEvent* event)
 {
-    char ch=event->text().toUtf8().constData()[0];
+    char ch = event->text().toUtf8().constData()[0];
     if(isprint(ch)) //add a char to the search box
-        mSearchBox->setText(mSearchBox->text()+QString(QChar(ch)));
-    else if(event->key()==Qt::Key_Backspace) //remove a char from the search box
+        mSearchBox->setText(mSearchBox->text() + QString(QChar(ch)));
+    else if(event->key() == Qt::Key_Backspace) //remove a char from the search box
     {
         QString newText;
-        if(event->modifiers()==Qt::ControlModifier) //clear the search box
-            newText="";
+        if(event->modifiers() == Qt::ControlModifier) //clear the search box
+            newText = "";
         else
         {
-            newText=mSearchBox->text();
+            newText = mSearchBox->text();
             newText.chop(1);
         }
         mSearchBox->setText(newText);
     }
-    else if((event->key()==Qt::Key_Return || event->key()==Qt::Key_Enter)) //user pressed enter
+    else if((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) //user pressed enter
         emit enterPressedSignal();
 }
 
 bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)
 {
-    int count=list->getColumnCount();
-    if(startcol+1>count)
+    int count = list->getColumnCount();
+    if(startcol + 1 > count)
         return false;
     if(startswith)
     {
-        for(int i=startcol; i<count; i++)
+        for(int i = startcol; i < count; i++)
             if(list->getCellContent(row, i).startsWith(text, Qt::CaseInsensitive))
                 return true;
     }
     else
     {
-        for(int i=startcol; i<count; i++)
+        for(int i = startcol; i < count; i++)
             if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
                 return true;
     }
     return false;
 }
 
-void SearchListView::searchTextChanged(const QString &arg1)
+void SearchListView::searchTextChanged(const QString & arg1)
 {
     if(arg1.length())
     {
         mList->hide();
         mSearchList->show();
-        mCurList=mSearchList;
+        mCurList = mSearchList;
     }
     else
     {
         mSearchList->hide();
         mList->show();
         mList->setFocus();
-        mCurList=mList;
+        mCurList = mList;
     }
     mSearchList->setRowCount(0);
-    int rows=mList->getRowCount();
-    int columns=mList->getColumnCount();
-    for(int i=0,j=0; i<rows; i++)
+    int rows = mList->getRowCount();
+    int columns = mList->getColumnCount();
+    for(int i = 0, j = 0; i < rows; i++)
     {
         if(findTextInList(mList, arg1, i, mSearchStartCol, false))
         {
-            mSearchList->setRowCount(j+1);
-            for(int k=0; k<columns; k++)
+            mSearchList->setRowCount(j + 1);
+            for(int k = 0; k < columns; k++)
                 mSearchList->setCellContent(j, k, mList->getCellContent(i, k));
             j++;
         }
     }
-    rows=mSearchList->getRowCount();
+    rows = mSearchList->getRowCount();
     mSearchList->setTableOffset(0);
-    for(int i=0; i<rows; i++)
+    for(int i = 0; i < rows; i++)
     {
         if(findTextInList(mSearchList, arg1, i, mSearchStartCol, true))
         {
-            if(rows>mSearchList->getViewableRowsCount())
+            if(rows > mSearchList->getViewableRowsCount())
             {
-                int cur=i-mSearchList->getViewableRowsCount()/2;
+                int cur = i - mSearchList->getViewableRowsCount() / 2;
                 if(!mSearchList->isValidIndex(cur, 0))
-                    cur=i;
+                    cur = i;
                 mSearchList->setTableOffset(cur);
             }
             mSearchList->setSingleSelection(i);

@@ -24,7 +24,7 @@ public:
     ~MapViewOfMem();
     byte_t readByte(uint_t rva);
     uint_t size();
-    unsigned char *data();
+    unsigned char* data();
 
     Selection_t getSelection();
     void setSelection(Selection_t sel);

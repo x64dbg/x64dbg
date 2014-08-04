@@ -14,7 +14,7 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabBar::MHTabBar(QWidget *parent) : QTabBar(parent)
+MHTabBar::MHTabBar(QWidget* parent) : QTabBar(parent)
 {
     setAcceptDrops(true);
     setElideMode(Qt::ElideRight);
@@ -34,7 +34,7 @@ void MHTabBar::contextMenuEvent(QContextMenuEvent* event)
     QMenu wMenu(this);
     QAction wDetach("&Detach", this);
     wMenu.addAction(&wDetach);
-    if(wMenu.exec(event->globalPos())==&wDetach)
+    if(wMenu.exec(event->globalPos()) == &wDetach)
     {
         QPoint p(0, 0);
         OnDetachTab((int)tabAt(event->pos()), p);

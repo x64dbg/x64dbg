@@ -5,10 +5,10 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabWidget::MHTabWidget(QWidget *parent) : QTabWidget(parent)
+MHTabWidget::MHTabWidget(QWidget* parent) : QTabWidget(parent)
 {
     m_tabBar = new MHTabBar(this);
-    connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint&)), this, SLOT(DetachTab(int, QPoint&)));
+    connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
 
     setTabBar(m_tabBar);
@@ -28,7 +28,7 @@ QTabBar* MHTabWidget::tabBar()
 MHTabWidget::~MHTabWidget(void)
 {
     disconnect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
-    disconnect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint&)), this, SLOT(DetachTab(int, QPoint&)));
+    disconnect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     delete m_tabBar;
 }
 
@@ -37,12 +37,12 @@ int MHTabWidget::count() const
     return QTabWidget::count() + m_Windows.size();
 }
 
-QWidget *MHTabWidget::widget(int index) const
+QWidget* MHTabWidget::widget(int index) const
 {
     int baseCount = QTabWidget::count();
 
     // Check if it's just a normal tab
-    if (index < baseCount)
+    if(index < baseCount)
         return QTabWidget::widget(index);
 
     // Otherwise it's going to be a window
@@ -52,7 +52,7 @@ QWidget *MHTabWidget::widget(int index) const
 void MHTabWidget::setCurrentIndex(int index)
 {
     // Check if it's just a normal tab
-    if (index < QTabWidget::count())
+    if(index < QTabWidget::count())
     {
         QTabWidget::setCurrentIndex(index);
     }
@@ -66,7 +66,7 @@ void MHTabWidget::setCurrentIndex(int index)
     }
 }
 
-void MHTabWidget::setCurrentWidget(QWidget *widget)
+void MHTabWidget::setCurrentWidget(QWidget* widget)
 {
     widget = 0;
     // To be implemented.
@@ -81,7 +81,7 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
+void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
 {
     Q_UNUSED(dropPoint);
     // Create the window
@@ -102,7 +102,7 @@ void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
     m_Windows.append(tearOffWidget);
 
     // Make first active
-    if (count() > 0)
+    if(count() > 0)
         setCurrentIndex(0);
 
     // Create and show
@@ -121,7 +121,7 @@ void MHTabWidget::DetachTab(int index, QPoint& dropPoint)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void MHTabWidget::AttachTab(QWidget *parent)
+void MHTabWidget::AttachTab(QWidget* parent)
 {
     // Retrieve widget
     MHDetachedWindow* detachedWidget = dynamic_cast<MHDetachedWindow*>(parent);
@@ -133,12 +133,12 @@ void MHTabWidget::AttachTab(QWidget *parent)
     // Remove it from the windows list
     for(int i = 0; i < m_Windows.size(); i++)
     {
-        if (m_Windows.at(i) == tearOffWidget)
+        if(m_Windows.at(i) == tearOffWidget)
             m_Windows.removeAt(i);
     }
 
     // Make Active
-    if (newIndex != -1)
+    if(newIndex != -1)
         setCurrentIndex(newIndex);
 
     // Cleanup Window
@@ -150,7 +150,7 @@ void MHTabWidget::AttachTab(QWidget *parent)
 //----------------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////////
-MHDetachedWindow::MHDetachedWindow(QWidget *parent, MHTabWidget *tabwidget) : QMainWindow(parent)
+MHDetachedWindow::MHDetachedWindow(QWidget* parent, MHTabWidget* tabwidget) : QMainWindow(parent)
 {
     m_TabWidget = tabwidget;
 }

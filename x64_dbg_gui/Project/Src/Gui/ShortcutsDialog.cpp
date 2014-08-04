@@ -1,7 +1,7 @@
 #include "ShortcutsDialog.h"
 #include "ui_ShortcutsDialog.h"
 
-ShortcutsDialog::ShortcutsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::ShortcutsDialog)
+ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::ShortcutsDialog)
 {
     ui->setupUi(this);
     //set window flags
@@ -25,8 +25,8 @@ ShortcutsDialog::ShortcutsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::
 
     const unsigned int numShortcuts = Config()->Shortcuts.count();
     ui->tblShortcuts->setRowCount(numShortcuts);
-    int j=0;
-    for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i,j++)
+    int j = 0;
+    for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i, j++)
     {
         QTableWidgetItem* shortcutName = new QTableWidgetItem(i.value().Name);
         QTableWidgetItem* shortcutKey = new QTableWidgetItem(i.value().Hotkey.toString(QKeySequence::NativeText));
@@ -44,17 +44,17 @@ void ShortcutsDialog::updateShortcut()
     const QKeySequence newKey = ui->shortcutEdit->getKeysequence();
     if(newKey != currentShortcut.Hotkey)
     {
-        bool good=true;
+        bool good = true;
         if(!newKey.isEmpty())
         {
-            int idx=0;
-            for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i,idx++)
+            int idx = 0;
+            for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i, idx++)
             {
                 if(i.value().Name == currentShortcut.Name) //skip current shortcut in list
                     continue;
                 if(i.value().GlobalShortcut && i.value().Hotkey == newKey) //newkey is trying to override a global shortcut
                 {
-                    good=false;
+                    good = false;
                     break;
                 }
                 else if(currentShortcut.GlobalShortcut && i.value().Hotkey == newKey) //current shortcut is global and overrides another local hotkey
@@ -66,7 +66,7 @@ void ShortcutsDialog::updateShortcut()
         }
         if(good)
         {
-            for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i)
+            for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i)
             {
                 if(i.value().Name == currentShortcut.Name)
                 {
@@ -90,10 +90,10 @@ void ShortcutsDialog::updateShortcut()
 void ShortcutsDialog::syncTextfield()
 {
     QModelIndexList indexes = ui->tblShortcuts->selectionModel()->selectedRows();
-    if(indexes.count()<1)
+    if(indexes.count() < 1)
         return;
     currentRow = indexes.at(0).row();
-    for(QMap<QString, Configuration::Shortcut>::iterator i=Config()->Shortcuts.begin(); i!=Config()->Shortcuts.end(); ++i)
+    for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i)
     {
         if(i.value().Name == ui->tblShortcuts->item(currentRow, 0)->text())
         {

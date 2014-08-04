@@ -15,7 +15,7 @@ class Breakpoints : public QObject
 {
     Q_OBJECT
 public:
-    explicit Breakpoints(QObject *parent = 0);
+    explicit Breakpoints(QObject* parent = 0);
 
     static void setBP(BPXTYPE type, uint_t va);
 

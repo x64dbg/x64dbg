@@ -1,35 +1,35 @@
 #include "BreakpointsView.h"
 #include "Configuration.h"
 
-BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
+BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
     // Software
     mSoftBPTable = new StdTable(this);
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false, "Address");
-    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mSoftBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Software", false, "Address");
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mSoftBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
 
     // Hardware
     mHardBPTable = new StdTable(this);
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Hardware", false, "Address");
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Hardware", false, "Address");
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mHardBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
 
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Memory", false, "Address");
-    mMemBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mMemBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mMemBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mMemBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Memory", false, "Address");
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mMemBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
 
     // Splitter
     mSplitter = new QSplitter(this);
@@ -74,16 +74,16 @@ void BreakpointsView::reloadData()
     mHardBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mHardBPTable->setCellContent(wI, 0, addr_text);
         mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mHardBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -93,7 +93,7 @@ void BreakpointsView::reloadData()
         else
             mHardBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mHardBPTable->setCellContent(wI, 4, comment);
     }
@@ -106,16 +106,16 @@ void BreakpointsView::reloadData()
     mSoftBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mSoftBPTable->setCellContent(wI, 0, addr_text);
         mSoftBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mSoftBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -125,7 +125,7 @@ void BreakpointsView::reloadData()
         else
             mSoftBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
@@ -138,16 +138,16 @@ void BreakpointsView::reloadData()
     mMemBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mMemBPTable->setCellContent(wI, 0, addr_text);
         mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mMemBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -157,7 +157,7 @@ void BreakpointsView::reloadData()
         else
             mMemBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mMemBPTable->setCellContent(wI, 4, comment);
     }
@@ -277,7 +277,7 @@ void BreakpointsView::enableDisableHardBPActionSlot()
 
 void BreakpointsView::doubleClickHardwareSlot()
 {
-    QString addrText=mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+    QString addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }
@@ -380,7 +380,7 @@ void BreakpointsView::enableDisableSoftBPActionSlot()
 
 void BreakpointsView::doubleClickSoftwareSlot()
 {
-    QString addrText=mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+    QString addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }
@@ -483,7 +483,7 @@ void BreakpointsView::enableDisableMemBPActionSlot()
 
 void BreakpointsView::doubleClickMemorySlot()
 {
-    QString addrText=mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+    QString addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }

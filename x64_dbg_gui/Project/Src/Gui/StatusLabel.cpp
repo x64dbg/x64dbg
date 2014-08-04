@@ -2,7 +2,7 @@
 
 StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
 {
-    this->setFrameStyle(QFrame::Sunken|QFrame::Panel); //sunken style
+    this->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
     this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
     this->setTextFormat(Qt::RichText); //rich text
     if(parent) //the debug-status label only has a parent
@@ -49,7 +49,7 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
 void StatusLabel::logUpdate(QString message)
 {
     if(labelText.contains(QChar('\n'))) //newline
-        labelText="";
-    labelText+=message;
+        labelText = "";
+    labelText += message;
     setText(labelText);
 }

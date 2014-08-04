@@ -4,7 +4,7 @@
 #include "Configuration.h"
 #include <QFontDialog>
 
-AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
+AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {
     ui->setupUi(this);
     //set window flags
@@ -12,14 +12,14 @@ AppearanceDialog::AppearanceDialog(QWidget *parent) : QDialog(parent), ui(new Ui
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
     //Colors
-    colorMap=&Config()->Colors;
-    colorBackupMap=*colorMap;
+    colorMap = &Config()->Colors;
+    colorBackupMap = *colorMap;
     ui->groupColor->setEnabled(false);
     ui->groupBackgroundColor->setEnabled(false);
     colorInfoListInit();
     //Fonts
-    fontMap=&Config()->Fonts;
-    fontBackupMap=*fontMap;
+    fontMap = &Config()->Fonts;
+    fontBackupMap = *fontMap;
     fontInit();
     connect(this, SIGNAL(rejected()), this, SLOT(rejectedSlot()));
 }
@@ -150,29 +150,29 @@ void AppearanceDialog::on_buttonBackgroundNone_clicked()
     ui->editBackgroundColor->setText("#XXXXXX");
 }
 
-void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
+void AppearanceDialog::on_editBackgroundColor_textChanged(const QString & arg1)
 {
-    QString text=arg1;
+    QString text = arg1;
     if(!arg1.length())
     {
         ui->editBackgroundColor->setText("#");
-        text=ui->editBackgroundColor->text();
+        text = ui->editBackgroundColor->text();
         return;
     }
-    if(arg1.at(0)!='#')
+    if(arg1.at(0) != '#')
     {
-        ui->editBackgroundColor->setText("#"+arg1);
-        text=ui->editBackgroundColor->text();
+        ui->editBackgroundColor->setText("#" + arg1);
+        text = ui->editBackgroundColor->text();
     }
     QString styleSheet;
-    QString id=colorInfoList.at(colorInfoIndex).backgroundColorName;
-    if(text=="#XXXXXX")
+    QString id = colorInfoList.at(colorInfoIndex).backgroundColorName;
+    if(text == "#XXXXXX")
     {
         styleSheet = "border: 2px solid black; background-color: #C0C0C0";
         ui->buttonBackgroundColor->setText("X");
         if(colorMap->contains(id))
         {
-            (*colorMap)[id]=Qt::transparent;
+            (*colorMap)[id] = Qt::transparent;
             ui->buttonSave->setEnabled(true);
             Config()->writeColors();
             GuiUpdateAllViews();
@@ -186,7 +186,7 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
             styleSheet = "border: 2px solid black; background-color: " + text;
             if(colorMap->contains(id))
             {
-                (*colorMap)[id]=QColor(text);
+                (*colorMap)[id] = QColor(text);
                 ui->buttonSave->setEnabled(true);
                 Config()->writeColors();
                 GuiUpdateAllViews();
@@ -202,28 +202,28 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString &arg1)
     ui->buttonBackgroundColor->setStyleSheet(styleSheet);
 }
 
-void AppearanceDialog::on_editColor_textChanged(const QString &arg1)
+void AppearanceDialog::on_editColor_textChanged(const QString & arg1)
 {
-    QString text=arg1;
+    QString text = arg1;
     if(!arg1.length())
     {
         ui->editColor->setText("#");
-        text=ui->editColor->text();
+        text = ui->editColor->text();
         return;
     }
-    if(arg1.at(0)!='#')
+    if(arg1.at(0) != '#')
     {
-        ui->editColor->setText("#"+arg1);
-        text=ui->editColor->text();
+        ui->editColor->setText("#" + arg1);
+        text = ui->editColor->text();
     }
-    QString id=colorInfoList.at(colorInfoIndex).colorName;
+    QString id = colorInfoList.at(colorInfoIndex).colorName;
     QString styleSheet;
     if(QColor(text).isValid())
     {
         styleSheet = "border: 2px solid black; background-color: " + text;
         if(colorMap->contains(id))
         {
-            (*colorMap)[id]=QColor(text);
+            (*colorMap)[id] = QColor(text);
             ui->buttonSave->setEnabled(true);
             Config()->writeColors();
             GuiUpdateAllViews();
@@ -241,18 +241,18 @@ void AppearanceDialog::on_editColor_textChanged(const QString &arg1)
 void AppearanceDialog::on_buttonColor_clicked()
 {
     QColorDialog colorDialog(QColor(ui->editColor->text()), this);
-    if(colorDialog.exec()==QDialog::Accepted)
+    if(colorDialog.exec() == QDialog::Accepted)
         ui->editColor->setText(colorDialog.selectedColor().name().toUpper());
 }
 
 void AppearanceDialog::on_buttonBackgroundColor_clicked()
 {
     QColor initialColor;
-    if(ui->editBackgroundColor->text().toUpper()=="#XXXXXX")
-        initialColor=Qt::black; //transparent will set the alpha channel, which users will forget
+    if(ui->editBackgroundColor->text().toUpper() == "#XXXXXX")
+        initialColor = Qt::black; //transparent will set the alpha channel, which users will forget
     else
-        initialColor=QColor(ui->editBackgroundColor->text());
-    QColor selectedColor=QColorDialog::getColor(initialColor, this, "Select Color", QColorDialog::ShowAlphaChannel);
+        initialColor = QColor(ui->editBackgroundColor->text());
+    QColor selectedColor = QColorDialog::getColor(initialColor, this, "Select Color", QColorDialog::ShowAlphaChannel);
     if(selectedColor.isValid())
     {
         if(!selectedColor.alpha())
@@ -264,8 +264,8 @@ void AppearanceDialog::on_buttonBackgroundColor_clicked()
 
 void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 {
-    colorInfoIndex=ui->listColorNames->row(ui->listColorNames->selectedItems().at(0));
-    ColorInfo info=colorInfoList.at(colorInfoIndex);
+    colorInfoIndex = ui->listColorNames->row(ui->listColorNames->selectedItems().at(0));
+    ColorInfo info = colorInfoList.at(colorInfoIndex);
     defaultValueAction->setEnabled(false);
     currentSettingAction->setEnabled(false);
     ui->buttonSave->setEnabled(false);
@@ -274,7 +274,7 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 
     if(info.colorName.length())
     {
-        QString id=info.colorName;
+        QString id = info.colorName;
         if(colorMap->contains(id))
         {
             ui->groupColor->setEnabled(true);
@@ -282,10 +282,10 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color=(*colorMap)[id];
-            QString colorText=color.name().toUpper();
+            QColor color = (*colorMap)[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editColor->setText(colorText);
         }
         else
@@ -296,7 +296,7 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 
     if(info.backgroundColorName.length())
     {
-        QString id=info.backgroundColorName;
+        QString id = info.backgroundColorName;
         if(colorMap->contains(id))
         {
             ui->groupBackgroundColor->setEnabled(true);
@@ -304,10 +304,10 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color=(*colorMap)[id];
-            QString colorText=color.name().toUpper();
+            QColor color = (*colorMap)[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editBackgroundColor->setText(colorText);
         }
         else
@@ -326,28 +326,28 @@ void AppearanceDialog::on_buttonSave_clicked()
 
 void AppearanceDialog::defaultValueSlot()
 {
-    ColorInfo info=colorInfoList.at(colorInfoIndex);
+    ColorInfo info = colorInfoList.at(colorInfoIndex);
     if(info.colorName.length())
     {
-        QString id=info.colorName;
+        QString id = info.colorName;
         if(Config()->defaultColors.contains(id))
         {
-            QColor color=Config()->defaultColors[id];
-            QString colorText=color.name().toUpper();
+            QColor color = Config()->defaultColors[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editColor->setText(colorText);
         }
     }
     if(info.backgroundColorName.length())
     {
-        QString id=info.backgroundColorName;
+        QString id = info.backgroundColorName;
         if(Config()->defaultColors.contains(id))
         {
-            QColor color=Config()->defaultColors[id];
-            QString colorText=color.name().toUpper();
+            QColor color = Config()->defaultColors[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editBackgroundColor->setText(colorText);
         }
     }
@@ -355,28 +355,28 @@ void AppearanceDialog::defaultValueSlot()
 
 void AppearanceDialog::currentSettingSlot()
 {
-    ColorInfo info=colorInfoList.at(colorInfoIndex);
+    ColorInfo info = colorInfoList.at(colorInfoIndex);
     if(info.colorName.length())
     {
-        QString id=info.colorName;
+        QString id = info.colorName;
         if(colorBackupMap.contains(id))
         {
-            QColor color=colorBackupMap[id];
-            QString colorText=color.name().toUpper();
+            QColor color = colorBackupMap[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editColor->setText(colorText);
         }
     }
     if(info.backgroundColorName.length())
     {
-        QString id=info.backgroundColorName;
+        QString id = info.backgroundColorName;
         if(colorBackupMap.contains(id))
         {
-            QColor color=colorBackupMap[id];
-            QString colorText=color.name().toUpper();
+            QColor color = colorBackupMap[id];
+            QString colorText = color.name().toUpper();
             if(!color.alpha())
-                colorText="#XXXXXX";
+                colorText = "#XXXXXX";
             ui->editBackgroundColor->setText(colorText);
         }
     }
@@ -386,12 +386,12 @@ void AppearanceDialog::colorInfoListAppend(QString propertyName, QString colorNa
 {
     ColorInfo info;
     if(colorName.length() || backgroundColorName.length())
-        propertyName="     "+propertyName;
+        propertyName = "     " + propertyName;
     else
-        propertyName=QString(QChar(0x2022))+" "+propertyName; //bullet + space
-    info.propertyName=propertyName;
-    info.colorName=colorName;
-    info.backgroundColorName=backgroundColorName;
+        propertyName = QString(QChar(0x2022)) + " " + propertyName; //bullet + space
+    info.propertyName = propertyName;
+    info.colorName = colorName;
+    info.backgroundColorName = backgroundColorName;
     colorInfoList.append(info);
     ui->listColorNames->addItem(colorInfoList.last().propertyName);
 }
@@ -399,7 +399,7 @@ void AppearanceDialog::colorInfoListAppend(QString propertyName, QString colorNa
 void AppearanceDialog::colorInfoListInit()
 {
     //clear list
-    colorInfoIndex=0;
+    colorInfoIndex = 0;
     colorInfoList.clear();
     //list entries
     colorInfoListAppend("General Tables:", "", "");
@@ -517,29 +517,29 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Memory Map Section Text", "MemoryMapSectionTextColor", "");
 
     //dev helper
-    const QMap<QString, QColor>* Colors=&Config()->defaultColors;
+    const QMap<QString, QColor>* Colors = &Config()->defaultColors;
     QString notFound;
-    for(int i=0; i<Colors->size(); i++)
+    for(int i = 0; i < Colors->size(); i++)
     {
-        QString id=Colors->keys().at(i);
-        bool bFound=false;
-        for(int j=0; j<colorInfoList.size(); j++)
+        QString id = Colors->keys().at(i);
+        bool bFound = false;
+        for(int j = 0; j < colorInfoList.size(); j++)
         {
-            if(colorInfoList.at(j).colorName==id || colorInfoList.at(j).backgroundColorName==id)
+            if(colorInfoList.at(j).colorName == id || colorInfoList.at(j).backgroundColorName == id)
             {
-                bFound=true;
+                bFound = true;
                 break;
             }
         }
         if(!bFound) //color not found in info list
-            notFound+=id+"\n";
+            notFound += id + "\n";
     }
     if(notFound.length())
     {
         QMessageBox msg(QMessageBox::Warning, "NOT FOUND IN CONFIG!", notFound);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
 
@@ -557,9 +557,9 @@ void AppearanceDialog::colorInfoListInit()
 
 void AppearanceDialog::fontInit()
 {
-    isInit=true;
+    isInit = true;
     //AbstractTableView
-    QFont font=fontMap->find("AbstractTableView").value();
+    QFont font = fontMap->find("AbstractTableView").value();
     ui->fontAbstractTables->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontAbstractTablesStyle->setCurrentIndex(3);
@@ -569,11 +569,11 @@ void AppearanceDialog::fontInit()
         ui->fontAbstractTablesStyle->setCurrentIndex(1);
     else
         ui->fontAbstractTablesStyle->setCurrentIndex(0);
-    int index=ui->fontAbstractTablesSize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    int index = ui->fontAbstractTablesSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontAbstractTablesSize->setCurrentIndex(index);
     //Disassembly
-    font=fontMap->find("Disassembly").value();
+    font = fontMap->find("Disassembly").value();
     ui->fontDisassembly->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontDisassemblyStyle->setCurrentIndex(3);
@@ -583,11 +583,11 @@ void AppearanceDialog::fontInit()
         ui->fontDisassemblyStyle->setCurrentIndex(1);
     else
         ui->fontDisassemblyStyle->setCurrentIndex(0);
-    index=ui->fontDisassemblySize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    index = ui->fontDisassemblySize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontDisassemblySize->setCurrentIndex(index);
     //HexDump
-    font=fontMap->find("HexDump").value();
+    font = fontMap->find("HexDump").value();
     ui->fontHexDump->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontHexDumpStyle->setCurrentIndex(3);
@@ -597,11 +597,11 @@ void AppearanceDialog::fontInit()
         ui->fontHexDumpStyle->setCurrentIndex(1);
     else
         ui->fontHexDumpStyle->setCurrentIndex(0);
-    index=ui->fontHexDumpSize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    index = ui->fontHexDumpSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontHexDumpSize->setCurrentIndex(index);
     //Stack
-    font=fontMap->find("Stack").value();
+    font = fontMap->find("Stack").value();
     ui->fontStack->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontStackStyle->setCurrentIndex(3);
@@ -611,11 +611,11 @@ void AppearanceDialog::fontInit()
         ui->fontStackStyle->setCurrentIndex(1);
     else
         ui->fontStackStyle->setCurrentIndex(0);
-    index=ui->fontStackSize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    index = ui->fontStackSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontStackSize->setCurrentIndex(index);
     //Registers
-    font=fontMap->find("Registers").value();
+    font = fontMap->find("Registers").value();
     ui->fontRegisters->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontRegistersStyle->setCurrentIndex(3);
@@ -625,11 +625,11 @@ void AppearanceDialog::fontInit()
         ui->fontRegistersStyle->setCurrentIndex(1);
     else
         ui->fontRegistersStyle->setCurrentIndex(0);
-    index=ui->fontRegistersSize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    index = ui->fontRegistersSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontRegistersSize->setCurrentIndex(index);
     //HexEdit
-    font=fontMap->find("HexEdit").value();
+    font = fontMap->find("HexEdit").value();
     ui->fontHexEdit->setCurrentFont(QFont(font.family()));
     if(font.bold() && font.italic())
         ui->fontHexEditStyle->setCurrentIndex(3);
@@ -639,20 +639,20 @@ void AppearanceDialog::fontInit()
         ui->fontHexEditStyle->setCurrentIndex(1);
     else
         ui->fontHexEditStyle->setCurrentIndex(0);
-    index=ui->fontHexEditSize->findText(QString("%1").arg(font.pointSize()));
-    if(index!=-1)
+    index = ui->fontHexEditSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
         ui->fontHexEditSize->setCurrentIndex(index);
     //Application
     ui->labelApplicationFont->setText(fontMap->find("Application").value().family());
-    isInit=false;
+    isInit = false;
 }
 
-void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont & f)
 {
-    QString id="AbstractTableView";
-    QFont font=fontMap->find(id).value();
+    QString id = "AbstractTableView";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -661,39 +661,39 @@ void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontAbstractTablesStyle_currentIndexChanged(int index)
 {
-    QString id="AbstractTableView";
-    QFont font=fontMap->find(id).value();
+    QString id = "AbstractTableView";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontAbstractTablesSize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontAbstractTablesSize_currentIndexChanged(const QString & arg1)
 {
-    QString id="AbstractTableView";
-    QFont font=fontMap->find(id).value();
+    QString id = "AbstractTableView";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont & f)
 {
-    QString id="Disassembly";
-    QFont font=fontMap->find(id).value();
+    QString id = "Disassembly";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -702,39 +702,39 @@ void AppearanceDialog::on_fontDisassembly_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontDisassemblyStyle_currentIndexChanged(int index)
 {
-    QString id="Disassembly";
-    QFont font=fontMap->find(id).value();
+    QString id = "Disassembly";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontDisassemblySize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontDisassemblySize_currentIndexChanged(const QString & arg1)
 {
-    QString id="Disassembly";
-    QFont font=fontMap->find(id).value();
+    QString id = "Disassembly";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont & f)
 {
-    QString id="HexDump";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexDump";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -743,39 +743,39 @@ void AppearanceDialog::on_fontHexDump_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontHexDumpStyle_currentIndexChanged(int index)
 {
-    QString id="HexDump";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexDump";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontHexDumpSize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontHexDumpSize_currentIndexChanged(const QString & arg1)
 {
-    QString id="HexDump";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexDump";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontStack_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontStack_currentFontChanged(const QFont & f)
 {
-    QString id="Stack";
-    QFont font=fontMap->find(id).value();
+    QString id = "Stack";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -784,39 +784,39 @@ void AppearanceDialog::on_fontStack_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontStackStyle_currentIndexChanged(int index)
 {
-    QString id="Stack";
-    QFont font=fontMap->find(id).value();
+    QString id = "Stack";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontStackSize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontStackSize_currentIndexChanged(const QString & arg1)
 {
-    QString id="Stack";
-    QFont font=fontMap->find(id).value();
+    QString id = "Stack";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont & f)
 {
-    QString id="Registers";
-    QFont font=fontMap->find(id).value();
+    QString id = "Registers";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -825,39 +825,39 @@ void AppearanceDialog::on_fontRegisters_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontRegistersStyle_currentIndexChanged(int index)
 {
-    QString id="Registers";
-    QFont font=fontMap->find(id).value();
+    QString id = "Registers";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontRegistersSize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontRegistersSize_currentIndexChanged(const QString & arg1)
 {
-    QString id="Registers";
-    QFont font=fontMap->find(id).value();
+    QString id = "Registers";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont &f)
+void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont & f)
 {
-    QString id="HexEdit";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexEdit";
+    QFont font = fontMap->find(id).value();
     font.setFamily(f.family());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -866,27 +866,27 @@ void AppearanceDialog::on_fontHexEdit_currentFontChanged(const QFont &f)
 
 void AppearanceDialog::on_fontHexEditStyle_currentIndexChanged(int index)
 {
-    QString id="HexEdit";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexEdit";
+    QFont font = fontMap->find(id).value();
     font.setBold(false);
     font.setItalic(false);
-    if(index==1 || index==3)
+    if(index == 1 || index == 3)
         font.setBold(true);
-    if(index==2 || index==3)
+    if(index == 2 || index == 3)
         font.setItalic(true);
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
-void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString &arg1)
+void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString & arg1)
 {
-    QString id="HexEdit";
-    QFont font=fontMap->find(id).value();
+    QString id = "HexEdit";
+    QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
-    (*fontMap)[id]=font;
+    (*fontMap)[id] = font;
     if(isInit)
         return;
     Config()->writeFonts();
@@ -895,12 +895,12 @@ void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString &arg
 
 void AppearanceDialog::on_buttonApplicationFont_clicked()
 {
-    QString id="Application";
+    QString id = "Application";
     QFontDialog fontDialog(this);
     fontDialog.setCurrentFont(fontMap->find(id).value());
-    if(fontDialog.exec()!=QDialog::Accepted)
+    if(fontDialog.exec() != QDialog::Accepted)
         return;
-    (*fontMap)[id]=fontDialog.currentFont();
+    (*fontMap)[id] = fontDialog.currentFont();
     ui->labelApplicationFont->setText(fontDialog.currentFont().family());
     if(isInit)
         return;
@@ -910,19 +910,19 @@ void AppearanceDialog::on_buttonApplicationFont_clicked()
 
 void AppearanceDialog::on_buttonFontDefaults_clicked()
 {
-    (*fontMap)=Config()->defaultFonts;
-    isInit=true;
+    (*fontMap) = Config()->defaultFonts;
+    isInit = true;
     fontInit();
-    isInit=false;
+    isInit = false;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }
 
 void AppearanceDialog::rejectedSlot()
 {
-    Config()->Colors=colorBackupMap;
+    Config()->Colors = colorBackupMap;
     Config()->writeColors();
-    Config()->Fonts=fontBackupMap;
+    Config()->Fonts = fontBackupMap;
     Config()->writeFonts();
     GuiUpdateAllViews();
 }

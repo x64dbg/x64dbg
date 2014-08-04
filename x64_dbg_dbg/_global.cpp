@@ -2,8 +2,8 @@
 #include <new>
 
 HINSTANCE hInst;
-char dbbasepath[deflen]="";
-char dbpath[3*deflen]="";
+char dbbasepath[deflen] = "";
+char dbpath[3 * deflen] = "";
 
 void* emalloc(size_t size)
 {
@@ -15,12 +15,12 @@ void efree(void* ptr)
     efree(ptr, "efree:???");
 }
 
-static int emalloc_count=0;
-static char alloctrace[MAX_PATH]="";
+static int emalloc_count = 0;
+static char alloctrace[MAX_PATH] = "";
 
 void* emalloc(size_t size, const char* reason)
 {
-    unsigned char* a=(unsigned char*)GlobalAlloc(GMEM_FIXED, size);
+    unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -62,23 +62,23 @@ bool arraycontains(const char* cmd_list, const char* cmd)
     //TODO: fix this function a little
     if(!cmd_list or !cmd)
         return false;
-    char temp[deflen]="";
+    char temp[deflen] = "";
     strcpy(temp, cmd_list);
-    int len=(int)strlen(cmd_list);
-    if(len>=deflen)
+    int len = (int)strlen(cmd_list);
+    if(len >= deflen)
         return false;
-    for(int i=0; i<len; i++)
-        if(temp[i]==1)
-            temp[i]=0;
+    for(int i = 0; i < len; i++)
+        if(temp[i] == 1)
+            temp[i] = 0;
     if(!_stricmp(temp, cmd))
         return true;
-    for(int i=(int)strlen(temp); i<len; i++)
+    for(int i = (int)strlen(temp); i < len; i++)
     {
         if(!temp[i])
         {
-            if(!_stricmp(temp+i+1, cmd))
+            if(!_stricmp(temp + i + 1, cmd))
                 return true;
-            i+=(int)strlen(temp+i+1);
+            i += (int)strlen(temp + i + 1);
         }
     }
     return false;
@@ -93,40 +93,40 @@ bool scmp(const char* a, const char* b)
 
 void formathex(char* string)
 {
-    int len=(int)strlen(string);
+    int len = (int)strlen(string);
     _strupr(string);
-    char* new_string=(char*)emalloc(len+1, "formathex:new_string");
-    memset(new_string, 0, len+1);
-    for(int i=0,j=0; i<len; i++)
+    char* new_string = (char*)emalloc(len + 1, "formathex:new_string");
+    memset(new_string, 0, len + 1);
+    for(int i = 0, j = 0; i < len; i++)
         if(isxdigit(string[i]))
-            j+=sprintf(new_string+j, "%c", string[i]);
+            j += sprintf(new_string + j, "%c", string[i]);
     strcpy(string, new_string);
     efree(new_string, "formathex:new_string");
 }
 
 void formatdec(char* string)
 {
-    int len=(int)strlen(string);
+    int len = (int)strlen(string);
     _strupr(string);
-    char* new_string=(char*)emalloc(len+1, "formatdec:new_string");
-    memset(new_string, 0, len+1);
-    for(int i=0,j=0; i<len; i++)
+    char* new_string = (char*)emalloc(len + 1, "formatdec:new_string");
+    memset(new_string, 0, len + 1);
+    for(int i = 0, j = 0; i < len; i++)
         if(isdigit(string[i]))
-            j+=sprintf(new_string+j, "%c", string[i]);
+            j += sprintf(new_string + j, "%c", string[i]);
     strcpy(string, new_string);
     efree(new_string, "formatdec:new_string");
 }
 
 bool FileExists(const char* file)
 {
-    DWORD attrib=GetFileAttributes(file);
+    DWORD attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 bool DirExists(const char* dir)
 {
-    DWORD attrib=GetFileAttributes(dir);
-    return (attrib==FILE_ATTRIBUTE_DIRECTORY);
+    DWORD attrib = GetFileAttributes(dir);
+    return (attrib == FILE_ATTRIBUTE_DIRECTORY);
 }
 
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)

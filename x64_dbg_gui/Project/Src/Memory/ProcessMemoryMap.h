@@ -12,7 +12,7 @@ class ProcessMemoryMap : public QObject
     Q_OBJECT
 public:
 
-    explicit ProcessMemoryMap(QString fileName, QObject *parent = 0);
+    explicit ProcessMemoryMap(QString fileName, QObject* parent = 0);
     QList<MEMORY_BASIC_INFORMATION> BruteForceProcessMemory();
     void printVirtualMemoryMap(QList<MEMORY_BASIC_INFORMATION> parList);
 

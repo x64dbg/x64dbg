@@ -1,7 +1,7 @@
 #include "StdTable.h"
 #include "Bridge.h"
 
-StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
+StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
 {
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
@@ -10,7 +10,7 @@ StdTable::StdTable(QWidget *parent) : AbstractTableView(parent)
     mIsMultiSelctionAllowed = false;
 
     mData.clear();
-    mSort.first=-1;
+    mSort.first = -1;
 
     mCopyMenuOnly = false;
     mCopyMenuDebugOnly = true;
@@ -229,7 +229,7 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
     AbstractTableView::addColumnAt(width, title, isClickable);
 
     //append empty column to list of rows
-    for(int i=0; i<mData.size(); i++)
+    for(int i = 0; i < mData.size(); i++)
         mData[i].append("");
 
     //Append copy title
@@ -242,12 +242,12 @@ void StdTable::addColumnAt(int width, QString title, bool isClickable, QString c
 void StdTable::setRowCount(int count)
 {
     int wRowToAddOrRemove = count - mData.size();
-    for(int i=0; i<qAbs(wRowToAddOrRemove); i++)
+    for(int i = 0; i < qAbs(wRowToAddOrRemove); i++)
     {
         if(wRowToAddOrRemove > 0)
         {
             mData.append(QList<QString>());
-            for(int j=0; j<getColumnCount(); j++)
+            for(int j = 0; j < getColumnCount(); j++)
                 mData.last().append("");
         }
         else
@@ -292,7 +292,7 @@ void StdTable::copyLineSlot()
         finalText = getCellContent(getInitialSelection(), 0);
     else
     {
-        for(int i=0; i<colCount; i++)
+        for(int i = 0; i < colCount; i++)
         {
             QString cellContent = getCellContent(getInitialSelection(), i);
             if(!cellContent.length()) //skip empty cells
@@ -314,7 +314,7 @@ void StdTable::copyTableSlot()
     QString finalText = "";
     if(colCount == 1)
     {
-        for(int i=0; i<rowCount; i++)
+        for(int i = 0; i < rowCount; i++)
         {
             QString cellContent = getCellContent(i, 0);
             if(!cellContent.length()) //skip empty cells
@@ -324,27 +324,27 @@ void StdTable::copyTableSlot()
     }
     else
     {
-        int charwidth=getCharWidth();
-        for(int i=0; i<colCount; i++)
+        int charwidth = getCharWidth();
+        for(int i = 0; i < colCount; i++)
         {
             if(i)
                 finalText += " ";
-            int colWidth = getColumnWidth(i)/charwidth;
+            int colWidth = getColumnWidth(i) / charwidth;
             if(colWidth)
                 finalText += getColTitle(i).leftJustified(colWidth, QChar(' '), true);
             else
                 finalText += getColTitle(i);
         }
         finalText += "\r\n";
-        for(int i=0; i<rowCount; i++)
+        for(int i = 0; i < rowCount; i++)
         {
             QString finalRowText = "";
-            for(int j=0; j<colCount; j++)
+            for(int j = 0; j < colCount; j++)
             {
                 if(j)
                     finalRowText += " ";
                 QString cellContent = getCellContent(i, j);
-                int colWidth = getColumnWidth(j)/charwidth;
+                int colWidth = getColumnWidth(j) / charwidth;
                 if(colWidth)
                     finalRowText += cellContent.leftJustified(colWidth, QChar(' '), true);
                 else
@@ -361,7 +361,7 @@ void StdTable::copyEntrySlot()
     QAction* action = qobject_cast<QAction*>(sender());
     if(!action)
         return;
-    int col=action->objectName().toInt();
+    int col = action->objectName().toInt();
     Bridge::CopyToClipboard(getCellContent(getInitialSelection(), col).toUtf8().constData());
 }
 
@@ -380,11 +380,11 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     //Copy->Separatoe
     copyMenu->addSeparator();
     //Copy->ColName
-    for(int i=0; i<getColumnCount(); i++)
+    for(int i = 0; i < getColumnCount(); i++)
     {
         if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
             continue;
-        QString title=mCopyTitles.at(i);
+        QString title = mCopyTitles.at(i);
         if(!title.length()) //skip empty copy titles
             continue;
         QAction* mCopyAction = new QAction(title, this);
@@ -400,7 +400,7 @@ void StdTable::setCopyMenuOnly(bool bSet, bool bDebugOnly)
     mCopyMenuDebugOnly = bDebugOnly;
 }
 
-void StdTable::contextMenuRequestedSlot(const QPoint &pos)
+void StdTable::contextMenuRequestedSlot(const QPoint & pos)
 {
     if(!mCopyMenuOnly)
     {
@@ -424,11 +424,11 @@ void StdTable::headerButtonPressedSlot(int col)
 {
     if(mSort.first != -1)
     {
-        mSort.first=col;
-        mSort.second=false;
+        mSort.first = col;
+        mSort.second = false;
     }
     else
-        mSort.second=!mSort.second;
+        mSort.second = !mSort.second;
     qSort(mData.begin(), mData.end(), ColumnCompare(col, mSort.second));
     reloadData();
 }

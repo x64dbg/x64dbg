@@ -9,7 +9,7 @@ class LogView : public QTextEdit
 {
     Q_OBJECT
 public:
-    explicit LogView(QWidget *parent = 0);
+    explicit LogView(QWidget* parent = 0);
 
 signals:
 

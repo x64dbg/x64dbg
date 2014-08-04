@@ -1,6 +1,6 @@
 #include "CommandLineEdit.h"
 
-CommandLineEdit::CommandLineEdit(QWidget *parent) : HistoryLineEdit(parent)
+CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
 {
     //Initialize QCompleter
     mCompleter = new QCompleter(QStringList(), this);
@@ -28,7 +28,7 @@ void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
     QStringListModel* model = (QStringListModel*)(mCompleter->model());
     QStringList stringList = model->stringList();
     QStringList deleteList = cmd.split(QChar('\1'), QString::SkipEmptyParts);
-    for(int i=0; i<deleteList.size(); i++)
+    for(int i = 0; i < deleteList.size(); i++)
         stringList.removeAll(deleteList.at(i));
     model->setStringList(stringList);
 }

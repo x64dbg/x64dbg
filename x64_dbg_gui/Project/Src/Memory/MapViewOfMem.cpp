@@ -11,7 +11,7 @@ MapViewOfMem::MapViewOfMem(QString file)
 {
     MemDataCacheStruct_t data;
     memset(&data, 0, sizeof(MemDataCacheStruct_t));
-    data.memDataCachePtr=new QVector<byte_t>(0);
+    data.memDataCachePtr = new QVector<byte_t>(0);
     mGuiMemDataCache = data;
 
     mSelectedData.fromIndex = -1;

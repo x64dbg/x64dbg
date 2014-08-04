@@ -36,15 +36,15 @@ extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, d
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 {
     CriticalSectionLocker locker(LockMemoryPages);
-    int pagecount=(int)memoryPages.size();
+    int pagecount = (int)memoryPages.size();
     memset(memmap, 0, sizeof(MEMMAP));
-    memmap->count=pagecount;
+    memmap->count = pagecount;
     if(!pagecount)
         return true;
-    memmap->page=(MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE)*pagecount);
+    memmap->page = (MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE) * pagecount);
     memset(memmap->page, 0, sizeof(MEMPAGE)*pagecount);
-    int j=0;
-    for(MemoryMap::iterator i=memoryPages.begin(); i!=memoryPages.end(); ++i,j++)
+    int j = 0;
+    for(MemoryMap::iterator i = memoryPages.begin(); i != memoryPages.end(); ++i, j++)
         memcpy(&memmap->page[j], &i->second, sizeof(MEMPAGE));
     return true;
 }
@@ -71,11 +71,11 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     static uint cacheFlags;
     static uint cacheAddr;
     static bool cacheResult;
-    if(cacheAddr!=addr or cacheFlags!=GetContextDataEx(hActiveThread, UE_EFLAGS))
+    if(cacheAddr != addr or cacheFlags != GetContextDataEx(hActiveThread, UE_EFLAGS))
     {
-        cacheFlags=GetContextDataEx(hActiveThread, UE_EFLAGS);
-        cacheAddr=addr;
-        cacheResult=IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
+        cacheFlags = GetContextDataEx(hActiveThread, UE_EFLAGS);
+        cacheAddr = addr;
+        cacheResult = IsJumpGoingToExecuteEx(fdProcessInfo->hProcess, fdProcessInfo->hThread, (ULONG_PTR)cacheAddr, cacheFlags);
     }
     return cacheResult;
 }
@@ -84,23 +84,23 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 {
     if(!DbgIsDebugging())
         return false;
-    bool retval=false;
-    if(addrinfo->flags&flagmodule) //get module
+    bool retval = false;
+    if(addrinfo->flags & flagmodule) //get module
     {
-        char module[64]="";
-        if(modnamefromaddr(addr, module, false) and strlen(module)<MAX_MODULE_SIZE) //get module name
+        char module[64] = "";
+        if(modnamefromaddr(addr, module, false) and strlen(module) < MAX_MODULE_SIZE) //get module name
         {
             strcpy(addrinfo->module, module);
-            retval=true;
+            retval = true;
         }
     }
-    if(addrinfo->flags&flaglabel)
+    if(addrinfo->flags & flaglabel)
     {
         if(labelget(addr, addrinfo->label))
-            retval=true;
+            retval = true;
         else //no user labels
         {
-            DWORD64 displacement=0;
+            DWORD64 displacement = 0;
             char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
@@ -109,7 +109,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             {
                 if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy(addrinfo->label, pSymbol->Name);
-                retval=true;
+                retval = true;
             }
             if(!retval) //search for CALL <jmp.&user32.MessageBoxA>
             {
@@ -117,40 +117,40 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
                 if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
                 {
-                    uint val=0;
+                    uint val = 0;
                     if(memread(fdProcessInfo->hProcess, (const void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
                         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
                             if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
-                            retval=true;
+                            retval = true;
                         }
                     }
                 }
             }
         }
     }
-    if(addrinfo->flags&flagbookmark)
+    if(addrinfo->flags & flagbookmark)
     {
-        addrinfo->isbookmark=bookmarkget(addr);
-        retval=true;
+        addrinfo->isbookmark = bookmarkget(addr);
+        retval = true;
     }
-    if(addrinfo->flags&flagfunction)
+    if(addrinfo->flags & flagfunction)
     {
         if(functionget(addr, &addrinfo->function.start, &addrinfo->function.end))
-            retval=true;
+            retval = true;
     }
-    if(addrinfo->flags&flagloop)
+    if(addrinfo->flags & flagloop)
     {
         if(loopget(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
-            retval=true;
+            retval = true;
     }
-    if(addrinfo->flags&flagcomment)
+    if(addrinfo->flags & flagcomment)
     {
-        *addrinfo->comment=0;
+        *addrinfo->comment = 0;
         if(commentget(addr, addrinfo->comment))
-            retval=true;
+            retval = true;
         else
         {
             DWORD dwDisplacement;
@@ -158,50 +158,50 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
             if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
             {
-                char filename[deflen]="";
+                char filename[deflen] = "";
                 strcpy(filename, line.FileName);
-                int len=(int)strlen(filename);
-                while(filename[len]!='\\' and len!=0)
+                int len = (int)strlen(filename);
+                while(filename[len] != '\\' and len != 0)
                     len--;
                 if(len)
                     len++;
-                sprintf(addrinfo->comment, "%s:%u", filename+len, line.LineNumber);
-                retval=true;
+                sprintf(addrinfo->comment, "%s:%u", filename + len, line.LineNumber);
+                retval = true;
             }
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
                 std::string temp_string;
                 ADDRINFO newinfo;
-                char ascii[256*2]="";
-                char unicode[256*2]="";
+                char ascii[256 * 2] = "";
+                char unicode[256 * 2] = "";
 
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
-                int len_left=MAX_COMMENT_SIZE;
-                for(int i=0,j=0; i<instr.argcount; i++)
+                int len_left = MAX_COMMENT_SIZE;
+                for(int i = 0, j = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
-                    newinfo.flags=flaglabel;
+                    newinfo.flags = flaglabel;
 
-                    STRING_TYPE strtype=str_none;
+                    STRING_TYPE strtype = str_none;
 
-                    if(instr.arg[i].constant==instr.arg[i].value) //avoid: call <module.label> ; addr:label
+                    if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(instr.type==instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) or strtype==str_none)
+                        if(instr.type == instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) or strtype == str_none)
                             continue;
                         switch(strtype)
                         {
                         case str_none:
                             break;
                         case str_ascii:
-                            temp_string=instr.arg[i].mnemonic;
+                            temp_string = instr.arg[i].mnemonic;
                             temp_string.append(":\"");
                             temp_string.append(ascii);
                             temp_string.append("\"");
                             break;
                         case str_unicode:
-                            temp_string=instr.arg[i].mnemonic;
+                            temp_string = instr.arg[i].mnemonic;
                             temp_string.append(":L\"");
                             temp_string.append(unicode);
                             temp_string.append("\"");
@@ -215,20 +215,20 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         case str_none:
                             if(*newinfo.label)
                             {
-                                temp_string="[";
+                                temp_string = "[";
                                 temp_string.append(instr.arg[i].mnemonic);
                                 temp_string.append("]:");
                                 temp_string.append(newinfo.label);
                             }
                             break;
                         case str_ascii:
-                            temp_string="[";
+                            temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
                             temp_string.append(ascii);
                             break;
                         case str_unicode:
-                            temp_string="[";
+                            temp_string = "[";
                             temp_string.append(instr.arg[i].mnemonic);
                             temp_string.append("]:");
                             temp_string.append(unicode);
@@ -237,26 +237,26 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     }
                     else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
-                        if(instr.type!=instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
-                            strtype=str_none;
+                        if(instr.type != instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
+                            strtype = str_none;
                         switch(strtype)
                         {
                         case str_none:
                             if(*newinfo.label)
                             {
-                                temp_string=instr.arg[i].mnemonic;
+                                temp_string = instr.arg[i].mnemonic;
                                 temp_string.append(":");
                                 temp_string.append(newinfo.label);
                             }
                             break;
                         case str_ascii:
-                            temp_string=instr.arg[i].mnemonic;
+                            temp_string = instr.arg[i].mnemonic;
                             temp_string.append(":\"");
                             temp_string.append(ascii);
                             temp_string.append("\"");
                             break;
                         case str_unicode:
-                            temp_string=instr.arg[i].mnemonic;
+                            temp_string = instr.arg[i].mnemonic;
                             temp_string.append(":L\"");
                             temp_string.append(unicode);
                             temp_string.append("\"");
@@ -268,14 +268,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(!strstr(addrinfo->comment, temp_string.c_str()))
                     {
-                        unsigned int maxlen=MAX_COMMENT_SIZE-j-1;
-                        if(maxlen<temp_string.length())
-                            temp_string.at(maxlen-1)=0;
+                        unsigned int maxlen = MAX_COMMENT_SIZE - j - 1;
+                        if(maxlen < temp_string.length())
+                            temp_string.at(maxlen - 1) = 0;
                         if(j)
-                            j+=sprintf(addrinfo->comment+j, ", %s", temp_string.c_str());
+                            j += sprintf(addrinfo->comment + j, ", %s", temp_string.c_str());
                         else
-                            j+=sprintf(addrinfo->comment+j, "%s", temp_string.c_str());
-                        retval=true;
+                            j += sprintf(addrinfo->comment + j, "%s", temp_string.c_str());
+                        retval = true;
                     }
                 }
             }
@@ -286,23 +286,23 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 {
-    bool retval=false;
-    if(addrinfo->flags&flaglabel) //set label
+    bool retval = false;
+    if(addrinfo->flags & flaglabel) //set label
     {
         if(labelset(addr, addrinfo->label, true))
-            retval=true;
+            retval = true;
     }
-    if(addrinfo->flags&flagcomment) //set comment
+    if(addrinfo->flags & flagcomment) //set comment
     {
         if(commentset(addr, addrinfo->comment, true))
-            retval=true;
+            retval = true;
     }
-    if(addrinfo->flags&flagbookmark) //set bookmark
+    if(addrinfo->flags & flagbookmark) //set bookmark
     {
         if(addrinfo->isbookmark)
-            retval=bookmarkset(addr, true);
+            retval = bookmarkset(addr, true);
         else
-            retval=bookmarkdel(addr);
+            retval = bookmarkdel(addr);
     }
     return retval;
 }
@@ -312,22 +312,22 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     static uint cacheAddr;
     static int cacheBpCount;
     static int cacheResult;
-    int bpcount=bpgetlist(0);
-    if(cacheAddr!=addr or cacheBpCount!=bpcount)
+    int bpcount = bpgetlist(0);
+    if(cacheAddr != addr or cacheBpCount != bpcount)
     {
         BREAKPOINT bp;
-        cacheAddr=addr;
-        cacheResult=0;
-        cacheBpCount=bpcount;
+        cacheAddr = addr;
+        cacheResult = 0;
+        cacheBpCount = bpcount;
         if(bpget(addr, BPNORMAL, 0, &bp))
             if(bp.enabled)
-                cacheResult|=bp_normal;
+                cacheResult |= bp_normal;
         if(bpget(addr, BPHARDWARE, 0, &bp))
             if(bp.enabled)
-                cacheResult|=bp_hardware;
+                cacheResult |= bp_hardware;
         if(bpget(addr, BPMEMORY, 0, &bp))
             if(bp.enabled)
-                cacheResult|=bp_memory;
+                cacheResult |= bp_memory;
     }
     return cacheResult;
 }
@@ -341,89 +341,89 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     }
     REGDUMP r;
 #ifdef _WIN64
-    r.cax=GetContextDataEx(hActiveThread, UE_RAX);
+    r.cax = GetContextDataEx(hActiveThread, UE_RAX);
 #else
-    r.cax=(duint)GetContextDataEx(hActiveThread, UE_EAX);
+    r.cax = (duint)GetContextDataEx(hActiveThread, UE_EAX);
 #endif // _WIN64
 #ifdef _WIN64
-    r.ccx=GetContextDataEx(hActiveThread, UE_RCX);
+    r.ccx = GetContextDataEx(hActiveThread, UE_RCX);
 #else
-    r.ccx=(duint)GetContextDataEx(hActiveThread, UE_ECX);
+    r.ccx = (duint)GetContextDataEx(hActiveThread, UE_ECX);
 #endif // _WIN64
 #ifdef _WIN64
-    r.cdx=GetContextDataEx(hActiveThread, UE_RDX);
+    r.cdx = GetContextDataEx(hActiveThread, UE_RDX);
 #else
-    r.cdx=(duint)GetContextDataEx(hActiveThread, UE_EDX);
+    r.cdx = (duint)GetContextDataEx(hActiveThread, UE_EDX);
 #endif // _WIN64
 #ifdef _WIN64
-    r.cbx=GetContextDataEx(hActiveThread, UE_RBX);
+    r.cbx = GetContextDataEx(hActiveThread, UE_RBX);
 #else
-    r.cbx=(duint)GetContextDataEx(hActiveThread, UE_EBX);
+    r.cbx = (duint)GetContextDataEx(hActiveThread, UE_EBX);
 #endif // _WIN64
 #ifdef _WIN64
-    r.cbp=GetContextDataEx(hActiveThread, UE_RBP);
+    r.cbp = GetContextDataEx(hActiveThread, UE_RBP);
 #else
-    r.cbp=(duint)GetContextDataEx(hActiveThread, UE_EBP);
+    r.cbp = (duint)GetContextDataEx(hActiveThread, UE_EBP);
 #endif // _WIN64
 #ifdef _WIN64
-    r.csi=GetContextDataEx(hActiveThread, UE_RSI);
+    r.csi = GetContextDataEx(hActiveThread, UE_RSI);
 #else
-    r.csi=(duint)GetContextDataEx(hActiveThread, UE_ESI);
+    r.csi = (duint)GetContextDataEx(hActiveThread, UE_ESI);
 #endif // _WIN64
 #ifdef _WIN64
-    r.cdi=GetContextDataEx(hActiveThread, UE_RDI);
+    r.cdi = GetContextDataEx(hActiveThread, UE_RDI);
 #else
-    r.cdi=(duint)GetContextDataEx(hActiveThread, UE_EDI);
+    r.cdi = (duint)GetContextDataEx(hActiveThread, UE_EDI);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r8=GetContextDataEx(hActiveThread, UE_R8);
+    r.r8 = GetContextDataEx(hActiveThread, UE_R8);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r9=GetContextDataEx(hActiveThread, UE_R9);
+    r.r9 = GetContextDataEx(hActiveThread, UE_R9);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r10=GetContextDataEx(hActiveThread, UE_R10);
+    r.r10 = GetContextDataEx(hActiveThread, UE_R10);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r11=GetContextDataEx(hActiveThread, UE_R11);
+    r.r11 = GetContextDataEx(hActiveThread, UE_R11);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r12=GetContextDataEx(hActiveThread, UE_R12);
+    r.r12 = GetContextDataEx(hActiveThread, UE_R12);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r13=GetContextDataEx(hActiveThread, UE_R13);
+    r.r13 = GetContextDataEx(hActiveThread, UE_R13);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r14=GetContextDataEx(hActiveThread, UE_R14);
+    r.r14 = GetContextDataEx(hActiveThread, UE_R14);
 #endif // _WIN64
 #ifdef _WIN64
-    r.r15=GetContextDataEx(hActiveThread, UE_R15);
+    r.r15 = GetContextDataEx(hActiveThread, UE_R15);
 #endif // _WIN64
-    r.csp=(duint)GetContextDataEx(hActiveThread, UE_CSP);
-    r.cip=(duint)GetContextDataEx(hActiveThread, UE_CIP);
-    r.eflags=(unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
-    r.gs=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS)&0xFFFF);
-    r.fs=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS)&0xFFFF);
-    r.es=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_ES)&0xFFFF);
-    r.ds=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS)&0xFFFF);
-    r.cs=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS)&0xFFFF);
-    r.ss=(unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS)&0xFFFF);
-    r.dr0=(duint)GetContextDataEx(hActiveThread, UE_DR0);
-    r.dr1=(duint)GetContextDataEx(hActiveThread, UE_DR1);
-    r.dr2=(duint)GetContextDataEx(hActiveThread, UE_DR2);
-    r.dr3=(duint)GetContextDataEx(hActiveThread, UE_DR3);
-    r.dr6=(duint)GetContextDataEx(hActiveThread, UE_DR6);
-    r.dr7=(duint)GetContextDataEx(hActiveThread, UE_DR7);
-    duint cflags=r.eflags;
-    r.flags.c=valflagfromstring(cflags, "cf");
-    r.flags.p=valflagfromstring(cflags, "pf");
-    r.flags.a=valflagfromstring(cflags, "af");
-    r.flags.z=valflagfromstring(cflags, "zf");
-    r.flags.s=valflagfromstring(cflags, "sf");
-    r.flags.t=valflagfromstring(cflags, "tf");
-    r.flags.i=valflagfromstring(cflags, "if");
-    r.flags.d=valflagfromstring(cflags, "df");
-    r.flags.o=valflagfromstring(cflags, "of");
+    r.csp = (duint)GetContextDataEx(hActiveThread, UE_CSP);
+    r.cip = (duint)GetContextDataEx(hActiveThread, UE_CIP);
+    r.eflags = (unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
+    r.gs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS) & 0xFFFF);
+    r.fs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS) & 0xFFFF);
+    r.es = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_ES) & 0xFFFF);
+    r.ds = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS) & 0xFFFF);
+    r.cs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS) & 0xFFFF);
+    r.ss = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS) & 0xFFFF);
+    r.dr0 = (duint)GetContextDataEx(hActiveThread, UE_DR0);
+    r.dr1 = (duint)GetContextDataEx(hActiveThread, UE_DR1);
+    r.dr2 = (duint)GetContextDataEx(hActiveThread, UE_DR2);
+    r.dr3 = (duint)GetContextDataEx(hActiveThread, UE_DR3);
+    r.dr6 = (duint)GetContextDataEx(hActiveThread, UE_DR6);
+    r.dr7 = (duint)GetContextDataEx(hActiveThread, UE_DR7);
+    duint cflags = r.eflags;
+    r.flags.c = valflagfromstring(cflags, "cf");
+    r.flags.p = valflagfromstring(cflags, "pf");
+    r.flags.a = valflagfromstring(cflags, "af");
+    r.flags.z = valflagfromstring(cflags, "zf");
+    r.flags.s = valflagfromstring(cflags, "sf");
+    r.flags.t = valflagfromstring(cflags, "tf");
+    r.flags.i = valflagfromstring(cflags, "if");
+    r.flags.d = valflagfromstring(cflags, "df");
+    r.flags.o = valflagfromstring(cflags, "of");
     memcpy(regdump, &r, sizeof(REGDUMP));
     return true;
 }
@@ -438,18 +438,18 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     if(!bpmap)
         return 0;
     std::vector<BREAKPOINT> list;
-    int bpcount=bpgetlist(&list);
-    if(bpcount==0)
+    int bpcount = bpgetlist(&list);
+    if(bpcount == 0)
     {
-        bpmap->count=0;
+        bpmap->count = 0;
         return 0;
     }
 
-    int retcount=0;
+    int retcount = 0;
     std::vector<BRIDGEBP> bridgeList;
     BRIDGEBP curBp;
-    unsigned short slot=0;
-    for(int i=0; i<bpcount; i++)
+    unsigned short slot = 0;
+    for(int i = 0; i < bpcount; i++)
     {
         memset(&curBp, 0, sizeof(BRIDGEBP));
         switch(type)
@@ -457,15 +457,15 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         case bp_none: //all types
             break;
         case bp_normal: //normal
-            if(list[i].type!=BPNORMAL)
+            if(list[i].type != BPNORMAL)
                 continue;
             break;
         case bp_hardware: //hardware
-            if(list[i].type!=BPHARDWARE)
+            if(list[i].type != BPHARDWARE)
                 continue;
             break;
         case bp_memory: //memory
-            if(list[i].type!=BPMEMORY)
+            if(list[i].type != BPMEMORY)
                 continue;
             break;
         default:
@@ -474,39 +474,39 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         switch(list[i].type)
         {
         case BPNORMAL:
-            curBp.type=bp_normal;
+            curBp.type = bp_normal;
             break;
         case BPHARDWARE:
-            curBp.type=bp_hardware;
+            curBp.type = bp_hardware;
             break;
         case BPMEMORY:
-            curBp.type=bp_memory;
+            curBp.type = bp_memory;
             break;
         }
-        switch(((DWORD)list[i].titantype)>>8)
+        switch(((DWORD)list[i].titantype) >> 8)
         {
         case UE_DR0:
-            slot=0;
+            slot = 0;
             break;
         case UE_DR1:
-            slot=1;
+            slot = 1;
             break;
         case UE_DR2:
-            slot=2;
+            slot = 2;
             break;
         case UE_DR3:
-            slot=3;
+            slot = 3;
             break;
         }
-        curBp.addr=list[i].addr;
-        curBp.enabled=list[i].enabled;
+        curBp.addr = list[i].addr;
+        curBp.enabled = list[i].enabled;
         //TODO: fix this
         if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
-            curBp.active=true;
+            curBp.active = true;
         strcpy(curBp.mod, list[i].mod);
         strcpy(curBp.name, list[i].name);
-        curBp.singleshoot=list[i].singleshoot;
-        curBp.slot=slot;
+        curBp.singleshoot = list[i].singleshoot;
+        curBp.slot = slot;
         if(curBp.active)
         {
             bridgeList.push_back(curBp);
@@ -515,12 +515,12 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     }
     if(!retcount)
     {
-        bpmap->count=retcount;
+        bpmap->count = retcount;
         return retcount;
     }
-    bpmap->count=retcount;
-    bpmap->bp=(BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP)*retcount);
-    for(int i=0; i<retcount; i++)
+    bpmap->count = retcount;
+    bpmap->bp = (BRIDGEBP*)BridgeAlloc(sizeof(BRIDGEBP) * retcount);
+    for(int i = 0; i < retcount; i++)
         memcpy(&bpmap->bp[i], &bridgeList.at(i), sizeof(BRIDGEBP));
     return retcount;
 }
@@ -530,17 +530,17 @@ extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
     DISASM_INSTR instr;
     memset(&instr, 0, sizeof(instr));
     disasmget(addr, &instr);
-    if(instr.type!=instr_branch)
+    if(instr.type != instr_branch)
         return 0;
     if(strstr(instr.instruction, "ret"))
     {
-        uint atcsp=DbgValFromString("@csp");
+        uint atcsp = DbgValFromString("@csp");
         if(DbgMemIsValidReadPtr(atcsp))
             return atcsp;
         else
             return 0;
     }
-    else if(instr.arg[0].type==arg_memory)
+    else if(instr.arg[0].type == arg_memory)
         return instr.arg[0].memvalue;
     else
         return instr.arg[0].value;
@@ -623,7 +623,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SYMBOL_ENUM:
     {
-        SYMBOLCBINFO* cbInfo=(SYMBOLCBINFO*)param1;
+        SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
         symenum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
     }
     break;
@@ -695,23 +695,23 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
             else
                 SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, false);
         }
-        char exceptionRange[MAX_SETTING_SIZE]="";
+        char exceptionRange[MAX_SETTING_SIZE] = "";
         dbgclearignoredexceptions();
         if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))
         {
-            char* entry=strtok(exceptionRange, ",");
+            char* entry = strtok(exceptionRange, ",");
             while(entry)
             {
                 unsigned long start;
                 unsigned long end;
-                if(sscanf(entry, "%08X-%08X", &start, &end)==2 && start<=end)
+                if(sscanf(entry, "%08X-%08X", &start, &end) == 2 && start <= end)
                 {
                     ExceptionRange range;
-                    range.start=start;
-                    range.end=end;
+                    range.start = start;
+                    range.end = end;
                     dbgaddignoredexception(range);
                 }
-                entry=strtok(0, ",");
+                entry = strtok(0, ",");
             }
         }
         if(BridgeSettingGetUint("Disassembler", "OnlyCipAutoComments", &setting))
@@ -734,77 +734,77 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         DISASM disasm;
         memset(&disasm, 0, sizeof(disasm));
 #ifdef _WIN64
-        disasm.Archi=64;
+        disasm.Archi = 64;
 #endif // _WIN64
-        disasm.EIP=(UIntPtr)data;
-        disasm.VirtualAddr=(UInt64)param1;
-        int len=Disasm(&disasm);
-        uint i=0;
-        BASIC_INSTRUCTION_INFO* basicinfo=(BASIC_INSTRUCTION_INFO*)param2;
+        disasm.EIP = (UIntPtr)data;
+        disasm.VirtualAddr = (UInt64)param1;
+        int len = Disasm(&disasm);
+        uint i = 0;
+        BASIC_INSTRUCTION_INFO* basicinfo = (BASIC_INSTRUCTION_INFO*)param2;
         fillbasicinfo(&disasm, basicinfo);
-        basicinfo->size=len;
+        basicinfo->size = len;
     }
     break;
 
     case DBG_MENU_ENTRY_CLICKED:
     {
-        int hEntry=(int)(uint)param1;
+        int hEntry = (int)(uint)param1;
         pluginmenucall(hEntry);
     }
     break;
 
     case DBG_FUNCTION_GET:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)functionget(info->addr, &info->start, &info->end);
     }
     break;
 
     case DBG_FUNCTION_OVERLAPS:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)functionoverlaps(info->start, info->end);
     }
     break;
 
     case DBG_FUNCTION_ADD:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)functionadd(info->start, info->end, info->manual);
     }
     break;
 
     case DBG_FUNCTION_DEL:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)functiondel(info->addr);
     }
     break;
 
     case DBG_LOOP_GET:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)loopget(info->depth, info->addr, &info->start, &info->end);
     }
     break;
 
     case DBG_LOOP_OVERLAPS:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)loopoverlaps(info->depth, info->start, info->end, 0);
     }
     break;
 
     case DBG_LOOP_ADD:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)loopadd(info->start, info->end, info->manual);
     }
     break;
 
     case DBG_LOOP_DEL:
     {
-        FUNCTION_LOOP_INFO* info=(FUNCTION_LOOP_INFO*)param1;
+        FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
         return (uint)loopdel(info->depth, info->addr);
     }
     break;
@@ -875,10 +875,10 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_GET_STRING_AT:
     {
         STRING_TYPE strtype;
-        char string[512]="";
+        char string[512] = "";
         if(disasmgetstringat((uint)param1, &strtype, string, string, 500))
         {
-            if(strtype==str_ascii)
+            if(strtype == str_ascii)
                 sprintf((char*)param2, "\"%s\"", string);
             else //unicode
                 sprintf((char*)param2, "L\"%s\"", string);

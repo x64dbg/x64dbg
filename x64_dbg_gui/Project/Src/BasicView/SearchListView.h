@@ -29,7 +29,7 @@ public:
     bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
 
 private slots:
-    void searchTextChanged(const QString &arg1);
+    void searchTextChanged(const QString & arg1);
     void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();

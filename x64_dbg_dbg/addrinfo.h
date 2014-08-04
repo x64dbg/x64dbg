@@ -10,7 +10,7 @@ typedef std::pair<int, ModuleRange> DepthModuleRange; //depth + modulerange
 
 struct RangeCompare
 {
-    bool operator()(const Range& a, const Range& b) const //a before b?
+    bool operator()(const Range & a, const Range & b) const //a before b?
     {
         return a.second < b.first;
     }
@@ -18,7 +18,7 @@ struct RangeCompare
 
 struct OverlappingRangeCompare
 {
-    bool operator()(const Range& a, const Range& b) const //a before b?
+    bool operator()(const Range & a, const Range & b) const //a before b?
     {
         return a.second < b.first || a.second < b.second;
     }
@@ -26,7 +26,7 @@ struct OverlappingRangeCompare
 
 struct ModuleRangeCompare
 {
-    bool operator()(const ModuleRange& a, const ModuleRange& b) const
+    bool operator()(const ModuleRange & a, const ModuleRange & b) const
     {
         if(a.first < b.first) //module hash is smaller
             return true;
@@ -38,7 +38,7 @@ struct ModuleRangeCompare
 
 struct DepthModuleRangeCompare
 {
-    bool operator()(const DepthModuleRange& a, const DepthModuleRange& b) const
+    bool operator()(const DepthModuleRange & a, const DepthModuleRange & b) const
     {
         if(a.first < b.first) //module depth is smaller
             return true;

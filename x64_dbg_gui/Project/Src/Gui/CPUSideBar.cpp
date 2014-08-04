@@ -2,7 +2,7 @@
 #include "Configuration.h"
 #include "Breakpoints.h"
 
-CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollArea(parent)
+CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)
 {
     topVA = -1;
     selectedVA = -1;
@@ -24,12 +24,12 @@ CPUSideBar::CPUSideBar(CPUDisassembly *Ptr, QWidget *parent) : QAbstractScrollAr
 
 QSize CPUSideBar::sizeHint() const
 {
-    return QSize(40,this->viewport()->height());
+    return QSize(40, this->viewport()->height());
 }
 
 void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 {
-    if(state==stopped)
+    if(state == stopped)
     {
         repaint(); //clear
     }
@@ -43,7 +43,7 @@ void CPUSideBar::repaint()
 
 void CPUSideBar::changeTopmostAddress(int_t i)
 {
-    if(i!=topVA)
+    if(i != topVA)
     {
         topVA = i;
         memset(&regDump, 0, sizeof(REGDUMP));
@@ -68,18 +68,18 @@ void CPUSideBar::setSelection(int_t selVA)
 
 bool CPUSideBar::isJump(int i) const
 {
-    int BranchType=InstrBuffer->at(i).disasm.Instruction.BranchType;
-    if(BranchType && BranchType!=RetType && BranchType!=CallType)
+    int BranchType = InstrBuffer->at(i).disasm.Instruction.BranchType;
+    if(BranchType && BranchType != RetType && BranchType != CallType)
     {
-        uint_t start=CodePtr->getBase();
-        uint_t end=start+CodePtr->getSize();
-        uint_t addr=DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
-        return addr>=start && addr<end; //do not draw jumps that go out of the section
+        uint_t start = CodePtr->getBase();
+        uint_t end = start + CodePtr->getSize();
+        uint_t addr = DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
+        return addr >= start && addr < end; //do not draw jumps that go out of the section
     }
     return false;
 }
 
-void CPUSideBar::paintEvent(QPaintEvent *event)
+void CPUSideBar::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
 
@@ -96,9 +96,9 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
     int_t last_va = InstrBuffer->last().rva + CodePtr->getBase();
     int_t first_va = InstrBuffer->first().rva + CodePtr->getBase();
 
-    for(int line=0; line<viewableRows; line++)
+    for(int line = 0; line < viewableRows; line++)
     {
-        if(line>=InstrBuffer->size()) //at the end of the page it will crash otherwise
+        if(line >= InstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
         Instruction_t instr = InstrBuffer->at(line);
         int_t instrVA = instr.rva + CodePtr->getBase();
@@ -125,16 +125,16 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
 
             bool isConditional = !((instr.disasm.Instruction.Opcode == 0xEB) || instr.disasm.Instruction.Opcode == 0xE9);
 
-            if(destVA==instrVA) //do not try to draw EBFE
+            if(destVA == instrVA) //do not try to draw EBFE
                 continue;
-            else if(destVA >= CodePtr->getBase()+CodePtr->getSize() || destVA < CodePtr->getBase()) //do not draw jumps that leave the page
+            else if(destVA >= CodePtr->getBase() + CodePtr->getSize() || destVA < CodePtr->getBase()) //do not draw jumps that leave the page
                 continue;
             else if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine>-1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva+CodePtr->getBase() != destVA)
+                while(destLine > -1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva + CodePtr->getBase() != destVA)
                 {
-                    if(destVA>instrVA) //jump goes up
+                    if(destVA > instrVA) //jump goes up
                         destLine++;
                     else //jump goes down
                         destLine--;
@@ -142,7 +142,7 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
                 drawJump(&painter, line, destLine, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
             }
             else if(destVA > last_va)
-                drawJump(&painter, line, viewableRows+6, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
+                drawJump(&painter, line, viewableRows + 6, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
             else if(destVA < first_va)
                 drawJump(&painter, line, -6, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
         }
@@ -174,15 +174,15 @@ void CPUSideBar::paintEvent(QPaintEvent *event)
     }
 }
 
-void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
+void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
 {
     // get clicked line
     const int x = e->pos().x();
     const int y = e->pos().y();
-    const int line = y/fontHeight;
+    const int line = y / fontHeight;
 
-    const int bulletRadius = fontHeight/2; //14/2=7
-    const int bulletY = line*fontHeight + (fontHeight-bulletRadius)/2+1; //initial y
+    const int bulletRadius = fontHeight / 2; //14/2=7
+    const int bulletY = line * fontHeight + (fontHeight - bulletRadius) / 2 + 1; //initial y
     const int bulletX = viewport()->width() - 10; //initial x
 
     if(x < bulletX || x > bulletX + bulletRadius)
@@ -198,7 +198,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
 
     QString wCmd;
     // create --> disable --> delete --> create --> ...
-    switch(Breakpoints::BPState(bp_normal,wVA))
+    switch(Breakpoints::BPState(bp_normal, wVA))
     {
     case bp_enabled:
         // breakpoint exists and is enabled --> disable breakpoint
@@ -219,7 +219,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent *e)
     }
 }
 
-void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpoffset, bool conditional, bool isexecute, bool isactive)
+void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive)
 {
     painter->save();
     if(!conditional)
@@ -242,10 +242,10 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
     painter->setPen(tmp);
 
     const int JumpPadding = 11;
-    int x = viewport()->width() - jumpoffset*JumpPadding - 12;
+    int x = viewport()->width() - jumpoffset * JumpPadding - 12;
     int x_right = viewport()->width() - 12;
-    const int y_start =  fontHeight*(1+startLine)-0.5*fontHeight;
-    const int y_end =  fontHeight*(1+endLine)-0.5*fontHeight;
+    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight;
+    const int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
 
     //horizontal
     painter->drawLine(x_right, y_start, x, y_start);
@@ -257,12 +257,12 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
         //horizontal
         painter->drawLine(x, y_end, x_right, y_end);
 
-        if(endLine == viewableRows+6)
+        if(endLine == viewableRows + 6)
         {
-            int y = this->viewport()->height()-1;
-            if(y>y_start)
+            int y = this->viewport()->height() - 1;
+            if(y > y_start)
             {
-                QPen temp=painter->pen();
+                QPen temp = painter->pen();
                 temp.setStyle(Qt::SolidLine);
                 painter->setPen(temp);
                 QPoint wPoints[] =
@@ -277,7 +277,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
         else if(endLine == -6)
         {
             int y = 0;
-            QPen temp=painter->pen();
+            QPen temp = painter->pen();
             temp.setStyle(Qt::SolidLine);
             painter->setPen(temp);
             QPoint wPoints[] =
@@ -290,7 +290,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
         }
         else
         {
-            QPen temp=painter->pen();
+            QPen temp = painter->pen();
             temp.setStyle(Qt::SolidLine);
             painter->setPen(temp);
             QPoint wPoints[] =
@@ -304,11 +304,11 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
     }
     else
     {
-        if(endLine == viewableRows+6)
+        if(endLine == viewableRows + 6)
         {
-            int y = this->viewport()->height()-1;
+            int y = this->viewport()->height() - 1;
             x--;
-            QPen temp=painter->pen();
+            QPen temp = painter->pen();
             temp.setStyle(Qt::SolidLine);
             painter->setPen(temp);
             QPoint wPoints[] =
@@ -322,7 +322,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine,int endLine,int jumpo
         else if(endLine == -6)
         {
             int y = 0;
-            QPen temp=painter->pen();
+            QPen temp = painter->pen();
             temp.setStyle(Qt::SolidLine);
             painter->setPen(temp);
             QPoint wPoints[] =
@@ -352,9 +352,9 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     painter->setPen(ConfigColor("SideBarBackgroundColor"));
 
-    const int radius = fontHeight/2; //14/2=7
-    const int y = line*fontHeight; //initial y
-    const int yAdd = (fontHeight-radius)/2+1;
+    const int radius = fontHeight / 2; //14/2=7
+    const int y = line * fontHeight; //initial y
+    const int yAdd = (fontHeight - radius) / 2 + 1;
     const int x = viewport()->width() - 10; //initial x
 
     //painter->drawLine(0, y, viewport()->width(), y); //draw raster
@@ -362,7 +362,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
         painter->setBrush(QBrush(ConfigColor("SideBarBulletDisabledBreakpointColor")));
-    painter->drawEllipse(x, y+yAdd, radius, radius);
+    painter->drawEllipse(x, y + yAdd, radius, radius);
 
     painter->restore();
 }
@@ -370,15 +370,15 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
 {
     painter->save();
-    const int LineCoordinate = fontHeight*(1+Line);
+    const int LineCoordinate = fontHeight * (1 + Line);
     int length = Text.length();
 
     const QColor IPLabel = ConfigColor("SideBarCipLabelColor");
     const QColor IPLabelBG = ConfigColor("SideBarCipLabelBackgroundColor");
 
-    int width = length*fontWidth + 2;
+    int width = length * fontWidth + 2;
     int x = 1;
-    int y = LineCoordinate-fontHeight;
+    int y = LineCoordinate - fontHeight;
 
     QRect rect(x, y, width, fontHeight);
 
@@ -392,18 +392,18 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, Text);
 
     //draw arrow
-    y = fontHeight*(1+Line)-0.5*fontHeight;
+    y = fontHeight * (1 + Line) - 0.5 * fontHeight;
     //y+=3;
     painter->setPen(QPen(IPLabelBG, 2));
     painter->setBrush(QBrush(IPLabelBG));
-    drawStraightArrow(painter, rect.right()+2, y, this->viewport()->width()-x-15, y);
+    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 15, y);
 
     painter->restore();
 }
 
-void CPUSideBar::drawStraightArrow(QPainter *painter, int x1, int y1, int x2, int y2)
+void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, int y2)
 {
-    painter->drawLine(x1,y1,x2,y2);
+    painter->drawLine(x1, y1, x2, y2);
 
     /*
     // this does not work
@@ -419,8 +419,8 @@ void CPUSideBar::drawStraightArrow(QPainter *painter, int x1, int y1, int x2, in
     const int ArrowSizeX = 4;  // width  of arrow tip in pixel
     const int ArrowSizeY = 4;  // height of arrow tip in pixel
 
-    painter->drawLine(x2,y2,x2-ArrowSizeX,y2-ArrowSizeY);
-    painter->drawLine(x2,y2,x2-ArrowSizeX,y2+ArrowSizeY);
+    painter->drawLine(x2, y2, x2 - ArrowSizeX, y2 - ArrowSizeY);
+    painter->drawLine(x2, y2, x2 - ArrowSizeX, y2 + ArrowSizeY);
 
 }
 

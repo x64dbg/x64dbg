@@ -1,7 +1,7 @@
 #include "GotoDialog.h"
 #include "ui_GotoDialog.h"
 
-GotoDialog::GotoDialog(QWidget *parent) :
+GotoDialog::GotoDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::GotoDialog)
 {
@@ -17,8 +17,8 @@ GotoDialog::GotoDialog(QWidget *parent) :
         ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
     ui->buttonOk->setEnabled(false);
     ui->editExpression->setFocus();
-    validRangeStart=0;
-    validRangeEnd=0;
+    validRangeStart = 0;
+    validRangeEnd = 0;
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
 
@@ -27,7 +27,7 @@ GotoDialog::~GotoDialog()
     delete ui;
 }
 
-void GotoDialog::on_editExpression_textChanged(const QString &arg1)
+void GotoDialog::on_editExpression_textChanged(const QString & arg1)
 {
     if(!DbgIsDebugging()) //not debugging
     {
@@ -43,7 +43,7 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
     }
     else
     {
-        uint_t addr=DbgValFromString(arg1.toUtf8().constData());
+        uint_t addr = DbgValFromString(arg1.toUtf8().constData());
         if(!DbgMemIsValidReadPtr(addr))
         {
             ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
@@ -59,22 +59,22 @@ void GotoDialog::on_editExpression_textChanged(const QString &arg1)
         else
         {
             QString addrText;
-            char module[MAX_MODULE_SIZE]="";
-            char label[MAX_LABEL_SIZE]="";
+            char module[MAX_MODULE_SIZE] = "";
+            char label[MAX_LABEL_SIZE] = "";
             if(DbgGetLabelAt(addr, SEG_DEFAULT, label)) //has label
             {
                 if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
-                    addrText=QString(module)+"."+QString(label);
+                    addrText = QString(module) + "." + QString(label);
                 else
-                    addrText=QString(label);
+                    addrText = QString(label);
             }
             else if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText=QString(module)+"."+QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+                addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             else
-                addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+                addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
             ui->buttonOk->setEnabled(true);
-            expressionText=arg1;
+            expressionText = arg1;
         }
     }
 }

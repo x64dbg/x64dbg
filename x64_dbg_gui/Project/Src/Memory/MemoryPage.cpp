@@ -1,6 +1,6 @@
 #include "MemoryPage.h"
 
-MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject *parent) : QObject(parent)
+MemoryPage::MemoryPage(uint_t parBase, uint_t parSize, QObject* parent) : QObject(parent)
 {
     Q_UNUSED(parBase);
     Q_UNUSED(parSize);

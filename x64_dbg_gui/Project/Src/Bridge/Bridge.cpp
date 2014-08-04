@@ -8,7 +8,7 @@ static Bridge* mBridge;
 /************************************************************************************
                             Class Members
 ************************************************************************************/
-Bridge::Bridge(QObject *parent) : QObject(parent)
+Bridge::Bridge(QObject* parent) : QObject(parent)
 {
     mBridgeMutex = new QMutex();
 }
@@ -21,13 +21,13 @@ Bridge::~Bridge()
 void Bridge::CopyToClipboard(const char* text)
 {
     HGLOBAL hText;
-    char *pText;
-    int len=strlen(text);
+    char* pText;
+    int len = strlen(text);
     if(!len)
         return;
 
-    hText=GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE, len+1);
-    pText=(char*)GlobalLock(hText);
+    hText = GlobalAlloc(GMEM_DDESHARE | GMEM_MOVEABLE, len + 1);
+    pText = (char*)GlobalLock(hText);
     strcpy(pText, text);
 
     OpenClipboard(0);
@@ -38,8 +38,8 @@ void Bridge::CopyToClipboard(const char* text)
 
 void Bridge::BridgeSetResult(int_t result)
 {
-    bridgeResult=result;
-    hasBridgeResult=true;
+    bridgeResult = result;
+    hasBridgeResult = true;
 }
 
 /************************************************************************************
@@ -93,7 +93,7 @@ void Bridge::emitDumpAt(int_t va)
 void Bridge::emitScriptAdd(int count, const char** lines)
 {
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     emit scriptAdd(count, lines);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
@@ -133,7 +133,7 @@ void Bridge::emitScriptMessage(QString message)
 int Bridge::emitScriptQuestion(QString message)
 {
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     emit scriptQuestion(message);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
@@ -234,7 +234,7 @@ void Bridge::emitSetLastException(unsigned int exceptionCode)
 int Bridge::emitMenuAddMenu(int hMenu, QString title)
 {
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     emit menuAddMenu(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
@@ -245,7 +245,7 @@ int Bridge::emitMenuAddMenu(int hMenu, QString title)
 int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
 {
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     emit menuAddMenuEntry(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
@@ -273,7 +273,7 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
     if(!DbgIsDebugging())
         return false;
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -294,9 +294,9 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
     mBridgeMutex->unlock();
     if(selection->start > selection->end) //swap start and end
     {
-        int_t temp=selection->end;
-        selection->end=selection->start;
-        selection->start=temp;
+        int_t temp = selection->end;
+        selection->end = selection->start;
+        selection->start = temp;
     }
     return true;
 }
@@ -306,7 +306,7 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
     if(!DbgIsDebugging())
         return false;
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -331,7 +331,7 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
 bool Bridge::emitGetStrWindow(const QString title, QString* text)
 {
     mBridgeMutex->lock();
-    hasBridgeResult=false;
+    hasBridgeResult = false;
     emit getStrWindow(title, text);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
@@ -395,7 +395,7 @@ void Bridge::initBridge()
 /************************************************************************************
                             Exported Functions
 ************************************************************************************/
-__declspec(dllexport) int _gui_guiinit(int argc, char *argv[])
+__declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
 {
     return main(argc, argv);
 }
@@ -412,7 +412,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SET_DEBUG_STATE:
     {
-        Bridge::getBridge()->emitDbgStateChanged(reinterpret_cast<DBGSTATE&>(param1));
+        Bridge::getBridge()->emitDbgStateChanged(reinterpret_cast<DBGSTATE &>(param1));
     }
     break;
 
@@ -568,7 +568,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_SETCELLCONTENT:
     {
-        CELLINFO* info=(CELLINFO*)param1;
+        CELLINFO* info = (CELLINFO*)param1;
         Bridge::getBridge()->emitReferenceSetCellContent(info->row, info->col, QString(info->str));
     }
     break;
@@ -635,21 +635,21 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_GET_DISASSEMBLY:
     {
-        uint_t parVA=(uint_t)param1;
-        char* text=(char*)param2;
+        uint_t parVA = (uint_t)param1;
+        char* text = (char*)param2;
         if(!text || !parVA || !DbgIsDebugging())
             return 0;
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
         QBeaEngine* disasm = new QBeaEngine();
-        Instruction_t instr=disasm->DisassembleAt(wBuffer, 16, 0, 0, parVA);
+        Instruction_t instr = disasm->DisassembleAt(wBuffer, 16, 0, 0, parVA);
         BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm);
         QList<RichTextPainter::CustomRichText_t> richText;
         BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
-        QString finalInstruction="";
-        for(int i=0; i<richText.size(); i++)
-            finalInstruction+=richText.at(i).text;
+        QString finalInstruction = "";
+        for(int i = 0; i < richText.size(); i++)
+            finalInstruction += richText.at(i).text;
         strcpy(text, finalInstruction.toUtf8().constData());
         return (void*)1;
     }
@@ -696,8 +696,8 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         QString text = "";
         if(Bridge::getBridge()->emitGetStrWindow(QString(reinterpret_cast<const char*>(param1)), &text))
         {
-            if(text.length()>=GUI_MAX_LINE_SIZE)
-                text.chop(text.length()-GUI_MAX_LINE_SIZE);
+            if(text.length() >= GUI_MAX_LINE_SIZE)
+                text.chop(text.length() - GUI_MAX_LINE_SIZE);
             strcpy((char*)param2, text.toUtf8().constData());
             return (void*)(uint_t)true;
         }

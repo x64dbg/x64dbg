@@ -141,7 +141,7 @@ typedef struct _LOADED_IMAGE
 #define ERROR_NO_PDB_POINTER        0x8802  // image does not point to a pdb file
 
 typedef BOOL
-(CALLBACK *PFIND_DEBUG_FILE_CALLBACK)(
+(CALLBACK* PFIND_DEBUG_FILE_CALLBACK)(
     __in HANDLE FileHandle,
     __in PCSTR FileName,
     __in PVOID CallerData
@@ -158,7 +158,7 @@ SymFindDebugInfoFile(
 );
 
 typedef BOOL
-(CALLBACK *PFIND_DEBUG_FILE_CALLBACKW)(
+(CALLBACK* PFIND_DEBUG_FILE_CALLBACKW)(
     __in HANDLE FileHandle,
     __in PCWSTR FileName,
     __in PVOID  CallerData
@@ -176,7 +176,7 @@ SymFindDebugInfoFileW(
 
 HANDLE
 IMAGEAPI
-FindDebugInfoFile (
+FindDebugInfoFile(
     __in PCSTR FileName,
     __in PCSTR SymbolPath,
     __out_ecount(MAX_PATH + 1) PSTR DebugFilePath
@@ -184,7 +184,7 @@ FindDebugInfoFile (
 
 HANDLE
 IMAGEAPI
-FindDebugInfoFileEx (
+FindDebugInfoFileEx(
     __in PCSTR FileName,
     __in PCSTR SymbolPath,
     __out_ecount(MAX_PATH + 1) PSTR  DebugFilePath,
@@ -194,7 +194,7 @@ FindDebugInfoFileEx (
 
 HANDLE
 IMAGEAPI
-FindDebugInfoFileExW (
+FindDebugInfoFileExW(
     __in PCWSTR FileName,
     __in PCWSTR SymbolPath,
     __out_ecount(MAX_PATH + 1) PWSTR DebugFilePath,
@@ -203,7 +203,7 @@ FindDebugInfoFileExW (
 );
 
 typedef BOOL
-(CALLBACK *PFINDFILEINPATHCALLBACK)(
+(CALLBACK* PFINDFILEINPATHCALLBACK)(
     __in PCSTR filename,
     __in PVOID context
 );
@@ -224,7 +224,7 @@ SymFindFileInPath(
 );
 
 typedef BOOL
-(CALLBACK *PFINDFILEINPATHCALLBACKW)(
+(CALLBACK* PFINDFILEINPATHCALLBACKW)(
     __in PCWSTR filename,
     __in PVOID context
 );
@@ -245,7 +245,7 @@ SymFindFileInPathW(
 );
 
 typedef BOOL
-(CALLBACK *PFIND_EXE_FILE_CALLBACK)(
+(CALLBACK* PFIND_EXE_FILE_CALLBACK)(
     __in HANDLE FileHandle,
     __in PCSTR FileName,
     __in_opt PVOID CallerData
@@ -262,7 +262,7 @@ SymFindExecutableImage(
 );
 
 typedef BOOL
-(CALLBACK *PFIND_EXE_FILE_CALLBACKW)(
+(CALLBACK* PFIND_EXE_FILE_CALLBACKW)(
     __in HANDLE FileHandle,
     __in PCWSTR FileName,
     __in_opt PVOID CallerData
@@ -308,23 +308,23 @@ FindExecutableImageExW(
 
 PIMAGE_NT_HEADERS
 IMAGEAPI
-ImageNtHeader (
+ImageNtHeader(
     __in PVOID Base
 );
 
 PVOID
 IMAGEAPI
-ImageDirectoryEntryToDataEx (
+ImageDirectoryEntryToDataEx(
     __in PVOID Base,
     __in BOOLEAN MappedAsImage,
     __in USHORT DirectoryEntry,
     __out PULONG Size,
-    __out_opt PIMAGE_SECTION_HEADER *FoundHeader
+    __out_opt PIMAGE_SECTION_HEADER* FoundHeader
 );
 
 PVOID
 IMAGEAPI
-ImageDirectoryEntryToData (
+ImageDirectoryEntryToData(
     __in PVOID Base,
     __in BOOLEAN MappedAsImage,
     __in USHORT DirectoryEntry,
@@ -345,7 +345,7 @@ ImageRvaToVa(
     __in PIMAGE_NT_HEADERS NtHeaders,
     __in PVOID Base,
     __in ULONG Rva,
-    __in_opt OUT PIMAGE_SECTION_HEADER *LastRvaSection
+    __in_opt OUT PIMAGE_SECTION_HEADER* LastRvaSection
 );
 
 #ifndef _WIN64
@@ -433,7 +433,7 @@ SearchTreeForFileW(
 );
 
 typedef BOOL
-(CALLBACK *PENUMDIRTREE_CALLBACK)(
+(CALLBACK* PENUMDIRTREE_CALLBACK)(
     __in PCSTR FilePath,
     __in_opt PVOID CallerData
 );
@@ -450,7 +450,7 @@ EnumDirTree(
 );
 
 typedef BOOL
-(CALLBACK *PENUMDIRTREE_CALLBACKW)(
+(CALLBACK* PENUMDIRTREE_CALLBACKW)(
     __in PCWSTR FilePath,
     __in_opt PVOID CallerData
 );
@@ -800,7 +800,7 @@ typedef struct _tagSTACKFRAME
 
 typedef
 BOOL
-(__stdcall *PREAD_PROCESS_MEMORY_ROUTINE64)(
+(__stdcall* PREAD_PROCESS_MEMORY_ROUTINE64)(
     __in HANDLE hProcess,
     __in DWORD64 qwBaseAddress,
     __out_bcount(nSize) PVOID lpBuffer,
@@ -810,21 +810,21 @@ BOOL
 
 typedef
 PVOID
-(__stdcall *PFUNCTION_TABLE_ACCESS_ROUTINE64)(
+(__stdcall* PFUNCTION_TABLE_ACCESS_ROUTINE64)(
     __in HANDLE ahProcess,
     __in DWORD64 AddrBase
 );
 
 typedef
 DWORD64
-(__stdcall *PGET_MODULE_BASE_ROUTINE64)(
+(__stdcall* PGET_MODULE_BASE_ROUTINE64)(
     __in HANDLE hProcess,
     __in DWORD64 Address
 );
 
 typedef
 DWORD64
-(__stdcall *PTRANSLATE_ADDRESS_ROUTINE64)(
+(__stdcall* PTRANSLATE_ADDRESS_ROUTINE64)(
     __in HANDLE hProcess,
     __in HANDLE hThread,
     __in LPADDRESS64 lpaddr
@@ -857,7 +857,7 @@ StackWalk64(
 
 typedef
 BOOL
-(__stdcall *PREAD_PROCESS_MEMORY_ROUTINE)(
+(__stdcall* PREAD_PROCESS_MEMORY_ROUTINE)(
     __in HANDLE hProcess,
     __in DWORD lpBaseAddress,
     __out_bcount(nSize) PVOID lpBuffer,
@@ -867,21 +867,21 @@ BOOL
 
 typedef
 PVOID
-(__stdcall *PFUNCTION_TABLE_ACCESS_ROUTINE)(
+(__stdcall* PFUNCTION_TABLE_ACCESS_ROUTINE)(
     __in HANDLE hProcess,
     __in DWORD AddrBase
 );
 
 typedef
 DWORD
-(__stdcall *PGET_MODULE_BASE_ROUTINE)(
+(__stdcall* PGET_MODULE_BASE_ROUTINE)(
     __in HANDLE hProcess,
     __in DWORD Address
 );
 
 typedef
 DWORD
-(__stdcall *PTRANSLATE_ADDRESS_ROUTINE)(
+(__stdcall* PTRANSLATE_ADDRESS_ROUTINE)(
     __in HANDLE hProcess,
     __in HANDLE hThread,
     __out LPADDRESS lpaddr
@@ -936,21 +936,21 @@ GetTimestampForLoadedLibrary(
 // typedefs for function pointers
 //
 typedef BOOL
-(CALLBACK *PSYM_ENUMMODULES_CALLBACK64)(
+(CALLBACK* PSYM_ENUMMODULES_CALLBACK64)(
     __in PCSTR ModuleName,
     __in DWORD64 BaseOfDll,
     __in_opt PVOID UserContext
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMMODULES_CALLBACKW64)(
+(CALLBACK* PSYM_ENUMMODULES_CALLBACKW64)(
     __in PCWSTR ModuleName,
     __in DWORD64 BaseOfDll,
     __in_opt PVOID UserContext
 );
 
 typedef BOOL
-(CALLBACK *PENUMLOADED_MODULES_CALLBACK64)(
+(CALLBACK* PENUMLOADED_MODULES_CALLBACK64)(
     __in PCSTR ModuleName,
     __in DWORD64 ModuleBase,
     __in ULONG ModuleSize,
@@ -958,7 +958,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PENUMLOADED_MODULES_CALLBACKW64)(
+(CALLBACK* PENUMLOADED_MODULES_CALLBACKW64)(
     __in PCWSTR ModuleName,
     __in DWORD64 ModuleBase,
     __in ULONG ModuleSize,
@@ -966,7 +966,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSYMBOLS_CALLBACK64)(
+(CALLBACK* PSYM_ENUMSYMBOLS_CALLBACK64)(
     __in PCSTR SymbolName,
     __in DWORD64 SymbolAddress,
     __in ULONG SymbolSize,
@@ -974,7 +974,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSYMBOLS_CALLBACK64W)(
+(CALLBACK* PSYM_ENUMSYMBOLS_CALLBACK64W)(
     __in PCWSTR SymbolName,
     __in DWORD64 SymbolAddress,
     __in ULONG SymbolSize,
@@ -982,7 +982,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PSYMBOL_REGISTERED_CALLBACK64)(
+(CALLBACK* PSYMBOL_REGISTERED_CALLBACK64)(
     __in HANDLE hProcess,
     __in ULONG ActionCode,
     __in_opt ULONG64 CallbackData,
@@ -991,7 +991,7 @@ typedef BOOL
 
 typedef
 PVOID
-(CALLBACK *PSYMBOL_FUNCENTRY_CALLBACK)(
+(CALLBACK* PSYMBOL_FUNCENTRY_CALLBACK)(
     __in HANDLE hProcess,
     __in DWORD AddrBase,
     __in_opt PVOID UserContext
@@ -999,7 +999,7 @@ PVOID
 
 typedef
 PVOID
-(CALLBACK *PSYMBOL_FUNCENTRY_CALLBACK64)(
+(CALLBACK* PSYMBOL_FUNCENTRY_CALLBACK64)(
     __in HANDLE hProcess,
     __in ULONG64 AddrBase,
     __in ULONG64 UserContext
@@ -1017,14 +1017,14 @@ PVOID
 #else
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMMODULES_CALLBACK)(
+(CALLBACK* PSYM_ENUMMODULES_CALLBACK)(
     __in PCSTR ModuleName,
     __in ULONG BaseOfDll,
     __in_opt PVOID UserContext
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSYMBOLS_CALLBACK)(
+(CALLBACK* PSYM_ENUMSYMBOLS_CALLBACK)(
     __in PCSTR SymbolName,
     __in ULONG SymbolAddress,
     __in ULONG SymbolSize,
@@ -1032,7 +1032,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSYMBOLS_CALLBACKW)(
+(CALLBACK* PSYM_ENUMSYMBOLS_CALLBACKW)(
     __in PCWSTR SymbolName,
     __in ULONG SymbolAddress,
     __in ULONG SymbolSize,
@@ -1040,7 +1040,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PENUMLOADED_MODULES_CALLBACK)(
+(CALLBACK* PENUMLOADED_MODULES_CALLBACK)(
     __in PCSTR ModuleName,
     __in ULONG ModuleBase,
     __in ULONG ModuleSize,
@@ -1048,7 +1048,7 @@ typedef BOOL
 );
 
 typedef BOOL
-(CALLBACK *PSYMBOL_REGISTERED_CALLBACK)(
+(CALLBACK* PSYMBOL_REGISTERED_CALLBACK)(
     __in HANDLE hProcess,
     __in ULONG ActionCode,
     __in_opt PVOID CallbackData,
@@ -1416,7 +1416,7 @@ typedef struct _IMAGEHLP_CBA_READ_MEMORY
     DWORD64   addr;                                     // address to read from
     PVOID     buf;                                      // buffer to read to
     DWORD     bytes;                                    // amount of bytes to read
-    DWORD    *bytesread;                                // pointer to store amount of bytes read
+    DWORD*    bytesread;                                // pointer to store amount of bytes read
 } IMAGEHLP_CBA_READ_MEMORY, *PIMAGEHLP_CBA_READ_MEMORY;
 
 enum
@@ -1569,9 +1569,9 @@ IMAGEAPI
 SymGetOmaps(
     __in HANDLE hProcess,
     __in DWORD64 BaseOfDll,
-    __out POMAP *OmapTo,
+    __out POMAP* OmapTo,
     __out PDWORD64 cOmapTo,
-    __out POMAP *OmapFrom,
+    __out POMAP* OmapFrom,
     __out PDWORD64 cOmapFrom
 );
 
@@ -1651,7 +1651,7 @@ SymMatchStringW(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSOURCEFILES_CALLBACK)(
+(CALLBACK* PSYM_ENUMSOURCEFILES_CALLBACK)(
     __in PSOURCEFILE pSourceFile,
     __in_opt PVOID UserContext
 );
@@ -1670,7 +1670,7 @@ SymEnumSourceFiles(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMSOURCEFILES_CALLBACKW)(
+(CALLBACK* PSYM_ENUMSOURCEFILES_CALLBACKW)(
     __in PSOURCEFILEW pSourceFile,
     __in_opt PVOID UserContext
 );
@@ -1862,7 +1862,7 @@ typedef struct _SRCCODEINFOW
 } SRCCODEINFOW, *PSRCCODEINFOW;
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMLINES_CALLBACK)(
+(CALLBACK* PSYM_ENUMLINES_CALLBACK)(
     __in PSRCCODEINFO LineInfo,
     __in_opt PVOID UserContext
 );
@@ -1879,7 +1879,7 @@ SymEnumLines(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMLINES_CALLBACKW)(
+(CALLBACK* PSYM_ENUMLINES_CALLBACKW)(
     __in PSRCCODEINFOW LineInfo,
     __in_opt PVOID UserContext
 );
@@ -2085,8 +2085,8 @@ IMAGEAPI
 SymMatchFileName(
     __in PCSTR FileName,
     __in PCSTR Match,
-    __deref_opt_out PSTR *FileNameStop,
-    __deref_opt_out PSTR *MatchStop
+    __deref_opt_out PSTR* FileNameStop,
+    __deref_opt_out PSTR* MatchStop
 );
 
 BOOL
@@ -2094,8 +2094,8 @@ IMAGEAPI
 SymMatchFileNameW(
     __in PCWSTR FileName,
     __in PCWSTR Match,
-    __deref_opt_out PWSTR *FileNameStop,
-    __deref_opt_out PWSTR *MatchStop
+    __deref_opt_out PWSTR* FileNameStop,
+    __deref_opt_out PWSTR* MatchStop
 );
 
 BOOL
@@ -2126,8 +2126,8 @@ SymGetSourceFileToken(
     __in HANDLE hProcess,
     __in ULONG64 Base,
     __in PCSTR FileSpec,
-    __deref_out PVOID *Token,
-    __out DWORD *Size
+    __deref_out PVOID* Token,
+    __out DWORD* Size
 );
 
 BOOL
@@ -2136,8 +2136,8 @@ SymGetSourceFileTokenW(
     __in HANDLE hProcess,
     __in ULONG64 Base,
     __in PCWSTR FileSpec,
-    __deref_out PVOID *Token,
-    __out DWORD *Size
+    __deref_out PVOID* Token,
+    __out DWORD* Size
 );
 
 BOOL
@@ -2182,7 +2182,7 @@ SymGetSourceVarFromTokenW(
     __in DWORD Size
 );
 
-typedef BOOL (CALLBACK *PENUMSOURCEFILETOKENSCALLBACK)(__in PVOID token,  __in size_t size);
+typedef BOOL (CALLBACK* PENUMSOURCEFILETOKENSCALLBACK)(__in PVOID token,  __in size_t size);
 
 BOOL
 IMAGEAPI
@@ -2457,7 +2457,7 @@ SymSetScopeFromIndex(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMPROCESSES_CALLBACK)(
+(CALLBACK* PSYM_ENUMPROCESSES_CALLBACK)(
     __in HANDLE hProcess,
     __in PVOID UserContext
 );
@@ -2556,7 +2556,7 @@ SymFromNameW(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMERATESYMBOLS_CALLBACK)(
+(CALLBACK* PSYM_ENUMERATESYMBOLS_CALLBACK)(
     __in PSYMBOL_INFO pSymInfo,
     __in ULONG SymbolSize,
     __in_opt PVOID UserContext
@@ -2573,7 +2573,7 @@ SymEnumSymbols(
 );
 
 typedef BOOL
-(CALLBACK *PSYM_ENUMERATESYMBOLS_CALLBACKW)(
+(CALLBACK* PSYM_ENUMERATESYMBOLS_CALLBACKW)(
     __in PSYMBOL_INFOW pSymInfo,
     __in ULONG SymbolSize,
     __in_opt PVOID UserContext
@@ -2878,7 +2878,7 @@ SymAddSourceStream(
     __in size_t Size
 );
 
-typedef BOOL (WINAPI *SYMADDSOURCESTREAM)(HANDLE, ULONG64, PCSTR, PBYTE, size_t);
+typedef BOOL (WINAPI* SYMADDSOURCESTREAM)(HANDLE, ULONG64, PCSTR, PBYTE, size_t);
 
 BOOL
 IMAGEAPI
@@ -2890,7 +2890,7 @@ SymAddSourceStreamA(
     __in size_t Size
 );
 
-typedef BOOL (WINAPI *SYMADDSOURCESTREAMA)(HANDLE, ULONG64, PCSTR, PBYTE, size_t);
+typedef BOOL (WINAPI* SYMADDSOURCESTREAMA)(HANDLE, ULONG64, PCSTR, PBYTE, size_t);
 
 BOOL
 IMAGEAPI
@@ -2958,7 +2958,7 @@ BOOL
 IMAGEAPI
 SymSrvGetFileIndexes(
     __in PCSTR File,
-    __out GUID *Id,
+    __out GUID* Id,
     __out PDWORD Val1,
     __out_opt PDWORD Val2,
     __in DWORD Flags
@@ -2968,7 +2968,7 @@ BOOL
 IMAGEAPI
 SymSrvGetFileIndexesW(
     __in PCWSTR File,
-    __out GUID *Id,
+    __out GUID* Id,
     __out PDWORD Val1,
     __out_opt PDWORD Val2,
     __in DWORD Flags
@@ -2999,11 +2999,11 @@ SymSrvGetFileIndexString(
 typedef struct
 {
     DWORD sizeofstruct;
-    char file[MAX_PATH +1];
+    char file[MAX_PATH + 1];
     BOOL  stripped;
     DWORD timestamp;
     DWORD size;
-    char dbgfile[MAX_PATH +1];
+    char dbgfile[MAX_PATH + 1];
     char pdbfile[MAX_PATH + 1];
     GUID  guid;
     DWORD sig;
@@ -3013,11 +3013,11 @@ typedef struct
 typedef struct
 {
     DWORD sizeofstruct;
-    WCHAR file[MAX_PATH +1];
+    WCHAR file[MAX_PATH + 1];
     BOOL  stripped;
     DWORD timestamp;
     DWORD size;
-    WCHAR dbgfile[MAX_PATH +1];
+    WCHAR dbgfile[MAX_PATH + 1];
     WCHAR pdbfile[MAX_PATH + 1];
     GUID  guid;
     DWORD sig;
@@ -3119,7 +3119,7 @@ SymGetSymbolFileW(
 // Full user-mode dump creation.
 //
 
-typedef BOOL (WINAPI *PDBGHELP_CREATE_USER_DUMP_CALLBACK)(
+typedef BOOL (WINAPI* PDBGHELP_CREATE_USER_DUMP_CALLBACK)(
     __in DWORD DataType,
     __in PVOID* Data,
     __out LPDWORD DataLength,
@@ -3199,36 +3199,36 @@ SymGetSymFromName(
 
 // Symbol server exports
 
-typedef BOOL (WINAPI *PSYMBOLSERVERPROC)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERPROCA)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERPROCW)(PCWSTR, PCWSTR, PVOID, DWORD, DWORD, PWSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERBYINDEXPROC)(PCSTR, PCSTR, PCSTR, PSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERBYINDEXPROCA)(PCSTR, PCSTR, PCSTR, PSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERBYINDEXPROCW)(PCWSTR, PCWSTR, PCWSTR, PWSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVEROPENPROC)(VOID);
-typedef BOOL (WINAPI *PSYMBOLSERVERCLOSEPROC)(VOID);
-typedef BOOL (WINAPI *PSYMBOLSERVERSETOPTIONSPROC)(UINT_PTR, ULONG64);
-typedef BOOL (WINAPI *PSYMBOLSERVERSETOPTIONSWPROC)(UINT_PTR, ULONG64);
-typedef BOOL (CALLBACK WINAPI *PSYMBOLSERVERCALLBACKPROC)(UINT_PTR action, ULONG64 data, ULONG64 context);
-typedef UINT_PTR (WINAPI *PSYMBOLSERVERGETOPTIONSPROC)();
-typedef BOOL (WINAPI *PSYMBOLSERVERPINGPROC)(PCSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERPINGPROCA)(PCSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERPINGPROCW)(PCWSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERGETVERSION)(LPAPI_VERSION);
-typedef BOOL (WINAPI *PSYMBOLSERVERDELTANAME)(PCSTR, PVOID, DWORD, DWORD, PVOID, DWORD, DWORD, PSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERDELTANAMEW)(PCWSTR, PVOID, DWORD, DWORD, PVOID, DWORD, DWORD, PWSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERGETSUPPLEMENT)(PCSTR, PCSTR, PCSTR, PSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERGETSUPPLEMENTW)(PCWSTR, PCWSTR, PCWSTR, PWSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERSTORESUPPLEMENT)(PCSTR, PCSTR, PCSTR, PSTR, size_t, DWORD);
-typedef BOOL (WINAPI *PSYMBOLSERVERSTORESUPPLEMENTW)(PCWSTR, PCWSTR, PCWSTR, PWSTR, size_t, DWORD);
-typedef BOOL (WINAPI *PSYMBOLSERVERGETINDEXSTRING)(PVOID, DWORD, DWORD, PSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERGETINDEXSTRINGW)(PVOID, DWORD, DWORD, PWSTR, size_t);
-typedef BOOL (WINAPI *PSYMBOLSERVERSTOREFILE)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR, size_t, DWORD);
-typedef BOOL (WINAPI *PSYMBOLSERVERSTOREFILEW)(PCWSTR, PCWSTR, PVOID, DWORD, DWORD, PWSTR, size_t, DWORD);
-typedef BOOL (WINAPI *PSYMBOLSERVERISSTORE)(PCSTR);
-typedef BOOL (WINAPI *PSYMBOLSERVERISSTOREW)(PCWSTR);
-typedef DWORD (WINAPI *PSYMBOLSERVERVERSION)();
-typedef BOOL (CALLBACK WINAPI *PSYMBOLSERVERMESSAGEPROC)(UINT_PTR action, ULONG64 data, ULONG64 context);
+typedef BOOL (WINAPI* PSYMBOLSERVERPROC)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERPROCA)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERPROCW)(PCWSTR, PCWSTR, PVOID, DWORD, DWORD, PWSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERBYINDEXPROC)(PCSTR, PCSTR, PCSTR, PSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERBYINDEXPROCA)(PCSTR, PCSTR, PCSTR, PSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERBYINDEXPROCW)(PCWSTR, PCWSTR, PCWSTR, PWSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVEROPENPROC)(VOID);
+typedef BOOL (WINAPI* PSYMBOLSERVERCLOSEPROC)(VOID);
+typedef BOOL (WINAPI* PSYMBOLSERVERSETOPTIONSPROC)(UINT_PTR, ULONG64);
+typedef BOOL (WINAPI* PSYMBOLSERVERSETOPTIONSWPROC)(UINT_PTR, ULONG64);
+typedef BOOL (CALLBACK WINAPI* PSYMBOLSERVERCALLBACKPROC)(UINT_PTR action, ULONG64 data, ULONG64 context);
+typedef UINT_PTR(WINAPI* PSYMBOLSERVERGETOPTIONSPROC)();
+typedef BOOL (WINAPI* PSYMBOLSERVERPINGPROC)(PCSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERPINGPROCA)(PCSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERPINGPROCW)(PCWSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERGETVERSION)(LPAPI_VERSION);
+typedef BOOL (WINAPI* PSYMBOLSERVERDELTANAME)(PCSTR, PVOID, DWORD, DWORD, PVOID, DWORD, DWORD, PSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERDELTANAMEW)(PCWSTR, PVOID, DWORD, DWORD, PVOID, DWORD, DWORD, PWSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERGETSUPPLEMENT)(PCSTR, PCSTR, PCSTR, PSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERGETSUPPLEMENTW)(PCWSTR, PCWSTR, PCWSTR, PWSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERSTORESUPPLEMENT)(PCSTR, PCSTR, PCSTR, PSTR, size_t, DWORD);
+typedef BOOL (WINAPI* PSYMBOLSERVERSTORESUPPLEMENTW)(PCWSTR, PCWSTR, PCWSTR, PWSTR, size_t, DWORD);
+typedef BOOL (WINAPI* PSYMBOLSERVERGETINDEXSTRING)(PVOID, DWORD, DWORD, PSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERGETINDEXSTRINGW)(PVOID, DWORD, DWORD, PWSTR, size_t);
+typedef BOOL (WINAPI* PSYMBOLSERVERSTOREFILE)(PCSTR, PCSTR, PVOID, DWORD, DWORD, PSTR, size_t, DWORD);
+typedef BOOL (WINAPI* PSYMBOLSERVERSTOREFILEW)(PCWSTR, PCWSTR, PVOID, DWORD, DWORD, PWSTR, size_t, DWORD);
+typedef BOOL (WINAPI* PSYMBOLSERVERISSTORE)(PCSTR);
+typedef BOOL (WINAPI* PSYMBOLSERVERISSTOREW)(PCWSTR);
+typedef DWORD (WINAPI* PSYMBOLSERVERVERSION)();
+typedef BOOL (CALLBACK WINAPI* PSYMBOLSERVERMESSAGEPROC)(UINT_PTR action, ULONG64 data, ULONG64 context);
 
 #define SYMSRV_VERSION              2
 
@@ -3857,7 +3857,7 @@ typedef struct _MINIDUMP_SYSTEM_INFO
 // ThreadId must be 4 bytes on all architectures.
 //
 
-C_ASSERT (sizeof ( ((PPROCESS_INFORMATION)0)->dwThreadId ) == 4);
+C_ASSERT(sizeof(((PPROCESS_INFORMATION)0)->dwThreadId) == 4);
 
 typedef struct _MINIDUMP_THREAD
 {
@@ -4061,7 +4061,7 @@ typedef struct _MINIDUMP_HANDLE_DESCRIPTOR_2
 
 // The latest MINIDUMP_HANDLE_DESCRIPTOR definition.
 typedef MINIDUMP_HANDLE_DESCRIPTOR_2 MINIDUMP_HANDLE_DESCRIPTOR_N;
-typedef MINIDUMP_HANDLE_DESCRIPTOR_N *PMINIDUMP_HANDLE_DESCRIPTOR_N;
+typedef MINIDUMP_HANDLE_DESCRIPTOR_N* PMINIDUMP_HANDLE_DESCRIPTOR_N;
 
 typedef struct _MINIDUMP_HANDLE_DATA_STREAM
 {
@@ -4603,7 +4603,7 @@ typedef enum _MINIDUMP_SECONDARY_FLAGS
 
 typedef
 BOOL
-(WINAPI * MINIDUMP_CALLBACK_ROUTINE) (
+(WINAPI* MINIDUMP_CALLBACK_ROUTINE)(
     __inout PVOID CallbackParam,
     __in    PMINIDUMP_CALLBACK_INPUT CallbackInput,
     __inout PMINIDUMP_CALLBACK_OUTPUT CallbackOutput
@@ -4661,9 +4661,9 @@ WINAPI
 MiniDumpReadDumpStream(
     __in PVOID BaseOfDump,
     __in ULONG StreamNumber,
-    __deref_out_opt PMINIDUMP_DIRECTORY * Dir,
-    __deref_out_opt PVOID * StreamPointer,
-    __out_opt ULONG * StreamSize
+    __deref_out_opt PMINIDUMP_DIRECTORY* Dir,
+    __deref_out_opt PVOID* StreamPointer,
+    __out_opt ULONG* StreamSize
 );
 
 #pragma pack(pop)

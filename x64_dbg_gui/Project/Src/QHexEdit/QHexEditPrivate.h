@@ -8,7 +8,7 @@ class QHexEditPrivate : public QWidget
 {
     Q_OBJECT
 public:
-    QHexEditPrivate(QScrollArea *parent);
+    QHexEditPrivate(QScrollArea* parent);
 
     //properties
     void setCursorPos(int position);
@@ -36,7 +36,7 @@ public:
     QByteArray mask();
     void insert(int index, const QByteArray & ba, const QByteArray & mask);
     void insert(int index, char ch, char mask);
-    void remove(int index, int len=1);
+    void remove(int index, int len = 1);
     void replace(int index, char ch, char mask);
     void replace(int index, const QByteArray & ba, const QByteArray & mask);
     void replace(int pos, int len, const QByteArray & after, const QByteArray & mask);
@@ -53,11 +53,11 @@ signals:
 protected:
     void focusInEvent(QFocusEvent* event);
     void resizeEvent(QResizeEvent* event);
-    void keyPressEvent(QKeyEvent * event);
-    void mouseMoveEvent(QMouseEvent * event);
-    void mousePressEvent(QMouseEvent * event);
+    void keyPressEvent(QKeyEvent* event);
+    void mouseMoveEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event);
 
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent* event);
 
     int cursorPos(QPoint pos);          // calc cursorpos from graphics position. DOES NOT STORE POSITION
 
@@ -74,10 +74,10 @@ private:
     void adjust();
     void ensureVisible();
 
-    QScrollArea *_scrollArea;
+    QScrollArea* _scrollArea;
     QTimer _cursorTimer;
-    QUndoStack *_undoDataStack;
-    QUndoStack *_undoMaskStack;
+    QUndoStack* _undoDataStack;
+    QUndoStack* _undoMaskStack;
 
     XByteArray _xData;
     XByteArray _xMask;

@@ -16,7 +16,7 @@ class AppearanceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AppearanceDialog(QWidget *parent = 0);
+    explicit AppearanceDialog(QWidget* parent = 0);
     ~AppearanceDialog();
 
 private slots:
@@ -44,38 +44,38 @@ private slots:
     void on_buttonBackgroundFF0000_clicked();
     void on_buttonBackgroundFFFF00_clicked();
     void on_buttonBackgroundNone_clicked();
-    void on_editBackgroundColor_textChanged(const QString &arg1);
-    void on_editColor_textChanged(const QString &arg1);
+    void on_editBackgroundColor_textChanged(const QString & arg1);
+    void on_editColor_textChanged(const QString & arg1);
     void on_buttonColor_clicked();
     void on_buttonBackgroundColor_clicked();
     void on_buttonSave_clicked();
     void on_listColorNames_itemSelectionChanged();
     void defaultValueSlot();
     void currentSettingSlot();
-    void on_fontAbstractTables_currentFontChanged(const QFont &f);
+    void on_fontAbstractTables_currentFontChanged(const QFont & f);
     void on_fontAbstractTablesStyle_currentIndexChanged(int index);
-    void on_fontAbstractTablesSize_currentIndexChanged(const QString &arg1);
-    void on_fontDisassembly_currentFontChanged(const QFont &f);
+    void on_fontAbstractTablesSize_currentIndexChanged(const QString & arg1);
+    void on_fontDisassembly_currentFontChanged(const QFont & f);
     void on_fontDisassemblyStyle_currentIndexChanged(int index);
-    void on_fontDisassemblySize_currentIndexChanged(const QString &arg1);
-    void on_fontHexDump_currentFontChanged(const QFont &f);
+    void on_fontDisassemblySize_currentIndexChanged(const QString & arg1);
+    void on_fontHexDump_currentFontChanged(const QFont & f);
     void on_fontHexDumpStyle_currentIndexChanged(int index);
-    void on_fontHexDumpSize_currentIndexChanged(const QString &arg1);
-    void on_fontStack_currentFontChanged(const QFont &f);
+    void on_fontHexDumpSize_currentIndexChanged(const QString & arg1);
+    void on_fontStack_currentFontChanged(const QFont & f);
     void on_fontStackStyle_currentIndexChanged(int index);
-    void on_fontStackSize_currentIndexChanged(const QString &arg1);
-    void on_fontRegisters_currentFontChanged(const QFont &f);
+    void on_fontStackSize_currentIndexChanged(const QString & arg1);
+    void on_fontRegisters_currentFontChanged(const QFont & f);
     void on_fontRegistersStyle_currentIndexChanged(int index);
-    void on_fontRegistersSize_currentIndexChanged(const QString &arg1);
-    void on_fontHexEdit_currentFontChanged(const QFont &f);
+    void on_fontRegistersSize_currentIndexChanged(const QString & arg1);
+    void on_fontHexEdit_currentFontChanged(const QFont & f);
     void on_fontHexEditStyle_currentIndexChanged(int index);
-    void on_fontHexEditSize_currentIndexChanged(const QString &arg1);
+    void on_fontHexEditSize_currentIndexChanged(const QString & arg1);
     void on_buttonApplicationFont_clicked();
     void on_buttonFontDefaults_clicked();
     void rejectedSlot();
 
 private:
-    Ui::AppearanceDialog *ui;
+    Ui::AppearanceDialog* ui;
 
     struct ColorInfo
     {

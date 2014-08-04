@@ -13,11 +13,11 @@ class CloseDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CloseDialog(QWidget *parent = 0);
+    explicit CloseDialog(QWidget* parent = 0);
     ~CloseDialog();
 
 private:
-    Ui::CloseDialog *ui;
+    Ui::CloseDialog* ui;
 };
 
 #endif // CLOSEDIALOG_H

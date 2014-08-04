@@ -17,15 +17,15 @@
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
 
-static MESSAGE_STACK* gMsgStack=0;
-static COMMAND* command_list=0;
-static HANDLE hCommandLoopThread=0;
-static char alloctrace[MAX_PATH]="";
+static MESSAGE_STACK* gMsgStack = 0;
+static COMMAND* command_list = 0;
+static HANDLE hCommandLoopThread = 0;
+static char alloctrace[MAX_PATH] = "";
 
 //Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
 static void commandlinefree(int argc, char** argv)
 {
-    for(int i=0; i<argc; i++)
+    for(int i = 0; i < argc; i++)
         efree(argv[i]);
     efree(argv);
 }
@@ -34,13 +34,13 @@ static char** commandlineparse(int* argc)
 {
     if(!argc)
         return NULL;
-    LPWSTR wcCommandLine=GetCommandLineW();
-    LPWSTR* argw=CommandLineToArgvW(wcCommandLine, argc);
-    char** argv=(char**)emalloc(sizeof(void*)*(*argc+1));
-    for(int i=0; i<*argc; i++)
+    LPWSTR wcCommandLine = GetCommandLineW();
+    LPWSTR* argw = CommandLineToArgvW(wcCommandLine, argc);
+    char** argv = (char**)emalloc(sizeof(void*) * (*argc + 1));
+    for(int i = 0; i < *argc; i++)
     {
-        int bufSize=WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
-        argv[i]=(char*)emalloc(bufSize+1);
+        int bufSize = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
+        argv[i] = (char*)emalloc(bufSize + 1);
         WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], bufSize, argv[i], bufSize * sizeof(char), NULL, NULL);
     }
     LocalFree(argw);
@@ -49,7 +49,7 @@ static char** commandlineparse(int* argc)
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -66,7 +66,7 @@ static CMDRESULT cbCls(int argc, char* argv[])
 
 static CMDRESULT cbPrintf(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
         dprintf("\n");
     else
         dprintf("%s", argv[1]);
@@ -75,7 +75,7 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
 
 static void registercommands()
 {
-    COMMAND* cmd=command_list=cmdinit();
+    COMMAND* cmd = command_list = cmdinit();
 
     //debug control
     dbgcmdnew("InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
@@ -209,9 +209,9 @@ static bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
     msgwait(gMsgStack, &msg);
-    char* newcmd=(char*)msg.param1;
-    if(strlen(newcmd)>=deflen)
-        newcmd[deflen-1]=0;
+    char* newcmd = (char*)msg.param1;
+    if(strlen(newcmd) >= deflen)
+        newcmd[deflen - 1] = 0;
     strcpy(cmd, newcmd);
     efree(newcmd, "cbCommandProvider:newcmd"); //free allocated command
     return true;
@@ -219,8 +219,8 @@ static bool cbCommandProvider(char* cmd, int maxlen)
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
-    int len=(int)strlen(cmd);
-    char* newcmd=(char*)emalloc((len+1)*sizeof(char), "_dbg_dbgcmdexec:newcmd");
+    int len = (int)strlen(cmd);
+    char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
 }
@@ -246,13 +246,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
-    char dir[deflen]="";
+    char dir[deflen] = "";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";
-    int len=(int)strlen(dir);
-    while(dir[len]!='\\')
+    int len = (int)strlen(dir);
+    while(dir[len] != '\\')
         len--;
-    dir[len]=0;
+    dir[len] = 0;
     strcpy(alloctrace, dir);
     PathAppendA(alloctrace, "\\alloctrace.txt");
     DeleteFileA(alloctrace);
@@ -263,24 +263,24 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy(szSymbolCachePath, dir);
     PathAppendA(szSymbolCachePath, "symbols");
     SetCurrentDirectoryA(dir);
-    gMsgStack=msgallocstack();
+    gMsgStack = msgallocstack();
     if(!gMsgStack)
         return "Could not allocate message stack!";
     varinit();
     registercommands();
-    hCommandLoopThread=CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
-    char plugindir[deflen]="";
+    hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
+    char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
     pluginload(plugindir);
     //handle command line
-    int argc=0;
-    char** argv=commandlineparse(&argc);
-    if(argc>1) //we have an argument
+    int argc = 0;
+    char** argv = commandlineparse(&argc);
+    if(argc > 1) //we have an argument
     {
-        std::string str="init \"";
-        str+=argv[1];
-        str+="\"";
+        std::string str = "init \"";
+        str += argv[1];
+        str += "\"";
         DbgCmdExec(str.c_str());
     }
     commandlinefree(argc, argv);
@@ -301,9 +301,9 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     msgfreestack(gMsgStack);
     if(memleaks())
     {
-        char msg[256]="";
+        char msg[256] = "";
         sprintf(msg, "%d memory leak(s) found!\n\nPlease send 'alloctrace.txt' to the authors of x64_dbg.", memleaks());
-        MessageBoxA(0, msg, "error", MB_ICONERROR|MB_SYSTEMMODAL);
+        MessageBoxA(0, msg, "error", MB_ICONERROR | MB_SYSTEMMODAL);
     }
     else
         DeleteFileA(alloctrace);
@@ -312,7 +312,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
-    if(cmddirectexec(command_list, cmd)==STATUS_ERROR)
+    if(cmddirectexec(command_list, cmd) == STATUS_ERROR)
         return false;
     return true;
 }

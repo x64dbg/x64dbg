@@ -10,7 +10,7 @@ class CPUInfoBox : public StdTable
 {
     Q_OBJECT
 public:
-    explicit CPUInfoBox(StdTable *parent = 0);
+    explicit CPUInfoBox(StdTable* parent = 0);
     int getHeight();
 
 public slots:

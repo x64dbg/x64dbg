@@ -14,7 +14,7 @@ class PatchDialogGroupSelector : public QDialog
     Q_OBJECT
 
 public:
-    explicit PatchDialogGroupSelector(QWidget *parent = 0);
+    explicit PatchDialogGroupSelector(QWidget* parent = 0);
     ~PatchDialogGroupSelector();
     void setGroupTitle(const QString & title);
     void setPreviousEnabled(bool enable);
@@ -36,7 +36,7 @@ protected:
     void keyPressEvent(QKeyEvent* event);
 
 private:
-    Ui::PatchDialogGroupSelector *ui;
+    Ui::PatchDialogGroupSelector* ui;
     int mGroup;
 };
 

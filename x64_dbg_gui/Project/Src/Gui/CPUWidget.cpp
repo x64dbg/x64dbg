@@ -1,19 +1,19 @@
 #include "CPUWidget.h"
 #include "ui_CPUWidget.h"
 
-CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
+CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 {
     ui->setupUi(this);
     setDefaultDisposition();
 
     mDisas = new CPUDisassembly(0);
     mSideBar = new CPUSideBar(mDisas);
-    connect(mDisas,SIGNAL(tableOffsetChanged(int_t)),mSideBar,SLOT(changeTopmostAddress(int_t)));
-    connect(mDisas,SIGNAL(viewableRows(int)),mSideBar,SLOT(setViewableRows(int)));
-    connect(mDisas,SIGNAL(repainted()),mSideBar,SLOT(repaint()));
-    connect(mDisas,SIGNAL(selectionChanged(int_t)),mSideBar,SLOT(setSelection(int_t)));
-    connect(Bridge::getBridge(),SIGNAL(dbgStateChanged(DBGSTATE)),mSideBar,SLOT(debugStateChangedSlot(DBGSTATE)));
-    connect(Bridge::getBridge(),SIGNAL(updateSideBar()),mSideBar,SLOT(repaint()));
+    connect(mDisas, SIGNAL(tableOffsetChanged(int_t)), mSideBar, SLOT(changeTopmostAddress(int_t)));
+    connect(mDisas, SIGNAL(viewableRows(int)), mSideBar, SLOT(setViewableRows(int)));
+    connect(mDisas, SIGNAL(repainted()), mSideBar, SLOT(repaint()));
+    connect(mDisas, SIGNAL(selectionChanged(int_t)), mSideBar, SLOT(setSelection(int_t)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
 
     QSplitter* splitter = new QSplitter(this);
     splitter->addWidget(mSideBar);
@@ -26,8 +26,8 @@ CPUWidget::CPUWidget(QWidget *parent) :QWidget(parent), ui(new Ui::CPUWidget)
     mInfo = new CPUInfoBox();
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
     int height = mInfo->getHeight();
-    ui->mTopLeftLowerFrame->setMinimumHeight(height+2);
-    ui->mTopLeftLowerFrame->setMaximumHeight(height+2);
+    ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
+    ui->mTopLeftLowerFrame->setMaximumHeight(height + 2);
 
     connect(mDisas, SIGNAL(selectionChanged(int_t)), mInfo, SLOT(disasmSelectionChanged(int_t)));
 
@@ -59,24 +59,24 @@ void CPUWidget::setDefaultDisposition(void)
     // Vertical Splitter
     wTotalSize = ui->mVSplitter->widget(0)->size().height() + ui->mVSplitter->widget(1)->size().height();
 
-    sizesList.append(wTotalSize*70/100);
-    sizesList.append(wTotalSize-wTotalSize*70/100);
+    sizesList.append(wTotalSize * 70 / 100);
+    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
 
     ui->mVSplitter->setSizes(sizesList);
 
     // Top Horizontal Splitter
     wTotalSize = ui->mTopHSplitter->widget(0)->size().height() + ui->mTopHSplitter->widget(1)->size().height();
 
-    sizesList.append(wTotalSize*70/100);
-    sizesList.append(wTotalSize-wTotalSize*70/100);
+    sizesList.append(wTotalSize * 70 / 100);
+    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
 
     ui->mTopHSplitter->setSizes(sizesList);
 
     // Bottom Horizontal Splitter
     wTotalSize = ui->mBotHSplitter->widget(0)->size().height() + ui->mBotHSplitter->widget(1)->size().height();
 
-    sizesList.append(wTotalSize*70/100);
-    sizesList.append(wTotalSize-wTotalSize*70/100);
+    sizesList.append(wTotalSize * 70 / 100);
+    sizesList.append(wTotalSize - wTotalSize * 70 / 100);
 
     ui->mBotHSplitter->setSizes(sizesList);
 }

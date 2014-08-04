@@ -23,10 +23,10 @@ static bool _assembleatex(duint addr, const char* instruction, char* error, bool
 
 static bool _sectionfromaddr(duint addr, char* section)
 {
-    HMODULE hMod=(HMODULE)modbasefromaddr(addr);
+    HMODULE hMod = (HMODULE)modbasefromaddr(addr);
     if(!hMod)
         return false;
-    char curModPath[MAX_PATH]="";
+    char curModPath[MAX_PATH] = "";
     if(!GetModuleFileNameExA(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
         return false;
     HANDLE FileHandle;
@@ -35,11 +35,11 @@ static bool _sectionfromaddr(duint addr, char* section)
     ULONG_PTR FileMapVA;
     if(StaticFileLoad(curModPath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
-        uint rva=addr-(uint)hMod;
-        int sectionNumber=GetPE32SectionNumberFromVA(FileMapVA, GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE)+rva);
-        if(sectionNumber>=0)
+        uint rva = addr - (uint)hMod;
+        int sectionNumber = GetPE32SectionNumberFromVA(FileMapVA, GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE) + rva);
+        if(sectionNumber >= 0)
         {
-            const char* name=(const char*)GetPE32DataFromMappedFile(FileMapVA, sectionNumber, UE_SECTIONNAME);
+            const char* name = (const char*)GetPE32DataFromMappedFile(FileMapVA, sectionNumber, UE_SECTIONNAME);
             if(section)
                 strcpy(section, name);
             StaticFileUnload(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
@@ -59,11 +59,11 @@ static bool _patchinrange(duint start, duint end)
 {
     if(start > end)
     {
-        duint a=start;
-        start=end;
-        end=a;
+        duint a = start;
+        start = end;
+        end = a;
     }
-    for(duint i=start; i<end+1; i++)
+    for(duint i = start; i < end + 1; i++)
         if(_patchget(i))
             return true;
     return false;
@@ -78,11 +78,11 @@ static void _patchrestorerange(duint start, duint end)
 {
     if(start > end)
     {
-        duint a=start;
-        start=end;
-        end=a;
+        duint a = start;
+        start = end;
+        end = a;
     }
-    for(duint i=start; i<end+1; i++)
+    for(duint i = start; i < end + 1; i++)
         patchdel(i, true);
     GuiUpdatePatches();
 }
@@ -124,26 +124,26 @@ static bool _getjit(char* jit, bool jit64)
 
 void dbgfunctionsinit()
 {
-    _dbgfunctions.AssembleAtEx=_assembleatex;
-    _dbgfunctions.SectionFromAddr=_sectionfromaddr;
-    _dbgfunctions.ModNameFromAddr=modnamefromaddr;
-    _dbgfunctions.ModBaseFromAddr=modbasefromaddr;
-    _dbgfunctions.ModBaseFromName=modbasefromname;
-    _dbgfunctions.ModSizeFromAddr=modsizefromaddr;
-    _dbgfunctions.Assemble=assemble;
-    _dbgfunctions.PatchGet=_patchget;
-    _dbgfunctions.PatchInRange=_patchinrange;
-    _dbgfunctions.MemPatch=_mempatch;
-    _dbgfunctions.PatchRestoreRange=_patchrestorerange;
-    _dbgfunctions.PatchEnum=(PATCHENUM)patchenum;
-    _dbgfunctions.PatchRestore=_patchrestore;
-    _dbgfunctions.PatchFile=(PATCHFILE)patchfile;
-    _dbgfunctions.ModPathFromAddr=_modpathfromaddr;
-    _dbgfunctions.ModPathFromName=_modpathfromname;
-    _dbgfunctions.DisasmFast=disasmfast;
-    _dbgfunctions.MemUpdateMap=memupdatemap;
-    _dbgfunctions.GetCallStack=_getcallstack;
-    _dbgfunctions.SymbolDownloadAllSymbols=symdownloadallsymbols;
+    _dbgfunctions.AssembleAtEx = _assembleatex;
+    _dbgfunctions.SectionFromAddr = _sectionfromaddr;
+    _dbgfunctions.ModNameFromAddr = modnamefromaddr;
+    _dbgfunctions.ModBaseFromAddr = modbasefromaddr;
+    _dbgfunctions.ModBaseFromName = modbasefromname;
+    _dbgfunctions.ModSizeFromAddr = modsizefromaddr;
+    _dbgfunctions.Assemble = assemble;
+    _dbgfunctions.PatchGet = _patchget;
+    _dbgfunctions.PatchInRange = _patchinrange;
+    _dbgfunctions.MemPatch = _mempatch;
+    _dbgfunctions.PatchRestoreRange = _patchrestorerange;
+    _dbgfunctions.PatchEnum = (PATCHENUM)patchenum;
+    _dbgfunctions.PatchRestore = _patchrestore;
+    _dbgfunctions.PatchFile = (PATCHFILE)patchfile;
+    _dbgfunctions.ModPathFromAddr = _modpathfromaddr;
+    _dbgfunctions.ModPathFromName = _modpathfromname;
+    _dbgfunctions.DisasmFast = disasmfast;
+    _dbgfunctions.MemUpdateMap = memupdatemap;
+    _dbgfunctions.GetCallStack = _getcallstack;
+    _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
     _dbgfunctions.GetJit=_getjit;
     _dbgfunctions.GetDefJit=dbggetdefjit;
 }

@@ -8,7 +8,7 @@ class HistoryLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
-    explicit HistoryLineEdit(QWidget *parent = 0);
+    explicit HistoryLineEdit(QWidget* parent = 0);
     void keyPressEvent(QKeyEvent* event);
     void addLineToHistory(QString parLine);
     void setFocus();

@@ -17,7 +17,7 @@ public:
     enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed};
 
     // Constructor
-    explicit AbstractTableView(QWidget *parent = 0);
+    explicit AbstractTableView(QWidget* parent = 0);
 
     //config updates
     virtual void colorsUpdated();

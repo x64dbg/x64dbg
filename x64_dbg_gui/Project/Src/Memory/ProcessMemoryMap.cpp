@@ -1,7 +1,7 @@
 #include "ProcessMemoryMap.h"
 
 
-ProcessMemoryMap::ProcessMemoryMap(QString fileName, QObject *parent) : QObject(parent)
+ProcessMemoryMap::ProcessMemoryMap(QString fileName, QObject* parent) : QObject(parent)
 {
     Q_UNUSED(fileName);
     STARTUPINFO si;
@@ -13,7 +13,7 @@ ProcessMemoryMap::ProcessMemoryMap(QString fileName, QObject *parent) : QObject(
 
     LPCTSTR target = TEXT("UnPackMe.exe");
 
-    if(!CreateProcess((LPCTSTR)target, 0, NULL,NULL,0,CREATE_NEW_CONSOLE,NULL,NULL,&si,&pi))
+    if(!CreateProcess((LPCTSTR)target, 0, NULL, NULL, 0, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi))
     {
         //qDebug() << "CreateProcess failed (" << GetLastError() << ").\n";
     }

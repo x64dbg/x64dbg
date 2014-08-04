@@ -11,27 +11,27 @@
 #include "variable.h"
 #include "x64_dbg.h"
 
-static PROCESS_INFORMATION g_pi= {0,0,0,0};
-static char szBaseFileName[MAX_PATH]="";
-static bool bFileIsDll=false;
-static uint pDebuggedBase=0;
-static uint pDebuggedEntry=0;
-static bool isStepping=false;
-static bool isPausedByUser=false;
-static bool isDetachedByUser=false;
-static bool bIsAttached=false;
-static bool bSkipExceptions=false;
-static bool bBreakOnNextDll=false;
-static int ecount=0;
+static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
+static char szBaseFileName[MAX_PATH] = "";
+static bool bFileIsDll = false;
+static uint pDebuggedBase = 0;
+static uint pDebuggedEntry = 0;
+static bool isStepping = false;
+static bool isPausedByUser = false;
+static bool isDetachedByUser = false;
+static bool bIsAttached = false;
+static bool bSkipExceptions = false;
+static bool bBreakOnNextDll = false;
+static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static std::map<unsigned int, const char*> exceptionNames;
-static SIZE_T cachePrivateUsage=0;
+static SIZE_T cachePrivateUsage = 0;
 
 //Superglobal variables
-char szFileName[MAX_PATH]="";
-char szSymbolCachePath[MAX_PATH]="";
-char sqlitedb[deflen]="";
-PROCESS_INFORMATION* fdProcessInfo=&g_pi;
+char szFileName[MAX_PATH] = "";
+char szSymbolCachePath[MAX_PATH] = "";
+char sqlitedb[deflen] = "";
+PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
 
 static DWORD WINAPI memMapThread(void* ptr)
@@ -40,7 +40,7 @@ static DWORD WINAPI memMapThread(void* ptr)
     {
         while(!DbgIsDebugging())
             Sleep(1);
-        const SIZE_T PrivateUsage=dbggetprivateusage(fdProcessInfo->hProcess);
+        const SIZE_T PrivateUsage = dbggetprivateusage(fdProcessInfo->hProcess);
         if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when
         {
             cachePrivateUsage = PrivateUsage;
@@ -123,7 +123,7 @@ SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
     if(!GetProcessMemoryInfo(fdProcessInfo->hProcess, (PPROCESS_MEMORY_COUNTERS)&memoryCounters, sizeof(PROCESS_MEMORY_COUNTERS_EX)))
         return 0;
     if(update)
-        cachePrivateUsage=memoryCounters.PrivateUsage;
+        cachePrivateUsage = memoryCounters.PrivateUsage;
     return memoryCounters.PrivateUsage;
 }
 
@@ -135,10 +135,10 @@ uint dbgdebuggedbase()
 void dbgdisablebpx()
 {
     std::vector<BREAKPOINT> list;
-    int bpcount=bpgetlist(&list);
-    for(int i=0; i<bpcount; i++)
+    int bpcount = bpgetlist(&list);
+    for(int i = 0; i < bpcount; i++)
     {
-        if(list[i].type==BPNORMAL and IsBPXEnabled(list[i].addr))
+        if(list[i].type == BPNORMAL and IsBPXEnabled(list[i].addr))
             DeleteBPX(list[i].addr);
     }
 }
@@ -146,10 +146,10 @@ void dbgdisablebpx()
 void dbgenablebpx()
 {
     std::vector<BREAKPOINT> list;
-    int bpcount=bpgetlist(&list);
-    for(int i=0; i<bpcount; i++)
+    int bpcount = bpgetlist(&list);
+    for(int i = 0; i < bpcount; i++)
     {
-        if(list[i].type==BPNORMAL and !IsBPXEnabled(list[i].addr) and list[i].enabled)
+        if(list[i].type == BPNORMAL and !IsBPXEnabled(list[i].addr) and list[i].enabled)
             SetBPX(list[i].addr, list[i].titantype, (void*)cbUserBreakpoint);
     }
 }
@@ -168,22 +168,22 @@ bool dbgisdll()
 
 void dbgsetskipexceptions(bool skip)
 {
-    bSkipExceptions=skip;
+    bSkipExceptions = skip;
 }
 
 void dbgsetstepping(bool stepping)
 {
-    isStepping=stepping;
+    isStepping = stepping;
 }
 
 void dbgsetispausedbyuser(bool b)
 {
-    isPausedByUser=b;
+    isPausedByUser = b;
 }
 
 void dbgsetisdetachedbyuser(bool b)
 {
-    isDetachedByUser=b;
+    isDetachedByUser = b;
 }
 
 void dbgclearignoredexceptions()
@@ -198,11 +198,11 @@ void dbgaddignoredexception(ExceptionRange range)
 
 bool dbgisignoredexception(unsigned int exception)
 {
-    for(unsigned int i=0; i<ignoredExceptionRange.size(); i++)
+    for(unsigned int i = 0; i < ignoredExceptionRange.size(); i++)
     {
-        unsigned int curStart=ignoredExceptionRange.at(i).start;
-        unsigned int curEnd=ignoredExceptionRange.at(i).end;
-        if(exception>=curStart && exception<=curEnd)
+        unsigned int curStart = ignoredExceptionRange.at(i).start;
+        unsigned int curEnd = ignoredExceptionRange.at(i).end;
+        if(exception >= curStart && exception <= curEnd)
             return true;
     }
     return false;
@@ -232,25 +232,25 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
-    uint csp=GetContextDataEx(hActiveThread, UE_CSP);
+    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         GuiStackDumpAt(csp, csp);
-    static uint cacheCsp=0;
-    if(csp!=cacheCsp)
+    static uint cacheCsp = 0;
+    if(csp != cacheCsp)
     {
-        cacheCsp=csp;
+        cacheCsp = csp;
         CloseHandle(CreateThread(0, 0, updateCallStackThread, 0, 0, 0));
     }
-    char modname[MAX_MODULE_SIZE]="";
-    char modtext[MAX_MODULE_SIZE*2]="";
+    char modname[MAX_MODULE_SIZE] = "";
+    char modtext[MAX_MODULE_SIZE * 2] = "";
     if(!modnamefromaddr(disasm_addr, modname, true))
-        *modname=0;
+        *modname = 0;
     else
         sprintf(modtext, "Module: %s - ", modname);
-    char title[1024]="";
+    char title[1024] = "";
     sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadgetid(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
@@ -258,22 +258,22 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
 
 void cbUserBreakpoint()
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint=0;
+    bpInfo.breakpoint = 0;
     if(!bpget(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
         dputs("breakpoint reached not in list!");
     else
     {
-        const char* bptype="INT3";
-        int titantype=bp.titantype;
-        if((titantype&UE_BREAKPOINT_TYPE_UD2)==UE_BREAKPOINT_TYPE_UD2)
-            bptype="UD2";
-        else if((titantype&UE_BREAKPOINT_TYPE_LONG_INT3)==UE_BREAKPOINT_TYPE_LONG_INT3)
-            bptype="LONG INT3";
-        const char* symbolicname=symgetsymbolicname(bp.addr);
+        const char* bptype = "INT3";
+        int titantype = bp.titantype;
+        if((titantype & UE_BREAKPOINT_TYPE_UD2) == UE_BREAKPOINT_TYPE_UD2)
+            bptype = "UD2";
+        else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
+            bptype = "LONG INT3";
+        const char* symbolicname = symgetsymbolicname(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -291,16 +291,16 @@ void cbUserBreakpoint()
         if(bp.singleshoot)
             bpdel(bp.addr, BPNORMAL);
         bptobridge(&bp, &pluginBp);
-        bpInfo.breakpoint=&pluginBp;
+        bpInfo.breakpoint = &pluginBp;
     }
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
@@ -308,49 +308,49 @@ void cbUserBreakpoint()
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint=0;
+    bpInfo.breakpoint = 0;
     if(!bpget((uint)ExceptionAddress, BPHARDWARE, 0, &bp))
         dputs("hardware breakpoint reached not in list!");
     else
     {
-        const char* bpsize="";
+        const char* bpsize = "";
         switch(TITANGETSIZE(bp.titantype)) //size
         {
         case UE_HARDWARE_SIZE_1:
-            bpsize="byte, ";
+            bpsize = "byte, ";
             break;
         case UE_HARDWARE_SIZE_2:
-            bpsize="word, ";
+            bpsize = "word, ";
             break;
         case UE_HARDWARE_SIZE_4:
-            bpsize="dword, ";
+            bpsize = "dword, ";
             break;
 #ifdef _WIN64
         case UE_HARDWARE_SIZE_8:
-            bpsize="qword, ";
+            bpsize = "qword, ";
             break;
 #endif //_WIN64
         }
-        const char* bptype="";
+        const char* bptype = "";
         switch(TITANGETTYPE(bp.titantype)) //type
         {
         case UE_HARDWARE_EXECUTE:
-            bptype="execute";
-            bpsize="";
+            bptype = "execute";
+            bpsize = "";
             break;
         case UE_HARDWARE_READWRITE:
-            bptype="read/write";
+            bptype = "read/write";
             break;
         case UE_HARDWARE_WRITE:
-            bptype="write";
+            bptype = "write";
             break;
         }
-        const char* symbolicname=symgetsymbolicname(bp.addr);
+        const char* symbolicname = symgetsymbolicname(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -366,16 +366,16 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
                 dprintf("hardware breakpoint (%s%s) at "fhex"!\n", bpsize, bptype, bp.addr);
         }
         bptobridge(&bp, &pluginBp);
-        bpInfo.breakpoint=&pluginBp;
+        bpInfo.breakpoint = &pluginBp;
     }
     DebugUpdateGui(cip, true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
@@ -383,35 +383,35 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
 
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     uint size;
-    uint base=memfindbaseaddr((uint)ExceptionAddress, &size, true);
+    uint base = memfindbaseaddr((uint)ExceptionAddress, &size, true);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
-    bpInfo.breakpoint=0;
+    bpInfo.breakpoint = 0;
     if(!bpget(base, BPMEMORY, 0, &bp))
         dputs("memory breakpoint reached not in list!");
     else
     {
-        const char* bptype="";
+        const char* bptype = "";
         switch(bp.titantype)
         {
         case UE_MEMORY_READ:
-            bptype=" (read)";
+            bptype = " (read)";
             break;
         case UE_MEMORY_WRITE:
-            bptype=" (write)";
+            bptype = " (write)";
             break;
         case UE_MEMORY_EXECUTE:
-            bptype=" (execute)";
+            bptype = " (execute)";
             break;
         case UE_MEMORY:
-            bptype=" (read/write/execute)";
+            bptype = " (read/write/execute)";
             break;
         }
-        const char* symbolicname=symgetsymbolicname(bp.addr);
+        const char* symbolicname = symgetsymbolicname(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -427,7 +427,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
                 dprintf("memory breakpoint%s at "fhex" ("fhex")!\n", bptype, bp.addr, ExceptionAddress);
         }
         bptobridge(&bp, &pluginBp);
-        bpInfo.breakpoint=&pluginBp;
+        bpInfo.breakpoint = &pluginBp;
     }
     if(bp.singleshoot)
         bpdel(bp.addr, BPMEMORY); //delete from breakpoint list
@@ -436,9 +436,9 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
@@ -446,7 +446,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
 
 void cbLibrarianBreakpoint(void* lpData)
 {
-    bBreakOnNextDll=true;
+    bBreakOnNextDll = true;
 }
 
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
@@ -454,51 +454,51 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     UNREFERENCED_PARAMETER(hProcess);
     UNREFERENCED_PARAMETER(UserContext);
     PIMAGEHLP_CBA_EVENT evt;
-    switch (ActionCode)
+    switch(ActionCode)
     {
     case CBA_EVENT:
     {
-        evt=(PIMAGEHLP_CBA_EVENT)CallbackData;
-        const char* text=(const char*)evt->desc;
+        evt = (PIMAGEHLP_CBA_EVENT)CallbackData;
+        const char* text = (const char*)evt->desc;
         if(strstr(text, "Successfully received a response from the server."))
             break;
         if(strstr(text, "Waiting for the server to respond to a request."))
             break;
-        int len=(int)strlen(text);
-        bool suspress=false;
-        for(int i=0; i<len; i++)
-            if(text[i]==0x08)
+        int len = (int)strlen(text);
+        bool suspress = false;
+        for(int i = 0; i < len; i++)
+            if(text[i] == 0x08)
             {
-                suspress=true;
+                suspress = true;
                 break;
             }
-        int percent=0;
-        static bool zerobar=false;
+        int percent = 0;
+        static bool zerobar = false;
         if(zerobar)
         {
-            zerobar=false;
+            zerobar = false;
             GuiSymbolSetProgress(0);
         }
         if(strstr(text, " bytes -  "))
         {
-            char* newtext=(char*)emalloc(len+1, "SymRegisterCallbackProc64:newtext");
+            char* newtext = (char*)emalloc(len + 1, "SymRegisterCallbackProc64:newtext");
             strcpy(newtext, text);
-            strstr(newtext, " bytes -  ")[8]=0;
+            strstr(newtext, " bytes -  ")[8] = 0;
             GuiSymbolLogAdd(newtext);
             efree(newtext, "SymRegisterCallbackProc64:newtext");
-            suspress=true;
+            suspress = true;
         }
         else if(strstr(text, " copied         "))
         {
             GuiSymbolSetProgress(100);
             GuiSymbolLogAdd(" downloaded!\n");
-            suspress=true;
-            zerobar=true;
+            suspress = true;
+            zerobar = true;
         }
-        else if(sscanf(text, "%*s %d percent", &percent)==1 or sscanf(text, "%d percent", &percent)==1)
+        else if(sscanf(text, "%*s %d percent", &percent) == 1 or sscanf(text, "%d percent", &percent) == 1)
         {
             GuiSymbolSetProgress(percent);
-            suspress=true;
+            suspress = true;
         }
 
         if(!suspress)
@@ -535,7 +535,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 
     case BPMEMORY:
     {
-        uint size=0;
+        uint size = 0;
         memfindbaseaddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
             dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
@@ -544,7 +544,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 
     case BPHARDWARE:
     {
-        DWORD drx=0;
+        DWORD drx = 0;
         if(!GetUnusedHardwareBreakPointRegister(&drx))
         {
             dputs("you can only set 4 hardware breakpoints");
@@ -589,18 +589,18 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 
 void cbStep()
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    isStepping=false;
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    isStepping = false;
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     PLUG_CB_STEPPED stepInfo;
-    stepInfo.reserved=0;
+    stepInfo.reserved = 0;
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_STEPPED, &stepInfo);
     wait(WAITID_RUN);
@@ -608,31 +608,31 @@ void cbStep()
 
 static void cbRtrFinalStep()
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     GuiSetDebugState(paused);
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     wait(WAITID_RUN);
 }
 
 static unsigned char getCIPch()
 {
-    unsigned char ch=0x90;
-    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
+    unsigned char ch = 0x90;
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
     return ch;
 }
 
 void cbRtrStep()
 {
-    unsigned int cipch=getCIPch();
-    if(cipch==0xC3 or cipch==0xC2)
+    unsigned int cipch = getCIPch();
+    if(cipch == 0xC3 or cipch == 0xC2)
         cbRtrFinalStep();
     else
         StepOver((void*)cbRtrStep);
@@ -641,8 +641,8 @@ void cbRtrStep()
 ///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
-    void* base=CreateProcessInfo->lpBaseOfImage;
-    char DebugFileName[deflen]="";
+    void* base = CreateProcessInfo->lpBaseOfImage;
+    char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
     {
         if(!DevicePathFromFileHandleA(CreateProcessInfo->hFile, DebugFileName, deflen))
@@ -651,12 +651,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     //init program database
-    int len=(int)strlen(szFileName);
-    while(szFileName[len]!='\\' && len!=0)
+    int len = (int)strlen(szFileName);
+    while(szFileName[len] != '\\' && len != 0)
         len--;
     if(len)
         len++;
-    strcpy(sqlitedb, szFileName+len);
+    strcpy(sqlitedb, szFileName + len);
 #ifdef _WIN64
     strcat(sqlitedb, ".dd64");
 #else
@@ -665,7 +665,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbload();
-    SymSetOptions(SYMOPT_DEBUG|SYMOPT_LOAD_LINES|SYMOPT_ALLOW_ABSOLUTE_SYMBOLS|SYMOPT_FAVOR_COMPRESSED|SYMOPT_IGNORE_NT_SYMPATH);
+    SymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
@@ -674,35 +674,35 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(modInfo);
+    modInfo.SizeOfStruct = sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
-    char modname[256]="";
+    char modname[256] = "";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
     {
-        pDebuggedBase=(uint)CreateProcessInfo->lpBaseOfImage; //debugged base = executable
-        char command[256]="";
+        pDebuggedBase = (uint)CreateProcessInfo->lpBaseOfImage; //debugged base = executable
+        char command[256] = "";
 
         if(settingboolget("Events", "TlsCallbacks"))
         {
-            DWORD NumberOfCallBacks=0;
+            DWORD NumberOfCallBacks = 0;
             TLSGrabCallBackData(DebugFileName, 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
-                uint* TLSCallBacks=(uint*)emalloc(NumberOfCallBacks*sizeof(uint), "cbCreateProcess:TLSCallBacks");
+                uint* TLSCallBacks = (uint*)emalloc(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
                 {
-                    for(unsigned int i=0; i<NumberOfCallBacks; i++)
+                    for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i+1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i + 1);
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
@@ -720,24 +720,24 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
-    callbackInfo.CreateProcessInfo=CreateProcessInfo;
-    callbackInfo.modInfo=&modInfo;
-    callbackInfo.DebugFileName=DebugFileName;
-    callbackInfo.fdProcessInfo=fdProcessInfo;
+    callbackInfo.CreateProcessInfo = CreateProcessInfo;
+    callbackInfo.modInfo = &modInfo;
+    callbackInfo.DebugFileName = DebugFileName;
+    callbackInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
 
     //update thread list
     CREATE_THREAD_DEBUG_INFO threadInfo;
-    threadInfo.hThread=CreateProcessInfo->hThread;
-    threadInfo.lpStartAddress=CreateProcessInfo->lpStartAddress;
-    threadInfo.lpThreadLocalBase=CreateProcessInfo->lpThreadLocalBase;
+    threadInfo.hThread = CreateProcessInfo->hThread;
+    threadInfo.lpStartAddress = CreateProcessInfo->lpStartAddress;
+    threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
     threadcreate(&threadInfo);
 }
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
     PLUG_CB_EXITPROCESS callbackInfo;
-    callbackInfo.ExitProcess=ExitProcess;
+    callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     //Cleanup
     SymCleanup(fdProcessInfo->hProcess);
@@ -746,19 +746,19 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
-    DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    hActiveThread=threadgethandle(dwThreadId);
+    DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    hActiveThread = threadgethandle(dwThreadId);
 
     if(settingboolget("Events", "ThreadEntry"))
     {
-        char command[256]="";
+        char command[256] = "";
         sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(dbggetcommandlist(), command);
     }
 
     PLUG_CB_CREATETHREAD callbackInfo;
-    callbackInfo.CreateThread=CreateThread;
-    callbackInfo.dwThreadId=dwThreadId;
+    callbackInfo.CreateThread = CreateThread;
+    callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
 
     dprintf("Thread %X created\n", dwThreadId);
@@ -774,7 +774,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -782,11 +782,11 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    DWORD dwThreadId=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
-    callbackInfo.ExitThread=ExitThread;
-    callbackInfo.dwThreadId=dwThreadId;
+    callbackInfo.ExitThread = ExitThread;
+    callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
     threadexit(dwThreadId);
     dprintf("Thread %X exit\n", dwThreadId);
@@ -800,7 +800,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -808,19 +808,19 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 
 static void cbSystemBreakpoint(void* ExceptionData)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     //log message
     if(bIsAttached)
         dputs("attach breakpoint reached!");
     else
         dputs("system breakpoint reached!");
-    bSkipExceptions=false; //we are not skipping first-chance exceptions
-    uint cip=GetContextDataEx(hActiveThread, UE_CIP);
+    bSkipExceptions = false; //we are not skipping first-chance exceptions
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
-    callbackInfo.reserved=0;
+    callbackInfo.reserved = 0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
 
     if(bIsAttached ? settingboolget("Events", "AttachBreakpoint") : settingboolget("Events", "SystemBreakpoint"))
@@ -832,7 +832,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -840,9 +840,9 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    void* base=LoadDll->lpBaseOfDll;
-    char DLLDebugFileName[deflen]="";
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    void* base = LoadDll->lpBaseOfDll;
+    char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
     {
         if(!DevicePathFromFileHandleA(LoadDll->hFile, DLLDebugFileName, deflen))
@@ -851,24 +851,24 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
-    modInfo.SizeOfStruct=sizeof(IMAGEHLP_MODULE64);
+    modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
-    char modname[256]="";
+    char modname[256] = "";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
-    bool bAlreadySetEntry=false;
+    bool bAlreadySetEntry = false;
     if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
-        pDebuggedBase=(uint)base;
-        char command[256]="";
+        pDebuggedBase = (uint)base;
+        char command[256] = "";
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            bAlreadySetEntry=true;
-            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", pDebuggedBase+pDebuggedEntry);
+            bAlreadySetEntry = true;
+            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
             cmddirectexec(dbggetcommandlist(), command);
         }
     }
@@ -876,11 +876,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
-        uint oep=GetPE32Data(DLLDebugFileName, 0, UE_OEP);
+        uint oep = GetPE32Data(DLLDebugFileName, 0, UE_OEP);
         if(oep)
         {
-            char command[256]="";
-            sprintf(command, "bp "fhex",\"DllMain (%s)\",ss", oep+(uint)base, modname);
+            char command[256] = "";
+            sprintf(command, "bp "fhex",\"DllMain (%s)\",ss", oep + (uint)base, modname);
             cmddirectexec(dbggetcommandlist(), command);
         }
     }
@@ -889,14 +889,14 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
-    callbackInfo.LoadDll=LoadDll;
-    callbackInfo.modInfo=&modInfo;
-    callbackInfo.modname=modname;
+    callbackInfo.LoadDll = LoadDll;
+    callbackInfo.modInfo = &modInfo;
+    callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
     if(bBreakOnNextDll || settingboolget("Events", "DllLoad"))
     {
-        bBreakOnNextDll=false;
+        bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
@@ -904,7 +904,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -912,13 +912,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_UNLOADDLL callbackInfo;
-    callbackInfo.UnloadDll=UnloadDll;
+    callbackInfo.UnloadDll = UnloadDll;
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
 
-    void* base=UnloadDll->lpBaseOfDll;
-    char modname[256]="???";
+    void* base = UnloadDll->lpBaseOfDll;
+    char modname[256] = "???";
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbRemoveModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
@@ -927,7 +927,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
     if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))
     {
-        bBreakOnNextDll=false;
+        bBreakOnNextDll = false;
         //update GUI
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
         GuiSetDebugState(paused);
@@ -935,7 +935,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -945,54 +945,54 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
-    callbackInfo.DebugString=DebugString;
+    callbackInfo.DebugString = DebugString;
     plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
 
     if(!DebugString->fUnicode) //ASCII
     {
-        char* DebugText=(char*)emalloc(DebugString->nDebugStringLength+1, "cbOutputDebugString:DebugText");
-        memset(DebugText, 0, DebugString->nDebugStringLength+1);
+        char* DebugText = (char*)emalloc(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
+        memset(DebugText, 0, DebugString->nDebugStringLength + 1);
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
-            int len=(int)strlen(DebugText);
-            int escape_count=0;
-            for(int i=0; i<len; i++)
-                if(DebugText[i]=='\\' or DebugText[i]=='\"' or !isprint(DebugText[i]))
+            int len = (int)strlen(DebugText);
+            int escape_count = 0;
+            for(int i = 0; i < len; i++)
+                if(DebugText[i] == '\\' or DebugText[i] == '\"' or !isprint(DebugText[i]))
                     escape_count++;
-            char* DebugTextEscaped=(char*)emalloc(len+escape_count*3+1, "cbOutputDebugString:DebugTextEscaped");
-            memset(DebugTextEscaped, 0, len+escape_count*3+1);
-            for(int i=0,j=0; i<len; i++)
+            char* DebugTextEscaped = (char*)emalloc(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
+            memset(DebugTextEscaped, 0, len + escape_count * 3 + 1);
+            for(int i = 0, j = 0; i < len; i++)
             {
                 switch(DebugText[i])
                 {
                 case '\t':
-                    j+=sprintf(DebugTextEscaped+j, "\\t");
+                    j += sprintf(DebugTextEscaped + j, "\\t");
                     break;
                 case '\f':
-                    j+=sprintf(DebugTextEscaped+j, "\\f");
+                    j += sprintf(DebugTextEscaped + j, "\\f");
                     break;
                 case '\v':
-                    j+=sprintf(DebugTextEscaped+j, "\\v");
+                    j += sprintf(DebugTextEscaped + j, "\\v");
                     break;
                 case '\n':
-                    j+=sprintf(DebugTextEscaped+j, "\\n");
+                    j += sprintf(DebugTextEscaped + j, "\\n");
                     break;
                 case '\r':
-                    j+=sprintf(DebugTextEscaped+j, "\\r");
+                    j += sprintf(DebugTextEscaped + j, "\\r");
                     break;
                 case '\\':
-                    j+=sprintf(DebugTextEscaped+j, "\\\\");
+                    j += sprintf(DebugTextEscaped + j, "\\\\");
                     break;
                 case '\"':
-                    j+=sprintf(DebugTextEscaped+j, "\\\"");
+                    j += sprintf(DebugTextEscaped + j, "\\\"");
                     break;
                 default:
                     if(!isprint(DebugText[i])) //unknown unprintable character
-                        j+=sprintf(DebugTextEscaped+j, "\\%.2x", DebugText[i]);
+                        j += sprintf(DebugTextEscaped + j, "\\%.2x", DebugText[i]);
                     else
-                        j+=sprintf(DebugTextEscaped+j, "%c", DebugText[i]);
+                        j += sprintf(DebugTextEscaped + j, "%c", DebugText[i]);
                     break;
                 }
             }
@@ -1011,7 +1011,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
-        pauseInfo.reserved=0;
+        pauseInfo.reserved = 0;
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         wait(WAITID_RUN);
     }
@@ -1019,25 +1019,25 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
-    hActiveThread=threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
-    callbackInfo.Exception=ExceptionData;
-    unsigned int ExceptionCode=ExceptionData->ExceptionRecord.ExceptionCode;
+    callbackInfo.Exception = ExceptionData;
+    unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
     GuiSetLastException(ExceptionCode);
 
-    uint addr=(uint)ExceptionData->ExceptionRecord.ExceptionAddress;
-    if(ExceptionData->ExceptionRecord.ExceptionCode==EXCEPTION_BREAKPOINT)
+    uint addr = (uint)ExceptionData->ExceptionRecord.ExceptionAddress;
+    if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
     {
         if(isDetachedByUser)
         {
             PLUG_CB_DETACH detachInfo;
-            detachInfo.fdProcessInfo=fdProcessInfo;
+            detachInfo.fdProcessInfo = fdProcessInfo;
             plugincbcall(CB_DETACH, &detachInfo);
             if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
                 dputs("DetachDebuggerEx failed...");
             else
                 dputs("detached!");
-            isDetachedByUser=false;
+            isDetachedByUser = false;
             return;
         }
         else if(isPausedByUser)
@@ -1049,9 +1049,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             //lock
             lock(WAITID_RUN);
             SetForegroundWindow(GuiGetWindowHandle());
-            bSkipExceptions=false;
+            bSkipExceptions = false;
             PLUG_CB_PAUSEDEBUG pauseInfo;
-            pauseInfo.reserved=0;
+            pauseInfo.reserved = 0;
             plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
             plugincbcall(CB_EXCEPTION, &callbackInfo);
             wait(WAITID_RUN);
@@ -1059,57 +1059,57 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
         SetContextDataEx(hActiveThread, UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
-    else if(ExceptionData->ExceptionRecord.ExceptionCode==0x406D1388) //SetThreadName exception
+    else if(ExceptionData->ExceptionRecord.ExceptionCode == 0x406D1388) //SetThreadName exception
     {
-        if(ExceptionData->ExceptionRecord.NumberParameters==sizeof(THREADNAME_INFO)/sizeof(uint))
+        if(ExceptionData->ExceptionRecord.NumberParameters == sizeof(THREADNAME_INFO) / sizeof(uint))
         {
             THREADNAME_INFO nameInfo;
             memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
-            if(nameInfo.dwThreadID==-1) //current thread
-                nameInfo.dwThreadID=((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-            if(nameInfo.dwType==0x1000 and nameInfo.dwFlags==0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
+            if(nameInfo.dwThreadID == -1) //current thread
+                nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+            if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
             {
-                char* ThreadName=(char*)emalloc(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+                char* ThreadName = (char*)emalloc(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
                 memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
-                if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE-1, 0))
+                if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
                 {
-                    int len=(int)strlen(ThreadName);
-                    int escape_count=0;
-                    for(int i=0; i<len; i++)
-                        if(ThreadName[i]=='\\' or ThreadName[i]=='\"' or !isprint(ThreadName[i]))
+                    int len = (int)strlen(ThreadName);
+                    int escape_count = 0;
+                    for(int i = 0; i < len; i++)
+                        if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
                             escape_count++;
-                    char* ThreadNameEscaped=(char*)emalloc(len+escape_count*3+1, "cbException:ThreadNameEscaped");
-                    memset(ThreadNameEscaped, 0, len+escape_count*3+1);
-                    for(int i=0,j=0; i<len; i++)
+                    char* ThreadNameEscaped = (char*)emalloc(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
+                    memset(ThreadNameEscaped, 0, len + escape_count * 3 + 1);
+                    for(int i = 0, j = 0; i < len; i++)
                     {
                         switch(ThreadName[i])
                         {
                         case '\t':
-                            j+=sprintf(ThreadNameEscaped+j, "\\t");
+                            j += sprintf(ThreadNameEscaped + j, "\\t");
                             break;
                         case '\f':
-                            j+=sprintf(ThreadNameEscaped+j, "\\f");
+                            j += sprintf(ThreadNameEscaped + j, "\\f");
                             break;
                         case '\v':
-                            j+=sprintf(ThreadNameEscaped+j, "\\v");
+                            j += sprintf(ThreadNameEscaped + j, "\\v");
                             break;
                         case '\n':
-                            j+=sprintf(ThreadNameEscaped+j, "\\n");
+                            j += sprintf(ThreadNameEscaped + j, "\\n");
                             break;
                         case '\r':
-                            j+=sprintf(ThreadNameEscaped+j, "\\r");
+                            j += sprintf(ThreadNameEscaped + j, "\\r");
                             break;
                         case '\\':
-                            j+=sprintf(ThreadNameEscaped+j, "\\\\");
+                            j += sprintf(ThreadNameEscaped + j, "\\\\");
                             break;
                         case '\"':
-                            j+=sprintf(ThreadNameEscaped+j, "\\\"");
+                            j += sprintf(ThreadNameEscaped + j, "\\\"");
                             break;
                         default:
                             if(!isprint(ThreadName[i])) //unknown unprintable character
-                                j+=sprintf(ThreadNameEscaped+j, "\\%.2x", ThreadName[i]);
+                                j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
                             else
-                                j+=sprintf(ThreadNameEscaped+j, "%c", ThreadName[i]);
+                                j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
                             break;
                         }
                     }
@@ -1148,9 +1148,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     //lock
     lock(WAITID_RUN);
     SetForegroundWindow(GuiGetWindowHandle());
-    bSkipExceptions=false;
+    bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
-    pauseInfo.reserved=0;
+    pauseInfo.reserved = 0;
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     plugincbcall(CB_EXCEPTION, &callbackInfo);
     wait(WAITID_RUN);
@@ -1159,7 +1159,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
     PLUG_CB_DEBUGEVENT debugEventInfo;
-    debugEventInfo.DebugEvent=DebugEvent;
+    debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
 }
 
@@ -1167,26 +1167,26 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
     lock(WAITID_STOP); //we are running
     //initialize
-    bIsAttached=false;
-    bSkipExceptions=false;
-    bBreakOnNextDll=false;
-    INIT_STRUCT* init=(INIT_STRUCT*)lpParameter;
-    bFileIsDll=IsFileDLL(init->exe, 0);
-    pDebuggedEntry=GetPE32Data(init->exe, 0, UE_OEP);
+    bIsAttached = false;
+    bSkipExceptions = false;
+    bBreakOnNextDll = false;
+    INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
+    bFileIsDll = IsFileDLL(init->exe, 0);
+    pDebuggedEntry = GetPE32Data(init->exe, 0, UE_OEP);
     strcpy(szFileName, init->exe);
     if(bFileIsDll)
-        fdProcessInfo=(PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
-        fdProcessInfo=(PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
     efree(init, "threadDebugLoop:init"); //free init struct
     if(!fdProcessInfo)
     {
-        fdProcessInfo=&g_pi;
+        fdProcessInfo = &g_pi;
         dputs("error starting process (invalid pe?)!");
         unlock(WAITID_STOP);
         return 0;
     }
-    BOOL wow64=false, mewow64=false;
+    BOOL wow64 = false, mewow64 = false;
     if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
     {
         dputs("IsWow64Process failed!");
@@ -1207,8 +1207,8 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     GuiAddRecentFile(szFileName);
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
-    ecount=0;
-    cachePrivateUsage=0;
+    ecount = 0;
+    cachePrivateUsage = 0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -1224,22 +1224,22 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     GuiSetDebugState(initialized);
     //set GUI title
     strcpy(szBaseFileName, szFileName);
-    int len=(int)strlen(szBaseFileName);
-    while(szBaseFileName[len]!='\\' and len)
+    int len = (int)strlen(szBaseFileName);
+    while(szBaseFileName[len] != '\\' and len)
         len--;
     if(len)
-        strcpy(szBaseFileName, szBaseFileName+len+1);
+        strcpy(szBaseFileName, szBaseFileName + len + 1);
     GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
-    initInfo.szFileName=szFileName;
+    initInfo.szFileName = szFileName;
     plugincbcall(CB_INITDEBUG, &initInfo);
     //run debug loop (returns when process debugging is stopped)
     DebugLoop();
-    isDetachedByUser=false;
+    isDetachedByUser = false;
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
-    stopInfo.reserved=0;
+    stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
@@ -1265,7 +1265,7 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPNORMAL or bp->enabled)
+    if(bp->type != BPNORMAL or bp->enabled)
         return true;
     if(!bpenable(bp->addr, BPNORMAL, true) or !SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
     {
@@ -1277,7 +1277,7 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPNORMAL or !bp->enabled)
+    if(bp->type != BPNORMAL or !bp->enabled)
         return true;
     if(!bpenable(bp->addr, BPNORMAL, false) or !DeleteBPX(bp->addr))
     {
@@ -1289,9 +1289,9 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPHARDWARE or bp->enabled)
+    if(bp->type != BPHARDWARE or bp->enabled)
         return true;
-    DWORD drx=0;
+    DWORD drx = 0;
     if(!GetUnusedHardwareBreakPointRegister(&drx))
     {
         dprintf("did not enable hardware breakpoint "fhex" (all slots full)\n", bp->addr);
@@ -1310,7 +1310,7 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPHARDWARE or !bp->enabled)
+    if(bp->type != BPHARDWARE or !bp->enabled)
         return true;
     if(!bpenable(bp->addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
@@ -1322,9 +1322,9 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPMEMORY or bp->enabled)
+    if(bp->type != BPMEMORY or bp->enabled)
         return true;
-    uint size=0;
+    uint size = 0;
     memfindbaseaddr(bp->addr, &size);
     if(!bpenable(bp->addr, BPMEMORY, true) or !SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
     {
@@ -1336,7 +1336,7 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type!=BPMEMORY or !bp->enabled)
+    if(bp->type != BPMEMORY or !bp->enabled)
         return true;
     if(!bpenable(bp->addr, BPMEMORY, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
@@ -1348,19 +1348,19 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 
 bool cbBreakpointList(const BREAKPOINT* bp)
 {
-    const char* type=0;
-    if(bp->type==BPNORMAL)
+    const char* type = 0;
+    if(bp->type == BPNORMAL)
     {
         if(bp->singleshoot)
-            type="SS";
+            type = "SS";
         else
-            type="BP";
+            type = "BP";
     }
-    else if(bp->type==BPHARDWARE)
-        type="HW";
-    else if(bp->type==BPMEMORY)
-        type="GP";
-    bool enabled=bp->enabled;
+    else if(bp->type == BPHARDWARE)
+        type = "HW";
+    else if(bp->type == BPMEMORY)
+        type = "GP";
+    bool enabled = bp->enabled;
     if(*bp->name)
         dprintf("%d:%s:"fhex":\"%s\"\n", enabled, type, bp->addr, bp->name);
     else
@@ -1403,16 +1403,16 @@ static void cbAttachDebugger()
 DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
     lock(WAITID_STOP);
-    bIsAttached=true;
-    bSkipExceptions=false;
-    DWORD pid=(DWORD)lpParameter;
+    bIsAttached = true;
+    bSkipExceptions = false;
+    DWORD pid = (DWORD)lpParameter;
     static PROCESS_INFORMATION pi_attached;
-    fdProcessInfo=&pi_attached;
+    fdProcessInfo = &pi_attached;
     //do some init stuff
-    bFileIsDll=IsFileDLL(szFileName, 0);
+    bFileIsDll = IsFileDLL(szFileName, 0);
     GuiAddRecentFile(szFileName);
-    ecount=0;
-    cachePrivateUsage=0;
+    ecount = 0;
+    cachePrivateUsage = 0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -1428,26 +1428,26 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     GuiSetDebugState(initialized);
     //set GUI title
     strcpy(szBaseFileName, szFileName);
-    int len=(int)strlen(szBaseFileName);
-    while(szBaseFileName[len]!='\\' and len)
+    int len = (int)strlen(szBaseFileName);
+    while(szBaseFileName[len] != '\\' and len)
         len--;
     if(len)
-        strcpy(szBaseFileName, szBaseFileName+len+1);
+        strcpy(szBaseFileName, szBaseFileName + len + 1);
     GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback (init)
     PLUG_CB_INITDEBUG initInfo;
-    initInfo.szFileName=szFileName;
+    initInfo.szFileName = szFileName;
     plugincbcall(CB_INITDEBUG, &initInfo);
     //call plugin callback (attach)
     PLUG_CB_ATTACH attachInfo;
-    attachInfo.dwProcessId=(DWORD)pid;
+    attachInfo.dwProcessId = (DWORD)pid;
     plugincbcall(CB_ATTACH, &attachInfo);
     //run debug loop (returns when process debugging is stopped)
     AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
-    isDetachedByUser=false;
+    isDetachedByUser = false;
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
-    stopInfo.reserved=0;
+    stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
@@ -1467,7 +1467,7 @@ void cbDetach()
     if(!isDetachedByUser)
         return;
     PLUG_CB_DETACH detachInfo;
-    detachInfo.fdProcessInfo=fdProcessInfo;
+    detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
         dputs("DetachDebuggerEx failed...");

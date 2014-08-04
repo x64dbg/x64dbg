@@ -37,7 +37,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
     static DWORD WINAPI closeThread(void* ptr);
     void closeEvent(QCloseEvent* event);
@@ -96,7 +96,7 @@ public slots:
     void donate();
 
 private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow* ui;
     CloseDialog* mCloseDialog;
 
     CommandLineEdit* mCmdLineEdit;

@@ -1,7 +1,7 @@
 #include "PatchDialogGroupSelector.h"
 #include "ui_PatchDialogGroupSelector.h"
 
-PatchDialogGroupSelector::PatchDialogGroupSelector(QWidget *parent) :
+PatchDialogGroupSelector::PatchDialogGroupSelector(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::PatchDialogGroupSelector)
 {
@@ -31,7 +31,7 @@ void PatchDialogGroupSelector::keyPressEvent(QKeyEvent* event)
         on_btnNext_clicked();
 }
 
-void PatchDialogGroupSelector::setGroupTitle(const QString &title)
+void PatchDialogGroupSelector::setGroupTitle(const QString & title)
 {
     ui->lblTitle->setText(title);
 }

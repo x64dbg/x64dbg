@@ -13,7 +13,7 @@ enum arch
 
 static bool FileExists(const char* file)
 {
-    DWORD attrib=GetFileAttributes(file);
+    DWORD attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
@@ -53,7 +53,7 @@ static arch GetFileArchitecture(const char* szFileName)
 //Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
 static void commandlinefree(int argc, char** argv)
 {
-    for(int i=0; i < argc; i++)
+    for(int i = 0; i < argc; i++)
         free(argv[i]);
     free(argv);
 }
@@ -64,8 +64,8 @@ static char** commandlineparse(int* argc)
         return NULL;
     LPWSTR wcCommandLine = GetCommandLineW();
     LPWSTR* argw = CommandLineToArgvW(wcCommandLine, argc);
-    char** argv = (char**)malloc(sizeof(void*)*(*argc + 1));
-    for(int i=0; i < *argc; i++)
+    char** argv = (char**)malloc(sizeof(void*) * (*argc + 1));
+    for(int i = 0; i < *argc; i++)
     {
         int bufSize = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
         argv[i] = (char*)malloc(bufSize + 1);
@@ -114,7 +114,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     char szModulePath[MAX_PATH] = "";
     if(!GetModuleFileNameA(0, szModulePath, MAX_PATH))
     {
-        MessageBoxA(0, "Error getting module path!", "Error", MB_ICONERROR|MB_SYSTEMMODAL);
+        MessageBoxA(0, "Error getting module path!", "Error", MB_ICONERROR | MB_SYSTEMMODAL);
         return 0;
     }
     char szIniPath[MAX_PATH] = "";
@@ -168,14 +168,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Handle command line
     int argc = 0;
-    char** argv=commandlineparse(&argc);
+    char** argv = commandlineparse(&argc);
     if(argc <= 1) //no arguments -> set configuration
     {
         if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
             WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
         if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
             WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
-        if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO|MB_ICONQUESTION) == IDYES)
+        if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             char szLauncherCommand[MAX_PATH] = "";
             sprintf_s(szLauncherCommand, "\"%s\" \"%%1\"", szModulePath);

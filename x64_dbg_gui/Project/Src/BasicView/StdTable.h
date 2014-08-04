@@ -10,7 +10,7 @@ class StdTable : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit StdTable(QWidget *parent = 0);
+    explicit StdTable(QWidget* parent = 0);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
     void mouseMoveEvent(QMouseEvent* event);
@@ -45,13 +45,13 @@ signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
     void doubleClickedSignal();
-    void contextMenuSignal(const QPoint &pos);
+    void contextMenuSignal(const QPoint & pos);
 
 public slots:
     void copyLineSlot();
     void copyTableSlot();
     void copyEntrySlot();
-    void contextMenuRequestedSlot(const QPoint &pos);
+    void contextMenuRequestedSlot(const QPoint & pos);
     void headerButtonPressedSlot(int col);
 
 private:
@@ -60,13 +60,13 @@ private:
     public:
         ColumnCompare(int col, bool greater)
         {
-            mCol=col;
-            mGreater=greater;
+            mCol = col;
+            mGreater = greater;
         }
 
         inline bool operator()(const QList<QString> & a, const QList<QString> & b) const
         {
-            bool less=QString::compare(a.at(mCol), b.at(mCol), Qt::CaseInsensitive) < 0;
+            bool less = QString::compare(a.at(mCol), b.at(mCol), Qt::CaseInsensitive) < 0;
             if(mGreater)
                 return !less;
             return less;

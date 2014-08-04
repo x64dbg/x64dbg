@@ -3,7 +3,7 @@
 
 // Dreg code x86_64dbg GPLv3
 
-void ThreadView::contextMenuSlot(const QPoint &pos)
+void ThreadView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
@@ -25,26 +25,26 @@ void ThreadView::contextMenuSlot(const QPoint &pos)
     }
 
 
-    foreach(QAction* action, mSetPriority->actions())
+    foreach(QAction * action, mSetPriority->actions())
     {
         action->setCheckable(true);
         action->setChecked(false);
     }
 
-    QString priority=getCellContent(getInitialSelection(), 6);
-    if ( priority == "Normal" )
+    QString priority = getCellContent(getInitialSelection(), 6);
+    if(priority == "Normal")
         mSetPriorityNormal->setChecked(true);
-    else if ( priority == "AboveNormal" )
+    else if(priority == "AboveNormal")
         mSetPriorityAboveNormal->setChecked(true);
-    else if ( priority == "TimeCritical" )
+    else if(priority == "TimeCritical")
         mSetPriorityTimeCritical ->setChecked(true);
-    else if ( priority == "Idle" )
+    else if(priority == "Idle")
         mSetPriorityIdle->setChecked(true);
-    else if ( priority == "BelowNormal" )
+    else if(priority == "BelowNormal")
         mSetPriorityBelowNormal->setChecked(true);
-    else if ( priority == "Highest" )
+    else if(priority == "Highest")
         mSetPriorityHighest->setChecked(true);
-    else if ( priority == "Lowest" )
+    else if(priority == "Lowest")
         mSetPriorityLowest->setChecked(true);
 
     wMenu->exec(mapToGlobal(pos)); //execute context menu
@@ -52,67 +52,67 @@ void ThreadView::contextMenuSlot(const QPoint &pos)
 
 void ThreadView::SwitchThread()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SuspendThread()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("suspendthread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::ResumeThread()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("resumethread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::KillThread()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("killthread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SetPriorityIdleSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Idle").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityAboveNormalSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", AboveNormal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityBelowNormalSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", BelowNormal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityHighestSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Highest").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityLowestSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Lowest").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityNormalSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", Normal").toUtf8().constData());
 }
 
 void ThreadView::SetPriorityTimeCriticalSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("setprioritythread " + threadId + ", TimeCritical").toUtf8().constData());
 }
 
@@ -165,22 +165,22 @@ void ThreadView::setupContextMenu()
     mSetPriority->addAction(mSetPriorityTimeCritical);
 }
 
-ThreadView::ThreadView(StdTable *parent) : StdTable(parent)
+ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 {
-    int charwidth=getCharWidth();
-    addColumnAt(8+charwidth*sizeof(unsigned int)*2, "Number", false);
-    addColumnAt(8+charwidth*sizeof(unsigned int)*2, "ID", false);
-    addColumnAt(8+charwidth*sizeof(uint_t)*2, "Entry", false);
-    addColumnAt(8+charwidth*sizeof(uint_t)*2, "TEB", false);
+    int charwidth = getCharWidth();
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "Number", false);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "ID", false);
+    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "Entry", false);
+    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "TEB", false);
 #ifdef _WIN64
-    addColumnAt(8+charwidth*sizeof(uint_t)*2, "RIP", false);
+    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "RIP", false);
 #else
-    addColumnAt(8+charwidth*sizeof(uint_t)*2, "EIP", false);
+    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "EIP", false);
 #endif //_WIN64
-    addColumnAt(8+charwidth*14, "Suspend Count", false);
-    addColumnAt(8+charwidth*12, "Priority", false);
-    addColumnAt(8+charwidth*16, "WaitReason", false);
-    addColumnAt(8+charwidth*10, "LastError", false);
+    addColumnAt(8 + charwidth * 14, "Suspend Count", false);
+    addColumnAt(8 + charwidth * 12, "Priority", false);
+    addColumnAt(8 + charwidth * 16, "WaitReason", false);
+    addColumnAt(8 + charwidth * 10, "LastError", false);
     addColumnAt(0, "Name", false);
 
     //setCopyMenuOnly(true);
@@ -198,7 +198,7 @@ void ThreadView::updateThreadList()
     memset(&threadList, 0, sizeof(THREADLIST));
     DbgGetThreadList(&threadList);
     setRowCount(threadList.count);
-    for(int i=0; i<threadList.count; i++)
+    for(int i = 0; i < threadList.count; i++)
     {
         if(!threadList.list[i].BasicInfo.ThreadNumber)
             setCellContent(i, 0, "Main");
@@ -213,28 +213,28 @@ void ThreadView::updateThreadList()
         switch(threadList.list[i].Priority)
         {
         case _PriorityIdle:
-            priorityString="Idle";
+            priorityString = "Idle";
             break;
         case _PriorityAboveNormal:
-            priorityString="AboveNormal";
+            priorityString = "AboveNormal";
             break;
         case _PriorityBelowNormal:
-            priorityString="BelowNormal";
+            priorityString = "BelowNormal";
             break;
         case _PriorityHighest:
-            priorityString="Highest";
+            priorityString = "Highest";
             break;
         case _PriorityLowest:
-            priorityString="Lowest";
+            priorityString = "Lowest";
             break;
         case _PriorityNormal:
-            priorityString="Normal";
+            priorityString = "Normal";
             break;
         case _PriorityTimeCritical:
-            priorityString="TimeCritical";
+            priorityString = "TimeCritical";
             break;
         default:
-            priorityString="Unknown";
+            priorityString = "Unknown";
             break;
         }
         setCellContent(i, 6, priorityString);
@@ -242,118 +242,118 @@ void ThreadView::updateThreadList()
         switch(threadList.list[i].WaitReason)
         {
         case _Executive:
-            waitReasonString="Executive";
+            waitReasonString = "Executive";
             break;
         case _FreePage:
-            waitReasonString="FreePage";
+            waitReasonString = "FreePage";
             break;
         case _PageIn:
-            waitReasonString="PageIn";
+            waitReasonString = "PageIn";
             break;
         case _PoolAllocation:
-            waitReasonString="PoolAllocation";
+            waitReasonString = "PoolAllocation";
             break;
         case _DelayExecution:
-            waitReasonString="DelayExecution";
+            waitReasonString = "DelayExecution";
             break;
         case _Suspended:
-            waitReasonString="Suspended";
+            waitReasonString = "Suspended";
             break;
         case _UserRequest:
-            waitReasonString="UserRequest";
+            waitReasonString = "UserRequest";
             break;
         case _WrExecutive:
-            waitReasonString="WrExecutive";
+            waitReasonString = "WrExecutive";
             break;
         case _WrFreePage:
-            waitReasonString="WrFreePage";
+            waitReasonString = "WrFreePage";
             break;
         case _WrPageIn:
-            waitReasonString="WrPageIn";
+            waitReasonString = "WrPageIn";
             break;
         case _WrPoolAllocation:
-            waitReasonString="WrPoolAllocation";
+            waitReasonString = "WrPoolAllocation";
             break;
         case _WrDelayExecution:
-            waitReasonString="WrDelayExecution";
+            waitReasonString = "WrDelayExecution";
             break;
         case _WrSuspended:
-            waitReasonString="WrSuspended";
+            waitReasonString = "WrSuspended";
             break;
         case _WrUserRequest:
-            waitReasonString="WrUserRequest";
+            waitReasonString = "WrUserRequest";
             break;
         case _WrEventPair:
-            waitReasonString="WrEventPair";
+            waitReasonString = "WrEventPair";
             break;
         case _WrQueue:
-            waitReasonString="WrQueue";
+            waitReasonString = "WrQueue";
             break;
         case _WrLpcReceive:
-            waitReasonString="WrLpcReceive";
+            waitReasonString = "WrLpcReceive";
             break;
         case _WrLpcReply:
-            waitReasonString="WrLpcReply";
+            waitReasonString = "WrLpcReply";
             break;
         case _WrVirtualMemory:
-            waitReasonString="WrVirtualMemory";
+            waitReasonString = "WrVirtualMemory";
             break;
         case _WrPageOut:
-            waitReasonString="WrPageOut";
+            waitReasonString = "WrPageOut";
             break;
         case _WrRendezvous:
-            waitReasonString="WrRendezvous";
+            waitReasonString = "WrRendezvous";
             break;
         case _Spare2:
-            waitReasonString="Spare2";
+            waitReasonString = "Spare2";
             break;
         case _Spare3:
-            waitReasonString="Spare3";
+            waitReasonString = "Spare3";
             break;
         case _Spare4:
-            waitReasonString="Spare4";
+            waitReasonString = "Spare4";
             break;
         case _Spare5:
-            waitReasonString="Spare5";
+            waitReasonString = "Spare5";
             break;
         case _WrCalloutStack:
-            waitReasonString="WrCalloutStack";
+            waitReasonString = "WrCalloutStack";
             break;
         case _WrKernel:
-            waitReasonString="WrKernel";
+            waitReasonString = "WrKernel";
             break;
         case _WrResource:
-            waitReasonString="WrResource";
+            waitReasonString = "WrResource";
             break;
         case _WrPushLock:
-            waitReasonString="WrPushLock";
+            waitReasonString = "WrPushLock";
             break;
         case _WrMutex:
-            waitReasonString="WrMutex";
+            waitReasonString = "WrMutex";
             break;
         case _WrQuantumEnd:
-            waitReasonString="WrQuantumEnd";
+            waitReasonString = "WrQuantumEnd";
             break;
         case _WrDispatchInt:
-            waitReasonString="WrDispatchInt";
+            waitReasonString = "WrDispatchInt";
             break;
         case _WrPreempted:
-            waitReasonString="WrPreempted";
+            waitReasonString = "WrPreempted";
             break;
         case _WrYieldExecution:
-            waitReasonString="WrYieldExecution";
+            waitReasonString = "WrYieldExecution";
             break;
         case _WrFastMutex:
-            waitReasonString="WrFastMutex";
+            waitReasonString = "WrFastMutex";
             break;
         case _WrGuardedMutex:
-            waitReasonString="WrGuardedMutex";
+            waitReasonString = "WrGuardedMutex";
             break;
         case _WrRundown:
-            waitReasonString="WrRundown";
+            waitReasonString = "WrRundown";
             break;
         default:
-            waitReasonString="Unknown";
+            waitReasonString = "Unknown";
             break;
         }
         setCellContent(i, 7, waitReasonString);
@@ -362,26 +362,26 @@ void ThreadView::updateThreadList()
     }
     if(threadList.count)
         BridgeFree(threadList.list);
-    mCurrentThread=threadList.CurrentThread;
+    mCurrentThread = threadList.CurrentThread;
     reloadData();
 }
 
 QString ThreadView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    QString ret=StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    if(rowBase+rowOffset==mCurrentThread && !col)
+    QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    if(rowBase + rowOffset == mCurrentThread && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
         painter->setPen(QPen(ConfigColor("ThreadCurrentColor"))); //white text
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, ret);
-        ret="";
+        ret = "";
     }
     return ret;
 }
 
 void ThreadView::doubleClickedSlot()
 {
-    QString threadId=getCellContent(getInitialSelection(), 1);
+    QString threadId = getCellContent(getInitialSelection(), 1);
     DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
     emit showCpu();
 }

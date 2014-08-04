@@ -8,7 +8,7 @@ class QHexEdit : public QScrollArea
 {
     Q_OBJECT
 public:
-    QHexEdit(QWidget *parent = 0);
+    QHexEdit(QWidget* parent = 0);
 
     //data management
     void setData(const QByteArray & data, const QByteArray & mask);
@@ -20,7 +20,7 @@ public:
     QString pattern(bool space = false);
     void insert(int i, const QByteArray & ba, const QByteArray & mask);
     void insert(int i, char ch, char mask);
-    void remove(int pos, int len=1);
+    void remove(int pos, int len = 1);
     void replace(int pos, int len, const QByteArray & after, const QByteArray & mask);
     void fill(int index, const QString & pattern);
 
@@ -56,9 +56,9 @@ signals:
     void overwriteModeChanged(bool state);
 
 private:
-    QHexEditPrivate *qHexEdit_p;
-    QHBoxLayout *layout;
-    QScrollArea *scrollArea;
+    QHexEditPrivate* qHexEdit_p;
+    QHBoxLayout* layout;
+    QScrollArea* scrollArea;
 };
 
 #endif

@@ -11,7 +11,7 @@ void dprintf(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    *msg=0;
+    *msg = 0;
     vsnprintf(msg, sizeof(msg), format, args);
     GuiAddLogMessage(msg);
 }

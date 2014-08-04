@@ -18,8 +18,8 @@ class MHTabBar: public QTabBar
 {
     Q_OBJECT
 public:
-    MHTabBar (QWidget* parent);
-    ~MHTabBar (void);
+    MHTabBar(QWidget* parent);
+    ~MHTabBar(void);
 
 protected:
     void contextMenuEvent(QContextMenuEvent* event);
@@ -33,9 +33,9 @@ protected:
 
 signals:
     // Detach Tab
-    void OnDetachTab (int index, QPoint& dropPoint);
+    void OnDetachTab(int index, QPoint & dropPoint);
     // Move Tab
-    void OnMoveTab (int fromIndex, int toIndex);
+    void OnMoveTab(int fromIndex, int toIndex);
 
 private:
     /*

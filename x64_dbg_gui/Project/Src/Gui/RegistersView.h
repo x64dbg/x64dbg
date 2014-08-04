@@ -25,12 +25,12 @@ public:
     // all possible register ids
     enum REGISTER_NAME
     {
-        CAX,CCX,CDX,CBX,CDI,CBP,CSI,CSP,
-        R8,R9,R10,R11,R12,R13,R14,R15,
+        CAX, CCX, CDX, CBX, CDI, CBP, CSI, CSP,
+        R8, R9, R10, R11, R12, R13, R14, R15,
         CIP,
-        EFLAGS,CF,PF,AF,ZF,SF,TF,IF,DF,OF,
-        GS,FS,ES,DS,CS,SS,
-        DR0,DR1,DR2,DR3,DR6,DR7,
+        EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
+        GS, FS, ES, DS, CS, SS,
+        DR0, DR1, DR2, DR3, DR6, DR7,
         UNKNOWN
     };
 
@@ -42,7 +42,7 @@ public:
         int valuesize;
         int labelwidth;
 
-        Register_Position(int l,int s,int w, int v)
+        Register_Position(int l, int s, int w, int v)
         {
             line = l;
             start = s;
@@ -59,7 +59,7 @@ public:
     };
 
 
-    explicit RegistersView(QWidget *parent = 0);
+    explicit RegistersView(QWidget* parent = 0);
     ~RegistersView();
 
     QSize sizeHint() const;
@@ -79,14 +79,14 @@ protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void wheelEvent(QWheelEvent *event);
+    virtual void keyPressEvent(QKeyEvent* event);
+    virtual void wheelEvent(QWheelEvent* event);
 
     // use-in-class-only methods
-    void drawRegister(QPainter *p, REGISTER_NAME reg, uint_t value);
-    void setRegisters(REGDUMP *reg);
-    int_t registerValue(const REGDUMP *regd, const REGISTER_NAME reg);
-    bool identifyRegister(const int y, const int x, REGISTER_NAME *clickedReg);
+    void drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value);
+    void setRegisters(REGDUMP* reg);
+    int_t registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
+    bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
 
     void displayEditDialog();
 
@@ -118,9 +118,9 @@ private:
     // registers that do not allow changes
     QSet<REGISTER_NAME> mNoChange;
     // maps from id to name
-    QMap<REGISTER_NAME,QString> mRegisterMapping;
+    QMap<REGISTER_NAME, QString> mRegisterMapping;
     // contains viewport positions
-    QMap<REGISTER_NAME,Register_Position> mRegisterPlaces;
+    QMap<REGISTER_NAME, Register_Position> mRegisterPlaces;
     // contains a dump of the current register values
     REGDUMP wRegDumpStruct;
     REGDUMP wCipRegDumpStruct;

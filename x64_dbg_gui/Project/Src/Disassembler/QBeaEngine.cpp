@@ -37,17 +37,17 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral;
 
     // Check if the pointer is not null
-    if (data == NULL)
+    if(data == NULL)
         return 0;
 
     // Round the number of back instructions to 127
     if(n < 0)
         n = 0;
-    else if (n >= max_instructions)
-        n = max_instructions-1;
+    else if(n >= max_instructions)
+        n = max_instructions - 1;
 
     // Check if the instruction pointer ip is not outside the memory range
     if(ip >= size)
@@ -114,13 +114,13 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral;
 
 
     if(data == NULL)
         return 0;
 
-    if (ip >= size)
+    if(ip >= size)
         ip = size - 1;
 
     if(n <= 0)
@@ -167,7 +167,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral;
 
     mDisasmStruct.EIP = (UIntPtr)((uint_t)data + (uint_t)instIndex);
     mDisasmStruct.VirtualAddr = origBase + origInstRVA;
@@ -178,7 +178,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 
     wInst.instStr = QString(mDisasmStruct.CompleteInstr);
     int instrLen = wInst.instStr.length();
-    if(instrLen && wInst.instStr.at(instrLen-1)==' ')
+    if(instrLen && wInst.instStr.at(instrLen - 1) == ' ')
         wInst.instStr.chop(1);
     wInst.dump = QByteArray((char*)mDisasmStruct.EIP, len);
     wInst.rva = origInstRVA;

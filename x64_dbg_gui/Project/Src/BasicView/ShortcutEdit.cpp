@@ -1,7 +1,7 @@
 #include "ShortcutEdit.h"
 #include <QKeyEvent>
 
-ShortcutEdit::ShortcutEdit(QWidget *parent) : QLineEdit(parent)
+ShortcutEdit::ShortcutEdit(QWidget* parent) : QLineEdit(parent)
 {
 }
 
@@ -21,14 +21,14 @@ void ShortcutEdit::setErrorState(bool error)
         setStyleSheet("color: #000000");
 }
 
-void ShortcutEdit::keyPressEvent(QKeyEvent *event)
+void ShortcutEdit::keyPressEvent(QKeyEvent* event)
 {
     keyInt = event->key();
     // find key-id
     const Qt::Key key = static_cast<Qt::Key>(keyInt);
 
     // we do not know how to handle this case
-    if( key == Qt::Key_unknown )
+    if(key == Qt::Key_unknown)
     {
         keyInt = -1;
         emit askForSave();
@@ -36,7 +36,7 @@ void ShortcutEdit::keyPressEvent(QKeyEvent *event)
     }
 
     // these keys will be ignored
-    if( key == Qt::Key_Escape || key == Qt::Key_Backspace )
+    if(key == Qt::Key_Escape || key == Qt::Key_Backspace)
     {
         setText("");
         keyInt = -1;
@@ -55,9 +55,9 @@ void ShortcutEdit::keyPressEvent(QKeyEvent *event)
 
     // some strange cases (only Ctrl)
     QString KeyText = QKeySequence(keyInt).toString(QKeySequence::NativeText) ;
-    for(int i=0; i<KeyText.length(); i++)
+    for(int i = 0; i < KeyText.length(); i++)
     {
-        if(KeyText[i].toAscii()==0)
+        if(KeyText[i].toAscii() == 0)
         {
             setText("");
             keyInt = -1;
@@ -68,7 +68,7 @@ void ShortcutEdit::keyPressEvent(QKeyEvent *event)
 
 
     // display key combination
-    setText( QKeySequence(keyInt).toString(QKeySequence::NativeText) );
+    setText(QKeySequence(keyInt).toString(QKeySequence::NativeText));
     // do not forward keypress-event
     event->setAccepted(true);
 

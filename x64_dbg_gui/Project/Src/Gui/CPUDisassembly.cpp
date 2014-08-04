@@ -2,7 +2,7 @@
 #include "Configuration.h"
 #include "HexEditDialog.h"
 
-CPUDisassembly::CPUDisassembly(QWidget *parent) : Disassembly(parent)
+CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
 {
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
@@ -21,7 +21,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
     {
         if(DbgIsDebugging())
         {
-            QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             Bridge::CopyToClipboard(addrText.toUtf8().constData());
         }
     }
@@ -30,7 +30,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         Disassembly::mousePressEvent(event);
         if(mHighlightingMode) //disable highlighting mode after clicked
         {
-            mHighlightingMode=false;
+            mHighlightingMode = false;
             reloadData();
         }
     }
@@ -145,7 +145,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
             //get enabled hwbp count
             int enabledCount = wBPList.count;
-            for(int i=0; i<wBPList.count; i++)
+            for(int i = 0; i < wBPList.count; i++)
                 if(!wBPList.bp[i].enabled)
                     enabledCount--;
 
@@ -214,12 +214,12 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         //remove previous actions
         QList<QAction*> list = mFollowMenu->actions();
-        for(int i=0; i<list.length(); i++)
+        for(int i = 0; i < list.length(); i++)
             mFollowMenu->removeAction(list.at(i));
 
         //add follow actions
         mFollowMenu->addAction(new QAction("&Selection", this));
-        mFollowMenu->actions().last()->setObjectName(QString("DUMP|")+QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+        mFollowMenu->actions().last()->setObjectName(QString("DUMP|") + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         connect(mFollowMenu->actions().last(), SIGNAL(triggered()), this, SLOT(followActionSlot()));
 
         wMenu->addSeparator();
@@ -601,19 +601,19 @@ void CPUDisassembly::setLabel()
         return;
     uint_t wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
-    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    char label_text[MAX_COMMENT_SIZE]="";
+    QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle("Add label at " + addr_text);
-    if(mLineEdit.exec()!=QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();
@@ -625,19 +625,19 @@ void CPUDisassembly::setComment()
         return;
     uint_t wVA = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
-    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    char comment_text[MAX_COMMENT_SIZE]="";
+    QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)wVA, comment_text))
         mLineEdit.setText(QString(comment_text));
     mLineEdit.setWindowTitle("Add comment at " + addr_text);
-    if(mLineEdit.exec()!=QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetCommentAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();
@@ -650,15 +650,15 @@ void CPUDisassembly::setBookmark()
     uint_t wVA = rvaToVa(getInitialSelection());
     bool result;
     if(DbgGetBookmarkAt(wVA))
-        result=DbgSetBookmarkAt(wVA, false);
+        result = DbgSetBookmarkAt(wVA, false);
     else
-        result=DbgSetBookmarkAt(wVA, true);
+        result = DbgSetBookmarkAt(wVA, true);
     if(!result)
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();
@@ -670,21 +670,21 @@ void CPUDisassembly::toggleFunction()
         return;
     uint_t start = rvaToVa(getSelectionStart());
     uint_t end = rvaToVa(getSelectionEnd());
-    uint_t function_start=0;
-    uint_t function_end=0;
+    uint_t function_start = 0;
+    uint_t function_end = 0;
     if(!DbgFunctionOverlaps(start, end))
     {
-        QString start_text=QString("%1").arg(start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        QString end_text=QString("%1").arg(end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE]="";
-        QString label_text="";
+        QString start_text = QString("%1").arg(start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString end_text = QString("%1").arg(end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE] = "";
+        QString label_text = "";
         if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes|QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() != QMessageBox::Yes)
             return;
         QString cmd = "functionadd " + start_text + "," + end_text;
@@ -692,23 +692,23 @@ void CPUDisassembly::toggleFunction()
     }
     else
     {
-        for(uint_t i=start; i<=end; i++)
+        for(uint_t i = start; i <= end; i++)
         {
             if(DbgFunctionGet(i, &function_start, &function_end))
                 break;
         }
-        QString start_text=QString("%1").arg(function_start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        QString end_text=QString("%1").arg(function_end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        char labeltext[MAX_LABEL_SIZE]="";
-        QString label_text="";
+        QString start_text = QString("%1").arg(function_start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString end_text = QString("%1").arg(function_end, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        char labeltext[MAX_LABEL_SIZE] = "";
+        QString label_text = "";
         if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Warning, "Deleting function:", start_text + "-" + end_text + label_text, QMessageBox::Ok|QMessageBox::Cancel);
+        QMessageBox msg(QMessageBox::Warning, "Deleting function:", start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
         msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() != QMessageBox::Ok)
             return;
         QString cmd = "functiondel " + start_text;
@@ -723,7 +723,7 @@ void CPUDisassembly::assembleAt()
     int_t wRVA = getInitialSelection();
     uint_t wVA = rvaToVa(wRVA);
     LineEditDialog mLineEdit(this);
-    QString addr_text=QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
 
     QByteArray wBuffer;
 
@@ -732,7 +732,7 @@ void CPUDisassembly::assembleAt()
     //TODO: fix size problems
     int_t size = getSize();
     if(!size)
-        size=wRVA;
+        size = wRVA;
 
     // Bounding
     wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
@@ -742,24 +742,24 @@ void CPUDisassembly::assembleAt()
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
 
     QBeaEngine* disasm = new QBeaEngine();
-    Instruction_t instr=disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+    Instruction_t instr = disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
     mLineEdit.setText(instr.instStr);
     mLineEdit.setWindowTitle("Assemble at " + addr_text);
     mLineEdit.setCheckBoxText("&Fill with NOP's");
     mLineEdit.enableCheckBox(true);
     mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
-    if(mLineEdit.exec()!=QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted)
         return;
     Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
-    char error[MAX_ERROR_SIZE]="";
+    char error[MAX_ERROR_SIZE] = "";
     if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         return;
     }
@@ -778,7 +778,7 @@ void CPUDisassembly::gotoExpression()
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this);
-    if(mGoto->exec()==QDialog::Accepted)
+    if(mGoto->exec() == QDialog::Accepted)
     {
         DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
@@ -803,7 +803,7 @@ void CPUDisassembly::gotoNext()
 
 void CPUDisassembly::findReferences()
 {
-    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
@@ -814,22 +814,22 @@ void CPUDisassembly::findConstant()
     wordEdit.setup("Enter Constant", 0, sizeof(int_t));
     if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
         return;
-    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
-    QString constText=QString("%1").arg(wordEdit.getVal(), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString constText = QString("%1").arg(wordEdit.getVal(), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findref " + constText + ", " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUDisassembly::findStrings()
 {
-    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUDisassembly::findCalls()
 {
-    QString addrText=QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("modcallfind " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
@@ -845,24 +845,24 @@ void CPUDisassembly::findPattern()
     int_t addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText=QString("%1").arg(addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern()).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
 {
-    selection->start=rvaToVa(getSelectionStart());
-    selection->end=rvaToVa(getSelectionEnd());
+    selection->start = rvaToVa(getSelectionStart());
+    selection->end = rvaToVa(getSelectionEnd());
     Bridge::getBridge()->BridgeSetResult(1);
 }
 
 void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin=getBase();
-    int_t selMax=selMin + getSize();
-    int_t start=selection->start;
-    int_t end=selection->end;
+    int_t selMin = getBase();
+    int_t selMax = selMin + getSize();
+    int_t start = selection->start;
+    int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
         Bridge::getBridge()->BridgeSetResult(0);
@@ -877,9 +877,9 @@ void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
 void CPUDisassembly::enableHighlightingMode()
 {
     if(mHighlightingMode)
-        mHighlightingMode=false;
+        mHighlightingMode = false;
     else
-        mHighlightingMode=true;
+        mHighlightingMode = true;
     reloadData();
 }
 
@@ -956,7 +956,7 @@ void CPUDisassembly::binaryPasteSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];
@@ -983,7 +983,7 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
     HexEditDialog hexEdit(this);
     int_t selStart = getSelectionStart();
     int_t selSize = getSelectionEnd() - selStart + 1;
-    QClipboard *clipboard = QApplication::clipboard();
+    QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
     byte_t* data = new byte_t[selSize];

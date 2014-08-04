@@ -21,7 +21,7 @@ class CPUWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit CPUWidget(QWidget *parent = 0);
+    explicit CPUWidget(QWidget* parent = 0);
     ~CPUWidget();
     void setDefaultDisposition(void);
     QVBoxLayout* getTopLeftUpperWidget(void);
@@ -40,7 +40,7 @@ public:
     QTabWidget* mRegsTab;
 
 private:
-    Ui::CPUWidget *ui;
+    Ui::CPUWidget* ui;
 };
 
 #endif // CPUWIDGET_H

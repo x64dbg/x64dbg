@@ -60,8 +60,8 @@ extern "C"
    Simple Functions
 **************************************/
 
-__declspec(dllimport) int LZ4_compress        (const char* source, char* dest, int inputSize);
-__declspec(dllimport) int LZ4_decompress_safe (const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_compress(const char* source, char* dest, int inputSize);
+__declspec(dllimport) int LZ4_decompress_safe(const char* source, char* dest, int inputSize, int maxOutputSize);
 
 /*
 LZ4_compress() :
@@ -112,7 +112,7 @@ LZ4_compress_limitedOutput() :
     return : the number of bytes written in buffer 'dest'
              or 0 if the compression fails
 */
-__declspec(dllimport) int LZ4_compress_limitedOutput (const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_compress_limitedOutput(const char* source, char* dest, int inputSize, int maxOutputSize);
 
 
 /*
@@ -125,7 +125,7 @@ LZ4_decompress_fast() :
            Use this function preferably into a trusted environment (data to decode comes from a trusted source).
            Destination buffer must be already allocated. Its size must be a minimum of 'outputSize' bytes.
 */
-__declspec(dllimport) int LZ4_decompress_fast (const char* source, char* dest, int originalSize);
+__declspec(dllimport) int LZ4_decompress_fast(const char* source, char* dest, int originalSize);
 
 
 /*
@@ -140,7 +140,7 @@ LZ4_decompress_safe_partial() :
              If the source stream is detected malformed, the function will stop decoding and return a negative result.
              This function never writes outside of output buffer, and never reads outside of input buffer. It is therefore protected against malicious data packets
 */
-__declspec(dllimport) int LZ4_decompress_safe_partial (const char* source, char* dest, int inputSize, int targetOutputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_decompress_safe_partial(const char* source, char* dest, int inputSize, int targetOutputSize, int maxOutputSize);
 
 
 /*
@@ -155,18 +155,18 @@ LZ4_compress_withState() and LZ4_compress_limitedOutput_withState() are equivale
 They just use the externally allocated memory area instead of allocating their own (on stack, or on heap).
 */
 __declspec(dllimport) int LZ4_sizeofState(void);
-__declspec(dllimport) int LZ4_compress_withState               (void* state, const char* source, char* dest, int inputSize);
-__declspec(dllimport) int LZ4_compress_limitedOutput_withState (void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_compress_withState(void* state, const char* source, char* dest, int inputSize);
+__declspec(dllimport) int LZ4_compress_limitedOutput_withState(void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
 
 
 /**************************************
    Streaming Functions
 **************************************/
-__declspec(dllimport) void* LZ4_create (const char* inputBuffer);
-__declspec(dllimport) int   LZ4_compress_continue (void* LZ4_Data, const char* source, char* dest, int inputSize);
-__declspec(dllimport) int   LZ4_compress_limitedOutput_continue (void* LZ4_Data, const char* source, char* dest, int inputSize, int maxOutputSize);
-__declspec(dllimport) char* LZ4_slideInputBuffer (void* LZ4_Data);
-__declspec(dllimport) int   LZ4_free (void* LZ4_Data);
+__declspec(dllimport) void* LZ4_create(const char* inputBuffer);
+__declspec(dllimport) int   LZ4_compress_continue(void* LZ4_Data, const char* source, char* dest, int inputSize);
+__declspec(dllimport) int   LZ4_compress_limitedOutput_continue(void* LZ4_Data, const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) char* LZ4_slideInputBuffer(void* LZ4_Data);
+__declspec(dllimport) int   LZ4_free(void* LZ4_Data);
 
 /*
 These functions allow the compression of dependent blocks, where each block benefits from prior 64 KB within preceding blocks.
@@ -223,8 +223,8 @@ Any other value means there was an error (typically, pointer is not aligned on 4
 */
 
 
-__declspec(dllimport) int LZ4_decompress_safe_withPrefix64k (const char* source, char* dest, int inputSize, int maxOutputSize);
-__declspec(dllimport) int LZ4_decompress_fast_withPrefix64k (const char* source, char* dest, int outputSize);
+__declspec(dllimport) int LZ4_decompress_safe_withPrefix64k(const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_decompress_fast_withPrefix64k(const char* source, char* dest, int outputSize);
 
 /*
 *_withPrefix64k() :
@@ -241,8 +241,8 @@ __declspec(dllimport) int LZ4_decompress_fast_withPrefix64k (const char* source,
 These functions are deprecated and should no longer be used.
 They are provided here for compatibility with existing user programs.
 */
-__declspec(dllimport) int LZ4_uncompress (const char* source, char* dest, int outputSize);
-__declspec(dllimport) int LZ4_uncompress_unknownOutputSize (const char* source, char* dest, int isize, int maxOutputSize);
+__declspec(dllimport) int LZ4_uncompress(const char* source, char* dest, int outputSize);
+__declspec(dllimport) int LZ4_uncompress_unknownOutputSize(const char* source, char* dest, int isize, int maxOutputSize);
 
 
 #if defined (__cplusplus)

@@ -4,7 +4,7 @@
 #include <new>
 
 static HINSTANCE hInst;
-static char szIniFile[1024]="";
+static char szIniFile[1024] = "";
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -34,17 +34,17 @@ BRIDGE_IMPEXP const char* BridgeInit()
     ///Settings load
     if(!GetModuleFileNameA(0, szIniFile, 1024))
         return "Error getting module path!";
-    int len=(int)strlen(szIniFile);
-    while(szIniFile[len]!='.' && szIniFile[len]!='\\' && len)
+    int len = (int)strlen(szIniFile);
+    while(szIniFile[len] != '.' && szIniFile[len] != '\\' && len)
         len--;
-    if(szIniFile[len]=='\\')
+    if(szIniFile[len] == '\\')
         strcat(szIniFile, ".ini");
     else
         strcpy(&szIniFile[len], ".ini");
 
     HINSTANCE hInst;
     const char* szLib;
-    static char szError[256]="";
+    static char szError[256] = "";
 
     //GUI Load
     LOADLIBRARY(gui_lib);
@@ -86,7 +86,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a=(unsigned char*)GlobalAlloc(GMEM_FIXED, size);
+    unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -114,13 +114,13 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 {
     if(!section || !key || !value)
         return false;
-    char newvalue[MAX_SETTING_SIZE]="";
+    char newvalue[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet(section, key, newvalue))
         return false;
 #ifdef _WIN64
-    int ret=sscanf(newvalue, "%llX", value);
+    int ret = sscanf(newvalue, "%llX", value);
 #else
-    int ret=sscanf(newvalue, "%X", value);
+    int ret = sscanf(newvalue, "%X", value);
 #endif //_WIN64
     if(ret)
         return true;
@@ -140,7 +140,7 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 {
     if(!section || !key)
         return false;
-    char newvalue[MAX_SETTING_SIZE]="";
+    char newvalue[MAX_SETTING_SIZE] = "";
 #ifdef _WIN64
     sprintf(newvalue, "%llX", value);
 #else
@@ -162,7 +162,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
         GuiAddLogMessage("DbgMemRead with invalid boundaries!\n");
         return false;
     }
-    bool ret=_dbg_memread(va, dest, size, 0);
+    bool ret = _dbg_memread(va, dest, size, 0);
     if(!ret)
         memset(dest, 0x90, size);
     return ret;
@@ -180,7 +180,7 @@ BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
 {
-    duint size=0;
+    duint size = 0;
     _dbg_memfindbaseaddr(base, &size);
     return size;
 }
@@ -202,7 +202,7 @@ BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
 
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 {
-    duint value=0;
+    duint value = 0;
     return _dbg_valfromstring(expression, &value);
 }
 
@@ -222,10 +222,10 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flaglabel;
+    info.flags = flaglabel;
     if(!_dbg_addrinfoget(addr, segment, &info))
     {
-        duint addr_=0;
+        duint addr_ = 0;
         if(!DbgMemIsValidReadPtr(addr))
             return false;
         DbgMemRead(addr, (unsigned char*)&addr_, sizeof(duint));
@@ -240,11 +240,11 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
 
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
-    if(!text || strlen(text)>=MAX_LABEL_SIZE || !addr)
+    if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flaglabel;
+    info.flags = flaglabel;
     strcpy(info.label, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -257,7 +257,7 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagcomment;
+    info.flags = flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.comment);
@@ -266,11 +266,11 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
-    if(!text || strlen(text)>=MAX_COMMENT_SIZE || !addr)
+    if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagcomment;
+    info.flags = flagcomment;
     strcpy(info.comment, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -283,7 +283,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagmodule;
+    info.flags = flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.module);
@@ -296,7 +296,7 @@ BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagbookmark;
+    info.flags = flagbookmark;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     return info.isbookmark;
@@ -308,8 +308,8 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagbookmark;
-    info.isbookmark=isbookmark;
+    info.flags = flagbookmark;
+    info.isbookmark = isbookmark;
     return _dbg_addrinfoset(addr, &info);
 }
 
@@ -330,7 +330,7 @@ BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 
 BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 {
-    duint value=0;
+    duint value = 0;
     _dbg_valfromstring(string, &value);
     return value;
 }
@@ -342,7 +342,7 @@ BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
-    duint valueCopy=value;
+    duint valueCopy = value;
     return _dbg_valtostring(string, &valueCopy);
 }
 
@@ -365,16 +365,16 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagfunction;
+    info.flags = flagfunction;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return FUNC_NONE;
-    duint start=info.function.start;
-    duint end=info.function.end;
-    if(start==end)
+    duint start = info.function.start;
+    duint end = info.function.end;
+    if(start == end)
         return FUNC_SINGLE;
-    else if(addr==start)
+    else if(addr == start)
         return FUNC_BEGIN;
-    else if(addr==end)
+    else if(addr == end)
         return FUNC_END;
     return FUNC_MIDDLE;
 }
@@ -383,15 +383,15 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagloop;
-    info.loop.depth=depth;
+    info.flags = flagloop;
+    info.loop.depth = depth;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return LOOP_NONE;
-    duint start=info.loop.start;
-    duint end=info.loop.end;
-    if(addr==start)
+    duint start = info.loop.start;
+    duint end = info.loop.end;
+    if(addr == start)
         return LOOP_BEGIN;
-    else if(addr==end)
+    else if(addr == end)
         return LOOP_END;
     return LOOP_MIDDLE;
 }
@@ -465,9 +465,9 @@ BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
-    cbInfo.base=base;
-    cbInfo.cbSymbolEnum=cbSymbolEnum;
-    cbInfo.user=user;
+    cbInfo.base = base;
+    cbInfo.cbSymbolEnum = cbSymbolEnum;
+    cbInfo.user = user;
     _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
@@ -517,19 +517,19 @@ BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
 {
     FUNCTION_LOOP_INFO info;
-    info.addr=addr;
+    info.addr = addr;
     if(!_dbg_sendmessage(DBG_FUNCTION_GET, &info, 0))
         return false;
-    *start=info.start;
-    *end=info.end;
+    *start = info.start;
+    *end = info.end;
     return true;
 }
 
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
-    info.start=start;
-    info.end=end;
+    info.start = start;
+    info.end = end;
     if(!_dbg_sendmessage(DBG_FUNCTION_OVERLAPS, &info, 0))
         return false;
     return true;
@@ -538,9 +538,9 @@ BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
 BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
-    info.start=start;
-    info.end=end;
-    info.manual=false;
+    info.start = start;
+    info.end = end;
+    info.manual = false;
     if(!_dbg_sendmessage(DBG_FUNCTION_ADD, &info, 0))
         return false;
     return true;
@@ -549,7 +549,7 @@ BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
 BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
 {
     FUNCTION_LOOP_INFO info;
-    info.addr=addr;
+    info.addr = addr;
     if(!_dbg_sendmessage(DBG_FUNCTION_DEL, &info, 0))
         return false;
     return true;
@@ -558,21 +558,21 @@ BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
 BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
 {
     FUNCTION_LOOP_INFO info;
-    info.addr=addr;
-    info.depth=depth;
+    info.addr = addr;
+    info.depth = depth;
     if(!_dbg_sendmessage(DBG_LOOP_GET, &info, 0))
         return false;
-    *start=info.start;
-    *end=info.end;
+    *start = info.start;
+    *end = info.end;
     return true;
 }
 
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
-    info.start=start;
-    info.end=end;
-    info.depth=depth;
+    info.start = start;
+    info.end = end;
+    info.depth = depth;
     if(!_dbg_sendmessage(DBG_LOOP_OVERLAPS, &info, 0))
         return false;
     return true;
@@ -581,9 +581,9 @@ BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
-    info.start=start;
-    info.end=end;
-    info.manual=false;
+    info.start = start;
+    info.end = end;
+    info.manual = false;
     if(!_dbg_sendmessage(DBG_LOOP_ADD, &info, 0))
         return false;
     return true;
@@ -592,8 +592,8 @@ BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
 {
     FUNCTION_LOOP_INFO info;
-    info.addr=addr;
-    info.depth=depth;
+    info.addr = addr;
+    info.depth = depth;
     if(!_dbg_sendmessage(DBG_LOOP_DEL, &info, 0))
         return false;
     return true;
@@ -842,9 +842,9 @@ BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 {
     CELLINFO info;
-    info.row=row;
-    info.col=col;
-    info.str=str;
+    info.row = row;
+    info.col = col;
+    info.str = str;
     _gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
 }
 
@@ -981,7 +981,7 @@ BRIDGE_IMPEXP void GuiUpdateCallStack()
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-    hInst=hinstDLL;
+    hInst = hinstDLL;
     return TRUE;
 }
 

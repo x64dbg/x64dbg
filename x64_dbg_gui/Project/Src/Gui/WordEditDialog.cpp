@@ -1,7 +1,7 @@
 #include "WordEditDialog.h"
 #include "ui_WordEditDialog.h"
 
-WordEditDialog::WordEditDialog(QWidget *parent) : QDialog(parent), ui(new Ui::WordEditDialog)
+WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::WordEditDialog)
 {
     ui->setupUi(this);
 
@@ -31,7 +31,7 @@ uint_t WordEditDialog::getVal()
     return mWord;
 }
 
-void WordEditDialog::on_expressionLineEdit_textChanged(const QString &arg1)
+void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
 {
     if(DbgIsValidExpression(arg1.toUtf8().constData()))
     {
@@ -42,23 +42,23 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString &arg1)
 
         //hex
         mWord = DbgValFromString(arg1.toUtf8().constData());
-        uint_t hexWord=0;
+        uint_t hexWord = 0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;
 #ifdef _WIN64
-        hex[0]=word[7];
-        hex[1]=word[6];
-        hex[2]=word[5];
-        hex[3]=word[4];
-        hex[4]=word[3];
-        hex[5]=word[2];
-        hex[6]=word[1];
-        hex[7]=word[0];
+        hex[0] = word[7];
+        hex[1] = word[6];
+        hex[2] = word[5];
+        hex[3] = word[4];
+        hex[4] = word[3];
+        hex[5] = word[2];
+        hex[6] = word[1];
+        hex[7] = word[0];
 #else //x86
-        hex[0]=word[3];
-        hex[1]=word[2];
-        hex[2]=word[1];
-        hex[3]=word[0];
+        hex[0] = word[3];
+        hex[1] = word[2];
+        hex[2] = word[1];
+        hex[3] = word[0];
 #endif //_WIN64
         ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
         //signed
@@ -73,10 +73,10 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString &arg1)
     }
 }
 
-void WordEditDialog::on_signedLineEdit_textEdited(const QString &arg1)
+void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
 {
     LONGLONG value;
-    if(sscanf(arg1.toUtf8().constData(), "%lld", &value)==1)
+    if(sscanf(arg1.toUtf8().constData(), "%lld", &value) == 1)
     {
         ui->signedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
@@ -89,10 +89,10 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString &arg1)
     }
 }
 
-void WordEditDialog::on_unsignedLineEdit_textEdited(const QString &arg1)
+void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
 {
     LONGLONG value;
-    if(sscanf(arg1.toUtf8().constData(), "%llu", &value)==1)
+    if(sscanf(arg1.toUtf8().constData(), "%llu", &value) == 1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);

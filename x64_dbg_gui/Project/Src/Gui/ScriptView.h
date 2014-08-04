@@ -14,7 +14,7 @@ class ScriptView : public StdTable
 {
     Q_OBJECT
 public:
-    explicit ScriptView(StdTable *parent = 0);
+    explicit ScriptView(StdTable* parent = 0);
     void colorsUpdated();
 
     // Reimplemented Functions
@@ -24,7 +24,7 @@ public:
 
 public slots:
     void refreshShortcutsSlot();
-    void contextMenuSlot(const QPoint &pos);
+    void contextMenuSlot(const QPoint & pos);
     void add(int count, const char** lines);
     void clear();
     void setIp(int line);

@@ -1,6 +1,6 @@
 #include "main.h"
 
-char global[10]="0";
+char global[10] = "0";
 
 // a sample exported function
 void DLL_EXPORT SomeFunction(const LPCSTR sometext)
@@ -10,14 +10,14 @@ void DLL_EXPORT SomeFunction(const LPCSTR sometext)
 
 extern "C" DLL_EXPORT BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-    switch (fdwReason)
+    switch(fdwReason)
     {
     case DLL_PROCESS_ATTACH:
     {
         GetTickCount();
         GetCurrentProcessId();
         GetCurrentProcess();
-        DWORD old=0;
+        DWORD old = 0;
         VirtualProtect(global, 10, PAGE_GUARD, &old);
         asm("int3");
     }

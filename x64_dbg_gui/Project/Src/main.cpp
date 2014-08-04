@@ -5,7 +5,7 @@
 #include "main.h"
 #include <QAbstractEventDispatcher>
 
-MyApplication::MyApplication(int& argc, char** argv) : QApplication(argc, argv)
+MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
 {
 }
 
@@ -26,16 +26,16 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
     {
         done = QApplication::notify(receiver, event);
     }
-    catch (const std::exception& ex)
+    catch(const std::exception & ex)
     {
-        const char* message=QString().sprintf("Fatal GUI Exception: %s!\n", ex.what()).toUtf8().constData();
+        const char* message = QString().sprintf("Fatal GUI Exception: %s!\n", ex.what()).toUtf8().constData();
         GuiAddLogMessage(message);
         puts(message);
         OutputDebugStringA(message);
     }
-    catch (...)
+    catch(...)
     {
-        const char* message="Fatal GUI Exception: (...)!\n";
+        const char* message = "Fatal GUI Exception: (...)!\n";
         GuiAddLogMessage(message);
         puts(message);
         OutputDebugStringA(message);
@@ -45,7 +45,7 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
 
 static Configuration* mConfiguration;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     MyApplication application(argc, argv);
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
@@ -68,15 +68,15 @@ int main(int argc, char *argv[])
     mainWindow.show();
 
     // Set some data
-    Bridge::getBridge()->winId=(void*)mainWindow.winId();
+    Bridge::getBridge()->winId = (void*)mainWindow.winId();
 
     // Init debugger
-    const char* errormsg=DbgInit();
+    const char* errormsg = DbgInit();
     if(errormsg)
     {
         QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         ExitProcess(1);
     }

@@ -30,11 +30,11 @@ class PatchDialog : public QDialog
     }
 
 public:
-    explicit PatchDialog(QWidget *parent = 0);
+    explicit PatchDialog(QWidget* parent = 0);
     ~PatchDialog();
 
 private:
-    Ui::PatchDialog *ui;
+    Ui::PatchDialog* ui;
     PatchMap* mPatches;
     PatchDialogGroupSelector* mGroupSelector;
     bool mIsWorking;
@@ -52,7 +52,7 @@ private slots:
     void groupPrevious();
     void groupNext();
     void on_listModules_itemSelectionChanged();
-    void on_listPatches_itemChanged(QListWidgetItem *item);
+    void on_listPatches_itemChanged(QListWidgetItem* item);
     void on_btnSelectAll_clicked();
     void on_btnDeselectAll_clicked();
     void on_btnRestoreSelected_clicked();

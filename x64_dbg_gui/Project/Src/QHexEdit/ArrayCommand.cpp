@@ -1,6 +1,6 @@
 #include "ArrayCommand.h"
 
-CharCommand::CharCommand(XByteArray * xData, Cmd cmd, int charPos, char newChar, QUndoCommand *parent) : QUndoCommand(parent)
+CharCommand::CharCommand(XByteArray* xData, Cmd cmd, int charPos, char newChar, QUndoCommand* parent) : QUndoCommand(parent)
 {
     _xData = xData;
     _charPos = charPos;
@@ -8,15 +8,15 @@ CharCommand::CharCommand(XByteArray * xData, Cmd cmd, int charPos, char newChar,
     _cmd = cmd;
 }
 
-bool CharCommand::mergeWith(const QUndoCommand *command)
+bool CharCommand::mergeWith(const QUndoCommand* command)
 {
-    const CharCommand *nextCommand = static_cast<const CharCommand *>(command);
+    const CharCommand* nextCommand = static_cast<const CharCommand*>(command);
     bool result = false;
 
-    if (_cmd != remove)
+    if(_cmd != remove)
     {
-        if (nextCommand->_cmd == replace)
-            if (nextCommand->_charPos == _charPos)
+        if(nextCommand->_cmd == replace)
+            if(nextCommand->_charPos == _charPos)
             {
                 _newChar = nextCommand->_newChar;
                 result = true;
@@ -27,7 +27,7 @@ bool CharCommand::mergeWith(const QUndoCommand *command)
 
 void CharCommand::undo()
 {
-    switch (_cmd)
+    switch(_cmd)
     {
     case insert:
         _xData->remove(_charPos, 1);
@@ -43,7 +43,7 @@ void CharCommand::undo()
 
 void CharCommand::redo()
 {
-    switch (_cmd)
+    switch(_cmd)
     {
     case insert:
         _xData->insert(_charPos, _newChar);
@@ -61,7 +61,7 @@ void CharCommand::redo()
 
 
 
-ArrayCommand::ArrayCommand(XByteArray * xData, Cmd cmd, int baPos, QByteArray newBa, int len, QUndoCommand *parent)
+ArrayCommand::ArrayCommand(XByteArray* xData, Cmd cmd, int baPos, QByteArray newBa, int len, QUndoCommand* parent)
     : QUndoCommand(parent)
 {
     _cmd = cmd;
@@ -73,7 +73,7 @@ ArrayCommand::ArrayCommand(XByteArray * xData, Cmd cmd, int baPos, QByteArray ne
 
 void ArrayCommand::undo()
 {
-    switch (_cmd)
+    switch(_cmd)
     {
     case insert:
         _xData->remove(_baPos, _newBa.length());
@@ -89,7 +89,7 @@ void ArrayCommand::undo()
 
 void ArrayCommand::redo()
 {
-    switch (_cmd)
+    switch(_cmd)
     {
     case insert:
         _xData->insert(_baPos, _newBa);

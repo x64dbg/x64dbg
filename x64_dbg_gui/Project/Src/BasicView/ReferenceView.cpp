@@ -16,12 +16,12 @@ ReferenceView::ReferenceView()
     mMainLayout->addWidget(mSearchProgress);
 
     // Setup signals
-    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int,QString)), this, SLOT(addColumnAt(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
     connect(Bridge::getBridge(), SIGNAL(referenceDeleteAllColumns()), this, SLOT(deleteAllColumns()));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int,int,QString)), this, SLOT(setCellContent(int,int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
@@ -64,16 +64,16 @@ void ReferenceView::refreshShortcutsSlot()
 
 void ReferenceView::addColumnAt(int width, QString title)
 {
-    int charwidth=mList->getCharWidth();
+    int charwidth = mList->getCharWidth();
     if(width)
-        width=charwidth*width+8;
+        width = charwidth * width + 8;
     else
-        width=0;
+        width = 0;
     mSearchBox->setText("");
     if(title.toLower() == "&data&")
     {
-        mFollowDumpDefault=true;
-        title="Data";
+        mFollowDumpDefault = true;
+        title = "Data";
     }
     mList->addColumnAt(width, title, true);
     mSearchList->addColumnAt(width, title, true);
@@ -208,15 +208,15 @@ void ReferenceView::toggleBookmark()
 
     bool result;
     if(DbgGetBookmarkAt(wVA))
-        result=DbgSetBookmarkAt(wVA, false);
+        result = DbgSetBookmarkAt(wVA, false);
     else
-        result=DbgSetBookmarkAt(wVA, true);
+        result = DbgSetBookmarkAt(wVA, true);
     if(!result)
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags()&(~Qt::WindowContextHelpButtonHint));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
     GuiUpdateAllViews();

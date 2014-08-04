@@ -16,7 +16,7 @@ class CPUDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUDump(QWidget *parent = 0);
+    explicit CPUDump(QWidget* parent = 0);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);

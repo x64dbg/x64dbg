@@ -16,13 +16,13 @@
 #define XEDPARSE_MAXASMSIZE 16
 
 //typedefs
-typedef bool (XEDPARSE_CALL *CBXEDPARSE_UNKNOWN)(const char* text, ULONGLONG* value);
+typedef bool (XEDPARSE_CALL* CBXEDPARSE_UNKNOWN)(const char* text, ULONGLONG* value);
 
 //XEDParse enums
 enum XEDPARSE_STATUS
 {
-    XEDPARSE_ERROR=0,
-    XEDPARSE_OK=1
+    XEDPARSE_ERROR = 0,
+    XEDPARSE_OK = 1
 };
 
 //XEDParse structs

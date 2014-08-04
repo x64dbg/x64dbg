@@ -18,7 +18,7 @@ class ShortcutsDialog : public QDialog
     int currentRow;
     bool editLock;
 public:
-    explicit ShortcutsDialog(QWidget *parent = 0);
+    explicit ShortcutsDialog(QWidget* parent = 0);
     ~ShortcutsDialog();
 signals:
 
@@ -32,7 +32,7 @@ private slots:
     void rejectedSlot();
 
 private:
-    Ui::ShortcutsDialog *ui;
+    Ui::ShortcutsDialog* ui;
     QMap<QString, Configuration::Shortcut> ShortcutsBackup;
 };
 

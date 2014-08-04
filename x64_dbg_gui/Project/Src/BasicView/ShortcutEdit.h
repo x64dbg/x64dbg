@@ -10,7 +10,7 @@ class ShortcutEdit : public QLineEdit
     int keyInt;
 
 public:
-    explicit ShortcutEdit(QWidget *parent = 0);
+    explicit ShortcutEdit(QWidget* parent = 0);
     const QKeySequence getKeysequence() const;
 
 public slots:

@@ -15,9 +15,9 @@
 //enums
 enum BP_TYPE
 {
-    BPNORMAL=0,
-    BPHARDWARE=1,
-    BPMEMORY=2
+    BPNORMAL = 0,
+    BPHARDWARE = 1,
+    BPMEMORY = 2
 };
 
 //structs

@@ -24,7 +24,7 @@
 #if defined(__cplusplus)
 #define BEA_UNUSED_ID(identifier)
 template <class T>
-inline void BEA_UNUSED_ARG(const T& BEA_UNUSED_ID(t)) { }
+inline void BEA_UNUSED_ARG(const T & BEA_UNUSED_ID(t)) { }
 #else
 #define BEA_UNUSED_ARG(a)
 #endif

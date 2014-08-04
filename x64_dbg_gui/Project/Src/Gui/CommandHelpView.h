@@ -19,7 +19,7 @@ class CommandHelpView : public QWidget
     Q_OBJECT
 
 public:
-    explicit CommandHelpView(QWidget *parent = 0);
+    explicit CommandHelpView(QWidget* parent = 0);
     ~CommandHelpView();
 
 private slots:
@@ -30,7 +30,7 @@ signals:
     void showCpu();
 
 private:
-    Ui::CommandHelpView *ui;
+    Ui::CommandHelpView* ui;
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;

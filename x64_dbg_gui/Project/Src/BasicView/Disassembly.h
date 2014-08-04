@@ -15,7 +15,7 @@ class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit Disassembly(QWidget *parent = 0);
+    explicit Disassembly(QWidget* parent = 0);
     void colorsUpdated();
     void fontsUpdated();
 
@@ -89,7 +89,7 @@ public:
     //disassemble
     void disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
 
-    QList<Instruction_t> *instructionsBuffer();
+    QList<Instruction_t>* instructionsBuffer();
     const int_t baseAddress() const;
     const int_t currentEIP() const;
 

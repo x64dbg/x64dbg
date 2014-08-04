@@ -11,34 +11,34 @@ void memupdatemap(HANDLE hProcess)
     CriticalSectionLocker locker(LockMemoryPages);
     MEMORY_BASIC_INFORMATION mbi;
     SIZE_T numBytes;
-    uint MyAddress=0, newAddress=0;
-    uint curAllocationBase=0;
+    uint MyAddress = 0, newAddress = 0;
+    uint curAllocationBase = 0;
 
     bool bListAllPages = false; //TODO: settings for this
 
     std::vector<MEMPAGE> pageVector;
     do
     {
-        numBytes=VirtualQueryEx(hProcess, (LPCVOID)MyAddress, &mbi, sizeof(mbi));
-        if(mbi.State==MEM_COMMIT)
+        numBytes = VirtualQueryEx(hProcess, (LPCVOID)MyAddress, &mbi, sizeof(mbi));
+        if(mbi.State == MEM_COMMIT)
         {
-            if(bListAllPages || curAllocationBase!=(uint)mbi.AllocationBase) //only list allocation bases
+            if(bListAllPages || curAllocationBase != (uint)mbi.AllocationBase) //only list allocation bases
             {
-                curAllocationBase=(uint)mbi.AllocationBase;
+                curAllocationBase = (uint)mbi.AllocationBase;
                 MEMPAGE curPage;
-                *curPage.info=0;
+                *curPage.info = 0;
                 modnamefromaddr(MyAddress, curPage.info, true);
                 memcpy(&curPage.mbi, &mbi, sizeof(mbi));
                 pageVector.push_back(curPage);
             }
             else
-                pageVector.at(pageVector.size()-1).mbi.RegionSize+=mbi.RegionSize;
+                pageVector.at(pageVector.size() - 1).mbi.RegionSize += mbi.RegionSize;
         }
-        newAddress=(uint)mbi.BaseAddress+mbi.RegionSize;
-        if(newAddress<=MyAddress)
-            numBytes=0;
+        newAddress = (uint)mbi.BaseAddress + mbi.RegionSize;
+        if(newAddress <= MyAddress)
+            numBytes = 0;
         else
-            MyAddress=newAddress;
+            MyAddress = newAddress;
     }
     while(numBytes);
 
@@ -46,21 +46,21 @@ void memupdatemap(HANDLE hProcess)
     int pagecount;
     if(bListAllPages)
     {
-        pagecount=(int)pageVector.size();
-        char curMod[MAX_MODULE_SIZE]="";
-        for(int i=pagecount-1,curIdx=0; i>-1; i--)
+        pagecount = (int)pageVector.size();
+        char curMod[MAX_MODULE_SIZE] = "";
+        for(int i = pagecount - 1, curIdx = 0; i > -1; i--)
         {
             if(pageVector.at(i).info[0]) //there is a module
             {
                 if(!scmp(curMod, pageVector.at(i).info)) //mod is not the current mod
                 {
                     strcpy(curMod, pageVector.at(i).info);
-                    curIdx=i;
+                    curIdx = i;
                 }
                 else //current mod
                 {
-                    pageVector.at(curIdx).mbi.RegionSize+=pageVector.at(i).mbi.RegionSize;
-                    pageVector.erase(pageVector.begin()+i);
+                    pageVector.at(curIdx).mbi.RegionSize += pageVector.at(i).mbi.RegionSize;
+                    pageVector.erase(pageVector.begin() + i);
                     curIdx--; //the index changes when you remove an entry
                 }
             }
@@ -68,94 +68,94 @@ void memupdatemap(HANDLE hProcess)
     }
 
     //process file sections
-    pagecount=(int)pageVector.size();
-    char curMod[MAX_MODULE_SIZE]="";
-    for(int i=pagecount-1; i>-1; i--)
+    pagecount = (int)pageVector.size();
+    char curMod[MAX_MODULE_SIZE] = "";
+    for(int i = pagecount - 1; i > -1; i--)
     {
         if(bListAllPages || !pageVector.at(i).info[0] || scmp(curMod, pageVector.at(i).info)) //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        uint base=modbasefromname(pageVector.at(i).info);
+        uint base = modbasefromname(pageVector.at(i).info);
         if(!base)
             continue;
         std::vector<MODSECTIONINFO> sections;
         if(!modsectionsfromaddr(base, &sections))
             continue;
-        int SectionNumber=(int)sections.size();
+        int SectionNumber = (int)sections.size();
         MEMPAGE newPage;
         //remove the current module page (page = size of module at this point) and insert the module sections
-        pageVector.erase(pageVector.begin()+i); //remove the SizeOfImage page
-        for(int j=SectionNumber-1; j>-1; j--)
+        pageVector.erase(pageVector.begin() + i); //remove the SizeOfImage page
+        for(int j = SectionNumber - 1; j > -1; j--)
         {
             memset(&newPage, 0, sizeof(MEMPAGE));
 
             VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-            uint SectionSize=sections.at(j).size;
-            if(SectionSize%PAGE_SIZE) //unaligned page size
-                SectionSize+=PAGE_SIZE-(SectionSize%PAGE_SIZE); //fix this
+            uint SectionSize = sections.at(j).size;
+            if(SectionSize % PAGE_SIZE) //unaligned page size
+                SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
             if(SectionSize)
-                newPage.mbi.RegionSize=SectionSize;
-            const char* SectionName=&sections.at(j).name[0];
-            int len=(int)strlen(SectionName);
-            int escape_count=0;
-            for(int k=0; k<len; k++)
-                if(SectionName[k]=='\\' or SectionName[k]=='\"' or !isprint(SectionName[k]))
+                newPage.mbi.RegionSize = SectionSize;
+            const char* SectionName = &sections.at(j).name[0];
+            int len = (int)strlen(SectionName);
+            int escape_count = 0;
+            for(int k = 0; k < len; k++)
+                if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                     escape_count++;
-            char* SectionNameEscaped=(char*)emalloc(len+escape_count*3+1, "_dbg_memmap:SectionNameEscaped");
-            memset(SectionNameEscaped, 0, len+escape_count*3+1);
-            for(int k=0,l=0; k<len; k++)
+            char* SectionNameEscaped = (char*)emalloc(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
+            memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
+            for(int k = 0, l = 0; k < len; k++)
             {
                 switch(SectionName[k])
                 {
                 case '\t':
-                    l+=sprintf(SectionNameEscaped+l, "\\t");
+                    l += sprintf(SectionNameEscaped + l, "\\t");
                     break;
                 case '\f':
-                    l+=sprintf(SectionNameEscaped+l, "\\f");
+                    l += sprintf(SectionNameEscaped + l, "\\f");
                     break;
                 case '\v':
-                    l+=sprintf(SectionNameEscaped+l, "\\v");
+                    l += sprintf(SectionNameEscaped + l, "\\v");
                     break;
                 case '\n':
-                    l+=sprintf(SectionNameEscaped+l, "\\n");
+                    l += sprintf(SectionNameEscaped + l, "\\n");
                     break;
                 case '\r':
-                    l+=sprintf(SectionNameEscaped+l, "\\r");
+                    l += sprintf(SectionNameEscaped + l, "\\r");
                     break;
                 case '\\':
-                    l+=sprintf(SectionNameEscaped+l, "\\\\");
+                    l += sprintf(SectionNameEscaped + l, "\\\\");
                     break;
                 case '\"':
-                    l+=sprintf(SectionNameEscaped+l, "\\\"");
+                    l += sprintf(SectionNameEscaped + l, "\\\"");
                     break;
                 default:
                     if(!isprint(SectionName[k])) //unknown unprintable character
-                        l+=sprintf(SectionNameEscaped+l, "\\x%.2X", SectionName[k]);
+                        l += sprintf(SectionNameEscaped + l, "\\x%.2X", SectionName[k]);
                     else
-                        l+=sprintf(SectionNameEscaped+l, "%c", SectionName[k]);
+                        l += sprintf(SectionNameEscaped + l, "%c", SectionName[k]);
                     break;
                 }
             }
             sprintf(newPage.info, " \"%s\"", SectionNameEscaped);
             efree(SectionNameEscaped, "_dbg_memmap:SectionNameEscaped");
-            pageVector.insert(pageVector.begin()+i, newPage);
+            pageVector.insert(pageVector.begin() + i, newPage);
         }
         //insert the module itself (the module header)
         memset(&newPage, 0, sizeof(MEMPAGE));
         VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
         strcpy(newPage.info, curMod);
-        pageVector.insert(pageVector.begin()+i, newPage);
+        pageVector.insert(pageVector.begin() + i, newPage);
     }
 
     //convert to memoryPages map
-    pagecount=(int)pageVector.size();
+    pagecount = (int)pageVector.size();
     memoryPages.clear();
-    for(int i=0; i<pagecount; i++)
+    for(int i = 0; i < pagecount; i++)
     {
         const MEMPAGE & curPage = pageVector.at(i);
-        uint start=(uint)curPage.mbi.BaseAddress;
-        uint size=curPage.mbi.RegionSize;
-        memoryPages.insert(std::make_pair(std::make_pair(start, start+size-1), curPage));
+        uint start = (uint)curPage.mbi.BaseAddress;
+        uint size = curPage.mbi.RegionSize;
+        memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), curPage));
     }
 }
 
@@ -164,11 +164,11 @@ uint memfindbaseaddr(uint addr, uint* size, bool refresh)
     if(refresh)
         memupdatemap(fdProcessInfo->hProcess); //update memory map
     CriticalSectionLocker locker(LockMemoryPages);
-    MemoryMap::iterator found=memoryPages.find(std::make_pair(addr, addr));
-    if(found==memoryPages.end())
+    MemoryMap::iterator found = memoryPages.find(std::make_pair(addr, addr));
+    if(found == memoryPages.end())
         return 0;
     if(size)
-        *size=found->second.mbi.RegionSize;
+        *size = found->second.mbi.RegionSize;
     return found->first.first;
 }
 
@@ -176,24 +176,24 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-    SIZE_T read=0;
-    DWORD oldprotect=0;
-    bool ret=MemoryReadSafe(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
-    if(ret and read==nSize) //'normal' RPM worked!
+    SIZE_T read = 0;
+    DWORD oldprotect = 0;
+    bool ret = MemoryReadSafe(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
+    if(ret and read == nSize) //'normal' RPM worked!
     {
         if(lpNumberOfBytesRead)
-            *lpNumberOfBytesRead=read;
+            *lpNumberOfBytesRead = read;
         return true;
     }
-    for(uint i=0; i<nSize; i++) //read byte-per-byte
+    for(uint i = 0; i < nSize; i++) //read byte-per-byte
     {
-        unsigned char* curaddr=(unsigned char*)lpBaseAddress+i;
-        unsigned char* curbuf=(unsigned char*)lpBuffer+i;
-        ret=MemoryReadSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' RPM
+        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
+        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
+        ret = MemoryReadSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' RPM
         if(!ret) //we failed
         {
             if(lpNumberOfBytesRead)
-                *lpNumberOfBytesRead=i;
+                *lpNumberOfBytesRead = i;
             SetLastError(ERROR_PARTIAL_COPY);
             return false;
         }
@@ -205,24 +205,24 @@ bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-    SIZE_T written=0;
-    DWORD oldprotect=0;
-    bool ret=MemoryWriteSafe(hProcess, lpBaseAddress, lpBuffer, nSize, &written);
-    if(ret and written==nSize) //'normal' WPM worked!
+    SIZE_T written = 0;
+    DWORD oldprotect = 0;
+    bool ret = MemoryWriteSafe(hProcess, lpBaseAddress, lpBuffer, nSize, &written);
+    if(ret and written == nSize) //'normal' WPM worked!
     {
         if(lpNumberOfBytesWritten)
-            *lpNumberOfBytesWritten=written;
+            *lpNumberOfBytesWritten = written;
         return true;
     }
-    for(uint i=0; i<nSize; i++) //write byte-per-byte
+    for(uint i = 0; i < nSize; i++) //write byte-per-byte
     {
-        unsigned char* curaddr=(unsigned char*)lpBaseAddress+i;
-        unsigned char* curbuf=(unsigned char*)lpBuffer+i;
-        ret=MemoryWriteSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' WPM
+        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
+        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
+        ret = MemoryWriteSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' WPM
         if(!ret) //we failed
         {
             if(lpNumberOfBytesWritten)
-                *lpNumberOfBytesWritten=i;
+                *lpNumberOfBytesWritten = i;
             SetLastError(ERROR_PARTIAL_COPY);
             return false;
         }
@@ -234,28 +234,28 @@ bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-    unsigned char* olddata=(unsigned char*)emalloc(nSize, "mempatch:olddata");
+    unsigned char* olddata = (unsigned char*)emalloc(nSize, "mempatch:olddata");
     if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
     {
         efree(olddata, "mempatch:olddata");
         return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
     }
-    unsigned char* newdata=(unsigned char*)lpBuffer;
-    for(uint i=0; i<nSize; i++)
-        patchset((uint)lpBaseAddress+i, olddata[i], newdata[i]);
+    unsigned char* newdata = (unsigned char*)lpBuffer;
+    for(uint i = 0; i < nSize; i++)
+        patchset((uint)lpBaseAddress + i, olddata[i], newdata[i]);
     efree(olddata, "mempatch:olddata");
     return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
 }
 
 bool memisvalidreadptr(HANDLE hProcess, uint addr)
 {
-    unsigned char a=0;
+    unsigned char a = 0;
     return memread(hProcess, (void*)addr, &a, 1, 0);
 }
 
 void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
 {
-    return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE|MEM_COMMIT, fdProtect);
+    return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE | MEM_COMMIT, fdProtect);
 }
 
 void memfree(HANDLE hProcess, uint addr)
@@ -265,13 +265,13 @@ void memfree(HANDLE hProcess, uint addr)
 
 static int formathexpattern(char* string)
 {
-    int len=(int)strlen(string);
+    int len = (int)strlen(string);
     _strupr(string);
-    char* new_string=(char*)emalloc(len+1, "formathexpattern:new_string");
-    memset(new_string, 0, len+1);
-    for(int i=0,j=0; i<len; i++)
-        if(string[i]=='?' or isxdigit(string[i]))
-            j+=sprintf(new_string+j, "%c", string[i]);
+    char* new_string = (char*)emalloc(len + 1, "formathexpattern:new_string");
+    memset(new_string, 0, len + 1);
+    for(int i = 0, j = 0; i < len; i++)
+        if(string[i] == '?' or isxdigit(string[i]))
+            j += sprintf(new_string + j, "%c", string[i]);
     strcpy(string, new_string);
     efree(new_string, "formathexpattern:new_string");
     return (int)strlen(string);
@@ -282,41 +282,41 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     if(!text or !pattern)
         return false;
     pattern->clear();
-    int len=(int)strlen(text);
+    int len = (int)strlen(text);
     if(!len)
         return false;
-    char* newtext=(char*)emalloc(len+2, "transformpattern:newtext");
+    char* newtext = (char*)emalloc(len + 2, "transformpattern:newtext");
     strcpy(newtext, text);
-    len=formathexpattern(newtext);
-    if(len%2) //not a multiple of 2
+    len = formathexpattern(newtext);
+    if(len % 2) //not a multiple of 2
     {
-        newtext[len]='?';
-        newtext[len+1]='\0';
+        newtext[len] = '?';
+        newtext[len + 1] = '\0';
         len++;
     }
     PATTERNBYTE newByte;
-    for(int i=0,j=0; i<len; i++)
+    for(int i = 0, j = 0; i < len; i++)
     {
-        if(newtext[i]=='?') //wildcard
+        if(newtext[i] == '?') //wildcard
         {
-            newByte.n[j].all=true; //match anything
-            newByte.n[j].n=0;
+            newByte.n[j].all = true; //match anything
+            newByte.n[j].n = 0;
             j++;
         }
         else //hex
         {
-            char x[2]="";
-            *x=newtext[i];
-            unsigned int val=0;
+            char x[2] = "";
+            *x = newtext[i];
+            unsigned int val = 0;
             sscanf(x, "%x", &val);
-            newByte.n[j].all=false;
-            newByte.n[j].n=val&0xF;
+            newByte.n[j].all = false;
+            newByte.n[j].n = val & 0xF;
             j++;
         }
 
-        if(j==2) //two nibbles = one byte
+        if(j == 2) //two nibbles = one byte
         {
-            j=0;
+            j = 0;
             pattern->push_back(newByte);
         }
     }
@@ -326,18 +326,18 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
 
 static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
 {
-    unsigned char n1=(byte>>4)&0xF;
-    unsigned char n2=byte&0xF;
-    int matched=0;
+    unsigned char n1 = (byte >> 4) & 0xF;
+    unsigned char n2 = byte & 0xF;
+    int matched = 0;
     if(pbyte->n[0].all)
         matched++;
-    else if(pbyte->n[0].n==n1)
+    else if(pbyte->n[0].n == n1)
         matched++;
     if(pbyte->n[1].all)
         matched++;
-    else if(pbyte->n[1].n==n2)
+    else if(pbyte->n[1].n == n2)
         matched++;
-    return (matched==2);
+    return (matched == 2);
 }
 
 uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
@@ -345,21 +345,21 @@ uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* pa
     std::vector<PATTERNBYTE> searchpattern;
     if(!patterntransform(pattern, &searchpattern))
         return -1;
-    int searchpatternsize=(int)searchpattern.size();
+    int searchpatternsize = (int)searchpattern.size();
     if(patternsize)
-        *patternsize=searchpatternsize;
-    for(uint i=0,pos=0; i<size; i++) //search for the pattern
+        *patternsize = searchpatternsize;
+    for(uint i = 0, pos = 0; i < size; i++) //search for the pattern
     {
         if(patternmatchbyte(data[i], &searchpattern.at(pos))) //check if our pattern matches the current byte
         {
             pos++;
-            if(pos==searchpatternsize) //everything matched
-                return i-searchpatternsize+1;
+            if(pos == searchpatternsize) //everything matched
+                return i - searchpatternsize + 1;
         }
-        else if (pos>0) //fix by Computer_Angel
+        else if(pos > 0) //fix by Computer_Angel
         {
-            i-=pos; // return to previous byte
-            pos=0; //reset current pattern position
+            i -= pos; // return to previous byte
+            pos = 0; //reset current pattern position
         }
     }
     return -1;

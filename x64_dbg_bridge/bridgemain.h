@@ -87,20 +87,20 @@ typedef enum
 
 typedef enum
 {
-    flagmodule=1,
-    flaglabel=2,
-    flagcomment=4,
-    flagbookmark=8,
-    flagfunction=16,
-    flagloop=32
+    flagmodule = 1,
+    flaglabel = 2,
+    flagcomment = 4,
+    flagbookmark = 8,
+    flagfunction = 16,
+    flagloop = 32
 } ADDRINFOFLAGS;
 
 typedef enum
 {
-    bp_none=0,
-    bp_normal=1,
-    bp_hardware=2,
-    bp_memory=4
+    bp_none = 0,
+    bp_normal = 1,
+    bp_hardware = 2,
+    bp_memory = 4
 } BPXTYPE;
 
 typedef enum
@@ -476,7 +476,7 @@ typedef struct
     bool branch; //jumps/calls
     bool call; //instruction is a call
     int size;
-    char instruction[MAX_MNEMONIC_SIZE*4];
+    char instruction[MAX_MNEMONIC_SIZE * 4];
 } BASIC_INSTRUCTION_INFO;
 
 typedef struct

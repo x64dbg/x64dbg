@@ -40,7 +40,7 @@ extern "C"
 #endif
 
 
-__declspec(dllimport) int LZ4_compressHC (const char* source, char* dest, int inputSize);
+__declspec(dllimport) int LZ4_compressHC(const char* source, char* dest, int inputSize);
 /*
 LZ4_compressHC :
     return : the number of bytes in compressed buffer dest
@@ -50,7 +50,7 @@ LZ4_compressHC :
         Worst case size evaluation is provided by function LZ4_compressBound() (see "lz4.h")
 */
 
-__declspec(dllimport) int LZ4_compressHC_limitedOutput (const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_compressHC_limitedOutput(const char* source, char* dest, int inputSize, int maxOutputSize);
 /*
 LZ4_compress_limitedOutput() :
     Compress 'inputSize' bytes from 'source' into an output buffer 'dest' of maximum size 'maxOutputSize'.
@@ -64,8 +64,8 @@ LZ4_compress_limitedOutput() :
 */
 
 
-__declspec(dllimport) int LZ4_compressHC2 (const char* source, char* dest, int inputSize, int compressionLevel);
-__declspec(dllimport) int LZ4_compressHC2_limitedOutput (const char* source, char* dest, int inputSize, int maxOutputSize, int compressionLevel);
+__declspec(dllimport) int LZ4_compressHC2(const char* source, char* dest, int inputSize, int compressionLevel);
+__declspec(dllimport) int LZ4_compressHC2_limitedOutput(const char* source, char* dest, int inputSize, int maxOutputSize, int compressionLevel);
 /*
     Same functions as above, but with programmable 'compressionLevel'.
     Recommended values are between 4 and 9, although any value between 0 and 16 will work.
@@ -83,10 +83,10 @@ Decompression functions are provided within LZ4 source code (see "lz4.h") (BSD l
    Using an external allocation
 **************************************/
 __declspec(dllimport) int LZ4_sizeofStateHC(void);
-__declspec(dllimport) int LZ4_compressHC_withStateHC               (void* state, const char* source, char* dest, int inputSize);
-__declspec(dllimport) int LZ4_compressHC_limitedOutput_withStateHC (void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) int LZ4_compressHC_withStateHC(void* state, const char* source, char* dest, int inputSize);
+__declspec(dllimport) int LZ4_compressHC_limitedOutput_withStateHC(void* state, const char* source, char* dest, int inputSize, int maxOutputSize);
 
-__declspec(dllimport) int LZ4_compressHC2_withStateHC              (void* state, const char* source, char* dest, int inputSize, int compressionLevel);
+__declspec(dllimport) int LZ4_compressHC2_withStateHC(void* state, const char* source, char* dest, int inputSize, int compressionLevel);
 __declspec(dllimport) int LZ4_compressHC2_limitedOutput_withStateHC(void* state, const char* source, char* dest, int inputSize, int maxOutputSize, int compressionLevel);
 
 /*
@@ -105,14 +105,14 @@ They just use the externally allocated memory area instead of allocating their o
 /**************************************
    Streaming Functions
 **************************************/
-__declspec(dllimport) void* LZ4_createHC (const char* inputBuffer);
-__declspec(dllimport) int   LZ4_compressHC_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize);
-__declspec(dllimport) int   LZ4_compressHC_limitedOutput_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize, int maxOutputSize);
-__declspec(dllimport) char* LZ4_slideInputBufferHC (void* LZ4HC_Data);
-__declspec(dllimport) int   LZ4_freeHC (void* LZ4HC_Data);
+__declspec(dllimport) void* LZ4_createHC(const char* inputBuffer);
+__declspec(dllimport) int   LZ4_compressHC_continue(void* LZ4HC_Data, const char* source, char* dest, int inputSize);
+__declspec(dllimport) int   LZ4_compressHC_limitedOutput_continue(void* LZ4HC_Data, const char* source, char* dest, int inputSize, int maxOutputSize);
+__declspec(dllimport) char* LZ4_slideInputBufferHC(void* LZ4HC_Data);
+__declspec(dllimport) int   LZ4_freeHC(void* LZ4HC_Data);
 
-__declspec(dllimport) int   LZ4_compressHC2_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize, int compressionLevel);
-__declspec(dllimport) int   LZ4_compressHC2_limitedOutput_continue (void* LZ4HC_Data, const char* source, char* dest, int inputSize, int maxOutputSize, int compressionLevel);
+__declspec(dllimport) int   LZ4_compressHC2_continue(void* LZ4HC_Data, const char* source, char* dest, int inputSize, int compressionLevel);
+__declspec(dllimport) int   LZ4_compressHC2_limitedOutput_continue(void* LZ4HC_Data, const char* source, char* dest, int inputSize, int maxOutputSize, int compressionLevel);
 
 /*
 These functions allow the compression of dependent blocks, where each block benefits from prior 64 KB within preceding blocks.

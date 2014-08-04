@@ -13,25 +13,25 @@
 #include "reference.h"
 #include "disasm_helper.h"
 
-static bool bRefinit=false;
+static bool bRefinit = false;
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
-    uint value=0;
-    int valsize=0;
-    bool isvar=false;
-    bool hexonly=false;
+    uint value = 0;
+    int valsize = 0;
+    bool isvar = false;
+    bool hexonly = false;
     if(valfromstring(*argv, &value, false, false, &valsize, &isvar, &hexonly)) //dump variable/value/register/etc
     {
         //dprintf("[DEBUG] valsize: %d\n", valsize);
         if(valsize)
-            valsize*=2;
+            valsize *= 2;
         else
-            valsize=1;
-        char format_str[deflen]="";
+            valsize = 1;
+        char format_str[deflen] = "";
         if(isvar)// and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
         {
-            if(value>15 and !hexonly)
+            if(value > 15 and !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
@@ -47,7 +47,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         }
         else
         {
-            if(value>15 and !hexonly)
+            if(value > 15 and !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
@@ -73,18 +73,18 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
 
 CMDRESULT cbInstrVar(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char arg2[deflen]="";
+    char arg2[deflen] = "";
     argget(*argv, arg2, 1, true); //var value (optional)
-    uint value=0;
-    int add=0;
-    if(*argv[1]=='$')
+    uint value = 0;
+    int add = 0;
+    if(*argv[1] == '$')
         add++;
-    if(valfromstring(argv[1]+add, &value))
+    if(valfromstring(argv[1] + add, &value))
     {
         dprintf("invalid variable name \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -101,7 +101,7 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     }
     else
     {
-        if(value>15)
+        if(value > 15)
             dprintf("%s=%"fext"X (%"fext"ud)\n", argv[1], value, value);
         else
             dprintf("%s=%"fext"X\n", argv[1], value);
@@ -111,7 +111,7 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
 
 CMDRESULT cbInstrVarDel(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -125,22 +125,22 @@ CMDRESULT cbInstrVarDel(int argc, char* argv[])
 
 CMDRESULT cbInstrMov(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments");
         return STATUS_ERROR;
     }
-    uint set_value=0;
+    uint set_value = 0;
     if(!valfromstring(argv[2], &set_value))
     {
         dprintf("invalid src \"%s\"\n", argv[2]);
         return STATUS_ERROR;
     }
-    bool isvar=false;
-    uint temp=0;
+    bool isvar = false;
+    uint temp = 0;
     valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
     if(!isvar)
-        isvar=vargettype(argv[1], 0);
+        isvar = vargettype(argv[1], 0);
     if(!isvar or !valtostring(argv[1], &set_value, true))
     {
         uint value;
@@ -156,39 +156,39 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
 
 CMDRESULT cbInstrVarList(int argc, char* argv[])
 {
-    char arg1[deflen]="";
+    char arg1[deflen] = "";
     argget(*argv, arg1, 0, true);
-    int filter=0;
+    int filter = 0;
     if(!_stricmp(arg1, "USER"))
-        filter=VAR_USER;
+        filter = VAR_USER;
     else if(!_stricmp(arg1, "READONLY"))
-        filter=VAR_READONLY;
+        filter = VAR_READONLY;
     else if(!_stricmp(arg1, "SYSTEM"))
-        filter=VAR_SYSTEM;
-    VAR* cur=vargetptr();
+        filter = VAR_SYSTEM;
+    VAR* cur = vargetptr();
     if(!cur or !cur->name)
     {
         dputs("no variables");
         return STATUS_CONTINUE;
     }
 
-    bool bNext=true;
+    bool bNext = true;
     while(bNext)
     {
-        char name[deflen]="";
+        char name[deflen] = "";
         strcpy(name, cur->name);
-        int len=(int)strlen(name);
-        for(int i=0; i<len; i++)
-            if(name[i]==1)
-                name[i]='/';
-        uint value=(uint)cur->value.u.value;
-        if(cur->type!=VAR_HIDDEN)
+        int len = (int)strlen(name);
+        for(int i = 0; i < len; i++)
+            if(name[i] == 1)
+                name[i] = '/';
+        uint value = (uint)cur->value.u.value;
+        if(cur->type != VAR_HIDDEN)
         {
             if(filter)
             {
-                if(cur->type==filter)
+                if(cur->type == filter)
                 {
-                    if(value>15)
+                    if(value > 15)
                         dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
                     else
                         dprintf("%s=%"fext"X\n", name, value);
@@ -196,22 +196,22 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
             }
             else
             {
-                if(value>15)
+                if(value > 15)
                     dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
                 else
                     dprintf("%s=%"fext"X\n", name, value);
             }
         }
-        cur=cur->next;
+        cur = cur->next;
         if(!cur)
-            bNext=false;
+            bNext = false;
     }
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrChd(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -228,12 +228,12 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
 
 CMDRESULT cbInstrCmt(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!commentset(addr, argv[2], true))
@@ -246,12 +246,12 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
 
 CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!commentdel(addr))
@@ -265,12 +265,12 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 
 CMDRESULT cbInstrLbl(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!labelset(addr, argv[2], true))
@@ -284,12 +284,12 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
 
 CMDRESULT cbInstrLbldel(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!labeldel(addr))
@@ -302,12 +302,12 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!bookmarkset(addr, true))
@@ -321,12 +321,12 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!bookmarkdel(addr))
@@ -353,12 +353,12 @@ CMDRESULT cbSavedb(int argc, char* argv[])
 
 CMDRESULT cbAssemble(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid expression: \"%s\"!\n", argv[1]);
@@ -369,11 +369,11 @@ CMDRESULT cbAssemble(int argc, char* argv[])
         dprintf("invalid address: "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    bool fillnop=false;
-    if(argc>3)
-        fillnop=true;
-    char error[256]="";
-    int size=0;
+    bool fillnop = false;
+    if(argc > 3)
+        fillnop = true;
+    char error[256] = "";
+    int size = 0;
     if(!assembleat(addr, argv[2], &size, error, fillnop))
     {
         varset("$result", size, false);
@@ -387,13 +387,13 @@ CMDRESULT cbAssemble(int argc, char* argv[])
 
 CMDRESULT cbFunctionAdd(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint start=0;
-    uint end=0;
+    uint start = 0;
+    uint end = 0;
     if(!valfromstring(argv[1], &start, false) or !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!functionadd(start, end, true))
@@ -408,12 +408,12 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
 
 CMDRESULT cbFunctionDel(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!functiondel(addr))
@@ -428,36 +428,36 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
 
 CMDRESULT cbInstrCmp(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint arg1=0;
+    uint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
-    uint arg2=0;
+    uint arg2 = 0;
     if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
     uint ezflag;
     uint bsflag;
-    if(arg1==arg2)
-        ezflag=1;
+    if(arg1 == arg2)
+        ezflag = 1;
     else
-        ezflag=0;
+        ezflag = 0;
     if(valuesignedcalc()) //signed comparision
     {
-        if((sint)arg1<(sint)arg2)
-            bsflag=0;
+        if((sint)arg1 < (sint)arg2)
+            bsflag = 0;
         else
-            bsflag=1;
+            bsflag = 1;
     }
     else //unsigned comparision
     {
-        if(arg1>arg2)
-            bsflag=1;
+        if(arg1 > arg2)
+            bsflag = 1;
         else
-            bsflag=0;
+            bsflag = 0;
     }
     varset("$_EZ_FLAG", ezflag, true);
     varset("$_BS_FLAG", bsflag, true);
@@ -467,17 +467,17 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
 
 CMDRESULT cbInstrGpa(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
-    if(argc>=3)
+    char newcmd[deflen] = "";
+    if(argc >= 3)
         sprintf(newcmd, "%s:%s", argv[2], argv[1]);
     else
         sprintf(newcmd, "%s", argv[1]);
-    uint result=0;
+    uint result = 0;
     if(!valfromstring(newcmd, &result, false))
         return STATUS_ERROR;
     varset("$RESULT", result, false);
@@ -486,184 +486,184 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
 
 CMDRESULT cbInstrAdd(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s+%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s&%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s-1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s/%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s+1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s*%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s*-1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,~%s", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s|%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
-    bool signedcalc=valuesignedcalc();
+    bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //rol = signed
-    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
 
 CMDRESULT cbInstrRor(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
-    bool signedcalc=valuesignedcalc();
+    bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //ror = signed
-    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
 
 CMDRESULT cbInstrShl(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
-    bool signedcalc=valuesignedcalc();
+    bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shl = unsigned
-    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
 
 CMDRESULT cbInstrShr(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
-    bool signedcalc=valuesignedcalc();
+    bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shr = unsigned
-    CMDRESULT res=cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
 
 CMDRESULT cbInstrSub(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s-%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
@@ -671,23 +671,23 @@ CMDRESULT cbInstrSub(int argc, char* argv[])
 CMDRESULT cbInstrTest(int argc, char* argv[])
 {
     //TODO: test
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint arg1=0;
+    uint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
-    uint arg2=0;
+    uint arg2 = 0;
     if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
     uint ezflag;
-    uint bsflag=0;
-    if(!(arg1&arg2))
-        ezflag=1;
+    uint bsflag = 0;
+    if(!(arg1 & arg2))
+        ezflag = 1;
     else
-        ezflag=0;
+        ezflag = 0;
     varset("$_EZ_FLAG", ezflag, true);
     varset("$_BS_FLAG", bsflag, true);
     //dprintf("$_EZ_FLAG=%d, $_BS_FLAG=%d\n", ezflag, bsflag);
@@ -696,12 +696,12 @@ CMDRESULT cbInstrTest(int argc, char* argv[])
 
 CMDRESULT cbInstrXor(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s^%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
@@ -709,29 +709,29 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(sizeof(uint)*2, "Address");
+    GuiReferenceAddColumn(sizeof(uint) * 2, "Address");
     GuiReferenceAddColumn(0, "Data");
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
-    bRefinit=true;
+    bRefinit = true;
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrRefadd(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!bRefinit)
         cbInstrRefinit(argc, argv);
-    int index=GuiReferenceGetRowCount();
-    GuiReferenceSetRowCount(index+1);
-    char addr_text[deflen]="";
+    int index = GuiReferenceGetRowCount();
+    GuiReferenceSetRowCount(index + 1);
+    char addr_text[deflen] = "";
     sprintf(addr_text, fhex, addr);
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, argv[2]);
@@ -745,35 +745,35 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     if(!refinfo) //initialize
     {
         GuiReferenceDeleteAllColumns();
-        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
         return true;
     }
-    bool found=false;
-    uint value=(uint)refinfo->userinfo;
-    if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
+    bool found = false;
+    uint value = (uint)refinfo->userinfo;
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(basicinfo->value.value==value)
-            found=true;
+        if(basicinfo->value.value == value)
+            found = true;
     }
-    if((basicinfo->type&TYPE_MEMORY)==TYPE_MEMORY)
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(basicinfo->memory.value==value)
-            found=true;
+        if(basicinfo->memory.value == value)
+            found = true;
     }
-    if((basicinfo->type&TYPE_ADDR)==TYPE_ADDR)
+    if((basicinfo->type & TYPE_ADDR) == TYPE_ADDR)
     {
-        if(basicinfo->addr==value)
-            found=true;
+        if(basicinfo->addr == value)
+            found = true;
     }
     if(found)
     {
-        char addrText[20]="";
+        char addrText[20] = "";
         sprintf(addrText, "%p", disasm->VirtualAddr);
-        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -784,24 +784,24 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
 
 CMDRESULT cbInstrRefFind(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint value=0;
+    uint value = 0;
     if(!valfromstring(argv[1], &value, false))
         return STATUS_ERROR;
-    uint addr=0;
-    if(argc<3 or !valfromstring(argv[2], &addr))
-        addr=GetContextDataEx(hActiveThread, UE_CIP);
-    uint size=0;
-    if(argc>=4)
+    uint addr = 0;
+    if(argc < 3 or !valfromstring(argv[2], &addr))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    uint size = 0;
+    if(argc >= 4)
         if(!valfromstring(argv[3], &size))
-            size=0;
-    uint ticks=GetTickCount();
-    int found=reffind(addr, size, cbRefFind, (void*)value, false);
-    dprintf("%u reference(s) in %ums\n", found, GetTickCount()-ticks);
+            size = 0;
+    uint ticks = GetTickCount();
+    int found = reffind(addr, size, cbRefFind, (void*)value, false);
+    dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -812,41 +812,41 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     if(!refinfo) //initialize
     {
         GuiReferenceDeleteAllColumns();
-        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
         GuiReferenceAddColumn(0, "String");
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceReloadData();
         return true;
     }
-    bool found=false;
+    bool found = false;
     STRING_TYPE strtype;
-    char string[1024]="";
+    char string[1024] = "";
     if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
-    if((basicinfo->type&TYPE_VALUE)==TYPE_VALUE)
+    if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
         if(disasmgetstringat(basicinfo->value.value, &strtype, string, string, 500))
-            found=true;
+            found = true;
     }
-    if((basicinfo->type&TYPE_MEMORY)==TYPE_MEMORY)
+    if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
         if(!found and disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
-            found=true;
+            found = true;
     }
     if(found)
     {
-        char addrText[20]="";
+        char addrText[20] = "";
         sprintf(addrText, "%p", disasm->VirtualAddr);
-        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[4096]="";
+        char disassembly[4096] = "";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
-        char dispString[1024]="";
-        if(strtype==str_ascii)
+        char dispString[1024] = "";
+        if(strtype == str_ascii)
             sprintf(dispString, "\"%s\"", string);
         else
             sprintf(dispString, "L\"%s\"", string);
@@ -858,22 +858,22 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
     uint addr;
-    if(argc<2 or !valfromstring(argv[1], &addr, true))
-        addr=GetContextDataEx(hActiveThread, UE_CIP);
-    uint size=0;
-    if(argc>=3)
+    if(argc < 2 or !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    uint size = 0;
+    if(argc >= 3)
         if(!valfromstring(argv[2], &size, true))
-            size=0;
-    uint ticks=GetTickCount();
-    int found=reffind(addr, size, cbRefStr, 0, false);
-    dprintf("%u string(s) in %ums\n", found, GetTickCount()-ticks);
+            size = 0;
+    uint ticks = GetTickCount();
+    int found = reffind(addr, size, cbRefStr, 0, false);
+    dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrSetstr(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -889,7 +889,7 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
         dprintf("failed to set variable \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char cmd[deflen]="";
+    char cmd[deflen] = "";
     sprintf(cmd, "getstr \"%s\"", argv[1]);
     cmddirectexec(dbggetcommandlist(), cmd);
     return STATUS_CONTINUE;
@@ -897,7 +897,7 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrGetstr(int argc, char* argv[])
 {
-    if(argc<2)
+    if(argc < 2)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -908,7 +908,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("no such variable \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(valtype!=VAR_STRING)
+    if(valtype != VAR_STRING)
     {
         dprintf("variable \"%s\" is not a string!\n", argv[1]);
         return STATUS_ERROR;
@@ -919,8 +919,8 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char* string=(char*)emalloc(size+1, "cbInstrGetstr:string");
-    memset(string, 0, size+1);
+    char* string = (char*)emalloc(size + 1, "cbInstrGetstr:string");
+    memset(string, 0, size + 1);
     if(!varget(argv[1], string, &size, 0))
     {
         efree(string, "cbInstrGetstr:string");
@@ -934,7 +934,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrCopystr(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -945,7 +945,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("no such variable \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    if(valtype!=VAR_STRING)
+    if(valtype != VAR_STRING)
     {
         dprintf("variable \"%s\" is not a string!\n", argv[2]);
         return STATUS_ERROR;
@@ -956,8 +956,8 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    char* string=(char*)emalloc(size+1, "cbInstrGetstr:string");
-    memset(string, 0, size+1);
+    char* string = (char*)emalloc(size + 1, "cbInstrGetstr:string");
+    memset(string, 0, size + 1);
     if(!varget(argv[2], string, &size, 0))
     {
         efree(string, "cbInstrCopystr:string");
@@ -986,52 +986,52 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
 
 CMDRESULT cbInstrFind(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    char pattern[deflen]="";
+    char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
-    if(argv[2][0]=='#')
-        strcpy(pattern, argv[2]+1);
+    if(argv[2][0] == '#')
+        strcpy(pattern, argv[2] + 1);
     else
         strcpy(pattern, argv[2]);
-    int len=(int)strlen(pattern);
-    if(pattern[len-1]=='#')
-        pattern[len-1]='\0';
-    uint size=0;
-    uint base=memfindbaseaddr(addr, &size, true);
+    int len = (int)strlen(pattern);
+    if(pattern[len - 1] == '#')
+        pattern[len - 1] = '\0';
+    uint size = 0;
+    uint base = memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFind:data");
+    unsigned char* data = (unsigned char*)emalloc(size, "cbInstrFind:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         efree(data, "cbInstrFind:data");
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
-    uint start=addr-base;
-    uint find_size=0;
-    if(argc>=4)
+    uint start = addr - base;
+    uint find_size = 0;
+    if(argc >= 4)
     {
         if(!valfromstring(argv[3], &find_size))
-            find_size=size-start;
-        if(find_size>(size-start))
-            find_size=size-start;
+            find_size = size - start;
+        if(find_size > (size - start))
+            find_size = size - start;
     }
     else
-        find_size=size-start;
-    uint foundoffset=memfindpattern(data+start, find_size, pattern);
-    uint result=0;
-    if(foundoffset!=-1)
-        result=addr+foundoffset;
+        find_size = size - start;
+    uint foundoffset = memfindpattern(data + start, find_size, pattern);
+    uint result = 0;
+    if(foundoffset != -1)
+        result = addr + foundoffset;
     varset("$result", result, false);
     efree(data, "cbInstrFind:data");
     return STATUS_CONTINUE;
@@ -1039,88 +1039,88 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
 
 CMDRESULT cbInstrFindAll(int argc, char* argv[])
 {
-    if(argc<3)
+    if(argc < 3)
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr=0;
+    uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
 
-    char pattern[deflen]="";
+    char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
-    if(argv[2][0]=='#')
-        strcpy(pattern, argv[2]+1);
+    if(argv[2][0] == '#')
+        strcpy(pattern, argv[2] + 1);
     else
         strcpy(pattern, argv[2]);
-    int len=(int)strlen(pattern);
-    if(pattern[len-1]=='#')
-        pattern[len-1]='\0';
-    uint size=0;
-    uint base=memfindbaseaddr(addr, &size, true);
+    int len = (int)strlen(pattern);
+    if(pattern[len - 1] == '#')
+        pattern[len - 1] = '\0';
+    uint size = 0;
+    uint base = memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data=(unsigned char*)emalloc(size, "cbInstrFindAll:data");
+    unsigned char* data = (unsigned char*)emalloc(size, "cbInstrFindAll:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         efree(data, "cbInstrFindAll:data");
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
-    uint start=addr-base;
-    uint find_size=0;
-    bool findData=false;
-    if(argc>=4)
+    uint start = addr - base;
+    uint find_size = 0;
+    bool findData = false;
+    if(argc >= 4)
     {
         if(!_stricmp(argv[3], "&data&"))
         {
-            find_size=size-start;
-            findData=true;
+            find_size = size - start;
+            findData = true;
         }
         else if(!valfromstring(argv[3], &find_size))
-            find_size=size-start;
-        else if(find_size>(size-start))
-            find_size=size-start;
+            find_size = size - start;
+        else if(find_size > (size - start))
+            find_size = size - start;
     }
     else
-        find_size=size-start;
+        find_size = size - start;
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     if(findData)
         GuiReferenceAddColumn(0, "&Data&");
     else
         GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
-    DWORD ticks=GetTickCount();
-    int refCount=0;
-    uint i=0;
-    uint result=0;
+    DWORD ticks = GetTickCount();
+    int refCount = 0;
+    uint i = 0;
+    uint result = 0;
     while(refCount < 5000)
     {
-        int patternsize=0;
-        uint foundoffset=memfindpattern(data+start+i, find_size-i, pattern, &patternsize);
-        if(foundoffset==-1)
+        int patternsize = 0;
+        uint foundoffset = memfindpattern(data + start + i, find_size - i, pattern, &patternsize);
+        if(foundoffset == -1)
             break;
-        i+=foundoffset+1;
-        result=addr+i-1;
-        char msg[deflen]="";
+        i += foundoffset + 1;
+        result = addr + i - 1;
+        char msg[deflen] = "";
         sprintf(msg, fhex, result);
-        GuiReferenceSetRowCount(refCount+1);
+        GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
         {
-            unsigned char* printData=(unsigned char*)emalloc(patternsize, "cbInstrFindAll:printData");
+            unsigned char* printData = (unsigned char*)emalloc(patternsize, "cbInstrFindAll:printData");
             memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
-            for(int j=0,k=0; j<patternsize; j++)
+            for(int j = 0, k = 0; j < patternsize; j++)
             {
                 if(j)
-                    k+=sprintf(msg+k, " ");
-                k+=sprintf(msg+k, "%.2X", printData[j]);
+                    k += sprintf(msg + k, " ");
+                k += sprintf(msg + k, "%.2X", printData[j]);
             }
             efree(printData, "cbInstrFindAll:printData");
         }
@@ -1131,7 +1131,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         refCount++;
     }
     GuiReferenceReloadData();
-    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount()-ticks);
+    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
     efree(data, "cbInstrFindAll:data");
     varset("$result", refCount, false);
     return STATUS_CONTINUE;
@@ -1143,25 +1143,25 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     if(!refinfo) //initialize
     {
         GuiReferenceDeleteAllColumns();
-        GuiReferenceAddColumn(2*sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
         return true;
     }
-    bool found=false;
+    bool found = false;
     if(basicinfo->call) //we are looking for calls
     {
-        uint ptr=basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
-        char label[MAX_LABEL_SIZE]="";
-        found=DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
+        uint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
+        char label[MAX_LABEL_SIZE] = "";
+        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
     }
     if(found)
     {
-        char addrText[20]="";
+        char addrText[20] = "";
         sprintf(addrText, "%p", disasm->VirtualAddr);
-        GuiReferenceSetRowCount(refinfo->refcount+1);
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -1173,15 +1173,15 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
 CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 {
     uint addr;
-    if(argc<2 or !valfromstring(argv[1], &addr, true))
-        addr=GetContextDataEx(hActiveThread, UE_CIP);
-    uint size=0;
-    if(argc>=3)
+    if(argc < 2 or !valfromstring(argv[1], &addr, true))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    uint size = 0;
+    if(argc >= 3)
         if(!valfromstring(argv[2], &size, true))
-            size=0;
-    uint ticks=GetTickCount();
-    int found=reffind(addr, size, cbModCallFind, 0, false);
-    dprintf("%u call(s) in %ums\n", found, GetTickCount()-ticks);
+            size = 0;
+    uint ticks = GetTickCount();
+    int found = reffind(addr, size, cbModCallFind, 0, false);
+    dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
@@ -1190,7 +1190,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
@@ -1201,16 +1201,16 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         dputs("no comments");
         return STATUS_CONTINUE;
     }
-    COMMENTSINFO* comments=(COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
+    COMMENTSINFO* comments = (COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
     commentenum(comments, 0);
-    int count=(int)(cbsize/sizeof(COMMENTSINFO));
-    for(int i=0; i<count; i++)
+    int count = (int)(cbsize / sizeof(COMMENTSINFO));
+    for(int i = 0; i < count; i++)
     {
-        GuiReferenceSetRowCount(i+1);
-        char addrText[20]="";
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
         sprintf(addrText, "%p", comments[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly(comments[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, comments[i].text);
@@ -1226,7 +1226,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Label");
     GuiReferenceReloadData();
@@ -1237,16 +1237,16 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         dputs("no labels");
         return STATUS_CONTINUE;
     }
-    LABELSINFO* labels=(LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
+    LABELSINFO* labels = (LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
     labelenum(labels, 0);
-    int count=(int)(cbsize/sizeof(LABELSINFO));
-    for(int i=0; i<count; i++)
+    int count = (int)(cbsize / sizeof(LABELSINFO));
+    for(int i = 0; i < count; i++)
     {
-        GuiReferenceSetRowCount(i+1);
-        char addrText[20]="";
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
         sprintf(addrText, "%p", labels[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly(labels[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, labels[i].text);
@@ -1262,7 +1262,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
     size_t cbsize;
@@ -1272,16 +1272,16 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         dputs("no bookmarks");
         return STATUS_CONTINUE;
     }
-    BOOKMARKSINFO* bookmarks=(BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
+    BOOKMARKSINFO* bookmarks = (BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
     bookmarkenum(bookmarks, 0);
-    int count=(int)(cbsize/sizeof(BOOKMARKSINFO));
-    for(int i=0; i<count; i++)
+    int count = (int)(cbsize / sizeof(BOOKMARKSINFO));
+    for(int i = 0; i < count; i++)
     {
-        GuiReferenceSetRowCount(i+1);
-        char addrText[20]="";
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
         sprintf(addrText, "%p", bookmarks[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly(bookmarks[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
@@ -1296,8 +1296,8 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Start");
-    GuiReferenceAddColumn(2*sizeof(uint), "End");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Start");
+    GuiReferenceAddColumn(2 * sizeof(uint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
@@ -1308,26 +1308,26 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         dputs("no functions");
         return STATUS_CONTINUE;
     }
-    FUNCTIONSINFO* functions=(FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
+    FUNCTIONSINFO* functions = (FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
     functionenum(functions, 0);
-    int count=(int)(cbsize/sizeof(FUNCTIONSINFO));
-    for(int i=0; i<count; i++)
+    int count = (int)(cbsize / sizeof(FUNCTIONSINFO));
+    for(int i = 0; i < count; i++)
     {
-        GuiReferenceSetRowCount(i+1);
-        char addrText[20]="";
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
         sprintf(addrText, "%p", functions[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
         sprintf(addrText, "%p", functions[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly(functions[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(labelget(functions[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {
-            char comment[MAX_COMMENT_SIZE]="";
+            char comment[MAX_COMMENT_SIZE] = "";
             if(commentget(functions[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
@@ -1343,8 +1343,8 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceDeleteAllColumns();
-    GuiReferenceAddColumn(2*sizeof(uint), "Start");
-    GuiReferenceAddColumn(2*sizeof(uint), "End");
+    GuiReferenceAddColumn(2 * sizeof(uint), "Start");
+    GuiReferenceAddColumn(2 * sizeof(uint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
@@ -1355,26 +1355,26 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         dputs("no loops");
         return STATUS_CONTINUE;
     }
-    LOOPSINFO* loops=(LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
+    LOOPSINFO* loops = (LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
     loopenum(loops, 0);
-    int count=(int)(cbsize/sizeof(LOOPSINFO));
-    for(int i=0; i<count; i++)
+    int count = (int)(cbsize / sizeof(LOOPSINFO));
+    for(int i = 0; i < count; i++)
     {
-        GuiReferenceSetRowCount(i+1);
-        char addrText[20]="";
+        GuiReferenceSetRowCount(i + 1);
+        char addrText[20] = "";
         sprintf(addrText, "%p", loops[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
         sprintf(addrText, "%p", loops[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
-        char disassembly[2048]="";
+        char disassembly[2048] = "";
         if(GuiGetDisassembly(loops[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(labelget(loops[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {
-            char comment[MAX_COMMENT_SIZE]="";
+            char comment[MAX_COMMENT_SIZE] = "";
             if(commentget(loops[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
@@ -1388,12 +1388,12 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
 
 CMDRESULT cbInstrSleep(int argc, char* argv[])
 {
-    uint ms=100;
-    if(argc>1)
+    uint ms = 100;
+    if(argc > 1)
         if(!valfromstring(argv[1], &ms, false))
             return STATUS_ERROR;
-    if(ms>=0xFFFFFFFF)
-        ms=100;
+    if(ms >= 0xFFFFFFFF)
+        ms = 100;
     Sleep((DWORD)ms);
     return STATUS_CONTINUE;
 }

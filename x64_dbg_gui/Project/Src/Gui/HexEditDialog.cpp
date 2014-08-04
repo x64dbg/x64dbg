@@ -3,7 +3,7 @@
 #include "QHexEdit/QHexEdit.h"
 #include "Configuration.h"
 
-HexEditDialog::HexEditDialog(QWidget *parent) :
+HexEditDialog::HexEditDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::HexEditDialog)
 {
@@ -67,7 +67,7 @@ void HexEditDialog::on_btnAscii2Hex_clicked()
 {
     QString text = ui->lineEditAscii->text();
     QByteArray data;
-    for(int i=0; i<text.length(); i++)
+    for(int i = 0; i < text.length(); i++)
         data.append(text[i].toAscii());
     if(ui->chkKeepSize->isChecked()) //keep size
     {
@@ -75,7 +75,7 @@ void HexEditDialog::on_btnAscii2Hex_clicked()
         if(dataSize < data.size())
             data.resize(dataSize);
         else if(dataSize > data.size())
-            data.append(QByteArray(dataSize-data.size(), 0));
+            data.append(QByteArray(dataSize - data.size(), 0));
     }
     mHexEdit->setData(data);
 }
@@ -89,7 +89,7 @@ void HexEditDialog::on_btnUnicode2Hex_clicked()
         if(dataSize < data.size())
             data.resize(dataSize);
         else if(dataSize > data.size())
-            data.append(QByteArray(dataSize-data.size(), 0));
+            data.append(QByteArray(dataSize - data.size(), 0));
     }
     mHexEdit->setData(data);
 }
@@ -103,22 +103,22 @@ void HexEditDialog::dataChangedSlot()
 {
     QByteArray data = mHexEdit->data();
     QString ascii;
-    for(int i=0; i<data.size(); i++)
+    for(int i = 0; i < data.size(); i++)
     {
         QChar ch(data.constData()[i]);
         if(ch.isPrint())
-            ascii+=ch.toAscii();
+            ascii += ch.toAscii();
         else
-            ascii+='.';
+            ascii += '.';
     }
     QString unicode;
-    for(int i=0,j=0; i<data.size(); i+=2,j++)
+    for(int i = 0, j = 0; i < data.size(); i += 2, j++)
     {
         QChar wch(((wchar_t*)data.constData())[j]);
         if(wch.isPrint())
-            unicode+=wch;
+            unicode += wch;
         else
-            unicode+='.';
+            unicode += '.';
     }
     ui->lineEditAscii->setText(ascii);
     ui->lineEditUnicode->setText(unicode);

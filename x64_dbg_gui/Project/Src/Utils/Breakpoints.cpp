@@ -1,6 +1,6 @@
 #include "Breakpoints.h"
 
-Breakpoints::Breakpoints(QObject *parent) : QObject(parent)
+Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {
 
 }

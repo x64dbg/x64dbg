@@ -1,7 +1,7 @@
 #include "HexDump.h"
 #include "Configuration.h"
 
-HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
+HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
 {
     fontsUpdated();
     SelectionData_t data;
@@ -16,9 +16,9 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 
     clearDescriptors();
 
-    backgroundColor=ConfigColor("HexDumpBackgroundColor");
-    textColor=ConfigColor("HexDumpTextColor");
-    selectionColor=ConfigColor("HexDumpSelectionColor");
+    backgroundColor = ConfigColor("HexDumpBackgroundColor");
+    textColor = ConfigColor("HexDumpTextColor");
+    selectionColor = ConfigColor("HexDumpSelectionColor");
 
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
@@ -27,9 +27,9 @@ HexDump::HexDump(QWidget *parent) : AbstractTableView(parent)
 void HexDump::colorsUpdated()
 {
     AbstractTableView::colorsUpdated();
-    backgroundColor=ConfigColor("HexDumpBackgroundColor");
-    textColor=ConfigColor("HexDumpTextColor");
-    selectionColor=ConfigColor("HexDumpSelectionColor");
+    backgroundColor = ConfigColor("HexDumpBackgroundColor");
+    textColor = ConfigColor("HexDumpTextColor");
+    selectionColor = ConfigColor("HexDumpSelectionColor");
     reloadData();
 }
 
@@ -322,7 +322,7 @@ void HexDump::getString(int col, int_t rva, QList<RichTextPainter::CustomRichTex
         int maxLen = getStringMaxLength(mDescriptor.at(col).data);
         QString append = " ";
         if(!maxLen)
-            append="";
+            append = "";
         if((rva + wI + wByteCount - 1) < (int_t)mMemPage->getSize())
             wStr = toString(mDescriptor.at(col).data, (void*)(wData + wI * wByteCount)).rightJustified(maxLen, ' ') + append;
         else
@@ -443,8 +443,8 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        QChar wChar((char)word&0xFF);
-        if(wChar.isPrint() == true && (word>>8)==0)
+        QChar wChar((char)word & 0xFF);
+        if(wChar.isPrint() == true && (word >> 8) == 0)
             wStr = QString(wChar);
         else
             wStr = ".";
@@ -500,7 +500,7 @@ QString HexDump::dwordToString(uint32 dword, DwordViewMode_e mode)
     case FloatDword:
     {
         float* wPtr = (float*)&dword;
-        wStr = QString::number((double)*wPtr);
+        wStr = QString::number((double) * wPtr);
     }
     break;
 
@@ -541,7 +541,7 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
     case DoubleQword:
     {
         double* wPtr = (double*)&qword;
-        wStr = QString::number((double)*wPtr);
+        wStr = QString::number((double) * wPtr);
     }
     break;
 
@@ -933,13 +933,13 @@ void HexDump::clearDescriptors()
 {
     deleteAllColumns();
     mDescriptor.clear();
-    int charwidth=getCharWidth();
-    addColumnAt(8+charwidth*2*sizeof(uint_t), "Address", false); //address
+    int charwidth = getCharWidth();
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Address", false); //address
 }
 
 void HexDump::debugStateChanged(DBGSTATE state)
 {
-    if(state==stopped)
+    if(state == stopped)
     {
         mMemPage->setAttributes(0, 0);
         setRowCount(0);

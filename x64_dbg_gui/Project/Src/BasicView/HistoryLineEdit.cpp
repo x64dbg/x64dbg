@@ -1,7 +1,7 @@
 #include "HistoryLineEdit.h"
 #include "Bridge.h"
 
-HistoryLineEdit::HistoryLineEdit(QWidget *parent) : QLineEdit(parent)
+HistoryLineEdit::HistoryLineEdit(QWidget* parent) : QLineEdit(parent)
 {
     mCmdHistory.clear();
     mCmdIndex = -1;
@@ -24,15 +24,15 @@ void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
     //This fixes a very annoying bug on some systems
     if(bSixPressed)
     {
-        bSixPressed=false;
-        if(event->text()=="^")
+        bSixPressed = false;
+        if(event->text() == "^")
         {
             event->ignore();
             return;
         }
     }
     if(wKey == Qt::Key_6)
-        bSixPressed=true;
+        bSixPressed = true;
 
     if(wKey == Qt::Key_Up || wKey == Qt::Key_Down)
     {

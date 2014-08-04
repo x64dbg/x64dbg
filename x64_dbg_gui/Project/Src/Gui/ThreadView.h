@@ -19,7 +19,7 @@ public slots:
     void SuspendThread();
     void ResumeThread();
     void KillThread();
-    void contextMenuSlot(const QPoint &pos);
+    void contextMenuSlot(const QPoint & pos);
     void SetPriorityIdleSlot();
     void SetPriorityAboveNormalSlot();
     void SetPriorityBelowNormalSlot();
@@ -38,13 +38,13 @@ private:
     QAction* mSuspendThread;
     QAction* mResumeThread;
     QAction* mKillThread;
-    QAction * mSetPriorityIdle;
-    QAction * mSetPriorityAboveNormal;
-    QAction * mSetPriorityBelowNormal;
-    QAction * mSetPriorityHighest;
-    QAction * mSetPriorityLowest;
-    QAction * mSetPriorityNormal;
-    QAction * mSetPriorityTimeCritical;
+    QAction* mSetPriorityIdle;
+    QAction* mSetPriorityAboveNormal;
+    QAction* mSetPriorityBelowNormal;
+    QAction* mSetPriorityHighest;
+    QAction* mSetPriorityLowest;
+    QAction* mSetPriorityNormal;
+    QAction* mSetPriorityTimeCritical;
     QMenu* mSetPriority;
 };
 

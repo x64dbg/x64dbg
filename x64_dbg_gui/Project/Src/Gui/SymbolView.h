@@ -19,7 +19,7 @@ class SymbolView : public QWidget
     Q_OBJECT
 
 public:
-    explicit SymbolView(QWidget *parent = 0);
+    explicit SymbolView(QWidget* parent = 0);
     ~SymbolView();
     void setupContextMenu();
 
@@ -42,7 +42,7 @@ signals:
     void showCpu();
 
 private:
-    Ui::SymbolView *ui;
+    Ui::SymbolView* ui;
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;

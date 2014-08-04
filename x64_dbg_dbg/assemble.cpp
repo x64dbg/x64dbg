@@ -13,25 +13,25 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
     uint val;
     if(!valfromstring(text, &val))
         return false;
-    *value=val;
+    *value = val;
     return true;
 }
 
 bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction, char* error)
 {
-    if(strlen(instruction)>=XEDPARSE_MAXBUFSIZE)
+    if(strlen(instruction) >= XEDPARSE_MAXBUFSIZE)
         return false;
     XEDPARSE parse;
     memset(&parse, 0, sizeof(parse));
 #ifdef _WIN64
-    parse.x64=true;
+    parse.x64 = true;
 #else //x86
-    parse.x64=false;
+    parse.x64 = false;
 #endif
-    parse.cbUnknown=cbUnknown;
-    parse.cip=addr;
+    parse.cbUnknown = cbUnknown;
+    parse.cip = addr;
     strcpy(parse.instr, instruction);
-    if(XEDParseAssemble(&parse)==XEDPARSE_ERROR)
+    if(XEDParseAssemble(&parse) == XEDPARSE_ERROR)
     {
         if(error)
             strcpy(error, parse.error);
@@ -41,7 +41,7 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
     if(dest)
         memcpy(dest, parse.dest, parse.dest_size);
     if(size)
-        *size=parse.dest_size;
+        *size = parse.dest_size;
 
     return true;
 }
@@ -53,23 +53,23 @@ bool assembleat(uint addr, const char* instruction, int* size, char* error, bool
     if(!assemble(addr, dest, &destSize, instruction, error))
         return false;
     //calculate the number of NOPs to insert
-    int origLen=disasmgetsize(addr);
-    while(origLen<destSize)
-        origLen+=disasmgetsize(addr+origLen);
-    int nopsize=origLen-destSize;
+    int origLen = disasmgetsize(addr);
+    while(origLen < destSize)
+        origLen += disasmgetsize(addr + origLen);
+    int nopsize = origLen - destSize;
     unsigned char nops[16];
     memset(nops, 0x90, sizeof(nops));
 
     if(size)
-        *size=destSize;
+        *size = destSize;
 
-    bool ret=mempatch(fdProcessInfo->hProcess, (void*)addr, dest, destSize, 0);
+    bool ret = mempatch(fdProcessInfo->hProcess, (void*)addr, dest, destSize, 0);
     if(ret && fillnop && nopsize)
     {
         if(size)
-            *size+=nopsize;
-        if(!mempatch(fdProcessInfo->hProcess, (void*)(addr+destSize), nops, nopsize, 0))
-            ret=false;
+            *size += nopsize;
+        if(!mempatch(fdProcessInfo->hProcess, (void*)(addr + destSize), nops, nopsize, 0))
+            ret = false;
     }
     GuiUpdatePatches();
     return true;

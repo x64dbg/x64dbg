@@ -11,13 +11,13 @@ struct SYMBOLCBDATA
 
 static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
-    int len=(int)strlen(pSymInfo->Name);
+    int len = (int)strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
-    curSymbol.addr=(duint)pSymInfo->Address;
-    curSymbol.decoratedSymbol=(char*)BridgeAlloc(len+1);
+    curSymbol.addr = (duint)pSymInfo->Address;
+    curSymbol.decoratedSymbol = (char*)BridgeAlloc(len + 1);
     strcpy(curSymbol.decoratedSymbol, pSymInfo->Name);
-    curSymbol.undecoratedSymbol=(char*)BridgeAlloc(MAX_SYM_NAME);
+    curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
     if(strstr(pSymInfo->Name, "Ordinal"))
     {
         //skip bad ordinals
@@ -27,14 +27,14 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     if(!UnDecorateSymbolName(pSymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
-        curSymbol.undecoratedSymbol=0;
+        curSymbol.undecoratedSymbol = 0;
     }
     else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
-        curSymbol.undecoratedSymbol=0;
+        curSymbol.undecoratedSymbol = 0;
     }
-    SYMBOLCBDATA* cbData=(SYMBOLCBDATA*)UserContext;
+    SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
 }
@@ -42,9 +42,9 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
 void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBDATA symbolCbData;
-    symbolCbData.cbSymbolEnum=cbSymbolEnum;
-    symbolCbData.user=user;
-    char mask[]="*";
+    symbolCbData.cbSymbolEnum = cbSymbolEnum;
+    symbolCbData.user = user;
+    char mask[] = "*";
     SymEnumSymbols(fdProcessInfo->hProcess, base, mask, EnumSymbols, &symbolCbData);
 }
 
@@ -56,7 +56,7 @@ static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID User
 {
     SYMBOLMODULEINFO curModule;
     memset(&curModule, 0, sizeof(SYMBOLMODULEINFO));
-    curModule.base=BaseOfDll;
+    curModule.base = BaseOfDll;
     modnamefromaddr(BaseOfDll, curModule.name, true);
     ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
     return TRUE;
@@ -67,9 +67,9 @@ void symupdatemodulelist()
     std::vector<SYMBOLMODULEINFO> modList;
     modList.clear();
     SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
-    int modcount=(int)modList.size();
-    SYMBOLMODULEINFO* modListBridge=(SYMBOLMODULEINFO*)BridgeAlloc(sizeof(SYMBOLMODULEINFO)*modcount);
-    for(int i=0; i<modcount; i++)
+    int modcount = (int)modList.size();
+    SYMBOLMODULEINFO* modListBridge = (SYMBOLMODULEINFO*)BridgeAlloc(sizeof(SYMBOLMODULEINFO) * modcount);
+    for(int i = 0; i < modcount; i++)
         memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
     GuiSymbolUpdateModuleList(modcount, modListBridge);
 }
@@ -81,7 +81,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
     std::vector<SYMBOLMODULEINFO> modList;
     modList.clear();
     SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
-    int modcount=(int)modList.size();
+    int modcount = (int)modList.size();
     if(!modcount)
         return;
     char szOldSearchPath[MAX_PATH] = "";
@@ -97,7 +97,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
         dputs("SymSetSearchPath (1) failed!");
         return;
     }
-    for(int i=0; i<modcount; i++) //reload all modules
+    for(int i = 0; i < modcount; i++) //reload all modules
     {
         dprintf("downloading symbols for %s...\n", modList.at(i).name);
         uint modbase = modList.at(i).base;
@@ -134,21 +134,21 @@ bool symfromname(const char* name, uint* addr)
     pSymbol->MaxNameLen = MAX_LABEL_SIZE;
     if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
         return false;
-    *addr=(uint)pSymbol->Address;
+    *addr = (uint)pSymbol->Address;
     return true;
 }
 
 const char* symgetsymbolicname(uint addr)
 {
     //[modname.]symbolname
-    static char symbolicname[MAX_MODULE_SIZE+MAX_SYM_NAME]="";
-    char label[MAX_SYM_NAME]="";
-    bool retval=false;
+    static char symbolicname[MAX_MODULE_SIZE + MAX_SYM_NAME] = "";
+    char label[MAX_SYM_NAME] = "";
+    bool retval = false;
     if(labelget(addr, label)) //user labels have priority
-        retval=true;
+        retval = true;
     else //no user labels
     {
-        DWORD64 displacement=0;
+        DWORD64 displacement = 0;
         char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
@@ -157,12 +157,12 @@ const char* symgetsymbolicname(uint addr)
         {
             if(!settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
                 strcpy(label, pSymbol->Name);
-            retval=true;
+            retval = true;
         }
     }
     if(retval)
     {
-        char modname[MAX_MODULE_SIZE]="";
+        char modname[MAX_MODULE_SIZE] = "";
         if(modnamefromaddr(addr, modname, false))
             sprintf(symbolicname, "%s.%s", modname, label);
         else

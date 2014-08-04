@@ -2,7 +2,7 @@
 
 #include "QHexEdit.h"
 
-QHexEdit::QHexEdit(QWidget *parent) : QScrollArea(parent)
+QHexEdit::QHexEdit(QWidget* parent) : QScrollArea(parent)
 {
     qHexEdit_p = new QHexEditPrivate(this);
     setWidget(qHexEdit_p);
@@ -36,7 +36,7 @@ void QHexEdit::remove(int pos, int len)
     qHexEdit_p->remove(pos, len);
 }
 
-void QHexEdit::replace( int pos, int len, const QByteArray & after, const QByteArray & mask)
+void QHexEdit::replace(int pos, int len, const QByteArray & after, const QByteArray & mask)
 {
     qHexEdit_p->replace(pos, len, after, mask);
 }
@@ -44,27 +44,27 @@ void QHexEdit::replace( int pos, int len, const QByteArray & after, const QByteA
 void QHexEdit::fill(int index, const QString & pattern)
 {
     QString convert;
-    for(int i=0; i<pattern.length(); i++)
+    for(int i = 0; i < pattern.length(); i++)
     {
         QChar ch = pattern[i].toLower();
         if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
             convert += ch;
     }
-    if(convert.length()%2) //odd length
+    if(convert.length() % 2) //odd length
         convert += "0";
     QByteArray data(convert.length(), 0);
     QByteArray mask(data.length(), 0);
-    for(int i=0; i<convert.length(); i++)
+    for(int i = 0; i < convert.length(); i++)
     {
         if(convert[i] == '?')
         {
-            data[i]='0';
-            mask[i]='1';
+            data[i] = '0';
+            mask[i] = '1';
         }
         else
         {
-            data[i]=convert[i].toAscii();
-            mask[i]='0';
+            data[i] = convert[i].toAscii();
+            mask[i] = '0';
         }
     }
     qHexEdit_p->fill(index, QByteArray().fromHex(data), QByteArray().fromHex(mask));
@@ -84,7 +84,7 @@ void QHexEdit::setCursorPosition(int cursorPos)
 {
     // cursorPos in QHexEditPrivate is the position of the textcoursor without
     // blanks, means bytePos*2
-    qHexEdit_p->setCursorPos(cursorPos*2);
+    qHexEdit_p->setCursorPos(cursorPos * 2);
 }
 
 int QHexEdit::cursorPosition()
@@ -105,27 +105,27 @@ void QHexEdit::setData(const QByteArray & data)
 void QHexEdit::setData(const QString & pattern)
 {
     QString convert;
-    for(int i=0; i<pattern.length(); i++)
+    for(int i = 0; i < pattern.length(); i++)
     {
         QChar ch = pattern[i].toLower();
         if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
             convert += ch;
     }
-    if(convert.length()%2) //odd length
+    if(convert.length() % 2) //odd length
         convert += "0";
     QByteArray data(convert.length(), 0);
     QByteArray mask(data.length(), 0);
-    for(int i=0; i<convert.length(); i++)
+    for(int i = 0; i < convert.length(); i++)
     {
         if(convert[i] == '?')
         {
-            data[i]='0';
-            mask[i]='1';
+            data[i] = '0';
+            mask[i] = '1';
         }
         else
         {
-            data[i]=convert[i].toAscii();
-            mask[i]='0';
+            data[i] = convert[i].toAscii();
+            mask[i] = '0';
         }
     }
     qHexEdit_p->setData(QByteArray().fromHex(data), QByteArray().fromHex(mask));
@@ -138,10 +138,10 @@ QByteArray QHexEdit::applyMaskedData(const QByteArray & data)
     QByteArray _mask = this->mask().toHex();
     if(ret.size() != _data.size())
         ret.resize(_data.size());
-    for(int i=0; i<_data.size(); i++)
+    for(int i = 0; i < _data.size(); i++)
     {
-        if(_mask[i]!='1')
-            ret[i]=_data[i];
+        if(_mask[i] != '1')
+            ret[i] = _data[i];
     }
     return QByteArray().fromHex(ret);
 }
@@ -159,7 +159,7 @@ QByteArray QHexEdit::mask()
 QString QHexEdit::pattern(bool space)
 {
     QString result;
-    for (int i = 0; i < this->data().size(); i++)
+    for(int i = 0; i < this->data().size(); i++)
     {
         QString byte = this->data().mid(i, 1).toHex();
         QString mask = this->mask().mid(i, 1).toHex();

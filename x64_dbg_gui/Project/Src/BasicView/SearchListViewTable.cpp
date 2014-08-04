@@ -7,32 +7,32 @@ SearchListViewTable::SearchListViewTable(StdTable* parent) : StdTable(parent)
 
 QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    bool isaddr=true;
-    QString text=StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    bool isaddr = true;
+    QString text = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     if(!DbgIsDebugging())
-        isaddr=false;
+        isaddr = false;
     if(!getRowCount())
-        isaddr=false;
+        isaddr = false;
     const char* addrText = text.toUtf8().constData();
-    ULONGLONG val=0;
+    ULONGLONG val = 0;
     uint_t wVA;
-    if(sscanf(addrText, "%llX", &val)!=1)
-        isaddr=false;
+    if(sscanf(addrText, "%llX", &val) != 1)
+        isaddr = false;
     else
-        wVA=val;
-    if(col==0 && isaddr)
+        wVA = val;
+    if(col == 0 && isaddr)
     {
-        BPXTYPE bpxtype=DbgGetBpxTypeAt(wVA);
-        bool isbookmark=DbgGetBookmarkAt(wVA);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
+        bool isbookmark = DbgGetBookmarkAt(wVA);
         painter->setPen(ConfigColor("AbstractTableViewTextColor"));
         if(!isbookmark)
         {
-            if(bpxtype&bp_normal) //normal breakpoint
+            if(bpxtype & bp_normal) //normal breakpoint
             {
                 painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
                 painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
             }
-            else if(bpxtype&bp_hardware) //hardware breakpoint only
+            else if(bpxtype & bp_hardware) //hardware breakpoint only
             {
                 painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
                 painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
@@ -40,22 +40,22 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
         }
         else //bookmark
         {
-            if(bpxtype==bp_none) //bookmark only
+            if(bpxtype == bp_none) //bookmark only
             {
                 painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address
                 painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
             }
             else //bookmark + breakpoint
             {
-                QColor color=ConfigColor("DisassemblyBookmarkBackgroundColor");
+                QColor color = ConfigColor("DisassemblyBookmarkBackgroundColor");
                 if(!color.alpha()) //we don't want transparent text
-                    color=textColor;
+                    color = textColor;
                 painter->setPen(QPen(color));
-                if(bpxtype&bp_normal) //bookmark + normal breakpoint
+                if(bpxtype & bp_normal) //bookmark + normal breakpoint
                 {
                     painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
                 }
-                else if(bpxtype&bp_hardware) //bookmark + hardware breakpoint only
+                else if(bpxtype & bp_hardware) //bookmark + hardware breakpoint only
                 {
                     painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
                 }
@@ -67,7 +67,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, text);
-        text="";
+        text = "";
     }
     return text;
 }
