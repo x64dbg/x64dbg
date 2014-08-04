@@ -273,15 +273,32 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
     pluginload(plugindir);
+    pluginload(plugindir);
     //handle command line
     int argc=0;
     char** argv=commandlineparse(&argc);
-    if(argc>1) //we have an argument
+    if(argc == 2) //we have an argument
     {
         std::string str="init \"";
         str+=argv[1];
         str+="\"";
         DbgCmdExec(str.c_str());
+    }
+    else if (argc > 2)
+    {
+        if ( _strcmpi(argv[1], "-a") == 0 )
+        {
+
+#define ATTACH_CMD_JIT_STRING "attach ."
+            char * attachcmd = (char *) calloc( sizeof( ATTACH_CMD_JIT_STRING ) + strlen(argv[2]) + 1, 1 );
+            if ( attachcmd != NULL )
+            {
+                strcpy( attachcmd, ATTACH_CMD_JIT_STRING );
+                strcat( attachcmd, argv[2] );
+                DbgCmdExec(attachcmd);
+                free(attachcmd);
+            }
+        }
     }
     commandlinefree(argc, argv);
 
