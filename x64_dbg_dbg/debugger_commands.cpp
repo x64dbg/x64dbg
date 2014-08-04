@@ -1541,11 +1541,20 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
         if ( SetJIT( jit_debugger_cmd, notfound, & actual_arch ) == -1 )
         {
-            dprintf( "Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            dprintf( "Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
             return STATUS_ERROR;
         }
     }
-    else if ( argc > 2 )
+    else if ( argc == 2 )
+    {
+        jit_debugger_cmd = argv[1];
+        if ( SetJIT( jit_debugger_cmd, notfound, & actual_arch ) == -1 )
+        {
+            dprintf( "Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            return STATUS_ERROR;
+        }
+    }
+    else if ( argc == 3 )
     {
         actual_arch = x64;
 
