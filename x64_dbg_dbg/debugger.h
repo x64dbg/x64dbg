@@ -53,7 +53,7 @@ bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
 bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
-bool dbggetdefjit(char *);
+bool dbggetdefjit(char* jit_entry);
 
 void cbStep();
 void cbRtrStep();

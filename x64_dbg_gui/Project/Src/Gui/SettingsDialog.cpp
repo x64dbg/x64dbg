@@ -162,27 +162,28 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
     ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
 
-    if ( DbgFunctions()->GetJit != NULL )
+    if(DbgFunctions()->GetJit != NULL)
     {
-        char jit_entry[MAX_SETTING_SIZE]="";
-        char jit_def_entry[MAX_SETTING_SIZE]="";
-        bool isx64=true;
-    #ifndef _WIN64
-        isx64=false;
-    #endif
-    if(DbgFunctions()->GetJit)
-    {
-        DbgFunctions()->GetJit(jit_entry, isx64);
-        DbgFunctions()->GetDefJit(jit_def_entry);
+        char jit_entry[MAX_SETTING_SIZE] = "";
+        char jit_def_entry[MAX_SETTING_SIZE] = "";
+        bool isx64 = true;
+#ifndef _WIN64
+        isx64 = false;
+#endif
+        if(DbgFunctions()->GetJit)
+        {
+            DbgFunctions()->GetJit(jit_entry, isx64);
+            DbgFunctions()->GetDefJit(jit_def_entry);
 
-        if (_strcmpi(jit_entry, jit_def_entry) == 0)
-            settings.eventSetJIT=true;
-        else
-            settings.eventSetJIT=false;
+            if(_strcmpi(jit_entry, jit_def_entry) == 0)
+                settings.eventSetJIT = true;
+            else
+                settings.eventSetJIT = false;
 
-        ui->editJIT->setText(jit_entry);
+            ui->editJIT->setText(jit_entry);
 
-        ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+            ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+        }
     }
 }
 
@@ -228,7 +229,7 @@ void SettingsDialog::SaveSettings()
 
     Config()->load();
     DbgSettingsUpdated();
-    GuiUpdateAllViews();    
+    GuiUpdateAllViews();
 }
 
 void SettingsDialog::AddRangeToList(RangeStruct range)

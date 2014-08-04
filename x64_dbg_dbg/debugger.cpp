@@ -1484,9 +1484,9 @@ bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
     DWORD lRv;
     HKEY hKey;
 
-    if (arch_out != NULL )
+    if(arch_out != NULL)
     {
-        if ( arch_in != x64 && arch_in != x32 )
+        if(arch_in != x64 && arch_in != x32)
         {
 #ifdef _WIN32
             * arch_out = x32;
@@ -1499,46 +1499,46 @@ bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
             * arch_out = arch_in;
     }
 
-    if ( arch_in == x64 )
+    if(arch_in == x64)
     {
-        if (!IsWow64())
+        if(!IsWow64())
             return false;
 
 #ifdef _WIN32
         key_flags |= KEY_WOW64_64KEY;
 #endif
     }
-    else if ( arch_in == x32 )
+    else if(arch_in == x32)
     {
 #ifdef _WIN64
         key_flags |= KEY_WOW64_32KEY;
 #endif
     }
 
-    lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags,&hKey);
-    if (lRv != ERROR_SUCCESS)
+    lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
+    if(lRv != ERROR_SUCCESS)
         return false;
 
     char jit_entry[512];
-    DWORD jit_entry_size = sizeof( jit_entry );
+    DWORD jit_entry_size = sizeof(jit_entry);
     lRv = RegQueryValueExA(hKey, "Debugger", 0, NULL, (LPBYTE)jit_entry, & jit_entry_size);
-    if (lRv != ERROR_SUCCESS)
+    if(lRv != ERROR_SUCCESS)
         return false;
 
-    * jit_entry_out = (char *) emalloc( jit_entry_size, "dbggetjit:*jit_entry_out");
+    * jit_entry_out = (char*) emalloc(jit_entry_size, "dbggetjit:*jit_entry_out");
 
-    strcpy( * jit_entry_out, jit_entry );
+    strcpy(* jit_entry_out, jit_entry);
 
     return true;
 }
 
-bool dbggetdefjit(char * jit_entry)
+bool dbggetdefjit(char* jit_entry)
 {
     char path[JIT_ENTRY_DEF_SIZE];
     path[0] = '"';
     GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
     strcat(path, ATTACH_CMD_LINE);
-    strcpy( jit_entry, path );
+    strcpy(jit_entry, path);
 
     return true;
 }
@@ -1550,9 +1550,9 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
     HKEY hKey;
     DWORD dwDisposition;
 
-    if (arch_out != NULL )
+    if(arch_out != NULL)
     {
-        if ( arch_in != x64 && arch_in != x32 )
+        if(arch_in != x64 && arch_in != x32)
         {
 #ifdef _WIN32
             * arch_out = x32;
@@ -1565,15 +1565,15 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
             * arch_out = arch_in;
     }
 
-    if ( arch_in == x64 )
+    if(arch_in == x64)
     {
-        if (!IsWow64())
+        if(!IsWow64())
             return false;
 #ifdef _WIN32
         key_flags |= KEY_WOW64_64KEY;
 #endif
     }
-    else if ( arch_in == x32 )
+    else if(arch_in == x32)
     {
 #ifdef _WIN64
         key_flags |= KEY_WOW64_32KEY;
@@ -1581,10 +1581,10 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
     }
 
     lRv = RegCreateKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
-    if (lRv != ERROR_SUCCESS)
+    if(lRv != ERROR_SUCCESS)
         return false;
 
-    lRv = RegSetValueExA(hKey, "Debugger", 0, REG_SZ, (BYTE *) jit_cmd, strlen(jit_cmd) + 1 );
+    lRv = RegSetValueExA(hKey, "Debugger", 0, REG_SZ, (BYTE*) jit_cmd, (DWORD)strlen(jit_cmd) + 1);
     RegCloseKey(hKey);
 
     return (lRv == ERROR_SUCCESS);
