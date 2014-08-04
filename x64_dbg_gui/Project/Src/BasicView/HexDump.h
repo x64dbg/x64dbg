@@ -158,6 +158,7 @@ protected:
     MemoryPage* mMemPage;
     int mByteOffset;
     QList<ColumnDescriptor_t> mDescriptor;
+    int mForceColumn;
 };
 
 #endif // _HEXDUMP_H

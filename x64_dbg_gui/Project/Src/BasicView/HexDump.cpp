@@ -13,6 +13,7 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
     setRowCount(0);
 
     mMemPage = new MemoryPage(0, 0);
+    mForceColumn = -1;
 
     clearDescriptors();
 
@@ -88,19 +89,28 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 {
     bool wAccept = true;
 
+    int x = event->x();
+    int y = event->y();
+
     if(mGuiState == HexDump::MultiRowsSelectionState)
     {
         //qDebug() << "State = MultiRowsSelectionState";
 
-        if((transY(event->y()) >= 0) && event->y() <= this->height())
+        if((transY(y) >= 0) && y <= this->height())
         {
             for(int wI = 1; wI < getColumnCount(); wI++)    // Skip first column (Addresses)
             {
-                int wColIndex = getColumnIndexFromX(event->x());
+                int wColIndex = getColumnIndexFromX(x);
+
+                if(mForceColumn != -1)
+                {
+                    wColIndex = mForceColumn;
+                    x = getColumnPosition(mForceColumn) + 1;
+                }
 
                 if(wColIndex > 0) // No selection for first column (addresses)
                 {
-                    int_t wStartingAddress = getItemStartingAddress(event->x(), event->y());
+                    int_t wStartingAddress = getItemStartingAddress(x, y);
                     int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
 
                     if(wEndingAddress < (int_t)mMemPage->getSize())
@@ -129,21 +139,30 @@ void HexDump::mousePressEvent(QMouseEvent* event)
 {
     //qDebug() << "HexDump::mousePressEvent";
 
+    int x = event->x();
+    int y = event->y();
+
     bool wAccept = false;
 
     if(((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeight() && event->y() <= this->height())
+            if(y > getHeaderHeight() && y <= this->height())
             {
-                int wColIndex = getColumnIndexFromX(event->x());
+                int wColIndex = getColumnIndexFromX(x);
 
-                for(int wI = 1; wI < getColumnCount(); wI++)    // Skip first column (Addresses)
+                if(mForceColumn != -1)
+                {
+                    wColIndex = mForceColumn;
+                    x = getColumnPosition(mForceColumn) + 1;
+                }
+
+                for(int wI = 0; wI < getColumnCount(); wI++)    // Skip first column (Addresses)
                 {
                     if(wColIndex > 0 && mDescriptor.at(wColIndex - 1).isData == true) // No selection for first column (addresses) and no data columns
                     {
-                        int_t wStartingAddress = getItemStartingAddress(event->x(), event->y());
+                        int_t wStartingAddress = getItemStartingAddress(x, y);
                         int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
 
                         if(wEndingAddress < (int_t)mMemPage->getSize())

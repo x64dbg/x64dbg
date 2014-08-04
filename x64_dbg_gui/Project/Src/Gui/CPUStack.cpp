@@ -11,6 +11,8 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
 
+    mForceColumn = 1;
+
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;
 #ifdef _WIN64
