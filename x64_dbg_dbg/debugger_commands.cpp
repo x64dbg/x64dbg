@@ -1393,3 +1393,113 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     dputs("done! See symbol log for more information");
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugSetJIT(int argc, char* argv[])
+{
+    arch actual_arch;
+    char * jit_debugger_cmd;
+    if(argc < 2)
+    {
+        char path[JIT_ENTRY_DEF_SIZE];
+        dbggetdefjit(path);
+
+        jit_debugger_cmd = path;
+        if (!dbgsetjit( jit_debugger_cmd, notfound, & actual_arch ))
+        {
+            dprintf( "Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            return STATUS_ERROR;
+        }
+    }
+    else if ( argc == 2 )
+    {
+        jit_debugger_cmd = argv[1];
+        if (!dbgsetjit( jit_debugger_cmd, notfound, & actual_arch ))
+        {
+            dprintf( "Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            return STATUS_ERROR;
+        }
+    }
+    else if ( argc == 3 )
+    {
+        actual_arch = x64;
+
+        if ( _strcmpi( argv[1], "x64" ) == 0 )
+        {
+            if (!IsWow64())
+            {
+                dprintf( "Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32" );
+                return STATUS_ERROR;
+            }
+        }
+        else if ( _strcmpi( argv[1], "x32" ) == 0 )
+            actual_arch = x32;
+        else
+        {
+            dputs( "Unkown jit entry type use x64 or x32 parameter");
+            return STATUS_ERROR;
+        }
+        
+        jit_debugger_cmd = argv[2];
+        if (!dbgsetjit( jit_debugger_cmd, actual_arch, NULL))
+        {
+            dprintf( "Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        dputs( "Error unkown parameters use x86 or x64, cmdline" );
+        return STATUS_ERROR;
+    }
+
+    dprintf( " New JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd );
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugGetJIT(int argc, char* argv[])
+{
+    char * get_entry = NULL;
+    arch actual_arch;
+
+    if(argc < 2)
+    {
+        if (!dbggetjit( & get_entry, notfound, & actual_arch ))
+        {
+            dprintf( "Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32" );
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        if ( _strcmpi( argv[1], "x64" ) == 0 )
+        {
+            actual_arch = x64;
+
+            if (!IsWow64())
+            {
+                dprintf( "Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32" );
+                return STATUS_ERROR;
+            }
+        }
+        else if ( _strcmpi( argv[1], "x32" ) == 0 )
+            actual_arch = x32;
+        else
+        {
+            dputs( "Unkown jit entry type use x64 or x32 parameter");
+            return STATUS_ERROR;
+        }
+
+        if (!dbggetjit( & get_entry, actual_arch, NULL ))
+        {
+            dprintf( "Error getting JIT %s\n", argv[1] );
+            return STATUS_ERROR;
+        }
+    }
+
+    dprintf( " JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry );
+    if ( get_entry != NULL )
+        efree(get_entry);
+    
+    return STATUS_CONTINUE;
+}

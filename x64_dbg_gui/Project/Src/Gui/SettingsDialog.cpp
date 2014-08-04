@@ -157,6 +157,33 @@ void SettingsDialog::LoadSettings()
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
+
+    //Misc tab
+    GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
+    ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+
+    if ( DbgFunctions()->GetJit != NULL )
+    {
+        char jit_entry[MAX_SETTING_SIZE]="";
+        char jit_def_entry[MAX_SETTING_SIZE]="";
+        bool isx64=true;
+    #ifndef _WIN64
+        isx64=false;
+    #endif
+    if(DbgFunctions()->GetJit)
+    {
+        DbgFunctions()->GetJit(jit_entry, isx64);
+        DbgFunctions()->GetDefJit(jit_def_entry);
+
+        if (_strcmpi(jit_entry, jit_def_entry) == 0)
+            settings.eventSetJIT=true;
+        else
+            settings.eventSetJIT=false;
+
+        ui->editJIT->setText(jit_entry);
+
+        ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+    }
 }
 
 void SettingsDialog::SaveSettings()
@@ -196,9 +223,12 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
 
+    //Misc tab
+    BridgeSettingSetUint("Misc", "SetJIT", settings.eventSetJIT);
+
     Config()->load();
     DbgSettingsUpdated();
-    GuiUpdateAllViews();
+    GuiUpdateAllViews();    
 }
 
 void SettingsDialog::AddRangeToList(RangeStruct range)
@@ -287,6 +317,17 @@ void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
     else
         settings.eventAttachBreakpoint=true;
 }
+
+void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
+{
+    /*
+    if(arg1==Qt::Unchecked)
+        settings.eventSetJIT=false;
+    else
+        settings.eventSetJIT=true;
+        */
+}
+
 
 void SettingsDialog::on_chkDllLoad_stateChanged(int arg1)
 {

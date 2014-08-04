@@ -102,6 +102,8 @@ static void registercommands()
     dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
+    dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
+    dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
@@ -282,6 +284,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         DbgCmdExec(str.c_str());
     }
     commandlinefree(argc, argv);
+
     return 0;
 }
 

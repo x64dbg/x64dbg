@@ -119,5 +119,6 @@ bool DirExists(const char* dir);
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
+bool IsWow64();
 
 #endif // _GLOBAL_H

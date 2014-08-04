@@ -176,3 +176,11 @@ arch GetFileArchitecture(const char* szFileName)
     }
     return retval;
 }
+
+bool IsWow64()
+{
+    BOOL bIsWow64Process = FALSE;
+    //x64_dbg supports WinXP SP3 and later only, so ignore the GetProcAddress crap :D
+    IsWow64Process(GetCurrentProcess(), &bIsWow64Process);
+    return !!bIsWow64Process;
+}
