@@ -9,6 +9,7 @@ void ThreadView::contextMenuSlot(const QPoint &pos)
         return;
 
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mSwitchThread);
     wMenu->addAction(mSuspendThread);
     wMenu->addAction(mResumeThread);
     wMenu->addAction(mKillThread);
@@ -47,6 +48,12 @@ void ThreadView::contextMenuSlot(const QPoint &pos)
         mSetPriorityLowest->setChecked(true);
 
     wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void ThreadView::SwitchThread()
+{
+    QString threadId=getCellContent(getInitialSelection(), 1);
+    DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
 }
 
 void ThreadView::SuspendThread()
@@ -111,6 +118,10 @@ void ThreadView::SetPriorityTimeCriticalSlot()
 
 void ThreadView::setupContextMenu()
 {
+    //Switch thread menu
+    mSwitchThread = new QAction("Switch Thread", this);
+    connect(mSwitchThread, SIGNAL(triggered()), this, SLOT(SwitchThread()));
+
     //Suspend thread menu
     mSuspendThread = new QAction("Suspend Thread", this);
     connect(mSuspendThread, SIGNAL(triggered()), this, SLOT(SuspendThread()));
