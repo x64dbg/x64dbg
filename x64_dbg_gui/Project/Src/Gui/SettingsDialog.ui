@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>262</width>
+    <width>308</width>
     <height>220</height>
    </rect>
   </property>
@@ -31,7 +31,7 @@
     <rect>
      <x>2</x>
      <y>2</y>
-     <width>261</width>
+     <width>301</width>
      <height>181</height>
     </rect>
    </property>
@@ -39,7 +39,7 @@
     <bool>true</bool>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>4</number>
    </property>
    <widget class="QWidget" name="tabEvents">
     <attribute name="title">
@@ -457,6 +457,47 @@
      </property>
      <property name="text">
       <string>Autocomments only on CIP</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tabMisc">
+    <attribute name="title">
+     <string>Misc</string>
+    </attribute>
+    <widget class="QCheckBox" name="chkSetJIT">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>151</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set Just In Time Debugger</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>40</y>
+       <width>21</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>JIT:</string>
+     </property>
+    </widget>
+    <widget class="QListView" name="listJIT">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>30</y>
+       <width>231</width>
+       <height>41</height>
+      </rect>
      </property>
     </widget>
    </widget>

@@ -55,6 +55,8 @@ private slots:
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
+    //Misc tab
+    void on_chkSetJIT_stateChanged(int arg1);
 
 private:
     //enums
@@ -112,6 +114,8 @@ private:
         bool disasmMemorySpaces;
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
+        //Misc Tab
+        bool eventSetJIT;
     };
 
     //variables

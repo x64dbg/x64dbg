@@ -157,6 +157,10 @@ void SettingsDialog::LoadSettings()
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
+
+    //Misc tab
+    GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
+    ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
 }
 
 void SettingsDialog::SaveSettings()
@@ -195,6 +199,9 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
+
+    //Misc tab
+    BridgeSettingSetUint("Misc", "SetJIT", settings.eventSetJIT);
 
     Config()->load();
     DbgSettingsUpdated();
@@ -287,6 +294,15 @@ void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
     else
         settings.eventAttachBreakpoint=true;
 }
+
+void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
+{
+    if(arg1==Qt::Unchecked)
+        settings.eventSetJIT=false;
+    else
+        settings.eventSetJIT=true;
+}
+
 
 void SettingsDialog::on_chkDllLoad_stateChanged(int arg1)
 {

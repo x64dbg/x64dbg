@@ -102,6 +102,8 @@ static void registercommands()
     dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
+    dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
+    dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list

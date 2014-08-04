@@ -43,6 +43,8 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[]);
 CMDRESULT cbDebugBcDll(int argc, char* argv[]);
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
 CMDRESULT cbDebugResumethread(int argc, char* argv[]);
+CMDRESULT cbDebugSetJIT(int argc, char* argv[]);
+CMDRESULT cbDebugGetJIT(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
