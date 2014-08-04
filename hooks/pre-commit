@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Simple script to auto-format every source file before committing.
+#
+
+#check if the formatter is present
+if [ ! -f ./AStyleWhore.exe ]; then
+    echo "AStyleWhore not found!"
+    exit 0
+fi
+
+#format the code
+"./AStyleWhore.exe" Silent
+
+#exit when nothing needs to be done
+if [ $? == 0 ]; then
+    exit 0
+fi
+
+#stage the formatted files (when staged in this commit)
+gitFiles=$(git diff-index --name-only --cached HEAD)
+if [[ -n "${gitFiles}" ]]; then
+    for fname in $gitFiles; do
+        git add --all -- "${fname}"
+    done
+fi
+
+#cancel commit if the changes were undone by the formatting
+gitFiles=$(git diff-index --name-only --cached HEAD)
+if [ -z "$gitFiles" ]; then
+    "./AStyleWhore.exe" "After formatting, no files were staged..."
+    exit 1
+fi
