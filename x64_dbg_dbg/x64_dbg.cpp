@@ -290,13 +290,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         {
 
 #define ATTACH_CMD_JIT_STRING "attach ."
-            char * attachcmd = (char *) calloc( sizeof( ATTACH_CMD_JIT_STRING ) + strlen(argv[2]) + 1, 1 );
+            char * attachcmd = (char *) (char*)emalloc(sizeof( ATTACH_CMD_JIT_STRING ) + strlen(argv[2]) + 1, "_dbg_dbginit:attachcmd"); 
             if ( attachcmd != NULL )
             {
                 strcpy( attachcmd, ATTACH_CMD_JIT_STRING );
                 strcat( attachcmd, argv[2] );
                 DbgCmdExec(attachcmd);
-                free(attachcmd);
+                efree(attachcmd);
             }
         }
     }
