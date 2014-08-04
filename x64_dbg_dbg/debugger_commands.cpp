@@ -1394,6 +1394,30 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+bool IsWow64()
+{
+    BOOL bIsWow64 = FALSE;
+
+    typedef BOOL (APIENTRY *LPFN_ISWOW64PROCESS)
+        (HANDLE, PBOOL);
+
+    LPFN_ISWOW64PROCESS fnIsWow64Process;
+
+    HMODULE module = GetModuleHandle(TEXT("kernel32"));
+    const char funcName[] = "IsWow64Process";
+    fnIsWow64Process = (LPFN_ISWOW64PROCESS)
+        GetProcAddress(module, funcName);
+
+    if(NULL != fnIsWow64Process)
+    {
+        if (!fnIsWow64Process(GetCurrentProcess(),
+            &bIsWow64))
+            return false; //unkown error;
+    }
+    return bIsWow64 != FALSE;
+}
+
+
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
 #define ATTACH_CMD_LINE "\" -a %ld"
 
@@ -1420,6 +1444,9 @@ int GetJIT( char ** jit_entry_out, arch arch_in, arch * arch_out )
 
     if ( arch_in == x64 )
     {
+        if (!IsWow64())
+            return -1;
+
         #ifdef _WIN32
             key_flags |= KEY_WOW64_64KEY;
         #endif
@@ -1474,6 +1501,8 @@ int SetJIT( char * jit_cmd, arch arch_in, arch * arch_out )
 
     if ( arch_in == x64 )
     {
+        if (!IsWow64())
+            return -1;
 #ifdef _WIN32
         key_flags |= KEY_WOW64_64KEY;
 #endif
@@ -1518,8 +1547,16 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     else if ( argc > 2 )
     {
+        actual_arch = x64;
+
         if ( _strcmpi( argv[1], "x64" ) == 0 )
-            actual_arch = x64;
+        {
+            if (!IsWow64())
+            {
+                dprintf( "Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32" );
+                return STATUS_ERROR;
+            }
+        }
         else if ( _strcmpi( argv[1], "x32" ) == 0 )
             actual_arch = x32;
         else
@@ -1562,7 +1599,15 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     else
     {
         if ( _strcmpi( argv[1], "x64" ) == 0 )
+        {
             actual_arch = x64;
+
+            if (!IsWow64())
+            {
+                dprintf( "Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32" );
+                return STATUS_ERROR;
+            }
+        }
         else if ( _strcmpi( argv[1], "x32" ) == 0 )
             actual_arch = x32;
         else
