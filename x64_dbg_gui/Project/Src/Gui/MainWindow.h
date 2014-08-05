@@ -26,6 +26,7 @@
 #include "UpdateChecker.h"
 #include "CallStackView.h"
 #include "CalculatorDialog.h"
+#include "AttachDialog.h"
 
 namespace Ui
 {
@@ -94,6 +95,8 @@ public slots:
     void refreshShortcuts();
     void openShortcuts();
     void donate();
+    void displayAttach();
+    void detach();
 
 private:
     Ui::MainWindow* ui;

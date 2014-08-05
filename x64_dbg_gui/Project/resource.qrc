@@ -43,5 +43,8 @@
         <file>images/shortcut.png</file>
         <file>images/donate.png</file>
         <file>images/calculator.png</file>
+        <file>images/attach.png</file>
+        <file>images/detach.png</file>
+        <file>images/trace.png</file>
     </qresource>
 </RCC>

@@ -156,6 +156,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCheckUpdates, SIGNAL(triggered()), this, SLOT(checkUpdates()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
+    connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
+    connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -231,6 +233,7 @@ void MainWindow::setTab(QWidget* widget)
 void MainWindow::refreshShortcuts()
 {
     ui->actionOpen->setShortcut(ConfigShortcut("FileOpen"));
+    ui->actionAttach->setShortcut(ConfigShortcut("FileAttach"));
     ui->actionExit->setShortcut(ConfigShortcut("FileExit"));
 
     ui->actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
@@ -253,6 +256,7 @@ void MainWindow::refreshShortcuts()
     ui->actionRunSelection->setShortcut(ConfigShortcut("DebugRunSelection"));
     ui->actionPause->setShortcut(ConfigShortcut("DebugPause"));
     ui->actionRestart->setShortcut(ConfigShortcut("DebugRestart"));
+    ui->actionDetach->setShortcut(ConfigShortcut("DebugDetach"));
     ui->actionClose->setShortcut(ConfigShortcut("DebugClose"));
     ui->actionStepInto->setShortcut(ConfigShortcut("DebugStepInto"));
     ui->actioneStepInto->setShortcut(ConfigShortcut("DebugeStepInfo"));
@@ -479,11 +483,7 @@ void MainWindow::openFile()
     {
         filename = fileToOpen->text();
     }
-
-    if(DbgIsDebugging())
-        DbgCmdExecDirect("stop");
-    QString cmd;
-    DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+    DbgCmdExec(QString("init \"" + filename + "\"").toUtf8().constData());
 
     //file is from recent menu
     if(fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
@@ -906,4 +906,15 @@ void MainWindow::donate()
     if(msg.exec() != QMessageBox::Ok)
         return;
     QDesktopServices::openUrl(QUrl("https://blockchain.info/address/1GuXgtCrLk4aYgivAT7xAi8zVHWk5CkEoY"));
+}
+
+void MainWindow::displayAttach()
+{
+    AttachDialog attach(this);
+    attach.exec();
+}
+
+void MainWindow::detach()
+{
+    DbgCmdExec("detach");
 }

@@ -38,6 +38,7 @@
     </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuRecent_Files"/>
+    <addaction name="actionAttach"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -70,6 +71,7 @@
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
+    <addaction name="actionDetach"/>
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
@@ -565,6 +567,30 @@
    </property>
    <property name="text">
     <string>Calculator</string>
+   </property>
+  </action>
+  <action name="actionAttach">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/attach.png</normaloff>:/icons/images/attach.png</iconset>
+   </property>
+   <property name="text">
+    <string>Attach</string>
+   </property>
+   <property name="toolTip">
+    <string>Attach</string>
+   </property>
+  </action>
+  <action name="actionDetach">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/detach.png</normaloff>:/icons/images/detach.png</iconset>
+   </property>
+   <property name="text">
+    <string>Detach</string>
+   </property>
+   <property name="toolTip">
+    <string>Detach</string>
    </property>
   </action>
  </widget>
