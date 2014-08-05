@@ -283,20 +283,15 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         str += "\"";
         DbgCmdExec(str.c_str());
     }
-    else if(argc > 2)
+    else if(argc == 5) //4 arguments (JIT)
     {
-        if(_strcmpi(argv[1], "-a") == 0)
+        if(_strcmpi(argv[1], "-a") == 0 && !_stricmp(argv[3], "-e"))
         {
-
-#define ATTACH_CMD_JIT_STRING "attach ."
-            char* attachcmd = (char*)(char*)emalloc(sizeof(ATTACH_CMD_JIT_STRING) + strlen(argv[2]) + 1, "_dbg_dbginit:attachcmd");
-            if(attachcmd != NULL)
-            {
-                strcpy(attachcmd, ATTACH_CMD_JIT_STRING);
-                strcat(attachcmd, argv[2]);
-                DbgCmdExec(attachcmd);
-                efree(attachcmd);
-            }
+            std::string str = "attach .";
+            str += argv[2];
+            str += ", .";
+            str += argv[4];
+            DbgCmdExec(str.c_str());
         }
     }
     commandlinefree(argc, argv);

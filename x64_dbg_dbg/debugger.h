@@ -6,7 +6,7 @@
 #include "command.h"
 #include "breakpoint.h"
 
-#define ATTACH_CMD_LINE "\" -a %ld"
+#define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
 
 //structures
@@ -41,6 +41,7 @@ void dbgdisablebpx();
 void dbgenablebpx();
 bool dbgisrunning();
 bool dbgisdll();
+void dbgsetattachevent(HANDLE handle);
 void DebugUpdateGui(uint disasm_addr, bool stack);
 void dbgsetskipexceptions(bool skip);
 void dbgsetstepping(bool stepping);

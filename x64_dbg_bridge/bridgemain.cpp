@@ -129,7 +129,7 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
-    if(!section || !key || !value)
+    if(!section)
         return false;
     if(!WritePrivateProfileStringA(section, key, value, szIniFile))
         return false;

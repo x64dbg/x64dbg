@@ -849,10 +849,14 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint pid = 0;
-    if(!valfromstring(argv[1], &pid))
-    {
-        dprintf("invalid expression \"%s\"!\n", argv[1]);
+    if(!valfromstring(argv[1], &pid, false))
         return STATUS_ERROR;
+    if(argc > 2)
+    {
+        uint eventHandle = 0;
+        if(!valfromstring(argv[2], &eventHandle, false))
+            return STATUS_ERROR;
+        dbgsetattachevent((HANDLE)eventHandle);
     }
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
@@ -1387,10 +1391,19 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch;
     char* jit_debugger_cmd;
+    char oldjit[MAX_SETTING_SIZE] = "";
     if(argc < 2)
     {
         char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
+        char* get_entry = NULL;
+        if(!dbggetjit(& get_entry, notfound, & actual_arch))
+        {
+            dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+            return STATUS_ERROR;
+        }
+        strcpy_s(oldjit, get_entry);
+        efree(get_entry);
 
         jit_debugger_cmd = path;
         if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
@@ -1398,14 +1411,31 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
+        if(_stricmp(oldjit, path))
+            BridgeSettingSet("JIT", "Old", oldjit);
     }
     else if(argc == 2)
     {
-        jit_debugger_cmd = argv[1];
-        if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+        if(!_strcmpi(argv[1], "restore"))
         {
-            dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
+            jit_debugger_cmd = oldjit;
+            if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
+                return STATUS_CONTINUE; //nothing to restore
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+            {
+                dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+            BridgeSettingSet("JIT", 0, 0);
+        }
+        else
+        {
+            jit_debugger_cmd = argv[1];
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+            {
+                dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
         }
     }
     else if(argc == 3)
@@ -1441,7 +1471,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf(" New JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
+    dprintf("New JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
 
     return STATUS_CONTINUE;
 }

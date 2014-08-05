@@ -26,6 +26,7 @@ static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static std::map<unsigned int, const char*> exceptionNames;
 static SIZE_T cachePrivateUsage = 0;
+static HANDLE hEvent = 0;
 
 //Superglobal variables
 char szFileName[MAX_PATH] = "";
@@ -164,6 +165,11 @@ bool dbgisrunning()
 bool dbgisdll()
 {
     return bFileIsDll;
+}
+
+void dbgsetattachevent(HANDLE handle)
+{
+    hEvent = handle;
 }
 
 void dbgsetskipexceptions(bool skip)
@@ -1396,6 +1402,11 @@ bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 static void cbAttachDebugger()
 {
+    if(hEvent) //Signal the AeDebug event
+    {
+        SetEvent(hEvent);
+        hEvent = 0;
+    }
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }

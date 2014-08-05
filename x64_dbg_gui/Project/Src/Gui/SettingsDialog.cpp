@@ -159,10 +159,7 @@ void SettingsDialog::LoadSettings()
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
 
     //Misc tab
-    GetSettingBool("Misc", "SetJIT", &settings.eventSetJIT);
-    ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
-
-    if(DbgFunctions()->GetJit != NULL)
+    if(DbgFunctions()->GetJit)
     {
         char jit_entry[MAX_SETTING_SIZE] = "";
         char jit_def_entry[MAX_SETTING_SIZE] = "";
@@ -179,9 +176,8 @@ void SettingsDialog::LoadSettings()
                 settings.eventSetJIT = true;
             else
                 settings.eventSetJIT = false;
-
             ui->editJIT->setText(jit_entry);
-
+            ui->editJIT->setCursorPosition(0);
             ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
         }
     }
@@ -225,7 +221,13 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
 
     //Misc tab
-    BridgeSettingSetUint("Misc", "SetJIT", settings.eventSetJIT);
+    if(DbgFunctions()->GetJit)
+    {
+        if(settings.eventSetJIT)
+            DbgCmdExecDirect("setjit");
+        else
+            DbgCmdExecDirect("setjit restore");
+    }
 
     Config()->load();
     DbgSettingsUpdated();
@@ -321,12 +323,10 @@ void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
 
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 {
-    /*
-    if(arg1==Qt::Unchecked)
-        settings.eventSetJIT=false;
+    if(arg1 == Qt::Unchecked)
+        settings.eventSetJIT = false;
     else
-        settings.eventSetJIT=true;
-        */
+        settings.eventSetJIT = true;
 }
 
 

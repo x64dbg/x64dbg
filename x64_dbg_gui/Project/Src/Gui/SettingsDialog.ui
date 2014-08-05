@@ -39,7 +39,7 @@
     <bool>true</bool>
    </property>
    <property name="currentIndex">
-    <number>4</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tabEvents">
     <attribute name="title">
@@ -469,39 +469,39 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>151</width>
+       <width>281</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Set Just In Time Debugger</string>
+      <string>Set x64_dbg as Just In Time Debugger</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label">
+    <widget class="QWidget" name="">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>21</width>
-       <height>16</height>
+       <width>281</width>
+       <height>22</height>
       </rect>
      </property>
-     <property name="text">
-      <string>JIT:</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="editJIT">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>30</y>
-       <width>251</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>JIT:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="editJIT">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </widget>
   </widget>
