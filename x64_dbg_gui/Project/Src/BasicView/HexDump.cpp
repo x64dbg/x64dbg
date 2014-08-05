@@ -111,12 +111,16 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
                 if(wColIndex > 0) // No selection for first column (addresses)
                 {
                     int_t wStartingAddress = getItemStartingAddress(x, y);
-                    int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
+                    int_t dataSize = getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
+                    int_t wEndingAddress = wStartingAddress + dataSize;
 
                     if(wEndingAddress < (int_t)mMemPage->getSize())
                     {
                         if(wStartingAddress < getInitialSelection())
+                        {
                             expandSelectionUpTo(wStartingAddress);
+                            mSelection.toIndex += dataSize;
+                        }
                         else
                             expandSelectionUpTo(wEndingAddress);
 
@@ -158,23 +162,29 @@ void HexDump::mousePressEvent(QMouseEvent* event)
                     x = getColumnPosition(mForceColumn) + 1;
                 }
 
-                for(int wI = 0; wI < getColumnCount(); wI++)    // Skip first column (Addresses)
+                if(wColIndex > 0 && mDescriptor.at(wColIndex - 1).isData == true) // No selection for first column (addresses) and no data columns
                 {
-                    if(wColIndex > 0 && mDescriptor.at(wColIndex - 1).isData == true) // No selection for first column (addresses) and no data columns
+                    int_t wStartingAddress = getItemStartingAddress(x, y);
+                    int_t dataSize = getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
+                    int_t wEndingAddress = wStartingAddress + dataSize;
+
+                    if(wEndingAddress < (int_t)mMemPage->getSize())
                     {
-                        int_t wStartingAddress = getItemStartingAddress(x, y);
-                        int_t wEndingAddress = wStartingAddress + getSizeOf(mDescriptor.at(wColIndex - 1).data.itemSize) - 1;
-
-                        if(wEndingAddress < (int_t)mMemPage->getSize())
+                        bool bUpdateTo = false;
+                        if(!(event->modifiers() & Qt::ShiftModifier))
+                            setSingleSelection(wStartingAddress);
+                        else if(getInitialSelection() > wEndingAddress)
                         {
-                            if(!(event->modifiers() & Qt::ShiftModifier))
-                                setSingleSelection(wStartingAddress);
-                            expandSelectionUpTo(wEndingAddress);
-
-                            mGuiState = HexDump::MultiRowsSelectionState;
-
-                            repaint();
+                            wEndingAddress -= dataSize;
+                            bUpdateTo = true;
                         }
+                        expandSelectionUpTo(wEndingAddress);
+                        if(bUpdateTo)
+                            mSelection.toIndex += dataSize;
+
+                        mGuiState = HexDump::MultiRowsSelectionState;
+
+                        repaint();
                     }
                 }
 
