@@ -269,5 +269,8 @@
     <ClInclude Include="debugger_commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

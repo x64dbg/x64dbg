@@ -122,6 +122,23 @@ static bool _getjit(char* jit, bool jit64)
     return true;
 }
 
+bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
+{
+    std::vector<PROCESSENTRY32> list;
+    if(!dbglistprocesses(&list))
+        return false;
+    *count = (int)list.size();
+    if(!*count)
+        return false;
+    *entries = (DBGPROCESSINFO*)BridgeAlloc(*count * sizeof(DBGPROCESSINFO));
+    for(int i = 0; i < *count; i++)
+    {
+        (*entries)[*count - i - 1].dwProcessId = list.at(i).th32ProcessID;
+        strcpy_s((*entries)[*count - i - 1].szExeFile, list.at(i).szExeFile);
+    }
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -146,4 +163,5 @@ void dbgfunctionsinit()
     _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
     _dbgfunctions.GetJit = _getjit;
     _dbgfunctions.GetDefJit = dbggetdefjit;
+    _dbgfunctions.GetProcessList = _getprocesslist;
 }

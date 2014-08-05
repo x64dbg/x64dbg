@@ -20,6 +20,7 @@
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"
 #include "DeviceNameResolver\DeviceNameResolver.h"
+#include "handle.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"

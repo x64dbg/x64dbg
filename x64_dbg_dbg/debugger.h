@@ -54,6 +54,7 @@ bool dbgcmddel(const char* name);
 bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
 bool dbggetdefjit(char* jit_entry);
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 
 void cbStep();
 void cbRtrStep();

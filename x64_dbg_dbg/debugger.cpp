@@ -1589,3 +1589,38 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
 
     return (lRv == ERROR_SUCCESS);
 }
+
+bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
+{
+    list->clear();
+    Handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if(!hProcessSnap)
+        return false;
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    if(!Process32First(hProcessSnap, &pe32))
+        return false;
+    do
+    {
+        if(pe32.th32ProcessID == GetCurrentProcessId())
+            continue;
+        if(!_stricmp(pe32.szExeFile, "System"))
+            continue;
+        if(!_stricmp(pe32.szExeFile, "[System Process]"))
+            continue;
+        Handle hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pe32.th32ProcessID);
+        if(!hProcess)
+            continue;
+        BOOL wow64 = false, mewow64 = false;
+        if(!IsWow64Process(hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+            continue;
+        if((mewow64 and !wow64) or (!mewow64 and wow64))
+            continue;
+        char szExePath[MAX_PATH] = "";
+        if(GetModuleFileNameExA(hProcess, 0, szExePath, sizeof(szExePath)))
+            strcpy_s(pe32.szExeFile, szExePath);
+        list->push_back(pe32);
+    }
+    while(Process32Next(hProcessSnap, &pe32));
+    return true;
+}

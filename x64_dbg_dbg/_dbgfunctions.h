@@ -27,6 +27,12 @@ typedef struct
     DBGCALLSTACKENTRY* entries;
 } DBGCALLSTACK;
 
+typedef struct
+{
+    DWORD dwProcessId;
+    char szExeFile[MAX_PATH];
+} DBGPROCESSINFO;
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -49,6 +55,7 @@ typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 typedef bool (*GETJIT)(char* jit, bool x64);
 typedef bool (*GETDEFJIT)(char*);
+typedef bool (*GETPROCESSLIST)(DBGPROCESSINFO** entries, int* count);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -74,6 +81,7 @@ typedef struct DBGFUNCTIONS_
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
     GETJIT GetJit;
     GETDEFJIT GetDefJit;
+    GETPROCESSLIST GetProcessList;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

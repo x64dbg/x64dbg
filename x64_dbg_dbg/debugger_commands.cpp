@@ -16,10 +16,7 @@ static bool bScyllaLoaded = false;
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
     if(DbgIsDebugging())
-    {
-        dputs("already debugging!");
-        return STATUS_ERROR;
-    }
+        DbgCmdExecDirect("stop");
 
     static char arg1[deflen] = "";
     if(!argget(*argv, arg1, 0, false))
@@ -858,12 +855,8 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         return STATUS_ERROR;
     }
     if(DbgIsDebugging())
-    {
-        //TODO: do stuff
-        dputs("terminate the current session!");
-        return STATUS_ERROR;
-    }
-    HANDLE hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
+        DbgCmdExecDirect("stop");
+    Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
         dprintf("could not open process %X!\n", pid);
@@ -873,7 +866,6 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     if(!IsWow64Process(hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
     {
         dputs("IsWow64Process failed!");
-        CloseHandle(hProcess);
         return STATUS_ERROR;
     }
     if((mewow64 and !wow64) or (!mewow64 and wow64))
@@ -883,16 +875,13 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 #else
         dputs("Use x64_dbg to debug this process!");
 #endif // _WIN64
-        CloseHandle(hProcess);
         return STATUS_ERROR;
     }
     if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
     {
         dprintf("could not get module filename %X!\n", pid);
-        CloseHandle(hProcess);
         return STATUS_ERROR;
     }
-    CloseHandle(hProcess);
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
