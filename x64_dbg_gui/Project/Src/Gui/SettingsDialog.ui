@@ -477,7 +477,7 @@
       <string>Set x64_dbg as Just In Time Debugger</string>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -502,6 +502,19 @@
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QCheckBox" name="chkConfirmBeforeAtt">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>60</y>
+       <width>141</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Confirm before attaching</string>
+     </property>
     </widget>
    </widget>
   </widget>

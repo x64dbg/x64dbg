@@ -54,6 +54,7 @@ typedef void (*MEMUPDATEMAP)(HANDLE hProcess);
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 typedef bool (*GETJIT)(char* jit, bool x64);
+typedef bool (*GETJITAUTO)(bool *);
 typedef bool (*GETDEFJIT)(char*);
 typedef bool (*GETPROCESSLIST)(DBGPROCESSINFO** entries, int* count);
 
@@ -79,6 +80,7 @@ typedef struct DBGFUNCTIONS_
     MEMUPDATEMAP MemUpdateMap;
     GETCALLSTACK GetCallStack;
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
+    GETJITAUTO GetJitAuto;
     GETJIT GetJit;
     GETDEFJIT GetDefJit;
     GETPROCESSLIST GetProcessList;
