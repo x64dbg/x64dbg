@@ -81,6 +81,53 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+void CPUDisassembly::addFollowMenuItem(QString name, int_t value)
+{
+    QAction* newAction = new QAction(name, this);
+    newAction->setFont(QFont("Courier New", 8));
+    mFollowMenu->addAction(newAction);
+    newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
+}
+
+void CPUDisassembly::setupFollowMenu(int_t wVA)
+{
+    //remove previous actions
+    QList<QAction*> list = mFollowMenu->actions();
+    for(int i = 0; i < list.length(); i++)
+        mFollowMenu->removeAction(list.at(i));
+
+    //most basic follow action
+    addFollowMenuItem("&Selection", wVA);
+
+    //add follow actions
+    DISASM_INSTR instr;
+    DbgDisasmAt(wVA, &instr);
+
+    for(int i = 0; i < instr.argcount; i++)
+    {
+        const DISASM_ARG arg = instr.arg[i];
+        if(arg.type == arg_memory)
+        {
+            if(DbgMemIsValidReadPtr(arg.value))
+                addFollowMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+            if(arg.value != arg.constant)
+            {
+                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                if(DbgMemIsValidReadPtr(arg.constant))
+                    addFollowMenuItem("&Constant: " + constant, arg.value);
+            }
+            if(DbgMemIsValidReadPtr(arg.memvalue))
+                addFollowMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.value);
+        }
+        else
+        {
+            if(DbgMemIsValidReadPtr(arg.value))
+                addFollowMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+        }
+    }
+}
+
 
 /************************************************************************************
                             Mouse Management
@@ -107,24 +154,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         int_t end = rvaToVa(getSelectionEnd());
         if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
             wMenu->addAction(mUndoSelection);
-        wMenu->addAction(mSetLabel);
-        wMenu->addAction(mSetComment);
-        wMenu->addAction(mSetBookmark);
-
-        uint_t selection_start = rvaToVa(getSelectionStart());
-        uint_t selection_end = rvaToVa(getSelectionEnd());
-        if(!DbgFunctionOverlaps(selection_start, selection_end))
-        {
-            mToggleFunction->setText("Add function");
-            wMenu->addAction(mToggleFunction);
-        }
-        else if(DbgFunctionOverlaps(selection_start, selection_end))
-        {
-            mToggleFunction->setText("Delete function");
-            wMenu->addAction(mToggleFunction);
-        }
-
-        wMenu->addAction(mAssemble);
+        wMenu->addMenu(mFollowMenu);
+        setupFollowMenu(wVA);
 
         // BP Menu
         mBPMenu->clear();
@@ -189,15 +220,32 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 BridgeFree(wBPList.bp);
         }
         wMenu->addMenu(mBPMenu);
+        wMenu->addAction(mEnableHighlightingMode);
+        wMenu->addSeparator();
+
+
+        wMenu->addAction(mSetLabel);
+        wMenu->addAction(mSetComment);
+        wMenu->addAction(mSetBookmark);
+
+        uint_t selection_start = rvaToVa(getSelectionStart());
+        uint_t selection_end = rvaToVa(getSelectionEnd());
+        if(!DbgFunctionOverlaps(selection_start, selection_end))
+        {
+            mToggleFunction->setText("Add function");
+            wMenu->addAction(mToggleFunction);
+        }
+        else if(DbgFunctionOverlaps(selection_start, selection_end))
+        {
+            mToggleFunction->setText("Delete function");
+            wMenu->addAction(mToggleFunction);
+        }
+
+        wMenu->addAction(mAssemble);
+
         wMenu->addAction(mPatchesAction);
 
         wMenu->addSeparator();
-        wMenu->addAction(mEnableHighlightingMode);
-
-        // Separator
-        wMenu->addSeparator();
-
-
 
         // New origin
         wMenu->addAction(mSetNewOriginHere);
@@ -210,18 +258,6 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
             mGotoMenu->addAction(mGotoNext);
         mGotoMenu->addAction(mGotoExpression);
         wMenu->addMenu(mGotoMenu);
-        wMenu->addMenu(mFollowMenu);
-
-        //remove previous actions
-        QList<QAction*> list = mFollowMenu->actions();
-        for(int i = 0; i < list.length(); i++)
-            mFollowMenu->removeAction(list.at(i));
-
-        //add follow actions
-        mFollowMenu->addAction(new QAction("&Selection", this));
-        mFollowMenu->actions().last()->setObjectName(QString("DUMP|") + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
-        connect(mFollowMenu->actions().last(), SIGNAL(triggered()), this, SLOT(followActionSlot()));
-
         wMenu->addSeparator();
 
         wMenu->addMenu(mSearchMenu);

@@ -27,7 +27,8 @@ public:
 
     // Context Menu Management
     void setupRightClickContextMenu();
-
+    void addFollowMenuItem(QString name, int_t value);
+    void setupFollowMenu(int_t wVA);
     void setHwBpAt(uint_t va, int slot);
 
 signals:

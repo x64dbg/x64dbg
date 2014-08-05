@@ -126,6 +126,10 @@ void CPUDump::setupContextMenu()
     this->addAction(mUndoSelection);
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
+    // Follow in Stack
+    mFollowStack = new QAction("Follow in Stack", this);
+    connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -400,6 +404,8 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     int_t end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
         wMenu->addAction(mUndoSelection);
+    if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
+        wMenu->addAction(mFollowStack);
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
@@ -1143,4 +1149,10 @@ void CPUDump::undoSelectionSlot()
         return;
     DbgFunctions()->PatchRestoreRange(start, end);
     reloadData();
+}
+
+void CPUDump::followStackSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
 }

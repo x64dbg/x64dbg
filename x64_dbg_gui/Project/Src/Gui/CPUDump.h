@@ -80,6 +80,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void findPattern();
     void undoSelectionSlot();
+    void followStackSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -110,6 +111,8 @@ private:
 #endif //_WIN64
     QAction* mHardwareExecute;
     QAction* mHardwareRemove;
+
+    QAction* mFollowStack;
 
     QMenu* mGotoMenu;
     QAction* mGotoExpression;

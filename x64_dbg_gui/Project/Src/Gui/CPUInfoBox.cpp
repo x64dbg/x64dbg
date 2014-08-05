@@ -39,7 +39,7 @@ void CPUInfoBox::clear()
 
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
-    if(!DbgIsDebugging() || !parVA)
+    if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
         return;
     clear();
     QString info;
