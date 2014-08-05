@@ -49,22 +49,25 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
             basicinfo->branch = false;
     }
     //find memory displacement
-    if((disasm->Argument1.ArgType & MEMORY_TYPE) == MEMORY_TYPE || (disasm->Argument2.ArgType & MEMORY_TYPE) == MEMORY_TYPE)
+    if((disasm->Argument1.ArgType & MEMORY_TYPE) == MEMORY_TYPE)
     {
         if(disasm->Argument1.Memory.Displacement)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Argument1.Memory.Displacement;
             strcpy(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
-            basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
         }
-        else if(disasm->Argument2.Memory.Displacement)
+        basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
+    }
+    if((disasm->Argument2.ArgType & MEMORY_TYPE) == MEMORY_TYPE)
+    {
+        if(disasm->Argument2.Memory.Displacement)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Argument2.Memory.Displacement;
             strcpy(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
-            basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
         }
+        basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
     }
     //find address value
     if(disasm->Instruction.BranchType && disasm->Instruction.AddrValue)
