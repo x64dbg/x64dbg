@@ -144,6 +144,11 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
     return true;
 }
 
+static void _memupdatemap()
+{
+    memupdatemap(fdProcessInfo->hProcess);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -163,7 +168,7 @@ void dbgfunctionsinit()
     _dbgfunctions.ModPathFromAddr = _modpathfromaddr;
     _dbgfunctions.ModPathFromName = _modpathfromname;
     _dbgfunctions.DisasmFast = disasmfast;
-    _dbgfunctions.MemUpdateMap = memupdatemap;
+    _dbgfunctions.MemUpdateMap = _memupdatemap;
     _dbgfunctions.GetCallStack = _getcallstack;
     _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
     _dbgfunctions.GetJit = _getjit;

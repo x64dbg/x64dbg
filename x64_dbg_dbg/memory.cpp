@@ -14,7 +14,10 @@ void memupdatemap(HANDLE hProcess)
     uint MyAddress = 0, newAddress = 0;
     uint curAllocationBase = 0;
 
-    bool bListAllPages = false; //TODO: settings for this
+    uint setting = 0;
+    bool bListAllPages = false;
+    if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && setting)
+        bListAllPages = true;
 
     std::vector<MEMPAGE> pageVector;
     do
