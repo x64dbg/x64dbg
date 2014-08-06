@@ -237,10 +237,14 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
     case AbstractTableView::ResizeColumnState:
     {
         int delta = event->x() - mColResizeData.lastPosX;
-        int wNewSize = ((getColumnWidth(mColResizeData.index) + delta) >= 20) ? (getColumnWidth(mColResizeData.index) + delta) : (20);
-        setColumnWidth(mColResizeData.index, wNewSize);
-        mColResizeData.lastPosX = event->x();
-        repaint();
+        bool bCanResize = (getColumnWidth(mColResizeData.index) + delta) >= 20;
+        if(bCanResize)
+        {
+            int wNewSize = bCanResize ? (getColumnWidth(mColResizeData.index) + delta) : (20);
+            setColumnWidth(mColResizeData.index, wNewSize);
+            mColResizeData.lastPosX = event->x();
+            repaint();
+        }
     }
     break;
 
