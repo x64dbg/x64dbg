@@ -1487,13 +1487,20 @@ void cbDetach()
     return;
 }
 
-#define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
-
-bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
+bool _readwritejitkey( char * jit_key_value, DWORD * jit_key_vale_size, char * key, arch arch_in, arch* arch_out, readwritejitkey_error_t * error, bool write)
 {
-    DWORD key_flags = KEY_READ;
+    DWORD key_flags;
     DWORD lRv;
     HKEY hKey;
+    DWORD dwDisposition;
+
+    if ( error != NULL )
+        * error = ERROR_RW;
+
+    if (write)
+        key_flags = KEY_WRITE;
+    else
+        key_flags = KEY_READ;
 
     if(arch_out != NULL)
     {
@@ -1526,14 +1533,71 @@ bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
 #endif
     }
 
-    lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
+    if (write)
+    {
+        lRv = RegCreateKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
+        if(lRv != ERROR_SUCCESS)
+            return false;
+
+        lRv = RegSetValueExA(hKey, key, 0, REG_SZ, (BYTE*) jit_key_value, (DWORD) (* jit_key_vale_size) + 1);
+        RegCloseKey(hKey);
+    }
+    else
+    {
+        lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
+        if(lRv != ERROR_SUCCESS)
+        {
+            if ( error != NULL )
+                * error = ERROR_RW_FILE_NOT_FOUND;
+
+            return false;
+        }
+
+        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
+    }
+
     if(lRv != ERROR_SUCCESS)
         return false;
 
+    return true;
+}
+
+bool dbggetjitauto(bool * auto_on, arch arch_in, arch* arch_out)
+{
+    char jit_entry[4];
+    DWORD jit_entry_size = sizeof(jit_entry) - 1;
+    readwritejitkey_error_t rw_error;
+
+    if ( _readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false ) == false )
+    {
+        if ( rw_error = ERROR_RW_FILE_NOT_FOUND )
+            return true;
+
+        return false;
+    }
+    if ( _strcmpi( jit_entry, "1") == 0 )
+        * auto_on = true;
+    else if ( _strcmpi( jit_entry, "0") == 0 ) 
+        * auto_on = false;
+    else
+        return false;
+
+    return true;
+}
+
+bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out)
+{
+    DWORD auto_string_size = sizeof("1");
+
+    return _readwritejitkey( auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, NULL, true );
+}
+
+bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
+{
     char jit_entry[512];
     DWORD jit_entry_size = sizeof(jit_entry);
-    lRv = RegQueryValueExA(hKey, "Debugger", 0, NULL, (LPBYTE)jit_entry, & jit_entry_size);
-    if(lRv != ERROR_SUCCESS)
+
+    if ( _readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, NULL, false ) == false )
         return false;
 
     * jit_entry_out = (char*) emalloc(jit_entry_size, "dbggetjit:*jit_entry_out");
@@ -1556,49 +1620,8 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
 {
-    DWORD key_flags = KEY_WRITE;
-    DWORD lRv;
-    HKEY hKey;
-    DWORD dwDisposition;
-
-    if(arch_out != NULL)
-    {
-        if(arch_in != x64 && arch_in != x32)
-        {
-#ifdef _WIN32
-            * arch_out = x32;
-#endif
-#ifdef _WIN64
-            * arch_out = x64;
-#endif
-        }
-        else
-            * arch_out = arch_in;
-    }
-
-    if(arch_in == x64)
-    {
-        if(!IsWow64())
-            return false;
-#ifdef _WIN32
-        key_flags |= KEY_WOW64_64KEY;
-#endif
-    }
-    else if(arch_in == x32)
-    {
-#ifdef _WIN64
-        key_flags |= KEY_WOW64_32KEY;
-#endif
-    }
-
-    lRv = RegCreateKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
-    if(lRv != ERROR_SUCCESS)
-        return false;
-
-    lRv = RegSetValueExA(hKey, "Debugger", 0, REG_SZ, (BYTE*) jit_cmd, (DWORD)strlen(jit_cmd) + 1);
-    RegCloseKey(hKey);
-
-    return (lRv == ERROR_SUCCESS);
+    DWORD jit_cmd_size = strlen( jit_cmd );
+    return _readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, NULL, true );
 }
 
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)

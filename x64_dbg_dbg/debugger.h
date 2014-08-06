@@ -8,6 +8,12 @@
 
 #define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
+#define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
+
+typedef enum {
+    ERROR_RW = 0,
+    ERROR_RW_FILE_NOT_FOUND 
+} readwritejitkey_error_t;
 
 //structures
 struct INIT_STRUCT
@@ -55,6 +61,9 @@ bool dbgcmddel(const char* name);
 bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
 bool dbggetdefjit(char* jit_entry);
+bool _readwritejitkey( char *, DWORD *, char *, arch, arch*, readwritejitkey_error_t *, bool );
+bool dbggetjitauto(bool *, arch, arch*);
+bool dbgsetjitauto(bool, arch, arch*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 
 void cbStep();

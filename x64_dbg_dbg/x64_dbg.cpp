@@ -104,6 +104,8 @@ static void registercommands()
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
     dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
     dbgcmdnew("getjit\1jitget", cbDebugGetJIT, false); //get JIT
+    dbgcmdnew("getjitauto\1jitgetauto", cbDebugGetJITAuto, false); //get JIT Auto
+    dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list

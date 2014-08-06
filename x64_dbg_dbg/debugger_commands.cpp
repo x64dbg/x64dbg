@@ -1387,6 +1387,130 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
+{
+    bool jit_auto;
+    arch actual_arch;
+
+    if(argc == 1)
+    {
+        if(!dbggetjitauto( &jit_auto, notfound, & actual_arch))
+        {
+            dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
+            return STATUS_ERROR;
+        }
+    }
+    else if ( argc == 2 )
+    {
+        if(_strcmpi(argv[1], "x64") == 0)
+        {
+            actual_arch = x64;
+
+            if(!IsWow64())
+            {
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+        }
+        else if(_strcmpi(argv[1], "x32") == 0)
+            actual_arch = x32;
+        else
+        {
+            dputs("Unkown jit auto entry type use x64 or x32 parameter");
+            return STATUS_ERROR;
+        }
+
+        if(!dbggetjitauto(& jit_auto, actual_arch, NULL))
+        {
+            dprintf("Error getting JIT auto %s\n", argv[1]);
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        dputs("Unkown jit auto entry type use x64 or x32 parameter");
+    }
+
+    dprintf(" JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF" );
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
+{
+    arch actual_arch;
+    bool set_jit_auto;
+    if(argc < 2)
+    {
+        dprintf("Error setting JIT Auto use ON/1 or OFF/0 arg\n");
+        return STATUS_ERROR;
+    }
+    else if(argc == 2)
+    {
+        if (_strcmpi(argv[1], "1") == 0 || _strcmpi(argv[1], "ON") == 0 ) 
+            set_jit_auto = true;
+        else if (_strcmpi(argv[1], "0") == 0 || _strcmpi(argv[1], "OFF") == 0 ) 
+            set_jit_auto = false;
+        else
+        {
+            return STATUS_ERROR;
+            dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0");
+        }
+
+        if(!dbgsetjitauto(set_jit_auto, notfound, & actual_arch))
+        {
+            dprintf("Error setting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
+            return STATUS_ERROR;
+        }
+    }
+    else if(argc == 3)
+    {
+        actual_arch = x64;
+
+        if(_strcmpi(argv[1], "x64") == 0)
+        {
+            if(!IsWow64())
+            {
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+        }
+        else if(_strcmpi(argv[1], "x32") == 0)
+            actual_arch = x32;
+        else
+        {
+            dputs("Unkown jit auto entry type use x64 or x32 parameter");
+            return STATUS_ERROR;
+        }
+
+        if (_strcmpi(argv[2], "1") == 0 || _strcmpi(argv[2], "ON") == 0 ) 
+            set_jit_auto = true;
+        else if (_strcmpi(argv[2], "0") == 0 || _strcmpi(argv[2], "OFF") == 0 ) 
+            set_jit_auto = false;
+        else
+        {
+            return STATUS_ERROR;
+            dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0\n");
+        }
+
+        if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL))
+        {
+            dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
+            return STATUS_ERROR;
+        }
+    }
+    else
+    {
+        dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0\n");
+        return STATUS_ERROR;
+    }
+
+    dprintf("New JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF" );
+
+    return STATUS_CONTINUE;
+}
+
+
 CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch;

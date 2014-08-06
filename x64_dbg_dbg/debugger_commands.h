@@ -45,6 +45,8 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[]);
 CMDRESULT cbDebugResumethread(int argc, char* argv[]);
 CMDRESULT cbDebugSetJIT(int argc, char* argv[]);
 CMDRESULT cbDebugGetJIT(int argc, char* argv[]);
+CMDRESULT cbDebugGetJITAuto(int argc, char* argv[]);
+CMDRESULT cbDebugSetJITAuto(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);

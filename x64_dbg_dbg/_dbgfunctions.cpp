@@ -107,6 +107,11 @@ static void _getcallstack(DBGCALLSTACK* callstack)
     stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
+static bool _getjitauto(bool * jit_auto)
+{
+    return dbggetjitauto( jit_auto, notfound, NULL );
+}
+
 static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
@@ -162,6 +167,7 @@ void dbgfunctionsinit()
     _dbgfunctions.GetCallStack = _getcallstack;
     _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
     _dbgfunctions.GetJit = _getjit;
+    _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;
     _dbgfunctions.GetProcessList = _getprocesslist;
 }
