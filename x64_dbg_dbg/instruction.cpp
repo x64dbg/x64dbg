@@ -165,28 +165,35 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         filter = VAR_READONLY;
     else if(!_stricmp(arg1, "SYSTEM"))
         filter = VAR_SYSTEM;
-    VAR* cur = vargetptr();
-    if(!cur or !cur->name)
+
+    size_t cbsize = 0;
+    if(!varenum(0, &cbsize))
     {
-        dputs("no variables");
+        dputs("no variables!");
         return STATUS_CONTINUE;
     }
+    VAR* variables = (VAR*)emalloc(cbsize, "cbInstrVarList:variables");
+    if(!varenum(variables, 0))
+    {
+        dputs("error listing variables!");
+        return STATUS_ERROR;
+    }
 
-    bool bNext = true;
-    while(bNext)
+    int varcount = (int)cbsize / sizeof(VAR);
+    for(int i = 0; i < varcount; i++)
     {
         char name[deflen] = "";
-        strcpy(name, cur->name);
+        strcpy(name, variables[i].name.c_str());
         int len = (int)strlen(name);
-        for(int i = 0; i < len; i++)
-            if(name[i] == 1)
-                name[i] = '/';
-        uint value = (uint)cur->value.u.value;
-        if(cur->type != VAR_HIDDEN)
+        for(int j = 0; j < len; j++)
+            if(name[j] == 1)
+                name[j] = '/';
+        uint value = (uint)variables[i].value.u.value;
+        if(variables[i].type != VAR_HIDDEN)
         {
             if(filter)
             {
-                if(cur->type == filter)
+                if(variables[i].type == filter)
                 {
                     if(value > 15)
                         dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
@@ -202,10 +209,8 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
                     dprintf("%s=%"fext"X\n", name, value);
             }
         }
-        cur = cur->next;
-        if(!cur)
-            bNext = false;
     }
+    efree(variables, "cbInstrVarList:variables");
     return STATUS_CONTINUE;
 }
 

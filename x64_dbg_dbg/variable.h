@@ -32,11 +32,20 @@ struct VAR_VALUE
 
 struct VAR
 {
-    char* name;
+    std::string name;
     VAR_TYPE type;
     VAR_VALUE value;
-    VAR* next;
 };
+
+struct CaseInsensitiveCompare
+{
+    bool operator()(const std::string & str1, const std::string & str2) const
+    {
+        return _stricmp(str1.c_str(), str2.c_str()) < 0;
+    }
+};
+
+typedef std::map<std::string, VAR, CaseInsensitiveCompare> VariableMap;
 
 //functions
 void varinit();
@@ -49,5 +58,6 @@ bool varset(const char* name, uint value, bool setreadonly);
 bool varset(const char* name, const char* string, bool setreadonly);
 bool vardel(const char* name, bool delsystem);
 bool vargettype(const char* name, VAR_TYPE* type = 0, VAR_VALUE_TYPE* valtype = 0);
+bool varenum(VAR* entries, size_t* cbsize);
 
 #endif // _VARIABLE_H

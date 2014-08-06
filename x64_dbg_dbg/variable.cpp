@@ -1,26 +1,7 @@
 #include "variable.h"
 
+static VariableMap variables;
 static VAR* vars;
-
-static VAR* varfind(const char* name, VAR** link)
-{
-    VAR* cur = vars;
-    if(!cur)
-        return 0;
-    VAR* prev = 0;
-    while(cur)
-    {
-        if(arraycontains(cur->name, name))
-        {
-            if(link)
-                *link = prev;
-            return cur;
-        }
-        prev = cur;
-        cur = cur->next;
-    }
-    return 0;
-}
 
 static void varsetvalue(VAR* var, VAR_VALUE* value)
 {
@@ -38,24 +19,22 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
-    char newname[deflen] = "$";
-    int add = 0;
-    if(*name == '$')
-        add = 1;
-    strcat(newname, name + add);
-    VAR* found = varfind(newname, 0);
-    if(!found)
+    std::string name_;
+    if(*name != '$')
+        name_ = "$";
+    name_ += name;
+    VariableMap::iterator found = variables.find(name_);
+    if(found == variables.end()) //not found
         return false;
-    if(!setreadonly and (found->type == VAR_READONLY or found->type == VAR_HIDDEN))
+    if(!setreadonly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
-    varsetvalue(found, value);
+    varsetvalue(&found->second, value);
     return true;
 }
 
 void varinit()
 {
-    vars = (VAR*)emalloc(sizeof(VAR), "varinit:vars");
-    memset(vars, 0, sizeof(VAR));
+    variables.clear();
     //General variables
     varnew("$res\1$result", 0, VAR_SYSTEM);
     varnew("$res1\1$result1", 0, VAR_SYSTEM);
@@ -75,83 +54,48 @@ void varinit()
 
 void varfree()
 {
-    VAR* cur = vars;
-    while(cur)
-    {
-        efree(cur->name, "varfree:cur->name");
-        VAR* next = cur->next;
-        efree(cur, "varfree:cur");
-        cur = next;
-    }
+    variables.clear();
 }
 
 VAR* vargetptr()
 {
-    return vars;
+    return 0;
 }
 
-bool varnew(const char* name_, uint value, VAR_TYPE type)
+bool varnew(const char* name, uint value, VAR_TYPE type)
 {
-    if(!name_)
+    if(!name)
         return false;
-    char* name = (char*)emalloc(strlen(name_) + 2, "varnew:name");
-    if(*name_ != '$')
-    {
-        *name = '$';
-        strcpy(name + 1, name_);
-    }
-    else
-        strcpy(name, name_);
-    if(!name[1])
-    {
-        efree(name, "varnew:name");
+    std::string name_;
+    if(*name != '$')
+        name_ = "$";
+    name_ += name;
+    if(variables.find(name_) != variables.end()) //found
         return false;
-    }
-    if(varfind(name, 0))
-    {
-        efree(name, "varnew:name");
-        return false;
-    }
-    VAR* var;
-    bool nonext = false;
-    if(!vars->name)
-    {
-        nonext = true;
-        var = vars;
-    }
-    else
-        var = (VAR*)emalloc(sizeof(VAR), "varnew:var");
-    memset(var, 0, sizeof(VAR));
-    var->name = name;
-    var->type = type;
+    VAR var;
+    var.name = name_;
+    var.type = type;
     VAR_VALUE varvalue;
     varvalue.size = sizeof(uint);
     varvalue.type = VAR_UINT;
     varvalue.u.value = value;
-    varsetvalue(var, &varvalue);
-    if(!nonext)
-    {
-        VAR* cur = vars;
-        while(cur->next)
-            cur = cur->next;
-        cur->next = var;
-    }
+    varsetvalue(&var, &varvalue);
+    variables.insert(std::make_pair(name_, var));
     return true;
 }
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
-    char newname[deflen] = "$";
-    int add = 0;
-    if(*name == '$')
-        add = 1;
-    strcat(newname, name + add);
-    VAR* found = varfind(newname, 0);
-    if(!found or !value or !size or !type)
+    std::string name_;
+    if(*name != '$')
+        name_ = "$";
+    name_ += name;
+    VariableMap::iterator found = variables.find(name_);
+    if(found == variables.end()) //not found
         return false;
-    *type = found->type;
-    *size = found->value.size;
-    memcpy(value, &found->value, sizeof(VAR_VALUE));
+    *type = found->second.type;
+    *size = found->second.value.size;
+    *value = found->second.value;
     return true;
 }
 
@@ -219,63 +163,46 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
-    char* name_ = (char*)emalloc(strlen(name) + 2, "vardel:name");
+    std::string name_;
     if(*name != '$')
-    {
-        *name_ = '$';
-        strcpy(name_ + 1, name);
-    }
-    else
-        strcpy(name_, name);
-    VAR* prev = 0;
-    VAR* found = varfind(name_, &prev);
-    efree(name_, "vardel:name");
-    if(!found)
+        name_ = "$";
+    name_ += name;
+    VariableMap::iterator found = variables.find(name_);
+    if(found == variables.end()) //not found
         return false;
-    VAR_TYPE type = found->type;
-    if(!delsystem and type != VAR_USER)
+    if(!delsystem && found->second.type != VAR_USER)
         return false;
-    if(type == VAR_HIDDEN)
-        return false;
-    VAR_VALUE varvalue;
-    varvalue.size = sizeof(uint);
-    varvalue.type = VAR_UINT;
-    varvalue.u.value = 0;
-    varsetvalue(found, &varvalue);
-    efree(found->name, "vardel:found->name");
-    if(found == vars)
-    {
-        VAR* next = vars->next;
-        if(next)
-        {
-            memcpy(vars, vars->next, sizeof(VAR));
-            vars->next = next->next;
-            efree(next, "vardel:next");
-        }
-        else
-            memset(vars, 0, sizeof(VAR));
-    }
-    else
-    {
-        prev->next = found->next;
-        efree(found, "vardel:found");
-    }
+    variables.erase(found);
     return true;
 }
 
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
-    char newname[deflen] = "$";
-    int add = 0;
-    if(*name == '$')
-        add = 1;
-    strcat(newname, name + add);
-    VAR* found = varfind(newname, 0);
-    if(!found)
+    std::string name_;
+    if(*name != '$')
+        name_ = "$";
+    name_ += name;
+    VariableMap::iterator found = variables.find(name_);
+    if(found == variables.end()) //not found
         return false;
     if(valtype)
-        *valtype = found->value.type;
+        *valtype = found->second.value.type;
     if(type)
-        *type = found->type;
+        *type = found->second.type;
+    return true;
+}
+
+bool varenum(VAR* entries, size_t* cbsize)
+{
+    if(!entries && !cbsize || !variables.size())
+        return false;
+    if(!entries && cbsize)
+    {
+        *cbsize = variables.size() * sizeof(VAR);
+        return true;
+    }
+    int j = 0;
+    for(VariableMap::iterator i = variables.begin(); i != variables.end(); ++i, j++)
+        entries[j] = i->second;
     return true;
 }
