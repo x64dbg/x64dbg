@@ -1394,13 +1394,13 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 
     if(argc == 1)
     {
-        if(!dbggetjitauto( &jit_auto, notfound, & actual_arch))
+        if(!dbggetjitauto(&jit_auto, notfound, & actual_arch))
         {
             dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
     }
-    else if ( argc == 2 )
+    else if(argc == 2)
     {
         if(_strcmpi(argv[1], "x64") == 0)
         {
@@ -1431,7 +1431,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
         dputs("Unkown jit auto entry type use x64 or x32 parameter");
     }
 
-    dprintf(" JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF" );
+    dprintf(" JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
 
     return STATUS_CONTINUE;
 }
@@ -1447,9 +1447,9 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     }
     else if(argc == 2)
     {
-        if (_strcmpi(argv[1], "1") == 0 || _strcmpi(argv[1], "ON") == 0 ) 
+        if(_strcmpi(argv[1], "1") == 0 || _strcmpi(argv[1], "ON") == 0)
             set_jit_auto = true;
-        else if (_strcmpi(argv[1], "0") == 0 || _strcmpi(argv[1], "OFF") == 0 ) 
+        else if(_strcmpi(argv[1], "0") == 0 || _strcmpi(argv[1], "OFF") == 0)
             set_jit_auto = false;
         else
         {
@@ -1483,9 +1483,9 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             return STATUS_ERROR;
         }
 
-        if (_strcmpi(argv[2], "1") == 0 || _strcmpi(argv[2], "ON") == 0 ) 
+        if(_strcmpi(argv[2], "1") == 0 || _strcmpi(argv[2], "ON") == 0)
             set_jit_auto = true;
-        else if (_strcmpi(argv[2], "0") == 0 || _strcmpi(argv[2], "OFF") == 0 ) 
+        else if(_strcmpi(argv[2], "0") == 0 || _strcmpi(argv[2], "OFF") == 0)
             set_jit_auto = false;
         else
         {
@@ -1505,7 +1505,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf("New JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF" );
+    dprintf("New JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF");
 
     return STATUS_CONTINUE;
 }

@@ -107,9 +107,9 @@ static void _getcallstack(DBGCALLSTACK* callstack)
     stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
-static bool _getjitauto(bool * jit_auto)
+static bool _getjitauto(bool* jit_auto)
 {
-    return dbggetjitauto( jit_auto, notfound, NULL );
+    return dbggetjitauto(jit_auto, notfound, NULL);
 }
 
 static bool _getjit(char* jit, bool jit64)

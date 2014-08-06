@@ -182,9 +182,9 @@ void SettingsDialog::LoadSettings()
 
             ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
 
-            if ( DbgFunctions()->GetJitAuto(&jit_auto_on) )
+            if(DbgFunctions()->GetJitAuto(&jit_auto_on))
             {
-                if (jit_auto_on)
+                if(jit_auto_on)
                     settings.eventSetJITAuto = true;
                 else
                     settings.eventSetJITAuto = false;
