@@ -30,12 +30,14 @@ public slots:
     void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
     void contextMenuSlot(const QPoint & pos);
+    void switchView();
 
 private:
     QString getProtectionString(DWORD Protect);
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
+    QAction* mSwitchView;
 
     QMenu* mBreakpointMenu;
     QMenu* mMemoryAccessMenu;

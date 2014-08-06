@@ -34,6 +34,10 @@ void MemoryMapView::setupContextMenu()
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
 
+    //Switch View
+    mSwitchView = new QAction("&Switch View", this);
+    connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
+
     //Breakpoint menu
     mBreakpointMenu = new QMenu("Memory &Breakpoint", this);
 
@@ -98,6 +102,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
+    wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
     QMenu wCopyMenu("&Copy", this);
@@ -196,6 +201,17 @@ QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOff
     {
         QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
         if(wStr.startsWith(" \""))
+        {
+            painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            return "";
+        }
+    }
+    else if(col == 4) //CPROT
+    {
+        duint setting = 0;
+        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
+        if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && !setting)
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
@@ -353,4 +369,17 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();
+}
+
+void MemoryMapView::switchView()
+{
+    duint setting = 0;
+    if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && setting)
+        BridgeSettingSetUint("Engine", "ListAllPages", 0);
+    else
+        BridgeSettingSetUint("Engine", "ListAllPages", 1);
+    DbgFunctions()->MemUpdateMap();
+    stateChangedSlot(paused);
+    setSingleSelection(0);
+    setTableOffset(0);
 }
