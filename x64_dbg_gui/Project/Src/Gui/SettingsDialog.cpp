@@ -184,7 +184,7 @@ void SettingsDialog::LoadSettings()
 
             if(DbgFunctions()->GetJitAuto(&jit_auto_on))
             {
-                if(jit_auto_on)
+                if(!jit_auto_on)
                     settings.eventSetJITAuto = true;
                 else
                     settings.eventSetJITAuto = false;
@@ -240,7 +240,7 @@ void SettingsDialog::SaveSettings()
         else
             DbgCmdExecDirect("setjit restore");
 
-        if(settings.eventSetJITAuto)
+        if(!settings.eventSetJITAuto)
             DbgCmdExecDirect("setjitauto on");
         else
             DbgCmdExecDirect("setjitauto off");
