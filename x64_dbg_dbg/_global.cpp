@@ -10,6 +10,11 @@ void* emalloc(size_t size)
     return emalloc(size, "emalloc:???");
 }
 
+void* erealloc(void* ptr, size_t size)
+{
+    return erealloc(ptr, size, "erealloc:???");
+}
+
 void efree(void* ptr)
 {
     efree(ptr, "efree:???");
@@ -30,7 +35,26 @@ void* emalloc(size_t size, const char* reason)
     emalloc_count++;
     /*
     FILE* file=fopen(alloctrace, "a+");
-    fprintf(file, "DBG%.5d:alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
+    fprintf(file, "DBG%.5d:  alloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
+    fclose(file);
+    */
+    return a;
+}
+
+void* erealloc(void* ptr, size_t size, const char* reason)
+{
+    if(!ptr)
+        return emalloc(size, reason);
+    unsigned char* a = (unsigned char*)GlobalReAlloc(ptr, size, 0);
+    if(!a)
+    {
+        MessageBoxA(0, "Could not reallocate memory", "Error", MB_ICONERROR);
+        ExitProcess(1);
+    }
+    memset(a, 0, size);
+    /*
+    FILE* file=fopen(alloctrace, "a+");
+    fprintf(file, "DBG%.5d:realloc:"fhex":%s:"fhex"\n", emalloc_count, a, reason, size);
     fclose(file);
     */
     return a;
@@ -41,7 +65,7 @@ void efree(void* ptr, const char* reason)
     emalloc_count--;
     /*
     FILE* file=fopen(alloctrace, "a+");
-    fprintf(file, "DBG%.5d:efree:"fhex":%s\n", emalloc_count, ptr, reason);
+    fprintf(file, "DBG%.5d:   free:"fhex":%s\n", emalloc_count, ptr, reason);
     fclose(file);
     */
     GlobalFree(ptr);

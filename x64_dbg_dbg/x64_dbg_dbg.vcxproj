@@ -61,6 +61,7 @@
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
+    <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
