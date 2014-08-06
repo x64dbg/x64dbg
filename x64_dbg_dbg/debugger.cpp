@@ -1602,7 +1602,7 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
 {
-    DWORD jit_cmd_size = strlen(jit_cmd);
+    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
     return _readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, NULL, true);
 }
 

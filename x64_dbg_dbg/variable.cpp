@@ -109,11 +109,9 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
         if(i)
             var.alias = firstName;
         var.type = type;
-        VAR_VALUE varvalue;
-        varvalue.size = sizeof(uint);
-        varvalue.type = VAR_UINT;
-        varvalue.u.value = value;
-        varsetvalue(&var, &varvalue);
+        var.value.size = sizeof(uint);
+        var.value.type = VAR_UINT;
+        var.value.u.value = value;
         variables.insert(std::make_pair(name_, var));
     }
     return true;
