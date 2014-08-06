@@ -240,7 +240,7 @@ void SettingsDialog::SaveSettings()
         else
             DbgCmdExecDirect("setjit restore");
 
-        if(settings.eventSetJITAuto)
+        if(!settings.eventSetJITAuto)
             DbgCmdExecDirect("setjitauto on");
         else
             DbgCmdExecDirect("setjitauto off");
