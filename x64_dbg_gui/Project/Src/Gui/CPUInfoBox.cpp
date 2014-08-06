@@ -41,19 +41,37 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
 {
     char labelText[MAX_LABEL_SIZE] = "";
     char moduleText[MAX_MODULE_SIZE] = "";
+    char string[MAX_STRING_SIZE] = "";
+    bool bHasString = DbgGetStringAt(addr, string);
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
     QString addrText;
     addrText = QString("%1").arg(addr & (uint_t) - 1, 0, 16, QChar('0')).toUpper();
     QString finalText;
-    if(bHasLabel && bHasModule) //<module.label>
+    if(bHasString)
+        finalText = addrText + " " + QString(string);
+    else if(bHasLabel && bHasModule) //<module.label>
         finalText = QString("<%1.%2>").arg(moduleText).arg(labelText);
     else if(bHasModule) //module.addr
         finalText = QString("%1.%2").arg(moduleText).arg(addrText);
     else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
     else
+    {
         finalText = addrText;
+        if(addr == (addr & 0xFF))
+        {
+            QChar c = QChar((char)addr);
+            if(c.isPrint())
+                finalText += QString(" '%1'").arg((char)addr);
+        }
+        else if(addr == (addr & 0xFFF)) //UNICODE?
+        {
+            QChar c = QChar((wchar_t)addr);
+            if(c.isPrint())
+                finalText += " L'" + QString(c) + "'";
+        }
+    }
     return finalText;
 }
 
@@ -115,7 +133,6 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
             j++;
         }
     }
-
     //set last line
     QString info;
     char mod[MAX_MODULE_SIZE] = "";
