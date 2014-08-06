@@ -28,6 +28,7 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     mShouldReload = true;
 
     // ScrollBar Init
+    setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
     horizontalScrollBar()->setRange(0, 0);
@@ -437,11 +438,6 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
     }
     else if(wKey == Qt::Key_Return || wKey == Qt::Key_Enter) //user pressed enter
         emit enterPressedSignal();
-}
-
-void AbstractTableView::leaveEvent(QEvent* event)
-{
-    mGuiState = AbstractTableView::NoState;
 }
 
 /************************************************************************************

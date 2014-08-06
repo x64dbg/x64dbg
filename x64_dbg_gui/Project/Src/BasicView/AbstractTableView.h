@@ -10,6 +10,30 @@
 #include <qdebug.h>
 #include <NewTypes.h>
 
+//Hacky class that fixes a really annoying cursor problem
+class AbstractTableScrollBar : public QScrollBar
+{
+    Q_OBJECT
+public:
+    AbstractTableScrollBar(QScrollBar* scrollbar)
+    {
+        setOrientation(scrollbar->orientation());
+        setParent(scrollbar->parentWidget());
+    }
+
+    void enterEvent(QEvent* event)
+    {
+        Q_UNUSED(event);
+        QApplication::setOverrideCursor(Qt::ArrowCursor);
+    }
+
+    void leaveEvent(QEvent* event)
+    {
+        Q_UNUSED(event);
+        QApplication::restoreOverrideCursor();
+    }
+};
+
 class AbstractTableView : public QAbstractScrollArea
 {
     Q_OBJECT
@@ -36,13 +60,13 @@ public:
     void wheelEvent(QWheelEvent* event);
     void resizeEvent(QResizeEvent* event);
     void keyPressEvent(QKeyEvent* event);
-    void leaveEvent(QEvent* event);
 
     // ScrollBar Management
     virtual int_t sliderMovedHook(int type, int_t value, int_t delta);
     int scaleFromUint64ToScrollBarRange(int_t value);
     int_t scaleFromScrollBarRangeToUint64(int value);
     void updateScrollBarRange(int_t range);
+
 
     // Coordinates Utils
     int getIndexOffsetFromY(int y);
