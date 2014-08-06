@@ -33,6 +33,7 @@ struct VAR_VALUE
 struct VAR
 {
     std::string name;
+    std::string alias;
     VAR_TYPE type;
     VAR_VALUE value;
 };

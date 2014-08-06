@@ -26,6 +26,8 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
     VariableMap::iterator found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
+    if(found->second.alias.length())
+        return varset(found->second.alias.c_str(), value, setreadonly);
     if(!setreadonly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
     varsetvalue(&found->second, value);
@@ -36,13 +38,13 @@ void varinit()
 {
     variables.clear();
     //General variables
-    varnew("$res\1$result", 0, VAR_SYSTEM);
-    varnew("$res1\1$result1", 0, VAR_SYSTEM);
-    varnew("$res2\1$result2", 0, VAR_SYSTEM);
-    varnew("$res3\1$result3", 0, VAR_SYSTEM);
-    varnew("$res4\1$result4", 0, VAR_SYSTEM);
+    varnew("$result\1$res", 0, VAR_SYSTEM);
+    varnew("$result1\1$res1", 0, VAR_SYSTEM);
+    varnew("$result2\1$res2", 0, VAR_SYSTEM);
+    varnew("$result3\1$res3", 0, VAR_SYSTEM);
+    varnew("$result4\1$res4", 0, VAR_SYSTEM);
     //InitDebug variables
-    varnew("$hp\1$hProcess", 0, VAR_READONLY);
+    varnew("$hProcess\1$hp", 0, VAR_READONLY);
     varnew("$pid", 0, VAR_READONLY);
     //hidden variables
     varnew("$ans\1$an", 0, VAR_HIDDEN);
@@ -62,25 +64,58 @@ VAR* vargetptr()
     return 0;
 }
 
+#include <iostream>
+#include <sstream>
+
+std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
+{
+    std::stringstream ss(s);
+    std::string item;
+    while(std::getline(ss, item, delim))
+    {
+        if(!item.length())
+            continue;
+        elems.push_back(item);
+    }
+    return elems;
+}
+
+std::vector<std::string> split(const std::string & s, char delim)
+{
+    std::vector<std::string> elems;
+    split(s, delim, elems);
+    return elems;
+}
+
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
     if(!name)
         return false;
-    std::string name_;
-    if(*name != '$')
-        name_ = "$";
-    name_ += name;
-    if(variables.find(name_) != variables.end()) //found
-        return false;
-    VAR var;
-    var.name = name_;
-    var.type = type;
-    VAR_VALUE varvalue;
-    varvalue.size = sizeof(uint);
-    varvalue.type = VAR_UINT;
-    varvalue.u.value = value;
-    varsetvalue(&var, &varvalue);
-    variables.insert(std::make_pair(name_, var));
+    std::vector<std::string> names = split(name, '\1');
+    std::string firstName;
+    for(int i = 0; i < (int)names.size(); i++)
+    {
+        std::string name_;
+        name = names.at(i).c_str();
+        if(*name != '$')
+            name_ = "$";
+        name_ += name;
+        if(!i)
+            firstName = name;
+        if(variables.find(name_) != variables.end()) //found
+            return false;
+        VAR var;
+        var.name = name_;
+        if(i)
+            var.alias = firstName;
+        var.type = type;
+        VAR_VALUE varvalue;
+        varvalue.size = sizeof(uint);
+        varvalue.type = VAR_UINT;
+        varvalue.u.value = value;
+        varsetvalue(&var, &varvalue);
+        variables.insert(std::make_pair(name_, var));
+    }
     return true;
 }
 
@@ -93,9 +128,14 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
     VariableMap::iterator found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
-    *type = found->second.type;
-    *size = found->second.value.size;
-    *value = found->second.value;
+    if(found->second.alias.length())
+        return varget(found->second.alias.c_str(), value, size, type);
+    if(type)
+        *type = found->second.type;
+    if(size)
+        *size = found->second.value.size;
+    if(value)
+        *value = found->second.value;
     return true;
 }
 
@@ -139,8 +179,7 @@ bool varset(const char* name, uint value, bool setreadonly)
     varvalue.size = sizeof(uint);
     varvalue.type = VAR_UINT;
     varvalue.u.value = value;
-    varset(name, &varvalue, setreadonly);
-    return true;
+    return varset(name, &varvalue, setreadonly);
 }
 
 bool varset(const char* name, const char* string, bool setreadonly)
@@ -170,9 +209,18 @@ bool vardel(const char* name, bool delsystem)
     VariableMap::iterator found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
+    if(found->second.alias.length())
+        return vardel(found->second.alias.c_str(), delsystem);
     if(!delsystem && found->second.type != VAR_USER)
         return false;
-    variables.erase(found);
+    found = variables.begin();
+    while(found != variables.end())
+    {
+        VariableMap::iterator del = found;
+        found++;
+        if(found->second.name == std::string(name))
+            variables.erase(del);
+    }
     return true;
 }
 
@@ -185,6 +233,8 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
     VariableMap::iterator found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
+    if(found->second.alias.length())
+        return vargettype(found->second.alias.c_str(), type, valtype);
     if(valtype)
         *valtype = found->second.value.type;
     if(type)
