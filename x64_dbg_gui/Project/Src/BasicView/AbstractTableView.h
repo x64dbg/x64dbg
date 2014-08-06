@@ -36,6 +36,7 @@ public:
     void wheelEvent(QWheelEvent* event);
     void resizeEvent(QResizeEvent* event);
     void keyPressEvent(QKeyEvent* event);
+    void leaveEvent(QEvent* event);
 
     // ScrollBar Management
     virtual int_t sliderMovedHook(int type, int_t value, int_t delta);

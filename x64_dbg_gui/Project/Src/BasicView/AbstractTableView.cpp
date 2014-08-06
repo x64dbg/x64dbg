@@ -31,6 +31,7 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
     horizontalScrollBar()->setRange(0, 0);
+    horizontalScrollBar()->setPageStep(650);
 
     setMouseTracking(true);
 
@@ -76,6 +77,20 @@ void AbstractTableView::fontsUpdated()
  */
 void AbstractTableView::paintEvent(QPaintEvent* event)
 {
+    if(getColumnCount()) //make sure the last column is never smaller than the window
+    {
+        int totalWidth = 0;
+        for(int i = 0; i < getColumnCount(); i++)
+            totalWidth += getColumnWidth(i);
+        int lastWidth = 0;
+        for(int i = 0; i < getColumnCount() - 1; i++)
+            lastWidth += getColumnWidth(i);
+        int width = this->viewport()->width();
+        lastWidth = width > lastWidth ? width - lastWidth : 0;
+        if(totalWidth < width)
+            setColumnWidth(getColumnCount() - 1, lastWidth);
+    }
+
     Q_UNUSED(event);
     QPainter wPainter(this->viewport());
     int wViewableRowsCount = getViewableRowsCount();
@@ -166,32 +181,20 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
  */
 void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 {
-    // qDebug() << "mouseMoveEvent";
+    int wColIndex = getColumnIndexFromX(event->x());
+    int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
+    int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
+    bool wHandle = ((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2)));
+    if(wColIndex == getColumnCount() - 1 && event->x() > viewport()->width()) //last column
+        wHandle = false;
 
     switch(mGuiState)
     {
     case AbstractTableView::NoState:
     {
-        //qDebug() << "State = NoState";
-        int wColIndex = getColumnIndexFromX(event->x());
-        int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
-        int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
-
         if(event->buttons() == Qt::NoButton)
         {
-            bool wHandle = true;
-            bool wHasCursor;
-
-            wHasCursor = cursor().shape() == Qt::SplitHCursor ? true : false;
-
-            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
-            {
-                wHandle = true;
-            }
-            else
-            {
-                wHandle = false;
-            }
+            bool wHasCursor = cursor().shape() == Qt::SplitHCursor ? true : false;
 
             if((wHandle == true) && (wHasCursor == false))
             {
@@ -210,29 +213,13 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
         {
             QWidget::mouseMoveEvent(event);
         }
-        break;
     }
+    break;
+
     case AbstractTableView::ReadyToResize:
     {
-        //qDebug() << "State = ReadyToResize";
-
-        int wColIndex = getColumnIndexFromX(event->x());
-        int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
-        int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
-
         if(event->buttons() == Qt::NoButton)
         {
-            bool wHandle = true;
-
-            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
-            {
-                wHandle = true;
-            }
-            else
-            {
-                wHandle = false;
-            }
-
             if((wHandle == false) && (mGuiState == AbstractTableView::ReadyToResize))
             {
                 unsetCursor();
@@ -240,28 +227,21 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
                 mGuiState = AbstractTableView::NoState;
             }
         }
-        break;
     }
+    break;
+
     case AbstractTableView::ResizeColumnState:
     {
-        //qDebug() << "State = ResizeColumnState";
-
         int delta = event->x() - mColResizeData.lastPosX;
-
         int wNewSize = ((getColumnWidth(mColResizeData.index) + delta) >= 20) ? (getColumnWidth(mColResizeData.index) + delta) : (20);
-
         setColumnWidth(mColResizeData.index, wNewSize);
-
         mColResizeData.lastPosX = event->x();
-
         repaint();
-
-        break;
     }
+    break;
+
     case AbstractTableView::HeaderButtonPressed:
     {
-        //qDebug() << "State = HeaderButtonPressed";
-
         int wColIndex = getColumnIndexFromX(event->x());
 
         if((wColIndex == mHeader.activeButtonIndex) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
@@ -275,6 +255,8 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 
         repaint();
     }
+    break;
+
     default:
         break;
     }
@@ -453,6 +435,10 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
         emit enterPressedSignal();
 }
 
+void AbstractTableView::leaveEvent(QEvent* event)
+{
+    mGuiState = AbstractTableView::NoState;
+}
 
 /************************************************************************************
                             ScrollBar Management
@@ -851,7 +837,7 @@ int AbstractTableView::getColumnWidth(int index)
     {
         return -1;
     }
-    else if(index < getColumnCount() - 1)
+    else if(index <= getColumnCount() - 1)
     {
         return mColumnList.at(index).width;
     }
@@ -869,6 +855,14 @@ int AbstractTableView::getColumnWidth(int index)
 
 void AbstractTableView::setColumnWidth(int index, int width)
 {
+    int totalWidth = 0;
+    for(int i = 0; i < getColumnCount(); i++)
+        totalWidth += getColumnWidth(i);
+    if(totalWidth > this->viewport()->width())
+        horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width() + 1);
+    else if(totalWidth <= this->viewport()->width())
+        horizontalScrollBar()->setRange(0, 0);
+
     mColumnList[index].width = width;
 }
 
