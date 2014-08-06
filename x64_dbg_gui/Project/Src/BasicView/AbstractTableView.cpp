@@ -30,6 +30,7 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     // ScrollBar Init
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
+    horizontalScrollBar()->setRange(0, 0);
 
     setMouseTracking(true);
 
@@ -79,7 +80,9 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     QPainter wPainter(this->viewport());
     int wViewableRowsCount = getViewableRowsCount();
 
-    int x = 0;
+    int scrollValue = -horizontalScrollBar()->value();
+
+    int x = scrollValue;
     int y = 0;
 
     // Reload data if needed
@@ -113,9 +116,10 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
             x += getColumnWidth(i);
         }
-        x = 0;
-        y = getHeaderHeight();
     }
+
+    x = scrollValue;
+    y = getHeaderHeight();
 
     // Iterate over all columns and cells
     for(int j = 0; j < getColumnCount(); j++)
@@ -169,7 +173,6 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
     case AbstractTableView::NoState:
     {
         //qDebug() << "State = NoState";
-
         int wColIndex = getColumnIndexFromX(event->x());
         int wStartPos = getColumnPosition(wColIndex); // Position X of the start of column
         int wEndPos = getColumnPosition(wColIndex) + getColumnWidth(wColIndex); // Position X of the end of column
@@ -181,7 +184,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 
             wHasCursor = cursor().shape() == Qt::SplitHCursor ? true : false;
 
-            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
+            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
             {
                 wHandle = true;
             }
@@ -221,7 +224,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
         {
             bool wHandle = true;
 
-            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((wColIndex != (getColumnCount() - 1)) && (event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
+            if(((wColIndex != 0) && (event->x() >= wStartPos) && (event->x() <= (wStartPos + 2))) || ((event->x() <= wEndPos) && (event->x() >= (wEndPos - 2))))
             {
                 wHandle = true;
             }
@@ -648,7 +651,6 @@ void AbstractTableView::updateScrollBarRange(int_t range)
     }
 }
 
-
 /************************************************************************************
                             Coordinates Utils
 ************************************************************************************/
@@ -674,7 +676,7 @@ int AbstractTableView::getIndexOffsetFromY(int y)
  */
 int AbstractTableView::getColumnIndexFromX(int x)
 {
-    int wX = 0;
+    int wX = -horizontalScrollBar()->value();
     int wColIndex = 0;
 
     while(wColIndex < getColumnCount())
@@ -703,7 +705,7 @@ int AbstractTableView::getColumnIndexFromX(int x)
  */
 int AbstractTableView::getColumnPosition(int index)
 {
-    int posX = 0;
+    int posX = -horizontalScrollBar()->value();
 
     if((index >= 0) && (index < getColumnCount()))
     {
@@ -741,7 +743,7 @@ int AbstractTableView::transY(int y)
  */
 int AbstractTableView::getViewableRowsCount()
 {
-    int wTableHeight = this->height() - getHeaderHeight();
+    int wTableHeight = this->viewport()->height() - getHeaderHeight();
     int wCount = wTableHeight / getRowHeight();
 
     wCount += (wTableHeight % getRowHeight()) > 0 ? 1 : 0;
@@ -849,7 +851,7 @@ int AbstractTableView::getColumnWidth(int index)
     {
         return -1;
     }
-    else if(index < (getColumnCount() - 1))
+    else if(index < getColumnCount() - 1)
     {
         return mColumnList.at(index).width;
     }
@@ -860,9 +862,8 @@ int AbstractTableView::getColumnWidth(int index)
         for(int i = 0; i < getColumnCount() - 1; i++)
             wGlobWidth += getColumnWidth(i);
 
-        return this->width() - wGlobWidth;
+        return this->viewport()->width() - wGlobWidth;
     }
-
     return 0;
 }
 
@@ -881,7 +882,7 @@ int AbstractTableView::getHeaderHeight()
 
 int AbstractTableView::getTableHeigth()
 {
-    return this->height() - getHeaderHeight();
+    return this->viewport()->height() - getHeaderHeight();
 }
 
 int AbstractTableView::getGuiState()
