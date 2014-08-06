@@ -87,8 +87,11 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             lastWidth += getColumnWidth(i);
         int width = this->viewport()->width();
         lastWidth = width > lastWidth ? width - lastWidth : 0;
+        int last = getColumnCount() - 1;
         if(totalWidth < width)
-            setColumnWidth(getColumnCount() - 1, lastWidth);
+            setColumnWidth(last, lastWidth);
+        else
+            setColumnWidth(last, getColumnWidth(last));
     }
 
     Q_UNUSED(event);
@@ -393,9 +396,10 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
 {
     if(event->size().height() != event->oldSize().height())
     {
+        if(getRowCount() > getViewableRowsCount())
+            updateScrollBarRange(getRowCount());
         mShouldReload = true;
     }
-
     QWidget::resizeEvent(event);
 }
 
@@ -834,22 +838,9 @@ int AbstractTableView::getRowHeight()
 int AbstractTableView::getColumnWidth(int index)
 {
     if(index < 0)
-    {
         return -1;
-    }
-    else if(index <= getColumnCount() - 1)
-    {
+    else if(index < getColumnCount())
         return mColumnList.at(index).width;
-    }
-    else if(index == (getColumnCount() - 1))
-    {
-        int wGlobWidth = 0;
-
-        for(int i = 0; i < getColumnCount() - 1; i++)
-            wGlobWidth += getColumnWidth(i);
-
-        return this->viewport()->width() - wGlobWidth;
-    }
     return 0;
 }
 
@@ -859,7 +850,7 @@ void AbstractTableView::setColumnWidth(int index, int width)
     for(int i = 0; i < getColumnCount(); i++)
         totalWidth += getColumnWidth(i);
     if(totalWidth > this->viewport()->width())
-        horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width() + 1);
+        horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width());
     else if(totalWidth <= this->viewport()->width())
         horizontalScrollBar()->setRange(0, 0);
 
