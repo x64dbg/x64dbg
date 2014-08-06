@@ -3,8 +3,6 @@
 
 class Memory
 {
-    typedef std::vector<char> MemoryVector;
-
 public:
     Memory(size_t size, const char* reason = "Memory:???")
     {
@@ -13,13 +11,14 @@ public:
 
     ~Memory()
     {
-        efree(mPtr, "Memory:free");
+        efree(mPtr, mReason);
     }
 
     Memory realloc(size_t size, const char* reason = "Memory:???")
     {
         mSize = size;
         mPtr = erealloc(mPtr, size, reason);
+        mReason = reason;
         return *this;
     }
 
@@ -32,12 +31,13 @@ public:
     template<class T>
     operator T* ()
     {
-        return static_cast<T*>(mem);
+        return static_cast<T*>(mPtr);
     }
 
 private:
     void* mPtr;
     size_t mSize;
+    const char* mReason;
 };
 
 #endif //_DYNAMICMEM_H
