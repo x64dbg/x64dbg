@@ -31,7 +31,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
         else
             start_size = maxsize;
     }
-    unsigned char* data = Memory(start_size, "reffind:data");
+    Memory<unsigned char*> data(start_size, "reffind:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)start_addr, data, start_size, 0))
     {
         if(!silent)

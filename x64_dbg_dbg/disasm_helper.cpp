@@ -338,7 +338,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         *type = str_none;
     if(!disasmispossiblestring(addr))
         return false;
-    unsigned char* data = Memory((maxlen + 1) * 2, "disasmgetstringat:data");
+    Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
     memset(data, 0, (maxlen + 1) * 2);
     if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen + 1) * 2, 0))
         return false;

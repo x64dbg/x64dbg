@@ -56,7 +56,7 @@ mathformat:
 void mathformat(char* text)
 {
     int len = (int)strlen(text);
-    char* temp = Memory(len + 1, "mathformat:temp");
+    Memory<char*> temp(len + 1, "mathformat:temp");
     memset(temp, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(mathisoperator(text[i]) < 3 or text[i] != text[i + 1])
@@ -337,7 +337,8 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
         return true;
     expstruct.total_pairs = total_pairs;
 
-    expstruct.pairs = Memory(expstruct.total_pairs * sizeof(BRACKET_PAIR), "mathhandlebrackets:expstruct.pairs");
+    Memory<BRACKET_PAIR*> pairs(expstruct.total_pairs * sizeof(BRACKET_PAIR), "mathhandlebrackets:expstruct.pairs");
+    expstruct.pairs = pairs;
     memset(expstruct.pairs, 0, expstruct.total_pairs * sizeof(BRACKET_PAIR));
     matchpairs(&expstruct, expression, 0);
     int deepest = 0;
@@ -376,8 +377,8 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
     }
     if(!highestop)
         return valfromstring(string, value, silent, baseonly, value_size, isvar, 0);
-    char* strleft = Memory(len + 1 + negative, "mathfromstring:strleft");
-    char* strright = Memory(len + 1, "mathfromstring:strright");
+    Memory<char*> strleft(len + 1 + negative, "mathfromstring:strleft");
+    Memory<char*> strright(len + 1, "mathfromstring:strright");
     memset(strleft, 0, len + 1);
     memset(strright, 0, len + 1);
     strncpy(strleft, string - negative, highestop_pos + negative);

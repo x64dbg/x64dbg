@@ -119,7 +119,7 @@ void formathex(char* string)
 {
     int len = (int)strlen(string);
     _strupr(string);
-    char* new_string = Memory(len + 1, "formathex:new_string");
+    Memory<char*> new_string(len + 1, "formathex:new_string");
     memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(isxdigit(string[i]))
@@ -131,7 +131,7 @@ void formatdec(char* string)
 {
     int len = (int)strlen(string);
     _strupr(string);
-    char* new_string = Memory(len + 1, "formatdec:new_string");
+    Memory<char*> new_string(len + 1, "formatdec:new_string");
     memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(isdigit(string[i]))

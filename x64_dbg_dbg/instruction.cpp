@@ -172,7 +172,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         dputs("no variables!");
         return STATUS_CONTINUE;
     }
-    VAR* variables = Memory(cbsize, "cbInstrVarList:variables");
+    Memory<VAR*> variables(cbsize, "cbInstrVarList:variables");
     if(!varenum(variables, 0))
     {
         dputs("error listing variables!");
@@ -182,12 +182,10 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
     int varcount = (int)cbsize / sizeof(VAR);
     for(int i = 0; i < varcount; i++)
     {
+        if(variables[i].alias.length())
+            continue;
         char name[deflen] = "";
         strcpy(name, variables[i].name.c_str());
-        int len = (int)strlen(name);
-        for(int j = 0; j < len; j++)
-            if(name[j] == 1)
-                name[j] = '/';
         uint value = (uint)variables[i].value.u.value;
         if(variables[i].type != VAR_HIDDEN)
         {
@@ -923,9 +921,9 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char* string = Memory(size + 1, "cbInstrGetstr:string");
+    Memory<char*> string(size + 1, "cbInstrGetstr:string");
     memset(string, 0, size + 1);
-    if(!varget(argv[1], string, &size, 0))
+    if(!varget(argv[1], (char*)string, &size, 0))
     {
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
@@ -958,9 +956,9 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    char* string = Memory(size + 1, "cbInstrGetstr:string");
+    Memory<char*> string(size + 1, "cbInstrGetstr:string");
     memset(string, 0, size + 1);
-    if(!varget(argv[2], string, &size, 0))
+    if(!varget(argv[2], (char*)string, &size, 0))
     {
         dprintf("failed to get variable data \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
@@ -1008,7 +1006,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data = Memory(size, "cbInstrFind:data");
+    Memory<unsigned char*> data(size, "cbInstrFind:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
@@ -1060,7 +1058,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data = Memory(size, "cbInstrFindAll:data");
+    Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
@@ -1109,7 +1107,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
         {
-            unsigned char* printData = Memory(patternsize, "cbInstrFindAll:printData");
+            Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
             memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
             for(int j = 0, k = 0; j < patternsize; j++)
             {
@@ -1194,7 +1192,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         dputs("no comments");
         return STATUS_CONTINUE;
     }
-    COMMENTSINFO* comments = Memory(cbsize, "cbInstrCommentList:comments");
+    Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
     commentenum(comments, 0);
     int count = (int)(cbsize / sizeof(COMMENTSINFO));
     for(int i = 0; i < count; i++)
@@ -1229,7 +1227,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         dputs("no labels");
         return STATUS_CONTINUE;
     }
-    LABELSINFO* labels = Memory(cbsize, "cbInstrLabelList:labels");
+    Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
     labelenum(labels, 0);
     int count = (int)(cbsize / sizeof(LABELSINFO));
     for(int i = 0; i < count; i++)
@@ -1263,7 +1261,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         dputs("no bookmarks");
         return STATUS_CONTINUE;
     }
-    BOOKMARKSINFO* bookmarks = Memory(cbsize, "cbInstrBookmarkList:bookmarks");
+    Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
     bookmarkenum(bookmarks, 0);
     int count = (int)(cbsize / sizeof(BOOKMARKSINFO));
     for(int i = 0; i < count; i++)
@@ -1298,7 +1296,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         dputs("no functions");
         return STATUS_CONTINUE;
     }
-    FUNCTIONSINFO* functions = Memory(cbsize, "cbInstrFunctionList:functions");
+    Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
     functionenum(functions, 0);
     int count = (int)(cbsize / sizeof(FUNCTIONSINFO));
     for(int i = 0; i < count; i++)
@@ -1344,7 +1342,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         dputs("no loops");
         return STATUS_CONTINUE;
     }
-    LOOPSINFO* loops = Memory(cbsize, "cbInstrLoopList:loops");
+    Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
     loopenum(loops, 0);
     int count = (int)(cbsize / sizeof(LOOPSINFO));
     for(int i = 0; i < count; i++)

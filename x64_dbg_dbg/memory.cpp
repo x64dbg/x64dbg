@@ -79,7 +79,7 @@ void memupdatemap(HANDLE hProcess)
             for(int k = 0; k < len; k++)
                 if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                     escape_count++;
-            char* SectionNameEscaped = Memory(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
+            Memory<char*> SectionNameEscaped(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
             memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
             for(int k = 0, l = 0; k < len; k++)
             {
@@ -211,7 +211,7 @@ bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-    unsigned char* olddata = Memory(nSize, "mempatch:olddata");
+    Memory<unsigned char*> olddata(nSize, "mempatch:olddata");
     if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
         return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
     unsigned char* newdata = (unsigned char*)lpBuffer;
@@ -240,7 +240,7 @@ static int formathexpattern(char* string)
 {
     int len = (int)strlen(string);
     _strupr(string);
-    char* new_string = Memory(len + 1, "formathexpattern:new_string");
+    Memory<char*> new_string(len + 1, "formathexpattern:new_string");
     memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(string[i] == '?' or isxdigit(string[i]))
@@ -257,7 +257,7 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     int len = (int)strlen(text);
     if(!len)
         return false;
-    char* newtext = Memory(len + 2, "transformpattern:newtext");
+    Memory<char*> newtext(len + 2, "transformpattern:newtext");
     strcpy(newtext, text);
     len = formathexpattern(newtext);
     if(len % 2) //not a multiple of 2

@@ -232,7 +232,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
     uint size = mbi.RegionSize;
-    void* buffer = Memory(size, "apienumexports:buffer");
+    Memory<void*> buffer(size, "apienumexports:buffer");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, buffer, size, 0))
         return false;
     IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((uint)buffer + GetPE32DataFromMappedFile((ULONG_PTR)buffer, 0, UE_PE_OFFSET));

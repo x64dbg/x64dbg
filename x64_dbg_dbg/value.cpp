@@ -1050,11 +1050,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     int found = 0;
     int kernelbase = -1;
     DWORD cbNeeded = 0;
-    uint* addrfound = 0;
+    Memory<uint*> addrfound;
     if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
     {
-        addrfound = Memory(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
-        HMODULE* hMods = Memory(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
+        addrfound.realloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
+        Memory<HMODULE*> hMods(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
         if(EnumProcessModules(fdProcessInfo->hProcess, hMods, cbNeeded, &cbNeeded))
         {
             for(unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); i++)
@@ -1163,7 +1163,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     else if(mathcontains(string)) //handle math
     {
         int len = (int)strlen(string);
-        char* newstring = Memory(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1183,7 +1183,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         }
         else
             strcpy(newstring, string);
-        char* string_ = Memory(len + 256, "valfromstring:string_");
+        Memory<char*> string_(len + 256, "valfromstring:string_");
         strcpy(string_, newstring);
         int add = 0;
         bool negative = (*string_ == '-');
@@ -1217,7 +1217,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return true;
         }
         int len = (int)strlen(string);
-        char* newstring = Memory(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "["))
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1326,7 +1326,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         sscanf(string + inc, "%"fext"x", value);
         return true;
     }
-
     if(baseonly)
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
@@ -1374,7 +1373,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         int len = (int)strlen(string);
-        char* newstring = Memory(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1427,7 +1426,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok = setregister(string, *value);
-        char* regName = Memory(strlen(string) + 1, "valtostring:regname");
+        Memory<char*> regName(strlen(string) + 1, "valtostring:regname");
         strcpy(regName, string);
         _strlwr(regName);
         if(strstr(regName, "ip"))

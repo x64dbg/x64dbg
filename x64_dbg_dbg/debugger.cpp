@@ -487,7 +487,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
         }
         if(strstr(text, " bytes -  "))
         {
-            char* newtext = Memory(len + 1, "SymRegisterCallbackProc64:newtext");
+            Memory<char*> newtext(len + 1, "SymRegisterCallbackProc64:newtext");
             strcpy(newtext, text);
             strstr(newtext, " bytes -  ")[8] = 0;
             GuiSymbolLogAdd(newtext);
@@ -700,7 +700,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
-                uint* TLSCallBacks = Memory(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
+                Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
@@ -956,7 +956,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
     if(!DebugString->fUnicode) //ASCII
     {
-        char* DebugText = Memory(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
+        Memory<char*> DebugText(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
             int len = (int)strlen(DebugText);
@@ -964,7 +964,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             for(int i = 0; i < len; i++)
                 if(DebugText[i] == '\\' or DebugText[i] == '\"' or !isprint(DebugText[i]))
                     escape_count++;
-            char* DebugTextEscaped = Memory(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
+            Memory<char*> DebugTextEscaped(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
             for(int i = 0, j = 0; i < len; i++)
             {
                 switch(DebugText[i])
@@ -1069,7 +1069,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                 nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
             if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
             {
-                char* ThreadName = Memory(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+                Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
                 memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
                 if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
                 {
@@ -1078,7 +1078,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                     for(int i = 0; i < len; i++)
                         if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
                             escape_count++;
-                    char* ThreadNameEscaped = Memory(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
+                    Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
                     memset(ThreadNameEscaped, 0, len + escape_count * 3 + 1);
                     for(int i = 0, j = 0; i < len; i++)
                     {

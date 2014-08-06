@@ -75,7 +75,7 @@ static bool scriptcreatelinemap(const char* filename)
         GuiScriptError(0, "Empty script...");
         return false;
     }
-    char* filedata = Memory(filesize + 1, "createlinemap:filedata");
+    Memory<char*> filedata(filesize + 1, "createlinemap:filedata");
     memset(filedata, 0, filesize + 1);
     DWORD read = 0;
     if(!ReadFile(hFile, filedata, filesize, &read, 0))
