@@ -42,33 +42,8 @@ void memupdatemap(HANDLE hProcess)
     }
     while(numBytes);
 
-    //list all pages when needed
-    int pagecount;
-    if(bListAllPages)
-    {
-        pagecount = (int)pageVector.size();
-        char curMod[MAX_MODULE_SIZE] = "";
-        for(int i = pagecount - 1, curIdx = 0; i > -1; i--)
-        {
-            if(pageVector.at(i).info[0]) //there is a module
-            {
-                if(!scmp(curMod, pageVector.at(i).info)) //mod is not the current mod
-                {
-                    strcpy(curMod, pageVector.at(i).info);
-                    curIdx = i;
-                }
-                else //current mod
-                {
-                    pageVector.at(curIdx).mbi.RegionSize += pageVector.at(i).mbi.RegionSize;
-                    pageVector.erase(pageVector.begin() + i);
-                    curIdx--; //the index changes when you remove an entry
-                }
-            }
-        }
-    }
-
     //process file sections
-    pagecount = (int)pageVector.size();
+    int pagecount = (int)pageVector.size();
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {
