@@ -814,7 +814,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         GuiReferenceDeleteAllColumns();
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
-        GuiReferenceAddColumn(0, "String");
+        GuiReferenceAddColumn(500, "String");
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceReloadData();
         return true;

@@ -30,7 +30,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     addColumnAt(getCharWidth() * 2 * sizeof(int_t) + 8, "", false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
     addColumnAt(getCharWidth() * 40, "", false); //disassembly
-    addColumnAt(100, "", false); //comments
+    addColumnAt(1000, "", false); //comments
 
     setShowHeader(false); //hide header
 
