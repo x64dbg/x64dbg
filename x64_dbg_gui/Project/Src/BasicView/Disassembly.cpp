@@ -520,14 +520,23 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                             if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken = token;
                             else
+                            {
+                                mHighlightToken.value.value = 0;
                                 mHighlightToken.text = "";
+                            }
                         }
                         else
+                        {
+                            mHighlightToken.value.value = 0;
                             mHighlightToken.text = "";
+                        }
                     }
                 }
                 else
+                {
+                    mHighlightToken.value.value = 0;
                     mHighlightToken.text = "";
+                }
             }
             else if(event->y() > getHeaderHeight())
             {
@@ -1369,6 +1378,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 void Disassembly::disassembleClear()
 {
     mHighlightingMode = false;
+    mHighlightToken.value.value = 0;
     mHighlightToken.text = "";
     historyClear();
     mMemPage->setAttributes(0, 0);
