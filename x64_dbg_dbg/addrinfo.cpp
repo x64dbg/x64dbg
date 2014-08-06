@@ -232,16 +232,12 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
     uint size = mbi.RegionSize;
-    void* buffer = emalloc(size, "apienumexports:buffer");
+    void* buffer = Memory(size, "apienumexports:buffer");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, buffer, size, 0))
-    {
-        efree(buffer, "apienumexports:buffer");
         return false;
-    }
     IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((uint)buffer + GetPE32DataFromMappedFile((ULONG_PTR)buffer, 0, UE_PE_OFFSET));
     uint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
     uint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
-    efree(buffer, "apienumexports:buffer");
     IMAGE_EXPORT_DIRECTORY export_dir;
     memset(&export_dir, 0, sizeof(export_dir));
     memread(fdProcessInfo->hProcess, (const void*)(export_dir_rva + base), &export_dir, sizeof(export_dir), 0);

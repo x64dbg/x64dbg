@@ -115,15 +115,10 @@ static bool _getjitauto(bool* jit_auto)
 static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
-    char* jit_tmp;
-    if(!dbggetjit(&jit_tmp, jit64 ? x64 : x32, &dummy))
+    char jit_tmp[512] = "";
+    if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy))
         return false;
-    //get out the actual jit path
-
     strcpy(jit, jit_tmp);
-
-    efree(jit_tmp);
-
     return true;
 }
 

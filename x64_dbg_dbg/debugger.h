@@ -59,7 +59,7 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
-bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out);
+bool dbggetjit(char jit_entry[512], arch arch_in, arch* arch_out);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out);
 bool dbggetdefjit(char* jit_entry);
 bool _readwritejitkey(char*, DWORD*, char*, arch, arch*, readwritejitkey_error_t*, bool);

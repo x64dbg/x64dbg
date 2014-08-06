@@ -70,16 +70,17 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     currentfolder[len] = 0;
     if(DirExists(arg3))
         strcpy(currentfolder, arg3);
-    INIT_STRUCT* init = (INIT_STRUCT*)emalloc(sizeof(INIT_STRUCT), "cbDebugInit:init");
-    memset(init, 0, sizeof(INIT_STRUCT));
-    init->exe = arg1;
-    init->commandline = commandline;
-    if(*currentfolder)
-        init->currentfolder = currentfolder;
     //initialize
     wait(WAITID_STOP); //wait for the debugger to stop
     waitclear(); //clear waiting flags NOTE: thread-unsafe
-    CloseHandle(CreateThread(0, 0, threadDebugLoop, init, 0, 0));
+
+    static INIT_STRUCT init;
+    memset(&init, 0, sizeof(INIT_STRUCT));
+    init.exe = arg1;
+    init.commandline = commandline;
+    if(*currentfolder)
+        init.currentfolder = currentfolder;
+    CloseHandle(CreateThread(0, 0, threadDebugLoop, &init, 0, 0));
     return STATUS_CONTINUE;
 }
 
@@ -1520,14 +1521,13 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     {
         char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
-        char* get_entry = NULL;
-        if(!dbggetjit(& get_entry, notfound, & actual_arch))
+        char get_entry[512] = "";
+        if(!dbggetjit(get_entry, notfound, & actual_arch))
         {
             dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
         strcpy_s(oldjit, get_entry);
-        efree(get_entry);
 
         jit_debugger_cmd = path;
         if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
@@ -1602,12 +1602,12 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
 CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 {
-    char* get_entry = NULL;
+    char get_entry[512] = "";
     arch actual_arch;
 
     if(argc < 2)
     {
-        if(!dbggetjit(& get_entry, notfound, & actual_arch))
+        if(!dbggetjit(get_entry, notfound, & actual_arch))
         {
             dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1633,7 +1633,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             return STATUS_ERROR;
         }
 
-        if(!dbggetjit(& get_entry, actual_arch, NULL))
+        if(!dbggetjit(get_entry, actual_arch, NULL))
         {
             dprintf("Error getting JIT %s\n", argv[1]);
             return STATUS_ERROR;
@@ -1641,8 +1641,6 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     }
 
     dprintf(" JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry);
-    if(get_entry != NULL)
-        efree(get_entry);
 
     return STATUS_CONTINUE;
 }

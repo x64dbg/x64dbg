@@ -487,11 +487,10 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
         }
         if(strstr(text, " bytes -  "))
         {
-            char* newtext = (char*)emalloc(len + 1, "SymRegisterCallbackProc64:newtext");
+            char* newtext = Memory(len + 1, "SymRegisterCallbackProc64:newtext");
             strcpy(newtext, text);
             strstr(newtext, " bytes -  ")[8] = 0;
             GuiSymbolLogAdd(newtext);
-            efree(newtext, "SymRegisterCallbackProc64:newtext");
             suspress = true;
         }
         else if(strstr(text, " copied         "))
@@ -701,7 +700,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
-                uint* TLSCallBacks = (uint*)emalloc(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
+                uint* TLSCallBacks = Memory(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
@@ -712,7 +711,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
-                efree(TLSCallBacks, "cbCreateProcess:TLSCallBacks");
             }
         }
 
@@ -958,8 +956,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
     if(!DebugString->fUnicode) //ASCII
     {
-        char* DebugText = (char*)emalloc(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
-        memset(DebugText, 0, DebugString->nDebugStringLength + 1);
+        char* DebugText = Memory(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
             int len = (int)strlen(DebugText);
@@ -967,8 +964,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             for(int i = 0; i < len; i++)
                 if(DebugText[i] == '\\' or DebugText[i] == '\"' or !isprint(DebugText[i]))
                     escape_count++;
-            char* DebugTextEscaped = (char*)emalloc(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
-            memset(DebugTextEscaped, 0, len + escape_count * 3 + 1);
+            char* DebugTextEscaped = Memory(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
             for(int i = 0, j = 0; i < len; i++)
             {
                 switch(DebugText[i])
@@ -1003,9 +999,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
                 }
             }
             dprintf("DebugString: \"%s\"\n", DebugTextEscaped);
-            efree(DebugTextEscaped, "cbOutputDebugString:DebugTextEscaped");
         }
-        efree(DebugText, "cbOutputDebugString:DebugText");
     }
 
     if(settingboolget("Events", "DebugStrings"))
@@ -1075,7 +1069,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                 nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
             if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
             {
-                char* ThreadName = (char*)emalloc(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+                char* ThreadName = Memory(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
                 memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
                 if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
                 {
@@ -1084,7 +1078,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                     for(int i = 0; i < len; i++)
                         if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
                             escape_count++;
-                    char* ThreadNameEscaped = (char*)emalloc(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
+                    char* ThreadNameEscaped = Memory(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
                     memset(ThreadNameEscaped, 0, len + escape_count * 3 + 1);
                     for(int i = 0, j = 0; i < len; i++)
                     {
@@ -1121,9 +1115,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                     }
                     dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped);
                     threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
-                    efree(ThreadNameEscaped, "cbException:ThreadNameEscaped");
                 }
-                efree(ThreadName, "cbException:ThreadName");
             }
         }
     }
@@ -1184,7 +1176,6 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
         fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
         fdProcessInfo = (PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
-    efree(init, "threadDebugLoop:init"); //free init struct
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;
@@ -1592,19 +1583,10 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out)
     return _readwritejitkey(auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, NULL, true);
 }
 
-bool dbggetjit(char** jit_entry_out, arch arch_in, arch* arch_out)
+bool dbggetjit(char jit_entry[512], arch arch_in, arch* arch_out)
 {
-    char jit_entry[512];
     DWORD jit_entry_size = sizeof(jit_entry);
-
-    if(_readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, NULL, false) == false)
-        return false;
-
-    * jit_entry_out = (char*) emalloc(jit_entry_size, "dbggetjit:*jit_entry_out");
-
-    strcpy(* jit_entry_out, jit_entry);
-
-    return true;
+    return _readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, NULL, false);
 }
 
 bool dbggetdefjit(char* jit_entry)

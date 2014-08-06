@@ -338,20 +338,14 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         *type = str_none;
     if(!disasmispossiblestring(addr))
         return false;
-    unsigned char* data = (unsigned char*)emalloc((maxlen + 1) * 2, "disasmgetstringat:data");
+    unsigned char* data = Memory((maxlen + 1) * 2, "disasmgetstringat:data");
     memset(data, 0, (maxlen + 1) * 2);
     if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen + 1) * 2, 0))
-    {
-        efree(data, "disasmgetstringat:data");
         return false;
-    }
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
     if(memisvalidreadptr(fdProcessInfo->hProcess, test))
-    {
-        efree(data, "disasmgetstringat:data");
         return false;
-    }
     if(isasciistring(data, maxlen))
     {
         if(type)
@@ -387,7 +381,6 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
                 break;
             }
         }
-        efree(data, "disasmgetstringat:data");
         return true;
     }
     else if(isunicodestring(data, maxlen))
@@ -425,10 +418,8 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
                 break;
             }
         }
-        efree(data, "disasmgetstringat:data");
         return true;
     }
-    efree(data, "disasmgetstringat:data");
     return false;
 }
 

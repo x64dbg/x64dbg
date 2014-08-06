@@ -79,7 +79,7 @@ void memupdatemap(HANDLE hProcess)
             for(int k = 0; k < len; k++)
                 if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                     escape_count++;
-            char* SectionNameEscaped = (char*)emalloc(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
+            char* SectionNameEscaped = Memory(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
             memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
             for(int k = 0, l = 0; k < len; k++)
             {
@@ -115,7 +115,6 @@ void memupdatemap(HANDLE hProcess)
                 }
             }
             sprintf(newPage.info, " \"%s\"", SectionNameEscaped);
-            efree(SectionNameEscaped, "_dbg_memmap:SectionNameEscaped");
             pageVector.insert(pageVector.begin() + i, newPage);
         }
         //insert the module itself (the module header)
@@ -212,16 +211,12 @@ bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
         return false;
-    unsigned char* olddata = (unsigned char*)emalloc(nSize, "mempatch:olddata");
+    unsigned char* olddata = Memory(nSize, "mempatch:olddata");
     if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
-    {
-        efree(olddata, "mempatch:olddata");
         return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
-    }
     unsigned char* newdata = (unsigned char*)lpBuffer;
     for(uint i = 0; i < nSize; i++)
         patchset((uint)lpBaseAddress + i, olddata[i], newdata[i]);
-    efree(olddata, "mempatch:olddata");
     return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
 }
 
@@ -245,13 +240,12 @@ static int formathexpattern(char* string)
 {
     int len = (int)strlen(string);
     _strupr(string);
-    char* new_string = (char*)emalloc(len + 1, "formathexpattern:new_string");
+    char* new_string = Memory(len + 1, "formathexpattern:new_string");
     memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(string[i] == '?' or isxdigit(string[i]))
             j += sprintf(new_string + j, "%c", string[i]);
     strcpy(string, new_string);
-    efree(new_string, "formathexpattern:new_string");
     return (int)strlen(string);
 }
 
@@ -263,7 +257,7 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     int len = (int)strlen(text);
     if(!len)
         return false;
-    char* newtext = (char*)emalloc(len + 2, "transformpattern:newtext");
+    char* newtext = Memory(len + 2, "transformpattern:newtext");
     strcpy(newtext, text);
     len = formathexpattern(newtext);
     if(len % 2) //not a multiple of 2
@@ -298,7 +292,6 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
             pattern->push_back(newByte);
         }
     }
-    efree(newtext, "transformpattern:newtext");
     return true;
 }
 
