@@ -133,7 +133,7 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
 
-    void printDumpAt(int_t parVA, bool select);
+    void printDumpAt(int_t parVA, bool select, bool repaint = true);
     uint_t rvaToVa(int_t rva);
 
 public slots:
