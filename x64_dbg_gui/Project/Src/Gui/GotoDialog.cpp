@@ -1,9 +1,7 @@
 #include "GotoDialog.h"
 #include "ui_GotoDialog.h"
 
-GotoDialog::GotoDialog(QWidget* parent) :
-    QDialog(parent),
-    ui(new Ui::GotoDialog)
+GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog)
 {
     //setup UI first
     ui->setupUi(this);
@@ -19,6 +17,7 @@ GotoDialog::GotoDialog(QWidget* parent) :
     ui->editExpression->setFocus();
     validRangeStart = 0;
     validRangeEnd = 0;
+    mValidateThread = new GotoDialogValidateThread(this);
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
 
@@ -27,15 +26,30 @@ GotoDialog::~GotoDialog()
     delete ui;
 }
 
-void GotoDialog::on_editExpression_textChanged(const QString & arg1)
+void GotoDialog::showEvent(QShowEvent* event)
 {
+    Q_UNUSED(event);
+    mValidateThread->start();
+}
+
+void GotoDialog::hideEvent(QHideEvent* event)
+{
+    Q_UNUSED(event);
+    mValidateThread->terminate();
+}
+
+void GotoDialog::validateExpression()
+{
+    QString expression = ui->editExpression->text();
+    if(expressionText == expression)
+        return;
     if(!DbgIsDebugging()) //not debugging
     {
         ui->labelError->setText("<font color='red'><b>Not debugging...</b></font>");
         ui->buttonOk->setEnabled(false);
         expressionText.clear();
     }
-    else if(!DbgIsValidExpression(arg1.toUtf8().constData())) //invalid expression
+    else if(!DbgIsValidExpression(expression.toUtf8().constData())) //invalid expression
     {
         ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
         ui->buttonOk->setEnabled(false);
@@ -43,7 +57,7 @@ void GotoDialog::on_editExpression_textChanged(const QString & arg1)
     }
     else
     {
-        uint_t addr = DbgValFromString(arg1.toUtf8().constData());
+        uint_t addr = DbgValFromString(expression.toUtf8().constData());
         if(!DbgMemIsValidReadPtr(addr))
         {
             ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
@@ -74,9 +88,14 @@ void GotoDialog::on_editExpression_textChanged(const QString & arg1)
                 addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
             ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
             ui->buttonOk->setEnabled(true);
-            expressionText = arg1;
+            expressionText = expression;
         }
     }
+}
+
+void GotoDialog::on_editExpression_textChanged(const QString & arg1)
+{
+    ui->buttonOk->setEnabled(false);
 }
 
 bool GotoDialog::IsValidMemoryRange(uint_t addr)

@@ -8,12 +8,26 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
     setModal(true);
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
 
+    mValidateThread = new WordEditDialogValidateThread(this);
+
     mWord = 0;
 }
 
 WordEditDialog::~WordEditDialog()
 {
     delete ui;
+}
+
+void WordEditDialog::showEvent(QShowEvent* event)
+{
+    Q_UNUSED(event);
+    mValidateThread->start();
+}
+
+void WordEditDialog::hideEvent(QHideEvent* event)
+{
+    Q_UNUSED(event);
+    mValidateThread->terminate();
 }
 
 void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
@@ -31,9 +45,13 @@ uint_t WordEditDialog::getVal()
     return mWord;
 }
 
-void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
+void WordEditDialog::validateExpression()
 {
-    if(DbgIsValidExpression(arg1.toUtf8().constData()))
+    QString expression = ui->expressionLineEdit->text();
+    if(expressionText == expression)
+        return;
+    expressionText = expression;
+    if(DbgIsValidExpression(expression.toUtf8().constData()))
     {
         ui->expressionLineEdit->setStyleSheet("");
         ui->unsignedLineEdit->setStyleSheet("");
@@ -41,7 +59,7 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
 
         //hex
-        mWord = DbgValFromString(arg1.toUtf8().constData());
+        mWord = DbgValFromString(expression.toUtf8().constData());
         uint_t hexWord = 0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;
@@ -71,6 +89,11 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
         ui->expressionLineEdit->setStyleSheet("border: 1px solid red");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
+}
+
+void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
+{
+    ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)

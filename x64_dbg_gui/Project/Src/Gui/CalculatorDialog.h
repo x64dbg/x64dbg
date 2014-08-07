@@ -2,7 +2,9 @@
 #define CALCULATORDIALOG_H
 
 #include <QDialog>
+#include <QThread>
 #include "Bridge.h"
+
 namespace Ui
 {
 class CalculatorDialog;
@@ -27,13 +29,13 @@ public:
     explicit CalculatorDialog(QWidget* parent = 0);
     ~CalculatorDialog();
     void setExpressionFocus();
+    void validateExpression();
+    void showEvent(QShowEvent* event);
+    void hideEvent(QHideEvent* event);
 
 signals:
     bool validAddress(bool valid);
     void showCpu();
-
-public slots:
-    void answerExpression(QString expression);
 
 private slots:
     void on_btnGoto_clicked();
@@ -44,10 +46,35 @@ private slots:
     void on_txtBin_textEdited(const QString & arg1);
     void on_txtAscii_textEdited(const QString & arg1);
     void on_txtUnicode_textEdited(const QString & arg1);
+    void on_txtExpression_textChanged(const QString & arg1);
 
 private:
+    QString expressionText;
+    QThread* mValidateThread;
     Ui::CalculatorDialog* ui;
     QString inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const;
+};
+
+class CalculatorDialogValidateThread : public QThread
+{
+    Q_OBJECT
+public:
+    CalculatorDialogValidateThread(CalculatorDialog* calculatorDialog)
+    {
+        mCalculatorDialog = calculatorDialog;
+    }
+
+private:
+    CalculatorDialog* mCalculatorDialog;
+
+    void run()
+    {
+        while(true)
+        {
+            mCalculatorDialog->validateExpression();
+            Sleep(50);
+        }
+    }
 };
 
 #endif // CALCULATORDIALOG_H

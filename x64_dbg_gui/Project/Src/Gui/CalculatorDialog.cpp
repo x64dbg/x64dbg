@@ -7,18 +7,30 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     ui->setupUi(this);
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
     setFixedSize(this->size()); //fixed size
-    connect(ui->txtExpression, SIGNAL(textChanged(QString)), this, SLOT(answerExpression(QString)));
     connect(this, SIGNAL(validAddress(bool)), ui->btnGoto, SLOT(setEnabled(bool)));
     emit validAddress(false);
     ui->txtBin->setInputMask(QString("bbbb ").repeated(sizeof(uint_t) * 2));
     ui->txtExpression->setText("0");
     ui->txtExpression->selectAll();
     ui->txtExpression->setFocus();
+    mValidateThread = new CalculatorDialogValidateThread(this);
 }
 
 CalculatorDialog::~CalculatorDialog()
 {
     delete ui;
+}
+
+void CalculatorDialog::showEvent(QShowEvent* event)
+{
+    Q_UNUSED(event);
+    mValidateThread->start();
+}
+
+void CalculatorDialog::hideEvent(QHideEvent* event)
+{
+    Q_UNUSED(event);
+    mValidateThread->terminate();
 }
 
 void CalculatorDialog::setExpressionFocus()
@@ -27,15 +39,12 @@ void CalculatorDialog::setExpressionFocus()
     ui->txtExpression->setFocus();
 }
 
-void CalculatorDialog::answerExpression(QString expression)
+void CalculatorDialog::validateExpression()
 {
-    ui->txtHex->setStyleSheet("");
-    ui->txtSignedDec->setStyleSheet("");
-    ui->txtUnsignedDec->setStyleSheet("");
-    ui->txtOct->setStyleSheet("");
-    ui->txtBin->setStyleSheet("");
-    ui->txtAscii->setStyleSheet("");
-    ui->txtUnicode->setStyleSheet("");
+    QString expression = ui->txtExpression->text();
+    if(expressionText == expression)
+        return;
+    expressionText = expression;
     if(!DbgIsValidExpression(expression.toUtf8().constData()))
     {
         ui->txtBin->setText("");
@@ -46,6 +55,7 @@ void CalculatorDialog::answerExpression(QString expression)
         ui->txtAscii->setText("");
         ui->txtUnicode->setText("");
         ui->txtExpression->setStyleSheet("border: 2px solid red");
+        emit validAddress(false);
     }
     else
     {
@@ -84,6 +94,18 @@ void CalculatorDialog::answerExpression(QString expression)
         ui->txtUnicode->setCursorPosition(2);
         emit validAddress(DbgMemIsValidReadPtr(ans));
     }
+}
+
+void CalculatorDialog::on_txtExpression_textChanged(const QString & arg1)
+{
+    ui->txtHex->setStyleSheet("");
+    ui->txtSignedDec->setStyleSheet("");
+    ui->txtUnsignedDec->setStyleSheet("");
+    ui->txtOct->setStyleSheet("");
+    ui->txtBin->setStyleSheet("");
+    ui->txtAscii->setStyleSheet("");
+    ui->txtUnicode->setStyleSheet("");
+    emit validAddress(false);
 }
 
 QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const
