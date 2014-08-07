@@ -1521,7 +1521,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     {
         char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
-        char get_entry[512] = "";
+        char get_entry[JIT_ENTRY_MAX_SIZE] = "";
         if(!dbggetjit(get_entry, notfound, & actual_arch))
         {
             dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
@@ -1602,7 +1602,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
 CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 {
-    char get_entry[512] = "";
+    char get_entry[JIT_ENTRY_MAX_SIZE] = "";
     arch actual_arch;
 
     if(argc < 2)
