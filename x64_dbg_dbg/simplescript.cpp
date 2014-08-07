@@ -75,14 +75,13 @@ static bool scriptcreatelinemap(const char* filename)
         GuiScriptError(0, "Empty script...");
         return false;
     }
-    char* filedata = (char*)emalloc(filesize + 1, "createlinemap:filedata");
+    Memory<char*> filedata(filesize + 1, "createlinemap:filedata");
     memset(filedata, 0, filesize + 1);
     DWORD read = 0;
     if(!ReadFile(hFile, filedata, filesize, &read, 0))
     {
         CloseHandle(hFile);
         GuiScriptError(0, "ReadFile failed...");
-        efree(filedata, "createlinemap:filedata");
         return false;
     }
     CloseHandle(hFile);
@@ -136,7 +135,6 @@ static bool scriptcreatelinemap(const char* filename)
         strcpy(entry.raw, temp);
         linemap.push_back(entry);
     }
-    efree(filedata, "createlinemap:filedata");
     unsigned int linemapsize = (unsigned int)linemap.size();
     while(!*linemap.at(linemapsize - 1).raw) //remove empty lines from the end
     {

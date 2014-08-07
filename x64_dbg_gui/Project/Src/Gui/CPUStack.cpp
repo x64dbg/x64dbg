@@ -29,7 +29,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
-    appendDescriptor(0, "Comments", false, wColDesc);
+    appendDescriptor(2000, "Comments", false, wColDesc);
 
     connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t, uint_t)), this, SLOT(stackDumpAt(uint_t, uint_t)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));

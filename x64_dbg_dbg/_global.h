@@ -106,8 +106,10 @@ extern char dbpath[3 * deflen];
 
 //functions
 void* emalloc(size_t size);
+void* erealloc(void* ptr, size_t size);
 void efree(void* ptr);
 void* emalloc(size_t size, const char* reason);
+void* erealloc(void* ptr, size_t size, const char* reason);
 void efree(void* ptr, const char* reason);
 int memleaks();
 void setalloctrace(const char* file);
@@ -121,5 +123,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
+
+#include "dynamicmem.h"
 
 #endif // _GLOBAL_H

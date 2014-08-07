@@ -1050,11 +1050,11 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     int found = 0;
     int kernelbase = -1;
     DWORD cbNeeded = 0;
-    uint* addrfound = 0;
+    Memory<uint*> addrfound;
     if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
     {
-        addrfound = (uint*)emalloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
-        HMODULE* hMods = (HMODULE*)emalloc(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
+        addrfound.realloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
+        Memory<HMODULE*> hMods(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
         if(EnumProcessModules(fdProcessInfo->hProcess, hMods, cbNeeded, &cbNeeded))
         {
             for(unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); i++)
@@ -1084,14 +1084,9 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 }
             }
         }
-        efree(hMods, "valapifromstring:hMods");
     }
     if(!found)
-    {
-        if(addrfound)
-            efree(addrfound, "valapifromstring:addrfound");
         return false;
-    }
     if(value_size)
         *value_size = sizeof(uint);
     if(hexonly)
@@ -1100,10 +1095,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     {
         *value = addrfound[kernelbase];
         if(!printall or silent)
-        {
-            efree(addrfound, "valapifromstring:addrfound");
             return true;
-        }
         for(int i = 0; i < found; i++)
             if(i != kernelbase)
                 dprintf(fhex"\n", addrfound[i]);
@@ -1112,14 +1104,10 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     {
         *value = *addrfound;
         if(!printall or silent)
-        {
-            efree(addrfound, "valapifromstring:addrfound");
             return true;
-        }
         for(int i = 1; i < found; i++)
             dprintf(fhex"\n", addrfound[i]);
     }
-    efree(addrfound, "valapifromstring:addrfound");
     return true;
 }
 
@@ -1175,7 +1163,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     else if(mathcontains(string)) //handle math
     {
         int len = (int)strlen(string);
-        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1195,21 +1183,15 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         }
         else
             strcpy(newstring, string);
-        char* string_ = (char*)emalloc(len + 256, "valfromstring:string_");
+        Memory<char*> string_(len + 256, "valfromstring:string_");
         strcpy(string_, newstring);
-        efree(newstring, "valfromstring::newstring");
         int add = 0;
         bool negative = (*string_ == '-');
         while(mathisoperator(string_[add + negative]) > 2)
             add++;
         if(!mathhandlebrackets(string_ + add, silent, baseonly))
-        {
-            efree(string_, "valfromstring:string_");
             return false;
-        }
-        bool ret = mathfromstring(string_ + add, value, silent, baseonly, value_size, isvar);
-        efree(string_, "valfromstring:string_");
-        return ret;
+        return mathfromstring(string_ + add, value, silent, baseonly, value_size, isvar);
     }
     else if(*string == '-') //negative value
     {
@@ -1235,7 +1217,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return true;
         }
         int len = (int)strlen(string);
-        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "["))
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1265,11 +1247,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 read_size = new_size;
         }
         if(!valfromstring(newstring + add, value, silent, baseonly))
-        {
-            efree(newstring, "valfromstring::newstring");
             return false;
-        }
-        efree(newstring, "valfromstring::newstring");
         uint addr = *value;
         *value = 0;
         if(!memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0))
@@ -1348,7 +1326,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         sscanf(string + inc, "%"fext"x", value);
         return true;
     }
-
     if(baseonly)
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
@@ -1396,7 +1373,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         int len = (int)strlen(string);
-        char* newstring = (char*)emalloc(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1428,10 +1405,8 @@ bool valtostring(const char* string, uint* value, bool silent)
         uint temp;
         if(!valfromstring(newstring + add, &temp, silent, false))
         {
-            efree(newstring, "valfromstring::newstring");
             return false;
         }
-        efree(newstring, "valfromstring::newstring");
         if(!mempatch(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
         {
             if(!silent)
@@ -1451,7 +1426,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok = setregister(string, *value);
-        char* regName = (char*)emalloc(strlen(string) + 1, "valtostring:regname");
+        Memory<char*> regName(strlen(string) + 1, "valtostring:regname");
         strcpy(regName, string);
         _strlwr(regName);
         if(strstr(regName, "ip"))
@@ -1463,7 +1438,6 @@ bool valtostring(const char* string, uint* value, bool silent)
         }
         else
             GuiUpdateAllViews(); //repaint gui
-        efree(regName, "valtostring:regname");
         return ok;
     }
     else if(*string == '!' and isflag(string + 1)) //flag

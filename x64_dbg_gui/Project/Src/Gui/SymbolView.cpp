@@ -20,17 +20,17 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList = new StdTable();
     int charwidth = mModuleList->getCharWidth();
     mModuleList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Base", false);
-    mModuleList->addColumnAt(0, "Module", true);
+    mModuleList->addColumnAt(500, "Module", true);
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
     mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
-    mSearchListView->mList->addColumnAt(0, "Symbol (undecorated)", true);
+    mSearchListView->mList->addColumnAt(2000, "Symbol (undecorated)", true);
 
     // Setup search list
     mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
-    mSearchListView->mSearchList->addColumnAt(0, "Symbol (undecorated)", true);
+    mSearchListView->mSearchList->addColumnAt(2000, "Symbol (undecorated)", true);
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);

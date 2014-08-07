@@ -31,12 +31,11 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
         else
             start_size = maxsize;
     }
-    unsigned char* data = (unsigned char*)emalloc(start_size, "reffind:data");
+    Memory<unsigned char*> data(start_size, "reffind:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)start_addr, data, start_size, 0))
     {
         if(!silent)
             dputs("error reading memory");
-        efree(data, "reffind:data");
         return 0;
     }
     DISASM disasm;
@@ -75,6 +74,5 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
     }
     GuiReferenceSetProgress(100);
     GuiReferenceReloadData();
-    efree(data, "reffind:data");
     return refinfo.refcount;
 }

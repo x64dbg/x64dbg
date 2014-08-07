@@ -165,28 +165,33 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         filter = VAR_READONLY;
     else if(!_stricmp(arg1, "SYSTEM"))
         filter = VAR_SYSTEM;
-    VAR* cur = vargetptr();
-    if(!cur or !cur->name)
+
+    size_t cbsize = 0;
+    if(!varenum(0, &cbsize))
     {
-        dputs("no variables");
+        dputs("no variables!");
         return STATUS_CONTINUE;
     }
-
-    bool bNext = true;
-    while(bNext)
+    Memory<VAR*> variables(cbsize, "cbInstrVarList:variables");
+    if(!varenum(variables, 0))
     {
+        dputs("error listing variables!");
+        return STATUS_ERROR;
+    }
+
+    int varcount = (int)cbsize / sizeof(VAR);
+    for(int i = 0; i < varcount; i++)
+    {
+        if(variables[i].alias.length())
+            continue;
         char name[deflen] = "";
-        strcpy(name, cur->name);
-        int len = (int)strlen(name);
-        for(int i = 0; i < len; i++)
-            if(name[i] == 1)
-                name[i] = '/';
-        uint value = (uint)cur->value.u.value;
-        if(cur->type != VAR_HIDDEN)
+        strcpy(name, variables[i].name.c_str());
+        uint value = (uint)variables[i].value.u.value;
+        if(variables[i].type != VAR_HIDDEN)
         {
             if(filter)
             {
-                if(cur->type == filter)
+                if(variables[i].type == filter)
                 {
                     if(value > 15)
                         dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
@@ -202,9 +207,6 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
                     dprintf("%s=%"fext"X\n", name, value);
             }
         }
-        cur = cur->next;
-        if(!cur)
-            bNext = false;
     }
     return STATUS_CONTINUE;
 }
@@ -814,7 +816,7 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
         GuiReferenceDeleteAllColumns();
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
-        GuiReferenceAddColumn(0, "String");
+        GuiReferenceAddColumn(500, "String");
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceReloadData();
         return true;
@@ -919,16 +921,14 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char* string = (char*)emalloc(size + 1, "cbInstrGetstr:string");
+    Memory<char*> string(size + 1, "cbInstrGetstr:string");
     memset(string, 0, size + 1);
-    if(!varget(argv[1], string, &size, 0))
+    if(!varget(argv[1], (char*)string, &size, 0))
     {
-        efree(string, "cbInstrGetstr:string");
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
     dprintf("%s=\"%s\"\n", argv[1], string);
-    efree(string, "cbInstrGetstr:string");
     return STATUS_CONTINUE;
 }
 
@@ -956,28 +956,24 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("failed to get variable size \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    char* string = (char*)emalloc(size + 1, "cbInstrGetstr:string");
+    Memory<char*> string(size + 1, "cbInstrGetstr:string");
     memset(string, 0, size + 1);
-    if(!varget(argv[2], string, &size, 0))
+    if(!varget(argv[2], (char*)string, &size, 0))
     {
-        efree(string, "cbInstrCopystr:string");
         dprintf("failed to get variable data \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
     uint addr;
     if(!valfromstring(argv[1], &addr))
     {
-        efree(string, "cbInstrCopystr:string");
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
     if(!mempatch(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
     {
-        efree(string, "cbInstrCopystr:string");
         dputs("memwrite failed!");
         return STATUS_ERROR;
     }
-    efree(string, "cbInstrCopystr:string");
     dputs("string written!");
     GuiUpdateAllViews();
     GuiUpdatePatches();
@@ -1010,10 +1006,9 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data = (unsigned char*)emalloc(size, "cbInstrFind:data");
+    Memory<unsigned char*> data(size, "cbInstrFind:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
-        efree(data, "cbInstrFind:data");
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
@@ -1033,7 +1028,6 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(foundoffset != -1)
         result = addr + foundoffset;
     varset("$result", result, false);
-    efree(data, "cbInstrFind:data");
     return STATUS_CONTINUE;
 }
 
@@ -1064,10 +1058,9 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
-    unsigned char* data = (unsigned char*)emalloc(size, "cbInstrFindAll:data");
+    Memory<unsigned char*> data(size, "cbInstrFindAll:data");
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
-        efree(data, "cbInstrFindAll:data");
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
@@ -1114,7 +1107,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
         {
-            unsigned char* printData = (unsigned char*)emalloc(patternsize, "cbInstrFindAll:printData");
+            Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
             memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
             for(int j = 0, k = 0; j < patternsize; j++)
             {
@@ -1122,7 +1115,6 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
                     k += sprintf(msg + k, " ");
                 k += sprintf(msg + k, "%.2X", printData[j]);
             }
-            efree(printData, "cbInstrFindAll:printData");
         }
         else
             GuiGetDisassembly(result, msg);
@@ -1132,7 +1124,6 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     }
     GuiReferenceReloadData();
     dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
-    efree(data, "cbInstrFindAll:data");
     varset("$result", refCount, false);
     return STATUS_CONTINUE;
 }
@@ -1201,7 +1192,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         dputs("no comments");
         return STATUS_CONTINUE;
     }
-    COMMENTSINFO* comments = (COMMENTSINFO*)emalloc(cbsize, "cbInstrCommentList:comments");
+    Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
     commentenum(comments, 0);
     int count = (int)(cbsize / sizeof(COMMENTSINFO));
     for(int i = 0; i < count; i++)
@@ -1215,7 +1206,6 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, comments[i].text);
     }
-    efree(comments, "cbInstrCommentList:comments");
     varset("$result", count, false);
     dprintf("%d comment(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
@@ -1237,7 +1227,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         dputs("no labels");
         return STATUS_CONTINUE;
     }
-    LABELSINFO* labels = (LABELSINFO*)emalloc(cbsize, "cbInstrLabelList:labels");
+    Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
     labelenum(labels, 0);
     int count = (int)(cbsize / sizeof(LABELSINFO));
     for(int i = 0; i < count; i++)
@@ -1251,7 +1241,6 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, labels[i].text);
     }
-    efree(labels, "cbInstrLabelList:labels");
     varset("$result", count, false);
     dprintf("%d label(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
@@ -1272,7 +1261,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         dputs("no bookmarks");
         return STATUS_CONTINUE;
     }
-    BOOKMARKSINFO* bookmarks = (BOOKMARKSINFO*)emalloc(cbsize, "cbInstrBookmarkList:bookmarks");
+    Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
     bookmarkenum(bookmarks, 0);
     int count = (int)(cbsize / sizeof(BOOKMARKSINFO));
     for(int i = 0; i < count; i++)
@@ -1285,7 +1274,6 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         if(GuiGetDisassembly(bookmarks[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
-    efree(bookmarks, "cbInstrBookmarkList:bookmarks");
     varset("$result", count, false);
     dprintf("%d bookmark(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
@@ -1308,7 +1296,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         dputs("no functions");
         return STATUS_CONTINUE;
     }
-    FUNCTIONSINFO* functions = (FUNCTIONSINFO*)emalloc(cbsize, "cbInstrFunctionList:functions");
+    Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
     functionenum(functions, 0);
     int count = (int)(cbsize / sizeof(FUNCTIONSINFO));
     for(int i = 0; i < count; i++)
@@ -1332,7 +1320,6 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
-    efree(functions, "cbInstrFunctionList:functions");
     varset("$result", count, false);
     dprintf("%d function(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
@@ -1355,7 +1342,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         dputs("no loops");
         return STATUS_CONTINUE;
     }
-    LOOPSINFO* loops = (LOOPSINFO*)emalloc(cbsize, "cbInstrLoopList:loops");
+    Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
     loopenum(loops, 0);
     int count = (int)(cbsize / sizeof(LOOPSINFO));
     for(int i = 0; i < count; i++)
@@ -1379,7 +1366,6 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
-    efree(loops, "cbInstrLoopList:loops");
     varset("$result", count, false);
     dprintf("%d loop(s) listed in Reference View\n", count);
     GuiReferenceReloadData();
