@@ -635,13 +635,13 @@ bool BeaTokenizer::IsHighlightableToken(const BeaSingleToken* token)
     return true;
 }
 
-bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b)
+bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b, bool ignoreSize)
 {
     if(!a || !b)
         return false;
     if(a->value.size != 0) //we have a value
     {
-        if(a->value.size != b->value.size)
+        if(!ignoreSize && a->value.size != b->value.size)
             return false;
         else if(a->value.value != b->value.value)
             return false;
