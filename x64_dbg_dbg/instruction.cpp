@@ -775,7 +775,7 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -1152,7 +1152,7 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
         sprintf(addrText, "%p", disasm->VirtualAddr);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -1201,7 +1201,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         char addrText[20] = "";
         sprintf(addrText, "%p", comments[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(comments[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, comments[i].text);
@@ -1236,7 +1236,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         char addrText[20] = "";
         sprintf(addrText, "%p", labels[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(labels[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
         GuiReferenceSetCellContent(i, 2, labels[i].text);
@@ -1270,7 +1270,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         char addrText[20] = "";
         sprintf(addrText, "%p", bookmarks[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(bookmarks[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
@@ -1307,7 +1307,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 0, addrText);
         sprintf(addrText, "%p", functions[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(functions[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
@@ -1353,7 +1353,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 0, addrText);
         sprintf(addrText, "%p", loops[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
-        char disassembly[2048] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(loops[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
