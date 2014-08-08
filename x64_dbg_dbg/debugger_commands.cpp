@@ -1395,7 +1395,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 
     if(argc == 1)
     {
-        if(!dbggetjitauto(&jit_auto, notfound, & actual_arch))
+        if(!dbggetjitauto(&jit_auto, notfound, & actual_arch, NULL))
         {
             dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1403,16 +1403,9 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
     }
     else if(argc == 2)
     {
+        readwritejitkey_error_t rw_error;
         if(_strcmpi(argv[1], "x64") == 0)
-        {
             actual_arch = x64;
-
-            if(!IsWow64())
-            {
-                dprintf("Error using x64 arg the debugger is not a WOW64 process\n", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-        }
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
@@ -1421,9 +1414,12 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
             return STATUS_ERROR;
         }
 
-        if(!dbggetjitauto(& jit_auto, actual_arch, NULL))
+        if(!dbggetjitauto(& jit_auto, actual_arch, NULL, & rw_error))
         {
-            dprintf("Error getting JIT auto %s\n", argv[1]);
+            if(rw_error == ERROR_RW_NOTWOW64)
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+            else
+                dprintf("Error getting JIT auto %s\n", argv[1]);
             return STATUS_ERROR;
         }
     }
@@ -1443,7 +1439,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     bool set_jit_auto;
     if(argc < 2)
     {
-        dprintf("Error setting JIT Auto use ON/1 or OFF/0 arg\n");
+        dprintf("Error setting JIT Auto use ON/1 or OFF/0 arg or x64/x32, ON/1 or OFF/0 args\n");
         return STATUS_ERROR;
     }
     else if(argc == 2)
@@ -1454,11 +1450,11 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             set_jit_auto = false;
         else
         {
+            dputs("Error unkown parameters use ON/1 or OFF/0");
             return STATUS_ERROR;
-            dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0");
         }
 
-        if(!dbgsetjitauto(set_jit_auto, notfound, & actual_arch))
+        if(!dbgsetjitauto(set_jit_auto, notfound, & actual_arch, NULL))
         {
             dprintf("Error setting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1466,16 +1462,11 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     }
     else if(argc == 3)
     {
+        readwritejitkey_error_t rw_error;
         actual_arch = x64;
 
         if(_strcmpi(argv[1], "x64") == 0)
-        {
-            if(!IsWow64())
-            {
-                dprintf("Error using x64 arg the debugger is not a WOW64 process\n", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-        }
+            actual_arch = x64;
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
@@ -1494,9 +1485,13 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0\n");
         }
 
-        if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL))
+        if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL, & rw_error))
         {
-            dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
+            if(rw_error == ERROR_RW_NOTWOW64)
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+            else
+
+                dprintf("Error getting JIT auto %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
     }
@@ -1522,7 +1517,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
         char get_entry[JIT_ENTRY_MAX_SIZE] = "";
-        if(!dbggetjit(get_entry, notfound, & actual_arch))
+        if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
         {
             dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1530,7 +1525,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         strcpy_s(oldjit, get_entry);
 
         jit_debugger_cmd = path;
-        if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+        if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
         {
             dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1543,9 +1538,14 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         if(!_strcmpi(argv[1], "restore"))
         {
             jit_debugger_cmd = oldjit;
+
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
-                return STATUS_CONTINUE; //nothing to restore
-            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+            {
+                dputs(" Error dont exist an OLD JIT, please use setjit command");
+                return STATUS_ERROR; //nothing to restore
+            }
+
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
             {
                 dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
                 return STATUS_ERROR;
@@ -1555,7 +1555,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         else
         {
             jit_debugger_cmd = argv[1];
-            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch))
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
             {
                 dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
                 return STATUS_ERROR;
@@ -1564,16 +1564,10 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     else if(argc == 3)
     {
-        actual_arch = x64;
+        readwritejitkey_error_t rw_error;
 
         if(_strcmpi(argv[1], "x64") == 0)
-        {
-            if(!IsWow64())
-            {
-                dprintf("Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-        }
+            actual_arch = x64;
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
@@ -1583,9 +1577,12 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         }
 
         jit_debugger_cmd = argv[2];
-        if(!dbgsetjit(jit_debugger_cmd, actual_arch, NULL))
+        if(!dbgsetjit(jit_debugger_cmd, actual_arch, NULL, & rw_error))
         {
-            dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+            if(rw_error == ERROR_RW_NOTWOW64)
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+            else
+                dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
     }
@@ -1607,7 +1604,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 
     if(argc < 2)
     {
-        if(!dbggetjit(get_entry, notfound, & actual_arch))
+        if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
         {
             dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1615,16 +1612,9 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     }
     else
     {
+        readwritejitkey_error_t rw_error;
         if(_strcmpi(argv[1], "x64") == 0)
-        {
             actual_arch = x64;
-
-            if(!IsWow64())
-            {
-                dprintf("Error using x64 arg the debugger is not a WOW64 process", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-        }
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
@@ -1633,9 +1623,12 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             return STATUS_ERROR;
         }
 
-        if(!dbggetjit(get_entry, actual_arch, NULL))
+        if(!dbggetjit(get_entry, actual_arch, NULL, & rw_error))
         {
-            dprintf("Error getting JIT %s\n", argv[1]);
+            if(rw_error == ERROR_RW_NOTWOW64)
+                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+            else
+                dprintf("Error getting JIT %s\n", argv[1]);
             return STATUS_ERROR;
         }
     }

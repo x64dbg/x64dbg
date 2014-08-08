@@ -109,14 +109,14 @@ static void _getcallstack(DBGCALLSTACK* callstack)
 
 static bool _getjitauto(bool* jit_auto)
 {
-    return dbggetjitauto(jit_auto, notfound, NULL);
+    return dbggetjitauto(jit_auto, notfound, NULL, NULL);
 }
 
 static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
     char jit_tmp[JIT_ENTRY_MAX_SIZE] = "";
-    if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy))
+    if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy, NULL))
         return false;
     strcpy(jit, jit_tmp);
     return true;
