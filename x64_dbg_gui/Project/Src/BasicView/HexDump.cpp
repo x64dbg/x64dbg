@@ -21,6 +21,8 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
     textColor = ConfigColor("HexDumpTextColor");
     selectionColor = ConfigColor("HexDumpSelectionColor");
 
+    mRvaDisplayEnabled = false;
+
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
 }
@@ -56,6 +58,9 @@ void HexDump::printDumpAt(int_t parVA, bool select, bool repaint)
     // Compute row count
     wRowCount = wSize / wBytePerRowCount;
     wRowCount += mByteOffset > 0 ? 1 : 0;
+
+    if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
+        mRvaDisplayEnabled = false;
 
     setRowCount(wRowCount); //set the number of rows
 
