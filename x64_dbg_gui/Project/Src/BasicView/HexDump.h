@@ -159,6 +159,9 @@ protected:
     int mByteOffset;
     QList<ColumnDescriptor_t> mDescriptor;
     int mForceColumn;
+    bool mRvaDisplayEnabled;
+    uint_t mRvaDisplayBase;
+    int_t mRvaDisplayPageBase;
 };
 
 #endif // _HEXDUMP_H

@@ -184,12 +184,40 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     {
         char label[MAX_LABEL_SIZE] = "";
         QString addrText = "";
-        int_t curAddr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
-        addrText = QString("%1").arg(curAddr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        if(DbgGetLabelAt(curAddr, SEG_DEFAULT, label)) //has label
+        int_t cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
+        if(mRvaDisplayEnabled) //RVA display
+        {
+            int_t rva = cur_addr - mRvaDisplayBase;
+            if(rva == 0)
+            {
+#ifdef _WIN64
+                addrText = "$ ==>            ";
+#else
+                addrText = "$ ==>    ";
+#endif //_WIN64
+            }
+            else if(rva > 0)
+            {
+#ifdef _WIN64
+                addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+            else if(rva < 0)
+            {
+#ifdef _WIN64
+                addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+                addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+            }
+        }
+        addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(curAddr, module) && !QString(label).startsWith("JMP.&"))
+            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
                 addrText += " <" + QString(module) + "." + QString(label) + ">";
             else
                 addrText += " <" + QString(label) + ">";
@@ -298,6 +326,36 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
         }
 
     wMenu->exec(event->globalPos());
+}
+
+void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if(event->button() != Qt::LeftButton)
+        return;
+    switch(getColumnIndexFromX(event->x()))
+    {
+    case 0: //address
+    {
+        //very ugly way to calculate the base of the current row (no clue why it works)
+        int_t deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
+        if(deltaRowBase >= getBytePerRowCount())
+            deltaRowBase -= getBytePerRowCount();
+        int_t mSelectedVa = rvaToVa(getInitialSelection() - deltaRowBase);
+        if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
+            mRvaDisplayEnabled = false;
+        else
+        {
+            mRvaDisplayEnabled = true;
+            mRvaDisplayBase = mSelectedVa;
+            mRvaDisplayPageBase = mMemPage->getBase();
+        }
+        reloadData();
+    }
+    break;
+
+    default:
+        break;
+    }
 }
 
 void CPUStack::stackDumpAt(uint_t addr, uint_t csp)
