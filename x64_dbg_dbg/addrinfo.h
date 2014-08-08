@@ -57,7 +57,7 @@ struct MODSECTIONINFO
 {
     uint addr; //va
     uint size; //virtual size
-    char name[10];
+    char name[50];
 };
 
 struct MODINFO
