@@ -213,7 +213,10 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     msgwait(gMsgStack, &msg);
     char* newcmd = (char*)msg.param1;
     if(strlen(newcmd) >= deflen)
-        newcmd[deflen - 1] = 0;
+    {
+        dprintf("command cut at ~%d characters\n", deflen);
+        newcmd[deflen - 2] = 0;
+    }
     strcpy(cmd, newcmd);
     efree(newcmd, "cbCommandProvider:newcmd"); //free allocated command
     return true;
