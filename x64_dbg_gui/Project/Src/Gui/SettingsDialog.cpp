@@ -193,6 +193,8 @@ void SettingsDialog::LoadSettings()
             }
         }
     }
+    bJitOld = settings.eventSetJIT;
+    bJitAutoOld = settings.eventSetJITAuto;
 }
 
 void SettingsDialog::SaveSettings()
@@ -235,15 +237,21 @@ void SettingsDialog::SaveSettings()
     //Misc tab
     if(DbgFunctions()->GetJit)
     {
-        if(settings.eventSetJIT)
-            DbgCmdExecDirect("setjit");
-        else
-            DbgCmdExecDirect("setjit restore");
+        if(bJitOld != settings.eventSetJIT)
+        {
+            if(settings.eventSetJIT)
+                DbgCmdExecDirect("setjit");
+            else
+                DbgCmdExecDirect("setjit restore");
+        }
 
-        if(!settings.eventSetJITAuto)
-            DbgCmdExecDirect("setjitauto on");
-        else
-            DbgCmdExecDirect("setjitauto off");
+        if(bJitAutoOld != settings.eventSetJITAuto)
+        {
+            if(!settings.eventSetJITAuto)
+                DbgCmdExecDirect("setjitauto on");
+            else
+                DbgCmdExecDirect("setjitauto off");
+        }
     }
 
     Config()->load();

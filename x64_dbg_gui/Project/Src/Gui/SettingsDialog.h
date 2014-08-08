@@ -117,14 +117,16 @@ private:
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
         //Misc Tab
-        bool eventSetJIT;
-        bool eventSetJITAuto;
+        bool miscSetJIT;
+        bool miscSetJITAuto;
     };
 
     //variables
     Ui::SettingsDialog* ui;
     SettingsStruct settings;
     QList<RangeStruct> realExceptionRanges;
+    bool bJitOld;
+    bool bJitAutoOld;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);
