@@ -401,8 +401,7 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
 {
     if(event->size().height() != event->oldSize().height())
     {
-        if(getRowCount() > getViewableRowsCount())
-            updateScrollBarRange(getRowCount());
+        updateScrollBarRange(getRowCount());
         mShouldReload = true;
     }
     QWidget::resizeEvent(event);
@@ -639,6 +638,8 @@ void AbstractTableView::updateScrollBarRange(int_t range)
         verticalScrollBar()->setRange(0, wMax);
 #endif
     }
+    else
+        verticalScrollBar()->setRange(0, 0);
 }
 
 /************************************************************************************
@@ -787,8 +788,7 @@ void AbstractTableView::addColumnAt(int width, QString title, bool isClickable)
 
 void AbstractTableView::setRowCount(int_t count)
 {
-    if(count > getViewableRowsCount())
-        updateScrollBarRange(count);
+    updateScrollBarRange(count);
     mRowCount = count;
 }
 
