@@ -3,6 +3,7 @@
 
 SearchListViewTable::SearchListViewTable(StdTable* parent) : StdTable(parent)
 {
+    highlightText = "";
 }
 
 QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -24,7 +25,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
     {
         BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
         bool isbookmark = DbgGetBookmarkAt(wVA);
-        painter->setPen(ConfigColor("AbstractTableViewTextColor"));
+        painter->setPen(textColor);
         if(!isbookmark)
         {
             if(bpxtype & bp_normal) //normal breakpoint
@@ -67,6 +68,39 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, text);
+        text = "";
+    }
+    if(highlightText.length() && text.contains(highlightText, Qt::CaseInsensitive))
+    {
+        //super smart way of splitting while keeping the delimiters (thanks to cypher for guidance)
+        int index = -2;
+        do
+        {
+            index = text.indexOf(highlightText, index + 2, Qt::CaseInsensitive);
+            if(index != -1)
+            {
+                text = text.insert(index + highlightText.length(), QChar('\1'));
+                text = text.insert(index, QChar('\1'));
+            }
+        }
+        while(index != -1);
+        QStringList split = text.split(QChar('\1'), QString::KeepEmptyParts, Qt::CaseInsensitive);
+
+        //create rich text list
+        RichTextPainter::CustomRichText_t curRichText;
+        curRichText.flags = RichTextPainter::FlagColor;
+        curRichText.textColor = textColor;
+        curRichText.highlightColor = ConfigColor("SearchListViewHighlightColor");
+        QList<RichTextPainter::CustomRichText_t> richText;
+        foreach(QString str, split)
+        {
+            curRichText.text = str;
+            curRichText.highlight = !str.compare(highlightText, Qt::CaseInsensitive);
+            richText.push_back(curRichText);
+        }
+
+        //paint the rich text
+        RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, &richText, getCharWidth());
         text = "";
     }
     return text;
