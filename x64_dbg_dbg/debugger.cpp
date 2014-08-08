@@ -1510,8 +1510,15 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
 
     if(arch_in == x64)
     {
+#ifdef _WIN32
         if(!IsWow64())
+        {
+            if(error != NULL)
+                * error = ERROR_RW_NOTWOW64;
+
             return false;
+        }
+#endif
 
 #ifdef _WIN32
         key_flags |= KEY_WOW64_64KEY;
@@ -1553,7 +1560,7 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     return true;
 }
 
-bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out)
+bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     char jit_entry[4];
     DWORD jit_entry_size = sizeof(jit_entry) - 1;
@@ -1562,7 +1569,12 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out)
     if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
     {
         if(rw_error = ERROR_RW_FILE_NOT_FOUND)
+        {
+            if(rw_error_out != NULL)
+                * rw_error_out = rw_error;
+
             return true;
+        }
 
         return false;
     }
@@ -1576,17 +1588,47 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out)
     return true;
 }
 
-bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out)
+bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD auto_string_size = sizeof("1");
+    readwritejitkey_error_t rw_error;
 
-    return _readwritejitkey(auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, NULL, true);
+    if(auto_on == false)
+    {
+        char jit_entry[4];
+        DWORD jit_entry_size = sizeof(jit_entry) - 1;
+
+        if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
+        {
+            if(rw_error = ERROR_RW_FILE_NOT_FOUND)
+                return true;
+        }
+    }
+
+    if(_readwritejitkey(auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, & rw_error, true) == false)
+    {
+        if(rw_error_out != NULL)
+            * rw_error_out = rw_error;
+        return false;
+    }
+
+    return true;
 }
 
-bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out)
+bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
-    return _readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, NULL, false);
+    readwritejitkey_error_t rw_error;
+
+    if(_readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, & rw_error, false) == false)
+    {
+        if(rw_error_out != NULL)
+            * rw_error_out = rw_error;
+
+        return false;
+    }
+
+    return true;
 }
 
 bool dbggetdefjit(char* jit_entry)
@@ -1600,10 +1642,19 @@ bool dbggetdefjit(char* jit_entry)
     return true;
 }
 
-bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out)
+bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
-    return _readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, NULL, true);
+    readwritejitkey_error_t rw_error;
+    if(_readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true) == false)
+    {
+        if(rw_error_out != NULL)
+            * rw_error_out = rw_error;
+
+        return false;
+    }
+
+    return true;
 }
 
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
