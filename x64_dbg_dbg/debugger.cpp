@@ -1583,9 +1583,9 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out)
     return _readwritejitkey(auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, NULL, true);
 }
 
-bool dbggetjit(char jit_entry[512], arch arch_in, arch* arch_out)
+bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out)
 {
-    DWORD jit_entry_size = sizeof(jit_entry);
+    DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
     return _readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, NULL, false);
 }
 

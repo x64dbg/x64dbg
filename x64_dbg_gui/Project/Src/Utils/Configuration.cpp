@@ -141,6 +141,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("MemoryMapBreakpointColor", QColor("#FFFBF0"));
     defaultColors.insert("MemoryMapBreakpointBackgroundColor", QColor("#FF0000"));
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
+    defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
@@ -305,6 +306,11 @@ void Configuration::writeColors()
     emit colorsUpdated();
 }
 
+void Configuration::emitColorsUpdated()
+{
+    emit colorsUpdated();
+}
+
 void Configuration::readBools()
 {
     Bools = defaultBools;
@@ -389,6 +395,11 @@ void Configuration::writeFonts()
         QString id = Fonts.keys().at(i);
         fontToConfig(id, Fonts[id]);
     }
+    emit fontsUpdated();
+}
+
+void Configuration::emitFontsUpdated()
+{
     emit fontsUpdated();
 }
 

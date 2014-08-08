@@ -115,10 +115,10 @@ void CPUDisassembly::setupFollowMenu(int_t wVA)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem("&Constant: " + constant, arg.value);
+                    addFollowMenuItem("&Constant: " + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.value);
+                addFollowMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {

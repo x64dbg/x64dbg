@@ -115,7 +115,7 @@ static bool _getjitauto(bool* jit_auto)
 static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
-    char jit_tmp[512] = "";
+    char jit_tmp[JIT_ENTRY_MAX_SIZE] = "";
     if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy))
         return false;
     strcpy(jit, jit_tmp);

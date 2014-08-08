@@ -39,7 +39,7 @@ void HexDump::fontsUpdated()
     setFont(ConfigFont("HexDump"));
 }
 
-void HexDump::printDumpAt(int_t parVA, bool select)
+void HexDump::printDumpAt(int_t parVA, bool select, bool repaint)
 {
     int_t wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
     int_t wSize = DbgMemGetPageSize(wBase); //get page size
@@ -72,7 +72,8 @@ void HexDump::printDumpAt(int_t parVA, bool select)
         expandSelectionUpTo(wEndingAddress);
     }
 
-    reloadData();
+    if(repaint)
+        reloadData();
 }
 
 void HexDump::printDumpAt(int_t parVA)
@@ -952,7 +953,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
         int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
         clearDescriptors();
         appendDescriptor(width, title, clickable, descriptor);
-        printDumpAt(rvaToVa(wRVA));
+        printDumpAt(rvaToVa(wRVA), true, false);
     }
     else
         appendDescriptor(width, title, clickable, descriptor);

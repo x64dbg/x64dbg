@@ -196,10 +196,10 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, int_t wVA)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem(menu, "&Constant: " + constant, arg.value);
+                    addFollowMenuItem(menu, "&Constant: " + constant, arg.constant);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem(menu, "&Value: [" + QString(arg.mnemonic) + "]", arg.value);
+                addFollowMenuItem(menu, "&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
         }
         else
         {

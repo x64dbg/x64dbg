@@ -42,12 +42,14 @@ public:
     void save();
     void readColors();
     void writeColors();
+    void emitColorsUpdated();
     void readBools();
     void writeBools();
     void readUints();
     void writeUints();
     void readFonts();
     void writeFonts();
+    void emitFontsUpdated();
     void readShortcuts();
     void writeShortcuts();
 

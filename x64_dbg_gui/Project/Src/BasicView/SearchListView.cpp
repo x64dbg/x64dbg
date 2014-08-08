@@ -68,7 +68,7 @@ void SearchListView::listKeyPressed(QKeyEvent* event)
 {
     char ch = event->text().toUtf8().constData()[0];
     if(isprint(ch)) //add a char to the search box
-        mSearchBox->setText(mSearchBox->text() + QString(QChar(ch)));
+        mSearchBox->setText(mSearchBox->text().insert(mSearchBox->cursorPosition(), QString(QChar(ch))));
     else if(event->key() == Qt::Key_Backspace) //remove a char from the search box
     {
         QString newText;
@@ -150,6 +150,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
             break;
         }
     }
+    mSearchList->highlightText = arg1;
     mSearchList->reloadData();
     mSearchList->setFocus();
 }

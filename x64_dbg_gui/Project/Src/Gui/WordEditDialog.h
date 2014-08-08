@@ -3,6 +3,7 @@
 
 #include <QtGui>
 #include <QDialog>
+#include <QThread>
 #include <QPushButton>
 #include "Bridge.h"
 
@@ -20,6 +21,9 @@ public:
     ~WordEditDialog();
     void setup(QString title, uint_t defVal, int byteCount);
     uint_t getVal();
+    void showEvent(QShowEvent* event);
+    void hideEvent(QHideEvent* event);
+    void validateExpression();
 
 private slots:
     void on_expressionLineEdit_textChanged(const QString & arg1);
@@ -29,6 +33,30 @@ private slots:
 private:
     Ui::WordEditDialog* ui;
     uint_t mWord;
+    QString expressionText;
+    QThread* mValidateThread;
+};
+
+class WordEditDialogValidateThread : public QThread
+{
+    Q_OBJECT
+public:
+    WordEditDialogValidateThread(WordEditDialog* wordEditDialog)
+    {
+        mWordEditDialog = wordEditDialog;
+    }
+
+private:
+    WordEditDialog* mWordEditDialog;
+
+    void run()
+    {
+        while(true)
+        {
+            mWordEditDialog->validateExpression();
+            Sleep(50);
+        }
+    }
 };
 
 #endif // WORDEDITDIALOG_H
