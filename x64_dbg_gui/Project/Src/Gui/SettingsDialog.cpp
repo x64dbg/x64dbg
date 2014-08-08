@@ -174,27 +174,27 @@ void SettingsDialog::LoadSettings()
             DbgFunctions()->GetDefJit(jit_def_entry);
 
             if(_strcmpi(jit_entry, jit_def_entry) == 0)
-                settings.eventSetJIT = true;
+                settings.miscSetJIT = true;
             else
-                settings.eventSetJIT = false;
+                settings.miscSetJIT = false;
             ui->editJIT->setText(jit_entry);
             ui->editJIT->setCursorPosition(0);
 
-            ui->chkSetJIT->setCheckState(bool2check(settings.eventSetJIT));
+            ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
 
             if(DbgFunctions()->GetJitAuto(&jit_auto_on))
             {
                 if(!jit_auto_on)
-                    settings.eventSetJITAuto = true;
+                    settings.miscSetJITAuto = true;
                 else
-                    settings.eventSetJITAuto = false;
+                    settings.miscSetJITAuto = false;
 
-                ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.eventSetJITAuto));
+                ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
             }
         }
     }
-    bJitOld = settings.eventSetJIT;
-    bJitAutoOld = settings.eventSetJITAuto;
+    bJitOld = settings.miscSetJIT;
+    bJitAutoOld = settings.miscSetJITAuto;
 }
 
 void SettingsDialog::SaveSettings()
@@ -237,17 +237,17 @@ void SettingsDialog::SaveSettings()
     //Misc tab
     if(DbgFunctions()->GetJit)
     {
-        if(bJitOld != settings.eventSetJIT)
+        if(bJitOld != settings.miscSetJIT)
         {
-            if(settings.eventSetJIT)
+            if(settings.miscSetJIT)
                 DbgCmdExecDirect("setjit");
             else
                 DbgCmdExecDirect("setjit restore");
         }
 
-        if(bJitAutoOld != settings.eventSetJITAuto)
+        if(bJitAutoOld != settings.miscSetJITAuto)
         {
-            if(!settings.eventSetJITAuto)
+            if(!settings.miscSetJITAuto)
                 DbgCmdExecDirect("setjitauto on");
             else
                 DbgCmdExecDirect("setjitauto off");
@@ -349,19 +349,18 @@ void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
 void SettingsDialog::on_chkConfirmBeforeAtt_stateChanged(int arg1)
 {
     if(arg1 == Qt::Unchecked)
-        settings.eventSetJITAuto = false;
+        settings.miscSetJITAuto = false;
     else
-        settings.eventSetJITAuto = true;
+        settings.miscSetJITAuto = true;
 }
 
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 {
     if(arg1 == Qt::Unchecked)
-        settings.eventSetJIT = false;
+        settings.miscSetJIT = false;
     else
-        settings.eventSetJIT = true;
+        settings.miscSetJIT = true;
 }
-
 
 void SettingsDialog::on_chkDllLoad_stateChanged(int arg1)
 {
