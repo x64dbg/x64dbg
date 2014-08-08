@@ -95,6 +95,7 @@ void GotoDialog::validateExpression()
 
 void GotoDialog::on_editExpression_textChanged(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     ui->buttonOk->setEnabled(false);
 }
 

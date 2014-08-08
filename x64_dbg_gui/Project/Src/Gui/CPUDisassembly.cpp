@@ -22,7 +22,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         if(DbgIsDebugging())
         {
             QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-            Bridge::CopyToClipboard(addrText.toUtf8().constData());
+            Bridge::CopyToClipboard(addrText);
         }
     }
     else
@@ -984,7 +984,7 @@ void CPUDisassembly::binaryCopySlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true).toUtf8().constData());
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
 }
 
 void CPUDisassembly::binaryPasteSlot()

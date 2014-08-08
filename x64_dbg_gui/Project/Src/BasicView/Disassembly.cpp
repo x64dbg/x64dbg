@@ -946,7 +946,7 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
     int_t wMaxByteCountToRead;
     int_t wNewRVA;
 
-    if(mMemPage->getSize() < rva)
+    if(mMemPage->getSize() < (uint_t)rva)
         return rva;
     wRemainingBytes = mMemPage->getSize() - rva;
 

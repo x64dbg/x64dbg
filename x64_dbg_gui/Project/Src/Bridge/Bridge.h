@@ -24,7 +24,7 @@ public:
     static void initBridge();
 
     // Misc functions
-    static void CopyToClipboard(const char* text);
+    static void CopyToClipboard(const QString & text);
 
     //result function
     void BridgeSetResult(int_t result);

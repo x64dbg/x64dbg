@@ -633,10 +633,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent* event)
         }
         QClipboard* clipboard = QApplication::clipboard();
         if(result.length())
-        {
             clipboard->setText(result.toUpper().trimmed());
-            QApplication::beep();
-        }
     }
 
     // Switch between insert/overwrite mode

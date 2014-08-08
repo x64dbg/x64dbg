@@ -443,7 +443,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     while(szModName[len] != '\\')
         len--;
     char szDirName[MAX_PATH] = "";
-    strcpy(szDirName, szModName);
+    strcpy_s(szDirName, szModName);
     szDirName[len] = '\0';
 
     QString filename = QFileDialog::getSaveFileName(this, "Save file", szDirName, "All files (*.*)");
@@ -513,7 +513,7 @@ void PatchDialog::on_btnImport_clicked()
         QString curLine = lines.at(i);
         if(curLine.startsWith(">")) //module
         {
-            strcpy(curPatch.mod, curLine.toUtf8().constData() + 1);
+            strcpy_s(curPatch.mod, curLine.toUtf8().constData() + 1);
             modbase = DbgFunctions()->ModBaseFromName(curPatch.mod);
             continue;
         }
