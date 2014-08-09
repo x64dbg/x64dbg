@@ -82,6 +82,9 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUDisassembly::addFollowMenuItem(QString name, int_t value)
 {
+    foreach(QAction * action, mFollowMenu->actions()) //check for duplicate action
+    if(action->text() == name)
+        return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     mFollowMenu->addAction(newAction);
