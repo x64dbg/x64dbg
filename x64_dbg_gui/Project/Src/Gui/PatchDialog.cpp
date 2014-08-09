@@ -99,7 +99,7 @@ void PatchDialog::updatePatches()
     size_t cbsize;
     if(!DbgFunctions()->PatchEnum(0, &cbsize))
         return;
-    int numPatches = cbsize / sizeof(DBGPATCHINFO);
+    int numPatches = (int)cbsize / sizeof(DBGPATCHINFO);
     if(!numPatches)
         return;
     DBGPATCHINFO* patches = new DBGPATCHINFO[numPatches];
@@ -439,7 +439,7 @@ void PatchDialog::on_btnPatchFile_clicked()
     }
 
     //open the save file dialog
-    int len = strlen(szModName);
+    int len = (int)strlen(szModName);
     while(szModName[len] != '\\')
         len--;
     char szDirName[MAX_PATH] = "";

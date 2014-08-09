@@ -287,7 +287,7 @@ void MainWindow::refreshShortcuts()
 void MainWindow::loadMRUList(int maxItems)
 {
     mMaxMRU = maxItems;
-    for(unsigned int i = 0; i < mMaxMRU; i++)
+    for(int i = 0; i < mMaxMRU; i++)
     {
         char currentFile[MAX_PATH] = "";
         if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i + 1).toUtf8().constData(), currentFile))
@@ -324,7 +324,7 @@ void MainWindow::removeMRUEntry(QString entry)
 {
     if(!entry.size())
         return;
-    std::vector<QString>::iterator it;
+    QList<QString>::iterator it;
 
     for(it = mMRUList.begin(); it != mMRUList.end(); ++it)
     {
@@ -369,7 +369,7 @@ void MainWindow::updateMRUMenu()
     if(mMRUList.size() > 0)
     {
         list = fileMenu->actions();
-        for(unsigned int index = 0; index < mMRUList.size(); ++index)
+        for(int index = 0; index < mMRUList.size(); ++index)
         {
             fileMenu->addAction(new QAction(mMRUList.at(index), this));
             fileMenu->actions().last()->setObjectName(QString("MRU").append(QString::number(index)));
@@ -378,7 +378,7 @@ void MainWindow::updateMRUMenu()
     }
 }
 
-QString MainWindow::getMRUEntry(size_t index)
+QString MainWindow::getMRUEntry(int index)
 {
     QString path;
 
@@ -505,7 +505,7 @@ void MainWindow::openFile()
     //file is from open button
     bool update = true;
     if(fileToOpen == NULL || fileToOpen->objectName().compare("actionOpen") == 0)
-        for(unsigned int i = 0; i < mMRUList.size(); i++)
+        for(int i = 0; i < mMRUList.size(); i++)
             if(mMRUList.at(i) == filename)
             {
                 update = false;

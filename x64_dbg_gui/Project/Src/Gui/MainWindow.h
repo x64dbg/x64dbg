@@ -123,8 +123,8 @@ private:
 
     const char* mWindowMainTitle;
 
-    std::vector<QString> mMRUList;
-    unsigned int mMaxMRU;
+    QList<QString> mMRUList;
+    int mMaxMRU;
     unsigned int lastException;
 
     void loadMRUList(int maxItems);
@@ -132,7 +132,7 @@ private:
     void addMRUEntry(QString entry);
     void removeMRUEntry(QString entry);
     void updateMRUMenu();
-    QString getMRUEntry(size_t index);
+    QString getMRUEntry(int index);
 
     //menu api
     struct MenuEntryInfo
