@@ -167,7 +167,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options = NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral | ShowSegmentRegs;
 
     mDisasmStruct.EIP = (UIntPtr)((uint_t)data + (uint_t)instIndex);
     mDisasmStruct.VirtualAddr = origBase + origInstRVA;
@@ -182,7 +182,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
         wInst.instStr.chop(1);
     wInst.dump = QByteArray((char*)mDisasmStruct.EIP, len);
     wInst.rva = origInstRVA;
-    wInst.lentgh = len;
+    wInst.length = len;
     wInst.disasm = mDisasmStruct;
 
     //tokenize

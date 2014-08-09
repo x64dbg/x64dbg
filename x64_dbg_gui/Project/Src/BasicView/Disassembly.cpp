@@ -93,46 +93,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     {
         char label[MAX_LABEL_SIZE] = "";
         int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
-        QString addrText = "";
-        if(mRvaDisplayEnabled) //RVA display
-        {
-            int_t rva = cur_addr - mRvaDisplayBase;
-            if(rva == 0)
-            {
-#ifdef _WIN64
-                addrText = "$ ==>            ";
-#else
-                addrText = "$ ==>    ";
-#endif //_WIN64
-            }
-            else if(rva > 0)
-            {
-#ifdef _WIN64
-                addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-            else if(rva < 0)
-            {
-#ifdef _WIN64
-                addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
-#else
-                addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
-#endif //_WIN64
-            }
-        }
-        addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
-        {
-            char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(cur_addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText += " <" + QString(module) + "." + QString(label) + ">";
-            else
-                addrText += " <" + QString(label) + ">";
-        }
-        else
-            *label = 0;
+        QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
         if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
@@ -317,7 +278,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
-        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).lentgh - 1);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
         if(funcLast == FUNC_END)
             funcFirst = funcLast;
         switch(funcFirst)
@@ -356,10 +317,11 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         curByte.flags = RichTextPainter::FlagColor;
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
         {
+            if(i)
+                richBytes.push_back(space);
             curByte.text = QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
             curByte.textColor = DbgFunctions()->PatchGet(cur_addr + i) ? patchedBytesColor : bytesColor;
             richBytes.push_back(curByte);
-            richBytes.push_back(space);
         }
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes, getCharWidth());
     }
@@ -946,7 +908,7 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
     int_t wMaxByteCountToRead;
     int_t wNewRVA;
 
-    if(mMemPage->getSize() < rva)
+    if(mMemPage->getSize() < (uint_t)rva)
         return rva;
     wRemainingBytes = mMemPage->getSize() - rva;
 
@@ -1176,6 +1138,33 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 /************************************************************************************
                          Update/Reload/Refresh/Repaint
 ************************************************************************************/
+
+void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer)
+{
+    instBuffer->clear();
+    Instruction_t wInst;
+    for(int wI = 0; wI < wCount; wI++)
+    {
+        wInst = DisassembleAt(wRVA);
+        instBuffer->append(wInst);
+        wRVA += wInst.length;
+    }
+}
+
+void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer)
+{
+    int wCount = 0;
+    int_t addr = startRva;
+    while(addr < endRva)
+    {
+        addr = getNextInstructionRVA(addr, 1);
+        wCount++;
+    }
+    if(addr - 1 != endRva)
+        wCount--;
+    prepareDataCount(startRva, wCount, instBuffer);
+}
+
 void Disassembly::prepareData()
 {
     int_t wViewableRowsCount = getViewableRowsCount();
@@ -1200,19 +1189,7 @@ void Disassembly::prepareData()
 
     setNbrOfLineToPrint(wCount);
 
-    int wI = 0;
-    int_t wRVA = 0;
-    Instruction_t wInst;
-
-    wRVA = getTableOffset();
-    mInstBuffer.clear();
-
-    for(wI = 0; wI < wCount; wI++)
-    {
-        wInst = DisassembleAt(wRVA);
-        mInstBuffer.append(wInst);
-        wRVA += wInst.lentgh;
-    }
+    prepareDataCount(getTableOffset(), wCount, &mInstBuffer);
 }
 
 void Disassembly::reloadData()
@@ -1311,7 +1288,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         }
         else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
         {
-            setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().lentgh);
+            setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().length);
         }
         else
         {
@@ -1441,4 +1418,52 @@ bool Disassembly::historyHasNext()
     if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
         return false;
     return true;
+}
+
+QString Disassembly::getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE])
+{
+    QString addrText = "";
+    if(mRvaDisplayEnabled) //RVA display
+    {
+        int_t rva = cur_addr - mRvaDisplayBase;
+        if(rva == 0)
+        {
+#ifdef _WIN64
+            addrText = "$ ==>            ";
+#else
+            addrText = "$ ==>    ";
+#endif //_WIN64
+        }
+        else if(rva > 0)
+        {
+#ifdef _WIN64
+            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+        else if(rva < 0)
+        {
+#ifdef _WIN64
+            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+    }
+    addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label_[MAX_LABEL_SIZE] = "";
+    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+            addrText += " <" + QString(module) + "." + QString(label_) + ">";
+        else
+            addrText += " <" + QString(label_) + ">";
+    }
+    else
+        *label_ = 0;
+    if(label)
+        strcpy(label, label_);
+    return addrText;
 }

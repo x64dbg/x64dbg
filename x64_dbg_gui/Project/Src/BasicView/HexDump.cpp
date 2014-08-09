@@ -147,6 +147,15 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
 void HexDump::mousePressEvent(QMouseEvent* event)
 {
+    if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
+    {
+        if(!DbgIsDebugging())
+            return;
+        MessageBeep(MB_OK);
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        Bridge::CopyToClipboard(addrText);
+        return;
+    }
     //qDebug() << "HexDump::mousePressEvent";
 
     int x = event->x();

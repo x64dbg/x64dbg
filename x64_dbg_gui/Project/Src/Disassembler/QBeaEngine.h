@@ -12,7 +12,7 @@ typedef struct _Instruction_t
     QString instStr;
     QByteArray dump;
     uint_t rva;
-    int lentgh;
+    int length;
     DISASM disasm;
     BeaTokenizer::BeaInstructionToken tokens;
 } Instruction_t;

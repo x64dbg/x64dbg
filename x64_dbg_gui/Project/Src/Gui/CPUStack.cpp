@@ -505,7 +505,7 @@ void CPUStack::binaryCopySlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true).toUtf8().constData());
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
 }
 
 void CPUStack::binaryPasteSlot()

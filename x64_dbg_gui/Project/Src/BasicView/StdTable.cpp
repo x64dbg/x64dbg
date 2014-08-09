@@ -304,7 +304,7 @@ void StdTable::copyLineSlot()
             finalText += "\r\n";
         }
     }
-    Bridge::CopyToClipboard(finalText.toUtf8().constData());
+    Bridge::CopyToClipboard(finalText);
 }
 
 void StdTable::copyTableSlot()
@@ -353,7 +353,7 @@ void StdTable::copyTableSlot()
             finalText += finalRowText + "\r\n";
         }
     }
-    Bridge::CopyToClipboard(finalText.toUtf8().constData());
+    Bridge::CopyToClipboard(finalText);
 }
 
 void StdTable::copyEntrySlot()
@@ -362,7 +362,7 @@ void StdTable::copyEntrySlot()
     if(!action)
         return;
     int col = action->objectName().toInt();
-    Bridge::CopyToClipboard(getCellContent(getInitialSelection(), col).toUtf8().constData());
+    Bridge::CopyToClipboard(getCellContent(getInitialSelection(), col));
 }
 
 void StdTable::setupCopyMenu(QMenu* copyMenu)

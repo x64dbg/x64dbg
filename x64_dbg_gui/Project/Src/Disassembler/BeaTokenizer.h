@@ -84,7 +84,7 @@ public:
     static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList, const BeaSingleToken* highlightToken);
     static bool TokenFromX(const BeaInstructionToken* instr, BeaSingleToken* token, int x, int charwidth);
     static bool IsHighlightableToken(const BeaSingleToken* token);
-    static bool TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b);
+    static bool TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b, bool ignoreSize = true);
 
 private:
     //variables

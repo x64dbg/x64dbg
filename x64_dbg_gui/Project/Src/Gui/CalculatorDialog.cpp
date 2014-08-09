@@ -98,6 +98,7 @@ void CalculatorDialog::validateExpression()
 
 void CalculatorDialog::on_txtExpression_textChanged(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     ui->txtHex->setStyleSheet("");
     ui->txtSignedDec->setStyleSheet("");
     ui->txtUnsignedDec->setStyleSheet("");

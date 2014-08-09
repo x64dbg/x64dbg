@@ -50,7 +50,7 @@ void memupdatemap(HANDLE hProcess)
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {
-        if(bListAllPages || !pageVector.at(i).info[0] || scmp(curMod, pageVector.at(i).info)) //there is a module
+        if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
         uint base = modbasefromname(pageVector.at(i).info);
@@ -60,68 +60,58 @@ void memupdatemap(HANDLE hProcess)
         if(!modsectionsfromaddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
-        MEMPAGE newPage;
-        //remove the current module page (page = size of module at this point) and insert the module sections
-        pageVector.erase(pageVector.begin() + i); //remove the SizeOfImage page
-        for(int j = SectionNumber - 1; j > -1; j--)
+        if(!SectionNumber) //no sections = skip
+            continue;
+        if(!bListAllPages) //normal view
         {
-            memset(&newPage, 0, sizeof(MEMPAGE));
-
-            VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-            uint SectionSize = sections.at(j).size;
-            if(SectionSize % PAGE_SIZE) //unaligned page size
-                SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
-            if(SectionSize)
-                newPage.mbi.RegionSize = SectionSize;
-            const char* SectionName = &sections.at(j).name[0];
-            int len = (int)strlen(SectionName);
-            int escape_count = 0;
-            for(int k = 0; k < len; k++)
-                if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
-                    escape_count++;
-            Memory<char*> SectionNameEscaped(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
-            memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
-            for(int k = 0, l = 0; k < len; k++)
+            MEMPAGE newPage;
+            //remove the current module page (page = size of module at this point) and insert the module sections
+            pageVector.erase(pageVector.begin() + i); //remove the SizeOfImage page
+            for(int j = SectionNumber - 1; j > -1; j--)
             {
-                switch(SectionName[k])
-                {
-                case '\t':
-                    l += sprintf(SectionNameEscaped + l, "\\t");
-                    break;
-                case '\f':
-                    l += sprintf(SectionNameEscaped + l, "\\f");
-                    break;
-                case '\v':
-                    l += sprintf(SectionNameEscaped + l, "\\v");
-                    break;
-                case '\n':
-                    l += sprintf(SectionNameEscaped + l, "\\n");
-                    break;
-                case '\r':
-                    l += sprintf(SectionNameEscaped + l, "\\r");
-                    break;
-                case '\\':
-                    l += sprintf(SectionNameEscaped + l, "\\\\");
-                    break;
-                case '\"':
-                    l += sprintf(SectionNameEscaped + l, "\\\"");
-                    break;
-                default:
-                    if(!isprint(SectionName[k])) //unknown unprintable character
-                        l += sprintf(SectionNameEscaped + l, "\\x%.2X", SectionName[k]);
-                    else
-                        l += sprintf(SectionNameEscaped + l, "%c", SectionName[k]);
-                    break;
-                }
+                memset(&newPage, 0, sizeof(MEMPAGE));
+                VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                uint SectionSize = sections.at(j).size;
+                if(SectionSize % PAGE_SIZE) //unaligned page size
+                    SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
+                if(SectionSize)
+                    newPage.mbi.RegionSize = SectionSize;
+                sprintf(newPage.info, " \"%s\"", sections.at(j).name);
+                pageVector.insert(pageVector.begin() + i, newPage);
             }
-            sprintf(newPage.info, " \"%s\"", SectionNameEscaped);
+            //insert the module itself (the module header)
+            memset(&newPage, 0, sizeof(MEMPAGE));
+            VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+            strcpy(newPage.info, curMod);
             pageVector.insert(pageVector.begin() + i, newPage);
         }
-        //insert the module itself (the module header)
-        memset(&newPage, 0, sizeof(MEMPAGE));
-        VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-        strcpy(newPage.info, curMod);
-        pageVector.insert(pageVector.begin() + i, newPage);
+        else //list all pages
+        {
+            uint start = (uint)pageVector.at(i).mbi.BaseAddress;
+            uint end = start + pageVector.at(i).mbi.RegionSize;
+            char section[50] = "";
+            for(int j = 0, k = 0; j < SectionNumber; j++)
+            {
+                uint secStart = sections.at(j).addr;
+                uint SectionSize = sections.at(j).size;
+                if(SectionSize % PAGE_SIZE) //unaligned page size
+                    SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
+                uint secEnd = secStart + SectionSize;
+
+                if(secStart >= start && secEnd <= end) //section is inside the memory page
+                {
+                    if(k)
+                        k += sprintf(pageVector.at(i).info + k, ",");
+                    k += sprintf(pageVector.at(i).info + k, " \"%s\"", sections.at(j).name);
+                }
+                else if(start >= secStart && end <= secEnd) //memory page is inside the section
+                {
+                    if(k)
+                        k += sprintf(pageVector.at(i).info + k, ",");
+                    k += sprintf(pageVector.at(i).info + k, " \"%s\"", sections.at(j).name);
+                }
+            }
+        }
     }
 
     //convert to memoryPages map

@@ -37,7 +37,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 21
+#define DBG_VERSION 22
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
@@ -575,6 +575,7 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 #define GUI_STACK 2
 
 #define GUI_MAX_LINE_SIZE 65536
+#define GUI_MAX_DISASSEMBLY_SIZE 2048
 
 //Gui enums
 typedef enum

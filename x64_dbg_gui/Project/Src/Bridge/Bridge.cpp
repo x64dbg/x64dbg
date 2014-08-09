@@ -18,22 +18,10 @@ Bridge::~Bridge()
     delete mBridgeMutex;
 }
 
-void Bridge::CopyToClipboard(const char* text)
+void Bridge::CopyToClipboard(const QString & text)
 {
-    HGLOBAL hText;
-    char* pText;
-    int len = strlen(text);
-    if(!len)
-        return;
-
-    hText = GlobalAlloc(GMEM_DDESHARE | GMEM_MOVEABLE, len + 1);
-    pText = (char*)GlobalLock(hText);
-    strcpy(pText, text);
-
-    OpenClipboard(0);
-    EmptyClipboard();
-    SetClipboardData(CF_OEMTEXT, hText);
-    CloseClipboard();
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(text);
 }
 
 void Bridge::BridgeSetResult(int_t result)
@@ -650,7 +638,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         QString finalInstruction = "";
         for(int i = 0; i < richText.size(); i++)
             finalInstruction += richText.at(i).text;
-        strcpy(text, finalInstruction.toUtf8().constData());
+        strcpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData());
         return (void*)1;
     }
     break;
@@ -696,9 +684,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         QString text = "";
         if(Bridge::getBridge()->emitGetStrWindow(QString(reinterpret_cast<const char*>(param1)), &text))
         {
-            if(text.length() >= GUI_MAX_LINE_SIZE)
-                text.chop(text.length() - GUI_MAX_LINE_SIZE);
-            strcpy((char*)param2, text.toUtf8().constData());
+            strcpy_s((char*)param2, GUI_MAX_LINE_SIZE, text.toUtf8().constData());
             return (void*)(uint_t)true;
         }
         return (void*)(uint_t)false; //cancel/escape

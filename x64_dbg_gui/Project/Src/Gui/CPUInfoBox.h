@@ -25,6 +25,7 @@ private:
     int_t curAddr;
     QString getSymbolicName(int_t addr);
     void setInfoLine(int line, QString text);
+    QString getInfoLine(int line);
     void clear();
 };
 

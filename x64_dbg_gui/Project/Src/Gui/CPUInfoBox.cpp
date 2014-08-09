@@ -30,6 +30,13 @@ void CPUInfoBox::setInfoLine(int line, QString text)
     reloadData();
 }
 
+QString CPUInfoBox::getInfoLine(int line)
+{
+    if(line < 0 || line > 2)
+        return QString();
+    return getCellContent(line, 0);
+}
+
 void CPUInfoBox::clear()
 {
     setInfoLine(0, "");
@@ -133,6 +140,8 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
             j++;
         }
     }
+    if(getInfoLine(0) == getInfoLine(1)) //check for duplicate info line
+        setInfoLine(1, "");
     //set last line
     QString info;
     char mod[MAX_MODULE_SIZE] = "";
@@ -169,6 +178,9 @@ void CPUInfoBox::followActionSlot()
 
 void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, int_t value)
 {
+    foreach(QAction * action, menu->actions()) //check for duplicate action
+    if(action->text() == name)
+        return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);

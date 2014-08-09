@@ -197,6 +197,7 @@ static void registercommands()
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
+    dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
@@ -277,6 +278,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
+    CreateDirectoryA(plugindir, 0);
     pluginload(plugindir);
     //handle command line
     int argc = 0;

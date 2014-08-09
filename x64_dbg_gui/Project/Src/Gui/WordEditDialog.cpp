@@ -93,6 +93,7 @@ void WordEditDialog::validateExpression()
 
 void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 

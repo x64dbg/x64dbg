@@ -19,11 +19,10 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
 {
     if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
     {
-        if(DbgIsDebugging())
-        {
-            QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-            Bridge::CopyToClipboard(addrText.toUtf8().constData());
-        }
+        if(!DbgIsDebugging())
+            return;
+        MessageBeep(MB_OK);
+        copyAddress();
     }
     else
     {
@@ -83,6 +82,9 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPUDisassembly::addFollowMenuItem(QString name, int_t value)
 {
+    foreach(QAction * action, mFollowMenu->actions()) //check for duplicate action
+    if(action->text() == name)
+        return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     mFollowMenu->addAction(newAction);
@@ -150,20 +152,16 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Build Menu
         wMenu->addMenu(mBinaryMenu);
+        wMenu->addMenu(mCopyMenu);
         int_t start = rvaToVa(getSelectionStart());
         int_t end = rvaToVa(getSelectionEnd());
         if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
             wMenu->addAction(mUndoSelection);
-        wMenu->addMenu(mFollowMenu);
-        setupFollowMenu(wVA);
 
         // BP Menu
         mBPMenu->clear();
-
         // Soft BP
         mBPMenu->addAction(mToggleInt3BpAction);
-
-
         // Hardware BP
         if((wBpType & bp_hardware) == bp_hardware)
         {
@@ -220,6 +218,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 BridgeFree(wBPList.bp);
         }
         wMenu->addMenu(mBPMenu);
+        wMenu->addMenu(mFollowMenu);
+        setupFollowMenu(wVA);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -435,6 +435,29 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Menu
     mFollowMenu = new QMenu("&Follow in Dump", this);
 
+    //-------------------- Copy -------------------------------------
+    mCopyMenu = new QMenu("&Copy", this);
+
+    mCopySelection = new QAction("&Selection", this);
+    mCopySelection->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mCopySelection);
+    connect(mCopySelection, SIGNAL(triggered()), this, SLOT(copySelection()));
+
+    mCopySelectionNoBytes = new QAction("Selection (&No Bytes)", this);
+    connect(mCopySelectionNoBytes, SIGNAL(triggered()), this, SLOT(copySelectionNoBytes()));
+
+    mCopyAddress = new QAction("&Address", this);
+    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddress()));
+
+    mCopyDisassembly = new QAction("Disassembly", this);
+    connect(mCopyDisassembly, SIGNAL(triggered()), this, SLOT(copyDisassembly()));
+
+    mCopyMenu->addAction(mCopySelection);
+    mCopyMenu->addAction(mCopySelectionNoBytes);
+    mCopyMenu->addAction(mCopyAddress);
+    mCopyMenu->addAction(mCopyDisassembly);
+
+
     //-------------------- Find references to -----------------------
     // Menu
     mReferencesMenu = new QMenu("Find &references to", this);
@@ -448,6 +471,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- Search for -----------------------------
     // Menu
     mSearchMenu = new QMenu("&Search for", this);
+
+    // Command
+    mSearchCommand = new QAction("C&ommand", this);
+    mSearchCommand->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mSearchCommand);
+    connect(mSearchCommand, SIGNAL(triggered()), this, SLOT(findCommand()));
 
     // Constant
     mSearchConstant = new QAction("&Constant", this);
@@ -505,6 +534,8 @@ void CPUDisassembly::refreshShortcutsSlot()
     mReferenceSelectedAddress->setShortcut(ConfigShortcut("ActionFindReferencesToSelectedAddress"));
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
+    mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
+    mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -758,7 +789,6 @@ void CPUDisassembly::assembleAt()
         return;
     int_t wRVA = getInitialSelection();
     uint_t wVA = rvaToVa(wRVA);
-    LineEditDialog mLineEdit(this);
     QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
 
     QByteArray wBuffer;
@@ -780,6 +810,7 @@ void CPUDisassembly::assembleAt()
     QBeaEngine* disasm = new QBeaEngine();
     Instruction_t instr = disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
+    LineEditDialog mLineEdit(this);
     mLineEdit.setText(instr.instStr);
     mLineEdit.setWindowTitle("Assemble at " + addr_text);
     mLineEdit.setCheckBoxText("&Fill with NOP's");
@@ -984,7 +1015,7 @@ void CPUDisassembly::binaryCopySlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true).toUtf8().constData());
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
 }
 
 void CPUDisassembly::binaryPasteSlot()
@@ -1033,4 +1064,115 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 void CPUDisassembly::showPatchesSlot()
 {
     emit showPatches();
+}
+
+void CPUDisassembly::copySelection(bool copyBytes)
+{
+    QList<Instruction_t> instBuffer;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    QString clipboard = "";
+    const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
+    const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
+    const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
+    for(int i = 0; i < instBuffer.size(); i++)
+    {
+        if(i)
+            clipboard += "\r\n";
+        int_t cur_addr = rvaToVa(instBuffer.at(i).rva);
+        QString address = getAddrText(cur_addr, 0);
+        QString bytes;
+        for(int j = 0; j < instBuffer.at(i).dump.size(); j++)
+        {
+            if(j)
+                bytes += " ";
+            bytes += QString("%1").arg((unsigned char)(instBuffer.at(i).dump.at(j)), 2, 16, QChar('0')).toUpper();
+        }
+        QString disassembly;
+        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
+        for(int j = 0; j < token->tokens.size(); j++)
+            disassembly += token->tokens.at(j).text;
+        char comment[MAX_COMMENT_SIZE] = "";
+        QString fullComment;
+        if(DbgGetCommentAt(cur_addr, comment))
+            fullComment = " ;" + QString(comment);
+        clipboard += address.leftJustified(addressLen, QChar(' '), true);
+        if(copyBytes)
+            clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        clipboard += " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+    }
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::copySelection()
+{
+    copySelection(true);
+}
+
+void CPUDisassembly::copySelectionNoBytes()
+{
+    copySelection(false);
+}
+
+void CPUDisassembly::copyAddress()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::CopyToClipboard(addrText);
+}
+
+void CPUDisassembly::copyDisassembly()
+{
+    QList<Instruction_t> instBuffer;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    QString clipboard = "";
+    for(int i = 0; i < instBuffer.size(); i++)
+    {
+        if(i)
+            clipboard += "\r\n";
+        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
+        for(int j = 0; j < token->tokens.size(); j++)
+            clipboard += token->tokens.at(j).text;
+    }
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::findCommand()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    LineEditDialog mLineEdit(this);
+    mLineEdit.enableCheckBox(true);
+    mLineEdit.setCheckBoxText("Entire &Block");
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.setWindowTitle("Find Command");
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    Config()->setBool("Disassembler", "FindCommandEntireBlock", mLineEdit.bChecked);
+
+    char error[MAX_ERROR_SIZE] = "";
+    unsigned char dest[16];
+    int asmsize = 0;
+    uint_t va = rvaToVa(getInitialSelection());
+
+    if(!DbgFunctions()->Assemble(va + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+
+    QString addr_text = QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+
+    if(!mLineEdit.bChecked)
+    {
+        int_t size = mMemPage->getSize();
+        DbgCmdExec(QString("findasm \"%1\", %2, .%3").arg(mLineEdit.editText).arg(addr_text).arg(size).toUtf8().constData());
+    }
+    else
+        DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
+
+    emit displayReferencesWidget();
 }

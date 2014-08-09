@@ -20,7 +20,7 @@ uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -84,7 +84,7 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 
     if(data == NULL)
         return 0;
@@ -118,7 +118,7 @@ const char* disasmtext(uint addr)
     unsigned char buffer[16] = "";
     DbgMemRead(addr, buffer, 16);
     DISASM disasm;
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64
@@ -226,7 +226,7 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
     memset(instr, 0, sizeof(DISASM_INSTR));
     DISASM disasm;
     memset(&disasm, 0, sizeof(DISASM));
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64
@@ -427,7 +427,7 @@ int disasmgetsize(uint addr, unsigned char* data)
 {
     DISASM disasm;
     memset(&disasm, 0, sizeof(DISASM));
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64

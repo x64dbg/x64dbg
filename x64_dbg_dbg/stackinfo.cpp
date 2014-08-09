@@ -26,7 +26,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     uint previousInstr = readStart + prev;
 
     DISASM disasm;
-    disasm.Options = NoformatNumeral;
+    disasm.Options = NoformatNumeral | ShowSegmentRegs;
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64

@@ -31,6 +31,8 @@ public:
     void setupFollowMenu(int_t wVA);
     void setHwBpAt(uint_t va, int slot);
 
+    void copySelection(bool copyBytes);
+
 signals:
     void displayReferencesWidget();
     void showPatches();
@@ -70,6 +72,11 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
     void showPatchesSlot();
+    void copySelection();
+    void copySelectionNoBytes();
+    void copyAddress();
+    void copyDisassembly();
+    void findCommand();
 
 private:
 
@@ -81,6 +88,7 @@ private:
     QMenu* mHwSlotSelectMenu;
     QMenu* mReferencesMenu;
     QMenu* mSearchMenu;
+    QMenu* mCopyMenu;
 
     QAction* mBinaryEditAction;
     QAction* mBinaryFillAction;
@@ -107,12 +115,17 @@ private:
     QAction* mGotoPrevious;
     QAction* mGotoNext;
     QAction* mReferenceSelectedAddress;
+    QAction* mSearchCommand;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
     QAction* mSearchCalls;
     QAction* mSearchPattern;
     QAction* mEnableHighlightingMode;
     QAction* mPatchesAction;
+    QAction* mCopySelection;
+    QAction* mCopySelectionNoBytes;
+    QAction* mCopyAddress;
+    QAction* mCopyDisassembly;
 
     GotoDialog* mGoto;
 };

@@ -1410,7 +1410,7 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
             actual_arch = x32;
         else
         {
-            dputs("Unkown jit auto entry type use x64 or x32 parameter");
+            dputs("Unknown JIT auto entry type. Use x64 or x32 as parameter.");
             return STATUS_ERROR;
         }
 
@@ -1425,10 +1425,10 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
     }
     else
     {
-        dputs("Unkown jit auto entry type use x64 or x32 parameter");
+        dputs("Unknown JIT auto entry type. Use x64 or x32 as parameter");
     }
 
-    dprintf(" JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
+    dprintf("JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
 
     return STATUS_CONTINUE;
 }
@@ -1439,7 +1439,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     bool set_jit_auto;
     if(argc < 2)
     {
-        dprintf("Error setting JIT Auto use ON/1 or OFF/0 arg or x64/x32, ON/1 or OFF/0 args\n");
+        dprintf("Error setting JIT Auto. Use ON:1 or OFF:0 arg or x64/x32, ON:1 or OFF:0.\n");
         return STATUS_ERROR;
     }
     else if(argc == 2)
@@ -1450,7 +1450,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             set_jit_auto = false;
         else
         {
-            dputs("Error unkown parameters use ON/1 or OFF/0");
+            dputs("Error unknown parameters. Use ON:1 or OFF:0");
             return STATUS_ERROR;
         }
 
@@ -1471,7 +1471,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             actual_arch = x32;
         else
         {
-            dputs("Unkown jit auto entry type use x64 or x32 parameter");
+            dputs("Unknown JIT auto entry type. Use x64 or x32 as parameter");
             return STATUS_ERROR;
         }
 
@@ -1482,7 +1482,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
         else
         {
             return STATUS_ERROR;
-            dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0\n");
+            dputs("Error unknown parameters. Use x86 or x64 and ON:1 or OFF:0\n");
         }
 
         if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL, & rw_error))
@@ -1497,7 +1497,7 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     }
     else
     {
-        dputs("Error unkown parameters use x86 or x64, ON/1 or OFF/0\n");
+        dputs("Error unknown parameters use x86 or x64, ON/1 or OFF/0\n");
         return STATUS_ERROR;
     }
 
@@ -1541,7 +1541,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
-                dputs(" Error dont exist an OLD JIT, please use setjit command");
+                dputs("There is no old JIT entry stored. Please use the setjit command.");
                 return STATUS_ERROR; //nothing to restore
             }
 
@@ -1572,7 +1572,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             actual_arch = x32;
         else
         {
-            dputs("Unkown jit entry type use x64 or x32 parameter");
+            dputs("Unknown JIT entry type. Use x64 or x32 as parameter.");
             return STATUS_ERROR;
         }
 
@@ -1580,7 +1580,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
         if(!dbgsetjit(jit_debugger_cmd, actual_arch, NULL, & rw_error))
         {
             if(rw_error == ERROR_RW_NOTWOW64)
-                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+                dprintf("Error using x64 arg. The debugger is not a WOW64 process\n");
             else
                 dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
@@ -1588,7 +1588,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     else
     {
-        dputs("Error unkown parameters use x86 or x64, cmdline");
+        dputs("Error unknown parameters. Use x86 or x64 as parameter.");
         return STATUS_ERROR;
     }
 
@@ -1619,21 +1619,21 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
             actual_arch = x32;
         else
         {
-            dputs("Unkown jit entry type use x64 or x32 parameter");
+            dputs("Unknown JIT entry type. Use x64 or x32 as parameter.");
             return STATUS_ERROR;
         }
 
         if(!dbggetjit(get_entry, actual_arch, NULL, & rw_error))
         {
             if(rw_error == ERROR_RW_NOTWOW64)
-                dprintf("Error using x64 arg the debugger is not a WOW64 process\n");
+                dprintf("Error using x64 arg. The debugger is not a WOW64 process\n");
             else
                 dprintf("Error getting JIT %s\n", argv[1]);
             return STATUS_ERROR;
         }
     }
 
-    dprintf(" JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry);
+    dprintf("JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry);
 
     return STATUS_CONTINUE;
 }

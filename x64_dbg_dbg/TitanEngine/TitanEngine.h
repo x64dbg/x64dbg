@@ -735,8 +735,8 @@ __declspec(dllexport) bool TITCALL SetHardwareBreakPointEx(HANDLE hActiveThread,
 __declspec(dllexport) bool TITCALL SetHardwareBreakPoint(ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL DeleteHardwareBreakPoint(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL RemoveAllBreakPoints(DWORD RemoveOption);
-__declspec(dllexport) void* TITCALL GetProcessInformation();
-__declspec(dllexport) void* TITCALL GetStartupInformation();
+__declspec(dllexport) PROCESS_INFORMATION* TITCALL TitanGetProcessInformation();
+__declspec(dllexport) STARTUPINFOW* TITCALL TitanGetStartupInformation();
 __declspec(dllexport) void TITCALL DebugLoop();
 __declspec(dllexport) void TITCALL SetDebugLoopTimeOut(DWORD TimeOut);
 __declspec(dllexport) void TITCALL SetNextDbgContinueStatus(DWORD SetDbgCode);

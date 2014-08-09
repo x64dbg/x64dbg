@@ -93,6 +93,10 @@ public:
     const int_t baseAddress() const;
     const int_t currentEIP() const;
 
+    QString getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE]);
+    void prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer);
+    void prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer);
+
 signals:
     void selectionChanged(int_t parVA);
     void disassembledAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
