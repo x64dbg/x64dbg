@@ -37,7 +37,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 21
+#define DBG_VERSION 22
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
