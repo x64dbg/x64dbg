@@ -182,7 +182,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
         wInst.instStr.chop(1);
     wInst.dump = QByteArray((char*)mDisasmStruct.EIP, len);
     wInst.rva = origInstRVA;
-    wInst.lentgh = len;
+    wInst.length = len;
     wInst.disasm = mDisasmStruct;
 
     //tokenize

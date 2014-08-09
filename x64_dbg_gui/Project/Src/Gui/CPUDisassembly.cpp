@@ -19,11 +19,10 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
 {
     if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
     {
-        if(DbgIsDebugging())
-        {
-            QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-            Bridge::CopyToClipboard(addrText);
-        }
+        if(!DbgIsDebugging())
+            return;
+        MessageBeep(MB_OK);
+        copyAddress();
     }
     else
     {
@@ -150,20 +149,16 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Build Menu
         wMenu->addMenu(mBinaryMenu);
+        wMenu->addMenu(mCopyMenu);
         int_t start = rvaToVa(getSelectionStart());
         int_t end = rvaToVa(getSelectionEnd());
         if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
             wMenu->addAction(mUndoSelection);
-        wMenu->addMenu(mFollowMenu);
-        setupFollowMenu(wVA);
 
         // BP Menu
         mBPMenu->clear();
-
         // Soft BP
         mBPMenu->addAction(mToggleInt3BpAction);
-
-
         // Hardware BP
         if((wBpType & bp_hardware) == bp_hardware)
         {
@@ -220,6 +215,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
                 BridgeFree(wBPList.bp);
         }
         wMenu->addMenu(mBPMenu);
+        wMenu->addMenu(mFollowMenu);
+        setupFollowMenu(wVA);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -435,6 +432,29 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Menu
     mFollowMenu = new QMenu("&Follow in Dump", this);
 
+    //-------------------- Copy -------------------------------------
+    mCopyMenu = new QMenu("&Copy", this);
+
+    mCopySelection = new QAction("&Selection", this);
+    mCopySelection->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mCopySelection);
+    connect(mCopySelection, SIGNAL(triggered()), this, SLOT(copySelection()));
+
+    mCopySelectionNoBytes = new QAction("Selection (&No Bytes)", this);
+    connect(mCopySelectionNoBytes, SIGNAL(triggered()), this, SLOT(copySelectionNoBytes()));
+
+    mCopyAddress = new QAction("&Address", this);
+    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddress()));
+
+    mCopyDisassembly = new QAction("Disassembly", this);
+    connect(mCopyDisassembly, SIGNAL(triggered()), this, SLOT(copyDisassembly()));
+
+    mCopyMenu->addAction(mCopySelection);
+    mCopyMenu->addAction(mCopySelectionNoBytes);
+    mCopyMenu->addAction(mCopyAddress);
+    mCopyMenu->addAction(mCopyDisassembly);
+
+
     //-------------------- Find references to -----------------------
     // Menu
     mReferencesMenu = new QMenu("Find &references to", this);
@@ -505,6 +525,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mReferenceSelectedAddress->setShortcut(ConfigShortcut("ActionFindReferencesToSelectedAddress"));
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
+    mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -1033,4 +1054,73 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 void CPUDisassembly::showPatchesSlot()
 {
     emit showPatches();
+}
+
+void CPUDisassembly::copySelection(bool copyBytes)
+{
+    QList<Instruction_t> instBuffer;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    QString clipboard = "";
+    const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
+    const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
+    const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
+    for(int i = 0; i < instBuffer.size(); i++)
+    {
+        if(i)
+            clipboard += "\r\n";
+        int_t cur_addr = rvaToVa(instBuffer.at(i).rva);
+        QString address = getAddrText(cur_addr, 0);
+        QString bytes;
+        for(int j = 0; j < instBuffer.at(i).dump.size(); j++)
+        {
+            if(j)
+                bytes += " ";
+            bytes += QString("%1").arg((unsigned char)(instBuffer.at(i).dump.at(j)), 2, 16, QChar('0')).toUpper();
+        }
+        QString disassembly;
+        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
+        for(int j = 0; j < token->tokens.size(); j++)
+            disassembly += token->tokens.at(j).text;
+        char comment[MAX_COMMENT_SIZE] = "";
+        QString fullComment;
+        if(DbgGetCommentAt(cur_addr, comment))
+            fullComment = " ;" + QString(comment);
+        clipboard += address.leftJustified(addressLen, QChar(' '), true);
+        if(copyBytes)
+            clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
+        clipboard += " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+    }
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::copySelection()
+{
+    copySelection(true);
+}
+
+void CPUDisassembly::copySelectionNoBytes()
+{
+    copySelection(false);
+}
+
+void CPUDisassembly::copyAddress()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::CopyToClipboard(addrText);
+}
+
+void CPUDisassembly::copyDisassembly()
+{
+    QList<Instruction_t> instBuffer;
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
+    QString clipboard = "";
+    for(int i = 0; i < instBuffer.size(); i++)
+    {
+        if(i)
+            clipboard += "\r\n";
+        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
+        for(int j = 0; j < token->tokens.size(); j++)
+            clipboard += token->tokens.at(j).text;
+    }
+    Bridge::CopyToClipboard(clipboard);
 }
