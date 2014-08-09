@@ -278,6 +278,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
+    CreateDirectoryA(plugindir, 0);
     pluginload(plugindir);
     //handle command line
     int argc = 0;
