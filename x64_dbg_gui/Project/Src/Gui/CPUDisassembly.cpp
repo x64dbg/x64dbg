@@ -472,6 +472,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Menu
     mSearchMenu = new QMenu("&Search for", this);
 
+    // Command
+    mSearchCommand = new QAction("C&ommand", this);
+    mSearchCommand->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mSearchCommand);
+    connect(mSearchCommand, SIGNAL(triggered()), this, SLOT(findCommand()));
+
     // Constant
     mSearchConstant = new QAction("&Constant", this);
     connect(mSearchConstant, SIGNAL(triggered()), this, SLOT(findConstant()));
@@ -529,6 +535,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
+    mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -782,7 +789,6 @@ void CPUDisassembly::assembleAt()
         return;
     int_t wRVA = getInitialSelection();
     uint_t wVA = rvaToVa(wRVA);
-    LineEditDialog mLineEdit(this);
     QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
 
     QByteArray wBuffer;
@@ -804,6 +810,7 @@ void CPUDisassembly::assembleAt()
     QBeaEngine* disasm = new QBeaEngine();
     Instruction_t instr = disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
+    LineEditDialog mLineEdit(this);
     mLineEdit.setText(instr.instStr);
     mLineEdit.setWindowTitle("Assemble at " + addr_text);
     mLineEdit.setCheckBoxText("&Fill with NOP's");
@@ -1126,4 +1133,46 @@ void CPUDisassembly::copyDisassembly()
             clipboard += token->tokens.at(j).text;
     }
     Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::findCommand()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    LineEditDialog mLineEdit(this);
+    mLineEdit.enableCheckBox(true);
+    mLineEdit.setCheckBoxText("Entire &Block");
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.setWindowTitle("Find Command");
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    Config()->setBool("Disassembler", "FindCommandEntireBlock", mLineEdit.bChecked);
+
+    char error[MAX_ERROR_SIZE] = "";
+    unsigned char dest[16];
+    int asmsize = 0;
+    uint_t va = rvaToVa(getInitialSelection());
+
+    if(!DbgFunctions()->Assemble(va + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+        return;
+    }
+
+    QString addr_text = QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+
+    if(!mLineEdit.bChecked)
+    {
+        int_t size = mMemPage->getSize();
+        DbgCmdExec(QString("findasm \"%1\", %2, .%3").arg(mLineEdit.editText).arg(addr_text).arg(size).toUtf8().constData());
+    }
+    else
+        DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
+
+    emit displayReferencesWidget();
 }

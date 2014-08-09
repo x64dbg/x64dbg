@@ -76,6 +76,7 @@ public slots:
     void copySelectionNoBytes();
     void copyAddress();
     void copyDisassembly();
+    void findCommand();
 
 private:
 
@@ -114,6 +115,7 @@ private:
     QAction* mGotoPrevious;
     QAction* mGotoNext;
     QAction* mReferenceSelectedAddress;
+    QAction* mSearchCommand;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
     QAction* mSearchCalls;
