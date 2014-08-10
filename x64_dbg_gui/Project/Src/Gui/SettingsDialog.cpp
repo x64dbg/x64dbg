@@ -240,7 +240,10 @@ void SettingsDialog::SaveSettings()
         if(bJitOld != settings.miscSetJIT)
         {
             if(settings.miscSetJIT)
+            {
+                DbgCmdExecDirect("setjit oldsave");
                 DbgCmdExecDirect("setjit");
+            }
             else
                 DbgCmdExecDirect("setjit restore");
         }
@@ -357,7 +360,26 @@ void SettingsDialog::on_chkConfirmBeforeAtt_stateChanged(int arg1)
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 {
     if(arg1 == Qt::Unchecked)
+    {
+        if(DbgFunctions()->GetJit)
+        {
+            if(!DbgFunctions()->GetJit(NULL, true))
+            {
+                QMessageBox msg(QMessageBox::Warning, "ERROR NOT FOUND OLD JIT", "NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND");
+                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                msg.setParent(this, Qt::Dialog);
+                msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                msg.exec();
+
+                settings.miscSetJIT = true;
+            }
+            else
+                settings.miscSetJIT = false;
+
+            ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
+        }
         settings.miscSetJIT = false;
+    }
     else
         settings.miscSetJIT = true;
 }
