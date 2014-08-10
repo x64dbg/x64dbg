@@ -1531,7 +1531,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             jit_debugger_cmd = oldjit;
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
-                dputs("There is no old JIT entry stored.");
+                dputs("Error there is no old JIT entry stored.");
                 return STATUS_ERROR;
             }
 
@@ -1569,8 +1569,8 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
-                dputs("There is no old JIT entry stored. Please use the setjit command.");
-                return STATUS_ERROR; //nothing to restore
+                dputs("Error there is no old JIT entry stored.");
+                return STATUS_ERROR;
             }
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
@@ -1625,7 +1625,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     else
     {
-        dputs("Error unknown parameters. Use restore, x86 or x64 as parameter.");
+        dputs("Error unknown parameters. Use old, oldsave, restore, x86 or x64 as parameter.");
         return STATUS_ERROR;
     }
 

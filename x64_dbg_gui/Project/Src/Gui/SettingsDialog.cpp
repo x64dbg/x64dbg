@@ -240,10 +240,7 @@ void SettingsDialog::SaveSettings()
         if(bJitOld != settings.miscSetJIT)
         {
             if(settings.miscSetJIT)
-            {
                 DbgCmdExecDirect("setjit oldsave");
-                DbgCmdExecDirect("setjit");
-            }
             else
                 DbgCmdExecDirect("setjit restore");
         }
