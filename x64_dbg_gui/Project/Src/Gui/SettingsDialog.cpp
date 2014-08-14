@@ -367,8 +367,18 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 
             qsjit_def_entry = jit_def_entry;
 
-            if(!DbgFunctions()->GetJit(NULL, true) && ui->editJIT->text() == qsjit_def_entry)
+            // if there are not an OLD JIT Stored GetJit(NULL,) returns false.
+            if((DbgFunctions()->GetJit(NULL, true) == false) && (ui->editJIT->text() == qsjit_def_entry))
             {
+                /*
+                 * Only do this when the user wants uncheck the JIT and there are not an OLD JIT Stored
+                 * and the JIT in Windows registry its this debugger.
+                 * Scenario 1: the JIT in Windows registry its this debugger, if the database of the
+                 * debugger was removed and the user wants uncheck the JIT: he cant (this block its executed then)
+                 * -
+                 * Scenario 2: the JIT in Windows registry its NOT this debugger, if the database of the debugger
+                 * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: he can (this block its NOT executed then).
+                */
                 QMessageBox msg(QMessageBox::Warning, "ERROR NOT FOUND OLD JIT", "NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND");
                 msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
                 msg.setParent(this, Qt::Dialog);

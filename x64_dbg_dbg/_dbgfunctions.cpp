@@ -122,7 +122,7 @@ static bool _getjit(char* jit, bool jit64)
             return false;
         strcpy(jit, jit_tmp);
     }
-    else
+    else // if jit input == NULL: it returns false if there are not an OLD JIT STORED.
     {
         char oldjit[MAX_SETTING_SIZE] = "";
         if(!BridgeSettingGet("JIT", "Old", (char*) & oldjit))
