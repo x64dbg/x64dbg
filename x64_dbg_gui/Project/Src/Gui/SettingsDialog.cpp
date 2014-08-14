@@ -360,7 +360,14 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
     {
         if(DbgFunctions()->GetJit)
         {
-            if(!DbgFunctions()->GetJit(NULL, true))
+            char jit_def_entry[MAX_SETTING_SIZE] = "";
+            QString qsjit_def_entry;
+
+            DbgFunctions()->GetDefJit(jit_def_entry);
+
+            qsjit_def_entry = jit_def_entry;
+
+            if(!DbgFunctions()->GetJit(NULL, true) && ui->editJIT->text() == qsjit_def_entry)
             {
                 QMessageBox msg(QMessageBox::Warning, "ERROR NOT FOUND OLD JIT", "NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND");
                 msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
