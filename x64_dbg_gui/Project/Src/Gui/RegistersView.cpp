@@ -306,6 +306,8 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
         mSelected = r;
         emit refresh();
     }
+    else
+        mSelected = UNKNOWN;
 }
 
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
