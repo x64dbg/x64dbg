@@ -1,6 +1,7 @@
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
+#include "memory.h"
 #include "x64_dbg.h"
 
 static std::vector<PLUG_DATA> pluginList;
@@ -249,8 +250,9 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
     {
         if(pluginCallbackList.at(i).cbType == cbType)
         {
-            //TODO: handle exceptions
-            pluginCallbackList.at(i).cbPlugin(cbType, callbackInfo);
+            CBPLUGIN cbPlugin = pluginCallbackList.at(i).cbPlugin;
+            if(memisvalidreadptr(GetCurrentProcess(), (uint)cbPlugin))
+                cbPlugin(cbType, callbackInfo);
         }
     }
 }
