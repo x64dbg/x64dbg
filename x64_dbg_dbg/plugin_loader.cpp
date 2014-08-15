@@ -205,13 +205,14 @@ static void plugincmdunregisterall(int pluginHandle)
 void pluginunload()
 {
     int pluginCount = (int)pluginList.size();
-    for(int i = 0; i < pluginCount; i++)
+    for(int i = pluginCount - 1; i > -1; i--)
     {
         PLUGSTOP stop = pluginList.at(i).plugstop;
         if(stop)
             stop();
         plugincmdunregisterall(pluginList.at(i).initStruct.pluginHandle);
         FreeLibrary(pluginList.at(i).hPlugin);
+        pluginList.erase(pluginList.begin() + i);
     }
     pluginCallbackList.clear(); //remove all callbacks
     pluginMenuList.clear(); //clear menu list
