@@ -673,7 +673,7 @@ void CPUDisassembly::setLabel()
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle("Add label at " + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.editText.length())
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
@@ -697,7 +697,7 @@ void CPUDisassembly::setComment()
     if(DbgGetCommentAt((duint)wVA, comment_text))
         mLineEdit.setText(QString(comment_text));
     mLineEdit.setWindowTitle("Add comment at " + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted)
+    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.editText.length())
         return;
     if(!DbgSetCommentAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
