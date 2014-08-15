@@ -70,7 +70,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, text);
         text = "";
     }
-    if(highlightText.length() && text.contains(highlightText, Qt::CaseInsensitive))
+    else if(highlightText.length() && text.contains(highlightText, Qt::CaseInsensitive))
     {
         //super smart way of splitting while keeping the delimiters (thanks to cypher for guidance)
         int index = -2;
@@ -84,7 +84,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
             }
         }
         while(index != -1);
-        QStringList split = text.split(QChar('\1'), QString::KeepEmptyParts, Qt::CaseInsensitive);
+        QStringList split = text.split(QChar('\1'), QString::SkipEmptyParts, Qt::CaseInsensitive);
 
         //create rich text list
         RichTextPainter::CustomRichText_t curRichText;
