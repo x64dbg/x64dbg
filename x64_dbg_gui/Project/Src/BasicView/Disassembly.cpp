@@ -1154,16 +1154,21 @@ void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>*
 
 void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer)
 {
-    int wCount = 0;
-    int_t addr = startRva;
-    while(addr < endRva)
+    if(startRva == endRva)
+        prepareDataCount(startRva, 1, instBuffer);
+    else
     {
-        addr = getNextInstructionRVA(addr, 1);
-        wCount++;
+        int wCount = 0;
+        int_t addr = startRva;
+        while(addr < endRva)
+        {
+            addr = getNextInstructionRVA(addr, 1);
+            wCount++;
+        }
+        if(addr - 1 != endRva)
+            wCount--;
+        prepareDataCount(startRva, wCount, instBuffer);
     }
-    if(addr - 1 != endRva)
-        wCount--;
-    prepareDataCount(startRva, wCount, instBuffer);
 }
 
 void Disassembly::prepareData()
