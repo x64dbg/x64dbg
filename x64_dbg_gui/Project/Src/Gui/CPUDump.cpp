@@ -521,7 +521,7 @@ void CPUDump::setLabelSlot()
     if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
     mLineEdit.setWindowTitle("Add label at " + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.editText.length())
+    if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
     {
