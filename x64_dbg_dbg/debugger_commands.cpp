@@ -1516,13 +1516,6 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     {
         char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
-        char get_entry[JIT_ENTRY_MAX_SIZE] = "";
-        if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
-        {
-            dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
-            return STATUS_ERROR;
-        }
-        strcpy_s(oldjit, get_entry);
 
         jit_debugger_cmd = path;
         if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
@@ -1530,19 +1523,54 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
-        if(_stricmp(oldjit, path))
-            BridgeSettingSet("JIT", "Old", oldjit);
     }
     else if(argc == 2)
     {
-        if(!_strcmpi(argv[1], "restore"))
+        if(!_strcmpi(argv[1], "old"))
+        {
+            jit_debugger_cmd = oldjit;
+            if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
+            {
+                dputs("Error there is no old JIT entry stored.");
+                return STATUS_ERROR;
+            }
+
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
+            {
+                dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+        }
+        else if(!_strcmpi(argv[1], "oldsave"))
+        {
+            char path[JIT_ENTRY_DEF_SIZE];
+            dbggetdefjit(path);
+            char get_entry[JIT_ENTRY_MAX_SIZE] = "";
+
+            if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
+            {
+                dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+            strcpy_s(oldjit, get_entry);
+
+            jit_debugger_cmd = path;
+            if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
+            {
+                dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                return STATUS_ERROR;
+            }
+            if(_stricmp(oldjit, path))
+                BridgeSettingSet("JIT", "Old", oldjit);
+        }
+        else if(!_strcmpi(argv[1], "restore"))
         {
             jit_debugger_cmd = oldjit;
 
             if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
             {
-                dputs("There is no old JIT entry stored. Please use the setjit command.");
-                return STATUS_ERROR; //nothing to restore
+                dputs("Error there is no old JIT entry stored.");
+                return STATUS_ERROR;
             }
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
@@ -1566,13 +1594,22 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     {
         readwritejitkey_error_t rw_error;
 
-        if(_strcmpi(argv[1], "x64") == 0)
+        if(!_strcmpi(argv[1], "old"))
+        {
+            BridgeSettingSet("JIT", "Old", argv[2]);
+
+            dprintf("New OLD JIT stored: %s\n", argv[2]);
+
+            return STATUS_CONTINUE;
+        }
+
+        else if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
         {
-            dputs("Unknown JIT entry type. Use x64 or x32 as parameter.");
+            dputs("Unknown JIT entry type. Use OLD, x64 or x32 as parameter.");
             return STATUS_ERROR;
         }
 
@@ -1588,7 +1625,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     else
     {
-        dputs("Error unknown parameters. Use x86 or x64 as parameter.");
+        dputs("Error unknown parameters. Use old, oldsave, restore, x86 or x64 as parameter.");
         return STATUS_ERROR;
     }
 
@@ -1613,13 +1650,27 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     else
     {
         readwritejitkey_error_t rw_error;
-        if(_strcmpi(argv[1], "x64") == 0)
+        char oldjit[MAX_SETTING_SIZE] = "";
+        if(_strcmpi(argv[1], "OLD") == 0)
+        {
+            if(!BridgeSettingGet("JIT", "Old", (char*) & oldjit))
+            {
+                dputs("Error: there is not an OLD JIT entry stored yet.");
+                return STATUS_ERROR;
+            }
+            else
+            {
+                dprintf("OLD JIT entry stored: %s\n", oldjit);
+                return STATUS_CONTINUE;
+            }
+        }
+        else if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
         else if(_strcmpi(argv[1], "x32") == 0)
             actual_arch = x32;
         else
         {
-            dputs("Unknown JIT entry type. Use x64 or x32 as parameter.");
+            dputs("Unknown JIT entry type. Use OLD, x64 or x32 as parameter.");
             return STATUS_ERROR;
         }
 

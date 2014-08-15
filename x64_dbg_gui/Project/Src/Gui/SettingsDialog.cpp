@@ -240,7 +240,7 @@ void SettingsDialog::SaveSettings()
         if(bJitOld != settings.miscSetJIT)
         {
             if(settings.miscSetJIT)
-                DbgCmdExecDirect("setjit");
+                DbgCmdExecDirect("setjit oldsave");
             else
                 DbgCmdExecDirect("setjit restore");
         }
@@ -357,7 +357,43 @@ void SettingsDialog::on_chkConfirmBeforeAtt_stateChanged(int arg1)
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
 {
     if(arg1 == Qt::Unchecked)
+    {
+        if(DbgFunctions()->GetJit)
+        {
+            char jit_def_entry[MAX_SETTING_SIZE] = "";
+            QString qsjit_def_entry;
+
+            DbgFunctions()->GetDefJit(jit_def_entry);
+
+            qsjit_def_entry = jit_def_entry;
+
+            // if there are not an OLD JIT Stored GetJit(NULL,) returns false.
+            if((DbgFunctions()->GetJit(NULL, true) == false) && (ui->editJIT->text() == qsjit_def_entry))
+            {
+                /*
+                 * Only do this when the user wants uncheck the JIT and there are not an OLD JIT Stored
+                 * and the JIT in Windows registry its this debugger.
+                 * Scenario 1: the JIT in Windows registry its this debugger, if the database of the
+                 * debugger was removed and the user wants uncheck the JIT: he cant (this block its executed then)
+                 * -
+                 * Scenario 2: the JIT in Windows registry its NOT this debugger, if the database of the debugger
+                 * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: he can (this block its NOT executed then).
+                */
+                QMessageBox msg(QMessageBox::Warning, "ERROR NOT FOUND OLD JIT", "NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND");
+                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                msg.setParent(this, Qt::Dialog);
+                msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                msg.exec();
+
+                settings.miscSetJIT = true;
+            }
+            else
+                settings.miscSetJIT = false;
+
+            ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
+        }
         settings.miscSetJIT = false;
+    }
     else
         settings.miscSetJIT = true;
 }

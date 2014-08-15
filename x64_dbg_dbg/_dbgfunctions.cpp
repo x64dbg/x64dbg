@@ -116,9 +116,19 @@ static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
     char jit_tmp[JIT_ENTRY_MAX_SIZE] = "";
-    if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy, NULL))
-        return false;
-    strcpy(jit, jit_tmp);
+    if(jit != NULL)
+    {
+        if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy, NULL))
+            return false;
+        strcpy(jit, jit_tmp);
+    }
+    else // if jit input == NULL: it returns false if there are not an OLD JIT STORED.
+    {
+        char oldjit[MAX_SETTING_SIZE] = "";
+        if(!BridgeSettingGet("JIT", "Old", (char*) & oldjit))
+            return false;
+    }
+
     return true;
 }
 
