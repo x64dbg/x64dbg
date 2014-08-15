@@ -81,7 +81,7 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
     }
     return finalText;
 }
-
+#include "Configuration.h"
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
     curAddr = parVA;
@@ -93,7 +93,19 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     DbgDisasmAt(parVA, &instr);
     BASIC_INSTRUCTION_INFO basicinfo;
     DbgDisasmFastAt(parVA, &basicinfo);
-    for(int i = 0, j = 0; i < instr.argcount && j < 2; i++)
+
+    int start = 0;
+    if(basicinfo.branch && !basicinfo.call && (!ConfigBool("Disassembler", "OnlyCipAutoComments") || parVA == DbgValFromString("cip"))) //jump
+    {
+        bool taken = DbgIsJumpGoingToExecute(parVA);
+        if(taken)
+            setInfoLine(0, "Jump is taken");
+        else
+            setInfoLine(0, "Jump is not taken");
+        start = 1;
+    }
+
+    for(int i = 0, j = start; i < instr.argcount && j < 2; i++)
     {
         DISASM_ARG arg = instr.arg[i];
         if(arg.type == arg_memory)
