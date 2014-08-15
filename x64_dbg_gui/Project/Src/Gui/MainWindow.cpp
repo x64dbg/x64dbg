@@ -234,6 +234,7 @@ void MainWindow::refreshShortcuts()
 {
     ui->actionOpen->setShortcut(ConfigShortcut("FileOpen"));
     ui->actionAttach->setShortcut(ConfigShortcut("FileAttach"));
+    ui->actionDetach->setShortcut(ConfigShortcut("FileDetach"));
     ui->actionExit->setShortcut(ConfigShortcut("FileExit"));
 
     ui->actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
@@ -256,7 +257,6 @@ void MainWindow::refreshShortcuts()
     ui->actionRunSelection->setShortcut(ConfigShortcut("DebugRunSelection"));
     ui->actionPause->setShortcut(ConfigShortcut("DebugPause"));
     ui->actionRestart->setShortcut(ConfigShortcut("DebugRestart"));
-    ui->actionDetach->setShortcut(ConfigShortcut("DebugDetach"));
     ui->actionClose->setShortcut(ConfigShortcut("DebugClose"));
     ui->actionStepInto->setShortcut(ConfigShortcut("DebugStepInto"));
     ui->actioneStepInto->setShortcut(ConfigShortcut("DebugeStepInfo"));
