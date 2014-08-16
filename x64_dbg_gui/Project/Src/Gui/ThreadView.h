@@ -28,7 +28,6 @@ public slots:
     void SetPriorityNormalSlot();
     void SetPriorityTimeCriticalSlot();
 
-
 signals:
     void showCpu();
 

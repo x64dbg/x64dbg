@@ -302,7 +302,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
 
             mColResizeData.lastPosX = event->x();
         }
-        else if((mHeader.isVisible == true) && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
+        else if(mHeader.isVisible && getColumnCount() && (event->y() <= getHeaderHeight()) && (event->y() >= 0))
         {
             int wColIndex = getColumnIndexFromX(event->x());
 

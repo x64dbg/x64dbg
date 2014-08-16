@@ -1453,8 +1453,10 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
+    //cleanup
     dbclose();
     modclear();
+    threadclear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", (uint)0, true);
