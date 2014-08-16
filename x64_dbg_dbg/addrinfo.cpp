@@ -346,7 +346,10 @@ bool commentset(uint addr, const char* text, bool manual)
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
         return false;
     if(!*text) //NOTE: delete when there is no text
-        return commentdel(addr);
+    {
+        commentdel(addr);
+        return true;
+    }
     COMMENTSINFO comment;
     comment.manual = manual;
     strcpy(comment.text, text);
@@ -504,7 +507,10 @@ bool labelset(uint addr, const char* text, bool manual)
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
         return false;
     if(!*text) //NOTE: delete when there is no text
-        return labeldel(addr);
+    {
+        labeldel(addr);
+        return true;
+    }
     LABELSINFO label;
     label.manual = manual;
     strcpy(label.text, text);

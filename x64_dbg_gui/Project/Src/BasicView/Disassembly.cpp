@@ -15,6 +15,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     mSelection = data;
 
     mCipRva = 0;
+    mIsRunning = false;
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
@@ -96,7 +97,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
-        if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
+        if(mInstBuffer.at(rowOffset).rva == mCipRva && !mIsRunning) //cip + not running
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
             if(!isbookmark) //no bookmark
@@ -1153,16 +1154,21 @@ void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>*
 
 void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer)
 {
-    int wCount = 0;
-    int_t addr = startRva;
-    while(addr < endRva)
+    if(startRva == endRva)
+        prepareDataCount(startRva, 1, instBuffer);
+    else
     {
-        addr = getNextInstructionRVA(addr, 1);
-        wCount++;
+        int wCount = 0;
+        int_t addr = startRva;
+        while(addr < endRva)
+        {
+            addr = getNextInstructionRVA(addr, 1);
+            wCount++;
+        }
+        if(addr - 1 != endRva)
+            wCount--;
+        prepareDataCount(startRva, wCount, instBuffer);
     }
-    if(addr - 1 != endRva)
-        wCount--;
-    prepareDataCount(startRva, wCount, instBuffer);
 }
 
 void Disassembly::prepareData()
@@ -1366,9 +1372,19 @@ void Disassembly::disassembleClear()
 
 void Disassembly::debugStateChangedSlot(DBGSTATE state)
 {
-    if(state == stopped)
+    switch(state)
     {
+    case stopped:
         disassembleClear();
+        break;
+    case paused:
+        mIsRunning = false;
+        break;
+    case running:
+        mIsRunning = true;
+        break;
+    default:
+        break;
     }
 }
 

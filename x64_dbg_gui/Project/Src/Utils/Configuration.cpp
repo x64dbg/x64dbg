@@ -150,6 +150,7 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("FillNOPs", false);
     disassemblyBool.insert("Uppercase", false);
     disassemblyBool.insert("FindCommandEntireBlock", false);
+    disassemblyBool.insert("OnlyCipAutoComments", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     //uint settings
@@ -170,6 +171,7 @@ Configuration::Configuration() : QObject()
     // hotkeys settings
     defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));
     defaultShortcuts.insert("FileAttach", Shortcut(tr("File -> Attach"), "Alt+A", true));
+    defaultShortcuts.insert("FileDetach", Shortcut(tr("File -> Detach"), "Ctrl+Alt+F2", true));
     defaultShortcuts.insert("FileExit", Shortcut(tr("File -> Exit"), "Alt+X", true));
 
     defaultShortcuts.insert("ViewCpu", Shortcut(tr("View -> CPU"), "Alt+C", true));
@@ -193,7 +195,6 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("DebugPause", Shortcut(tr("Debug -> Pause"), "F12", true));
     defaultShortcuts.insert("DebugRestart", Shortcut(tr("Debug -> Restart"), "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut(tr("Debug -> Close"), "Alt+F2", true));
-    defaultShortcuts.insert("DebugDetach", Shortcut(tr("Debug -> Detach"), "Ctrl+Alt+F2", true));
     defaultShortcuts.insert("DebugStepInto", Shortcut(tr("Debug -> Step into"), "F7", true));
     defaultShortcuts.insert("DebugeStepInfo", Shortcut(tr("Debug -> Step into (skip execptions)"), "Shift+F7", true));
     defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));

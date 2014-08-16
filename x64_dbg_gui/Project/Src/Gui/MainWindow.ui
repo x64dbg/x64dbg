@@ -39,6 +39,7 @@
     <addaction name="actionOpen"/>
     <addaction name="menuRecent_Files"/>
     <addaction name="actionAttach"/>
+    <addaction name="actionDetach"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -71,7 +72,6 @@
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
-    <addaction name="actionDetach"/>
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>

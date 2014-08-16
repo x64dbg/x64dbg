@@ -135,13 +135,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         strcpy(&szIniPath[len], ".ini");
 
     //Load settings
+    bool bDoneSomething = false;
     char sz32Path[MAX_PATH] = "";
     if(!GetPrivateProfileStringA("Launcher", "x32_dbg", "", sz32Path, MAX_PATH, szIniPath))
     {
         strcpy(sz32Path, szCurrentDir);
         PathAppendA(sz32Path, "x32\\x32_dbg.exe");
         if(FileExists(sz32Path))
+        {
             WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
+            bDoneSomething = true;
+        }
     }
     char sz32Dir[MAX_PATH] = "";
     strcpy(sz32Dir, sz32Path);
@@ -156,7 +160,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         strcpy(sz64Path, szCurrentDir);
         PathAppendA(sz64Path, "x64\\x64_dbg.exe");
         if(FileExists(sz64Path))
+        {
             WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
+            bDoneSomething = true;
+        }
     }
     char sz64Dir[MAX_PATH] = "";
     strcpy(sz64Dir, sz64Path);
@@ -171,10 +178,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     char** argv = commandlineparse(&argc);
     if(argc <= 1) //no arguments -> set configuration
     {
-        if(BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz32Path) && BrowseFileOpen(0, "x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+        {
             WritePrivateProfileStringA("Launcher", "x32_dbg", sz32Path, szIniPath);
-        if(BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+            bDoneSomething = true;
+        }
+        if(!FileExists(sz64Path) && BrowseFileOpen(0, "x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+        {
             WritePrivateProfileStringA("Launcher", "x64_dbg", sz64Path, szIniPath);
+            bDoneSomething = true;
+        }
         if(MessageBoxA(0, "Do you want to register a shell extension?", "Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             char szLauncherCommand[MAX_PATH] = "";
@@ -182,7 +195,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
             RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
         }
-        MessageBoxA(0, "New configuration written!", "Done!", MB_ICONINFORMATION);
+        if(bDoneSomething)
+            MessageBoxA(0, "New configuration written!", "Done!", MB_ICONINFORMATION);
     }
     if(argc == 2) //one argument -> execute debugger
     {

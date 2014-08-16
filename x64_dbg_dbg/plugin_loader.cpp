@@ -1,6 +1,7 @@
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
+#include "memory.h"
 #include "x64_dbg.h"
 
 static std::vector<PLUG_DATA> pluginList;
@@ -204,13 +205,14 @@ static void plugincmdunregisterall(int pluginHandle)
 void pluginunload()
 {
     int pluginCount = (int)pluginList.size();
-    for(int i = 0; i < pluginCount; i++)
+    for(int i = pluginCount - 1; i > -1; i--)
     {
         PLUGSTOP stop = pluginList.at(i).plugstop;
         if(stop)
             stop();
         plugincmdunregisterall(pluginList.at(i).initStruct.pluginHandle);
         FreeLibrary(pluginList.at(i).hPlugin);
+        pluginList.erase(pluginList.begin() + i);
     }
     pluginCallbackList.clear(); //remove all callbacks
     pluginMenuList.clear(); //clear menu list
@@ -249,8 +251,9 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
     {
         if(pluginCallbackList.at(i).cbType == cbType)
         {
-            //TODO: handle exceptions
-            pluginCallbackList.at(i).cbPlugin(cbType, callbackInfo);
+            CBPLUGIN cbPlugin = pluginCallbackList.at(i).cbPlugin;
+            if(memisvalidreadptr(GetCurrentProcess(), (uint)cbPlugin))
+                cbPlugin(cbType, callbackInfo);
         }
     }
 }
