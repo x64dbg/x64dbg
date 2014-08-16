@@ -9,7 +9,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(0, 0, "");
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     int height = getHeight();
     setMaximumHeight(height);
     setMinimumHeight(height);

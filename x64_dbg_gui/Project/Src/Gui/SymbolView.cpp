@@ -80,6 +80,7 @@ SymbolView::~SymbolView()
 
 void SymbolView::setupContextMenu()
 {
+    //Symbols
     mFollowSymbolAction = new QAction("&Follow in Disassembler", this);
     mFollowSymbolAction->setShortcutContext(Qt::WidgetShortcut);
     mFollowSymbolAction->setShortcut(QKeySequence("enter"));
@@ -88,6 +89,21 @@ void SymbolView::setupContextMenu()
     mFollowSymbolDumpAction = new QAction("Follow in &Dump", this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
+    mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
+    mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mToggleBreakpoint);
+    mSearchListView->mList->addAction(mToggleBreakpoint);
+    mSearchListView->mSearchList->addAction(mToggleBreakpoint);
+    connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
+
+    mToggleBookmark = new QAction("Toggle Bookmark", this);
+    mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mToggleBookmark);
+    mSearchListView->mList->addAction(mToggleBookmark);
+    mSearchListView->mSearchList->addAction(mToggleBookmark);
+    connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
+
+    //Modules
     mFollowModuleAction = new QAction("&Follow in Disassembler", this);
     mFollowModuleAction->setShortcutContext(Qt::WidgetShortcut);
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
@@ -98,6 +114,16 @@ void SymbolView::setupContextMenu()
 
     mDownloadAllSymbolsAction = new QAction("Download Symbols for &All Modules", this);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
+
+    //Shortcuts
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void SymbolView::refreshShortcutsSlot()
+{
+    mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mToggleBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
 }
 
 void SymbolView::updateStyle()
@@ -175,6 +201,9 @@ void SymbolView::symbolContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowSymbolAction);
     wMenu->addAction(mFollowSymbolDumpAction);
+    wMenu->addSeparator();
+    wMenu->addAction(mToggleBreakpoint);
+    wMenu->addAction(mToggleBookmark);
 }
 
 void SymbolView::symbolRefreshCurrent()
@@ -226,4 +255,63 @@ void SymbolView::moduleDownloadSymbols()
 void SymbolView::moduleDownloadAllSymbols()
 {
     DbgCmdExec("symdownload");
+}
+
+void SymbolView::toggleBreakpoint()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!mSearchListView->mCurList->getRowCount())
+        return;
+    const char* addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+    QString wCmd;
+
+    if((wBpType & bp_normal) == bp_normal)
+    {
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    else
+    {
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+
+    DbgCmdExec(wCmd.toUtf8().constData());
+}
+
+void SymbolView::toggleBookmark()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!mSearchListView->mCurList->getRowCount())
+        return;
+    const char* addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    bool result;
+    if(DbgGetBookmarkAt(wVA))
+        result = DbgSetBookmarkAt(wVA, false);
+    else
+        result = DbgSetBookmarkAt(wVA, true);
+    if(!result)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    GuiUpdateAllViews();
 }

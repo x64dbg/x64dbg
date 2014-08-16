@@ -37,6 +37,9 @@ private slots:
     void moduleFollow();
     void moduleDownloadSymbols();
     void moduleDownloadAllSymbols();
+    void toggleBreakpoint();
+    void toggleBookmark();
+    void refreshShortcutsSlot();
 
 signals:
     void showCpu();
@@ -51,6 +54,8 @@ private:
     QMap<QString, uint_t> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
+    QAction* mToggleBreakpoint;
+    QAction* mToggleBookmark;
     QAction* mFollowModuleAction;
     QAction* mDownloadSymbolsAction;
     QAction* mDownloadAllSymbolsAction;
