@@ -34,6 +34,10 @@ void MemoryMapView::setupContextMenu()
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
 
+    //Set PageMemory Rights
+    mPageMemoryRights = new QAction("Set Page Memory Rights", this);
+    connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
+
     //Switch View
     mSwitchView = new QAction("&Switch View", this);
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
@@ -103,6 +107,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mSwitchView);
+    wMenu->addAction(mPageMemoryRights);
     wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
     QMenu wCopyMenu("&Copy", this);
@@ -369,6 +374,15 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();
+}
+
+void MemoryMapView::pageMemoryRights()
+{
+    PageMemoryRights* mPageMemoryRightsDialog = new PageMemoryRights(this);
+    // mPageMemoryRightsDialog->ShowNormal();
+    //mPageMemoryRightsDialog->SetFocus();
+
+    mPageMemoryRightsDialog->exec();
 }
 
 void MemoryMapView::switchView()

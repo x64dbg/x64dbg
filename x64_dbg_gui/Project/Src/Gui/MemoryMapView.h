@@ -4,6 +4,7 @@
 #include <QtGui>
 #include "StdTable.h"
 #include "Bridge.h"
+#include "PageMemoryRights.h"
 
 class MemoryMapView : public StdTable
 {
@@ -31,6 +32,7 @@ public slots:
     void memoryExecuteSingleshootToggleSlot();
     void contextMenuSlot(const QPoint & pos);
     void switchView();
+    void pageMemoryRights();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -38,6 +40,7 @@ private:
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
     QAction* mSwitchView;
+    QAction* mPageMemoryRights;
 
     QMenu* mBreakpointMenu;
     QMenu* mMemoryAccessMenu;
