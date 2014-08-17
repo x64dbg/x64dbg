@@ -107,6 +107,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mSwitchView);
+    wMenu->addSeparator();
     wMenu->addAction(mPageMemoryRights);
     wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
@@ -379,10 +380,31 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 void MemoryMapView::pageMemoryRights()
 {
     PageMemoryRights* mPageMemoryRightsDialog = new PageMemoryRights(this);
-    // mPageMemoryRightsDialog->ShowNormal();
-    //mPageMemoryRightsDialog->SetFocus();
 
-    mPageMemoryRightsDialog->exec();
+    if(getCellContent(getInitialSelection(), 3) != "IMG")
+    {
+        QMessageBox msg(QMessageBox::Warning, "ERROR TYPE", "ONLY SUPPORTED IMG TYPE YET");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+
+        return;
+    }
+
+#ifdef _WIN64
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+#else //x86
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULong(0, 16);
+#endif //_WIN64
+
+#ifdef _WIN64
+    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+#else //x86
+    uint_t size = getCellContent(getInitialSelection(), 1).toULong(0, 16);
+#endif //_WIN64
+
+    mPageMemoryRightsDialog->RunAddrSize(addr, size);
 }
 
 void MemoryMapView::switchView()

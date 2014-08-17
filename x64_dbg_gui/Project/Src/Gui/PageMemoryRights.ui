@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>482</width>
+    <width>509</width>
     <height>299</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -39,35 +39,34 @@
     <set>QDialogButtonBox::Close</set>
    </property>
   </widget>
-  <widget class="QTableWidget" name="tableWidget">
+  <widget class="QTableWidget" name="pagetableWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>30</y>
+     <y>11</y>
      <width>311</width>
-     <height>192</height>
+     <height>211</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>10</y>
-     <width>331</width>
-     <height>251</height>
-    </rect>
+   <property name="autoScroll">
+    <bool>true</bool>
    </property>
-   <property name="title">
-    <string>Pages</string>
+   <property name="editTriggers">
+    <set>QAbstractItemView::NoEditTriggers</set>
    </property>
+   <attribute name="verticalHeaderVisible">
+    <bool>false</bool>
+   </attribute>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>350</x>
      <y>10</y>
-     <width>121</width>
+     <width>122</width>
      <height>201</height>
     </rect>
    </property>
@@ -114,7 +113,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QRadioButton" name="radioButton_6">
+        <widget class="QRadioButton" name="radioFullaccess">
          <property name="text">
           <string>FULL ACCESS</string>
          </property>
@@ -132,7 +131,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -143,14 +142,14 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="btnSelectall">
       <property name="text">
        <string>Select ALL</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="btnDeselectall">
       <property name="text">
        <string>Deselect ALL</string>
       </property>
@@ -171,18 +170,25 @@
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>240</y>
+     <width>241</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Press CTRL or SHIFT key to select multiple pages</string>
+   </property>
+  </widget>
+  <zorder>layoutWidget</zorder>
+  <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
-  <zorder>pushButton</zorder>
-  <zorder>groupBox</zorder>
   <zorder>lineEdit</zorder>
-  <zorder>lineEdit</zorder>
-  <zorder>pushButton_2</zorder>
-  <zorder>pushButton_3</zorder>
-  <zorder>pushButton</zorder>
-  <zorder>tableWidget</zorder>
-  <zorder>pushButton_2</zorder>
-  <zorder>pushButton_3</zorder>
-  <zorder>groupBox_2</zorder>
+  <zorder>pagetableWidget</zorder>
+  <zorder>label</zorder>
  </widget>
  <resources>
   <include location="../../resource.qrc"/>
