@@ -75,6 +75,7 @@ public:
     void emitAutoCompleteAddCmd(const QString cmd);
     void emitAutoCompleteDelCmd(const QString cmd);
     void emitAutoCompleteClearAll();
+    void emitAnalyseCode(int_t Base, int_t Size);
     void emitAddMsgToStatusBar(QString msg);
     void emitUpdateSideBar();
     void emitRepaintTableView();
@@ -143,13 +144,15 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
+    void analyseCode(int_t Base, int_t Size);
 
 private:
     QMutex* mBridgeMutex;
     int_t bridgeResult;
     bool hasBridgeResult;
 
-public:
+
+
 
 };
 

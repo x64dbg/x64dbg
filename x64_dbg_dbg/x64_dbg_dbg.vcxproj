@@ -12,6 +12,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
+    <ClCompile Include="Analysis\AnalysisRunner.cpp" />
+    <ClCompile Include="Analysis\ApiDB.cpp" />
+    <ClCompile Include="Analysis\BeaInterpreter.cpp" />
+    <ClCompile Include="Analysis\FunctionDetector.cpp" />
+    <ClCompile Include="Analysis\ICommand.cpp" />
+    <ClCompile Include="Analysis\IntermodularCallsX64.cpp" />
+    <ClCompile Include="Analysis\IntermodularCallsX86.cpp" />
+    <ClCompile Include="Analysis\RegisterEmulator.cpp" />
+    <ClCompile Include="Analysis\StackEmulator.cpp" />
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="breakpoint.cpp" />
@@ -45,6 +54,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
+    <ClInclude Include="Analysis\AnalysisRunner.h" />
+    <ClInclude Include="Analysis\ApiDB.h" />
+    <ClInclude Include="Analysis\BeaInterpreter.h" />
+    <ClInclude Include="Analysis\FunctionDetector.h" />
+    <ClInclude Include="Analysis\ICommand.h" />
+    <ClInclude Include="Analysis\IntermodularCalls.h" />
+    <ClInclude Include="Analysis\Meta.h" />
+    <ClInclude Include="Analysis\RegisterEmulator.h" />
+    <ClInclude Include="Analysis\StackEmulator.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="BeaEngine\basic_types.h" />
@@ -145,7 +163,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;X64_DBG_EXPORTS;BUILD_DBG;_CRT_SECURE_NO_WARNINGS;_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

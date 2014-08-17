@@ -342,6 +342,11 @@ void Bridge::emitAutoCompleteClearAll()
     emit autoCompleteClearAll();
 }
 
+void Bridge::emitAnalyseCode(int_t Base, int_t Size)
+{
+    emit analyseCode(Base, Size);
+}
+
 void Bridge::emitUpdateSideBar()
 {
     emit updateSideBar();
@@ -706,6 +711,11 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_AUTOCOMPLETE_CLEARALL:
     {
         Bridge::getBridge()->emitAutoCompleteClearAll();
+    }
+    break;
+    case GUI_ANALYSE_CODE:
+    {
+        Bridge::getBridge()->emitAnalyseCode((int_t)param1, (int_t)param2);
     }
     break;
 

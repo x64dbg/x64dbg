@@ -634,7 +634,8 @@ typedef enum
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT      // param1=unused,               param2=unused
+    GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
+    GUI_ANALYSE_CODE                // param1=int_t Base,           param2=int_t Size
 } GUIMSG;
 
 //GUI structures
@@ -708,6 +709,7 @@ BRIDGE_IMPEXP void GuiUpdateSideBar();
 BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
+BRIDGE_IMPEXP void GuiAnalyseCode(duint base, duint size);
 
 #ifdef __cplusplus
 }

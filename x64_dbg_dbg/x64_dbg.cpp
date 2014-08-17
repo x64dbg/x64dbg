@@ -206,6 +206,7 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
+    dbgcmdnew("analyse\1analyze\1an", cbDebugAnalyse, true); //start analysis
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
