@@ -112,6 +112,11 @@ static bool _getjitauto(bool* jit_auto)
     return dbggetjitauto(jit_auto, notfound, NULL, NULL);
 }
 
+static bool _isprocesselevated(void)
+{
+    return IsProcessElevated();
+}
+
 static bool _getpagerights(uint* addr, char* rights)
 {
     return dbggetpagerights(addr, rights);
@@ -198,4 +203,5 @@ void dbgfunctionsinit()
     _dbgfunctions.GetPageRights = _getpagerights;
     _dbgfunctions.SetPageRights = _setpagerights;
     _dbgfunctions.PageRightsToString = _pagerightstostring;
+    _dbgfunctions.IsProcessElevated = _isprocesselevated;
 }

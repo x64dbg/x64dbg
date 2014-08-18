@@ -1480,6 +1480,21 @@ void cbDetach()
     return;
 }
 
+
+bool IsProcessElevated()
+{
+
+    HANDLE hToken;
+    DWORD tkInfoLen;
+    TOKEN_ELEVATION tkElevation;
+
+    OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken);
+
+    GetTokenInformation(hToken, TokenElevation, &tkElevation, sizeof(tkElevation), &tkInfoLen);
+
+    return (tkElevation.TokenIsElevated != 0);
+}
+
 bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
     DWORD key_flags;
@@ -1491,7 +1506,15 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         * error = ERROR_RW;
 
     if(write)
+    {
+        if(!IsProcessElevated())
+        {
+            if(error != NULL)
+                * error = ERROR_RW_NOTADMIN;
+            return false;
+        }
         key_flags = KEY_WRITE;
+    }
     else
         key_flags = KEY_READ;
 
@@ -1512,7 +1535,7 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
 
     if(arch_in == x64)
     {
-#ifdef _WIN32
+#ifndef _WIN64
         if(!IsWow64())
         {
             if(error != NULL)

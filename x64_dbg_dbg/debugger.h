@@ -16,7 +16,8 @@ typedef enum
 {
     ERROR_RW = 0,
     ERROR_RW_FILE_NOT_FOUND,
-    ERROR_RW_NOTWOW64
+    ERROR_RW_NOTWOW64,
+    ERROR_RW_NOTADMIN
 } readwritejitkey_error_t;
 
 //structures
@@ -74,6 +75,7 @@ bool _readwritejitkey(char*, DWORD*, char*, arch, arch*, readwritejitkey_error_t
 bool dbggetjitauto(bool*, arch, arch*, readwritejitkey_error_t*);
 bool dbgsetjitauto(bool, arch, arch*, readwritejitkey_error_t*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
+bool IsProcessElevated();
 
 void cbStep();
 void cbRtrStep();
