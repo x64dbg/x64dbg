@@ -112,6 +112,21 @@ static bool _getjitauto(bool* jit_auto)
     return dbggetjitauto(jit_auto, notfound, NULL, NULL);
 }
 
+static bool _getpagerights(uint* addr, char* rights)
+{
+    return dbggetpagerights(addr, rights);
+}
+
+static bool _pagerightstostring(DWORD protect, char* rights)
+{
+    return dbgpagerightstostring(protect, rights);
+}
+
+static bool _setpagerights(uint* addr, char* rights)
+{
+    return dbgsetpagerights(addr, rights);
+}
+
 static bool _getjit(char* jit, bool jit64)
 {
     arch dummy;
@@ -180,4 +195,7 @@ void dbgfunctionsinit()
     _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;
     _dbgfunctions.GetProcessList = _getprocesslist;
+    _dbgfunctions.GetPageRights = _getpagerights;
+    _dbgfunctions.SetPageRights = _setpagerights;
+    _dbgfunctions.PageRightsToString = _pagerightstostring;
 }

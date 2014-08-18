@@ -34,6 +34,10 @@ void MemoryMapView::setupContextMenu()
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
 
+    //Set PageMemory Rights
+    mPageMemoryRights = new QAction("Set Page Memory Rights", this);
+    connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
+
     //Switch View
     mSwitchView = new QAction("&Switch View", this);
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
@@ -104,6 +108,8 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
+    wMenu->addAction(mPageMemoryRights);
+    wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
@@ -139,39 +145,13 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
 QString MemoryMapView::getProtectionString(DWORD Protect)
 {
-    QString wS;
-    switch(Protect & 0xFF)
-    {
-    case PAGE_EXECUTE:
-        wS = QString("E---");
-        break;
-    case PAGE_EXECUTE_READ:
-        wS = QString("ER--");
-        break;
-    case PAGE_EXECUTE_READWRITE:
-        wS = QString("ERW-");
-        break;
-    case PAGE_EXECUTE_WRITECOPY:
-        wS = QString("ERWC");
-        break;
-    case PAGE_NOACCESS:
-        wS = QString("----");
-        break;
-    case PAGE_READONLY:
-        wS = QString("-R--");
-        break;
-    case PAGE_READWRITE:
-        wS = QString("-RW-");
-        break;
-    case PAGE_WRITECOPY:
-        wS = QString("-RWC");
-        break;
-    }
-    if(Protect & PAGE_GUARD)
-        wS += QString("G");
-    else
-        wS += QString("-");
-    return wS;
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+    char rights[RIGHTS_STRING];
+
+    if(!DbgFunctions()->PageRightsToString(Protect, rights))
+        return "bad";
+
+    return QString(rights);
 }
 
 QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -369,6 +349,25 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();
+}
+
+void MemoryMapView::pageMemoryRights()
+{
+    PageMemoryRights* mPageMemoryRightsDialog = new PageMemoryRights(this);
+
+#ifdef _WIN64
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+#else //x86
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULong(0, 16);
+#endif //_WIN64
+
+#ifdef _WIN64
+    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+#else //x86
+    uint_t size = getCellContent(getInitialSelection(), 1).toULong(0, 16);
+#endif //_WIN64
+
+    mPageMemoryRightsDialog->RunAddrSize(addr, size, getCellContent(getInitialSelection(), 3));
 }
 
 void MemoryMapView::switchView()

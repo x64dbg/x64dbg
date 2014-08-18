@@ -1562,6 +1562,120 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     return true;
 }
 
+bool dbgpagerightstostring(DWORD protect, char* rights)
+{
+    memset(rights, 0, RIGHTS_STRING);
+
+    switch(protect & 0xFF)
+    {
+    case PAGE_EXECUTE:
+        strcpy(rights, "E---");
+        break;
+    case PAGE_EXECUTE_READ:
+        strcpy(rights, "ER--");
+        break;
+    case PAGE_EXECUTE_READWRITE:
+        strcpy(rights, "ERW-");
+        break;
+    case PAGE_EXECUTE_WRITECOPY:
+        strcpy(rights, "ERWC");
+        break;
+    case PAGE_NOACCESS:
+        strcpy(rights, "----");
+        break;
+    case PAGE_READONLY:
+        strcpy(rights, "-R--");
+        break;
+    case PAGE_READWRITE:
+        strcpy(rights, "-RW-");
+        break;
+    case PAGE_WRITECOPY:
+        strcpy(rights, "-RWC");
+        break;
+    }
+
+    if(protect & PAGE_GUARD)
+        strcat(rights, "G");
+    else
+        strcat(rights, "-");
+
+    return true;
+}
+
+void dbggetpageligned(uint* addr)
+{
+#ifdef _WIN64
+    * addr &=  0xFFFFFFFFFFFFF000;
+#else // _WIN32
+    * addr &= 0xFFFFF000;
+#endif // _WIN64
+}
+
+
+bool dbgpagerightsfromstring(DWORD* protect, char* rights_string)
+{
+    if(strlen(rights_string) < 2)
+        return false;
+
+    * protect = 0;
+    if(rights_string[0] == 'G' || rights_string[0] == 'g')
+    {
+        * protect |= PAGE_GUARD;
+        rights_string++;
+    }
+
+    if(_strcmpi(rights_string, "Execute") == 0)
+        * protect |= PAGE_EXECUTE;
+    else if(_strcmpi(rights_string, "ExecuteRead") == 0)
+        * protect |= PAGE_EXECUTE_READ;
+    else if(_strcmpi(rights_string, "ExecuteReadWrite") == 0)
+        * protect |= PAGE_EXECUTE_READWRITE;
+    else if(_strcmpi(rights_string, "ExecuteWriteCopy") == 0)
+        * protect |= PAGE_EXECUTE_WRITECOPY;
+    else if(_strcmpi(rights_string, "NoAccess") == 0)
+        * protect |= PAGE_NOACCESS;
+    else if(_strcmpi(rights_string, "ReadOnly") == 0)
+        * protect |= PAGE_READONLY;
+    else if(_strcmpi(rights_string, "ReadWrite") == 0)
+        * protect |= PAGE_READWRITE;
+    else if(_strcmpi(rights_string, "WriteCopy") == 0)
+        * protect |= PAGE_WRITECOPY;
+
+    if(* protect == 0)
+        return false;
+
+    return true;
+}
+
+bool dbgsetpagerights(uint* addr, char* rights_string)
+{
+    DWORD protect;
+    DWORD old_protect;
+
+    dbggetpageligned(addr);
+
+    if(!dbgpagerightsfromstring(& protect, rights_string))
+        return false;
+
+    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
+        return false;
+
+    // ADD ME: CALL TO UPDATE MEMORY VIEW HERE :-)
+
+    return true;
+}
+
+bool dbggetpagerights(uint* addr, char* rights)
+{
+    dbggetpageligned(addr);
+
+    MEMORY_BASIC_INFORMATION mbi;
+    if(VirtualQueryEx(fdProcessInfo->hProcess, (const void*)*addr, &mbi, sizeof(mbi)) == 0)
+        return false;
+
+    return dbgpagerightstostring(mbi.Protect, rights);
+}
+
 bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     char jit_entry[4];
