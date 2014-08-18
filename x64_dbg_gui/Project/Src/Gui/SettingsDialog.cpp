@@ -191,6 +191,13 @@ void SettingsDialog::LoadSettings()
 
                 ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
             }
+
+            if(!DbgFunctions()->IsProcessElevated())
+            {
+                ui->chkSetJIT->setDisabled(true);
+                ui->chkConfirmBeforeAtt->setDisabled(true);
+                ui->lbladminwarning->setText(QString("Warning: Run the debugger as Admin to enable JIT."));
+            }
         }
     }
     bJitOld = settings.miscSetJIT;

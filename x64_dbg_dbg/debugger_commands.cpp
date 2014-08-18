@@ -1437,6 +1437,11 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 {
     arch actual_arch;
     bool set_jit_auto;
+    if(!IsProcessElevated())
+    {
+        dprintf("Error run the debugger as Admin to setjitauto\n");
+        return STATUS_ERROR;
+    }
     if(argc < 2)
     {
         dprintf("Error setting JIT Auto. Use ON:1 or OFF:0 arg or x64/x32, ON:1 or OFF:0.\n");
@@ -1512,6 +1517,11 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     arch actual_arch;
     char* jit_debugger_cmd;
     char oldjit[MAX_SETTING_SIZE] = "";
+    if(!IsProcessElevated())
+    {
+        dprintf("Error run the debugger as Admin to setjit\n");
+        return STATUS_ERROR;
+    }
     if(argc < 2)
     {
         char path[JIT_ENTRY_DEF_SIZE];
@@ -1619,7 +1629,7 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             if(rw_error == ERROR_RW_NOTWOW64)
                 dprintf("Error using x64 arg. The debugger is not a WOW64 process\n");
             else
-                dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
+                dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
             return STATUS_ERROR;
         }
     }
@@ -1685,6 +1695,56 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     }
 
     dprintf("JIT %s: %s\n", (actual_arch == x64) ? "x64" : "x32", get_entry);
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
+{
+    uint addr = 0;
+    char rights[RIGHTS_STRING];
+
+    if(argc != 2 || !valfromstring(argv[1], &addr))
+    {
+        dprintf("Error: using an address as arg1\n");
+        return STATUS_ERROR;
+    }
+
+    if(!dbggetpagerights(&addr, rights))
+    {
+        dprintf("Error getting rights of page: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    dprintf("Page: "fhex", Rights: %s\n", addr, rights);
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
+{
+    uint addr = 0;
+    char rights[RIGHTS_STRING];
+
+    if(argc != 3 || !valfromstring(argv[1], &addr))
+    {
+        dprintf("Error: using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
+        return STATUS_ERROR;
+    }
+
+    if(!dbgsetpagerights(&addr, argv[2]))
+    {
+        dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
+        return STATUS_ERROR;
+    }
+
+    if(!dbggetpagerights(&addr, rights))
+    {
+        dprintf("Error getting rights of page: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    dprintf("New rights of "fhex": %s\n", addr, rights);
 
     return STATUS_CONTINUE;
 }

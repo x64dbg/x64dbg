@@ -516,6 +516,19 @@
       <string>Confirm before attaching</string>
      </property>
     </widget>
+    <widget class="QLabel" name="lbladminwarning">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>271</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="btnSave">
