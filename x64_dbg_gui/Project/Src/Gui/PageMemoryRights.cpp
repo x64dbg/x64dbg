@@ -1,10 +1,7 @@
 #include "PageMemoryRights.h"
 #include "ui_PageMemoryRights.h"
-#include <string>
 
-PageMemoryRights::PageMemoryRights(QWidget* parent) :
-    QDialog(parent),
-    ui(new Ui::PageMemoryRights)
+PageMemoryRights::PageMemoryRights(QWidget* parent) : QDialog(parent), ui(new Ui::PageMemoryRights)
 {
     ui->setupUi(this);
     //set window flags
@@ -25,11 +22,9 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
 
     QTableWidget* tableWidget = ui->pagetableWidget;
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     uint_t nr_pages = size / PAGE_SIZE;
     tableWidget->setColumnCount(2);
     tableWidget->setRowCount(nr_pages);
-
     tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
     tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("Rights")));
 
@@ -44,7 +39,6 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
             tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }
 
-
     QModelIndex idx = (ui->pagetableWidget->model()->index(0, 0));
     ui->pagetableWidget->selectionModel()->select(idx, QItemSelectionModel::Select);
     idx = (ui->pagetableWidget->model()->index(0, 1));
@@ -53,10 +47,7 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
     ui->radioFullaccess->setChecked(true);
     ui->chkPageguard->setCheckable(true);
     exec();
-
 }
-
-
 
 void PageMemoryRights::on_btnSelectall_clicked()
 {
@@ -117,15 +108,16 @@ void PageMemoryRights::on_btnSetrights_clicked()
 #else //x86
         actual_addr = ui->pagetableWidget->item(index.row(), 0)->text().toULong(0, 16);
 #endif //_WIN64
-
-        if(DbgFunctions()->SetPageRights(& actual_addr, (char*) rights.toStdString().c_str()))
+        if(DbgFunctions()->SetPageRights(& actual_addr, (char*) rights.toUtf8().constData()))
         {
             one_right_changed = true;
             if(DbgFunctions()->GetPageRights(& actual_addr, newrights))
                 ui->pagetableWidget->setItem(index.row(), 1, new QTableWidgetItem(QString(newrights)));
         }
-
     }
+
+    DbgFunctions()->MemUpdateMap();
+    emit refreshMemoryMap();
 
     if(one_right_changed)
         ui->LnEdStatus->setText("Pages Rights Changed to: " + rights);
