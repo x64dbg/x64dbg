@@ -1,6 +1,7 @@
-#include <QtGui>
-
 #include "QHexEditPrivate.h"
+#include <QApplication>
+#include <QClipboard>
+#include <QPainter>
 #include "ArrayCommand.h"
 
 const int HEXCHARS_IN_LINE = 47;
@@ -422,7 +423,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent* event)
     /* Edit Commands */
     /*****************************************************************************/
     /* Hex input */
-    int key = int(event->text().toLower()[0].toAscii());
+    int key = int(event->text().toLower()[0].toLatin1());
     if((key >= '0' && key <= '9') || (key >= 'a' && key <= 'f') || (_wildcardEnabled && key == '?'))
     {
         if(getSelectionBegin() != getSelectionEnd())
@@ -528,7 +529,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent* event)
             }
             else
             {
-                data[i] = convert[i].toAscii();
+                data[i] = convert[i].toLatin1();
                 mask[i] = '0';
             }
         }

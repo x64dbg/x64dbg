@@ -1,6 +1,11 @@
 #ifndef BREAKPOINTSVIEW_H
 #define BREAKPOINTSVIEW_H
 
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QSplitter>
+#include "StdTable.h"
+
 class BreakpointsView : public QWidget
 {
     Q_OBJECT

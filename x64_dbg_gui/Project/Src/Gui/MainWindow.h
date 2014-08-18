@@ -1,6 +1,25 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QMainWindow>
+#include <QDragEnterEvent>
+#include "CloseDialog.h"
+#include "CommandLineEdit.h"
+#include "TabWidget.h"
+#include "CPUWidget.h"
+#include "MemoryMapView.h"
+#include "CallStackView.h"
+#include "LogView.h"
+#include "SymbolView.h"
+#include "BreakpointsView.h"
+#include "ScriptView.h"
+#include "ReferenceView.h"
+#include "ThreadView.h"
+#include "PatchDialog.h"
+#include "CalculatorDialog.h"
+#include "StatusLabel.h"
+#include "UpdateChecker.h"
+
 namespace Ui
 {
 class MainWindow;
@@ -74,7 +93,6 @@ public slots:
 private:
     Ui::MainWindow* ui;
     CloseDialog* mCloseDialog;
-
     CommandLineEdit* mCmdLineEdit;
     MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;

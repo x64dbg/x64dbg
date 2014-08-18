@@ -1,4 +1,7 @@
 #include "HexDump.h"
+#include <sstream>
+#include "Configuration.h"
+#include "Bridge.h"
 
 HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
 {

@@ -1,6 +1,10 @@
 #ifndef _HEXDUMP_H
 #define _HEXDUMP_H
 
+#include "AbstractTableView.h"
+#include "RichTextPainter.h"
+#include "MemoryPage.h"
+
 class HexDump : public AbstractTableView
 {
     Q_OBJECT

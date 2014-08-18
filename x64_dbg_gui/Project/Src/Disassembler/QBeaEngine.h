@@ -1,6 +1,10 @@
 #ifndef QBEAENGINE_H
 #define QBEAENGINE_H
 
+#include <QString>
+#include "NewTypes.h"
+#include "BeaTokenizer.h"
+
 typedef struct _Instruction_t
 {
     QString instStr;

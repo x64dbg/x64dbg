@@ -1,6 +1,8 @@
 #ifndef LOGVIEW_H
 #define LOGVIEW_H
 
+#include <QTextEdit>
+
 class LogView : public QTextEdit
 {
     Q_OBJECT

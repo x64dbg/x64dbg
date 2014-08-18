@@ -1,6 +1,10 @@
 #ifndef DISASSEMBLY_H
 #define DISASSEMBLY_H
 
+#include "AbstractTableView.h"
+#include "QBeaEngine.h"
+#include "MemoryPage.h"
+
 class Disassembly : public AbstractTableView
 {
     Q_OBJECT

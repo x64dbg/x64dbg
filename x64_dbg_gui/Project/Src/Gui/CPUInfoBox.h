@@ -1,6 +1,8 @@
 #ifndef INFOBOX_H
 #define INFOBOX_H
 
+#include "StdTable.h"
+
 class CPUInfoBox : public StdTable
 {
     Q_OBJECT

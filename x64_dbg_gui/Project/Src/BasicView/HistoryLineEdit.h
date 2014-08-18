@@ -1,6 +1,9 @@
 #ifndef HISTORYLINEEDIT_H
 #define HISTORYLINEEDIT_H
 
+#include <QLineEdit>
+#include <QKeyEvent>
+
 class HistoryLineEdit : public QLineEdit
 {
     Q_OBJECT

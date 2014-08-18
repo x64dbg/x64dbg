@@ -1,6 +1,9 @@
 #ifndef CPUSIDEBAR_H
 #define CPUSIDEBAR_H
 
+#include <QAbstractScrollArea>
+#include "CPUDisassembly.h"
+
 class CPUSideBar : public QAbstractScrollArea
 {
     Q_OBJECT

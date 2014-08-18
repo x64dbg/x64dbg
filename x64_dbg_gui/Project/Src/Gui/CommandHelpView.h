@@ -1,6 +1,10 @@
 #ifndef COMMANDHELPVIEW_H
 #define COMMANDHELPVIEW_H
 
+#include <QWidget>
+#include <QVBoxLayout>
+#include "SearchListView.h"
+
 namespace Ui
 {
 class CommandHelpView;

@@ -56,7 +56,7 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
     QString KeyText = QKeySequence(keyInt).toString(QKeySequence::NativeText) ;
     for(int i = 0; i < KeyText.length(); i++)
     {
-        if(KeyText[i].toAscii() == 0)
+        if(KeyText[i].toLatin1() == 0)
         {
             setText("");
             keyInt = -1;

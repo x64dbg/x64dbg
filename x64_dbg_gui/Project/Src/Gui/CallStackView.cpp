@@ -1,4 +1,5 @@
 #include "CallStackView.h"
+#include "Bridge.h"
 
 CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {

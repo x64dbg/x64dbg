@@ -1,6 +1,9 @@
 #ifndef CPUDUMP_H
 #define CPUDUMP_H
 
+#include "HexDump.h"
+#include "GotoDialog.h"
+
 class CPUDump : public HexDump
 {
     Q_OBJECT

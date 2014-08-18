@@ -1,6 +1,11 @@
 #ifndef REGISTERSVIEW_H
 #define REGISTERSVIEW_H
 
+#include <QAbstractScrollArea>
+#include <QSet>
+#include <QMap>
+#include "Bridge.h"
+
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
 namespace Ui

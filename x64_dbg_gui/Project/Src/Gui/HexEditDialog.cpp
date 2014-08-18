@@ -1,9 +1,9 @@
 #include "HexEditDialog.h"
 #include "ui_HexEditDialog.h"
+#include "Configuration.h"
+#include "Bridge.h"
 
-HexEditDialog::HexEditDialog(QWidget* parent) :
-    QDialog(parent),
-    ui(new Ui::HexEditDialog)
+HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexEditDialog)
 {
     ui->setupUi(this);
 
@@ -66,7 +66,7 @@ void HexEditDialog::on_btnAscii2Hex_clicked()
     QString text = ui->lineEditAscii->text();
     QByteArray data;
     for(int i = 0; i < text.length(); i++)
-        data.append(text[i].toAscii());
+        data.append(text[i].toLatin1());
     if(ui->chkKeepSize->isChecked()) //keep size
     {
         int dataSize = mHexEdit->data().size();
@@ -105,7 +105,7 @@ void HexEditDialog::dataChangedSlot()
     {
         QChar ch(data.constData()[i]);
         if(ch.isPrint())
-            ascii += ch.toAscii();
+            ascii += ch.toLatin1();
         else
             ascii += '.';
     }

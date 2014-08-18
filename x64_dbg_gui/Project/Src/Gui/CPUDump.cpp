@@ -1,4 +1,10 @@
 #include "CPUDump.h"
+#include <QMessageBox>
+#include <QClipboard>
+#include "Configuration.h"
+#include "Bridge.h"
+#include "LineEditDialog.h"
+#include "HexEditDialog.h"
 
 CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {

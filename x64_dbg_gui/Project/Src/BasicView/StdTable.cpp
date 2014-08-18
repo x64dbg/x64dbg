@@ -1,4 +1,5 @@
 #include "StdTable.h"
+#include "Bridge.h"
 
 StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
 {

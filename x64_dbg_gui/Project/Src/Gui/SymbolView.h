@@ -1,6 +1,9 @@
 #ifndef SYMBOLVIEW_H
 #define SYMBOLVIEW_H
 
+#include <QWidget>
+#include "Bridge.h"
+
 namespace Ui
 {
 class SymbolView;

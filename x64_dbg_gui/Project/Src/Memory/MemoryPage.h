@@ -1,6 +1,9 @@
 #ifndef MEMORYPAGE_H
 #define MEMORYPAGE_H
 
+#include <QObject>
+#include "NewTypes.h"
+
 class MemoryPage : public QObject
 {
     Q_OBJECT

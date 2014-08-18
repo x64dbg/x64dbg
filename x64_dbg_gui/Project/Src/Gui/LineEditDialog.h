@@ -1,6 +1,8 @@
 #ifndef LINEEDITDIALOG_H
 #define LINEEDITDIALOG_H
 
+#include <QDialog>
+
 namespace Ui
 {
 class LineEditDialog;

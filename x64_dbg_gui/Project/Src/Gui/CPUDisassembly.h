@@ -1,6 +1,9 @@
 #ifndef CPUDISASSEMBLY_H
 #define CPUDISASSEMBLY_H
 
+#include "Disassembly.h"
+#include "GotoDialog.h"
+
 class CPUDisassembly : public Disassembly
 {
     Q_OBJECT

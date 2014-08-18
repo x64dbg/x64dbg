@@ -1,6 +1,13 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include <QObject>
+#include <QKeySequence>
+#include <QMap>
+#include <QColor>
+#include <QFont>
+#include "NewTypes.h"
+
 #define Config() (Configuration::instance())
 #define ConfigColor(x) (Config()->getColor(x))
 #define ConfigBool(x,y) (Config()->getBool(x,y))

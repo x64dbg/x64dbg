@@ -1,6 +1,10 @@
 #ifndef SHORTCUTSDIALOG_H
 #define SHORTCUTSDIALOG_H
 
+#include <QDialog>
+#include <QHeaderView>
+#include "Configuration.h"
+
 namespace Ui
 {
 class ShortcutsDialog;

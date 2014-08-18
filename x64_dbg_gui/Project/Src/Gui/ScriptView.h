@@ -1,6 +1,8 @@
 #ifndef SCRIPTVIEW_H
 #define SCRIPTVIEW_H
 
+#include "StdTable.h"
+
 class ScriptView : public StdTable
 {
     Q_OBJECT

@@ -1,4 +1,5 @@
 #include "BeaTokenizer.h"
+#include "Configuration.h"
 
 //variables
 QMap<BeaTokenizer::BeaTokenType, BeaTokenizer::BeaTokenColor> BeaTokenizer::colorNamesMap;

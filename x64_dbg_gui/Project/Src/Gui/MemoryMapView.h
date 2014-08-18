@@ -1,6 +1,8 @@
 #ifndef MEMORYMAPVIEW_H
 #define MEMORYMAPVIEW_H
 
+#include "StdTable.h"
+
 class MemoryMapView : public StdTable
 {
     Q_OBJECT

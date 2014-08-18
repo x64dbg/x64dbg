@@ -1,6 +1,10 @@
 #ifndef GOTODIALOG_H
 #define GOTODIALOG_H
 
+#include <QDialog>
+#include <QThread>
+#include "NewTypes.h"
+
 namespace Ui
 {
 class GotoDialog;

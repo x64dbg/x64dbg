@@ -1,4 +1,6 @@
 #include "ThreadView.h"
+#include "Configuration.h"
+#include "Bridge.h"
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {

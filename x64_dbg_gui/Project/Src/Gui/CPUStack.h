@@ -1,6 +1,9 @@
 #ifndef CPUSTACK_H
 #define CPUSTACK_H
 
+#include "HexDump.h"
+#include "GotoDialog.h"
+
 class CPUStack : public HexDump
 {
     Q_OBJECT

@@ -1,6 +1,12 @@
 #ifndef BEATOKENIZER_H
 #define BEATOKENIZER_H
 
+#include <QMap>
+#include <QSet>
+#include "RichTextPainter.h"
+#include "BeaEngine.h"
+#include "NewTypes.h"
+
 class BeaTokenizer : RichTextPainter
 {
 public:

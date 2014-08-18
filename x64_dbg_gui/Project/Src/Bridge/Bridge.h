@@ -1,6 +1,12 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
+#include <QObject>
+#include <QMutex>
+#include "Imports.h"
+#include "NewTypes.h"
+#include "SearchListView.h"
+
 class Bridge : public QObject
 {
     Q_OBJECT

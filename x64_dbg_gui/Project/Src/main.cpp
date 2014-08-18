@@ -1,4 +1,9 @@
 #include "main.h"
+#include <QAbstractEventDispatcher>
+#include <QMessageBox>
+#include "Bridge.h"
+#include "Configuration.h"
+#include "MainWindow.h"
 
 MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
 {

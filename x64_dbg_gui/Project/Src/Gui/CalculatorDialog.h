@@ -1,6 +1,10 @@
 #ifndef CALCULATORDIALOG_H
 #define CALCULATORDIALOG_H
 
+#include <QDialog>
+#include <QThread>
+#include "NewTypes.h"
+
 namespace Ui
 {
 class CalculatorDialog;

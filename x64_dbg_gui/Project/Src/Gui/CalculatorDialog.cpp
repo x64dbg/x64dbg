@@ -221,7 +221,7 @@ void CalculatorDialog::on_txtAscii_textEdited(const QString & arg1)
         return;
     }
     ui->txtAscii->setStyleSheet("");
-    ui->txtExpression->setText(QString().sprintf("%X", text[0].toAscii()));
+    ui->txtExpression->setText(QString().sprintf("%X", text[0].toLatin1()));
     ui->txtAscii->setCursorPosition(1);
 }
 

@@ -1,6 +1,11 @@
 #ifndef PATCHDIALOG_H
 #define PATCHDIALOG_H
 
+#include <QDialog>
+#include <QListWidgetItem>
+#include "PatchDialogGroupSelector.h"
+#include "Bridge.h"
+
 namespace Ui
 {
 class PatchDialog;

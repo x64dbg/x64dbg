@@ -1,4 +1,5 @@
 #include "CPUInfoBox.h"
+#include "Bridge.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 {

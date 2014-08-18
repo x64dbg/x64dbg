@@ -1,4 +1,10 @@
 #include "ScriptView.h"
+#include <QMessageBox>
+#include <QFileDialog>
+#include "Configuration.h"
+#include "Bridge.h"
+#include "RichTextPainter.h"
+#include "LineEditDialog.h"
 
 ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 {

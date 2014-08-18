@@ -1,6 +1,8 @@
 #ifndef STDTABLE_H
 #define STDTABLE_H
 
+#include "AbstractTableView.h"
+
 class StdTable : public AbstractTableView
 {
     Q_OBJECT

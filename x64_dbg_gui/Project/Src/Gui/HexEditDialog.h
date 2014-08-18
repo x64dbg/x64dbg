@@ -1,6 +1,9 @@
 #ifndef HEXEDITDIALOG_H
 #define HEXEDITDIALOG_H
 
+#include <QDialog>
+#include "QHexEdit/QHexEdit.h"
+
 namespace Ui
 {
 class HexEditDialog;

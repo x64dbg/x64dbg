@@ -1,6 +1,10 @@
 #ifndef SHORTCUTEDIT_H
 #define SHORTCUTEDIT_H
 
+#include <QLineEdit>
+#include <QKeySequence>
+#include <QKeyEvent>
+
 class ShortcutEdit : public QLineEdit
 {
     Q_OBJECT

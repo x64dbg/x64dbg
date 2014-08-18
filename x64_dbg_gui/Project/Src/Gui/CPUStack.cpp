@@ -1,4 +1,9 @@
 #include "CPUStack.h"
+#include <QClipboard>
+#include "Configuration.h"
+#include "Bridge.h"
+#include "HexEditDialog.h"
+#include "WordEditDialog.h"
 
 CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
 {

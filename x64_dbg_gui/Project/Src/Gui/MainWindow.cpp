@@ -1,5 +1,17 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include <QMessageBox>
+#include <QIcon>
+#include <QUrl>
+#include <QFileDialog>
+#include <QMimeData>
+#include <QDesktopServices>
+#include "Configuration.h"
+#include "SettingsDialog.h"
+#include "AppearanceDialog.h"
+#include "ShortcutsDialog.h"
+#include "AttachDialog.h"
+#include "LineEditDialog.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {

@@ -1,6 +1,8 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
+#include <QDialog>
+
 namespace Ui
 {
 class SettingsDialog;

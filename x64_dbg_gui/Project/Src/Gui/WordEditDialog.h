@@ -1,6 +1,11 @@
 #ifndef WORDEDITDIALOG_H
 #define WORDEDITDIALOG_H
 
+#include <QDialog>
+#include <QThread>
+#include <QPushButton>
+#include "NewTypes.h"
+
 namespace Ui
 {
 class WordEditDialog;

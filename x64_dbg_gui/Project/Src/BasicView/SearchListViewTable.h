@@ -1,6 +1,8 @@
 #ifndef SEARCHLISTVIEWTABLE_H
 #define SEARCHLISTVIEWTABLE_H
 
+#include "StdTable.h"
+
 class SearchListViewTable : public StdTable
 {
     Q_OBJECT

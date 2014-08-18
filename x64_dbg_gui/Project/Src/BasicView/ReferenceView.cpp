@@ -1,4 +1,7 @@
 #include "ReferenceView.h"
+#include <QMessageBox>
+#include "Configuration.h"
+#include "Bridge.h"
 
 ReferenceView::ReferenceView()
 {

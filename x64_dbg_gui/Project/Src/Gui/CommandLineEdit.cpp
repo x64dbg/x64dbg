@@ -1,4 +1,6 @@
 #include "CommandLineEdit.h"
+#include <QStringListModel>
+#include "Bridge.h"
 
 CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
 {
