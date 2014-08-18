@@ -10,6 +10,7 @@
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
 #define JIT_ENTRY_MAX_SIZE 512
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
 
 typedef enum
 {
@@ -62,6 +63,11 @@ bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
 bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t*);
+bool dbggetpagerights(uint*, char*);
+bool dbgpagerightstostring(DWORD, char*);
+void dbggetpageligned(uint*);
+bool dbgpagerightsfromstring(DWORD*, char*);
+bool dbgsetpagerights(uint*, char*);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t*);
 bool dbggetdefjit(char* jit_entry);
 bool _readwritejitkey(char*, DWORD*, char*, arch, arch*, readwritejitkey_error_t*, bool);

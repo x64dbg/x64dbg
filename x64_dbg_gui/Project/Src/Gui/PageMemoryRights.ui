@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>509</width>
-    <height>299</height>
+    <width>510</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -27,7 +27,7 @@
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>270</y>
+     <y>310</y>
      <width>121</width>
      <height>21</height>
     </rect>
@@ -47,8 +47,8 @@
     <rect>
      <x>20</x>
      <y>11</y>
-     <width>311</width>
-     <height>211</height>
+     <width>291</width>
+     <height>241</height>
     </rect>
    </property>
    <property name="autoScroll">
@@ -64,10 +64,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>330</x>
      <y>10</y>
-     <width>122</width>
-     <height>201</height>
+     <width>161</width>
+     <height>242</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -76,46 +76,63 @@
       <property name="title">
        <string>Rights</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QRadioButton" name="radioButton">
+      <layout class="QFormLayout" name="formLayout">
+       <property name="fieldGrowthPolicy">
+        <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+       </property>
+       <item row="0" column="0">
+        <widget class="QRadioButton" name="radioNoaccess">
          <property name="text">
           <string>NO ACCESS</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_2">
+       <item row="1" column="0">
+        <widget class="QRadioButton" name="radioReadonly">
          <property name="text">
           <string>READ ONLY</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_3">
+       <item row="2" column="0">
+        <widget class="QRadioButton" name="radioReadwrite">
          <property name="text">
-          <string>READ &amp; WRITE</string>
+          <string>READ WRITE</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_4">
+       <item row="3" column="0">
+        <widget class="QRadioButton" name="radioExecute">
          <property name="text">
           <string>EXECUTE</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QRadioButton" name="radioButton_5">
+       <item row="4" column="0">
+        <widget class="QRadioButton" name="radioExecuteread">
          <property name="text">
-          <string>EXECUTE &amp; READ</string>
+          <string>EXECUTE READ</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="5" column="0">
         <widget class="QRadioButton" name="radioFullaccess">
          <property name="text">
           <string>FULL ACCESS</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QRadioButton" name="radioWritecopy">
+         <property name="text">
+          <string>WRITE COPY</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QRadioButton" name="radioExecutewritecopy">
+         <property name="text">
+          <string>EXECUTE WRITE COPY</string>
          </property>
         </widget>
        </item>
@@ -123,7 +140,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="btnSetrights">
       <property name="text">
        <string>Set Rights</string>
       </property>
@@ -135,7 +152,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>230</y>
+     <y>260</y>
      <width>230</width>
      <height>25</height>
     </rect>
@@ -157,12 +174,12 @@
     </item>
    </layout>
   </widget>
-  <widget class="QLineEdit" name="lineEdit">
+  <widget class="QLineEdit" name="LnEdStatus">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>270</y>
-     <width>331</width>
+     <y>310</y>
+     <width>371</width>
      <height>20</height>
     </rect>
    </property>
@@ -174,7 +191,7 @@
    <property name="geometry">
     <rect>
      <x>260</x>
-     <y>240</y>
+     <y>280</y>
      <width>241</width>
      <height>20</height>
     </rect>
@@ -183,12 +200,26 @@
     <string>Press CTRL or SHIFT key to select multiple pages</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="chkPageguard">
+   <property name="geometry">
+    <rect>
+     <x>400</x>
+     <y>260</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PAGE GUARD</string>
+   </property>
+  </widget>
   <zorder>layoutWidget</zorder>
   <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
-  <zorder>lineEdit</zorder>
+  <zorder>LnEdStatus</zorder>
   <zorder>pagetableWidget</zorder>
   <zorder>label</zorder>
+  <zorder>chkPageguard</zorder>
  </widget>
  <resources>
   <include location="../../resource.qrc"/>

@@ -1688,3 +1688,53 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
+{
+    uint addr = 0;
+    char rights[RIGHTS_STRING];
+
+    if(argc != 2 || !valfromstring(argv[1], &addr))
+    {
+        dprintf("Error: using an address as arg1\n");
+        return STATUS_ERROR;
+    }
+
+    if(!dbggetpagerights(&addr, rights))
+    {
+        dprintf("Error getting rights of page: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    dprintf("Page: "fhex", Rights: %s\n", addr, rights);
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
+{
+    uint addr = 0;
+    char rights[RIGHTS_STRING];
+
+    if(argc != 3 || !valfromstring(argv[1], &addr))
+    {
+        dprintf("Error: using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
+        return STATUS_ERROR;
+    }
+
+    if(!dbgsetpagerights(&addr, argv[2]))
+    {
+        dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
+        return STATUS_ERROR;
+    }
+
+    if(!dbggetpagerights(&addr, rights))
+    {
+        dprintf("Error getting rights of page: %s\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    dprintf("New rights of "fhex": %s\n", addr, rights);
+
+    return STATUS_CONTINUE;
+}

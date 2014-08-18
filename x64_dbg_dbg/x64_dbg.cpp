@@ -162,6 +162,8 @@ static void registercommands()
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
     dbgcmdnew("free", cbDebugFree, true); //free memory
     dbgcmdnew("Fill\1memset", cbDebugMemset, true); //memset
+    dbgcmdnew("getpagerights\1getrightspage", cbDebugGetPageRights, true);
+    dbgcmdnew("setpagerights\1setrightspage", cbDebugSetPageRights, true);
 
     //plugins
     dbgcmdnew("StartScylla\1scylla\1imprec", cbDebugStartScylla, false); //start scylla

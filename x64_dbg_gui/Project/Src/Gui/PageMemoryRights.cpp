@@ -17,29 +17,31 @@ PageMemoryRights::~PageMemoryRights()
     delete ui;
 }
 
-void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein)
+void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetypein)
 {
     addr = addrin;
     size = sizein;
+    pagetype = pagetypein;
 
-    int charwidth = QFontMetrics(this->font()).width(QChar(' '));
-
-    //addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "ADDR", false, "Address"); //addr
     QTableWidget* tableWidget = ui->pagetableWidget;
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    uint_t nr_pages = size / 1000;
+    uint_t nr_pages = size / PAGE_SIZE;
     tableWidget->setColumnCount(2);
     tableWidget->setRowCount(nr_pages);
 
-    tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("ADDR")));
-    tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("RIGHTS")));
+    tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
+    tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("Rights")));
 
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+    duint actual_addr;
+    char rights[RIGHTS_STRING];
     for(uint_t i = 0; i < nr_pages; i++)
     {
-        tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(addr + (i * 1000), sizeof(uint_t) * 2, 16, QChar('0')).toUpper()));
-
-
+        actual_addr = addr + (i * PAGE_SIZE);
+        tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(actual_addr, sizeof(uint_t) * 2, 16, QChar('0')).toUpper()));
+        if(DbgFunctions()->GetPageRights(& actual_addr, rights))
+            tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }
 
 
@@ -49,6 +51,7 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein)
     ui->pagetableWidget->selectionModel()->select(idx, QItemSelectionModel::Select);
 
     ui->radioFullaccess->setChecked(true);
+    ui->chkPageguard->setCheckable(true);
     exec();
 
 }
@@ -75,4 +78,57 @@ void PageMemoryRights::on_btnDeselectall_clicked()
         ui->pagetableWidget->selectionModel()->select(index, QItemSelectionModel::Deselect);
 
     }
+}
+
+void PageMemoryRights::on_btnSetrights_clicked()
+{
+    duint actual_addr;
+    QString rights;
+    char newrights[RIGHTS_STRING];
+    bool one_right_changed = false;
+
+    if(ui->radioExecute->isChecked())
+        rights = "Execute";
+    else if(ui->radioExecuteread->isChecked())
+        rights = "ExecuteRead";
+    else if(ui->radioNoaccess->isChecked())
+        rights = "NoAccess";
+    else if(ui->radioFullaccess ->isChecked())
+        rights = "ExecuteReadWrite";
+    else if(ui->radioReadonly->isChecked())
+        rights = "ReadOnly";
+    else if(ui->radioReadwrite->isChecked())
+        rights = "ReadWrite";
+    else if(ui->radioWritecopy->isChecked())
+        rights = "WriteCopy";
+    else if(ui->radioExecutewritecopy->isChecked())
+        rights = "ExecuteWriteCopy";
+    else
+        return;
+
+    if(ui->chkPageguard->isChecked())
+        rights = "G" + rights;
+
+    QModelIndexList indexList = ui->pagetableWidget->selectionModel()->selectedIndexes();
+    foreach(QModelIndex index, indexList)
+    {
+#ifdef _WIN64
+        actual_addr = ui->pagetableWidget->item(index.row(), 0)->text().toULongLong(0, 16);
+#else //x86
+        actual_addr = ui->pagetableWidget->item(index.row(), 0)->text().toULong(0, 16);
+#endif //_WIN64
+
+        if(DbgFunctions()->SetPageRights(& actual_addr, (char*) rights.toStdString().c_str()))
+        {
+            one_right_changed = true;
+            if(DbgFunctions()->GetPageRights(& actual_addr, newrights))
+                ui->pagetableWidget->setItem(index.row(), 1, new QTableWidgetItem(QString(newrights)));
+        }
+
+    }
+
+    if(one_right_changed)
+        ui->LnEdStatus->setText("Pages Rights Changed to: " + rights);
+    else
+        ui->LnEdStatus->setText("Error setting rights, read the MSDN to learn the valid rights of: " + pagetype);
 }
