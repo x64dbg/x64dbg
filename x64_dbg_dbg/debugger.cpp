@@ -1483,16 +1483,17 @@ void cbDetach()
 
 bool IsProcessElevated()
 {
+    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+    PSID SecurityIdentifier;
+    if(!AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &SecurityIdentifier))
+        return 0;
 
-    HANDLE hToken;
-    DWORD tkInfoLen;
-    TOKEN_ELEVATION tkElevation;
+    BOOL IsAdminMember;
+    if(!CheckTokenMembership(NULL, SecurityIdentifier, &IsAdminMember))
+        IsAdminMember = FALSE;
 
-    OpenProcessToken(GetCurrentProcess(), TOKEN_READ, &hToken);
-
-    GetTokenInformation(hToken, TokenElevation, &tkElevation, sizeof(tkElevation), &tkInfoLen);
-
-    return (tkElevation.TokenIsElevated != 0);
+    FreeSid(SecurityIdentifier);
+    return IsAdminMember ? true : false;
 }
 
 bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
