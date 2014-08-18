@@ -33,6 +33,7 @@ public slots:
     void contextMenuSlot(const QPoint & pos);
     void switchView();
     void pageMemoryRights();
+    void refreshMap();
 
 private:
     QString getProtectionString(DWORD Protect);

@@ -1684,8 +1684,6 @@ bool dbgsetpagerights(uint* addr, char* rights_string)
     if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
 
-    // ADD ME: CALL TO UPDATE MEMORY VIEW HERE :-)
-
     return true;
 }
 

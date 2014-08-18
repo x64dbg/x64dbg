@@ -23,10 +23,11 @@ public:
 
 private slots:
     void on_btnSelectall_clicked();
-
     void on_btnDeselectall_clicked();
-
     void on_btnSetrights_clicked();
+
+signals:
+    void refreshMemoryMap();
 
 private:
     Ui::PageMemoryRights* ui;
