@@ -1,9 +1,4 @@
-#include <QtGui>
-#include "MainWindow.h"
-#include "NewTypes.h"
-#include "Bridge.h"
 #include "main.h"
-#include <QAbstractEventDispatcher>
 
 MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
 {

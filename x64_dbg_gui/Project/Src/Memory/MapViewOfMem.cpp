@@ -1,6 +1,5 @@
 #include "MapViewOfMem.h"
 
-
 MapViewOfMem::MapViewOfMem()
 {
     mSelectedData.fromIndex = -1;

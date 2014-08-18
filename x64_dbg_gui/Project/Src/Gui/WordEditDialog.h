@@ -1,12 +1,6 @@
 #ifndef WORDEDITDIALOG_H
 #define WORDEDITDIALOG_H
 
-#include <QtGui>
-#include <QDialog>
-#include <QThread>
-#include <QPushButton>
-#include "Bridge.h"
-
 namespace Ui
 {
 class WordEditDialog;

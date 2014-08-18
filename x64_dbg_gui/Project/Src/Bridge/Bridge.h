@@ -1,18 +1,6 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
-#include <QObject>
-#include <QtGui>
-#include "NewTypes.h"
-#include "ReferenceView.h"
-#include "BeaTokenizer.h"
-#include "QBeaEngine.h"
-
-#include "main.h"
-
-#include "Exports.h"
-#include "Imports.h"
-
 class Bridge : public QObject
 {
     Q_OBJECT

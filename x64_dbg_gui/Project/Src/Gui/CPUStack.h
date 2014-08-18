@@ -1,15 +1,6 @@
 #ifndef CPUSTACK_H
 #define CPUSTACK_H
 
-#include <QtGui>
-#include <QtDebug>
-#include <QAction>
-#include <QMenu>
-#include "NewTypes.h"
-#include "HexDump.h"
-#include "Bridge.h"
-#include "GotoDialog.h"
-
 class CPUStack : public HexDump
 {
     Q_OBJECT

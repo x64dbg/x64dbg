@@ -1,10 +1,6 @@
 #ifndef PAGEMEMORYRIGHTS_H
 #define PAGEMEMORYRIGHTS_H
 
-#include <QDialog>
-#include "StdTable.h"
-#include "Bridge.h"
-
 #define PAGE_SIZE 0x1000
 
 namespace Ui

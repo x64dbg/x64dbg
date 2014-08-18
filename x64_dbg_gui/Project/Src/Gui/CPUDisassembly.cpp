@@ -1,6 +1,4 @@
 #include "CPUDisassembly.h"
-#include "Configuration.h"
-#include "HexEditDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
 {

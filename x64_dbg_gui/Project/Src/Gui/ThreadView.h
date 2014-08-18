@@ -1,9 +1,6 @@
 #ifndef THREADVIEW_H
 #define THREADVIEW_H
 
-#include "StdTable.h"
-#include "Bridge.h"
-
 class ThreadView : public StdTable
 {
     Q_OBJECT

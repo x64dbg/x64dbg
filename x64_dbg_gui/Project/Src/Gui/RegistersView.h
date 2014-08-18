@@ -1,15 +1,6 @@
 #ifndef REGISTERSVIEW_H
 #define REGISTERSVIEW_H
 
-#include <QtGui>
-#include <QLabel>
-#include <QMenu>
-#include <QSet>
-#include "Bridge.h"
-#include "WordEditDialog.h"
-#include "LineEditDialog.h"
-#include <QAbstractScrollArea>
-
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
 namespace Ui

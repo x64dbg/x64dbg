@@ -1,11 +1,6 @@
 #ifndef INFOBOX_H
 #define INFOBOX_H
 
-#include <QtGui>
-#include "StdTable.h"
-#include "Bridge.h"
-#include "CPUDisassembly.h"
-
 class CPUInfoBox : public StdTable
 {
     Q_OBJECT

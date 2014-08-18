@@ -1,12 +1,6 @@
 #ifndef REFERENCEVIEW_H
 #define REFERENCEVIEW_H
 
-#include <QProgressBar>
-#include <QAction>
-#include <QMenu>
-#include "SearchListView.h"
-#include "Bridge.h"
-
 class ReferenceView : public SearchListView
 {
     Q_OBJECT

@@ -1,8 +1,6 @@
 #ifndef ATTACHDIALOG_H
 #define ATTACHDIALOG_H
 
-#include <QDialog>
-
 namespace Ui
 {
 class AttachDialog;

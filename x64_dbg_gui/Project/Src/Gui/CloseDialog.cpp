@@ -1,5 +1,4 @@
 #include "CloseDialog.h"
-#include "ui_CloseDialog.h"
 
 CloseDialog::CloseDialog(QWidget* parent) :
     QDialog(parent),

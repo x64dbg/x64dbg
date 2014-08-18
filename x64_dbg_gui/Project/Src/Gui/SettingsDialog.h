@@ -1,11 +1,6 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
-#include <QDialog>
-#include <QMessageBox>
-#include "Bridge.h"
-#include "ExceptionRangeDialog.h"
-
 namespace Ui
 {
 class SettingsDialog;

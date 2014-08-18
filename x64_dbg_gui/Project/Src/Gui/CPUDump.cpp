@@ -1,6 +1,4 @@
 #include "CPUDump.h"
-#include "Configuration.h"
-#include "HexEditDialog.h"
 
 CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {

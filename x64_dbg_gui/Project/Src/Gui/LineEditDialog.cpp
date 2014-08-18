@@ -1,6 +1,5 @@
 #include "LineEditDialog.h"
 #include "ui_LineEditDialog.h"
-#include "Bridge.h"
 
 LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::LineEditDialog)
 {

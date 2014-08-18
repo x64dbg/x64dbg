@@ -1,8 +1,6 @@
 #ifndef CLOSEDIALOG_H
 #define CLOSEDIALOG_H
 
-#include <QDialog>
-
 namespace Ui
 {
 class CloseDialog;

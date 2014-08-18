@@ -1,5 +1,4 @@
 #include "MemoryMapView.h"
-#include "Configuration.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {

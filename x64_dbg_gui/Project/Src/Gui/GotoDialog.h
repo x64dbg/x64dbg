@@ -1,11 +1,6 @@
 #ifndef GOTODIALOG_H
 #define GOTODIALOG_H
 
-#include <QDialog>
-#include <QPalette>
-#include <QThread>
-#include "Bridge.h"
-
 namespace Ui
 {
 class GotoDialog;

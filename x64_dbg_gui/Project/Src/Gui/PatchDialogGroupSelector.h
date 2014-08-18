@@ -1,9 +1,6 @@
 #ifndef PATCHDIALOGGROUPSELECTOR_H
 #define PATCHDIALOGGROUPSELECTOR_H
 
-#include <QDialog>
-#include <QKeyEvent>
-
 namespace Ui
 {
 class PatchDialogGroupSelector;

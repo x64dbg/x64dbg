@@ -1,11 +1,6 @@
 #ifndef SEARCHLISTVIEW_H
 #define SEARCHLISTVIEW_H
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QLineEdit>
-#include "SearchListViewTable.h"
-
 namespace Ui
 {
 class SearchListView;

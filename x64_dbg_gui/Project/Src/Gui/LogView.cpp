@@ -1,5 +1,4 @@
 #include "LogView.h"
-#include "Configuration.h"
 
 LogView::LogView(QWidget* parent) : QTextEdit(parent)
 {

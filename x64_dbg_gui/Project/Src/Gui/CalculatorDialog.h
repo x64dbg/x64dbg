@@ -1,10 +1,6 @@
 #ifndef CALCULATORDIALOG_H
 #define CALCULATORDIALOG_H
 
-#include <QDialog>
-#include <QThread>
-#include "Bridge.h"
-
 namespace Ui
 {
 class CalculatorDialog;

@@ -1,10 +1,6 @@
 #ifndef MAPVIEWOFMEM_H
 #define MAPVIEWOFMEM_H
 
-#include <QtGui>
-#include "NewTypes.h"
-
-
 typedef struct _Selection_t
 {
     int firstSelectedIndex;
@@ -12,11 +8,8 @@ typedef struct _Selection_t
     int toIndex;
 } Selection_t;
 
-
-
 class MapViewOfMem
 {
-
 public:
     MapViewOfMem();
     explicit MapViewOfMem(QString file);

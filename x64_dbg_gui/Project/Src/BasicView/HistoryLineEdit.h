@@ -1,9 +1,6 @@
 #ifndef HISTORYLINEEDIT_H
 #define HISTORYLINEEDIT_H
 
-#include <QtGui>
-#include <QLineEdit>
-
 class HistoryLineEdit : public QLineEdit
 {
     Q_OBJECT

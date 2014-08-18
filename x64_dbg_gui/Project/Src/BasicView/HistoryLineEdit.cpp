@@ -1,5 +1,4 @@
 #include "HistoryLineEdit.h"
-#include "Bridge.h"
 
 HistoryLineEdit::HistoryLineEdit(QWidget* parent) : QLineEdit(parent)
 {

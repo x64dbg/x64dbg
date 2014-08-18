@@ -1,9 +1,6 @@
 #ifndef RICHTEXTPAINTER_H
 #define RICHTEXTPAINTER_H
 
-#include <QList>
-#include <QPainter>
-
 class RichTextPainter
 {
 public:

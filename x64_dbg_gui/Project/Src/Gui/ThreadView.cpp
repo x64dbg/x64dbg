@@ -1,7 +1,4 @@
 #include "ThreadView.h"
-#include "Configuration.h"
-
-// Dreg code x86_64dbg GPLv3
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {

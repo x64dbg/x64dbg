@@ -1,6 +1,5 @@
 #include "SymbolView.h"
 #include "ui_SymbolView.h"
-#include "Configuration.h"
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {

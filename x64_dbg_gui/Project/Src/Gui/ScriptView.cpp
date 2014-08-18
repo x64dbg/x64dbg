@@ -1,5 +1,4 @@
 #include "ScriptView.h"
-#include "Configuration.h"
 
 ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 {

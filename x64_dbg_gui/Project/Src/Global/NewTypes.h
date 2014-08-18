@@ -1,8 +1,6 @@
 #ifndef NEWTYPES_H
 #define NEWTYPES_H
 
-#include "Imports.h"
-
 typedef short int16;
 typedef unsigned short uint16;
 

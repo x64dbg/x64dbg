@@ -1,5 +1,4 @@
 #include "Disassembly.h"
-#include "Configuration.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {

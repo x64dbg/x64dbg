@@ -1,9 +1,6 @@
 #ifndef BREAKPOINTS_H
 #define BREAKPOINTS_H
 
-#include <QObject>
-#include "Bridge.h"
-
 enum BPXSTATE
 {
     bp_enabled = 0,

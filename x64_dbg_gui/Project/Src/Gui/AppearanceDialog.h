@@ -1,11 +1,6 @@
 #ifndef APPEARANCEDIALOG_H
 #define APPEARANCEDIALOG_H
 
-#include <QDialog>
-#include <QColorDialog>
-#include <QMessageBox>
-#include <QMap>
-
 namespace Ui
 {
 class AppearanceDialog;

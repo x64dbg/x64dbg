@@ -1,15 +1,6 @@
 #ifndef ABSTRACTTABLEVIEW_H
 #define ABSTRACTTABLEVIEW_H
 
-#include <QtGui>
-#include <QAbstractScrollArea>
-#include <QPushButton>
-#include <QStyleOptionButton>
-#include <QStyle>
-#include <QScrollBar>
-#include <qdebug.h>
-#include <NewTypes.h>
-
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
 {

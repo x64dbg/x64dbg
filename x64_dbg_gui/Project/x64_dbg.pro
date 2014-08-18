@@ -36,7 +36,6 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
-    Src/Memory/ProcessMemoryMap.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Memory/MapViewOfMem.cpp \
     Src/Bridge/Bridge.cpp \
@@ -97,7 +96,6 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
-    Src/Memory/ProcessMemoryMap.h \
     Src/Memory/MemoryPage.h \
     Src/Memory/MapViewOfMem.h \
     Src/Bridge/Bridge.h \

@@ -1,10 +1,6 @@
 #ifndef COMMANDLINEEDIT_H
 #define COMMANDLINEEDIT_H
 
-#include "HistoryLineEdit.h"
-#include "Bridge.h"
-#include <QCompleter>
-
 class CommandLineEdit : public HistoryLineEdit
 {
     Q_OBJECT

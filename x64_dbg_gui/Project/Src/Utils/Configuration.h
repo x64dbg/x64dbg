@@ -1,14 +1,6 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <QFile>
-#include <QString>
-#include <QColor>
-#include <QMap>
-#include <QObject>
-#include <QKeySequence>
-#include "Bridge.h"
-
 #define Config() (Configuration::instance())
 #define ConfigColor(x) (Config()->getColor(x))
 #define ConfigBool(x,y) (Config()->getBool(x,y))

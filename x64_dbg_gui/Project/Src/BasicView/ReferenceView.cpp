@@ -1,5 +1,4 @@
 #include "ReferenceView.h"
-#include "Configuration.h"
 
 ReferenceView::ReferenceView()
 {

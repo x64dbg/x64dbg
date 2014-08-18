@@ -1,8 +1,6 @@
 #ifndef EXCEPTIONRANGEDIALOG_H
 #define EXCEPTIONRANGEDIALOG_H
 
-#include <QDialog>
-
 namespace Ui
 {
 class ExceptionRangeDialog;

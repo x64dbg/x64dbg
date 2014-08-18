@@ -1,14 +1,6 @@
 #ifndef BREAKPOINTSVIEW_H
 #define BREAKPOINTSVIEW_H
 
-#include <QtGui>
-#include "StdTable.h"
-#include "Bridge.h"
-#include "Breakpoints.h"
-#include <QSplitter>
-#include <QMenu>
-#include <QVBoxLayout>
-
 class BreakpointsView : public QWidget
 {
     Q_OBJECT

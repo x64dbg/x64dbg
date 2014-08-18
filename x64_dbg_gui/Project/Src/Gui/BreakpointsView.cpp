@@ -1,5 +1,4 @@
 #include "BreakpointsView.h"
-#include "Configuration.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {

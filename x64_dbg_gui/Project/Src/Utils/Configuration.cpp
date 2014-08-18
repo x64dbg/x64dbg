@@ -1,6 +1,4 @@
 #include "Configuration.h"
-#include "Bridge.h"
-#include <QMessageBox>
 
 Configuration* Configuration::mPtr = NULL;
 

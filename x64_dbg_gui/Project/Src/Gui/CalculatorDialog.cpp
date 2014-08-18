@@ -1,6 +1,5 @@
 #include "CalculatorDialog.h"
 #include "ui_CalculatorDialog.h"
-#include <QString>
 
 CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {

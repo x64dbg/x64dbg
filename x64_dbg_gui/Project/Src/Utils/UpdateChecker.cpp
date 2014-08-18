@@ -1,6 +1,4 @@
 #include "UpdateChecker.h"
-#include <QMessageBox>
-#include "Bridge.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)
 {

@@ -1,8 +1,6 @@
 #ifndef SHORTCUTEDIT_H
 #define SHORTCUTEDIT_H
 
-#include <QLineEdit>
-
 class ShortcutEdit : public QLineEdit
 {
     Q_OBJECT

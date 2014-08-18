@@ -1,15 +1,6 @@
 #ifndef SCRIPTVIEW_H
 #define SCRIPTVIEW_H
 
-#include <QtGui>
-#include <QAction>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QMenu>
-#include "StdTable.h"
-#include "Bridge.h"
-#include "LineEditDialog.h"
-
 class ScriptView : public StdTable
 {
     Q_OBJECT

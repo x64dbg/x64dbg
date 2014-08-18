@@ -1,7 +1,5 @@
 #include "HexEditDialog.h"
 #include "ui_HexEditDialog.h"
-#include "QHexEdit/QHexEdit.h"
-#include "Configuration.h"
 
 HexEditDialog::HexEditDialog(QWidget* parent) :
     QDialog(parent),

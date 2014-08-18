@@ -1,5 +1,4 @@
 #include "RegistersView.h"
-#include "Configuration.h"
 
 RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
 {
