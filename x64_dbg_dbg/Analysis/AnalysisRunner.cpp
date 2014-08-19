@@ -1,191 +1,192 @@
 #include "AnalysisRunner.h"
 #include "../_global.h"
 #include "../console.h"
-#include "meta.h"
-#include "IntermodularCalls.h"
-#include "FunctionDetector.h"
-namespace tr4ce
+#include "Meta.h"
+
+#include "Node_t.h"
+#include "Edge_t.h"
+
+/* the idea is to start from the OEP and follow all instructions like an emulator would do it
+ * and register all branching, i.e., EIP changes != eip++
+ */
+
+namespace fa
 {
 
-AnalysisRunner::AnalysisRunner(duint BaseAddress, duint Size)
-{
-    // store all given information
-    mBaseAddress = BaseAddress;
-    mSize = Size;
+	AnalysisRunner::AnalysisRunner(const duint addrOEP,const duint BaseAddress,const duint Size) : OEP(addrOEP), baseAddress(BaseAddress), codeSize(Size)
+	{
+		// we start at the original entry point
+		disasmRoot.insert(addrOEP);
+		codeWasCopied = initialise();
+		if(codeWasCopied){
+			Grph = new FlowGraph;
+			Node_t *cipNode = new Node_t(OEP);
+			Grph->insertNode(cipNode);
+		}
+		
+	}
 
-	_Calls = new IntermodularCalls(this);
-	_Func = new CallDetector(this);
+	bool AnalysisRunner::initialise()
+	{
+		// copy the code section to play with it
+		codeBuffer = new unsigned char[codeSize];
+		if(!DbgMemRead(baseAddress, codeBuffer, codeSize))
+		{
+			//ERROR: copying did not work
+			dputs("[StaticAnalysis] could not read memory ...");
+			return false;
+		}
+		return true;
 
-    initialise();
-    clear();
-}
+	}
 
 
-AnalysisRunner::~AnalysisRunner(void)
-{
-}
+	AnalysisRunner::~AnalysisRunner(void)
+	{
+		codeWasCopied = false;
+		delete Grph;
+	}
 
-void AnalysisRunner::start()
-{
-    // do we have information about the function prototypes?
-    if(!mApiDb->ok())
-        return;
-    dputs("[StaticAnalysis] analysis started ...");
-    // remove all temp information
-    clear();
-    run();
-    // see every instructions once
-    publishInstructions();
-    // do some magic
-    think();
-    dputs("[StaticAnalysis] analysis finished ...");
-}
+	void AnalysisRunner::start()
+	{
+		if(!codeWasCopied)
+			return;
+		dputs("[StaticAnalysis] analysis started ...");
+		buildGraph();
+		dputs("[StaticAnalysis] analysis finished ...");
+	}
 
-void AnalysisRunner::publishInstructions()
-{
-    StackEmulator Stack;
-    RegisterEmulator Register;
-    // show every sub-plugin the current instruction
-    for each(auto currentInstruction in mInstructionsBuffer)
-    {
-        see(&currentInstruction.second, &Stack, &Register);
-        Stack.emulate(&currentInstruction.second.BeaStruct);
-        Register.emulate(&currentInstruction.second.BeaStruct);
-    }
-}
 
-void AnalysisRunner::run()
-{
-    // this function will be run once
+	bool AnalysisRunner::disasmChilds(duint rootAddress)
+	{
+		// this function will run until an unconditional branching (JMP,RET) or unkown OpCode
+		if (contains(instructionBuffer,(UInt64)rootAddress))
+		{
+			// we already were here -->stop!
+			return true;
+		}
 
-    // copy the code section
-    mCodeMemory = new unsigned char[mSize];
-    if(!DbgMemRead(mBaseAddress, mCodeMemory, mSize))
-    {
-        //ERROR: copying did not work
-        dputs("[StaticAnalysis] could not read memory ...");
-        return;
-    }
-
-    //loop over all instructions
-    DISASM disasm;
-
-    duint baseaddr = mBaseAddress;
-    duint size = mSize;
-
-    memset(&disasm, 0, sizeof(disasm));
-
+		DISASM disasm;
+		memset(&disasm, 0, sizeof(disasm));
 #ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
+		disasm.Archi = 64;
+#endif 
+		// indent pointer relative to current virtual address
+		disasm.EIP = (UIntPtr)codeBuffer  + (rootAddress - baseAddress); 
+		disasm.VirtualAddr = (UInt64)rootAddress;
 
-    currentEIP = (UIntPtr)mCodeMemory;
-    disasm.EIP = currentEIP;
-    currentVirtualAddr = (UInt64)baseaddr;
-    disasm.VirtualAddr = currentVirtualAddr;
-    duint i = 0;
+		// while there is code in the buffer
+		while(disasm.VirtualAddr - baseAddress < codeSize)
+		{
+			// disassemble instruction
+			int instrLength = Disasm(&disasm);
+			// everything ok?
+			if(instrLength != UNKNOWN_OPCODE)
+			{
+				// create a new structure
+				Instruction_t instr(&disasm, instrLength);
+				// cache instruction
+				instructionBuffer.insert(std::pair<UInt64, Instruction_t>(disasm.VirtualAddr, instr));
 
-    for(duint i = 0; i < size;)
-    {
-        // disassemble instruction
-        int len = Disasm(&disasm);
-        // everything ok?
-        if(len != UNKNOWN_OPCODE)
-        {
-            Instruction_t instr(&disasm, len);
-            mInstructionsBuffer.insert(std::pair<UInt64, Instruction_t>(disasm.VirtualAddr, instr));
-        }
-        else
-        {
-            // something went wrong --> notify every subplugin
-            unknownOpCode(&disasm);
-            len = 1;
-        }
-        // we do not know if the struct DISASM gets destroyed on unkown opcodes --> use variables
-        currentEIP += len;
-        currentVirtualAddr += len;
+				// handle all kind of branching (cond. jumps, uncond. jumps, ret, unkown OpCode, calls)
+				if(disasm.Instruction.BranchType){
+					// there is a branch
+					Node_t *startNode = new Node_t(disasm.VirtualAddr); 
+					Node_t *endNode;
 
-        disasm.EIP = currentEIP;
-        disasm.VirtualAddr = currentVirtualAddr;
-        // move memory pointer
-        i += len;
-    }
+					const Int32 BT = disasm.Instruction.BranchType;
 
+					if(BT == RetType){
+						// end of a function 
+						// --> start was probably "rootAddress"
+						// --> edge from current VA to rootAddress
+						endNode = new Node_t(rootAddress);
+						Edge_t *e = new Edge_t(startNode,endNode,fa::RET);
+						Grph->insertEdge(e);
+						// no need to disassemble more
+						return true;
+					}else{
+						// this is a "call","jmp","ret","jne","jnz","jz",...
+						// were we are going to?
+						endNode = new Node_t(disasm.Instruction.AddrValue);
+						// determine the type of flow-control-modification
+						fa::EdgeType currentEdgeType;
+						
+						if(BT == CallType){
+							// simply a call
+							currentEdgeType = fa::CALL;
+						}else if(BT == JmpType){
+							// external Jump ?
+							if(disasm.Instruction.Opcode == 0xFF){
+								currentEdgeType = fa::EXTERNJMP;
+							}else{
+								currentEdgeType = fa::UNCONDJMP;
+							}
+						}else{
+							// all other branches are conditional jumps
+							currentEdgeType = fa::CONDJMP;
+						}
+						// create a new edge for this EIP change
+						Edge_t *edge = new Edge_t(startNode,endNode,currentEdgeType);
+						Grph->insertEdge(edge);
 
-    delete mCodeMemory;
-}
-void AnalysisRunner::clear()
-{
-    mInstructionsBuffer.clear();
-    // forward to all sub-plugin
-    _Calls->clear();
-	_Func->clear();
-}
-void AnalysisRunner::think()
-{
-    // forward to all sub-plugin
-    _Calls->think();
-	_Func->think();
-}
-void AnalysisRunner::see(const Instruction_t* disasm, const StackEmulator* stack, const RegisterEmulator* regState)
-{
-    // forward to all sub-plugin
-    _Calls->see(disasm, stack, regState);
-	_Func->see(disasm, stack, regState);
-}
+						if(currentEdgeType != fa::EXTERNJMP){
+							// the target must be disassembled too --> insert on todo-list
+							disasmRoot.insert(endNode->virtualAddress);
+						}
 
-void AnalysisRunner::unknownOpCode(const DISASM* disasm)
-{
-    // forward to all sub-plugin
-    _Calls->unknownOpCode(disasm);
-	_Func->unknownOpCode(disasm);
-}
+						if( BT == JmpType ){
+							// unconditional flow change --> do not disassemble the next instruction
+							return true;
+						}
 
-void AnalysisRunner::initialise()
-{
-    // forward to all sub-plugin
-    _Calls->initialise(mBaseAddress, mSize);
-	_Func->initialise(mBaseAddress, mSize);
-}
+					}
+				}
+			}
+			else
+			{
+				// unknown OpCode
+				// --> don't know how to handle
+				// --> pray everything will done correct
+				return false;
+			}
+			// we are allowed to analyze the next instruction
+			disasm.EIP += instrLength;
+			disasm.VirtualAddr += instrLength;
+		}
 
-
-
-ApiDB* AnalysisRunner::FunctionInformation() const
-{
-    return mApiDb;
-}
-
-
-void AnalysisRunner::setFunctionInformation(ApiDB* api)
-{
-    mApiDb = api;
-}
-
-// return instruction of address - if possible
-int AnalysisRunner::instruction(UInt64 va, Instruction_t* instr) const
-{
-	if(tr4ce::contains(mInstructionsBuffer, va))
-	{
-		*instr = mInstructionsBuffer.at(va);
-		return instr->Length;
+		return true;
 	}
-	else
-	{
-		return UNKNOWN_OPCODE;
-	}
-}
-std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::instructionIter(UInt64 va) const
-{
-	return mInstructionsBuffer.find(va);
-}
-std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::lastInstruction() const
-{
-	return mInstructionsBuffer.end();
-}
 
-duint AnalysisRunner::base() const
-{
-	return mBaseAddress;
-}
+	void AnalysisRunner::buildGraph()
+	{
+		// execute todo list
+		while(disasmRoot.size() != 0){
+			// get any address
+			UInt64 addr = *(disasmRoot.begin());
+			// did we already analyzed that address?
+			if(!contains(instructionBuffer,addr)){
+				// analyze until branching
+				disasmChilds(addr);
+			}
+			// delete it from todo list
+			disasmRoot.erase(disasmRoot.find(addr));
+		}
+		// we do not need the buffer anymore
+		delete codeBuffer;
+	}
+
+	std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::instruction(UInt64 addr) const
+	{
+		return instructionBuffer.find(addr);
+	}
+	std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::lastInstruction() const
+	{
+		return instructionBuffer.end();
+	}
+	duint AnalysisRunner::base() const
+	{
+		return baseAddress;
+	}
 
 };

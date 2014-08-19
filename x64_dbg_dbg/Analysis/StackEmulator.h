@@ -2,7 +2,7 @@
 #include "Meta.h"
 #include "../_global.h"
 
-namespace tr4ce
+namespace fa
 {
 
 /* since some compilers don't use "push" to change the stack for arguments (see MingGW)

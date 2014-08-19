@@ -1,34 +1,26 @@
 #pragma once
 #include "../BeaEngine/BeaEngine.h"
+#include "../_global.h"
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <cstring>
 
-namespace tr4ce
+
+
+
+
+namespace fa
 {
-	struct Call_t
-	{
-		UInt64 startAddress;
-		UInt64 endAddress;
 
-		Call_t(UInt64 a)
-		{
-			startAddress = a;
-		}
+	enum EdgeType{RET,CALL,CONDJMP,UNCONDJMP,EXTERNJMP,INF,UNKOWN};
 
-		bool operator==(const Call_t & rhs) const
-		{
-			return static_cast<bool>(startAddress == rhs.startAddress);
-		}
-		bool operator<(const Call_t & rhs) const
-		{
-			return static_cast<bool>(startAddress < rhs.startAddress);
-		}
+	
 
+	// every edge in the application flow graph is an instruction that active modifies the EIP
 
-	};
-	struct Instruction_t
+	typedef struct Instruction_t
 	{
 		DISASM BeaStruct;
 		unsigned int Length;
@@ -43,7 +35,7 @@ namespace tr4ce
 		{
 			Length = UNKNOWN_OPCODE;
 		}
-	};
+	} Instruction_t;
 
 	struct ArgumentInfo_t
 	{
@@ -114,13 +106,3 @@ namespace tr4ce
 #endif
 
 };
-
-/*namespace std{
-
-template<typename T, typename D>
-bool contains(std::map<T,D> s, T key)
-{
-std::map<T,D>::iterator it = s.find(key);
-return (it != s.end());
-}
-}*/

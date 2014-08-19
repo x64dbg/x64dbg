@@ -1,7 +1,8 @@
 #pragma once
-#include "meta.h"
+#include "Meta.h"
 #include "../_global.h"
-namespace tr4ce
+
+namespace fa
 {
 class RegisterEmulator
 {
@@ -15,10 +16,10 @@ public:
 
     void emulate(const DISASM* BeaStruct);
 
-    const uint rcx() const;
-    const uint rdx() const;
-    const uint r8() const;
-    const uint r9() const;
+    const UInt64 rcx() const;
+    const UInt64 rdx() const;
+    const UInt64 r8() const;
+    const UInt64 r9() const;
 };
 
 };

@@ -5,55 +5,50 @@
 #include "StackEmulator.h"
 #include "RegisterEmulator.h"
 #include "ApiDB.h"
+#include "FlowGraph.h"
+#include <set>
 
-namespace tr4ce
+namespace fa
 {
-
-class IntermodularCalls;
-class CallDetector;
 
 
 class AnalysisRunner
 {
-    std::map<UInt64, Instruction_t> mInstructionsBuffer;
-    duint mBaseAddress;
-    duint mSize;
-
-    IntermodularCalls* _Calls;
-	CallDetector* _Func;
-    ApiDB* mApiDb;
-
-
-    unsigned char* mCodeMemory;
+	// we will place all VA here that should be a start address for disassembling
+	std::set<UInt64> disasmRoot;
+	// all known disassemling should be cached
+    std::map<UInt64, Instruction_t> instructionBuffer;
+	// baseaddress for current thread
+    duint baseAddress;
+	// size of code for security while disassembling
+    duint codeSize;
+	// copy of all instructions bytes
+    unsigned char* codeBuffer;
+	// temporal value of EIP
     UIntPtr currentEIP;
+	// temporal value of virtual address
     UInt64 currentVirtualAddr;
+	// information about the CIP
+	const UInt64 OEP;
+	// whole application as a graph
+	FlowGraph *Grph;
+	// flag for correct initialisation of the code memory
+	bool codeWasCopied;
 
 protected:
-    // forwarding
-    void see(const Instruction_t* disasm, const  StackEmulator* stack, const RegisterEmulator* regState);
-    void clear();
-    void think();
-    void initialise();
-    void unknownOpCode(const DISASM* disasm);
+    bool initialise();
 
 private:
-    void run();
-    void publishInstructions();
+    void buildGraph();
+	bool disasmChilds(duint addr);
 
 public:
 
-    ApiDB* FunctionInformation() const;
-    void setFunctionInformation(ApiDB* api);
-
-    AnalysisRunner(duint BaseAddress, duint Size);
+    AnalysisRunner(const duint CIP,const duint BaseAddress,const duint Size);
     ~AnalysisRunner(void);
 
     void start();
-
-
-
-    int instruction(UInt64 va, Instruction_t* instr) const;
-	std::map<UInt64, Instruction_t>::const_iterator instructionIter(UInt64 va) const;
+	std::map<UInt64, Instruction_t>::const_iterator instruction(UInt64 va) const;
 	std::map<UInt64, Instruction_t>::const_iterator lastInstruction() const;
 
 	duint base() const;

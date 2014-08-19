@@ -1,7 +1,7 @@
 #include "StackEmulator.h"
 
 
-namespace tr4ce
+namespace fa
 {
 #define _isPush(disasm)  ((strcmp((disasm)->Instruction.Mnemonic ,"push ") == 0) )
 #define _isPop(disasm)  ((strcmp((disasm)->Instruction.Mnemonic ,"pop ") == 0) )
@@ -136,8 +136,8 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
                 && (BeaStruct->Argument1.SegmentReg & SSReg)
           )
         {
-            int offset = BeaStruct->Argument1.Memory.Displacement;  // --> 04h
-            uint addr = BeaStruct->VirtualAddr;                    // --> 00401301
+            Int64 offset = BeaStruct->Argument1.Memory.Displacement;  // --> 04h
+            UInt64 addr = BeaStruct->VirtualAddr;                    // --> 00401301
 
             modifyFrom(offset / REGISTER_SIZE, addr);
 

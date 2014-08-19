@@ -1,6 +1,6 @@
 #include "RegisterEmulator.h"
 
-namespace tr4ce
+namespace fa
 {
 #define _SAME(a,b)  ((strcmp(a ,b) == 0) )
 
@@ -57,22 +57,22 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
     }
 }
 
-const uint RegisterEmulator::rcx() const
+const UInt64 RegisterEmulator::rcx() const
 {
     return mRCX;
 }
 
-const uint RegisterEmulator::rdx() const
+const UInt64 RegisterEmulator::rdx() const
 {
     return mRDX;
 }
 
-const uint RegisterEmulator::r8() const
+const UInt64 RegisterEmulator::r8() const
 {
     return mR8;
 }
 
-const uint RegisterEmulator::r9() const
+const UInt64 RegisterEmulator::r9() const
 {
     return mR9;
 }
