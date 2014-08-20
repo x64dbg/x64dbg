@@ -5,6 +5,10 @@
 
 #include "Node_t.h"
 #include "Edge_t.h"
+#include "StackEmulator.h"
+#include "RegisterEmulator.h"
+#include "FunctionInfo.h"
+#include "FlowGraph.h"
 
 /* the idea is to start from the OEP and follow all instructions like an emulator would do it
  * and register all branching, i.e., EIP changes != eip++
@@ -43,8 +47,10 @@ namespace fa
 
 	AnalysisRunner::~AnalysisRunner(void)
 	{
+		if(codeWasCopied)
+			delete Grph;
 		codeWasCopied = false;
-		delete Grph;
+		
 	}
 
 	void AnalysisRunner::start()
@@ -53,6 +59,7 @@ namespace fa
 			return;
 		dputs("[StaticAnalysis] analysis started ...");
 		buildGraph();
+		emulateInstructions();
 		dputs("[StaticAnalysis] analysis finished ...");
 	}
 
@@ -91,7 +98,7 @@ namespace fa
 				// handle all kind of branching (cond. jumps, uncond. jumps, ret, unkown OpCode, calls)
 				if(disasm.Instruction.BranchType){
 					// there is a branch
-					Node_t *startNode = new Node_t(disasm.VirtualAddr); 
+					Node_t *startNode = new Node_t(instr); 
 					Node_t *endNode;
 
 					const Int32 BT = disasm.Instruction.BranchType;
@@ -100,15 +107,16 @@ namespace fa
 						// end of a function 
 						// --> start was probably "rootAddress"
 						// --> edge from current VA to rootAddress
-						endNode = new Node_t(rootAddress);
+						endNode = new Node_t(instruction_t(rootAddress));
 						Edge_t *e = new Edge_t(startNode,endNode,fa::RET);
 						Grph->insertEdge(e);
 						// no need to disassemble more
+						// "rootAddress" is from "call <rootAddress>" 
 						return true;
 					}else{
 						// this is a "call","jmp","ret","jne","jnz","jz",...
 						// were we are going to?
-						endNode = new Node_t(disasm.Instruction.AddrValue);
+						endNode = new Node_t(instruction_t(rootAddress));
 						// determine the type of flow-control-modification
 						fa::EdgeType currentEdgeType;
 						
@@ -117,7 +125,21 @@ namespace fa
 							currentEdgeType = fa::CALL;
 						}else if(BT == JmpType){
 							// external Jump ?
-							if(disasm.Instruction.Opcode == 0xFF){
+							// TODO: this is currently x86 only!
+							bool extjmp;
+#ifndef _WIN64
+							extjmp =( disasm.Instruction.Opcode == 0xFF);
+#else
+							char labelText[MAX_LABEL_SIZE];
+							bool hasLabel = DbgGetLabelAt(disasm.Instruction.AddrValue, SEG_DEFAULT, labelText);
+							if(hasLabel)
+							{
+								// we have a label --> look up function header in database
+								FunctionInfo_t f = ApiInfo->find(labelText);
+								extjmp = !f.invalid;
+							}
+#endif
+							if(extjmp){
 								currentEdgeType = fa::EXTERNJMP;
 							}else{
 								currentEdgeType = fa::UNCONDJMP;
@@ -147,7 +169,7 @@ namespace fa
 			{
 				// unknown OpCode
 				// --> don't know how to handle
-				// --> pray everything will done correct
+				// --> pray everything will done correctly
 				return false;
 			}
 			// we are allowed to analyze the next instruction
@@ -187,6 +209,54 @@ namespace fa
 	duint AnalysisRunner::base() const
 	{
 		return baseAddress;
+	}
+
+	void AnalysisRunner::emulateInstructions()
+	{
+		// track important events
+		Stack = new StackEmulator;
+		Register = new RegisterEmulator;
+		functionInfo = new FunctionInfo;
+
+		// run through instructions in a linear way - each instruction once
+		std::map<UInt64, Instruction_t>::iterator it = instructionBuffer.begin();
+		while(it!=instructionBuffer.end()){
+			// save important values
+			Stack->emulate(&(it->second.BeaStruct));
+			Register->emulate(&(it->second.BeaStruct));
+
+			// next instruction
+			it++;
+		}
+
+		delete Stack;
+		delete Register;
+		delete functionInfo;
+	}
+
+	UInt64 AnalysisRunner::oep() const
+	{
+		return OEP;
+	}
+
+	duint AnalysisRunner::size() const
+	{
+		return codeSize;
+	}
+
+	FlowGraph* AnalysisRunner::graph() const
+	{
+		return Grph;
+	}
+
+	fa::Instruction_t AnalysisRunner::instruction_t( UInt64 va ) const
+	{
+		return instruction(va)->second;
+	}
+
+	FunctionInfo* AnalysisRunner::functioninfo() 
+	{
+		return functionInfo;
 	}
 
 };

@@ -2,16 +2,15 @@
 #include "../_global.h"
 #include <map>
 #include "Meta.h"
-#include "StackEmulator.h"
-#include "RegisterEmulator.h"
-#include "ApiDB.h"
-#include "FlowGraph.h"
 #include <set>
 
 namespace fa
 {
-
-
+	
+	class StackEmulator;
+	class RegisterEmulator;
+	class FunctionInfo;
+	class FlowGraph;
 class AnalysisRunner
 {
 	// we will place all VA here that should be a start address for disassembling
@@ -35,11 +34,16 @@ class AnalysisRunner
 	// flag for correct initialisation of the code memory
 	bool codeWasCopied;
 
+	StackEmulator* Stack;
+	RegisterEmulator* Register;
+	FunctionInfo* functionInfo;
+
 protected:
     bool initialise();
 
 private:
     void buildGraph();
+	void emulateInstructions();
 	bool disasmChilds(duint addr);
 
 public:
@@ -49,10 +53,14 @@ public:
 
     void start();
 	std::map<UInt64, Instruction_t>::const_iterator instruction(UInt64 va) const;
+	Instruction_t instruction_t(UInt64 va) const;
 	std::map<UInt64, Instruction_t>::const_iterator lastInstruction() const;
 
 	duint base() const;
-
+	UInt64 oep() const; 
+	duint size() const;
+	FlowGraph* graph() const;
+	FunctionInfo* functioninfo();
 
 };
 

@@ -6,29 +6,43 @@
 
 namespace fa
 {
-	Node_t::Node_t(UINT64 addr){
-		virtualAddress = addr;
+	Node_t::Node_t(Instruction_t t){
+		outEdge = NULL;
+		instruction = t;
+	}
+	Node_t::Node_t(){
+		outEdge = NULL;
+		instruction = Instruction_t();
 	}
 	Node_t::~Node_t(){
-		// destroying a node will clear all outgoing edges
-		for each(Edge_t* e in out_edges){
-			delete e;
-		} 
-		out_edges.clear();
-		// destroying a node will clear all incoming edges
-		for each(Edge_t* e in in_edges){
-			delete e;
-		} 
-		in_edges.clear();
+		
 	}
+	void Node_t::remove(){
+		outEdge->remove();
+		outEdge = NULL;
+
+		// destroying a node will clear all incoming edges
+		for each(Edge_t* e in inEdges){
+			e->remove();
+		} 
+		inEdges.clear();
+	}
+
 	// nodes are unique with respect to their virtual address
 	bool Node_t::operator==(const Node_t & rhs) const
 	{
-		return static_cast<bool>(virtualAddress == rhs.virtualAddress);
+		if(instruction.Length != UNKNOWN_OPCODE)
+			return static_cast<bool>(instruction.BeaStruct.VirtualAddr == rhs.instruction.BeaStruct.VirtualAddr);
+		else
+			return false;
 	}
 	bool Node_t::operator<(const Node_t & rhs) const
 	{
-		return static_cast<bool>(virtualAddress < rhs.virtualAddress);
+		if(instruction.Length != UNKNOWN_OPCODE)
+			return static_cast<bool>(instruction.BeaStruct.VirtualAddr < rhs.instruction.BeaStruct.VirtualAddr);
+		else
+			return false;
+		
 	}
 
 };

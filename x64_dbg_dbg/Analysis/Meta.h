@@ -97,6 +97,8 @@ namespace fa
 		return (it != s.end());
 	}
 
+	typedef std::map<UInt64, Instruction_t>::const_iterator instrIter;
+
 
 
 #ifdef _WIN64

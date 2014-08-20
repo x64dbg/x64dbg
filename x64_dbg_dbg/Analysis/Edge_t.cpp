@@ -13,12 +13,11 @@ namespace fa
 		start = start;
 		end = end;
 		type = btype;
+		askForRemove=false;
 	}
 
 	Edge_t::~Edge_t(){
-		// if the node at the end would be isolated without this edge, we delete it
-		if( (end->in_edges.size() == 1) && (end->out_edges.size()==0)  )
-			delete end;
+		
 	}
 
 	// all edges are unique with respect to their virtual start address
@@ -29,6 +28,28 @@ namespace fa
 	bool Edge_t::operator<(const Edge_t & rhs) const
 	{
 		return static_cast<bool>(start < rhs.start);
+	}
+
+	bool Edge_t::shouldBeRemoved() const
+	{
+		return askForRemove;
+	}
+
+	void Edge_t::remove()
+	{
+		// this edge should be delete from memory
+		askForRemove=true;
+		// say start node goodbye
+		start->outEdge = NULL;
+		// say end node goodbye
+		end->inEdges.erase(this);
+		// if the node at the end would be isolated without this edge, we flag it for removing
+		if(end){
+			if( (end->inEdges.size() == 1) && (!start->outEdge)  ){
+				end->remove();
+				// do NOT delete the node "end" here, since the graph is NOT acyclic!
+			}
+		}
 	}
 
 };
