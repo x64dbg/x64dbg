@@ -482,6 +482,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchCommand->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSearchCommand);
     connect(mSearchCommand, SIGNAL(triggered()), this, SLOT(findCommand()));
+    mSearchMenu->addAction(mSearchCommand);
 
     // Constant
     mSearchConstant = new QAction("&Constant", this);
