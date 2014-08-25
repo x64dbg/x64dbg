@@ -34,11 +34,11 @@
     <Filter Include="Header Files\lz4">
       <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Analysis">
-      <UniqueIdentifier>{70e48ca5-7813-4da6-95c8-3717ace25093}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Analysis">
       <UniqueIdentifier>{68e04c31-9f66-4c9a-ae1d-54b2f6cf2d1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\fa">
+      <UniqueIdentifier>{70e48ca5-7813-4da6-95c8-3717ace25093}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -135,32 +135,35 @@
     <ClCompile Include="debugger_commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Analysis\Node_t.cpp">
+      <Filter>Header Files\fa</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\Edge_t.cpp">
+      <Filter>Header Files\fa</Filter>
+    </ClCompile>
     <ClCompile Include="Analysis\AnalysisRunner.cpp">
-      <Filter>Source Files\Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\StackEmulator.cpp">
-      <Filter>Source Files\Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\FlowGraph.cpp">
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\RegisterEmulator.cpp">
-      <Filter>Source Files\Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\IntermodularCallsX64.cpp">
-      <Filter>Source Files\Analysis</Filter>
+    <ClCompile Include="Analysis\ClientApiResolver.cpp">
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\IntermodularCallsX86.cpp">
-      <Filter>Source Files\Analysis</Filter>
+    <ClCompile Include="Analysis\ClientInterface.cpp">
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\ICommand.cpp">
-      <Filter>Source Files\Analysis</Filter>
+    <ClCompile Include="Analysis\FunctionInfo.cpp">
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\ApiDB.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\FunctionDetector.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\BeaInterpreter.cpp">
-      <Filter>Source Files\Analysis</Filter>
+    <ClCompile Include="Analysis\ClientFunctionFinder.cpp">
+      <Filter>Header Files\fa</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,32 +311,38 @@
     <ClInclude Include="dynamicmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\Meta.h">
-      <Filter>Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="Analysis\AnalysisRunner.h">
-      <Filter>Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\StackEmulator.h">
-      <Filter>Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\RegisterEmulator.h">
-      <Filter>Analysis</Filter>
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\IntermodularCalls.h">
-      <Filter>Analysis</Filter>
+    <ClInclude Include="Analysis\FlowGraph.h">
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\ICommand.h">
-      <Filter>Analysis</Filter>
+    <ClInclude Include="Analysis\Meta.h">
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\ApiDB.h">
-      <Filter>Analysis</Filter>
+    <ClInclude Include="Analysis\Node_t.h">
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\FunctionDetector.h">
-      <Filter>Analysis</Filter>
+    <ClInclude Include="Analysis\Edge_t.h">
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\BeaInterpreter.h">
-      <Filter>Analysis</Filter>
+    <ClInclude Include="Analysis\ClientApiResolver.h">
+      <Filter>Header Files\fa</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\ClientInterface.h">
+      <Filter>Header Files\fa</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\FunctionInfo.h">
+      <Filter>Header Files\fa</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\ClientFunctionFinder.h">
+      <Filter>Header Files\fa</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

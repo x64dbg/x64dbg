@@ -1,6 +1,7 @@
 #include "FlowGraph.h"
 #include "Node_t.h"
 #include "Edge_t.h"
+#include "../console.h"
 
 namespace fa{
 	
@@ -11,27 +12,37 @@ namespace fa{
 
 		}
 
-		std::pair<std::set<Node_t*>::iterator,bool> FlowGraph::insertNode( Node_t* node )
+		bool FlowGraph::insertNode( Node_t* node )
 		{
-			return nodes.insert(node);
+			if (!contains(nodes,(UInt64)node->vaddr))
+			{
+				return (nodes.insert(std::make_pair<UInt64,Node_t*>(node->vaddr,node))).second;
+			}
+			return true;
+			
 		}
 
-		std::pair<std::set<Edge_t*>::iterator,bool> FlowGraph::insertEdge( Edge_t* edge )
+		bool FlowGraph::insertEdge( Edge_t* edge )
 		{
 			// until here a node just contains an address!
 			// we search for these address to get most updated information (like incoming edges)
-			std::pair<std::set<Node_t*>::iterator,bool> start = insertNode(edge->start);
-			std::pair<std::set<Node_t*>::iterator,bool> end = insertNode(edge->end);
 
-			// insert current edge into these nodes
-			(*start.first)->outEdge.insert(edge);
-			(*end.first)->inEdges.insert(edge);
+			dprintf("try to insert edge from "fhex" to "fhex" \n", edge->start->vaddr, edge->end->vaddr);
+			return true;
+			insertNode(edge->start);
+			std::map<UInt64,Node_t*>::iterator it = nodes.find(edge->start->vaddr);
+			it->second->outEdge = edge;
 
-			// update edge
-			edge->start = (*start.first);
-			edge->end = (*end.first);
+			insertNode(edge->end);
+			std::map<UInt64,Node_t*>::iterator it2 = nodes.find(edge->end->vaddr);
+			it2->second->inEdges.insert(edge);
 
-			return edges.insert(edge);
+			edge->start = (it->second);
+			edge->end = (it2->second);
+			bool ans = edges.insert(std::make_pair<UInt64,Edge_t*>(edge->start->vaddr,edge)).second;
+			std::map<UInt64,Edge_t*>::iterator e = edges.find(edge->start->vaddr);
+		
+			return ans;
 
 
 		}
@@ -39,32 +50,32 @@ namespace fa{
 		void FlowGraph::clean()
 		{
 			// first delete all edges whoses aks for it
-			std::set<Edge_t*>::iterator e = edges.begin();
+			std::map<UInt64,Edge_t*>::iterator e = edges.begin();
 			while(e != edges.end()) {
-				std::set<Edge_t*>::iterator current = e++;
-				if((*current)->askForRemove){
-					delete *current;
+				std::map<UInt64,Edge_t*>::iterator current = e++;
+				if((*current->second).askForRemove){
+					delete current->second;
 					edges.erase(current);
 				}
 			}
 
 
 			// find and delete isolated nodes, i.e. nodes without incoming and outgoing edges
-			std::set<Node_t*>::iterator n = nodes.begin();
+			std::map<UInt64,Node_t*>::iterator n = nodes.begin();
 			while(n != nodes.end()) {
-				std::set<Node_t*>::iterator current = n++;
-				if( (!(*current)->outEdge)  && ((*current)->inEdges.size()==0) ){
-					delete *current;
+				std::map<UInt64,Node_t*>::iterator current = n++;
+				if( (!(*current->second).outEdge)  && ((*current->second).inEdges.size()==0) ){
+					delete current->second;
 					nodes.erase(current);
 				}
 			}
 		}
-
 		bool FlowGraph::find(const UInt64 va , Node_t *node)
 		{
 			// try to find a node
-			std::set<Node_t*>::iterator it = nodes.find(Node_t(va));
-			node = *it;
+			std::map<UInt64,Node_t*>::iterator it = nodes.find(va);
+			Node_t* n = it->second;
+			node = n;
 			return (it != nodes.end());
 		}
 

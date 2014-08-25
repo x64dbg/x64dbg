@@ -11,8 +11,10 @@ namespace fa
 		Edge_t* outEdge;  //  all outgoing edges
 		std::set<Edge_t*> inEdges;   // all incoming edges
 		Instruction_t instruction;
+		UInt64 vaddr;
 
 		Node_t(Instruction_t t);
+		Node_t(UInt64 t);
 		Node_t();
 		~Node_t();
 		void remove();

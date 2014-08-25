@@ -9,10 +9,18 @@ namespace fa
 	Node_t::Node_t(Instruction_t t){
 		outEdge = NULL;
 		instruction = t;
+		vaddr = t.BeaStruct.VirtualAddr;
 	}
 	Node_t::Node_t(){
 		outEdge = NULL;
 		instruction = Instruction_t();
+		vaddr = 0;
+	}
+	Node_t::Node_t(UInt64 va){
+		outEdge = NULL;
+		instruction = Instruction_t();
+		instruction.BeaStruct.VirtualAddr = va;
+		vaddr = va;
 	}
 	Node_t::~Node_t(){
 		
@@ -31,17 +39,14 @@ namespace fa
 	// nodes are unique with respect to their virtual address
 	bool Node_t::operator==(const Node_t & rhs) const
 	{
-		if(instruction.Length != UNKNOWN_OPCODE)
-			return static_cast<bool>(instruction.BeaStruct.VirtualAddr == rhs.instruction.BeaStruct.VirtualAddr);
-		else
-			return false;
+		return static_cast<bool>(vaddr == rhs.vaddr);
+		
 	}
 	bool Node_t::operator<(const Node_t & rhs) const
 	{
-		if(instruction.Length != UNKNOWN_OPCODE)
-			return static_cast<bool>(instruction.BeaStruct.VirtualAddr < rhs.instruction.BeaStruct.VirtualAddr);
-		else
-			return false;
+
+			return static_cast<bool>(vaddr < rhs.vaddr);
+
 		
 	}
 

@@ -8,6 +8,7 @@
 #include "FlowGraph.h"
 #include "AnalysisRunner.h"
 #include "StackEmulator.h"
+#include "FunctionInfo.h"
 
 namespace fa
 {
@@ -30,7 +31,7 @@ namespace fa
 				
 #endif
 				if(hasLabel){
-					FunctionInfo_t f = Analysis->functioninfo()->find(labelText);
+					fa::FunctionInfo_t f = Analysis->functioninfo()->find(labelText);
 					if(!f.invalid)
 					{
 						// yeah we know everything about the dll-call!
@@ -40,7 +41,7 @@ namespace fa
 
 #ifndef _WIN64
 						// set comments for the arguments
-						for(auto i = 0; i < f.Arguments.size(); i++)
+						for(size_t i = 0; i < f.Arguments.size(); i++)
 						{
 							std::string ArgComment = f.arg(i).Type + " " + f.arg(i).Name;
 							uint commentAddr = stack->lastAccessAtOffset(f.Arguments.size() - i - 1);

@@ -11,7 +11,7 @@
 #include "simplescript.h"
 #include "symbolinfo.h"
 #include "Analysis/AnalysisRunner.h"
-#include "Analysis/ApiDB.h"
+
 
 static bool bScyllaLoaded = false;
 
@@ -999,28 +999,25 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
 }
 CMDRESULT cbDebugAnalyse(int argc, char* argv[])
 {
-    dputs("start analysis");
-    uint addr = GetContextData(UE_CIP);
-    if(argc > 1 and !valfromstring(argv[1], &addr))
-    {
-        dprintf("invalid address \"%s\"!\n", argv[1]);
-        return STATUS_ERROR;
-    }
-    dprintf("valid cip "fhex"!\n", addr);
+    dputs("init analysis");
+    uint cipAddr = GetContextData(UE_CIP);
+
     uint size;
-    uint base = memfindbaseaddr(addr, &size);
+    uint base = memfindbaseaddr(cipAddr, &size);
     if(!base)
     {
-        dprintf("invalid address "fhex"!\n", addr);
+        dprintf("invalid address "fhex"!\n", base);
         return STATUS_ERROR;
     }
-    dprintf("valid base "fhex"!\n", base);
-    dprintf("valid size "fhex"!\n", size);
 
-    tr4ce::ApiDB* db = new tr4ce::ApiDB();
-    tr4ce::AnalysisRunner AR(base, size);
-    AR.setFunctionInformation(db);
-    AR.start();
+	dprintf("start analysis, assuming oep="fhex", baseaddr="fhex", size="fhex"!\n", cipAddr,base,size);
+
+
+//     tr4ce::ApiDB* db = new tr4ce::ApiDB();
+    fa::AnalysisRunner AR(cipAddr,base, size);
+	AR.start();
+//     AR.setFunctionInformation(db);
+//     AR.start();
 
 
     //GuiAnalyseCode(base, size);

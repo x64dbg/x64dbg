@@ -13,12 +13,13 @@
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
     <ClCompile Include="Analysis\AnalysisRunner.cpp" />
-    <ClCompile Include="Analysis\ApiDB.cpp" />
-    <ClCompile Include="Analysis\BeaInterpreter.cpp" />
-    <ClCompile Include="Analysis\FunctionDetector.cpp" />
-    <ClCompile Include="Analysis\ICommand.cpp" />
-    <ClCompile Include="Analysis\IntermodularCallsX64.cpp" />
-    <ClCompile Include="Analysis\IntermodularCallsX86.cpp" />
+    <ClCompile Include="Analysis\ClientApiResolver.cpp" />
+    <ClCompile Include="Analysis\ClientFunctionFinder.cpp" />
+    <ClCompile Include="Analysis\ClientInterface.cpp" />
+    <ClCompile Include="Analysis\Edge_t.cpp" />
+    <ClCompile Include="Analysis\FlowGraph.cpp" />
+    <ClCompile Include="Analysis\FunctionInfo.cpp" />
+    <ClCompile Include="Analysis\Node_t.cpp" />
     <ClCompile Include="Analysis\RegisterEmulator.cpp" />
     <ClCompile Include="Analysis\StackEmulator.cpp" />
     <ClCompile Include="argument.cpp" />
@@ -55,12 +56,14 @@
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
     <ClInclude Include="Analysis\AnalysisRunner.h" />
-    <ClInclude Include="Analysis\ApiDB.h" />
-    <ClInclude Include="Analysis\BeaInterpreter.h" />
-    <ClInclude Include="Analysis\FunctionDetector.h" />
-    <ClInclude Include="Analysis\ICommand.h" />
-    <ClInclude Include="Analysis\IntermodularCalls.h" />
+    <ClInclude Include="Analysis\ClientApiResolver.h" />
+    <ClInclude Include="Analysis\ClientFunctionFinder.h" />
+    <ClInclude Include="Analysis\ClientInterface.h" />
+    <ClInclude Include="Analysis\Edge_t.h" />
+    <ClInclude Include="Analysis\FlowGraph.h" />
+    <ClInclude Include="Analysis\FunctionInfo.h" />
     <ClInclude Include="Analysis\Meta.h" />
+    <ClInclude Include="Analysis\Node_t.h" />
     <ClInclude Include="Analysis\RegisterEmulator.h" />
     <ClInclude Include="Analysis\StackEmulator.h" />
     <ClInclude Include="argument.h" />

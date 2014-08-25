@@ -7,6 +7,8 @@
 namespace fa
 {
 	
+	// BeaEngine uses "UInt64" as default size type. We will do the same here in contrast to "duint"
+
 	class StackEmulator;
 	class RegisterEmulator;
 	class FunctionInfo;
@@ -14,13 +16,13 @@ namespace fa
 class AnalysisRunner
 {
 	// we will place all VA here that should be a start address for disassembling
-	std::set<UInt64> disasmRoot;
+	std::set< std::pair<UInt64,UInt64> > disasmRoot;
 	// all known disassemling should be cached
     std::map<UInt64, Instruction_t> instructionBuffer;
 	// baseaddress for current thread
-    duint baseAddress;
+    UInt64 baseAddress;
 	// size of code for security while disassembling
-    duint codeSize;
+    UInt64 codeSize;
 	// copy of all instructions bytes
     unsigned char* codeBuffer;
 	// temporal value of EIP
@@ -44,7 +46,7 @@ protected:
 private:
     void buildGraph();
 	void emulateInstructions();
-	bool disasmChilds(duint addr);
+	bool disasmChilds(const UInt64 addr,UInt64 paddr);
 
 public:
 
@@ -56,7 +58,7 @@ public:
 	Instruction_t instruction_t(UInt64 va) const;
 	std::map<UInt64, Instruction_t>::const_iterator lastInstruction() const;
 
-	duint base() const;
+	UInt64 base() const;
 	UInt64 oep() const; 
 	duint size() const;
 	FlowGraph* graph() const;

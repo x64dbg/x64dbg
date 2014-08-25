@@ -14,7 +14,7 @@
 namespace fa
 {
 
-	enum EdgeType{RET,CALL,CONDJMP,UNCONDJMP,EXTERNJMP,INF,UNKOWN};
+	enum EdgeType{RET,CALL,EXTERNCALL,CONDJMP,UNCONDJMP,EXTERNJMP,INF,UNKOWN};
 
 	
 
@@ -33,6 +33,7 @@ namespace fa
 
 		Instruction_t()
 		{
+			BeaStruct = DISASM();
 			Length = UNKNOWN_OPCODE;
 		}
 	} Instruction_t;
@@ -72,14 +73,15 @@ namespace fa
 			Arguments = args;
 			invalid = false;
 		}
-
+		// !! suppresses the warning (ugly solution)
 		bool operator==(const FunctionInfo_t & rhs) const
 		{
-			return static_cast<bool>((_strcmpi(Name.c_str(), rhs.Name.c_str()) < 0));
+			return static_cast<bool>(!!(_strcmpi(Name.c_str(), rhs.Name.c_str()) < 0));
 		}
+		// !! suppresses the warning (ugly solution)
 		bool operator<(const FunctionInfo_t & rhs) const
 		{
-			return static_cast<bool>(_strcmpi(Name.c_str(), rhs.Name.c_str()));
+			return static_cast<bool>(!!_strcmpi(Name.c_str(), rhs.Name.c_str()));
 		}
 
 		ArgumentInfo_t arg(int i)
