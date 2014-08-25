@@ -1,10 +1,7 @@
 #ifndef MEMORYMAPVIEW_H
 #define MEMORYMAPVIEW_H
 
-#include <QtGui>
 #include "StdTable.h"
-#include "Bridge.h"
-#include "PageMemoryRights.h"
 
 class MemoryMapView : public StdTable
 {

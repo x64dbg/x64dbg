@@ -1,8 +1,7 @@
 #ifndef UPDATECHECKER_H
 #define UPDATECHECKER_H
 
-#include <QtNetwork>
-#include <QtGui>
+#include <QNetworkAccessManager>
 
 class UpdateChecker : public QNetworkAccessManager
 {

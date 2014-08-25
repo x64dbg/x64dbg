@@ -1,6 +1,9 @@
 #include "SettingsDialog.h"
 #include "ui_SettingsDialog.h"
+#include <QMessageBox>
 #include "Configuration.h"
+#include "Bridge.h"
+#include "ExceptionRangeDialog.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent) :
     QDialog(parent),

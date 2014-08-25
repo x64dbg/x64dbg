@@ -1,15 +1,7 @@
 #ifndef CPUDUMP_H
 #define CPUDUMP_H
 
-#include <QtGui>
-#include <QtDebug>
-#include <QAction>
-#include <QMenu>
-#include <QMessageBox>
-#include "NewTypes.h"
-#include "LineEditDialog.h"
 #include "HexDump.h"
-#include "Bridge.h"
 #include "GotoDialog.h"
 
 class CPUDump : public HexDump

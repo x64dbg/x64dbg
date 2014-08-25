@@ -1,6 +1,8 @@
 #include "Configuration.h"
-#include "Bridge.h"
+#include <QApplication>
+#include <QFontInfo>
 #include <QMessageBox>
+#include <QIcon>
 
 Configuration* Configuration::mPtr = NULL;
 

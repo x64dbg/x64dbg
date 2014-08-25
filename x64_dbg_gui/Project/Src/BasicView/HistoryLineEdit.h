@@ -1,8 +1,8 @@
 #ifndef HISTORYLINEEDIT_H
 #define HISTORYLINEEDIT_H
 
-#include <QtGui>
 #include <QLineEdit>
+#include <QKeyEvent>
 
 class HistoryLineEdit : public QLineEdit
 {

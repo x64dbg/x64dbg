@@ -1,5 +1,9 @@
 #include "UpdateChecker.h"
+#include <QUrl>
+#include <QNetworkRequest>
 #include <QMessageBox>
+#include <QNetworkReply>
+#include <QIcon>
 #include "Bridge.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)

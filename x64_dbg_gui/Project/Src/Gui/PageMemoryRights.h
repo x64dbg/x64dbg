@@ -2,8 +2,7 @@
 #define PAGEMEMORYRIGHTS_H
 
 #include <QDialog>
-#include "StdTable.h"
-#include "Bridge.h"
+#include "NewTypes.h"
 
 #define PAGE_SIZE 0x1000
 

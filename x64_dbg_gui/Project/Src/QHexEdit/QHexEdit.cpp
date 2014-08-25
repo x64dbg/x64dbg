@@ -63,7 +63,7 @@ void QHexEdit::fill(int index, const QString & pattern)
         }
         else
         {
-            data[i] = convert[i].toAscii();
+            data[i] = convert[i].toLatin1();
             mask[i] = '0';
         }
     }
@@ -124,7 +124,7 @@ void QHexEdit::setData(const QString & pattern)
         }
         else
         {
-            data[i] = convert[i].toAscii();
+            data[i] = convert[i].toLatin1();
             mask[i] = '0';
         }
     }

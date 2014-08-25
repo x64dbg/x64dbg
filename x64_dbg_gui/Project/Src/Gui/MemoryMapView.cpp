@@ -1,5 +1,7 @@
 #include "MemoryMapView.h"
 #include "Configuration.h"
+#include "Bridge.h"
+#include "PageMemoryRights.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {

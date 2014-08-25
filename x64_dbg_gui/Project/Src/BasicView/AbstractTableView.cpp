@@ -1,4 +1,5 @@
 #include "AbstractTableView.h"
+#include <QStyleOptionButton>
 #include "Configuration.h"
 
 AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(parent)
