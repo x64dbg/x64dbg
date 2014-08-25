@@ -3,11 +3,12 @@
 #include <map>
 #include "Meta.h"
 #include <set>
+#include "ClientInterface.h"
 
 namespace fa
 {
 	
-	// BeaEngine uses "UInt64" as default size type. We will do the same here in contrast to "duint"
+	// BeaEngine uses "duint" as default size type. We will do the same here in contrast to "duint"
 
 	class StackEmulator;
 	class RegisterEmulator;
@@ -16,25 +17,27 @@ namespace fa
 class AnalysisRunner
 {
 	// we will place all VA here that should be a start address for disassembling
-	std::set< std::pair<UInt64,UInt64> > disasmRoot;
+	std::set< std::pair<duint,duint> > disasmRoot;
 	// all known disassemling should be cached
-    std::map<UInt64, Instruction_t> instructionBuffer;
+    std::map<duint, Instruction_t> instructionBuffer;
 	// baseaddress for current thread
-    UInt64 baseAddress;
+    duint baseAddress;
 	// size of code for security while disassembling
-    UInt64 codeSize;
+    duint codeSize;
 	// copy of all instructions bytes
     unsigned char* codeBuffer;
 	// temporal value of EIP
     UIntPtr currentEIP;
 	// temporal value of virtual address
-    UInt64 currentVirtualAddr;
+    duint currentVirtualAddr;
 	// information about the CIP
-	const UInt64 OEP;
+	const duint OEP;
 	// whole application as a graph
 	FlowGraph *Grph;
 	// flag for correct initialisation of the code memory
 	bool codeWasCopied;
+
+	//std::vector<ClientInterface> interfaces;
 
 	StackEmulator* Stack;
 	RegisterEmulator* Register;
@@ -46,7 +49,7 @@ protected:
 private:
     void buildGraph();
 	void emulateInstructions();
-	bool disasmChilds(const UInt64 addr,UInt64 paddr);
+	bool disasmChilds(const duint addr,const duint paddr);
 
 public:
 
@@ -54,12 +57,12 @@ public:
     ~AnalysisRunner(void);
 
     void start();
-	std::map<UInt64, Instruction_t>::const_iterator instruction(UInt64 va) const;
-	Instruction_t instruction_t(UInt64 va) const;
-	std::map<UInt64, Instruction_t>::const_iterator lastInstruction() const;
+	std::map<duint, Instruction_t>::const_iterator instruction(duint va) const;
+	Instruction_t instruction_t(duint va) const;
+	std::map<duint, Instruction_t>::const_iterator lastInstruction() const;
 
-	UInt64 base() const;
-	UInt64 oep() const; 
+	duint base() const;
+	duint oep() const; 
 	duint size() const;
 	FlowGraph* graph() const;
 	FunctionInfo* functioninfo();

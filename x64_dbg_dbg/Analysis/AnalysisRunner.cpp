@@ -9,6 +9,8 @@
 #include "RegisterEmulator.h"
 #include "FunctionInfo.h"
 #include "FlowGraph.h"
+#include "ClientApiResolver.h"
+#include "ClientFunctionFinder.h"
 
 /* the idea is to start from the OEP and follow all instructions like an emulator would do it
  * and register all branching, i.e., EIP changes != eip++
@@ -20,11 +22,13 @@ namespace fa
 	AnalysisRunner::AnalysisRunner(const duint addrOEP,const duint BaseAddress,const duint Size) : OEP(addrOEP), baseAddress(BaseAddress), codeSize(Size)
 	{
 		// we start at the original entry point
-		disasmRoot.insert(std::make_pair<UInt64,UInt64>((duint)addrOEP,(duint)addrOEP));
+		disasmRoot.insert(std::make_pair((duint)addrOEP,(duint)addrOEP));
 		codeWasCopied = initialise();
-		if(codeWasCopied){
-			Grph = new FlowGraph;
-		}
+		//if(codeWasCopied){
+			Grph = new FlowGraph();
+		//}
+
+			//interfaces.push_back(new ClientApiResolver());
 		
 	}
 
@@ -62,9 +66,8 @@ namespace fa
 	}
 
 
-	bool AnalysisRunner::disasmChilds(const UInt64 currentAddress,UInt64 parentAddress)
+	bool AnalysisRunner::disasmChilds(const duint subTreeStartAddress,const duint parentAddress)
 	{
-		parentAddress = currentAddress;
 		// Dear contributors (unless you are Chuck Norris):
 		// 
 		// if you think about 'optimizing' or 'debugging' this methods and then 
@@ -73,16 +76,16 @@ namespace fa
 		// 
 		// total_hours_wasted_here = 3
 		dprintf("-----------------------------------------------------------------------------\n");
-		dprintf("processing subtree starting in node at address "fhex" as child of "fhex"\n", currentAddress,parentAddress);
+		dprintf("processing subtree starting in node at address "fhex" as child of "fhex"\n", subTreeStartAddress,parentAddress);
 		// this function will run until an unconditional branching (JMP,RET) or unkown OpCode
-		if (contains(instructionBuffer,(UInt64)currentAddress))
+		if (contains(instructionBuffer,subTreeStartAddress))
 		{
 			// we already were here -->stop!
 			return true;
 		}
 		
 		// is there code?
-		if((base() > currentAddress) && (base() + size() <= currentAddress)){
+		if((base() > subTreeStartAddress) && (base() + size() <= subTreeStartAddress)){
 			return true;
 		}
 
@@ -92,14 +95,14 @@ namespace fa
 		disasm.Archi = 64;
 #endif 
 		// indent pointer relative to current virtual address
-		disasm.EIP = (UIntPtr)codeBuffer  + (currentAddress - baseAddress); 
-		disasm.VirtualAddr = (UInt64)currentAddress;
+		disasm.EIP = (UIntPtr)codeBuffer  + (subTreeStartAddress - baseAddress); 
+		disasm.VirtualAddr = subTreeStartAddress;
 
 
 		dprintf("loop end test: \n");
 		dprintf(" va   "fhex"\n",disasm.VirtualAddr);
 		dprintf(" base "fhex"\n",baseAddress);
-		dprintf(" diff "fhex"\n",(UInt64)(disasm.VirtualAddr- baseAddress));
+		dprintf(" diff "fhex"\n",(disasm.VirtualAddr- baseAddress));
 		// while there is code in the buffer
 		while(disasm.VirtualAddr - baseAddress < codeSize)
 		{
@@ -110,9 +113,8 @@ namespace fa
 			{
 				// create a new structure
 				const Instruction_t instr(&disasm, instrLength);
-				//dprintf("analyse %s at "fhex" \n", disasm.CompleteInstr,currentAddress);
 				// cache instruction, we will later look at it
-				instructionBuffer.insert(std::pair<UInt64, Instruction_t>(disasm.VirtualAddr, instr));
+				instructionBuffer.insert(std::pair<duint, Instruction_t>(disasm.VirtualAddr, instr));
 
 				// handle all kind of branching (cond. jumps, uncond. jumps, ret, unkown OpCode, calls)
 				if(disasm.Instruction.BranchType){
@@ -127,17 +129,18 @@ namespace fa
 						// --> start was probably "rootAddress"
 						// --> edge from current VA to rootAddress
 						endNode = new Node_t(parentAddress);
-						Edge_t *e = new Edge_t(startNode,endNode,fa::RET);
+						//Edge_t *e = new Edge_t(startNode,endNode,fa::RET);
 						//dprintf("try to insert edge from "fhex" to "fhex" \n", e->start->vaddr, e->end->vaddr);
-						dprintf("--> try to insert ret-edge from "fhex" to "fhex" \n", disasm.VirtualAddr, (UInt64) parentAddress);
-						//###Grph->insertEdge(e);
+						dprintf("%s \n",disasm.CompleteInstr);
+						dprintf("--> try to insert ret-edge from "fhex" to "fhex" \n",(duint) disasm.VirtualAddr, endNode->vaddr);
+						Grph->insertEdge(startNode,endNode,fa::RET);
 						// no need to disassemble more
 						// "rootAddress" is *only sometimes* from "call <rootAddress>" 
 						return true;
 					}else{
 						// this is a "call","jmp","jne","jnz","jz",...
 						// were we are going to?
-						//### endNode = new Node_t(instruction_t(disasm.Instruction.AddrValue));
+						endNode = new Node_t(disasm.Instruction.AddrValue);
 						// determine the type of flow-control-modification
 						fa::EdgeType currentEdgeType;
 						
@@ -169,20 +172,22 @@ namespace fa
 							currentEdgeType = fa::CONDJMP;
 						}
 						// create a new edge for this EIP change
-						Edge_t *edge = new Edge_t(startNode,endNode,currentEdgeType);
-						dprintf("--> try to insert edge from "fhex" to "fhex" \n", disasm.VirtualAddr, (UInt64) disasm.Instruction.AddrValue);
-						//####Grph->insertEdge(edge);
+						//Edge_t *edge = new Edge_t(startNode,endNode,currentEdgeType);
+						dprintf("%s \n",disasm.CompleteInstr);
+						dprintf("--> try to insert edge from "fhex" to "fhex" \n", (duint)disasm.VirtualAddr,endNode->vaddr);
+						Grph->insertEdge(startNode,endNode,currentEdgeType);
+						//Grph->insertEdge(edge);
 
 						if(currentEdgeType != fa::EXTERNJMP){
 							// the target must be disassembled too --> insert on todo-list
 							if(currentEdgeType ==  fa::CALL){
 								// pass new address for correct resolving function-header addresses
-								disasmRoot.insert(std::make_pair<UInt64,UInt64>(disasm.Instruction.AddrValue,disasm.VirtualAddr));
+								disasmRoot.insert(std::make_pair((duint)disasm.Instruction.AddrValue,(duint)disasm.VirtualAddr));
 							}else{
 								// we are in some functions --> propagate current function start
-								disasmRoot.insert(std::make_pair<UInt64,UInt64>(disasm.Instruction.AddrValue,parentAddress));
+								disasmRoot.insert(std::make_pair((duint)disasm.Instruction.AddrValue,parentAddress));
 							}
-							dprintf("add todo at "fhex" from "fhex" \n", disasm.Instruction.AddrValue,disasm.VirtualAddr);
+							dprintf("add todo at "fhex" from "fhex" \n",(duint) disasm.Instruction.AddrValue, (duint)disasm.VirtualAddr);
 						}
 
 						if( BT == JmpType ){
@@ -207,7 +212,7 @@ namespace fa
 			dprintf("loop end test: \n");
 			dprintf(" va   "fhex"\n",disasm.VirtualAddr);
 			dprintf(" base "fhex"\n",baseAddress);
-			dprintf(" diff "fhex"\n",(UInt64)(disasm.VirtualAddr- baseAddress));
+			dprintf(" diff "fhex"\n",(duint)(disasm.VirtualAddr- baseAddress));
 		}
 
 		return true;
@@ -219,7 +224,7 @@ namespace fa
 		// execute todo list
 		while(disasmRoot.size() != 0){
 			// get any address
-			std::pair<UInt64,UInt64> addr = *(disasmRoot.begin());
+			std::pair<duint,duint> addr = *(disasmRoot.begin());
 
 			// does the address makes sense?
 			if( (addr.first >= baseAddress) && (addr.first < baseAddress + codeSize) ){
@@ -242,15 +247,15 @@ namespace fa
 
 
 
-	std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::instruction(UInt64 addr) const
+	std::map<duint, Instruction_t>::const_iterator AnalysisRunner::instruction(duint addr) const
 	{
 		return instructionBuffer.find(addr);
 	}
-	std::map<UInt64, Instruction_t>::const_iterator AnalysisRunner::lastInstruction() const
+	std::map<duint, Instruction_t>::const_iterator AnalysisRunner::lastInstruction() const
 	{
 		return instructionBuffer.end();
 	}
-	UInt64 AnalysisRunner::base() const
+	duint AnalysisRunner::base() const
 	{
 		return baseAddress;
 	}
@@ -262,13 +267,19 @@ namespace fa
 		Register = new RegisterEmulator;
 		functionInfo = new FunctionInfo;
 
+		ClientApiResolver* a = new ClientApiResolver(this);
+		ClientFunctionFinder *b = new ClientFunctionFinder(this);
+
 		// run through instructions in a linear way - each instruction once
-		std::map<UInt64, Instruction_t>::iterator it = instructionBuffer.begin();
+		std::map<duint, Instruction_t>::iterator it = instructionBuffer.begin();
 		while(it!=instructionBuffer.end()){
 			// save important values
 			Stack->emulate(&(it->second.BeaStruct));
 			Register->emulate(&(it->second.BeaStruct));
 
+			//for(std::vector<ClientInterface>::iterator itt = interfaces.begin();itt!=interfaces.end();itt++)
+				//a->see(it->second,Register,Stack);
+				b->see(it->second,Register,Stack);
 			// next instruction
 			it++;
 		}
@@ -278,7 +289,7 @@ namespace fa
 		delete functionInfo;
 	}
 
-	UInt64 AnalysisRunner::oep() const
+	duint AnalysisRunner::oep() const
 	{
 		return OEP;
 	}
@@ -293,7 +304,7 @@ namespace fa
 		return Grph;
 	}
 
-	fa::Instruction_t AnalysisRunner::instruction_t( UInt64 va ) const
+	fa::Instruction_t AnalysisRunner::instruction_t( duint va ) const
 	{
 		return instruction(va)->second;
 	}

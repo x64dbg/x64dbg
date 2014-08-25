@@ -19,7 +19,7 @@ const unsigned int MAX_STACKSIZE = 50;
 class StackEmulator
 {
 
-    UInt64 mStack[MAX_STACKSIZE];
+    duint mStack[MAX_STACKSIZE];
     unsigned int mStackpointer;
 
 public:
@@ -27,13 +27,13 @@ public:
     ~StackEmulator(void);
 
 
-    void pushFrom(UInt64 addr);
-    void popFrom(UInt64 addr);
-    void modifyFrom(int relative_offset, UInt64 addr);
+    void pushFrom(duint addr);
+    void popFrom(duint addr);
+    void modifyFrom(int relative_offset, duint addr);
 
     void moveStackpointerBack(int offset);
     unsigned int pointerByOffset(int offset) const;
-    UInt64 lastAccessAtOffset(int offset) const;
+    duint lastAccessAtOffset(int offset) const;
 
     void emulate(const DISASM* disasm);
 };

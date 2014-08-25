@@ -9,17 +9,16 @@ namespace fa
 	Node_t::Node_t(Instruction_t t){
 		outEdge = NULL;
 		instruction = t;
-		vaddr = t.BeaStruct.VirtualAddr;
+		vaddr = (duint)t.BeaStruct.VirtualAddr;
 	}
 	Node_t::Node_t(){
 		outEdge = NULL;
 		instruction = Instruction_t();
 		vaddr = 0;
 	}
-	Node_t::Node_t(UInt64 va){
+	Node_t::Node_t(duint va){
 		outEdge = NULL;
 		instruction = Instruction_t();
-		instruction.BeaStruct.VirtualAddr = va;
 		vaddr = va;
 	}
 	Node_t::~Node_t(){

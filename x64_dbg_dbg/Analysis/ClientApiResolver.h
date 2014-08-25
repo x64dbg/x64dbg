@@ -7,8 +7,9 @@
 namespace fa
 {
 	class ClientApiResolver : public ClientInterface{
+		
 	public:
-
+		ClientApiResolver(AnalysisRunner* analys);
 		void see(const Instruction_t Instr,const RegisterEmulator *reg,const StackEmulator *stack);
 
 	};

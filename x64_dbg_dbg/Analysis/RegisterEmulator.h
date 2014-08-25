@@ -6,20 +6,20 @@ namespace fa
 {
 class RegisterEmulator
 {
-    UInt64 mRCX;
-    UInt64 mRDX;
-    UInt64 mR8;
-    UInt64 mR9;
+    duint mRCX;
+    duint mRDX;
+    duint mR8;
+    duint mR9;
 public:
     RegisterEmulator();
     ~RegisterEmulator();
 
     void emulate(const DISASM* BeaStruct);
 
-    const UInt64 rcx() const;
-    const UInt64 rdx() const;
-    const UInt64 r8() const;
-    const UInt64 r9() const;
+    const duint rcx() const;
+    const duint rdx() const;
+    const duint r8() const;
+    const duint r9() const;
 };
 
 };

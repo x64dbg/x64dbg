@@ -11,21 +11,27 @@
 
 namespace fa
 {
+	ClientFunctionFinder::ClientFunctionFinder(AnalysisRunner  *an) : ClientInterface(an){
 
+	}
 	void ClientFunctionFinder::see(const Instruction_t Instr,const RegisterEmulator *reg,const StackEmulator *stack)
 	{
 		// test if node exists
+
 		Node_t n;
-		if(Analysis->graph()->find(Instr.BeaStruct.VirtualAddr,&n)){
+		if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr,&n)){
+			dprintf("##found branch to   "fhex" \n",n.vaddr);
+
 			// there is a branching!
-			if(n.outEdge->type == fa::RET){
-				// just use the edge from "RET" back to the start of the function
-				UInt64 startAddr = n.outEdge->end->instruction.BeaStruct.VirtualAddr;
-				UInt64 endAddr = Instr.BeaStruct.VirtualAddr;
-				DbgSetAutoFunctionAt(startAddr,endAddr);
-				// easy, isn't it?
-			}
+// 			if(n.outEdge->type == fa::RET){
+// 				// there is an api call
+// 
+// 				DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "ret");
+// 				return;
+// 			}
 		}
+
+		
 
 
 	}

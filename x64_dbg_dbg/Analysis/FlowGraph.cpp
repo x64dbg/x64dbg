@@ -14,45 +14,69 @@ namespace fa{
 
 		bool FlowGraph::insertNode( Node_t* node )
 		{
-			if (!contains(nodes,(UInt64)node->vaddr))
-			{
-				return (nodes.insert(std::make_pair<UInt64,Node_t*>(node->vaddr,node))).second;
-			}
+// 			if (!contains(nodes,(duint)node->vaddr))
+// 			{
+// 				return (nodes.insert(std::make_pair<duint,Node_t*>(node->vaddr,node))).second;
+// 			}
 			return true;
 			
 		}
-
-		bool FlowGraph::insertEdge( Edge_t* edge )
-		{
+		bool FlowGraph::insertEdge(Node_t* startNode, Node_t* endNode, EdgeType currentEdgeType){
 			// until here a node just contains an address!
 			// we search for these address to get most updated information (like incoming edges)
+			const duint s = startNode->vaddr;
+			const duint e = endNode->vaddr;
 
-			dprintf("try to insert edge from "fhex" to "fhex" \n", edge->start->vaddr, edge->end->vaddr);
-			return true;
-			insertNode(edge->start);
-			std::map<UInt64,Node_t*>::iterator it = nodes.find(edge->start->vaddr);
+			std::map<duint,Node_t*>::iterator it = nodes.find(s);
+			std::map<duint,Node_t*>::iterator it2 = nodes.find(e);
+			dprintf("find node at "fhex" \n",s);
+			dprintf("find node at "fhex" \n",e);
+			if(it == nodes.end()){
+				nodes.insert(std::make_pair(s,startNode));
+				dprintf("create node at "fhex" \n",s);
+				it = nodes.find(s);
+			}
+
+			if(it2 == nodes.end()){
+				nodes.insert(std::make_pair(e,endNode));
+				dprintf("create node at "fhex" \n",e);
+				it2 = nodes.find(e);
+			}
+
+				
+			
+			dprintf("edge iter "fhex" to "fhex"\n",(*(it->second)).vaddr,(*(it2->second)).vaddr);
+			
+
+			Edge_t *edge = new Edge_t(&*(it->second),&*(it2->second),currentEdgeType);
+			edge->start = &*(it->second);
+			edge->end = &*(it2->second);
+
 			it->second->outEdge = edge;
-
-			insertNode(edge->end);
-			std::map<UInt64,Node_t*>::iterator it2 = nodes.find(edge->end->vaddr);
 			it2->second->inEdges.insert(edge);
 
-			edge->start = (it->second);
-			edge->end = (it2->second);
-			bool ans = edges.insert(std::make_pair<UInt64,Edge_t*>(edge->start->vaddr,edge)).second;
-			std::map<UInt64,Edge_t*>::iterator e = edges.find(edge->start->vaddr);
-		
-			return ans;
+			
+
+			bool ans = edges.insert(std::make_pair<duint,Edge_t*>(s,edge)).second;
+			//std::map<duint,Edge_t*>::iterator ee = edges.find(s);
+
+			dprintf(" an edge was insered from  "fhex" to "fhex"\n",edge->start->vaddr, edge->end->vaddr);
+			for(std::set<Edge_t*>::iterator eit = edge->end->inEdges.begin(); eit != edge->end->inEdges.end();eit++){
+				dprintf(" end edges has incoming from   "fhex"\n", (*eit)->start->vaddr);
+			}
 
 
+			
+			return true;
 		}
+		
 
 		void FlowGraph::clean()
 		{
 			// first delete all edges whoses aks for it
-			std::map<UInt64,Edge_t*>::iterator e = edges.begin();
+			std::map<duint,Edge_t*>::iterator e = edges.begin();
 			while(e != edges.end()) {
-				std::map<UInt64,Edge_t*>::iterator current = e++;
+				std::map<duint,Edge_t*>::iterator current = e++;
 				if((*current->second).askForRemove){
 					delete current->second;
 					edges.erase(current);
@@ -61,22 +85,31 @@ namespace fa{
 
 
 			// find and delete isolated nodes, i.e. nodes without incoming and outgoing edges
-			std::map<UInt64,Node_t*>::iterator n = nodes.begin();
+			std::map<duint,Node_t*>::iterator n = nodes.begin();
 			while(n != nodes.end()) {
-				std::map<UInt64,Node_t*>::iterator current = n++;
+				std::map<duint,Node_t*>::iterator current = n++;
 				if( (!(*current->second).outEdge)  && ((*current->second).inEdges.size()==0) ){
 					delete current->second;
 					nodes.erase(current);
 				}
 			}
 		}
-		bool FlowGraph::find(const UInt64 va , Node_t *node)
+		bool FlowGraph::find(const duint va , Node_t* node)
 		{
-			// try to find a node
-			std::map<UInt64,Node_t*>::iterator it = nodes.find(va);
-			Node_t* n = it->second;
-			node = n;
-			return (it != nodes.end());
+			if(contains(nodes,va)){
+				node = nodes.at(va);
+				return true;
+			}
+			return false;
+// 
+// 			// try to find a node
+// 			std::map<duint,Node_t*>::iterator it = nodes.find(va);
+// 			if(it == nodes.end())
+// 				return false;
+// 			dprintf("**found node   "fhex" \n",it->second->vaddr);
+// 			node = ((it->second));
+// 			dprintf("**found node   "fhex" \n",node->vaddr);
+// 			return true;
 		}
 
 

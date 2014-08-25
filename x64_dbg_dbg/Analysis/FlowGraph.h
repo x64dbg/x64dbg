@@ -12,9 +12,9 @@ namespace fa{
 	{
 		// this class represents the program flow including branches likes JMP, JNE, ... , CALL, RET
 		// all existing edges
-		std::map<UInt64,Edge_t*> edges;
+		std::map<duint,Edge_t*> edges;
 		// all existing nodes
-		std::map<UInt64,Node_t*> nodes;
+		std::map<duint,Node_t*> nodes;
 	public:
 		FlowGraph(void);
 		~FlowGraph(void);
@@ -23,9 +23,9 @@ namespace fa{
 		// WARNING: this should only be called from the corresponding edge!!!
 		bool insertNode(Node_t* node);
 		// insert a new edge an returns the existing edge if there was already the edge
-		bool FlowGraph::insertEdge( Edge_t* edge );
+		bool insertEdge(Node_t* start, Node_t* end, EdgeType btype);
 
-		bool find(const UInt64 va, Node_t *node);
+		bool find(const duint va, Node_t *node);
 	};
 
 }

@@ -99,7 +99,7 @@ namespace fa
 		return (it != s.end());
 	}
 
-	typedef std::map<UInt64, Instruction_t>::const_iterator instrIter;
+	typedef std::map<duint, Instruction_t>::const_iterator instrIter;
 
 
 

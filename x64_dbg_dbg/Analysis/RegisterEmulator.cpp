@@ -57,22 +57,22 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
     }
 }
 
-const UInt64 RegisterEmulator::rcx() const
+const duint RegisterEmulator::rcx() const
 {
     return mRCX;
 }
 
-const UInt64 RegisterEmulator::rdx() const
+const duint RegisterEmulator::rdx() const
 {
     return mRDX;
 }
 
-const UInt64 RegisterEmulator::r8() const
+const duint RegisterEmulator::r8() const
 {
     return mR8;
 }
 
-const UInt64 RegisterEmulator::r9() const
+const duint RegisterEmulator::r9() const
 {
     return mR9;
 }

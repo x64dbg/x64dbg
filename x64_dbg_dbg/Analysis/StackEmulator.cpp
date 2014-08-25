@@ -26,7 +26,7 @@ StackEmulator::~StackEmulator(void)
  0x01234: mov [esp+C], eax
  --> modifyFrom(0xC,0x01234)
 */
-void StackEmulator::modifyFrom(int relative_offset, UInt64 addr)
+void StackEmulator::modifyFrom(int relative_offset, duint addr)
 {
     const unsigned int internal_pointer = pointerByOffset(-1 * relative_offset);
     mStack[internal_pointer] = addr;
@@ -39,7 +39,7 @@ void StackEmulator::modifyFrom(int relative_offset, UInt64 addr)
  add esp, -1    ; one to the past
 
 */
-void StackEmulator::popFrom(UInt64 addr)
+void StackEmulator::popFrom(duint addr)
 {
     moveStackpointerBack(+1);
 }
@@ -50,7 +50,7 @@ void StackEmulator::popFrom(UInt64 addr)
  add esp, +1
  mov [esp], eax  ; one to the future
 */
-void StackEmulator::pushFrom(UInt64 addr)
+void StackEmulator::pushFrom(duint addr)
 {
     moveStackpointerBack(-1);
     mStack[mStackpointer] = addr;
@@ -78,7 +78,7 @@ unsigned int StackEmulator::pointerByOffset(int offset) const
    lastAccessAt(0x8)  would be 0x155
 
 */
-UInt64 StackEmulator::lastAccessAtOffset(int offset) const
+duint StackEmulator::lastAccessAtOffset(int offset) const
 {
     int p = pointerByOffset(-offset);
     return mStack[p];
@@ -95,7 +95,7 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
     */
     //
 
-    const UInt64 addr = BeaStruct->VirtualAddr;                    // --> 00401301
+    const duint addr = BeaStruct->VirtualAddr;                    // --> 00401301
 
     if(_isPush(BeaStruct))
     {
@@ -137,7 +137,7 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
           )
         {
             Int64 offset = BeaStruct->Argument1.Memory.Displacement;  // --> 04h
-            UInt64 addr = BeaStruct->VirtualAddr;                    // --> 00401301
+            duint addr = BeaStruct->VirtualAddr;                    // --> 00401301
 
             modifyFrom(offset / REGISTER_SIZE, addr);
 
