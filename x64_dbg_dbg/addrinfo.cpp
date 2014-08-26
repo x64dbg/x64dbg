@@ -1019,6 +1019,7 @@ bool loopadd(uint start, uint end, bool manual)
     return true;
 }
 
+//get the start/end of a loop at a certain depth and addr
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
@@ -1070,6 +1071,7 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     return false;
 }
 
+//this should delete a loop and all sub-loops that matches a certain addr
 bool loopdel(int depth, uint addr)
 {
     return false;
