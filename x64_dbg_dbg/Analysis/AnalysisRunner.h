@@ -7,65 +7,65 @@
 
 namespace fa
 {
-	
-	// BeaEngine uses "duint" as default size type. We will do the same here in contrast to "duint"
 
-	class StackEmulator;
-	class RegisterEmulator;
-	class FunctionInfo;
-	class FlowGraph;
+// BeaEngine uses "duint" as default size type. We will do the same here in contrast to "duint"
+
+class StackEmulator;
+class RegisterEmulator;
+class FunctionInfo;
+class FlowGraph;
 class AnalysisRunner
 {
-	// we will place all VA here that should be a start address for disassembling
-	std::set< std::pair<duint,duint> > disasmRoot;
-	// all known disassemling should be cached
+    // we will place all VA here that should be a start address for disassembling
+    std::set< std::pair<duint, duint> > disasmRoot;
+    // all known disassemling should be cached
     std::map<duint, Instruction_t> instructionBuffer;
-	// baseaddress for current thread
+    // baseaddress for current thread
     duint baseAddress;
-	// size of code for security while disassembling
+    // size of code for security while disassembling
     duint codeSize;
-	// copy of all instructions bytes
+    // copy of all instructions bytes
     unsigned char* codeBuffer;
-	// temporal value of EIP
+    // temporal value of EIP
     UIntPtr currentEIP;
-	// temporal value of virtual address
+    // temporal value of virtual address
     duint currentVirtualAddr;
-	// information about the CIP
-	const duint OEP;
-	// whole application as a graph
-	FlowGraph *Grph;
-	// flag for correct initialisation of the code memory
-	bool codeWasCopied;
+    // information about the CIP
+    const duint OEP;
+    // whole application as a graph
+    FlowGraph* Grph;
+    // flag for correct initialisation of the code memory
+    bool codeWasCopied;
 
-	//std::vector<ClientInterface> interfaces;
+    //std::vector<ClientInterface> interfaces;
 
-	StackEmulator* Stack;
-	RegisterEmulator* Register;
-	FunctionInfo* functionInfo;
+    StackEmulator* Stack;
+    RegisterEmulator* Register;
+    FunctionInfo* functionInfo;
 
 protected:
     bool initialise();
 
 private:
     void buildGraph();
-	void emulateInstructions();
-	bool disasmChilds(const duint addr,const duint paddr);
+    void emulateInstructions();
+    bool disasmChilds(const duint addr, const duint paddr);
 
 public:
 
-    AnalysisRunner(const duint CIP,const duint BaseAddress,const duint Size);
+    AnalysisRunner(const duint CIP, const duint BaseAddress, const duint Size);
     ~AnalysisRunner(void);
 
     void start();
-	std::map<duint, Instruction_t>::const_iterator instruction(duint va) const;
-	Instruction_t instruction_t(duint va) const;
-	std::map<duint, Instruction_t>::const_iterator lastInstruction() const;
+    std::map<duint, Instruction_t>::const_iterator instruction(duint va) const;
+    Instruction_t instruction_t(duint va) const;
+    std::map<duint, Instruction_t>::const_iterator lastInstruction() const;
 
-	duint base() const;
-	duint oep() const; 
-	duint size() const;
-	FlowGraph* graph() const;
-	FunctionInfo* functioninfo();
+    duint base() const;
+    duint oep() const;
+    duint size() const;
+    FlowGraph* graph() const;
+    FunctionInfo* functioninfo();
 
 };
 

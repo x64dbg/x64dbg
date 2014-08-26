@@ -12,9 +12,9 @@ namespace fa
 
 
 
-	fa::FunctionInfo_t FunctionInfo::find( std::string name ) 
-	{
-		return FunctionInfo_t();
-	}
+fa::FunctionInfo_t FunctionInfo::find(std::string name)
+{
+    return FunctionInfo_t();
+}
 
 };

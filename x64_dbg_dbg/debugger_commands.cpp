@@ -1010,14 +1010,14 @@ CMDRESULT cbDebugAnalyse(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-	dprintf("start analysis, assuming oep="fhex", baseaddr="fhex", size="fhex"!\n", cipAddr,base,size);
+    dprintf("start analysis, assuming oep="fhex", baseaddr="fhex", size="fhex"!\n", cipAddr, base, size);
 
 
-//     tr4ce::ApiDB* db = new tr4ce::ApiDB();
-    fa::AnalysisRunner AR(cipAddr,base, size);
-	AR.start();
-//     AR.setFunctionInformation(db);
-//     AR.start();
+    //     tr4ce::ApiDB* db = new tr4ce::ApiDB();
+    fa::AnalysisRunner AR(cipAddr, base, size);
+    AR.start();
+    //     AR.setFunctionInformation(db);
+    //     AR.start();
 
 
     //GuiAnalyseCode(base, size);

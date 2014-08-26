@@ -5,8 +5,9 @@
 
 namespace fa
 {
-	ClientInterface::ClientInterface(AnalysisRunner* analys) : Analysis(analys){
+ClientInterface::ClientInterface(AnalysisRunner* analys) : Analysis(analys)
+{
 
-	}
+}
 
 };

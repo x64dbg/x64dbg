@@ -7,7 +7,21 @@
 #include <set>
 #include <cstring>
 
+#define DEBUG_PRINT_ENABLED
+#define DEBUG_PRINT_ENABLED2
 
+
+#ifdef DEBUG_PRINT_ENABLED
+#define tDebug dprintf
+#else
+#define tDebug ((void)0)
+#endif
+
+#ifdef DEBUG_PRINT_ENABLED2
+#define ttDebug dprintf
+#else
+#define ttDebug ((void)0)
+#endif
 
 
 

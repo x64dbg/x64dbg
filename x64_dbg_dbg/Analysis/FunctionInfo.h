@@ -6,11 +6,12 @@
 namespace fa
 {
 
-	class FunctionInfo {
-	public:
+class FunctionInfo
+{
+public:
 
-		FunctionInfo_t find(std::string name) ;
+    FunctionInfo_t find(std::string name) ;
 
-	};
+};
 
 };
