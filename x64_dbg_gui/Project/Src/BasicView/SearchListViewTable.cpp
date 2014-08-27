@@ -1,5 +1,6 @@
 #include "SearchListViewTable.h"
 #include "Configuration.h"
+#include "RichTextPainter.h"
 
 SearchListViewTable::SearchListViewTable(StdTable* parent) : StdTable(parent)
 {

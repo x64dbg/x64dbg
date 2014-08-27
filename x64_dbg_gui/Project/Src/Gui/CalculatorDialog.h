@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QThread>
-#include "Bridge.h"
+#include "NewTypes.h"
 
 namespace Ui
 {

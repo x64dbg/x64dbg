@@ -2,8 +2,9 @@
 #define PATCHDIALOG_H
 
 #include <QDialog>
-#include "Bridge.h"
+#include <QListWidgetItem>
 #include "PatchDialogGroupSelector.h"
+#include "Bridge.h"
 
 namespace Ui
 {

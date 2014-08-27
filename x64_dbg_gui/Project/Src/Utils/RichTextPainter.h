@@ -1,7 +1,8 @@
 #ifndef RICHTEXTPAINTER_H
 #define RICHTEXTPAINTER_H
 
-#include <QList>
+#include <QString>
+#include <QColor>
 #include <QPainter>
 
 class RichTextPainter

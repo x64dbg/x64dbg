@@ -1,5 +1,6 @@
 #include "LogView.h"
 #include "Configuration.h"
+#include "Bridge.h"
 
 LogView::LogView(QWidget* parent) : QTextEdit(parent)
 {

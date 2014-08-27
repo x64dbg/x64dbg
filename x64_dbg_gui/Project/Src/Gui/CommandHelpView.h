@@ -3,10 +3,6 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QList>
-#include <QMenu>
-#include "StdTable.h"
-#include "Bridge.h"
 #include "SearchListView.h"
 
 namespace Ui

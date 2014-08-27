@@ -1,5 +1,7 @@
 #include "RegistersView.h"
+#include <QClipboard>
 #include "Configuration.h"
+#include "WordEditDialog.h"
 
 RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
 {

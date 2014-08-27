@@ -57,6 +57,10 @@ typedef bool (*GETJIT)(char* jit, bool x64);
 typedef bool (*GETJITAUTO)(bool*);
 typedef bool (*GETDEFJIT)(char*);
 typedef bool (*GETPROCESSLIST)(DBGPROCESSINFO** entries, int* count);
+typedef bool (*GETPAGERIGHTS)(duint*, char*);
+typedef bool (*SETPAGERIGHTS)(duint*, char*);
+typedef bool (*PAGERIGHTSTOSTRING)(DWORD, char*);
+typedef bool (*ISPROCESSELEVATED)(void);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -84,6 +88,10 @@ typedef struct DBGFUNCTIONS_
     GETJIT GetJit;
     GETDEFJIT GetDefJit;
     GETPROCESSLIST GetProcessList;
+    GETPAGERIGHTS GetPageRights;
+    SETPAGERIGHTS SetPageRights;
+    PAGERIGHTSTOSTRING PageRightsToString;
+    ISPROCESSELEVATED IsProcessElevated;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

@@ -1,4 +1,8 @@
 #include "Bridge.h"
+#include <QClipboard>
+#include "QBeaEngine.h"
+#include "main.h"
+#include "Exports.h"
 
 /************************************************************************************
                             Global Variables

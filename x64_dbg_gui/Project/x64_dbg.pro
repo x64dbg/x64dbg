@@ -36,9 +36,7 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
-    Src/Memory/ProcessMemoryMap.cpp \
     Src/Memory/MemoryPage.cpp \
-    Src/Memory/MapViewOfMem.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
     Src/Gui/MemoryMapView.cpp \
@@ -84,7 +82,8 @@ SOURCES += \
     Src/Gui/ShortcutsDialog.cpp \
     Src/BasicView/ShortcutEdit.cpp \
     Src/Gui/CalculatorDialog.cpp \
-    Src/Gui/AttachDialog.cpp
+    Src/Gui/AttachDialog.cpp \
+    Src/Gui/PageMemoryRights.cpp
 
 
 HEADERS += \
@@ -96,9 +95,7 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
-    Src/Memory/ProcessMemoryMap.h \
     Src/Memory/MemoryPage.h \
-    Src/Memory/MapViewOfMem.h \
     Src/Bridge/Bridge.h \
     Src/Global/NewTypes.h \
     Src/Exports.h \
@@ -147,7 +144,8 @@ HEADERS += \
     Src/Gui/ShortcutsDialog.h \
     Src/BasicView/ShortcutEdit.h \
     Src/Gui/CalculatorDialog.h \
-    Src/Gui/AttachDialog.h
+    Src/Gui/AttachDialog.h \
+    Src/Gui/PageMemoryRights.h
 
 
 INCLUDEPATH += \
@@ -180,7 +178,8 @@ FORMS += \
     Src/Gui/PatchDialogGroupSelector.ui \
     Src/Gui/ShortcutsDialog.ui \
     Src/Gui/CalculatorDialog.ui \
-    Src/Gui/AttachDialog.ui
+    Src/Gui/AttachDialog.ui \
+    Src/Gui/PageMemoryRights.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

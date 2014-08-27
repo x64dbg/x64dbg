@@ -2,6 +2,7 @@
 #define SEARCHLISTVIEW_H
 
 #include <QWidget>
+#include <QMenu>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include "SearchListViewTable.h"

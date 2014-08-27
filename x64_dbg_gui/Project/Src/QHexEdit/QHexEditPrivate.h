@@ -1,7 +1,10 @@
 #ifndef QHEXEDITPRIVATE_H
 #define QHEXEDITPRIVATE_H
 
-#include <QtGui>
+#include <QWidget>
+#include <QScrollArea>
+#include <QUndoStack>
+#include <QKeyEvent>
 #include "XByteArray.h"
 
 class QHexEditPrivate : public QWidget

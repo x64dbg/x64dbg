@@ -1,13 +1,11 @@
 #include "QBeaEngine.h"
 
-
 QBeaEngine::QBeaEngine()
 {
     // Reset the Disasm structure
     memset(&mDisasmStruct, 0, sizeof(DISASM));
     BeaTokenizer::Init();
 }
-
 
 /**
  * @brief       Return the address of the nth instruction before the instruction pointed by ip.                 @n
@@ -88,7 +86,6 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
         return abuf[(i - n + max_instructions) % max_instructions];
 }
 
-
 /**
  * @brief       Return the address of the nth instruction after the instruction pointed by ip.                 @n
  *              This function has been grabbed from OllyDbg ("Disassembleforward" in asmserv.c)
@@ -144,7 +141,6 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
     return ip;
 }
 
-
 /**
  * @brief       Disassemble the instruction at the given ip RVA.
  *
@@ -190,6 +186,3 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 
     return wInst;
 }
-
-
-

@@ -99,6 +99,7 @@ bool modload(uint base, uint size, const char* fullpath)
     while(name[len] != '.' and len)
         len--;
     MODINFO info;
+    memset(&info, 0, sizeof(MODINFO));
     info.sections.clear();
     info.hash = modhashfromname(name);
     if(len)
@@ -117,6 +118,7 @@ bool modload(uint base, uint size, const char* fullpath)
     ULONG_PTR FileMapVA;
     if(StaticFileLoad((char*)fullpath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
+        info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base; //get entry point
         int SectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
         if(SectionCount > 0)
         {
@@ -266,6 +268,14 @@ bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
         return false;
     *sections = found->second.sections;
     return true;
+}
+
+uint modentryfromaddr(uint addr)
+{
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
+        return 0;
+    return found->second.entry;
 }
 
 ///api functions
@@ -1019,6 +1029,7 @@ bool loopadd(uint start, uint end, bool manual)
     return true;
 }
 
+//get the start/end of a loop at a certain depth and addr
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
@@ -1070,6 +1081,7 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     return false;
 }
 
+//this should delete a loop and all sub-loops that matches a certain addr
 bool loopdel(int depth, uint addr)
 {
     return false;

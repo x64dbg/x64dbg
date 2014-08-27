@@ -1,15 +1,9 @@
 #ifndef _HEXDUMP_H
 #define _HEXDUMP_H
 
-#include <QtGui>
-#include <QtDebug>
-#include "NewTypes.h"
 #include "AbstractTableView.h"
-#include "MemoryPage.h"
-#include "QBeaEngine.h"
-#include "Bridge.h"
-#include <sstream>
 #include "RichTextPainter.h"
+#include "MemoryPage.h"
 
 class HexDump : public AbstractTableView
 {
