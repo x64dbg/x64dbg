@@ -1,14 +1,8 @@
 #ifndef DISASSEMBLY_H
 #define DISASSEMBLY_H
 
-#include <QtGui>
-#include <QtDebug>
-#include "NewTypes.h"
-#include "Bridge.h"
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
-#include "RichTextPainter.h"
-#include "BeaTokenizer.h"
 #include "MemoryPage.h"
 
 class Disassembly : public AbstractTableView

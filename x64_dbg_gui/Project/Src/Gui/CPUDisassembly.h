@@ -1,18 +1,8 @@
 #ifndef CPUDISASSEMBLY_H
 #define CPUDISASSEMBLY_H
 
-#include <QtGui>
-#include <QtDebug>
-#include "NewTypes.h"
 #include "Disassembly.h"
-#include "Bridge.h"
-#include "LineEditDialog.h"
-#include "QBeaEngine.h"
 #include "GotoDialog.h"
-#include <QAction>
-#include <QMessageBox>
-#include <QMenu>
-#include "WordEditDialog.h"
 
 class CPUDisassembly : public Disassembly
 {

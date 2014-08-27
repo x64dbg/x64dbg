@@ -2,9 +2,8 @@
 #define GOTODIALOG_H
 
 #include <QDialog>
-#include <QPalette>
 #include <QThread>
-#include "Bridge.h"
+#include "NewTypes.h"
 
 namespace Ui
 {

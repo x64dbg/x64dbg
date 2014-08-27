@@ -1,9 +1,6 @@
 #ifndef STDTABLE_H
 #define STDTABLE_H
 
-#include <QtGui>
-#include <QMenu>
-#include "NewTypes.h"
 #include "AbstractTableView.h"
 
 class StdTable : public AbstractTableView

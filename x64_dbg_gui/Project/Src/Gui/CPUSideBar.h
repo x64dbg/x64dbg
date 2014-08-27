@@ -1,11 +1,8 @@
 #ifndef CPUSIDEBAR_H
 #define CPUSIDEBAR_H
 
-#include "NewTypes.h"
-#include "Bridge.h"
-#include "CPUDisassembly.h"
 #include <QAbstractScrollArea>
-
+#include "CPUDisassembly.h"
 
 class CPUSideBar : public QAbstractScrollArea
 {
@@ -31,7 +28,6 @@ protected:
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
     bool isJump(int i) const;
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
-
 
 private:
     int_t topVA;

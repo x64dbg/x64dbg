@@ -1,14 +1,11 @@
 #ifndef BEATOKENIZER_H
 #define BEATOKENIZER_H
 
-#include <QList>
-#include <QRect>
-#include <QString>
-#include <QStringList>
 #include <QMap>
+#include <QSet>
+#include "RichTextPainter.h"
 #include "BeaEngine.h"
 #include "NewTypes.h"
-#include "RichTextPainter.h"
 
 class BeaTokenizer : RichTextPainter
 {

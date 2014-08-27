@@ -1,6 +1,5 @@
 #include "CalculatorDialog.h"
 #include "ui_CalculatorDialog.h"
-#include <QString>
 
 CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {
@@ -222,7 +221,7 @@ void CalculatorDialog::on_txtAscii_textEdited(const QString & arg1)
         return;
     }
     ui->txtAscii->setStyleSheet("");
-    ui->txtExpression->setText(QString().sprintf("%X", text[0].toAscii()));
+    ui->txtExpression->setText(QString().sprintf("%X", text[0].toLatin1()));
     ui->txtAscii->setCursorPosition(1);
 }
 

@@ -1,8 +1,9 @@
 #include "AppearanceDialog.h"
 #include "ui_AppearanceDialog.h"
-#include "Bridge.h"
-#include "Configuration.h"
+#include <QColorDialog>
 #include <QFontDialog>
+#include <QMessageBox>
+#include "Configuration.h"
 
 AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AppearanceDialog)
 {

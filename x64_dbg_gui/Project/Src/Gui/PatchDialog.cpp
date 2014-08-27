@@ -1,5 +1,10 @@
 #include "PatchDialog.h"
 #include "ui_PatchDialog.h"
+#include <QMessageBox>
+#include <QIcon>
+#include <QDesktopServices>
+#include <QFileDialog>
+#include <QTextStream>
 
 PatchDialog::PatchDialog(QWidget* parent) :
     QDialog(parent),

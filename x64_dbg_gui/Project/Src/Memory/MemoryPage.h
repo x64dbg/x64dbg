@@ -2,11 +2,7 @@
 #define MEMORYPAGE_H
 
 #include <QObject>
-#include <QtGui>
 #include "NewTypes.h"
-#include "windows.h"
-#include "main.h"
-#include "Bridge.h"
 
 class MemoryPage : public QObject
 {

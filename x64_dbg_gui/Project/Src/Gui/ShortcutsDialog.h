@@ -2,8 +2,7 @@
 #define SHORTCUTSDIALOG_H
 
 #include <QDialog>
-#include <QTableWidget>
-#include "ShortcutEdit.h"
+#include <QHeaderView>
 #include "Configuration.h"
 
 namespace Ui

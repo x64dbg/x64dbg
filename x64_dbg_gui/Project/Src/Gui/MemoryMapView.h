@@ -1,9 +1,7 @@
 #ifndef MEMORYMAPVIEW_H
 #define MEMORYMAPVIEW_H
 
-#include <QtGui>
 #include "StdTable.h"
-#include "Bridge.h"
 
 class MemoryMapView : public StdTable
 {
@@ -31,6 +29,8 @@ public slots:
     void memoryExecuteSingleshootToggleSlot();
     void contextMenuSlot(const QPoint & pos);
     void switchView();
+    void pageMemoryRights();
+    void refreshMap();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -38,6 +38,7 @@ private:
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
     QAction* mSwitchView;
+    QAction* mPageMemoryRights;
 
     QMenu* mBreakpointMenu;
     QMenu* mMemoryAccessMenu;

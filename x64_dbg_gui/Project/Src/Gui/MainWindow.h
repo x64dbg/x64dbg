@@ -2,31 +2,23 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtGui>
-#include <QFileDialog>
-#include <QMdiArea>
-#include <QMdiSubWindow>
-#include "CPUWidget.h"
+#include <QDragEnterEvent>
+#include "CloseDialog.h"
 #include "CommandLineEdit.h"
+#include "TabWidget.h"
+#include "CPUWidget.h"
 #include "MemoryMapView.h"
+#include "CallStackView.h"
 #include "LogView.h"
-#include "StatusLabel.h"
+#include "SymbolView.h"
 #include "BreakpointsView.h"
 #include "ScriptView.h"
-#include "SymbolView.h"
 #include "ReferenceView.h"
 #include "ThreadView.h"
-#include "SettingsDialog.h"
-#include "tabwidget.h"
-#include "Configuration.h"
-#include "AppearanceDialog.h"
-#include "ShortcutsDialog.h"
-#include "CloseDialog.h"
 #include "PatchDialog.h"
-#include "UpdateChecker.h"
-#include "CallStackView.h"
 #include "CalculatorDialog.h"
-#include "AttachDialog.h"
+#include "StatusLabel.h"
+#include "UpdateChecker.h"
 
 namespace Ui
 {
@@ -101,7 +93,6 @@ public slots:
 private:
     Ui::MainWindow* ui;
     CloseDialog* mCloseDialog;
-
     CommandLineEdit* mCmdLineEdit;
     MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;

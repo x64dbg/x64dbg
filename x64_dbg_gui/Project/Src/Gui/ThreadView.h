@@ -2,7 +2,7 @@
 #define THREADVIEW_H
 
 #include "StdTable.h"
-#include "Bridge.h"
+#include <QMenu>
 
 class ThreadView : public StdTable
 {

@@ -2,16 +2,10 @@
 #define BRIDGE_H
 
 #include <QObject>
-#include <QtGui>
-#include "NewTypes.h"
-#include "ReferenceView.h"
-#include "BeaTokenizer.h"
-#include "QBeaEngine.h"
-
-#include "main.h"
-
-#include "Exports.h"
+#include <QMutex>
 #include "Imports.h"
+#include "NewTypes.h"
+#include "SearchListView.h"
 
 class Bridge : public QObject
 {

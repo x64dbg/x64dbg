@@ -1,5 +1,6 @@
 #include "Disassembly.h"
 #include "Configuration.h"
+#include "Bridge.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {

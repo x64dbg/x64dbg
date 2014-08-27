@@ -52,7 +52,7 @@ del /Q *.exp
 del /Q *.a
 del /Q *.lib
 del /Q *.def
-del /Q launcher.exe
+del /Q x96_dbg.exe
 cd..
 echo cleaning bin\x32...
 cd bin\x32

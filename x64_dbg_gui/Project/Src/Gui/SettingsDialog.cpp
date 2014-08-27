@@ -1,6 +1,9 @@
 #include "SettingsDialog.h"
 #include "ui_SettingsDialog.h"
+#include <QMessageBox>
 #include "Configuration.h"
+#include "Bridge.h"
+#include "ExceptionRangeDialog.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent) :
     QDialog(parent),
@@ -190,6 +193,13 @@ void SettingsDialog::LoadSettings()
                     settings.miscSetJITAuto = false;
 
                 ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
+            }
+
+            if(!DbgFunctions()->IsProcessElevated())
+            {
+                ui->chkSetJIT->setDisabled(true);
+                ui->chkConfirmBeforeAtt->setDisabled(true);
+                ui->lbladminwarning->setText(QString("Warning: Run the debugger as Admin to enable JIT."));
             }
         }
     }

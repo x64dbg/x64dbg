@@ -1,15 +1,14 @@
 #ifndef CPUWIDGET_H
 #define CPUWIDGET_H
 
-#include <QtGui>
-#include <QVBoxLayout>
-#include <QTableWidget>
+#include <QWidget>
+#include <QTabWidget>
+#include "CPUSideBar.h"
 #include "CPUDisassembly.h"
 #include "CPUDump.h"
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "CPUInfoBox.h"
-#include "CPUSideBar.h"
 
 namespace Ui
 {

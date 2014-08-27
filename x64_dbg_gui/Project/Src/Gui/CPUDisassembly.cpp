@@ -1,5 +1,10 @@
 #include "CPUDisassembly.h"
+#include <QMessageBox>
+#include <QClipboard>
 #include "Configuration.h"
+#include "Bridge.h"
+#include "LineEditDialog.h"
+#include "WordEditDialog.h"
 #include "HexEditDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
@@ -477,6 +482,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchCommand->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSearchCommand);
     connect(mSearchCommand, SIGNAL(triggered()), this, SLOT(findCommand()));
+    mSearchMenu->addAction(mSearchCommand);
 
     // Constant
     mSearchConstant = new QAction("&Constant", this);

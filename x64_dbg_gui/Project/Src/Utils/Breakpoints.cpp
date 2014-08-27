@@ -47,7 +47,6 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
     DbgCmdExec(wCmd.toUtf8().constData());
 }
 
-
 /**
  * @brief       Enable breakpoint according to the given breakpoint descriptor.
  *
@@ -378,7 +377,4 @@ void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
     {
         setBP(bp_hardware, va);
     }
-
-
-
 }

@@ -1,5 +1,7 @@
 #include "MemoryMapView.h"
 #include "Configuration.h"
+#include "Bridge.h"
+#include "PageMemoryRights.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
@@ -33,6 +35,10 @@ void MemoryMapView::setupContextMenu()
     mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+
+    //Set PageMemory Rights
+    mPageMemoryRights = new QAction("Set Page Memory Rights", this);
+    connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
     mSwitchView = new QAction("&Switch View", this);
@@ -104,6 +110,8 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
+    wMenu->addAction(mPageMemoryRights);
+    wMenu->addSeparator();
     wMenu->addMenu(mBreakpointMenu);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
@@ -139,39 +147,13 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
 QString MemoryMapView::getProtectionString(DWORD Protect)
 {
-    QString wS;
-    switch(Protect & 0xFF)
-    {
-    case PAGE_EXECUTE:
-        wS = QString("E---");
-        break;
-    case PAGE_EXECUTE_READ:
-        wS = QString("ER--");
-        break;
-    case PAGE_EXECUTE_READWRITE:
-        wS = QString("ERW-");
-        break;
-    case PAGE_EXECUTE_WRITECOPY:
-        wS = QString("ERWC");
-        break;
-    case PAGE_NOACCESS:
-        wS = QString("----");
-        break;
-    case PAGE_READONLY:
-        wS = QString("-R--");
-        break;
-    case PAGE_READWRITE:
-        wS = QString("-RW-");
-        break;
-    case PAGE_WRITECOPY:
-        wS = QString("-RWC");
-        break;
-    }
-    if(Protect & PAGE_GUARD)
-        wS += QString("G");
-    else
-        wS += QString("-");
-    return wS;
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+    char rights[RIGHTS_STRING];
+
+    if(!DbgFunctions()->PageRightsToString(Protect, rights))
+        return "bad";
+
+    return QString(rights);
 }
 
 QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -221,84 +203,87 @@ QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOff
     return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
+void MemoryMapView::refreshMap()
+{
+    MEMMAP wMemMapStruct;
+    int wI;
+
+    memset(&wMemMapStruct, 0, sizeof(MEMMAP));
+
+    DbgMemMap(&wMemMapStruct);
+
+    setRowCount(wMemMapStruct.count);
+
+    for(wI = 0; wI < wMemMapStruct.count; wI++)
+    {
+        QString wS;
+        MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
+
+        // Base address
+        wS = QString("%1").arg((uint_t)wMbi.BaseAddress, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        setCellContent(wI, 0, wS);
+
+        // Size
+        wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        setCellContent(wI, 1, wS);
+
+        // Information
+        wS = QString((wMemMapStruct.page)[wI].info);
+        setCellContent(wI, 2, wS);
+
+        // State
+        switch(wMbi.State)
+        {
+        case MEM_FREE:
+            wS = QString("FREE");
+            break;
+        case MEM_COMMIT:
+            wS = QString("COMM");
+            break;
+        case MEM_RESERVE:
+            wS = QString("RESV");
+            break;
+        default:
+            wS = QString("????");
+        }
+        setCellContent(wI, 3, wS);
+
+        // Type
+        switch(wMbi.Type)
+        {
+        case MEM_IMAGE:
+            wS = QString("IMG");
+            break;
+        case MEM_MAPPED:
+            wS = QString("MAP");
+            break;
+        case MEM_PRIVATE:
+            wS = QString("PRV");
+            break;
+        default:
+            wS = QString("N/A");
+            break;
+        }
+        setCellContent(wI, 3, wS);
+
+        // current access protection
+        wS = getProtectionString(wMbi.Protect);
+        setCellContent(wI, 4, wS);
+
+        // allocation protection
+        wS = getProtectionString(wMbi.AllocationProtect);
+        setCellContent(wI, 5, wS);
+
+    }
+    if(wMemMapStruct.page != 0)
+        BridgeFree(wMemMapStruct.page);
+    reloadData(); //refresh memory map
+}
+
 void MemoryMapView::stateChangedSlot(DBGSTATE state)
 {
     if(state == paused)
-    {
-        MEMMAP wMemMapStruct;
-        int wI;
-
-        memset(&wMemMapStruct, 0, sizeof(MEMMAP));
-
-        DbgMemMap(&wMemMapStruct);
-
-        setRowCount(wMemMapStruct.count);
-
-        for(wI = 0; wI < wMemMapStruct.count; wI++)
-        {
-            QString wS;
-            MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
-
-            // Base address
-            wS = QString("%1").arg((uint_t)wMbi.BaseAddress, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
-            setCellContent(wI, 0, wS);
-
-            // Size
-            wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
-            setCellContent(wI, 1, wS);
-
-            // Information
-            wS = QString((wMemMapStruct.page)[wI].info);
-            setCellContent(wI, 2, wS);
-
-            // State
-            switch(wMbi.State)
-            {
-            case MEM_FREE:
-                wS = QString("FREE");
-                break;
-            case MEM_COMMIT:
-                wS = QString("COMM");
-                break;
-            case MEM_RESERVE:
-                wS = QString("RESV");
-                break;
-            default:
-                wS = QString("????");
-            }
-            setCellContent(wI, 3, wS);
-
-            // Type
-            switch(wMbi.Type)
-            {
-            case MEM_IMAGE:
-                wS = QString("IMG");
-                break;
-            case MEM_MAPPED:
-                wS = QString("MAP");
-                break;
-            case MEM_PRIVATE:
-                wS = QString("PRV");
-                break;
-            default:
-                wS = QString("N/A");
-                break;
-            }
-            setCellContent(wI, 3, wS);
-
-            // current access protection
-            wS = getProtectionString(wMbi.Protect);
-            setCellContent(wI, 4, wS);
-
-            // allocation protection
-            wS = getProtectionString(wMbi.AllocationProtect);
-            setCellContent(wI, 5, wS);
-
-        }
-        if(wMemMapStruct.page != 0)
-            BridgeFree(wMemMapStruct.page);
-        reloadData(); //refresh memory map
-    }
+        refreshMap();
 }
 
 void MemoryMapView::followDumpSlot()
@@ -369,6 +354,15 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         memoryRemoveSlot();
     else
         memoryExecuteSingleshootSlot();
+}
+
+void MemoryMapView::pageMemoryRights()
+{
+    PageMemoryRights PageMemoryRightsDialog(this);
+    connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMap()));
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+    PageMemoryRightsDialog.RunAddrSize(addr, size, getCellContent(getInitialSelection(), 3));
 }
 
 void MemoryMapView::switchView()
