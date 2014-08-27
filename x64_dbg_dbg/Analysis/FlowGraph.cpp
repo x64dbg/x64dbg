@@ -23,8 +23,8 @@ void FlowGraph::insertEdge(duint startAddress, duint endAddress, EdgeType btype)
     Node_t* workEnd = new Node_t(endAddress);
 
 
-    std::pair<std::map<duint, Node_t*>::iterator, bool> sn = nodes.insert(std::pair<duint, Node_t*>(startAddress, workStart));
-    std::pair<std::map<duint, Node_t*>::iterator, bool> en = nodes.insert(std::pair<duint, Node_t*>(endAddress, workEnd));
+    std::pair<NodeMap::iterator, bool> sn = nodes.insert(std::pair<duint, Node_t*>(startAddress, workStart));
+    std::pair<NodeMap::iterator, bool> en = nodes.insert(std::pair<duint, Node_t*>(endAddress, workEnd));
 
     if(!sn.second)
     {
@@ -39,7 +39,7 @@ void FlowGraph::insertEdge(duint startAddress, duint endAddress, EdgeType btype)
 
     Edge_t* edge = new Edge_t(workStart, workEnd, btype);
 
-    std::pair<std::map<duint, Edge_t*>::iterator, bool> e = edges.insert(std::pair<duint, Edge_t*>(startAddress, edge));
+    std::pair<EdgeMap::iterator, bool> e = edges.insert(std::pair<duint, Edge_t*>(startAddress, edge));
 
     if(!e.second)
     {
@@ -60,7 +60,7 @@ bool FlowGraph::find(const duint va , Node_t* node)
 {
     if(contains(nodes, va))
     {
-        std::map<duint, Node_t*>::iterator iter = nodes.find(va);
+        NodeMap::iterator iter = nodes.find(va);
         node = (iter->second);
         return true;
     }
@@ -71,7 +71,7 @@ Node_t* FlowGraph::node(const duint va)
 {
     if(contains(nodes, va))
     {
-        std::map<duint, Node_t*>::iterator iter = nodes.find(va);
+        NodeMap::iterator iter = nodes.find(va);
         Node_t* node = (iter->second);
         return node;
     }
@@ -81,7 +81,7 @@ Node_t* FlowGraph::node(const duint va)
 
 void FlowGraph::fillNodes()
 {
-    for(std::map<duint, Node_t*>::iterator i = nodes.begin(); i != nodes.end(); i++)
+    for(NodeMap::iterator i = nodes.begin(); i != nodes.end(); i++)
     {
         i->second->hasInstr = true;
         i->second->instruction = analysis->instruction(i->first);

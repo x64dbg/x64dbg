@@ -8,15 +8,16 @@
 namespace fa
 {
 
-
+typedef std::map<duint, Edge_t*> EdgeMap;
+typedef std::map<duint, Node_t*> NodeMap;
 
 class FlowGraph
 {
     // this class represents the program flow including branches likes JMP, JNE, ... , CALL, RET
     // all existing edges
-    std::map<duint, Edge_t*> edges;
+    EdgeMap edges;
     // all existing nodes
-    std::map<duint, Node_t*> nodes;
+    NodeMap nodes;
 
     AnalysisRunner* analysis;
 public:

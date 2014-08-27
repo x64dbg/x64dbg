@@ -7,11 +7,14 @@
 namespace fa
 {
 class Edge_t;
+
+typedef std::set<Edge_t*> EdgeSet;
+
 class Node_t
 {
 public:
     Edge_t* outgoing;
-    std::set<Edge_t*> incoming;
+    EdgeSet incoming;
 
     const Instruction_t* instruction;
 

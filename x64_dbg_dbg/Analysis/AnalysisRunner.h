@@ -16,15 +16,17 @@ class RegisterEmulator;
 class FunctionInfo;
 class FlowGraph;
 
-
+typedef std::set<unknownRegion> UnkownRegionSet;
+typedef std::map<duint, Instruction_t> InstructionMap;
+typedef std::vector<ClientInterface*> ClientInterfaceList;
 
 
 class AnalysisRunner
 {
     // we will place all VA here that should be a start address for disassembling
-    std::set< unknownRegion > explorationSpace;
+    UnkownRegionSet explorationSpace;
     // all known disassemling should be cached
-    std::map<duint, Instruction_t> instructionsCache;
+    InstructionMap instructionsCache;
     // baseaddress for current thread
     duint baseAddress;
     // size of code for security while disassembling
@@ -43,8 +45,8 @@ class AnalysisRunner
     bool codeWasCopied;
 
     FunctionDB* DB;
+    ClientInterfaceList interfaces;
 
-    std::vector<ClientInterface*> interfaces;
 
     StackEmulator* Stack;
     RegisterEmulator* Register;

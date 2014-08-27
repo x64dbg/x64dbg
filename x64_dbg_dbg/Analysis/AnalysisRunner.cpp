@@ -283,14 +283,14 @@ void AnalysisRunner::emulateInstructions()
     functionInfo = new FunctionInfo;
 
     // run through instructions in a linear way - each instruction once
-    std::map<duint, Instruction_t>::iterator it = instructionsCache.begin();
+    InstructionMap::iterator it = instructionsCache.begin();
     while(it != instructionsCache.end())
     {
         // save important values
         Stack->emulate(&(it->second.BeaStruct));
         Register->emulate(&(it->second.BeaStruct));
 
-        for(std::vector<ClientInterface*>::iterator itt = interfaces.begin(); itt != interfaces.end(); itt++)
+        for(ClientInterfaceList::iterator itt = interfaces.begin(); itt != interfaces.end(); itt++)
         {
             (*itt)->see(it->second, Register, Stack);
         }
