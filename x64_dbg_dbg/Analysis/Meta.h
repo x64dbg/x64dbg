@@ -50,8 +50,8 @@ typedef struct unknownRegion
 
 typedef struct Instruction_t
 {
-    DISASM BeaStruct;
-    BASIC_INSTRUCTION_INFO BasicInfo;
+    mutable DISASM BeaStruct;
+    mutable BASIC_INSTRUCTION_INFO BasicInfo;
     unsigned int Length;
 
     Instruction_t(DISASM* dis, unsigned int len)

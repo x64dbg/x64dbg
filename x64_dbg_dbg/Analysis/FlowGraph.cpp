@@ -85,9 +85,8 @@ void FlowGraph::fillNodes()
     {
         i->second->hasInstr = true;
         i->second->instruction = analysis->instruction(i->first);
-        tDebug("fill "fhex" with %s\n", i->first, i->second->instruction->BeaStruct.CompleteInstr);
-        //          if(i->second->instruction.BeaStruct.Instruction.Opcode == 0xFF)
-        //              ttDebug("ext jump at %x",i->first);
+        fillbasicinfo(&(i->second->instruction->BeaStruct), &i->second->instruction->BasicInfo);
+        i->second->instruction->BasicInfo.size = i->second->instruction->Length;
     }
 }
 
