@@ -18,7 +18,7 @@ static MEMORY_SIZE argsize2memsize(int argsize)
     return size_byte;
 }
 
-void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
+void fillbasicinfo(const DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
