@@ -34,11 +34,11 @@
     <Filter Include="Header Files\lz4">
       <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Analysis">
-      <UniqueIdentifier>{68e04c31-9f66-4c9a-ae1d-54b2f6cf2d1c}</UniqueIdentifier>
+    <Filter Include="Header Files\Analysis">
+      <UniqueIdentifier>{4e0317ac-ab94-4f10-9c11-e685d7a9842b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\fa">
-      <UniqueIdentifier>{70e48ca5-7813-4da6-95c8-3717ace25093}</UniqueIdentifier>
+    <Filter Include="Source Files\Analysis">
+      <UniqueIdentifier>{336c8da2-0baf-4af3-a0d6-71cc5bce296e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -135,35 +135,35 @@
     <ClCompile Include="debugger_commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\Node_t.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\Edge_t.cpp">
-      <Filter>Header Files\fa</Filter>
+    <ClCompile Include="Analysis\StackEmulator.cpp">
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\AnalysisRunner.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\StackEmulator.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\FlowGraph.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\RegisterEmulator.cpp">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\ClientApiResolver.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\ClientInterface.cpp">
-      <Filter>Header Files\fa</Filter>
-    </ClCompile>
-    <ClCompile Include="Analysis\FunctionInfo.cpp">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\ClientFunctionFinder.cpp">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\ClientInterface.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\Edge_t.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\FlowGraph.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\FunctionInfo.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\Node_t.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\RegisterEmulator.cpp">
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -312,37 +312,37 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\AnalysisRunner.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\StackEmulator.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\RegisterEmulator.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\FlowGraph.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\Meta.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\Node_t.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\Edge_t.h">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\ClientApiResolver.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\ClientInterface.h">
-      <Filter>Header Files\fa</Filter>
-    </ClInclude>
-    <ClInclude Include="Analysis\FunctionInfo.h">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\ClientFunctionFinder.h">
-      <Filter>Header Files\fa</Filter>
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\ClientInterface.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\Edge_t.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\FlowGraph.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\FunctionInfo.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\Meta.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\Node_t.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\RegisterEmulator.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\StackEmulator.h">
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
