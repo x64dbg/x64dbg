@@ -6,45 +6,27 @@
 
 namespace fa
 {
-Node_t::Node_t(Instruction_t t)
-{
-    outEdge = NULL;
-    instruction = t;
-    vaddr = (duint)t.BeaStruct.VirtualAddr;
-	hasInstr=true;
-}
 
-Node_t::Node_t(duint va)
-{
-    outEdge = NULL;
-    instruction = Instruction_t();
-    vaddr = va;
-	hasInstr = false;
-}
+	Node_t::Node_t(duint address)
+	{
+		outgoing = NULL;
+		va = address;
+		hasInstr = false;
+	}
 
-Node_t::~Node_t()
-{
+	Node_t::~Node_t()
+	{
 
-}
-void Node_t::remove()
-{
-    outEdge->remove();
-    outEdge = NULL;
+	}
 
-    // destroying a node will clear all incoming edges
-    for each(Edge_t* e in inEdges)
-        e->remove();
-    inEdges.clear();
-}
-
-// nodes are unique with respect to their virtual address
-bool Node_t::operator==(const Node_t & rhs) const
-{
-    return static_cast<bool>(vaddr == rhs.vaddr);
-}
-bool Node_t::operator<(const Node_t & rhs) const
-{
-    return static_cast<bool>(vaddr < rhs.vaddr);
-}
+	// nodes are unique with respect to their virtual address
+	bool Node_t::operator==(const Node_t & rhs) const
+	{
+		return static_cast<bool>(va == rhs.va);
+	}
+	bool Node_t::operator<(const Node_t & rhs) const
+	{
+		return static_cast<bool>(va < rhs.va);
+	}
 
 };

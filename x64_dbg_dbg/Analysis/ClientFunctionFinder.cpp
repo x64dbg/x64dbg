@@ -40,15 +40,16 @@ void ClientFunctionFinder::see(const Instruction_t Instr, const RegisterEmulator
         n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
 
         // is there an edge going out?
-        if(n->outEdge != NULL)
+        if(n->outgoing != NULL)
         {
+			tDebug("there is an outgoing edge from "fhex" to "fhex"\n",n->va,n->outgoing->end->va);
             // there is a branching!
-            if(n->outEdge->type == fa::RET)
+            if(n->outgoing->type == fa::RET)
             {
-				if((duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue != Analysis->oep()){
+				if(n->outgoing->end->va != Analysis->oep()){
 					// internal call
-					DbgSetAutoFunctionAt((duint)n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
-					tDebug("add function from "fhex" to "fhex"\n",(duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
+					DbgSetAutoFunctionAt(n->outgoing->end->va ,n->va);
+					tDebug("add function from "fhex" to "fhex"\n",n->outgoing->end->va ,n->va);
 				}
                
             }

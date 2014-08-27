@@ -22,13 +22,12 @@ class FlowGraph
 public:
     FlowGraph(AnalysisRunner *ana);
     ~FlowGraph(void);
-    void clean();
+    void fillNodes();
     // insert a new node an returns the existing node if there was already the node
     // WARNING: this should only be called from the corresponding edge!!!
     bool insertNode(Node_t* node);
     // insert a new edge an returns the existing edge if there was already the edge
-    bool insertEdge(Node_t* start, Node_t* end, EdgeType btype);
-	void fillNodes();
+	void insertEdge(duint startAddress, duint endAddress, EdgeType btype);
     bool find(const duint va, Node_t* node);
     Node_t* FlowGraph::node(const duint va);
 

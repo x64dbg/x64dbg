@@ -8,8 +8,6 @@
 #include <cstring>
 
 #define DEBUG_PRINT_ENABLED
-#define DEBUG_PRINT_ENABLED2
-
 
 #ifdef DEBUG_PRINT_ENABLED
 #define tDebug dprintf
@@ -17,20 +15,34 @@
 #define tDebug ((void)0)
 #endif
 
-#ifdef DEBUG_PRINT_ENABLED2
-#define ttDebug dprintf
-#else
-#define ttDebug ((void)0)
-#endif
+
+
+
 
 
 
 namespace fa
 {
 
-	enum EdgeType{RET,CALL,EXTERNCALL,CONDJMP,UNCONDJMP,EXTERNJMP,INF,UNKOWN};
+	enum EdgeType{RET,CALL,CONDJMP,UNCONDJMP,EXTERNJMP,INF,UNKOWN};
 
 	
+
+
+	typedef struct unknownRegion{
+		duint startAddress;
+		duint headerAddress;
+
+
+		bool operator==(const unknownRegion & rhs) const
+		{
+			return static_cast<bool>(startAddress == rhs.startAddress);
+		}
+		bool operator<(const unknownRegion & rhs) const
+		{
+			return static_cast<bool>(startAddress < rhs.startAddress);
+		}
+	} unknownRegion ;
 
 	// every edge in the application flow graph is an instruction that active modifies the EIP
 
@@ -47,7 +59,6 @@ namespace fa
 
 		Instruction_t()
 		{
-			BeaStruct = DISASM();
 			Length = UNKNOWN_OPCODE;
 		}
 	} Instruction_t;
@@ -113,7 +124,8 @@ namespace fa
 		return (it != s.end());
 	}
 
-	typedef std::map<duint, Instruction_t>::const_iterator instrIter;
+
+
 
 
 

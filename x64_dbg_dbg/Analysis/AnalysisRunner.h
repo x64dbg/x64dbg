@@ -14,12 +14,15 @@ class StackEmulator;
 class RegisterEmulator;
 class FunctionInfo;
 class FlowGraph;
+
+
+
 class AnalysisRunner
 {
     // we will place all VA here that should be a start address for disassembling
-    std::set< std::pair<duint, duint> > disasmRoot;
+    std::set< unknownRegion > explorationSpace;
     // all known disassemling should be cached
-    std::map<duint, Instruction_t> instructionBuffer;
+    std::map<duint, Instruction_t> instructionsCache;
     // baseaddress for current thread
     duint baseAddress;
     // size of code for security while disassembling
@@ -37,7 +40,7 @@ class AnalysisRunner
     // flag for correct initialisation of the code memory
     bool codeWasCopied;
 
-    //std::vector<ClientInterface> interfaces;
+    std::vector<ClientInterface*> interfaces;
 
     StackEmulator* Stack;
     RegisterEmulator* Register;
@@ -47,9 +50,10 @@ protected:
     bool initialise();
 
 private:
-    void buildGraph();
-    void emulateInstructions();
-    bool disasmChilds(const duint addr, const duint paddr);
+	void emulateInstructions();
+
+    void explore();
+    bool explore(const unknownRegion region);
 
 public:
 
@@ -57,9 +61,8 @@ public:
     ~AnalysisRunner(void);
 
     void start();
-    std::map<duint, Instruction_t>::const_iterator instruction(duint va) const;
-    Instruction_t instruction_t(duint va) const;
-    std::map<duint, Instruction_t>::const_iterator lastInstruction() const;
+	const fa::Instruction_t* instruction(duint va) const;
+
 
     duint base() const;
     duint oep() const;

@@ -15,91 +15,50 @@ namespace fa
 
 	}
 
-	bool FlowGraph::insertNode(Node_t* node)
+
+
+	void FlowGraph::insertEdge( duint startAddress, duint endAddress, EdgeType btype )
 	{
-//          if (!contains(nodes,(duint)node->vaddr))
-//          {
-//              return (nodes.insert(std::make_pair<duint,Node_t*>(node->vaddr,node))).second;
-//          }
-		return true;
+		Node_t *workStart = new Node_t(startAddress);
+		Node_t *workEnd = new Node_t(endAddress);
 
-	}
-	bool FlowGraph::insertEdge(Node_t* startNode, Node_t* endNode, EdgeType currentEdgeType)
-	{	
-		Node_t *workStart;
-		Node_t *workEnd;
-		if(!contains(nodes,startNode->vaddr)){
-			nodes.insert(std::pair<duint,Node_t*>(startNode->vaddr, startNode));
+	
+		std::pair<std::map<duint,Node_t*>::iterator,bool> sn = nodes.insert(std::pair<duint,Node_t*>(startAddress, workStart));
+		std::pair<std::map<duint,Node_t*>::iterator,bool> en = nodes.insert(std::pair<duint,Node_t*>(endAddress, workEnd));
+
+		if(!sn.second){
+			delete workStart;
+			workStart = (sn.first)->second;
 		}
-		if(!contains(nodes,endNode->vaddr)){
-			nodes.insert(std::pair<duint,Node_t*>(endNode->vaddr, endNode));
+		if(!en.second){
+			delete workEnd;
+			workEnd = (en.first)->second;
 		}
 
-		workStart = &*(nodes.find(startNode->vaddr)->second);
-		workEnd = &*(nodes.find(endNode->vaddr)->second);
+		Edge_t* edge = new Edge_t(workStart, workEnd, btype);
 
+		std::pair<std::map<duint,Edge_t*>::iterator,bool> e = edges.insert(std::pair<duint,Edge_t*>(startAddress, edge));
 
-		if (startNode->hasInstr && !((nodes.find(startNode->vaddr)->second))->hasInstr){
-			ttDebug("updating old startnode");
-			workStart->instruction = startNode->instruction;
+		if(!e.second){
+			delete edge;
+			edge = (e.first)->second;
 		}
-
-		// now workStart and workEnd are most up-to-date information
-
-
-		Edge_t* edge = new Edge_t(workStart, workEnd, currentEdgeType);
-
-		edges.insert(std::pair<duint,Edge_t*>(workStart->vaddr,edge));
-		std::map<duint,Edge_t*>::iterator ansiter = edges.find(workStart->vaddr);
-		edge = &*(ansiter->second);
+		
 		edge->start = workStart;
 		edge->end = workEnd;
-		workStart->outEdge = edge;
-		workEnd->inEdges.insert(edge);
-
-
-
-		return true;
+		workStart->outgoing = edge;
+		workEnd->incoming.insert(edge);
 	}
 
 
-	void FlowGraph::clean()
-	{
-		// first delete all edges whoses aks for it
-		std::map<duint, Edge_t*>::iterator e = edges.begin();
-		while(e != edges.end())
-		{
-			std::map<duint, Edge_t*>::iterator current = e++;
-			if((*current->second).askForRemove)
-			{
-				delete current->second;
-				edges.erase(current);
-			}
-		}
+	
 
-
-		// find and delete isolated nodes, i.e. nodes without incoming and outgoing edges
-		std::map<duint, Node_t*>::iterator n = nodes.begin();
-		while(n != nodes.end())
-		{
-			std::map<duint, Node_t*>::iterator current = n++;
-			if((!(*current->second).outEdge)  && ((*current->second).inEdges.size() == 0))
-			{
-				delete current->second;
-				nodes.erase(current);
-			}
-		}
-	}
 	bool FlowGraph::find(const duint va , Node_t* node)
 	{
 		if(contains(nodes, va))
 		{
 			std::map<duint, Node_t*>::iterator iter = nodes.find(va);
 			node = (iter->second);
-
-			tDebug("-> found node at "fhex" \n", node->vaddr);
-			tDebug("Node_t address  is  "fhex" \n", node);
-
 			return true;
 		}
 		return false;
@@ -121,9 +80,10 @@ namespace fa
 	{
 		for(std::map<duint, Node_t*>::iterator i=nodes.begin();i!=nodes.end();i++){
 			i->second->hasInstr=true;
-			i->second->instruction.BeaStruct = analysis->instruction_t(i->first).BeaStruct;
-			if(i->second->instruction.BeaStruct.Instruction.Opcode == 0xFF)
-				ttDebug("ext jump at %x",i->first);
+			i->second->instruction = analysis->instruction(i->first);
+			tDebug("fill "fhex" with %s\n",i->first,i->second->instruction->BeaStruct.CompleteInstr);
+// 			if(i->second->instruction.BeaStruct.Instruction.Opcode == 0xFF)
+// 				ttDebug("ext jump at %x",i->first);
 		}
 	}
 

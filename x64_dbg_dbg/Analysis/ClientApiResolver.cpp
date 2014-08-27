@@ -27,17 +27,17 @@ void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* r
 		n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
 
 		// is there an edge going out?
-		if(n->outEdge != NULL)
+		if(n->outgoing != NULL)
 		{
-			if(n->outEdge->type == fa::CALL)
+			if(n->outgoing->type == fa::CALL)
 			{
-				ttDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr,n->outEdge->end->vaddr);
+				ttDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr,n->outgoing->end->va);
 				// test if the end has an edge, too 
-				ttDebug("api: opcode is %x \n",(((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode)&0xFF);
-				ttDebug("api: opcode is %x \n",Analysis->graph()->node(n->outEdge->end->vaddr)->instruction.BeaStruct.Instruction.Opcode);
+				ttDebug("api: opcode is %x \n",(((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode)&0xFF);
+				ttDebug("api: opcode is %x \n",Analysis->graph()->node(n->outgoing->end->va)->instruction->BeaStruct.Instruction.Opcode);
 
-				if(((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode == 0xFF){
-						tDebug("api: --> is API CALL\n", (duint)n->outEdge->end->instruction.BeaStruct.VirtualAddr);
+				if(((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode == 0xFF){
+						tDebug("api: --> is API CALL\n", (duint)n->outgoing->end->instruction->BeaStruct.VirtualAddr);
 						// there is an api call
 						//DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "hi");
 					
