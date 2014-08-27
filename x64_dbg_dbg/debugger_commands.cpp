@@ -1001,6 +1001,9 @@ CMDRESULT cbDebugAnalyse(int argc, char* argv[])
 {
     dputs("init analysis");
     uint cipAddr = GetContextData(UE_CIP);
+    uint oep = modentryfromaddr(cipAddr);
+    if(!oep)
+        oep = cipAddr;
 
     uint size;
     uint base = memfindbaseaddr(cipAddr, &size);
@@ -1010,7 +1013,7 @@ CMDRESULT cbDebugAnalyse(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    dprintf("start analysis, assuming oep="fhex", baseaddr="fhex", size="fhex"!\n", cipAddr, base, size);
+    dprintf("start analysis, assuming oep="fhex", baseaddr="fhex", size="fhex"!\n", oep, base, size);
 
 
     //     tr4ce::ApiDB* db = new tr4ce::ApiDB();
