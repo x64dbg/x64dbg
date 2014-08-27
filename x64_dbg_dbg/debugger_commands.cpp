@@ -11,7 +11,7 @@
 #include "simplescript.h"
 #include "symbolinfo.h"
 #include "Analysis/AnalysisRunner.h"
-
+#include "Analysis/FunctionDB.h"
 
 static bool bScyllaLoaded = false;
 
@@ -999,6 +999,8 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
 }
 CMDRESULT cbDebugAnalyse(int argc, char* argv[])
 {
+
+    fa::FunctionDB* db = new fa::FunctionDB();
     dputs("init analysis");
     uint cipAddr = GetContextData(UE_CIP);
     uint oep = modentryfromaddr(cipAddr);
@@ -1017,7 +1019,7 @@ CMDRESULT cbDebugAnalyse(int argc, char* argv[])
 
 
     //     tr4ce::ApiDB* db = new tr4ce::ApiDB();
-    fa::AnalysisRunner AR(cipAddr, base, size);
+    fa::AnalysisRunner AR(cipAddr, base, size, db);
     AR.start();
     //     AR.setFunctionInformation(db);
     //     AR.start();

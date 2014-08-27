@@ -18,7 +18,7 @@
     <ClCompile Include="Analysis\ClientInterface.cpp" />
     <ClCompile Include="Analysis\Edge_t.cpp" />
     <ClCompile Include="Analysis\FlowGraph.cpp" />
-    <ClCompile Include="Analysis\FunctionInfo.cpp" />
+    <ClCompile Include="Analysis\FunctionDB.cpp" />
     <ClCompile Include="Analysis\Node_t.cpp" />
     <ClCompile Include="Analysis\RegisterEmulator.cpp" />
     <ClCompile Include="Analysis\StackEmulator.cpp" />
@@ -61,7 +61,7 @@
     <ClInclude Include="Analysis\ClientInterface.h" />
     <ClInclude Include="Analysis\Edge_t.h" />
     <ClInclude Include="Analysis\FlowGraph.h" />
-    <ClInclude Include="Analysis\FunctionInfo.h" />
+    <ClInclude Include="Analysis\FunctionDB.h" />
     <ClInclude Include="Analysis\Meta.h" />
     <ClInclude Include="Analysis\Node_t.h" />
     <ClInclude Include="Analysis\RegisterEmulator.h" />

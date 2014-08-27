@@ -4,6 +4,7 @@
 #include "Meta.h"
 #include <set>
 #include "ClientInterface.h"
+#include "FunctionDB.h"
 
 namespace fa
 {
@@ -14,6 +15,7 @@ class StackEmulator;
 class RegisterEmulator;
 class FunctionInfo;
 class FlowGraph;
+
 
 
 
@@ -40,6 +42,8 @@ class AnalysisRunner
     // flag for correct initialisation of the code memory
     bool codeWasCopied;
 
+    FunctionDB* DB;
+
     std::vector<ClientInterface*> interfaces;
 
     StackEmulator* Stack;
@@ -57,7 +61,7 @@ private:
 
 public:
 
-    AnalysisRunner(const duint CIP, const duint BaseAddress, const duint Size);
+    AnalysisRunner(const duint CIP, const duint BaseAddress, const duint Size, FunctionDB* db);
     ~AnalysisRunner(void);
 
     void start();
@@ -68,7 +72,7 @@ public:
     duint oep() const;
     duint size() const;
     FlowGraph* graph() const;
-    FunctionInfo* functioninfo();
+    FunctionDB* functionDB();
 
 };
 

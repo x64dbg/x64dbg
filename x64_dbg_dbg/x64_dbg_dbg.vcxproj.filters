@@ -156,13 +156,13 @@
     <ClCompile Include="Analysis\FlowGraph.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis\FunctionInfo.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="Analysis\Node_t.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="Analysis\RegisterEmulator.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Analysis\FunctionDB.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
@@ -329,9 +329,6 @@
     <ClInclude Include="Analysis\FlowGraph.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis\FunctionInfo.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="Analysis\Meta.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
@@ -342,6 +339,9 @@
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\StackEmulator.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\FunctionDB.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>

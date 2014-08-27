@@ -11,6 +11,7 @@
 #include "FlowGraph.h"
 #include "ClientApiResolver.h"
 #include "ClientFunctionFinder.h"
+#include "FunctionDB.h"
 
 /* the idea is to start from the OEP and follow all instructions like an emulator would do it
 * and register all branching, i.e., EIP changes != eip++
@@ -19,7 +20,7 @@
 namespace fa
 {
 
-AnalysisRunner::AnalysisRunner(const duint addrOEP, const duint BaseAddress, const duint Size) : OEP(addrOEP), baseAddress(BaseAddress), codeSize(Size)
+AnalysisRunner::AnalysisRunner(const duint addrOEP, const duint BaseAddress, const duint Size, FunctionDB* db) : OEP(addrOEP), baseAddress(BaseAddress), codeSize(Size), DB(db)
 {
     // we start at the original entry point
     unknownRegion R;
@@ -186,19 +187,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
                     else if(BT == JmpType)
                     {
                         // external Jump to known api call?
-                        bool extjmp;
-#ifndef _WIN64
-                        extjmp = (disasm.Instruction.Opcode == 0xFF);
-#else
-                        char labelText[MAX_LABEL_SIZE];
-                        bool hasLabel = DbgGetLabelAt(disasm.Instruction.AddrValue, SEG_DEFAULT, labelText);
-                        if(hasLabel)
-                        {
-                            // we have a label --> look up function header in database
-                            FunctionInfo_t f = ApiInfo->find(labelText);
-                            extjmp = !f.invalid;
-                        }
-#endif
+                        bool extjmp = false;
                         currentEdgeType = extjmp ? fa::EXTERNJMP : fa::UNCONDJMP;
                     }
                     else
@@ -334,9 +323,9 @@ const fa::Instruction_t* AnalysisRunner::instruction(duint va) const
     return &(instructionsCache.find(va)->second);
 }
 
-FunctionInfo* AnalysisRunner::functioninfo()
+FunctionDB* AnalysisRunner::functionDB()
 {
-    return functionInfo;
+    return DB;
 }
 
 };
