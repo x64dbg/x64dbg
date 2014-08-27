@@ -26,7 +26,7 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "rcx")
           )
         {
-            mRCX = BeaStruct->VirtualAddr;
+            mRCX = (duint)BeaStruct->VirtualAddr;
         }
         else if(_SAME(BeaStruct->Argument1.ArgMnemonic, "dl") ||
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "dh") ||
@@ -35,7 +35,7 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "rdx")
                )
         {
-            mRDX = BeaStruct->VirtualAddr;
+            mRDX = (duint)BeaStruct->VirtualAddr;
         }
         else if(_SAME(BeaStruct->Argument1.ArgMnemonic, "r8") ||
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "r8d") ||
@@ -43,7 +43,7 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "r8b")
                )
         {
-            mR8 = BeaStruct->VirtualAddr;
+            mR8 = (duint)BeaStruct->VirtualAddr;
         }
         else if(_SAME(BeaStruct->Argument1.ArgMnemonic, "r9") ||
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "r9d") ||
@@ -51,7 +51,7 @@ void RegisterEmulator::emulate(const DISASM* BeaStruct)
                 _SAME(BeaStruct->Argument1.ArgMnemonic, "r9b")
                )
         {
-            mR9 = BeaStruct->VirtualAddr;
+            mR9 = (duint)BeaStruct->VirtualAddr;
         }
 
     }

@@ -20,7 +20,7 @@ ClientApiResolver::ClientApiResolver(AnalysisRunner* analys): ClientInterface(an
 }
 void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* reg, const StackEmulator* stack)
 {
-    Node_t* n;
+    Node_t* n = 0;
     if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr, n))
     {
         n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);

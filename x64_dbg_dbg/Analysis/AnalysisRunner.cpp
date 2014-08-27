@@ -152,7 +152,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
             // handle all kind of branching (cond. jumps, uncond. jumps, ret, unkown OpCode, calls)
             if(disasm.Instruction.BranchType)
             {
-                const duint NodeStart = disasm.VirtualAddr;
+                const duint NodeStart = (duint)disasm.VirtualAddr;
                 duint NodeEnd;
 
                 const Int32 BT = disasm.Instruction.BranchType;
@@ -175,7 +175,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
                 {
                     // this is a "call","jmp","jne","jnz","jz",...
                     // were we are going to?
-                    NodeEnd = disasm.Instruction.AddrValue;
+                    NodeEnd = (duint)disasm.Instruction.AddrValue;
                     // determine the type of flow-control-modification
                     fa::EdgeType currentEdgeType;
 
@@ -252,7 +252,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
 
                 if(_isPush(disasm))
                 {
-                    const duint possibleAddr = disasm.Instruction.Immediat;
+                    const duint possibleAddr = (duint)disasm.Instruction.Immediat;
                     if((possibleAddr >= baseAddress) && (possibleAddr < baseAddress + codeSize))
                     {
                         unknownRegion R;
