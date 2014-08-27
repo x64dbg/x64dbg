@@ -14,7 +14,7 @@ public:
     std::set<Edge_t*> inEdges;   // all incoming edges
     Instruction_t instruction;
     duint vaddr;
-	bool hasInstr;
+    bool hasInstr;
 
     Node_t(Instruction_t t);
     Node_t(duint t);

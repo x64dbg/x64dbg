@@ -45,12 +45,13 @@ void ClientFunctionFinder::see(const Instruction_t Instr, const RegisterEmulator
             // there is a branching!
             if(n->outEdge->type == fa::RET)
             {
-				if((duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue != Analysis->oep()){
-					// internal call
-					DbgSetAutoFunctionAt((duint)n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
-					tDebug("add function from "fhex" to "fhex"\n",(duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
-				}
-               
+                if((duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue != Analysis->oep())
+                {
+                    // internal call
+                    DbgSetAutoFunctionAt((duint)n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
+                    tDebug("add function from "fhex" to "fhex"\n", (duint) n->outEdge->end->instruction.BeaStruct.Instruction.AddrValue, (duint)Instr.BeaStruct.VirtualAddr);
+                }
+
             }
         }
 

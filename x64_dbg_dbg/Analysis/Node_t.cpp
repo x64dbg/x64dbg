@@ -11,7 +11,7 @@ Node_t::Node_t(Instruction_t t)
     outEdge = NULL;
     instruction = t;
     vaddr = (duint)t.BeaStruct.VirtualAddr;
-	hasInstr=true;
+    hasInstr = true;
 }
 
 Node_t::Node_t(duint va)
@@ -19,7 +19,7 @@ Node_t::Node_t(duint va)
     outEdge = NULL;
     instruction = Instruction_t();
     vaddr = va;
-	hasInstr = false;
+    hasInstr = false;
 }
 
 Node_t::~Node_t()

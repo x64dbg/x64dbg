@@ -62,7 +62,7 @@ void AnalysisRunner::start()
         return;
     dputs("[StaticAnalysis] analysis started ...");
     buildGraph();
-	Grph->fillNodes();
+    Grph->fillNodes();
     emulateInstructions();
     dputs("[StaticAnalysis] analysis finished ...");
 }
@@ -111,8 +111,8 @@ bool AnalysisRunner::disasmChilds(const duint subTreeStartAddress, const duint p
     {
         // disassemble instruction
         const int instrLength = Disasm(&disasm);
-		DISASM *disasm2 = new DISASM;
-		*disasm2 = disasm;
+        DISASM* disasm2 = new DISASM;
+        *disasm2 = disasm;
         // everything ok?
         if(instrLength != UNKNOWN_OPCODE)
         {
@@ -304,7 +304,7 @@ void AnalysisRunner::emulateInstructions()
         Register->emulate(&(it->second.BeaStruct));
 
         //for(std::vector<ClientInterface>::iterator itt = interfaces.begin();itt!=interfaces.end();itt++)
-        a->see(it->second,Register,Stack);
+        a->see(it->second, Register, Stack);
         b->see(it->second, Register, Stack);
         // next instruction
         it++;

@@ -21,32 +21,33 @@ void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* r
 
 
 
-	Node_t* n;
-	if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr, n))
-	{
-		n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
+    Node_t* n;
+    if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr, n))
+    {
+        n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
 
-		// is there an edge going out?
-		if(n->outEdge != NULL)
-		{
-			if(n->outEdge->type == fa::CALL)
-			{
-				ttDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr,n->outEdge->end->vaddr);
-				// test if the end has an edge, too 
-				ttDebug("api: opcode is %x \n",(((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode)&0xFF);
-				ttDebug("api: opcode is %x \n",Analysis->graph()->node(n->outEdge->end->vaddr)->instruction.BeaStruct.Instruction.Opcode);
+        // is there an edge going out?
+        if(n->outEdge != NULL)
+        {
+            if(n->outEdge->type == fa::CALL)
+            {
+                ttDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr, n->outEdge->end->vaddr);
+                // test if the end has an edge, too
+                ttDebug("api: opcode is %x \n", (((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode) & 0xFF);
+                ttDebug("api: opcode is %x \n", Analysis->graph()->node(n->outEdge->end->vaddr)->instruction.BeaStruct.Instruction.Opcode);
 
-				if(((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode == 0xFF){
-						tDebug("api: --> is API CALL\n", (duint)n->outEdge->end->instruction.BeaStruct.VirtualAddr);
-						// there is an api call
-						//DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "hi");
-					
-				}
-				return;
-			}
-		}
+                if(((n->outEdge->end))->instruction.BeaStruct.Instruction.Opcode == 0xFF)
+                {
+                    tDebug("api: --> is API CALL\n", (duint)n->outEdge->end->instruction.BeaStruct.VirtualAddr);
+                    // there is an api call
+                    //DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "hi");
 
-	}
+                }
+                return;
+            }
+        }
+
+    }
     // test if node exists
     //      Node_t n;
     //      if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr,n)){
