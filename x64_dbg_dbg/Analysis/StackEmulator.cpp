@@ -26,7 +26,7 @@ StackEmulator::~StackEmulator(void)
  0x01234: mov [esp+C], eax
  --> modifyFrom(0xC,0x01234)
 */
-void StackEmulator::modifyFrom(int relative_offset, duint addr)
+void StackEmulator::modifyFrom(sint relative_offset, duint addr)
 {
     const unsigned int internal_pointer = pointerByOffset(-1 * relative_offset);
     mStack[internal_pointer] = addr;
@@ -61,12 +61,12 @@ void StackEmulator::pushFrom(duint addr)
 
  offset = offset to the past
 */
-void StackEmulator::moveStackpointerBack(int offset)
+void StackEmulator::moveStackpointerBack(sint offset)
 {
     mStackpointer = pointerByOffset(-offset);
 }
 
-unsigned int StackEmulator::pointerByOffset(int offset) const
+unsigned int StackEmulator::pointerByOffset(sint offset) const
 {
     return (mStackpointer + ((offset + MAX_STACKSIZE) % MAX_STACKSIZE) + MAX_STACKSIZE) % MAX_STACKSIZE;
 }
@@ -78,7 +78,7 @@ unsigned int StackEmulator::pointerByOffset(int offset) const
    lastAccessAt(0x8)  would be 0x155
 
 */
-duint StackEmulator::lastAccessAtOffset(int offset) const
+duint StackEmulator::lastAccessAtOffset(sint offset) const
 {
     int p = pointerByOffset(-offset);
     return mStack[p];
@@ -94,8 +94,7 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
     - push/pop
     */
     //
-
-    const duint addr = BeaStruct->VirtualAddr;                    // --> 00401301
+    const duint addr = (duint)BeaStruct->VirtualAddr;                    // --> 00401301
 
     if(_isPush(BeaStruct))
     {
@@ -113,7 +112,7 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
         if((strcmp(BeaStruct->Argument1.ArgMnemonic, "esp ") == 0))
         {
             // "sub esp, ???"
-            moveStackpointerBack(BeaStruct->Instruction.Immediat / REGISTER_SIZE);
+            moveStackpointerBack((sint)(BeaStruct->Instruction.Immediat / REGISTER_SIZE));
         }
 
     }
@@ -123,7 +122,7 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
         if((strcmp(BeaStruct->Argument1.ArgMnemonic, "esp ") == 0))
         {
             // "add esp, ???"
-            moveStackpointerBack(BeaStruct->Instruction.Immediat / -REGISTER_SIZE);
+            moveStackpointerBack((sint)(BeaStruct->Instruction.Immediat / -REGISTER_SIZE));
         }
 
     }
@@ -136,18 +135,14 @@ void StackEmulator::emulate(const DISASM* BeaStruct)
                 && (BeaStruct->Argument1.SegmentReg & SSReg)
           )
         {
-            Int64 offset = BeaStruct->Argument1.Memory.Displacement;  // --> 04h
-            duint addr = BeaStruct->VirtualAddr;                    // --> 00401301
+            duint offset = (duint)BeaStruct->Argument1.Memory.Displacement;  // --> 04h
+            duint addr = (duint)BeaStruct->VirtualAddr;                    // --> 00401301
 
-            modifyFrom(offset / REGISTER_SIZE, addr);
+            modifyFrom((sint)(offset / REGISTER_SIZE), addr);
 
 
 
         }
     }
-
-
-
 }
-
 };

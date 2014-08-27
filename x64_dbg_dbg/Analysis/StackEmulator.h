@@ -29,11 +29,11 @@ public:
 
     void pushFrom(duint addr);
     void popFrom(duint addr);
-    void modifyFrom(int relative_offset, duint addr);
+    void modifyFrom(sint relative_offset, duint addr);
 
-    void moveStackpointerBack(int offset);
-    unsigned int pointerByOffset(int offset) const;
-    duint lastAccessAtOffset(int offset) const;
+    void moveStackpointerBack(sint offset);
+    unsigned int pointerByOffset(sint offset) const;
+    duint lastAccessAtOffset(sint offset) const;
 
     void emulate(const DISASM* disasm);
 };
