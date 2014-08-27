@@ -65,6 +65,7 @@ struct MODINFO
     uint base; //module base
     uint size; //module size
     uint hash; //full module name hash
+    uint entry; //entry point
     char name[MAX_MODULE_SIZE]; //module name (without extension)
     char extension[MAX_MODULE_SIZE]; //file extension
     std::vector<MODSECTIONINFO> sections;
@@ -134,6 +135,7 @@ uint modhashfromname(const char* mod);
 uint modbasefromname(const char* modname);
 uint modsizefromaddr(uint addr);
 bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections);
+uint modentryfromaddr(uint addr);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
 
