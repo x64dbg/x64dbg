@@ -50,7 +50,7 @@ protected:
     bool initialise();
 
 private:
-	void emulateInstructions();
+    void emulateInstructions();
 
     void explore();
     bool explore(const unknownRegion region);
@@ -61,7 +61,7 @@ public:
     ~AnalysisRunner(void);
 
     void start();
-	const fa::Instruction_t* instruction(duint va) const;
+    const fa::Instruction_t* instruction(duint va) const;
 
 
     duint base() const;

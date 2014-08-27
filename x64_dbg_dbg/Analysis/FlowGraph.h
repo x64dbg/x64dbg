@@ -18,16 +18,16 @@ class FlowGraph
     // all existing nodes
     std::map<duint, Node_t*> nodes;
 
-	AnalysisRunner *analysis;
+    AnalysisRunner* analysis;
 public:
-    FlowGraph(AnalysisRunner *ana);
+    FlowGraph(AnalysisRunner* ana);
     ~FlowGraph(void);
     void fillNodes();
     // insert a new node an returns the existing node if there was already the node
     // WARNING: this should only be called from the corresponding edge!!!
     bool insertNode(Node_t* node);
     // insert a new edge an returns the existing edge if there was already the edge
-	void insertEdge(duint startAddress, duint endAddress, EdgeType btype);
+    void insertEdge(duint startAddress, duint endAddress, EdgeType btype);
     bool find(const duint va, Node_t* node);
     Node_t* FlowGraph::node(const duint va);
 

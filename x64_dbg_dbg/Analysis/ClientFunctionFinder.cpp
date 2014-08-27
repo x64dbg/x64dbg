@@ -42,16 +42,17 @@ void ClientFunctionFinder::see(const Instruction_t Instr, const RegisterEmulator
         // is there an edge going out?
         if(n->outgoing != NULL)
         {
-			tDebug("there is an outgoing edge from "fhex" to "fhex"\n",n->va,n->outgoing->end->va);
+            tDebug("there is an outgoing edge from "fhex" to "fhex"\n", n->va, n->outgoing->end->va);
             // there is a branching!
             if(n->outgoing->type == fa::RET)
             {
-				if(n->outgoing->end->va != Analysis->oep()){
-					// internal call
-					DbgSetAutoFunctionAt(n->outgoing->end->va ,n->va);
-					tDebug("add function from "fhex" to "fhex"\n",n->outgoing->end->va ,n->va);
-				}
-               
+                if(n->outgoing->end->va != Analysis->oep())
+                {
+                    // internal call
+                    DbgSetAutoFunctionAt(n->outgoing->end->va , n->va);
+                    tDebug("add function from "fhex" to "fhex"\n", n->outgoing->end->va , n->va);
+                }
+
             }
         }
 

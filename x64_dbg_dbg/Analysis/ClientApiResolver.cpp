@@ -1,5 +1,6 @@
 #include "../_global.h"
 #include "../console.h"
+#include "../addrinfo.h"
 #include "Meta.h"
 #include "ClientInterface.h"
 #include "ClientApiResolver.h"
@@ -18,35 +19,42 @@ ClientApiResolver::ClientApiResolver(AnalysisRunner* analys): ClientInterface(an
 }
 void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* reg, const StackEmulator* stack)
 {
+    Node_t* n;
+    if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr, n))
+    {
+        n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
 
+        // is there an edge going out?
+        if(n->outgoing != NULL)
+        {
+            if(n->outgoing->type == fa::CALL)
+            {
+                tDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr, n->outgoing->end->va);
+                // test if the end has an edge, too
+                tDebug("api: opcode is %x \n", (((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode) & 0xFF);
+                tDebug("api: opcode is %x \n", Analysis->graph()->node(n->outgoing->end->va)->instruction->BeaStruct.Instruction.Opcode);
 
+                const BASIC_INSTRUCTION_INFO* basicinfo = &n->outgoing->end->instruction->BasicInfo;
+                uint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
+                char label[MAX_LABEL_SIZE] = "";
+                bool found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
 
-	Node_t* n;
-	if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr, n))
-	{
-		n = Analysis->graph()->node((duint)Instr.BeaStruct.VirtualAddr);
+                //found = true means there is an api call
 
-		// is there an edge going out?
-		if(n->outgoing != NULL)
-		{
-			if(n->outgoing->type == fa::CALL)
-			{
-				ttDebug("api: found call at "fhex" to "fhex" \n", (duint)Instr.BeaStruct.VirtualAddr,n->outgoing->end->va);
-				// test if the end has an edge, too 
-				ttDebug("api: opcode is %x \n",(((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode)&0xFF);
-				ttDebug("api: opcode is %x \n",Analysis->graph()->node(n->outgoing->end->va)->instruction->BeaStruct.Instruction.Opcode);
+                /*
+                if(((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode == 0xFF)
+                {
+                    tDebug("api: --> is API CALL\n", (duint)n->outgoing->end->instruction->BeaStruct.VirtualAddr);
+                    // there is an api call
+                    //DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "hi");
 
-				if(((n->outgoing->end))->instruction->BeaStruct.Instruction.Opcode == 0xFF){
-						tDebug("api: --> is API CALL\n", (duint)n->outgoing->end->instruction->BeaStruct.VirtualAddr);
-						// there is an api call
-						//DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, "hi");
-					
-				}
-				return;
-			}
-		}
+                }
+                */
+                return;
+            }
+        }
 
-	}
+    }
     // test if node exists
     //      Node_t n;
     //      if(Analysis->graph()->find((duint)Instr.BeaStruct.VirtualAddr,n)){

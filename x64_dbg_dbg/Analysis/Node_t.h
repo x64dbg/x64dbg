@@ -10,13 +10,13 @@ class Edge_t;
 class Node_t
 {
 public:
-    Edge_t* outgoing;  
-    std::set<Edge_t*> incoming;  
+    Edge_t* outgoing;
+    std::set<Edge_t*> incoming;
 
     const Instruction_t* instruction;
 
     duint va;
-	bool hasInstr;
+    bool hasInstr;
 
     Node_t(duint t);
     ~Node_t();
