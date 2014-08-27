@@ -22,7 +22,7 @@ ClientApiResolver::ClientApiResolver(AnalysisRunner* analys): ClientInterface(an
 void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* reg, const StackEmulator* stack)
 {
     const duint addr = (duint)Instr.BeaStruct.VirtualAddr;
-    Node_t* n;
+    Node_t* n = 0;
     if(Analysis->graph()->find(addr, n))
     {
         n = Analysis->graph()->node(addr);
@@ -97,11 +97,11 @@ void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* r
                         // yeah we know everything about the dll-call!
                         std::string functionComment;
                         functionComment = f.ReturnType + " " + f.Name + "(...)";
-                        DbgSetAutoCommentAt(Instr.BeaStruct.VirtualAddr, functionComment.c_str());
+                        DbgSetAutoCommentAt((duint)Instr.BeaStruct.VirtualAddr, functionComment.c_str());
 
 
                         // set comments for the arguments
-                        for(int i = 0; i < f.Arguments.size(); i++)
+                        for(size_t i = 0; i < f.Arguments.size(); i++)
                         {
                             std::string ArgComment = f.arg(i).Type + " " + f.arg(i).Name;
                             duint commentAddr = stack->lastAccessAtOffset(f.Arguments.size() - i - 1);

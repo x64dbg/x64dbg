@@ -63,7 +63,7 @@ FunctionDB::FunctionDB(void)
                 f.ReturnType = tokens.at(1);
                 f.Name = tokens.at(2);
 
-                for(int j = 3; j < tokens.size() - 1; j += 2)
+                for(size_t j = 3; j < tokens.size() - 1; j += 2)
                 {
                     ArgumentInfo_t a;
                     a.Type = tokens.at(j);
@@ -104,7 +104,7 @@ FunctionInfo_t FunctionDB::find(std::string name)
     f.invalid = true;
 
     //_plugin_logprintf("[StaticAnalysis:IntermodularCalls] search data %s \n",name.c_str() );
-    std::list<FunctionInfo_t>::iterator it = mInfo.begin();
+    FunctionInfoList::iterator it = mInfo.begin();
 
     while(it != mInfo.end())
     {

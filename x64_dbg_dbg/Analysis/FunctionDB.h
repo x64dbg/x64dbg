@@ -9,6 +9,9 @@
 
 namespace fa
 {
+
+typedef std::list<FunctionInfo_t> FunctionInfoList;
+
 class FunctionDB
 {
 private:
@@ -21,7 +24,7 @@ public:
 
     FunctionInfo_t find(std::string name);
 
-    std::list<FunctionInfo_t> mInfo;
+    FunctionInfoList mInfo;
 
 
 };

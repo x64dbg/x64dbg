@@ -20,7 +20,6 @@ typedef std::set<unknownRegion> UnkownRegionSet;
 typedef std::map<duint, Instruction_t> InstructionMap;
 typedef std::vector<ClientInterface*> ClientInterfaceList;
 
-
 class AnalysisRunner
 {
     // we will place all VA here that should be a start address for disassembling

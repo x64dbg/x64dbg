@@ -82,12 +82,14 @@ struct ArgumentInfo_t
     ArgumentInfo_t() {}
 };
 
+typedef std::vector<ArgumentInfo_t> ArgumentInfoList;
+
 struct FunctionInfo_t
 {
     std::string DLLName;
     std::string ReturnType;
     std::string Name;
-    std::vector<ArgumentInfo_t> Arguments;
+    ArgumentInfoList Arguments;
     bool invalid;
 
     FunctionInfo_t()
@@ -95,7 +97,7 @@ struct FunctionInfo_t
         invalid = false;
     }
 
-    FunctionInfo_t(std::string dll, std::string ret, std::string name, std::vector<ArgumentInfo_t> args)
+    FunctionInfo_t(std::string dll, std::string ret, std::string name, ArgumentInfoList args)
     {
         DLLName = dll;
         ReturnType = ret;
