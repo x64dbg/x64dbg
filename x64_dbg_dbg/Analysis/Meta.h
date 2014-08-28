@@ -57,8 +57,6 @@ typedef struct Instruction_t
     Instruction_t(DISASM* dis, unsigned int len)
     {
         BeaStruct = *dis;
-        fillbasicinfo(dis, &BasicInfo);
-        BasicInfo.size = len;
         Length = len;
     }
 
