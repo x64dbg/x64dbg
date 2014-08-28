@@ -352,11 +352,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     }
     CMDRESULT res = cmddirectexec(dbggetcommandlist(), command);
-    if(DbgIsDebugging())
-    {
-        while(!waitislocked(WAITID_RUN)) //while not locked (NOTE: possible deadlock)
-            Sleep(10);
-    }
+    while(DbgIsDebugging() && !waitislocked(WAITID_RUN)) //while not locked (NOTE: possible deadlock)
+        Sleep(10);
     return res;
 }
 

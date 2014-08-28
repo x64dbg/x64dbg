@@ -1,4 +1,5 @@
 #include "CPUInfoBox.h"
+#include "Configuration.h"
 #include "Bridge.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
@@ -82,7 +83,7 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
     }
     return finalText;
 }
-#include "Configuration.h"
+
 void CPUInfoBox::disasmSelectionChanged(int_t parVA)
 {
     curAddr = parVA;
@@ -91,8 +92,10 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     clear();
 
     DISASM_INSTR instr;
+    memset(&instr, 0, sizeof(instr));
     DbgDisasmAt(parVA, &instr);
     BASIC_INSTRUCTION_INFO basicinfo;
+    memset(&basicinfo, 0, sizeof(basicinfo));
     DbgDisasmFastAt(parVA, &basicinfo);
 
     int start = 0;
