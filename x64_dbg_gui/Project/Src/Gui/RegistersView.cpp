@@ -156,47 +156,49 @@ RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVS
     mRegisterPlaces.insert(PF, Register_Position(offset + 1, 0, 3, 1));
     mRegisterMapping.insert(AF, "AF");
     mRegisterPlaces.insert(AF, Register_Position(offset + 2, 0, 3, 1));
-    mRegisterMapping.insert(ZF, "ZF");
-    mRegisterPlaces.insert(ZF, Register_Position(offset + 3, 0, 3, 1));
-    mRegisterMapping.insert(SF, "SF");
-    mRegisterPlaces.insert(SF, Register_Position(offset + 4, 0, 3, 1));
 
+    mRegisterMapping.insert(ZF, "ZF");
+    mRegisterPlaces.insert(ZF, Register_Position(offset + 0, 6, 3, 1));
+    mRegisterMapping.insert(SF, "SF");
+    mRegisterPlaces.insert(SF, Register_Position(offset + 1, 6, 3, 1));
     mRegisterMapping.insert(TF, "TF");
-    mRegisterPlaces.insert(TF, Register_Position(offset + 0, 10, 3, 1));
+    mRegisterPlaces.insert(TF, Register_Position(offset + 2, 6, 3, 1));
+
     mRegisterMapping.insert(IF, "IF");
-    mRegisterPlaces.insert(IF, Register_Position(offset + 1, 10, 3, 1));
+    mRegisterPlaces.insert(IF, Register_Position(offset + 0, 12, 3, 1));
     mRegisterMapping.insert(DF, "DF");
-    mRegisterPlaces.insert(DF, Register_Position(offset + 2, 10, 3, 1));
+    mRegisterPlaces.insert(DF, Register_Position(offset + 1, 12, 3, 1));
     mRegisterMapping.insert(OF, "OF");
-    mRegisterPlaces.insert(OF, Register_Position(offset + 3, 10, 3, 1));
+    mRegisterPlaces.insert(OF, Register_Position(offset + 2, 12, 3, 1));
 
     offset++;
     mRegisterMapping.insert(GS, "GS");
-    mRegisterPlaces.insert(GS, Register_Position(offset + 5, 0, 3, 4));
-    mRegisterMapping.insert(FS, "FS");
-    mRegisterPlaces.insert(FS, Register_Position(offset + 6, 0, 3, 4));
+    mRegisterPlaces.insert(GS, Register_Position(offset + 3, 0, 3, 4));
     mRegisterMapping.insert(ES, "ES");
-    mRegisterPlaces.insert(ES, Register_Position(offset + 7, 0, 3, 4));
-    mRegisterMapping.insert(DS, "DS");
-    mRegisterPlaces.insert(DS, Register_Position(offset + 8, 0, 3, 4));
+    mRegisterPlaces.insert(ES, Register_Position(offset + 4, 0, 3, 4));
     mRegisterMapping.insert(CS, "CS");
-    mRegisterPlaces.insert(CS, Register_Position(offset + 9, 0, 3, 4));
+    mRegisterPlaces.insert(CS, Register_Position(offset + 5, 0, 3, 4));
+
+    mRegisterMapping.insert(FS, "FS");
+    mRegisterPlaces.insert(FS, Register_Position(offset + 3, 9, 3, 4));
+    mRegisterMapping.insert(DS, "DS");
+    mRegisterPlaces.insert(DS, Register_Position(offset + 4, 9, 3, 4));
     mRegisterMapping.insert(SS, "SS");
-    mRegisterPlaces.insert(SS, Register_Position(offset + 10, 0, 3, 4));
+    mRegisterPlaces.insert(SS, Register_Position(offset + 5, 9, 3, 4));
 
     offset++;
     mRegisterMapping.insert(DR0, "DR0");
-    mRegisterPlaces.insert(DR0, Register_Position(offset + 11, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR0, Register_Position(offset + 6, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR1, "DR1");
-    mRegisterPlaces.insert(DR1, Register_Position(offset + 12, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR1, Register_Position(offset + 7, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR2, "DR2");
-    mRegisterPlaces.insert(DR2, Register_Position(offset + 13, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR2, Register_Position(offset + 8, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR3, "DR3");
-    mRegisterPlaces.insert(DR3, Register_Position(offset + 14, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR3, Register_Position(offset + 9, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR6, "DR6");
-    mRegisterPlaces.insert(DR6, Register_Position(offset + 15, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR6, Register_Position(offset + 10, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR7, "DR7");
-    mRegisterPlaces.insert(DR7, Register_Position(offset + 16, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR7, Register_Position(offset + 11, 0, 4, sizeof(uint_t) * 2));
 
     fontsUpdatedSlot();
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
