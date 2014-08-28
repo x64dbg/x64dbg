@@ -150,26 +150,26 @@ RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVS
 
     offset = 12;
 #endif
-    mRegisterMapping.insert(CF, "CF");
-    mRegisterPlaces.insert(CF, Register_Position(offset + 0, 0, 3, 1));
-    mRegisterMapping.insert(PF, "PF");
-    mRegisterPlaces.insert(PF, Register_Position(offset + 1, 0, 3, 1));
-    mRegisterMapping.insert(AF, "AF");
-    mRegisterPlaces.insert(AF, Register_Position(offset + 2, 0, 3, 1));
-
     mRegisterMapping.insert(ZF, "ZF");
-    mRegisterPlaces.insert(ZF, Register_Position(offset + 0, 6, 3, 1));
+    mRegisterPlaces.insert(ZF, Register_Position(offset + 0, 0, 3, 1));
+    mRegisterMapping.insert(OF, "OF");
+    mRegisterPlaces.insert(OF, Register_Position(offset + 1, 0, 3, 1));
+    mRegisterMapping.insert(CF, "CF");
+    mRegisterPlaces.insert(CF, Register_Position(offset + 2, 0, 3, 1));
+
+    mRegisterMapping.insert(PF, "PF");
+    mRegisterPlaces.insert(PF, Register_Position(offset + 0, 6, 3, 1));
     mRegisterMapping.insert(SF, "SF");
     mRegisterPlaces.insert(SF, Register_Position(offset + 1, 6, 3, 1));
     mRegisterMapping.insert(TF, "TF");
     mRegisterPlaces.insert(TF, Register_Position(offset + 2, 6, 3, 1));
 
-    mRegisterMapping.insert(IF, "IF");
-    mRegisterPlaces.insert(IF, Register_Position(offset + 0, 12, 3, 1));
+    mRegisterMapping.insert(AF, "AF");
+    mRegisterPlaces.insert(AF, Register_Position(offset + 0, 12, 3, 1));
     mRegisterMapping.insert(DF, "DF");
     mRegisterPlaces.insert(DF, Register_Position(offset + 1, 12, 3, 1));
-    mRegisterMapping.insert(OF, "OF");
-    mRegisterPlaces.insert(OF, Register_Position(offset + 2, 12, 3, 1));
+    mRegisterMapping.insert(IF, "IF");
+    mRegisterPlaces.insert(IF, Register_Position(offset + 2, 12, 3, 1));
 
     offset++;
     mRegisterMapping.insert(GS, "GS");
