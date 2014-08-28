@@ -90,6 +90,11 @@ void FlowGraph::fillNodes()
     }
 }
 
+const AnalysisRunner* FlowGraph::information() const
+{
+    return analysis;
+}
+
 
 
 }

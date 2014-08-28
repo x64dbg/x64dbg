@@ -328,4 +328,9 @@ FunctionDB* AnalysisRunner::functionDB()
     return DB;
 }
 
+const InstructionMap::const_iterator AnalysisRunner::instructionIter(duint va) const
+{
+    return instructionsCache.find(va);
+}
+
 };

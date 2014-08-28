@@ -67,6 +67,7 @@ public:
 
     void start();
     const fa::Instruction_t* instruction(duint va) const;
+    const InstructionMap::const_iterator instructionIter(duint va) const;
 
 
     duint base() const;

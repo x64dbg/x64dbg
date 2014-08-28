@@ -32,6 +32,8 @@ public:
     bool find(const duint va, Node_t* node);
     Node_t* FlowGraph::node(const duint va);
 
+    const AnalysisRunner* information() const;
+
 
 };
 
