@@ -15,6 +15,8 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     wMenu->addSeparator();
     wMenu->addMenu(mSetPriority);
     wMenu->addSeparator();
+    wMenu->addAction(mGoToThreadEntry);
+    wMenu->addSeparator();
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -47,6 +49,13 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
         mSetPriorityLowest->setChecked(true);
 
     wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void ThreadView::GoToThreadEntry()
+{
+    QString addr_text = getCellContent(getInitialSelection(), 2);
+    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
+    emit showCpu();
 }
 
 void ThreadView::SwitchThread()
@@ -133,6 +142,7 @@ void ThreadView::setupContextMenu()
     mKillThread = new QAction("Kill Thread", this);
     connect(mKillThread, SIGNAL(triggered()), this, SLOT(KillThread()));
 
+    // Set priority
     mSetPriority = new QMenu("Set Priority", this);
 
     mSetPriorityIdle = new QAction("Idle", this);
@@ -162,6 +172,11 @@ void ThreadView::setupContextMenu()
     mSetPriorityTimeCritical = new QAction("Time Critical", this);
     connect(mSetPriorityTimeCritical, SIGNAL(triggered()), this, SLOT(SetPriorityTimeCriticalSlot()));
     mSetPriority->addAction(mSetPriorityTimeCritical);
+
+    // GoToThreadEntry
+    mGoToThreadEntry = new QAction("Go to Thread Entry", this);
+    connect(mGoToThreadEntry, SIGNAL(triggered()), this, SLOT(GoToThreadEntry()));
+
 }
 
 ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
