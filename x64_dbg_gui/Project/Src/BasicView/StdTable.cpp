@@ -422,13 +422,19 @@ void StdTable::contextMenuRequestedSlot(const QPoint & pos)
 
 void StdTable::headerButtonPressedSlot(int col)
 {
-    if(mSort.first != -1)
+    if(mSort.first != col) //first = column to sort
     {
         mSort.first = col;
-        mSort.second = false;
+        mSort.second = false; //second = ascending/descending
     }
     else
         mSort.second = !mSort.second;
-    qSort(mData.begin(), mData.end(), ColumnCompare(col, mSort.second));
     reloadData();
+}
+
+void StdTable::reloadData()
+{
+    if(mSort.first != -1) //re-sort if the user wants to sort
+        qSort(mData.begin(), mData.end(), ColumnCompare(mSort.first, mSort.second));
+    AbstractTableView::reloadData();
 }
