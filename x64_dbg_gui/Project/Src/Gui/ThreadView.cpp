@@ -14,8 +14,13 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mKillThread);
     wMenu->addSeparator();
     wMenu->addMenu(mSetPriority);
-    wMenu->addSeparator();
-    wMenu->addAction(mGoToThreadEntry);
+    bool ok;
+    ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
+    if(ok && DbgMemIsValidReadPtr(entry))
+    {
+        wMenu->addSeparator();
+        wMenu->addAction(mGoToThreadEntry);
+    }
     wMenu->addSeparator();
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
