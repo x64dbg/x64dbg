@@ -17,7 +17,7 @@ static bool volatile bIsRunning = false;
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
     char newtext[MAX_SCRIPT_LINE_SIZE] = "";
-    strcpy(newtext, text);
+    strcpy_s(newtext, text);
     argformat(newtext); //format jump commands
     if(!strstr(newtext, " "))
         strcat(newtext, " ");
@@ -157,7 +157,7 @@ static bool scriptcreatelinemap(const char* filename)
             }
             else //no space before comment
             {
-                strcpy(line_comment, comment);
+                strcpy_s(line_comment, comment);
                 *comment = 0;
             }
         }
@@ -177,7 +177,9 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linelabel;
             sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
             argformat(cur.u.label); //format labels
-            strcpy(cur.u.label, cur.u.label + 2); //remove fake command
+            char temp[256] = "";
+            strcpy_s(temp, cur.u.label + 2);
+            strcpy_s(cur.u.label, temp); //remove fake command
             if(!*cur.u.label or !strcmp(cur.u.label, "\"\"")) //no label text
             {
                 char message[256] = "";
@@ -341,7 +343,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
     char command[deflen] = "";
-    strcpy(command, cmd);
+    strcpy_s(command, cmd);
     argformat(command);
     COMMAND* found = cmdfindmain(dbggetcommandlist(), command);
     if(!found) //invalid command
@@ -495,7 +497,7 @@ static DWORD WINAPI scriptLoadThread(void* filename)
 void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH] = "";
-    strcpy(filename_, filename);
+    strcpy_s(filename_, filename);
     CloseHandle(CreateThread(0, 0, scriptLoadThread, filename_, 0, 0));
 }
 

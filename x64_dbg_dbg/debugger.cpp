@@ -661,11 +661,11 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         len--;
     if(len)
         len++;
-    strcpy(sqlitedb, szFileName + len);
+    strcpy_s(sqlitedb, szFileName + len);
 #ifdef _WIN64
-    strcat(sqlitedb, ".dd64");
+    strcat_s(sqlitedb, ".dd64");
 #else
-    strcat(sqlitedb, ".dd32");
+    strcat_s(sqlitedb, ".dd32");
 #endif // _WIN64
     sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
@@ -1171,7 +1171,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
     bFileIsDll = IsFileDLL(init->exe, 0);
     pDebuggedEntry = GetPE32Data(init->exe, 0, UE_OEP);
-    strcpy(szFileName, init->exe);
+    strcpy_s(szFileName, init->exe);
     if(bFileIsDll)
         fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
     else
@@ -1429,12 +1429,12 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     //inform GUI start we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
-    strcpy(szBaseFileName, szFileName);
+    strcpy_s(szBaseFileName, szFileName);
     int len = (int)strlen(szBaseFileName);
     while(szBaseFileName[len] != '\\' and len)
         len--;
     if(len)
-        strcpy(szBaseFileName, szBaseFileName + len + 1);
+        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
     GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback (init)
     PLUG_CB_INITDEBUG initInfo;
@@ -1706,7 +1706,7 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
 
     if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
     {
-        if(rw_error = ERROR_RW_FILE_NOT_FOUND)
+        if(rw_error == ERROR_RW_FILE_NOT_FOUND)
         {
             if(rw_error_out != NULL)
                 * rw_error_out = rw_error;
@@ -1738,7 +1738,7 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
 
         if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
         {
-            if(rw_error = ERROR_RW_FILE_NOT_FOUND)
+            if(rw_error == ERROR_RW_FILE_NOT_FOUND)
                 return true;
         }
     }

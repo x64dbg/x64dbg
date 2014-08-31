@@ -812,6 +812,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     {
         dputs("error loading Scylla.dll!");
         bScyllaLoaded = false;
+        FreeLibrary(hScylla);
         return 0;
     }
     ScyllaStartGui = (SCYLLASTARTGUI)GetProcAddress(hScylla, "ScyllaStartGui");
@@ -819,6 +820,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     {
         dputs("could not find export 'ScyllaStartGui' inside Scylla.dll");
         bScyllaLoaded = false;
+        FreeLibrary(hScylla);
         return 0;
     }
     if(dbgisdll())
@@ -1324,7 +1326,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
 
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
-    char szDefaultStore[MAX_PATH] = "";
+    char szDefaultStore[MAX_SETTING_SIZE] = "";
     const char* szSymbolStore = szDefaultStore;
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
     {
@@ -1390,8 +1392,8 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 
 CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 {
-    bool jit_auto;
-    arch actual_arch;
+    bool jit_auto = false;
+    arch actual_arch = invalid;
 
     if(argc == 1)
     {
@@ -1514,9 +1516,10 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 
 CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
-    arch actual_arch;
-    char* jit_debugger_cmd;
+    arch actual_arch = invalid;
+    char* jit_debugger_cmd = "";
     char oldjit[MAX_SETTING_SIZE] = "";
+    char path[JIT_ENTRY_DEF_SIZE];
     if(!IsProcessElevated())
     {
         dprintf("Error run the debugger as Admin to setjit\n");
@@ -1524,7 +1527,6 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     if(argc < 2)
     {
-        char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
 
         jit_debugger_cmd = path;

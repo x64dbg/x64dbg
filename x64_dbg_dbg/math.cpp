@@ -310,7 +310,7 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool
             int len = close - open;
             strncpy(temp, exp + open + 1, len - 1);
 
-            strcpy(backup, exp + open + len + 1);
+            strcpy_s(backup, exp + open + len + 1);
 
             uint value;
             if(!mathfromstring(temp, &value, silent, baseonly, 0, 0))
