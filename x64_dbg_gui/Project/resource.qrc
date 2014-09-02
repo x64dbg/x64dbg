@@ -46,5 +46,6 @@
         <file>images/attach.png</file>
         <file>images/detach.png</file>
         <file>images/trace.png</file>
+        <file>images/changeargs.png</file>
     </qresource>
 </RCC>

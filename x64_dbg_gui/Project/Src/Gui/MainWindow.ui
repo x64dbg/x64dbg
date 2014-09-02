@@ -596,6 +596,10 @@
    </property>
   </action>
   <action name="actionChange_command_line">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/changeargs.png</normaloff>:/icons/images/changeargs.png</iconset>
+   </property>
    <property name="text">
     <string>Change command line</string>
    </property>

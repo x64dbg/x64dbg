@@ -1909,6 +1909,70 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
+bool __FixGetCommandLines(uint getcommandline, uint new_command_line)
+{
+    uint command_line_stored = 0;
+    uint aux = 0;
+    SIZE_T size;
+    unsigned char data[100];
+
+    if(!memread(fdProcessInfo->hProcess, (const void*) getcommandline, & data, sizeof(data), & size))
+        return false;
+
+#ifdef _WIN64
+    if(data[0] != 0x48 ||  data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
+        return false;
+
+    DWORD offset = * ((DWORD*) & data[3]);
+    command_line_stored = getcommandline + 7 + offset;
+
+    /*
+    00007FFC5B91E3C8 | 48 8B 05 19 1D 0E 00     | mov rax,qword ptr ds:[7FFC5BA000E8]
+    00007FFC5B91E3CF | C3                       | ret                                     |
+    This is a relative offset then to get the symbol: next instruction of getmodulehandle (+7 bytes) + offset to symbol
+    (the last 4 bytes of the instruction)
+    */
+#else
+    if(data[0] != 0xA1 ||  data[5] != 0xC3)
+        return false;
+    command_line_stored = * ((uint*) & data[1]);
+    /*
+    750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
+    750FE9CF | C3                       | ret                                     |
+    */
+#endif
+
+    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_stored, & new_command_line, sizeof(new_command_line), & size))
+        return false;
+
+    return true;
+}
+
+bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii)
+{
+    uint getcommandline;
+
+    if(!valfromstring("kernelbase:GetCommandLineA", & getcommandline))
+    {
+        if(!valfromstring("kernel32:GetCommandLineA", & getcommandline))
+            return false;
+    }
+
+    if(!__FixGetCommandLines(getcommandline, new_command_line_ascii))
+        return false;
+
+    if(!valfromstring("kernelbase:GetCommandLineW", & getcommandline))
+    {
+        if(!valfromstring("kernel32:GetCommandLineW", & getcommandline))
+            return false;
+    }
+
+    if(! __FixGetCommandLines(getcommandline, new_command_line_unicode))
+        return false;
+
+    return true;
+}
+
 bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
 {
     cmdline_error_t cmd_line_error_aux;
@@ -1939,7 +2003,7 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
 
     returnf = false;
 
-    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length, PAGE_READWRITE);
+    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length * 2, PAGE_READWRITE);
     if(!mem)
     {
 
@@ -1953,14 +2017,28 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
         }
         else
         {
-            new_command_line.Buffer = (PWSTR) mem;
-
-            if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+            if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
             {
 
             }
             else
-                returnf = true;
+            {
+                if(! _FixGetCommandLines(mem, mem + new_command_line.Length))
+                {
+
+                }
+                else
+                {
+                    new_command_line.Buffer = (PWSTR) mem;
+
+                    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+                    {
+
+                    }
+                    else
+                        returnf = true;
+                }
+            }
         }
     }
 

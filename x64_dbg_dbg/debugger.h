@@ -6,6 +6,7 @@
 #include "command.h"
 #include "breakpoint.h"
 #include "undocumented.h"
+#include "value.h"
 
 #define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
@@ -94,6 +95,7 @@ bool dbgsetjitauto(bool, arch, arch*, readwritejitkey_error_t*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 bool IsProcessElevated();
 HRESULT UnicodeToAnsi(LPCOLESTR, LPSTR*);
+HRESULT AnsiToUnicode(LPSTR, LPCOLESTR*);
 bool dbggetcmdline(char**, cmdline_error_t*);
 bool dbgsetcmdline(char*, cmdline_error_t*);
 
