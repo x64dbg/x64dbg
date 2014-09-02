@@ -5,6 +5,8 @@ ipch/
 Win32/
 x64/
 release/
+build/
+debug/
 *XE Results*/
 
 #global filetypes to ignore
@@ -23,6 +25,10 @@ release/
 *.dll
 *.exe
 *.pro.user.*
+*.orig
+cov*
+*.pdb
+ui_*
 
 #project to ignore
 todo_bridge.txt
@@ -45,6 +51,9 @@ x64_dbg_gui/Project/GeneratedFiles/
 x64_dbg_gui/Project/release/
 x64_dbg_gui/Project/Win32/
 x64_dbg_gui/Project/x64/
+x64_dbg_gui/Project/Makefile
+x64_dbg_gui/Project/Makefile.Debug
+x64_dbg_gui/Project/Makefile.Release
 x64_dbg_gui/Project/Src/Bridge/libx32_bridge.a
 x64_dbg_gui/Project/Src/Bridge/libx64_bridge.a
 x64_dbg_gui/Project/Src/Bridge/x32_bridge.lib
@@ -56,11 +65,3 @@ RCa*
 #exceptions
 !/AStyleWhore.exe
 !/AStyle.dll
-*.orig
-cov*
-debug/
-vc100.pdb
-ui_*
-x64_dbg_gui/Project/Makefile
-x64_dbg_gui/Project/Makefile.Debug
-x64_dbg_gui/Project/Makefile.Release
