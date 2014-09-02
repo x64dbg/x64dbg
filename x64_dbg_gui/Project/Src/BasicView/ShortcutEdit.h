@@ -8,7 +8,6 @@
 class ShortcutEdit : public QLineEdit
 {
     Q_OBJECT
-    QKeySequence key;
     int keyInt;
 
 public:

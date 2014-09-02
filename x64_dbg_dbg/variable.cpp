@@ -150,7 +150,8 @@ bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
         return true; //variable was valid, just get the size
     if(type)
         *type = vartype;
-    *value = varvalue.u.value;
+    if(value)
+        *value = varvalue.u.value;
     return true;
 }
 
@@ -167,7 +168,8 @@ bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
         return true; //variable was valid, just get the size
     if(type)
         *type = vartype;
-    memcpy(string, &varvalue.u.data->front(), varsize);
+    if(string)
+        memcpy(string, &varvalue.u.data->front(), varsize);
     return true;
 }
 

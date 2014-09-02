@@ -547,7 +547,7 @@ void MainWindow::restartDebugging()
     char filename[MAX_SETTING_SIZE] = "";
     if(!mMRUList.size())
         return;
-    strcpy(filename, mMRUList.at(0).toUtf8().constData());
+    strcpy_s(filename, mMRUList.at(0).toUtf8().constData());
     if(DbgIsDebugging())
     {
         DbgCmdExec("stop"); //close current file (when present)

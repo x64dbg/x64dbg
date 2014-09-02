@@ -28,8 +28,6 @@ signals:
 private:
     Ui::CommandHelpView* ui;
     QVBoxLayout* mMainLayout;
-    QVBoxLayout* mSymbolLayout;
-    QWidget* mSymbolPlaceHolder;
     SearchListView* mSearchListView;
     StdTable* mModuleList;
     int mCurrentMode;

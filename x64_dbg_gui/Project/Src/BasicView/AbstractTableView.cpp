@@ -241,7 +241,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
         bool bCanResize = (getColumnWidth(mColResizeData.index) + delta) >= 20;
         if(bCanResize)
         {
-            int wNewSize = bCanResize ? (getColumnWidth(mColResizeData.index) + delta) : (20);
+            int wNewSize = getColumnWidth(mColResizeData.index) + delta;
             setColumnWidth(mColResizeData.index, wNewSize);
             mColResizeData.lastPosX = event->x();
             repaint();
@@ -456,7 +456,7 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
  */
 void AbstractTableView::vertSliderActionSlot(int action)
 {
-    int_t wDelta;
+    int_t wDelta = 0;
     int wSliderPos = verticalScrollBar()->sliderPosition();
     int wNewScrollBarValue;
 

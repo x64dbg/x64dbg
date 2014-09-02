@@ -57,3 +57,10 @@ RCa*
 !/AStyleWhore.exe
 !/AStyle.dll
 *.orig
+cov*
+debug/
+vc100.pdb
+ui_*
+x64_dbg_gui/Project/Makefile
+x64_dbg_gui/Project/Makefile.Debug
+x64_dbg_gui/Project/Makefile.Release

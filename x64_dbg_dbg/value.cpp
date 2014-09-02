@@ -1003,7 +1003,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             int len = (int)strlen(szModName);
             while(szModName[len] != '\\')
                 len--;
-            strcpy(szBaseName, szModName + len + 1);
+            strcpy_s(szBaseName, szModName + len + 1);
             HMODULE mod = LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
             if(!mod)
             {

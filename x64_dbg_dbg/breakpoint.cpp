@@ -36,7 +36,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     bp.addr = addr - modbase;
     bp.enabled = enabled;
     if(name and * name)
-        strcpy(bp.name, name);
+        strcpy_s(bp.name, name);
     else
         *bp.name = '\0';
     bp.oldbytes = oldbytes;
@@ -110,7 +110,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
     BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
     if(found == breakpoints.end()) //not found
         return false;
-    strcpy(breakpoints[found->first].name, name);
+    strcpy_s(breakpoints[found->first].name, name);
     return true;
 }
 
@@ -193,8 +193,10 @@ void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
         break;
     case BPMEMORY:
         bridge->type = bp_memory;
+        break; //so that's why it didn't show in the gui.
     default:
         bridge->type = bp_none;
+        break;
     }
 }
 
@@ -242,10 +244,10 @@ void bpcacheload(JSON root)
             curBreakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
             const char* name = json_string_value(json_object_get(value, "name"));
             if(name)
-                strcpy(curBreakpoint.name, name);
+                strcpy_s(curBreakpoint.name, name);
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curBreakpoint.mod, mod);
+                strcpy_s(curBreakpoint.mod, mod);
             const uint key = modhashfromname(curBreakpoint.mod) + curBreakpoint.addr;
             breakpoints.insert(std::make_pair(BreakpointKey(curBreakpoint.type, key), curBreakpoint));
         }

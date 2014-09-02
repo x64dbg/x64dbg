@@ -58,8 +58,6 @@ signals:
 
 private:
     QHexEditPrivate* qHexEdit_p;
-    QHBoxLayout* layout;
-    QScrollArea* scrollArea;
 };
 
 #endif

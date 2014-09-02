@@ -78,7 +78,7 @@ int memleaks()
 
 void setalloctrace(const char* file)
 {
-    strcpy(alloctrace, file);
+    strcpy_s(alloctrace, file);
 }
 
 bool arraycontains(const char* cmd_list, const char* cmd)
@@ -87,7 +87,7 @@ bool arraycontains(const char* cmd_list, const char* cmd)
     if(!cmd_list or !cmd)
         return false;
     char temp[deflen] = "";
-    strcpy(temp, cmd_list);
+    strcpy_s(temp, cmd_list);
     int len = (int)strlen(cmd_list);
     if(len >= deflen)
         return false;
