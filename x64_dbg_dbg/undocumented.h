@@ -1,5 +1,7 @@
 #include <windows.h>
 
+#ifndef _UNDOCUMENTED_H
+#define _UNDOCUMENTED_H
 //Thanks to: https://github.com/zer0fl4g/Nanomite
 
 typedef LONG NTSTATUS;
@@ -17,6 +19,7 @@ typedef struct _CLIENT_ID
     HANDLE UniqueThread;
 } CLIENT_ID;
 
+/* FIX IT TO WORK FROM x64 debugger: ADD PVOIDs etc.. */
 typedef struct _PEB
 {
     BYTE InheritedAddressSpace;
@@ -153,3 +156,34 @@ typedef struct _TEB
     PVOID                   StackCommitMax;
     PVOID                   StackReserved;
 } TEB, *PTEB;
+
+typedef struct _RTL_USER_PROCESS_PARAMETERS
+{
+    BYTE           Reserved1[16];
+    PVOID          Reserved2[10];
+    UNICODE_STRING ImagePathName;
+    UNICODE_STRING CommandLine;
+} RTL_USER_PROCESS_PARAMETERS, *PRTL_USER_PROCESS_PARAMETERS;
+
+/*
+Workarround: this PEB its like the default PEB struct in MSDN,
+if you use the PEB of this header from the x64debugger you will have problems,
+for example: accessing ProcessParamater.
+*/
+typedef struct _MSDNPEB
+{
+    BYTE                          Reserved1[2];
+    BYTE                          BeingDebugged;
+    BYTE                          Reserved2[1];
+    PVOID                         Reserved3[2];
+    PVOID /*PPEB_LDR_DATA*/                 Ldr;
+    PRTL_USER_PROCESS_PARAMETERS  ProcessParameters;
+    BYTE                          Reserved4[104];
+    PVOID                         Reserved5[52];
+    PVOID /* PPS_POST_PROCESS_INIT_ROUTINE */ PostProcessInitRoutine;
+    BYTE                          Reserved6[128];
+    PVOID                         Reserved7[1];
+    ULONG                         SessionId;
+} MSDNPEB, *PMSDNPEB;
+
+#endif /* _UNDOCUMENTED_H */

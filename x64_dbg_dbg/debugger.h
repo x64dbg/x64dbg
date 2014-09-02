@@ -5,6 +5,7 @@
 #include "TitanEngine\TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
+#include "undocumented.h"
 
 #define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
@@ -27,6 +28,22 @@ struct INIT_STRUCT
     char* commandline;
     char* currentfolder;
 };
+
+typedef enum
+{
+    CMDL_ERR_READ_PEBBASE = 0,
+    CMDL_ERR_READ_PROCPARM_PTR,
+    CMDL_ERR_READ_PROCPARM_CMDLINE,
+    CMDL_ERR_CONVERTUNICODE,
+    CMDL_ERR_ALLOC
+
+} cmdline_error_type_t;
+
+typedef struct
+{
+    cmdline_error_type_t type;
+    uint addr;
+} cmdline_error_t;
 
 struct ExceptionRange
 {
@@ -76,6 +93,9 @@ bool dbggetjitauto(bool*, arch, arch*, readwritejitkey_error_t*);
 bool dbgsetjitauto(bool, arch, arch*, readwritejitkey_error_t*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 bool IsProcessElevated();
+HRESULT UnicodeToAnsi(LPCOLESTR, LPSTR*);
+bool dbggetcmdline(char**, cmdline_error_t*);
+bool dbgsetcmdline(char*, cmdline_error_t*);
 
 void cbStep();
 void cbRtrStep();

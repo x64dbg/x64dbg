@@ -61,6 +61,8 @@ typedef bool (*GETPAGERIGHTS)(duint*, char*);
 typedef bool (*SETPAGERIGHTS)(duint*, char*);
 typedef bool (*PAGERIGHTSTOSTRING)(DWORD, char*);
 typedef bool (*ISPROCESSELEVATED)(void);
+typedef bool (*GETCMDLINE)(char**);
+typedef bool (*SETCMDLINE)(char*);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -92,6 +94,8 @@ typedef struct DBGFUNCTIONS_
     SETPAGERIGHTS SetPageRights;
     PAGERIGHTSTOSTRING PageRightsToString;
     ISPROCESSELEVATED IsProcessElevated;
+    GETCMDLINE GetCmdline;
+    SETCMDLINE SetCmdline;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

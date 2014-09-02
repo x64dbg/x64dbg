@@ -50,6 +50,8 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
+CMDRESULT cbDebugGetCmdline(int argc, char* argv[]);
+CMDRESULT cbDebugSetCmdline(int argc, char* argv[]);
 CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[]);

@@ -1829,3 +1829,187 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
     while(Process32Next(hProcessSnap, &pe32));
     return true;
 }
+
+HRESULT AnsiToUnicode(LPCSTR pszA, LPOLESTR* ppszW)
+{
+    ULONG cCharacters;
+    DWORD dwError;
+
+    // If input is null then just return the same.
+    if(NULL == pszA)
+    {
+        *ppszW = NULL;
+        return NOERROR;
+    }
+
+    // Determine number of wide characters to be allocated for the
+    // Unicode string.
+    cCharacters =  strlen(pszA) + 1;
+
+    *ppszW = (LPOLESTR) calloc(1, cCharacters * 2);
+    if(NULL == *ppszW)
+        return E_OUTOFMEMORY;
+
+    // Covert to Unicode.
+    if(0 == MultiByteToWideChar(CP_ACP, 0, pszA, cCharacters,
+                                *ppszW, cCharacters))
+    {
+        dwError = GetLastError();
+        free(*ppszW);
+        *ppszW = NULL;
+        return HRESULT_FROM_WIN32(dwError);
+    }
+
+    return NOERROR;
+}
+
+HRESULT UnicodeToAnsi(LPCOLESTR pszW, LPSTR* ppszA)
+{
+    ULONG cbAnsi, cCharacters;
+    DWORD dwError;
+    // If input is null then just return the same.
+    if(pszW == NULL)
+    {
+        *ppszA = NULL;
+        return NOERROR;
+    }
+    cCharacters = wcslen(pszW) + 1;
+    cbAnsi = cCharacters * 2;
+
+    *ppszA = (LPSTR) calloc(1, cbAnsi);
+    if(NULL == *ppszA)
+        return E_OUTOFMEMORY;
+
+    if(0 == WideCharToMultiByte(CP_ACP, 0, pszW, cCharacters, *ppszA, cbAnsi, NULL, NULL))
+    {
+        dwError = GetLastError();
+        free(*ppszA);
+        *ppszA = NULL;
+        return HRESULT_FROM_WIN32(dwError);
+    }
+    return NOERROR;
+}
+
+bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
+{
+    SIZE_T size;
+    uint pprocess_parameters;
+
+    cmd_line_error->addr = (uint) GetPEBLocation(fdProcessInfo->hProcess);
+
+    cmd_line_error->addr = (uint) & (((MSDNPEB*) cmd_line_error->addr)->ProcessParameters);
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & pprocess_parameters, sizeof(pprocess_parameters), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
+        return false;
+    }
+
+    * addr = (uint) & (((RTL_USER_PROCESS_PARAMETERS*) pprocess_parameters)->CommandLine);
+
+    return true;
+}
+
+bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
+{
+    cmdline_error_t cmd_line_error_aux;
+    UNICODE_STRING new_command_line;
+    SIZE_T size;
+    uint command_line_addr;
+    bool returnf;
+    PWSTR command_linewstr;
+
+    if(cmd_line_error == NULL)
+        cmd_line_error = & cmd_line_error_aux;
+
+    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+        return false;
+
+    command_line_addr = cmd_line_error->addr;
+
+    new_command_line.Length = (strlen(cmd_line) + 1) * 2;
+    new_command_line.MaximumLength = new_command_line.Length;
+
+    if(AnsiToUnicode(cmd_line, & command_linewstr) != NOERROR)
+    {
+        cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
+        return false;
+    }
+
+    new_command_line.Buffer = command_linewstr;
+
+    returnf = false;
+
+    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length, PAGE_READWRITE);
+    if(!mem)
+    {
+
+    }
+    else
+    {
+
+        if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
+        {
+
+        }
+        else
+        {
+            new_command_line.Buffer = (PWSTR) mem;
+
+            if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+            {
+
+            }
+            else
+                returnf = true;
+        }
+    }
+
+    free(command_linewstr);
+
+    return returnf;
+}
+
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
+{
+    SIZE_T size;
+    UNICODE_STRING CommandLine;
+    PWSTR wstr_cmd;
+    bool returnf;
+    cmdline_error_t cmd_line_error_aux;
+
+    if(cmd_line_error == NULL)
+        cmd_line_error = & cmd_line_error_aux;
+
+    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+        return false;
+
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & CommandLine, sizeof(CommandLine), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
+        return false;
+    }
+
+    wstr_cmd = (PWSTR) calloc(1, CommandLine.Length + sizeof(WCHAR));
+    if(wstr_cmd == NULL)
+    {
+        cmd_line_error->type = CMDL_ERR_ALLOC;
+        return false;
+    }
+
+    returnf = false;
+
+    cmd_line_error->addr = (uint) CommandLine.Buffer;
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, wstr_cmd, CommandLine.Length, & size))
+        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
+    else
+    {
+        if(UnicodeToAnsi(wstr_cmd, cmd_line) != NOERROR)
+            cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
+        else
+            returnf = true;
+    }
+
+    free(wstr_cmd);
+
+    return returnf;
+}

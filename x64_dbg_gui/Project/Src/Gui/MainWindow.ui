@@ -81,6 +81,8 @@
     <addaction name="actioneRtr"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
+    <addaction name="separator"/>
+    <addaction name="actionChange_command_line"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -591,6 +593,11 @@
    </property>
    <property name="toolTip">
     <string>Detach</string>
+   </property>
+  </action>
+  <action name="actionChange_command_line">
+   <property name="text">
+    <string>Change command line</string>
    </property>
   </action>
  </widget>

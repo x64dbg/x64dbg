@@ -1748,3 +1748,63 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
+{
+    char* cmd_line;
+    cmdline_error_t cmdline_error;
+
+    if(! dbggetcmdline(& cmd_line, & cmdline_error))
+    {
+        switch(cmdline_error.type)
+        {
+        case CMDL_ERR_ALLOC:
+            dputs(" Error allocating memory for cmdline");
+            break;
+        case CMDL_ERR_CONVERTUNICODE:
+            dputs(" Error converting UNICODE cmdline");
+            break;
+        case CMDL_ERR_READ_PEBBASE:
+            dprintf(" Error reading PEB base addres "fhex"\n", cmdline_error.addr);
+            break;
+        case CMDL_ERR_READ_PROCPARM_CMDLINE:
+            dprintf(" Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING "fhex"\n", cmdline_error.addr);
+            break;
+        case CMDL_ERR_READ_PROCPARM_PTR:
+            dprintf(" Error reading PEB -> ProcessParameters pointer address "fhex"\n", cmdline_error.addr);
+            break;
+        default:
+            dputs(" Error getting cmdline");
+            break;
+        }
+
+        return STATUS_ERROR;
+    }
+
+    dprintf("Command line: %s\n", cmd_line);
+
+    free(cmd_line);
+
+    return STATUS_CONTINUE;
+}
+
+
+CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
+{
+    cmdline_error_t cmdline_error;
+
+    if(argc != 2)
+    {
+        dprintf("Error: write the arg1 with the new command line of the process debugged\n");
+        return STATUS_ERROR;
+    }
+
+    if(! dbgsetcmdline(argv[1], & cmdline_error))
+    {
+        return STATUS_ERROR;
+    }
+
+    dprintf("New command line: %s\n", argv[1]);
+
+    return STATUS_CONTINUE;
+}

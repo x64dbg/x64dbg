@@ -83,7 +83,8 @@ SOURCES += \
     Src/BasicView/ShortcutEdit.cpp \
     Src/Gui/CalculatorDialog.cpp \
     Src/Gui/AttachDialog.cpp \
-    Src/Gui/PageMemoryRights.cpp
+    Src/Gui/PageMemoryRights.cpp \
+    Src/Gui/changecommandline.cpp
 
 
 HEADERS += \
@@ -145,7 +146,8 @@ HEADERS += \
     Src/BasicView/ShortcutEdit.h \
     Src/Gui/CalculatorDialog.h \
     Src/Gui/AttachDialog.h \
-    Src/Gui/PageMemoryRights.h
+    Src/Gui/PageMemoryRights.h \
+    Src/Gui/changecommandline.h
 
 
 INCLUDEPATH += \
@@ -179,7 +181,8 @@ FORMS += \
     Src/Gui/ShortcutsDialog.ui \
     Src/Gui/CalculatorDialog.ui \
     Src/Gui/AttachDialog.ui \
-    Src/Gui/PageMemoryRights.ui
+    Src/Gui/PageMemoryRights.ui \
+    Src/Gui/changecommandline.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

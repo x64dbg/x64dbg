@@ -12,6 +12,7 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
+#include "changecommandline.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -929,4 +930,21 @@ void MainWindow::displayAttach()
 void MainWindow::detach()
 {
     DbgCmdExec("detach");
+}
+
+void MainWindow::on_actionChange_command_line_triggered()
+{
+    if(!DbgIsDebugging())
+    {
+        QMessageBox msg(QMessageBox::Warning, "ERROR NO DEBUGGING", "THERE IS NOT A DEBUGGING PROCESS");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+
+        return;
+    }
+    ChangeCommandline change_command_line;
+    change_command_line.exec();
+
 }
