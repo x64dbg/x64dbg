@@ -17,6 +17,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setMinimumHeight(height);
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    curAddr = 0;
 }
 
 int CPUInfoBox::getHeight()

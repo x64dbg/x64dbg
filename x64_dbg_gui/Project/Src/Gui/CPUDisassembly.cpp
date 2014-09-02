@@ -813,8 +813,8 @@ void CPUDisassembly::assembleAt()
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
 
-    QBeaEngine* disasm = new QBeaEngine();
-    Instruction_t instr = disasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+    QBeaEngine disasm;
+    Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
     LineEditDialog mLineEdit(this);
     mLineEdit.setText(instr.instStr);

@@ -12,6 +12,8 @@ StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
     mData.clear();
     mSort.first = -1;
 
+    mGuiState = StdTable::NoState;
+
     mCopyMenuOnly = false;
     mCopyMenuDebugOnly = true;
     setContextMenuPolicy(Qt::CustomContextMenu);

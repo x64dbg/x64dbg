@@ -13,6 +13,8 @@ ExceptionRangeDialog::ExceptionRangeDialog(QWidget* parent) :
     ui->editStart->setCursorPosition(0);
     ui->editEnd->setCursorPosition(0);
     ui->btnOk->setEnabled(false);
+    rangeStart = 0;
+    rangeEnd = 0;
 }
 
 ExceptionRangeDialog::~ExceptionRangeDialog()

@@ -16,6 +16,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     setFixedSize(this->size()); //fixed size
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
+    lastException = 0;
 }
 
 SettingsDialog::~SettingsDialog()

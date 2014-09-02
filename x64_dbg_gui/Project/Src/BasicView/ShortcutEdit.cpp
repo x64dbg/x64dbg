@@ -2,6 +2,7 @@
 
 ShortcutEdit::ShortcutEdit(QWidget* parent) : QLineEdit(parent)
 {
+    keyInt = -1;
 }
 
 const QKeySequence ShortcutEdit::getKeysequence() const

@@ -13,6 +13,8 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
     QStringList tblHeader;
     tblHeader << "Instruction" << "Shortcut";
 
+    currentRow = 0;
+
     ui->tblShortcuts->setColumnCount(2);
     ui->tblShortcuts->verticalHeader()->setVisible(false);
     ui->tblShortcuts->setHorizontalHeaderLabels(tblHeader);

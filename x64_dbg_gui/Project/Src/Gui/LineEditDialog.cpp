@@ -9,6 +9,7 @@ LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Li
     setFixedSize(this->size()); //fixed size
     setModal(true); //modal window
     ui->checkBox->hide();
+    bChecked = false;
 }
 
 LineEditDialog::~LineEditDialog()

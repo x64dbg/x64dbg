@@ -54,7 +54,7 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::enableBP(BRIDGEBP bp)
+void Breakpoints::enableBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -112,7 +112,7 @@ void Breakpoints::enableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::disableBP(BRIDGEBP bp)
+void Breakpoints::disableBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -170,7 +170,7 @@ void Breakpoints::disableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::removeBP(BRIDGEBP bp)
+void Breakpoints::removeBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -244,7 +244,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toggleBPByDisabling(BRIDGEBP bp)
+void Breakpoints::toggleBPByDisabling(BRIDGEBP & bp)
 {
     if(bp.enabled == true)
         disableBP(bp);

@@ -7,6 +7,8 @@ PageMemoryRights::PageMemoryRights(QWidget* parent) : QDialog(parent), ui(new Ui
     //set window flags
     setModal(true);
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+    addr = 0;
+    size = 0;
 }
 
 PageMemoryRights::~PageMemoryRights()

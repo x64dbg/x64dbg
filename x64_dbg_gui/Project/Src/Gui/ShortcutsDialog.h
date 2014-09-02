@@ -15,12 +15,10 @@ class ShortcutsDialog : public QDialog
     Q_OBJECT
     Configuration::Shortcut currentShortcut;
     int currentRow;
-    bool editLock;
+
 public:
     explicit ShortcutsDialog(QWidget* parent = 0);
     ~ShortcutsDialog();
-signals:
-
 
 protected slots:
     void syncTextfield();
