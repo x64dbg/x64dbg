@@ -1523,11 +1523,10 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     {
         if(arch_in != x64 && arch_in != x32)
         {
-#ifdef _WIN32
-            * arch_out = x32;
-#endif
 #ifdef _WIN64
             * arch_out = x64;
+#else
+            * arch_out = x32;
 #endif
         }
         else
@@ -1546,7 +1545,7 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         }
 #endif
 
-#ifdef _WIN32
+#ifndef _WIN64
         key_flags |= KEY_WOW64_64KEY;
 #endif
     }
@@ -1569,6 +1568,8 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     else
     {
         lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
+
+        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
         if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
@@ -1576,8 +1577,6 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
 
             return false;
         }
-
-        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
     }
 
     if(lRv != ERROR_SUCCESS)
