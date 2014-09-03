@@ -1563,7 +1563,6 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
             return false;
 
         lRv = RegSetValueExA(hKey, key, 0, REG_SZ, (BYTE*) jit_key_value, (DWORD)(* jit_key_vale_size) + 1);
-        RegCloseKey(hKey);
     }
     else
     {
@@ -1576,10 +1575,10 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         {
             if(error != NULL)
                 * error = ERROR_RW_FILE_NOT_FOUND;
-
-            return false;
         }
     }
+
+    RegCloseKey(hKey);
 
     if(lRv != ERROR_SUCCESS)
         return false;
