@@ -705,6 +705,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         varset("$lastalloc", mem, true);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }

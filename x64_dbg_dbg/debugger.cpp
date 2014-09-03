@@ -1684,6 +1684,8 @@ bool dbgsetpagerights(uint* addr, char* rights_string)
     if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
 
+    GuiUpdateMemoryView();
+
     return true;
 }
 
@@ -2034,6 +2036,7 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
     else
     {
         memupdatemap(fdProcessInfo->hProcess);
+        GuiUpdateMemoryView();
         if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
         {
             cmd_line_error->addr = mem;
