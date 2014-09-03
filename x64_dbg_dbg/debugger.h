@@ -36,7 +36,16 @@ typedef enum
     CMDL_ERR_READ_PROCPARM_PTR,
     CMDL_ERR_READ_PROCPARM_CMDLINE,
     CMDL_ERR_CONVERTUNICODE,
-    CMDL_ERR_ALLOC
+    CMDL_ERR_ALLOC,
+    CMDL_ERR_GET_PEB,
+    CMDL_ERR_READ_GETCOMMANDLINEBASE,
+    CMDL_ERR_CHECK_GETCOMMANDLINESTORED,
+    CMDL_ERR_WRITE_GETCOMMANDLINESTORED,
+    CMDL_ERR_GET_GETCOMMANDLINE,
+    CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE,
+    CMDL_ERR_WRITE_ANSI_COMMANDLINE,
+    CMDL_ERR_WRITE_UNICODE_COMMANDLINE,
+    CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE
 
 } cmdline_error_type_t;
 
@@ -98,6 +107,9 @@ HRESULT UnicodeToAnsi(LPCOLESTR, LPSTR*);
 HRESULT AnsiToUnicode(LPSTR, LPCOLESTR*);
 bool dbggetcmdline(char**, cmdline_error_t*);
 bool dbgsetcmdline(char*, cmdline_error_t*);
+bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error);
+bool __FixGetCommandLines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error);
+bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error);
 
 void cbStep();
 void cbRtrStep();

@@ -2,6 +2,7 @@
 #define _DEBUGGER_COMMANDS_H
 
 #include "command.h"
+#include "debugger.h"
 
 //command callbacks
 CMDRESULT cbDebugInit(int argc, char* argv[]);
@@ -59,5 +60,8 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[]);
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
+
+//misc
+void ShowCommandLineError(cmdline_error_t* cmdline_error);
 
 #endif //_DEBUGGER_COMMANDS_H

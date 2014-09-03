@@ -1897,6 +1897,12 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 
     cmd_line_error->addr = (uint) GetPEBLocation(fdProcessInfo->hProcess);
 
+    if(cmd_line_error->addr == 0)
+    {
+        cmd_line_error->type = CMDL_ERR_GET_PEB;
+        return false;
+    }
+
     cmd_line_error->addr = (uint) & (((MSDNPEB*) cmd_line_error->addr)->ProcessParameters);
     if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & pprocess_parameters, sizeof(pprocess_parameters), & size))
     {
@@ -1909,20 +1915,26 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-bool __FixGetCommandLines(uint getcommandline, uint new_command_line)
+bool __FixGetCommandLines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
     uint aux = 0;
     SIZE_T size;
     unsigned char data[100];
 
-    if(!memread(fdProcessInfo->hProcess, (const void*) getcommandline, & data, sizeof(data), & size))
+    cmd_line_error->addr = getcommandline;
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & data, sizeof(data), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
         return false;
+    }
 
 #ifdef _WIN64
     if(data[0] != 0x48 ||  data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
+    {
+        cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
         return false;
-
+    }
     DWORD offset = * ((DWORD*) & data[3]);
     command_line_stored = getcommandline + 7 + offset;
 
@@ -1934,7 +1946,10 @@ bool __FixGetCommandLines(uint getcommandline, uint new_command_line)
     */
 #else
     if(data[0] != 0xA1 ||  data[5] != 0xC3)
+    {
+        cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
         return false;
+    }
     command_line_stored = * ((uint*) & data[1]);
     /*
     750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
@@ -1943,31 +1958,41 @@ bool __FixGetCommandLines(uint getcommandline, uint new_command_line)
 #endif
 
     if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_stored, & new_command_line, sizeof(new_command_line), & size))
+    {
+        cmd_line_error->addr = command_line_stored;
+        cmd_line_error->type = CMDL_ERR_WRITE_GETCOMMANDLINESTORED;
         return false;
+    }
 
     return true;
 }
 
-bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii)
+bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
 {
     uint getcommandline;
 
     if(!valfromstring("kernelbase:GetCommandLineA", & getcommandline))
     {
         if(!valfromstring("kernel32:GetCommandLineA", & getcommandline))
+        {
+            cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
             return false;
+        }
     }
 
-    if(!__FixGetCommandLines(getcommandline, new_command_line_ascii))
+    if(!__FixGetCommandLines(getcommandline, new_command_line_ascii, cmd_line_error))
         return false;
 
     if(!valfromstring("kernelbase:GetCommandLineW", & getcommandline))
     {
         if(!valfromstring("kernel32:GetCommandLineW", & getcommandline))
+        {
+            cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
             return false;
+        }
     }
 
-    if(! __FixGetCommandLines(getcommandline, new_command_line_unicode))
+    if(! __FixGetCommandLines(getcommandline, new_command_line_unicode, cmd_line_error))
         return false;
 
     return true;
@@ -2005,35 +2030,30 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
 
     uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length * 2, PAGE_READWRITE);
     if(!mem)
-    {
-
-    }
+        cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
     else
     {
-
         if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
         {
-
+            cmd_line_error->addr = mem;
+            cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
         }
         else
         {
             if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
             {
-
+                cmd_line_error->addr = mem + new_command_line.Length;
+                cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
             }
             else
             {
-                if(! _FixGetCommandLines(mem, mem + new_command_line.Length))
-                {
-
-                }
-                else
+                if(_FixGetCommandLines(mem, mem + new_command_line.Length, cmd_line_error))
                 {
                     new_command_line.Buffer = (PWSTR) mem;
-
                     if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
                     {
-
+                        cmd_line_error->addr = command_line_addr;
+                        cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
                     }
                     else
                         returnf = true;
