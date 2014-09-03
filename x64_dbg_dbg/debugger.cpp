@@ -2033,6 +2033,7 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
         cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
     else
     {
+        memupdatemap(fdProcessInfo->hProcess);
         if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
         {
             cmd_line_error->addr = mem;
