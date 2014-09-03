@@ -1684,6 +1684,7 @@ bool dbgsetpagerights(uint* addr, char* rights_string)
     if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
 
+    memupdatemap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
 
     return true;
