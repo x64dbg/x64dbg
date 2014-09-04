@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
     <ClCompile Include="Analysis\AnalysisRunner.cpp" />
+    <ClCompile Include="Analysis\Block_t.cpp" />
     <ClCompile Include="Analysis\ClientApiResolver.cpp" />
     <ClCompile Include="Analysis\ClientFunctionFinder.cpp" />
     <ClCompile Include="Analysis\ClientInterface.cpp" />
@@ -56,6 +57,7 @@
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
     <ClInclude Include="Analysis\AnalysisRunner.h" />
+    <ClInclude Include="Analysis\Block_t.h" />
     <ClInclude Include="Analysis\ClientApiResolver.h" />
     <ClInclude Include="Analysis\ClientFunctionFinder.h" />
     <ClInclude Include="Analysis\ClientInterface.h" />

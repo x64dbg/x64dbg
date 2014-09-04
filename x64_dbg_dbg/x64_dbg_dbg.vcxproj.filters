@@ -165,6 +165,9 @@
     <ClCompile Include="Analysis\FunctionDB.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
+    <ClCompile Include="Analysis\Block_t.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_exports.h">
@@ -342,6 +345,9 @@
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="Analysis\FunctionDB.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Analysis\Block_t.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
