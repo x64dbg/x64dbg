@@ -1,6 +1,7 @@
 #include "main.h"
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
+#include <QTranslator>
 #include "Bridge.h"
 #include "Configuration.h"
 #include "MainWindow.h"
@@ -48,6 +49,11 @@ static Configuration* mConfiguration;
 int main(int argc, char* argv[])
 {
     MyApplication application(argc, argv);
+    QTranslator translator;
+    QString locale = QLocale::system().name();
+    translator.load(QString("x64") + locale);
+    application.installTranslator(&translator);
+
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 
     // load config file + set config font
@@ -74,7 +80,7 @@ int main(int argc, char* argv[])
     const char* errormsg = DbgInit();
     if(errormsg)
     {
-        QMessageBox msg(QMessageBox::Critical, "DbgInit Error!", QString(errormsg));
+        QMessageBox msg(QMessageBox::Critical, QObject::tr("DbgInit Error!"), QString(errormsg));
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();

@@ -202,6 +202,7 @@ LIBS += -luser32
 RESOURCES += \
     resource.qrc
 
+TRANSLATIONS = ../../x64_dbg_lang/x64lang.ts
 
 
 

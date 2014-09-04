@@ -1,0 +1,1259 @@
+<!DOCTYPE QPH>
+<QPH language="de_DE" sourcelanguage="en_GB">
+<phrase>
+    <source>Appearance</source>
+    <target>Darstellung</target>
+</phrase>
+<phrase>
+    <source>Colors</source>
+    <target>Farben</target>
+</phrase>
+<phrase>
+    <source>Color</source>
+    <target>Farbe</target>
+</phrase>
+<phrase>
+    <source>#FFFFFF</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Background Color</source>
+    <target>Hintergrundfarbe</target>
+</phrase>
+<phrase>
+    <source>X</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Properties</source>
+    <target>Eigenschaften</target>
+</phrase>
+<phrase>
+    <source>Font</source>
+    <target>Schriftart</target>
+</phrase>
+<phrase>
+    <source>General Tables:</source>
+    <target>Tabellen allgemein</target>
+</phrase>
+<phrase>
+    <source>Disassembly:</source>
+    <target>Diassembling:</target>
+</phrase>
+<phrase>
+    <source>HexDump:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Stack:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Registers:</source>
+    <target>Register:</target>
+</phrase>
+<phrase>
+    <source>HexEdit:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Application Font*</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Courier New</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Defaults</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Normal</source>
+    <target>normal</target>
+</phrase>
+<phrase>
+    <source>Bold</source>
+    <target>fett</target>
+</phrase>
+<phrase>
+    <source>Italic</source>
+    <target>kursiv</target>
+</phrase>
+<phrase>
+    <source>Bold + Italic</source>
+    <target>fett und kursiv</target>
+</phrase>
+<phrase>
+    <source>6</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>7</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>8</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>9</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>10</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>11</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>12</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>14</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>16</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>18</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>20</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>22</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>&amp;Abbrechen</target>
+</phrase>
+<phrase>
+    <source>&amp;Save</source>
+    <target>&amp;Speichern</target>
+</phrase>
+<phrase>
+    <source>Attach</source>
+    <target>anhängen</target>
+</phrase>
+<phrase>
+    <source>&amp;Attach</source>
+    <target>&amp;Anhängen</target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>&amp;Abbrechen</target>
+</phrase>
+<phrase>
+    <source>Form</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Goto</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Ctrl+G</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Calculator</source>
+    <target>Rechner</target>
+</phrase>
+<phrase>
+    <source>&amp;Follow in Disassembler</source>
+    <target>In Disassembler folgen</target>
+</phrase>
+<phrase>
+    <source>XXXX</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Expression:</source>
+    <target>Ausdruck</target>
+</phrase>
+<phrase>
+    <source>Octal:</source>
+    <target>oktal:</target>
+</phrase>
+<phrase>
+    <source>Unsigned:</source>
+    <target>vorzeichenlos:</target>
+</phrase>
+<phrase>
+    <source>Hexadecimal:</source>
+    <target>hexadezimal:</target>
+</phrase>
+<phrase>
+    <source>ASCII:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0001 0010</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Binary:</source>
+    <target>binär:</target>
+</phrase>
+<phrase>
+    <source>XXX</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Unicode:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Signed:</source>
+    <target>vorzeichenbehaftet:</target>
+</phrase>
+<phrase>
+    <source>&amp;Close</source>
+    <target>&amp;Schließen</target>
+</phrase>
+<phrase>
+    <source>Closing Debugger...</source>
+    <target>Debugger wird geschlossen ...</target>
+</phrase>
+<phrase>
+    <source>Form</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>File -&gt; Open</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>File -&gt; Attach</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>File -&gt; Detach</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>File -&gt; Exit</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; CPU</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Log</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Breakpoints</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Memory Map</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Call Stack</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Symbol Info</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; References</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Threads</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Patches</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Comments</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Labels</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Bookmarks</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>View -&gt; Functions</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Run</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Run (skip exceptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Run until selection</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Pause</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Restart</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Close</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Step into</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Step into (skip execptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Step over</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Step over (skip execptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Execute till return</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; execute till return (skip exceptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug -&gt; Command</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Plugins -&gt; Scylla</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Options -&gt; Preferences</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Help -&gt; About</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Help -&gt; Donate</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Help -&gt; Check for Updates</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Help -&gt; Calculator</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Find Strings</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Find Intermodular Calls</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Toggle Breakpoint</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Toggle Bookmark</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Delete Breakpoint</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Enable/Disable Breakpoint</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Edit</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Fill</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Fill NOPs</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Copy</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Paste</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Binary Paste (Ignore Size)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Undo Selection</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Set Label</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Set Comment</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Toggle Function</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Assemble</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Set New Origin Here</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Goto Origin</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Goto Previous</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Goto Next</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Goto Expression</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Find References to Selected Address</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Find Pattern</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Highlighting Mode</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Find</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Increase Register</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Decrease Register</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Zero Register</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Set Register to One</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Toggle Register Value</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Copy</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Load Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Unload Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Run Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Toggle Script Breakpoint</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Run Script to Cursor</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Step Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Abort Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Actions -&gt; Execute Script Command</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Range</source>
+    <target>Bereich</target>
+</phrase>
+<phrase>
+    <source>Start:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>End:</source>
+    <target>Ende:</target>
+</phrase>
+<phrase>
+    <source>OK</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Cancel</source>
+    <target>Abbrechen</target>
+</phrase>
+<phrase>
+    <source>Enter expression to follow...</source>
+    <target>Zielausdruck eingeben ...</target>
+</phrase>
+<phrase>
+    <source>&amp;OK</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>&amp;Abbrechen</target>
+</phrase>
+<phrase>
+    <source>HexEdit</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;ASCII:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;UNICODE:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Hex:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Ascii2Hex</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Unicode2Hex</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;OK</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>&amp;Abbrechen</target>
+</phrase>
+<phrase>
+    <source>&amp;Keep Size</source>
+    <target>&amp;Größe behalten</target>
+</phrase>
+<phrase>
+    <source>&amp;Entire Block</source>
+    <target>&amp;ganzer Block</target>
+</phrase>
+<phrase>
+    <source>Dialog</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>CheckBox</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;OK</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target>&amp;Abbrechen</target>
+</phrase>
+<phrase>
+    <source>x64_dbg</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;File</source>
+    <target>&amp;Datei</target>
+</phrase>
+<phrase>
+    <source>&amp;Recent Files</source>
+    <target>&amp;letzte Dateien</target>
+</phrase>
+<phrase>
+    <source>&amp;View</source>
+    <target>&amp;Ansicht</target>
+</phrase>
+<phrase>
+    <source>&amp;Debug</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Help</source>
+    <target>&amp;Hilfe</target>
+</phrase>
+<phrase>
+    <source>&amp;Plugins</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Options</source>
+    <target>&amp;Optionen</target>
+</phrase>
+<phrase>
+    <source>toolBar</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Open</source>
+    <target>&amp;öffnen</target>
+</phrase>
+<phrase>
+    <source>E&amp;xit</source>
+    <target>be%enden</target>
+</phrase>
+<phrase>
+    <source>&amp;Run</source>
+    <target>starten</target>
+</phrase>
+<phrase>
+    <source>&amp;Pause</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Re&amp;start</source>
+    <target>restarten</target>
+</phrase>
+<phrase>
+    <source>&amp;Close</source>
+    <target>%schließen</target>
+</phrase>
+<phrase>
+    <source>Step &amp;into</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Step &amp;over</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Co&amp;mmand</source>
+    <target>%Befehl</target>
+</phrase>
+<phrase>
+    <source>E&amp;xecute till return</source>
+    <target>bis RET ausführen</target>
+</phrase>
+<phrase>
+    <source>&amp;Memory Map</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Log Window</source>
+    <target>Logfenster</target>
+</phrase>
+<phrase>
+    <source>&amp;About</source>
+    <target>Ü&amp;ber</target>
+</phrase>
+<phrase>
+    <source>Scylla</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Breakpoints</source>
+    <target>&amp;Haltepunkte</target>
+</phrase>
+<phrase>
+    <source>Step into (skip exceptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Step over (skip exceptions)</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Run (&amp;skip exceptions)</source>
+    <target>starten (überspringe Exceptions)</target>
+</phrase>
+<phrase>
+    <source>Execute till return (skip exceptions)</source>
+    <target>bis RET ausführen (ignoriere Exceptions)</target>
+</phrase>
+<phrase>
+    <source>&amp;Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Script</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Run &amp;until selection</source>
+    <target>starte bis Auswahl</target>
+</phrase>
+<phrase>
+    <source>Run until selection</source>
+    <target>starte bis Auswahl</target>
+</phrase>
+<phrase>
+    <source>&amp;CPU</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>CPU</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Symbol &amp;Info</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Symbol Info</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;References</source>
+    <target>Verweise</target>
+</phrase>
+<phrase>
+    <source>References</source>
+    <target>Verweise</target>
+</phrase>
+<phrase>
+    <source>&amp;Threads</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Threads</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Preferences</source>
+    <target>Einstellungen</target>
+</phrase>
+<phrase>
+    <source>Settings</source>
+    <target>Einstellungen</target>
+</phrase>
+<phrase>
+    <source>&amp;Find Strings</source>
+    <target>&amp;Finde Zeichenketten</target>
+</phrase>
+<phrase>
+    <source>Find Strings</source>
+    <target>finde Zeichenketten</target>
+</phrase>
+<phrase>
+    <source>&amp;Appearance</source>
+    <target>Dars&amp;tellung</target>
+</phrase>
+<phrase>
+    <source>Find Intermodular Calls</source>
+    <target>finde intermodulare Aufrufe</target>
+</phrase>
+<phrase>
+    <source>Patches</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Comments</source>
+    <target>Kommentare</target>
+</phrase>
+<phrase>
+    <source>Labels</source>
+    <target>Bezeichner</target>
+</phrase>
+<phrase>
+    <source>Bookmarks</source>
+    <target>Lesezeichen</target>
+</phrase>
+<phrase>
+    <source>Functions</source>
+    <target>Funktionen</target>
+</phrase>
+<phrase>
+    <source>Check for &amp;Updates</source>
+    <target>nach &amp;Updates suchen</target>
+</phrase>
+<phrase>
+    <source>Call Stack</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Shortcuts</source>
+    <target>Tastaturkürzel</target>
+</phrase>
+<phrase>
+    <source>&amp;Donate</source>
+    <target>S%penden</target>
+</phrase>
+<phrase>
+    <source>Donate</source>
+    <target>Spenden</target>
+</phrase>
+<phrase>
+    <source>Calculator</source>
+    <target>Rechner</target>
+</phrase>
+<phrase>
+    <source>Attach</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Detach</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Open file</source>
+    <target>Datei öffnen</target>
+</phrase>
+<phrase>
+    <source>Executables (*.exe *.dll);;All files (*.*)</source>
+    <target>ausführbare Dateien (*.exe *.dll);;alle Dateien (*.*)</target>
+</phrase>
+<phrase>
+    <source>Set Page Memory Rights</source>
+    <target>setze Speicherseiten-Reche</target>
+</phrase>
+<phrase>
+    <source>Rights</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>NO ACCESS</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>READ ONLY</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>READ WRITE</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>EXECUTE</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>EXECUTE READ</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>FULL ACCESS</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>WRITE COPY</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>EXECUTE WRITE COPY</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Set Rights</source>
+    <target>setze Rechte</target>
+</phrase>
+<phrase>
+    <source>Select ALL</source>
+    <target>alle auswählen</target>
+</phrase>
+<phrase>
+    <source>Deselect ALL</source>
+    <target>alle delselektieren</target>
+</phrase>
+<phrase>
+    <source>Press CTRL or SHIFT key to select multiple pages</source>
+    <target>drücke Strg oder Shift um mehrere Seiten auszuwählen</target>
+</phrase>
+<phrase>
+    <source>PAGE GUARD</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Patches</source>
+    <target>Patchs</target>
+</phrase>
+<phrase>
+    <source>&amp;Patches</source>
+    <target>&amp;Patchs</target>
+</phrase>
+<phrase>
+    <source>&amp;Modules</source>
+    <target>Module</target>
+</phrase>
+<phrase>
+    <source>&amp;Select All</source>
+    <target>alle auswählen</target>
+</phrase>
+<phrase>
+    <source>&amp;Deselect All</source>
+    <target>alle deselktieren</target>
+</phrase>
+<phrase>
+    <source>&amp;Restore Selected</source>
+    <target>Auswahl wiederherstellen</target>
+</phrase>
+<phrase>
+    <source>Pick &amp;Groups</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Patch File</source>
+    <target>Datei patchen</target>
+</phrase>
+<phrase>
+    <source>&amp;Import</source>
+    <target>importieren</target>
+</phrase>
+<phrase>
+    <source>&amp;Export</source>
+    <target>exportieren</target>
+</phrase>
+<phrase>
+    <source>Open patch</source>
+    <target>Patch öffnen</target>
+</phrase>
+<phrase>
+    <source>Patch files (*.1337)</source>
+    <target>Patchdateien (*.1337)</target>
+</phrase>
+<phrase>
+    <source>Save patch</source>
+    <target>Patch sichern</target>
+</phrase>
+<phrase>
+    <source>Group Selector</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>0000000000000000</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Toggle</source>
+    <target>umschalten</target>
+</phrase>
+<phrase>
+    <source>&amp;Previous</source>
+    <target>vorheriges</target>
+</phrase>
+<phrase>
+    <source>&amp;Next</source>
+    <target>%nächstes</target>
+</phrase>
+<phrase>
+    <source>DbgInit Error!</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Increment</source>
+    <target>inkrementieren</target>
+</phrase>
+<phrase>
+    <source>Decrement</source>
+    <target>dekrementieren</target>
+</phrase>
+<phrase>
+    <source>Zero</source>
+    <target>nullen</target>
+</phrase>
+<phrase>
+    <source>Set to 1</source>
+    <target>auf 1 setzen</target>
+</phrase>
+<phrase>
+    <source>Modify Value</source>
+    <target>Wert ändern</target>
+</phrase>
+<phrase>
+    <source>Toggle</source>
+    <target>umschalten</target>
+</phrase>
+<phrase>
+    <source>Copy Value to Clipboard</source>
+    <target>kopiere in die Zwischenablage</target>
+</phrase>
+<phrase>
+    <source>Follow in Disassembler</source>
+    <target>in Disassembler folgen</target>
+</phrase>
+<phrase>
+    <source>Follow in Dump</source>
+    <target>in Dump folgen</target>
+</phrase>
+<phrase>
+    <source>Select script</source>
+    <target>Skript auswählen</target>
+</phrase>
+<phrase>
+    <source>Script files (*.txt *.scr);;All files (*.*)</source>
+    <target>Skriptdateien (*.txt *.scr);;alle Dateien (*.*)</target>
+</phrase>
+<phrase>
+    <source>Form</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Search:</source>
+    <target>Suche:</target>
+</phrase>
+<phrase>
+    <source>Settings</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Events</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Break on:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>System Breakpoint*</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>TLS Callbacks*</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Entry Breakpoint*</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>DLL Load</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>DLL Unload</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Thread Start</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Thread End</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Debug Strings</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>DLL Entry</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Thread Entry</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Attach Breakpoint</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Engine</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Calculation Type:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Default Breakpoint Type:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Signed</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Unsigned</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>INT3</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Long INT3</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>UD2</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Undecorate Symbol Names</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Enable Debug &amp;Privilege</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Exceptions</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Ignored Exceptions:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Add &amp;Range</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Delete Range</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Add &amp;Last</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Disasm</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Argument Spaces</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Memory Spaces</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Uppercase</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Autocomments only on CIP</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Misc</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Set x64_dbg as Just In Time Debugger</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>JIT:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Confirm before attaching</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Save</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Cancel</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Shortcuts</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Shortcut</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Save</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>&amp;Cancel</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Form</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Edit</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Signed:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Unsigned:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Bytes:</source>
+    <target></target>
+</phrase>
+<phrase>
+    <source>Expression:</source>
+    <target></target>
+</phrase>
+</QPH>
