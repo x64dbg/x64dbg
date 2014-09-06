@@ -1,6 +1,6 @@
 #include "threading.h"
 
-static volatile bool waitarray[16];
+static volatile bool waitarray[WAITID_LAST];
 
 void waitclear()
 {
