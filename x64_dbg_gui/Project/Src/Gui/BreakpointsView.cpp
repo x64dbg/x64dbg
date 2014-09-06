@@ -205,11 +205,12 @@ void BreakpointsView::refreshShortcutsSlot()
 
 void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 {
-    if(mHardBPTable->getRowCount() != 0)
+    StdTable* table = mHardBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -249,21 +250,21 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu("&Copy", this);
-        mHardBPTable->setupCopyMenu(&wCopyMenu);
+        table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
             wMenu->addSeparator();
             wMenu->addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(mHardBPTable->mapToGlobal(pos));
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeHardBPActionSlot()
 {
-    //qDebug() << "mHardBPTable->getInitialSelection()" << mHardBPTable->getInitialSelection();
-    uint_t wVA = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mHardBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_hardware, wVA);
 }
 
@@ -274,12 +275,17 @@ void BreakpointsView::removeAllHardBPActionSlot()
 
 void BreakpointsView::enableDisableHardBPActionSlot()
 {
-    Breakpoints::toggleBPByDisabling(bp_hardware, mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mHardBPTable;
+    Breakpoints::toggleBPByDisabling(bp_hardware, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
 }
 
 void BreakpointsView::doubleClickHardwareSlot()
 {
-    QString addrText = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0);
+    StdTable* table = mHardBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }
@@ -309,11 +315,12 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
 
 void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 {
-    if(mSoftBPTable->getRowCount() != 0)
+    StdTable* table = mSoftBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -353,20 +360,21 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu("&Copy", this);
-        mSoftBPTable->setupCopyMenu(&wCopyMenu);
+        table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
             wMenu->addSeparator();
             wMenu->addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(mSoftBPTable->mapToGlobal(pos));
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeSoftBPActionSlot()
 {
-    uint_t wVA = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mSoftBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_normal, wVA);
 }
 
@@ -377,12 +385,17 @@ void BreakpointsView::removeAllSoftBPActionSlot()
 
 void BreakpointsView::enableDisableSoftBPActionSlot()
 {
-    Breakpoints::toggleBPByDisabling(bp_normal, mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mSoftBPTable;
+    Breakpoints::toggleBPByDisabling(bp_normal, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
 }
 
 void BreakpointsView::doubleClickSoftwareSlot()
 {
-    QString addrText = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0);
+    StdTable* table = mSoftBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }
@@ -412,11 +425,12 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
 
 void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 {
-    if(mMemBPTable->getRowCount() != 0)
+    StdTable* table = mMemBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -456,20 +470,21 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 
         //Copy
         QMenu wCopyMenu("&Copy", this);
-        mMemBPTable->setupCopyMenu(&wCopyMenu);
+        table->setupCopyMenu(&wCopyMenu);
         if(wCopyMenu.actions().length())
         {
             wMenu->addSeparator();
             wMenu->addMenu(&wCopyMenu);
         }
 
-        wMenu->exec(mMemBPTable->mapToGlobal(pos));
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeMemBPActionSlot()
 {
-    uint_t wVA = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mMemBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_memory, wVA);
 }
 
@@ -480,12 +495,17 @@ void BreakpointsView::removeAllMemBPActionSlot()
 
 void BreakpointsView::enableDisableMemBPActionSlot()
 {
-    Breakpoints::toggleBPByDisabling(bp_memory, mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mMemBPTable;
+    Breakpoints::toggleBPByDisabling(bp_memory, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
 }
 
 void BreakpointsView::doubleClickMemorySlot()
 {
-    QString addrText = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0);
+    StdTable* table = mMemBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     emit showCpu();
 }
