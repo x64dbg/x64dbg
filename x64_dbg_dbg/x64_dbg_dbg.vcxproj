@@ -35,6 +35,9 @@
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
+    <ClCompile Include="UString\Exception.cpp" />
+    <ClCompile Include="UString\String.cpp" />
+    <ClCompile Include="UString\UString.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
@@ -83,6 +86,9 @@
     <ClInclude Include="threading.h" />
     <ClInclude Include="TitanEngine\TitanEngine.h" />
     <ClInclude Include="undocumented.h" />
+    <ClInclude Include="UString\Exception.h" />
+    <ClInclude Include="UString\String.h" />
+    <ClInclude Include="UString\UString.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64_dbg.h" />

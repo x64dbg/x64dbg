@@ -34,6 +34,12 @@
     <Filter Include="Header Files\lz4">
       <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\UString">
+      <UniqueIdentifier>{adf51b13-6f3b-4b04-9ba9-21fb7a38150d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UString">
+      <UniqueIdentifier>{ee24febc-948e-4226-ba0e-68a9b449fb23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="_exports.cpp">
@@ -128,6 +134,15 @@
     </ClCompile>
     <ClCompile Include="debugger_commands.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UString\Exception.cpp">
+      <Filter>Source Files\UString</Filter>
+    </ClCompile>
+    <ClCompile Include="UString\String.cpp">
+      <Filter>Source Files\UString</Filter>
+    </ClCompile>
+    <ClCompile Include="UString\UString.cpp">
+      <Filter>Source Files\UString</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -274,6 +289,15 @@
     </ClInclude>
     <ClInclude Include="dynamicmem.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\Exception.h">
+      <Filter>Header Files\UString</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\String.h">
+      <Filter>Header Files\UString</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\UString.h">
+      <Filter>Header Files\UString</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
