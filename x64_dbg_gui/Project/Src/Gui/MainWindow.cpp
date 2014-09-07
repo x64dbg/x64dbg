@@ -204,10 +204,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 DWORD WINAPI MainWindow::closeThread(void* ptr)
 {
-    static bool closing = false;
-    if(closing)
-        return 0;
-    closing = true;
     DbgExit();
     MainWindow* mainWindow = (MainWindow*)ptr;
     mainWindow->bClose = true;
@@ -220,7 +216,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
     hide(); //hide main window
     mCloseDialog->show();
     mCloseDialog->setFocus();
-    CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+    static bool bExecuteThread = true;
+    if(bExecuteThread)
+    {
+        bExecuteThread = false;
+        CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+    }
     if(bClose)
         event->accept();
     else

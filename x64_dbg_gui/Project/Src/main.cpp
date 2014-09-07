@@ -86,5 +86,3 @@ int main(int argc, char* argv[])
     mConfiguration->save(); //save config on exit
     return result;
 }
-
-
