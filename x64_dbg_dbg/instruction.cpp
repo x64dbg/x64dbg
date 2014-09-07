@@ -934,6 +934,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrCopystr(int argc, char* argv[])
 {
+    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");
@@ -982,6 +983,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
 
 CMDRESULT cbInstrFind(int argc, char* argv[])
 {
+    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");
@@ -1033,6 +1035,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
 
 CMDRESULT cbInstrFindAll(int argc, char* argv[])
 {
+    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");

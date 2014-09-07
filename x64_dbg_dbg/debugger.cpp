@@ -457,6 +457,7 @@ void cbLibrarianBreakpoint(void* lpData)
 
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
+    //TODO: utf8
     UNREFERENCED_PARAMETER(hProcess);
     UNREFERENCED_PARAMETER(UserContext);
     PIMAGEHLP_CBA_EVENT evt;
@@ -646,6 +647,7 @@ void cbRtrStep()
 ///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
+    //TODO: utf8
     void* base = CreateProcessInfo->lpBaseOfImage;
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
@@ -949,6 +951,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
+    //TODO: utf8
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
@@ -1019,6 +1022,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
+    //TODO: utf8
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception = ExceptionData;
@@ -1163,6 +1167,7 @@ static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 
 DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
+    //TODO: utf8
     lock(WAITID_STOP); //we are running
     //initialize
     bIsAttached = false;
@@ -1404,6 +1409,7 @@ static void cbAttachDebugger()
 
 DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
+    //TODO: utf8
     lock(WAITID_STOP);
     bIsAttached = true;
     bSkipExceptions = false;
@@ -1638,6 +1644,7 @@ void dbggetpageligned(uint* addr)
 
 bool dbgpagerightsfromstring(DWORD* protect, char* rights_string)
 {
+    //TODO: utf8
     if(strlen(rights_string) < 2)
         return false;
 
@@ -1782,6 +1789,7 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
+    //TODO: utf8
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
     readwritejitkey_error_t rw_error;
     if(_readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true) == false)

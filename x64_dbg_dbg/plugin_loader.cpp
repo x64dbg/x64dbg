@@ -260,6 +260,7 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
 
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
 {
+    //TODO: utf8
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
         return false;
     PLUG_COMMAND plugCmd;
@@ -274,6 +275,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
 
 bool plugincmdunregister(int pluginHandle, const char* command)
 {
+    //TODO: utf8
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
         return false;
     int listsize = (int)pluginCommandList.size();
@@ -293,6 +295,7 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 
 int pluginmenuadd(int hMenu, const char* title)
 {
+    //TODO: utf8
     if(!title or !strlen(title))
         return -1;
     int nFound = -1;
@@ -317,6 +320,7 @@ int pluginmenuadd(int hMenu, const char* title)
 
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
+    //TODO: utf8
     if(!title or !strlen(title) or hEntry == -1)
         return false;
     int pluginHandle = -1;

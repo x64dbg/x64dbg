@@ -11,6 +11,7 @@ struct SYMBOLCBDATA
 
 static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
+    //TODO: utf8
     int len = (int)strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
@@ -126,6 +127,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
 
 bool symfromname(const char* name, uint* addr)
 {
+    //TODO: utf8
     if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
         return false;
     char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];

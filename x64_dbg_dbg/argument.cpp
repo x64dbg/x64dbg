@@ -25,6 +25,7 @@ formatarg:
 */
 void argformat(char* cmd)
 {
+    //TODO: utf8
     if(strlen(cmd) >= deflen)
         return;
 
@@ -160,6 +161,7 @@ void argformat(char* cmd)
 */
 int arggetcount(const char* cmd)
 {
+    //TODO: utf8
     int len = (int)strlen(cmd);
     if(!len or len >= deflen)
         return -1;
@@ -198,6 +200,7 @@ int arggetcount(const char* cmd)
 */
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {
+    //TODO: utf8
     if(strlen(cmd) >= deflen)
         return false;
     int argcount = arggetcount(cmd);

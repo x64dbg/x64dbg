@@ -107,6 +107,7 @@ void RegisterShellExtension(const char* key, const char* command)
     RegCloseKey(hKey);
 }
 
+//TODO: utf8
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     CoInitialize(NULL); //fixed some crash

@@ -54,6 +54,7 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
+    //TODO: utf8
     dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
     return STATUS_CONTINUE;
 }
@@ -215,6 +216,7 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     MESSAGE msg;
     msgwait(gMsgStack, &msg);
     char* newcmd = (char*)msg.param1;
+    //TODO: utf8
     if(strlen(newcmd) >= deflen)
     {
         dprintf("command cut at ~%d characters\n", deflen);
@@ -227,6 +229,7 @@ static bool cbCommandProvider(char* cmd, int maxlen)
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
+    //TODO: utf8
     int len = (int)strlen(cmd);
     char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
@@ -257,6 +260,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char dir[deflen] = "";
     if(!GetModuleFileNameA(hInst, dir, deflen))
         return "GetModuleFileNameA failed!";
+    //TODO: utf8
     int len = (int)strlen(dir);
     while(dir[len] != '\\')
         len--;

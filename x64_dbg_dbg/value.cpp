@@ -988,6 +988,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         strcpy(modname, name);
         modname[apiname - name] = 0;
         apiname++;
+        //TODO: utf8
         if(!strlen(apiname))
             return false;
         uint modbase = modbasefromname(modname);
@@ -1000,6 +1001,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         else
         {
             char szBaseName[256] = "";
+            //TODO: utf8
             int len = (int)strlen(szModName);
             while(szModName[len] != '\\')
                 len--;
@@ -1125,6 +1127,7 @@ static bool isdecnumber(const char* string)
             return false;
         decAdd++;
     }
+    //TODO: utf8
     int len = (int)strlen(string + decAdd);
     for(int i = 0; i < len; i++)
         if(!isdigit(string[i + decAdd]))
@@ -1144,6 +1147,7 @@ static bool ishexnumber(const char* string)
         add = 1;
     if(!string[add]) //only an indicator, no number
         return false;
+    //TODO: utf8
     int len = (int)strlen(string + add);
     for(int i = 0; i < len; i++)
         if(!isxdigit(string[i + add])) //all must be hex digits
@@ -1162,6 +1166,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(mathcontains(string)) //handle math
     {
+        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
@@ -1216,6 +1221,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 *isvar = true;
             return true;
         }
+        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "["))
@@ -1372,6 +1378,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
+        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
@@ -1426,6 +1433,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok = setregister(string, *value);
+        //TODO: utf8
         Memory<char*> regName(strlen(string) + 1, "valtostring:regname");
         strcpy(regName, string);
         _strlwr(regName);

@@ -19,6 +19,7 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
 
 bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction, char* error)
 {
+    //TODO: utf8
     if(strlen(instruction) >= XEDPARSE_MAXBUFSIZE)
         return false;
     XEDPARSE parse;

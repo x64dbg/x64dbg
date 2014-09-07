@@ -334,6 +334,7 @@ bool disasmispossiblestring(uint addr)
 
 bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
 {
+    //TODO: utf8
     if(type)
         *type = str_none;
     if(!disasmispossiblestring(addr))

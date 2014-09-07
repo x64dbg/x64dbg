@@ -62,6 +62,7 @@ static int scriptinternalstep(int fromIp) //internal step routine
 
 static bool scriptcreatelinemap(const char* filename)
 {
+    //TODO: utf8
     HANDLE hFile = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
@@ -205,6 +206,7 @@ static bool scriptcreatelinemap(const char* filename)
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
             strcpy(newraw, cur.raw);
             argformat(newraw);
+            //TODO: utf8
             int len = (int)strlen(newraw);
             for(int i = 0; i < len; i++)
                 if(newraw[i] == ' ')
@@ -312,6 +314,7 @@ static bool scriptisruncommand(const char* cmdlist)
 
 static bool scriptisinternalcommand(const char* text, const char* cmd)
 {
+    //TODO: utf8
     int len = (int)strlen(text);
     int cmdlen = (int)strlen(cmd);
     if(cmdlen > len)

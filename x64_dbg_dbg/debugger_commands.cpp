@@ -15,6 +15,7 @@ static bool bScyllaLoaded = false;
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
+    //TODO: utf8
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
 
