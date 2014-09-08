@@ -1758,7 +1758,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-void ShowCommandLineError(cmdline_error_t* cmdline_error)
+void showcommandlineerror(cmdline_error_t* cmdline_error)
 {
     bool unkown = false;
 
@@ -1827,7 +1827,7 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
 
     if(! dbggetcmdline(& cmd_line, & cmdline_error))
     {
-        ShowCommandLineError(& cmdline_error);
+        showcommandlineerror(& cmdline_error);
         return STATUS_ERROR;
     }
 
@@ -1850,7 +1850,7 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     if(! dbgsetcmdline(argv[1], & cmdline_error))
     {
-        ShowCommandLineError(& cmdline_error);
+        showcommandlineerror(& cmdline_error);
         return STATUS_ERROR;
     }
 

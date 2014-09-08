@@ -62,6 +62,6 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
 
 //misc
-void ShowCommandLineError(cmdline_error_t* cmdline_error);
+void showcommandlineerror(cmdline_error_t* cmdline_error);
 
 #endif //_DEBUGGER_COMMANDS_H
