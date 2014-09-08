@@ -14,3 +14,8 @@ CloseDialog::~CloseDialog()
 {
     delete ui;
 }
+
+void CloseDialog::closeEvent(QCloseEvent* event)
+{
+    event->ignore();
+}
