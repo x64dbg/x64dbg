@@ -4,8 +4,6 @@
 #include <QDialog>
 #include "NewTypes.h"
 
-#define PAGE_SIZE 0x1000
-
 namespace Ui
 {
 class PageMemoryRights;

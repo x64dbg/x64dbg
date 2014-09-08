@@ -12,7 +12,7 @@
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
 #define JIT_ENTRY_MAX_SIZE 512
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+
 
 typedef enum
 {
@@ -95,7 +95,7 @@ bool dbggetpagerights(uint*, char*);
 bool dbgpagerightstostring(DWORD, char*);
 void dbggetpageligned(uint*);
 bool dbgpagerightsfromstring(DWORD*, char*);
-bool dbgsetpagerights(uint*, char*);
+bool dbgsetpagerights(uint*, char*, bool);
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t*);
 bool dbggetdefjit(char* jit_entry);
 bool _readwritejitkey(char*, DWORD*, char*, arch, arch*, readwritejitkey_error_t*, bool);
@@ -103,12 +103,10 @@ bool dbggetjitauto(bool*, arch, arch*, readwritejitkey_error_t*);
 bool dbgsetjitauto(bool, arch, arch*, readwritejitkey_error_t*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 bool IsProcessElevated();
-HRESULT UnicodeToAnsi(LPCOLESTR, LPSTR*);
-HRESULT AnsiToUnicode(LPSTR, LPCOLESTR*);
 bool dbggetcmdline(char**, cmdline_error_t*);
 bool dbgsetcmdline(char*, cmdline_error_t*);
-bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error);
-bool __FixGetCommandLines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error);
+bool _fixgetcommandlines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error);
+bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error);
 bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error);
 
 void cbStep();

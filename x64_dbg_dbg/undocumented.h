@@ -19,51 +19,92 @@ typedef struct _CLIENT_ID
     HANDLE UniqueThread;
 } CLIENT_ID;
 
-/* FIX IT TO WORK FROM x64 debugger: ADD PVOIDs etc.. */
-typedef struct _PEB
+typedef struct _RTL_USER_PROCESS_PARAMETERS
 {
-    BYTE InheritedAddressSpace;
-    BYTE ReadImageFileExecOptions;
-    BYTE BeingDebugged;
-    BYTE SpareBool;
-    DWORD Mutant;
-    DWORD ImageBaseAddress;
-    DWORD LoaderData;
-    DWORD ProcessParameters;
-    DWORD SubSystemData;
-    DWORD ProcessHeap;
-    DWORD FastPebLock;
-    DWORD FastPebLockRoutine;
-    DWORD FastPebUnlockRoutine;
-    DWORD EnviromentUpdateCount;
-    DWORD KernelCallbackTable;
-    DWORD UserSharedInfoPtr;
-    DWORD ThunksOrOptions;
-    DWORD FreeList;
-    DWORD TlsExpansionCounter;
-    DWORD TlsBitmap;
+    BYTE           Reserved1[16];
+    PVOID          Reserved2[10];
+    UNICODE_STRING ImagePathName;
+    UNICODE_STRING CommandLine;
+} RTL_USER_PROCESS_PARAMETERS, *PRTL_USER_PROCESS_PARAMETERS;
+
+#pragma pack(push)
+#pragma pack(1)
+template <class T>
+struct LIST_ENTRY_T
+{
+    T Flink;
+    T Blink;
+};
+
+template <class T>
+struct UNICODE_STRING_T
+{
+    union
+    {
+        struct
+        {
+            WORD Length;
+            WORD MaximumLength;
+        };
+        T dummy;
+    };
+    T _Buffer;
+};
+template <class T, class NGF, int A>
+struct _PEB_T
+{
+    union
+    {
+        struct
+        {
+            BYTE InheritedAddressSpace;
+            BYTE ReadImageFileExecOptions;
+            BYTE BeingDebugged;
+            BYTE BitField;
+        };
+        T dummy01;
+    };
+    T Mutant;
+    T ImageBaseAddress;
+    T Ldr;
+    T ProcessParameters;
+    T SubSystemData;
+    T ProcessHeap;
+    T FastPebLock;
+    T AtlThunkSListPtr;
+    T IFEOKey;
+    T CrossProcessFlags;
+    T UserSharedInfoPtr;
+    DWORD SystemReserved;
+    DWORD AtlThunkSListPtr32;
+    T ApiSetMap;
+    T TlsExpansionCounter;
+    T TlsBitmap;
     DWORD TlsBitmapBits[2];
-    DWORD ReadOnlySharedMemoryBase;
-    DWORD ReadOnlySharedMemoryHeap;
-    DWORD ReadOnlyStaticServerData;
-    DWORD AnsiCodePageData;
-    DWORD OemCodePageData;
-    DWORD UnicodeCaseTableData;
+    T ReadOnlySharedMemoryBase;
+    T HotpatchInformation;
+    T ReadOnlyStaticServerData;
+    T AnsiCodePageData;
+    T OemCodePageData;
+    T UnicodeCaseTableData;
     DWORD NumberOfProcessors;
-    DWORD NtGlobalFlag;
-    DWORD Reserved;
+    union
+    {
+        DWORD NtGlobalFlag;
+        NGF dummy02;
+    };
     LARGE_INTEGER CriticalSectionTimeout;
-    DWORD HeapSegmentReserve;
-    DWORD HeapSegmentCommit;
-    DWORD HeapDeCommitTotalFreeThreshold;
-    DWORD HeapDeCommitFreeBlockThreshold;
+    T HeapSegmentReserve;
+    T HeapSegmentCommit;
+    T HeapDeCommitTotalFreeThreshold;
+    T HeapDeCommitFreeBlockThreshold;
     DWORD NumberOfHeaps;
     DWORD MaximumNumberOfHeaps;
-    DWORD ProcessHeaps;
-    DWORD GdiSharedHandleTable;
-    DWORD ProcessStarterHelper;
-    DWORD GdiDCAttributeList;
-    DWORD LoaderLock;
+    T ProcessHeaps;
+    T GdiSharedHandleTable;
+    T ProcessStarterHelper;
+    T GdiDCAttributeList;
+    T LoaderLock;
     DWORD OSMajorVersion;
     DWORD OSMinorVersion;
     WORD OSBuildNumber;
@@ -71,30 +112,47 @@ typedef struct _PEB
     DWORD OSPlatformId;
     DWORD ImageSubsystem;
     DWORD ImageSubsystemMajorVersion;
-    DWORD ImageSubsystemMinorVersion;
-    DWORD ImageProcessAffinityMask;
-    DWORD GdiHandleBuffer[34];
-    DWORD PostProcessInitRoutine;
-    DWORD TlsExpansionBitmap;
+    T ImageSubsystemMinorVersion;
+    T ActiveProcessAffinityMask;
+    T GdiHandleBuffer[A];
+    T PostProcessInitRoutine;
+    T TlsExpansionBitmap;
     DWORD TlsExpansionBitmapBits[32];
-    DWORD SessionId;
+    T SessionId;
     ULARGE_INTEGER AppCompatFlags;
     ULARGE_INTEGER AppCompatFlagsUser;
-    DWORD pShimData;
-    DWORD AppCompatInfo;
-    UNICODE_STRING CSDVersion;
-    DWORD ActivationContextData;
-    DWORD ProcessAssemblyStorageMap;
-    DWORD SystemDefaultActivationContextData;
-    DWORD SystemAssemblyStorageMap;
-    DWORD MinimumStackCommit;
-    DWORD FlsCallback;
-    DWORD FlsListHead_Flink;
-    DWORD FlsListHead_Blink;
-    DWORD FlsBitmap;
+    T pShimData;
+    T AppCompatInfo;
+    UNICODE_STRING_T<T> CSDVersion;
+    T ActivationContextData;
+    T ProcessAssemblyStorageMap;
+    T SystemDefaultActivationContextData;
+    T SystemAssemblyStorageMap;
+    T MinimumStackCommit;
+    T FlsCallback;
+    LIST_ENTRY_T<T> FlsListHead;
+    T FlsBitmap;
     DWORD FlsBitmapBits[4];
-    DWORD FlsHighIndex;
-} PEB, *PPEB;
+    T FlsHighIndex;
+    T WerRegistrationData;
+    T WerShipAssertPtr;
+    T pContextData;
+    T pImageHeaderHash;
+    T TracingFlags;
+};
+
+typedef _PEB_T<DWORD, DWORD64, 34> PEB32;
+typedef _PEB_T<DWORD64, DWORD, 30> PEB64;
+
+#pragma pack(pop)
+
+#ifdef _WIN64 //x64
+typedef PEB64 PEB;
+#else //x86
+typedef PEB32 PEB;
+#endif //_WIN64
+
+typedef PEB* PPEB;
 
 typedef struct _TEB
 {
@@ -157,33 +215,5 @@ typedef struct _TEB
     PVOID                   StackReserved;
 } TEB, *PTEB;
 
-typedef struct _RTL_USER_PROCESS_PARAMETERS
-{
-    BYTE           Reserved1[16];
-    PVOID          Reserved2[10];
-    UNICODE_STRING ImagePathName;
-    UNICODE_STRING CommandLine;
-} RTL_USER_PROCESS_PARAMETERS, *PRTL_USER_PROCESS_PARAMETERS;
-
-/*
-Workarround: this PEB its like the default PEB struct in MSDN,
-if you use the PEB of this header from the x64debugger you will have problems,
-for example: accessing ProcessParamater.
-*/
-typedef struct _MSDNPEB
-{
-    BYTE                          Reserved1[2];
-    BYTE                          BeingDebugged;
-    BYTE                          Reserved2[1];
-    PVOID                         Reserved3[2];
-    PVOID /*PPEB_LDR_DATA*/                 Ldr;
-    PRTL_USER_PROCESS_PARAMETERS  ProcessParameters;
-    BYTE                          Reserved4[104];
-    PVOID                         Reserved5[52];
-    PVOID /* PPS_POST_PROCESS_INIT_ROUTINE */ PostProcessInitRoutine;
-    BYTE                          Reserved6[128];
-    PVOID                         Reserved7[1];
-    ULONG                         SessionId;
-} MSDNPEB, *PMSDNPEB;
 
 #endif /* _UNDOCUMENTED_H */

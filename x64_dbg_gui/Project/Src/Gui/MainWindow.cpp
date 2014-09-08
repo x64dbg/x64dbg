@@ -12,7 +12,6 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
-#include "changecommandline.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -945,7 +944,34 @@ void MainWindow::on_actionChange_command_line_triggered()
 
         return;
     }
-    ChangeCommandline change_command_line;
-    change_command_line.exec();
 
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setText("this is the current command line");
+    mLineEdit.setWindowTitle("Edit Command Line");
+    mLineEdit.setWindowIcon(QIcon(":/icons/images/changeargs.png"));
+
+    char* cmd_line;
+    if(! DbgFunctions()->GetCmdline(& cmd_line))
+        mLineEdit.setText("Cant get remote command line use getcmdline command for more information");
+    else
+    {
+        mLineEdit.setText(QString(cmd_line));
+        free(cmd_line);
+    }
+
+    mLineEdit.setCursorPosition(0);
+
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return; //pressed cancel
+
+    if(!DbgFunctions()->SetCmdline((char*)mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Warning, "ERROR CANT SET COMMAND LINE", "ERROR SETTING COMMAND LINE TRY SETCOMMANDLINE COMMAND");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    else
+        GuiAddStatusBarMessage(QString("New command line: " + mLineEdit.editText + "\n").toUtf8().constData());
 }

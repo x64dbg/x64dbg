@@ -1671,7 +1671,7 @@ bool dbgpagerightsfromstring(DWORD* protect, char* rights_string)
     return true;
 }
 
-bool dbgsetpagerights(uint* addr, char* rights_string)
+bool dbgsetpagerights(uint* addr, char* rights_string, bool update_memmap)
 {
     DWORD protect;
     DWORD old_protect;
@@ -1684,8 +1684,11 @@ bool dbgsetpagerights(uint* addr, char* rights_string)
     if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
 
-    memupdatemap(fdProcessInfo->hProcess);
-    GuiUpdateMemoryView();
+    if(update_memmap)
+    {
+        memupdatemap(fdProcessInfo->hProcess);
+        GuiUpdateMemoryView();
+    }
 
     return true;
 }
@@ -1833,66 +1836,6 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
     return true;
 }
 
-HRESULT AnsiToUnicode(LPCSTR pszA, LPOLESTR* ppszW)
-{
-    ULONG cCharacters;
-    DWORD dwError;
-
-    // If input is null then just return the same.
-    if(NULL == pszA)
-    {
-        *ppszW = NULL;
-        return NOERROR;
-    }
-
-    // Determine number of wide characters to be allocated for the
-    // Unicode string.
-    cCharacters =  strlen(pszA) + 1;
-
-    *ppszW = (LPOLESTR) calloc(1, cCharacters * 2);
-    if(NULL == *ppszW)
-        return E_OUTOFMEMORY;
-
-    // Covert to Unicode.
-    if(0 == MultiByteToWideChar(CP_ACP, 0, pszA, cCharacters,
-                                *ppszW, cCharacters))
-    {
-        dwError = GetLastError();
-        free(*ppszW);
-        *ppszW = NULL;
-        return HRESULT_FROM_WIN32(dwError);
-    }
-
-    return NOERROR;
-}
-
-HRESULT UnicodeToAnsi(LPCOLESTR pszW, LPSTR* ppszA)
-{
-    ULONG cbAnsi, cCharacters;
-    DWORD dwError;
-    // If input is null then just return the same.
-    if(pszW == NULL)
-    {
-        *ppszA = NULL;
-        return NOERROR;
-    }
-    cCharacters = wcslen(pszW) + 1;
-    cbAnsi = cCharacters * 2;
-
-    *ppszA = (LPSTR) calloc(1, cbAnsi);
-    if(NULL == *ppszA)
-        return E_OUTOFMEMORY;
-
-    if(0 == WideCharToMultiByte(CP_ACP, 0, pszW, cCharacters, *ppszA, cbAnsi, NULL, NULL))
-    {
-        dwError = GetLastError();
-        free(*ppszA);
-        *ppszA = NULL;
-        return HRESULT_FROM_WIN32(dwError);
-    }
-    return NOERROR;
-}
-
 bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 {
     SIZE_T size;
@@ -1906,7 +1849,8 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    cmd_line_error->addr = (uint) & (((MSDNPEB*) cmd_line_error->addr)->ProcessParameters);
+    //cast-trick to calculate the address of the remote peb field ProcessParameters
+    cmd_line_error->addr = (uint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
     if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & pprocess_parameters, sizeof(pprocess_parameters), & size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
@@ -1918,7 +1862,7 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-bool __FixGetCommandLines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
+bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
     uint aux = 0;
@@ -1970,7 +1914,7 @@ bool __FixGetCommandLines(uint getcommandline, uint new_command_line, cmdline_er
     return true;
 }
 
-bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
+bool _fixgetcommandlines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
 {
     uint getcommandline;
 
@@ -1983,7 +1927,7 @@ bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_as
         }
     }
 
-    if(!__FixGetCommandLines(getcommandline, new_command_line_ascii, cmd_line_error))
+    if(!__fixgetcommandlines(getcommandline, new_command_line_ascii, cmd_line_error))
         return false;
 
     if(!valfromstring("kernelbase:GetCommandLineW", & getcommandline))
@@ -1995,7 +1939,7 @@ bool _FixGetCommandLines(uint new_command_line_unicode, uint new_command_line_as
         }
     }
 
-    if(! __FixGetCommandLines(getcommandline, new_command_line_unicode, cmd_line_error))
+    if(! __fixgetcommandlines(getcommandline, new_command_line_unicode, cmd_line_error))
         return false;
 
     return true;
@@ -2007,8 +1951,6 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
     UNICODE_STRING new_command_line;
     SIZE_T size;
     uint command_line_addr;
-    bool returnf;
-    PWSTR command_linewstr;
 
     if(cmd_line_error == NULL)
         cmd_line_error = & cmd_line_error_aux;
@@ -2018,10 +1960,14 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
 
     command_line_addr = cmd_line_error->addr;
 
-    new_command_line.Length = (strlen(cmd_line) + 1) * 2;
+    SIZE_T cmd_line_size =  strlen(cmd_line);
+    new_command_line.Length = (USHORT)(strlen(cmd_line) + 1) * sizeof(WCHAR);
     new_command_line.MaximumLength = new_command_line.Length;
 
-    if(AnsiToUnicode(cmd_line, & command_linewstr) != NOERROR)
+    Memory<wchar_t*> command_linewstr(new_command_line.Length);
+
+    // Covert to Unicode.
+    if(MultiByteToWideChar(CP_ACP, 0, cmd_line, (int) cmd_line_size + 1, command_linewstr, (int) cmd_line_size + 1) == 0)
     {
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
@@ -2029,55 +1975,48 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
 
     new_command_line.Buffer = command_linewstr;
 
-    returnf = false;
-
     uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length * 2, PAGE_READWRITE);
     if(!mem)
-        cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
-    else
     {
-        memupdatemap(fdProcessInfo->hProcess);
-        GuiUpdateMemoryView();
-        if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
-        {
-            cmd_line_error->addr = mem;
-            cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
-        }
-        else
-        {
-            if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
-            {
-                cmd_line_error->addr = mem + new_command_line.Length;
-                cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
-            }
-            else
-            {
-                if(_FixGetCommandLines(mem, mem + new_command_line.Length, cmd_line_error))
-                {
-                    new_command_line.Buffer = (PWSTR) mem;
-                    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
-                    {
-                        cmd_line_error->addr = command_line_addr;
-                        cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
-                    }
-                    else
-                        returnf = true;
-                }
-            }
-        }
+        cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
+        return false;
     }
 
-    free(command_linewstr);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
 
-    return returnf;
+    if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
+    {
+        cmd_line_error->addr = mem;
+        cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
+        return false;
+    }
+
+    if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
+    {
+        cmd_line_error->addr = mem + new_command_line.Length;
+        cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
+        return false;
+    }
+
+    if(!_fixgetcommandlines(mem, mem + new_command_line.Length, cmd_line_error))
+        return false;
+
+    new_command_line.Buffer = (PWSTR) mem;
+    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+    {
+        cmd_line_error->addr = command_line_addr;
+        cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
+        return false;
+    }
+
+    return true;
 }
 
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 {
     SIZE_T size;
     UNICODE_STRING CommandLine;
-    PWSTR wstr_cmd;
-    bool returnf;
     cmdline_error_t cmd_line_error_aux;
 
     if(cmd_line_error == NULL)
@@ -2092,27 +2031,33 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    wstr_cmd = (PWSTR) calloc(1, CommandLine.Length + sizeof(WCHAR));
-    if(wstr_cmd == NULL)
+    Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
+
+    cmd_line_error->addr = (uint) CommandLine.Buffer;
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, wstr_cmd, CommandLine.Length, & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
+        return false;
+    }
+
+    SIZE_T wstr_cmd_size = wcslen(wstr_cmd) + 1;
+    SIZE_T cmd_line_size = wstr_cmd_size * 2;
+
+    * cmd_line = (char*) calloc(1, cmd_line_size);
+    if(* cmd_line == NULL)
     {
         cmd_line_error->type = CMDL_ERR_ALLOC;
         return false;
     }
 
-    returnf = false;
-
-    cmd_line_error->addr = (uint) CommandLine.Buffer;
-    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, wstr_cmd, CommandLine.Length, & size))
-        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
-    else
+    //Convert TO ASCII
+    if(WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int) wstr_cmd_size, * cmd_line, (int) cmd_line_size, NULL, NULL) == 0)
     {
-        if(UnicodeToAnsi(wstr_cmd, cmd_line) != NOERROR)
-            cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
-        else
-            returnf = true;
+        free(* cmd_line);
+
+        cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
+        return false;
     }
 
-    free(wstr_cmd);
-
-    return returnf;
+    return true;
 }

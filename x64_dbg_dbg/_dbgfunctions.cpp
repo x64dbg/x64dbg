@@ -139,7 +139,7 @@ static bool _pagerightstostring(DWORD protect, char* rights)
 
 static bool _setpagerights(uint* addr, char* rights)
 {
-    return dbgsetpagerights(addr, rights);
+    return dbgsetpagerights(addr, rights, false);
 }
 
 static bool _getjit(char* jit, bool jit64)

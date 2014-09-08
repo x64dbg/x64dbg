@@ -713,6 +713,11 @@ BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
 BRIDGE_IMPEXP void GuiUpdateMemoryView();
 
+//other MISC defines
+
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+#define PAGE_SIZE 0x1000
+
 #ifdef __cplusplus
 }
 #endif

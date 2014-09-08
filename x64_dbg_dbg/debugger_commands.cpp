@@ -705,7 +705,8 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         varset("$lastalloc", mem, true);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
-    GuiUpdateMemoryView();
+    if(argc <= 2)
+        GuiUpdateMemoryView();
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
@@ -733,6 +734,8 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         dputs("VirtualFreeEx failed");
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
+    if(argc <= 2)
+        GuiUpdateMemoryView();
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }
@@ -1727,14 +1730,18 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
     char rights[RIGHTS_STRING];
+    bool update_memmap = true;
 
-    if(argc != 3 || !valfromstring(argv[1], &addr))
+    if(argc < 3 || !valfromstring(argv[1], &addr))
     {
         dprintf("Error: using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
         return STATUS_ERROR;
     }
 
-    if(!dbgsetpagerights(&addr, argv[2]))
+    if(argc >= 4)
+        update_memmap = false;
+
+    if(!dbgsetpagerights(&addr, argv[2], update_memmap))
     {
         dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
         return STATUS_ERROR;
