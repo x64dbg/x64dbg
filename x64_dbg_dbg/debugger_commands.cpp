@@ -27,7 +27,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("file does not exist!");
         return STATUS_ERROR;
     }
-    HANDLE hFile = CreateFileA(arg1, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs("could not open file!");
@@ -69,6 +69,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     while(currentfolder[len] != '\\' and len != 0)
         len--;
     currentfolder[len] = 0;
+
     if(DirExists(arg3))
         strcpy(currentfolder, arg3);
     //initialize

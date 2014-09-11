@@ -1174,13 +1174,13 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     bSkipExceptions = false;
     bBreakOnNextDll = false;
     INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
-    bFileIsDll = IsFileDLL(init->exe, 0);
-    pDebuggedEntry = GetPE32Data(init->exe, 0, UE_OEP);
+    bFileIsDll = IsFileDLLW(ConvertUtf8ToUtf16(init->exe).c_str(), 0);
+    pDebuggedEntry = GetPE32DataW(ConvertUtf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
     strcpy_s(szFileName, init->exe);
     if(bFileIsDll)
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), false, ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str(), 0);
     else
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str());
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;

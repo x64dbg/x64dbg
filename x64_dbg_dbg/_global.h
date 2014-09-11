@@ -21,6 +21,7 @@
 #include "jansson\jansson.h"
 #include "DeviceNameResolver\DeviceNameResolver.h"
 #include "handle.h"
+#include "UString\UString.h"
 
 #ifdef __GNUC__
 #include "dbghelp\dbghelp.h"
