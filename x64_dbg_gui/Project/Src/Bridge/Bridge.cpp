@@ -218,6 +218,11 @@ void Bridge::emitUpdateThreads()
     emit updateThreads();
 }
 
+void Bridge::emitUpdateMemory()
+{
+    emit updateMemory();
+}
+
 void Bridge::emitAddRecentFile(QString file)
 {
     emit addRecentFile(file);
@@ -618,6 +623,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_UPDATE_MEMORY_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateMemory();
+    }
+    break;
+
     case GUI_ADD_RECENT_FILE:
     {
         Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
@@ -756,6 +767,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     default:
     {
+
     }
     break;
     }

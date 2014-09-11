@@ -112,6 +112,16 @@ static bool _getjitauto(bool* jit_auto)
     return dbggetjitauto(jit_auto, notfound, NULL, NULL);
 }
 
+static bool _getcmdline(char** cmd_line)
+{
+    return dbggetcmdline(cmd_line, NULL);
+}
+
+static bool _setcmdline(char* cmd_line)
+{
+    return dbgsetcmdline(cmd_line, NULL);
+}
+
 static bool _isprocesselevated(void)
 {
     return IsProcessElevated();
@@ -129,7 +139,7 @@ static bool _pagerightstostring(DWORD protect, char* rights)
 
 static bool _setpagerights(uint* addr, char* rights)
 {
-    return dbgsetpagerights(addr, rights);
+    return dbgsetpagerights(addr, rights, false);
 }
 
 static bool _getjit(char* jit, bool jit64)
@@ -204,4 +214,6 @@ void dbgfunctionsinit()
     _dbgfunctions.SetPageRights = _setpagerights;
     _dbgfunctions.PageRightsToString = _pagerightstostring;
     _dbgfunctions.IsProcessElevated = _isprocesselevated;
+    _dbgfunctions.GetCmdline = _getcmdline;
+    _dbgfunctions.SetCmdline = _setcmdline;
 }

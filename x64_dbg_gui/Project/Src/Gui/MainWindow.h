@@ -151,6 +151,8 @@ protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
 
+private slots:
+    void on_actionChange_command_line_triggered();
 };
 
 #endif // MAINWINDOW_H

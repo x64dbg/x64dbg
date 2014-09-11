@@ -883,6 +883,11 @@ BRIDGE_IMPEXP void GuiUpdateDumpView()
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdateMemoryView()
+{
+    _gui_sendmessage(GUI_UPDATE_MEMORY_VIEW, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);

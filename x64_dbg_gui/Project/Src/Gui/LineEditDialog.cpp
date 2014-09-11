@@ -17,6 +17,11 @@ LineEditDialog::~LineEditDialog()
     delete ui;
 }
 
+void LineEditDialog::setCursorPosition(int position)
+{
+    ui->textEdit->setCursorPosition(position);
+}
+
 void LineEditDialog::setText(const QString & text)
 {
     ui->textEdit->setText(text);
