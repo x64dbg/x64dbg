@@ -22,83 +22,6 @@
 #include <errno.h>
 #include "Exception.h"
 
-void UTF8::String::ConvertFromDouble(const long double d, const UTF8::String & ThousandSeparator, const UTF8::String & FractionSeparator, const int IntegerPartLength, const int FractionPartLength)
-{
-    std::ostringstream os;
-    os.precision(15);
-    os << d;
-
-    UTF8::String Number(os.str());
-    UTF8::String Integer, Fraction;
-
-    // Extracting integer and fraction
-    std::vector <UTF8::String> Extracted = Number.Explode(".");
-
-    unsigned int IntegerLength;
-    if(IntegerPartLength)
-    {
-        IntegerLength = IntegerPartLength;
-    }
-    else
-    {
-        IntegerLength = Extracted[0].Length();
-    }
-
-    unsigned int FractionLength;
-    if(FractionPartLength)
-    {
-        FractionLength = FractionPartLength;
-    }
-    else
-    {
-        if(Extracted.size() > 1)
-        {
-            FractionLength = Extracted[1].Length();
-        }
-        else
-        {
-            FractionLength = 0;
-        }
-    }
-
-    // Parsing integer
-    for(unsigned int i = 0; i < IntegerLength; i++)
-    {
-        if((i > 0) && (i % 3 == 0))
-        {
-            Integer = ThousandSeparator + Integer;
-        }
-
-        if(Extracted[0].Length() < i + 1)
-        {
-            Integer = "0" + Integer;
-        }
-        else
-        {
-            Integer = Extracted[0][Extracted[0].Length() - 1 - i] + Integer;
-        }
-    }
-
-    // Parsing fraction
-    if(FractionLength)
-    {
-        Fraction = FractionSeparator;
-        for(unsigned int i = 0; i < FractionLength; i++)
-        {
-            if((Extracted.size() > 1) && (Extracted[1].Length() > i))
-            {
-                Fraction += Extracted[1][i];
-            }
-            else
-            {
-                Fraction += "0";
-            }
-        }
-    }
-
-    * this = Integer + Fraction;
-}
-
 bool UTF8::String::HasThisString(const UTF8::String & Str) const
 {
     return GetSubstringPosition(Str) != -1;
@@ -227,7 +150,7 @@ bool operator!=(const std::string & str, const UTF8::String & StringObj)
 
 UTF8::String UTF8::String::Quote() const
 {
-    return "«" + (*this) + "»";
+    return "\"" + (*this) + "\"";
 }
 
 UTF8::String UTF8::String::Trim() const
@@ -352,14 +275,6 @@ UTF8::String operator+(const char* CharPtr, const UTF8::String & StringObj)
 UTF8::String operator+(const std::string & str, const UTF8::String & StringObj)
 {
     UTF8::String s(str);
-    s += StringObj;
-
-    return s;
-}
-
-UTF8::String operator+(const long l, const UTF8::String & StringObj)
-{
-    UTF8::String s(l);
     s += StringObj;
 
     return s;
@@ -497,12 +412,6 @@ void UTF8::String::ConvertFromInt64(int64_t n)
     CalculateStringLength();
 }
 
-UTF8::String::String(const long double d, const UTF8::String & ThousandSeparator, const UTF8::String & DecimalSeparator, const int IntegerPartCount, const int FractionPartCount)
-{
-    InitString();
-    ConvertFromDouble(d, ThousandSeparator, DecimalSeparator, IntegerPartCount, FractionPartCount);
-}
-
 void UTF8::String::InitString()
 {
     Data = NULL;
@@ -527,7 +436,7 @@ int UTF8::String::GetSymbolIndexInDataArray(unsigned int Position) const
 {
     if(Position >= StringLength)
     {
-        throw Exception((UTF8::String("[GetSymbolIndexInDataArray] trying to get position beyond the end of string. StringLength: ") + StringLength + " Position: " + Position + " String: [" + Data + "]").ToString());
+        throw Exception(UTF8::String("[GetSymbolIndexInDataArray] trying to get position beyond the end of string."));
     }
 
     unsigned int n = 0;
@@ -851,14 +760,6 @@ UTF8::String & UTF8::String::operator=(const uint32_t* str)
     return *this;
 }
 
-UTF8::String & UTF8::String::operator=(long double d)
-{
-    Empty();
-    ConvertFromDouble(d);
-
-    return *this;
-}
-
 UTF8::String::operator std::string() const
 {
     return this->ToString();
@@ -883,86 +784,6 @@ std::string UTF8::String::ToString() const
     {
         return std::string();
     }
-}
-
-double UTF8::String::ToDouble() const
-{
-    int64_t mul = 1;
-    char c;
-    int int_part = 0;
-    double prec_part = 0;
-
-    for(int i = DataArrayLength - 1; i >= 0; i--)
-    {
-        c = Data[i];
-        if((c >= '0') && (c <= '9'))
-        {
-            int_part += (c - '0') * (int)mul;
-            mul *= 10;
-        }
-        else
-        {
-            if(c == '.')
-            {
-                prec_part = (double) int_part / (double) mul;
-                int_part = 0;
-                mul = 1;
-            }
-            else
-            {
-                if((c == '-') && (i == 0))
-                {
-                    int_part = -int_part;
-                    prec_part = -prec_part;
-                }
-                else
-                {
-                    UTF8::String err = "Cannot convert \"" + * this + "\" to double.";
-                    throw UTF8::Exception(err.ToConstCharPtr(), UTF8::Exception::StringToDoubleConversionError);
-                }
-            }
-        }
-    }
-    return int_part + prec_part;
-}
-
-int64_t UTF8::String::ToLong() const
-{
-    int64_t mul = 1;
-    char c;
-    int64_t number = 0;
-
-    for(int i = DataArrayLength - 1; i >= 0; i--)
-    {
-        c = Data[i];
-        if((c >= '0') && (c <= '9'))
-        {
-            number += (c - '0') * mul;
-            mul *= 10;
-        }
-        else
-        {
-            if(c == '.')
-            {
-                number = 0;
-                mul = 1;
-            }
-            else
-            {
-                if((c == '-') && (i == 0))
-                {
-                    number = -number;
-                }
-                else
-                {
-                    UTF8::String err = "Cannot convert \"" + * this + "\" to number.";
-                    throw UTF8::Exception(err.ToConstCharPtr(), UTF8::Exception::StringToIntConversionError);
-                }
-            }
-        }
-    }
-
-    return number;
 }
 
 UTF8::String UTF8::String::operator+(const char* s) const

@@ -2,7 +2,7 @@
 #include <windows.h>
 
 //Functions taken from: http://www.nubaria.com/en/blog/?p=289
-std::string ConvertUtf16ToUtf8(const std::wstring & wstr)
+UString ConvertUtf16ToUtf8(const std::wstring & wstr)
 {
     std::string convertedString;
     int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, 0, 0, 0, 0);
@@ -15,7 +15,7 @@ std::string ConvertUtf16ToUtf8(const std::wstring & wstr)
     return convertedString;
 }
 
-std::wstring ConvertUtf8ToUtf16(const std::string & str)
+std::wstring ConvertUtf8ToUtf16(const UString & str)
 {
     std::wstring convertedString;
     int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, 0, 0);

@@ -64,10 +64,8 @@ public:
     String(const String & orig);
 
     /**
-     * Converting from long constructor. Automatically generates string from number.
+     * Deconstructor.
      */
-    String(const long double d, const UTF8::String & ThousandSeparator = "", const UTF8::String & FractionSeparator = ".", const int IntegerPartLength = 0, const int FractionPartLength = 0);
-
     ~String();
 
     /**
@@ -79,16 +77,6 @@ public:
      * Reads content from a file and returns as UTF8::String
      */
     static String FromFile(const UTF8::String & Path);
-
-    /**
-     * Converts UTF8::String to long
-     */
-    int64_t ToLong() const;
-
-    /**
-     * Converts UTF8::String to double
-     */
-    double ToDouble() const;
 
     /**
      * Converts UTF8::String to const char *
@@ -140,11 +128,6 @@ public:
      * Automatically converts UNICODE to UTF-8 ans stores in itself
      */
     String & operator=(const uint32_t*);
-
-    /**
-     * Assign operator. Provides String1=(long double) expression.
-     */
-    String & operator=(long double);
 
     /**
      * Provides std::string test=String expression.
@@ -282,7 +265,6 @@ private:
     int GetSymbolIndexInDataArray(unsigned int Position) const;
 
     void ConvertFromUTF32(const uint32_t*);
-    void ConvertFromDouble(const long double d, const UTF8::String & ThousandSeparator = "", const UTF8::String & DecimalSeparator = ".", const int IntegerPartCount = 0, const int FractionPartCount = 0);
 
 };
 }
@@ -296,11 +278,6 @@ UTF8::String operator+(const char*, const UTF8::String &);
  * Not in class overloaded operator +. Provides std::string("123")+String1 expression.
  */
 UTF8::String operator+(const std::string &, const UTF8::String &);
-
-/**
- * Not in class overloaded operator +. Provides 123+String1 expression.
- */
-UTF8::String operator+(long, const UTF8::String &);
 
 /**
  * Not in class overloaded operator ==. Provides "Test"==String1 expression.
