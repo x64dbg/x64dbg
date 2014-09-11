@@ -71,13 +71,13 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
         finalText = addrText;
         if(addr == (addr & 0xFF))
         {
-            QChar c = QChar((char)addr);
+            QChar c = QChar::fromLatin1((char)addr);
             if(c.isPrint())
                 finalText += QString(" '%1'").arg((char)addr);
         }
         else if(addr == (addr & 0xFFF)) //UNICODE?
         {
-            QChar c = QChar((wchar_t)addr);
+            QChar c = QChar::fromLatin1((wchar_t)addr);
             if(c.isPrint())
                 finalText += " L'" + QString(c) + "'";
         }
