@@ -46,7 +46,6 @@ void cmdfree(COMMAND* cmd_list)
 
 bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
-    //TODO: utf8
     if(!command_list or !cbCommand or !name or !*name or cmdfind(command_list, name, 0))
         return false;
     COMMAND* cmd;
@@ -75,7 +74,6 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
 
 COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 {
-    //TODO: utf8
     char new_cmd[deflen] = "";
     strcpy_s(new_cmd, cmd);
     int len = (int)strlen(new_cmd);
@@ -138,7 +136,6 @@ error_is_fatal:       error return of a command callback stops the command proce
 */
 CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
 {
-    //TODO: utf8
     if(!cbUnknownCommand or !cbCommandProvider)
         return STATUS_ERROR;
     char command[deflen] = "";
@@ -208,7 +205,6 @@ static bool isvalidexpression(const char* expression)
 
 static void specialformat(char* string)
 {
-    //TODO: utf8
     int len = (int)strlen(string);
     char* found = strstr(string, "=");
     char* str = (char*)emalloc(len * 2, "specialformat:str");
@@ -285,7 +281,6 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
 
 CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
 {
-    //TODO: utf8
     if(!cmd or !strlen(cmd))
         return STATUS_ERROR;
     char command[deflen] = "";

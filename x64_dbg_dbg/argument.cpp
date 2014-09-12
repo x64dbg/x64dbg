@@ -25,7 +25,6 @@ formatarg:
 */
 void argformat(char* cmd)
 {
-    //TODO: utf8
     if(strlen(cmd) >= deflen)
         return;
 
@@ -55,7 +54,7 @@ void argformat(char* cmd)
     len = (int)strlen(arguments);
     for(int i = 0, j = 0; i < len; i++)
     {
-        if(arguments[i] == '"' and arguments[i + 1] == '"')
+        if(arguments[i] == '"' and arguments[i + 1] == '"') //TODO: fix this
             i += 2;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
@@ -161,7 +160,6 @@ void argformat(char* cmd)
 */
 int arggetcount(const char* cmd)
 {
-    //TODO: utf8
     int len = (int)strlen(cmd);
     if(!len or len >= deflen)
         return -1;
@@ -200,7 +198,6 @@ int arggetcount(const char* cmd)
 */
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {
-    //TODO: utf8
     if(strlen(cmd) >= deflen)
         return false;
     int argcount = arggetcount(cmd);

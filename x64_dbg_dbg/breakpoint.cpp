@@ -226,7 +226,6 @@ void bpcachesave(JSON root)
 
 void bpcacheload(JSON root)
 {
-    //TODO: utf8
     breakpoints.clear();
     const JSON jsonbreakpoints = json_object_get(root, "breakpoints");
     if(jsonbreakpoints)
