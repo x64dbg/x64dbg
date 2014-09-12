@@ -836,7 +836,7 @@ void CPUDisassembly::assembleAt()
                 return;
 
             //if the instruction its unkown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(mLineEdit.editText == QString("???") || mLineEdit.editText == instr.instStr || mLineEdit.editText == QString(""))
+            if(mLineEdit.editText == QString("???") || mLineEdit.editText.toLower() == instr.instStr.toLower() || mLineEdit.editText == QString(""))
                 break;
 
             Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
