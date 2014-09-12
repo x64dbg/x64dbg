@@ -142,7 +142,7 @@ void SettingsDialog::LoadSettings()
         {
             unsigned long start;
             unsigned long end;
-            if(sscanf(ranges.at(i).toUtf8().constData(), "%08X-%08X", &start, &end) == 2 && start <= end)
+            if(sscanf_s(ranges.at(i).toUtf8().constData(), "%08X-%08X", &start, &end) == 2 && start <= end)
             {
                 RangeStruct newRange;
                 newRange.start = start;

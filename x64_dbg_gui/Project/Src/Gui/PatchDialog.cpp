@@ -525,7 +525,7 @@ void PatchDialog::on_btnImport_clicked()
         if(!modbase)
             continue;
         curLine = curLine.replace(" ", "");
-        if(sscanf(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
+        if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
         {
             QMessageBox msg(QMessageBox::Critical, "Error!", QString("Patch file format is incorrect..."));
             msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
