@@ -793,66 +793,73 @@ void CPUDisassembly::assembleAt()
 {
     if(!DbgIsDebugging())
         return;
-    int_t wRVA = getInitialSelection();
-    uint_t wVA = rvaToVa(wRVA);
-    QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
 
-    QByteArray wBuffer;
-
-    int_t wMaxByteCountToRead = 16 * 2;
-
-    //TODO: fix size problems
-    int_t size = getSize();
-    if(!size)
-        size = wRVA;
-
-    // Bounding
-    wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
-
-    wBuffer.resize(wMaxByteCountToRead);
-
-    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
-
-    QBeaEngine disasm;
-    Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
-
-    QString actual_inst = instr.instStr;
-    bool assembly_error = false;
     do
     {
-        LineEditDialog mLineEdit(this);
-        mLineEdit.setText(actual_inst);
-        mLineEdit.setWindowTitle("Assemble at " + addr_text);
-        mLineEdit.setCheckBoxText("&Fill with NOP's");
-        mLineEdit.enableCheckBox(true);
-        mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
-        if(mLineEdit.exec() != QDialog::Accepted)
-            return;
-        Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+        int_t wRVA = getInitialSelection();
+        uint_t wVA = rvaToVa(wRVA);
+        QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
 
-        char error[MAX_ERROR_SIZE] = "";
-        if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+        QByteArray wBuffer;
+
+        int_t wMaxByteCountToRead = 16 * 2;
+
+        //TODO: fix size problems
+        int_t size = getSize();
+        if(!size)
+            size = wRVA;
+
+        // Bounding
+        wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
+
+        wBuffer.resize(wMaxByteCountToRead);
+
+        mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
+
+        QBeaEngine disasm;
+        Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+
+        QString actual_inst = instr.instStr;
+
+        bool assembly_error;
+        do
         {
-            QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
-            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-            msg.setParent(this, Qt::Dialog);
-            msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-            msg.exec();
-            actual_inst = mLineEdit.editText;
-            assembly_error = true;
+            assembly_error = false;
+
+            LineEditDialog mLineEdit(this);
+            mLineEdit.setText(actual_inst);
+            mLineEdit.setWindowTitle("Assemble at " + addr_text);
+            mLineEdit.setCheckBoxText("&Fill with NOP's");
+            mLineEdit.enableCheckBox(true);
+            mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return;
+            Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+
+            char error[MAX_ERROR_SIZE] = "";
+            if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+            {
+                QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+                msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+                msg.setParent(this, Qt::Dialog);
+                msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                msg.exec();
+                actual_inst = mLineEdit.editText;
+                assembly_error = true;
+            }
         }
+        while(assembly_error);
+
+        //select next instruction after assembling
+        setSingleSelection(wRVA);
+        int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+        expandSelectionUpTo(wRVA + wInstrSize);
+        selectNext(false);
+        //refresh view
+        GuiUpdateAllViews();
+
     }
-    while(assembly_error);
-
-    //select next instruction after assembling
-    setSingleSelection(wRVA);
-    int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
-    expandSelectionUpTo(wRVA + wInstrSize);
-    selectNext(false);
-    //refresh view
-    GuiUpdateAllViews();
-
-    assembleAt();
+    while(1);
 }
 
 void CPUDisassembly::gotoExpression()
