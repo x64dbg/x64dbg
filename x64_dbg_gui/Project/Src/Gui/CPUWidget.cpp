@@ -32,10 +32,13 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas, SIGNAL(selectionChanged(int_t)), mInfo, SLOT(disasmSelectionChanged(int_t)));
 
     mGeneralRegs = new RegistersView(0);
+    mGeneralRegs->setFixedWidth(1000);
 
-    //TODO: add more tabs
+    QScrollArea* scrollArea = new QScrollArea;
+    scrollArea->setWidget(mGeneralRegs);
+
     mRegsTab = new QTabWidget(this);
-    mRegsTab->addTab(mGeneralRegs, "General");
+    mRegsTab->addTab(scrollArea, "General");
 
     ui->mTopRightFrameLayout->addWidget(mRegsTab);
 

@@ -3,7 +3,8 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 
-RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
+
+RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
 {
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"), this);

@@ -1,7 +1,7 @@
 #ifndef REGISTERSVIEW_H
 #define REGISTERSVIEW_H
 
-#include <QAbstractScrollArea>
+#include <QScrollArea>
 #include <QSet>
 #include <QMap>
 #include "Bridge.h"
@@ -13,7 +13,7 @@ namespace Ui
 class RegistersView;
 }
 
-class RegistersView : public QAbstractScrollArea
+class RegistersView : public QScrollArea
 {
     Q_OBJECT
 
