@@ -21,6 +21,7 @@ public:
     void enableCheckBox(bool bEnable);
     void setCheckBox(bool bSet);
     void setCheckBoxText(const QString & text);
+    void setCursorPosition(int position);
 
 private slots:
     void on_textEdit_textChanged(const QString & arg1);

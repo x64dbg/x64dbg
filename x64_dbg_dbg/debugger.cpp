@@ -1529,11 +1529,10 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     {
         if(arch_in != x64 && arch_in != x32)
         {
-#ifdef _WIN32
-            * arch_out = x32;
-#endif
 #ifdef _WIN64
             * arch_out = x64;
+#else
+            * arch_out = x32;
 #endif
         }
         else
@@ -1552,7 +1551,7 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         }
 #endif
 
-#ifdef _WIN32
+#ifndef _WIN64
         key_flags |= KEY_WOW64_64KEY;
 #endif
     }
@@ -1570,21 +1569,22 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
             return false;
 
         lRv = RegSetValueExA(hKey, key, 0, REG_SZ, (BYTE*) jit_key_value, (DWORD)(* jit_key_vale_size) + 1);
-        RegCloseKey(hKey);
     }
     else
     {
         lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
         if(lRv != ERROR_SUCCESS)
+            return false;
+
+        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
+        if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
                 * error = ERROR_RW_FILE_NOT_FOUND;
-
-            return false;
         }
-
-        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
     }
+
+    RegCloseKey(hKey);
 
     if(lRv != ERROR_SUCCESS)
         return false;
@@ -1678,7 +1678,7 @@ bool dbgpagerightsfromstring(DWORD* protect, char* rights_string)
     return true;
 }
 
-bool dbgsetpagerights(uint* addr, char* rights_string)
+bool dbgsetpagerights(uint* addr, char* rights_string, bool update_memmap)
 {
     DWORD protect;
     DWORD old_protect;
@@ -1690,6 +1690,12 @@ bool dbgsetpagerights(uint* addr, char* rights_string)
 
     if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
+
+    if(update_memmap)
+    {
+        memupdatemap(fdProcessInfo->hProcess);
+        GuiUpdateMemoryView();
+    }
 
     return true;
 }
@@ -1835,5 +1841,231 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
         list->push_back(pe32);
     }
     while(Process32Next(hProcessSnap, &pe32));
+    return true;
+}
+
+bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
+{
+    SIZE_T size;
+    uint pprocess_parameters;
+
+    cmd_line_error->addr = (uint) GetPEBLocation(fdProcessInfo->hProcess);
+
+    if(cmd_line_error->addr == 0)
+    {
+        cmd_line_error->type = CMDL_ERR_GET_PEB;
+        return false;
+    }
+
+    //cast-trick to calculate the address of the remote peb field ProcessParameters
+    cmd_line_error->addr = (uint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & pprocess_parameters, sizeof(pprocess_parameters), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
+        return false;
+    }
+
+    * addr = (uint) & (((RTL_USER_PROCESS_PARAMETERS*) pprocess_parameters)->CommandLine);
+
+    return true;
+}
+
+bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
+{
+    uint command_line_stored = 0;
+    uint aux = 0;
+    SIZE_T size;
+    unsigned char data[100];
+
+    cmd_line_error->addr = getcommandline;
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & data, sizeof(data), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
+        return false;
+    }
+
+#ifdef _WIN64
+    if(data[0] != 0x48 ||  data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
+    {
+        cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
+        return false;
+    }
+    DWORD offset = * ((DWORD*) & data[3]);
+    command_line_stored = getcommandline + 7 + offset;
+
+    /*
+    00007FFC5B91E3C8 | 48 8B 05 19 1D 0E 00     | mov rax,qword ptr ds:[7FFC5BA000E8]
+    00007FFC5B91E3CF | C3                       | ret                                     |
+    This is a relative offset then to get the symbol: next instruction of getmodulehandle (+7 bytes) + offset to symbol
+    (the last 4 bytes of the instruction)
+    */
+#else
+    if(data[0] != 0xA1 ||  data[5] != 0xC3)
+    {
+        cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
+        return false;
+    }
+    command_line_stored = * ((uint*) & data[1]);
+    /*
+    750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
+    750FE9CF | C3                       | ret                                     |
+    */
+#endif
+
+    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_stored, & new_command_line, sizeof(new_command_line), & size))
+    {
+        cmd_line_error->addr = command_line_stored;
+        cmd_line_error->type = CMDL_ERR_WRITE_GETCOMMANDLINESTORED;
+        return false;
+    }
+
+    return true;
+}
+
+bool _fixgetcommandlines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
+{
+    uint getcommandline;
+
+    if(!valfromstring("kernelbase:GetCommandLineA", & getcommandline))
+    {
+        if(!valfromstring("kernel32:GetCommandLineA", & getcommandline))
+        {
+            cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
+            return false;
+        }
+    }
+
+    if(!__fixgetcommandlines(getcommandline, new_command_line_ascii, cmd_line_error))
+        return false;
+
+    if(!valfromstring("kernelbase:GetCommandLineW", & getcommandline))
+    {
+        if(!valfromstring("kernel32:GetCommandLineW", & getcommandline))
+        {
+            cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
+            return false;
+        }
+    }
+
+    if(! __fixgetcommandlines(getcommandline, new_command_line_unicode, cmd_line_error))
+        return false;
+
+    return true;
+}
+
+bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
+{
+    cmdline_error_t cmd_line_error_aux;
+    UNICODE_STRING new_command_line;
+    SIZE_T size;
+    uint command_line_addr;
+
+    if(cmd_line_error == NULL)
+        cmd_line_error = & cmd_line_error_aux;
+
+    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+        return false;
+
+    command_line_addr = cmd_line_error->addr;
+
+    SIZE_T cmd_line_size =  strlen(cmd_line);
+    new_command_line.Length = (USHORT)(strlen(cmd_line) + 1) * sizeof(WCHAR);
+    new_command_line.MaximumLength = new_command_line.Length;
+
+    Memory<wchar_t*> command_linewstr(new_command_line.Length);
+
+    // Covert to Unicode.
+    if(MultiByteToWideChar(CP_ACP, 0, cmd_line, (int) cmd_line_size + 1, command_linewstr, (int) cmd_line_size + 1) == 0)
+    {
+        cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
+        return false;
+    }
+
+    new_command_line.Buffer = command_linewstr;
+
+    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length * 2, PAGE_READWRITE);
+    if(!mem)
+    {
+        cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
+        return false;
+    }
+
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
+    if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
+    {
+        cmd_line_error->addr = mem;
+        cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
+        return false;
+    }
+
+    if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
+    {
+        cmd_line_error->addr = mem + new_command_line.Length;
+        cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
+        return false;
+    }
+
+    if(!_fixgetcommandlines(mem, mem + new_command_line.Length, cmd_line_error))
+        return false;
+
+    new_command_line.Buffer = (PWSTR) mem;
+    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+    {
+        cmd_line_error->addr = command_line_addr;
+        cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
+        return false;
+    }
+
+    return true;
+}
+
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
+{
+    SIZE_T size;
+    UNICODE_STRING CommandLine;
+    cmdline_error_t cmd_line_error_aux;
+
+    if(cmd_line_error == NULL)
+        cmd_line_error = & cmd_line_error_aux;
+
+    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+        return false;
+
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & CommandLine, sizeof(CommandLine), & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
+        return false;
+    }
+
+    Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
+
+    cmd_line_error->addr = (uint) CommandLine.Buffer;
+    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, wstr_cmd, CommandLine.Length, & size))
+    {
+        cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
+        return false;
+    }
+
+    SIZE_T wstr_cmd_size = wcslen(wstr_cmd) + 1;
+    SIZE_T cmd_line_size = wstr_cmd_size * 2;
+
+    * cmd_line = (char*) calloc(1, cmd_line_size);
+    if(* cmd_line == NULL)
+    {
+        cmd_line_error->type = CMDL_ERR_ALLOC;
+        return false;
+    }
+
+    //Convert TO ASCII
+    if(WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int) wstr_cmd_size, * cmd_line, (int) cmd_line_size, NULL, NULL) == 0)
+    {
+        free(* cmd_line);
+
+        cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
+        return false;
+    }
+
     return true;
 }

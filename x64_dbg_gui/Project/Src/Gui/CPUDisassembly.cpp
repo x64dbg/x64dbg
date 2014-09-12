@@ -816,26 +816,34 @@ void CPUDisassembly::assembleAt()
     QBeaEngine disasm;
     Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setText(instr.instStr);
-    mLineEdit.setWindowTitle("Assemble at " + addr_text);
-    mLineEdit.setCheckBoxText("&Fill with NOP's");
-    mLineEdit.enableCheckBox(true);
-    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
-
-    char error[MAX_ERROR_SIZE] = "";
-    if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+    QString actual_inst = instr.instStr;
+    bool assembly_error = false;
+    do
     {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        return;
+        LineEditDialog mLineEdit(this);
+        mLineEdit.setText(actual_inst);
+        mLineEdit.setWindowTitle("Assemble at " + addr_text);
+        mLineEdit.setCheckBoxText("&Fill with NOP's");
+        mLineEdit.enableCheckBox(true);
+        mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
+        if(mLineEdit.exec() != QDialog::Accepted)
+            return;
+        Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+
+        char error[MAX_ERROR_SIZE] = "";
+        if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+        {
+            QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+            msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+            msg.setParent(this, Qt::Dialog);
+            msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+            msg.exec();
+            actual_inst = mLineEdit.editText;
+            assembly_error = true;
+        }
     }
+    while(assembly_error);
+
     //select next instruction after assembling
     setSingleSelection(wRVA);
     int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
@@ -843,6 +851,8 @@ void CPUDisassembly::assembleAt()
     selectNext(false);
     //refresh view
     GuiUpdateAllViews();
+
+    assembleAt();
 }
 
 void CPUDisassembly::gotoExpression()

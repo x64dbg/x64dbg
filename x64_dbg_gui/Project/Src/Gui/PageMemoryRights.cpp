@@ -30,7 +30,6 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
     tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
     tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("Rights")));
 
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
     duint actual_addr;
     char rights[RIGHTS_STRING];
     for(uint_t i = 0; i < nr_pages; i++)

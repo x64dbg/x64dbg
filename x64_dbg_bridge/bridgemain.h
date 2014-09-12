@@ -634,7 +634,9 @@ typedef enum
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT      // param1=unused,               param2=unused
+    GUI_SYMBOL_REFRESH_CURRENT,      // param1=unused,               param2=unused
+    GUI_UPDATE_MEMORY_VIEW         // param1=unused,               param2=unused
+
 } GUIMSG;
 
 //GUI structures
@@ -690,6 +692,7 @@ BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col);
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
 BRIDGE_IMPEXP void GuiUpdateThreadView();
+BRIDGE_IMPEXP void GuiUpdateMemoryView();
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception);
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text);
@@ -708,6 +711,12 @@ BRIDGE_IMPEXP void GuiUpdateSideBar();
 BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
+BRIDGE_IMPEXP void GuiUpdateMemoryView();
+
+//other MISC defines
+
+#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+#define PAGE_SIZE 0x1000
 
 #ifdef __cplusplus
 }

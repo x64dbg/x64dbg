@@ -100,6 +100,7 @@ enum arch
     x64
 };
 
+
 //superglobal variables
 extern HINSTANCE hInst;
 extern char dbbasepath[deflen];

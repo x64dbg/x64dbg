@@ -17,6 +17,7 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * 5, "APROT", false, "Allocation Protection"); //allocation protection
     addColumnAt(100, "", false);
 
+    connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
