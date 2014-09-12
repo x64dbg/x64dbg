@@ -835,8 +835,10 @@ void CPUDisassembly::assembleAt()
             if(mLineEdit.exec() != QDialog::Accepted)
                 return;
 
-            if(actual_inst == QString("???"))
+            //if the instruction its unkown or is the old instruction or empty (easy way to skip from GUI) skipping
+            if(mLineEdit.editText == QString("???") || mLineEdit.editText == instr.instStr || mLineEdit.editText == QString(""))
                 break;
+
             Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
             char error[MAX_ERROR_SIZE] = "";
