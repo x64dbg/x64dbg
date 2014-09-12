@@ -834,6 +834,9 @@ void CPUDisassembly::assembleAt()
             mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
             if(mLineEdit.exec() != QDialog::Accepted)
                 return;
+
+            if(actual_inst == QString("???"))
+                break;
             Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
 
             char error[MAX_ERROR_SIZE] = "";
@@ -852,12 +855,22 @@ void CPUDisassembly::assembleAt()
 
         //select next instruction after assembling
         setSingleSelection(wRVA);
+
+        int_t botRVA = getTableOffset();
+        int_t topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
+
         int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+
         expandSelectionUpTo(wRVA + wInstrSize);
         selectNext(false);
+
+        if(getSelectionStart() < botRVA)
+            setTableOffset(getSelectionStart());
+        else if(getSelectionEnd() >= topRVA)
+            setTableOffset(getInstructionRVA(getSelectionEnd(), -getNbrOfLineToPrint() + 2));
+
         //refresh view
         GuiUpdateAllViews();
-
     }
     while(1);
 }
