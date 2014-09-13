@@ -362,6 +362,7 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         wCM_Modify->trigger();
 }
 
+/*
 void RegistersView::wheelEvent(QWheelEvent* event)
 {
     int numDegrees = event->delta() / 8;
@@ -385,6 +386,7 @@ void RegistersView::wheelEvent(QWheelEvent* event)
     emit refresh();
     event->accept();
 }
+*/
 
 QSize RegistersView::sizeHint() const
 {

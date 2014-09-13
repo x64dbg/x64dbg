@@ -76,7 +76,7 @@ protected:
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent* event);
-    virtual void wheelEvent(QWheelEvent* event);
+    //virtual void wheelEvent(QWheelEvent* event);
 
     // use-in-class-only methods
     void drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value);
