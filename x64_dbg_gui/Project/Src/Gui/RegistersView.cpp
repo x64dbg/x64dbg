@@ -362,32 +362,6 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         wCM_Modify->trigger();
 }
 
-/*
-void RegistersView::wheelEvent(QWheelEvent* event)
-{
-    int numDegrees = event->delta() / 8;
-    // one wheel click ==> 2 lines
-    int numSteps = numDegrees / 15 * 1 ;
-
-    int rowsDisplayed = this->viewport()->height() / mRowHeight;
-    int vScrollEndOffset = 0;
-    if(rowsDisplayed < mRowsNeeded)
-        vScrollEndOffset = -1 * (mRowsNeeded - rowsDisplayed);
-
-    if(event->orientation() == Qt::Vertical)
-    {
-        if(numSteps > 0 && mVScrollOffset + numSteps > 0) //before the first register
-            mVScrollOffset = 0;
-        else if(numSteps < 0 && mVScrollOffset + numSteps < vScrollEndOffset) //after the last register
-            mVScrollOffset = mVScrollOffset; //do nothing
-        else
-            mVScrollOffset += numSteps;
-    }
-    emit refresh();
-    event->accept();
-}
-*/
-
 QSize RegistersView::sizeHint() const
 {
     // 32 character width
