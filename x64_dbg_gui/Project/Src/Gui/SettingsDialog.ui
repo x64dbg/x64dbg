@@ -241,7 +241,7 @@
       <string>Default Breakpoint Type:</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutSettingsWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -270,7 +270,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutBreakpoingWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -369,7 +369,7 @@
       <string>Ignored Exceptions:</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutExceptionsWidget">
      <property name="geometry">
       <rect>
        <x>170</x>
@@ -477,7 +477,7 @@
       <string>Set x64_dbg as Just In Time Debugger</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutSettingsPadWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
