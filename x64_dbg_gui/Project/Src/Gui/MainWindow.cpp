@@ -200,6 +200,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     bClose = false;
     mCloseDialog = new CloseDialog(this);
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 DWORD WINAPI MainWindow::closeThread(void* ptr)
@@ -530,6 +532,8 @@ void MainWindow::openFile()
         updateMRUMenu();
         saveMRUList();
     }
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::execPause()
@@ -554,6 +558,8 @@ void MainWindow::restartDebugging()
         Sleep(400);
     }
     DbgCmdExec(QString().sprintf("init \"%s\"", filename).toUtf8().constData());
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -925,6 +931,8 @@ void MainWindow::displayAttach()
 {
     AttachDialog attach(this);
     attach.exec();
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::detach()
