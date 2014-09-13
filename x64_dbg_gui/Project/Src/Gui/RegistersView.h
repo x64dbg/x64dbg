@@ -1,7 +1,7 @@
 #ifndef REGISTERSVIEW_H
 #define REGISTERSVIEW_H
 
-#include <QAbstractScrollArea>
+#include <QScrollArea>
 #include <QSet>
 #include <QMap>
 #include "Bridge.h"
@@ -13,7 +13,7 @@ namespace Ui
 class RegistersView;
 }
 
-class RegistersView : public QAbstractScrollArea
+class RegistersView : public QScrollArea
 {
     Q_OBJECT
 
@@ -76,7 +76,7 @@ protected:
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
     virtual void paintEvent(QPaintEvent* event);
     virtual void keyPressEvent(QKeyEvent* event);
-    virtual void wheelEvent(QWheelEvent* event);
+    //virtual void wheelEvent(QWheelEvent* event);
 
     // use-in-class-only methods
     void drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value);

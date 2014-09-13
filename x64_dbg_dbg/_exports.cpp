@@ -340,68 +340,37 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         memset(regdump, 0, sizeof(REGDUMP));
         return true;
     }
-    REGDUMP r;
+
+    REGDUMP & r = *regdump;
+
 #ifdef _WIN64
     r.cax = GetContextDataEx(hActiveThread, UE_RAX);
-#else
-    r.cax = (duint)GetContextDataEx(hActiveThread, UE_EAX);
-#endif // _WIN64
-#ifdef _WIN64
     r.ccx = GetContextDataEx(hActiveThread, UE_RCX);
-#else
-    r.ccx = (duint)GetContextDataEx(hActiveThread, UE_ECX);
-#endif // _WIN64
-#ifdef _WIN64
     r.cdx = GetContextDataEx(hActiveThread, UE_RDX);
-#else
-    r.cdx = (duint)GetContextDataEx(hActiveThread, UE_EDX);
-#endif // _WIN64
-#ifdef _WIN64
     r.cbx = GetContextDataEx(hActiveThread, UE_RBX);
-#else
-    r.cbx = (duint)GetContextDataEx(hActiveThread, UE_EBX);
-#endif // _WIN64
-#ifdef _WIN64
     r.cbp = GetContextDataEx(hActiveThread, UE_RBP);
-#else
-    r.cbp = (duint)GetContextDataEx(hActiveThread, UE_EBP);
-#endif // _WIN64
-#ifdef _WIN64
     r.csi = GetContextDataEx(hActiveThread, UE_RSI);
-#else
-    r.csi = (duint)GetContextDataEx(hActiveThread, UE_ESI);
-#endif // _WIN64
-#ifdef _WIN64
     r.cdi = GetContextDataEx(hActiveThread, UE_RDI);
-#else
-    r.cdi = (duint)GetContextDataEx(hActiveThread, UE_EDI);
-#endif // _WIN64
-#ifdef _WIN64
     r.r8 = GetContextDataEx(hActiveThread, UE_R8);
-#endif // _WIN64
-#ifdef _WIN64
     r.r9 = GetContextDataEx(hActiveThread, UE_R9);
-#endif // _WIN64
-#ifdef _WIN64
     r.r10 = GetContextDataEx(hActiveThread, UE_R10);
-#endif // _WIN64
-#ifdef _WIN64
     r.r11 = GetContextDataEx(hActiveThread, UE_R11);
-#endif // _WIN64
-#ifdef _WIN64
     r.r12 = GetContextDataEx(hActiveThread, UE_R12);
-#endif // _WIN64
-#ifdef _WIN64
     r.r13 = GetContextDataEx(hActiveThread, UE_R13);
-#endif // _WIN64
-#ifdef _WIN64
     r.r14 = GetContextDataEx(hActiveThread, UE_R14);
-#endif // _WIN64
-#ifdef _WIN64
     r.r15 = GetContextDataEx(hActiveThread, UE_R15);
-#endif // _WIN64
-    r.csp = (duint)GetContextDataEx(hActiveThread, UE_CSP);
-    r.cip = (duint)GetContextDataEx(hActiveThread, UE_CIP);
+#else
+    r.cax = GetContextDataEx(hActiveThread, UE_EAX);
+    r.ccx = GetContextDataEx(hActiveThread, UE_ECX);
+    r.cdx = GetContextDataEx(hActiveThread, UE_EDX);
+    r.cbx = GetContextDataEx(hActiveThread, UE_EBX);
+    r.cbp = GetContextDataEx(hActiveThread, UE_EBP);
+    r.csi = GetContextDataEx(hActiveThread, UE_ESI);
+    r.cdi = GetContextDataEx(hActiveThread, UE_EDI);
+#endif
+
+    r.csp = GetContextDataEx(hActiveThread, UE_CSP);
+    r.cip = GetContextDataEx(hActiveThread, UE_CIP);
     r.eflags = (unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
     r.gs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS) & 0xFFFF);
     r.fs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS) & 0xFFFF);
@@ -409,12 +378,12 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     r.ds = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS) & 0xFFFF);
     r.cs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS) & 0xFFFF);
     r.ss = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS) & 0xFFFF);
-    r.dr0 = (duint)GetContextDataEx(hActiveThread, UE_DR0);
-    r.dr1 = (duint)GetContextDataEx(hActiveThread, UE_DR1);
-    r.dr2 = (duint)GetContextDataEx(hActiveThread, UE_DR2);
-    r.dr3 = (duint)GetContextDataEx(hActiveThread, UE_DR3);
-    r.dr6 = (duint)GetContextDataEx(hActiveThread, UE_DR6);
-    r.dr7 = (duint)GetContextDataEx(hActiveThread, UE_DR7);
+    r.dr0 = GetContextDataEx(hActiveThread, UE_DR0);
+    r.dr1 = GetContextDataEx(hActiveThread, UE_DR1);
+    r.dr2 = GetContextDataEx(hActiveThread, UE_DR2);
+    r.dr3 = GetContextDataEx(hActiveThread, UE_DR3);
+    r.dr6 = GetContextDataEx(hActiveThread, UE_DR6);
+    r.dr7 = GetContextDataEx(hActiveThread, UE_DR7);
     duint cflags = r.eflags;
     r.flags.c = valflagfromstring(cflags, "cf");
     r.flags.p = valflagfromstring(cflags, "pf");
@@ -425,7 +394,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     r.flags.i = valflagfromstring(cflags, "if");
     r.flags.d = valflagfromstring(cflags, "df");
     r.flags.o = valflagfromstring(cflags, "of");
-    memcpy(regdump, &r, sizeof(REGDUMP));
+
     return true;
 }
 

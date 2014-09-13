@@ -3,7 +3,8 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 
-RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
+
+RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
 {
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"), this);
@@ -361,6 +362,7 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         wCM_Modify->trigger();
 }
 
+/*
 void RegistersView::wheelEvent(QWheelEvent* event)
 {
     int numDegrees = event->delta() / 8;
@@ -384,6 +386,7 @@ void RegistersView::wheelEvent(QWheelEvent* event)
     emit refresh();
     event->accept();
 }
+*/
 
 QSize RegistersView::sizeHint() const
 {
