@@ -59,11 +59,13 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
+#define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
 #define TYPE_ADDR 4
 #define MAX_MNEMONIC_SIZE 64
+#define PAGE_SIZE 0x1000
 
 //Debugger enums
 typedef enum
@@ -712,11 +714,6 @@ BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
 BRIDGE_IMPEXP void GuiUpdateMemoryView();
-
-//other MISC defines
-
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
-#define PAGE_SIZE 0x1000
 
 #ifdef __cplusplus
 }

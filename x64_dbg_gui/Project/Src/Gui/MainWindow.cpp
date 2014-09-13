@@ -170,6 +170,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
+    connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -940,31 +941,26 @@ void MainWindow::detach()
     DbgCmdExec("detach");
 }
 
-void MainWindow::on_actionChange_command_line_triggered()
+void MainWindow::changeCommandLine()
 {
     if(!DbgIsDebugging())
-    {
-        QMessageBox msg(QMessageBox::Warning, "ERROR NO DEBUGGING", "THERE IS NOT A DEBUGGING PROCESS");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-
         return;
-    }
 
     LineEditDialog mLineEdit(this);
-    mLineEdit.setText("this is the current command line");
-    mLineEdit.setWindowTitle("Edit Command Line");
+    mLineEdit.setText("");
+    mLineEdit.setWindowTitle("Change Command Line");
     mLineEdit.setWindowIcon(QIcon(":/icons/images/changeargs.png"));
 
-    char* cmd_line;
-    if(! DbgFunctions()->GetCmdline(& cmd_line))
-        mLineEdit.setText("Cant get remote command line use getcmdline command for more information");
+    size_t cbsize = 0;
+    char* cmdline = 0;
+    if(!DbgFunctions()->GetCmdline(0, &cbsize))
+        mLineEdit.setText("Cannot get remote command line, use the 'getcmdline'' command for more information.");
     else
     {
-        mLineEdit.setText(QString(cmd_line));
-        free(cmd_line);
+        cmdline = new char[cbsize];
+        DbgFunctions()->GetCmdline(cmdline, 0);
+        mLineEdit.setText(QString(cmdline));
+        delete cmdline;
     }
 
     mLineEdit.setCursorPosition(0);
@@ -974,7 +970,7 @@ void MainWindow::on_actionChange_command_line_triggered()
 
     if(!DbgFunctions()->SetCmdline((char*)mLineEdit.editText.toUtf8().constData()))
     {
-        QMessageBox msg(QMessageBox::Warning, "ERROR CANT SET COMMAND LINE", "ERROR SETTING COMMAND LINE TRY SETCOMMANDLINE COMMAND");
+        QMessageBox msg(QMessageBox::Warning, "Error", "Could not set command line!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
