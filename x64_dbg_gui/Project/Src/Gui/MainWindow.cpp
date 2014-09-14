@@ -977,5 +977,9 @@ void MainWindow::changeCommandLine()
         msg.exec();
     }
     else
+    {
+        DbgFunctions()->MemUpdateMap();
+        GuiUpdateMemoryView();
         GuiAddStatusBarMessage(QString("New command line: " + mLineEdit.editText + "\n").toUtf8().constData());
+    }
 }
