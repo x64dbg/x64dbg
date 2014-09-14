@@ -1748,6 +1748,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
     }
 
     //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
 
@@ -1851,6 +1852,11 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
         showcommandlineerror(&cmdline_error);
         return STATUS_ERROR;
     }
+
+    //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
 
     dprintf("New command line: %s\n", argv[1]);
 
