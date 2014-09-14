@@ -1709,7 +1709,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
-    char rights[RIGHTS_STRING];
+    char rights[RIGHTS_STRING_SIZE];
 
     if(argc != 2 || !valfromstring(argv[1], &addr))
     {
@@ -1717,7 +1717,7 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(&addr, rights))
+    if(!dbggetpagerights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
@@ -1731,8 +1731,7 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
-    char rights[RIGHTS_STRING];
-    bool update_memmap = true;
+    char rights[RIGHTS_STRING_SIZE];
 
     if(argc < 3 || !valfromstring(argv[1], &addr))
     {
@@ -1740,16 +1739,13 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(argc >= 4)
-        update_memmap = false;
-
-    if(!dbgsetpagerights(&addr, argv[2], update_memmap))
+    if(!dbgsetpagerights(addr, argv[2]))
     {
         dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(&addr, rights))
+    if(!dbggetpagerights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
@@ -1767,57 +1763,57 @@ void showcommandlineerror(cmdline_error_t* cmdline_error)
     switch(cmdline_error->type)
     {
     case CMDL_ERR_ALLOC:
-        dprintf(" Error allocating memory for cmdline");
+        dputs("Error allocating memory for cmdline");
         break;
     case CMDL_ERR_CONVERTUNICODE:
-        dprintf(" Error converting UNICODE cmdline");
+        dputs("Error converting UNICODE cmdline");
         break;
     case CMDL_ERR_READ_PEBBASE:
-        dprintf(" Error reading PEB base addres");
+        dputs("Error reading PEB base addres");
         break;
     case CMDL_ERR_READ_PROCPARM_CMDLINE:
-        dprintf(" Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING");
+        dputs("Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING");
         break;
     case CMDL_ERR_READ_PROCPARM_PTR:
-        dprintf(" Error reading PEB -> ProcessParameters pointer address");
+        dputs("Error reading PEB -> ProcessParameters pointer address");
         break;
     case CMDL_ERR_GET_PEB:
-        dprintf(" Error Getting remote PEB address");
+        dputs("Error Getting remote PEB address");
         break;
     case CMDL_ERR_READ_GETCOMMANDLINEBASE:
-        dprintf(" Error Getting command line base address");
+        dputs("Error Getting command line base address");
         break;
     case CMDL_ERR_CHECK_GETCOMMANDLINESTORED:
-        dprintf(" Error checking the pattern of the commandline stored");
+        dputs("Error checking the pattern of the commandline stored");
         break;
     case CMDL_ERR_WRITE_GETCOMMANDLINESTORED:
-        dprintf(" Error writing the new command line stored");
+        dputs("Error writing the new command line stored");
         break;
     case CMDL_ERR_GET_GETCOMMANDLINE:
-        dprintf(" Error getting getcommandline");
+        dputs("Error getting getcommandline");
         break;
     case CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE:
-        dprintf(" Error allocating the page with UNICODE and ANSI command lines");
+        dputs("Error allocating the page with UNICODE and ANSI command lines");
         break;
     case CMDL_ERR_WRITE_ANSI_COMMANDLINE:
-        dprintf(" Error writing the ANSI command line in the page");
+        dputs("Error writing the ANSI command line in the page");
         break;
     case CMDL_ERR_WRITE_UNICODE_COMMANDLINE:
-        dprintf(" Error writing the UNICODE command line in the page");
+        dputs("Error writing the UNICODE command line in the page");
         break;
     case CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE:
-        dprintf(" Error writing command line UNICODE in PEB");
+        dputs("Error writing command line UNICODE in PEB");
         break;
     default:
         unkown = true;
-        dputs(" Error getting cmdline");
+        dputs("Error getting cmdline");
         break;
     }
 
     if(!unkown)
     {
         if(cmdline_error->addr != 0)
-            dprintf(" "fhex"", cmdline_error->addr);
+            dprintf(""fhex"", cmdline_error->addr);
         dputs("");
     }
 }
@@ -1827,7 +1823,7 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
     char* cmd_line;
     cmdline_error_t cmdline_error = {(cmdline_error_type_t) 0, 0};
 
-    if(! dbggetcmdline(& cmd_line, & cmdline_error))
+    if(!dbggetcmdline(& cmd_line, & cmdline_error))
     {
         showcommandlineerror(& cmdline_error);
         return STATUS_ERROR;
@@ -1835,7 +1831,7 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
 
     dprintf("Command line: %s\n", cmd_line);
 
-    free(cmd_line);
+    efree(cmd_line);
 
     return STATUS_CONTINUE;
 }
@@ -1846,13 +1842,13 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     if(argc != 2)
     {
-        dprintf("Error: write the arg1 with the new command line of the process debugged\n");
+        dputs("Error: write the arg1 with the new command line of the process debugged");
         return STATUS_ERROR;
     }
 
-    if(! dbgsetcmdline(argv[1], & cmdline_error))
+    if(!dbgsetcmdline(argv[1], &cmdline_error))
     {
-        showcommandlineerror(& cmdline_error);
+        showcommandlineerror(&cmdline_error);
         return STATUS_ERROR;
     }
 

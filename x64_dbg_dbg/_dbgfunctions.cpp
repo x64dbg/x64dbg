@@ -119,34 +119,24 @@ static bool _getjitauto(bool* jit_auto)
     return dbggetjitauto(jit_auto, notfound, NULL, NULL);
 }
 
-static bool _getcmdline(char** cmd_line)
+static bool _getcmdline(char* cmd_line, size_t* cbsize)
 {
-    return dbggetcmdline(cmd_line, NULL);
+    if(!cmd_line && !cbsize)
+        return false;
+    char* cmdline;
+    if(!dbggetcmdline(&cmdline, NULL))
+        return false;
+    if(!cmd_line && cbsize)
+        *cbsize = strlen(cmdline) + sizeof(char);
+    else if(cmd_line)
+        strcpy(cmd_line, cmdline);
+    efree(cmdline, "_getcmdline:cmdline");
+    return true;
 }
 
-static bool _setcmdline(char* cmd_line)
+static bool _setcmdline(const char* cmd_line)
 {
     return dbgsetcmdline(cmd_line, NULL);
-}
-
-static bool _isprocesselevated(void)
-{
-    return IsProcessElevated();
-}
-
-static bool _getpagerights(uint* addr, char* rights)
-{
-    return dbggetpagerights(addr, rights);
-}
-
-static bool _pagerightstostring(DWORD protect, char* rights)
-{
-    return dbgpagerightstostring(protect, rights);
-}
-
-static bool _setpagerights(uint* addr, char* rights)
-{
-    return dbgsetpagerights(addr, rights, false);
 }
 
 static bool _getjit(char* jit, bool jit64)
@@ -217,10 +207,10 @@ void dbgfunctionsinit()
     _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;
     _dbgfunctions.GetProcessList = _getprocesslist;
-    _dbgfunctions.GetPageRights = _getpagerights;
-    _dbgfunctions.SetPageRights = _setpagerights;
-    _dbgfunctions.PageRightsToString = _pagerightstostring;
-    _dbgfunctions.IsProcessElevated = _isprocesselevated;
+    _dbgfunctions.GetPageRights = dbggetpagerights;
+    _dbgfunctions.SetPageRights = dbgsetpagerights;
+    _dbgfunctions.PageRightsToString = dbgpagerightstostring;
+    _dbgfunctions.IsProcessElevated = IsProcessElevated;
     _dbgfunctions.GetCmdline = _getcmdline;
     _dbgfunctions.SetCmdline = _setcmdline;
 }

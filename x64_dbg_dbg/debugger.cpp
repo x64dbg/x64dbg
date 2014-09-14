@@ -1486,7 +1486,6 @@ void cbDetach()
     return;
 }
 
-
 bool IsProcessElevated()
 {
     SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
@@ -1499,10 +1498,10 @@ bool IsProcessElevated()
         IsAdminMember = FALSE;
 
     FreeSid(SecurityIdentifier);
-    return IsAdminMember ? true : false;
+    return !!IsAdminMember;
 }
 
-bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
+static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
     DWORD key_flags;
     DWORD lRv;
@@ -1510,14 +1509,14 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
     DWORD dwDisposition;
 
     if(error != NULL)
-        * error = ERROR_RW;
+        *error = ERROR_RW;
 
     if(write)
     {
         if(!IsProcessElevated())
         {
             if(error != NULL)
-                * error = ERROR_RW_NOTADMIN;
+                *error = ERROR_RW_NOTADMIN;
             return false;
         }
         key_flags = KEY_WRITE;
@@ -1530,13 +1529,13 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         if(arch_in != x64 && arch_in != x32)
         {
 #ifdef _WIN64
-            * arch_out = x64;
-#else
-            * arch_out = x32;
-#endif
+            *arch_out = x64;
+#else //x86
+            *arch_out = x32;
+#endif //_WIN64
         }
         else
-            * arch_out = arch_in;
+            *arch_out = arch_in;
     }
 
     if(arch_in == x64)
@@ -1545,15 +1544,11 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         if(!IsWow64())
         {
             if(error != NULL)
-                * error = ERROR_RW_NOTWOW64;
-
+                *error = ERROR_RW_NOTWOW64;
             return false;
         }
-#endif
-
-#ifndef _WIN64
         key_flags |= KEY_WOW64_64KEY;
-#endif
+#endif //_WIN64
     }
     else if(arch_in == x32)
     {
@@ -1580,21 +1575,17 @@ bool _readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, 
         if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
-                * error = ERROR_RW_FILE_NOT_FOUND;
+                *error = ERROR_RW_FILE_NOT_FOUND;
         }
     }
 
     RegCloseKey(hKey);
-
-    if(lRv != ERROR_SUCCESS)
-        return false;
-
-    return true;
+    return (lRv == ERROR_SUCCESS);
 }
 
 bool dbgpagerightstostring(DWORD protect, char* rights)
 {
-    memset(rights, 0, RIGHTS_STRING);
+    memset(rights, 0, RIGHTS_STRING_SIZE);
 
     switch(protect & 0xFF)
     {
@@ -1632,80 +1623,74 @@ bool dbgpagerightstostring(DWORD protect, char* rights)
     return true;
 }
 
-void dbggetpageligned(uint* addr)
+static uint dbggetpageligned(uint addr)
 {
 #ifdef _WIN64
-    * addr &=  0xFFFFFFFFFFFFF000;
+    addr &=  0xFFFFFFFFFFFFF000;
 #else // _WIN32
-    * addr &= 0xFFFFF000;
+    addr &= 0xFFFFF000;
 #endif // _WIN64
+    return addr;
 }
 
-
-bool dbgpagerightsfromstring(DWORD* protect, char* rights_string)
+static bool dbgpagerightsfromstring(DWORD* protect, const char* rights_string)
 {
     //TODO: utf8
     if(strlen(rights_string) < 2)
         return false;
 
-    * protect = 0;
+    *protect = 0;
     if(rights_string[0] == 'G' || rights_string[0] == 'g')
     {
-        * protect |= PAGE_GUARD;
+        *protect |= PAGE_GUARD;
         rights_string++;
     }
 
     if(_strcmpi(rights_string, "Execute") == 0)
-        * protect |= PAGE_EXECUTE;
+        *protect |= PAGE_EXECUTE;
     else if(_strcmpi(rights_string, "ExecuteRead") == 0)
-        * protect |= PAGE_EXECUTE_READ;
+        *protect |= PAGE_EXECUTE_READ;
     else if(_strcmpi(rights_string, "ExecuteReadWrite") == 0)
-        * protect |= PAGE_EXECUTE_READWRITE;
+        *protect |= PAGE_EXECUTE_READWRITE;
     else if(_strcmpi(rights_string, "ExecuteWriteCopy") == 0)
-        * protect |= PAGE_EXECUTE_WRITECOPY;
+        *protect |= PAGE_EXECUTE_WRITECOPY;
     else if(_strcmpi(rights_string, "NoAccess") == 0)
-        * protect |= PAGE_NOACCESS;
+        *protect |= PAGE_NOACCESS;
     else if(_strcmpi(rights_string, "ReadOnly") == 0)
-        * protect |= PAGE_READONLY;
+        *protect |= PAGE_READONLY;
     else if(_strcmpi(rights_string, "ReadWrite") == 0)
-        * protect |= PAGE_READWRITE;
+        *protect |= PAGE_READWRITE;
     else if(_strcmpi(rights_string, "WriteCopy") == 0)
-        * protect |= PAGE_WRITECOPY;
+        *protect |= PAGE_WRITECOPY;
 
-    if(* protect == 0)
+    if(*protect == 0)
         return false;
 
     return true;
 }
 
-bool dbgsetpagerights(uint* addr, char* rights_string, bool update_memmap)
+bool dbgsetpagerights(uint addr, const char* rights_string)
 {
     DWORD protect;
     DWORD old_protect;
 
-    dbggetpageligned(addr);
+    addr = dbggetpageligned(addr);
 
     if(!dbgpagerightsfromstring(& protect, rights_string))
         return false;
 
-    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)*addr, PAGE_SIZE, protect, & old_protect) == 0)
+    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)addr, PAGE_SIZE, protect, & old_protect) == 0)
         return false;
-
-    if(update_memmap)
-    {
-        memupdatemap(fdProcessInfo->hProcess);
-        GuiUpdateMemoryView();
-    }
 
     return true;
 }
 
-bool dbggetpagerights(uint* addr, char* rights)
+bool dbggetpagerights(uint addr, char* rights)
 {
-    dbggetpageligned(addr);
+    addr = dbggetpageligned(addr);
 
     MEMORY_BASIC_INFORMATION mbi;
-    if(VirtualQueryEx(fdProcessInfo->hProcess, (const void*)*addr, &mbi, sizeof(mbi)) == 0)
+    if(VirtualQueryEx(fdProcessInfo->hProcess, (const void*)addr, &mbi, sizeof(mbi)) == 0)
         return false;
 
     return dbgpagerightstostring(mbi.Protect, rights);
@@ -1717,25 +1702,22 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
     DWORD jit_entry_size = sizeof(jit_entry) - 1;
     readwritejitkey_error_t rw_error;
 
-    if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
+    if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
     {
         if(rw_error == ERROR_RW_FILE_NOT_FOUND)
         {
             if(rw_error_out != NULL)
-                * rw_error_out = rw_error;
-
+                *rw_error_out = rw_error;
             return true;
         }
-
         return false;
     }
     if(_strcmpi(jit_entry, "1") == 0)
-        * auto_on = true;
+        *auto_on = true;
     else if(_strcmpi(jit_entry, "0") == 0)
-        * auto_on = false;
+        *auto_on = false;
     else
         return false;
-
     return true;
 }
 
@@ -1743,26 +1725,22 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
 {
     DWORD auto_string_size = sizeof("1");
     readwritejitkey_error_t rw_error;
-
-    if(auto_on == false)
+    if(!auto_on)
     {
         char jit_entry[4];
         DWORD jit_entry_size = sizeof(jit_entry) - 1;
-
-        if(_readwritejitkey(jit_entry, & jit_entry_size, "Auto", arch_in, arch_out, & rw_error, false) == false)
+        if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
         {
             if(rw_error == ERROR_RW_FILE_NOT_FOUND)
                 return true;
         }
     }
-
-    if(_readwritejitkey(auto_on ? "1" : "0", & auto_string_size, "Auto", arch_in, arch_out, & rw_error, true) == false)
+    if(!readwritejitkey(auto_on ? "1" : "0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
-            * rw_error_out = rw_error;
+            *rw_error_out = rw_error;
         return false;
     }
-
     return true;
 }
 
@@ -1770,15 +1748,12 @@ bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out,
 {
     DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
     readwritejitkey_error_t rw_error;
-
-    if(_readwritejitkey(jit_entry, & jit_entry_size, "Debugger", arch_in, arch_out, & rw_error, false) == false)
+    if(!readwritejitkey(jit_entry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
     {
         if(rw_error_out != NULL)
-            * rw_error_out = rw_error;
-
+            *rw_error_out = rw_error;
         return false;
     }
-
     return true;
 }
 
@@ -1789,7 +1764,6 @@ bool dbggetdefjit(char* jit_entry)
     GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
     strcat(path, ATTACH_CMD_LINE);
     strcpy(jit_entry, path);
-
     return true;
 }
 
@@ -1798,14 +1772,12 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_erro
     //TODO: utf8
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
     readwritejitkey_error_t rw_error;
-    if(_readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true) == false)
+    if(!readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
     {
         if(rw_error_out != NULL)
-            * rw_error_out = rw_error;
-
+            *rw_error_out = rw_error;
         return false;
     }
-
     return true;
 }
 
@@ -1844,12 +1816,12 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
     return true;
 }
 
-bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
+static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 {
     SIZE_T size;
     uint pprocess_parameters;
 
-    cmd_line_error->addr = (uint) GetPEBLocation(fdProcessInfo->hProcess);
+    cmd_line_error->addr = (uint)GetPEBLocation(fdProcessInfo->hProcess);
 
     if(cmd_line_error->addr == 0)
     {
@@ -1859,18 +1831,18 @@ bool _getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 
     //cast-trick to calculate the address of the remote peb field ProcessParameters
     cmd_line_error->addr = (uint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
-    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & pprocess_parameters, sizeof(pprocess_parameters), & size))
+    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters), &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
         return false;
     }
 
-    * addr = (uint) & (((RTL_USER_PROCESS_PARAMETERS*) pprocess_parameters)->CommandLine);
-
+    *addr = (uint) & (((RTL_USER_PROCESS_PARAMETERS*) pprocess_parameters)->CommandLine);
     return true;
 }
 
-bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
+//update the pointer in the GetCommandLine function
+static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
     uint aux = 0;
@@ -1885,6 +1857,12 @@ bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_er
     }
 
 #ifdef _WIN64
+    /*
+    00007FFC5B91E3C8 | 48 8B 05 19 1D 0E 00     | mov rax,qword ptr ds:[7FFC5BA000E8]
+    00007FFC5B91E3CF | C3                       | ret                                     |
+    This is a relative offset then to get the symbol: next instruction of getmodulehandle (+7 bytes) + offset to symbol
+    (the last 4 bytes of the instruction)
+    */
     if(data[0] != 0x48 ||  data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
     {
         cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
@@ -1892,27 +1870,21 @@ bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_er
     }
     DWORD offset = * ((DWORD*) & data[3]);
     command_line_stored = getcommandline + 7 + offset;
-
+#else //x86
     /*
-    00007FFC5B91E3C8 | 48 8B 05 19 1D 0E 00     | mov rax,qword ptr ds:[7FFC5BA000E8]
-    00007FFC5B91E3CF | C3                       | ret                                     |
-    This is a relative offset then to get the symbol: next instruction of getmodulehandle (+7 bytes) + offset to symbol
-    (the last 4 bytes of the instruction)
+    750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
+    750FE9CF | C3                       | ret                                     |
     */
-#else
     if(data[0] != 0xA1 ||  data[5] != 0xC3)
     {
         cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
         return false;
     }
     command_line_stored = * ((uint*) & data[1]);
-    /*
-    750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
-    750FE9CF | C3                       | ret                                     |
-    */
 #endif
 
-    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_stored, & new_command_line, sizeof(new_command_line), & size))
+    //update the pointer in the debuggee
+    if(!memwrite(fdProcessInfo->hProcess, (void*)command_line_stored, &new_command_line, sizeof(new_command_line), &size))
     {
         cmd_line_error->addr = command_line_stored;
         cmd_line_error->type = CMDL_ERR_WRITE_GETCOMMANDLINESTORED;
@@ -1922,38 +1894,36 @@ bool __fixgetcommandlines(uint getcommandline, uint new_command_line, cmdline_er
     return true;
 }
 
-bool _fixgetcommandlines(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
+static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
 {
     uint getcommandline;
 
-    if(!valfromstring("kernelbase:GetCommandLineA", & getcommandline))
+    if(!valfromstring("kernelbase:GetCommandLineA", &getcommandline))
     {
-        if(!valfromstring("kernel32:GetCommandLineA", & getcommandline))
+        if(!valfromstring("kernel32:GetCommandLineA", &getcommandline))
         {
             cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
             return false;
         }
     }
-
-    if(!__fixgetcommandlines(getcommandline, new_command_line_ascii, cmd_line_error))
+    if(!patchcmdline(getcommandline, new_command_line_ascii, cmd_line_error))
         return false;
 
-    if(!valfromstring("kernelbase:GetCommandLineW", & getcommandline))
+    if(!valfromstring("kernelbase:GetCommandLineW", &getcommandline))
     {
-        if(!valfromstring("kernel32:GetCommandLineW", & getcommandline))
+        if(!valfromstring("kernel32:GetCommandLineW", &getcommandline))
         {
             cmd_line_error->type = CMDL_ERR_GET_GETCOMMANDLINE;
             return false;
         }
     }
-
-    if(! __fixgetcommandlines(getcommandline, new_command_line_unicode, cmd_line_error))
+    if(!patchcmdline(getcommandline, new_command_line_unicode, cmd_line_error))
         return false;
 
     return true;
 }
 
-bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
+bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
     cmdline_error_t cmd_line_error_aux;
     UNICODE_STRING new_command_line;
@@ -1961,9 +1931,9 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
     uint command_line_addr;
 
     if(cmd_line_error == NULL)
-        cmd_line_error = & cmd_line_error_aux;
+        cmd_line_error = &cmd_line_error_aux;
 
-    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
         return false;
 
     command_line_addr = cmd_line_error->addr;
@@ -1975,7 +1945,7 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> command_linewstr(new_command_line.Length);
 
     // Covert to Unicode.
-    if(MultiByteToWideChar(CP_ACP, 0, cmd_line, (int) cmd_line_size + 1, command_linewstr, (int) cmd_line_size + 1) == 0)
+    if(!MultiByteToWideChar(CP_ACP, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
     {
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
@@ -1990,28 +1960,25 @@ bool dbgsetcmdline(char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    memupdatemap(fdProcessInfo->hProcess);
-    GuiUpdateMemoryView();
-
-    if(! memwrite(fdProcessInfo->hProcess, (void*) mem, new_command_line.Buffer, new_command_line.Length, & size))
+    if(!memwrite(fdProcessInfo->hProcess, (void*)mem, new_command_line.Buffer, new_command_line.Length, &size))
     {
         cmd_line_error->addr = mem;
         cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
         return false;
     }
 
-    if(! memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, & size))
+    if(!memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, &size))
     {
         cmd_line_error->addr = mem + new_command_line.Length;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
         return false;
     }
 
-    if(!_fixgetcommandlines(mem, mem + new_command_line.Length, cmd_line_error))
+    if(!fixgetcommandlinesbase(mem, mem + new_command_line.Length, cmd_line_error))
         return false;
 
     new_command_line.Buffer = (PWSTR) mem;
-    if(! memwrite(fdProcessInfo->hProcess, (void*) command_line_addr, & new_command_line, sizeof(new_command_line), & size))
+    if(!memwrite(fdProcessInfo->hProcess, (void*)command_line_addr, &new_command_line, sizeof(new_command_line), &size))
     {
         cmd_line_error->addr = command_line_addr;
         cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
@@ -2028,12 +1995,12 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     cmdline_error_t cmd_line_error_aux;
 
     if(cmd_line_error == NULL)
-        cmd_line_error = & cmd_line_error_aux;
+        cmd_line_error = &cmd_line_error_aux;
 
-    if(!_getcommandlineaddr(& cmd_line_error->addr, cmd_line_error))
+    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
         return false;
 
-    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & CommandLine, sizeof(CommandLine), & size))
+    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, &CommandLine, sizeof(CommandLine), &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
         return false;
@@ -2042,7 +2009,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
 
     cmd_line_error->addr = (uint) CommandLine.Buffer;
-    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, wstr_cmd, CommandLine.Length, & size))
+    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, wstr_cmd, CommandLine.Length, &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
         return false;
@@ -2051,21 +2018,14 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     SIZE_T wstr_cmd_size = wcslen(wstr_cmd) + 1;
     SIZE_T cmd_line_size = wstr_cmd_size * 2;
 
-    * cmd_line = (char*) calloc(1, cmd_line_size);
-    if(* cmd_line == NULL)
-    {
-        cmd_line_error->type = CMDL_ERR_ALLOC;
-        return false;
-    }
+    *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
 
     //Convert TO ASCII
-    if(WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int) wstr_cmd_size, * cmd_line, (int) cmd_line_size, NULL, NULL) == 0)
+    if(!WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
     {
-        free(* cmd_line);
-
+        efree(*cmd_line);
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
     }
-
     return true;
 }

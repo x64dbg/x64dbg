@@ -72,6 +72,7 @@
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
+    <addaction name="actionChangeCommandLine"/>
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
@@ -81,8 +82,6 @@
     <addaction name="actioneRtr"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
-    <addaction name="separator"/>
-    <addaction name="actionChange_command_line"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -595,13 +594,13 @@
     <string>Detach</string>
    </property>
   </action>
-  <action name="actionChange_command_line">
+  <action name="actionChangeCommandLine">
    <property name="icon">
     <iconset resource="../../resource.qrc">
      <normaloff>:/icons/images/changeargs.png</normaloff>:/icons/images/changeargs.png</iconset>
    </property>
    <property name="text">
-    <string>Change command line</string>
+    <string>Change Command &amp;Line</string>
    </property>
   </action>
  </widget>

@@ -89,6 +89,7 @@ public slots:
     void donate();
     void displayAttach();
     void detach();
+    void changeCommandLine();
 
 private:
     Ui::MainWindow* ui;
@@ -150,9 +151,6 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
-
-private slots:
-    void on_actionChange_command_line_triggered();
 };
 
 #endif // MAINWINDOW_H
