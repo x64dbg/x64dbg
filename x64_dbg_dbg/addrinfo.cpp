@@ -305,7 +305,6 @@ uint modentryfromaddr(uint addr)
 ///api functions
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 {
-    //TODO: utf8
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
     uint size = mbi.RegionSize;
@@ -378,7 +377,6 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 ///comment functions
 bool commentset(uint addr, const char* text, bool manual)
 {
-    //TODO: utf8
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
         return false;
     if(!*text) //NOTE: delete when there is no text
@@ -466,7 +464,6 @@ void commentcachesave(JSON root)
 
 void commentcacheload(JSON root)
 {
-    //TODO: utf8
     comments.clear();
     const JSON jsoncomments = json_object_get(root, "comments");
     if(jsoncomments)
@@ -541,7 +538,6 @@ bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
 ///label functions
 bool labelset(uint addr, const char* text, bool manual)
 {
-    //TODO: utf8
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
         return false;
     if(!*text) //NOTE: delete when there is no text
@@ -646,7 +642,6 @@ void labelcachesave(JSON root)
 
 void labelcacheload(JSON root)
 {
-    //TODO: utf8
     labels.clear();
     const JSON jsonlabels = json_object_get(root, "labels");
     if(jsonlabels)

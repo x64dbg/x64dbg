@@ -457,7 +457,6 @@ void cbLibrarianBreakpoint(void* lpData)
 
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
-    //TODO: utf8
     UNREFERENCED_PARAMETER(hProcess);
     UNREFERENCED_PARAMETER(UserContext);
     PIMAGEHLP_CBA_EVENT evt;
@@ -647,13 +646,15 @@ void cbRtrStep()
 ///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
-    //TODO: utf8
     void* base = CreateProcessInfo->lpBaseOfImage;
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
     {
-        if(!DevicePathFromFileHandleA(CreateProcessInfo->hFile, DebugFileName, deflen))
+        wchar_t wszFileName[MAX_PATH] = L"";
+        if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+        else
+            strcpy_s(DebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
@@ -698,12 +699,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(settingboolget("Events", "TlsCallbacks"))
         {
             DWORD NumberOfCallBacks = 0;
-            TLSGrabCallBackData(DebugFileName, 0, &NumberOfCallBacks);
+            TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
                 Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
-                if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
+                if(!TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
                 {
@@ -851,8 +852,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
     {
-        if(!DevicePathFromFileHandleA(LoadDll->hFile, DLLDebugFileName, deflen))
+        wchar_t wszFileName[MAX_PATH] = L"";
+        if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+        else
+            strcpy_s(DLLDebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
     }
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
@@ -951,7 +955,6 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
-    //TODO: utf8
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
@@ -1022,7 +1025,6 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
-    //TODO: utf8
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception = ExceptionData;
@@ -1167,7 +1169,6 @@ static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 
 DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
-    //TODO: utf8
     lock(WAITID_STOP); //we are running
     //initialize
     bIsAttached = false;
@@ -1409,7 +1410,6 @@ static void cbAttachDebugger()
 
 DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
-    //TODO: utf8
     lock(WAITID_STOP);
     bIsAttached = true;
     bSkipExceptions = false;
@@ -1503,6 +1503,7 @@ bool IsProcessElevated()
 
 static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
+    //TODO: utf8
     DWORD key_flags;
     DWORD lRv;
     HKEY hKey;
@@ -1635,7 +1636,6 @@ static uint dbggetpageligned(uint addr)
 
 static bool dbgpagerightsfromstring(DWORD* protect, const char* rights_string)
 {
-    //TODO: utf8
     if(strlen(rights_string) < 2)
         return false;
 
@@ -1761,7 +1761,9 @@ bool dbggetdefjit(char* jit_entry)
 {
     char path[JIT_ENTRY_DEF_SIZE];
     path[0] = '"';
-    GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
+    wchar_t wszPath[MAX_PATH] = L"";
+    GetModuleFileNameW(GetModuleHandleA(NULL), wszPath, MAX_PATH);
+    strcpy(&path[1], ConvertUtf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
     strcpy(jit_entry, path);
     return true;
@@ -1807,9 +1809,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
             continue;
         if((mewow64 and !wow64) or (!mewow64 and wow64))
             continue;
-        char szExePath[MAX_PATH] = "";
-        if(GetModuleFileNameExA(hProcess, 0, szExePath, sizeof(szExePath)))
-            strcpy_s(pe32.szExeFile, szExePath);
+        wchar_t szExePath[MAX_PATH] = L"";
+        if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))
+            strcpy_s(pe32.szExeFile, ConvertUtf16ToUtf8(szExePath).c_str());
         list->push_back(pe32);
     }
     while(Process32Next(hProcessSnap, &pe32));
@@ -1925,6 +1927,7 @@ static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_comma
 
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
+    //TODO: UTF-8
     cmdline_error_t cmd_line_error_aux;
     UNICODE_STRING new_command_line;
     SIZE_T size;
@@ -1990,6 +1993,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 {
+    //TODO: UTF-8
     SIZE_T size;
     UNICODE_STRING CommandLine;
     cmdline_error_t cmd_line_error_aux;

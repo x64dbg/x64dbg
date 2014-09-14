@@ -889,11 +889,13 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return STATUS_ERROR;
     }
-    if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
+    wchar_t wszFileName[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
     {
         dprintf("could not get module filename %X!\n", pid);
         return STATUS_ERROR;
     }
+    strcpy_s(szFileName, ConvertUtf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
