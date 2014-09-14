@@ -1,11 +1,39 @@
+/**
+ @file thread.cpp
+
+ @brief Implements the thread class.
+ */
+
 #include "thread.h"
 #include "console.h"
 #include "undocumented.h"
 #include "memory.h"
 
+/**
+ @brief List of threads.
+ */
+
 static std::vector<THREADINFO> threadList;
+
+/**
+ @brief The thread number.
+ */
+
 static int threadNum;
+
+/**
+ @brief The current thread.
+ */
+
 static int currentThread;
+
+/**
+ @fn void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
+
+ @brief Threadcreates the given create thread.
+
+ @param [in,out] CreateThread If non-null, the create thread.
+ */
 
 void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
@@ -23,6 +51,14 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     GuiUpdateThreadView();
 }
 
+/**
+ @fn void threadexit(DWORD dwThreadId)
+
+ @brief Threadexits the given double-word thread identifier.
+
+ @param dwThreadId Identifier for the thread.
+ */
+
 void threadexit(DWORD dwThreadId)
 {
     for(unsigned int i = 0; i < threadList.size(); i++)
@@ -34,6 +70,12 @@ void threadexit(DWORD dwThreadId)
     GuiUpdateThreadView();
 }
 
+/**
+ @fn void threadclear()
+
+ @brief Threadclears this object.
+ */
+
 void threadclear()
 {
     threadNum = 0;
@@ -41,10 +83,30 @@ void threadclear()
     GuiUpdateThreadView();
 }
 
+/**
+ @fn static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
+
+ @brief Gets thread wait reason.
+
+ @param dwThreadId Identifier for the thread.
+
+ @return The thread wait reason.
+ */
+
 static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
 {
     return _Executive;
 }
+
+/**
+ @fn static DWORD GetThreadLastError(uint tebAddress)
+
+ @brief Gets thread last error.
+
+ @param tebAddress The teb address.
+
+ @return The thread last error.
+ */
 
 static DWORD GetThreadLastError(uint tebAddress)
 {
@@ -54,6 +116,14 @@ static DWORD GetThreadLastError(uint tebAddress)
         return 0;
     return teb.LastErrorValue;
 }
+
+/**
+ @fn void threadgetlist(THREADLIST* list)
+
+ @brief Threadgetlists the given list.
+
+ @param [in,out] list If non-null, the list.
+ */
 
 void threadgetlist(THREADLIST* list)
 {
@@ -79,6 +149,16 @@ void threadgetlist(THREADLIST* list)
     list->CurrentThread = currentThread;
 }
 
+/**
+ @fn bool threadisvalid(DWORD dwThreadId)
+
+ @brief Threadisvalids the given double-word thread identifier.
+
+ @param dwThreadId Identifier for the thread.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool threadisvalid(DWORD dwThreadId)
 {
     for(unsigned int i = 0; i < threadList.size(); i++)
@@ -86,6 +166,17 @@ bool threadisvalid(DWORD dwThreadId)
             return true;
     return false;
 }
+
+/**
+ @fn bool threadsetname(DWORD dwThreadId, const char* name)
+
+ @brief Threadsetnames.
+
+ @param dwThreadId Identifier for the thread.
+ @param name       The name.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool threadsetname(DWORD dwThreadId, const char* name)
 {
@@ -100,6 +191,16 @@ bool threadsetname(DWORD dwThreadId, const char* name)
     return false;
 }
 
+/**
+ @fn HANDLE threadgethandle(DWORD dwThreadId)
+
+ @brief Threadgethandles the given double-word thread identifier.
+
+ @param dwThreadId Identifier for the thread.
+
+ @return The handle of the.
+ */
+
 HANDLE threadgethandle(DWORD dwThreadId)
 {
     for(unsigned int i = 0; i < threadList.size(); i++)
@@ -107,6 +208,16 @@ HANDLE threadgethandle(DWORD dwThreadId)
             return threadList.at(i).hThread;
     return 0;
 }
+
+/**
+ @fn DWORD threadgetid(HANDLE hThread)
+
+ @brief Threadgetids the given h thread.
+
+ @param hThread Handle of the thread.
+
+ @return A DWORD.
+ */
 
 DWORD threadgetid(HANDLE hThread)
 {

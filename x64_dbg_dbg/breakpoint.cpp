@@ -1,3 +1,9 @@
+/**
+ @file breakpoint.cpp
+
+ @brief Implements the breakpoint class.
+ */
+
 #include "breakpoint.h"
 #include "debugger.h"
 #include "addrinfo.h"
@@ -5,7 +11,21 @@
 #include "memory.h"
 #include "threading.h"
 
+/**
+ @brief The breakpoints.
+ */
+
 static BreakpointsInfo breakpoints;
+
+/**
+ @fn int bpgetlist(std::vector<BREAKPOINT>* list)
+
+ @brief Bpgetlists the given list.
+
+ @param [in,out] list If non-null, the list.
+
+ @return An int.
+ */
 
 int bpgetlist(std::vector<BREAKPOINT>* list)
 {
@@ -24,6 +44,22 @@ int bpgetlist(std::vector<BREAKPOINT>* list)
     }
     return count;
 }
+
+/**
+ @fn bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name)
+
+ @brief Bpnews.
+
+ @param addr        The address.
+ @param enabled     true to enable, false to disable.
+ @param singleshoot true to singleshoot.
+ @param oldbytes    The oldbytes.
+ @param type        The type.
+ @param titantype   The titantype.
+ @param name        The name.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name)
 {
@@ -46,6 +82,19 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     breakpoints.insert(std::make_pair(BreakpointKey(type, modhashfromva(addr)), bp));
     return true;
 }
+
+/**
+ @fn bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
+
+ @brief Bpgets.
+
+ @param addr        The address.
+ @param type        The type.
+ @param name        The name.
+ @param [in,out] bp If non-null, the bp.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
 {
@@ -85,12 +134,35 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     return false;
 }
 
+/**
+ @fn bool bpdel(uint addr, BP_TYPE type)
+
+ @brief Bpdels.
+
+ @param addr The address.
+ @param type The type.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bpdel(uint addr, BP_TYPE type)
 {
     if(!DbgIsDebugging())
         return false;
     return (breakpoints.erase(BreakpointKey(type, modhashfromva(addr))) > 0);
 }
+
+/**
+ @fn bool bpenable(uint addr, BP_TYPE type, bool enable)
+
+ @brief Bpenables.
+
+ @param addr   The address.
+ @param type   The type.
+ @param enable true to enable, false to disable.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool bpenable(uint addr, BP_TYPE type, bool enable)
 {
@@ -103,6 +175,18 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
     return true;
 }
 
+/**
+ @fn bool bpsetname(uint addr, BP_TYPE type, const char* name)
+
+ @brief Bpsetnames.
+
+ @param addr The address.
+ @param type The type.
+ @param name The name.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bpsetname(uint addr, BP_TYPE type, const char* name)
 {
     if(!DbgIsDebugging() or !name or !*name)
@@ -114,6 +198,18 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
     return true;
 }
 
+/**
+ @fn bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
+
+ @brief Bpsettitantypes.
+
+ @param addr      The address.
+ @param type      The type.
+ @param titantype The titantype.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
 {
     if(!DbgIsDebugging())
@@ -124,6 +220,17 @@ bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
     breakpoints[found->first].titantype = titantype;
     return true;
 }
+
+/**
+ @fn bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
+
+ @brief Bpenumalls.
+
+ @param cbEnum The enum.
+ @param module The module.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
 {
@@ -156,10 +263,31 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
     return retval;
 }
 
+/**
+ @fn bool bpenumall(BPENUMCALLBACK cbEnum)
+
+ @brief Bpenumalls the given cb enum.
+
+ @param cbEnum The enum.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bpenumall(BPENUMCALLBACK cbEnum)
 {
     return bpenumall(cbEnum, 0);
 }
+
+/**
+ @fn int bpgetcount(BP_TYPE type, bool enabledonly)
+
+ @brief Bpgetcounts.
+
+ @param type        The type.
+ @param enabledonly true to enabledonly.
+
+ @return An int.
+ */
 
 int bpgetcount(BP_TYPE type, bool enabledonly)
 {
@@ -171,6 +299,15 @@ int bpgetcount(BP_TYPE type, bool enabledonly)
     }
     return count;
 }
+
+/**
+ @fn void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
+
+ @brief Bptobridges.
+
+ @param bp              The bp.
+ @param [in,out] bridge If non-null, the bridge.
+ */
 
 void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
 {
@@ -199,6 +336,14 @@ void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
         break;
     }
 }
+
+/**
+ @fn void bpcachesave(JSON root)
+
+ @brief Bpcachesaves the given root.
+
+ @param root The root.
+ */
 
 void bpcachesave(JSON root)
 {
@@ -232,6 +377,20 @@ void bpcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonbreakpoints, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonbreakpoints, i, value)
         {
             BREAKPOINT curBreakpoint;
@@ -253,6 +412,12 @@ void bpcacheload(JSON root)
         }
     }
 }
+
+/**
+ @fn void bpclear()
+
+ @brief Bpclears this object.
+ */
 
 void bpclear()
 {

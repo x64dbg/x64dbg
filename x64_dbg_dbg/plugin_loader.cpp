@@ -1,16 +1,53 @@
+/**
+ @file plugin_loader.cpp
+
+ @brief Implements the plugin loader class.
+ */
+
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
 #include "memory.h"
 #include "x64_dbg.h"
 
+/**
+ @brief List of plugins.
+ */
+
 static std::vector<PLUG_DATA> pluginList;
+
+/**
+ @brief The current plugin handle.
+ */
+
 static int curPluginHandle = 0;
+
+/**
+ @brief List of plugin callbacks.
+ */
+
 static std::vector<PLUG_CALLBACK> pluginCallbackList;
+
+/**
+ @brief List of plugin commands.
+ */
+
 static std::vector<PLUG_COMMAND> pluginCommandList;
+
+/**
+ @brief List of plugin menus.
+ */
+
 static std::vector<PLUG_MENU> pluginMenuList;
 
-///internal plugin functions
+/**
+ @fn void pluginload(const char* pluginDir)
+
+ @brief internal plugin functions.
+
+ @param pluginDir The plugin dir.
+ */
+
 void pluginload(const char* pluginDir)
 {
     //load new plugins
@@ -189,6 +226,14 @@ void pluginload(const char* pluginDir)
     SetCurrentDirectoryA(currentDir);
 }
 
+/**
+ @fn static void plugincmdunregisterall(int pluginHandle)
+
+ @brief Plugincmdunregisteralls.
+
+ @param pluginHandle Handle of the plugin.
+ */
+
 static void plugincmdunregisterall(int pluginHandle)
 {
     int listsize = (int)pluginCommandList.size();
@@ -201,6 +246,12 @@ static void plugincmdunregisterall(int pluginHandle)
         }
     }
 }
+
+/**
+ @fn void pluginunload()
+
+ @brief Pluginunloads this object.
+ */
 
 void pluginunload()
 {
@@ -219,7 +270,16 @@ void pluginunload()
     GuiMenuClear(GUI_PLUGIN_MENU); //clear the plugin menu
 }
 
-///debugging plugin exports
+/**
+ @fn void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
+
+ @brief debugging plugin exports.
+
+ @param pluginHandle Handle of the plugin.
+ @param cbType       The type.
+ @param cbPlugin     The plugin.
+ */
+
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 {
     pluginunregistercallback(pluginHandle, cbType); //remove previous callback
@@ -229,6 +289,17 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
     cbStruct.cbPlugin = cbPlugin;
     pluginCallbackList.push_back(cbStruct);
 }
+
+/**
+ @fn bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
+
+ @brief Pluginunregistercallback, called when the pluginunregister.
+
+ @param pluginHandle Handle of the plugin.
+ @param cbType       The type.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 {
@@ -244,6 +315,15 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
     return false;
 }
 
+/**
+ @fn void plugincbcall(CBTYPE cbType, void* callbackInfo)
+
+ @brief Plugincbcalls.
+
+ @param cbType                The type.
+ @param [in,out] callbackInfo If non-null, information describing the callback.
+ */
+
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
     int pluginCallbackCount = (int)pluginCallbackList.size();
@@ -258,6 +338,19 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
     }
 }
 
+/**
+ @fn bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
+
+ @brief Plugincmdregisters.
+
+ @param pluginHandle Handle of the plugin.
+ @param command      The command.
+ @param cbCommand    The command.
+ @param debugonly    true to debugonly.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
 {
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
@@ -271,6 +364,17 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     dprintf("[PLUGIN] command \"%s\" registered!\n", command);
     return true;
 }
+
+/**
+ @fn bool plugincmdunregister(int pluginHandle, const char* command)
+
+ @brief Plugincmdunregisters.
+
+ @param pluginHandle Handle of the plugin.
+ @param command      The command.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool plugincmdunregister(int pluginHandle, const char* command)
 {
@@ -290,6 +394,17 @@ bool plugincmdunregister(int pluginHandle, const char* command)
     }
     return false;
 }
+
+/**
+ @fn int pluginmenuadd(int hMenu, const char* title)
+
+ @brief Pluginmenuadds.
+
+ @param hMenu The menu.
+ @param title The title.
+
+ @return An int.
+ */
 
 int pluginmenuadd(int hMenu, const char* title)
 {
@@ -314,6 +429,18 @@ int pluginmenuadd(int hMenu, const char* title)
     pluginMenuList.push_back(newMenu);
     return hMenuNew;
 }
+
+/**
+ @fn bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
+
+ @brief Pluginmenuaddentries.
+
+ @param hMenu  The menu.
+ @param hEntry The entry.
+ @param title  The title.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
@@ -346,6 +473,16 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     return true;
 }
 
+/**
+ @fn bool pluginmenuaddseparator(int hMenu)
+
+ @brief Pluginmenuaddseparators.
+
+ @param hMenu The menu.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool pluginmenuaddseparator(int hMenu)
 {
     bool bFound = false;
@@ -363,6 +500,16 @@ bool pluginmenuaddseparator(int hMenu)
     return true;
 }
 
+/**
+ @fn bool pluginmenuclear(int hMenu)
+
+ @brief Pluginmenuclears.
+
+ @param hMenu The menu.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool pluginmenuclear(int hMenu)
 {
     bool bFound = false;
@@ -379,6 +526,14 @@ bool pluginmenuclear(int hMenu)
     GuiMenuClear(hMenu);
     return false;
 }
+
+/**
+ @fn void pluginmenucall(int hEntry)
+
+ @brief Pluginmenucalls.
+
+ @param hEntry The entry.
+ */
 
 void pluginmenucall(int hEntry)
 {
@@ -405,6 +560,17 @@ void pluginmenucall(int hEntry)
     }
 }
 
+/**
+ @fn bool pluginwinevent(MSG* message, long* result)
+
+ @brief Pluginwinevents.
+
+ @param [in,out] message If non-null, the message.
+ @param [out] result     If non-null, the result.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool pluginwinevent(MSG* message, long* result)
 {
     PLUG_CB_WINEVENT winevent;
@@ -414,6 +580,16 @@ bool pluginwinevent(MSG* message, long* result)
     plugincbcall(CB_WINEVENT, &winevent);
     return winevent.retval;
 }
+
+/**
+ @fn bool pluginwineventglobal(MSG* message)
+
+ @brief Pluginwineventglobals the given message.
+
+ @param [in,out] message If non-null, the message.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool pluginwineventglobal(MSG* message)
 {

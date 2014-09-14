@@ -1,13 +1,46 @@
+/**
+ @file symbolinfo.cpp
+
+ @brief Implements the symbolinfo class.
+ */
+
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "addrinfo.h"
 #include "console.h"
 
+/**
+ @struct SYMBOLCBDATA
+
+ @brief A symbolcbdata.
+ */
+
 struct SYMBOLCBDATA
 {
+    /**
+     @brief The symbol enum.
+     */
+
     CBSYMBOLENUM cbSymbolEnum;
+
+    /**
+     @brief The user.
+     */
+
     void* user;
 };
+
+/**
+ @fn static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
+
+ @brief Enum symbols.
+
+ @param pSymInfo    Information describing the symbol.
+ @param SymbolSize  Size of the symbol.
+ @param UserContext Context for the user.
+
+ @return A CALLBACK.
+ */
 
 static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
@@ -39,6 +72,16 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     return TRUE;
 }
 
+/**
+ @fn void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+
+ @brief Symenums.
+
+ @param base          The base.
+ @param cbSymbolEnum  The symbol enum.
+ @param [in,out] user If non-null, the user.
+ */
+
 void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBDATA symbolCbData;
@@ -49,8 +92,34 @@ void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 }
 
 #ifdef _WIN64
+
+/**
+ @fn static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext) #else static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext) #endif
+
+ @brief Enum modules.
+
+ @param ModuleName  Name of the module.
+ @param BaseOfDll   The base of DLL.
+ @param UserContext Context for the user.
+
+ @return A CALLBACK.
+ */
+
 static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
 #else
+
+/**
+ @fn static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext) #endif
+
+ @brief Enum modules.
+
+ @param ModuleName  Name of the module.
+ @param BaseOfDll   The base of DLL.
+ @param UserContext Context for the user.
+
+ @return A CALLBACK.
+ */
+
 static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
 #endif //_WIN64
 {
@@ -61,6 +130,12 @@ static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID User
     ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
     return TRUE;
 }
+
+/**
+ @fn void symupdatemodulelist()
+
+ @brief Symupdatemodulelists this object.
+ */
 
 void symupdatemodulelist()
 {
@@ -73,6 +148,14 @@ void symupdatemodulelist()
         memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
     GuiSymbolUpdateModuleList(modcount, modListBridge);
 }
+
+/**
+ @fn void symdownloadallsymbols(const char* szSymbolStore)
+
+ @brief Symdownloadallsymbols the given size symbol store.
+
+ @param szSymbolStore The symbol store.
+ */
 
 void symdownloadallsymbols(const char* szSymbolStore)
 {
@@ -124,6 +207,17 @@ void symdownloadallsymbols(const char* szSymbolStore)
     }
 }
 
+/**
+ @fn bool symfromname(const char* name, uint* addr)
+
+ @brief Symfromnames.
+
+ @param name          The name.
+ @param [in,out] addr If non-null, the address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool symfromname(const char* name, uint* addr)
 {
     if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
@@ -137,6 +231,16 @@ bool symfromname(const char* name, uint* addr)
     *addr = (uint)pSymbol->Address;
     return true;
 }
+
+/**
+ @fn const char* symgetsymbolicname(uint addr)
+
+ @brief Symgetsymbolicnames the given address.
+
+ @param addr The address.
+
+ @return null if it fails, else a char*.
+ */
 
 const char* symgetsymbolicname(uint addr)
 {

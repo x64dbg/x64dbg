@@ -1,9 +1,27 @@
+/**
+ @file command.cpp
+
+ @brief Implements the command class.
+ */
+
 #include "command.h"
 #include "argument.h"
 #include "value.h"
 #include "console.h"
 #include "debugger.h"
 #include "math.h"
+
+/**
+ @fn COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
+
+ @brief Cmdfinds.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param name                  The name.
+ @param [in,out] link         If non-null, the link.
+
+ @return null if it fails, else a COMMAND*.
+ */
 
 COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
 {
@@ -25,12 +43,28 @@ COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
     return 0;
 }
 
+/**
+ @fn COMMAND* cmdinit()
+
+ @brief Gets the cmdinit.
+
+ @return null if it fails, else a COMMAND*.
+ */
+
 COMMAND* cmdinit()
 {
     COMMAND* cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdinit:cmd");
     memset(cmd, 0, sizeof(COMMAND));
     return cmd;
 }
+
+/**
+ @fn void cmdfree(COMMAND* cmd_list)
+
+ @brief Cmdfrees the given command list.
+
+ @param [in,out] cmd_list If non-null, list of commands.
+ */
 
 void cmdfree(COMMAND* cmd_list)
 {
@@ -43,6 +77,19 @@ void cmdfree(COMMAND* cmd_list)
         cur = next;
     }
 }
+
+/**
+ @fn bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
+
+ @brief Cmdnews.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param name                  The name.
+ @param cbCommand             The command.
+ @param debugonly             true to debugonly.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
@@ -72,6 +119,17 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
     return true;
 }
 
+/**
+ @fn COMMAND* cmdget(COMMAND* command_list, const char* cmd)
+
+ @brief Cmdgets.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param cmd                   The command.
+
+ @return null if it fails, else a COMMAND*.
+ */
+
 COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 {
     char new_cmd[deflen] = "";
@@ -87,6 +145,19 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
     return found;
 }
 
+/**
+ @fn CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
+
+ @brief Cmdsets.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param name                  The name.
+ @param cbCommand             The command.
+ @param debugonly             true to debugonly.
+
+ @return A CBCOMMAND.
+ */
+
 CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
     if(!cbCommand)
@@ -99,6 +170,17 @@ CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, b
     found->debugonly = debugonly;
     return old;
 }
+
+/**
+ @fn bool cmddel(COMMAND* command_list, const char* name)
+
+ @brief Cmddels.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param name                  The name.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cmddel(COMMAND* command_list, const char* name)
 {
@@ -134,6 +216,21 @@ cbCommandProvider:    function that provides commands (fgets for example), does 
 cbCommandFinder:      non-default command finder
 error_is_fatal:       error return of a command callback stops the command processing
 */
+
+/**
+ @fn CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
+
+ @brief Cmdloops.
+
+ @param [in,out] command_list If non-null, list of commands.
+ @param cbUnknownCommand      The unknown command.
+ @param cbCommandProvider     The command provider.
+ @param cbCommandFinder       The command finder.
+ @param error_is_fatal        true if error is fatal.
+
+ @return A CMDRESULT.
+ */
+
 CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
 {
     if(!cbUnknownCommand or !cbCommandProvider)
@@ -197,11 +294,29 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 - custom command formatting rules
 */
 
+/**
+ @fn static bool isvalidexpression(const char* expression)
+
+ @brief Query if 'expression' isvalidexpression.
+
+ @param expression The expression.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool isvalidexpression(const char* expression)
 {
     uint value;
     return valfromstring(expression, &value);
 }
+
+/**
+ @fn static void specialformat(char* string)
+
+ @brief Specialformats the given string.
+
+ @param [in,out] string If non-null, the string.
+ */
 
 static void specialformat(char* string)
 {
@@ -266,6 +381,18 @@ static void specialformat(char* string)
 /*
 - 'default' command finder, with some custom rules
 */
+
+/**
+ @fn COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
+
+ @brief Cmdfindmains.
+
+ @param [in,out] cmd_list If non-null, list of commands.
+ @param [in,out] command  If non-null, the command.
+
+ @return null if it fails, else a COMMAND*.
+ */
+
 COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
 {
     COMMAND* cmd = cmdfind(cmd_list, command, 0);
@@ -278,6 +405,17 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
         mathformat(command);
     return cmd;
 }
+
+/**
+ @fn CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
+
+ @brief Cmddirectexecs.
+
+ @param [in,out] cmd_list If non-null, list of commands.
+ @param cmd               The command.
+
+ @return A CMDRESULT.
+ */
 
 CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
 {

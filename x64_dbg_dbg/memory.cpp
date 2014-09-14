@@ -1,10 +1,28 @@
+/**
+ @file memory.cpp
+
+ @brief Implements the memory class.
+ */
+
 #include "memory.h"
 #include "debugger.h"
 #include "patches.h"
 #include "console.h"
 #include "threading.h"
 
+/**
+ @brief The memory pages.
+ */
+
 MemoryMap memoryPages;
+
+/**
+ @fn void memupdatemap(HANDLE hProcess)
+
+ @brief Memupdatemaps the given h process.
+
+ @param hProcess Handle of the process.
+ */
 
 void memupdatemap(HANDLE hProcess)
 {
@@ -126,6 +144,18 @@ void memupdatemap(HANDLE hProcess)
     }
 }
 
+/**
+ @fn uint memfindbaseaddr(uint addr, uint* size, bool refresh)
+
+ @brief Memfindbaseaddrs.
+
+ @param addr          The address.
+ @param [in,out] size If non-null, the size.
+ @param refresh       true to refresh.
+
+ @return An uint.
+ */
+
 uint memfindbaseaddr(uint addr, uint* size, bool refresh)
 {
     if(refresh)
@@ -138,6 +168,20 @@ uint memfindbaseaddr(uint addr, uint* size, bool refresh)
         *size = found->second.mbi.RegionSize;
     return found->first.first;
 }
+
+/**
+ @fn bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+
+ @brief Memreads.
+
+ @param hProcess                     Handle of the process.
+ @param lpBaseAddress                The base address.
+ @param [in,out] lpBuffer            If non-null, the buffer.
+ @param nSize                        The size.
+ @param [in,out] lpNumberOfBytesRead If non-null, number of bytes reads.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
@@ -168,6 +212,20 @@ bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T 
     return true;
 }
 
+/**
+ @fn bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+
+ @brief Memwrites.
+
+ @param hProcess                        Handle of the process.
+ @param [in,out] lpBaseAddress          If non-null, the base address.
+ @param lpBuffer                        The buffer.
+ @param nSize                           The size.
+ @param [in,out] lpNumberOfBytesWritten If non-null, number of bytes writtens.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
@@ -197,6 +255,20 @@ bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
     return true;
 }
 
+/**
+ @fn bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+
+ @brief Mempatches.
+
+ @param hProcess                        Handle of the process.
+ @param [in,out] lpBaseAddress          If non-null, the base address.
+ @param lpBuffer                        The buffer.
+ @param nSize                           The size.
+ @param [in,out] lpNumberOfBytesWritten If non-null, number of bytes writtens.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
 {
     if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
@@ -210,21 +282,64 @@ bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T
     return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
 }
 
+/**
+ @fn bool memisvalidreadptr(HANDLE hProcess, uint addr)
+
+ @brief Memisvalidreadptrs.
+
+ @param hProcess Handle of the process.
+ @param addr     The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool memisvalidreadptr(HANDLE hProcess, uint addr)
 {
     unsigned char a = 0;
     return memread(hProcess, (void*)addr, &a, 1, 0);
 }
 
+/**
+ @fn void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
+
+ @brief Memallocs.
+
+ @param hProcess  Handle of the process.
+ @param addr      The address.
+ @param size      The size.
+ @param fdProtect The fd protect.
+
+ @return null if it fails, else a void*.
+ */
+
 void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
 {
     return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE | MEM_COMMIT, fdProtect);
 }
 
+/**
+ @fn void memfree(HANDLE hProcess, uint addr)
+
+ @brief Memfrees.
+
+ @param hProcess Handle of the process.
+ @param addr     The address.
+ */
+
 void memfree(HANDLE hProcess, uint addr)
 {
     VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
 }
+
+/**
+ @fn static int formathexpattern(char* string)
+
+ @brief Formathexpatterns the given string.
+
+ @param [in,out] string If non-null, the string.
+
+ @return An int.
+ */
 
 static int formathexpattern(char* string)
 {
@@ -238,6 +353,17 @@ static int formathexpattern(char* string)
     strcpy(string, new_string);
     return (int)strlen(string);
 }
+
+/**
+ @fn static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
+
+ @brief Patterntransforms.
+
+ @param text             The text.
+ @param [in,out] pattern If non-null, specifies the pattern.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
 {
@@ -285,6 +411,17 @@ static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern
     return true;
 }
 
+/**
+ @fn static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
+
+ @brief Patternmatchbytes.
+
+ @param byte           The byte.
+ @param [in,out] pbyte If non-null, the pbyte.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
 {
     unsigned char n1 = (byte >> 4) & 0xF;
@@ -300,6 +437,19 @@ static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
         matched++;
     return (matched == 2);
 }
+
+/**
+ @fn uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
+
+ @brief Memfindpatterns.
+
+ @param [in,out] data        If non-null, the data.
+ @param size                 The size.
+ @param pattern              Specifies the pattern.
+ @param [in,out] patternsize If non-null, the patternsize.
+
+ @return An uint.
+ */
 
 uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
 {

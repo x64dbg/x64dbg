@@ -1,3 +1,9 @@
+/**
+ @file argument.cpp
+
+ @brief Implements the argument class.
+ */
+
 #include "argument.h"
 #include "console.h"
 
@@ -22,6 +28,15 @@ formatarg:
 12) restore double backslash
 13) combine formatted arguments and command
 */
+
+/**
+ @fn void argformat(char* cmd)
+
+ @brief Argformats the given command.
+
+ @param [in,out] cmd If non-null, the command.
+ */
+
 void argformat(char* cmd)
 {
     if(strlen(cmd) >= deflen)
@@ -146,6 +161,17 @@ void argformat(char* cmd)
 1) remove double backslash
 2) count unescaped commas
 */
+
+/**
+ @fn int arggetcount(const char* cmd)
+
+ @brief Arggetcounts the given command.
+
+ @param cmd The command.
+
+ @return An int.
+ */
+
 int arggetcount(const char* cmd)
 {
     int len = (int)strlen(cmd);
@@ -183,6 +209,20 @@ int arggetcount(const char* cmd)
 4) restore double backslash
 5) handle escape characters
 */
+
+/**
+ @fn bool argget(const char* cmd, char* arg, int arg_num, bool optional)
+
+ @brief Arggets.
+
+ @param cmd          The command.
+ @param [in,out] arg If non-null, the argument.
+ @param arg_num      The argument number.
+ @param optional     true to optional.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {
     if(strlen(cmd) >= deflen)

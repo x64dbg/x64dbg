@@ -8,6 +8,7 @@ release/
 build/
 debug/
 *XE Results*/
+doxygen*/
 
 #global filetypes to ignore
 *.depend

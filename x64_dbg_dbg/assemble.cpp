@@ -1,3 +1,9 @@
+/**
+ @file assemble.cpp
+
+ @brief Implements the assemble class.
+ */
+
 #include "assemble.h"
 #include "memory.h"
 #include "debugger.h"
@@ -5,6 +11,17 @@
 #include "value.h"
 #include "disasm_helper.h"
 #include "console.h"
+
+/**
+ @fn static bool cbUnknown(const char* text, ULONGLONG* value)
+
+ @brief Unknowns.
+
+ @param text           The text.
+ @param [in,out] value If non-null, the value.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool cbUnknown(const char* text, ULONGLONG* value)
 {
@@ -16,6 +33,20 @@ static bool cbUnknown(const char* text, ULONGLONG* value)
     *value = val;
     return true;
 }
+
+/**
+ @fn bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction, char* error)
+
+ @brief Assembles.
+
+ @param addr           The address.
+ @param [in,out] dest  If non-null, destination for the.
+ @param [in,out] size  If non-null, the size.
+ @param instruction    The instruction.
+ @param [in,out] error If non-null, the error.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction, char* error)
 {
@@ -45,6 +76,20 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
 
     return true;
 }
+
+/**
+ @fn bool assembleat(uint addr, const char* instruction, int* size, char* error, bool fillnop)
+
+ @brief Assembleats.
+
+ @param addr           The address.
+ @param instruction    The instruction.
+ @param [in,out] size  If non-null, the size.
+ @param [in,out] error If non-null, the error.
+ @param fillnop        true to fillnop.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool assembleat(uint addr, const char* instruction, int* size, char* error, bool fillnop)
 {

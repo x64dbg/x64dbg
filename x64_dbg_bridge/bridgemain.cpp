@@ -1,24 +1,83 @@
+/**
+ @file bridgemain.cpp
+
+ @brief Implements the bridgemain class.
+ */
+
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
 #include <new>
 
+/**
+ @brief The instance.
+ */
+
 static HINSTANCE hInst;
+
+/**
+ @brief The initialise file[ 1024].
+ */
+
 static char szIniFile[1024] = "";
 
 #ifdef _WIN64
+
+/**
+ @def dbg_lib();
+
+ @brief A macro that defines debug library.
+ */
+
 #define dbg_lib "x64_dbg.dll"
+
+/**
+ @def gui_lib();
+
+ @brief A macro that defines graphical user interface library.
+ */
+
 #define gui_lib "x64_gui.dll"
 #else
+
+/**
+ @def dbg_lib();
+
+ @brief A macro that defines debug library.
+ */
+
 #define dbg_lib "x32_dbg.dll"
+
+/**
+ @def gui_lib();
+
+ @brief A macro that defines graphical user interface library.
+ */
+
 #define gui_lib "x32_gui.dll"
 #endif // _WIN64
+
+/**
+ @def LOADLIBRARY(name) szLib=name;
+
+ @brief A macro that defines loadlibrary.
+
+ @param name The name.
+ */
 
 #define LOADLIBRARY(name) \
     szLib=name; \
     hInst=LoadLibraryA(name); \
     if(!hInst) \
         return "Error loading library \""name"\"!"
+
+/**
+ @def LOADEXPORT(name) *((FARPROC*)&name)=GetProcAddress(hInst, #name);
+
+ @brief A macro that defines loadexport.
+
+ @param name The name.
+ */
 
 #define LOADEXPORT(name) \
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
@@ -28,7 +87,14 @@ static char szIniFile[1024] = "";
         return szError; \
     }
 
-//Bridge
+/**
+ @fn BRIDGE_IMPEXP const char* BridgeInit()
+
+ @brief Bridge.
+
+ @return null if it fails, else a char*.
+ */
+
 BRIDGE_IMPEXP const char* BridgeInit()
 {
     ///Settings load
@@ -76,6 +142,14 @@ BRIDGE_IMPEXP const char* BridgeInit()
     return 0;
 }
 
+/**
+ @fn BRIDGE_IMPEXP const char* BridgeStart()
+
+ @brief Bridge start.
+
+ @return null if it fails, else a char*.
+ */
+
 BRIDGE_IMPEXP const char* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
@@ -83,6 +157,16 @@ BRIDGE_IMPEXP const char* BridgeStart()
     _gui_guiinit(0, 0); //remove arguments
     return 0;
 }
+
+/**
+ @fn BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
+
+ @brief Bridge allocate.
+
+ @param size The size.
+
+ @return null if it fails, else a void*.
+ */
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
@@ -96,10 +180,30 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     return a;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void BridgeFree(void* ptr)
+
+ @brief Bridge free.
+
+ @param [in,out] ptr If non-null, the pointer.
+ */
+
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
     GlobalFree(ptr);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
+
+ @brief Bridge setting get.
+
+ @param section        The section.
+ @param key            The key.
+ @param [in,out] value If non-null, the value.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
 {
@@ -109,6 +213,18 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
+
+ @brief Bridge setting get uint.
+
+ @param section        The section.
+ @param key            The key.
+ @param [in,out] value If non-null, the value.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
 {
@@ -127,6 +243,18 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
+
+ @brief Bridge setting set.
+
+ @param section The section.
+ @param key     The key.
+ @param value   The value.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
     if(!section)
@@ -135,6 +263,18 @@ BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const 
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
+
+ @brief Bridge setting set uint.
+
+ @param section The section.
+ @param key     The key.
+ @param value   The value.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
 {
@@ -149,12 +289,31 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
     return BridgeSettingSet(section, key, newvalue);
 }
 
+/**
+ @fn BRIDGE_IMPEXP int BridgeGetDbgVersion()
+
+ @brief Bridge get debug version.
+
+ @return An int.
+ */
+
 BRIDGE_IMPEXP int BridgeGetDbgVersion()
 {
     return DBG_VERSION;
 }
 
-//Debugger
+/**
+ @fn BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
+
+ @brief Debugger.
+
+ @param va            The variable arguments.
+ @param [in,out] dest If non-null, destination for the.
+ @param size          The size.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
     if(IsBadWritePtr(dest, size))
@@ -168,6 +327,18 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
     return ret;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
+
+ @brief Debug memory write.
+
+ @param va   The variable arguments.
+ @param src  Source for the.
+ @param size The size.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 {
     if(IsBadReadPtr(src, size))
@@ -178,6 +349,16 @@ BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
     return _dbg_memwrite(va, src, size, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
+
+ @brief Debug memory get page size.
+
+ @param base The base.
+
+ @return A duint.
+ */
+
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
 {
     duint size = 0;
@@ -185,20 +366,61 @@ BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
     return size;
 }
 
+/**
+ @fn BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
+
+ @brief Debug memory find base address.
+
+ @param addr          The address.
+ @param [in,out] size If non-null, the size.
+
+ @return A duint.
+ */
+
 BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
 {
     return _dbg_memfindbaseaddr(addr, size);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd)
+
+ @brief Debug command execute.
+
+ @param cmd The command.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd)
 {
     return _dbg_dbgcmdexec(cmd);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
+
+ @brief Debug memory map.
+
+ @param [in,out] memmap If non-null, the memmap.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
 {
     return _dbg_memmap(memmap);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
+
+ @brief Debug is valid expression.
+
+ @param expression The expression.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 {
@@ -206,15 +428,45 @@ BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
     return _dbg_valfromstring(expression, &value);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgIsDebugging()
+
+ @brief Determines if we can debug is debugging.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgIsDebugging()
 {
     return _dbg_isdebugging();
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
+
+ @brief Debug is jump going to execute.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 {
     return _dbg_isjumpgoingtoexecute(addr);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text)
+
+ @brief Debug get label at.
+
+ @param addr          The address.
+ @param segment       The segment.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(module.)+label
 {
@@ -238,6 +490,17 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
+
+ @brief Debug set label at.
+
+ @param addr The address.
+ @param text The text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
@@ -250,6 +513,17 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text)
+
+ @brief Debug get comment at.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
@@ -264,6 +538,17 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
+
+ @brief Debug set comment at.
+
+ @param addr The address.
+ @param text The text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
@@ -276,6 +561,17 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
+
+ @brief Debug get module at.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {
@@ -290,6 +586,16 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
+
+ @brief Debug get bookmark at.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
 {
     if(!addr)
@@ -302,6 +608,17 @@ BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
     return info.isbookmark;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
+
+ @brief Debug set bookmark at.
+
+ @param addr       The address.
+ @param isbookmark true to isbookmark.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
 {
     if(!addr)
@@ -313,20 +630,54 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
     return _dbg_addrinfoset(addr, &info);
 }
 
+/**
+ @fn BRIDGE_IMPEXP const char* DbgInit()
+
+ @brief Debug initialise.
+
+ @return null if it fails, else a char*.
+ */
+
 BRIDGE_IMPEXP const char* DbgInit()
 {
     return _dbg_dbginit();
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgExit()
+
+ @brief Debug exit.
+ */
 
 BRIDGE_IMPEXP void DbgExit()
 {
     _dbg_dbgexitsignal(); //send exit signal to debugger
 }
 
+/**
+ @fn BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
+
+ @brief Debug get bpx type at.
+
+ @param addr The address.
+
+ @return A BPXTYPE.
+ */
+
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 {
     return _dbg_bpgettypeat(addr);
 }
+
+/**
+ @fn BRIDGE_IMPEXP duint DbgValFromString(const char* string)
+
+ @brief Debug value from string.
+
+ @param string The string.
+
+ @return A duint.
+ */
 
 BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 {
@@ -335,10 +686,31 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
     return value;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
+
+ @brief Debug get register dump.
+
+ @param [in,out] regdump If non-null, the regdump.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 {
     return _dbg_getregdump(regdump);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
+
+ @brief Debug value to string.
+
+ @param string The string.
+ @param value  The value.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
@@ -346,20 +718,61 @@ BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
     return _dbg_valtostring(string, &valueCopy);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
+
+ @brief Debug memory is valid read pointer.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
 {
     return _dbg_memisvalidreadptr(addr);
 }
+
+/**
+ @fn BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
+
+ @brief Debug get bp list.
+
+ @param type          The type.
+ @param [in,out] list If non-null, the list.
+
+ @return An int.
+ */
 
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
 {
     return _dbg_getbplist(type, list);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
+
+ @brief Debug command execute direct.
+
+ @param cmd The command.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 {
     return _dbg_dbgcmddirectexec(cmd);
 }
+
+/**
+ @fn BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
+
+ @brief Debug get function type at.
+
+ @param addr The address.
+
+ @return A FUNCTYPE.
+ */
 
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
@@ -379,6 +792,17 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
     return FUNC_MIDDLE;
 }
 
+/**
+ @fn BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
+
+ @brief Debug get loop type at.
+
+ @param addr  The address.
+ @param depth The depth.
+
+ @return A LOOPTYPE.
+ */
+
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
     ADDRINFO info;
@@ -396,30 +820,78 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
     return LOOP_MIDDLE;
 }
 
+/**
+ @fn BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
+
+ @brief Debug get branch destination.
+
+ @param addr The address.
+
+ @return A duint.
+ */
+
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
 {
     return _dbg_getbranchdestination(addr);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
+
+ @brief Debug script load.
+
+ @param filename Filename of the file.
+ */
 
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
 {
     _dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptUnload()
+
+ @brief Debug script unload.
+ */
+
 BRIDGE_IMPEXP void DbgScriptUnload()
 {
     _dbg_sendmessage(DBG_SCRIPT_UNLOAD, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptRun(int destline)
+
+ @brief Debug script run.
+
+ @param destline The destline.
+ */
 
 BRIDGE_IMPEXP void DbgScriptRun(int destline)
 {
     _dbg_sendmessage(DBG_SCRIPT_RUN, (void*)(duint)destline, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptStep()
+
+ @brief Debug script step.
+ */
+
 BRIDGE_IMPEXP void DbgScriptStep()
 {
     _dbg_sendmessage(DBG_SCRIPT_STEP, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
+
+ @brief Debug script bp toggle.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
 {
@@ -428,12 +900,32 @@ BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
+
+ @brief Debug script bp get.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
 {
     if(_dbg_sendmessage(DBG_SCRIPT_BPGET, (void*)(duint)line, 0))
         return true;
     return false;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
+
+ @brief Debug script command execute.
+
+ @param command The command.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
 {
@@ -442,25 +934,70 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptAbort()
+
+ @brief Debug script abort.
+ */
+
 BRIDGE_IMPEXP void DbgScriptAbort()
 {
     _dbg_sendmessage(DBG_SCRIPT_ABORT, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
+
+ @brief Debug script get line type.
+
+ @param line The line.
+
+ @return A SCRIPTLINETYPE.
+ */
 
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
 {
     return (SCRIPTLINETYPE)_dbg_sendmessage(DBG_SCRIPT_GETLINETYPE, (void*)(duint)line, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgScriptSetIp(int line)
+
+ @brief Debug script set IP.
+
+ @param line The line.
+ */
+
 BRIDGE_IMPEXP void DbgScriptSetIp(int line)
 {
     _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
+
+ @brief Debug script get branch information.
+
+ @param line          The line.
+ @param [in,out] info If non-null, the information.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 {
     return !!_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+
+ @brief Debug symbol enum.
+
+ @param base          The base.
+ @param cbSymbolEnum  The symbol enum.
+ @param [in,out] user If non-null, the user.
+ */
 
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
@@ -471,6 +1008,17 @@ BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* us
     _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
+
+ @brief Debug assemble at.
+
+ @param addr        The address.
+ @param instruction The instruction.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
 {
     if(_dbg_sendmessage(DBG_ASSEMBLE_AT, (void*)addr, (void*)instruction))
@@ -478,41 +1026,113 @@ BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name)
+
+ @brief Debug modifier base from name.
+
+ @param name The name.
+
+ @return A duint.
+ */
+
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name)
 {
     return _dbg_sendmessage(DBG_MODBASE_FROM_NAME, (void*)name, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
+
+ @brief Debug disasm at.
+
+ @param addr           The address.
+ @param [in,out] instr If non-null, the instr.
+ */
 
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
 {
     _dbg_sendmessage(DBG_DISASM_AT, (void*)addr, instr);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
+
+ @brief Debug stack comment get.
+
+ @param addr             The address.
+ @param [in,out] comment If non-null, the comment.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
 {
     return !!_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
+
+ @brief Debug get thread list.
+
+ @param [in,out] list If non-null, the list.
+ */
 
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
 {
     _dbg_sendmessage(DBG_GET_THREAD_LIST, list, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgSettingsUpdated()
+
+ @brief Debug settings updated.
+ */
+
 BRIDGE_IMPEXP void DbgSettingsUpdated()
 {
     _dbg_sendmessage(DBG_SETTINGS_UPDATED, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+
+ @brief Debug disasm fast at.
+
+ @param addr               The address.
+ @param [in,out] basicinfo If non-null, the basicinfo.
+ */
 
 BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     _dbg_sendmessage(DBG_DISASM_FAST_AT, (void*)addr, basicinfo);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
+
+ @brief Debug menu entry clicked.
+
+ @param hEntry The entry.
+ */
+
 BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
 {
     _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
+
+ @brief Debug function get.
+
+ @param addr           The address.
+ @param [in,out] start If non-null, the start.
+ @param [in,out] end   If non-null, the end.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
 {
@@ -525,6 +1145,17 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
+
+ @brief Debug function overlaps.
+
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -534,6 +1165,17 @@ BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
+
+ @brief Debug function add.
+
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
 {
@@ -546,6 +1188,16 @@ BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
+
+ @brief Debug function delete.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
 {
     FUNCTION_LOOP_INFO info;
@@ -554,6 +1206,19 @@ BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
+
+ @brief Debug loop get.
+
+ @param depth          The depth.
+ @param addr           The address.
+ @param [in,out] start If non-null, the start.
+ @param [in,out] end   If non-null, the end.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
 {
@@ -567,6 +1232,18 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
+
+ @brief Debug loop overlaps.
+
+ @param depth The depth.
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -577,6 +1254,17 @@ BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
         return false;
     return true;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
+
+ @brief Debug loop add.
+
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
 {
@@ -589,6 +1277,17 @@ BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
+
+ @brief Debug loop delete.
+
+ @param depth The depth.
+ @param addr  The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
 {
     FUNCTION_LOOP_INFO info;
@@ -599,12 +1298,30 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
     return true;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgIsRunLocked()
+
+ @brief Determines if we can debug is run locked.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgIsRunLocked()
 {
     if(_dbg_sendmessage(DBG_IS_RUN_LOCKED, 0, 0))
         return true;
     return false;
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
+
+ @brief Debug is bp disabled.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
 {
@@ -613,6 +1330,17 @@ BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
+
+ @brief Debug set automatic comment at.
+
+ @param addr The address.
+ @param text The text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
 {
     if(_dbg_sendmessage(DBG_SET_AUTO_COMMENT_AT, (void*)addr, (void*)text))
@@ -620,10 +1348,30 @@ BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
+
+ @brief Debug clear automatic comment range.
+
+ @param start The start.
+ @param end   The end.
+ */
+
 BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_COMMENT_RANGE, (void*)start, (void*)end);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
+
+ @brief Debug set automatic label at.
+
+ @param addr The address.
+ @param text The text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
 {
@@ -632,10 +1380,29 @@ BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
+
+ @brief Debug clear automatic label range.
+
+ @param start The start.
+ @param end   The end.
+ */
+
 BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_LABEL_RANGE, (void*)start, (void*)end);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
+
+ @brief Debug set automatic bookmark at.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
 {
@@ -644,10 +1411,30 @@ BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
+
+ @brief Debug clear automatic bookmark range.
+
+ @param start The start.
+ @param end   The end.
+ */
+
 BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_BOOKMARK_RANGE, (void*)start, (void*)end);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
+
+ @brief Debug set automatic function at.
+
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
 {
@@ -656,10 +1443,30 @@ BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
+
+ @brief Debug clear automatic function range.
+
+ @param start The start.
+ @param end   The end.
+ */
+
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
+
+ @brief Debug get string at.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
 {
@@ -668,10 +1475,29 @@ BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
+
+ @brief Debug functions.
+
+ @return null if it fails, else a DBGFUNCTIONS*.
+ */
+
 BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
 {
     return (const DBGFUNCTIONS*)_dbg_sendmessage(DBG_GET_FUNCTIONS, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
+
+ @brief Debug window event.
+
+ @param [in,out] message If non-null, the message.
+ @param [out] result     If non-null, the result.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
 {
@@ -680,6 +1506,16 @@ BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
     return false;
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
+
+ @brief Debug window event global.
+
+ @param [in,out] message If non-null, the message.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
 {
     if(_dbg_sendmessage(DBG_WIN_EVENT_GLOBAL, message, 0))
@@ -687,26 +1523,62 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
     return false;
 }
 
-//GUI
+/**
+ @fn BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
+
+ @brief GUI.
+
+ @param addr The address.
+ @param cip  The cip.
+ */
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
+
+ @brief Graphical user interface set debug state.
+
+ @param state The state.
+ */
 
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
     _gui_sendmessage(GUI_SET_DEBUG_STATE, (void*)state, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
+
+ @brief Graphical user interface add log message.
+
+ @param msg The message.
+ */
+
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
 {
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiLogClear()
+
+ @brief Graphical user interface log clear.
+ */
+
 BRIDGE_IMPEXP void GuiLogClear()
 {
     _gui_sendmessage(GUI_CLEAR_LOG, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateAllViews()
+
+ @brief Graphical user interface update all views.
+ */
 
 BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
@@ -719,125 +1591,320 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiRepaintTableView();
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateRegisterView()
+
+ @brief Graphical user interface update register view.
+ */
+
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
 {
     _gui_sendmessage(GUI_UPDATE_REGISTER_VIEW, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
+
+ @brief Graphical user interface update disassembly view.
+ */
 
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
     _gui_sendmessage(GUI_UPDATE_DISASSEMBLY_VIEW, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
+
+ @brief Graphical user interface update breakpoints view.
+ */
+
 BRIDGE_IMPEXP void GuiUpdateBreakpointsView()
 {
     _gui_sendmessage(GUI_UPDATE_BREAKPOINTS_VIEW, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
+
+ @brief Graphical user interface update window title.
+
+ @param filename Filename of the file.
+ */
 
 BRIDGE_IMPEXP void GuiUpdateWindowTitle(const char* filename)
 {
     _gui_sendmessage(GUI_UPDATE_WINDOW_TITLE, (void*)filename, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP HWND GuiGetWindowHandle()
+
+ @brief Graphical user interface get window handle.
+
+ @return The handle of the window.
+ */
+
 BRIDGE_IMPEXP HWND GuiGetWindowHandle()
 {
     return (HWND)_gui_sendmessage(GUI_GET_WINDOW_HANDLE, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiDumpAt(duint va)
+
+ @brief Graphical user interface dump at.
+
+ @param va The variable arguments.
+ */
 
 BRIDGE_IMPEXP void GuiDumpAt(duint va)
 {
     _gui_sendmessage(GUI_DUMP_AT, (void*)va, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines)
+
+ @brief Graphical user interface script add.
+
+ @param count Number of.
+ @param lines The lines.
+ */
+
 BRIDGE_IMPEXP void GuiScriptAdd(int count, const char** lines)
 {
     _gui_sendmessage(GUI_SCRIPT_ADD, (void*)(duint)count, (void*)lines);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptClear()
+
+ @brief Graphical user interface script clear.
+ */
 
 BRIDGE_IMPEXP void GuiScriptClear()
 {
     _gui_sendmessage(GUI_SCRIPT_CLEAR, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptSetIp(int line)
+
+ @brief Graphical user interface script set IP.
+
+ @param line The line.
+ */
+
 BRIDGE_IMPEXP void GuiScriptSetIp(int line)
 {
     _gui_sendmessage(GUI_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptError(int line, const char* message)
+
+ @brief Graphical user interface script error.
+
+ @param line    The line.
+ @param message The message.
+ */
 
 BRIDGE_IMPEXP void GuiScriptError(int line, const char* message)
 {
     _gui_sendmessage(GUI_SCRIPT_ERROR, (void*)(duint)line, (void*)message);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title)
+
+ @brief Graphical user interface script set title.
+
+ @param title The title.
+ */
+
 BRIDGE_IMPEXP void GuiScriptSetTitle(const char* title)
 {
     _gui_sendmessage(GUI_SCRIPT_SETTITLE, (void*)title, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
+
+ @brief Graphical user interface script set information line.
+
+ @param line The line.
+ @param info The information.
+ */
 
 BRIDGE_IMPEXP void GuiScriptSetInfoLine(int line, const char* info)
 {
     _gui_sendmessage(GUI_SCRIPT_SETINFOLINE, (void*)(duint)line, (void*)info);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptMessage(const char* message)
+
+ @brief Graphical user interface script message.
+
+ @param message The message.
+ */
+
 BRIDGE_IMPEXP void GuiScriptMessage(const char* message)
 {
     _gui_sendmessage(GUI_SCRIPT_MESSAGE, (void*)message, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
+
+ @brief Graphical user interface script msgyn.
+
+ @param message The message.
+
+ @return An int.
+ */
 
 BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
 {
     return (int)(duint)_gui_sendmessage(GUI_SCRIPT_MSGYN, (void*)message, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable)
+
+ @brief Graphical user interface script enable highlighting.
+
+ @param enable true to enable, false to disable.
+ */
+
 BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable)
 {
     _gui_sendmessage(GUI_SCRIPT_ENABLEHIGHLIGHTING, (void*)(duint)enable, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message)
+
+ @brief Graphical user interface symbol log add.
+
+ @param message The message.
+ */
 
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message)
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_ADD, (void*)message, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiSymbolLogClear()
+
+ @brief Graphical user interface symbol log clear.
+ */
+
 BRIDGE_IMPEXP void GuiSymbolLogClear()
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_CLEAR, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent)
+
+ @brief Graphical user interface symbol set progress.
+
+ @param percent The percent.
+ */
 
 BRIDGE_IMPEXP void GuiSymbolSetProgress(int percent)
 {
     _gui_sendmessage(GUI_SYMBOL_SET_PROGRESS, (void*)(duint)percent, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules)
+
+ @brief Graphical user interface symbol update module list.
+
+ @param count            Number of.
+ @param [in,out] modules If non-null, the modules.
+ */
+
 BRIDGE_IMPEXP void GuiSymbolUpdateModuleList(int count, SYMBOLMODULEINFO* modules)
 {
     _gui_sendmessage(GUI_SYMBOL_UPDATE_MODULE_LIST, (void*)(duint)count, (void*)modules);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
+
+ @brief Graphical user interface reference add column.
+
+ @param width The width.
+ @param title The title.
+ */
 
 BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
 {
     _gui_sendmessage(GUI_REF_ADDCOLUMN, (void*)(duint)width, (void*)title);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiSymbolRefreshCurrent()
+
+ @brief Graphical user interface symbol refresh current.
+ */
+
 BRIDGE_IMPEXP void GuiSymbolRefreshCurrent()
 {
     _gui_sendmessage(GUI_SYMBOL_REFRESH_CURRENT, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
+
+ @brief Graphical user interface reference set row count.
+
+ @param count Number of.
+ */
 
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
 {
     _gui_sendmessage(GUI_REF_SETROWCOUNT, (void*)(duint)count, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP int GuiReferenceGetRowCount()
+
+ @brief Graphical user interface reference get row count.
+
+ @return An int.
+ */
+
 BRIDGE_IMPEXP int GuiReferenceGetRowCount()
 {
     return (int)(duint)_gui_sendmessage(GUI_REF_GETROWCOUNT, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
+
+ @brief Graphical user interface reference delete all columns.
+ */
+
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
 {
     _gui_sendmessage(GUI_REF_DELETEALLCOLUMNS, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
+
+ @brief Graphical user interface reference set cell content.
+
+ @param row The row.
+ @param col The col.
+ @param str The.
+ */
 
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 {
@@ -848,142 +1915,374 @@ BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
     _gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col)
+
+ @brief Graphical user interface reference get cell content.
+
+ @param row The row.
+ @param col The col.
+
+ @return null if it fails, else a char*.
+ */
+
 BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col)
 {
     return (const char*)_gui_sendmessage(GUI_REF_GETCELLCONTENT, (void*)(duint)row, (void*)(duint)col);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceReloadData()
+
+ @brief Graphical user interface reference reload data.
+ */
 
 BRIDGE_IMPEXP void GuiReferenceReloadData()
 {
     _gui_sendmessage(GUI_REF_RELOADDATA, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
+
+ @brief Graphical user interface reference set single selection.
+
+ @param index  Zero-based index of the.
+ @param scroll true to scroll.
+ */
+
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll)
 {
     _gui_sendmessage(GUI_REF_SETSINGLESELECTION, (void*)(duint)index, (void*)(duint)scroll);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
+
+ @brief Graphical user interface reference set progress.
+
+ @param progress The progress.
+ */
 
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
 {
     _gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
+
+ @brief Graphical user interface reference set search start col.
+
+ @param col The col.
+ */
+
 BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
 {
     _gui_sendmessage(GUI_REF_SETSEARCHSTARTCOL, (void*)(duint)col, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
+
+ @brief Graphical user interface stack dump at.
+
+ @param addr The address.
+ @param csp  The csp.
+ */
 
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp)
 {
     _gui_sendmessage(GUI_STACK_DUMP_AT, (void*)addr, (void*)csp);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateDumpView()
+
+ @brief Graphical user interface update dump view.
+ */
+
 BRIDGE_IMPEXP void GuiUpdateDumpView()
 {
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateMemoryView()
+
+ @brief Graphical user interface update memory view.
+ */
 
 BRIDGE_IMPEXP void GuiUpdateMemoryView()
 {
     _gui_sendmessage(GUI_UPDATE_MEMORY_VIEW, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateThreadView()
+
+ @brief Graphical user interface update thread view.
+ */
+
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiAddRecentFile(const char* file)
+
+ @brief Graphical user interface add recent file.
+
+ @param file The file.
+ */
 
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file)
 {
     _gui_sendmessage(GUI_ADD_RECENT_FILE, (void*)file, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
+
+ @brief Graphical user interface set last exception.
+
+ @param exception The exception.
+ */
+
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
 {
     _gui_sendmessage(GUI_SET_LAST_EXCEPTION, (void*)(duint)exception, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
+
+ @brief Graphical user interface get disassembly.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
 {
     return !!_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
 }
 
+/**
+ @fn BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
+
+ @brief Graphical user interface menu add.
+
+ @param hMenu The menu.
+ @param title The title.
+
+ @return An int.
+ */
+
 BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
 {
     return (int)(duint)_gui_sendmessage(GUI_MENU_ADD, (void*)(duint)hMenu, (void*)title);
 }
+
+/**
+ @fn BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title)
+
+ @brief Graphical user interface menu add entry.
+
+ @param hMenu The menu.
+ @param title The title.
+
+ @return An int.
+ */
 
 BRIDGE_IMPEXP int GuiMenuAddEntry(int hMenu, const char* title)
 {
     return (int)(duint)_gui_sendmessage(GUI_MENU_ADD_ENTRY, (void*)(duint)hMenu, (void*)title);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu)
+
+ @brief Graphical user interface menu add separator.
+
+ @param hMenu The menu.
+ */
+
 BRIDGE_IMPEXP void GuiMenuAddSeparator(int hMenu)
 {
     _gui_sendmessage(GUI_MENU_ADD_SEPARATOR, (void*)(duint)hMenu, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
+
+ @brief Graphical user interface menu clear.
+
+ @param hMenu The menu.
+ */
 
 BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
 {
     _gui_sendmessage(GUI_MENU_CLEAR, (void*)(duint)hMenu, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
+
+ @brief Graphical user interface selection get.
+
+ @param hWindow            The window.
+ @param [in,out] selection If non-null, the selection.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
 }
+
+/**
+ @fn BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
+
+ @brief Graphical user interface selection set.
+
+ @param hWindow   The window.
+ @param selection The selection.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
 }
 
+/**
+ @fn BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
+
+ @brief Graphical user interface get line window.
+
+ @param title         The title.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
 {
     return !!_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)
+
+ @brief Graphical user interface automatic complete add command.
+
+ @param cmd The command.
+ */
 
 BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_ADDCMD, (void*)cmd, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
+
+ @brief Graphical user interface automatic complete delete command.
+
+ @param cmd The command.
+ */
+
 BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_DELCMD, (void*)cmd, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
+
+ @brief Graphical user interface automatic complete clear all.
+ */
 
 BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
 {
     _gui_sendmessage(GUI_AUTOCOMPLETE_CLEARALL, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
+
+ @brief Graphical user interface add status bar message.
+
+ @param msg The message.
+ */
+
 BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
 {
     _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateSideBar()
+
+ @brief Graphical user interface update side bar.
+ */
 
 BRIDGE_IMPEXP void GuiUpdateSideBar()
 {
     _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiRepaintTableView()
+
+ @brief Graphical user interface repaint table view.
+ */
+
 BRIDGE_IMPEXP void GuiRepaintTableView()
 {
     _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
 }
+
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdatePatches()
+
+ @brief Graphical user interface update patches.
+ */
 
 BRIDGE_IMPEXP void GuiUpdatePatches()
 {
     _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
 }
 
+/**
+ @fn BRIDGE_IMPEXP void GuiUpdateCallStack()
+
+ @brief Graphical user interface update call stack.
+ */
+
 BRIDGE_IMPEXP void GuiUpdateCallStack()
 {
     _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
 }
 
-//Main
+/**
+ @fn BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+
+ @brief Main.
+
+ @param hinstDLL    The hinst DLL.
+ @param fdwReason   The fdw reason.
+ @param lpvReserved The lpv reserved.
+
+ @return A WINAPI.
+ */
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

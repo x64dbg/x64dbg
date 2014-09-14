@@ -1,19 +1,46 @@
+/**
+ @file msgqueue.cpp
+
+ @brief Implements the msgqueue class.
+ */
+
 #include "msgqueue.h"
 #include <stdio.h>
 
-//allocate a message (internal)
+/**
+ @fn static MESSAGE* msgalloc()
+
+ @brief allocate a message (internal)
+
+ @return null if it fails, else a MESSAGE*.
+ */
+
 static MESSAGE* msgalloc()
 {
     return (MESSAGE*)emalloc(sizeof(MESSAGE), "msgalloc:msg");
 }
 
-//free a message (internal)
+/**
+ @fn static void msgfree(MESSAGE* msg)
+
+ @brief free a message (internal)
+
+ @param [in,out] msg If non-null, the message.
+ */
+
 static void msgfree(MESSAGE* msg)
 {
     efree(msg, "msgfree:msg");
 }
 
-//allocate a message stack
+/**
+ @fn MESSAGE_STACK* msgallocstack()
+
+ @brief allocate a message stack.
+
+ @return null if it fails, else a MESSAGE_STACK*.
+ */
+
 MESSAGE_STACK* msgallocstack()
 {
     MESSAGE_STACK* msgstack = (MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
@@ -24,7 +51,14 @@ MESSAGE_STACK* msgallocstack()
     return msgstack;
 }
 
-//free a message stack
+/**
+ @fn void msgfreestack(MESSAGE_STACK* msgstack)
+
+ @brief free a message stack.
+
+ @param [in,out] msgstack If non-null, the msgstack.
+ */
+
 void msgfreestack(MESSAGE_STACK* msgstack)
 {
     DeleteCriticalSection(&msgstack->cr);
@@ -34,7 +68,19 @@ void msgfreestack(MESSAGE_STACK* msgstack)
     efree(msgstack, "msgfreestack:msgstack");
 }
 
-//add a message to the stack
+/**
+ @fn bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
+
+ @brief add a message to the stack.
+
+ @param [in,out] msgstack If non-null, the msgstack.
+ @param msg               The message.
+ @param param1            The first parameter.
+ @param param2            The second parameter.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
@@ -60,7 +106,17 @@ bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
     return true;
 }
 
-//get a message from the stack (will return false when there are no messages)
+/**
+ @fn bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
+
+ @brief get a message from the stack (will return false when there are no messages)
+
+ @param [in,out] msgstack If non-null, the msgstack.
+ @param [in,out] msg      If non-null, the message.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
@@ -81,7 +137,15 @@ bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
     return true;
 }
 
-//wait for a message on the specified stack
+/**
+ @fn void msgwait(MESSAGE_STACK* msgstack, MESSAGE* msg)
+
+ @brief wait for a message on the specified stack.
+
+ @param [in,out] msgstack If non-null, the msgstack.
+ @param [in,out] msg      If non-null, the message.
+ */
+
 void msgwait(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
     while(!msgget(msgstack, msg))

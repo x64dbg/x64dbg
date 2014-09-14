@@ -1,3 +1,9 @@
+/**
+ @file simplescript.cpp
+
+ @brief Implements the simplescript class.
+ */
+
 #include "simplescript.h"
 #include "value.h"
 #include "console.h"
@@ -7,12 +13,51 @@
 #include "x64_dbg.h"
 #include "debugger.h"
 
+/**
+ @brief The linemap.
+ */
+
 static std::vector<LINEMAPENTRY> linemap;
+
+/**
+ @brief The scriptbplist.
+ */
+
 static std::vector<SCRIPTBP> scriptbplist;
+
+/**
+ @brief The scriptstack.
+ */
+
 static std::vector<int> scriptstack;
+
+/**
+ @brief The script IP.
+ */
+
 static int scriptIp = 0;
+
+/**
+ @brief The abort.
+ */
+
 static bool volatile bAbort = false;
+
+/**
+ @brief The is running.
+ */
+
 static bool volatile bIsRunning = false;
+
+/**
+ @fn static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
+
+ @brief Scriptgetbranchtypes the given text.
+
+ @param text The text.
+
+ @return A SCRIPTBRANCHTYPE.
+ */
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
@@ -40,6 +85,16 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     return scriptnobranch;
 }
 
+/**
+ @fn static int scriptlabelfind(const char* labelname)
+
+ @brief Scriptlabelfinds the given labelname.
+
+ @param labelname The labelname.
+
+ @return An int.
+ */
+
 static int scriptlabelfind(const char* labelname)
 {
     int linecount = (int)linemap.size();
@@ -48,6 +103,16 @@ static int scriptlabelfind(const char* labelname)
             return i + 1;
     return 0;
 }
+
+/**
+ @fn static int scriptinternalstep(int fromIp)
+
+ @brief Scriptinternalsteps.
+
+ @param fromIp from IP.
+
+ @return An int.
+ */
 
 static int scriptinternalstep(int fromIp) //internal step routine
 {
@@ -59,6 +124,16 @@ static int scriptinternalstep(int fromIp) //internal step routine
     fromIp++;
     return fromIp;
 }
+
+/**
+ @fn static bool scriptcreatelinemap(const char* filename)
+
+ @brief Scriptcreatelinemaps the given file.
+
+ @param filename Filename of the file.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool scriptcreatelinemap(const char* filename)
 {
@@ -253,6 +328,16 @@ static bool scriptcreatelinemap(const char* filename)
     return true;
 }
 
+/**
+ @fn static bool scriptinternalbpget(int line)
+
+ @brief Scriptinternalbpgets.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool scriptinternalbpget(int line) //internal bpget routine
 {
     int bpcount = (int)scriptbplist.size();
@@ -261,6 +346,16 @@ static bool scriptinternalbpget(int line) //internal bpget routine
             return true;
     return false;
 }
+
+/**
+ @fn static bool scriptinternalbptoggle(int line)
+
+ @brief Scriptinternalbptoggles.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool scriptinternalbptoggle(int line) //internal breakpoint
 {
@@ -287,6 +382,16 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
     return true;
 }
 
+/**
+ @fn static bool scriptisruncommand(const char* cmdlist)
+
+ @brief Scriptisruncommands the given cmdlist.
+
+ @param cmdlist The cmdlist.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool scriptisruncommand(const char* cmdlist)
 {
     if(arraycontains(cmdlist, "run"))
@@ -310,6 +415,17 @@ static bool scriptisruncommand(const char* cmdlist)
     return false;
 }
 
+/**
+ @fn static bool scriptisinternalcommand(const char* text, const char* cmd)
+
+ @brief Scriptisinternalcommands.
+
+ @param text The text.
+ @param cmd  The command.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool scriptisinternalcommand(const char* text, const char* cmd)
 {
     int len = (int)strlen(text);
@@ -322,6 +438,16 @@ static bool scriptisinternalcommand(const char* text, const char* cmd)
         return (!_strnicmp(text, cmd, cmdlen));
     return false;
 }
+
+/**
+ @fn static CMDRESULT scriptinternalcmdexec(const char* cmd)
+
+ @brief Scriptinternalcmdexecs the given command.
+
+ @param cmd The command.
+
+ @return A CMDRESULT.
+ */
 
 static CMDRESULT scriptinternalcmdexec(const char* cmd)
 {
@@ -358,6 +484,16 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         Sleep(10);
     return res;
 }
+
+/**
+ @fn static bool scriptinternalbranch(SCRIPTBRANCHTYPE type)
+
+ @brief Scriptinternalbranches the given type.
+
+ @param type The type.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump
 {
@@ -403,6 +539,14 @@ static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should
     return bJump;
 }
 
+/**
+ @fn static bool scriptinternalcmd()
+
+ @brief Scriptinternalcmds this object.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool scriptinternalcmd()
 {
     bool bContinue = true;
@@ -439,6 +583,16 @@ static bool scriptinternalcmd()
     return bContinue;
 }
 
+/**
+ @fn static DWORD WINAPI scriptRunThread(void* arg)
+
+ @brief Script run thread.
+
+ @param [in,out] arg If non-null, the argument.
+
+ @return A WINAPI.
+ */
+
 static DWORD WINAPI scriptRunThread(void* arg)
 {
     int destline = (int)(uint)arg;
@@ -474,6 +628,16 @@ static DWORD WINAPI scriptRunThread(void* arg)
     return 0;
 }
 
+/**
+ @fn static DWORD WINAPI scriptLoadThread(void* filename)
+
+ @brief Script load thread.
+
+ @param [in,out] filename If non-null, filename of the file.
+
+ @return A WINAPI.
+ */
+
 static DWORD WINAPI scriptLoadThread(void* filename)
 {
     GuiScriptClear();
@@ -494,12 +658,26 @@ static DWORD WINAPI scriptLoadThread(void* filename)
     return 0;
 }
 
+/**
+ @fn void scriptload(const char* filename)
+
+ @brief Scriptloads the given file.
+
+ @param filename Filename of the file.
+ */
+
 void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH] = "";
     strcpy_s(filename_, filename);
     CloseHandle(CreateThread(0, 0, scriptLoadThread, filename_, 0, 0));
 }
+
+/**
+ @fn void scriptunload()
+
+ @brief Scriptunloads this object.
+ */
 
 void scriptunload()
 {
@@ -508,6 +686,14 @@ void scriptunload()
     std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
     bAbort = false;
 }
+
+/**
+ @fn void scriptrun(int destline)
+
+ @brief Scriptruns.
+
+ @param destline The destline.
+ */
 
 void scriptrun(int destline)
 {
@@ -521,6 +707,16 @@ void scriptrun(int destline)
     bIsRunning = true;
     CloseHandle(CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0));
 }
+
+/**
+ @fn DWORD WINAPI scriptStepThread(void* param)
+
+ @brief Script step thread.
+
+ @param [in,out] param If non-null, the parameter.
+
+ @return A WINAPI.
+ */
 
 DWORD WINAPI scriptStepThread(void* param)
 {
@@ -536,10 +732,26 @@ DWORD WINAPI scriptStepThread(void* param)
     return 0;
 }
 
+/**
+ @fn void scriptstep()
+
+ @brief Scriptsteps this object.
+ */
+
 void scriptstep()
 {
     CloseHandle(CreateThread(0, 0, scriptStepThread, 0, 0, 0));
 }
+
+/**
+ @fn bool scriptbptoggle(int line)
+
+ @brief Scriptbptoggles.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool scriptbptoggle(int line)
 {
@@ -566,6 +778,16 @@ bool scriptbptoggle(int line)
     return true;
 }
 
+/**
+ @fn bool scriptbpget(int line)
+
+ @brief Scriptbpgets.
+
+ @param line The line.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool scriptbpget(int line)
 {
     int bpcount = (int)scriptbplist.size();
@@ -574,6 +796,16 @@ bool scriptbpget(int line)
             return true;
     return false;
 }
+
+/**
+ @fn bool scriptcmdexec(const char* command)
+
+ @brief Scriptcmdexecs the given command.
+
+ @param command The command.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool scriptcmdexec(const char* command)
 {
@@ -593,6 +825,12 @@ bool scriptcmdexec(const char* command)
     return true;
 }
 
+/**
+ @fn void scriptabort()
+
+ @brief Scriptaborts this object.
+ */
+
 void scriptabort()
 {
     if(bIsRunning)
@@ -605,12 +843,30 @@ void scriptabort()
         scriptsetip(0);
 }
 
+/**
+ @fn SCRIPTLINETYPE scriptgetlinetype(int line)
+
+ @brief Scriptgetlinetypes.
+
+ @param line The line.
+
+ @return A SCRIPTLINETYPE.
+ */
+
 SCRIPTLINETYPE scriptgetlinetype(int line)
 {
     if(line > (int)linemap.size())
         return lineempty;
     return linemap.at(line - 1).type;
 }
+
+/**
+ @fn void scriptsetip(int line)
+
+ @brief Scriptsetips.
+
+ @param line The line.
+ */
 
 void scriptsetip(int line)
 {
@@ -619,6 +875,12 @@ void scriptsetip(int line)
     scriptIp = scriptinternalstep(line);
     GuiScriptSetIp(scriptIp);
 }
+
+/**
+ @fn void scriptreset()
+
+ @brief Scriptresets this object.
+ */
 
 void scriptreset()
 {
@@ -631,6 +893,17 @@ void scriptreset()
     scriptsetip(0);
 }
 
+/**
+ @fn bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
+
+ @brief Scriptgetbranchinfoes.
+
+ @param line          The line.
+ @param [in,out] info If non-null, the information.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
 {
     if(!info or !line or line > (int)linemap.size()) //invalid line
@@ -641,6 +914,17 @@ bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
     return true;
 }
 
+/**
+ @fn CMDRESULT cbScriptLoad(int argc, char* argv[])
+
+ @brief Script load.
+
+ @param argc          The argc.
+ @param [in,out] argv If non-null, the argv.
+
+ @return A CMDRESULT.
+ */
+
 CMDRESULT cbScriptLoad(int argc, char* argv[])
 {
     if(argc < 2)
@@ -648,6 +932,17 @@ CMDRESULT cbScriptLoad(int argc, char* argv[])
     scriptload(argv[1]);
     return STATUS_CONTINUE;
 }
+
+/**
+ @fn CMDRESULT cbScriptMsg(int argc, char* argv[])
+
+ @brief Script message.
+
+ @param argc          The argc.
+ @param [in,out] argv If non-null, the argv.
+
+ @return A CMDRESULT.
+ */
 
 CMDRESULT cbScriptMsg(int argc, char* argv[])
 {
@@ -659,6 +954,17 @@ CMDRESULT cbScriptMsg(int argc, char* argv[])
     GuiScriptMessage(argv[1]);
     return STATUS_CONTINUE;
 }
+
+/**
+ @fn CMDRESULT cbScriptMsgyn(int argc, char* argv[])
+
+ @brief Script msgyn.
+
+ @param argc          The argc.
+ @param [in,out] argv If non-null, the argv.
+
+ @return A CMDRESULT.
+ */
 
 CMDRESULT cbScriptMsgyn(int argc, char* argv[])
 {

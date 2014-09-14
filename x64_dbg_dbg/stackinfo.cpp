@@ -1,3 +1,9 @@
+/**
+ @file stackinfo.cpp
+
+ @brief Implements the stackinfo class.
+ */
+
 #include "stackinfo.h"
 #include "debugger.h"
 #include "memory.h"
@@ -6,6 +12,17 @@
 #include "BeaEngine\BeaEngine.h"
 #include "addrinfo.h"
 #include "_exports.h"
+
+/**
+ @fn bool stackcommentget(uint addr, STACK_COMMENT* comment)
+
+ @brief Stackcommentgets.
+
+ @param addr             The address.
+ @param [in,out] comment If non-null, the comment.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool stackcommentget(uint addr, STACK_COMMENT* comment)
 {
@@ -112,6 +129,16 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     return false;
 }
 #include "console.h"
+
+/**
+ @fn void stackgetcallstack(uint csp, CALLSTACK* callstack)
+
+ @brief Stackgetcallstacks.
+
+ @param csp                The csp.
+ @param [in,out] callstack If non-null, the callstack.
+ */
+
 void stackgetcallstack(uint csp, CALLSTACK* callstack)
 {
     callstack->total = 0;

@@ -1,21 +1,84 @@
+/**
+ @file x64_dbg_launcher.cpp
+
+ @brief Implements the 64 debug launcher class.
+ */
+
 #include <stdio.h>
 #include <windows.h>
 #include <string>
 #include <shlwapi.h>
 
+/**
+ @enum arch
+
+ @brief Values that represent arch.
+ */
+
 enum arch
 {
+    /**
+     @property notfound, invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     notfound,
+
+    /**
+     @property invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     invalid,
+
+    /**
+     @property x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     x32,
+
+    /**
+     @brief .
+     */
+
     x64
 };
+
+/**
+ @fn static bool FileExists(const char* file)
+
+ @brief Queries if a given file exists.
+
+ @param file The file.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool FileExists(const char* file)
 {
     DWORD attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+/**
+ @fn static arch GetFileArchitecture(const char* szFileName)
+
+ @brief Gets file architecture.
+
+ @param szFileName Filename of the file.
+
+ @return The file architecture.
+ */
 
 static arch GetFileArchitecture(const char* szFileName)
 {
@@ -50,13 +113,32 @@ static arch GetFileArchitecture(const char* szFileName)
     return retval;
 }
 
-//Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
+/**
+ @fn static void commandlinefree(int argc, char** argv)
+
+ @brief Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-
+ Simple-Win32-CommandLine-Parser.htm.
+
+ @param argc          The argc.
+ @param [in,out] argv If non-null, the argv.
+ */
+
 static void commandlinefree(int argc, char** argv)
 {
     for(int i = 0; i < argc; i++)
         free(argv[i]);
     free(argv);
 }
+
+/**
+ @fn static char** commandlineparse(int* argc)
+
+ @brief Commandlineparses the given argc.
+
+ @param [in,out] argc If non-null, the argc.
+
+ @return null if it fails, else a char**.
+ */
 
 static char** commandlineparse(int* argc)
 {
@@ -75,6 +157,21 @@ static char** commandlineparse(int* argc)
     return argv;
 }
 
+/**
+ @fn static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, char* filename, int filename_size, const char* init_dir)
+
+ @brief Queries if a given browse file open.
+
+ @param owner             Handle of the owner.
+ @param filter            Specifies the filter.
+ @param defext            The defext.
+ @param [in,out] filename If non-null, filename of the file.
+ @param filename_size     Size of the filename.
+ @param init_dir          The initialise dir.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, char* filename, int filename_size, const char* init_dir)
 {
     OPENFILENAME ofstruct;
@@ -91,8 +188,30 @@ static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, c
     return !!GetOpenFileNameA(&ofstruct);
 }
 
+/**
+ @def SHELLEXT_EXE_KEY
+
+ @brief A macro that defines shellext executable key.
+ */
+
 #define SHELLEXT_EXE_KEY "exefile\\shell\\Debug with x64_dbg\\Command"
+
+/**
+ @def SHELLEXT_DLL_KEY
+
+ @brief A macro that defines shellext DLL key.
+ */
+
 #define SHELLEXT_DLL_KEY "dllfile\\shell\\Debug with x64_dbg\\Command"
+
+/**
+ @fn void RegisterShellExtension(const char* key, const char* command)
+
+ @brief Registers the shell extension.
+
+ @param key     The key.
+ @param command The command.
+ */
 
 void RegisterShellExtension(const char* key, const char* command)
 {
@@ -106,6 +225,19 @@ void RegisterShellExtension(const char* key, const char* command)
         MessageBoxA(0, "RegSetValueExA failed!", "Running as Admin?", MB_ICONERROR);
     RegCloseKey(hKey);
 }
+
+/**
+ @fn int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+
+ @brief Window main.
+
+ @param hInstance     The instance.
+ @param hPrevInstance The previous instance.
+ @param lpCmdLine     The command line.
+ @param nShowCmd      The show command.
+
+ @return An APIENTRY.
+ */
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {

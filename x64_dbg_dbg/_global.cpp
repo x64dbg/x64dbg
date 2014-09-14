@@ -1,27 +1,96 @@
+/**
+ @file _global.cpp
+
+ @brief Implements the global class.
+ */
+
 #include "_global.h"
 #include <new>
 
+/**
+ @brief The instance.
+ */
+
 HINSTANCE hInst;
+
+/**
+ @brief The dbbasepath[deflen].
+ */
+
 char dbbasepath[deflen] = "";
+
+/**
+ @brief The dbpath[ 3*deflen].
+ */
+
 char dbpath[3 * deflen] = "";
+
+/**
+ @fn void* emalloc(size_t size)
+
+ @brief Emallocs the given size.
+
+ @param size The size.
+
+ @return null if it fails, else a void*.
+ */
 
 void* emalloc(size_t size)
 {
     return emalloc(size, "emalloc:???");
 }
 
+/**
+ @fn void* erealloc(void* ptr, size_t size)
+
+ @brief Ereallocs.
+
+ @param [in,out] ptr If non-null, the pointer.
+ @param size         The size.
+
+ @return null if it fails, else a void*.
+ */
+
 void* erealloc(void* ptr, size_t size)
 {
     return erealloc(ptr, size, "erealloc:???");
 }
+
+/**
+ @fn void efree(void* ptr)
+
+ @brief Efrees the given pointer.
+
+ @param [in,out] ptr If non-null, the pointer.
+ */
 
 void efree(void* ptr)
 {
     efree(ptr, "efree:???");
 }
 
+/**
+ @brief Number of emallocs.
+ */
+
 static int emalloc_count = 0;
+
+/**
+ @brief The alloctrace[ maximum path].
+ */
+
 static char alloctrace[MAX_PATH] = "";
+
+/**
+ @fn void* emalloc(size_t size, const char* reason)
+
+ @brief Emallocs.
+
+ @param size   The size.
+ @param reason The reason.
+
+ @return null if it fails, else a void*.
+ */
 
 void* emalloc(size_t size, const char* reason)
 {
@@ -40,6 +109,18 @@ void* emalloc(size_t size, const char* reason)
     */
     return a;
 }
+
+/**
+ @fn void* erealloc(void* ptr, size_t size, const char* reason)
+
+ @brief Ereallocs.
+
+ @param [in,out] ptr If non-null, the pointer.
+ @param size         The size.
+ @param reason       The reason.
+
+ @return null if it fails, else a void*.
+ */
 
 void* erealloc(void* ptr, size_t size, const char* reason)
 {
@@ -60,6 +141,15 @@ void* erealloc(void* ptr, size_t size, const char* reason)
     return a;
 }
 
+/**
+ @fn void efree(void* ptr, const char* reason)
+
+ @brief Efrees.
+
+ @param [in,out] ptr If non-null, the pointer.
+ @param reason       The reason.
+ */
+
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
@@ -71,15 +161,42 @@ void efree(void* ptr, const char* reason)
     GlobalFree(ptr);
 }
 
+/**
+ @fn int memleaks()
+
+ @brief Gets the memleaks.
+
+ @return An int.
+ */
+
 int memleaks()
 {
     return emalloc_count;
 }
 
+/**
+ @fn void setalloctrace(const char* file)
+
+ @brief Setalloctraces the given file.
+
+ @param file The file.
+ */
+
 void setalloctrace(const char* file)
 {
     strcpy_s(alloctrace, file);
 }
+
+/**
+ @fn bool arraycontains(const char* cmd_list, const char* cmd)
+
+ @brief Arraycontains.
+
+ @param cmd_list List of commands.
+ @param cmd      The command.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool arraycontains(const char* cmd_list, const char* cmd)
 {
@@ -108,12 +225,31 @@ bool arraycontains(const char* cmd_list, const char* cmd)
     return false;
 }
 
+/**
+ @fn bool scmp(const char* a, const char* b)
+
+ @brief Scmps.
+
+ @param a The const char* to process.
+ @param b The const char* to process.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool scmp(const char* a, const char* b)
 {
     if(_stricmp(a, b))
         return false;
     return true;
 }
+
+/**
+ @fn void formathex(char* string)
+
+ @brief Formathexes the given string.
+
+ @param [in,out] string If non-null, the string.
+ */
 
 void formathex(char* string)
 {
@@ -127,6 +263,14 @@ void formathex(char* string)
     strcpy(string, new_string);
 }
 
+/**
+ @fn void formatdec(char* string)
+
+ @brief Formatdecs the given string.
+
+ @param [in,out] string If non-null, the string.
+ */
+
 void formatdec(char* string)
 {
     int len = (int)strlen(string);
@@ -139,11 +283,31 @@ void formatdec(char* string)
     strcpy(string, new_string);
 }
 
+/**
+ @fn bool FileExists(const char* file)
+
+ @brief Queries if a given file exists.
+
+ @param file The file.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool FileExists(const char* file)
 {
     DWORD attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+/**
+ @fn bool DirExists(const char* dir)
+
+ @brief Queries if a given dir exists.
+
+ @param dir The dir.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool DirExists(const char* dir)
 {
@@ -151,10 +315,32 @@ bool DirExists(const char* dir)
     return (attrib == FILE_ATTRIBUTE_DIRECTORY);
 }
 
+/**
+ @fn bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
+
+ @brief Gets file name from handle.
+
+ @param hFile               Handle of the file.
+ @param [in,out] szFileName If non-null, filename of the file.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
     return PathFromFileHandleA(hFile, szFileName, MAX_PATH);
 }
+
+/**
+ @fn bool settingboolget(const char* section, const char* name)
+
+ @brief Settingboolgets.
+
+ @param section The section.
+ @param name    The name.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool settingboolget(const char* section, const char* name)
 {
@@ -165,6 +351,16 @@ bool settingboolget(const char* section, const char* name)
         return true;
     return false;
 }
+
+/**
+ @fn arch GetFileArchitecture(const char* szFileName)
+
+ @brief Gets file architecture.
+
+ @param szFileName Filename of the file.
+
+ @return The file architecture.
+ */
 
 arch GetFileArchitecture(const char* szFileName)
 {
@@ -198,6 +394,14 @@ arch GetFileArchitecture(const char* szFileName)
     }
     return retval;
 }
+
+/**
+ @fn bool IsWow64()
+
+ @brief Query if this object is wow 64.
+
+ @return true if wow 64, false if not.
+ */
 
 bool IsWow64()
 {

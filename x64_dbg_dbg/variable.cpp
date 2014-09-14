@@ -1,7 +1,31 @@
+/**
+ @file variable.cpp
+
+ @brief Implements the variable class.
+ */
+
 #include "variable.h"
 
+/**
+ @brief The variables.
+ */
+
 static VariableMap variables;
+
+/**
+ @brief The variables.
+ */
+
 static VAR* vars;
+
+/**
+ @fn static void varsetvalue(VAR* var, VAR_VALUE* value)
+
+ @brief Varsetvalues.
+
+ @param [in,out] var   If non-null, the variable.
+ @param [in,out] value If non-null, the value.
+ */
 
 static void varsetvalue(VAR* var, VAR_VALUE* value)
 {
@@ -16,6 +40,18 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
     }
     memcpy(&var->value, value, sizeof(VAR_VALUE));
 }
+
+/**
+ @fn static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
+
+ @brief Varsets.
+
+ @param name           The name.
+ @param [in,out] value If non-null, the value.
+ @param setreadonly    true to setreadonly.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
@@ -33,6 +69,12 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
     varsetvalue(&found->second, value);
     return true;
 }
+
+/**
+ @fn void varinit()
+
+ @brief Varinits this object.
+ */
 
 void varinit()
 {
@@ -54,10 +96,24 @@ void varinit()
     varnew("$_BS_FLAG", 0, VAR_READONLY); //bigger/smaller flag for internal use (1=bigger, 0=smaller)
 }
 
+/**
+ @fn void varfree()
+
+ @brief Varfrees this object.
+ */
+
 void varfree()
 {
     variables.clear();
 }
+
+/**
+ @fn VAR* vargetptr()
+
+ @brief Gets the vargetptr.
+
+ @return null if it fails, else a VAR*.
+ */
 
 VAR* vargetptr()
 {
@@ -66,6 +122,18 @@ VAR* vargetptr()
 
 #include <iostream>
 #include <sstream>
+
+/**
+ @fn std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
+
+ @brief Splits.
+
+ @param s              The const std::string &amp; to process.
+ @param delim          The delimiter.
+ @param [in,out] elems The elements.
+
+ @return A std::vector&lt;std::string&gt;&amp;
+ */
 
 std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
 {
@@ -80,12 +148,35 @@ std::vector<std::string> & split(const std::string & s, char delim, std::vector<
     return elems;
 }
 
+/**
+ @fn std::vector<std::string> split(const std::string & s, char delim)
+
+ @brief Splits.
+
+ @param s     The const std::string &amp; to process.
+ @param delim The delimiter.
+
+ @return A std::vector&lt;std::string&gt;
+ */
+
 std::vector<std::string> split(const std::string & s, char delim)
 {
     std::vector<std::string> elems;
     split(s, delim, elems);
     return elems;
 }
+
+/**
+ @fn bool varnew(const char* name, uint value, VAR_TYPE type)
+
+ @brief Varnews.
+
+ @param name  The name.
+ @param value The value.
+ @param type  The type.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
@@ -117,6 +208,19 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
     return true;
 }
 
+/**
+ @fn static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
+
+ @brief Vargets.
+
+ @param name           The name.
+ @param [in,out] value If non-null, the value.
+ @param [in,out] size  If non-null, the size.
+ @param [in,out] type  If non-null, the type.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
     std::string name_;
@@ -137,6 +241,19 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
     return true;
 }
 
+/**
+ @fn bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
+
+ @brief Vargets.
+
+ @param name           The name.
+ @param [in,out] value If non-null, the value.
+ @param [in,out] size  If non-null, the size.
+ @param [in,out] type  If non-null, the type.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
 {
     VAR_VALUE varvalue;
@@ -154,6 +271,19 @@ bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
         *value = varvalue.u.value;
     return true;
 }
+
+/**
+ @fn bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
+
+ @brief Vargets.
+
+ @param name            The name.
+ @param [in,out] string If non-null, the string.
+ @param [in,out] size   If non-null, the size.
+ @param [in,out] type   If non-null, the type.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
 {
@@ -173,6 +303,18 @@ bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
     return true;
 }
 
+/**
+ @fn bool varset(const char* name, uint value, bool setreadonly)
+
+ @brief Varsets.
+
+ @param name        The name.
+ @param value       The value.
+ @param setreadonly true to setreadonly.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool varset(const char* name, uint value, bool setreadonly)
 {
     VAR_VALUE varvalue;
@@ -181,6 +323,18 @@ bool varset(const char* name, uint value, bool setreadonly)
     varvalue.u.value = value;
     return varset(name, &varvalue, setreadonly);
 }
+
+/**
+ @fn bool varset(const char* name, const char* string, bool setreadonly)
+
+ @brief Varsets.
+
+ @param name        The name.
+ @param string      The string.
+ @param setreadonly true to setreadonly.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool varset(const char* name, const char* string, bool setreadonly)
 {
@@ -199,6 +353,17 @@ bool varset(const char* name, const char* string, bool setreadonly)
     }
     return true;
 }
+
+/**
+ @fn bool vardel(const char* name, bool delsystem)
+
+ @brief Vardels.
+
+ @param name      The name.
+ @param delsystem true to delsystem.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool vardel(const char* name, bool delsystem)
 {
@@ -224,6 +389,18 @@ bool vardel(const char* name, bool delsystem)
     return true;
 }
 
+/**
+ @fn bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
+
+ @brief Vargettypes.
+
+ @param name             The name.
+ @param [in,out] type    If non-null, the type.
+ @param [in,out] valtype If non-null, the valtype.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
     std::string name_;
@@ -241,6 +418,17 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
         *type = found->second.type;
     return true;
 }
+
+/**
+ @fn bool varenum(VAR* entries, size_t* cbsize)
+
+ @brief Varenums.
+
+ @param [in,out] entries If non-null, the entries.
+ @param [in,out] cbsize  If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool varenum(VAR* entries, size_t* cbsize)
 {

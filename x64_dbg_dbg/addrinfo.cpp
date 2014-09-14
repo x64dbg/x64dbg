@@ -1,3 +1,9 @@
+/**
+ @file addrinfo.cpp
+
+ @brief Implements the addrinfo class.
+ */
+
 #include "addrinfo.h"
 #include "debugger.h"
 #include "console.h"
@@ -9,14 +15,48 @@
 #include "lz4\lz4file.h"
 #include "patches.h"
 
+/**
+ @brief The modinfo.
+ */
+
 static ModulesInfo modinfo;
+
+/**
+ @brief The comments.
+ */
+
 static CommentsInfo comments;
+
+/**
+ @brief The labels.
+ */
+
 static LabelsInfo labels;
+
+/**
+ @brief The bookmarks.
+ */
+
 static BookmarksInfo bookmarks;
+
+/**
+ @brief The functions.
+ */
+
 static FunctionsInfo functions;
+
+/**
+ @brief The loops.
+ */
+
 static LoopsInfo loops;
 
-//database functions
+/**
+ @fn void dbsave()
+
+ @brief database functions.
+ */
+
 void dbsave()
 {
     dprintf("saving database...");
@@ -38,6 +78,12 @@ void dbsave()
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount() - ticks);
 }
+
+/**
+ @fn void dbload()
+
+ @brief Dbloads this object.
+ */
 
 void dbload()
 {
@@ -69,6 +115,12 @@ void dbload()
     dprintf("%ums\n", GetTickCount() - ticks);
 }
 
+/**
+ @fn void dbclose()
+
+ @brief Dbcloses this object.
+ */
+
 void dbclose()
 {
     dbsave();
@@ -81,7 +133,18 @@ void dbclose()
     patchclear();
 }
 
-///module functions
+/**
+ @fn bool modload(uint base, uint size, const char* fullpath)
+
+ @brief module functions.
+
+ @param base     The base.
+ @param size     The size.
+ @param fullpath The fullpath.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool modload(uint base, uint size, const char* fullpath)
 {
     if(!base or !size or !fullpath)
@@ -182,6 +245,16 @@ bool modload(uint base, uint size, const char* fullpath)
     return true;
 }
 
+/**
+ @fn bool modunload(uint base)
+
+ @brief Modunloads the given base.
+
+ @param base The base.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool modunload(uint base)
 {
     const ModulesInfo::iterator found = modinfo.find(Range(base, base));
@@ -192,11 +265,29 @@ bool modunload(uint base)
     return true;
 }
 
+/**
+ @fn void modclear()
+
+ @brief Modclears this object.
+ */
+
 void modclear()
 {
     ModulesInfo().swap(modinfo);
     symupdatemodulelist();
 }
+
+/**
+ @fn bool modnamefromaddr(uint addr, char* modname, bool extension)
+
+ @brief Modnamefromaddrs.
+
+ @param addr             The address.
+ @param [in,out] modname If non-null, the modname.
+ @param extension        true to extension.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
@@ -212,6 +303,16 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     return true;
 }
 
+/**
+ @fn uint modbasefromaddr(uint addr)
+
+ @brief Modbasefromaddrs the given address.
+
+ @param addr The address.
+
+ @return An uint.
+ */
+
 uint modbasefromaddr(uint addr)
 {
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
@@ -219,6 +320,16 @@ uint modbasefromaddr(uint addr)
         return 0;
     return found->second.base;
 }
+
+/**
+ @fn uint modhashfromva(uint va)
+
+ @brief Modhashfromvas the given variable arguments.
+
+ @param va The variable arguments.
+
+ @return An uint.
+ */
 
 uint modhashfromva(uint va) //return a unique hash from a VA
 {
@@ -228,6 +339,16 @@ uint modhashfromva(uint va) //return a unique hash from a VA
     return found->second.hash + (va - found->second.base);
 }
 
+/**
+ @fn uint modhashfromname(const char* mod)
+
+ @brief Modhashfromnames the given modifier.
+
+ @param mod The modifier.
+
+ @return An uint.
+ */
+
 uint modhashfromname(const char* mod) //return MODINFO.hash
 {
     if(!mod or !*mod)
@@ -235,6 +356,16 @@ uint modhashfromname(const char* mod) //return MODINFO.hash
     int len = (int)strlen(mod);
     return murmurhash(mod, len);
 }
+
+/**
+ @fn uint modbasefromname(const char* modname)
+
+ @brief Modbasefromnames the given modname.
+
+ @param modname The modname.
+
+ @return An uint.
+ */
 
 uint modbasefromname(const char* modname)
 {
@@ -253,6 +384,16 @@ uint modbasefromname(const char* modname)
     return 0;
 }
 
+/**
+ @fn uint modsizefromaddr(uint addr)
+
+ @brief Modsizefromaddrs the given address.
+
+ @param addr The address.
+
+ @return An uint.
+ */
+
 uint modsizefromaddr(uint addr)
 {
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
@@ -260,6 +401,17 @@ uint modsizefromaddr(uint addr)
         return 0;
     return found->second.size;
 }
+
+/**
+ @fn bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
+
+ @brief Modsectionsfromaddrs.
+
+ @param addr              The address.
+ @param [in,out] sections If non-null, the sections.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
 {
@@ -270,6 +422,16 @@ bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
     return true;
 }
 
+/**
+ @fn uint modentryfromaddr(uint addr)
+
+ @brief Modentryfromaddrs the given address.
+
+ @param addr The address.
+
+ @return An uint.
+ */
+
 uint modentryfromaddr(uint addr)
 {
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
@@ -278,7 +440,17 @@ uint modentryfromaddr(uint addr)
     return found->second.entry;
 }
 
-///api functions
+/**
+ @fn bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
+
+ @brief api functions.
+
+ @param base   The base.
+ @param cbEnum The enum.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
@@ -350,7 +522,18 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     return true;
 }
 
-///comment functions
+/**
+ @fn bool commentset(uint addr, const char* text, bool manual)
+
+ @brief comment functions.
+
+ @param addr   The address.
+ @param text   The text.
+ @param manual true to manual.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool commentset(uint addr, const char* text, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
@@ -371,6 +554,17 @@ bool commentset(uint addr, const char* text, bool manual)
     return true;
 }
 
+/**
+ @fn bool commentget(uint addr, char* text)
+
+ @brief Commentgets.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool commentget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
@@ -382,12 +576,31 @@ bool commentget(uint addr, char* text)
     return true;
 }
 
+/**
+ @fn bool commentdel(uint addr)
+
+ @brief Commentdels the given address.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool commentdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
     return (comments.erase(modhashfromva(addr)) == 1);
 }
+
+/**
+ @fn void commentdelrange(uint start, uint end)
+
+ @brief Commentdelranges.
+
+ @param start The start.
+ @param end   The end.
+ */
 
 void commentdelrange(uint start, uint end)
 {
@@ -413,6 +626,14 @@ void commentdelrange(uint start, uint end)
             i++;
     }
 }
+
+/**
+ @fn void commentcachesave(JSON root)
+
+ @brief Commentcachesaves the given root.
+
+ @param root The root.
+ */
 
 void commentcachesave(JSON root)
 {
@@ -446,6 +667,20 @@ void commentcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsoncomments, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsoncomments, i, value)
         {
             COMMENTSINFO curComment;
@@ -465,11 +700,30 @@ void commentcacheload(JSON root)
             comments.insert(std::make_pair(key, curComment));
         }
     }
+
+    /**
+     @brief The jsonautocomments.
+     */
+
     JSON jsonautocomments = json_object_get(root, "autocomments");
     if(jsonautocomments)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonautocomments, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonautocomments, i, value)
         {
             COMMENTSINFO curComment;
@@ -491,6 +745,17 @@ void commentcacheload(JSON root)
     }
 }
 
+/**
+ @fn bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
+
+ @brief Commentenums.
+
+ @param [in,out] commentlist If non-null, the commentlist.
+ @param [in,out] cbsize      If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
 {
     if(!DbgIsDebugging())
@@ -511,7 +776,18 @@ bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
     return true;
 }
 
-///label functions
+/**
+ @fn bool labelset(uint addr, const char* text, bool manual)
+
+ @brief label functions.
+
+ @param addr   The address.
+ @param text   The text.
+ @param manual true to manual.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool labelset(uint addr, const char* text, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
@@ -532,6 +808,17 @@ bool labelset(uint addr, const char* text, bool manual)
     return true;
 }
 
+/**
+ @fn bool labelfromstring(const char* text, uint* addr)
+
+ @brief Labelfromstrings.
+
+ @param text          The text.
+ @param [in,out] addr If non-null, the address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool labelfromstring(const char* text, uint* addr)
 {
     if(!DbgIsDebugging())
@@ -548,6 +835,17 @@ bool labelfromstring(const char* text, uint* addr)
     return false;
 }
 
+/**
+ @fn bool labelget(uint addr, char* text)
+
+ @brief Labelgets.
+
+ @param addr          The address.
+ @param [in,out] text If non-null, the text.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool labelget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
@@ -560,12 +858,31 @@ bool labelget(uint addr, char* text)
     return true;
 }
 
+/**
+ @fn bool labeldel(uint addr)
+
+ @brief Labeldels the given address.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool labeldel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
     return (labels.erase(modhashfromva(addr)) > 0);
 }
+
+/**
+ @fn void labeldelrange(uint start, uint end)
+
+ @brief Labeldelranges.
+
+ @param start The start.
+ @param end   The end.
+ */
 
 void labeldelrange(uint start, uint end)
 {
@@ -591,6 +908,14 @@ void labeldelrange(uint start, uint end)
             i++;
     }
 }
+
+/**
+ @fn void labelcachesave(JSON root)
+
+ @brief Labelcachesaves the given root.
+
+ @param root The root.
+ */
 
 void labelcachesave(JSON root)
 {
@@ -624,6 +949,20 @@ void labelcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonlabels, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonlabels, i, value)
         {
             LABELSINFO curLabel;
@@ -647,11 +986,30 @@ void labelcacheload(JSON root)
             labels.insert(std::make_pair(key, curLabel));
         }
     }
+
+    /**
+     @brief The jsonautolabels.
+     */
+
     JSON jsonautolabels = json_object_get(root, "autolabels");
     if(jsonautolabels)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonautolabels, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonautolabels, i, value)
         {
             LABELSINFO curLabel;
@@ -673,6 +1031,17 @@ void labelcacheload(JSON root)
     }
 }
 
+/**
+ @fn bool labelenum(LABELSINFO* labellist, size_t* cbsize)
+
+ @brief Labelenums.
+
+ @param [in,out] labellist If non-null, the labellist.
+ @param [in,out] cbsize    If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool labelenum(LABELSINFO* labellist, size_t* cbsize)
 {
     if(!DbgIsDebugging())
@@ -693,7 +1062,17 @@ bool labelenum(LABELSINFO* labellist, size_t* cbsize)
     return true;
 }
 
-///bookmark functions
+/**
+ @fn bool bookmarkset(uint addr, bool manual)
+
+ @brief bookmark functions.
+
+ @param addr   The address.
+ @param manual true to manual.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bookmarkset(uint addr, bool manual)
 {
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
@@ -707,6 +1086,16 @@ bool bookmarkset(uint addr, bool manual)
     return true;
 }
 
+/**
+ @fn bool bookmarkget(uint addr)
+
+ @brief Bookmarkgets the given address.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bookmarkget(uint addr)
 {
     if(!DbgIsDebugging())
@@ -716,12 +1105,31 @@ bool bookmarkget(uint addr)
     return false;
 }
 
+/**
+ @fn bool bookmarkdel(uint addr)
+
+ @brief Bookmarkdels the given address.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool bookmarkdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
     return (bookmarks.erase(modhashfromva(addr)) > 0);
 }
+
+/**
+ @fn void bookmarkdelrange(uint start, uint end)
+
+ @brief Bookmarkdelranges.
+
+ @param start The start.
+ @param end   The end.
+ */
 
 void bookmarkdelrange(uint start, uint end)
 {
@@ -747,6 +1155,14 @@ void bookmarkdelrange(uint start, uint end)
             i++;
     }
 }
+
+/**
+ @fn void bookmarkcachesave(JSON root)
+
+ @brief Bookmarkcachesaves the given root.
+
+ @param root The root.
+ */
 
 void bookmarkcachesave(JSON root)
 {
@@ -779,6 +1195,20 @@ void bookmarkcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonbookmarks, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonbookmarks, i, value)
         {
             BOOKMARKSINFO curBookmark;
@@ -793,11 +1223,30 @@ void bookmarkcacheload(JSON root)
             bookmarks.insert(std::make_pair(key, curBookmark));
         }
     }
+
+    /**
+     @brief The jsonautobookmarks.
+     */
+
     JSON jsonautobookmarks = json_object_get(root, "autobookmarks");
     if(jsonautobookmarks)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonautobookmarks, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonautobookmarks, i, value)
         {
             BOOKMARKSINFO curBookmark;
@@ -813,6 +1262,17 @@ void bookmarkcacheload(JSON root)
         }
     }
 }
+
+/**
+ @fn bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
+
+ @brief Bookmarkenums.
+
+ @param [in,out] bookmarklist If non-null, the bookmarklist.
+ @param [in,out] cbsize       If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
 {
@@ -834,7 +1294,18 @@ bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
     return true;
 }
 
-///function database
+/**
+ @fn bool functionadd(uint start, uint end, bool manual)
+
+ @brief function database.
+
+ @param start  The start.
+ @param end    The end.
+ @param manual true to manual.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool functionadd(uint start, uint end, bool manual)
 {
     if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
@@ -853,6 +1324,18 @@ bool functionadd(uint start, uint end, bool manual)
     return true;
 }
 
+/**
+ @fn bool functionget(uint addr, uint* start, uint* end)
+
+ @brief Functiongets.
+
+ @param addr           The address.
+ @param [in,out] start If non-null, the start.
+ @param [in,out] end   If non-null, the end.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool functionget(uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
@@ -868,6 +1351,17 @@ bool functionget(uint addr, uint* start, uint* end)
     return true;
 }
 
+/**
+ @fn bool functionoverlaps(uint start, uint end)
+
+ @brief Functionoverlaps.
+
+ @param start The start.
+ @param end   The end.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool functionoverlaps(uint start, uint end)
 {
     if(!DbgIsDebugging() or end < start)
@@ -876,6 +1370,16 @@ bool functionoverlaps(uint start, uint end)
     return (functions.count(ModuleRange(modhashfromva(modbase), Range(start - modbase, end - modbase))) > 0);
 }
 
+/**
+ @fn bool functiondel(uint addr)
+
+ @brief Functiondels the given address.
+
+ @param addr The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool functiondel(uint addr)
 {
     if(!DbgIsDebugging())
@@ -883,6 +1387,15 @@ bool functiondel(uint addr)
     const uint modbase = modbasefromaddr(addr);
     return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))) > 0);
 }
+
+/**
+ @fn void functiondelrange(uint start, uint end)
+
+ @brief Functiondelranges.
+
+ @param start The start.
+ @param end   The end.
+ */
 
 void functiondelrange(uint start, uint end)
 {
@@ -908,6 +1421,14 @@ void functiondelrange(uint start, uint end)
             i++;
     }
 }
+
+/**
+ @fn void functioncachesave(JSON root)
+
+ @brief Functioncachesaves the given root.
+
+ @param root The root.
+ */
 
 void functioncachesave(JSON root)
 {
@@ -941,6 +1462,20 @@ void functioncacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonfunctions, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonfunctions, i, value)
         {
             FUNCTIONSINFO curFunction;
@@ -958,11 +1493,30 @@ void functioncacheload(JSON root)
             functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
         }
     }
+
+    /**
+     @brief The jsonautofunctions.
+     */
+
     JSON jsonautofunctions = json_object_get(root, "autofunctions");
     if(jsonautofunctions)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonautofunctions, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonautofunctions, i, value)
         {
             FUNCTIONSINFO curFunction;
@@ -981,6 +1535,17 @@ void functioncacheload(JSON root)
         }
     }
 }
+
+/**
+ @fn bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
+
+ @brief Functionenums.
+
+ @param [in,out] functionlist If non-null, the functionlist.
+ @param [in,out] cbsize       If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
 {
@@ -1004,7 +1569,18 @@ bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
     return true;
 }
 
-//loop database
+/**
+ @fn bool loopadd(uint start, uint end, bool manual)
+
+ @brief loop database.
+
+ @param start  The start.
+ @param end    The end.
+ @param manual true to manual.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool loopadd(uint start, uint end, bool manual)
 {
     if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
@@ -1029,7 +1605,19 @@ bool loopadd(uint start, uint end, bool manual)
     return true;
 }
 
-//get the start/end of a loop at a certain depth and addr
+/**
+ @fn bool loopget(int depth, uint addr, uint* start, uint* end)
+
+ @brief get the start/end of a loop at a certain depth and addr.
+
+ @param depth          The depth.
+ @param addr           The address.
+ @param [in,out] start If non-null, the start.
+ @param [in,out] end   If non-null, the end.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool loopget(int depth, uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
@@ -1045,7 +1633,19 @@ bool loopget(int depth, uint addr, uint* start, uint* end)
     return true;
 }
 
-//check if a loop overlaps a range, inside is not overlapping
+/**
+ @fn bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
+
+ @brief check if a loop overlaps a range, inside is not overlapping.
+
+ @param depth               The depth.
+ @param start               The start.
+ @param end                 The end.
+ @param [in,out] finaldepth If non-null, the finaldepth.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
 {
     if(!DbgIsDebugging())
@@ -1081,11 +1681,29 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     return false;
 }
 
-//this should delete a loop and all sub-loops that matches a certain addr
+/**
+ @fn bool loopdel(int depth, uint addr)
+
+ @brief this should delete a loop and all sub-loops that matches a certain addr.
+
+ @param depth The depth.
+ @param addr  The address.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool loopdel(int depth, uint addr)
 {
     return false;
 }
+
+/**
+ @fn void loopcachesave(JSON root)
+
+ @brief Loopcachesaves the given root.
+
+ @param root The root.
+ */
 
 void loopcachesave(JSON root)
 {
@@ -1121,6 +1739,20 @@ void loopcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonloops, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonloops, i, value)
         {
             LOOPSINFO curLoop;
@@ -1139,11 +1771,30 @@ void loopcacheload(JSON root)
             loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
         }
     }
+
+    /**
+     @brief The jsonautoloops.
+     */
+
     JSON jsonautoloops = json_object_get(root, "autoloops");
     if(jsonautoloops)
     {
         size_t i;
         JSON value;
+
+        /**
+         @fn json_array_foreach(jsonautoloops, i, value)
+
+         @brief Constructor.
+
+         @author mrexodia
+         @date 9/14/2014
+
+         @param parameter1 The first parameter.
+         @param parameter2 The second parameter.
+         @param parameter3 The third parameter.
+         */
+
         json_array_foreach(jsonautoloops, i, value)
         {
             LOOPSINFO curLoop;
@@ -1163,6 +1814,17 @@ void loopcacheload(JSON root)
         }
     }
 }
+
+/**
+ @fn bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
+
+ @brief Loopenums.
+
+ @param [in,out] looplist If non-null, the looplist.
+ @param [in,out] cbsize   If non-null, the cbsize.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
 {

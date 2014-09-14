@@ -1,3 +1,9 @@
+/**
+ @file debugger.cpp
+
+ @brief Implements the debugger class.
+ */
+
 #include "debugger.h"
 #include "console.h"
 #include "memory.h"
@@ -11,29 +17,145 @@
 #include "variable.h"
 #include "x64_dbg.h"
 
+/**
+ @brief The pi.
+ */
+
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
+
+/**
+ @brief The base file name[ maximum path].
+ */
+
 static char szBaseFileName[MAX_PATH] = "";
+
+/**
+ @brief The file is DLL.
+ */
+
 static bool bFileIsDll = false;
+
+/**
+ @brief The debugged base.
+ */
+
 static uint pDebuggedBase = 0;
+
+/**
+ @brief The debugged entry.
+ */
+
 static uint pDebuggedEntry = 0;
+
+/**
+ @brief The is stepping.
+ */
+
 static bool isStepping = false;
+
+/**
+ @brief The is paused by user.
+ */
+
 static bool isPausedByUser = false;
+
+/**
+ @brief The is detached by user.
+ */
+
 static bool isDetachedByUser = false;
+
+/**
+ @brief The is attached.
+ */
+
 static bool bIsAttached = false;
+
+/**
+ @brief The skip exceptions.
+ */
+
 static bool bSkipExceptions = false;
+
+/**
+ @brief The break on next DLL.
+ */
+
 static bool bBreakOnNextDll = false;
+
+/**
+ @brief The ecount.
+ */
+
 static int ecount = 0;
+
+/**
+ @brief The ignored exception range.
+ */
+
 static std::vector<ExceptionRange> ignoredExceptionRange;
+
+/**
+ @brief List of names of the exceptions.
+ */
+
 static std::map<unsigned int, const char*> exceptionNames;
+
+/**
+ @brief The cache private usage.
+ */
+
 static SIZE_T cachePrivateUsage = 0;
+
+/**
+ @brief The event.
+ */
+
 static HANDLE hEvent = 0;
 
-//Superglobal variables
+/**
+ @brief Superglobal variables.
+ */
+
 char szFileName[MAX_PATH] = "";
+
+/**
+ @brief The symbol cache path[ maximum path].
+ */
+
 char szSymbolCachePath[MAX_PATH] = "";
+
+/**
+ @brief The sqlitedb[deflen].
+ */
+
 char sqlitedb[deflen] = "";
+
+/**
+ @property PROCESS_INFORMATION* fdProcessInfo = &g_pi
+
+ @brief Gets the pi.
+
+ @return The g pi.
+ */
+
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
+
+/**
+ @brief The active thread.
+ */
+
 HANDLE hActiveThread;
+
+/**
+ @fn static DWORD WINAPI memMapThread(void* ptr)
+
+ @brief Memory map thread.
+
+ @param [in,out] ptr If non-null, the pointer.
+
+ @return A WINAPI.
+ */
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
@@ -51,6 +173,12 @@ static DWORD WINAPI memMapThread(void* ptr)
     }
     return 0;
 }
+
+/**
+ @fn void dbginit()
+
+ @brief Dbginits this object.
+ */
 
 void dbginit()
 {
@@ -117,6 +245,17 @@ void dbginit()
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
+/**
+ @fn SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
+
+ @brief Dbggetprivateusages.
+
+ @param hProcess Handle of the process.
+ @param update   true to update.
+
+ @return A SIZE_T.
+ */
+
 SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
 {
     PROCESS_MEMORY_COUNTERS_EX memoryCounters;
@@ -128,10 +267,24 @@ SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
     return memoryCounters.PrivateUsage;
 }
 
+/**
+ @fn uint dbgdebuggedbase()
+
+ @brief Gets the dbgdebuggedbase.
+
+ @return An uint.
+ */
+
 uint dbgdebuggedbase()
 {
     return pDebuggedBase;
 }
+
+/**
+ @fn void dbgdisablebpx()
+
+ @brief Dbgdisablebpxes this object.
+ */
 
 void dbgdisablebpx()
 {
@@ -144,6 +297,12 @@ void dbgdisablebpx()
     }
 }
 
+/**
+ @fn void dbgenablebpx()
+
+ @brief Dbgenablebpxes this object.
+ */
+
 void dbgenablebpx()
 {
     std::vector<BREAKPOINT> list;
@@ -155,6 +314,14 @@ void dbgenablebpx()
     }
 }
 
+/**
+ @fn bool dbgisrunning()
+
+ @brief Dbgisrunnings this object.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgisrunning()
 {
     if(!waitislocked(WAITID_RUN))
@@ -162,45 +329,117 @@ bool dbgisrunning()
     return false;
 }
 
+/**
+ @fn bool dbgisdll()
+
+ @brief Dbgisdlls this object.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgisdll()
 {
     return bFileIsDll;
 }
+
+/**
+ @fn void dbgsetattachevent(HANDLE handle)
+
+ @brief Dbgsetattachevents the given handle.
+
+ @param handle Handle of the handle.
+ */
 
 void dbgsetattachevent(HANDLE handle)
 {
     hEvent = handle;
 }
 
+/**
+ @fn void dbgsetskipexceptions(bool skip)
+
+ @brief Dbgsetskipexceptions.
+
+ @param skip true to skip.
+ */
+
 void dbgsetskipexceptions(bool skip)
 {
     bSkipExceptions = skip;
 }
+
+/**
+ @fn void dbgsetstepping(bool stepping)
+
+ @brief Dbgsetsteppings.
+
+ @param stepping true to stepping.
+ */
 
 void dbgsetstepping(bool stepping)
 {
     isStepping = stepping;
 }
 
+/**
+ @fn void dbgsetispausedbyuser(bool b)
+
+ @brief Dbgsetispausedbyusers.
+
+ @param b true to b.
+ */
+
 void dbgsetispausedbyuser(bool b)
 {
     isPausedByUser = b;
 }
+
+/**
+ @fn void dbgsetisdetachedbyuser(bool b)
+
+ @brief Dbgsetisdetachedbyusers.
+
+ @param b true to b.
+ */
 
 void dbgsetisdetachedbyuser(bool b)
 {
     isDetachedByUser = b;
 }
 
+/**
+ @fn void dbgclearignoredexceptions()
+
+ @brief Dbgclearignoredexceptions this object.
+ */
+
 void dbgclearignoredexceptions()
 {
     std::vector<ExceptionRange>().swap(ignoredExceptionRange);
 }
 
+/**
+ @fn void dbgaddignoredexception(ExceptionRange range)
+
+ @brief Dbgaddignoredexceptions the given range.
+
+ @param range The range.
+ */
+
 void dbgaddignoredexception(ExceptionRange range)
 {
     ignoredExceptionRange.push_back(range);
 }
+
+/**
+ @fn bool dbgisignoredexception(unsigned int exception)
+
+ @brief Dbgisignoredexceptions the given exception.
+
+ @param exception The exception.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbgisignoredexception(unsigned int exception)
 {
@@ -214,6 +453,18 @@ bool dbgisignoredexception(unsigned int exception)
     return false;
 }
 
+/**
+ @fn bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
+
+ @brief Dbgcmdnews.
+
+ @param name      The name.
+ @param cbCommand The command.
+ @param debugonly true to debugonly.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
     if(!cmdnew(dbggetcommandlist(), name, cbCommand, debugonly))
@@ -221,6 +472,16 @@ bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
     GuiAutoCompleteAddCmd(name);
     return true;
 }
+
+/**
+ @fn bool dbgcmddel(const char* name)
+
+ @brief Dbgcmddels the given name.
+
+ @param name The name.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbgcmddel(const char* name)
 {
@@ -230,11 +491,30 @@ bool dbgcmddel(const char* name)
     return true;
 }
 
+/**
+ @fn DWORD WINAPI updateCallStackThread(void* ptr)
+
+ @brief Updates the call stack thread described by ptr.
+
+ @param [in,out] ptr If non-null, the pointer.
+
+ @return A WINAPI.
+ */
+
 DWORD WINAPI updateCallStackThread(void* ptr)
 {
     GuiUpdateCallStack();
     return 0;
 }
+
+/**
+ @fn void DebugUpdateGui(uint disasm_addr, bool stack)
+
+ @brief Debug update graphical user interface.
+
+ @param disasm_addr The disasm address.
+ @param stack       true to stack.
+ */
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
@@ -261,6 +541,12 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
+
+/**
+ @fn void cbUserBreakpoint()
+
+ @brief User breakpoint.
+ */
 
 void cbUserBreakpoint()
 {
@@ -311,6 +597,14 @@ void cbUserBreakpoint()
     plugincbcall(CB_BREAKPOINT, &bpInfo);
     wait(WAITID_RUN);
 }
+
+/**
+ @fn void cbHardwareBreakpoint(void* ExceptionAddress)
+
+ @brief Hardware breakpoint.
+
+ @param [in,out] ExceptionAddress If non-null, the exception address.
+ */
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
@@ -387,6 +681,14 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
+/**
+ @fn void cbMemoryBreakpoint(void* ExceptionAddress)
+
+ @brief Memory breakpoint.
+
+ @param [in,out] ExceptionAddress If non-null, the exception address.
+ */
+
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -450,10 +752,31 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     wait(WAITID_RUN);
 }
 
+/**
+ @fn void cbLibrarianBreakpoint(void* lpData)
+
+ @brief Librarian breakpoint.
+
+ @param [in,out] lpData If non-null, the data.
+ */
+
 void cbLibrarianBreakpoint(void* lpData)
 {
     bBreakOnNextDll = true;
 }
+
+/**
+ @fn static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
+
+ @brief Symbol register callback proc 64.
+
+ @param hProcess     Handle of the process.
+ @param ActionCode   The action code.
+ @param CallbackData Information describing the callback.
+ @param UserContext  Context for the user.
+
+ @return A CALLBACK.
+ */
 
 static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode, ULONG64 CallbackData, ULONG64 UserContext)
 {
@@ -525,6 +848,16 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     return TRUE;
 }
 
+/**
+ @fn static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
+
+ @brief Sets module breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
@@ -569,6 +902,16 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
+
+ @brief Removes the module breakpoints described by bp.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
     //TODO: more breakpoint types
@@ -592,6 +935,12 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn void cbStep()
+
+ @brief Steps this object.
+ */
+
 void cbStep()
 {
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -611,6 +960,12 @@ void cbStep()
     wait(WAITID_RUN);
 }
 
+/**
+ @fn static void cbRtrFinalStep()
+
+ @brief Rtr final step.
+ */
+
 static void cbRtrFinalStep()
 {
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -626,6 +981,14 @@ static void cbRtrFinalStep()
     wait(WAITID_RUN);
 }
 
+/**
+ @fn static unsigned char getCIPch()
+
+ @brief Gets ci pch.
+
+ @return The ci pch.
+ */
+
 static unsigned char getCIPch()
 {
     unsigned char ch = 0x90;
@@ -633,6 +996,12 @@ static unsigned char getCIPch()
     memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
     return ch;
 }
+
+/**
+ @fn void cbRtrStep()
+
+ @brief Rtr step.
+ */
 
 void cbRtrStep()
 {
@@ -643,7 +1012,14 @@ void cbRtrStep()
         StepOver((void*)cbRtrStep);
 }
 
-///custom handlers
+/**
+ @fn static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
+
+ @brief custom handlers.
+
+ @param [in,out] CreateProcessInfo If non-null, information describing the create process.
+ */
+
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     void* base = CreateProcessInfo->lpBaseOfImage;
@@ -738,6 +1114,14 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     threadcreate(&threadInfo);
 }
 
+/**
+ @fn static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
+
+ @brief Exit process.
+
+ @param [in,out] ExitProcess If non-null, the exit process.
+ */
+
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
     PLUG_CB_EXITPROCESS callbackInfo;
@@ -746,6 +1130,14 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     //Cleanup
     SymCleanup(fdProcessInfo->hProcess);
 }
+
+/**
+ @fn static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
+
+ @brief Creates a thread.
+
+ @param [in,out] CreateThread If non-null, the create thread.
+ */
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
@@ -784,6 +1176,14 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     }
 }
 
+/**
+ @fn static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
+
+ @brief Exit thread.
+
+ @param [in,out] ExitThread If non-null, the exit thread.
+ */
+
 static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -809,6 +1209,14 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         wait(WAITID_RUN);
     }
 }
+
+/**
+ @fn static void cbSystemBreakpoint(void* ExceptionData)
+
+ @brief System breakpoint.
+
+ @param [in,out] ExceptionData If non-null, information describing the exception.
+ */
 
 static void cbSystemBreakpoint(void* ExceptionData)
 {
@@ -841,6 +1249,14 @@ static void cbSystemBreakpoint(void* ExceptionData)
         wait(WAITID_RUN);
     }
 }
+
+/**
+ @fn static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
+
+ @brief Loads a DLL.
+
+ @param [in,out] LoadDll If non-null, the load DLL.
+ */
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
@@ -914,6 +1330,14 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     }
 }
 
+/**
+ @fn static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
+
+ @brief Unload DLL.
+
+ @param [in,out] UnloadDll If non-null, the unload DLL.
+ */
+
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -946,6 +1370,14 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
     modunload((uint)base);
 }
+
+/**
+ @fn static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
+
+ @brief Output debug string.
+
+ @param [in,out] DebugString If non-null, the debug string.
+ */
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
@@ -1016,6 +1448,14 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         wait(WAITID_RUN);
     }
 }
+
+/**
+ @fn static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
+
+ @brief Exceptions the given exception data.
+
+ @param [in,out] ExceptionData If non-null, information describing the exception.
+ */
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
@@ -1154,12 +1594,30 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     wait(WAITID_RUN);
 }
 
+/**
+ @fn static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
+
+ @brief Debug event.
+
+ @param [in,out] DebugEvent If non-null, the debug event.
+ */
+
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
 }
+
+/**
+ @fn DWORD WINAPI threadDebugLoop(void* lpParameter)
+
+ @brief Thread debug loop.
+
+ @param [in,out] lpParameter If non-null, the parameter.
+
+ @return A WINAPI.
+ */
 
 DWORD WINAPI threadDebugLoop(void* lpParameter)
 {
@@ -1252,6 +1710,16 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     return 0;
 }
 
+/**
+ @fn bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
+
+ @brief Deletes all breakpoints described by bp.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bpdel(bp->addr, BPNORMAL) and (!bp->enabled or DeleteBPX(bp->addr)))
@@ -1259,6 +1727,16 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
     dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
     return false;
 }
+
+/**
+ @fn bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
+
+ @brief Enables all breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 {
@@ -1272,6 +1750,16 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
+
+ @brief Disables all breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPNORMAL or !bp->enabled)
@@ -1283,6 +1771,16 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
     }
     return true;
 }
+
+/**
+ @fn bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
+
+ @brief Enables all hardware breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
@@ -1305,6 +1803,16 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
+
+ @brief Disables all hardware breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPHARDWARE or !bp->enabled)
@@ -1316,6 +1824,16 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
     }
     return true;
 }
+
+/**
+ @fn bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
+
+ @brief Enables all memory breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
@@ -1331,6 +1849,16 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
+
+ @brief Disables all memory breakpoints.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPMEMORY or !bp->enabled)
@@ -1342,6 +1870,16 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
     }
     return true;
 }
+
+/**
+ @fn bool cbBreakpointList(const BREAKPOINT* bp)
+
+ @brief Breakpoint list.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool cbBreakpointList(const BREAKPOINT* bp)
 {
@@ -1365,6 +1903,16 @@ bool cbBreakpointList(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
+
+ @brief Deletes all memory breakpoints described by bp.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
@@ -1379,6 +1927,16 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
+
+ @brief Deletes all hardware breakpoints described by bp.
+
+ @param bp The bp.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
@@ -1391,6 +1949,12 @@ bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+/**
+ @fn static void cbAttachDebugger()
+
+ @brief Attach debugger.
+ */
+
 static void cbAttachDebugger()
 {
     if(hEvent) //Signal the AeDebug event
@@ -1401,6 +1965,16 @@ static void cbAttachDebugger()
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }
+
+/**
+ @fn DWORD WINAPI threadAttachLoop(void* lpParameter)
+
+ @brief Thread attach loop.
+
+ @param [in,out] lpParameter If non-null, the parameter.
+
+ @return A WINAPI.
+ */
 
 DWORD WINAPI threadAttachLoop(void* lpParameter)
 {
@@ -1466,6 +2040,12 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     return 0;
 }
 
+/**
+ @fn void cbDetach()
+
+ @brief Detaches this object.
+ */
+
 void cbDetach()
 {
     if(!isDetachedByUser)
@@ -1479,6 +2059,14 @@ void cbDetach()
         dputs("detached!");
     return;
 }
+
+/**
+ @fn bool IsProcessElevated()
+
+ @brief Query if this object is process elevated.
+
+ @return true if process elevated, false if not.
+ */
 
 bool IsProcessElevated()
 {
@@ -1494,6 +2082,22 @@ bool IsProcessElevated()
     FreeSid(SecurityIdentifier);
     return !!IsAdminMember;
 }
+
+/**
+ @fn static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
+
+ @brief Readwritejitkeys.
+
+ @param [in,out] jit_key_value     If non-null, the just-in-time key value.
+ @param [in,out] jit_key_vale_size If non-null, size of the just in time key vale.
+ @param [in,out] key               If non-null, the key.
+ @param arch_in                    The arch in.
+ @param [in,out] arch_out          If non-null, the arch out.
+ @param [in,out] error             If non-null, the error.
+ @param write                      true to write.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
@@ -1577,6 +2181,17 @@ static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char*
     return (lRv == ERROR_SUCCESS);
 }
 
+/**
+ @fn bool dbgpagerightstostring(DWORD protect, char* rights)
+
+ @brief Dbgpagerightstostrings.
+
+ @param protect         The protect.
+ @param [in,out] rights If non-null, the rights.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgpagerightstostring(DWORD protect, char* rights)
 {
     memset(rights, 0, RIGHTS_STRING_SIZE);
@@ -1617,6 +2232,16 @@ bool dbgpagerightstostring(DWORD protect, char* rights)
     return true;
 }
 
+/**
+ @fn static uint dbggetpageligned(uint addr)
+
+ @brief Dbggetpageligned the given address.
+
+ @param addr The address.
+
+ @return An uint.
+ */
+
 static uint dbggetpageligned(uint addr)
 {
 #ifdef _WIN64
@@ -1626,6 +2251,17 @@ static uint dbggetpageligned(uint addr)
 #endif // _WIN64
     return addr;
 }
+
+/**
+ @fn static bool dbgpagerightsfromstring(DWORD* protect, const char* rights_string)
+
+ @brief Dbgpagerightsfromstrings.
+
+ @param [in,out] protect If non-null, the protect.
+ @param rights_string    The rights string.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool dbgpagerightsfromstring(DWORD* protect, const char* rights_string)
 {
@@ -1662,6 +2298,17 @@ static bool dbgpagerightsfromstring(DWORD* protect, const char* rights_string)
     return true;
 }
 
+/**
+ @fn bool dbgsetpagerights(uint addr, const char* rights_string)
+
+ @brief Dbgsetpagerights.
+
+ @param addr          The address.
+ @param rights_string The rights string.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgsetpagerights(uint addr, const char* rights_string)
 {
     DWORD protect;
@@ -1678,6 +2325,17 @@ bool dbgsetpagerights(uint addr, const char* rights_string)
     return true;
 }
 
+/**
+ @fn bool dbggetpagerights(uint addr, char* rights)
+
+ @brief Dbggetpagerights.
+
+ @param addr            The address.
+ @param [in,out] rights If non-null, the rights.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbggetpagerights(uint addr, char* rights)
 {
     addr = dbggetpageligned(addr);
@@ -1688,6 +2346,19 @@ bool dbggetpagerights(uint addr, char* rights)
 
     return dbgpagerightstostring(mbi.Protect, rights);
 }
+
+/**
+ @fn bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
+
+ @brief Dbggetjitautoes.
+
+ @param [in,out] auto_on      If non-null, the automatic on.
+ @param arch_in               The arch in.
+ @param [in,out] arch_out     If non-null, the arch out.
+ @param [in,out] rw_error_out If non-null, the error out.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
@@ -1714,6 +2385,19 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
     return true;
 }
 
+/**
+ @fn bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
+
+ @brief Dbgsetjitautoes.
+
+ @param auto_on               true to enable, false to disable the automatic.
+ @param arch_in               The arch in.
+ @param [in,out] arch_out     If non-null, the arch out.
+ @param [in,out] rw_error_out If non-null, the error out.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD auto_string_size = sizeof("1");
@@ -1737,6 +2421,19 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
     return true;
 }
 
+/**
+ @fn bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
+
+ @brief Dbggetjits.
+
+ @param jit_entry             The just-in-time entry.
+ @param arch_in               The arch in.
+ @param [in,out] arch_out     If non-null, the arch out.
+ @param [in,out] rw_error_out If non-null, the error out.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
@@ -1750,6 +2447,16 @@ bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out,
     return true;
 }
 
+/**
+ @fn bool dbggetdefjit(char* jit_entry)
+
+ @brief Dbggetdefjits the given just-in-time entry.
+
+ @param [in,out] jit_entry If non-null, the just-in-time entry.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool dbggetdefjit(char* jit_entry)
 {
     char path[JIT_ENTRY_DEF_SIZE];
@@ -1759,6 +2466,19 @@ bool dbggetdefjit(char* jit_entry)
     strcpy(jit_entry, path);
     return true;
 }
+
+/**
+ @fn bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
+
+ @brief Dbgsetjits.
+
+ @param [in,out] jit_cmd      If non-null, the just-in-time command.
+ @param arch_in               The arch in.
+ @param [in,out] arch_out     If non-null, the arch out.
+ @param [in,out] rw_error_out If non-null, the error out.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
@@ -1772,6 +2492,16 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_erro
     }
     return true;
 }
+
+/**
+ @fn bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
+
+ @brief Dbglistprocesses the given list.
+
+ @param [in,out] list If non-null, the list.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
 {
@@ -1808,6 +2538,17 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
     return true;
 }
 
+/**
+ @fn static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
+
+ @brief Getcommandlineaddrs.
+
+ @param [in,out] addr           If non-null, the address.
+ @param [in,out] cmd_line_error If non-null, the command line error.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 {
     SIZE_T size;
@@ -1833,7 +2574,18 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-//update the pointer in the GetCommandLine function
+/**
+ @fn static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
+
+ @brief update the pointer in the GetCommandLine function.
+
+ @param getcommandline          The getcommandline.
+ @param new_command_line        The new command line.
+ @param [in,out] cmd_line_error If non-null, the command line error.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
@@ -1886,6 +2638,18 @@ static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_err
     return true;
 }
 
+/**
+ @fn static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
+
+ @brief Fixgetcommandlinesbases.
+
+ @param new_command_line_unicode The new command line unicode.
+ @param new_command_line_ascii   The new command line ASCII.
+ @param [in,out] cmd_line_error  If non-null, the command line error.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_command_line_ascii, cmdline_error_t* cmd_line_error)
 {
     uint getcommandline;
@@ -1914,6 +2678,17 @@ static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_comma
 
     return true;
 }
+
+/**
+ @fn bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
+
+ @brief Dbgsetcmdlines.
+
+ @param cmd_line                The command line.
+ @param [in,out] cmd_line_error If non-null, the command line error.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
@@ -1979,6 +2754,17 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     return true;
 }
+
+/**
+ @fn bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
+
+ @brief Dbggetcmdlines.
+
+ @param [in,out] cmd_line       If non-null, the command line.
+ @param [in,out] cmd_line_error If non-null, the command line error.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 {

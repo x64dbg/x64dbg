@@ -1,6 +1,22 @@
+/**
+ @file disasm_fast.cpp
+
+ @brief Implements the disasm fast class.
+ */
+
 #include "disasm_fast.h"
 #include "debugger.h"
 #include "memory.h"
+
+/**
+ @fn static MEMORY_SIZE argsize2memsize(int argsize)
+
+ @brief Argsize 2memsize.
+
+ @param argsize The argsize.
+
+ @return A MEMORY_SIZE.
+ */
 
 static MEMORY_SIZE argsize2memsize(int argsize)
 {
@@ -17,6 +33,15 @@ static MEMORY_SIZE argsize2memsize(int argsize)
     }
     return size_byte;
 }
+
+/**
+ @fn void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
+
+ @brief Fillbasicinfoes.
+
+ @param [in,out] disasm    If non-null, the disasm.
+ @param [in,out] basicinfo If non-null, the basicinfo.
+ */
 
 void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
 {
@@ -95,6 +120,18 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
     }
 }
 
+/**
+ @fn bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+
+ @brief Disasmfasts.
+
+ @param [in,out] data      If non-null, the data.
+ @param addr               The address.
+ @param [in,out] basicinfo If non-null, the basicinfo.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     if(!data or !basicinfo)
@@ -113,6 +150,17 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
     basicinfo->size = len;
     return true;
 }
+
+/**
+ @fn bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+
+ @brief Disasmfasts.
+
+ @param addr               The address.
+ @param [in,out] basicinfo If non-null, the basicinfo.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
