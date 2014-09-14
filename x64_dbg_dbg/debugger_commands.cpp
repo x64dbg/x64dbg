@@ -707,8 +707,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         varset("$lastalloc", mem, true);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
-    if(argc <= 2)
-        GuiUpdateMemoryView();
+    GuiUpdateMemoryView();
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
@@ -736,8 +735,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         dputs("VirtualFreeEx failed");
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
-    if(argc <= 2)
-        GuiUpdateMemoryView();
+    GuiUpdateMemoryView();
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }
@@ -1755,6 +1753,11 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+    //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
     dprintf("New rights of "fhex": %s\n", addr, rights);
 
     return STATUS_CONTINUE;
@@ -1767,46 +1770,46 @@ void showcommandlineerror(cmdline_error_t* cmdline_error)
     switch(cmdline_error->type)
     {
     case CMDL_ERR_ALLOC:
-        dputs("Error allocating memory for cmdline");
+        dprintf("Error allocating memory for cmdline");
         break;
     case CMDL_ERR_CONVERTUNICODE:
-        dputs("Error converting UNICODE cmdline");
+        dprintf("Error converting UNICODE cmdline");
         break;
     case CMDL_ERR_READ_PEBBASE:
-        dputs("Error reading PEB base addres");
+        dprintf("Error reading PEB base addres");
         break;
     case CMDL_ERR_READ_PROCPARM_CMDLINE:
-        dputs("Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING");
+        dprintf("Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING");
         break;
     case CMDL_ERR_READ_PROCPARM_PTR:
-        dputs("Error reading PEB -> ProcessParameters pointer address");
+        dprintf("Error reading PEB -> ProcessParameters pointer address");
         break;
     case CMDL_ERR_GET_PEB:
-        dputs("Error Getting remote PEB address");
+        dprintf("Error Getting remote PEB address");
         break;
     case CMDL_ERR_READ_GETCOMMANDLINEBASE:
-        dputs("Error Getting command line base address");
+        dprintf("Error Getting command line base address");
         break;
     case CMDL_ERR_CHECK_GETCOMMANDLINESTORED:
-        dputs("Error checking the pattern of the commandline stored");
+        dprintf("Error checking the pattern of the commandline stored");
         break;
     case CMDL_ERR_WRITE_GETCOMMANDLINESTORED:
-        dputs("Error writing the new command line stored");
+        dprintf("Error writing the new command line stored");
         break;
     case CMDL_ERR_GET_GETCOMMANDLINE:
-        dputs("Error getting getcommandline");
+        dprintf("Error getting getcommandline");
         break;
     case CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE:
-        dputs("Error allocating the page with UNICODE and ANSI command lines");
+        dprintf("Error allocating the page with UNICODE and ANSI command lines");
         break;
     case CMDL_ERR_WRITE_ANSI_COMMANDLINE:
-        dputs("Error writing the ANSI command line in the page");
+        dprintf("Error writing the ANSI command line in the page");
         break;
     case CMDL_ERR_WRITE_UNICODE_COMMANDLINE:
-        dputs("Error writing the UNICODE command line in the page");
+        dprintf("Error writing the UNICODE command line in the page");
         break;
     case CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE:
-        dputs("Error writing command line UNICODE in PEB");
+        dprintf("Error writing command line UNICODE in PEB");
         break;
     default:
         unkown = true;
@@ -1817,7 +1820,7 @@ void showcommandlineerror(cmdline_error_t* cmdline_error)
     if(!unkown)
     {
         if(cmdline_error->addr != 0)
-            dprintf(""fhex"", cmdline_error->addr);
+            dprintf(" (Address: "fhex")", cmdline_error->addr);
         dputs("");
     }
 }
@@ -1855,6 +1858,11 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
         showcommandlineerror(&cmdline_error);
         return STATUS_ERROR;
     }
+
+    //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
 
     dprintf("New command line: %s\n", argv[1]);
 
