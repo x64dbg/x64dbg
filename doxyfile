@@ -51,7 +51,7 @@ PROJECT_BRIEF          = "An open-source x64/x32 debugger for windows."
 # and the maximum width should not exceed 200 pixels. Doxygen will copy the logo
 # to the output directory.
 
-PROJECT_LOGO           = "C:/Users/Admin/Downloads/bug-icon-for-windows-8-metro---icons8 (1).png"
+PROJECT_LOGO           = C:/CodeBlocks/x64_dbg/bug.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
