@@ -1354,12 +1354,14 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dprintf("invalid module \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char szModulePath[MAX_PATH] = "";
-    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+    wchar_t wszModulePath[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, wszModulePath, MAX_PATH))
     {
         dputs("GetModuleFileNameExA failed!");
         return STATUS_ERROR;
     }
+    char szModulePath[MAX_PATH] = "";
+    strcpy_s(szModulePath, ConvertUtf16ToUtf8(wszModulePath).c_str());
     char szOldSearchPath[MAX_PATH] = "";
     if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
