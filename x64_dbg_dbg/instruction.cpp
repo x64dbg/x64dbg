@@ -223,7 +223,7 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
         dputs("directory doesn't exist");
         return STATUS_ERROR;
     }
-    SetCurrentDirectoryA(argv[1]);
+    SetCurrentDirectoryW(ConvertUtf8ToUtf16(argv[1]).c_str());
     dputs("current directory changed!");
     return STATUS_CONTINUE;
 }
@@ -934,7 +934,6 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
 
 CMDRESULT cbInstrCopystr(int argc, char* argv[])
 {
-    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");
@@ -983,7 +982,6 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
 
 CMDRESULT cbInstrFind(int argc, char* argv[])
 {
-    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");
@@ -1035,7 +1033,6 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
 
 CMDRESULT cbInstrFindAll(int argc, char* argv[])
 {
-    //TODO: utf8
     if(argc < 3)
     {
         dputs("not enough arguments!");

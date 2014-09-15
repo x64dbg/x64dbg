@@ -1501,9 +1501,8 @@ bool IsProcessElevated()
     return !!IsAdminMember;
 }
 
-static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
+static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
-    //TODO: utf8
     DWORD key_flags;
     DWORD lRv;
     HKEY hKey;
@@ -1564,7 +1563,7 @@ static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char*
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegSetValueExA(hKey, key, 0, REG_SZ, (BYTE*) jit_key_value, (DWORD)(* jit_key_vale_size) + 1);
+        lRv = RegSetValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
     }
     else
     {
@@ -1572,7 +1571,7 @@ static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char*
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
+        lRv = RegQueryValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
         if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
@@ -1698,7 +1697,7 @@ bool dbggetpagerights(uint addr, char* rights)
 
 bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    char jit_entry[4];
+    wchar_t jit_entry[4] = L"";
     DWORD jit_entry_size = sizeof(jit_entry) - 1;
     readwritejitkey_error_t rw_error;
 
@@ -1712,9 +1711,9 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
         }
         return false;
     }
-    if(_strcmpi(jit_entry, "1") == 0)
+    if(_wcsicmp(jit_entry, L"1") == 0)
         *auto_on = true;
-    else if(_strcmpi(jit_entry, "0") == 0)
+    else if(_wcsicmp(jit_entry, L"0") == 0)
         *auto_on = false;
     else
         return false;
@@ -1723,11 +1722,11 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
 
 bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD auto_string_size = sizeof("1");
+    DWORD auto_string_size = sizeof(L"1");
     readwritejitkey_error_t rw_error;
     if(!auto_on)
     {
-        char jit_entry[4];
+        wchar_t jit_entry[4] = L"";
         DWORD jit_entry_size = sizeof(jit_entry) - 1;
         if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
         {
@@ -1735,7 +1734,7 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
                 return true;
         }
     }
-    if(!readwritejitkey(auto_on ? "1" : "0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -1746,14 +1745,16 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
 
 bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
+    wchar_t wszJitEntry[JIT_ENTRY_MAX_SIZE] = L"";
+    DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey(jit_entry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
+    if(!readwritejitkey(wszJitEntry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
         return false;
     }
+    strcpy_s(jit_entry, JIT_ENTRY_MAX_SIZE, ConvertUtf16ToUtf8(wszJitEntry).c_str());
     return true;
 }
 
@@ -1762,7 +1763,7 @@ bool dbggetdefjit(char* jit_entry)
     char path[JIT_ENTRY_DEF_SIZE];
     path[0] = '"';
     wchar_t wszPath[MAX_PATH] = L"";
-    GetModuleFileNameW(GetModuleHandleA(NULL), wszPath, MAX_PATH);
+    GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
     strcpy(&path[1], ConvertUtf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
     strcpy(jit_entry, path);
@@ -1771,10 +1772,9 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    //TODO: utf8
-    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
+    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
+    if(!readwritejitkey((wchar_t*)ConvertUtf8ToUtf16(jit_cmd).c_str(), & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -1927,7 +1927,6 @@ static bool fixgetcommandlinesbase(uint new_command_line_unicode, uint new_comma
 
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
-    //TODO: UTF-8
     cmdline_error_t cmd_line_error_aux;
     UNICODE_STRING new_command_line;
     SIZE_T size;
@@ -1948,7 +1947,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> command_linewstr(new_command_line.Length);
 
     // Covert to Unicode.
-    if(!MultiByteToWideChar(CP_ACP, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
+    if(!MultiByteToWideChar(CP_UTF8, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
     {
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
@@ -1993,7 +1992,6 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 {
-    //TODO: UTF-8
     SIZE_T size;
     UNICODE_STRING CommandLine;
     cmdline_error_t cmd_line_error_aux;
@@ -2024,8 +2022,8 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 
     *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
 
-    //Convert TO ASCII
-    if(!WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
+    //Convert TO UTF-8
+    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;

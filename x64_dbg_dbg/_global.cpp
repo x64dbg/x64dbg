@@ -117,7 +117,6 @@ bool scmp(const char* a, const char* b)
 
 void formathex(char* string)
 {
-    //TODO: utf8
     int len = (int)strlen(string);
     _strupr(string);
     Memory<char*> new_string(len + 1, "formathex:new_string");
@@ -130,7 +129,6 @@ void formathex(char* string)
 
 void formatdec(char* string)
 {
-    //TODO: utf8
     int len = (int)strlen(string);
     _strupr(string);
     Memory<char*> new_string(len + 1, "formatdec:new_string");

@@ -14,7 +14,6 @@ static bool bScyllaLoaded = false;
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
-    //TODO: utf8
     if(DbgIsDebugging())
         DbgCmdExecDirect("stop");
 
@@ -810,7 +809,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
 {
     typedef INT (WINAPI * SCYLLASTARTGUI)(DWORD pid, HINSTANCE mod);
     SCYLLASTARTGUI ScyllaStartGui = 0;
-    HINSTANCE hScylla = LoadLibraryA("Scylla.dll");
+    HINSTANCE hScylla = LoadLibraryW(L"Scylla.dll");
     if(!hScylla)
     {
         dputs("error loading Scylla.dll!");

@@ -14,20 +14,20 @@ static std::vector<PLUG_MENU> pluginMenuList;
 void pluginload(const char* pluginDir)
 {
     //load new plugins
-    char currentDir[deflen] = "";
-    GetCurrentDirectoryA(deflen, currentDir);
-    SetCurrentDirectoryA(pluginDir);
+    wchar_t currentDir[deflen] = L"";
+    GetCurrentDirectoryW(deflen, currentDir);
+    SetCurrentDirectoryW(ConvertUtf8ToUtf16(pluginDir).c_str());
     char searchName[deflen] = "";
 #ifdef _WIN64
     sprintf(searchName, "%s\\*.dp64", pluginDir);
 #else
     sprintf(searchName, "%s\\*.dp32", pluginDir);
 #endif // _WIN64
-    WIN32_FIND_DATA foundData;
-    HANDLE hSearch = FindFirstFileA(searchName, &foundData);
+    WIN32_FIND_DATAW foundData;
+    HANDLE hSearch = FindFirstFileW(ConvertUtf8ToUtf16(searchName).c_str(), &foundData);
     if(hSearch == INVALID_HANDLE_VALUE)
     {
-        SetCurrentDirectoryA(currentDir);
+        SetCurrentDirectoryW(currentDir);
         return;
     }
     PLUG_DATA pluginData;
@@ -36,8 +36,8 @@ void pluginload(const char* pluginDir)
         //set plugin data
         pluginData.initStruct.pluginHandle = curPluginHandle;
         char szPluginPath[MAX_PATH] = "";
-        sprintf(szPluginPath, "%s\\%s", pluginDir, foundData.cFileName);
-        pluginData.hPlugin = LoadLibraryA(szPluginPath); //load the plugin library
+        sprintf_s(szPluginPath, "%s\\%s", pluginDir, ConvertUtf16ToUtf8(foundData.cFileName).c_str());
+        pluginData.hPlugin = LoadLibraryW(ConvertUtf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
             dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
@@ -185,8 +185,8 @@ void pluginload(const char* pluginDir)
         }
         curPluginHandle++;
     }
-    while(FindNextFileA(hSearch, &foundData));
-    SetCurrentDirectoryA(currentDir);
+    while(FindNextFileW(hSearch, &foundData));
+    SetCurrentDirectoryW(currentDir);
 }
 
 static void plugincmdunregisterall(int pluginHandle)
@@ -260,7 +260,6 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
 
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
 {
-    //TODO: utf8
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
         return false;
     PLUG_COMMAND plugCmd;
@@ -275,7 +274,6 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
 
 bool plugincmdunregister(int pluginHandle, const char* command)
 {
-    //TODO: utf8
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
         return false;
     int listsize = (int)pluginCommandList.size();
@@ -295,7 +293,6 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 
 int pluginmenuadd(int hMenu, const char* title)
 {
-    //TODO: utf8
     if(!title or !strlen(title))
         return -1;
     int nFound = -1;
@@ -320,7 +317,6 @@ int pluginmenuadd(int hMenu, const char* title)
 
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
-    //TODO: utf8
     if(!title or !strlen(title) or hEntry == -1)
         return false;
     int pluginHandle = -1;

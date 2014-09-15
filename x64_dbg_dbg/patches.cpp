@@ -153,14 +153,14 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
             sprintf(error, "failed to get base of module %s", modname);
         return -1;
     }
-    char szOriginalName[MAX_PATH] = "";
-    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szOriginalName, MAX_PATH))
+    wchar_t szOriginalName[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szOriginalName, MAX_PATH))
     {
         if(error)
             sprintf(error, "failed to get module path of module %s", modname);
         return -1;
     }
-    if(!CopyFileA(szOriginalName, szFileName, false))
+    if(!CopyFileW(szOriginalName, ConvertUtf8ToUtf16(szFileName).c_str(), false))
     {
         if(error)
             strcpy(error, "failed to make a copy of the original file (patch target is in use?)");
@@ -170,7 +170,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    if(StaticFileLoad((char*)szFileName, UE_ACCESS_ALL, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    if(StaticFileLoadW(ConvertUtf8ToUtf16(szFileName).c_str(), UE_ACCESS_ALL, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         int patched = 0;
         for(int i = 0; i < count; i++)
@@ -182,7 +182,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
             *ptr = patchlist[i].newbyte;
             patched++;
         }
-        if(!StaticFileUnload((char*)szFileName, true, FileHandle, LoadedSize, FileMap, FileMapVA))
+        if(!StaticFileUnloadW(ConvertUtf8ToUtf16(szFileName).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA))
         {
             if(error)
                 strcpy(error, "StaticFileUnload failed");

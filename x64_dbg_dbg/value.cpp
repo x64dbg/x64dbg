@@ -988,64 +988,64 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         strcpy(modname, name);
         modname[apiname - name] = 0;
         apiname++;
-        //TODO: utf8
         if(!strlen(apiname))
             return false;
         uint modbase = modbasefromname(modname);
-        char szModName[MAX_PATH];
-        if(!GetModuleFileNameEx(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
+        wchar_t szModName[MAX_PATH] = L"";
+        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
             if(!silent)
                 dprintf("could not get filename of module "fhex"\n", modbase);
         }
         else
         {
-            char szBaseName[256] = "";
-            //TODO: utf8
-            int len = (int)strlen(szModName);
-            while(szModName[len] != '\\')
-                len--;
-            strcpy_s(szBaseName, szModName + len + 1);
-            HMODULE mod = LoadLibraryExA(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
-            if(!mod)
+            wchar_t* szBaseName = wcschr(szModName, L'\\');
+            if(szBaseName)
             {
-                if(!silent)
-                    dprintf("unable to load library %s\n", szBaseName);
-            }
-            else
-            {
-                uint addr = (uint)GetProcAddress(mod, apiname);
-                if(!addr) //not found
+                szBaseName++;
+                HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+                if(!mod)
                 {
-                    if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
-                        addr = modbase;
-                    else
+                    if(!silent)
+                        dprintf("unable to load library %s\n", szBaseName);
+                }
+                else
+                {
+                    uint addr = (uint)GetProcAddress(mod, apiname);
+                    if(!addr) //not found
                     {
-                        uint ordinal;
-                        if(valfromstring(apiname, &ordinal))
+                        if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
+                            addr = modbase;
+                        else
                         {
-                            addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
-                            if(!addr and !ordinal)
-                                addr = modbase;
+                            uint ordinal;
+                            if(valfromstring(apiname, &ordinal))
+                            {
+                                addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
+                                if(!addr and !ordinal)
+                                    addr = modbase;
+                            }
                         }
                     }
-                }
-                FreeLibrary(mod);
-                if(addr) //found!
-                {
-                    if(value_size)
-                        *value_size = sizeof(uint);
-                    if(hexonly)
-                        *hexonly = true;
-                    uint rva;
-                    if(addr == modbase)
-                        rva = 0;
-                    else
-                        rva = addr - (uint)mod;
-                    *value = modbase + rva;
-                    return true;
+                    FreeLibrary(mod);
+                    if(addr) //found!
+                    {
+                        if(value_size)
+                            *value_size = sizeof(uint);
+                        if(hexonly)
+                            *hexonly = true;
+                        uint rva;
+                        if(addr == modbase)
+                            rva = 0;
+                        else
+                            rva = addr - (uint)mod;
+                        *value = modbase + rva;
+                        return true;
+                    }
                 }
             }
+            else if(!silent)
+                dputs("unknown error");
         }
         return false;
     }
@@ -1061,20 +1061,20 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         {
             for(unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); i++)
             {
-                char szModuleName[MAX_PATH] = "";
-                if(GetModuleFileNameExA(fdProcessInfo->hProcess, hMods[i], szModuleName, sizeof(szModuleName)))
+                wchar_t szModuleName[MAX_PATH] = L"";
+                if(GetModuleFileNameExW(fdProcessInfo->hProcess, hMods[i], szModuleName, MAX_PATH))
                 {
-                    char* szBaseName = strchr(szModuleName, '\\');
+                    wchar_t* szBaseName = wcschr(szModuleName, L'\\');
                     if(szBaseName)
                     {
                         szBaseName++;
-                        HMODULE hModule = LoadLibraryExA(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+                        HMODULE hModule = LoadLibraryExW(szModuleName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
                         if(hModule)
                         {
                             ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
                             if(funcAddress)
                             {
-                                if(!_stricmp(szBaseName, "kernelbase.dll"))
+                                if(!_wcsicmp(szBaseName, L"kernelbase.dll"))
                                     kernelbase = found;
                                 uint rva = funcAddress - (uint)hModule;
                                 addrfound[found] = (uint)hMods[i] + rva;
@@ -1127,7 +1127,6 @@ static bool isdecnumber(const char* string)
             return false;
         decAdd++;
     }
-    //TODO: utf8
     int len = (int)strlen(string + decAdd);
     for(int i = 0; i < len; i++)
         if(!isdigit(string[i + decAdd]))
@@ -1147,7 +1146,6 @@ static bool ishexnumber(const char* string)
         add = 1;
     if(!string[add]) //only an indicator, no number
         return false;
-    //TODO: utf8
     int len = (int)strlen(string + add);
     for(int i = 0; i < len; i++)
         if(!isxdigit(string[i + add])) //all must be hex digits
@@ -1166,7 +1164,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     else if(mathcontains(string)) //handle math
     {
-        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
@@ -1221,7 +1218,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
                 *isvar = true;
             return true;
         }
-        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "["))
@@ -1378,7 +1374,6 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging");
             return false;
         }
-        //TODO: utf8
         int len = (int)strlen(string);
         Memory<char*> newstring(len * 2, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
@@ -1433,7 +1428,6 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok = setregister(string, *value);
-        //TODO: utf8
         Memory<char*> regName(strlen(string) + 1, "valtostring:regname");
         strcpy(regName, string);
         _strlwr(regName);

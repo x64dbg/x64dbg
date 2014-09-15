@@ -55,7 +55,6 @@ mathformat:
 */
 void mathformat(char* text)
 {
-    //TODO: utf8
     int len = (int)strlen(text);
     Memory<char*> temp(len + 1, "mathformat:temp");
     memset(temp, 0, len + 1);
@@ -70,7 +69,6 @@ void mathformat(char* text)
 */
 bool mathcontains(const char* text)
 {
-    //TODO: utf8
     if(*text == '-') //ignore negative values
         text++;
     int len = (int)strlen(text);
@@ -238,7 +236,6 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 
 static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 {
-    //TODO: utf8
     int layer = endlayer;
     int len = (int)strlen(expression);
     for(int i = 0; i < len; i++)
@@ -267,7 +264,6 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 
 static int expressionformat(char* exp)
 {
-    //TODO: utf8
     int len = (int)strlen(exp);
     int open = 0;
     int close = 0;
@@ -363,7 +359,6 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
 {
     int highestop = 0;
     int highestop_pos = 0;
-    //TODO: utf8
     int len = (int)strlen(string);
     bool negative = false;
     if(*string == '-')
@@ -397,7 +392,6 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
     if(string[highestop_pos] == '~')
     {
         right = ~right;
-        //TODO: utf8
         if(!strlen(strleft))
         {
             *value = right;

@@ -82,7 +82,6 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
-    //TODO: utf8
     if(!DbgIsDebugging())
         return false;
     bool retval = false;

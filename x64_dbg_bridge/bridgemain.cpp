@@ -31,7 +31,6 @@ static char szIniFile[1024] = "";
 //Bridge
 BRIDGE_IMPEXP const char* BridgeInit()
 {
-    //TODO: utf8
     ///Settings load
     if(!GetModuleFileNameA(0, szIniFile, 1024))
         return "Error getting module path!";
@@ -241,7 +240,6 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
 
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
-    //TODO: utf8
     if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
         return false;
     ADDRINFO info;
@@ -268,7 +266,6 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
-    //TODO: utf8
     if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
         return false;
     ADDRINFO info;

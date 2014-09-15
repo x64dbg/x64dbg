@@ -228,7 +228,6 @@ void memfree(HANDLE hProcess, uint addr)
 
 static int formathexpattern(char* string)
 {
-    //TODO: utf8
     int len = (int)strlen(string);
     _strupr(string);
     Memory<char*> new_string(len + 1, "formathexpattern:new_string");
@@ -242,7 +241,6 @@ static int formathexpattern(char* string)
 
 static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
 {
-    //TODO: utf8
     if(!text or !pattern)
         return false;
     pattern->clear();

@@ -11,7 +11,6 @@ struct SYMBOLCBDATA
 
 static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
 {
-    //TODO: utf8
     int len = (int)strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
@@ -102,10 +101,10 @@ void symdownloadallsymbols(const char* szSymbolStore)
     {
         dprintf("downloading symbols for %s...\n", modList.at(i).name);
         uint modbase = modList.at(i).base;
-        char szModulePath[MAX_PATH] = "";
-        if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+        wchar_t szModulePath[MAX_PATH] = L"";
+        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
         {
-            dprintf("GetModuleFileNameExA("fhex") failed!\n", modbase);
+            dprintf("GetModuleFileNameExW("fhex") failed!\n", modbase);
             continue;
         }
         if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase))
@@ -113,7 +112,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
             dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
             continue;
         }
-        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0))
+        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, ConvertUtf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
             continue;
@@ -127,7 +126,6 @@ void symdownloadallsymbols(const char* szSymbolStore)
 
 bool symfromname(const char* name, uint* addr)
 {
-    //TODO: utf8
     if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
         return false;
     char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];

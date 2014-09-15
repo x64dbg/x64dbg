@@ -54,7 +54,6 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    //TODO: utf8
     dprintf("\"%s\"[%d]\n", argv[1], strlen(argv[1]));
     return STATUS_CONTINUE;
 }
@@ -218,7 +217,6 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     MESSAGE msg;
     msgwait(gMsgStack, &msg);
     char* newcmd = (char*)msg.param1;
-    //TODO: utf8
     if(strlen(newcmd) >= deflen)
     {
         dprintf("command cut at ~%d characters\n", deflen);
@@ -231,7 +229,6 @@ static bool cbCommandProvider(char* cmd, int maxlen)
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
-    //TODO: utf8
     int len = (int)strlen(cmd);
     char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy(newcmd, cmd);
@@ -259,24 +256,25 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
+    wchar_t wszDir[deflen] = L"";
+    if(!GetModuleFileNameW(hInst, wszDir, deflen))
+        return "GetModuleFileNameW failed!";
     char dir[deflen] = "";
-    if(!GetModuleFileNameA(hInst, dir, deflen))
-        return "GetModuleFileNameA failed!";
-    //TODO: utf8
+    strcpy_s(dir, ConvertUtf16ToUtf8(wszDir).c_str());
     int len = (int)strlen(dir);
     while(dir[len] != '\\')
         len--;
     dir[len] = 0;
     strcpy(alloctrace, dir);
     PathAppendA(alloctrace, "\\alloctrace.txt");
-    DeleteFileA(alloctrace);
+    DeleteFileW(ConvertUtf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
     strcpy(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
-    CreateDirectoryA(dbbasepath, 0); //create database directory
+    CreateDirectoryW(ConvertUtf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
     strcpy(szSymbolCachePath, dir);
     PathAppendA(szSymbolCachePath, "symbols");
-    SetCurrentDirectoryA(dir);
+    SetCurrentDirectoryW(ConvertUtf8ToUtf16(dir).c_str());;
     gMsgStack = msgallocstack();
     if(!gMsgStack)
         return "Could not allocate message stack!";
@@ -286,7 +284,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
-    CreateDirectoryA(plugindir, 0);
+    CreateDirectoryW(ConvertUtf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
     //handle command line
     int argc = 0;

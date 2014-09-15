@@ -185,7 +185,6 @@ bool varset(const char* name, uint value, bool setreadonly)
 bool varset(const char* name, const char* string, bool setreadonly)
 {
     VAR_VALUE varvalue;
-    //TODO: utf8
     int size = (int)strlen(string);
     varvalue.size = size;
     varvalue.type = VAR_STRING;

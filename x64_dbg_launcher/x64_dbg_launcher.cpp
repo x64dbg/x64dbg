@@ -81,7 +81,7 @@ static bool BrowseFileOpen(HWND owner, const char* filter, const char* defext, c
     memset(&ofstruct, 0, sizeof(ofstruct));
     ofstruct.lStructSize = sizeof(ofstruct);
     ofstruct.hwndOwner = owner;
-    ofstruct.hInstance = GetModuleHandleA(0);
+    ofstruct.hInstance = GetModuleHandleW(0);
     ofstruct.lpstrFilter = filter;
     ofstruct.lpstrFile = filename;
     ofstruct.nMaxFile = filename_size - 1;
@@ -107,7 +107,6 @@ void RegisterShellExtension(const char* key, const char* command)
     RegCloseKey(hKey);
 }
 
-//TODO: utf8
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     CoInitialize(NULL); //fixed some crash
