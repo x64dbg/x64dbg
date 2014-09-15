@@ -1,3 +1,9 @@
+/**********************************************************************************************//**
+ * \file _global.h
+ *
+ * \brief Declares function pointer typedefs for the GUI's and the DBG's exported functions.
+ *        Declares the global function pointers using these typdefs as extern.
+ **************************************************************************************************/
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 

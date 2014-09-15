@@ -9,6 +9,7 @@ build/
 debug/
 *XE Results*/
 doxygen*/
+doc/
 
 #global filetypes to ignore
 *.depend
