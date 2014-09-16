@@ -511,7 +511,7 @@ HIDE_SCOPE_NAMES = NO
 # the files that are included by a file in the documentation of that file.
 # The default value is: YES.
 
-SHOW_INCLUDE_FILES = YES
+SHOW_INCLUDE_FILES = NO
 
 # If the SHOW_GROUPED_MEMB_INC tag is set to YES then Doxygen will add for each
 # grouped member an include statement to the documentation, telling the reader
