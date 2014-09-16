@@ -19,37 +19,42 @@ FlowGraph::~FlowGraph(void)
 
 void FlowGraph::insertEdge(duint startAddress, duint endAddress, EdgeType btype)
 {
+    // each edge is directed from an instruction start: jmp end to "end"-address
     Node_t* workStart = new Node_t(startAddress);
     Node_t* workEnd = new Node_t(endAddress);
 
-
+    // insert node or get the existing node
     std::pair<NodeMap::iterator, bool> sn = nodes.insert(std::pair<duint, Node_t*>(startAddress, workStart));
     std::pair<NodeMap::iterator, bool> en = nodes.insert(std::pair<duint, Node_t*>(endAddress, workEnd));
 
     if(!sn.second)
     {
+        // if the node alreay exists -> use it
         delete workStart;
         workStart = (sn.first)->second;
     }
     if(!en.second)
     {
+        // if the node alreay exists -> use it
         delete workEnd;
         workEnd = (en.first)->second;
     }
-
+    // create new edge
     Edge_t* edge = new Edge_t(workStart, workEnd, btype);
-
+    // insert or find edge
     std::pair<EdgeMap::iterator, bool> e = edges.insert(std::pair<duint, Edge_t*>(startAddress, edge));
 
     if(!e.second)
     {
+        // delete tmp edge, if it already exists
         delete edge;
         edge = (e.first)->second;
     }
-
+    // "edge" is existing or new edge --> let it know the nodes
     edge->start = workStart;
     edge->end = workEnd;
-    workStart->outgoing = edge;
+    // both nodes are the existing or new nodes --> let them know the edge
+    workStart->outgoing.insert(edge);
     workEnd->incoming.insert(edge);
 }
 

@@ -9,7 +9,6 @@ namespace fa
 
 Node_t::Node_t(duint address)
 {
-    outgoing = NULL;
     va = address;
     hasInstr = false;
 }

@@ -15,11 +15,12 @@ public:
     Node_t* end;     // whats the new target address?
 
 
-    EdgeType type;   // what kind of instruction (call,jmp, ret, jnz, ...) causes this?
+    EdgeType type;   // what kind of instruction (call, jmp, ret, jnz, ...) causes this?
 
     Edge_t(Node_t* startNode, Node_t* endNode, EdgeType btype);
     ~Edge_t();
 
+    // compare edges by their start virtual address
     bool operator==(const Edge_t & rhs) const;
     bool operator<(const Edge_t & rhs) const;
 

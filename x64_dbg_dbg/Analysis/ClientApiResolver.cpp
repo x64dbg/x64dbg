@@ -21,19 +21,24 @@ ClientApiResolver::ClientApiResolver(AnalysisRunner* analys): ClientInterface(an
 }
 void ClientApiResolver::see(const Instruction_t Instr, const RegisterEmulator* reg, const StackEmulator* stack)
 {
+    // save key strokes
     const duint addr = (duint)Instr.BeaStruct.VirtualAddr;
     Node_t* n = 0;
+    // try to find a node at the current virtual address
     if(Analysis->graph()->find(addr, n))
     {
+        // TODO: unfortunately the current value of "n" is NOT the address of the current node
+        // --> call another function to get it anyway
         n = Analysis->graph()->node(addr);
 
         // is there an edge going out?
-        if(n->outgoing != NULL)
+        if(n->outgoing.size() > 0)
         {
             tDebug("found call at "fhex"\n", addr);
-            if(n->outgoing->type == fa::CALL)
+            Edge_t* first_out_edge = *(n->outgoing.begin());
+            if(first_out_edge->type == fa::CALL)
             {
-                const BASIC_INSTRUCTION_INFO* basicinfo = &n->outgoing->end->instruction->BasicInfo;
+                const BASIC_INSTRUCTION_INFO* basicinfo = &first_out_edge->end->instruction->BasicInfo;
                 duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
                 char label[MAX_LABEL_SIZE] = "";
                 bool found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label

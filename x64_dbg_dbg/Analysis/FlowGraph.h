@@ -7,18 +7,28 @@
 
 namespace fa
 {
-
+// mapping from virtual address to edge and node. The key is the virtual adress
+// of the startnode of an edge
 typedef std::map<duint, Edge_t*> EdgeMap;
 typedef std::map<duint, Node_t*> NodeMap;
 
+/*
+the idea is that a program flow can be represented as a cyclic directed graph.
+Each instruction is a node an each possible branch in "JMP, JNE, ... , CALL, RET"
+represents an edge.
+Since we do not really need each instruction to be a node, we only store instructions
+as a node, that cause a branch like "call, jmp" or that is the instruction at the target
+address value of these branches.
+*/
+
 class FlowGraph
 {
-    // this class represents the program flow including branches likes JMP, JNE, ... , CALL, RET
+
     // all existing edges
     EdgeMap edges;
     // all existing nodes
     NodeMap nodes;
-
+    // pointer to main analysis class to outreach a pointer to information like api-data (parameters)
     AnalysisRunner* analysis;
 public:
     FlowGraph(AnalysisRunner* ana);
@@ -29,9 +39,11 @@ public:
     bool insertNode(Node_t* node);
     // insert a new edge an returns the existing edge if there was already the edge
     void insertEdge(duint startAddress, duint endAddress, EdgeType btype);
+    // try to find a node by virtual address and return "if the node exists"
     bool find(const duint va, Node_t* node);
+    // direct access to node (WARNING: can be NULL)
     Node_t* FlowGraph::node(const duint va);
-
+    // pointer to all information like api-call documentation
     const AnalysisRunner* information() const;
 
 

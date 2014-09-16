@@ -13,7 +13,7 @@ typedef std::set<Edge_t*> EdgeSet;
 class Node_t
 {
 public:
-    Edge_t* outgoing;
+    EdgeSet outgoing;
     EdgeSet incoming;
 
     const Instruction_t* instruction;
