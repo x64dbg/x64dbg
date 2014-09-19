@@ -1,22 +1,22 @@
-/**********************************************************************************************//**
+/**
  * \file bridgemain.cpp
  *
- * \brief Defines the Bridge's \ref BridgeInit and BridgeStart functions.
- *        Defines functions to interface with both the GUI and the DBG.
- **************************************************************************************************/
+ * \brief Defines functions to initialize and start the Bridge and
+ *        to interface with the GUI and the DBG.
+ */
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
 #include <new>
 
-/**********************************************************************************************//**
+/**
  * \brief Global variable that stores a handle to the Bridge's DLL.
- **************************************************************************************************/
+ */
 static HINSTANCE hInst;
 
-/**********************************************************************************************//**
- * \brief Path to the INI file.
- **************************************************************************************************/
+/**
+ * \brief Path to the Bridge's INI file. It set when BridgeInit is called.
+ */
 static char szIniFile[1024] = "";
 
 #ifdef _WIN64
@@ -27,25 +27,24 @@ static char szIniFile[1024] = "";
 #define gui_lib "x32_gui.dll"
 #endif // _WIN64
 
-/**********************************************************************************************//**
- * \brief Loads the library __name__ and stores a handle to it into a local variable _hInst_.
+/**
+ * \brief Loads a DLL and stores a handle to it into a local variable `hInst`.
  *
  * \param name The name of the library to load.
- **************************************************************************************************/
+ */
 #define LOADLIBRARY(name) \
     szLib=name; \
     hInst=LoadLibraryA(name); \
     if(!hInst) \
         return "Error loading library \""name"\"!"
 
-/**********************************************************************************************//**
- * \brief Loads the exported function __name__ and stores it into a global variable of the same name.
- *        The exported function will be loaded from the library whose handle resides in hInst
- *        that was set on the last LOADLIBRARY call.
- *        \see _global.h
+/**
+ * \brief Loads an exported function and stores it into a global variable of the same
+ *        name. The exported function will be loaded from the library whose handle resides in
+ *        in a local variable `hInst` that was modified on the last LOADLIBRARY(name) macro expansion.
  *
  * \param name The name of the exported function to load.
- **************************************************************************************************/
+ */
 #define LOADEXPORT(name) \
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
     if(!name) \
@@ -54,17 +53,18 @@ static char szIniFile[1024] = "";
         return szError; \
     }
 
-/**********************************************************************************************//**
- * \brief Initializes the bridge.
+/**
+ * \brief Initializes the Bridge.
  *
- * \details Derives the path to the INI file from the Bridge's module name and stores it into \a
- *          szIniFile. Loads both the GUI's and the DBG's exported functions.
+ * Sets the path to the INI file by deriving its name from the name of the Bridge's
+ * module and placing it into the same directory as the Bridge. Loads the functions
+ * exported by the GUI and the DBG.
  *
- * \return Null if it succeeds, a pointer to an error message if it fails.
- **************************************************************************************************/
+ * \return A null pointer on success, a pointer to an error message on failure.
+ */
 BRIDGE_IMPEXP const char* BridgeInit()
 {
-    ///Settings load
+    //Settings load
     if(!GetModuleFileNameA(0, szIniFile, 1024))
         return "Error getting module path!";
     int len = (int)strlen(szIniFile);
@@ -109,13 +109,11 @@ BRIDGE_IMPEXP const char* BridgeInit()
     return 0;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Starts the bridge by initializing the GUI.
- *        \see BridgeInit()
  *
- * \return Null if it succeeds, a pointer to an error message if BridgeInit wasn't called before
- *         calling BridgeStart.
- **************************************************************************************************/
+ * \return A null pointer on success, a pointer to an error message on failure.
+ */
 BRIDGE_IMPEXP const char* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
@@ -124,14 +122,13 @@ BRIDGE_IMPEXP const char* BridgeStart()
     return 0;
 }
 
-/**********************************************************************************************//**
- * \brief Allocates a memory block inside the Bridge. If it fails to allocate the memory block
- *        it exists the process.
+/**
+ * \brief Allocates a memory block inside the Bridge.
  *
- * \param[in] size The number of bytes to allocate.
+ * \param [in] size The number of bytes to allocate.
  *
- * \return A _void*_ to the allocated memory.
- **************************************************************************************************/
+ * \return A pointer to the allocated memory block on success. On failure, the process exits.
+ */
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
     unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
@@ -144,26 +141,26 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
     return a;
 }
 
-/**********************************************************************************************//**
- * \brief Frees a memory block that was previously allocated with BridgeAlloc
+/**
+ * \brief Frees a memory block that was previously allocated with BridgeAlloc().
  *
  * \param [in] ptr A pointer to a memory block.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
     GlobalFree(ptr);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Reads a string value from the Bridge's INI file.
  *
- * \param [in] section The section to look under.
- * \param [in] key     The key to look for.
- * \param [out] value  A pointer to the value of the specified _key_. Defaults to an empty
- *                     string if the key wasn't found.
+ * \param [in] section Name of the section to look under.
+ * \param [in] key     Name of the key to look for.
+ * \param [out] value  A pointer to the value of the specified key. Defaults to an **empty
+ *                     string** if the key wasn't found.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
 {
     if(!section || !key || !value)
@@ -173,16 +170,16 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
     return true;
 }
 
-/**********************************************************************************************//**
- * \brief Reads a uint value from the Bridge's INI file.
+/**
+ * \brief Reads a `uint` value from the Bridge's INI file.
  *
- * \param [in] section The section to look under.
- * \param [in] key     The key to look for.
- * \param [out] value  A pointer to the value of the specified _key_. Leaves the value
- *                     unchanged if the key wasn't found.
+ * \param [in] section Name of the section to look under.
+ * \param [in] key     Name of the key to look for.
+ * \param [out] value  A pointer to the value of the specified key. The value is left unchanged
+ *                     if the key wasn't found.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
 {
     if(!section || !key || !value)
@@ -200,16 +197,16 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
     return false;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Writes a string value to the Bridge's INI file.
  *
- * \param [in] section The section to put the key under. The section will be created if it doesn't
- *                     exist.
- * \param [in] key     The name of the key.
+ * \param [in] section Name of the section to put the key under. The section will be created if
+ *                     it doesn't exist.
+ * \param [in] key     Name of the key.
  * \param [in] value   The value.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
     if(!section)
@@ -219,16 +216,16 @@ BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const 
     return true;
 }
 
-/**********************************************************************************************//**
- * \brief Writes a uint value to the Bridge's INI file.
+/**
+ * \brief Writes a `uint` value to the Bridge's INI file.
  *
- * \param [in] section The section to put the key under. The sections will be created if it doesn't
- *                     exist.
- * \param [in] key     The name of the key.
+ * \param [in] section Name of the section to put the key under. The sections will be created if
+ *                     it doesn't exist.
+ * \param [in] key     Name of the key.
  * \param [in] value   The value.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
 {
     if(!section || !key)
@@ -242,26 +239,26 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
     return BridgeSettingSet(section, key, newvalue);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Gets the DBG's version number.
  *
- * \return An int specifying the DBG's version.
- **************************************************************************************************/
+ * \return The version number.
+ */
 BRIDGE_IMPEXP int BridgeGetDbgVersion()
 {
     return DBG_VERSION;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Reads memory of the debugged process.
  *
  * \param [in] va    The virtual address of the debugged process to read from.
  * \param [out] dest The buffer to write the read bytes to. The buffer has to be big enough to
- *                   hold the read bytes, i.e. at least of size _size_.
+ *                   hold the read bytes, i.e. at least `size` bytes long.
  * \param [in] size  The number of bytes to read from the specified virtual address.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
     if(IsBadWritePtr(dest, size))
@@ -275,16 +272,16 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
     return ret;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Writes to memory of the debugged process.
  *
  * \param [in] va   The virtual address of the debugged process to write to.
  * \param [in] src  The byte buffer to write from.
- * \param [in] size The number of bytes to write from _src. The buffer should contain at least
- *                  _size_ bytes.
+ * \param [in] size The number of bytes to write from `src`. The buffer should contain at least
+ *                  `size` bytes.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 {
     if(IsBadReadPtr(src, size))
@@ -295,14 +292,14 @@ BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
     return _dbg_memwrite(va, src, size, 0);
 }
 
-// FIXME, not exactly base if it still does a find
-/**********************************************************************************************//**
+// FIXME, not exactly base if it still does a find?
+/**
  * \brief Gets the size of a memory page in the debugged process.
  *
  * \param [in] base The base address of the memory page.
  *
  * \return The size of the memory page.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
 {
     duint size = 0;
@@ -310,89 +307,89 @@ BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
     return size;
 }
 
-/**********************************************************************************************//**
- * \brief Finds the base address of the memory page that contains an address.
+/**
+ * \brief Finds the base address of a memory page that contains an address.
  *
  * \param [in] addr  The address contained within the memory page.
  * \param [out] size If non-null, the size of the memory page.
  *
  * \return The base address.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
 {
     return _dbg_memfindbaseaddr(addr, size);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Executes a debugger command.
  *
  * \param [in] cmd The debugger command to execute.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd)
 {
     return _dbg_dbgcmdexec(cmd);
 }
 
 // FIXME
-/**********************************************************************************************//**
+/**
  * \brief Debug memory map.
  *
  * \param [in,out] memmap If non-null, the memmap.
  *
  * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
 {
     return _dbg_memmap(memmap);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Checks if an expression is a valid debugger expression.
  *
  * \param [in] expression The expression to validate.
  *
- * \return true if the expression is valid, false if it's not.
- **************************************************************************************************/
+ * \return True if the expression is valid, false if it isn't.
+ */
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 {
     duint value = 0;
     return _dbg_valfromstring(expression, &value);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Determines if the debugger is currently debugging.
  *
- * \return true if the debugger is debugging, false if it isn't.
- **************************************************************************************************/
+ * \return True if the debugger is debugging, false if it isn't.
+ */
 BRIDGE_IMPEXP bool DbgIsDebugging()
 {
     return _dbg_isdebugging();
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Determines if a JMP instruction will be executed.
  *
  * \param [in] addr The address of the JMP instruction.
  *
- * \return true if the JMP instruction will be executed, false if not.
- **************************************************************************************************/
+ * \return True if the JMP instruction will be executed, false if not.
+ */
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 {
     return _dbg_isjumpgoingtoexecute(addr);
 }
 
 // FIXME required size of arg _text_?
-/**********************************************************************************************//**
+/**
  * \brief Gets a label from the debugger.
  *
  * \param [in] addr    The address to look for the label at.
  * \param [in] segment The segment.
- * \param [out] text   The buffer to write the label to.
+ * \param [out] text   Non-null pointer to a buffer to write the label to.
  *
- * \return true if it succeeds, false if it fails or if _text_ was null.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(module.)+label
 {
     if(!text || !addr)
@@ -415,15 +412,14 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
     return true;
 }
 
-/**********************************************************************************************//**
- * \brief Sets a label in the debugger
+/**
+ * \brief Sets a label in the debugger.
  *
  * \param [in] addr The address to set the label at.
  * \param [in] text The text to use for the label.
  *
- * \return true if the label was set, false if either _addr_ or _text_ are null or if the _text_'s
- *         size is bigger than MAX_LABEL_SIZE.
- **************************************************************************************************/
+ * \return True if the label was set, false if it wasn't.
+ */
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
@@ -438,15 +434,14 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 }
 
 // FIXME required size of arg _text_?
-/**********************************************************************************************//**
+/**
  * \brief Gets a comment from the debugger.
  *
  * \param [in] addr  The address to get the comment from.
  * \param [out] text The buffer to write the comment to.
  *
- * \return true if the label was retrieved, false if either _text_ or _addr_ are null or if
- *         the label couldn't be retrieved.
- **************************************************************************************************/
+ * \return True if the label was retrieved, false if it wasn't.
+ */
 BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
     if(!text || !addr)
@@ -460,15 +455,14 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
     return true;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Sets a comment in the debugger.
  *
  * \param [in] addr The address to set the comment at.
  * \param [in] text The text for the comment.
  *
- * \return true if it the comment was set, false if either _addr_ or _text_ are null or if _text_'s
- *         size is bigger than MAX_COMMENT_SIZE.
- **************************************************************************************************/
+ * \return true if it the comment was set, false if it wasn't.
+ */
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
     if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
@@ -483,15 +477,14 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 }
 
 // FIXME required size of arg _text_?
-/**********************************************************************************************//**
+/**
  * \brief Gets the name of the debugged process's module which contains an address.
  *
  * \param [in] addr  The address within the module.
  * \param [out] text The buffer to write the module's name to.
  *
- * \return true if the module's name was retrieved, false if either _addr_ or _text_ are null or
- *         if the module wasn't found.
- **************************************************************************************************/
+ * \return true if the module's name was retrieved, false if the module wasn't found.
+ */
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {
     if(!text || !addr)
@@ -505,13 +498,13 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     return true;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Checks if a bookmark is set in the debugger at an address.
  *
  * \param [in] addr The address to check.
  *
- * \return true if a bookmark is set, false if it isn't.
- **************************************************************************************************/
+ * \return True if a bookmark is set, false if it isn't.
+ */
 BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
 {
     if(!addr)
@@ -524,14 +517,14 @@ BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
     return info.isbookmark;
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Sets or unsets a bookmark in the debugger at an address.
  *
  * \param [in] addr       The address to set/unset the bookmark at.
- * \param [in] isbookmark true to set the bookmark, false to unset it.
+ * \param [in] isbookmark True to set the bookmark, false to unset it.
  *
- * \return true if the bookmark was set/unset, false if it wasn't.
- **************************************************************************************************/
+ * \return True if the bookmark was set/unset, false if it wasn't.
+ */
 BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
 {
     if(!addr)
@@ -543,43 +536,44 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
     return _dbg_addrinfoset(addr, &info);
 }
 
-/**********************************************************************************************//**
- * \brief Initializes the debugger
+// FIXME return on success?
+/**
+ * \brief Initializes the debugger.
  *
- * \return null if it fails, else a char*.
- **************************************************************************************************/
+ * \return A ???? on success, a null pointer on failure.
+ */
 BRIDGE_IMPEXP const char* DbgInit()
 {
     return _dbg_dbginit();
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Exits from the debugger.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP void DbgExit()
 {
     _dbg_dbgexitsignal(); //send exit signal to debugger
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Get the type of a breakpoint at an address.
  *
  * \param [in] addr The address of the breakpoint to get the type of.
  *
  * \return The type of the breakpoint.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 {
     return _dbg_bpgettypeat(addr);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Gets a value from the debugger queried by a string.
  *
  * \param [in] string The query string that the debugger will try to get the value for.
- *             
+ *
  * \return The value returned by the debugger.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 {
     duint value = 0;
@@ -587,80 +581,79 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
     return value;
 }
 
-// FIXME all
-/**********************************************************************************************//**
+/**
  * \brief Get a dump of registers' and flags' values.
  *
  * \param [out] regdump Pointer to a REGDUMP structure that will be filled out with the values.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 {
     return _dbg_getregdump(regdump);
 }
 
 // FIXME all
-/**********************************************************************************************//**
- * \brief 
+/**
+ * \brief Debug value to string.
  *
  * \param string The string.
  * \param value  The value.
  *
  * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
     duint valueCopy = value;
     return _dbg_valtostring(string, &valueCopy);
 }
 
-/**********************************************************************************************//**
+/**
  * \brief Checks if an address inside the debugged process is valid for reading.
  *
  * \param [in] addr The address to check.
  *
- * \return true if it's valid for reading, false if it isn't.
- **************************************************************************************************/
+ * \return True if it's valid for reading, false if it isn't.
+ */
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
 {
     return _dbg_memisvalidreadptr(addr);
 }
 
 // FIXME return
-/**********************************************************************************************//**
+/**
  * \brief Gets a list of breakpoints of a certain type from the debugger.
  *
  * \param [in] type  The type of the breakpoints to get a list of.
  * \param [out] list A pointer to a BPMAP structure that will be filled out.
  *
  * \return The number of breakpoints in the list.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
 {
     return _dbg_getbplist(type, list);
 }
 
 // FIXME all
-/**********************************************************************************************//**
+/**
  * \brief Debug command execute direct.
  *
- * \param cmd The command.
+ * \param [in] cmd The command.
  *
- * \return true if it succeeds, false if it fails.
- **************************************************************************************************/
+ * \return True on success, false on failure.
+ */
 BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 {
     return _dbg_dbgcmddirectexec(cmd);
 }
 
-/**********************************************************************************************//**
- * \brief Gets the type of the function at an address from the debugger.
+/**
+ * \brief Gets the type of a function at an address.
  *
- * \param addr The address within a function.
+ * \param addr An address within a function.
  *
  * \return The type of the function.
- **************************************************************************************************/
+ */
 BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
     ADDRINFO info;
@@ -679,17 +672,15 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
     return FUNC_MIDDLE;
 }
 
+// FIXME depth
 /**
- @fn BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
-
- @brief Debug get loop type at.
-
- @param addr  The address.
- @param depth The depth.
-
- @return A LOOPTYPE.
+ * \brief Gets the type of a loop at an address.
+ *
+ * \param [in] addr  The address to check for the loop at.
+ * \param [in] depth The depth.
+ *
+ * \return The type of the loop.
  */
-
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
     ADDRINFO info;
@@ -708,78 +699,62 @@ BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 }
 
 /**
- @fn BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
-
- @brief Debug get branch destination.
-
- @param addr The address.
-
- @return A duint.
+ * \brief Get the destination address of a branch instruction.
+ *
+ * \param [in] addr The address of the branch instructions.
+ *
+ * \return The destination address.
  */
-
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
 {
     return _dbg_getbranchdestination(addr);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
-
- @brief Debug script load.
-
- @param filename Filename of the file.
+ * \brief Loads a script.
+ *
+ * \param [in] filename 
  */
-
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
 {
     _dbg_sendmessage(DBG_SCRIPT_LOAD, (void*)filename, 0);
 }
 
+// FIXME every?
 /**
- @fn BRIDGE_IMPEXP void DbgScriptUnload()
-
- @brief Debug script unload.
+ * \brief Unloads every script.
  */
-
 BRIDGE_IMPEXP void DbgScriptUnload()
 {
     _dbg_sendmessage(DBG_SCRIPT_UNLOAD, 0, 0);
 }
 
+// FIXME "the script?"; destline
 /**
- @fn BRIDGE_IMPEXP void DbgScriptRun(int destline)
-
- @brief Debug script run.
-
- @param destline The destline.
+ * \brief Runs the script.
+ *
+ * \param destline [in] The destline.
  */
-
 BRIDGE_IMPEXP void DbgScriptRun(int destline)
 {
     _dbg_sendmessage(DBG_SCRIPT_RUN, (void*)(duint)destline, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgScriptStep()
-
- @brief Debug script step.
+ * \brief Steps over one instruction in the script.
  */
-
 BRIDGE_IMPEXP void DbgScriptStep()
 {
     _dbg_sendmessage(DBG_SCRIPT_STEP, 0, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
-
- @brief Debug script bp toggle.
-
- @param line The line.
-
- @return true if it succeeds, false if it fails.
+ * \brief Toggles a breakpoint on a specified line of the script.
+ *
+ * \param [in] line The line to toggle the breakpoint at.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
 {
     if(_dbg_sendmessage(DBG_SCRIPT_BPTOGGLE, (void*)(duint)line, 0))
@@ -788,15 +763,12 @@ BRIDGE_IMPEXP bool DbgScriptBpToggle(int line)
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
-
- @brief Debug script bp get.
-
- @param line The line.
-
- @return true if it succeeds, false if it fails.
+ * \brief Debug script bp get.
+ *
+ * \param line The line.
+ *
+ * \return true if it succeeds, false if it fails.
  */
-
 BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
 {
     if(_dbg_sendmessage(DBG_SCRIPT_BPGET, (void*)(duint)line, 0))
