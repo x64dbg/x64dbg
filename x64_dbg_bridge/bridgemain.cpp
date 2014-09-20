@@ -240,7 +240,7 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
 }
 
 /**
- * \brief Gets the DBG's version number.
+ * \brief Get the DBG's version number.
  *
  * \return The version number.
  */
@@ -294,7 +294,7 @@ BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 
 // FIXME, not exactly base if it still does a find?
 /**
- * \brief Gets the size of a memory page in the debugged process.
+ * \brief Get the size of a memory page in the debugged process.
  *
  * \param [in] base The base address of the memory page.
  *
@@ -382,7 +382,7 @@ BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 
 // FIXME required size of arg _text_?
 /**
- * \brief Gets a label from the debugger.
+ * \brief Get a label from the debugger.
  *
  * \param [in] addr    The address to look for the label at.
  * \param [in] segment The segment.
@@ -435,7 +435,7 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 
 // FIXME required size of arg _text_?
 /**
- * \brief Gets a comment from the debugger.
+ * \brief Get a comment from the debugger.
  *
  * \param [in] addr  The address to get the comment from.
  * \param [out] text The buffer to write the comment to.
@@ -478,7 +478,7 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 
 // FIXME required size of arg _text_?
 /**
- * \brief Gets the name of the debugged process's module which contains an address.
+ * \brief Get the name of the debugged process's module which contains an address.
  *
  * \param [in] addr  The address within the module.
  * \param [out] text The buffer to write the module's name to.
@@ -568,7 +568,7 @@ BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 }
 
 /**
- * \brief Gets a value from the debugger queried by a string.
+ * \brief Get a value from the debugger queried by a string.
  *
  * \param [in] string The query string that the debugger will try to get the value for.
  *
@@ -622,7 +622,7 @@ BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
 
 // FIXME return
 /**
- * \brief Gets a list of breakpoints of a certain type from the debugger.
+ * \brief Get a list of breakpoints of a certain type from the debugger.
  *
  * \param [in] type  The type of the breakpoints to get a list of.
  * \param [out] list A pointer to a BPMAP structure that will be filled out.
@@ -648,7 +648,7 @@ BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
 }
 
 /**
- * \brief Gets the type of a function at an address.
+ * \brief Get the type of a function at an address.
  *
  * \param addr An address within a function.
  *
@@ -674,7 +674,7 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 
 // FIXME depth
 /**
- * \brief Gets the type of a loop at an address.
+ * \brief Get the type of a loop at an address.
  *
  * \param [in] addr  The address to check for the loop at.
  * \param [in] depth The depth.
@@ -777,15 +777,12 @@ BRIDGE_IMPEXP bool DbgScriptBpGet(int line)
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
-
- @brief Debug script command execute.
-
- @param command The command.
-
- @return true if it succeeds, false if it fails.
+ * \brief Executes a script command.
+ *
+ * \param [in] command The command to execute.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
 {
     if(_dbg_sendmessage(DBG_SCRIPT_CMDEXEC, (void*)command, 0))
@@ -794,70 +791,58 @@ BRIDGE_IMPEXP bool DbgScriptCmdExec(const char* command)
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgScriptAbort()
-
- @brief Debug script abort.
+ * \brief Aborts the current script.
  */
-
 BRIDGE_IMPEXP void DbgScriptAbort()
 {
     _dbg_sendmessage(DBG_SCRIPT_ABORT, 0, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
-
- @brief Debug script get line type.
-
- @param line The line.
-
- @return A SCRIPTLINETYPE.
+ * \brief Get the type of a line in the current script.
+ *
+ * \param [in] line Ordinal number of the line.
+ *
+ * \return The type of the line.
  */
-
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
 {
     return (SCRIPTLINETYPE)_dbg_sendmessage(DBG_SCRIPT_GETLINETYPE, (void*)(duint)line, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgScriptSetIp(int line)
-
- @brief Debug script set IP.
-
- @param line The line.
+ * \brief Sets the current script's instruction pointer, i.e. a
+ *        line that should be executed next. 
+ *
+ * \param [in] line The line.
  */
-
 BRIDGE_IMPEXP void DbgScriptSetIp(int line)
 {
     _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
+// FIXME non-null?
 /**
- @fn BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
-
- @brief Debug script get branch information.
-
- @param line          The line.
- @param [in,out] info If non-null, the information.
-
- @return true if it succeeds, false if it fails.
+ * \brief Get information about a branch in the current script.
+ *
+ * \param [in] line  The line at which the branch is located at.
+ * \param [out] info If non-null, information about the branch.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 {
     return !!_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
 }
 
+// FIXME all
 /**
- @fn BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
-
- @brief Debug symbol enum.
-
- @param base          The base.
- @param cbSymbolEnum  The symbol enum.
- @param [in,out] user If non-null, the user.
+ * \brief Debug symbol enum.
+ *
+ * \param base          The base.
+ * \param cbSymbolEnum  The symbol enum.
+ * \param [in,out] user If non-null, the user.
  */
-
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
@@ -868,16 +853,13 @@ BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* us
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
-
- @brief Debug assemble at.
-
- @param addr        The address.
- @param instruction The instruction.
-
- @return true if it succeeds, false if it fails.
+ * \brief Assembles an instruction at an address.
+ *
+ * \param [in] addr        The address to assemble the instruction at.
+ * \param [in] instruction The instruction to assemble.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
 {
     if(_dbg_sendmessage(DBG_ASSEMBLE_AT, (void*)addr, (void*)instruction))
@@ -886,113 +868,90 @@ BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
 }
 
 /**
- @fn BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name)
-
- @brief Debug modifier base from name.
-
- @param name The name.
-
- @return A duint.
+ * \brief Get a module's base address from its name.
+ *
+ * \param name The name of the module.
+ *
+ * \return The base address of the module.
  */
-
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name)
 {
     return _dbg_sendmessage(DBG_MODBASE_FROM_NAME, (void*)name, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
-
- @brief Debug disasm at.
-
- @param addr           The address.
- @param [in,out] instr If non-null, the instr.
+ * \brief Disassemble at an address.
+ *
+ * \param [in] addr   The address to disassemble at.
+ * \param [out] instr A pointer to a DISASM_INSTR structure that will be filled out.
  */
-
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
 {
     _dbg_sendmessage(DBG_DISASM_AT, (void*)addr, instr);
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
-
- @brief Debug stack comment get.
-
- @param addr             The address.
- @param [in,out] comment If non-null, the comment.
-
- @return true if it succeeds, false if it fails.
+ * \brief Get a stack comment at an address.
+ *
+ * \param [in] addr     The address to get the stack comment from.
+ * \param [out] comment A pointer to a STACK_COMMENT structure that will be filled out.
+ *
+ * \return true if it succeeds, false if it fails.
  */
-
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
 {
     return !!_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
-
- @brief Debug get thread list.
-
- @param [in,out] list If non-null, the list.
+ * \brief Get a list of threads in the debugged process.
+ *
+ * \param [out] list A pointer to a THREADLIST structure that will be filled out.
  */
-
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
 {
     _dbg_sendmessage(DBG_GET_THREAD_LIST, list, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgSettingsUpdated()
-
- @brief Debug settings updated.
+ * \brief Notifies the debugger that the settings have been updated.
  */
-
 BRIDGE_IMPEXP void DbgSettingsUpdated()
 {
     _dbg_sendmessage(DBG_SETTINGS_UPDATED, 0, 0);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
-
- @brief Debug disasm fast at.
-
- @param addr               The address.
- @param [in,out] basicinfo If non-null, the basicinfo.
+ * \brief Disassemble at an address but return only the most basic information.
+ *
+ * \param [in] addr       The address to disassemble at.
+ * \param [out] basicinfo A pointer to a BASIC_INSTRUCTION_INFO structure that will be filled out.
  */
-
 BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     _dbg_sendmessage(DBG_DISASM_FAST_AT, (void*)addr, basicinfo);
 }
 
 /**
- @fn BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
-
- @brief Debug menu entry clicked.
-
- @param hEntry The entry.
+ * \brief Notifies the debugger that a menu entry has been clicked.
+ *
+ * \param [in] hEntry ID of the menu entry that has been clicked.
  */
-
 BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
 {
     _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
 }
 
+// FIXME not sure
 /**
- @fn BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
-
- @brief Debug function get.
-
- @param addr           The address.
- @param [in,out] start If non-null, the start.
- @param [in,out] end   If non-null, the end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Get the starting and ending address of a function given an address within the function.
+ *
+ * \param [in] addr   An address within a function.
+ * \param [out] start The starting address of the function.
+ * \param [out] end   The ending address of the function.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1004,17 +963,15 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
     return true;
 }
 
+// FIXME brief, return
 /**
- @fn BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
-
- @brief Debug function overlaps.
-
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Check if a function overlaps.
+ *
+ * \param [in] start The starting address of the function.
+ * \param [in] end   The ending address of the function.
+ *
+ * \return True of it overlaps, false if it doesn't. ????
  */
-
 BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1025,17 +982,15 @@ BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
     return true;
 }
 
+// FIXME brief, return
 /**
- @fn BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
-
- @brief Debug function add.
-
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Add a function. ????
+ *
+ * \param [in] start The starting address of the function.
+ * \param [in] end   The ending address of the function.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1047,16 +1002,14 @@ BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
     return true;
 }
 
+// FIXME brief, return
 /**
- @fn BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
-
- @brief Debug function delete.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
+ * \brief Delete a function. ????
+ *
+ * \param [in] addr An address within a function.
+ *
+ * \return true if it succeeds, false if it fails.
  */
-
 BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
 {
     FUNCTION_LOOP_INFO info;
@@ -1066,19 +1019,17 @@ BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
     return true;
 }
 
+// FIXME depth
 /**
- @fn BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
-
- @brief Debug loop get.
-
- @param depth          The depth.
- @param addr           The address.
- @param [in,out] start If non-null, the start.
- @param [in,out] end   If non-null, the end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Get information about a loop.
+ *
+ * \param [in] depth  ????
+ * \param [in] addr   An address within the loop.
+ * \param [out] start The starting address of the function.
+ * \param [out] end   The ending address of the function.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1091,18 +1042,16 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
     return true;
 }
 
+// FIXME brief, depth, return
 /**
- @fn BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
-
- @brief Debug loop overlaps.
-
- @param depth The depth.
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Check if a loop overlaps.
+ *
+ * \param [in] depth ????
+ * \param [in] start The starting address of the loop.
+ * \param [in] end   The ending address of the loop.
+ *
+ * \return True if the loop overlaps, false if it doesn't.
  */
-
 BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1114,17 +1063,15 @@ BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
     return true;
 }
 
+// FIXME brief, return
 /**
- @fn BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
-
- @brief Debug loop add.
-
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Add a loop.
+ *
+ * \param [in] start The starting address of the loop.
+ * \param [in] end   The ending address of the loop.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
 {
     FUNCTION_LOOP_INFO info;
@@ -1136,17 +1083,15 @@ BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
     return true;
 }
 
+// FIXME brief, brief
 /**
- @fn BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
-
- @brief Debug loop delete.
-
- @param depth The depth.
- @param addr  The address.
-
- @return true if it succeeds, false if it fails.
+ * \brief Delete a loop. ????
+ *
+ * \param [in] depth ????
+ * \param [in] addr  An address within the loop?
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
 {
     FUNCTION_LOOP_INFO info;
@@ -1157,14 +1102,12 @@ BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
     return true;
 }
 
+// FIXME all
 /**
- @fn BRIDGE_IMPEXP bool DbgIsRunLocked()
-
- @brief Determines if we can debug is run locked.
-
- @return true if it succeeds, false if it fails.
+ * \brief Determine if running is locked. ????
+ *
+ * \return True if ???? is locked, false if it isn't.
  */
-
 BRIDGE_IMPEXP bool DbgIsRunLocked()
 {
     if(_dbg_sendmessage(DBG_IS_RUN_LOCKED, 0, 0))
@@ -1173,15 +1116,12 @@ BRIDGE_IMPEXP bool DbgIsRunLocked()
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
-
- @brief Debug is bp disabled.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
+ * \brief Check if a breakpoint at an address is disabled.
+ *
+ * \param [in] addr The address to check for a disabled breakpoint at.
+ *
+ * \return True if the breakpoint is disabled, false if it isn't.
  */
-
 BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
 {
     if(_dbg_sendmessage(DBG_IS_BP_DISABLED, (void*)addr, 0))
@@ -1190,16 +1130,13 @@ BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
-
- @brief Debug set automatic comment at.
-
- @param addr The address.
- @param text The text.
-
- @return true if it succeeds, false if it fails.
+ * \brief Set an auto-comment at an address.
+ *
+ * \param [in] addr The address to set the comment at.
+ * \param [in] text The comment's text.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
 {
     if(_dbg_sendmessage(DBG_SET_AUTO_COMMENT_AT, (void*)addr, (void*)text))
@@ -1207,31 +1144,26 @@ BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
     return false;
 }
 
+// FIXME brief
 /**
- @fn BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
-
- @brief Debug clear automatic comment range.
-
- @param start The start.
- @param end   The end.
+ * \brief Clear all the auto-comments inside an address range.
+ *
+ * \param [in] start The starting address of the range.
+ * \param [in] end   The ending address of the range.
  */
-
 BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_COMMENT_RANGE, (void*)start, (void*)end);
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
-
- @brief Debug set automatic label at.
-
- @param addr The address.
- @param text The text.
-
- @return true if it succeeds, false if it fails.
+ * \brief Set an auto-label at an address.
+ *
+ * \param [in] addr The address to set the auto-label at.
+ * \param [in] text The text of the auto-label.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
 {
     if(_dbg_sendmessage(DBG_SET_AUTO_LABEL_AT, (void*)addr, (void*)text))
@@ -1239,30 +1171,25 @@ BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
     return false;
 }
 
+// FIXME brief
 /**
- @fn BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
-
- @brief Debug clear automatic label range.
-
- @param start The start.
- @param end   The end.
+ * \brief Clear all the auto-labels inside an address range.
+ *
+ * \param [in] start The starting address of the range.
+ * \param [in] end   The ending address of the range.
  */
-
 BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_LABEL_RANGE, (void*)start, (void*)end);
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
-
- @brief Debug set automatic bookmark at.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
+ * \brief Set an auto-bookmark at an address.
+ *
+ * \param [in] addr The address to set the auto-bookmark at.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
 {
     if(_dbg_sendmessage(DBG_SET_AUTO_BOOKMARK_AT, (void*)addr, 0))
@@ -1270,31 +1197,26 @@ BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
     return false;
 }
 
+// FIXME brief
 /**
- @fn BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
-
- @brief Debug clear automatic bookmark range.
-
- @param start The start.
- @param end   The end.
+ * \brief Clear all the auto-bookmarks inside an address range.
+ *
+ * \param [in] start The starting address of the range.
+ * \param [in] end   The ending address of the range.
  */
-
 BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_BOOKMARK_RANGE, (void*)start, (void*)end);
 }
 
 /**
- @fn BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
-
- @brief Debug set automatic function at.
-
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
+ * \brief Set an auto-function at an address.
+ *
+ * \param [in] start The starting address of the function.
+ * \param [in] end   The ending address of the function.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
 {
     if(_dbg_sendmessage(DBG_SET_AUTO_FUNCTION_AT, (void*)start, (void*)end))
@@ -1302,31 +1224,27 @@ BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
     return false;
 }
 
+// FIXME brief
 /**
- @fn BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
-
- @brief Debug clear automatic function range.
-
- @param start The start.
- @param end   The end.
+ * \brief Clear all the auto-functions inside an address range.
+ *
+ * \param [in] start The starting address of the range.
+ * \param [in] end   The ending address of the range.
  */
-
 BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
 {
     _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
 }
 
+// FIXME size of the buffer?
 /**
- @fn BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
-
- @brief Debug get string at.
-
- @param addr          The address.
- @param [in,out] text If non-null, the text.
-
- @return true if it succeeds, false if it fails.
+ * \brief Get a string from a specified address.
+ *
+ * \param [in] addr  The address to get the string from.
+ * \param [out] text A pointer to a buffer to copy the string to.
+ *
+ * \return True on success, false on failure.
  */
-
 BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
 {
     if(_dbg_sendmessage(DBG_GET_STRING_AT, (void*)addr, text))
