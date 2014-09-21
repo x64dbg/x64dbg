@@ -4,12 +4,12 @@
 WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::WordEditDialog)
 {
     ui->setupUi(this);
-
-    setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
+    setModal(true);
 
     mValidateThread = new WordEditDialogValidateThread(this);
-
     mWord = 0;
 }
 

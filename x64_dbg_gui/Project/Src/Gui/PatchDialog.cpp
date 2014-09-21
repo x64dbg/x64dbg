@@ -11,8 +11,9 @@ PatchDialog::PatchDialog(QWidget* parent) :
     ui(new Ui::PatchDialog)
 {
     ui->setupUi(this);
-
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
     setModal(false); //non-modal window
 
@@ -480,7 +481,11 @@ void PatchDialog::on_btnPatchFile_clicked()
 
 void PatchDialog::on_btnImport_clicked()
 {
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QString filename = QFileDialog::getOpenFileName(this, tr("Open patch"), QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation), tr("Patch files (*.1337)"));
+#else
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open patch"), QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0], tr("Patch files (*.1337)"));
+#endif
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
@@ -616,7 +621,11 @@ void PatchDialog::on_btnExport_clicked()
     if(!mPatches->size())
         return;
 
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QString filename = QFileDialog::getSaveFileName(this, tr("Save patch"), QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation), tr("Patch files (*.1337)"));
+#else
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save patch"), QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0], tr("Patch files (*.1337)"));
+#endif
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
