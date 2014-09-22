@@ -27,6 +27,9 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"), this);
     wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyToClipboard);
+    wCM_CopySymbolToClipboard = new QAction(tr("Copy Symbol Value to Clipboard"), this);
+    wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(wCM_CopySymbolToClipboard);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction("Follow in Stack", this);
@@ -229,6 +232,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
+    connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
@@ -245,6 +249,7 @@ void RegistersView::refreshShortcutsSlot()
     wCM_SetToOne->setShortcut(ConfigShortcut("ActionSetOneRegister"));
     wCM_ToggleValue->setShortcut(ConfigShortcut("ActionToggleRegisterValue"));
     wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
+    wCM_CopySymbolToClipboard->setShortcut(ConfigShortcut("ActionCopySymbol"));
 }
 
 RegistersView::~RegistersView()
@@ -368,6 +373,39 @@ QSize RegistersView::sizeHint() const
     return QSize(32 * mCharWidth , this->viewport()->height());
 }
 
+QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
+{
+    char label_text[MAX_LABEL_SIZE] = "";
+    char module_text[MAX_MODULE_SIZE] = "";
+    char string_text[MAX_STRING_SIZE] = "";
+
+    QString valueText = QString("%1").arg(registerValue(&wRegDumpStruct, register_selected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+    duint register_value = registerValue(&wRegDumpStruct, register_selected);
+    QString newText = QString("");
+
+    bool hasString = DbgGetStringAt(register_value, string_text);
+    bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
+    bool hasModule = DbgGetModuleAt(register_value, module_text);
+
+    if(hasString)
+    {
+        newText = string_text;
+    }
+    else if(hasLabel && hasModule)
+    {
+        newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
+    }
+    else if(hasModule)
+    {
+        newText = QString(module_text) + "." + valueText;
+    }
+    else if(hasLabel)
+    {
+        newText = "<" + QString(label_text) + ">";
+    }
+
+    return newText;
+}
 void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
 {
     // is the register-id known?
@@ -415,35 +453,18 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
         // do we have a label ?
-        char label_text[MAX_LABEL_SIZE] = "";
-        char module_text[MAX_MODULE_SIZE] = "";
-        char string_text[MAX_STRING_SIZE] = "";
-        bool hasString = DbgGetStringAt(value, string_text);
-        bool hasLabel = DbgGetLabelAt(value, SEG_DEFAULT, label_text);
-        bool hasModule = DbgGetModuleAt(value, module_text);
+        QString newText = getRegisterLabel(reg);
         bool isCharacter = false;
 
         x += valueText.length() * mCharWidth;
         x += 5 * mCharWidth; //5 spaces
-        QString newText = "";
-        if(hasString)
-        {
-            newText = string_text;
-        }
-        else if(hasLabel && hasModule)
-        {
-            newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
-        }
-        else if(hasModule)
-        {
-            newText = QString(module_text) + "." + valueText;
-        }
-        else if(hasLabel)
-        {
-            newText = "<" + QString(label_text) + ">";
-        }
+
+        bool has_label;
+        if(newText != "")
+            has_label = true;
         else
         {
+            has_label = false;
             // can we interpret the character as ASCII ??
             if(mGPR.contains(reg))
             {
@@ -468,7 +489,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
             }
         }
         // are there additional informations?
-        if(hasString || hasLabel || hasModule || isCharacter)
+        if(has_label || isCharacter)
         {
             width = newText.length() * mCharWidth;
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
@@ -546,6 +567,14 @@ void RegistersView::onCopyToClipboardAction()
     clipboard->setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct, mSelected), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
 }
 
+void RegistersView::onCopySymbolToClipboardAction()
+{
+    QClipboard* clipboard = QApplication::clipboard();
+    QString symbol = getRegisterLabel(mSelected);
+    if(symbol != "")
+        clipboard->setText(symbol);
+}
+
 void RegistersView::onFollowInDisassembly()
 {
     if(mGPR.contains(mSelected))
@@ -611,6 +640,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             }
         }
         wMenu.addAction(wCM_CopyToClipboard);
+        QString symbol = getRegisterLabel(mSelected);
+        if(symbol != "")
+            wMenu.addAction(wCM_CopySymbolToClipboard);
         wMenu.exec(this->mapToGlobal(pos));
     }
     else
