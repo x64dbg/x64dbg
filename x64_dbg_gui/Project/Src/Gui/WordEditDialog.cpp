@@ -4,12 +4,12 @@
 WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::WordEditDialog)
 {
     ui->setupUi(this);
-
-    setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
+    setModal(true);
 
     mValidateThread = new WordEditDialogValidateThread(this);
-
     mWord = 0;
 }
 
@@ -100,7 +100,7 @@ void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
 void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
 {
     LONGLONG value;
-    if(sscanf(arg1.toUtf8().constData(), "%lld", &value) == 1)
+    if(sscanf_s(arg1.toUtf8().constData(), "%lld", &value) == 1)
     {
         ui->signedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
@@ -116,7 +116,7 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
 void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
 {
     LONGLONG value;
-    if(sscanf(arg1.toUtf8().constData(), "%llu", &value) == 1)
+    if(sscanf_s(arg1.toUtf8().constData(), "%llu", &value) == 1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);

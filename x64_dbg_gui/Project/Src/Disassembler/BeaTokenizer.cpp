@@ -293,7 +293,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         value.size = arg->ArgSize / 8;
         //nice little hack
         LONGLONG val;
-        sscanf(arg->ArgMnemonic, "%llX", &val);
+        sscanf_s(arg->ArgMnemonic, "%llX", &val);
         value.value = val;
         /*
         switch(value.size)
@@ -531,7 +531,7 @@ void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM*
     {
         unsigned int segment = 0;
         unsigned int address = 0;
-        sscanf(disasm->Argument1.ArgMnemonic, "%X : %X", &segment, &address);
+        sscanf_s(disasm->Argument1.ArgMnemonic, "%X : %X", &segment, &address);
         AddToken(instr, TokenSpace, QString(" "), 0);
         BeaTokenValue val;
         val.size = 2;

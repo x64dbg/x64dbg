@@ -61,7 +61,7 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <widget class="QWidget" name="layoutWidget">
+  <widget class="QWidget" name="paddingLayoutWidget">
    <property name="geometry">
     <rect>
      <x>330</x>
@@ -70,9 +70,9 @@
      <height>242</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayoutGroup">
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="rightsGroup">
       <property name="title">
        <string>Rights</string>
       </property>
@@ -157,7 +157,7 @@
      <height>25</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="buttonsLayout">
     <item>
      <widget class="QPushButton" name="btnSelectall">
       <property name="text">
