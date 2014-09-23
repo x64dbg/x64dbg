@@ -18,7 +18,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
     const char* addrText = text.toUtf8().constData();
     ULONGLONG val = 0;
     uint_t wVA;
-    if(sscanf(addrText, "%llX", &val) != 1)
+    if(sscanf_s(addrText, "%llX", &val) != 1)
         isaddr = false;
     else
         wVA = val;

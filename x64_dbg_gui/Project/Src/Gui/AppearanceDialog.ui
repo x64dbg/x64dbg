@@ -673,7 +673,7 @@
       <string>HexEdit:</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget1">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -718,7 +718,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget2">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -846,7 +846,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget3">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -974,7 +974,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget4">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -1102,7 +1102,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget5">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -1230,7 +1230,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget6">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -1358,7 +1358,7 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutWidget7">
      <property name="geometry">
       <rect>
        <x>130</x>
@@ -1486,13 +1486,13 @@
       </item>
      </layout>
     </widget>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
-    <zorder>layoutWidget</zorder>
+    <zorder>layoutWidget1</zorder>
+    <zorder>layoutWidget2</zorder>
+    <zorder>layoutWidget3</zorder>
+    <zorder>layoutWidget4</zorder>
+    <zorder>layoutWidget5</zorder>
+    <zorder>layoutWidget6</zorder>
+    <zorder>layoutWidget7</zorder>
     <zorder>labelFontAbstractTables</zorder>
     <zorder>labelFontDisassembly</zorder>
     <zorder>labelFontHexDump</zorder>

@@ -831,7 +831,7 @@ void MainWindow::menuEntrySlot()
     if(action && action->objectName().startsWith("ENTRY|"))
     {
         int hEntry = -1;
-        if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
+        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
             DbgMenuEntryClicked(hEntry);
     }
 }
