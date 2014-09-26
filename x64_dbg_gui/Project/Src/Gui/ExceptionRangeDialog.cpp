@@ -8,7 +8,9 @@ ExceptionRangeDialog::ExceptionRangeDialog(QWidget* parent) :
     ui->setupUi(this);
     //set window flags
     setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
     ui->editStart->setCursorPosition(0);
     ui->editEnd->setCursorPosition(0);

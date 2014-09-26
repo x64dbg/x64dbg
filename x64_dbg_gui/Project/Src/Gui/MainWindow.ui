@@ -87,10 +87,11 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionAbout"/>
-    <addaction name="actionDonate"/>
-    <addaction name="actionCheckUpdates"/>
     <addaction name="actionCalculator"/>
+    <addaction name="actionCheckUpdates"/>
+    <addaction name="actionDonate"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
