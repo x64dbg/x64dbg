@@ -19,6 +19,7 @@
 #include "CalculatorDialog.h"
 #include "StatusLabel.h"
 #include "UpdateChecker.h"
+#include "GraphWidget.h"
 
 namespace Ui
 {
@@ -107,11 +108,13 @@ private:
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
+    GraphWidget* mGraphWidget;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
 
     UpdateChecker* mUpdateChecker;
+
 
     const char* mWindowMainTitle;
 

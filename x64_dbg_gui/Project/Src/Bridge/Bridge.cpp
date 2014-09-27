@@ -733,11 +733,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         Bridge::getBridge()->emitAutoCompleteClearAll();
     }
     break;
+    /*
     case GUI_ANALYSE_CODE:
     {
-        Bridge::getBridge()->emitAnalyseCode((int_t)param1, (int_t)param2);
+    Bridge::getBridge()->emitAnalyseCode((int_t)param1, (int_t)param2);
     }
-    break;
+    break;*/
 
     case GUI_ADD_MSG_TO_STATUSBAR:
     {

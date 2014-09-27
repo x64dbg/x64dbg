@@ -126,6 +126,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCalculatorDialog = new CalculatorDialog(this);
     connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
+    mGraphWidget = new GraphWidget();
+
     // Setup Signals/Slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
     connect(ui->actionStepOver, SIGNAL(triggered()), this, SLOT(execStepOver()));
@@ -664,9 +666,10 @@ void MainWindow::openAppearance()
 
 void MainWindow::openCalculator()
 {
-    mCalculatorDialog->showNormal();
-    mCalculatorDialog->setFocus();
-    mCalculatorDialog->setExpressionFocus();
+    mGraphWidget->show();
+    //mCalculatorDialog->showNormal();
+    //mCalculatorDialog->setFocus();
+    //mCalculatorDialog->setExpressionFocus();
 }
 
 void MainWindow::openShortcuts()
