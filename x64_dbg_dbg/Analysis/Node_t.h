@@ -17,6 +17,7 @@ public:
     EdgeSet incoming;
 
     const Instruction_t* instruction;
+    duint parent_va;
 
     duint va;
     bool hasInstr;
@@ -26,6 +27,8 @@ public:
 
     bool operator==(const Node_t & rhs) const;
     bool operator<(const Node_t & rhs) const;
+
+    Edge_t* firstEdge();
 
 };
 

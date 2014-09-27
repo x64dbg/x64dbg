@@ -70,10 +70,13 @@ void AnalysisRunner::start()
         return;
     dputs("[StaticAnalysis] analysis started ...");
     explore();
+    Grph->correctGraph();
     Grph->fillNodes();
     emulateInstructions();
     dputs("[StaticAnalysis] analysis finished ...");
 }
+
+
 
 void AnalysisRunner::explore()
 {
@@ -167,7 +170,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
                     //Edge_t *e = new Edge_t(startNode,endNode,fa::RET);
                     //dprintf("try to insert edge from "fhex" to "fhex" \n", e->start->vaddr, e->end->vaddr);
 
-                    Grph->insertEdge(NodeStart, NodeEnd, fa::RET);
+                    Grph->insertEdge(NodeStart, NodeEnd, region.headerAddress, fa::RET);
                     // no need to disassemble more
                     // "rootAddress" is *only sometimes* from "call <rootAddress>"
                     return true;
@@ -198,7 +201,7 @@ bool AnalysisRunner::explore(const unknownRegion region)
                     // create a new edge for this EIP change
                     //Edge_t *edge = new Edge_t(startNode,endNode,currentEdgeType);
                     tDebug("--> try to insert edge from "fhex" to "fhex" \n",  NodeStart, NodeEnd);
-                    Grph->insertEdge(NodeStart, NodeEnd, currentEdgeType);
+                    Grph->insertEdge(NodeStart, NodeEnd, region.headerAddress, currentEdgeType);
                     //Grph->insertEdge(edge);
 
                     if(true)
@@ -225,6 +228,9 @@ bool AnalysisRunner::explore(const unknownRegion region)
                         // unconditional flow change --> do not disassemble the next instruction
                         return true;
                     }
+
+
+
 
                 }
             }

@@ -21,6 +21,7 @@ as a node, that cause a branch like "call, jmp" or that is the instruction at th
 address value of these branches.
 */
 
+
 class FlowGraph
 {
 
@@ -38,15 +39,17 @@ public:
     // WARNING: this should only be called from the corresponding edge!!!
     bool insertNode(Node_t* node);
     // insert a new edge an returns the existing edge if there was already the edge
-    void insertEdge(duint startAddress, duint endAddress, EdgeType btype);
+    void insertEdge(duint startAddress, duint endAddress, duint parentAddress, EdgeType btype);
     // try to find a node by virtual address and return "if the node exists"
     bool find(const duint va, Node_t* node);
     // direct access to node (WARNING: can be NULL)
     Node_t* FlowGraph::node(const duint va);
     // pointer to all information like api-call documentation
     const AnalysisRunner* information() const;
-
-
+    // get the start address of the subroutine for displaying the graph
+    bool getSubroutine(duint va, Node_t* n);
+    Node_t* FlowGraph::nearestNodeBefore(duint va);
+    void FlowGraph::correctGraph();
 };
 
 }

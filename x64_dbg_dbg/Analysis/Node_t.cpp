@@ -28,4 +28,12 @@ bool Node_t::operator<(const Node_t & rhs) const
     return static_cast<bool>(va < rhs.va);
 }
 
+Edge_t* Node_t::firstEdge()
+{
+    // usually we only need the first edge
+    // (the second edge only points in case of conditional jump to the next instr when not jumping)
+    std::set<Edge_t*>::iterator it = outgoing.begin();
+    return (*it);
+}
+
 };
