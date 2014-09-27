@@ -170,6 +170,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
+    connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
 
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -200,14 +201,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     bClose = false;
     mCloseDialog = new CloseDialog(this);
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 DWORD WINAPI MainWindow::closeThread(void* ptr)
 {
-    static bool closing = false;
-    if(closing)
-        return 0;
-    closing = true;
     DbgExit();
     MainWindow* mainWindow = (MainWindow*)ptr;
     mainWindow->bClose = true;
@@ -220,7 +219,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
     hide(); //hide main window
     mCloseDialog->show();
     mCloseDialog->setFocus();
-    CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+    static bool bExecuteThread = true;
+    if(bExecuteThread)
+    {
+        bExecuteThread = false;
+        CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+    }
     if(bClose)
         event->accept();
     else
@@ -529,6 +533,8 @@ void MainWindow::openFile()
         updateMRUMenu();
         saveMRUList();
     }
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::execPause()
@@ -546,13 +552,15 @@ void MainWindow::restartDebugging()
     char filename[MAX_SETTING_SIZE] = "";
     if(!mMRUList.size())
         return;
-    strcpy(filename, mMRUList.at(0).toUtf8().constData());
+    strcpy_s(filename, mMRUList.at(0).toUtf8().constData());
     if(DbgIsDebugging())
     {
         DbgCmdExec("stop"); //close current file (when present)
         Sleep(400);
     }
     DbgCmdExec(QString().sprintf("init \"%s\"", filename).toUtf8().constData());
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -823,7 +831,7 @@ void MainWindow::menuEntrySlot()
     if(action && action->objectName().startsWith("ENTRY|"))
     {
         int hEntry = -1;
-        if(sscanf(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
+        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
             DbgMenuEntryClicked(hEntry);
     }
 }
@@ -924,9 +932,54 @@ void MainWindow::displayAttach()
 {
     AttachDialog attach(this);
     attach.exec();
+
+    mCpuWidget->mDisas->setFocus();
 }
 
 void MainWindow::detach()
 {
     DbgCmdExec("detach");
+}
+
+void MainWindow::changeCommandLine()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setText("");
+    mLineEdit.setWindowTitle("Change Command Line");
+    mLineEdit.setWindowIcon(QIcon(":/icons/images/changeargs.png"));
+
+    size_t cbsize = 0;
+    char* cmdline = 0;
+    if(!DbgFunctions()->GetCmdline(0, &cbsize))
+        mLineEdit.setText("Cannot get remote command line, use the 'getcmdline'' command for more information.");
+    else
+    {
+        cmdline = new char[cbsize];
+        DbgFunctions()->GetCmdline(cmdline, 0);
+        mLineEdit.setText(QString(cmdline));
+        delete cmdline;
+    }
+
+    mLineEdit.setCursorPosition(0);
+
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return; //pressed cancel
+
+    if(!DbgFunctions()->SetCmdline((char*)mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Warning, "Error", "Could not set command line!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    else
+    {
+        DbgFunctions()->MemUpdateMap();
+        GuiUpdateMemoryView();
+        GuiAddStatusBarMessage(QString("New command line: " + mLineEdit.editText + "\n").toUtf8().constData());
+    }
 }

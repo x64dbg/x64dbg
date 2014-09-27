@@ -3,7 +3,8 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 
-RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVScrollOffset(0)
+
+RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
 {
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"), this);
@@ -26,6 +27,9 @@ RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVS
     wCM_CopyToClipboard = new QAction(tr("Copy Value to Clipboard"), this);
     wCM_CopyToClipboard->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(wCM_CopyToClipboard);
+    wCM_CopySymbolToClipboard = new QAction(tr("Copy Symbol Value to Clipboard"), this);
+    wCM_CopySymbolToClipboard->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(wCM_CopySymbolToClipboard);
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction("Follow in Stack", this);
@@ -150,53 +154,55 @@ RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVS
 
     offset = 12;
 #endif
-    mRegisterMapping.insert(CF, "CF");
-    mRegisterPlaces.insert(CF, Register_Position(offset + 0, 0, 3, 1));
-    mRegisterMapping.insert(PF, "PF");
-    mRegisterPlaces.insert(PF, Register_Position(offset + 1, 0, 3, 1));
-    mRegisterMapping.insert(AF, "AF");
-    mRegisterPlaces.insert(AF, Register_Position(offset + 2, 0, 3, 1));
     mRegisterMapping.insert(ZF, "ZF");
-    mRegisterPlaces.insert(ZF, Register_Position(offset + 3, 0, 3, 1));
-    mRegisterMapping.insert(SF, "SF");
-    mRegisterPlaces.insert(SF, Register_Position(offset + 4, 0, 3, 1));
-
-    mRegisterMapping.insert(TF, "TF");
-    mRegisterPlaces.insert(TF, Register_Position(offset + 0, 10, 3, 1));
-    mRegisterMapping.insert(IF, "IF");
-    mRegisterPlaces.insert(IF, Register_Position(offset + 1, 10, 3, 1));
-    mRegisterMapping.insert(DF, "DF");
-    mRegisterPlaces.insert(DF, Register_Position(offset + 2, 10, 3, 1));
+    mRegisterPlaces.insert(ZF, Register_Position(offset + 0, 0, 3, 1));
     mRegisterMapping.insert(OF, "OF");
-    mRegisterPlaces.insert(OF, Register_Position(offset + 3, 10, 3, 1));
+    mRegisterPlaces.insert(OF, Register_Position(offset + 1, 0, 3, 1));
+    mRegisterMapping.insert(CF, "CF");
+    mRegisterPlaces.insert(CF, Register_Position(offset + 2, 0, 3, 1));
+
+    mRegisterMapping.insert(PF, "PF");
+    mRegisterPlaces.insert(PF, Register_Position(offset + 0, 6, 3, 1));
+    mRegisterMapping.insert(SF, "SF");
+    mRegisterPlaces.insert(SF, Register_Position(offset + 1, 6, 3, 1));
+    mRegisterMapping.insert(TF, "TF");
+    mRegisterPlaces.insert(TF, Register_Position(offset + 2, 6, 3, 1));
+
+    mRegisterMapping.insert(AF, "AF");
+    mRegisterPlaces.insert(AF, Register_Position(offset + 0, 12, 3, 1));
+    mRegisterMapping.insert(DF, "DF");
+    mRegisterPlaces.insert(DF, Register_Position(offset + 1, 12, 3, 1));
+    mRegisterMapping.insert(IF, "IF");
+    mRegisterPlaces.insert(IF, Register_Position(offset + 2, 12, 3, 1));
 
     offset++;
     mRegisterMapping.insert(GS, "GS");
-    mRegisterPlaces.insert(GS, Register_Position(offset + 5, 0, 3, 4));
-    mRegisterMapping.insert(FS, "FS");
-    mRegisterPlaces.insert(FS, Register_Position(offset + 6, 0, 3, 4));
+    mRegisterPlaces.insert(GS, Register_Position(offset + 3, 0, 3, 4));
     mRegisterMapping.insert(ES, "ES");
-    mRegisterPlaces.insert(ES, Register_Position(offset + 7, 0, 3, 4));
-    mRegisterMapping.insert(DS, "DS");
-    mRegisterPlaces.insert(DS, Register_Position(offset + 8, 0, 3, 4));
+    mRegisterPlaces.insert(ES, Register_Position(offset + 4, 0, 3, 4));
     mRegisterMapping.insert(CS, "CS");
-    mRegisterPlaces.insert(CS, Register_Position(offset + 9, 0, 3, 4));
+    mRegisterPlaces.insert(CS, Register_Position(offset + 5, 0, 3, 4));
+
+    mRegisterMapping.insert(FS, "FS");
+    mRegisterPlaces.insert(FS, Register_Position(offset + 3, 9, 3, 4));
+    mRegisterMapping.insert(DS, "DS");
+    mRegisterPlaces.insert(DS, Register_Position(offset + 4, 9, 3, 4));
     mRegisterMapping.insert(SS, "SS");
-    mRegisterPlaces.insert(SS, Register_Position(offset + 10, 0, 3, 4));
+    mRegisterPlaces.insert(SS, Register_Position(offset + 5, 9, 3, 4));
 
     offset++;
     mRegisterMapping.insert(DR0, "DR0");
-    mRegisterPlaces.insert(DR0, Register_Position(offset + 11, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR0, Register_Position(offset + 6, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR1, "DR1");
-    mRegisterPlaces.insert(DR1, Register_Position(offset + 12, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR1, Register_Position(offset + 7, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR2, "DR2");
-    mRegisterPlaces.insert(DR2, Register_Position(offset + 13, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR2, Register_Position(offset + 8, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR3, "DR3");
-    mRegisterPlaces.insert(DR3, Register_Position(offset + 14, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR3, Register_Position(offset + 9, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR6, "DR6");
-    mRegisterPlaces.insert(DR6, Register_Position(offset + 15, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR6, Register_Position(offset + 10, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR7, "DR7");
-    mRegisterPlaces.insert(DR7, Register_Position(offset + 16, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR7, Register_Position(offset + 11, 0, 4, sizeof(uint_t) * 2));
 
     fontsUpdatedSlot();
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
@@ -226,6 +232,7 @@ RegistersView::RegistersView(QWidget* parent) : QAbstractScrollArea(parent), mVS
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
+    connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
@@ -242,6 +249,7 @@ void RegistersView::refreshShortcutsSlot()
     wCM_SetToOne->setShortcut(ConfigShortcut("ActionSetOneRegister"));
     wCM_ToggleValue->setShortcut(ConfigShortcut("ActionToggleRegisterValue"));
     wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
+    wCM_CopySymbolToClipboard->setShortcut(ConfigShortcut("ActionCopySymbol"));
 }
 
 RegistersView::~RegistersView()
@@ -359,36 +367,45 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         wCM_Modify->trigger();
 }
 
-void RegistersView::wheelEvent(QWheelEvent* event)
-{
-    int numDegrees = event->delta() / 8;
-    // one wheel click ==> 2 lines
-    int numSteps = numDegrees / 15 * 1 ;
-
-    int rowsDisplayed = this->viewport()->height() / mRowHeight;
-    int vScrollEndOffset = 0;
-    if(rowsDisplayed < mRowsNeeded)
-        vScrollEndOffset = -1 * (mRowsNeeded - rowsDisplayed);
-
-    if(event->orientation() == Qt::Vertical)
-    {
-        if(numSteps > 0 && mVScrollOffset + numSteps > 0) //before the first register
-            mVScrollOffset = 0;
-        else if(numSteps < 0 && mVScrollOffset + numSteps < vScrollEndOffset) //after the last register
-            mVScrollOffset = mVScrollOffset; //do nothing
-        else
-            mVScrollOffset += numSteps;
-    }
-    emit refresh();
-    event->accept();
-}
-
 QSize RegistersView::sizeHint() const
 {
     // 32 character width
     return QSize(32 * mCharWidth , this->viewport()->height());
 }
 
+QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
+{
+    char label_text[MAX_LABEL_SIZE] = "";
+    char module_text[MAX_MODULE_SIZE] = "";
+    char string_text[MAX_STRING_SIZE] = "";
+
+    QString valueText = QString("%1").arg(registerValue(&wRegDumpStruct, register_selected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+    duint register_value = registerValue(&wRegDumpStruct, register_selected);
+    QString newText = QString("");
+
+    bool hasString = DbgGetStringAt(register_value, string_text);
+    bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
+    bool hasModule = DbgGetModuleAt(register_value, module_text);
+
+    if(hasString)
+    {
+        newText = string_text;
+    }
+    else if(hasLabel && hasModule)
+    {
+        newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
+    }
+    else if(hasModule)
+    {
+        newText = QString(module_text) + "." + valueText;
+    }
+    else if(hasLabel)
+    {
+        newText = "<" + QString(label_text) + ">";
+    }
+
+    return newText;
+}
 void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
 {
     // is the register-id known?
@@ -436,35 +453,18 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
         // do we have a label ?
-        char label_text[MAX_LABEL_SIZE] = "";
-        char module_text[MAX_MODULE_SIZE] = "";
-        char string_text[MAX_STRING_SIZE] = "";
-        bool hasString = DbgGetStringAt(value, string_text);
-        bool hasLabel = DbgGetLabelAt(value, SEG_DEFAULT, label_text);
-        bool hasModule = DbgGetModuleAt(value, module_text);
+        QString newText = getRegisterLabel(reg);
         bool isCharacter = false;
 
         x += valueText.length() * mCharWidth;
         x += 5 * mCharWidth; //5 spaces
-        QString newText = "";
-        if(hasString)
-        {
-            newText = string_text;
-        }
-        else if(hasLabel && hasModule)
-        {
-            newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
-        }
-        else if(hasModule)
-        {
-            newText = QString(module_text) + "." + valueText;
-        }
-        else if(hasLabel)
-        {
-            newText = "<" + QString(label_text) + ">";
-        }
+
+        bool has_label;
+        if(newText != "")
+            has_label = true;
         else
         {
+            has_label = false;
             // can we interpret the character as ASCII ??
             if(mGPR.contains(reg))
             {
@@ -489,7 +489,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
             }
         }
         // are there additional informations?
-        if(hasString || hasLabel || hasModule || isCharacter)
+        if(has_label || isCharacter)
         {
             width = newText.length() * mCharWidth;
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
@@ -567,6 +567,14 @@ void RegistersView::onCopyToClipboardAction()
     clipboard->setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct, mSelected), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
 }
 
+void RegistersView::onCopySymbolToClipboardAction()
+{
+    QClipboard* clipboard = QApplication::clipboard();
+    QString symbol = getRegisterLabel(mSelected);
+    if(symbol != "")
+        clipboard->setText(symbol);
+}
+
 void RegistersView::onFollowInDisassembly()
 {
     if(mGPR.contains(mSelected))
@@ -632,6 +640,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             }
         }
         wMenu.addAction(wCM_CopyToClipboard);
+        QString symbol = getRegisterLabel(mSelected);
+        if(symbol != "")
+            wMenu.addAction(wCM_CopySymbolToClipboard);
         wMenu.exec(this->mapToGlobal(pos));
     }
     else

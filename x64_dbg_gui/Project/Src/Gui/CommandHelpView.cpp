@@ -5,6 +5,8 @@ CommandHelpView::CommandHelpView(QWidget* parent) : QWidget(parent), ui(new Ui::
 {
     ui->setupUi(this);
 
+    mCurrentMode = 0;
+
     // Set main layout
     mMainLayout = new QVBoxLayout;
     mMainLayout->setContentsMargins(0, 0, 0, 0);

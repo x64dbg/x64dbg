@@ -11,17 +11,21 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setCellContent(0, 0, "");
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
-    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
+
     int height = getHeight();
     setMaximumHeight(height);
     setMinimumHeight(height);
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    curAddr = 0;
 }
 
 int CPUInfoBox::getHeight()
 {
-    return (getRowHeight() + 1) * 3;
+    return ((getRowHeight() + 1) * 3) + 10;
 }
 
 void CPUInfoBox::setInfoLine(int line, QString text)

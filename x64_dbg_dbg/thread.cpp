@@ -93,7 +93,7 @@ bool threadsetname(DWORD dwThreadId, const char* name)
         if(threadList.at(i).dwThreadId == dwThreadId)
         {
             if(name)
-                strcpy(threadList.at(i).threadName, name);
+                strcpy_s(threadList.at(i).threadName, name);
             else
                 *threadList.at(i).threadName = '\0';
         }

@@ -57,6 +57,7 @@ public:
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
     void emitUpdateThreads();
+    void emitUpdateMemory();
     void emitAddRecentFile(QString file);
     void emitSetLastException(unsigned int exceptionCode);
     int emitMenuAddMenu(int hMenu, QString title);
@@ -116,6 +117,7 @@ signals:
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
     void updateThreads();
+    void updateMemory();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void menuAddMenu(int hMenu, QString title);

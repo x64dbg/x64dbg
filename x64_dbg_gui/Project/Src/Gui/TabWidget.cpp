@@ -68,7 +68,7 @@ void MHTabWidget::setCurrentIndex(int index)
 
 void MHTabWidget::setCurrentWidget(QWidget* widget)
 {
-    widget = 0;
+    Q_UNUSED(widget);
     // To be implemented.
 }
 
@@ -124,7 +124,7 @@ void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
 void MHTabWidget::AttachTab(QWidget* parent)
 {
     // Retrieve widget
-    MHDetachedWindow* detachedWidget = dynamic_cast<MHDetachedWindow*>(parent);
+    MHDetachedWindow* detachedWidget = reinterpret_cast<MHDetachedWindow*>(parent);
     QWidget* tearOffWidget = detachedWidget->centralWidget();
 
     // Reattach the tab

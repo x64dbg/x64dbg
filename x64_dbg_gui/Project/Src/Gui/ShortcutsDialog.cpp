@@ -5,13 +5,17 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
 {
     ui->setupUi(this);
     //set window flags
-    setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
+    setModal(true);
 
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
     tblHeader << "Instruction" << "Shortcut";
+
+    currentRow = 0;
 
     ui->tblShortcuts->setColumnCount(2);
     ui->tblShortcuts->verticalHeader()->setVisible(false);
@@ -20,7 +24,12 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
     ui->tblShortcuts->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tblShortcuts->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tblShortcuts->setShowGrid(false);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     ui->tblShortcuts->horizontalHeader()->setResizeMode(0, QHeaderView::Stretch);
+#else
+    ui->tblShortcuts->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+#endif
+
     ui->tblShortcuts->verticalHeader()->setDefaultSectionSize(15);
 
     const unsigned int numShortcuts = Config()->Shortcuts.count();

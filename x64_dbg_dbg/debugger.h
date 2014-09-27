@@ -5,12 +5,14 @@
 #include "TitanEngine\TitanEngine.h"
 #include "command.h"
 #include "breakpoint.h"
+#include "undocumented.h"
+#include "value.h"
 
 #define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
 #define JIT_ENTRY_MAX_SIZE 512
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+
 
 typedef enum
 {
@@ -27,6 +29,31 @@ struct INIT_STRUCT
     char* commandline;
     char* currentfolder;
 };
+
+typedef enum
+{
+    CMDL_ERR_READ_PEBBASE = 0,
+    CMDL_ERR_READ_PROCPARM_PTR,
+    CMDL_ERR_READ_PROCPARM_CMDLINE,
+    CMDL_ERR_CONVERTUNICODE,
+    CMDL_ERR_ALLOC,
+    CMDL_ERR_GET_PEB,
+    CMDL_ERR_READ_GETCOMMANDLINEBASE,
+    CMDL_ERR_CHECK_GETCOMMANDLINESTORED,
+    CMDL_ERR_WRITE_GETCOMMANDLINESTORED,
+    CMDL_ERR_GET_GETCOMMANDLINE,
+    CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE,
+    CMDL_ERR_WRITE_ANSI_COMMANDLINE,
+    CMDL_ERR_WRITE_UNICODE_COMMANDLINE,
+    CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE
+
+} cmdline_error_type_t;
+
+typedef struct
+{
+    cmdline_error_type_t type;
+    uint addr;
+} cmdline_error_t;
 
 struct ExceptionRange
 {
@@ -63,19 +90,18 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
-bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t*);
-bool dbggetpagerights(uint*, char*);
-bool dbgpagerightstostring(DWORD, char*);
-void dbggetpageligned(uint*);
-bool dbgpagerightsfromstring(DWORD*, char*);
-bool dbgsetpagerights(uint*, char*);
-bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t*);
+bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
+bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
+bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
+bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
 bool dbggetdefjit(char* jit_entry);
-bool _readwritejitkey(char*, DWORD*, char*, arch, arch*, readwritejitkey_error_t*, bool);
-bool dbggetjitauto(bool*, arch, arch*, readwritejitkey_error_t*);
-bool dbgsetjitauto(bool, arch, arch*, readwritejitkey_error_t*);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
 bool IsProcessElevated();
+bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
+bool dbggetpagerights(uint addr, char* rights);
+bool dbgsetpagerights(uint addr, const char* rights_string);
+bool dbgpagerightstostring(DWORD protect, char* rights);
 
 void cbStep();
 void cbRtrStep();

@@ -6,7 +6,9 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     //setup UI first
     ui->setupUi(this);
     setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
     //initialize stuff
     if(!DbgIsDebugging()) //not debugging

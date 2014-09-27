@@ -482,7 +482,7 @@ void commentcacheload(JSON root)
             curComment.manual = false;
             const char* text = json_string_value(json_object_get(value, "text"));
             if(text)
-                strcpy(curComment.text, text);
+                strcpy_s(curComment.text, text);
             else
                 continue; //skip
             const uint key = modhashfromname(curComment.mod) + curComment.addr;
@@ -664,7 +664,7 @@ void labelcacheload(JSON root)
             curLabel.manual = false;
             const char* text = json_string_value(json_object_get(value, "text"));
             if(text)
-                strcpy(curLabel.text, text);
+                strcpy_s(curLabel.text, text);
             else
                 continue; //skip
             const uint key = modhashfromname(curLabel.mod) + curLabel.addr;

@@ -1,22 +1,19 @@
 #include "main.h"
-#include <QAbstractEventDispatcher>
-#include <QMessageBox>
-#include "Bridge.h"
-#include "Configuration.h"
-#include "MainWindow.h"
 
 MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
 {
 }
 
-bool MyApplication::winEventFilter(MSG* message, long* result)
-{
-    return DbgWinEvent(message, result);
-}
-
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
 bool MyApplication::globalEventFilter(void* message)
 {
     return DbgWinEventGlobal((MSG*)message);
+}
+#endif
+
+bool MyApplication::winEventFilter(MSG* message, long* result)
+{
+    return DbgWinEvent(message, result);
 }
 
 bool MyApplication::notify(QObject* receiver, QEvent* event)
@@ -48,7 +45,13 @@ static Configuration* mConfiguration;
 int main(int argc, char* argv[])
 {
     MyApplication application(argc, argv);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
+#else
+    x64GlobalFilter* filter = new x64GlobalFilter();
+    QAbstractEventDispatcher::instance(application.thread())->installNativeEventFilter(filter);
+#endif
+
 
     // load config file + set config font
     mConfiguration = new Configuration;
@@ -84,7 +87,8 @@ int main(int argc, char* argv[])
     //execute the application
     int result = application.exec();
     mConfiguration->save(); //save config on exit
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    QAbstractEventDispatcher::instance(application.thread())->removeNativeEventFilter(filter);
+#endif
     return result;
 }
-
-

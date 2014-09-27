@@ -343,9 +343,6 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
             Function_t funcType;
             switch(loopType)
             {
-            case LOOP_NONE:
-                funcType = Function_none;
-                break;
             case LOOP_BEGIN:
                 funcType = Function_start;
                 break;
@@ -357,6 +354,8 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
                 break;
             case LOOP_END:
                 funcType = Function_end;
+                break;
+            default:
                 break;
             }
             loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, true);
@@ -1481,6 +1480,6 @@ QString Disassembly::getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE])
     else
         *label_ = 0;
     if(label)
-        strcpy(label, label_);
+        strcpy_s(label, MAX_LABEL_SIZE, label_);
     return addrText;
 }

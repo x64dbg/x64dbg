@@ -5,15 +5,23 @@ LineEditDialog::LineEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Li
 {
     ui->setupUi(this);
     setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
     setModal(true); //modal window
     ui->checkBox->hide();
+    bChecked = false;
 }
 
 LineEditDialog::~LineEditDialog()
 {
     delete ui;
+}
+
+void LineEditDialog::setCursorPosition(int position)
+{
+    ui->textEdit->setCursorPosition(position);
 }
 
 void LineEditDialog::setText(const QString & text)

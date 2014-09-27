@@ -6,6 +6,7 @@ CharCommand::CharCommand(XByteArray* xData, Cmd cmd, int charPos, char newChar, 
     _charPos = charPos;
     _newChar = newChar;
     _cmd = cmd;
+    _oldChar = 0;
 }
 
 bool CharCommand::mergeWith(const QUndoCommand* command)

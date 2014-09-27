@@ -9,6 +9,7 @@ class StdTable : public AbstractTableView
 public:
     explicit StdTable(QWidget* parent = 0);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void reloadData();
 
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);

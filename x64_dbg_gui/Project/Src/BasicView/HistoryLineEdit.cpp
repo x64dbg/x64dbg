@@ -4,6 +4,7 @@ HistoryLineEdit::HistoryLineEdit(QWidget* parent) : QLineEdit(parent)
 {
     mCmdHistory.clear();
     mCmdIndex = -1;
+    bSixPressed = false;
 }
 
 void HistoryLineEdit::addLineToHistory(QString parLine)

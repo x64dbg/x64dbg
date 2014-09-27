@@ -59,11 +59,13 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_THREAD_NAME_SIZE 256
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
+#define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
 #define TYPE_ADDR 4
 #define MAX_MNEMONIC_SIZE 64
+#define PAGE_SIZE 0x1000
 
 //Debugger enums
 typedef enum
@@ -634,8 +636,9 @@ typedef enum
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
-    GUI_ANALYSE_CODE                // param1=int_t Base,           param2=int_t Size
+    GUI_SYMBOL_REFRESH_CURRENT,      // param1=unused,               param2=unused
+    GUI_UPDATE_MEMORY_VIEW         // param1=unused,               param2=unused
+
 } GUIMSG;
 
 //GUI structures
@@ -691,6 +694,7 @@ BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col);
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
 BRIDGE_IMPEXP void GuiUpdateThreadView();
+BRIDGE_IMPEXP void GuiUpdateMemoryView();
 BRIDGE_IMPEXP void GuiAddRecentFile(const char* file);
 BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception);
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text);
@@ -709,7 +713,7 @@ BRIDGE_IMPEXP void GuiUpdateSideBar();
 BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
-BRIDGE_IMPEXP void GuiAnalyseCode(duint base, duint size);
+BRIDGE_IMPEXP void GuiUpdateMemoryView();
 
 #ifdef __cplusplus
 }

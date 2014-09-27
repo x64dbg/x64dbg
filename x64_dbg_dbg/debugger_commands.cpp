@@ -1,5 +1,4 @@
 #include "debugger_commands.h"
-#include "debugger.h"
 #include "console.h"
 #include "value.h"
 #include "thread.h"
@@ -708,6 +707,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         varset("$lastalloc", mem, true);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
@@ -735,6 +735,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         dputs("VirtualFreeEx failed");
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }
@@ -814,6 +815,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     {
         dputs("error loading Scylla.dll!");
         bScyllaLoaded = false;
+        FreeLibrary(hScylla);
         return 0;
     }
     ScyllaStartGui = (SCYLLASTARTGUI)GetProcAddress(hScylla, "ScyllaStartGui");
@@ -821,6 +823,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     {
         dputs("could not find export 'ScyllaStartGui' inside Scylla.dll");
         bScyllaLoaded = false;
+        FreeLibrary(hScylla);
         return 0;
     }
     if(dbgisdll())
@@ -1357,7 +1360,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
 
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
-    char szDefaultStore[MAX_PATH] = "";
+    char szDefaultStore[MAX_SETTING_SIZE] = "";
     const char* szSymbolStore = szDefaultStore;
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
     {
@@ -1423,8 +1426,8 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 
 CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 {
-    bool jit_auto;
-    arch actual_arch;
+    bool jit_auto = false;
+    arch actual_arch = invalid;
 
     if(argc == 1)
     {
@@ -1547,9 +1550,10 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 
 CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
-    arch actual_arch;
-    char* jit_debugger_cmd;
+    arch actual_arch = invalid;
+    char* jit_debugger_cmd = "";
     char oldjit[MAX_SETTING_SIZE] = "";
+    char path[JIT_ENTRY_DEF_SIZE];
     if(!IsProcessElevated())
     {
         dprintf("Error run the debugger as Admin to setjit\n");
@@ -1557,7 +1561,6 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     }
     if(argc < 2)
     {
-        char path[JIT_ENTRY_DEF_SIZE];
         dbggetdefjit(path);
 
         jit_debugger_cmd = path;
@@ -1735,7 +1738,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
-    char rights[RIGHTS_STRING];
+    char rights[RIGHTS_STRING_SIZE];
 
     if(argc != 2 || !valfromstring(argv[1], &addr))
     {
@@ -1743,7 +1746,7 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(&addr, rights))
+    if(!dbggetpagerights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
@@ -1757,27 +1760,138 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
-    char rights[RIGHTS_STRING];
+    char rights[RIGHTS_STRING_SIZE];
 
-    if(argc != 3 || !valfromstring(argv[1], &addr))
+    if(argc < 3 || !valfromstring(argv[1], &addr))
     {
         dprintf("Error: using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
         return STATUS_ERROR;
     }
 
-    if(!dbgsetpagerights(&addr, argv[2]))
+    if(!dbgsetpagerights(addr, argv[2]))
     {
         dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(&addr, rights))
+    if(!dbggetpagerights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
     }
 
+    //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
     dprintf("New rights of "fhex": %s\n", addr, rights);
+
+    return STATUS_CONTINUE;
+}
+
+void showcommandlineerror(cmdline_error_t* cmdline_error)
+{
+    bool unkown = false;
+
+    switch(cmdline_error->type)
+    {
+    case CMDL_ERR_ALLOC:
+        dprintf("Error allocating memory for cmdline");
+        break;
+    case CMDL_ERR_CONVERTUNICODE:
+        dprintf("Error converting UNICODE cmdline");
+        break;
+    case CMDL_ERR_READ_PEBBASE:
+        dprintf("Error reading PEB base addres");
+        break;
+    case CMDL_ERR_READ_PROCPARM_CMDLINE:
+        dprintf("Error reading PEB -> ProcessParameters -> CommandLine UNICODE_STRING");
+        break;
+    case CMDL_ERR_READ_PROCPARM_PTR:
+        dprintf("Error reading PEB -> ProcessParameters pointer address");
+        break;
+    case CMDL_ERR_GET_PEB:
+        dprintf("Error Getting remote PEB address");
+        break;
+    case CMDL_ERR_READ_GETCOMMANDLINEBASE:
+        dprintf("Error Getting command line base address");
+        break;
+    case CMDL_ERR_CHECK_GETCOMMANDLINESTORED:
+        dprintf("Error checking the pattern of the commandline stored");
+        break;
+    case CMDL_ERR_WRITE_GETCOMMANDLINESTORED:
+        dprintf("Error writing the new command line stored");
+        break;
+    case CMDL_ERR_GET_GETCOMMANDLINE:
+        dprintf("Error getting getcommandline");
+        break;
+    case CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE:
+        dprintf("Error allocating the page with UNICODE and ANSI command lines");
+        break;
+    case CMDL_ERR_WRITE_ANSI_COMMANDLINE:
+        dprintf("Error writing the ANSI command line in the page");
+        break;
+    case CMDL_ERR_WRITE_UNICODE_COMMANDLINE:
+        dprintf("Error writing the UNICODE command line in the page");
+        break;
+    case CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE:
+        dprintf("Error writing command line UNICODE in PEB");
+        break;
+    default:
+        unkown = true;
+        dputs("Error getting cmdline");
+        break;
+    }
+
+    if(!unkown)
+    {
+        if(cmdline_error->addr != 0)
+            dprintf(" (Address: "fhex")", cmdline_error->addr);
+        dputs("");
+    }
+}
+
+CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
+{
+    char* cmd_line;
+    cmdline_error_t cmdline_error = {(cmdline_error_type_t) 0, 0};
+
+    if(!dbggetcmdline(& cmd_line, & cmdline_error))
+    {
+        showcommandlineerror(& cmdline_error);
+        return STATUS_ERROR;
+    }
+
+    dprintf("Command line: %s\n", cmd_line);
+
+    efree(cmd_line);
+
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
+{
+    cmdline_error_t cmdline_error = {(cmdline_error_type_t) 0, 0};
+
+    if(argc != 2)
+    {
+        dputs("Error: write the arg1 with the new command line of the process debugged");
+        return STATUS_ERROR;
+    }
+
+    if(!dbgsetcmdline(argv[1], &cmdline_error))
+    {
+        showcommandlineerror(&cmdline_error);
+        return STATUS_ERROR;
+    }
+
+    //update the memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
+    dprintf("New command line: %s\n", argv[1]);
 
     return STATUS_CONTINUE;
 }

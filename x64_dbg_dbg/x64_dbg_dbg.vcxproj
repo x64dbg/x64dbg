@@ -33,6 +33,7 @@
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="instruction.cpp" />
+    <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
     <ClInclude Include="lz4\lz4hc.h" />

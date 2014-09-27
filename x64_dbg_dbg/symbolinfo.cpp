@@ -156,7 +156,7 @@ const char* symgetsymbolicname(uint addr)
         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
         {
             if(!settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
-                strcpy(label, pSymbol->Name);
+                strcpy_s(label, pSymbol->Name);
             retval = true;
         }
     }

@@ -72,6 +72,7 @@
     <addaction name="actionPause"/>
     <addaction name="actionRestart"/>
     <addaction name="actionClose"/>
+    <addaction name="actionChangeCommandLine"/>
     <addaction name="separator"/>
     <addaction name="actionStepInto"/>
     <addaction name="actioneStepInto"/>
@@ -86,10 +87,11 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="actionAbout"/>
-    <addaction name="actionDonate"/>
-    <addaction name="actionCheckUpdates"/>
     <addaction name="actionCalculator"/>
+    <addaction name="actionCheckUpdates"/>
+    <addaction name="actionDonate"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
@@ -591,6 +593,15 @@
    </property>
    <property name="toolTip">
     <string>Detach</string>
+   </property>
+  </action>
+  <action name="actionChangeCommandLine">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/changeargs.png</normaloff>:/icons/images/changeargs.png</iconset>
+   </property>
+   <property name="text">
+    <string>Change Command &amp;Line</string>
    </property>
   </action>
  </widget>

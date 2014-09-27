@@ -15,6 +15,11 @@ static Bridge* mBridge;
 Bridge::Bridge(QObject* parent) : QObject(parent)
 {
     mBridgeMutex = new QMutex();
+    winId = 0;
+    scriptView = 0;
+    referenceView = 0;
+    bridgeResult = 0;
+    hasBridgeResult = false;
 }
 
 Bridge::~Bridge()
@@ -211,6 +216,11 @@ void Bridge::emitUpdateDump()
 void Bridge::emitUpdateThreads()
 {
     emit updateThreads();
+}
+
+void Bridge::emitUpdateMemory()
+{
+    emit updateMemory();
 }
 
 void Bridge::emitAddRecentFile(QString file)
@@ -618,6 +628,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_UPDATE_MEMORY_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateMemory();
+    }
+    break;
+
     case GUI_ADD_RECENT_FILE:
     {
         Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
@@ -639,8 +655,8 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine* disasm = new QBeaEngine();
-        Instruction_t instr = disasm->DisassembleAt(wBuffer, 16, 0, 0, parVA);
+        QBeaEngine disasm;
+        Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
         BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm);
         QList<RichTextPainter::CustomRichText_t> richText;
         BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
@@ -761,6 +777,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     default:
     {
+
     }
     break;
     }

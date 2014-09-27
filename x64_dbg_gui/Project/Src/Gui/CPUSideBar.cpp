@@ -20,6 +20,8 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
     InstrBuffer = CodePtr->instructionsBuffer();
 
     backgroundColor = ConfigColor("SideBarBackgroundColor");
+
+    memset(&regDump, 0, sizeof(REGDUMP));
 }
 
 QSize CPUSideBar::sizeHint() const

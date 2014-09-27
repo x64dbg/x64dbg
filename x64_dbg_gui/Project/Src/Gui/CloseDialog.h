@@ -2,6 +2,7 @@
 #define CLOSEDIALOG_H
 
 #include <QDialog>
+#include <QCloseEvent>
 
 namespace Ui
 {
@@ -15,6 +16,7 @@ class CloseDialog : public QDialog
 public:
     explicit CloseDialog(QWidget* parent = 0);
     ~CloseDialog();
+    void closeEvent(QCloseEvent* event);
 
 private:
     Ui::CloseDialog* ui;

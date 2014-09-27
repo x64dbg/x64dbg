@@ -4,8 +4,6 @@
 #include "_global.h"
 #include "addrinfo.h"
 
-#define PAGE_SIZE 0x1000 //TODO: better stuff here
-
 typedef std::map<Range, MEMPAGE, RangeCompare> MemoryMap;
 
 extern MemoryMap memoryPages;

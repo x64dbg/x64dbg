@@ -11,11 +11,14 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     //set window flags
-    setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
+    setModal(true);
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
+    lastException = 0;
 }
 
 SettingsDialog::~SettingsDialog()
@@ -141,7 +144,7 @@ void SettingsDialog::LoadSettings()
         {
             unsigned long start;
             unsigned long end;
-            if(sscanf(ranges.at(i).toUtf8().constData(), "%08X-%08X", &start, &end) == 2 && start <= end)
+            if(sscanf_s(ranges.at(i).toUtf8().constData(), "%08X-%08X", &start, &end) == 2 && start <= end)
             {
                 RangeStruct newRange;
                 newRange.start = start;

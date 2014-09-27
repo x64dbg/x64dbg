@@ -5,8 +5,12 @@ PageMemoryRights::PageMemoryRights(QWidget* parent) : QDialog(parent), ui(new Ui
 {
     ui->setupUi(this);
     //set window flags
-    setModal(true);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
+    setModal(true);
+    addr = 0;
+    size = 0;
 }
 
 PageMemoryRights::~PageMemoryRights()
@@ -28,14 +32,13 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
     tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
     tableWidget->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("Rights")));
 
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
     duint actual_addr;
-    char rights[RIGHTS_STRING];
+    char rights[RIGHTS_STRING_SIZE];
     for(uint_t i = 0; i < nr_pages; i++)
     {
         actual_addr = addr + (i * PAGE_SIZE);
         tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(actual_addr, sizeof(uint_t) * 2, 16, QChar('0')).toUpper()));
-        if(DbgFunctions()->GetPageRights(& actual_addr, rights))
+        if(DbgFunctions()->GetPageRights(actual_addr, rights))
             tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }
 
@@ -75,7 +78,7 @@ void PageMemoryRights::on_btnSetrights_clicked()
 {
     duint actual_addr;
     QString rights;
-    char newrights[RIGHTS_STRING];
+    char newrights[RIGHTS_STRING_SIZE];
     bool one_right_changed = false;
 
     if(ui->radioExecute->isChecked())
@@ -108,10 +111,10 @@ void PageMemoryRights::on_btnSetrights_clicked()
 #else //x86
         actual_addr = ui->pagetableWidget->item(index.row(), 0)->text().toULong(0, 16);
 #endif //_WIN64
-        if(DbgFunctions()->SetPageRights(& actual_addr, (char*) rights.toUtf8().constData()))
+        if(DbgFunctions()->SetPageRights(actual_addr, (char*)rights.toUtf8().constData()))
         {
             one_right_changed = true;
-            if(DbgFunctions()->GetPageRights(& actual_addr, newrights))
+            if(DbgFunctions()->GetPageRights(actual_addr, newrights))
                 ui->pagetableWidget->setItem(index.row(), 1, new QTableWidgetItem(QString(newrights)));
         }
     }

@@ -2,6 +2,7 @@
 
 ShortcutEdit::ShortcutEdit(QWidget* parent) : QLineEdit(parent)
 {
+    keyInt = -1;
 }
 
 const QKeySequence ShortcutEdit::getKeysequence() const
@@ -15,9 +16,9 @@ const QKeySequence ShortcutEdit::getKeysequence() const
 void ShortcutEdit::setErrorState(bool error)
 {
     if(error)
-        setStyleSheet("color: #FF0000");
+        setStyleSheet("color: #DD0000");
     else
-        setStyleSheet("color: #000000");
+        setStyleSheet("color: #222222");
 }
 
 void ShortcutEdit::keyPressEvent(QKeyEvent* event)
