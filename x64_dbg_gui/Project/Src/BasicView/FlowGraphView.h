@@ -6,11 +6,11 @@
 #include <QtGui>
 
 // src: http://www.qtcentre.org/threads/35738-How-to-zooming-like-in-AutoCAD-with-QGraphicsView
-class FlowGraphGraphicsView : public QGraphicsView
+class FlowGraphView : public QGraphicsView
 {
     Q_OBJECT
 public:
-    FlowGraphGraphicsView(QWidget* parent = 0) : QGraphicsView(parent), _isMoving(false), _lastPos(), _lastCursor(Qt::ArrowCursor) {}
+    FlowGraphView(QWidget* parent = 0);
     void zoom(qreal factor, QPointF centerPt);
 
 protected:

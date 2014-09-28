@@ -4,12 +4,13 @@
 #include <QtCore>
 #include <QtGui>
 #include <QGraphicsScene>
+#include "Configuration.h"
 
-class FlowGraphGraphicsScene : public QGraphicsScene
+class FlowGraphScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    explicit FlowGraphGraphicsScene(QObject* parent = 0) : QGraphicsScene(parent) {}
+    FlowGraphScene(QObject* parent = 0);
 private:
 };
 

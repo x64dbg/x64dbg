@@ -6,14 +6,20 @@
 #include <QGraphicsItem>
 #include <QGraphicsDropShadowEffect>
 
-class BlockGraphicsItem : public QObject, public QGraphicsItem
+// this class should represent a basic block containing connected disassembled instruction
+// = the blocks you can see in IDA
+class FlowGraphBlock : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 public:
-    BlockGraphicsItem(QObject* parent, qreal width, qreal height, int id);
+    FlowGraphBlock(QObject* parent, unsigned int width, unsigned int height, int id);
 
     QRectF boundingRect(void) const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
+
+    const unsigned int with() const;
+    const unsigned int height() const;
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event);
@@ -23,11 +29,12 @@ signals:
     void moved(void);
 
 private:
-    QObject*                   _parent;
-    qreal                      _width, _height;
-    bool                       _isPress;
-    int                        _id;
-    qreal                      _z;
+    QObject*     mParent;
+    unsigned int mWidth;
+    unsigned int mHeight;
+    bool mMouseDown;
+    int internalId;
+    unsigned int mZValue;
     QGraphicsDropShadowEffect* _fx;
 };
 

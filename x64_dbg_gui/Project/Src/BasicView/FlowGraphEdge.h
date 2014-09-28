@@ -5,17 +5,14 @@
 #include <QPen>
 #include <QPainter>
 #include "ThirdPartyLibs/OGDF/basic/geometry.h"
-class EdgeGraphicsShapeItem : public QAbstractGraphicsShapeItem
+class FlowGraphEdge : public QAbstractGraphicsShapeItem
 {
 public:
     enum { Type = UserType + 1 };
 
-    EdgeGraphicsShapeItem(QGraphicsItem* startItem, QGraphicsItem* endItem, ogdf::DPolyline const & bends);
+    FlowGraphEdge(QGraphicsItem* startItem, QGraphicsItem* endItem, ogdf::DPolyline const & bends);
 
-    int type(void) const
-    {
-        return Type;
-    }
+    int type(void) const;
     virtual QRectF boundingRect(void) const;
     virtual QPainterPath shape() const;
     void computeCoordinates(void);
@@ -24,11 +21,11 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
 
 private:
-    QGraphicsItem* _startItem, *_endItem;
+    QGraphicsItem* mStartBlock, *mEndBlock;
     ogdf::DPolyline _bends;
-    QColor _clr;
-    QPainterPath _line;
-    QPainterPath _head;
+    QColor mLineColor;
+    QPainterPath mLine;
+    QPainterPath mHead;
 };
 
 #endif // EDGEGRAPHICSSHAPEITEM_H

@@ -1,13 +1,18 @@
-#include "FlowGraphGraphicsView.h"
+#include "FlowGraphView.h"
+// CREDITS: medusa disassembler
+FlowGraphView::FlowGraphView(QWidget* parent): QGraphicsView(parent), _isMoving(false), _lastPos(), _lastCursor(Qt::ArrowCursor)
+{
 
-void FlowGraphGraphicsView::zoom(qreal factor, QPointF centerPt)
+}
+
+void FlowGraphView::zoom(qreal factor, QPointF centerPt)
 {
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     scale(factor, factor);
     centerOn(centerPt);
 }
 
-void FlowGraphGraphicsView::wheelEvent(QWheelEvent* event)
+void FlowGraphView::wheelEvent(QWheelEvent* event)
 {
     if(event->modifiers().testFlag(Qt::ControlModifier))
     {
@@ -23,7 +28,7 @@ void FlowGraphGraphicsView::wheelEvent(QWheelEvent* event)
     QGraphicsView::wheelEvent(event);
 }
 
-void FlowGraphGraphicsView::mousePressEvent(QMouseEvent* event)
+void FlowGraphView::mousePressEvent(QMouseEvent* event)
 {
     if(_isMoving && event->button() == Qt::LeftButton)
     {
@@ -36,7 +41,7 @@ void FlowGraphGraphicsView::mousePressEvent(QMouseEvent* event)
     QGraphicsView::mousePressEvent(event);
 }
 
-void FlowGraphGraphicsView::mouseReleaseEvent(QMouseEvent* event)
+void FlowGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
     if(_isMoving)
     {
@@ -47,7 +52,7 @@ void FlowGraphGraphicsView::mouseReleaseEvent(QMouseEvent* event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void FlowGraphGraphicsView::mouseMoveEvent(QMouseEvent* event)
+void FlowGraphView::mouseMoveEvent(QMouseEvent* event)
 {
     if(_isMoving)
     {
@@ -60,7 +65,7 @@ void FlowGraphGraphicsView::mouseMoveEvent(QMouseEvent* event)
     QGraphicsView::mouseMoveEvent(event);
 }
 
-void FlowGraphGraphicsView::keyPressEvent(QKeyEvent* event)
+void FlowGraphView::keyPressEvent(QKeyEvent* event)
 {
     if(event->key() == Qt::Key_Space && !_isMoving)
     {
@@ -72,7 +77,7 @@ void FlowGraphGraphicsView::keyPressEvent(QKeyEvent* event)
     QGraphicsView::keyPressEvent(event);
 }
 
-void FlowGraphGraphicsView::keyReleaseEvent(QKeyEvent* event)
+void FlowGraphView::keyReleaseEvent(QKeyEvent* event)
 {
     if(event->key() == Qt::Key_Space && _isMoving)
     {

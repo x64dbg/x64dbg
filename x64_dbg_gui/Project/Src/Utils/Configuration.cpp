@@ -145,6 +145,12 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
 
+    defaultColors.insert("FlowGraphBackground", QColor("#FFF8F0"));
+    defaultColors.insert("FlowGraphBlockBackground", QColor("#EDEDED"));
+    defaultColors.insert("FlowGraphBlockBackgroundHover", QColor("#FCF69A"));
+    defaultColors.insert("FlowGraphEdgeTrue", QColor("#433ED6"));
+    defaultColors.insert("FlowGraphEdgeFalse", QColor("#D63E3E"));
+
     //bool settings
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);

@@ -1,66 +1,71 @@
-#include "EdgeGraphicsShapeItem.h"
+#include "FlowGraphEdge.h"
+#include "Configuration.h"
 
-EdgeGraphicsShapeItem::EdgeGraphicsShapeItem(QGraphicsItem* startItem, QGraphicsItem* endItem, ogdf::DPolyline const & bends)
-    : _startItem(startItem), _endItem(endItem), _clr(Qt::blue), _bends(bends)
+FlowGraphEdge::FlowGraphEdge(QGraphicsItem* startBlock, QGraphicsItem* endBlock, ogdf::DPolyline const & bends)
+    : mStartBlock(startBlock), mEndBlock(endBlock), mLineColor(ConfigColor("FlowGraphEdgeTrue")), _bends(bends)
 {
     setZValue(1.0);
     computeCoordinates();
 }
 
-QPainterPath EdgeGraphicsShapeItem::shape(void) const
+int FlowGraphEdge::type() const
+{
+    return Type;
+}
+
+QPainterPath FlowGraphEdge::shape(void) const
 {
     QPainterPath path;
-    path.addPath(_line);
-    path.addPath(_head);
+    path.addPath(mLine);
+    path.addPath(mHead);
     return path;
 }
 
-QRectF EdgeGraphicsShapeItem::boundingRect(void) const
+QRectF FlowGraphEdge::boundingRect(void) const
 {
     return shape().boundingRect();
 }
 
-void EdgeGraphicsShapeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget /*= 0*/)
+void FlowGraphEdge::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget /*= 0*/)
 {
     computeCoordinates();
     std::vector<QPointF> points;
-    bool revLine = (_startItem->y() > _endItem->y()) ? true : false;
-    _clr = revLine ? Qt::red : Qt::blue;
+    bool revLine = (mStartBlock->y() > mEndBlock->y()) ? true : false;
+    mLineColor = revLine ? ConfigColor("FlowGraphEdgeFalse") : ConfigColor("FlowGraphEdgeTrue");
 
     painter->setRenderHint(QPainter::Antialiasing);
-    QPen pen(_clr);
+    QPen pen(mLineColor);
     pen.setWidth(2);
-    QBrush brs(_clr);
+    QBrush brs(mLineColor);
 
     painter->setPen(pen);
-    painter->drawPath(_line);
+    painter->drawPath(mLine);
     painter->setBrush(brs);
-    painter->drawPath(_head);
+    painter->drawPath(mHead);
 }
 
-void EdgeGraphicsShapeItem::computeCoordinates(void)
+void FlowGraphEdge::computeCoordinates(void)
 {
     prepareGeometryChange();
     std::vector<QPointF> points;
     points.reserve(2 + _bends.size());
-    auto startRect = _startItem->boundingRect();
-    auto endRect   = _endItem->boundingRect();
-    bool revLine = (_startItem->y() > _endItem->y()) ? true : false;
+    auto startRect = mStartBlock->boundingRect();
+    auto endRect   = mEndBlock->boundingRect();
+    bool revLine = (mStartBlock->y() > mEndBlock->y()) ? true : false;
 
     // Retrieve points
     if(revLine)
-        points.push_back(QPointF(_endItem->x() + endRect.width() / 2, _endItem->y() + endRect.height()));
+        points.push_back(QPointF(mEndBlock->x() + endRect.width() / 2, mEndBlock->y() + endRect.height()));
     else
-        points.push_back(QPointF(_endItem->x() + endRect.width() / 2, _endItem->y()));
+        points.push_back(QPointF(mEndBlock->x() + endRect.width() / 2, mEndBlock->y()));
 
     for(auto it = _bends.begin(); it.valid(); ++it)
-        //points.push_back(QPointF(endRect.width() / 2 + (*it).m_x, endRect.height() / 2 + (*it).m_y));
         points.push_back(QPointF((*it).m_x, (*it).m_y));
 
     if(revLine)
-        points.push_back(QPointF(_startItem->x() + startRect.width() / 2, _startItem->y()));
+        points.push_back(QPointF(mStartBlock->x() + startRect.width() / 2, mStartBlock->y()));
     else
-        points.push_back(QPointF(_startItem->x() + startRect.width() / 2, _startItem->y() + startRect.height()));
+        points.push_back(QPointF(mStartBlock->x() + startRect.width() / 2, mStartBlock->y() + startRect.height()));
 
     // Retrieve lines and boundingRect
     std::list<QLineF> lines;
@@ -75,18 +80,18 @@ void EdgeGraphicsShapeItem::computeCoordinates(void)
     }
 
     // Generate path for line
-    _line = QPainterPath();
+    mLine = QPainterPath();
     if(points.size() == 2)
     {
         QPolygonF polyLine;
         polyLine << points.front() << points.back();
-        _line.addPolygon(polyLine);
+        mLine.addPolygon(polyLine);
     }
     else
     {
-        _line.moveTo(points.front());
+        mLine.moveTo(points.front());
         for(size_t i = 0; i + 2 < points.size(); ++i)
-            _line.cubicTo(points[i], points[i + 1], points[i + 2]);
+            mLine.cubicTo(points[i], points[i + 1], points[i + 2]);
     }
 
     // Generate path for head
@@ -101,7 +106,7 @@ void EdgeGraphicsShapeItem::computeCoordinates(void)
     QPointF arrowP2 = arrowPt + QPointF(::sin(angle + Pi - Pi / 3) * arrowSize, ::cos(angle + Pi - Pi / 3) * arrowSize);
     QPolygonF head;
     head << arrowPt << arrowP1 << arrowP2;
-    _head = QPainterPath();
-    _head.addPolygon(head);
-    _head.setFillRule(Qt::WindingFill);
+    mHead = QPainterPath();
+    mHead.addPolygon(head);
+    mHead.setFillRule(Qt::WindingFill);
 }

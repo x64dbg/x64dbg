@@ -94,6 +94,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mThreadView->setWindowTitle("Threads");
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
+    // Graph View
+    mGraphWidget = new FlowGraphWidget();
+    mGraphWidget->setWindowTitle("FlowGraph");
+    mGraphWidget->setWindowIcon(QIcon(":/icons/images/tables-relation.png"));
+
+
     //Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
@@ -107,6 +113,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
     mTabWidget->addTab(mReferenceView, mReferenceView->windowIcon(), mReferenceView->windowTitle());
     mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
+    mTabWidget->addTab(mGraphWidget, mGraphWidget->windowIcon(), mGraphWidget->windowTitle());
 
     setCentralWidget(mTabWidget);
 
@@ -126,7 +133,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCalculatorDialog = new CalculatorDialog(this);
     connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
-    mGraphWidget = new GraphWidget();
+
 
     // Setup Signals/Slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -666,10 +673,9 @@ void MainWindow::openAppearance()
 
 void MainWindow::openCalculator()
 {
-    mGraphWidget->show();
-    //mCalculatorDialog->showNormal();
-    //mCalculatorDialog->setFocus();
-    //mCalculatorDialog->setExpressionFocus();
+    mCalculatorDialog->showNormal();
+    mCalculatorDialog->setFocus();
+    mCalculatorDialog->setExpressionFocus();
 }
 
 void MainWindow::openShortcuts()

@@ -84,11 +84,11 @@ SOURCES += \
     Src/Gui/CalculatorDialog.cpp \
     Src/Gui/AttachDialog.cpp \
     Src/Gui/PageMemoryRights.cpp \
-    Src/BasicView/FlowGraphGraphicsScene.cpp \
-    Src/BasicView/FlowGraphGraphicsView.cpp \
-    Src/BasicView/BlockGraphicsItem.cpp \
-    Src/BasicView/EdgeGraphicsShapeItem.cpp \
-    Src/Gui/GraphWidget.cpp
+    Src/BasicView/FlowGraphScene.cpp \
+    Src/BasicView/FlowGraphView.cpp \
+    Src/BasicView/FlowGraphBlock.cpp \
+    Src/BasicView/FlowGraphEdge.cpp \
+    Src/Gui/FlowGraphWidget.cpp
 
 
 HEADERS += \
@@ -151,16 +151,11 @@ HEADERS += \
     Src/Gui/CalculatorDialog.h \
     Src/Gui/AttachDialog.h \
     Src/Gui/PageMemoryRights.h \
-    Src/BasicView/FlowGraphGraphicsScene.h \
-    Src/BasicView/FlowGraphGraphicsView.h \
-    Src/BasicView/BlockGraphicsItem.h \
-    Src/BasicView/EdgeGraphicsShapeItem.h \
     Src/BasicView/HeaderButton.h \
     Src/ThirdPartyLibs/BeaEngine/basic_types.h \
     Src/ThirdPartyLibs/BeaEngine/BeaEngine.h \
     Src/ThirdPartyLibs/BeaEngine/export.h \
     Src/ThirdPartyLibs/BeaEngine/macros.h \
-    Src/Gui/GraphWidget.h \
     Src/ThirdPartyLibs/OGDF/augmentation/DfsMakeBiconnected.h \
     Src/ThirdPartyLibs/OGDF/augmentation/PlanarAugmentation.h \
     Src/ThirdPartyLibs/OGDF/augmentation/PlanarAugmentationFix.h \
@@ -515,7 +510,12 @@ HEADERS += \
     Src/ThirdPartyLibs/OGDF/upward/UpwardPlanarModule.h \
     Src/ThirdPartyLibs/OGDF/upward/UpwardPlanarSubgraphSimple.h \
     Src/ThirdPartyLibs/OGDF/upward/UpwardPlanRep.h \
-    Src/ThirdPartyLibs/OGDF/upward/VisibilityLayout.h
+    Src/ThirdPartyLibs/OGDF/upward/VisibilityLayout.h \
+    Src/BasicView/FlowGraphScene.h \
+    Src/BasicView/FlowGraphView.h \
+    Src/BasicView/FlowGraphBlock.h \
+    Src/BasicView/FlowGraphEdge.h \
+    Src/Gui/FlowGraphWidget.h
 
 
 INCLUDEPATH += \
@@ -550,8 +550,7 @@ FORMS += \
     Src/Gui/ShortcutsDialog.ui \
     Src/Gui/CalculatorDialog.ui \
     Src/Gui/AttachDialog.ui \
-    Src/Gui/PageMemoryRights.ui \
-    Src/Gui/GraphWidget.ui
+    Src/Gui/PageMemoryRights.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
@@ -565,7 +564,7 @@ LIBS += -luser32
     LIBS += -L"$$PWD/Src/Bridge/" -lx32_bridge
 
     DEFINES += OGDF_DLL
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/UGDF/" -logdf
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/OGDF/" -logdf
     ## Windows x86 (32bit) specific build here
 } else {
     #message("x86_64 build")
