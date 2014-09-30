@@ -444,7 +444,7 @@ QString HexDump::byteToString(byte_t byte, ByteViewMode_e mode)
 
     case AsciiByte:
     {
-        QChar wChar((char)byte);
+        QChar wChar = QChar::fromLatin1((char)byte);
 
         if(wChar.isPrint() == true)
             wStr = QString(wChar);
@@ -489,7 +489,7 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        QChar wChar((char)word & 0xFF);
+        QChar wChar = QChar::fromLatin1((char)word & 0xFF);
         if(wChar.isPrint() == true && (word >> 8) == 0)
             wStr = QString(wChar);
         else

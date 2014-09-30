@@ -1,5 +1,6 @@
 #include "argument.h"
 #include "console.h"
+#include "UString/UString.h"
 
 /*
 formatarg:
@@ -26,11 +27,13 @@ void argformat(char* cmd)
 {
     if(strlen(cmd) >= deflen)
         return;
+
     char command_[deflen] = "";
     char* command = command_;
     strcpy(command, cmd);
     while(*command == ' ')
         command++;
+
     int len = (int)strlen(command);
     int start = 0;
     for(int i = 0; i < len; i++)
@@ -42,18 +45,21 @@ void argformat(char* cmd)
         }
     if(!start)
         start = len;
+
     char arguments_[deflen] = "";
     char* arguments = arguments_;
     strcpy_s(arguments, deflen, command + start);
+
     char temp[deflen] = "";
     len = (int)strlen(arguments);
     for(int i = 0, j = 0; i < len; i++)
     {
-        if(arguments[i] == '"' and arguments[i + 1] == '"')
+        if(arguments[i] == '"' and arguments[i + 1] == '"') //TODO: fix this
             i += 2;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
     strcpy_s(arguments, deflen, temp);
+
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
         if(arguments[i] == '\\' and arguments[i + 1] == '\\')
@@ -61,17 +67,20 @@ void argformat(char* cmd)
             arguments[i] = 1;
             arguments[i + 1] = 1;
         }
+
     while((*arguments == ',' or * arguments == ' ') and * (arguments - 1) != '\\')
         arguments++;
     len = (int)strlen(arguments);
     while((arguments[len - 1] == ' ' or arguments[len - 1] == ',') and arguments[len - 2] != '\\')
         len--;
     arguments[len] = 0;
+
     len = (int)strlen(arguments);
     int quote_count = 0;
     for(int i = 0; i < len; i++)
         if(arguments[i] == '"')
             quote_count++;
+
     if(!(quote_count % 2))
     {
         for(int i = 0; i < len; i++)
@@ -121,6 +130,7 @@ void argformat(char* cmd)
         j += sprintf(temp + j, "%c", arguments[i]);
     }
     strcpy(arguments, temp);
+
     len = (int)strlen(arguments);
     for(int i = 0, j = 0; i < len; i++)
     {
@@ -129,6 +139,7 @@ void argformat(char* cmd)
         j += sprintf(temp + j, "%c", arguments[i]);
     }
     strcpy(arguments, temp);
+
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
         if(arguments[i] == 1 and arguments[i + 1] == 1)
@@ -136,6 +147,7 @@ void argformat(char* cmd)
             arguments[i] = '\\';
             arguments[i + 1] = '\\';
         }
+
     if(strlen(arguments))
         sprintf(cmd, "%s %s", command, arguments);
     else
@@ -169,6 +181,7 @@ int arggetcount(const char* cmd)
             temp[i] = 1;
             temp[i + 1] = 1;
         }
+
     for(int i = start; i < len; i++)
     {
         if(temp[i] == ',' and temp[i - 1] != '\\')
@@ -202,6 +215,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
     char temp_[deflen] = "";
     char* temp = temp_ + 1;
     strcpy(temp, cmd + start);
+
     int len = (int)strlen(temp);
     for(int i = 0; i < len; i++)
         if(temp[i] == '\\' and temp[i + 1] == '\\')
@@ -209,17 +223,20 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
             temp[i] = 1;
             temp[i + 1] = 1;
         }
+
     for(int i = 0; i < len; i++)
     {
         if(temp[i] == ',' and temp[i - 1] != '\\')
             temp[i] = 0;
     }
+
     for(int i = 0; i < len; i++)
         if(temp[i] == 1 and temp[i + 1] == 1)
         {
             temp[i] = '\\';
             temp[i + 1] = '\\';
         }
+
     char new_temp[deflen] = "";
     int new_len = len;
     for(int i = 0, j = 0; i < len; i++) //handle escape characters

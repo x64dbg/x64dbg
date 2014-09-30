@@ -14,20 +14,20 @@ static std::vector<PLUG_MENU> pluginMenuList;
 void pluginload(const char* pluginDir)
 {
     //load new plugins
-    char currentDir[deflen] = "";
-    GetCurrentDirectoryA(deflen, currentDir);
-    SetCurrentDirectoryA(pluginDir);
+    wchar_t currentDir[deflen] = L"";
+    GetCurrentDirectoryW(deflen, currentDir);
+    SetCurrentDirectoryW(ConvertUtf8ToUtf16(pluginDir).c_str());
     char searchName[deflen] = "";
 #ifdef _WIN64
     sprintf(searchName, "%s\\*.dp64", pluginDir);
 #else
     sprintf(searchName, "%s\\*.dp32", pluginDir);
 #endif // _WIN64
-    WIN32_FIND_DATA foundData;
-    HANDLE hSearch = FindFirstFileA(searchName, &foundData);
+    WIN32_FIND_DATAW foundData;
+    HANDLE hSearch = FindFirstFileW(ConvertUtf8ToUtf16(searchName).c_str(), &foundData);
     if(hSearch == INVALID_HANDLE_VALUE)
     {
-        SetCurrentDirectoryA(currentDir);
+        SetCurrentDirectoryW(currentDir);
         return;
     }
     PLUG_DATA pluginData;
@@ -36,8 +36,8 @@ void pluginload(const char* pluginDir)
         //set plugin data
         pluginData.initStruct.pluginHandle = curPluginHandle;
         char szPluginPath[MAX_PATH] = "";
-        sprintf(szPluginPath, "%s\\%s", pluginDir, foundData.cFileName);
-        pluginData.hPlugin = LoadLibraryA(szPluginPath); //load the plugin library
+        sprintf_s(szPluginPath, "%s\\%s", pluginDir, ConvertUtf16ToUtf8(foundData.cFileName).c_str());
+        pluginData.hPlugin = LoadLibraryW(ConvertUtf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
             dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
@@ -185,8 +185,8 @@ void pluginload(const char* pluginDir)
         }
         curPluginHandle++;
     }
-    while(FindNextFileA(hSearch, &foundData));
-    SetCurrentDirectoryA(currentDir);
+    while(FindNextFileW(hSearch, &foundData));
+    SetCurrentDirectoryW(currentDir);
 }
 
 static void plugincmdunregisterall(int pluginHandle)

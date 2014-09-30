@@ -118,7 +118,7 @@ private:
 
     const char* mWindowMainTitle;
 
-    QList<QString> mMRUList;
+    QStringList mMRUList;
     int mMaxMRU;
     unsigned int lastException;
 

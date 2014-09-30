@@ -34,100 +34,130 @@
     <Filter Include="Header Files\lz4">
       <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\UString">
+      <UniqueIdentifier>{adf51b13-6f3b-4b04-9ba9-21fb7a38150d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UString">
+      <UniqueIdentifier>{ee24febc-948e-4226-ba0e-68a9b449fb23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Interfaces/Exports">
+      <UniqueIdentifier>{44fd9eb7-2017-49b8-8d9a-dec680632343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Core">
+      <UniqueIdentifier>{148408a8-bfe7-4d36-a04a-64d645a3e713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Information">
+      <UniqueIdentifier>{687e60a0-5c44-481b-9149-9bd4cc41aaf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities">
+      <UniqueIdentifier>{abc27485-7d81-4847-8ffe-62b0838f4ba4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger Core">
+      <UniqueIdentifier>{52e2c3ae-0223-4216-b896-41d9f171f731}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="_exports.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_global.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="addrinfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="argument.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="breakpoint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="command.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="console.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="debugger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="instruction.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="math.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msgqueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="simplescript.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="threading.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="value.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="variable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="x64_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="plugin_loader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="UString\Exception.cpp">
+      <Filter>Source Files\UString</Filter>
     </ClCompile>
-    <ClCompile Include="_plugins.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="UString\String.cpp">
+      <Filter>Source Files\UString</Filter>
     </ClCompile>
-    <ClCompile Include="assemble.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="disasm_helper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="symbolinfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="stackinfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="thread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="disasm_fast.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="reference.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="murmurhash.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="UString\UString.cpp">
+      <Filter>Source Files\UString</Filter>
     </ClCompile>
     <ClCompile Include="_dbgfunctions.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
+    <ClCompile Include="_exports.cpp">
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
+    <ClCompile Include="_plugins.cpp">
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
+    <ClCompile Include="_global.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="argument.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="command.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="console.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="math.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="murmurhash.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="msgqueue.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="threading.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="value.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="variable.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="addrinfo.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="breakpoint.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="assemble.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="disasm_fast.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="disasm_helper.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="memory.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_loader.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="patches.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="reference.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="simplescript.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="stackinfo.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="symbolinfo.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
+    <ClCompile Include="thread.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="instruction.cpp">
+      <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
     <ClCompile Include="debugger_commands.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Debugger Core</Filter>
+    </ClCompile>
+    <ClCompile Include="debugger.cpp">
+      <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
       <Filter>Source Files</Filter>
@@ -280,6 +310,15 @@
     </ClInclude>
     <ClInclude Include="log.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\Exception.h">
+      <Filter>Header Files\UString</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\String.h">
+      <Filter>Header Files\UString</Filter>
+    </ClInclude>
+    <ClInclude Include="UString\UString.h">
+      <Filter>Header Files\UString</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #include "main.h"
+#include <QTextCodec>
 
 MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
 {
@@ -62,6 +63,11 @@ int main(int argc, char* argv[])
     qRegisterMetaType<uint_t>("uint_t");
     qRegisterMetaType<byte_t>("byte_t");
     qRegisterMetaType<DBGSTATE>("DBGSTATE");
+
+    // Set QString codec to UTF-8
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+    QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 
     // Init communication with debugger
     Bridge::initBridge();

@@ -29,5 +29,8 @@
     <ClInclude Include="bridgemain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="simpleini.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bridgemain.h" />
+    <ClInclude Include="simpleini.h" />
     <ClInclude Include="_global.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

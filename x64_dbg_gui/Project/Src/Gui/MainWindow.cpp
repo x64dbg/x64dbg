@@ -320,12 +320,15 @@ void MainWindow::loadMRUList(int maxItems)
         if(QString(currentFile).size() && QFile(currentFile).exists())
             mMRUList.push_back(currentFile);
     }
+    mMRUList.removeDuplicates();
     updateMRUMenu();
 }
 
 //save recent files to settings
 void MainWindow::saveMRUList()
 {
+    BridgeSettingSet("Recent Files", 0, 0); //clear
+    mMRUList.removeDuplicates();
     int mruSize = mMRUList.size();
     for(int i = 0; i < mruSize; i++)
     {

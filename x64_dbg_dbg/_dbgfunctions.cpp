@@ -26,14 +26,14 @@ static bool _sectionfromaddr(duint addr, char* section)
     HMODULE hMod = (HMODULE)modbasefromaddr(addr);
     if(!hMod)
         return false;
-    char curModPath[MAX_PATH] = "";
-    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
+    wchar_t curModPath[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
         return false;
     HANDLE FileHandle;
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    if(StaticFileLoad(curModPath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    if(StaticFileLoadW(curModPath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         uint rva = addr - (uint)hMod;
         int sectionNumber = GetPE32SectionNumberFromVA(FileMapVA, GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE) + rva);
@@ -42,10 +42,10 @@ static bool _sectionfromaddr(duint addr, char* section)
             const char* name = (const char*)GetPE32DataFromMappedFile(FileMapVA, sectionNumber, UE_SECTIONNAME);
             if(section)
                 strcpy(section, name);
-            StaticFileUnload(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
+            StaticFileUnloadW(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
             return true;
         }
-        StaticFileUnload(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
+        StaticFileUnloadW(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
     return false;
 }
@@ -94,7 +94,14 @@ static bool _patchrestore(duint addr)
 
 static int _modpathfromaddr(duint addr, char* path, int size)
 {
-    return GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), path, size);
+    Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "_modpathfromaddr:wszModPath");
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)addr, wszModPath, size))
+    {
+        *path = '\0';
+        return 0;
+    }
+    strcpy_s(path, size, ConvertUtf16ToUtf8(wszModPath).c_str());
+    return (int)strlen(path);
 }
 
 static int _modpathfromname(const char* modname, char* path, int size)
