@@ -11,8 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 # Removes all debug output when defined
 #DEFINES += QT_NO_DEBUG_OUTPUT
 
-#QMAKE_CFLAGS_RELEASE += -O3
-#QMAKE_CXXFLAGS_RELEASE += -O3
 #generate debug symbols in release mode
 QMAKE_CFLAGS_RELEASE += -Zi
 QMAKE_LFLAGS_RELEASE += /DEBUG
@@ -25,7 +23,24 @@ QMAKE_LFLAGS_RELEASE += /DEBUG
 
 DEFINES += BUILD_LIB
 TEMPLATE = lib
-#TEMPLATE = app
+DEFINES += NOMINMAX
+DEFINES += OGDF_DLL
+
+INCLUDEPATH += $$PWD/Src/Bridge
+
+LIBS += -luser32
+
+!contains(QMAKE_HOST.arch, x86_64) {
+    ## Windows x86 (32bit) specific build here
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
+    LIBS += -L"$$PWD/Src/Bridge/" -lx32_bridge
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/OGDF/" -logdf_x86
+} else {
+    ## Windows x64 (64bit) specific build here
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
+    LIBS += -L"$$PWD/Src/Bridge/" -lx64_bridge
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/OGDF/" -logdf_x64
+}
 
 SOURCES += \
     Src/main.cpp \
@@ -517,7 +532,6 @@ HEADERS += \
     Src/BasicView/FlowGraphEdge.h \
     Src/Gui/FlowGraphWidget.h
 
-
 INCLUDEPATH += \
     Src \
     Src/Gui \
@@ -551,27 +565,6 @@ FORMS += \
     Src/Gui/CalculatorDialog.ui \
     Src/Gui/AttachDialog.ui \
     Src/Gui/PageMemoryRights.ui
-
-INCLUDEPATH += $$PWD/Src/Bridge
-
-LIBS += -luser32
-
- DEFINES += NOMINMAX
-
-!contains(QMAKE_HOST.arch, x86_64) {
-    #message("x86 build")
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
-    LIBS += -L"$$PWD/Src/Bridge/" -lx32_bridge
-
-    DEFINES += OGDF_DLL
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/OGDF/" -logdf
-    ## Windows x86 (32bit) specific build here
-} else {
-    #message("x86_64 build")
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
-    LIBS += -L"$$PWD/Src/Bridge/" -lx64_bridge
-    ## Windows x64 (64bit) specific build here
-}
 
 RESOURCES += \
     resource.qrc
