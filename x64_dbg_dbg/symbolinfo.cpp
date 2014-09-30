@@ -155,7 +155,7 @@ const char* symgetsymbolicname(uint addr)
         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
         {
-            if(!settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
+            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
                 strcpy_s(label, pSymbol->Name);
             retval = true;
         }

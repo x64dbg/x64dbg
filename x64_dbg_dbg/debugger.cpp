@@ -34,6 +34,7 @@ char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
+bool bUndecorateSymbolNames = true;
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
