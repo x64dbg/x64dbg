@@ -25,7 +25,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("file does not exist!");
         return STATUS_ERROR;
     }
-    HANDLE hFile = CreateFileA(arg1, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs("could not open file!");
@@ -67,6 +67,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     while(currentfolder[len] != '\\' and len != 0)
         len--;
     currentfolder[len] = 0;
+
     if(DirExists(arg3))
         strcpy(currentfolder, arg3);
     //initialize
@@ -808,7 +809,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
 {
     typedef INT (WINAPI * SCYLLASTARTGUI)(DWORD pid, HINSTANCE mod);
     SCYLLASTARTGUI ScyllaStartGui = 0;
-    HINSTANCE hScylla = LoadLibraryA("Scylla.dll");
+    HINSTANCE hScylla = LoadLibraryW(L"Scylla.dll");
     if(!hScylla)
     {
         dputs("error loading Scylla.dll!");
@@ -885,11 +886,13 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return STATUS_ERROR;
     }
-    if(!GetModuleFileNameExA(hProcess, 0, szFileName, sizeof(szFileName)))
+    wchar_t wszFileName[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
     {
         dprintf("could not get module filename %X!\n", pid);
         return STATUS_ERROR;
     }
+    strcpy_s(szFileName, ConvertUtf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
@@ -1348,12 +1351,14 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         dprintf("invalid module \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char szModulePath[MAX_PATH] = "";
-    if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+    wchar_t wszModulePath[MAX_PATH] = L"";
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, wszModulePath, MAX_PATH))
     {
         dputs("GetModuleFileNameExA failed!");
         return STATUS_ERROR;
     }
+    char szModulePath[MAX_PATH] = "";
+    strcpy_s(szModulePath, ConvertUtf16ToUtf8(wszModulePath).c_str());
     char szOldSearchPath[MAX_PATH] = "";
     if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {

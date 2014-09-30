@@ -34,6 +34,7 @@ char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
+bool bUndecorateSymbolNames = true;
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
@@ -650,8 +651,11 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
     {
-        if(!DevicePathFromFileHandleA(CreateProcessInfo->hFile, DebugFileName, deflen))
+        wchar_t wszFileName[MAX_PATH] = L"";
+        if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+        else
+            strcpy_s(DebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
@@ -696,12 +700,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(settingboolget("Events", "TlsCallbacks"))
         {
             DWORD NumberOfCallBacks = 0;
-            TLSGrabCallBackData(DebugFileName, 0, &NumberOfCallBacks);
+            TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
                 Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
-                if(!TLSGrabCallBackData(DebugFileName, TLSCallBacks, &NumberOfCallBacks))
+                if(!TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
                 {
@@ -849,8 +853,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
     {
-        if(!DevicePathFromFileHandleA(LoadDll->hFile, DLLDebugFileName, deflen))
+        wchar_t wszFileName[MAX_PATH] = L"";
+        if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+        else
+            strcpy_s(DLLDebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
     }
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
@@ -1169,13 +1176,13 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     bSkipExceptions = false;
     bBreakOnNextDll = false;
     INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
-    bFileIsDll = IsFileDLL(init->exe, 0);
-    pDebuggedEntry = GetPE32Data(init->exe, 0, UE_OEP);
+    bFileIsDll = IsFileDLLW(ConvertUtf8ToUtf16(init->exe).c_str(), 0);
+    pDebuggedEntry = GetPE32DataW(ConvertUtf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
     strcpy_s(szFileName, init->exe);
     if(bFileIsDll)
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebug(init->exe, false, init->commandline, init->currentfolder, 0);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), false, ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str(), 0);
     else
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDebug(init->exe, init->commandline, init->currentfolder);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str());
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;
@@ -1495,7 +1502,7 @@ bool IsProcessElevated()
     return !!IsAdminMember;
 }
 
-static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
+static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
     DWORD key_flags;
     DWORD lRv;
@@ -1557,7 +1564,7 @@ static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char*
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegSetValueExA(hKey, key, 0, REG_SZ, (BYTE*) jit_key_value, (DWORD)(* jit_key_vale_size) + 1);
+        lRv = RegSetValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
     }
     else
     {
@@ -1565,7 +1572,7 @@ static bool readwritejitkey(char* jit_key_value, DWORD* jit_key_vale_size, char*
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegQueryValueExA(hKey, key, 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
+        lRv = RegQueryValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
         if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
@@ -1691,7 +1698,7 @@ bool dbggetpagerights(uint addr, char* rights)
 
 bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    char jit_entry[4];
+    wchar_t jit_entry[4] = L"";
     DWORD jit_entry_size = sizeof(jit_entry) - 1;
     readwritejitkey_error_t rw_error;
 
@@ -1705,9 +1712,9 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
         }
         return false;
     }
-    if(_strcmpi(jit_entry, "1") == 0)
+    if(_wcsicmp(jit_entry, L"1") == 0)
         *auto_on = true;
-    else if(_strcmpi(jit_entry, "0") == 0)
+    else if(_wcsicmp(jit_entry, L"0") == 0)
         *auto_on = false;
     else
         return false;
@@ -1716,11 +1723,11 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
 
 bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD auto_string_size = sizeof("1");
+    DWORD auto_string_size = sizeof(L"1");
     readwritejitkey_error_t rw_error;
     if(!auto_on)
     {
-        char jit_entry[4];
+        wchar_t jit_entry[4] = L"";
         DWORD jit_entry_size = sizeof(jit_entry) - 1;
         if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
         {
@@ -1728,7 +1735,7 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
                 return true;
         }
     }
-    if(!readwritejitkey(auto_on ? "1" : "0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -1739,14 +1746,16 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
 
 bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE;
+    wchar_t wszJitEntry[JIT_ENTRY_MAX_SIZE] = L"";
+    DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey(jit_entry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
+    if(!readwritejitkey(wszJitEntry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
         return false;
     }
+    strcpy_s(jit_entry, JIT_ENTRY_MAX_SIZE, ConvertUtf16ToUtf8(wszJitEntry).c_str());
     return true;
 }
 
@@ -1754,7 +1763,9 @@ bool dbggetdefjit(char* jit_entry)
 {
     char path[JIT_ENTRY_DEF_SIZE];
     path[0] = '"';
-    GetModuleFileNameA(GetModuleHandleA(NULL), &path[1], MAX_PATH);
+    wchar_t wszPath[MAX_PATH] = L"";
+    GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
+    strcpy(&path[1], ConvertUtf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
     strcpy(jit_entry, path);
     return true;
@@ -1762,9 +1773,9 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd);
+    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey(jit_cmd, & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
+    if(!readwritejitkey((wchar_t*)ConvertUtf8ToUtf16(jit_cmd).c_str(), & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -1799,9 +1810,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
             continue;
         if((mewow64 and !wow64) or (!mewow64 and wow64))
             continue;
-        char szExePath[MAX_PATH] = "";
-        if(GetModuleFileNameExA(hProcess, 0, szExePath, sizeof(szExePath)))
-            strcpy_s(pe32.szExeFile, szExePath);
+        wchar_t szExePath[MAX_PATH] = L"";
+        if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))
+            strcpy_s(pe32.szExeFile, ConvertUtf16ToUtf8(szExePath).c_str());
         list->push_back(pe32);
     }
     while(Process32Next(hProcessSnap, &pe32));
@@ -1937,7 +1948,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> command_linewstr(new_command_line.Length);
 
     // Covert to Unicode.
-    if(!MultiByteToWideChar(CP_ACP, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
+    if(!MultiByteToWideChar(CP_UTF8, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
     {
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
@@ -2012,8 +2023,8 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 
     *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
 
-    //Convert TO ASCII
-    if(!WideCharToMultiByte(CP_ACP, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
+    //Convert TO UTF-8
+    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;

@@ -28,15 +28,29 @@ void dbsave()
     functioncachesave(root);
     loopcachesave(root);
     bpcachesave(root);
+    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
-        json_dump_file(root, dbpath, JSON_INDENT(4));
-        LZ4_compress_file(dbpath, dbpath);
+        FILE* jsonFile = 0;
+        if(_wfopen_s(&jsonFile, wdbpath.c_str(), L"wb"))
+        {
+            dputs("failed to open database file for editing!");
+            json_decref(root); //free root
+            return;
+        }
+        if(json_dumpf(root, jsonFile, JSON_INDENT(4)) == -1)
+        {
+            dputs("couldn't write JSON to database file...");
+            json_decref(root); //free root
+            return;
+        }
+        fclose(jsonFile);
+        LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
-        DeleteFileA(dbpath);
-    json_decref(root); //free root
+        DeleteFileW(wdbpath.c_str());
     dprintf("%ums\n", GetTickCount() - ticks);
+    json_decref(root); //free root
 }
 
 void dbload()
@@ -45,15 +59,23 @@ void dbload()
         return;
     dprintf("loading database...");
     DWORD ticks = GetTickCount();
-    LZ4_STATUS status = LZ4_decompress_file(dbpath, dbpath);
+    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
+    LZ4_STATUS status = LZ4_decompress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE)
     {
         dputs("\ninvalid database file!");
         return;
     }
-    JSON root = json_load_file(dbpath, 0, 0);
+    FILE* jsonFile = 0;
+    if(_wfopen_s(&jsonFile, wdbpath.c_str(), L"rb"))
+    {
+        dputs("\nfailed to open database file!");
+        return;
+    }
+    JSON root = json_loadf(jsonFile, 0, 0);
+    fclose(jsonFile);
     if(status != LZ4_INVALID_ARCHIVE)
-        LZ4_compress_file(dbpath, dbpath);
+        LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(!root)
     {
         dputs("\ninvalid database file (JSON)!");
@@ -87,6 +109,7 @@ bool modload(uint base, uint size, const char* fullpath)
     if(!base or !size or !fullpath)
         return false;
     char name[deflen] = "";
+
     int len = (int)strlen(fullpath);
     while(fullpath[len] != '\\' and len)
         len--;
@@ -116,7 +139,8 @@ bool modload(uint base, uint size, const char* fullpath)
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    if(StaticFileLoad((char*)fullpath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    std::wstring wszFullPath = ConvertUtf8ToUtf16(fullpath);
+    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base; //get entry point
         int SectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
@@ -173,7 +197,7 @@ bool modload(uint base, uint size, const char* fullpath)
                 info.sections.push_back(curSection);
             }
         }
-        StaticFileUnload((char*)fullpath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
+        StaticFileUnloadW(wszFullPath.c_str(), false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
 
     //add module to list

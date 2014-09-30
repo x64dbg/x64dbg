@@ -22,31 +22,6 @@ static COMMAND* command_list = 0;
 static HANDLE hCommandLoopThread = 0;
 static char alloctrace[MAX_PATH] = "";
 
-//Original code by Aurel from http://www.codeguru.com/cpp/w-p/win32/article.php/c1427/A-Simple-Win32-CommandLine-Parser.htm
-static void commandlinefree(int argc, char** argv)
-{
-    for(int i = 0; i < argc; i++)
-        efree(argv[i]);
-    efree(argv);
-}
-
-static char** commandlineparse(int* argc)
-{
-    if(!argc)
-        return NULL;
-    LPWSTR wcCommandLine = GetCommandLineW();
-    LPWSTR* argw = CommandLineToArgvW(wcCommandLine, argc);
-    char** argv = (char**)emalloc(sizeof(void*) * (*argc + 1));
-    for(int i = 0; i < *argc; i++)
-    {
-        int bufSize = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], -1, NULL, 0, NULL, NULL);
-        argv[i] = (char*)emalloc(bufSize + 1);
-        WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, argw[i], bufSize, argv[i], bufSize * sizeof(char), NULL, NULL);
-    }
-    LocalFree(argw);
-    return argv;
-}
-
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
     if(argc < 2)
@@ -256,23 +231,25 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
+    wchar_t wszDir[deflen] = L"";
+    if(!GetModuleFileNameW(hInst, wszDir, deflen))
+        return "GetModuleFileNameW failed!";
     char dir[deflen] = "";
-    if(!GetModuleFileNameA(hInst, dir, deflen))
-        return "GetModuleFileNameA failed!";
+    strcpy_s(dir, ConvertUtf16ToUtf8(wszDir).c_str());
     int len = (int)strlen(dir);
     while(dir[len] != '\\')
         len--;
     dir[len] = 0;
     strcpy(alloctrace, dir);
     PathAppendA(alloctrace, "\\alloctrace.txt");
-    DeleteFileA(alloctrace);
+    DeleteFileW(ConvertUtf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
     strcpy(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
-    CreateDirectoryA(dbbasepath, 0); //create database directory
+    CreateDirectoryW(ConvertUtf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
     strcpy(szSymbolCachePath, dir);
     PathAppendA(szSymbolCachePath, "symbols");
-    SetCurrentDirectoryA(dir);
+    SetCurrentDirectoryW(ConvertUtf8ToUtf16(dir).c_str());;
     gMsgStack = msgallocstack();
     if(!gMsgStack)
         return "Could not allocate message stack!";
@@ -282,30 +259,30 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
-    CreateDirectoryA(plugindir, 0);
+    CreateDirectoryW(ConvertUtf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
     //handle command line
     int argc = 0;
-    char** argv = commandlineparse(&argc);
+    wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if(argc == 2) //we have an argument
     {
-        std::string str = "init \"";
-        str += argv[1];
+        UString str = "init \"";
+        str += ConvertUtf16ToUtf8(argv[1]);
         str += "\"";
         DbgCmdExec(str.c_str());
     }
     else if(argc == 5) //4 arguments (JIT)
     {
-        if(_strcmpi(argv[1], "-a") == 0 && !_stricmp(argv[3], "-e"))
+        if(_wcsicmp(argv[1], L"-a") == 0 && !_wcsicmp(argv[3], L"-e"))
         {
-            std::string str = "attach .";
-            str += argv[2];
+            UString str = "attach .";
+            str += ConvertUtf16ToUtf8(argv[2]);
             str += ", .";
-            str += argv[4];
+            str += ConvertUtf16ToUtf8(argv[4]);
             DbgCmdExec(str.c_str());
         }
     }
-    commandlinefree(argc, argv);
+    LocalFree(argv);
 
     return 0;
 }
@@ -324,7 +301,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     if(memleaks())
     {
         char msg[256] = "";
-        sprintf(msg, "%d memory leak(s) found!\n\nPlease send 'alloctrace.txt' to the authors of x64_dbg.", memleaks());
+        sprintf(msg, "%d memory leak(s) found!\n\nPlease send contact the authors of x64_dbg.", memleaks());
         MessageBoxA(0, msg, "error", MB_ICONERROR | MB_SYSTEMMODAL);
     }
     else

@@ -373,6 +373,7 @@ void MemoryMapView::switchView()
         BridgeSettingSetUint("Engine", "ListAllPages", 0);
     else
         BridgeSettingSetUint("Engine", "ListAllPages", 1);
+    DbgSettingsUpdated();
     DbgFunctions()->MemUpdateMap();
     setSingleSelection(0);
     setTableOffset(0);

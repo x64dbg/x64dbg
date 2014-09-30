@@ -21,12 +21,12 @@ void BeaTokenizer::AddToken(BeaInstructionToken* instr, const BeaTokenType type,
         token.text = text.trimmed(); //remove whitespaces from the start and end
     else
         token.text = text;
-    if(ConfigBool("Disassembler", "Uppercase"))
-        token.text = token.text.toUpper();
     if(value)
         token.value = *value;
     else
     {
+        if(ConfigBool("Disassembler", "Uppercase"))
+            token.text = token.text.toUpper();
         token.value.size = 0;
         token.value.value = 0;
     }
