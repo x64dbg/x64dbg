@@ -8,6 +8,7 @@
 #endif
 
 #include <windows.h>
+#include <stdint.h>
 
 #pragma pack(push, 1)
 
@@ -252,6 +253,74 @@
 #define UE_SEG_DS 40
 #define UE_SEG_CS 41
 #define UE_SEG_SS 42
+
+#ifndef CONTEXT_EXTENDED_REGISTERS
+#define CONTEXT_EXTENDED_REGISTERS 0
+#endif
+
+typedef struct
+{
+    BYTE    data[10];
+    int     st_value;
+} x87FPURegister_t;
+
+typedef struct
+{
+    DWORD   ControlWord;
+    DWORD   StatusWord;
+    DWORD   TagWord;
+    DWORD   ErrorOffset;
+    DWORD   ErrorSelector;
+    DWORD   DataOffset;
+    DWORD   DataSelector;
+    x87FPURegister_t x87FPURegister[8];
+    DWORD   Cr0NpxState;
+} x87FPU_t;
+
+typedef struct
+{
+    ULONG_PTR cax;
+    ULONG_PTR ccx;
+    ULONG_PTR cdx;
+    ULONG_PTR cbx;
+    ULONG_PTR csp;
+    ULONG_PTR cbp;
+    ULONG_PTR csi;
+    ULONG_PTR cdi;
+#ifdef _WIN64
+    ULONG_PTR r8;
+    ULONG_PTR r9;
+    ULONG_PTR r10;
+    ULONG_PTR r11;
+    ULONG_PTR r12;
+    ULONG_PTR r13;
+    ULONG_PTR r14;
+    ULONG_PTR r15;
+#endif //_WIN64
+    ULONG_PTR cip;
+    unsigned int eflags;
+    unsigned short gs;
+    unsigned short fs;
+    unsigned short es;
+    unsigned short ds;
+    unsigned short cs;
+    unsigned short ss;
+    ULONG_PTR dr0;
+    ULONG_PTR dr1;
+    ULONG_PTR dr2;
+    ULONG_PTR dr3;
+    ULONG_PTR dr6;
+    ULONG_PTR dr7;
+    BYTE RegisterArea[80];
+    x87FPU_t x87fpu;
+    DWORD MxCsr;
+    uint64_t mmx[8];
+#ifdef _WIN64
+    M128A XmmRegisters[16];
+#else // x86
+    M128A XmmRegisters[8];
+#endif
+} TITAN_ENGINE_CONTEXT_t;
 
 typedef struct
 {
@@ -696,6 +765,7 @@ __declspec(dllexport) bool TITCALL SetMemoryBPX(ULONG_PTR MemoryStart, SIZE_T Si
 __declspec(dllexport) bool TITCALL SetMemoryBPXEx(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, DWORD BreakPointType, bool RestoreOnHit, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL RemoveMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory);
 __declspec(dllexport) bool TITCALL GetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);
+__declspec(dllexport) bool TITCALL GetFullContextDataEx(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextDataEx(HANDLE hActiveThread, DWORD IndexOfRegister);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextData(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL SetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);

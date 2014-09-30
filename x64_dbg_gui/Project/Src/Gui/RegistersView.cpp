@@ -2,6 +2,7 @@
 #include <QClipboard>
 #include "Configuration.h"
 #include "WordEditDialog.h"
+#include "LineEditDialog.h"
 
 
 RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
@@ -63,6 +64,24 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFlags.insert(IF);
     mFlags.insert(DF);
     mFlags.insert(OF);
+
+    // FPU x87 and MMX registers
+    mFPUx87.insert(x87r0);
+    mFPUx87.insert(x87r1);
+    mFPUx87.insert(x87r2);
+    mFPUx87.insert(x87r3);
+    mFPUx87.insert(x87r4);
+    mFPUx87.insert(x87r5);
+    mFPUx87.insert(x87r6);
+    mFPUx87.insert(x87r7);
+    mFPUMMX.insert(MM0);
+    mFPUMMX.insert(MM1);
+    mFPUMMX.insert(MM2);
+    mFPUMMX.insert(MM3);
+    mFPUMMX.insert(MM4);
+    mFPUMMX.insert(MM5);
+    mFPUMMX.insert(MM6);
+    mFPUMMX.insert(MM7);
 
     //registers that should not be changed
     mNoChange.insert(GS);
@@ -191,18 +210,57 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterPlaces.insert(SS, Register_Position(offset + 5, 9, 3, 4));
 
     offset++;
+
+    mRegisterMapping.insert(x87r0, "x87r0");
+    mRegisterPlaces.insert(x87r0, Register_Position(offset + 6, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r1, "x87r1");
+    mRegisterPlaces.insert(x87r1, Register_Position(offset + 7, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r2, "x87r2");
+    mRegisterPlaces.insert(x87r2, Register_Position(offset + 8, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r3, "x87r3");
+    mRegisterPlaces.insert(x87r3, Register_Position(offset + 9, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r4, "x87r4");
+    mRegisterPlaces.insert(x87r4, Register_Position(offset + 10, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r5, "x87r5");
+    mRegisterPlaces.insert(x87r5, Register_Position(offset + 11, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r6, "x87r6");
+    mRegisterPlaces.insert(x87r6, Register_Position(offset + 12, 0, 6, 10 * 2));
+    mRegisterMapping.insert(x87r7, "x87r7");
+    mRegisterPlaces.insert(x87r7, Register_Position(offset + 13, 0, 6, 10 * 2));
+
+    offset++;
+
+    mRegisterMapping.insert(MM0, "MM0");
+    mRegisterPlaces.insert(MM0, Register_Position(offset + 14, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM1, "MM1");
+    mRegisterPlaces.insert(MM1, Register_Position(offset + 15, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM2, "MM2");
+    mRegisterPlaces.insert(MM2, Register_Position(offset + 16, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM3, "MM3");
+    mRegisterPlaces.insert(MM3, Register_Position(offset + 17, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM4, "MM4");
+    mRegisterPlaces.insert(MM4, Register_Position(offset + 18, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM5, "MM5");
+    mRegisterPlaces.insert(MM5, Register_Position(offset + 19, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM6, "MM6");
+    mRegisterPlaces.insert(MM6, Register_Position(offset + 20, 0, 4, 8 * 2));
+    mRegisterMapping.insert(MM7, "MM7");
+    mRegisterPlaces.insert(MM7, Register_Position(offset + 21, 0, 4, 8 * 2));
+
+    offset++;
+
     mRegisterMapping.insert(DR0, "DR0");
-    mRegisterPlaces.insert(DR0, Register_Position(offset + 6, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR0, Register_Position(offset + 22, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR1, "DR1");
-    mRegisterPlaces.insert(DR1, Register_Position(offset + 7, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR1, Register_Position(offset + 23, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR2, "DR2");
-    mRegisterPlaces.insert(DR2, Register_Position(offset + 8, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR2, Register_Position(offset + 24, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR3, "DR3");
-    mRegisterPlaces.insert(DR3, Register_Position(offset + 9, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR3, Register_Position(offset + 25, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR6, "DR6");
-    mRegisterPlaces.insert(DR6, Register_Position(offset + 10, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR6, Register_Position(offset + 26, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR7, "DR7");
-    mRegisterPlaces.insert(DR7, Register_Position(offset + 11, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR7, Register_Position(offset + 27, 0, 4, sizeof(uint_t) * 2));
 
     fontsUpdatedSlot();
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
@@ -332,8 +390,8 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // do we find a corresponding register?
     if(!identifyRegister(y, x, 0))
         return;
-    // is current register general purposes register ?
-    if(mGPR.contains(mSelected))
+    // is current register general purposes register or FPU register?
+    if(mGPR.contains(mSelected) || mFPUx87.contains(mSelected) || mFPUMMX.contains(mSelected))
     {
         wCM_Modify->trigger();
     }
@@ -379,19 +437,19 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     char module_text[MAX_MODULE_SIZE] = "";
     char string_text[MAX_STRING_SIZE] = "";
 
-    QString valueText = QString("%1").arg(registerValue(&wRegDumpStruct, register_selected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-    duint register_value = registerValue(&wRegDumpStruct, register_selected);
+    QString valueText = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
+    duint register_value = (* ((uint_t*) registerValue(&wRegDumpStruct, register_selected)));
     QString newText = QString("");
 
     bool hasString = DbgGetStringAt(register_value, string_text);
     bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
     bool hasModule = DbgGetModuleAt(register_value, module_text);
 
-    if(hasString)
+    if(hasString && register_selected != CIP)
     {
         newText = string_text;
     }
-    else if(hasLabel && hasModule)
+    else if(hasLabel && hasModule && register_selected != CIP)
     {
         newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
     }
@@ -399,18 +457,161 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     {
         newText = QString(module_text) + "." + valueText;
     }
-    else if(hasLabel)
+    else if(hasLabel && register_selected != CIP)
     {
         newText = "<" + QString(label_text) + ">";
+    }
+    else if(register_selected != CIP)
+    {
+        bool isCharacter = false;
+        if(register_value == (register_value & 0xFF))
+        {
+            QChar c = QChar((char)register_value);
+            if(c.isPrint())
+            {
+                newText = QString("'%1'").arg((char)register_value);
+                isCharacter = IsCharacterRegister(register_selected);
+            }
+        }
+        else if(register_value == (register_value & 0xFFF))  //UNICODE?
+        {
+            QChar c = QChar((wchar_t)register_value);
+            if(c.isPrint())
+            {
+                newText = "L'" + QString(c) + "'";
+                isCharacter = IsCharacterRegister(register_selected);
+            }
+        }
     }
 
     return newText;
 }
-void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
+
+#include <limits>
+#include <cmath>
+double readFloat80(const uint8_t buffer[10])
+{
+    /*
+     * WE ARE LOSSING 2 BYTES WITH THIS FUNCTION.
+     * TODO: CHANGE THIS FOR ONE BETTER.
+    */
+    //80 bit floating point value according to IEEE-754:
+    //1 bit sign, 15 bit exponent, 64 bit mantissa
+
+    const uint16_t SIGNBIT    = 1 << 15;
+    const uint16_t EXP_BIAS   = (1 << 14) - 1; // 2^(n-1) - 1 = 16383
+    const uint16_t SPECIALEXP = (1 << 15) - 1; // all bits set
+    const uint64_t HIGHBIT    = (uint64_t)1 << 63;
+    const uint64_t QUIETBIT   = (uint64_t)1 << 62;
+
+    // Extract sign, exponent and mantissa
+    uint16_t exponent = *((uint16_t*)&buffer[8]);
+    uint64_t mantissa = *((uint64_t*)&buffer[0]);
+
+    double sign = (exponent & SIGNBIT) ? -1.0 : 1.0;
+    exponent   &= ~SIGNBIT;
+
+    // Check for undefined values
+    if((!exponent && (mantissa & HIGHBIT)) || (exponent && !(mantissa & HIGHBIT)))
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    // Check for special values (infinity, NaN)
+    if(exponent == 0)
+    {
+        if(mantissa == 0)
+        {
+            return sign * 0.0;
+        }
+        else
+        {
+            // denormalized
+        }
+    }
+    else if(exponent == SPECIALEXP)
+    {
+        if(!(mantissa & ~HIGHBIT))
+        {
+            return sign * std::numeric_limits<double>::infinity();
+        }
+        else
+        {
+            if(mantissa & QUIETBIT)
+            {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            else
+            {
+                return std::numeric_limits<double>::signaling_NaN();
+            }
+        }
+    }
+
+    //value = (-1)^s * (m / 2^63) * 2^(e - 16383)
+    double significand = ((double)mantissa / ((uint64_t)1 << 63));
+    return sign * ldexp(significand, exponent - EXP_BIAS);
+}
+
+void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 {
     // is the register-id known?
     if(mRegisterMapping.contains(reg))
     {
+        uint_t nouint_value;
+        bool enable_label_detection = false;
+        switch(reg)
+        {
+        case CAX:
+        case CCX:
+        case CDX:
+        case CBX:
+        case CDI:
+        case CBP:
+        case CSI:
+        case CSP:
+        case R8:
+        case R9:
+        case R10:
+        case R11:
+        case R12:
+        case R13:
+        case R14:
+        case R15:
+        case CIP:
+        case DR0:
+        case DR1:
+        case DR2:
+        case DR3:
+        case DR6:
+        case DR7:
+            enable_label_detection = true;
+            break;
+
+        case CF:
+        case PF:
+        case AF:
+        case ZF:
+        case SF:
+        case TF:
+        case IF:
+        case DF:
+        case OF:
+            nouint_value = * ((bool*) value);
+            value = (char*) & nouint_value;
+            break;
+
+        case GS:
+        case FS:
+        case ES:
+        case DS:
+        case CS:
+        case SS:
+            nouint_value = * ((unsigned short*) value);
+            value = (char*) & nouint_value;
+            break;
+        }
+
         // padding to the left is at least one character (looks better)
         int x = mCharWidth * (1 + mRegisterPlaces[reg].start);
         int ySpace = yTopSpacing;
@@ -446,58 +647,61 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value)
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
+        QString valueText;
         // draw value
-        QString valueText = QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+        if(mFPUx87.contains(reg) || mFPUMMX.contains(reg))
+        {
+            SIZE_T size;
+            if(mFPUx87.contains(reg))
+                size = 10;
+            else
+                size = 8;
+            valueText = QString(QByteArray(value, size).toHex()).toUpper();
+        }
+        else
+            valueText = QString("%1").arg((* ((uint_t*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
 
         width = mCharWidth * valueText.length();
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
-        // do we have a label ?
-        QString newText = getRegisterLabel(reg);
-        bool isCharacter = false;
 
         x += valueText.length() * mCharWidth;
-        x += 5 * mCharWidth; //5 spaces
 
-        bool has_label;
-        if(newText != "")
-            has_label = true;
-        else
+        if((mFPUx87.contains(reg) || mFPUMMX.contains(reg)) && DbgIsDebugging())
         {
-            has_label = false;
-            // can we interpret the character as ASCII ??
-            if(mGPR.contains(reg))
+            x += 1 * mCharWidth; //1 space
+            QString newText;
+            if(mFPUx87.contains(reg))
             {
-                if(value == (value & 0xFF))
-                {
-                    QChar c = QChar((char)value);
-                    if(c.isPrint())
-                    {
-                        newText = QString("'%1'").arg((char)value);
-                        isCharacter = IsCharacterRegister(reg);
-                    }
-                }
-                else if(value == (value & 0xFFF)) //UNICODE?
-                {
-                    QChar c = QChar((wchar_t)value);
-                    if(c.isPrint())
-                    {
-                        newText = "L'" + QString(c) + "'";
-                        isCharacter = IsCharacterRegister(reg);
-                    }
-                }
+                newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
+                newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
             }
-        }
-        // are there additional informations?
-        if(has_label || isCharacter)
-        {
+            else
+            {
+                newText = QString::number(* (double*)(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
+            }
             width = newText.length() * mCharWidth;
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
-            //p->drawText(x,mRowHeight*(mRegisterPlaces[reg].line+1),newText);
+        }
+
+        // do we have a label ?
+        if(enable_label_detection)
+        {
+            x += 5 * mCharWidth; //5 spaces
+
+            QString newText = getRegisterLabel(reg);
+
+            // are there additional informations?
+            if(newText != "")
+            {
+                width = newText.length() * mCharWidth;
+                p->setPen(ConfigColor("RegistersExtraInfoColor"));
+                p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
+                //p->drawText(x,mRowHeight*(mRegisterPlaces[reg].line+1),newText);
+            }
         }
     }
-
 }
 
 void RegistersView::updateRegistersSlot()
@@ -512,22 +716,46 @@ void RegistersView::updateRegistersSlot()
 
 void RegistersView::displayEditDialog()
 {
-    WordEditDialog wEditDial(this);
-    wEditDial.setup(QString("Edit"), registerValue(&wRegDumpStruct, mSelected), sizeof(int_t));
-    if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
-        setRegister(mSelected, wEditDial.getVal());
+    if(!mFPUx87.contains(mSelected) && !mFPUMMX.contains(mSelected))
+    {
+        WordEditDialog wEditDial(this);
+        wEditDial.setup(QString("Edit"), (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), sizeof(int_t));
+        if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
+            setRegister(mSelected, wEditDial.getVal());
+    }
+    else
+    {
+        /*
+        LineEditDialog mLineEdit(this);
+        SIZE_T size;
+        if (mFPUx87.contains(mSelected))
+            size = 10 * 2;
+        else if (mFPUMMX.contains(mSelected))
+            size = 8 * 2;
+        else
+            size = sizeof(int_t) * 2;
+
+        mLineEdit.setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct, mSelected), size, 16, QChar('0')).toUpper());
+        mLineEdit.setWindowTitle("Edit FPU register");
+        mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
+        mLineEdit.setCursorPosition(0);
+
+        if(mLineEdit.exec() != QDialog::Accepted)
+            return; //pressed cancel
+        */
+    }
 }
 
 void RegistersView::onIncrementAction()
 {
     if(mGPR.contains(mSelected))
-        setRegister(mSelected, registerValue(&wRegDumpStruct, mSelected) + 1);
+        setRegister(mSelected, (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) + 1);
 }
 
 void RegistersView::onDecrementAction()
 {
     if(mGPR.contains(mSelected))
-        setRegister(mSelected, registerValue(&wRegDumpStruct, mSelected) - 1);
+        setRegister(mSelected, (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) - 1);
 }
 
 void RegistersView::onZeroAction()
@@ -544,17 +772,20 @@ void RegistersView::onSetToOneAction()
 
 void RegistersView::onModifyAction()
 {
-    if(mGPR.contains(mSelected))
+    if(mGPR.contains(mSelected) || mFPUx87.contains(mSelected) || mFPUMMX.contains(mSelected))
         displayEditDialog();
 }
 
 void RegistersView::onToggleValueAction()
 {
     if(mFlags.contains(mSelected))
-        setRegister(mSelected, ((int)registerValue(&wRegDumpStruct, mSelected)) ^ 1);
+    {
+        int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value ^ 1);
+    }
     else
     {
-        int_t val = registerValue(&wRegDumpStruct, mSelected);
+        int_t val = (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)));
         val++;
         val *= -1;
         setRegister(mSelected, val);
@@ -564,23 +795,45 @@ void RegistersView::onToggleValueAction()
 void RegistersView::onCopyToClipboardAction()
 {
     QClipboard* clipboard = QApplication::clipboard();
-    clipboard->setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct, mSelected), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    QString valueText;
+    if(mFPUx87.contains(mSelected) || mFPUMMX.contains(mSelected))
+    {
+        SIZE_T size;
+        char* value;
+        if(mFPUx87.contains(mSelected))
+        {
+            value = (char*)((x87FPURegister_t*) registerValue(&wRegDumpStruct, mSelected))->data;
+            size = 10;
+        }
+        else
+        {
+            value = (char*) registerValue(&wRegDumpStruct, mSelected);
+            size = 8;
+        }
+        valueText = QString(QByteArray(value, size).toHex()).toUpper();
+    }
+    else
+        valueText = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+    clipboard->setText(valueText);
 }
 
 void RegistersView::onCopySymbolToClipboardAction()
 {
-    QClipboard* clipboard = QApplication::clipboard();
-    QString symbol = getRegisterLabel(mSelected);
-    if(symbol != "")
-        clipboard->setText(symbol);
+    if(mGPR.contains(mSelected))
+    {
+        QClipboard* clipboard = QApplication::clipboard();
+        QString symbol = getRegisterLabel(mSelected);
+        if(symbol != "")
+            clipboard->setText(symbol);
+    }
 }
 
 void RegistersView::onFollowInDisassembly()
 {
     if(mGPR.contains(mSelected))
     {
-        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct, mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct, mSelected)))
+        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -589,8 +842,8 @@ void RegistersView::onFollowInDump()
 {
     if(mGPR.contains(mSelected))
     {
-        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct, mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct, mSelected)))
+        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -599,8 +852,8 @@ void RegistersView::onFollowInStack()
 {
     if(mGPR.contains(mSelected))
     {
-        QString addr = QString("%1").arg(registerValue(&wRegDumpStruct, mSelected), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr(registerValue(&wRegDumpStruct, mSelected)))
+        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -613,30 +866,34 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
     if(mSelected != UNKNOWN)
     {
-        if(!mNoChange.contains(mSelected))
+        if(!mNoChange.contains(mSelected) && !mFPUx87.contains(mSelected) && !mFPUMMX.contains(mSelected))
         {
-            if(registerValue(&wRegDumpStruct, mSelected) >= 1)
+            if((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
                 wMenu.addAction(wCM_Zero);
-            if(registerValue(&wRegDumpStruct, mSelected) == 0)
+            if((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
             wMenu.addAction(wCM_ToggleValue);
         }
 
-        if(mGPR.contains(mSelected))
+        if(mGPR.contains(mSelected) || mFPUx87.contains(mSelected) || mFPUMMX.contains(mSelected))
         {
             wMenu.addAction(wCM_Modify);
-            wMenu.addAction(wCM_Increment);
-            wMenu.addAction(wCM_Decrement);
 
-            uint_t addr = registerValue(&wRegDumpStruct, mSelected);
-            if(DbgMemIsValidReadPtr(addr))
+            if(mGPR.contains(mSelected))
             {
-                wMenu.addAction(wCM_FollowInDump);
-                wMenu.addAction(wCM_FollowInDisassembly);
-                duint size = 0;
-                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
-                if(addr >= base && addr < base + size)
-                    wMenu.addAction(wCM_FollowInStack);
+                wMenu.addAction(wCM_Increment);
+                wMenu.addAction(wCM_Decrement);
+
+                uint_t addr = (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)));
+                if(DbgMemIsValidReadPtr(addr))
+                {
+                    wMenu.addAction(wCM_FollowInDump);
+                    wMenu.addAction(wCM_FollowInDisassembly);
+                    duint size = 0;
+                    duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
+                    if(addr >= base && addr < base + size)
+                        wMenu.addAction(wCM_FollowInStack);
+                }
             }
         }
         wMenu.addAction(wCM_CopyToClipboard);
@@ -695,76 +952,126 @@ void RegistersView::repaint()
     this->viewport()->repaint();
 }
 
-int_t RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
+
+uint_t RegistersView::GetUintValue(REGISTER_NAME reg, char* value)
 {
+    switch(reg)
+    {
+    case CF:
+    case PF:
+    case AF:
+    case ZF:
+    case SF:
+    case TF:
+    case IF:
+    case DF:
+    case OF:
+        return (uint_t) * ((bool*) value);
+        break;
+
+    case GS:
+    case FS:
+    case ES:
+    case DS:
+    case CS:
+    case SS:
+        return (uint_t) * ((unsigned short*) value);
+        break;
+    }
+
+    return * ((uint_t*) value);
+}
+
+char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
+{
+    static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
 
-    if(reg == CAX) return regd->cax;
-    if(reg == CBX) return regd->cbx;
-    if(reg == CCX) return regd->ccx;
-    if(reg == CDX) return regd->cdx;
-    if(reg == CSI) return regd->csi;
-    if(reg == CDI) return regd->cdi;
-    if(reg == CBP) return regd->cbp;
-    if(reg == CSP) return regd->csp;
+    if(reg == CAX) return (char*) & (regd->titcontext.cax);
+    if(reg == CBX) return (char*) & (regd->titcontext.cbx);
+    if(reg == CCX) return (char*) & (regd->titcontext.ccx);
+    if(reg == CDX) return (char*) & (regd->titcontext.cdx);
+    if(reg == CSI) return (char*) & (regd->titcontext.csi);
+    if(reg == CDI) return (char*) & (regd->titcontext.cdi);
+    if(reg == CBP) return (char*) & (regd->titcontext.cbp);
+    if(reg == CSP) return (char*) & (regd->titcontext.csp);
 
-    if(reg == CIP) return regd->cip;
-    if(reg == EFLAGS) return regd->eflags;
+    if(reg == CIP) return (char*) & (regd->titcontext.cip);
+    if(reg == EFLAGS) return (char*) & (regd->titcontext.eflags);
 #ifdef _WIN64
-    if(reg == R8) return regd->r8;
-    if(reg == R9) return regd->r9;
-    if(reg == R10) return regd->r10;
-    if(reg == R11) return regd->r11;
-    if(reg == R12) return regd->r12;
-    if(reg == R13) return regd->r13;
-    if(reg == R14) return regd->r14;
-    if(reg == R15) return regd->r15;
+    if(reg == R8) return (char*) & (regd->titcontext.r8);
+    if(reg == R9) return (char*) & (regd->titcontext.r9);
+    if(reg == R10) return (char*) & (regd->titcontext.r10);
+    if(reg == R11) return (char*) & (regd->titcontext.r11);
+    if(reg == R12) return (char*) & (regd->titcontext.r12);
+    if(reg == R13) return (char*) & (regd->titcontext.r13);
+    if(reg == R14) return (char*) & (regd->titcontext.r14);
+    if(reg == R15) return (char*) & (regd->titcontext.r15);
 #endif
     // CF,PF,AF,ZF,SF,TF,IF,DF,OF
-    if(reg == CF) return regd->flags.c;
-    if(reg == PF) return regd->flags.p;
-    if(reg == AF) return regd->flags.a;
-    if(reg == ZF) return regd->flags.z;
-    if(reg == SF) return regd->flags.s;
-    if(reg == TF) return regd->flags.t;
-    if(reg == IF) return regd->flags.i;
-    if(reg == DF) return regd->flags.d;
-    if(reg == OF) return regd->flags.o;
+    if(reg == CF) return (char*) & (regd->flags.c);
+    if(reg == PF) return (char*) & (regd->flags.p);
+    if(reg == AF) return (char*) & (regd->flags.a);
+    if(reg == ZF) return (char*) & (regd->flags.z);
+    if(reg == SF) return (char*) & (regd->flags.s);
+    if(reg == TF) return (char*) & (regd->flags.t);
+    if(reg == IF) return (char*) & (regd->flags.i);
+    if(reg == DF) return (char*) & (regd->flags.d);
+    if(reg == OF) return (char*) & (regd->flags.o);
 
     // GS,FS,ES,DS,CS,SS
-    if(reg == GS) return regd->gs;
-    if(reg == FS) return regd->fs;
-    if(reg == ES) return regd->es;
-    if(reg == DS) return regd->ds;
-    if(reg == CS) return regd->cs;
-    if(reg == SS) return regd->ss;
+    if(reg == GS) return (char*) & (regd->titcontext.gs);
+    if(reg == FS) return (char*) & (regd->titcontext.fs);
+    if(reg == ES) return (char*) & (regd->titcontext.es);
+    if(reg == DS) return (char*) & (regd->titcontext.ds);
+    if(reg == CS) return (char*) & (regd->titcontext.cs);
+    if(reg == SS) return (char*) & (regd->titcontext.ss);
 
-    if(reg == DR0) return regd->dr0;
-    if(reg == DR1) return regd->dr1;
-    if(reg == DR2) return regd->dr2;
-    if(reg == DR3) return regd->dr3;
-    if(reg == DR6) return regd->dr6;
-    if(reg == DR7) return regd->dr7;
+    if(reg == DR0) return (char*) & (regd->titcontext.dr0);
+    if(reg == DR1) return (char*) & (regd->titcontext.dr1);
+    if(reg == DR2) return (char*) & (regd->titcontext.dr2);
+    if(reg == DR3) return (char*) & (regd->titcontext.dr3);
+    if(reg == DR6) return (char*) & (regd->titcontext.dr6);
+    if(reg == DR7) return (char*) & (regd->titcontext.dr7);
 
-    return 0;
+    if(reg == MM0) return (char*) & (regd->titcontext.mmx[0]);
+    if(reg == MM1) return (char*) & (regd->titcontext.mmx[1]);
+    if(reg == MM2) return (char*) & (regd->titcontext.mmx[2]);
+    if(reg == MM3) return (char*) & (regd->titcontext.mmx[3]);
+    if(reg == MM4) return (char*) & (regd->titcontext.mmx[4]);
+    if(reg == MM5) return (char*) & (regd->titcontext.mmx[5]);
+    if(reg == MM6) return (char*) & (regd->titcontext.mmx[6]);
+    if(reg == MM7) return (char*) & (regd->titcontext.mmx[7]);
+
+    if(reg == x87r0) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[0]);
+    if(reg == x87r1) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[1]);
+    if(reg == x87r2) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[2]);
+    if(reg == x87r3) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[3]);
+    if(reg == x87r4) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[4]);
+    if(reg == x87r5) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[5]);
+    if(reg == x87r6) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[6]);
+    if(reg == x87r7) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[7]);
+
+    return (char*) & null_value;
 }
 
 void RegistersView::setRegisters(REGDUMP* reg)
 {
     // tests if new-register-value == old-register-value holds
-    if(mCip != reg->cip) //CIP changed
+    if(mCip != reg->titcontext.cip) //CIP changed
     {
         wCipRegDumpStruct = wRegDumpStruct;
         mRegisterUpdates.clear();
-        mCip = reg->cip;
+        mCip = reg->titcontext.cip;
     }
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all ids (CAX, CBX, ...)
     while(it != mRegisterMapping.end())
     {
-        // does a register-value change happens?
-        if(registerValue(reg, it.key()) != registerValue(&wCipRegDumpStruct, it.key()))
+        uint_t old_value = GetUintValue((REGISTER_NAME) it.key(), registerValue(reg, it.key()));
+        uint_t new_value = GetUintValue((REGISTER_NAME) it.key(), registerValue(&wCipRegDumpStruct, it.key()));
+        if(old_value != new_value)
             mRegisterUpdates.insert(it.key());
         else if(mRegisterUpdates.contains(it.key())) //registers are equal
             mRegisterUpdates.remove(it.key());
@@ -774,7 +1081,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // now we can save the values
     wRegDumpStruct = (*reg);
 
-    if(mCip != reg->cip)
+    if(mCip != reg->titcontext.cip)
         wCipRegDumpStruct = wRegDumpStruct;
 
     // force repaint

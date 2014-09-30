@@ -27,6 +27,8 @@ public:
         EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
         GS, FS, ES, DS, CS, SS,
         DR0, DR1, DR2, DR3, DR6, DR7,
+        x87r0, x87r1, x87r2, x87r3, x87r4, x87r5, x87r6, x87r7,
+        MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7,
         UNKNOWN
     };
 
@@ -78,9 +80,9 @@ protected:
     virtual void keyPressEvent(QKeyEvent* event);
 
     // use-in-class-only methods
-    void drawRegister(QPainter* p, REGISTER_NAME reg, uint_t value);
+    void drawRegister(QPainter* p, REGISTER_NAME reg, char* value);
     void setRegisters(REGDUMP* reg);
-    int_t registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
+    char* registerValue(const REGDUMP* regd, const REGISTER_NAME reg);
     bool identifyRegister(const int y, const int x, REGISTER_NAME* clickedReg);
 
     void displayEditDialog();
@@ -99,6 +101,7 @@ protected slots:
     void onFollowInDump();
     void onFollowInStack();
     QString getRegisterLabel(REGISTER_NAME);
+    uint_t GetUintValue(REGISTER_NAME, char*);
 
 private:
     int mVScrollOffset;
@@ -110,6 +113,9 @@ private:
     QSet<REGISTER_NAME> mGPR;
     // all flags
     QSet<REGISTER_NAME> mFlags;
+    // FPU x87 and MMX registers
+    QSet<REGISTER_NAME> mFPUx87;
+    QSet<REGISTER_NAME> mFPUMMX;
     // contains all id's of registers if there occurs a change
     QSet<REGISTER_NAME> mRegisterUpdates;
     // registers that do not allow changes

@@ -2,6 +2,7 @@
 #define _BRIDGEMAIN_H_
 
 #include <windows.h>
+#include "..\x64_dbg_dbg\TitanEngine\TitanEngine.h"
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -369,39 +370,9 @@ typedef struct
 
 typedef struct
 {
-    duint cax;
-    duint ccx;
-    duint cdx;
-    duint cbx;
-    duint csp;
-    duint cbp;
-    duint csi;
-    duint cdi;
-#ifdef _WIN64
-    duint r8;
-    duint r9;
-    duint r10;
-    duint r11;
-    duint r12;
-    duint r13;
-    duint r14;
-    duint r15;
-#endif //_WIN64
-    duint cip;
-    unsigned int eflags;
+    TITAN_ENGINE_CONTEXT_t titcontext;
     FLAGS flags;
-    unsigned short gs;
-    unsigned short fs;
-    unsigned short es;
-    unsigned short ds;
-    unsigned short cs;
-    unsigned short ss;
-    duint dr0;
-    duint dr1;
-    duint dr2;
-    duint dr3;
-    duint dr6;
-    duint dr7;
+
 } REGDUMP;
 
 typedef struct

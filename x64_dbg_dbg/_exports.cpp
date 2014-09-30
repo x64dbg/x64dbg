@@ -340,59 +340,19 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
-    REGDUMP & r = *regdump;
+    if(!GetFullContextDataEx(hActiveThread, & (regdump->titcontext)))
+        return false;
 
-#ifdef _WIN64
-    r.cax = GetContextDataEx(hActiveThread, UE_RAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_RCX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_RDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_RBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_RBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_RSI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_RDI);
-    r.r8 = GetContextDataEx(hActiveThread, UE_R8);
-    r.r9 = GetContextDataEx(hActiveThread, UE_R9);
-    r.r10 = GetContextDataEx(hActiveThread, UE_R10);
-    r.r11 = GetContextDataEx(hActiveThread, UE_R11);
-    r.r12 = GetContextDataEx(hActiveThread, UE_R12);
-    r.r13 = GetContextDataEx(hActiveThread, UE_R13);
-    r.r14 = GetContextDataEx(hActiveThread, UE_R14);
-    r.r15 = GetContextDataEx(hActiveThread, UE_R15);
-#else
-    r.cax = GetContextDataEx(hActiveThread, UE_EAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_ECX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_EDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_EBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_EBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_ESI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_EDI);
-#endif
-
-    r.csp = GetContextDataEx(hActiveThread, UE_CSP);
-    r.cip = GetContextDataEx(hActiveThread, UE_CIP);
-    r.eflags = (unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
-    r.gs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS) & 0xFFFF);
-    r.fs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS) & 0xFFFF);
-    r.es = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_ES) & 0xFFFF);
-    r.ds = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS) & 0xFFFF);
-    r.cs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS) & 0xFFFF);
-    r.ss = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS) & 0xFFFF);
-    r.dr0 = GetContextDataEx(hActiveThread, UE_DR0);
-    r.dr1 = GetContextDataEx(hActiveThread, UE_DR1);
-    r.dr2 = GetContextDataEx(hActiveThread, UE_DR2);
-    r.dr3 = GetContextDataEx(hActiveThread, UE_DR3);
-    r.dr6 = GetContextDataEx(hActiveThread, UE_DR6);
-    r.dr7 = GetContextDataEx(hActiveThread, UE_DR7);
-    duint cflags = r.eflags;
-    r.flags.c = valflagfromstring(cflags, "cf");
-    r.flags.p = valflagfromstring(cflags, "pf");
-    r.flags.a = valflagfromstring(cflags, "af");
-    r.flags.z = valflagfromstring(cflags, "zf");
-    r.flags.s = valflagfromstring(cflags, "sf");
-    r.flags.t = valflagfromstring(cflags, "tf");
-    r.flags.i = valflagfromstring(cflags, "if");
-    r.flags.d = valflagfromstring(cflags, "df");
-    r.flags.o = valflagfromstring(cflags, "of");
+    duint cflags = regdump->titcontext.eflags;
+    regdump->flags.c = valflagfromstring(cflags, "cf");
+    regdump->flags.p = valflagfromstring(cflags, "pf");
+    regdump->flags.a = valflagfromstring(cflags, "af");
+    regdump->flags.z = valflagfromstring(cflags, "zf");
+    regdump->flags.s = valflagfromstring(cflags, "sf");
+    regdump->flags.t = valflagfromstring(cflags, "tf");
+    regdump->flags.i = valflagfromstring(cflags, "if");
+    regdump->flags.d = valflagfromstring(cflags, "df");
+    regdump->flags.o = valflagfromstring(cflags, "of");
 
     return true;
 }

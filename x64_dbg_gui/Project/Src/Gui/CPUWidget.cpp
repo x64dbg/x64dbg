@@ -33,6 +33,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);
+    mGeneralRegs->setFixedHeight(700);
 
     QScrollArea* scrollArea = new QScrollArea;
     scrollArea->setWidget(mGeneralRegs);
