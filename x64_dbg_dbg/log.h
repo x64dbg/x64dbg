@@ -1,5 +1,8 @@
-#pragma once
+#ifndef _LOG_H
+#define _LOG_H
+
 #include <sstream>
+
 // a Qt's QDebug like message logging
 // usage: "log() << "hi" << "there";
 class log
@@ -7,8 +10,8 @@ class log
 public:
     log();
     ~log();
-public:
 
+public:
     template<class T>
     inline log & operator<<(const T & x)
     {
@@ -16,8 +19,9 @@ public:
         message << x;
         return *this;
     }
+
 private:
     std::ostringstream message;
-
 };
 
+#endif _LOG_H

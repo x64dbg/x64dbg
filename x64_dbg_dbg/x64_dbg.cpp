@@ -4,7 +4,6 @@
 #include "variable.h"
 #include "instruction.h"
 #include "debugger.h"
-#include "data.h"
 #include "simplescript.h"
 #include "console.h"
 #include "math.h"
