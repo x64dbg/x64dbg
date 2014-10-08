@@ -184,6 +184,7 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
+    dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

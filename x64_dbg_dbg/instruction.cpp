@@ -1446,3 +1446,54 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
+
+#include "capstone\capstone.h"
+
+CMDRESULT cbInstrCapstone(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments...");
+        return STATUS_ERROR;
+    }
+
+    uint addr = 0;
+    if(!valfromstring(argv[1], &addr) || !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    {
+        dprintf("invalid address \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    char data[16];
+    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+    {
+        dprintf("could not read memory at %p\n", addr);
+        return STATUS_ERROR;
+    }
+
+    csh handle;
+#ifdef _WIN64
+    cs_err error = cs_open(CS_ARCH_X86, CS_MODE_64, &handle);
+#else //x86
+    cs_err error = cs_open(CS_ARCH_X86, CS_MODE_32, &handle);
+#endif //_WIN64
+    if(error)
+    {
+        dprintf("cs_open() failed, error code %u\n", error);
+        return STATUS_ERROR;
+    }
+    cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
+
+    cs_insn* instr;
+    size_t count = cs_disasm(handle, (const uint8_t*)data, sizeof(data), addr, 1, &instr);
+    if(count)
+    {
+        dprintf("%p: %s %s\n", instr->address, instr->mnemonic, instr->op_str);
+        cs_free(instr, count); //free instruction buffer
+    }
+    else //error
+        dputs("failed to disassemble code!");
+
+    cs_close(&handle);
+    return STATUS_CONTINUE;
+}

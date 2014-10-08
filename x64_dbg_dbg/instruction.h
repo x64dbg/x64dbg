@@ -62,4 +62,6 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[]);
 CMDRESULT cbInstrSleep(int argc, char* argv[]);
 CMDRESULT cbInstrFindAsm(int argc, char* argv[]);
 
+CMDRESULT cbInstrCapstone(int argc, char* argv[]);
+
 #endif // _INSTRUCTIONS_H

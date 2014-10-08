@@ -73,6 +73,9 @@
     <Filter Include="Header Files\Information">
       <UniqueIdentifier>{b006b04c-d7ea-49cb-b097-0cac1388f98e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Third Party\capstone">
+      <UniqueIdentifier>{95129527-1983-40fd-9844-1ca3481fde26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -178,7 +181,7 @@
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -334,6 +337,36 @@
     </ClInclude>
     <ClInclude Include="undocumented.h">
       <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\arm.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\arm64.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\capstone.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\mips.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\platform.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\ppc.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\sparc.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\systemz.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\x86.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\xcore.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
