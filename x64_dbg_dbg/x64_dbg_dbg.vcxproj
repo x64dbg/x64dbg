@@ -22,6 +22,7 @@
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="instruction.cpp" />
+    <ClCompile Include="log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -35,6 +36,9 @@
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
+    <ClCompile Include="UString\Exception.cpp" />
+    <ClCompile Include="UString\String.cpp" />
+    <ClCompile Include="UString\UString.cpp" />
     <ClCompile Include="value.cpp" />
     <ClCompile Include="variable.cpp" />
     <ClCompile Include="x64_dbg.cpp" />
@@ -66,6 +70,7 @@
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
     <ClInclude Include="lz4\lz4hc.h" />
@@ -83,6 +88,9 @@
     <ClInclude Include="threading.h" />
     <ClInclude Include="TitanEngine\TitanEngine.h" />
     <ClInclude Include="undocumented.h" />
+    <ClInclude Include="UString\Exception.h" />
+    <ClInclude Include="UString\String.h" />
+    <ClInclude Include="UString\UString.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64_dbg.h" />

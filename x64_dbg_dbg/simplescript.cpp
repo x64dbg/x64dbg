@@ -137,7 +137,7 @@ static int scriptinternalstep(int fromIp) //internal step routine
 
 static bool scriptcreatelinemap(const char* filename)
 {
-    HANDLE hFile = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         GuiScriptError(0, "CreateFile failed...");

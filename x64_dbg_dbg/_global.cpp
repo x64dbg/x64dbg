@@ -295,7 +295,7 @@ void formatdec(char* string)
 
 bool FileExists(const char* file)
 {
-    DWORD attrib = GetFileAttributes(file);
+    DWORD attrib = GetFileAttributesW(ConvertUtf8ToUtf16(file).c_str());
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
@@ -311,7 +311,7 @@ bool FileExists(const char* file)
 
 bool DirExists(const char* dir)
 {
-    DWORD attrib = GetFileAttributes(dir);
+    DWORD attrib = GetFileAttributesW(ConvertUtf8ToUtf16(dir).c_str());
     return (attrib == FILE_ATTRIBUTE_DIRECTORY);
 }
 
@@ -328,7 +328,11 @@ bool DirExists(const char* dir)
 
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
-    return PathFromFileHandleA(hFile, szFileName, MAX_PATH);
+    wchar_t wszFileName[MAX_PATH] = L"";
+    if(!PathFromFileHandleW(hFile, wszFileName, sizeof(wszFileName)))
+        return false;
+    strcpy_s(szFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
+    return true;
 }
 
 /**
@@ -365,7 +369,7 @@ bool settingboolget(const char* section, const char* name)
 arch GetFileArchitecture(const char* szFileName)
 {
     arch retval = notfound;
-    HANDLE hFile = CreateFileA(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         unsigned char data[0x1000];

@@ -215,7 +215,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
             if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
-                if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -230,7 +230,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
-                            if(settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            if(bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
@@ -823,19 +823,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SETTINGS_UPDATED:
     {
+        valuesetsignedcalc(!settingboolget("Engine", "CalculationType")); //0:signed, 1:unsigned
+        SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, settingboolget("Engine", "EnableDebugPrivilege"));
+        bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments");
+        bListAllPages = settingboolget("Engine", "ListAllPages");
+        bUndecorateSymbolNames = settingboolget("Engine", "UndecorateSymbolNames");
+
         uint setting;
-        if(BridgeSettingGetUint("Engine", "CalculationType", &setting))
-        {
-            switch(setting)
-            {
-            case 0: //calc_signed
-                valuesetsignedcalc(true);
-                break;
-            case 1: //calc_unsigned
-                valuesetsignedcalc(false);
-                break;
-            }
-        }
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
         {
             switch(setting)
@@ -851,13 +845,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 break;
             }
         }
-        if(BridgeSettingGetUint("Engine", "EnableDebugPrivilege", &setting))
-        {
-            if(setting)
-                SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, true);
-            else
-                SetEngineVariable(UE_ENGINE_SET_DEBUG_PRIVILEGE, false);
-        }
+
         char exceptionRange[MAX_SETTING_SIZE] = "";
         dbgclearignoredexceptions();
         if(BridgeSettingGet("Exceptions", "IgnoreRange", exceptionRange))
@@ -876,13 +864,6 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 }
                 entry = strtok(0, ",");
             }
-        }
-        if(BridgeSettingGetUint("Disassembler", "OnlyCipAutoComments", &setting))
-        {
-            if(setting)
-                bOnlyCipAutoComments = true;
-            else
-                bOnlyCipAutoComments = false;
         }
     }
     break;

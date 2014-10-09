@@ -13,7 +13,6 @@
 #define JIT_ENTRY_MAX_SIZE 512
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
 
-
 typedef enum
 {
     ERROR_RW = 0,
@@ -129,5 +128,6 @@ extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
+extern bool bUndecorateSymbolNames;
 
 #endif // _DEBUGGER_H

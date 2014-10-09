@@ -184,10 +184,10 @@ void symdownloadallsymbols(const char* szSymbolStore)
     {
         dprintf("downloading symbols for %s...\n", modList.at(i).name);
         uint modbase = modList.at(i).base;
-        char szModulePath[MAX_PATH] = "";
-        if(!GetModuleFileNameExA(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+        wchar_t szModulePath[MAX_PATH] = L"";
+        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
         {
-            dprintf("GetModuleFileNameExA("fhex") failed!\n", modbase);
+            dprintf("GetModuleFileNameExW("fhex") failed!\n", modbase);
             continue;
         }
         if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase))
@@ -195,7 +195,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
             dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
             continue;
         }
-        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0))
+        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, ConvertUtf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
             continue;
@@ -259,7 +259,7 @@ const char* symgetsymbolicname(uint addr)
         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
         {
-            if(!settingboolget("Engine", "UndecorateSymbolNames") or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
+            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
                 strcpy_s(label, pSymbol->Name);
             retval = true;
         }

@@ -4,7 +4,9 @@
 CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CalculatorDialog)
 {
     ui->setupUi(this);
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
+#endif
     setFixedSize(this->size()); //fixed size
     connect(this, SIGNAL(validAddress(bool)), ui->btnGoto, SLOT(setEnabled(bool)));
     emit validAddress(false);
@@ -69,7 +71,7 @@ void CalculatorDialog::validateExpression()
         ui->txtOct->setText(inFormat(ans, N_OCT));
         if((ans == (ans & 0xFF)))
         {
-            QChar c = QChar((char)ans);
+            QChar c = QChar::fromLatin1((char)ans);
             if(c.isPrint())
                 ui->txtAscii->setText("'" + QString(c) + "'");
             else
@@ -80,7 +82,7 @@ void CalculatorDialog::validateExpression()
         ui->txtAscii->setCursorPosition(1);
         if((ans == (ans & 0xFFF)))  //UNICODE?
         {
-            QChar c = QChar((wchar_t)ans);
+            QChar c = QChar::fromLatin1((wchar_t)ans);
             if(c.isPrint())
                 ui->txtUnicode->setText("L'" + QString(c) + "'");
             else

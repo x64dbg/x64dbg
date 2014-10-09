@@ -7,6 +7,7 @@
 typedef std::map<Range, MEMPAGE, RangeCompare> MemoryMap;
 
 extern MemoryMap memoryPages;
+extern bool bListAllPages;
 
 struct PATTERNNIBBLE
 {

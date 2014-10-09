@@ -8,7 +8,7 @@ enum WAIT_ID
 {
     WAITID_RUN,
     WAITID_STOP,
-    WAITID_USERDB
+    WAITID_LAST
 };
 
 //functions

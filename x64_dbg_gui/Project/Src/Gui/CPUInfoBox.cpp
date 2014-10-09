@@ -74,13 +74,13 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
         finalText = addrText;
         if(addr == (addr & 0xFF))
         {
-            QChar c = QChar((char)addr);
+            QChar c = QChar::fromLatin1((char)addr);
             if(c.isPrint())
                 finalText += QString(" '%1'").arg((char)addr);
         }
         else if(addr == (addr & 0xFFF)) //UNICODE?
         {
-            QChar c = QChar((wchar_t)addr);
+            QChar c = QChar::fromLatin1((wchar_t)addr);
             if(c.isPrint())
                 finalText += " L'" + QString(c) + "'";
         }
@@ -113,9 +113,14 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
         start = 1;
     }
 
+    bool bUpper = ConfigBool("Disassembler", "Uppercase");
+
     for(int i = 0, j = start; i < instr.argcount && j < 2; i++)
     {
         DISASM_ARG arg = instr.arg[i];
+        QString argMnemonic = QString(arg.mnemonic);
+        if(bUpper)
+            argMnemonic = argMnemonic.toUpper();
         if(arg.type == arg_memory)
         {
             QString sizeName = "";
@@ -136,8 +141,11 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
                 break;
             }
 
+            if(bUpper)
+                sizeName = sizeName.toUpper();
+
             if(!DbgMemIsValidReadPtr(arg.value))
-                setInfoLine(j, sizeName + "[" + QString(arg.mnemonic) + "]=???");
+                setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
             else
             {
                 QString addrText;
@@ -145,7 +153,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
                     addrText = getSymbolicName(arg.memvalue);
                 else
                     addrText = QString("%1").arg(arg.memvalue, memsize * 2, 16, QChar('0')).toUpper();
-                setInfoLine(j, sizeName + "[" + QString(arg.mnemonic) + "]=" + addrText);
+                setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             j++;
         }

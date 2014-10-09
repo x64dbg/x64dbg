@@ -7,7 +7,7 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
-#include <new>
+#include "simpleini.h"
 
 /**
  * \brief Global variable that stores a handle to the Bridge's DLL.
@@ -17,7 +17,7 @@ static HINSTANCE hInst;
 /**
  * \brief Path to the Bridge's INI file. It set when BridgeInit is called.
  */
-static char szIniFile[1024] = "";
+static wchar_t szIniFile[MAX_PATH] = L"";
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -65,15 +65,15 @@ static char szIniFile[1024] = "";
 BRIDGE_IMPEXP const char* BridgeInit()
 {
     //Settings load
-    if(!GetModuleFileNameA(0, szIniFile, 1024))
+    if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
         return "Error getting module path!";
-    int len = (int)strlen(szIniFile);
-    while(szIniFile[len] != '.' && szIniFile[len] != '\\' && len)
+    int len = (int)wcslen(szIniFile);
+    while(szIniFile[len] != L'.' && szIniFile[len] != L'\\' && len)
         len--;
-    if(szIniFile[len] == '\\')
-        strcat(szIniFile, ".ini");
+    if(szIniFile[len] == L'\\')
+        wcscat_s(szIniFile, L".ini");
     else
-        strcpy(&szIniFile[len], ".ini");
+        wcscpy_s(&szIniFile[len], sizeof(szIniFile) - len, L".ini");
 
     HINSTANCE hInst;
     const char* szLib;
@@ -165,8 +165,13 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
 {
     if(!section || !key || !value)
         return false;
-    if(!GetPrivateProfileStringA(section, key, "", value, MAX_SETTING_SIZE, szIniFile))
+    CSimpleIniA inifile(true, false, false);
+    if(inifile.LoadFile(szIniFile) < 0)
         return false;
+    const char* szValue = inifile.GetValue(section, key);
+    if(!szValue)
+        return false;
+    strcpy_s(value, MAX_SETTING_SIZE, szValue);
     return true;
 }
 
@@ -211,9 +216,13 @@ BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const 
 {
     if(!section)
         return false;
-    if(!WritePrivateProfileStringA(section, key, value, szIniFile))
-        return false;
-    return true;
+    CSimpleIniA inifile(true, false, false);
+    inifile.LoadFile(szIniFile);
+    if(!key || !value) //delete value/key when 0
+        inifile.Delete(section, key, true);
+    else
+        inifile.SetValue(section, key, value);
+    return inifile.SaveFile(szIniFile, false) >= 0;
 }
 
 /**

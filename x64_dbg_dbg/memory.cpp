@@ -15,6 +15,7 @@
  */
 
 MemoryMap memoryPages;
+bool bListAllPages = false;
 
 /**
  @fn void memupdatemap(HANDLE hProcess)
@@ -31,11 +32,6 @@ void memupdatemap(HANDLE hProcess)
     SIZE_T numBytes;
     uint MyAddress = 0, newAddress = 0;
     uint curAllocationBase = 0;
-
-    uint setting = 0;
-    bool bListAllPages = false;
-    if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && setting)
-        bListAllPages = true;
 
     std::vector<MEMPAGE> pageVector;
     do

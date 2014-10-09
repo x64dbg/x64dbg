@@ -60,7 +60,7 @@ typedef bool (*GETPROCESSLIST)(DBGPROCESSINFO** entries, int* count);
 typedef bool (*GETPAGERIGHTS)(duint addr, char* rights);
 typedef bool (*SETPAGERIGHTS)(duint addr, const char* rights);
 typedef bool (*PAGERIGHTSTOSTRING)(DWORD protect, char* rights);
-typedef bool (*ISPROCESSELEVATED)(void);
+typedef bool (*ISPROCESSELEVATED)();
 typedef bool (*GETCMDLINE)(char* cmdline, size_t* cbsize);
 typedef bool (*SETCMDLINE)(const char* cmdline);
 

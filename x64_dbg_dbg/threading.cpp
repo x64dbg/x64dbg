@@ -14,7 +14,7 @@
  @return true if waitarray[ 16], false if not.
  */
 
-static volatile bool waitarray[16];
+static volatile bool waitarray[WAITID_LAST];
 
 /**
  @fn void waitclear()

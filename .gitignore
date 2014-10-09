@@ -14,6 +14,7 @@ doc/
 #global filetypes to ignore
 *.depend
 *.layout
+*.patch
 *.cscope_file_list
 *.bmarks
 *.chw
