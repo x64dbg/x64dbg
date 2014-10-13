@@ -15,6 +15,7 @@
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="capstone_wrapper.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="debugger.cpp" />
@@ -66,6 +67,7 @@
     <ClInclude Include="capstone\systemz.h" />
     <ClInclude Include="capstone\x86.h" />
     <ClInclude Include="capstone\xcore.h" />
+    <ClInclude Include="capstone_wrapper.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />

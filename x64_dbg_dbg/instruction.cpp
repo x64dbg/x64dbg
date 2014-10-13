@@ -1448,6 +1448,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
 }
 
 #include "capstone\capstone.h"
+#include "capstone_wrapper.h"
 
 CMDRESULT cbInstrCapstone(int argc, char* argv[])
 {
@@ -1464,36 +1465,28 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    char data[16];
+    unsigned char data[16];
     if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
     {
         dprintf("could not read memory at %p\n", addr);
         return STATUS_ERROR;
     }
 
-    csh handle;
-#ifdef _WIN64
-    cs_err error = cs_open(CS_ARCH_X86, CS_MODE_64, &handle);
-#else //x86
-    cs_err error = cs_open(CS_ARCH_X86, CS_MODE_32, &handle);
-#endif //_WIN64
-    if(error)
+    Capstone cp;
+    if(cp.GetError()) //there was an error opening the handle
     {
-        dprintf("cs_open() failed, error code %u\n", error);
+        dprintf("cs_open() failed, error code %u\n", cp.GetError());
         return STATUS_ERROR;
     }
-    cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
-    cs_insn* instr;
-    size_t count = cs_disasm(handle, (const uint8_t*)data, sizeof(data), addr, 1, &instr);
-    if(count)
+    if(!cp.Disassemble(addr, data))
     {
-        dprintf("%p: %s %s\n", instr->address, instr->mnemonic, instr->op_str);
-        cs_free(instr, count); //free instruction buffer
+        dputs("failed to disassemble!");
+        return STATUS_ERROR;
     }
-    else //error
-        dputs("failed to disassemble code!");
 
-    cs_close(&handle);
+    const cs_insn* instr = cp.GetInstr();
+    dprintf("%p: %s %s\n", instr->address, instr->mnemonic, instr->op_str);
+
     return STATUS_CONTINUE;
 }

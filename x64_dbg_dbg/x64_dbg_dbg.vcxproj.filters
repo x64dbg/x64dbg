@@ -183,6 +183,9 @@
     <ClCompile Include="log.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="capstone_wrapper.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -367,6 +370,9 @@
     </ClInclude>
     <ClInclude Include="capstone\xcore.h">
       <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone_wrapper.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
