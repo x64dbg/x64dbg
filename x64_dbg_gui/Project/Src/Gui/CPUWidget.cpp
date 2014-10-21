@@ -33,7 +33,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);
-    mGeneralRegs->setFixedHeight(700);
+    mGeneralRegs->setFixedHeight(1200);
 
     QScrollArea* scrollArea = new QScrollArea;
     scrollArea->setWidget(mGeneralRegs);
@@ -41,10 +41,11 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     scrollArea->horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
     scrollArea->verticalScrollBar()->setStyleSheet("QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}");
 
+    /*
     mRegsTab = new QTabWidget(this);
     mRegsTab->addTab(scrollArea, "General");
-
-    ui->mTopRightFrameLayout->addWidget(mRegsTab);
+    */
+    ui->mTopRightFrameLayout->addWidget(scrollArea);
 
     mDump = new CPUDump(0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);

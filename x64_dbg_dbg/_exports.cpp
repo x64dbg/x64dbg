@@ -354,6 +354,9 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     regdump->flags.d = valflagfromstring(cflags, "df");
     regdump->flags.o = valflagfromstring(cflags, "of");
 
+    Getx87FPURegisters(regdump->x87FPURegisters,  & (regdump->titcontext));
+    GetMMXRegisters(regdump->mmx,  & (regdump->titcontext));
+
     return true;
 }
 

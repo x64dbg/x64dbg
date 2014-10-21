@@ -37,43 +37,171 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
+    mUINTDISPLAY.insert(CAX);
+    mLABELDISPLAY.insert(CAX);
     mGPR.insert(CBX);
+    mUINTDISPLAY.insert(CBX);
+    mLABELDISPLAY.insert(CBX);
     mGPR.insert(CCX);
+    mUINTDISPLAY.insert(CCX);
+    mLABELDISPLAY.insert(CCX);
     mGPR.insert(CDX);
+    mUINTDISPLAY.insert(CDX);
+    mLABELDISPLAY.insert(CDX);
     mGPR.insert(CBP);
+    mUINTDISPLAY.insert(CBP);
+    mLABELDISPLAY.insert(CBP);
     mGPR.insert(CSP);
+    mUINTDISPLAY.insert(CSP);
+    mLABELDISPLAY.insert(CSP);
     mGPR.insert(CSI);
+    mUINTDISPLAY.insert(CSI);
+    mLABELDISPLAY.insert(CSI);
     mGPR.insert(CDI);
+    mUINTDISPLAY.insert(CDI);
+    mLABELDISPLAY.insert(CDI);
     mGPR.insert(R8);
+    mLABELDISPLAY.insert(R8);
+    mUINTDISPLAY.insert(R8);
     mGPR.insert(R9);
+    mLABELDISPLAY.insert(R9);
+    mUINTDISPLAY.insert(R9);
     mGPR.insert(R10);
+    mUINTDISPLAY.insert(R10);
+    mLABELDISPLAY.insert(R10);
     mGPR.insert(R11);
+    mUINTDISPLAY.insert(R11);
+    mLABELDISPLAY.insert(R11);
     mGPR.insert(R12);
+    mUINTDISPLAY.insert(R12);
+    mLABELDISPLAY.insert(R12);
     mGPR.insert(R13);
+    mUINTDISPLAY.insert(R13);
+    mLABELDISPLAY.insert(R13);
     mGPR.insert(R14);
+    mUINTDISPLAY.insert(R14);
+    mLABELDISPLAY.insert(R14);
     mGPR.insert(R15);
+    mUINTDISPLAY.insert(R15);
+    mLABELDISPLAY.insert(R15);
     mGPR.insert(EFLAGS);
+    mUINTDISPLAY.insert(EFLAGS);
 
     // flags (we allow the user to toggle them)
     mFlags.insert(CF);
+    mBOOLDISPLAY.insert(CF);
     mFlags.insert(PF);
+    mBOOLDISPLAY.insert(PF);
     mFlags.insert(AF);
+    mBOOLDISPLAY.insert(AF);
     mFlags.insert(ZF);
+    mBOOLDISPLAY.insert(ZF);
     mFlags.insert(SF);
+    mBOOLDISPLAY.insert(SF);
     mFlags.insert(TF);
+    mBOOLDISPLAY.insert(TF);
     mFlags.insert(IF);
+    mBOOLDISPLAY.insert(IF);
     mFlags.insert(DF);
+    mBOOLDISPLAY.insert(DF);
     mFlags.insert(OF);
+    mBOOLDISPLAY.insert(OF);
 
-    // FPU x87 and MMX registers
+    // FPU: XMM, x87 and MMX registers
+    mDWORDDISPLAY.insert(MxCsr);
+
     mFPUx87.insert(x87r0);
+    mFPUx87_80BITSDISPLAY.insert(x87r0);
     mFPUx87.insert(x87r1);
+    mFPUx87_80BITSDISPLAY.insert(x87r1);
     mFPUx87.insert(x87r2);
+    mFPUx87_80BITSDISPLAY.insert(x87r2);
     mFPUx87.insert(x87r3);
+    mFPUx87_80BITSDISPLAY.insert(x87r3);
     mFPUx87.insert(x87r4);
+    mFPUx87_80BITSDISPLAY.insert(x87r4);
     mFPUx87.insert(x87r5);
+    mFPUx87_80BITSDISPLAY.insert(x87r5);
     mFPUx87.insert(x87r6);
+    mFPUx87_80BITSDISPLAY.insert(x87r6);
     mFPUx87.insert(x87r7);
+    mFPUx87_80BITSDISPLAY.insert(x87r7);
+
+    mFPUx87.insert(x87TagWord);
+    mUSHORTDISPLAY.insert(x87TagWord);
+    mUSHORTDISPLAY.insert(x87StatusWord);
+    mFPUx87.insert(x87StatusWord);
+    mFPUx87.insert(x87ControlWord);
+    mUSHORTDISPLAY.insert(x87ControlWord);
+
+    mFPUx87.insert(x87SW_B);
+    mBOOLDISPLAY.insert(x87SW_B);
+    mFPUx87.insert(x87SW_C3);
+    mBOOLDISPLAY.insert(x87SW_C3);
+    mFPUx87.insert(x87SW_TOP);
+
+    mFPUx87.insert(x87SW_C2);
+    mBOOLDISPLAY.insert(x87SW_C2);
+    mFPUx87.insert(x87SW_C2);
+    mBOOLDISPLAY.insert(x87SW_C2);
+    mFPUx87.insert(x87SW_C1);
+    mBOOLDISPLAY.insert(x87SW_C1);
+    mFPUx87.insert(x87SW_C0);
+    mBOOLDISPLAY.insert(x87SW_C0);
+    mFPUx87.insert(x87SW_IR);
+    mBOOLDISPLAY.insert(x87SW_IR);
+    mFPUx87.insert(x87SW_SF);
+    mBOOLDISPLAY.insert(x87SW_SF);
+    mFPUx87.insert(x87SW_P);
+    mBOOLDISPLAY.insert(x87SW_P);
+    mFPUx87.insert(x87SW_U);
+    mBOOLDISPLAY.insert(x87SW_U);
+    mFPUx87.insert(x87SW_O);
+    mBOOLDISPLAY.insert(x87SW_O);
+    mFPUx87.insert(x87SW_Z);
+    mBOOLDISPLAY.insert(x87SW_Z);
+    mFPUx87.insert(x87SW_D);
+    mBOOLDISPLAY.insert(x87SW_D);
+    mFPUx87.insert(x87SW_I);
+    mBOOLDISPLAY.insert(x87SW_I);
+
+    mFPUx87.insert(x87CW_IC);
+    mBOOLDISPLAY.insert(x87CW_IC);
+    mFPUx87.insert(x87CW_RC);
+
+    mFPUx87.insert(x87CW_PC);
+
+    mFPUx87.insert(x87CW_IEM);
+    mBOOLDISPLAY.insert(x87CW_IEM);
+    mFPUx87.insert(x87CW_PM);
+    mBOOLDISPLAY.insert(x87CW_PM);
+    mFPUx87.insert(x87CW_UM);
+    mBOOLDISPLAY.insert(x87CW_UM);
+    mFPUx87.insert(x87CW_OM);
+    mBOOLDISPLAY.insert(x87CW_OM);
+    mFPUx87.insert(x87CW_ZM);
+    mBOOLDISPLAY.insert(x87CW_ZM);
+    mFPUx87.insert(x87CW_DM);
+    mBOOLDISPLAY.insert(x87CW_DM);
+    mFPUx87.insert(x87CW_IM);
+    mBOOLDISPLAY.insert(x87CW_IM);
+
+    mBOOLDISPLAY.insert(MxCsr_FZ);
+    mBOOLDISPLAY.insert(MxCsr_PM);
+    mBOOLDISPLAY.insert(MxCsr_UM);
+    mBOOLDISPLAY.insert(MxCsr_OM);
+    mBOOLDISPLAY.insert(MxCsr_ZM);
+    mBOOLDISPLAY.insert(MxCsr_IM);
+    mBOOLDISPLAY.insert(MxCsr_DAZ);
+    mBOOLDISPLAY.insert(MxCsr_PE);
+    mBOOLDISPLAY.insert(MxCsr_UE);
+    mBOOLDISPLAY.insert(MxCsr_OE);
+    mBOOLDISPLAY.insert(MxCsr_ZE);
+    mBOOLDISPLAY.insert(MxCsr_DE);
+    mBOOLDISPLAY.insert(MxCsr_IE);
+
+    //MxCsr_RC
+
     mFPUMMX.insert(MM0);
     mFPUMMX.insert(MM1);
     mFPUMMX.insert(MM2);
@@ -83,20 +211,66 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPUMMX.insert(MM6);
     mFPUMMX.insert(MM7);
 
+    mFPUXMM.insert(XMM0);
+    mFPUXMM.insert(XMM1);
+    mFPUXMM.insert(XMM2);
+    mFPUXMM.insert(XMM3);
+    mFPUXMM.insert(XMM4);
+    mFPUXMM.insert(XMM5);
+    mFPUXMM.insert(XMM6);
+    mFPUXMM.insert(XMM7);
+#ifdef _WIN64
+    mFPUXMM.insert(XMM8);
+    mFPUXMM.insert(XMM9);
+    mFPUXMM.insert(XMM10);
+    mFPUXMM.insert(XMM11);
+    mFPUXMM.insert(XMM12);
+    mFPUXMM.insert(XMM13);
+    mFPUXMM.insert(XMM14);
+    mFPUXMM.insert(XMM15);
+#endif
+
     //registers that should not be changed
     mNoChange.insert(GS);
+    mUSHORTDISPLAY.insert(GS);
     mNoChange.insert(FS);
+    mUSHORTDISPLAY.insert(FS);
     mNoChange.insert(ES);
+    mUSHORTDISPLAY.insert(ES);
     mNoChange.insert(DS);
+    mUSHORTDISPLAY.insert(DS);
     mNoChange.insert(CS);
+    mUSHORTDISPLAY.insert(CS);
     mNoChange.insert(SS);
+    mUSHORTDISPLAY.insert(SS);
+
     mNoChange.insert(DR0);
+    mUINTDISPLAY.insert(DR0);
+    mLABELDISPLAY.insert(DR0);
+    mONLYMODULEANDLABELDISPLAY.insert(DR0);
     mNoChange.insert(DR1);
+    mONLYMODULEANDLABELDISPLAY.insert(DR1);
+    mUINTDISPLAY.insert(DR1);
+    mLABELDISPLAY.insert(DR2);
+    mONLYMODULEANDLABELDISPLAY.insert(DR2);
     mNoChange.insert(DR2);
+    mUINTDISPLAY.insert(DR2);
     mNoChange.insert(DR3);
+    mONLYMODULEANDLABELDISPLAY.insert(DR3);
+    mLABELDISPLAY.insert(DR3);
+    mUINTDISPLAY.insert(DR3);
     mNoChange.insert(DR6);
+    mLABELDISPLAY.insert(DR6);
+    mONLYMODULEANDLABELDISPLAY.insert(DR6);
+    mUINTDISPLAY.insert(DR6);
     mNoChange.insert(DR7);
+    mUINTDISPLAY.insert(DR7);
+    mONLYMODULEANDLABELDISPLAY.insert(DR7);
+    mLABELDISPLAY.insert(DR7);
     mNoChange.insert(CIP);
+    mUINTDISPLAY.insert(CIP);
+    mLABELDISPLAY.insert(CIP);
+    mONLYMODULEANDLABELDISPLAY.insert(CIP);
 
     // create mapping from internal id to name
     mRegisterMapping.clear();
@@ -229,38 +403,184 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterPlaces.insert(x87r7, Register_Position(offset + 13, 0, 6, 10 * 2));
 
     offset++;
+    mRegisterMapping.insert(x87TagWord, "x87TagWord");
+    mRegisterPlaces.insert(x87TagWord, Register_Position(offset + 14, 0, 11, sizeof(WORD) * 2));
+
+    offset++;
+    mRegisterMapping.insert(x87StatusWord, "x87StatusWord");
+    mRegisterPlaces.insert(x87StatusWord, Register_Position(offset + 15, 0, 14, sizeof(WORD) * 2));
+
+    mRegisterMapping.insert(x87SW_B, "x87SW_B");
+    mRegisterPlaces.insert(x87SW_B, Register_Position(offset + 16, 0, 9, 1));
+    mRegisterMapping.insert(x87SW_C3, "x87SW_C3");
+    mRegisterPlaces.insert(x87SW_C3, Register_Position(offset + 16, 12, 10, 1));
+    mRegisterMapping.insert(x87SW_C2, "x87SW_C2");
+    mRegisterPlaces.insert(x87SW_C2, Register_Position(offset + 16, 25, 10, 1));
+
+    mRegisterMapping.insert(x87SW_C1, "x87SW_C1");
+    mRegisterPlaces.insert(x87SW_C1, Register_Position(offset + 17, 0, 9, 1));
+    mRegisterMapping.insert(x87SW_C0, "x87SW_C0");
+    mRegisterPlaces.insert(x87SW_C0, Register_Position(offset + 17, 12, 10, 1));
+    mRegisterMapping.insert(x87SW_IR, "x87SW_IR");
+    mRegisterPlaces.insert(x87SW_IR, Register_Position(offset + 17, 25, 10, 1));
+
+    mRegisterMapping.insert(x87SW_SF, "x87SW_SF");
+    mRegisterPlaces.insert(x87SW_SF, Register_Position(offset + 18, 0, 9, 1));
+    mRegisterMapping.insert(x87SW_P, "x87SW_P");
+    mRegisterPlaces.insert(x87SW_P, Register_Position(offset + 18, 12, 10, 1));
+    mRegisterMapping.insert(x87SW_U, "x87SW_U");
+    mRegisterPlaces.insert(x87SW_U, Register_Position(offset + 18, 25, 10, 1));
+
+    mRegisterMapping.insert(x87SW_O, "x87SW_O");
+    mRegisterPlaces.insert(x87SW_O, Register_Position(offset + 19, 0, 9, 1));
+    mRegisterMapping.insert(x87SW_Z, "x87SW_Z");
+    mRegisterPlaces.insert(x87SW_Z, Register_Position(offset + 19, 12, 10, 1));
+    mRegisterMapping.insert(x87SW_D, "x87SW_D");
+    mRegisterPlaces.insert(x87SW_D, Register_Position(offset + 19, 25, 10, 1));
+
+    mRegisterMapping.insert(x87SW_I, "x87SW_I");
+    mRegisterPlaces.insert(x87SW_I, Register_Position(offset + 20, 0, 9, 1));
+    mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
+    mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 1));
+
+    offset++;
+
+    mRegisterMapping.insert(x87ControlWord, "x87ControlWord");
+    mRegisterPlaces.insert(x87ControlWord, Register_Position(offset + 21, 0, 15, sizeof(WORD) * 2));
+
+    mRegisterMapping.insert(x87CW_IC, "x87CW_IC");
+    mRegisterPlaces.insert(x87CW_IC, Register_Position(offset + 22, 0, 9, 1));
+    mRegisterMapping.insert(x87CW_IEM, "x87CW_IEM");
+    mRegisterPlaces.insert(x87CW_IEM, Register_Position(offset + 22, 12, 10, 1));
+    mRegisterMapping.insert(x87CW_PM, "x87CW_PM");
+    mRegisterPlaces.insert(x87CW_PM, Register_Position(offset + 22, 25, 10, 1));
+
+    mRegisterMapping.insert(x87CW_UM, "x87CW_UM");
+    mRegisterPlaces.insert(x87CW_UM, Register_Position(offset + 23, 0, 9, 1));
+    mRegisterMapping.insert(x87CW_OM, "x87CW_OM");
+    mRegisterPlaces.insert(x87CW_OM, Register_Position(offset + 23, 12, 10, 1));
+    mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
+    mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset + 23, 25, 10, 1));
+
+    mRegisterMapping.insert(x87CW_DM, "x87CW_DM");
+    mRegisterPlaces.insert(x87CW_DM, Register_Position(offset + 24, 0, 9, 1));
+    mRegisterMapping.insert(x87CW_IM, "x87CW_IM");
+    mRegisterPlaces.insert(x87CW_IM, Register_Position(offset + 24, 12, 10, 1));
+    mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
+    mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 1));
+
+    mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
+    mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 1));
+
+    offset++;
+
+    mRegisterMapping.insert(MxCsr, "MxCsr");
+    mRegisterPlaces.insert(MxCsr, Register_Position(offset + 26, 0, 6, sizeof(DWORD) * 2));
+
+    mRegisterMapping.insert(MxCsr_FZ, "MxCsr_FZ");
+    mRegisterPlaces.insert(MxCsr_FZ, Register_Position(offset + 27, 0, 9, 1));
+    mRegisterMapping.insert(MxCsr_PM, "MxCsr_PM");
+    mRegisterPlaces.insert(MxCsr_PM, Register_Position(offset + 27, 12, 10, 1));
+    mRegisterMapping.insert(MxCsr_UM, "MxCsr_UM");
+    mRegisterPlaces.insert(MxCsr_UM, Register_Position(offset + 27, 25, 10, 1));
+
+    mRegisterMapping.insert(MxCsr_OM, "MxCsr_OM");
+    mRegisterPlaces.insert(MxCsr_OM, Register_Position(offset + 28, 0, 9, 1));
+    mRegisterMapping.insert(MxCsr_ZM, "MxCsr_ZM");
+    mRegisterPlaces.insert(MxCsr_ZM, Register_Position(offset + 28, 12, 10, 1));
+    mRegisterMapping.insert(MxCsr_IM, "MxCsr_IM");
+    mRegisterPlaces.insert(MxCsr_IM, Register_Position(offset + 28, 25, 10, 1));
+
+    mRegisterMapping.insert(MxCsr_UE, "MxCsr_UE");
+    mRegisterPlaces.insert(MxCsr_UE, Register_Position(offset + 29, 0, 9, 1));
+    mRegisterMapping.insert(MxCsr_PE, "MxCsr_PE");
+    mRegisterPlaces.insert(MxCsr_PE, Register_Position(offset + 29, 12, 10, 1));
+    mRegisterMapping.insert(MxCsr_DAZ, "MxCsr_DAZ");
+    mRegisterPlaces.insert(MxCsr_DAZ, Register_Position(offset + 29, 25, 10, 1));
+
+    mRegisterMapping.insert(MxCsr_OE, "MxCsr_OE");
+    mRegisterPlaces.insert(MxCsr_OE, Register_Position(offset + 30, 0, 9, 1));
+    mRegisterMapping.insert(MxCsr_ZE, "MxCsr_ZE");
+    mRegisterPlaces.insert(MxCsr_ZE, Register_Position(offset + 30, 12, 10, 1));
+    mRegisterMapping.insert(MxCsr_DE, "MxCsr_DE");
+    mRegisterPlaces.insert(MxCsr_DE, Register_Position(offset + 30, 25, 10, 1));
+
+    mRegisterMapping.insert(MxCsr_IE, "MxCsr_IE");
+    mRegisterPlaces.insert(MxCsr_IE, Register_Position(offset + 31, 0, 9, 1));
+    mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
+    mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 12, 10, 1));
+
+    offset++;
 
     mRegisterMapping.insert(MM0, "MM0");
-    mRegisterPlaces.insert(MM0, Register_Position(offset + 14, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM0, Register_Position(offset + 32, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM1, "MM1");
-    mRegisterPlaces.insert(MM1, Register_Position(offset + 15, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM1, Register_Position(offset + 33, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM2, "MM2");
-    mRegisterPlaces.insert(MM2, Register_Position(offset + 16, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM2, Register_Position(offset + 34, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM3, "MM3");
-    mRegisterPlaces.insert(MM3, Register_Position(offset + 17, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM3, Register_Position(offset + 35, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM4, "MM4");
-    mRegisterPlaces.insert(MM4, Register_Position(offset + 18, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM4, Register_Position(offset + 36, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM5, "MM5");
-    mRegisterPlaces.insert(MM5, Register_Position(offset + 19, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM5, Register_Position(offset + 37, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM6, "MM6");
-    mRegisterPlaces.insert(MM6, Register_Position(offset + 20, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM6, Register_Position(offset + 38, 0, 4, 8 * 2));
     mRegisterMapping.insert(MM7, "MM7");
-    mRegisterPlaces.insert(MM7, Register_Position(offset + 21, 0, 4, 8 * 2));
+    mRegisterPlaces.insert(MM7, Register_Position(offset + 39, 0, 4, 8 * 2));
 
     offset++;
 
     mRegisterMapping.insert(DR0, "DR0");
-    mRegisterPlaces.insert(DR0, Register_Position(offset + 22, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR0, Register_Position(offset + 40, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR1, "DR1");
-    mRegisterPlaces.insert(DR1, Register_Position(offset + 23, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR1, Register_Position(offset + 41, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR2, "DR2");
-    mRegisterPlaces.insert(DR2, Register_Position(offset + 24, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR2, Register_Position(offset + 42, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR3, "DR3");
-    mRegisterPlaces.insert(DR3, Register_Position(offset + 25, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR3, Register_Position(offset + 43, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR6, "DR6");
-    mRegisterPlaces.insert(DR6, Register_Position(offset + 26, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR6, Register_Position(offset + 44, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR7, "DR7");
-    mRegisterPlaces.insert(DR7, Register_Position(offset + 27, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR7, Register_Position(offset + 45, 0, 4, sizeof(uint_t) * 2));
+
+    offset++;
+
+    mRegisterMapping.insert(XMM0, "XMM0");
+    mRegisterPlaces.insert(XMM0, Register_Position(offset + 46, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM1, "XMM1");
+    mRegisterPlaces.insert(XMM1, Register_Position(offset + 47, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM2, "XMM2");
+    mRegisterPlaces.insert(XMM2, Register_Position(offset + 48, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM3, "XMM3");
+    mRegisterPlaces.insert(XMM3, Register_Position(offset + 49, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM4, "XMM4");
+    mRegisterPlaces.insert(XMM4, Register_Position(offset + 50, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM5, "XMM5");
+    mRegisterPlaces.insert(XMM5, Register_Position(offset + 51, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM6, "XMM6");
+    mRegisterPlaces.insert(XMM6, Register_Position(offset + 52, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM7, "XMM7");
+    mRegisterPlaces.insert(XMM7, Register_Position(offset + 53, 0, 6, 16 * 2));
+
+#ifdef _WIN64
+    mRegisterMapping.insert(XMM8, "XMM8");
+    mRegisterPlaces.insert(XMM8, Register_Position(offset + 54, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM9, "XMM9");
+    mRegisterPlaces.insert(XMM9, Register_Position(offset + 55, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM10, "XMM10");
+    mRegisterPlaces.insert(XMM10, Register_Position(offset + 56, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM11, "XMM11");
+    mRegisterPlaces.insert(XMM11, Register_Position(offset + 57, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM12, "XMM12");
+    mRegisterPlaces.insert(XMM12, Register_Position(offset + 58, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM13, "XMM13");
+    mRegisterPlaces.insert(XMM13, Register_Position(offset + 59, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM14, "XMM14");
+    mRegisterPlaces.insert(XMM14, Register_Position(offset + 60, 0, 6, 16 * 2));
+    mRegisterMapping.insert(XMM15, "XMM15");
+    mRegisterPlaces.insert(XMM15, Register_Position(offset + 61, 0, 6, 16 * 2));
+#endif
 
     fontsUpdatedSlot();
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
@@ -445,11 +765,11 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
     bool hasModule = DbgGetModuleAt(register_value, module_text);
 
-    if(hasString && register_selected != CIP)
+    if(hasString && !mONLYMODULEANDLABELDISPLAY.contains(register_selected))
     {
         newText = string_text;
     }
-    else if(hasLabel && hasModule && register_selected != CIP)
+    else if(hasLabel && hasModule)
     {
         newText = "<" + QString(module_text) + "." + QString(label_text) + ">";
     }
@@ -457,11 +777,11 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     {
         newText = QString(module_text) + "." + valueText;
     }
-    else if(hasLabel && register_selected != CIP)
+    else if(hasLabel)
     {
         newText = "<" + QString(label_text) + ">";
     }
-    else if(register_selected != CIP)
+    else if(!mONLYMODULEANDLABELDISPLAY.contains(register_selected))
     {
         bool isCharacter = false;
         if(register_value == (register_value & 0xFF))
@@ -558,60 +878,6 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
     // is the register-id known?
     if(mRegisterMapping.contains(reg))
     {
-        uint_t nouint_value;
-        bool enable_label_detection = false;
-        switch(reg)
-        {
-        case CAX:
-        case CCX:
-        case CDX:
-        case CBX:
-        case CDI:
-        case CBP:
-        case CSI:
-        case CSP:
-        case R8:
-        case R9:
-        case R10:
-        case R11:
-        case R12:
-        case R13:
-        case R14:
-        case R15:
-        case CIP:
-        case DR0:
-        case DR1:
-        case DR2:
-        case DR3:
-        case DR6:
-        case DR7:
-            enable_label_detection = true;
-            break;
-
-        case CF:
-        case PF:
-        case AF:
-        case ZF:
-        case SF:
-        case TF:
-        case IF:
-        case DF:
-        case OF:
-            nouint_value = * ((bool*) value);
-            value = (char*) & nouint_value;
-            break;
-
-        case GS:
-        case FS:
-        case ES:
-        case DS:
-        case CS:
-        case SS:
-            nouint_value = * ((unsigned short*) value);
-            value = (char*) & nouint_value;
-            break;
-        }
-
         // padding to the left is at least one character (looks better)
         int x = mCharWidth * (1 + mRegisterPlaces[reg].start);
         int ySpace = yTopSpacing;
@@ -649,44 +915,70 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
         QString valueText;
         // draw value
-        if(mFPUx87.contains(reg) || mFPUMMX.contains(reg))
-        {
-            SIZE_T size;
-            if(mFPUx87.contains(reg))
-                size = 10;
-            else
-                size = 8;
-            valueText = QString(QByteArray(value, size).toHex()).toUpper();
-        }
-        else
+        if(mUINTDISPLAY.contains(reg))
             valueText = QString("%1").arg((* ((uint_t*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
-
+        else if(mUSHORTDISPLAY.contains(reg))
+            valueText = QString("%1").arg((* ((unsigned short*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+        else if(mDWORDDISPLAY.contains(reg))
+            valueText = QString("%1").arg((* ((DWORD*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+        else if(mBOOLDISPLAY.contains(reg))
+            valueText = QString("%1").arg((* ((bool*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+        else
+        {
+            SIZE_T size = GetSizeRegister(reg);
+            if(size != 0)
+                valueText = QString(QByteArray(value, size).toHex()).toUpper();
+            else
+                valueText = QString("???");
+        }
         width = mCharWidth * valueText.length();
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
 
         x += valueText.length() * mCharWidth;
 
-        if((mFPUx87.contains(reg) || mFPUMMX.contains(reg)) && DbgIsDebugging())
+        if(mFPUx87_80BITSDISPLAY.contains(reg) && DbgIsDebugging())
         {
             x += 1 * mCharWidth; //1 space
             QString newText;
-            if(mFPUx87.contains(reg))
+            newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
+
+#define X87FPU_TAGWORD_NONZERO 0
+#define X87FPU_TAGWORD_ZERO 1
+#define X87FPU_TAGWORD_SPECIAL 2
+#define X87FPU_TAGWORD_EMPTY 3
+
+            switch(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->tag)
             {
-                newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
-                newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
+            case X87FPU_TAGWORD_NONZERO:
+                newText += QString("nonzero ");
+                break;
+
+            case X87FPU_TAGWORD_ZERO:
+                newText += QString("zero ");
+                break;
+
+            case X87FPU_TAGWORD_SPECIAL:
+                newText += QString("special ");
+                break;
+
+            case X87FPU_TAGWORD_EMPTY:
+                newText += QString("empty ");
+                break;
+
+            default:
+                newText += QString("unkown ");
+                break;
             }
-            else
-            {
-                newText = QString::number(* (double*)(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
-            }
+
+            newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
             width = newText.length() * mCharWidth;
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
         }
 
         // do we have a label ?
-        if(enable_label_detection)
+        if(mLABELDISPLAY.contains(reg))
         {
             x += 5 * mCharWidth; //5 spaces
 
@@ -819,7 +1111,7 @@ void RegistersView::onCopyToClipboardAction()
 
 void RegistersView::onCopySymbolToClipboardAction()
 {
-    if(mGPR.contains(mSelected))
+    if(mLABELDISPLAY.contains(mSelected))
     {
         QClipboard* clipboard = QApplication::clipboard();
         QString symbol = getRegisterLabel(mSelected);
@@ -952,41 +1244,47 @@ void RegistersView::repaint()
     this->viewport()->repaint();
 }
 
-
-uint_t RegistersView::GetUintValue(REGISTER_NAME reg, char* value)
+SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
 {
-    switch(reg)
-    {
-    case CF:
-    case PF:
-    case AF:
-    case ZF:
-    case SF:
-    case TF:
-    case IF:
-    case DF:
-    case OF:
-        return (uint_t) * ((bool*) value);
-        break;
+    SIZE_T size;
 
-    case GS:
-    case FS:
-    case ES:
-    case DS:
-    case CS:
-    case SS:
-        return (uint_t) * ((unsigned short*) value);
-        break;
-    }
+    if(mUINTDISPLAY.contains(reg_name))
+        size = sizeof(uint_t);
+    else if(mUSHORTDISPLAY.contains(reg_name))
+        size = sizeof(unsigned short);
+    else if(mDWORDDISPLAY.contains(reg_name))
+        size = sizeof(DWORD);
+    else if(mBOOLDISPLAY.contains(reg_name))
+        size = sizeof(bool);
+    else if(mFPUx87_80BITSDISPLAY.contains(reg_name))
+        size = 10;
+    else if(mFPUMMX.contains(reg_name))
+        size = 8;
+    else if(mFPUXMM.contains(reg_name))
+        size = 16;
+    else
+        size = 0;
 
-    return * ((uint_t*) value);
+    return size;
+}
+
+int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2)
+{
+    SIZE_T size = GetSizeRegister(reg_name);
+    char* reg1_data = registerValue(regdump1, reg_name);
+    char* reg2_data = registerValue(regdump2, reg_name);
+
+    if(size != 0)
+        return memcmp(reg1_data, reg2_data, size);
+
+    return -1;
 }
 
 char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 {
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
-
+    // TODO: <Dreg> or maybe we can add an array with something like: return array[reg].data, this is more fast :-)
     if(reg == CAX) return (char*) & (regd->titcontext.cax);
     if(reg == CBX) return (char*) & (regd->titcontext.cbx);
     if(reg == CCX) return (char*) & (regd->titcontext.ccx);
@@ -1034,23 +1332,46 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == DR6) return (char*) & (regd->titcontext.dr6);
     if(reg == DR7) return (char*) & (regd->titcontext.dr7);
 
-    if(reg == MM0) return (char*) & (regd->titcontext.mmx[0]);
-    if(reg == MM1) return (char*) & (regd->titcontext.mmx[1]);
-    if(reg == MM2) return (char*) & (regd->titcontext.mmx[2]);
-    if(reg == MM3) return (char*) & (regd->titcontext.mmx[3]);
-    if(reg == MM4) return (char*) & (regd->titcontext.mmx[4]);
-    if(reg == MM5) return (char*) & (regd->titcontext.mmx[5]);
-    if(reg == MM6) return (char*) & (regd->titcontext.mmx[6]);
-    if(reg == MM7) return (char*) & (regd->titcontext.mmx[7]);
+    if(reg == MM0) return (char*) & (regd->mmx[0]);
+    if(reg == MM1) return (char*) & (regd->mmx[1]);
+    if(reg == MM2) return (char*) & (regd->mmx[2]);
+    if(reg == MM3) return (char*) & (regd->mmx[3]);
+    if(reg == MM4) return (char*) & (regd->mmx[4]);
+    if(reg == MM5) return (char*) & (regd->mmx[5]);
+    if(reg == MM6) return (char*) & (regd->mmx[6]);
+    if(reg == MM7) return (char*) & (regd->mmx[7]);
 
-    if(reg == x87r0) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[0]);
-    if(reg == x87r1) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[1]);
-    if(reg == x87r2) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[2]);
-    if(reg == x87r3) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[3]);
-    if(reg == x87r4) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[4]);
-    if(reg == x87r5) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[5]);
-    if(reg == x87r6) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[6]);
-    if(reg == x87r7) return (char*) & (regd->titcontext.x87fpu.x87FPURegister[7]);
+    if(reg == x87r0) return (char*) & (regd->x87FPURegisters[0]);
+    if(reg == x87r1) return (char*) & (regd->x87FPURegisters[1]);
+    if(reg == x87r2) return (char*) & (regd->x87FPURegisters[2]);
+    if(reg == x87r3) return (char*) & (regd->x87FPURegisters[3]);
+    if(reg == x87r4) return (char*) & (regd->x87FPURegisters[4]);
+    if(reg == x87r5) return (char*) & (regd->x87FPURegisters[5]);
+    if(reg == x87r6) return (char*) & (regd->x87FPURegisters[6]);
+    if(reg == x87r7) return (char*) & (regd->x87FPURegisters[7]);
+
+    if(reg == x87ControlWord) return (char*) & (regd->titcontext.x87fpu.ControlWord);
+    if(reg == x87StatusWord) return (char*) & (regd->titcontext.x87fpu.StatusWord);
+    if(reg == x87TagWord) return (char*) & (regd->titcontext.x87fpu.TagWord);
+
+    if(reg == MxCsr) return (char*) & (regd->titcontext.MxCsr);
+
+    if(reg == XMM0) return (char*) & (regd->titcontext.XmmRegisters[0]);
+    if(reg == XMM1) return (char*) & (regd->titcontext.XmmRegisters[1]);
+    if(reg == XMM2) return (char*) & (regd->titcontext.XmmRegisters[2]);
+    if(reg == XMM3) return (char*) & (regd->titcontext.XmmRegisters[3]);
+    if(reg == XMM4) return (char*) & (regd->titcontext.XmmRegisters[4]);
+    if(reg == XMM5) return (char*) & (regd->titcontext.XmmRegisters[5]);
+    if(reg == XMM6) return (char*) & (regd->titcontext.XmmRegisters[6]);
+    if(reg == XMM7) return (char*) & (regd->titcontext.XmmRegisters[7]);
+    if(reg == XMM8) return (char*) & (regd->titcontext.XmmRegisters[8]);
+    if(reg == XMM9) return (char*) & (regd->titcontext.XmmRegisters[9]);
+    if(reg == XMM10) return (char*) & (regd->titcontext.XmmRegisters[10]);
+    if(reg == XMM11) return (char*) & (regd->titcontext.XmmRegisters[11]);
+    if(reg == XMM12) return (char*) & (regd->titcontext.XmmRegisters[12]);
+    if(reg == XMM13) return (char*) & (regd->titcontext.XmmRegisters[13]);
+    if(reg == XMM14) return (char*) & (regd->titcontext.XmmRegisters[14]);
+    if(reg == XMM15) return (char*) & (regd->titcontext.XmmRegisters[15]);
 
     return (char*) & null_value;
 }
@@ -1069,9 +1390,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // iterate all ids (CAX, CBX, ...)
     while(it != mRegisterMapping.end())
     {
-        uint_t old_value = GetUintValue((REGISTER_NAME) it.key(), registerValue(reg, it.key()));
-        uint_t new_value = GetUintValue((REGISTER_NAME) it.key(), registerValue(&wCipRegDumpStruct, it.key()));
-        if(old_value != new_value)
+        if(CompareRegisters(it.key(), reg, &wCipRegDumpStruct) != 0)
             mRegisterUpdates.insert(it.key());
         else if(mRegisterUpdates.contains(it.key())) //registers are equal
             mRegisterUpdates.remove(it.key());

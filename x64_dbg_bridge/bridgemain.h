@@ -372,7 +372,8 @@ typedef struct
 {
     TITAN_ENGINE_CONTEXT_t titcontext;
     FLAGS flags;
-
+    x87FPURegister_t x87FPURegisters[8];
+    uint64_t mmx[8];
 } REGDUMP;
 
 typedef struct

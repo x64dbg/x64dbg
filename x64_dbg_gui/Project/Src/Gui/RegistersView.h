@@ -27,8 +27,24 @@ public:
         EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
         GS, FS, ES, DS, CS, SS,
         DR0, DR1, DR2, DR3, DR6, DR7,
+        // x87 stuff
         x87r0, x87r1, x87r2, x87r3, x87r4, x87r5, x87r6, x87r7,
+        x87TagWord, x87ControlWord, x87StatusWord,
+        // x87 Status Word fields
+        x87SW_B, x87SW_C3, x87SW_TOP, x87SW_C2, x87SW_C1, x87SW_O,
+        x87SW_IR, x87SW_SF, x87SW_P, x87SW_U, x87SW_Z,
+        x87SW_D, x87SW_I, x87SW_C0,
+        // x87 Control Word fields
+        x87CW_IC, x87CW_RC, x87CW_PC, x87CW_IEM, x87CW_PM,
+        x87CW_UM, x87CW_OM, x87CW_ZM, x87CW_DM, x87CW_IM,
+        //MxCsr
+        MxCsr, MxCsr_FZ, MxCsr_PM, MxCsr_UM, MxCsr_OM, MxCsr_ZM,
+        MxCsr_IM, MxCsr_DAZ, MxCsr_PE, MxCsr_UE, MxCsr_OE,
+        MxCsr_ZE, MxCsr_DE, MxCsr_IE, MxCsr_RC,
+        // MMX and XMM
         MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7,
+        XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
+        XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
         UNKNOWN
     };
 
@@ -101,21 +117,29 @@ protected slots:
     void onFollowInDump();
     void onFollowInStack();
     QString getRegisterLabel(REGISTER_NAME);
-    uint_t GetUintValue(REGISTER_NAME, char*);
-
+    int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
+    SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
 private:
     int mVScrollOffset;
     int mRowsNeeded;
     int yTopSpacing;
+    QSet<REGISTER_NAME> mUINTDISPLAY;
+    QSet<REGISTER_NAME> mUSHORTDISPLAY;
+    QSet<REGISTER_NAME> mDWORDDISPLAY;
+    QSet<REGISTER_NAME> mBOOLDISPLAY;
+    QSet<REGISTER_NAME> mLABELDISPLAY;
+    QSet<REGISTER_NAME> mONLYMODULEANDLABELDISPLAY;
+    QSet<REGISTER_NAME> mFPUx87_80BITSDISPLAY;
     // holds current selected register
     REGISTER_NAME mSelected;
     // general purposes register id s (cax, ..., r8, ....)
     QSet<REGISTER_NAME> mGPR;
     // all flags
     QSet<REGISTER_NAME> mFlags;
-    // FPU x87 and MMX registers
+    // FPU x87, XMM and MMX registers
     QSet<REGISTER_NAME> mFPUx87;
     QSet<REGISTER_NAME> mFPUMMX;
+    QSet<REGISTER_NAME> mFPUXMM;
     // contains all id's of registers if there occurs a change
     QSet<REGISTER_NAME> mRegisterUpdates;
     // registers that do not allow changes
