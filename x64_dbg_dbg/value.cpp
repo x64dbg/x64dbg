@@ -257,6 +257,60 @@ static bool isregister(const char* string)
     return false;
 }
 
+#define MXCSRFLAG_IE 0x1
+#define MXCSRFLAG_DE 0x4
+#define MXCSRFLAG_ZE 0x8
+#define MXCSRFLAG_OE 0x10
+#define MXCSRFLAG_UE 0x20
+#define MXCSRFLAG_PE 0x40
+#define MXCSRFLAG_DAZ 0x80
+#define MXCSRFLAG_IM 0x100
+#define MXCSRFLAG_DM 0x200
+#define MXCSRFLAG_ZM 0x400
+#define MXCSRFLAG_OM 0x800
+#define MXCSRFLAG_UM 0x1000
+#define MXCSRFLAG_PM 0x2000
+#define MXCSRFLAG_FZ 0x4000
+
+typedef struct
+{
+    char* name;
+    uint flag;
+
+} FLAG_NAME_VALUE_TABLE_t;
+
+#define MXCSR_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, MXCSRFLAG_##flag_name }
+
+bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t mxcsrnameflagtable[] =
+    {
+        MXCSR_NAME_FLAG_TABLE_ENTRY(IE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(ZE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(OE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(UE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(PE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DAZ),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(IM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(ZM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(OM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(UM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(PM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(FZ)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(mxcsrnameflagtable) / sizeof(*mxcsrnameflagtable)); i++)
+    {
+        if(scmp(string, mxcsrnameflagtable[i].name))
+            return (bool)((int)(mxcsrflags & mxcsrnameflagtable[i].flag) != 0);
+    }
+
+    return false;
+}
+
 bool valflagfromstring(uint eflags, const char* string)
 {
     if(scmp(string, "cf"))

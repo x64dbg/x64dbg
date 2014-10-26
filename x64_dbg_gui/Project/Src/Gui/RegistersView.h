@@ -39,7 +39,7 @@ public:
         x87CW_UM, x87CW_OM, x87CW_ZM, x87CW_DM, x87CW_IM,
         //MxCsr
         MxCsr, MxCsr_FZ, MxCsr_PM, MxCsr_UM, MxCsr_OM, MxCsr_ZM,
-        MxCsr_IM, MxCsr_DAZ, MxCsr_PE, MxCsr_UE, MxCsr_OE,
+        MxCsr_IM, MxCsr_DM, MxCsr_DAZ, MxCsr_PE, MxCsr_UE, MxCsr_OE,
         MxCsr_ZE, MxCsr_DE, MxCsr_IE, MxCsr_RC,
         // MMX and XMM
         MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7,
@@ -119,6 +119,7 @@ protected slots:
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
+    QString GetRegStringValueFromValue(REGISTER_NAME reg , char* value);
 private:
     int mVScrollOffset;
     int mRowsNeeded;
@@ -129,6 +130,10 @@ private:
     QSet<REGISTER_NAME> mBOOLDISPLAY;
     QSet<REGISTER_NAME> mLABELDISPLAY;
     QSet<REGISTER_NAME> mONLYMODULEANDLABELDISPLAY;
+    QSet<REGISTER_NAME> mSETONEZEROTOGGLE;
+    QSet<REGISTER_NAME> mMODIFYDISPLAY;
+    QSet<REGISTER_NAME> mCANSTOREADDRESS;
+    QSet<REGISTER_NAME> mINCREMENTDECREMET;
     QSet<REGISTER_NAME> mFPUx87_80BITSDISPLAY;
     // holds current selected register
     REGISTER_NAME mSelected;

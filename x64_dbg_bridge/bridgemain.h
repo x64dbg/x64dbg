@@ -370,10 +370,69 @@ typedef struct
 
 typedef struct
 {
+    bool FZ;
+    bool PM;
+    bool UM;
+    bool OM;
+    bool ZM;
+    bool IM;
+    bool DM;
+    bool DAZ;
+    bool PE;
+    bool UE;
+    bool OE;
+    bool ZE;
+    bool DE;
+    bool IE;
+
+    unsigned short RC;
+} MxCsr_FIELDS_t;
+
+typedef struct
+{
+    bool B;
+    bool C3;
+    bool C2;
+    bool C1;
+    bool C0;
+    bool IR;
+    bool SF;
+    bool P;
+    bool U;
+    bool O;
+    bool Z;
+    bool D;
+    bool I;
+
+    unsigned short TOP;
+
+} x87StatusWord_FIELDS_t;
+
+typedef struct
+{
+    bool IC;
+    bool IEM;
+    bool PM;
+    bool UM;
+    bool OM;
+    bool ZM;
+    bool DM;
+    bool IM;
+
+    unsigned short RC;
+    unsigned short PC;
+
+} x87ControlWord_FIELDS_t;
+
+typedef struct
+{
     TITAN_ENGINE_CONTEXT_t titcontext;
     FLAGS flags;
     x87FPURegister_t x87FPURegisters[8];
     uint64_t mmx[8];
+    MxCsr_FIELDS_t MxCsrFields;
+    x87StatusWord_FIELDS_t x87StatusWordFields;
+    x87ControlWord_FIELDS_t x87ControlWordFields;
 } REGDUMP;
 
 typedef struct

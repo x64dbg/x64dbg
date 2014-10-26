@@ -13,5 +13,6 @@ bool valfromstring(const char* string, uint* value, bool silent);
 bool valfromstring(const char* string, uint* value);
 bool valflagfromstring(uint eflags, const char* string);
 bool valtostring(const char* string, uint* value, bool silent);
+bool valmxcsrflagfromstring(uint mxcsrflags, const char* string);
 
 #endif // _VALUE_H

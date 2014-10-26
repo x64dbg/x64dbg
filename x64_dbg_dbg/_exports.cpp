@@ -332,6 +332,37 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     return cacheResult;
 }
 
+void GetMxCsrFields(MxCsr_FIELDS_t* MxCsrFields, DWORD MxCsr)
+{
+    MxCsrFields->DAZ = valmxcsrflagfromstring(MxCsr, "DAZ");
+    MxCsrFields->DE = valmxcsrflagfromstring(MxCsr, "DE");
+    MxCsrFields->FZ = valmxcsrflagfromstring(MxCsr, "FZ");
+    MxCsrFields->IE = valmxcsrflagfromstring(MxCsr, "IE");
+    MxCsrFields->IM = valmxcsrflagfromstring(MxCsr, "IM");
+    MxCsrFields->DM = valmxcsrflagfromstring(MxCsr, "DM");
+    MxCsrFields->OE = valmxcsrflagfromstring(MxCsr, "OE");
+    MxCsrFields->OM = valmxcsrflagfromstring(MxCsr, "OM");
+    MxCsrFields->PE = valmxcsrflagfromstring(MxCsr, "PE");
+    MxCsrFields->PM = valmxcsrflagfromstring(MxCsr, "PM");
+    MxCsrFields->UE = valmxcsrflagfromstring(MxCsr, "UE");
+    MxCsrFields->UM = valmxcsrflagfromstring(MxCsr, "UM");
+    MxCsrFields->ZE = valmxcsrflagfromstring(MxCsr, "ZE");
+    MxCsrFields->ZM = valmxcsrflagfromstring(MxCsr, "ZM");
+
+    //MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC")
+}
+
+void Getx87ControlWordFields(x87ControlWord_FIELDS_t* x87ControlWordFields, WORD ControlWord)
+{
+
+}
+
+void Getx87StatusWordFields(x87StatusWord_FIELDS_t* x87StatusWordFields, WORD StatusWord)
+{
+
+
+}
+
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
     if(!DbgIsDebugging())
@@ -356,6 +387,10 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 
     Getx87FPURegisters(regdump->x87FPURegisters,  & (regdump->titcontext));
     GetMMXRegisters(regdump->mmx,  & (regdump->titcontext));
+    GetMxCsrFields(& (regdump->MxCsrFields), regdump->titcontext.MxCsr);
+    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->titcontext.x87fpu.ControlWord);
+    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->titcontext.x87fpu.StatusWord);
+
 
     return true;
 }
