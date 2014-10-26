@@ -349,18 +349,41 @@ void GetMxCsrFields(MxCsr_FIELDS_t* MxCsrFields, DWORD MxCsr)
     MxCsrFields->ZE = valmxcsrflagfromstring(MxCsr, "ZE");
     MxCsrFields->ZM = valmxcsrflagfromstring(MxCsr, "ZM");
 
-    //MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC")
+    MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC");
 }
 
 void Getx87ControlWordFields(x87ControlWord_FIELDS_t* x87ControlWordFields, WORD ControlWord)
 {
+    x87ControlWordFields->DM = valx87controlwordflagfromstring(ControlWord, "DM");
+    x87ControlWordFields->IC = valx87controlwordflagfromstring(ControlWord, "IC");
+    x87ControlWordFields->IEM = valx87controlwordflagfromstring(ControlWord, "IEM");
+    x87ControlWordFields->IM = valx87controlwordflagfromstring(ControlWord, "IM");
+    x87ControlWordFields->OM = valx87controlwordflagfromstring(ControlWord, "OM");
+    x87ControlWordFields->PM = valx87controlwordflagfromstring(ControlWord, "PM");
+    x87ControlWordFields->UM = valx87controlwordflagfromstring(ControlWord, "UM");
+    x87ControlWordFields->ZM = valx87controlwordflagfromstring(ControlWord, "ZM");
 
+    x87ControlWordFields->RC = valx87controlwordfieldfromstring(ControlWord, "RC");
+    x87ControlWordFields->PC = valx87controlwordfieldfromstring(ControlWord, "PC");
 }
 
 void Getx87StatusWordFields(x87StatusWord_FIELDS_t* x87StatusWordFields, WORD StatusWord)
 {
+    x87StatusWordFields->B = valx87statuswordflagfromstring(StatusWord, "B");
+    x87StatusWordFields->C0 = valx87statuswordflagfromstring(StatusWord, "C0");
+    x87StatusWordFields->C1 = valx87statuswordflagfromstring(StatusWord, "C1");
+    x87StatusWordFields->C2 = valx87statuswordflagfromstring(StatusWord, "C2");
+    x87StatusWordFields->C3 = valx87statuswordflagfromstring(StatusWord, "C3");
+    x87StatusWordFields->D = valx87statuswordflagfromstring(StatusWord, "D");
+    x87StatusWordFields->I = valx87statuswordflagfromstring(StatusWord, "I");
+    x87StatusWordFields->IR = valx87statuswordflagfromstring(StatusWord, "IR");
+    x87StatusWordFields->O = valx87statuswordflagfromstring(StatusWord, "O");
+    x87StatusWordFields->P = valx87statuswordflagfromstring(StatusWord, "P");
+    x87StatusWordFields->SF = valx87statuswordflagfromstring(StatusWord, "SF");
+    x87StatusWordFields->U = valx87statuswordflagfromstring(StatusWord, "U");
+    x87StatusWordFields->Z = valx87statuswordflagfromstring(StatusWord, "Z");
 
-
+    x87StatusWordFields->TOP = valx87statuswordfieldfromstring(StatusWord, "TOP");
 }
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)

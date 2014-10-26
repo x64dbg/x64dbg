@@ -259,6 +259,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mBOOLDISPLAY.insert(x87SW_C3);
 
     mFPUx87.insert(x87SW_TOP);
+    mFIELDVALUE.insert(x87SW_TOP);
 
     mFPUx87.insert(x87SW_C2);
     mBOOLDISPLAY.insert(x87SW_C2);
@@ -309,8 +310,42 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mBOOLDISPLAY.insert(x87CW_IC);
 
     mFPUx87.insert(x87CW_RC);
+    mFIELDVALUE.insert(x87CW_RC);
+
+    mFPUx87.insert(x87TW_0);
+    mFIELDVALUE.insert(x87TW_0);
+    mTAGWORD.insert(x87TW_0);
+
+    mFPUx87.insert(x87TW_1);
+    mFIELDVALUE.insert(x87TW_1);
+    mTAGWORD.insert(x87TW_1);
+
+    mFPUx87.insert(x87TW_2);
+    mFIELDVALUE.insert(x87TW_2);
+    mTAGWORD.insert(x87TW_2);
+
+    mFPUx87.insert(x87TW_3);
+    mFIELDVALUE.insert(x87TW_3);
+    mTAGWORD.insert(x87TW_3);
+
+    mFPUx87.insert(x87TW_4);
+    mFIELDVALUE.insert(x87TW_4);
+    mTAGWORD.insert(x87TW_4);
+
+    mFPUx87.insert(x87TW_5);
+    mFIELDVALUE.insert(x87TW_5);
+    mTAGWORD.insert(x87TW_5);
+
+    mFPUx87.insert(x87TW_6);
+    mFIELDVALUE.insert(x87TW_6);
+    mTAGWORD.insert(x87TW_6);
+
+    mFPUx87.insert(x87TW_7);
+    mFIELDVALUE.insert(x87TW_7);
+    mTAGWORD.insert(x87TW_7);
 
     mFPUx87.insert(x87CW_PC);
+    mFIELDVALUE.insert(x87CW_PC);
 
     mSETONEZEROTOGGLE.insert(x87CW_IEM);
     mFPUx87.insert(x87CW_IEM);
@@ -382,7 +417,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mSETONEZEROTOGGLE.insert(MxCsr_IE);
     mBOOLDISPLAY.insert(MxCsr_IE);
 
-    //MxCsr_RC
+    mFIELDVALUE.insert(MxCsr_RC);
 
     mFPUMMX.insert(MM0);
     mFPUMMX.insert(MM1);
@@ -606,6 +641,28 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(x87TagWord, "x87TagWord");
     mRegisterPlaces.insert(x87TagWord, Register_Position(offset + 14, 0, 11, sizeof(WORD) * 2));
 
+    mRegisterMapping.insert(x87TW_0, "x87TW_0");
+    mRegisterPlaces.insert(x87TW_0, Register_Position(offset + 15, 0, 8, 10));
+    mRegisterMapping.insert(x87TW_1, "x87TW_1");
+    mRegisterPlaces.insert(x87TW_1, Register_Position(offset + 15, 20, 8, 10));
+
+    mRegisterMapping.insert(x87TW_2, "x87TW_2");
+    mRegisterPlaces.insert(x87TW_2, Register_Position(offset + 16, 0, 8, 10));
+    mRegisterMapping.insert(x87TW_3, "x87TW_3");
+    mRegisterPlaces.insert(x87TW_3, Register_Position(offset + 16, 20, 8, 10));
+
+    mRegisterMapping.insert(x87TW_4, "x87TW_4");
+    mRegisterPlaces.insert(x87TW_4, Register_Position(offset + 17, 0, 8, 10));
+    mRegisterMapping.insert(x87TW_5, "x87TW_5");
+    mRegisterPlaces.insert(x87TW_5, Register_Position(offset + 17, 20, 8, 10));
+
+    mRegisterMapping.insert(x87TW_6, "x87TW_6");
+    mRegisterPlaces.insert(x87TW_6, Register_Position(offset + 18, 0, 8, 10));
+    mRegisterMapping.insert(x87TW_7, "x87TW_7");
+    mRegisterPlaces.insert(x87TW_7, Register_Position(offset + 18, 20, 8, 10));
+
+    offset += 4;
+
     offset++;
     mRegisterMapping.insert(x87StatusWord, "x87StatusWord");
     mRegisterPlaces.insert(x87StatusWord, Register_Position(offset + 15, 0, 14, sizeof(WORD) * 2));
@@ -641,7 +698,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(x87SW_I, "x87SW_I");
     mRegisterPlaces.insert(x87SW_I, Register_Position(offset + 20, 0, 9, 1));
     mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
-    mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 1));
+    mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 6));
 
     offset++;
 
@@ -667,10 +724,10 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(x87CW_IM, "x87CW_IM");
     mRegisterPlaces.insert(x87CW_IM, Register_Position(offset + 24, 12, 10, 1));
     mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
-    mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 1));
+    mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 13));
 
     mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
-    mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 1));
+    mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 13));
 
     offset++;
 
@@ -710,7 +767,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
     mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset + 31, 12, 10, 1));
     mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
-    mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 1));
+    mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 13));
 
     offset++;
 
@@ -1087,6 +1144,108 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
         valueText = QString("%1").arg((* ((DWORD*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
     else if(mBOOLDISPLAY.contains(reg))
         valueText = QString("%1").arg((* ((bool*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+    else if(mFIELDVALUE.contains(reg))
+    {
+        if(mTAGWORD.contains(reg))
+        {
+            valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
+            valueText += QString("(");
+            valueText += GetTagWordStateString((* ((unsigned short*) value)));
+            valueText += QString(")");
+        }
+        if(reg == MxCsr_RC)
+        {
+            valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
+            valueText += QString("(");
+#define MxCsr_RC_NEAR 0
+#define MxCsr_RC_NEGATIVE 1
+#define MxCsr_RC_POSITIVE   2
+#define MxCsr_RC_TOZERO 3
+            switch((* ((unsigned short*) value)))
+            {
+            case MxCsr_RC_NEAR:
+                valueText += "round near";
+                break;
+
+            case MxCsr_RC_NEGATIVE:
+                valueText += "toward negative";
+                break;
+
+            case MxCsr_RC_POSITIVE:
+                valueText += "toward positive";
+                break;
+
+            case MxCsr_RC_TOZERO:
+                valueText += "toward zero";
+                break;
+            }
+
+            valueText += QString(")");
+        }
+        else if(reg == x87CW_RC)
+        {
+            valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
+            valueText += QString("(");
+#define x87CW_RC_NEAR 0
+#define x87CW_RC_DOWN 1
+#define x87CW_RC_UP   2
+#define x87CW_RC_TRUNCATE 3
+            switch((* ((unsigned short*) value)))
+            {
+            case x87CW_RC_NEAR:
+                valueText += "round near";
+                break;
+
+            case x87CW_RC_DOWN:
+                valueText += "round down";
+                break;
+
+            case x87CW_RC_UP:
+                valueText += "round up";
+                break;
+
+            case x87CW_RC_TRUNCATE:
+                valueText += "truncate";
+                break;
+            }
+
+            valueText += QString(")");
+        }
+        else if(reg == x87CW_PC)
+        {
+            valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
+            valueText += QString("(");
+#define x87CW_PC_REAL4 0
+#define x87CW_PC_NOTUSED 1
+#define x87CW_PC_REAL8   2
+#define x87CW_PC_REAL10 3
+            switch((* ((unsigned short*) value)))
+            {
+            case x87CW_PC_REAL4:
+                valueText += "real4";
+                break;
+
+            case x87CW_PC_NOTUSED:
+                valueText += "not used";
+                break;
+
+            case x87CW_PC_REAL8:
+                valueText += "real8";
+                break;
+
+            case x87CW_PC_REAL10:
+                valueText += "real10";
+                break;
+            }
+
+            valueText += QString(")");
+        }
+        else if(reg == x87SW_TOP)
+        {
+            valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
+            valueText += QString("(ST") + valueText + QString(")");
+        }
+    }
     else
     {
         SIZE_T size = GetSizeRegister(reg);
@@ -1097,6 +1256,39 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     }
 
     return valueText;
+}
+
+QString RegistersView::GetTagWordStateString(unsigned short state)
+{
+#define X87FPU_TAGWORD_NONZERO 0
+#define X87FPU_TAGWORD_ZERO 1
+#define X87FPU_TAGWORD_SPECIAL 2
+#define X87FPU_TAGWORD_EMPTY 3
+    QString string_state = "";
+    switch(state)
+    {
+    case X87FPU_TAGWORD_NONZERO:
+        string_state += QString("nonzero");
+        break;
+
+    case X87FPU_TAGWORD_ZERO:
+        string_state += QString("zero");
+        break;
+
+    case X87FPU_TAGWORD_SPECIAL:
+        string_state += QString("special");
+        break;
+
+    case X87FPU_TAGWORD_EMPTY:
+        string_state += QString("empty");
+        break;
+
+    default:
+        string_state += QString("unkown");
+        break;
+    }
+
+    return string_state;
 }
 
 void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
@@ -1154,33 +1346,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             QString newText;
             newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
 
-#define X87FPU_TAGWORD_NONZERO 0
-#define X87FPU_TAGWORD_ZERO 1
-#define X87FPU_TAGWORD_SPECIAL 2
-#define X87FPU_TAGWORD_EMPTY 3
-
-            switch(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->tag)
-            {
-            case X87FPU_TAGWORD_NONZERO:
-                newText += QString("nonzero ");
-                break;
-
-            case X87FPU_TAGWORD_ZERO:
-                newText += QString("zero ");
-                break;
-
-            case X87FPU_TAGWORD_SPECIAL:
-                newText += QString("special ");
-                break;
-
-            case X87FPU_TAGWORD_EMPTY:
-                newText += QString("empty ");
-                break;
-
-            default:
-                newText += QString("unkown ");
-                break;
-            }
+            newText += GetTagWordStateString(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
 
             newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
             width = newText.length() * mCharWidth;
@@ -1473,7 +1639,7 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
 
     if(mUINTDISPLAY.contains(reg_name))
         size = sizeof(uint_t);
-    else if(mUSHORTDISPLAY.contains(reg_name))
+    else if(mUSHORTDISPLAY.contains(reg_name) || mFIELDVALUE.contains(reg_name))
         size = sizeof(unsigned short);
     else if(mDWORDDISPLAY.contains(reg_name))
         size = sizeof(DWORD);
@@ -1576,6 +1742,15 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == x87TagWord) return (char*) & (regd->titcontext.x87fpu.TagWord);
 
     if(reg == x87ControlWord) return (char*) & (regd->titcontext.x87fpu.ControlWord);
+
+    if(reg == x87TW_0) return (char*) & (regd->x87FPURegisters[0].tag);
+    if(reg == x87TW_1) return (char*) & (regd->x87FPURegisters[1].tag);
+    if(reg == x87TW_2) return (char*) & (regd->x87FPURegisters[2].tag);
+    if(reg == x87TW_3) return (char*) & (regd->x87FPURegisters[3].tag);
+    if(reg == x87TW_4) return (char*) & (regd->x87FPURegisters[4].tag);
+    if(reg == x87TW_5) return (char*) & (regd->x87FPURegisters[5].tag);
+    if(reg == x87TW_6) return (char*) & (regd->x87FPURegisters[6].tag);
+    if(reg == x87TW_7) return (char*) & (regd->x87FPURegisters[7].tag);
 
     if(reg == x87CW_IC) return (char*) & (regd->x87ControlWordFields.IC);
     if(reg == x87CW_IEM) return (char*) & (regd->x87ControlWordFields.IEM);

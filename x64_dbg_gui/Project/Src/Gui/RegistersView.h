@@ -30,6 +30,9 @@ public:
         // x87 stuff
         x87r0, x87r1, x87r2, x87r3, x87r4, x87r5, x87r6, x87r7,
         x87TagWord, x87ControlWord, x87StatusWord,
+        // x87 Tag Word fields
+        x87TW_0, x87TW_1, x87TW_2, x87TW_3, x87TW_4, x87TW_5,
+        x87TW_6, x87TW_7,
         // x87 Status Word fields
         x87SW_B, x87SW_C3, x87SW_TOP, x87SW_C2, x87SW_C1, x87SW_O,
         x87SW_IR, x87SW_SF, x87SW_P, x87SW_U, x87SW_Z,
@@ -120,6 +123,8 @@ protected slots:
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
     QString GetRegStringValueFromValue(REGISTER_NAME reg , char* value);
+    QString GetTagWordStateString(unsigned short);
+
 private:
     int mVScrollOffset;
     int mRowsNeeded;
@@ -132,6 +137,8 @@ private:
     QSet<REGISTER_NAME> mONLYMODULEANDLABELDISPLAY;
     QSet<REGISTER_NAME> mSETONEZEROTOGGLE;
     QSet<REGISTER_NAME> mMODIFYDISPLAY;
+    QSet<REGISTER_NAME> mFIELDVALUE;
+    QSet<REGISTER_NAME> mTAGWORD;
     QSet<REGISTER_NAME> mCANSTOREADDRESS;
     QSet<REGISTER_NAME> mINCREMENTDECREMET;
     QSet<REGISTER_NAME> mFPUx87_80BITSDISPLAY;

@@ -258,19 +258,19 @@ static bool isregister(const char* string)
 }
 
 #define MXCSRFLAG_IE 0x1
-#define MXCSRFLAG_DE 0x4
-#define MXCSRFLAG_ZE 0x8
-#define MXCSRFLAG_OE 0x10
-#define MXCSRFLAG_UE 0x20
-#define MXCSRFLAG_PE 0x40
-#define MXCSRFLAG_DAZ 0x80
-#define MXCSRFLAG_IM 0x100
-#define MXCSRFLAG_DM 0x200
-#define MXCSRFLAG_ZM 0x400
-#define MXCSRFLAG_OM 0x800
-#define MXCSRFLAG_UM 0x1000
-#define MXCSRFLAG_PM 0x2000
-#define MXCSRFLAG_FZ 0x4000
+#define MXCSRFLAG_DE 0x2
+#define MXCSRFLAG_ZE 0x4
+#define MXCSRFLAG_OE 0x8
+#define MXCSRFLAG_UE 0x10
+#define MXCSRFLAG_PE 0x20
+#define MXCSRFLAG_DAZ 0x40
+#define MXCSRFLAG_IM 0x80
+#define MXCSRFLAG_DM 0x100
+#define MXCSRFLAG_ZM 0x200
+#define MXCSRFLAG_OM 0x400
+#define MXCSRFLAG_UM 0x800
+#define MXCSRFLAG_PM 0x1000
+#define MXCSRFLAG_FZ 0x8000
 
 typedef struct
 {
@@ -309,6 +309,112 @@ bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
     }
 
     return false;
+}
+
+#define x87STATUSWORD_FLAG_I 0x1
+#define x87STATUSWORD_FLAG_D 0x2
+#define x87STATUSWORD_FLAG_Z 0x4
+#define x87STATUSWORD_FLAG_O 0x8
+#define x87STATUSWORD_FLAG_U 0x10
+#define x87STATUSWORD_FLAG_P 0x20
+#define x87STATUSWORD_FLAG_SF 0x40
+#define x87STATUSWORD_FLAG_IR 0x80
+#define x87STATUSWORD_FLAG_C0 0x100
+#define x87STATUSWORD_FLAG_C1 0x200
+#define x87STATUSWORD_FLAG_C2 0x400
+#define x87STATUSWORD_FLAG_C3 0x4000
+#define x87STATUSWORD_FLAG_B 0x8000
+
+#define X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87STATUSWORD_FLAG_##flag_name }
+
+bool valx87statuswordflagfromstring(uint statusword, const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t statuswordflagtable[] =
+    {
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(I),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(D),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(Z),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(O),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(U),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(P),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(SF),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(IR),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C0),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C1),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C2),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C3),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(B)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(statuswordflagtable) / sizeof(*statuswordflagtable)); i++)
+    {
+        if(scmp(string, statuswordflagtable[i].name))
+            return (bool)((int)(statusword & statuswordflagtable[i].flag) != 0);
+    }
+
+    return false;
+}
+
+#define x87CONTROLWORD_FLAG_IM 0x1
+#define x87CONTROLWORD_FLAG_DM 0x2
+#define x87CONTROLWORD_FLAG_ZM 0x4
+#define x87CONTROLWORD_FLAG_OM 0x8
+#define x87CONTROLWORD_FLAG_UM 0x10
+#define x87CONTROLWORD_FLAG_PM 0x20
+#define x87CONTROLWORD_FLAG_IEM 0x80
+#define x87CONTROLWORD_FLAG_IC 0x1000
+
+#define X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87CONTROLWORD_FLAG_##flag_name }
+
+bool valx87controlwordflagfromstring(uint controlword, const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t controlwordflagtable[] =
+    {
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(DM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(ZM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(OM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(UM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(PM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IEM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IC)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(controlwordflagtable) / sizeof(*controlwordflagtable)); i++)
+    {
+        if(scmp(string, controlwordflagtable[i].name))
+            return (bool)((int)(controlword & controlwordflagtable[i].flag) != 0);
+    }
+
+    return false;
+}
+
+unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
+{
+    if(scmp(string, "RC"))
+        return ((mxcsrflags & 0x6000) >> 13);
+
+    return 0;
+}
+
+unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string)
+{
+    if(scmp(string, "TOP"))
+        return ((statusword & 0x3800) >> 11);
+
+    return 0;
+}
+
+unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string)
+{
+    if(scmp(string, "PC"))
+        return ((controlword & 0x300) >> 8);
+    if(scmp(string, "RC"))
+        return ((controlword & 0xC00) >> 10);
+
+    return 0;
 }
 
 bool valflagfromstring(uint eflags, const char* string)
