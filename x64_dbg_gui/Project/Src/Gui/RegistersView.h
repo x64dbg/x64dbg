@@ -142,6 +142,7 @@ private:
     QSet<REGISTER_NAME> mCANSTOREADDRESS;
     QSet<REGISTER_NAME> mINCREMENTDECREMET;
     QSet<REGISTER_NAME> mFPUx87_80BITSDISPLAY;
+    QSet<REGISTER_NAME> mFPU;
     // holds current selected register
     REGISTER_NAME mSelected;
     // general purposes register id s (cax, ..., r8, ....)

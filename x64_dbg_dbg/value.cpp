@@ -1424,7 +1424,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *isvar = true;
         return true;
     }
-    else if(isregister(string)) //register
+    else if(isregister(string)) //re    gister
     {
         if(!DbgIsDebugging())
         {
@@ -1522,6 +1522,57 @@ bool valfromstring(const char* string, uint* value)
     return valfromstring(string, value, true);
 }
 
+bool longEnough(const char* str, int min_length)
+{
+    int length = 0;
+    while(str[length] && length < min_length)
+        length++;
+    if(length == min_length)
+        return true;
+    return false;
+}
+
+bool startsWith(const char* pre, const char* str)
+{
+    size_t lenpre = strlen(pre);
+    return longEnough(str, lenpre) ? StrNCmpI(str, pre, lenpre) == 0 : false;
+}
+
+void fpustuff(const char* string, uint value)
+{
+    if(startsWith("MxCsr_", string))
+    {
+
+    }
+    else if(startsWith("x87TW_", string))
+    {
+    }
+    else if(startsWith("x87SW_", string))
+    {
+
+    }
+    else if(startsWith("x87CW_", string))
+    {
+
+    }
+    else if(StrNCmpI(string, "x87TagWord", strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "x87StatusWord", strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "x87ControlWord", strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "MxCsr", strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_MXCSR, value);
+    }
+}
+
 bool valtostring(const char* string, uint* value, bool silent)
 {
     if(!*string or !value)
@@ -1601,6 +1652,11 @@ bool valtostring(const char* string, uint* value, bool silent)
         else
             GuiUpdateAllViews(); //repaint gui
         return ok;
+    }
+    else if((*string == '_'))
+    {
+        fpustuff(string + 1, * value);
+        GuiUpdateAllViews(); //repaint gui
     }
     else if(*string == '!' and isflag(string + 1)) //flag
     {

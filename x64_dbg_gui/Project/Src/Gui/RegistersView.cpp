@@ -3,6 +3,7 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
+#include <QMessageBox>
 
 
 RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
@@ -210,241 +211,356 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mSETONEZEROTOGGLE.insert(MxCsr);
     mDWORDDISPLAY.insert(MxCsr);
     mMODIFYDISPLAY.insert(MxCsr);
+    mFPU.insert(MxCsr);
 
+    mMODIFYDISPLAY.insert(x87r0);
     mFPUx87.insert(x87r0);
     mFPUx87_80BITSDISPLAY.insert(x87r0);
+    mFPU.insert(x87r0);
 
+    mMODIFYDISPLAY.insert(x87r1);
     mFPUx87.insert(x87r1);
     mFPUx87_80BITSDISPLAY.insert(x87r1);
+    mFPU.insert(x87r1);
 
+    mMODIFYDISPLAY.insert(x87r2);
     mFPUx87.insert(x87r2);
     mFPUx87_80BITSDISPLAY.insert(x87r2);
+    mFPU.insert(x87r2);
 
+    mMODIFYDISPLAY.insert(x87r3);
     mFPUx87.insert(x87r3);
     mFPUx87_80BITSDISPLAY.insert(x87r3);
+    mFPU.insert(x87r3);
 
+    mMODIFYDISPLAY.insert(x87r4);
     mFPUx87.insert(x87r4);
     mFPUx87_80BITSDISPLAY.insert(x87r4);
+    mFPU.insert(x87r4);
 
+    mMODIFYDISPLAY.insert(x87r5);
     mFPUx87.insert(x87r5);
+    mFPU.insert(x87r5);
     mFPUx87_80BITSDISPLAY.insert(x87r5);
 
+    mMODIFYDISPLAY.insert(x87r6);
     mFPUx87.insert(x87r6);
+    mFPU.insert(x87r6);
     mFPUx87_80BITSDISPLAY.insert(x87r6);
 
+    mMODIFYDISPLAY.insert(x87r7);
     mFPUx87.insert(x87r7);
+    mFPU.insert(x87r7);
     mFPUx87_80BITSDISPLAY.insert(x87r7);
 
     mSETONEZEROTOGGLE.insert(x87TagWord);
     mFPUx87.insert(x87TagWord);
     mMODIFYDISPLAY.insert(x87TagWord);
     mUSHORTDISPLAY.insert(x87TagWord);
+    mFPU.insert(x87TagWord);
 
     mSETONEZEROTOGGLE.insert(x87StatusWord);
     mUSHORTDISPLAY.insert(x87StatusWord);
     mMODIFYDISPLAY.insert(x87StatusWord);
     mFPUx87.insert(x87StatusWord);
+    mFPU.insert(x87StatusWord);
 
     mSETONEZEROTOGGLE.insert(x87ControlWord);
     mFPUx87.insert(x87ControlWord);
     mMODIFYDISPLAY.insert(x87ControlWord);
     mUSHORTDISPLAY.insert(x87ControlWord);
+    mFPU.insert(x87ControlWord);
 
     mSETONEZEROTOGGLE.insert(x87SW_B);
     mFPUx87.insert(x87SW_B);
     mBOOLDISPLAY.insert(x87SW_B);
+    mFPU.insert(x87SW_B);
 
     mSETONEZEROTOGGLE.insert(x87SW_C3);
     mFPUx87.insert(x87SW_C3);
     mBOOLDISPLAY.insert(x87SW_C3);
+    mFPU.insert(x87SW_C3);
 
     mFPUx87.insert(x87SW_TOP);
     mFIELDVALUE.insert(x87SW_TOP);
+    mFPU.insert(x87SW_TOP);
 
     mFPUx87.insert(x87SW_C2);
     mBOOLDISPLAY.insert(x87SW_C2);
     mSETONEZEROTOGGLE.insert(x87SW_C2);
+    mFPU.insert(x87SW_C2);
 
     mSETONEZEROTOGGLE.insert(x87SW_C1);
     mFPUx87.insert(x87SW_C1);
     mBOOLDISPLAY.insert(x87SW_C1);
+    mFPU.insert(x87SW_C1);
 
     mSETONEZEROTOGGLE.insert(x87SW_C0);
     mFPUx87.insert(x87SW_C0);
     mBOOLDISPLAY.insert(x87SW_C0);
+    mFPU.insert(x87SW_C0);
 
     mSETONEZEROTOGGLE.insert(x87SW_IR);
     mFPUx87.insert(x87SW_IR);
     mBOOLDISPLAY.insert(x87SW_IR);
+    mFPU.insert(x87SW_IR);
 
     mSETONEZEROTOGGLE.insert(x87SW_SF);
     mFPUx87.insert(x87SW_SF);
     mBOOLDISPLAY.insert(x87SW_SF);
+    mFPU.insert(x87SW_SF);
 
     mSETONEZEROTOGGLE.insert(x87SW_P);
     mFPUx87.insert(x87SW_P);
     mBOOLDISPLAY.insert(x87SW_P);
+    mFPU.insert(x87SW_P);
 
     mSETONEZEROTOGGLE.insert(x87SW_U);
     mFPUx87.insert(x87SW_U);
     mBOOLDISPLAY.insert(x87SW_U);
+    mFPU.insert(x87SW_U);
 
     mSETONEZEROTOGGLE.insert(x87SW_O);
     mFPUx87.insert(x87SW_O);
     mBOOLDISPLAY.insert(x87SW_O);
+    mFPU.insert(x87SW_O);
 
     mSETONEZEROTOGGLE.insert(x87SW_Z);
     mFPUx87.insert(x87SW_Z);
     mBOOLDISPLAY.insert(x87SW_Z);
+    mFPU.insert(x87SW_Z);
 
     mSETONEZEROTOGGLE.insert(x87SW_D);
     mFPUx87.insert(x87SW_D);
     mBOOLDISPLAY.insert(x87SW_D);
+    mFPU.insert(x87SW_D);
 
     mSETONEZEROTOGGLE.insert(x87SW_I);
     mFPUx87.insert(x87SW_I);
     mBOOLDISPLAY.insert(x87SW_I);
+    mFPU.insert(x87SW_I);
 
     mSETONEZEROTOGGLE.insert(x87CW_IC);
     mFPUx87.insert(x87CW_IC);
     mBOOLDISPLAY.insert(x87CW_IC);
+    mFPU.insert(x87CW_IC);
 
     mFPUx87.insert(x87CW_RC);
     mFIELDVALUE.insert(x87CW_RC);
+    mFPU.insert(x87CW_RC);
 
     mFPUx87.insert(x87TW_0);
     mFIELDVALUE.insert(x87TW_0);
     mTAGWORD.insert(x87TW_0);
+    mFPU.insert(x87TW_0);
 
     mFPUx87.insert(x87TW_1);
     mFIELDVALUE.insert(x87TW_1);
     mTAGWORD.insert(x87TW_1);
+    mFPU.insert(x87TW_1);
 
     mFPUx87.insert(x87TW_2);
     mFIELDVALUE.insert(x87TW_2);
     mTAGWORD.insert(x87TW_2);
+    mFPU.insert(x87TW_2);
 
     mFPUx87.insert(x87TW_3);
     mFIELDVALUE.insert(x87TW_3);
     mTAGWORD.insert(x87TW_3);
+    mFPU.insert(x87TW_3);
 
     mFPUx87.insert(x87TW_4);
     mFIELDVALUE.insert(x87TW_4);
     mTAGWORD.insert(x87TW_4);
+    mFPU.insert(x87TW_4);
 
     mFPUx87.insert(x87TW_5);
     mFIELDVALUE.insert(x87TW_5);
     mTAGWORD.insert(x87TW_5);
+    mFPU.insert(x87TW_5);
 
     mFPUx87.insert(x87TW_6);
     mFIELDVALUE.insert(x87TW_6);
     mTAGWORD.insert(x87TW_6);
+    mFPU.insert(x87TW_6);
 
     mFPUx87.insert(x87TW_7);
     mFIELDVALUE.insert(x87TW_7);
     mTAGWORD.insert(x87TW_7);
+    mFPU.insert(x87TW_7);
 
     mFPUx87.insert(x87CW_PC);
     mFIELDVALUE.insert(x87CW_PC);
+    mFPU.insert(x87CW_PC);
 
     mSETONEZEROTOGGLE.insert(x87CW_IEM);
     mFPUx87.insert(x87CW_IEM);
     mBOOLDISPLAY.insert(x87CW_IEM);
+    mFPU.insert(x87CW_IEM);
 
     mSETONEZEROTOGGLE.insert(x87CW_PM);
     mFPUx87.insert(x87CW_PM);
     mBOOLDISPLAY.insert(x87CW_PM);
+    mFPU.insert(x87CW_PM);
 
     mSETONEZEROTOGGLE.insert(x87CW_UM);
     mFPUx87.insert(x87CW_UM);
     mBOOLDISPLAY.insert(x87CW_UM);
+    mFPU.insert(x87CW_UM);
 
     mSETONEZEROTOGGLE.insert(x87CW_OM);
     mFPUx87.insert(x87CW_OM);
     mBOOLDISPLAY.insert(x87CW_OM);
+    mFPU.insert(x87CW_OM);
 
     mSETONEZEROTOGGLE.insert(x87CW_ZM);
     mFPUx87.insert(x87CW_ZM);
     mBOOLDISPLAY.insert(x87CW_ZM);
+    mFPU.insert(x87CW_ZM);
 
     mSETONEZEROTOGGLE.insert(x87CW_DM);
     mFPUx87.insert(x87CW_DM);
     mBOOLDISPLAY.insert(x87CW_DM);
+    mFPU.insert(x87CW_DM);
 
     mSETONEZEROTOGGLE.insert(x87CW_IM);
     mFPUx87.insert(x87CW_IM);
     mBOOLDISPLAY.insert(x87CW_IM);
+    mFPU.insert(x87CW_IM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_FZ);
     mBOOLDISPLAY.insert(MxCsr_FZ);
+    mFPU.insert(MxCsr_FZ);
 
     mSETONEZEROTOGGLE.insert(MxCsr_PM);
     mBOOLDISPLAY.insert(MxCsr_PM);
+    mFPU.insert(MxCsr_PM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_UM);
     mBOOLDISPLAY.insert(MxCsr_UM);
+    mFPU.insert(MxCsr_UM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_OM);
     mBOOLDISPLAY.insert(MxCsr_OM);
+    mFPU.insert(MxCsr_OM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_ZM);
     mBOOLDISPLAY.insert(MxCsr_ZM);
+    mFPU.insert(MxCsr_ZM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_IM);
     mBOOLDISPLAY.insert(MxCsr_IM);
+    mFPU.insert(MxCsr_IM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_DM);
     mBOOLDISPLAY.insert(MxCsr_DM);
+    mFPU.insert(MxCsr_DM);
 
     mSETONEZEROTOGGLE.insert(MxCsr_DAZ);
     mBOOLDISPLAY.insert(MxCsr_DAZ);
+    mFPU.insert(MxCsr_DAZ);
 
     mSETONEZEROTOGGLE.insert(MxCsr_PE);
     mBOOLDISPLAY.insert(MxCsr_PE);
+    mFPU.insert(MxCsr_PE);
 
     mSETONEZEROTOGGLE.insert(MxCsr_UE);
     mBOOLDISPLAY.insert(MxCsr_UE);
+    mFPU.insert(MxCsr_UE);
 
     mSETONEZEROTOGGLE.insert(MxCsr_OE);
     mBOOLDISPLAY.insert(MxCsr_OE);
+    mFPU.insert(MxCsr_OE);
 
     mSETONEZEROTOGGLE.insert(MxCsr_ZE);
     mBOOLDISPLAY.insert(MxCsr_ZE);
+    mFPU.insert(MxCsr_ZE);
 
     mSETONEZEROTOGGLE.insert(MxCsr_DE);
     mBOOLDISPLAY.insert(MxCsr_DE);
+    mFPU.insert(MxCsr_DE);
 
     mSETONEZEROTOGGLE.insert(MxCsr_IE);
     mBOOLDISPLAY.insert(MxCsr_IE);
+    mFPU.insert(MxCsr_IE);
 
     mFIELDVALUE.insert(MxCsr_RC);
+    mFPU.insert(MxCsr_RC);
 
+    mMODIFYDISPLAY.insert(MM0);
     mFPUMMX.insert(MM0);
+    mFPU.insert(MM0);
+    mMODIFYDISPLAY.insert(MM1);
     mFPUMMX.insert(MM1);
+    mFPU.insert(MM1);
     mFPUMMX.insert(MM2);
+    mMODIFYDISPLAY.insert(MM2);
+    mFPU.insert(MM2);
     mFPUMMX.insert(MM3);
+    mMODIFYDISPLAY.insert(MM3);
+    mFPU.insert(MM3);
     mFPUMMX.insert(MM4);
+    mMODIFYDISPLAY.insert(MM4);
+    mFPU.insert(MM4);
     mFPUMMX.insert(MM5);
+    mMODIFYDISPLAY.insert(MM5);
+    mFPU.insert(MM5);
     mFPUMMX.insert(MM6);
+    mMODIFYDISPLAY.insert(MM6);
+    mFPU.insert(MM6);
     mFPUMMX.insert(MM7);
+    mMODIFYDISPLAY.insert(MM7);
+    mFPU.insert(MM7);
 
     mFPUXMM.insert(XMM0);
+    mMODIFYDISPLAY.insert(XMM0);
+    mFPU.insert(XMM0);
     mFPUXMM.insert(XMM1);
+    mMODIFYDISPLAY.insert(XMM1);
+    mFPU.insert(XMM1);
     mFPUXMM.insert(XMM2);
+    mMODIFYDISPLAY.insert(XMM2);
+    mFPU.insert(XMM2);
     mFPUXMM.insert(XMM3);
+    mMODIFYDISPLAY.insert(XMM3);
+    mFPU.insert(XMM3);
     mFPUXMM.insert(XMM4);
+    mMODIFYDISPLAY.insert(XMM4);
+    mFPU.insert(XMM4);
     mFPUXMM.insert(XMM5);
+    mMODIFYDISPLAY.insert(XMM5);
+    mFPU.insert(XMM5);
     mFPUXMM.insert(XMM6);
+    mMODIFYDISPLAY.insert(XMM6);
+    mFPU.insert(XMM6);
     mFPUXMM.insert(XMM7);
+    mMODIFYDISPLAY.insert(XMM7);
+    mFPU.insert(XMM7);
 #ifdef _WIN64
     mFPUXMM.insert(XMM8);
+    mMODIFYDISPLAY.insert(XMM8);
+    mFPU.insert(XMM8);
     mFPUXMM.insert(XMM9);
+    mMODIFYDISPLAY.insert(XMM9);
+    mFPU.insert(XMM9);
     mFPUXMM.insert(XMM10);
+    mMODIFYDISPLAY.insert(XMM10);
+    mFPU.insert(XMM10);
     mFPUXMM.insert(XMM11);
+    mMODIFYDISPLAY.insert(XMM11);
+    mFPU.insert(XMM11);
     mFPUXMM.insert(XMM12);
+    mMODIFYDISPLAY.insert(XMM12);
+    mFPU.insert(XMM12);
     mFPUXMM.insert(XMM13);
+    mMODIFYDISPLAY.insert(XMM13);
+    mFPU.insert(XMM13);
     mFPUXMM.insert(XMM14);
+    mMODIFYDISPLAY.insert(XMM14);
+    mFPU.insert(XMM14);
     mFPUXMM.insert(XMM15);
+    mMODIFYDISPLAY.insert(XMM15);
+    mFPU.insert(XMM15);
 #endif
 
     //registers that should not be changed
@@ -1385,33 +1501,66 @@ void RegistersView::updateRegistersSlot()
 
 void RegistersView::displayEditDialog()
 {
-    if(1)
+    if(mFPU.contains(mSelected))
+    {
+        bool errorinput = false;
+        LineEditDialog mLineEdit(this);
+
+        mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
+        mLineEdit.setWindowTitle("Edit FPU register");
+        mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
+        mLineEdit.setCursorPosition(0);
+
+        do
+        {
+            errorinput = false;
+            if(mLineEdit.exec() != QDialog::Accepted)
+                return; //pressed cancel
+
+            if(mLineEdit.editText.size() != GetSizeRegister(mSelected) * 2)
+            {
+                mLineEdit.setCursorPosition(GetSizeRegister(mSelected) * 2);
+                errorinput = true;
+
+                QMessageBox msg(QMessageBox::Warning, "ERROR SIZE INPUT", "ERROR SIZE INPUT MUST BE: " + QString::number(GetSizeRegister(mSelected) * 2));
+                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                msg.setParent(this, Qt::Dialog);
+                msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                msg.exec();
+            }
+            else
+            {
+                bool ok = false;
+                uint_t fpuvalue;
+
+                if(mUSHORTDISPLAY.contains(mSelected))
+                    fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
+                else if(mDWORDDISPLAY.contains(mSelected))
+                    fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
+
+                if(!ok)
+                {
+                    errorinput = true;
+
+                    QMessageBox msg(QMessageBox::Warning, "ERROR CONVERTING TO HEX", "ERROR CONVERTING TO HEXADECIMAL");
+                    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                    msg.setParent(this, Qt::Dialog);
+                    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                    msg.exec();
+                }
+                else
+                    setRegister(mSelected, fpuvalue);
+            }
+
+        }
+        while(errorinput);
+    }
+    else
     {
         WordEditDialog wEditDial(this);
         wEditDial.setup(QString("Edit"), (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), sizeof(int_t));
         if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
             setRegister(mSelected, wEditDial.getVal());
-    }
-    else
-    {
-        /*
-        LineEditDialog mLineEdit(this);
-        SIZE_T size;
-        if (mFPUx87.contains(mSelected))
-            size = 10 * 2;
-        else if (mFPUMMX.contains(mSelected))
-            size = 8 * 2;
-        else
-            size = sizeof(int_t) * 2;
-
-        mLineEdit.setText(QString("%1").arg((uint_t)registerValue(&wRegDumpStruct, mSelected), size, 16, QChar('0')).toUpper());
-        mLineEdit.setWindowTitle("Edit FPU register");
-        mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
-        mLineEdit.setCursorPosition(0);
-
-        if(mLineEdit.exec() != QDialog::Accepted)
-            return; //pressed cancel
-        */
     }
 }
 
@@ -1456,10 +1605,14 @@ void RegistersView::onToggleValueAction()
         }
         else
         {
-            int_t val = (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)));
-            val++;
-            val *= -1;
-            setRegister(mSelected, val);
+            bool ok = false;
+            int_t val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
+            if(ok)
+            {
+                val++;
+                val *= -1;
+                setRegister(mSelected, val);
+            }
         }
     }
 }
@@ -1467,26 +1620,7 @@ void RegistersView::onToggleValueAction()
 void RegistersView::onCopyToClipboardAction()
 {
     QClipboard* clipboard = QApplication::clipboard();
-    QString valueText;
-    if(mFPUx87.contains(mSelected) || mFPUMMX.contains(mSelected))
-    {
-        SIZE_T size;
-        char* value;
-        if(mFPUx87.contains(mSelected))
-        {
-            value = (char*)((x87FPURegister_t*) registerValue(&wRegDumpStruct, mSelected))->data;
-            size = 10;
-        }
-        else
-        {
-            value = (char*) registerValue(&wRegDumpStruct, mSelected);
-            size = 8;
-        }
-        valueText = QString(QByteArray(value, size).toHex()).toUpper();
-    }
-    else
-        valueText = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-    clipboard->setText(valueText);
+    clipboard->setText(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
 }
 
 void RegistersView::onCopySymbolToClipboardAction()
@@ -1614,7 +1748,11 @@ void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)
         // we change the value (so highlight it)
         mRegisterUpdates.insert(reg);
         // tell everything the compiler
+        if(mFPU.contains(reg))
+            wRegName = "_" + wRegName;
+
         DbgValToString(wRegName.toUtf8().constData(), value);
+
         // force repaint
         emit refresh();
     }
@@ -1673,7 +1811,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 {
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
-    // TODO: <Dreg> or maybe we can add an array with something like: return array[reg].data, this is more fast :-)
+    // TODO: add an array with something like: return array[reg].data, this is more fast :-)
     if(reg == CAX) return (char*) & (regd->titcontext.cax);
     if(reg == CBX) return (char*) & (regd->titcontext.cbx);
     if(reg == CCX) return (char*) & (regd->titcontext.ccx);
