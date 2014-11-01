@@ -124,6 +124,7 @@ protected slots:
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
     QString GetRegStringValueFromValue(REGISTER_NAME reg , char* value);
     QString GetTagWordStateString(unsigned short);
+    unsigned int GetTagWordValueFromString(QString string);
 
 private:
     int mVScrollOffset;

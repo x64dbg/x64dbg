@@ -281,7 +281,7 @@ typedef struct
 
 #define MXCSR_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, MXCSRFLAG_##flag_name }
 
-bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
+unsigned int getmxcsrflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t mxcsrnameflagtable[] =
     {
@@ -305,10 +305,19 @@ bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
     for(i = 0; i < (sizeof(mxcsrnameflagtable) / sizeof(*mxcsrnameflagtable)); i++)
     {
         if(scmp(string, mxcsrnameflagtable[i].name))
-            return (bool)((int)(mxcsrflags & mxcsrnameflagtable[i].flag) != 0);
+            return mxcsrnameflagtable[i].flag;
     }
 
-    return false;
+    return 0;
+}
+
+bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
+{
+    unsigned int flag = getmxcsrflagfromstring(string);
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(mxcsrflags & flag) != 0);
 }
 
 #define x87STATUSWORD_FLAG_I 0x1
@@ -327,7 +336,7 @@ bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
 
 #define X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87STATUSWORD_FLAG_##flag_name }
 
-bool valx87statuswordflagfromstring(uint statusword, const char* string)
+unsigned int getx87statuswordflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t statuswordflagtable[] =
     {
@@ -350,10 +359,19 @@ bool valx87statuswordflagfromstring(uint statusword, const char* string)
     for(i = 0; i < (sizeof(statuswordflagtable) / sizeof(*statuswordflagtable)); i++)
     {
         if(scmp(string, statuswordflagtable[i].name))
-            return (bool)((int)(statusword & statuswordflagtable[i].flag) != 0);
+            return statuswordflagtable[i].flag;
     }
 
-    return false;
+    return 0;
+}
+
+bool valx87statuswordflagfromstring(uint statusword, const char* string)
+{
+    unsigned int flag = getx87statuswordflagfromstring(string);
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(statusword & flag) != 0);
 }
 
 #define x87CONTROLWORD_FLAG_IM 0x1
@@ -367,7 +385,7 @@ bool valx87statuswordflagfromstring(uint statusword, const char* string)
 
 #define X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87CONTROLWORD_FLAG_##flag_name }
 
-bool valx87controlwordflagfromstring(uint controlword, const char* string)
+unsigned int getx87controlwordflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t controlwordflagtable[] =
     {
@@ -385,10 +403,20 @@ bool valx87controlwordflagfromstring(uint controlword, const char* string)
     for(i = 0; i < (sizeof(controlwordflagtable) / sizeof(*controlwordflagtable)); i++)
     {
         if(scmp(string, controlwordflagtable[i].name))
-            return (bool)((int)(controlword & controlwordflagtable[i].flag) != 0);
+            return controlwordflagtable[i].flag;
     }
 
-    return false;
+    return 0;
+}
+
+bool valx87controlwordflagfromstring(uint controlword, const char* string)
+{
+    unsigned int flag = getx87controlwordflagfromstring(string);
+
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(controlword & flag) != 0);
 }
 
 unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
@@ -1538,22 +1566,90 @@ bool startsWith(const char* pre, const char* str)
     return longEnough(str, lenpre) ? StrNCmpI(str, pre, lenpre) == 0 : false;
 }
 
+#define MxCsr_PRE_FIELD_STRING "MxCsr_"
+#define x87SW_PRE_FIELD_STRING "x87SW_"
+#define x87CW_PRE_FIELD_STRING "x87CW_"
+#define x87TW_PRE_FIELD_STRING "x87TW_"
+#define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
+
+
 void fpustuff(const char* string, uint value)
 {
-    if(startsWith("MxCsr_", string))
+    uint xorval = 0;
+    uint flags = 0;
+    uint flag = 0;
+    bool set = false;
+
+    if(value)
+        set = true;
+
+    if(startsWith(MxCsr_PRE_FIELD_STRING, string))
     {
+        uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+        flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
+        if(flags & flag and !set)
+            xorval = flag;
+        else if(set)
+            xorval = flag;
+        SetContextDataEx(hActiveThread, UE_MXCSR, flags ^ xorval);
+    }
+    else if(startsWith(x87TW_PRE_FIELD_STRING, string))
+    {
+        unsigned int i;
+
+        string += STRLEN_USING_SIZEOF(x87TW_PRE_FIELD_STRING);
+        i = atoi(string);
+
+        if(i > 7)
+            return;
+
+        flags = GetContextDataEx(hActiveThread, UE_X87_TAGWORD);
+
+        flag = 7;
+        flag <<= i * 2;
+
+        flags &= ~flag;
+
+        flag = value;
+        flag <<= i * 2;
+
+        flags |= flag;
+
+        SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) flags);
 
     }
-    else if(startsWith("x87TW_", string))
+    else if(startsWith(x87SW_PRE_FIELD_STRING, string))
     {
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", strlen("TOP")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            int i = 7;
+            i <<= 11;
+            flags &= ~i;
+            value <<= 11;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            flag = getx87statuswordflagfromstring(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, flags ^ xorval);
+        }
     }
-    else if(startsWith("x87SW_", string))
+    else if(startsWith(x87CW_PRE_FIELD_STRING, string))
     {
-
-    }
-    else if(startsWith("x87CW_", string))
-    {
-
+        uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+        flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
+        if(flags & flag and !set)
+            xorval = flag;
+        else if(set)
+            xorval = flag;
+        SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
     }
     else if(StrNCmpI(string, "x87TagWord", strlen(string)) == 0)
     {
@@ -1655,8 +1751,16 @@ bool valtostring(const char* string, uint* value, bool silent)
     }
     else if((*string == '_'))
     {
+        if(!DbgIsDebugging())
+        {
+            if(!silent)
+                dputs("not debugging!");
+            return false;
+        }
         fpustuff(string + 1, * value);
         GuiUpdateAllViews(); //repaint gui
+
+        return true;
     }
     else if(*string == '!' and isflag(string + 1)) //flag
     {

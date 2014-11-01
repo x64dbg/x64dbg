@@ -3,6 +3,7 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
+#include "SelectFields.h"
 #include <QMessageBox>
 
 
@@ -284,6 +285,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPUx87.insert(x87SW_TOP);
     mFIELDVALUE.insert(x87SW_TOP);
     mFPU.insert(x87SW_TOP);
+    mMODIFYDISPLAY.insert(x87SW_TOP);
 
     mFPUx87.insert(x87SW_C2);
     mBOOLDISPLAY.insert(x87SW_C2);
@@ -353,41 +355,49 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFIELDVALUE.insert(x87TW_0);
     mTAGWORD.insert(x87TW_0);
     mFPU.insert(x87TW_0);
+    mMODIFYDISPLAY.insert(x87TW_0);
 
     mFPUx87.insert(x87TW_1);
     mFIELDVALUE.insert(x87TW_1);
     mTAGWORD.insert(x87TW_1);
     mFPU.insert(x87TW_1);
+    mMODIFYDISPLAY.insert(x87TW_1);
 
     mFPUx87.insert(x87TW_2);
     mFIELDVALUE.insert(x87TW_2);
     mTAGWORD.insert(x87TW_2);
     mFPU.insert(x87TW_2);
+    mMODIFYDISPLAY.insert(x87TW_2);
 
     mFPUx87.insert(x87TW_3);
     mFIELDVALUE.insert(x87TW_3);
     mTAGWORD.insert(x87TW_3);
     mFPU.insert(x87TW_3);
+    mMODIFYDISPLAY.insert(x87TW_3);
 
     mFPUx87.insert(x87TW_4);
     mFIELDVALUE.insert(x87TW_4);
     mTAGWORD.insert(x87TW_4);
     mFPU.insert(x87TW_4);
+    mMODIFYDISPLAY.insert(x87TW_4);
 
     mFPUx87.insert(x87TW_5);
     mFIELDVALUE.insert(x87TW_5);
     mTAGWORD.insert(x87TW_5);
     mFPU.insert(x87TW_5);
+    mMODIFYDISPLAY.insert(x87TW_5);
 
     mFPUx87.insert(x87TW_6);
     mFIELDVALUE.insert(x87TW_6);
     mTAGWORD.insert(x87TW_6);
     mFPU.insert(x87TW_6);
+    mMODIFYDISPLAY.insert(x87TW_6);
 
     mFPUx87.insert(x87TW_7);
     mFIELDVALUE.insert(x87TW_7);
     mTAGWORD.insert(x87TW_7);
     mFPU.insert(x87TW_7);
+    mMODIFYDISPLAY.insert(x87TW_7);
 
     mFPUx87.insert(x87CW_PC);
     mFIELDVALUE.insert(x87CW_PC);
@@ -1374,37 +1384,50 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     return valueText;
 }
 
-QString RegistersView::GetTagWordStateString(unsigned short state)
-{
 #define X87FPU_TAGWORD_NONZERO 0
 #define X87FPU_TAGWORD_ZERO 1
 #define X87FPU_TAGWORD_SPECIAL 2
 #define X87FPU_TAGWORD_EMPTY 3
-    QString string_state = "";
-    switch(state)
+
+typedef struct
+{
+    QString string;
+    unsigned int value;
+} STRING_VALUE_TABLE_t;
+
+STRING_VALUE_TABLE_t TagWordValueStringTable[] =
+{
+    {"nonzero", X87FPU_TAGWORD_NONZERO},
+    {"zero", X87FPU_TAGWORD_ZERO},
+    {"special", X87FPU_TAGWORD_SPECIAL},
+    {"empty", X87FPU_TAGWORD_EMPTY}
+};
+
+unsigned int RegistersView::GetTagWordValueFromString(QString string)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(TagWordValueStringTable) / sizeof(*TagWordValueStringTable)); i++)
     {
-    case X87FPU_TAGWORD_NONZERO:
-        string_state += QString("nonzero");
-        break;
-
-    case X87FPU_TAGWORD_ZERO:
-        string_state += QString("zero");
-        break;
-
-    case X87FPU_TAGWORD_SPECIAL:
-        string_state += QString("special");
-        break;
-
-    case X87FPU_TAGWORD_EMPTY:
-        string_state += QString("empty");
-        break;
-
-    default:
-        string_state += QString("unkown");
-        break;
+        if(TagWordValueStringTable[i].string == string)
+            return TagWordValueStringTable[i].value;
     }
 
-    return string_state;
+    return i;
+}
+
+
+QString RegistersView::GetTagWordStateString(unsigned short state)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(TagWordValueStringTable) / sizeof(*TagWordValueStringTable)); i++)
+    {
+        if(TagWordValueStringTable[i].value == state)
+            return TagWordValueStringTable[i].string;
+    }
+
+    return "unknown";
 }
 
 void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
@@ -1503,57 +1526,104 @@ void RegistersView::displayEditDialog()
 {
     if(mFPU.contains(mSelected))
     {
-        bool errorinput = false;
-        LineEditDialog mLineEdit(this);
-
-        mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
-        mLineEdit.setWindowTitle("Edit FPU register");
-        mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
-        mLineEdit.setCursorPosition(0);
-
-        do
+        if(mTAGWORD.contains(mSelected))
         {
-            errorinput = false;
-            if(mLineEdit.exec() != QDialog::Accepted)
-                return; //pressed cancel
+            SelectFields mSelectFields(this);
+            QListWidget* mQListWidget = mSelectFields.GetList();
 
-            if(mLineEdit.editText.size() != GetSizeRegister(mSelected) * 2)
+            QStringList items;
+            items << GetTagWordStateString(X87FPU_TAGWORD_EMPTY) << GetTagWordStateString(X87FPU_TAGWORD_NONZERO)
+                  << GetTagWordStateString(X87FPU_TAGWORD_SPECIAL) << GetTagWordStateString(X87FPU_TAGWORD_ZERO);
+
+            mQListWidget->addItems(items);
+
+            mSelectFields.setWindowTitle("Edit TAG");
+            if(mSelectFields.exec() != QDialog::Accepted)
+                return;
+
+            if(mQListWidget->selectedItems().count() != 1)
+                return;
+
+            QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
+
+            uint_t value = GetTagWordValueFromString(item->text());
+            setRegister(mSelected, (uint_t)value);
+        }
+        else if(mSelected == x87SW_TOP)
+        {
+            SelectFields mSelectFields(this);
+            QListWidget* mQListWidget = mSelectFields.GetList();
+
+            QStringList items;
+            items << "ST0" << "ST1" << "ST2" << "ST3" << "ST4"
+                  << "ST5" << "ST6" << "ST7";
+
+            mQListWidget->addItems(items);
+
+            mSelectFields.setWindowTitle("Edit x87SW_TOP");
+            if(mSelectFields.exec() != QDialog::Accepted)
+                return;
+
+            if(mQListWidget->selectedItems().count() != 1)
+                return;
+
+            uint_t value = mQListWidget->currentRow();
+            setRegister(mSelected, (uint_t)value);
+        }
+        else
+        {
+            bool errorinput = false;
+            LineEditDialog mLineEdit(this);
+
+            mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
+            mLineEdit.setWindowTitle("Edit FPU register");
+            mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
+            mLineEdit.setCursorPosition(0);
+
+            do
             {
-                mLineEdit.setCursorPosition(GetSizeRegister(mSelected) * 2);
-                errorinput = true;
+                errorinput = false;
+                if(mLineEdit.exec() != QDialog::Accepted)
+                    return; //pressed cancel
 
-                QMessageBox msg(QMessageBox::Warning, "ERROR SIZE INPUT", "ERROR SIZE INPUT MUST BE: " + QString::number(GetSizeRegister(mSelected) * 2));
-                msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-                msg.setParent(this, Qt::Dialog);
-                msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-                msg.exec();
-            }
-            else
-            {
-                bool ok = false;
-                uint_t fpuvalue;
-
-                if(mUSHORTDISPLAY.contains(mSelected))
-                    fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
-                else if(mDWORDDISPLAY.contains(mSelected))
-                    fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
-
-                if(!ok)
+                if(mLineEdit.editText.size() != GetSizeRegister(mSelected) * 2)
                 {
+                    mLineEdit.setCursorPosition(GetSizeRegister(mSelected) * 2);
                     errorinput = true;
 
-                    QMessageBox msg(QMessageBox::Warning, "ERROR CONVERTING TO HEX", "ERROR CONVERTING TO HEXADECIMAL");
+                    QMessageBox msg(QMessageBox::Warning, "ERROR SIZE INPUT", "ERROR SIZE INPUT MUST BE: " + QString::number(GetSizeRegister(mSelected) * 2));
                     msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
                     msg.setParent(this, Qt::Dialog);
                     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                     msg.exec();
                 }
                 else
-                    setRegister(mSelected, fpuvalue);
-            }
+                {
+                    bool ok = false;
+                    uint_t fpuvalue;
 
+                    if(mUSHORTDISPLAY.contains(mSelected))
+                        fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
+                    else if(mDWORDDISPLAY.contains(mSelected))
+                        fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
+
+                    if(!ok)
+                    {
+                        errorinput = true;
+
+                        QMessageBox msg(QMessageBox::Warning, "ERROR CONVERTING TO HEX", "ERROR CONVERTING TO HEXADECIMAL");
+                        msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+                        msg.setParent(this, Qt::Dialog);
+                        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+                        msg.exec();
+                    }
+                    else
+                        setRegister(mSelected, fpuvalue);
+                }
+
+            }
+            while(errorinput);
         }
-        while(errorinput);
     }
     else
     {
