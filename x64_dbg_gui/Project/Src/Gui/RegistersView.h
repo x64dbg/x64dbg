@@ -8,6 +8,14 @@
 
 #define IsCharacterRegister(x) ((x>=CAX && x<CIP))
 
+typedef struct
+{
+    QString string;
+    unsigned int value;
+} STRING_VALUE_TABLE_t;
+
+#define SIZE_TABLE(table) (sizeof(table) / sizeof(*table))
+
 namespace Ui
 {
 class RegistersView;
@@ -110,6 +118,8 @@ protected slots:
     void fontsUpdatedSlot();
     void onIncrementAction();
     void onDecrementAction();
+    void onIncrementx87StackAction();
+    void onDecrementx87StackAction();
     void onZeroAction();
     void onSetToOneAction();
     void onModifyAction();
@@ -125,6 +135,15 @@ protected slots:
     QString GetRegStringValueFromValue(REGISTER_NAME reg , char* value);
     QString GetTagWordStateString(unsigned short);
     unsigned int GetTagWordValueFromString(QString string);
+    QString GetControlWordPCStateString(unsigned short);
+    unsigned int GetControlWordPCValueFromString(QString string);
+    QString GetControlWordRCStateString(unsigned short);
+    unsigned int GetControlWordRCValueFromString(QString string);
+    QString GetMxCsrRCStateString(unsigned short);
+    unsigned int GetMxCsrRCValueFromString(QString string);
+    void ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZE_T size);
+    unsigned int GetStatusWordTOPValueFromString(QString string);
+    QString GetStatusWordTOPStateString(unsigned short state);
 
 private:
     int mVScrollOffset;
@@ -179,6 +198,8 @@ private:
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
     QAction* wCM_FollowInStack;
+    QAction* wCM_Incrementx87Stack;
+    QAction* wCM_Decrementx87Stack;
     int_t mCip;
 };
 

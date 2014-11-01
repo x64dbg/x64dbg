@@ -22,6 +22,7 @@ public:
     void setCheckBox(bool bSet);
     void setCheckBoxText(const QString & text);
     void setCursorPosition(int position);
+    void ForceSize(unsigned int size);
 
 private slots:
     void on_textEdit_textChanged(const QString & arg1);
@@ -29,6 +30,7 @@ private slots:
 
 private:
     Ui::LineEditDialog* ui;
+    unsigned int fixed_size;
 };
 
 #endif // LINEEDITDIALOG_H

@@ -5,6 +5,7 @@
 #include "LineEditDialog.h"
 #include "SelectFields.h"
 #include <QMessageBox>
+#include <ctype.h>
 
 
 RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
@@ -36,6 +37,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_FollowInDisassembly = new QAction(tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction("Follow in Stack", this);
+    wCM_Incrementx87Stack = new QAction(tr("Increment x87 Stack"), this);
+    wCM_Decrementx87Stack = new QAction("Decrement x87 Stack", this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -350,6 +353,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPUx87.insert(x87CW_RC);
     mFIELDVALUE.insert(x87CW_RC);
     mFPU.insert(x87CW_RC);
+    mMODIFYDISPLAY.insert(x87CW_RC);
 
     mFPUx87.insert(x87TW_0);
     mFIELDVALUE.insert(x87TW_0);
@@ -402,6 +406,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPUx87.insert(x87CW_PC);
     mFIELDVALUE.insert(x87CW_PC);
     mFPU.insert(x87CW_PC);
+    mMODIFYDISPLAY.insert(x87CW_PC);
 
     mSETONEZEROTOGGLE.insert(x87CW_IEM);
     mFPUx87.insert(x87CW_IEM);
@@ -496,6 +501,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
 
     mFIELDVALUE.insert(MxCsr_RC);
     mFPU.insert(MxCsr_RC);
+    mMODIFYDISPLAY.insert(MxCsr_RC);
 
     mMODIFYDISPLAY.insert(MM0);
     mFPUMMX.insert(MM0);
@@ -824,7 +830,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(x87SW_I, "x87SW_I");
     mRegisterPlaces.insert(x87SW_I, Register_Position(offset + 20, 0, 9, 1));
     mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
-    mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 6));
+    mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 12));
 
     offset++;
 
@@ -893,7 +899,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
     mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset + 31, 12, 10, 1));
     mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
-    mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 13));
+    mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 18));
 
     offset++;
 
@@ -990,6 +996,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     // context menu actions
     connect(wCM_Increment, SIGNAL(triggered()), this, SLOT(onIncrementAction()));
     connect(wCM_Decrement, SIGNAL(triggered()), this, SLOT(onDecrementAction()));
+    connect(wCM_Incrementx87Stack, SIGNAL(triggered()), this, SLOT(onIncrementx87StackAction()));
+    connect(wCM_Decrementx87Stack, SIGNAL(triggered()), this, SLOT(onDecrementx87StackAction()));
     connect(wCM_Zero, SIGNAL(triggered()), this, SLOT(onZeroAction()));
     connect(wCM_SetToOne, SIGNAL(triggered()), this, SLOT(onSetToOneAction()));
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
@@ -1283,93 +1291,29 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
             valueText += QString("(");
-#define MxCsr_RC_NEAR 0
-#define MxCsr_RC_NEGATIVE 1
-#define MxCsr_RC_POSITIVE   2
-#define MxCsr_RC_TOZERO 3
-            switch((* ((unsigned short*) value)))
-            {
-            case MxCsr_RC_NEAR:
-                valueText += "round near";
-                break;
-
-            case MxCsr_RC_NEGATIVE:
-                valueText += "toward negative";
-                break;
-
-            case MxCsr_RC_POSITIVE:
-                valueText += "toward positive";
-                break;
-
-            case MxCsr_RC_TOZERO:
-                valueText += "toward zero";
-                break;
-            }
-
+            valueText += GetMxCsrRCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87CW_RC)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
             valueText += QString("(");
-#define x87CW_RC_NEAR 0
-#define x87CW_RC_DOWN 1
-#define x87CW_RC_UP   2
-#define x87CW_RC_TRUNCATE 3
-            switch((* ((unsigned short*) value)))
-            {
-            case x87CW_RC_NEAR:
-                valueText += "round near";
-                break;
-
-            case x87CW_RC_DOWN:
-                valueText += "round down";
-                break;
-
-            case x87CW_RC_UP:
-                valueText += "round up";
-                break;
-
-            case x87CW_RC_TRUNCATE:
-                valueText += "truncate";
-                break;
-            }
-
+            valueText += GetControlWordRCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87CW_PC)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
             valueText += QString("(");
-#define x87CW_PC_REAL4 0
-#define x87CW_PC_NOTUSED 1
-#define x87CW_PC_REAL8   2
-#define x87CW_PC_REAL10 3
-            switch((* ((unsigned short*) value)))
-            {
-            case x87CW_PC_REAL4:
-                valueText += "real4";
-                break;
-
-            case x87CW_PC_NOTUSED:
-                valueText += "not used";
-                break;
-
-            case x87CW_PC_REAL8:
-                valueText += "real8";
-                break;
-
-            case x87CW_PC_REAL10:
-                valueText += "real10";
-                break;
-            }
-
+            valueText += GetControlWordPCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87SW_TOP)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(ST") + valueText + QString(")");
+            valueText += QString("(ST0=");
+            valueText += GetStatusWordTOPStateString((* ((unsigned short*) value)));
+            valueText += QString(")");
         }
     }
     else
@@ -1384,16 +1328,178 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     return valueText;
 }
 
+#define MxCsr_RC_NEAR 0
+#define MxCsr_RC_NEGATIVE 1
+#define MxCsr_RC_POSITIVE   2
+#define MxCsr_RC_TOZERO 3
+
+STRING_VALUE_TABLE_t MxCsrRCValueStringTable[] =
+{
+    {"toward zero", MxCsr_RC_TOZERO},
+    {"toward positive", MxCsr_RC_POSITIVE},
+    {"toward negative", MxCsr_RC_NEGATIVE},
+    {"round near", MxCsr_RC_NEAR}
+};
+
+unsigned int RegistersView::GetMxCsrRCValueFromString(QString string)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(MxCsrRCValueStringTable) / sizeof(*MxCsrRCValueStringTable)); i++)
+    {
+        if(MxCsrRCValueStringTable[i].string == string)
+            return MxCsrRCValueStringTable[i].value;
+    }
+
+    return i;
+}
+
+QString RegistersView::GetMxCsrRCStateString(unsigned short state)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(MxCsrRCValueStringTable) / sizeof(*MxCsrRCValueStringTable)); i++)
+    {
+        if(MxCsrRCValueStringTable[i].value == state)
+            return MxCsrRCValueStringTable[i].string;
+    }
+
+    return "unknown";
+}
+
+#define x87CW_RC_NEAR 0
+#define x87CW_RC_DOWN 1
+#define x87CW_RC_UP   2
+#define x87CW_RC_TRUNCATE 3
+
+STRING_VALUE_TABLE_t ControlWordRCValueStringTable[] =
+{
+    {"truncate", x87CW_RC_TRUNCATE},
+    {"round up", x87CW_RC_UP},
+    {"round down", x87CW_RC_DOWN},
+    {"round near", x87CW_RC_NEAR}
+};
+
+unsigned int RegistersView::GetControlWordRCValueFromString(QString string)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(ControlWordRCValueStringTable) / sizeof(*ControlWordRCValueStringTable)); i++)
+    {
+        if(ControlWordRCValueStringTable[i].string == string)
+            return ControlWordRCValueStringTable[i].value;
+    }
+
+    return i;
+}
+
+QString RegistersView::GetControlWordRCStateString(unsigned short state)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(ControlWordRCValueStringTable) / sizeof(*ControlWordRCValueStringTable)); i++)
+    {
+        if(ControlWordRCValueStringTable[i].value == state)
+            return ControlWordRCValueStringTable[i].string;
+    }
+
+    return "unknown";
+}
+
+#define x87SW_TOP_0 0
+#define x87SW_TOP_1 1
+#define x87SW_TOP_2 2
+#define x87SW_TOP_3 3
+#define x87SW_TOP_4 4
+#define x87SW_TOP_5 5
+#define x87SW_TOP_6 6
+#define x87SW_TOP_7 7
+
+STRING_VALUE_TABLE_t StatusWordTOPValueStringTable[] =
+{
+    {"x87r0", x87SW_TOP_0},
+    {"x87r1", x87SW_TOP_1},
+    {"x87r2", x87SW_TOP_2},
+    {"x87r3", x87SW_TOP_3},
+    {"x87r4", x87SW_TOP_4},
+    {"x87r5", x87SW_TOP_5},
+    {"x87r6", x87SW_TOP_6},
+    {"x87r7", x87SW_TOP_7}
+};
+
+unsigned int RegistersView::GetStatusWordTOPValueFromString(QString string)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(StatusWordTOPValueStringTable) / sizeof(*StatusWordTOPValueStringTable)); i++)
+    {
+        if(StatusWordTOPValueStringTable[i].string == string)
+            return StatusWordTOPValueStringTable[i].value;
+    }
+
+    return i;
+}
+
+QString RegistersView::GetStatusWordTOPStateString(unsigned short state)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(StatusWordTOPValueStringTable) / sizeof(*StatusWordTOPValueStringTable)); i++)
+    {
+        if(StatusWordTOPValueStringTable[i].value == state)
+            return StatusWordTOPValueStringTable[i].string;
+    }
+
+    return "unknown";
+}
+
+
+#define x87CW_PC_REAL4 0
+#define x87CW_PC_NOTUSED 1
+#define x87CW_PC_REAL8   2
+#define x87CW_PC_REAL10 3
+
+STRING_VALUE_TABLE_t ControlWordPCValueStringTable[] =
+{
+    {"real4", x87CW_PC_REAL4},
+    {"not used", x87CW_PC_NOTUSED},
+    {"real8", x87CW_PC_REAL8},
+    {"real10", x87CW_PC_REAL10}
+};
+
+
+unsigned int RegistersView::GetControlWordPCValueFromString(QString string)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(ControlWordPCValueStringTable) / sizeof(*ControlWordPCValueStringTable)); i++)
+    {
+        if(ControlWordPCValueStringTable[i].string == string)
+            return ControlWordPCValueStringTable[i].value;
+    }
+
+    return i;
+}
+
+
+QString RegistersView::GetControlWordPCStateString(unsigned short state)
+{
+    int i;
+
+    for(i = 0; i < (sizeof(ControlWordPCValueStringTable) / sizeof(*ControlWordPCValueStringTable)); i++)
+    {
+        if(ControlWordPCValueStringTable[i].value == state)
+            return ControlWordPCValueStringTable[i].string;
+    }
+
+    return "unknown";
+}
+
+
 #define X87FPU_TAGWORD_NONZERO 0
 #define X87FPU_TAGWORD_ZERO 1
 #define X87FPU_TAGWORD_SPECIAL 2
 #define X87FPU_TAGWORD_EMPTY 3
-
-typedef struct
-{
-    QString string;
-    unsigned int value;
-} STRING_VALUE_TABLE_t;
 
 STRING_VALUE_TABLE_t TagWordValueStringTable[] =
 {
@@ -1481,15 +1587,71 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
         if(mFPUx87_80BITSDISPLAY.contains(reg) && DbgIsDebugging())
         {
+            p->setPen(ConfigColor("RegistersExtraInfoColor"));
             x += 1 * mCharWidth; //1 space
             QString newText;
+            if(mRegisterUpdates.contains(x87SW_TOP))
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+
             newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
+            width = newText.length() * mCharWidth;
+            p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
+
+            x += width;
+
+            newText = QString("");
+
+            p->setPen(ConfigColor("RegistersExtraInfoColor"));
+
+            if(reg == x87r0 && mRegisterUpdates.contains(x87TW_0))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r1 && mRegisterUpdates.contains(x87TW_1))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r2 && mRegisterUpdates.contains(x87TW_2))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r3 && mRegisterUpdates.contains(x87TW_3))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r4 && mRegisterUpdates.contains(x87TW_4))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r5 && mRegisterUpdates.contains(x87TW_5))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r6 && mRegisterUpdates.contains(x87TW_6))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
+            else if(reg == x87r7 && mRegisterUpdates.contains(x87TW_7))
+            {
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+            }
 
             newText += GetTagWordStateString(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
 
+            width = newText.length() * mCharWidth;
+            p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
+
+            x += width;
+
+            newText = QString("");
+
+            p->setPen(ConfigColor("RegistersExtraInfoColor"));
+
+            if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
+                p->setPen(ConfigColor("RegistersModifiedColor"));
+
             newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
             width = newText.length() * mCharWidth;
-            p->setPen(ConfigColor("RegistersExtraInfoColor"));
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
         }
 
@@ -1522,54 +1684,57 @@ void RegistersView::updateRegistersSlot()
     setRegisters(&z);
 }
 
+void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZE_T size)
+{
+    SelectFields mSelectFields(this);
+    QListWidget* mQListWidget = mSelectFields.GetList();
+
+    QStringList items;
+    unsigned int i;
+
+    for(i = 0; i < size; i++)
+        items << table[i].string;
+
+    mQListWidget->addItems(items);
+
+    mSelectFields.setWindowTitle(title);
+    if(mSelectFields.exec() != QDialog::Accepted)
+        return;
+
+    if(mQListWidget->selectedItems().count() != 1)
+        return;
+
+    QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
+
+    uint_t value;
+
+    for(i = 0; i < size; i++)
+    {
+        if(table[i].string == item->text())
+            break;
+    }
+
+    value = table[i].value;
+
+    setRegister(mSelected, (uint_t)value);
+}
+
+#define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(QString("Edit ") + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
+
 void RegistersView::displayEditDialog()
 {
     if(mFPU.contains(mSelected))
     {
         if(mTAGWORD.contains(mSelected))
-        {
-            SelectFields mSelectFields(this);
-            QListWidget* mQListWidget = mSelectFields.GetList();
-
-            QStringList items;
-            items << GetTagWordStateString(X87FPU_TAGWORD_EMPTY) << GetTagWordStateString(X87FPU_TAGWORD_NONZERO)
-                  << GetTagWordStateString(X87FPU_TAGWORD_SPECIAL) << GetTagWordStateString(X87FPU_TAGWORD_ZERO);
-
-            mQListWidget->addItems(items);
-
-            mSelectFields.setWindowTitle("Edit TAG");
-            if(mSelectFields.exec() != QDialog::Accepted)
-                return;
-
-            if(mQListWidget->selectedItems().count() != 1)
-                return;
-
-            QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
-
-            uint_t value = GetTagWordValueFromString(item->text());
-            setRegister(mSelected, (uint_t)value);
-        }
+            MODIFY_FIELDS_DISPLAY("Tag " + mRegisterMapping.constFind(mSelected).value(), TagWordValueStringTable);
+        else if(mSelected == MxCsr_RC)
+            MODIFY_FIELDS_DISPLAY("MxCsr_RC", MxCsrRCValueStringTable);
+        else if(mSelected == x87CW_RC)
+            MODIFY_FIELDS_DISPLAY("x87CW_RC", ControlWordRCValueStringTable);
+        else if(mSelected == x87CW_PC)
+            MODIFY_FIELDS_DISPLAY("x87CW_PC", ControlWordPCValueStringTable);
         else if(mSelected == x87SW_TOP)
-        {
-            SelectFields mSelectFields(this);
-            QListWidget* mQListWidget = mSelectFields.GetList();
-
-            QStringList items;
-            items << "ST0" << "ST1" << "ST2" << "ST3" << "ST4"
-                  << "ST5" << "ST6" << "ST7";
-
-            mQListWidget->addItems(items);
-
-            mSelectFields.setWindowTitle("Edit x87SW_TOP");
-            if(mSelectFields.exec() != QDialog::Accepted)
-                return;
-
-            if(mQListWidget->selectedItems().count() != 1)
-                return;
-
-            uint_t value = mQListWidget->currentRow();
-            setRegister(mSelected, (uint_t)value);
-        }
+            MODIFY_FIELDS_DISPLAY("x87SW_TOP ST0=", StatusWordTOPValueStringTable);
         else
         {
             bool errorinput = false;
@@ -1579,24 +1744,12 @@ void RegistersView::displayEditDialog()
             mLineEdit.setWindowTitle("Edit FPU register");
             mLineEdit.setWindowIcon(QIcon(":/icons/images/log.png"));
             mLineEdit.setCursorPosition(0);
-
+            mLineEdit.ForceSize(GetSizeRegister(mSelected) * 2);
             do
             {
                 errorinput = false;
                 if(mLineEdit.exec() != QDialog::Accepted)
                     return; //pressed cancel
-
-                if(mLineEdit.editText.size() != GetSizeRegister(mSelected) * 2)
-                {
-                    mLineEdit.setCursorPosition(GetSizeRegister(mSelected) * 2);
-                    errorinput = true;
-
-                    QMessageBox msg(QMessageBox::Warning, "ERROR SIZE INPUT", "ERROR SIZE INPUT MUST BE: " + QString::number(GetSizeRegister(mSelected) * 2));
-                    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
-                    msg.setParent(this, Qt::Dialog);
-                    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-                    msg.exec();
-                }
                 else
                 {
                     bool ok = false;
@@ -1606,7 +1759,40 @@ void RegistersView::displayEditDialog()
                         fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
+                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+                    {
+                        QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
+                        if(pArray.size() == GetSizeRegister(mSelected) * 2)
+                        {
+                            char* pData = (char*) calloc(1, sizeof(char) * GetSizeRegister(mSelected));
 
+                            if(pData != NULL)
+                            {
+                                ok = true;
+                                char actual_char[3];
+                                unsigned int i;
+                                for(i = 0; i < GetSizeRegister(mSelected); i++)
+                                {
+                                    memset(actual_char, 0, sizeof(actual_char));
+                                    memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
+                                    if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                    {
+                                        ok = false;
+                                        break;
+                                    }
+                                    pData[i] = (char)strtol(actual_char, NULL, 16);
+                                }
+
+                                if(ok)
+                                    setRegister(mSelected, (uint_t) pData);
+
+                                free(pData);
+
+                                if(ok)
+                                    return;
+                            }
+                        }
+                    }
                     if(!ok)
                     {
                         errorinput = true;
@@ -1632,6 +1818,18 @@ void RegistersView::displayEditDialog()
         if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
             setRegister(mSelected, wEditDial.getVal());
     }
+}
+
+void RegistersView::onIncrementx87StackAction()
+{
+    if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 7);
+}
+
+void RegistersView::onDecrementx87StackAction()
+{
+    if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 7);
 }
 
 void RegistersView::onIncrementAction()
@@ -1749,6 +1947,12 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             if((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
             wMenu.addAction(wCM_ToggleValue);
+        }
+
+        if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Incrementx87Stack);
+            wMenu.addAction(wCM_Decrementx87Stack);
         }
 
         if(mINCREMENTDECREMET.contains(mSelected))

@@ -1570,6 +1570,9 @@ bool startsWith(const char* pre, const char* str)
 #define x87SW_PRE_FIELD_STRING "x87SW_"
 #define x87CW_PRE_FIELD_STRING "x87CW_"
 #define x87TW_PRE_FIELD_STRING "x87TW_"
+#define MMX_PRE_FIELD_STRING "MM"
+#define XMM_PRE_FIELD_STRING "XMM"
+#define x8780BITFPU_PRE_FIELD_STRING "x87r"
 #define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
 
 
@@ -1585,13 +1588,26 @@ void fpustuff(const char* string, uint value)
 
     if(startsWith(MxCsr_PRE_FIELD_STRING, string))
     {
-        uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
-        flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
-        if(flags & flag and !set)
-            xorval = flag;
-        else if(set)
-            xorval = flag;
-        SetContextDataEx(hActiveThread, UE_MXCSR, flags ^ xorval);
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", strlen("RC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            int i = 3;
+            i <<= 13;
+            flags &= ~i;
+            value <<= 13;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_MXCSR, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_MXCSR, flags ^ xorval);
+        }
     }
     else if(startsWith(x87TW_PRE_FIELD_STRING, string))
     {
@@ -1605,7 +1621,7 @@ void fpustuff(const char* string, uint value)
 
         flags = GetContextDataEx(hActiveThread, UE_X87_TAGWORD);
 
-        flag = 7;
+        flag = 3;
         flag <<= i * 2;
 
         flags &= ~flag;
@@ -1643,13 +1659,36 @@ void fpustuff(const char* string, uint value)
     }
     else if(startsWith(x87CW_PRE_FIELD_STRING, string))
     {
-        uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
-        flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
-        if(flags & flag and !set)
-            xorval = flag;
-        else if(set)
-            xorval = flag;
-        SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", strlen("RC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            int i = 3;
+            i <<= 10;
+            flags &= ~i;
+            value <<= 10;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
+        }
+        else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", strlen("PC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            int i = 3;
+            i <<= 8;
+            flags &= ~i;
+            value <<= 8;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
+        }
     }
     else if(StrNCmpI(string, "x87TagWord", strlen(string)) == 0)
     {
@@ -1666,6 +1705,176 @@ void fpustuff(const char* string, uint value)
     else if(StrNCmpI(string, "MxCsr", strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_MXCSR, value);
+    }
+    else if(startsWith(x8780BITFPU_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(x8780BITFPU_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(*string)
+        {
+        case '0':
+            registerindex = UE_x87_r0;
+            break;
+
+        case '1':
+            registerindex = UE_x87_r1;
+            break;
+
+        case '2':
+            registerindex = UE_x87_r2;
+            break;
+
+        case '3':
+            registerindex = UE_x87_r3;
+            break;
+
+        case '4':
+            registerindex = UE_x87_r4;
+            break;
+
+        case '5':
+            registerindex = UE_x87_r5;
+            break;
+
+        case '6':
+            registerindex = UE_x87_r6;
+            break;
+
+        case '7':
+            registerindex = UE_x87_r7;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(MMX_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(MMX_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(*string)
+        {
+        case '0':
+            registerindex = UE_MMX0;
+            break;
+
+        case '1':
+            registerindex = UE_MMX1;
+            break;
+
+        case '2':
+            registerindex = UE_MMX2;
+            break;
+
+        case '3':
+            registerindex = UE_MMX3;
+            break;
+
+        case '4':
+            registerindex = UE_MMX4;
+            break;
+
+        case '5':
+            registerindex = UE_MMX5;
+            break;
+
+        case '6':
+            registerindex = UE_MMX6;
+            break;
+
+        case '7':
+            registerindex = UE_MMX7;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(XMM_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(XMM_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(*string)
+        {
+        case '0':
+            registerindex = UE_XMM0;
+            break;
+
+        case '1':
+            registerindex = UE_XMM1;
+            break;
+
+        case '2':
+            registerindex = UE_XMM2;
+            break;
+
+        case '3':
+            registerindex = UE_XMM3;
+            break;
+
+        case '4':
+            registerindex = UE_XMM4;
+            break;
+
+        case '5':
+            registerindex = UE_XMM5;
+            break;
+
+        case '6':
+            registerindex = UE_XMM6;
+            break;
+
+        case '7':
+            registerindex = UE_XMM7;
+            break;
+
+        case '8':
+            registerindex = UE_XMM8;
+            break;
+
+        case '9':
+            registerindex = UE_XMM9;
+            break;
+
+        case '10':
+            registerindex = UE_XMM10;
+            break;
+
+        case '11':
+            registerindex = UE_XMM11;
+            break;
+
+        case '12':
+            registerindex = UE_XMM12;
+            break;
+
+        case '13':
+            registerindex = UE_XMM13;
+            break;
+
+        case '14':
+            registerindex = UE_XMM14;
+            break;
+
+        case '15':
+            registerindex = UE_XMM15;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
     }
 }
 
