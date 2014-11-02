@@ -202,7 +202,7 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(x87SW_I, "x87SW_I");
         mRegisterPlaces.insert(x87SW_I, Register_Position(offset + 20, 0, 9, 1));
         mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
-        mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 12));
+        mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 13));
 
         offset++;
 
@@ -228,10 +228,10 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(x87CW_IM, "x87CW_IM");
         mRegisterPlaces.insert(x87CW_IM, Register_Position(offset + 24, 12, 10, 1));
         mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
-        mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 13));
+        mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 14));
 
         mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
-        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 13));
+        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 14));
 
         offset++;
 
@@ -271,7 +271,7 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
         mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset + 31, 12, 10, 1));
         mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
-        mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 18));
+        mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 19));
 
         offset++;
 
