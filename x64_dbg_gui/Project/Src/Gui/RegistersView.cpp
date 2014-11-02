@@ -202,7 +202,7 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(x87SW_I, "x87SW_I");
         mRegisterPlaces.insert(x87SW_I, Register_Position(offset + 20, 0, 9, 1));
         mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
-        mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 12));
+        mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset + 20, 12, 10, 13));
 
         offset++;
 
@@ -228,10 +228,10 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(x87CW_IM, "x87CW_IM");
         mRegisterPlaces.insert(x87CW_IM, Register_Position(offset + 24, 12, 10, 1));
         mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
-        mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 13));
+        mRegisterPlaces.insert(x87CW_RC, Register_Position(offset + 24, 25, 10, 14));
 
         mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
-        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 13));
+        mRegisterPlaces.insert(x87CW_PC, Register_Position(offset + 25, 0, 9, 14));
 
         offset++;
 
@@ -271,7 +271,7 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
         mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset + 31, 12, 10, 1));
         mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
-        mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 18));
+        mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset + 31, 25, 10, 19));
 
         offset++;
 
@@ -1103,7 +1103,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 
     if(event->y() < yTopSpacing - mButtonHeight)
     {
-        QMessageBox::information(this, "Troll", "You are now dead...");
+        onChangeFPUViewAction();
     }
     else
     {
@@ -1154,7 +1154,16 @@ void RegistersView::paintEvent(QPaintEvent* event)
 
     wPainter.setPen(Qt::black);
     wPainter.drawLine(0, yTopSpacing - mButtonHeight, this->viewport()->width(), yTopSpacing - mButtonHeight);
-    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, " Press here to die...");
+
+    QString fpu_button_text = QString("");
+    if(DbgIsDebugging())
+    {
+        if(showfpu)
+            fpu_button_text = QString(" Hide FPU - <click here>");
+        else
+            fpu_button_text = QString(" Show FPU - <click here>");
+    }
+    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, fpu_button_text);
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
@@ -1982,8 +1991,6 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         return;
     QMenu wMenu(this);
 
-    wMenu.addAction(wCM_ChangeFPUView);
-
     if(mSelected != UNKNOWN)
     {
         if(mSETONEZEROTOGGLE.contains(mSelected))
@@ -2039,6 +2046,8 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     }
     else
     {
+        wMenu.addSeparator();
+        wMenu.addAction(wCM_ChangeFPUView);
         wMenu.addSeparator();
 #ifdef _WIN64
         QAction* wHwbpCsp = wMenu.addAction("HW Break on [RSP]");
