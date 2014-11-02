@@ -343,7 +343,7 @@ typedef struct
     ULONG_PTR r15;
 #endif //_WIN64
     ULONG_PTR cip;
-    unsigned int eflags;
+    ULONG_PTR eflags;
     unsigned short gs;
     unsigned short fs;
     unsigned short es;

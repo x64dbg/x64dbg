@@ -1103,7 +1103,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 
     if(event->y() < yTopSpacing - mButtonHeight)
     {
-        QMessageBox::information(this, "Troll", "You are now dead...");
+        onChangeFPUViewAction();
     }
     else
     {
@@ -1154,7 +1154,7 @@ void RegistersView::paintEvent(QPaintEvent* event)
 
     wPainter.setPen(Qt::black);
     wPainter.drawLine(0, yTopSpacing - mButtonHeight, this->viewport()->width(), yTopSpacing - mButtonHeight);
-    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, " Press here to die...");
+    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, " Press here to FPU change...");
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
@@ -1982,8 +1982,6 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         return;
     QMenu wMenu(this);
 
-    wMenu.addAction(wCM_ChangeFPUView);
-
     if(mSelected != UNKNOWN)
     {
         if(mSETONEZEROTOGGLE.contains(mSelected))
@@ -2046,6 +2044,8 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         QAction* wHwbpCsp = wMenu.addAction("HW Break on [ESP]");
 #endif
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
+        wMenu.addSeparator();
+        wMenu.addAction(wCM_ChangeFPUView);
 
         if(wAction == wHwbpCsp)
             DbgCmdExec("bphws csp,rw");
