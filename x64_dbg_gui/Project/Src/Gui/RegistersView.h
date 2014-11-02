@@ -96,6 +96,7 @@ public slots:
     void setRegister(REGISTER_NAME reg, uint_t value);
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
+    void ShowFPU(bool set_showfpu);
 signals:
     void refresh();
 
@@ -129,6 +130,8 @@ protected slots:
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInStack();
+    void onChangeFPUViewAction();
+    void InitMappings();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
@@ -146,6 +149,7 @@ protected slots:
     QString GetStatusWordTOPStateString(unsigned short state);
 
 private:
+    bool showfpu;
     int mVScrollOffset;
     int mRowsNeeded;
     int yTopSpacing;
@@ -200,6 +204,7 @@ private:
     QAction* wCM_FollowInStack;
     QAction* wCM_Incrementx87Stack;
     QAction* wCM_Decrementx87Stack;
+    QAction* wCM_ChangeFPUView;
     int_t mCip;
 };
 

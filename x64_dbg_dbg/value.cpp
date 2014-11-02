@@ -275,7 +275,7 @@ static bool isregister(const char* string)
 typedef struct
 {
     char* name;
-    uint flag;
+    unsigned int flag;
 
 } FLAG_NAME_VALUE_TABLE_t;
 
@@ -1550,9 +1550,9 @@ bool valfromstring(const char* string, uint* value)
     return valfromstring(string, value, true);
 }
 
-bool longEnough(const char* str, int min_length)
+bool longEnough(const char* str, size_t min_length)
 {
-    int length = 0;
+    size_t length = 0;
     while(str[length] && length < min_length)
         length++;
     if(length == min_length)
@@ -1563,7 +1563,7 @@ bool longEnough(const char* str, int min_length)
 bool startsWith(const char* pre, const char* str)
 {
     size_t lenpre = strlen(pre);
-    return longEnough(str, lenpre) ? StrNCmpI(str, pre, lenpre) == 0 : false;
+    return longEnough(str, lenpre) ? StrNCmpI(str, pre, (int) lenpre) == 0 : false;
 }
 
 #define MxCsr_PRE_FIELD_STRING "MxCsr_"
@@ -1588,7 +1588,7 @@ void fpustuff(const char* string, uint value)
 
     if(startsWith(MxCsr_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", strlen("RC")) == 0)
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             int i = 3;
@@ -1636,7 +1636,7 @@ void fpustuff(const char* string, uint value)
     }
     else if(startsWith(x87SW_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", strlen("TOP")) == 0)
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", (int) strlen("TOP")) == 0)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             int i = 7;
@@ -1659,7 +1659,7 @@ void fpustuff(const char* string, uint value)
     }
     else if(startsWith(x87CW_PRE_FIELD_STRING, string))
     {
-        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", strlen("RC")) == 0)
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
@@ -1669,7 +1669,7 @@ void fpustuff(const char* string, uint value)
             flags |=  value;
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
         }
-        else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", strlen("PC")) == 0)
+        else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int) strlen("PC")) == 0)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
@@ -1690,19 +1690,19 @@ void fpustuff(const char* string, uint value)
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
         }
     }
-    else if(StrNCmpI(string, "x87TagWord", strlen(string)) == 0)
+    else if(StrNCmpI(string, "x87TagWord", (int) strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "x87StatusWord", strlen(string)) == 0)
+    else if(StrNCmpI(string, "x87StatusWord", (int) strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "x87ControlWord", strlen(string)) == 0)
+    else if(StrNCmpI(string, "x87ControlWord", (int) strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, (unsigned short) value);
     }
-    else if(StrNCmpI(string, "MxCsr", strlen(string)) == 0)
+    else if(StrNCmpI(string, "MxCsr", (int) strlen(string)) == 0)
     {
         SetContextDataEx(hActiveThread, UE_MXCSR, value);
     }
@@ -1803,69 +1803,69 @@ void fpustuff(const char* string, uint value)
         string += STRLEN_USING_SIZEOF(XMM_PRE_FIELD_STRING);
         DWORD registerindex;
         bool found = true;
-        switch(*string)
+        switch(atoi(string))
         {
-        case '0':
+        case 0:
             registerindex = UE_XMM0;
             break;
 
-        case '1':
+        case 1:
             registerindex = UE_XMM1;
             break;
 
-        case '2':
+        case 2:
             registerindex = UE_XMM2;
             break;
 
-        case '3':
+        case 3:
             registerindex = UE_XMM3;
             break;
 
-        case '4':
+        case 4:
             registerindex = UE_XMM4;
             break;
 
-        case '5':
+        case 5:
             registerindex = UE_XMM5;
             break;
 
-        case '6':
+        case 6:
             registerindex = UE_XMM6;
             break;
 
-        case '7':
+        case 7:
             registerindex = UE_XMM7;
             break;
 
-        case '8':
+        case 8:
             registerindex = UE_XMM8;
             break;
 
-        case '9':
+        case 9:
             registerindex = UE_XMM9;
             break;
 
-        case '10':
+        case 10:
             registerindex = UE_XMM10;
             break;
 
-        case '11':
+        case 11:
             registerindex = UE_XMM11;
             break;
 
-        case '12':
+        case 12:
             registerindex = UE_XMM12;
             break;
 
-        case '13':
+        case 13:
             registerindex = UE_XMM13;
             break;
 
-        case '14':
+        case 14:
             registerindex = UE_XMM14;
             break;
 
-        case '15':
+        case 15:
             registerindex = UE_XMM15;
             break;
 
