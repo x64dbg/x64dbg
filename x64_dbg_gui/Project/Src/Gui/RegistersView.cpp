@@ -997,7 +997,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mCip = 0;
     mRegisterUpdates.clear();
 
-    yTopSpacing = 3; //set top spacing (in pixels)
+    mButtonHeight = 5;
+    yTopSpacing = 20; //set top spacing (in pixels)
 
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -1099,19 +1100,27 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 {
     if(!DbgIsDebugging())
         return;
-    // get mouse position
-    const int y = (event->y() - 3) / (double)mRowHeight;
-    const int x = event->x() / (double)mCharWidth;
 
-    REGISTER_NAME r;
-    // do we find a corresponding register?
-    if(identifyRegister(y, x, &r))
+    if(event->y() < yTopSpacing - mButtonHeight)
     {
-        mSelected = r;
-        emit refresh();
+        QMessageBox::information(this, "Troll", "You are now dead...");
     }
     else
-        mSelected = UNKNOWN;
+    {
+        // get mouse position
+        const int y = (event->y() - yTopSpacing) / (double)mRowHeight;
+        const int x = event->x() / (double)mCharWidth;
+
+        REGISTER_NAME r;
+        // do we find a corresponding register?
+        if(identifyRegister(y, x, &r))
+        {
+            mSelected = r;
+            emit refresh();
+        }
+        else
+            mSelected = UNKNOWN;
+    }
 }
 
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
@@ -1120,7 +1129,7 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     if(!DbgIsDebugging() || event->button() != Qt::LeftButton)
         return;
     // get mouse position
-    const int y = (event->y() - 3) / (double)mRowHeight;
+    const int y = (event->y() - yTopSpacing) / (double)mRowHeight;
     const int x = event->x() / (double)mCharWidth;
 
     // do we find a corresponding register?
@@ -1142,6 +1151,10 @@ void RegistersView::paintEvent(QPaintEvent* event)
     Q_UNUSED(event);
     QPainter wPainter(this->viewport());
     wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
+
+    wPainter.setPen(Qt::black);
+    wPainter.drawLine(0, yTopSpacing - mButtonHeight, this->viewport()->width(), yTopSpacing - mButtonHeight);
+    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, " Press here to die...");
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers

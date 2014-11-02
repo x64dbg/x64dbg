@@ -153,6 +153,7 @@ private:
     int mVScrollOffset;
     int mRowsNeeded;
     int yTopSpacing;
+    int mButtonHeight;
     QSet<REGISTER_NAME> mUINTDISPLAY;
     QSet<REGISTER_NAME> mUSHORTDISPLAY;
     QSet<REGISTER_NAME> mDWORDDISPLAY;
