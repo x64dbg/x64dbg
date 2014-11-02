@@ -332,6 +332,60 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     return cacheResult;
 }
 
+void GetMxCsrFields(MxCsr_FIELDS_t* MxCsrFields, DWORD MxCsr)
+{
+    MxCsrFields->DAZ = valmxcsrflagfromstring(MxCsr, "DAZ");
+    MxCsrFields->DE = valmxcsrflagfromstring(MxCsr, "DE");
+    MxCsrFields->FZ = valmxcsrflagfromstring(MxCsr, "FZ");
+    MxCsrFields->IE = valmxcsrflagfromstring(MxCsr, "IE");
+    MxCsrFields->IM = valmxcsrflagfromstring(MxCsr, "IM");
+    MxCsrFields->DM = valmxcsrflagfromstring(MxCsr, "DM");
+    MxCsrFields->OE = valmxcsrflagfromstring(MxCsr, "OE");
+    MxCsrFields->OM = valmxcsrflagfromstring(MxCsr, "OM");
+    MxCsrFields->PE = valmxcsrflagfromstring(MxCsr, "PE");
+    MxCsrFields->PM = valmxcsrflagfromstring(MxCsr, "PM");
+    MxCsrFields->UE = valmxcsrflagfromstring(MxCsr, "UE");
+    MxCsrFields->UM = valmxcsrflagfromstring(MxCsr, "UM");
+    MxCsrFields->ZE = valmxcsrflagfromstring(MxCsr, "ZE");
+    MxCsrFields->ZM = valmxcsrflagfromstring(MxCsr, "ZM");
+
+    MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC");
+}
+
+void Getx87ControlWordFields(x87ControlWord_FIELDS_t* x87ControlWordFields, WORD ControlWord)
+{
+    x87ControlWordFields->DM = valx87controlwordflagfromstring(ControlWord, "DM");
+    x87ControlWordFields->IC = valx87controlwordflagfromstring(ControlWord, "IC");
+    x87ControlWordFields->IEM = valx87controlwordflagfromstring(ControlWord, "IEM");
+    x87ControlWordFields->IM = valx87controlwordflagfromstring(ControlWord, "IM");
+    x87ControlWordFields->OM = valx87controlwordflagfromstring(ControlWord, "OM");
+    x87ControlWordFields->PM = valx87controlwordflagfromstring(ControlWord, "PM");
+    x87ControlWordFields->UM = valx87controlwordflagfromstring(ControlWord, "UM");
+    x87ControlWordFields->ZM = valx87controlwordflagfromstring(ControlWord, "ZM");
+
+    x87ControlWordFields->RC = valx87controlwordfieldfromstring(ControlWord, "RC");
+    x87ControlWordFields->PC = valx87controlwordfieldfromstring(ControlWord, "PC");
+}
+
+void Getx87StatusWordFields(x87StatusWord_FIELDS_t* x87StatusWordFields, WORD StatusWord)
+{
+    x87StatusWordFields->B = valx87statuswordflagfromstring(StatusWord, "B");
+    x87StatusWordFields->C0 = valx87statuswordflagfromstring(StatusWord, "C0");
+    x87StatusWordFields->C1 = valx87statuswordflagfromstring(StatusWord, "C1");
+    x87StatusWordFields->C2 = valx87statuswordflagfromstring(StatusWord, "C2");
+    x87StatusWordFields->C3 = valx87statuswordflagfromstring(StatusWord, "C3");
+    x87StatusWordFields->D = valx87statuswordflagfromstring(StatusWord, "D");
+    x87StatusWordFields->I = valx87statuswordflagfromstring(StatusWord, "I");
+    x87StatusWordFields->IR = valx87statuswordflagfromstring(StatusWord, "IR");
+    x87StatusWordFields->O = valx87statuswordflagfromstring(StatusWord, "O");
+    x87StatusWordFields->P = valx87statuswordflagfromstring(StatusWord, "P");
+    x87StatusWordFields->SF = valx87statuswordflagfromstring(StatusWord, "SF");
+    x87StatusWordFields->U = valx87statuswordflagfromstring(StatusWord, "U");
+    x87StatusWordFields->Z = valx87statuswordflagfromstring(StatusWord, "Z");
+
+    x87StatusWordFields->TOP = valx87statuswordfieldfromstring(StatusWord, "TOP");
+}
+
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
     if(!DbgIsDebugging())
@@ -340,59 +394,26 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
-    REGDUMP & r = *regdump;
+    if(!GetFullContextDataEx(hActiveThread, & (regdump->titcontext)))
+        return false;
 
-#ifdef _WIN64
-    r.cax = GetContextDataEx(hActiveThread, UE_RAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_RCX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_RDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_RBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_RBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_RSI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_RDI);
-    r.r8 = GetContextDataEx(hActiveThread, UE_R8);
-    r.r9 = GetContextDataEx(hActiveThread, UE_R9);
-    r.r10 = GetContextDataEx(hActiveThread, UE_R10);
-    r.r11 = GetContextDataEx(hActiveThread, UE_R11);
-    r.r12 = GetContextDataEx(hActiveThread, UE_R12);
-    r.r13 = GetContextDataEx(hActiveThread, UE_R13);
-    r.r14 = GetContextDataEx(hActiveThread, UE_R14);
-    r.r15 = GetContextDataEx(hActiveThread, UE_R15);
-#else
-    r.cax = GetContextDataEx(hActiveThread, UE_EAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_ECX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_EDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_EBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_EBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_ESI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_EDI);
-#endif
+    duint cflags = regdump->titcontext.eflags;
+    regdump->flags.c = valflagfromstring(cflags, "cf");
+    regdump->flags.p = valflagfromstring(cflags, "pf");
+    regdump->flags.a = valflagfromstring(cflags, "af");
+    regdump->flags.z = valflagfromstring(cflags, "zf");
+    regdump->flags.s = valflagfromstring(cflags, "sf");
+    regdump->flags.t = valflagfromstring(cflags, "tf");
+    regdump->flags.i = valflagfromstring(cflags, "if");
+    regdump->flags.d = valflagfromstring(cflags, "df");
+    regdump->flags.o = valflagfromstring(cflags, "of");
 
-    r.csp = GetContextDataEx(hActiveThread, UE_CSP);
-    r.cip = GetContextDataEx(hActiveThread, UE_CIP);
-    r.eflags = (unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
-    r.gs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS) & 0xFFFF);
-    r.fs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS) & 0xFFFF);
-    r.es = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_ES) & 0xFFFF);
-    r.ds = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS) & 0xFFFF);
-    r.cs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS) & 0xFFFF);
-    r.ss = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS) & 0xFFFF);
-    r.dr0 = GetContextDataEx(hActiveThread, UE_DR0);
-    r.dr1 = GetContextDataEx(hActiveThread, UE_DR1);
-    r.dr2 = GetContextDataEx(hActiveThread, UE_DR2);
-    r.dr3 = GetContextDataEx(hActiveThread, UE_DR3);
-    r.dr6 = GetContextDataEx(hActiveThread, UE_DR6);
-    r.dr7 = GetContextDataEx(hActiveThread, UE_DR7);
-    duint cflags = r.eflags;
-    r.flags.c = valflagfromstring(cflags, "cf");
-    r.flags.p = valflagfromstring(cflags, "pf");
-    r.flags.a = valflagfromstring(cflags, "af");
-    r.flags.z = valflagfromstring(cflags, "zf");
-    r.flags.s = valflagfromstring(cflags, "sf");
-    r.flags.t = valflagfromstring(cflags, "tf");
-    r.flags.i = valflagfromstring(cflags, "if");
-    r.flags.d = valflagfromstring(cflags, "df");
-    r.flags.o = valflagfromstring(cflags, "of");
+    Getx87FPURegisters(regdump->x87FPURegisters,  & (regdump->titcontext));
+    GetMMXRegisters(regdump->mmx,  & (regdump->titcontext));
+    GetMxCsrFields(& (regdump->MxCsrFields), regdump->titcontext.MxCsr);
+    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->titcontext.x87fpu.ControlWord);
+    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->titcontext.x87fpu.StatusWord);
+
 
     return true;
 }

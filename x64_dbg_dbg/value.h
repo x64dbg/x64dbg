@@ -13,5 +13,12 @@ bool valfromstring(const char* string, uint* value, bool silent);
 bool valfromstring(const char* string, uint* value);
 bool valflagfromstring(uint eflags, const char* string);
 bool valtostring(const char* string, uint* value, bool silent);
+bool valmxcsrflagfromstring(uint mxcsrflags, const char* string);
+bool valx87statuswordflagfromstring(uint statusword, const char* string);
+bool valx87controlwordflagfromstring(uint controlword, const char* string);
+unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string);
+unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string);
+unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string);
+void fpustuff(const char* string, uint value);
 
 #endif // _VALUE_H

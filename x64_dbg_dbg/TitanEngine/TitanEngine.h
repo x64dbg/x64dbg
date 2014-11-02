@@ -8,6 +8,7 @@
 #endif
 
 #include <windows.h>
+#include <stdint.h>
 
 #pragma pack(push, 1)
 
@@ -252,6 +253,118 @@
 #define UE_SEG_DS 40
 #define UE_SEG_CS 41
 #define UE_SEG_SS 42
+#define UE_x87_r0 43
+#define UE_x87_r1 44
+#define UE_x87_r2 45
+#define UE_x87_r3 46
+#define UE_x87_r4 47
+#define UE_x87_r5 48
+#define UE_x87_r6 49
+#define UE_x87_r7 50
+#define UE_X87_STATUSWORD 51
+#define UE_X87_CONTROLWORD 52
+#define UE_X87_TAGWORD 53
+#define UE_MXCSR 54
+#define UE_MMX0 55
+#define UE_MMX1 56
+#define UE_MMX2 57
+#define UE_MMX3 58
+#define UE_MMX4 59
+#define UE_MMX5 60
+#define UE_MMX6 61
+#define UE_MMX7 62
+#define UE_XMM0 63
+#define UE_XMM1 64
+#define UE_XMM2 65
+#define UE_XMM3 66
+#define UE_XMM4 67
+#define UE_XMM5 68
+#define UE_XMM6 69
+#define UE_XMM7 70
+#define UE_XMM8 71
+#define UE_XMM9 72
+#define UE_XMM10 73
+#define UE_XMM11 74
+#define UE_XMM12 75
+#define UE_XMM13 76
+#define UE_XMM14 77
+#define UE_XMM15 78
+#define UE_x87_ST0 79
+#define UE_x87_ST1 80
+#define UE_x87_ST2 81
+#define UE_x87_ST3 82
+#define UE_x87_ST4 83
+#define UE_x87_ST5 84
+#define UE_x87_ST6 85
+#define UE_x87_ST7 86
+
+
+#ifndef CONTEXT_EXTENDED_REGISTERS
+#define CONTEXT_EXTENDED_REGISTERS 0
+#endif
+
+typedef struct
+{
+    BYTE    data[10];
+    int     st_value;
+    int     tag;
+} x87FPURegister_t;
+
+typedef struct
+{
+    WORD   ControlWord;
+    WORD   StatusWord;
+    WORD   TagWord;
+    DWORD   ErrorOffset;
+    DWORD   ErrorSelector;
+    DWORD   DataOffset;
+    DWORD   DataSelector;
+    DWORD   Cr0NpxState;
+} x87FPU_t;
+
+typedef struct
+{
+    ULONG_PTR cax;
+    ULONG_PTR ccx;
+    ULONG_PTR cdx;
+    ULONG_PTR cbx;
+    ULONG_PTR csp;
+    ULONG_PTR cbp;
+    ULONG_PTR csi;
+    ULONG_PTR cdi;
+#ifdef _WIN64
+    ULONG_PTR r8;
+    ULONG_PTR r9;
+    ULONG_PTR r10;
+    ULONG_PTR r11;
+    ULONG_PTR r12;
+    ULONG_PTR r13;
+    ULONG_PTR r14;
+    ULONG_PTR r15;
+#endif //_WIN64
+    ULONG_PTR cip;
+    unsigned int eflags;
+    unsigned short gs;
+    unsigned short fs;
+    unsigned short es;
+    unsigned short ds;
+    unsigned short cs;
+    unsigned short ss;
+    ULONG_PTR dr0;
+    ULONG_PTR dr1;
+    ULONG_PTR dr2;
+    ULONG_PTR dr3;
+    ULONG_PTR dr6;
+    ULONG_PTR dr7;
+    BYTE RegisterArea[80];
+    x87FPU_t x87fpu;
+    DWORD MxCsr;
+#ifdef _WIN64
+    M128A XmmRegisters[16];
+#else // x86
+    M128A XmmRegisters[8];
+#endif
+} TITAN_ENGINE_CONTEXT_t;
 
 typedef struct
 {
@@ -696,6 +809,9 @@ __declspec(dllexport) bool TITCALL SetMemoryBPX(ULONG_PTR MemoryStart, SIZE_T Si
 __declspec(dllexport) bool TITCALL SetMemoryBPXEx(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, DWORD BreakPointType, bool RestoreOnHit, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL RemoveMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory);
 __declspec(dllexport) bool TITCALL GetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);
+__declspec(dllexport) void TITCALL Getx87FPURegisters(x87FPURegister_t x87FPURegisters[8], TITAN_ENGINE_CONTEXT_t* titcontext);
+__declspec(dllexport) void TITCALL GetMMXRegisters(uint64_t mmx[8], TITAN_ENGINE_CONTEXT_t* titcontext);
+__declspec(dllexport) bool TITCALL GetFullContextDataEx(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextDataEx(HANDLE hActiveThread, DWORD IndexOfRegister);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextData(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL SetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);

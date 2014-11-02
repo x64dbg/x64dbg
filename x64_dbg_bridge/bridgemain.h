@@ -2,6 +2,7 @@
 #define _BRIDGEMAIN_H_
 
 #include <windows.h>
+#include "..\x64_dbg_dbg\TitanEngine\TitanEngine.h"
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -369,39 +370,69 @@ typedef struct
 
 typedef struct
 {
-    duint cax;
-    duint ccx;
-    duint cdx;
-    duint cbx;
-    duint csp;
-    duint cbp;
-    duint csi;
-    duint cdi;
-#ifdef _WIN64
-    duint r8;
-    duint r9;
-    duint r10;
-    duint r11;
-    duint r12;
-    duint r13;
-    duint r14;
-    duint r15;
-#endif //_WIN64
-    duint cip;
-    unsigned int eflags;
+    bool FZ;
+    bool PM;
+    bool UM;
+    bool OM;
+    bool ZM;
+    bool IM;
+    bool DM;
+    bool DAZ;
+    bool PE;
+    bool UE;
+    bool OE;
+    bool ZE;
+    bool DE;
+    bool IE;
+
+    unsigned short RC;
+} MxCsr_FIELDS_t;
+
+typedef struct
+{
+    bool B;
+    bool C3;
+    bool C2;
+    bool C1;
+    bool C0;
+    bool IR;
+    bool SF;
+    bool P;
+    bool U;
+    bool O;
+    bool Z;
+    bool D;
+    bool I;
+
+    unsigned short TOP;
+
+} x87StatusWord_FIELDS_t;
+
+typedef struct
+{
+    bool IC;
+    bool IEM;
+    bool PM;
+    bool UM;
+    bool OM;
+    bool ZM;
+    bool DM;
+    bool IM;
+
+    unsigned short RC;
+    unsigned short PC;
+
+} x87ControlWord_FIELDS_t;
+
+typedef struct
+{
+    TITAN_ENGINE_CONTEXT_t titcontext;
     FLAGS flags;
-    unsigned short gs;
-    unsigned short fs;
-    unsigned short es;
-    unsigned short ds;
-    unsigned short cs;
-    unsigned short ss;
-    duint dr0;
-    duint dr1;
-    duint dr2;
-    duint dr3;
-    duint dr6;
-    duint dr7;
+    x87FPURegister_t x87FPURegisters[8];
+    uint64_t mmx[8];
+    MxCsr_FIELDS_t MxCsrFields;
+    x87StatusWord_FIELDS_t x87StatusWordFields;
+    x87ControlWord_FIELDS_t x87ControlWordFields;
 } REGDUMP;
 
 typedef struct
