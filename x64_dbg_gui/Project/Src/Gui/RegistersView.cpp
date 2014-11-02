@@ -1306,35 +1306,35 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
         if(mTAGWORD.contains(reg))
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(");
+            valueText += QString(" (");
             valueText += GetTagWordStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         if(reg == MxCsr_RC)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(");
+            valueText += QString(" (");
             valueText += GetMxCsrRCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87CW_RC)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(");
+            valueText += QString(" (");
             valueText += GetControlWordRCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87CW_PC)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(");
+            valueText += QString(" (");
             valueText += GetControlWordPCStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
         else if(reg == x87SW_TOP)
         {
             valueText = QString("%1").arg((* ((unsigned short*) value)), 1, 16, QChar('0')).toUpper();
-            valueText += QString("(ST0=");
+            valueText += QString(" (ST0=");
             valueText += GetStatusWordTOPStateString((* ((unsigned short*) value)));
             valueText += QString(")");
         }
@@ -1358,10 +1358,10 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
 
 STRING_VALUE_TABLE_t MxCsrRCValueStringTable[] =
 {
-    {"toward zero", MxCsr_RC_TOZERO},
-    {"toward positive", MxCsr_RC_POSITIVE},
-    {"toward negative", MxCsr_RC_NEGATIVE},
-    {"round near", MxCsr_RC_NEAR}
+    {"Toward Zero", MxCsr_RC_TOZERO},
+    {"Toward Positive", MxCsr_RC_POSITIVE},
+    {"Toward Negative", MxCsr_RC_NEGATIVE},
+    {"Round Near", MxCsr_RC_NEAR}
 };
 
 unsigned int RegistersView::GetMxCsrRCValueFromString(QString string)
@@ -1387,7 +1387,7 @@ QString RegistersView::GetMxCsrRCStateString(unsigned short state)
             return MxCsrRCValueStringTable[i].string;
     }
 
-    return "unknown";
+    return "Unknown";
 }
 
 #define x87CW_RC_NEAR 0
@@ -1397,10 +1397,10 @@ QString RegistersView::GetMxCsrRCStateString(unsigned short state)
 
 STRING_VALUE_TABLE_t ControlWordRCValueStringTable[] =
 {
-    {"truncate", x87CW_RC_TRUNCATE},
-    {"round up", x87CW_RC_UP},
-    {"round down", x87CW_RC_DOWN},
-    {"round near", x87CW_RC_NEAR}
+    {"Truncate", x87CW_RC_TRUNCATE},
+    {"Round Up", x87CW_RC_UP},
+    {"Round Down", x87CW_RC_DOWN},
+    {"Round Near", x87CW_RC_NEAR}
 };
 
 unsigned int RegistersView::GetControlWordRCValueFromString(QString string)
@@ -1484,10 +1484,10 @@ QString RegistersView::GetStatusWordTOPStateString(unsigned short state)
 
 STRING_VALUE_TABLE_t ControlWordPCValueStringTable[] =
 {
-    {"real4", x87CW_PC_REAL4},
-    {"not used", x87CW_PC_NOTUSED},
-    {"real8", x87CW_PC_REAL8},
-    {"real10", x87CW_PC_REAL10}
+    {"Real4", x87CW_PC_REAL4},
+    {"Not Used", x87CW_PC_NOTUSED},
+    {"Real8", x87CW_PC_REAL8},
+    {"Real10", x87CW_PC_REAL10}
 };
 
 
@@ -1526,10 +1526,10 @@ QString RegistersView::GetControlWordPCStateString(unsigned short state)
 
 STRING_VALUE_TABLE_t TagWordValueStringTable[] =
 {
-    {"nonzero", X87FPU_TAGWORD_NONZERO},
-    {"zero", X87FPU_TAGWORD_ZERO},
-    {"special", X87FPU_TAGWORD_SPECIAL},
-    {"empty", X87FPU_TAGWORD_EMPTY}
+    {"Nonzero", X87FPU_TAGWORD_NONZERO},
+    {"Zero", X87FPU_TAGWORD_ZERO},
+    {"Special", X87FPU_TAGWORD_SPECIAL},
+    {"Empty", X87FPU_TAGWORD_EMPTY}
 };
 
 unsigned int RegistersView::GetTagWordValueFromString(QString string)
@@ -1556,7 +1556,7 @@ QString RegistersView::GetTagWordStateString(unsigned short state)
             return TagWordValueStringTable[i].string;
     }
 
-    return "unknown";
+    return "Unknown";
 }
 
 void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
