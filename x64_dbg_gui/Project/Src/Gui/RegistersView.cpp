@@ -1154,7 +1154,16 @@ void RegistersView::paintEvent(QPaintEvent* event)
 
     wPainter.setPen(Qt::black);
     wPainter.drawLine(0, yTopSpacing - mButtonHeight, this->viewport()->width(), yTopSpacing - mButtonHeight);
-    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, " Press here to FPU change...");
+
+    QString fpu_button_text = QString("");
+    if(DbgIsDebugging())
+    {
+        if(showfpu)
+            fpu_button_text = QString(" Hide FPU - <click here>");
+        else
+            fpu_button_text = QString(" Show FPU - <click here>");
+    }
+    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, fpu_button_text);
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
@@ -2038,14 +2047,14 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     else
     {
         wMenu.addSeparator();
+        wMenu.addAction(wCM_ChangeFPUView);
+        wMenu.addSeparator();
 #ifdef _WIN64
         QAction* wHwbpCsp = wMenu.addAction("HW Break on [RSP]");
 #else
         QAction* wHwbpCsp = wMenu.addAction("HW Break on [ESP]");
 #endif
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
-        wMenu.addSeparator();
-        wMenu.addAction(wCM_ChangeFPUView);
 
         if(wAction == wHwbpCsp)
             DbgCmdExec("bphws csp,rw");
