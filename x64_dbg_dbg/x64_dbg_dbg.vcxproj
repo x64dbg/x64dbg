@@ -58,7 +58,6 @@
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="data.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="debugger_commands.h" />

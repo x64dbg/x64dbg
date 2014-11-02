@@ -13,30 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="Header Files\BeaEngine">
-      <UniqueIdentifier>{6028af23-e8de-4db7-b1c7-bee2b5a4402b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\dbghelp">
-      <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\TitanEngine">
-      <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\XEDParse">
-      <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\DeviceNameResolver">
-      <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\jansson">
-      <UniqueIdentifier>{b63305e2-2b10-46eb-839f-5e9080fa8ad8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\lz4">
-      <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\UString">
-      <UniqueIdentifier>{adf51b13-6f3b-4b04-9ba9-21fb7a38150d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\UString">
       <UniqueIdentifier>{ee24febc-948e-4226-ba0e-68a9b449fb23}</UniqueIdentifier>
     </Filter>
@@ -54,6 +30,48 @@
     </Filter>
     <Filter Include="Source Files\Debugger Core">
       <UniqueIdentifier>{52e2c3ae-0223-4216-b896-41d9f171f731}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger Core">
+      <UniqueIdentifier>{164592cf-e2c9-4c98-abf6-ea47d37653a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party">
+      <UniqueIdentifier>{d2362bf7-ff20-493d-be01-0fb7e6dca8c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\TitanEngine">
+      <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\UString">
+      <UniqueIdentifier>{adf51b13-6f3b-4b04-9ba9-21fb7a38150d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\XEDParse">
+      <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\BeaEngine">
+      <UniqueIdentifier>{6028af23-e8de-4db7-b1c7-bee2b5a4402b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\dbghelp">
+      <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\DeviceNameResolver">
+      <UniqueIdentifier>{f4eb1487-15d6-4836-9d20-339d0f18c31f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\jansson">
+      <UniqueIdentifier>{b63305e2-2b10-46eb-839f-5e9080fa8ad8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\lz4">
+      <UniqueIdentifier>{6a8d58f0-1417-4bff-aecd-0f9f5e0641f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Interfaces/Exports">
+      <UniqueIdentifier>{714f2eb1-20d7-47ed-a641-ba8a66da2e7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utilities">
+      <UniqueIdentifier>{938130d5-63d6-44c2-9604-70f1f101890c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Core">
+      <UniqueIdentifier>{ccf4c0a0-bb97-4090-acc5-bc6b343300bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Information">
+      <UniqueIdentifier>{b006b04c-d7ea-49cb-b097-0cac1388f98e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -164,161 +182,158 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="_exports.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="addrinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="argument.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="breakpoint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="command.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="data.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="debugger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="instruction.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msgqueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="simplescript.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="threading.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="value.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="variable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="x64_dbg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="plugin_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_plugins.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_plugin_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="assemble.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="disasm_helper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="symbolinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stackinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="undocumented.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="disasm_fast.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="reference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BeaEngine\basic_types.h">
-      <Filter>Header Files\BeaEngine</Filter>
+      <Filter>Header Files\Third Party\BeaEngine</Filter>
     </ClInclude>
     <ClInclude Include="BeaEngine\BeaEngine.h">
-      <Filter>Header Files\BeaEngine</Filter>
+      <Filter>Header Files\Third Party\BeaEngine</Filter>
     </ClInclude>
     <ClInclude Include="BeaEngine\export.h">
-      <Filter>Header Files\BeaEngine</Filter>
+      <Filter>Header Files\Third Party\BeaEngine</Filter>
     </ClInclude>
     <ClInclude Include="BeaEngine\macros.h">
-      <Filter>Header Files\BeaEngine</Filter>
+      <Filter>Header Files\Third Party\BeaEngine</Filter>
     </ClInclude>
     <ClInclude Include="dbghelp\dbghelp.h">
-      <Filter>Header Files\dbghelp</Filter>
+      <Filter>Header Files\Third Party\dbghelp</Filter>
     </ClInclude>
     <ClInclude Include="XEDParse\XEDParse.h">
-      <Filter>Header Files\XEDParse</Filter>
+      <Filter>Header Files\Third Party\XEDParse</Filter>
     </ClInclude>
     <ClInclude Include="TitanEngine\TitanEngine.h">
-      <Filter>Header Files\TitanEngine</Filter>
+      <Filter>Header Files\Third Party\TitanEngine</Filter>
     </ClInclude>
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h">
-      <Filter>Header Files\DeviceNameResolver</Filter>
+      <Filter>Header Files\Third Party\DeviceNameResolver</Filter>
     </ClInclude>
     <ClInclude Include="jansson\jansson.h">
-      <Filter>Header Files\jansson</Filter>
+      <Filter>Header Files\Third Party\jansson</Filter>
     </ClInclude>
     <ClInclude Include="jansson\jansson_config.h">
-      <Filter>Header Files\jansson</Filter>
-    </ClInclude>
-    <ClInclude Include="murmurhash.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Third Party\jansson</Filter>
     </ClInclude>
     <ClInclude Include="lz4\lz4.h">
-      <Filter>Header Files\lz4</Filter>
+      <Filter>Header Files\Third Party\lz4</Filter>
     </ClInclude>
     <ClInclude Include="lz4\lz4file.h">
-      <Filter>Header Files\lz4</Filter>
+      <Filter>Header Files\Third Party\lz4</Filter>
     </ClInclude>
     <ClInclude Include="lz4\lz4hc.h">
-      <Filter>Header Files\lz4</Filter>
-    </ClInclude>
-    <ClInclude Include="_dbgfunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="patches.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="debugger_commands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="handle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dynamicmem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="log.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Third Party\lz4</Filter>
     </ClInclude>
     <ClInclude Include="UString\Exception.h">
-      <Filter>Header Files\UString</Filter>
+      <Filter>Header Files\Third Party\UString</Filter>
     </ClInclude>
     <ClInclude Include="UString\String.h">
-      <Filter>Header Files\UString</Filter>
+      <Filter>Header Files\Third Party\UString</Filter>
     </ClInclude>
     <ClInclude Include="UString\UString.h">
-      <Filter>Header Files\UString</Filter>
+      <Filter>Header Files\Third Party\UString</Filter>
+    </ClInclude>
+    <ClInclude Include="_global.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="argument.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="console.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="command.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="math.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="msgqueue.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="threading.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="value.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="variable.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin_loader.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="murmurhash.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger_commands.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="instruction.h">
+      <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="addrinfo.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="breakpoint.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="stackinfo.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="symbolinfo.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="_plugins.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
+    </ClInclude>
+    <ClInclude Include="_exports.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
+    </ClInclude>
+    <ClInclude Include="_dbgfunctions.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
+    </ClInclude>
+    <ClInclude Include="_plugin_types.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
+    </ClInclude>
+    <ClInclude Include="assemble.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="disasm_fast.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="disasm_helper.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="memory.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="patches.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="reference.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="simplescript.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="thread.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamicmem.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="handle.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="undocumented.h">
+      <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

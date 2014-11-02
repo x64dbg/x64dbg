@@ -4,7 +4,6 @@
 #include "variable.h"
 #include "instruction.h"
 #include "debugger.h"
-#include "data.h"
 #include "simplescript.h"
 #include "console.h"
 #include "math.h"
@@ -301,7 +300,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     if(memleaks())
     {
         char msg[256] = "";
-        sprintf(msg, "%d memory leak(s) found!\n\nPlease send contact the authors of x64_dbg.", memleaks());
+        sprintf(msg, "%d memory leak(s) found!\n\nPlease contact the authors of x64_dbg.", memleaks());
         MessageBoxA(0, msg, "error", MB_ICONERROR | MB_SYSTEMMODAL);
     }
     else
