@@ -131,7 +131,7 @@ bool symfromname(const char* name, uint* addr)
     char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
     PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
     pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+    pSymbol->MaxNameLen = MAX_LABEL_SIZE - 1;
     if(!SymFromName(fdProcessInfo->hProcess, name, pSymbol))
         return false;
     *addr = (uint)pSymbol->Address;
@@ -152,7 +152,7 @@ const char* symgetsymbolicname(uint addr)
         char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-        pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+        pSymbol->MaxNameLen = MAX_LABEL_SIZE - 1;
         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
         {
             if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))

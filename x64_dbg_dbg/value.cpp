@@ -1953,6 +1953,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         {
             uint csp = GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);
+            GuiUpdateRegisterView();
         }
         else
             GuiUpdateAllViews(); //repaint gui
