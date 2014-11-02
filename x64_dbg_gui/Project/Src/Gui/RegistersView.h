@@ -97,6 +97,8 @@ public slots:
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
     void ShowFPU(bool set_showfpu);
+    void onChangeFPUViewAction();
+    void SetChangeButton(QPushButton* push_button);
 signals:
     void refresh();
 
@@ -130,7 +132,6 @@ protected slots:
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInStack();
-    void onChangeFPUViewAction();
     void InitMappings();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
@@ -149,6 +150,7 @@ protected slots:
     QString GetStatusWordTOPStateString(unsigned short state);
 
 private:
+    QPushButton* button;
     bool showfpu;
     int mVScrollOffset;
     int mRowsNeeded;
