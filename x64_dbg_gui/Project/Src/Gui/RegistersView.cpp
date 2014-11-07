@@ -7,6 +7,11 @@
 #include <QMessageBox>
 #include <ctype.h>
 
+void RegistersView::SetChangeButton(QPushButton* push_button)
+{
+    button = push_button;
+}
+
 void RegistersView::InitMappings()
 {
     // create mapping from internal id to name
@@ -357,6 +362,8 @@ void RegistersView::InitMappings()
 
 RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOffset(0)
 {
+    button = NULL;
+
     // precreate ContextMenu Actions
     wCM_Increment = new QAction(tr("Increment"), this);
     wCM_Increment->setShortcutContext(Qt::WidgetShortcut);
@@ -386,7 +393,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_FollowInStack = new QAction("Follow in Stack", this);
     wCM_Incrementx87Stack = new QAction(tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = new QAction("Decrement x87 Stack", this);
-    wCM_ChangeFPUView = new QAction("Change FPU View", this);
+    wCM_ChangeFPUView = new QAction("Change View", this);
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -997,8 +1004,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mCip = 0;
     mRegisterUpdates.clear();
 
-    mButtonHeight = 5;
-    yTopSpacing = 20; //set top spacing (in pixels)
+    mButtonHeight = 0;
+    yTopSpacing = 4; //set top spacing (in pixels)
 
     // Context Menu
     this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -1149,21 +1156,17 @@ void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 void RegistersView::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
-    QPainter wPainter(this->viewport());
-    wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
-    wPainter.setPen(Qt::black);
-    wPainter.drawLine(0, yTopSpacing - mButtonHeight, this->viewport()->width(), yTopSpacing - mButtonHeight);
-
-    QString fpu_button_text = QString("");
-    if(DbgIsDebugging())
+    if(button != NULL)
     {
         if(showfpu)
-            fpu_button_text = QString(" Hide FPU - <click here>");
+            button->setText("Show Only General Registers");
         else
-            fpu_button_text = QString(" Show FPU - <click here>");
+            button->setText("Show FPU");
     }
-    wPainter.drawText(0, 0, this->viewport()->width(), yTopSpacing - mButtonHeight, Qt::AlignVCenter, fpu_button_text);
+
+    QPainter wPainter(this->viewport());
+    wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all registers
