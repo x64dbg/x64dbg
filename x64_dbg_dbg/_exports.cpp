@@ -101,14 +101,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         else //no user labels
         {
             DWORD64 displacement = 0;
-            char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+            char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
             if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
                 pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                if(bUndecorateSymbolNames and !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -124,7 +124,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
                             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                            if(bUndecorateSymbolNames and !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
