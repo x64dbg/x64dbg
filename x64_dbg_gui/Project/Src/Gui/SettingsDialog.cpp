@@ -173,39 +173,39 @@ void SettingsDialog::LoadSettings()
 #ifndef _WIN64
         isx64 = false;
 #endif
-        if(DbgFunctions()->GetJit)
-        {
-            bool jit_auto_on;
-            DbgFunctions()->GetJit(jit_entry, isx64);
-            DbgFunctions()->GetDefJit(jit_def_entry);
+        bool jit_auto_on;
+        bool get_jit_works;
+        get_jit_works = DbgFunctions()->GetJit(jit_entry, isx64);
+        DbgFunctions()->GetDefJit(jit_def_entry);
 
+        if(get_jit_works)
+        {
             if(_strcmpi(jit_entry, jit_def_entry) == 0)
                 settings.miscSetJIT = true;
-            else
-                settings.miscSetJIT = false;
-            ui->editJIT->setText(jit_entry);
-            ui->editJIT->setCursorPosition(0);
+        }
+        else
+            settings.miscSetJIT = false;
+        ui->editJIT->setText(jit_entry);
+        ui->editJIT->setCursorPosition(0);
 
-            ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
+        ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
 
-            if(DbgFunctions()->GetJitAuto(&jit_auto_on))
-            {
-                if(!jit_auto_on)
-                    settings.miscSetJITAuto = true;
-                else
-                    settings.miscSetJITAuto = false;
+        bool get_jit_auto_works = DbgFunctions()->GetJitAuto(&jit_auto_on);
+        if(!get_jit_auto_works || !jit_auto_on)
+            settings.miscSetJITAuto = true;
+        else
+            settings.miscSetJITAuto = false;
 
-                ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
-            }
+        ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
 
-            if(!DbgFunctions()->IsProcessElevated())
-            {
-                ui->chkSetJIT->setDisabled(true);
-                ui->chkConfirmBeforeAtt->setDisabled(true);
-                ui->lbladminwarning->setText(QString("Warning: Run the debugger as Admin to enable JIT."));
-            }
+        if(!DbgFunctions()->IsProcessElevated())
+        {
+            ui->chkSetJIT->setDisabled(true);
+            ui->chkConfirmBeforeAtt->setDisabled(true);
+            ui->lbladminwarning->setText(QString("Warning: Run the debugger as Admin to enable JIT."));
         }
     }
+
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
 }
