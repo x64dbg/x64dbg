@@ -1564,13 +1564,12 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             char path[JIT_ENTRY_DEF_SIZE];
             dbggetdefjit(path);
             char get_entry[JIT_ENTRY_MAX_SIZE] = "";
+            bool get_last_jit = true;
 
             if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
-            {
-                dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-            strcpy_s(oldjit, get_entry);
+                get_last_jit = false;
+            else
+                strcpy_s(oldjit, get_entry);
 
             jit_debugger_cmd = path;
             if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
@@ -1578,8 +1577,11 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
                 dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
                 return STATUS_ERROR;
             }
-            if(_stricmp(oldjit, path))
-                BridgeSettingSet("JIT", "Old", oldjit);
+            if(get_last_jit)
+            {
+                if(_stricmp(oldjit, path))
+                    BridgeSettingSet("JIT", "Old", oldjit);
+            }
         }
         else if(!_strcmpi(argv[1], "restore"))
         {

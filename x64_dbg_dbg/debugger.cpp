@@ -1570,7 +1570,11 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
     {
         lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
         if(lRv != ERROR_SUCCESS)
+        {
+            if(error != NULL)
+                *error = ERROR_RW_FILE_NOT_FOUND;
             return false;
+        }
 
         lRv = RegQueryValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
         if(lRv != ERROR_SUCCESS)
