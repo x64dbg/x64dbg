@@ -1452,7 +1452,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *isvar = true;
         return true;
     }
-    else if(isregister(string)) //re    gister
+    else if(isregister(string)) //register
     {
         if(!DbgIsDebugging())
         {
@@ -1533,21 +1533,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     if(!silent)
         dprintf("invalid value: \"%s\"!\n", string);
     return false; //nothing was OK
-}
-
-bool valfromstring(const char* string, uint* value, bool silent, bool baseonly)
-{
-    return valfromstring(string, value, silent, baseonly, 0, 0, 0);
-}
-
-bool valfromstring(const char* string, uint* value, bool silent)
-{
-    return valfromstring(string, value, silent, false);
-}
-
-bool valfromstring(const char* string, uint* value)
-{
-    return valfromstring(string, value, true);
 }
 
 bool longEnough(const char* str, size_t min_length)
