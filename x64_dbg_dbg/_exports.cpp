@@ -174,6 +174,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             {
                 DISASM_INSTR instr;
                 std::string temp_string;
+                std::string comment;
                 ADDRINFO newinfo;
                 char ascii[256 * 2] = "";
                 char unicode[256 * 2] = "";
@@ -181,7 +182,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
                 int len_left = MAX_COMMENT_SIZE;
-                for(int i = 0, j = 0; i < instr.argcount; i++)
+                for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
                     newinfo.flags = flaglabel;
@@ -268,18 +269,16 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     else
                         continue;
 
-                    if(!strstr(addrinfo->comment, temp_string.c_str()))
+                    if(!strstr(comment.c_str(), temp_string.c_str()))
                     {
-                        unsigned int maxlen = MAX_COMMENT_SIZE - j - 1;
-                        if(maxlen < temp_string.length())
-                            temp_string.at(maxlen - 1) = 0;
-                        if(j)
-                            j += sprintf(addrinfo->comment + j, ", %s", temp_string.c_str());
-                        else
-                            j += sprintf(addrinfo->comment + j, "%s", temp_string.c_str());
+                        if(comment.length())
+                            comment.append(", ");
+                        comment.append(temp_string);
                         retval = true;
                     }
                 }
+                comment.resize(MAX_COMMENT_SIZE - 1);
+                strcpy_s(addrinfo->comment, comment.c_str());
             }
         }
     }
