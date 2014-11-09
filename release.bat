@@ -1,5 +1,6 @@
 @echo off
 set RELEASEDIR=.\release
+rmdir /S /Q %RELEASEDIR%
 mkdir %RELEASEDIR%
 
 echo qt_base
