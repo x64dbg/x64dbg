@@ -333,7 +333,7 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     return cacheResult;
 }
 
-void GetMxCsrFields(MxCsr_FIELDS_t* MxCsrFields, DWORD MxCsr)
+static void GetMxCsrFields(MXCSRFIELDS* MxCsrFields, DWORD MxCsr)
 {
     MxCsrFields->DAZ = valmxcsrflagfromstring(MxCsr, "DAZ");
     MxCsrFields->DE = valmxcsrflagfromstring(MxCsr, "DE");
@@ -353,7 +353,7 @@ void GetMxCsrFields(MxCsr_FIELDS_t* MxCsrFields, DWORD MxCsr)
     MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC");
 }
 
-void Getx87ControlWordFields(x87ControlWord_FIELDS_t* x87ControlWordFields, WORD ControlWord)
+static void Getx87ControlWordFields(X87CONTROLWORDFIELDS* x87ControlWordFields, WORD ControlWord)
 {
     x87ControlWordFields->DM = valx87controlwordflagfromstring(ControlWord, "DM");
     x87ControlWordFields->IC = valx87controlwordflagfromstring(ControlWord, "IC");
@@ -368,7 +368,7 @@ void Getx87ControlWordFields(x87ControlWord_FIELDS_t* x87ControlWordFields, WORD
     x87ControlWordFields->PC = valx87controlwordfieldfromstring(ControlWord, "PC");
 }
 
-void Getx87StatusWordFields(x87StatusWord_FIELDS_t* x87StatusWordFields, WORD StatusWord)
+static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WORD StatusWord)
 {
     x87StatusWordFields->B = valx87statuswordflagfromstring(StatusWord, "B");
     x87StatusWordFields->C0 = valx87statuswordflagfromstring(StatusWord, "C0");
@@ -387,6 +387,71 @@ void Getx87StatusWordFields(x87StatusWord_FIELDS_t* x87StatusWordFields, WORD St
     x87StatusWordFields->TOP = valx87statuswordfieldfromstring(StatusWord, "TOP");
 }
 
+static void TranslateTitanFpu(const x87FPU_t* titanfpu, X87FPU* fpu)
+{
+    fpu->ControlWord = titanfpu->ControlWord;
+    fpu->StatusWord = titanfpu->StatusWord;
+    fpu->TagWord = titanfpu->TagWord;
+    fpu->ErrorOffset = titanfpu->ErrorOffset;
+    fpu->ErrorSelector = titanfpu->ErrorSelector;
+    fpu->DataOffset = titanfpu->DataOffset;
+    fpu->DataSelector = titanfpu->DataSelector;
+    fpu->Cr0NpxState = titanfpu->Cr0NpxState;
+}
+
+static void TranslateTitanContextToRegContext(const TITAN_ENGINE_CONTEXT_t* titcontext, REGISTERCONTEXT* regcontext)
+{
+    regcontext->cax = titcontext->cax;
+    regcontext->ccx = titcontext->ccx;
+    regcontext->cdx = titcontext->cdx;
+    regcontext->cbx = titcontext->cbx;
+    regcontext->csp = titcontext->csp;
+    regcontext->cbp = titcontext->cbp;
+    regcontext->csi = titcontext->csi;
+    regcontext->cdi = titcontext->cdi;
+#ifdef _WIN64
+    regcontext->r8 = titcontext->r8;
+    regcontext->r9 = titcontext->r9;
+    regcontext->r10 = titcontext->r10;
+    regcontext->r11 = titcontext->r11;
+    regcontext->r12 = titcontext->r12;
+    regcontext->r13 = titcontext->r13;
+    regcontext->r14 = titcontext->r14;
+    regcontext->r15 = titcontext->r15;
+#endif //_WIN64
+    regcontext->cip = titcontext->cip;
+    regcontext->eflags = titcontext->eflags;
+    regcontext->gs = titcontext->gs;
+    regcontext->fs = titcontext->fs;
+    regcontext->es = titcontext->es;
+    regcontext->ds = titcontext->ds;
+    regcontext->cs = titcontext->cs;
+    regcontext->ss = titcontext->ss;
+    regcontext->dr0 = titcontext->dr0;
+    regcontext->dr1 = titcontext->dr1;
+    regcontext->dr2 = titcontext->dr2;
+    regcontext->dr3 = titcontext->dr3;
+    regcontext->dr6 = titcontext->dr6;
+    regcontext->dr7 = titcontext->dr7;
+    memcpy(regcontext->RegisterArea, titcontext->RegisterArea, sizeof(regcontext->RegisterArea));
+    TranslateTitanFpu(&titcontext->x87fpu, &regcontext->x87fpu);
+    regcontext->MxCsr = titcontext->MxCsr;
+    memcpy(regcontext->XmmRegisters, titcontext->XmmRegisters, sizeof(regcontext->XmmRegisters));
+}
+
+static void TranslateTitanFpuRegister(const x87FPURegister_t* titanReg, X87FPUREGISTER* reg)
+{
+    memcpy(reg->data, titanReg->data, sizeof(reg->data));
+    reg->st_value = titanReg->st_value;
+    reg->tag = titanReg->tag;
+}
+
+static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FPUREGISTER fpu[8])
+{
+    for(int i = 0; i < 8; i++)
+        TranslateTitanFpuRegister(&titanFpu[i], &fpu[i]);
+}
+
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
     if(!DbgIsDebugging())
@@ -395,10 +460,12 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
-    if(!GetFullContextDataEx(hActiveThread, & (regdump->titcontext)))
+    TITAN_ENGINE_CONTEXT_t titcontext;
+    if(!GetFullContextDataEx(hActiveThread, &titcontext))
         return false;
+    TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-    duint cflags = regdump->titcontext.eflags;
+    duint cflags = regdump->regcontext.eflags;
     regdump->flags.c = valflagfromstring(cflags, "cf");
     regdump->flags.p = valflagfromstring(cflags, "pf");
     regdump->flags.a = valflagfromstring(cflags, "af");
@@ -409,12 +476,14 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     regdump->flags.d = valflagfromstring(cflags, "df");
     regdump->flags.o = valflagfromstring(cflags, "of");
 
-    Getx87FPURegisters(regdump->x87FPURegisters,  & (regdump->titcontext));
-    GetMMXRegisters(regdump->mmx,  & (regdump->titcontext));
-    GetMxCsrFields(& (regdump->MxCsrFields), regdump->titcontext.MxCsr);
-    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->titcontext.x87fpu.ControlWord);
-    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->titcontext.x87fpu.StatusWord);
+    x87FPURegister_t x87FPURegisters[8];
+    Getx87FPURegisters(x87FPURegisters,  &titcontext);
+    TranslateTitanFpuRegisters(x87FPURegisters, regdump->x87FPURegisters);
 
+    GetMMXRegisters(regdump->mmx,  &titcontext);
+    GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
+    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
+    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
 
     return true;
 }

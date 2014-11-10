@@ -5,7 +5,7 @@
 #include "LineEditDialog.h"
 #include "SelectFields.h"
 #include <QMessageBox>
-#include <ctype.h>
+#include <stdint.h>
 
 void RegistersView::SetChangeButton(QPushButton* push_button)
 {
@@ -1250,8 +1250,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     return newText;
 }
 
-#include <limits>
-#include <cmath>
 double readFloat80(const uint8_t buffer[10])
 {
     /*
@@ -1643,7 +1641,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(mRegisterUpdates.contains(x87SW_TOP))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText = QString("ST%1 ").arg(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->st_value);
+            newText = QString("ST%1 ").arg(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->st_value);
             width = newText.length() * mCharWidth;
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
 
@@ -1686,7 +1684,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
                 p->setPen(ConfigColor("RegistersModifiedColor"));
             }
 
-            newText += GetTagWordStateString(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
+            newText += GetTagWordStateString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
 
             width = newText.length() * mCharWidth;
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
@@ -1700,7 +1698,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText += QString::number(readFloat80(((x87FPURegister_t*) registerValue(&wRegDumpStruct, reg))->data));
+            newText += QString::number(readFloat80(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->data));
             width = newText.length() * mCharWidth;
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
         }
@@ -2146,26 +2144,26 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
     // TODO: add an array with something like: return array[reg].data, this is more fast :-)
-    if(reg == CAX) return (char*) & (regd->titcontext.cax);
-    if(reg == CBX) return (char*) & (regd->titcontext.cbx);
-    if(reg == CCX) return (char*) & (regd->titcontext.ccx);
-    if(reg == CDX) return (char*) & (regd->titcontext.cdx);
-    if(reg == CSI) return (char*) & (regd->titcontext.csi);
-    if(reg == CDI) return (char*) & (regd->titcontext.cdi);
-    if(reg == CBP) return (char*) & (regd->titcontext.cbp);
-    if(reg == CSP) return (char*) & (regd->titcontext.csp);
+    if(reg == CAX) return (char*) & (regd->regcontext.cax);
+    if(reg == CBX) return (char*) & (regd->regcontext.cbx);
+    if(reg == CCX) return (char*) & (regd->regcontext.ccx);
+    if(reg == CDX) return (char*) & (regd->regcontext.cdx);
+    if(reg == CSI) return (char*) & (regd->regcontext.csi);
+    if(reg == CDI) return (char*) & (regd->regcontext.cdi);
+    if(reg == CBP) return (char*) & (regd->regcontext.cbp);
+    if(reg == CSP) return (char*) & (regd->regcontext.csp);
 
-    if(reg == CIP) return (char*) & (regd->titcontext.cip);
-    if(reg == EFLAGS) return (char*) & (regd->titcontext.eflags);
+    if(reg == CIP) return (char*) & (regd->regcontext.cip);
+    if(reg == EFLAGS) return (char*) & (regd->regcontext.eflags);
 #ifdef _WIN64
-    if(reg == R8) return (char*) & (regd->titcontext.r8);
-    if(reg == R9) return (char*) & (regd->titcontext.r9);
-    if(reg == R10) return (char*) & (regd->titcontext.r10);
-    if(reg == R11) return (char*) & (regd->titcontext.r11);
-    if(reg == R12) return (char*) & (regd->titcontext.r12);
-    if(reg == R13) return (char*) & (regd->titcontext.r13);
-    if(reg == R14) return (char*) & (regd->titcontext.r14);
-    if(reg == R15) return (char*) & (regd->titcontext.r15);
+    if(reg == R8) return (char*) & (regd->regcontext.r8);
+    if(reg == R9) return (char*) & (regd->regcontext.r9);
+    if(reg == R10) return (char*) & (regd->regcontext.r10);
+    if(reg == R11) return (char*) & (regd->regcontext.r11);
+    if(reg == R12) return (char*) & (regd->regcontext.r12);
+    if(reg == R13) return (char*) & (regd->regcontext.r13);
+    if(reg == R14) return (char*) & (regd->regcontext.r14);
+    if(reg == R15) return (char*) & (regd->regcontext.r15);
 #endif
     // CF,PF,AF,ZF,SF,TF,IF,DF,OF
     if(reg == CF) return (char*) & (regd->flags.c);
@@ -2179,19 +2177,19 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == OF) return (char*) & (regd->flags.o);
 
     // GS,FS,ES,DS,CS,SS
-    if(reg == GS) return (char*) & (regd->titcontext.gs);
-    if(reg == FS) return (char*) & (regd->titcontext.fs);
-    if(reg == ES) return (char*) & (regd->titcontext.es);
-    if(reg == DS) return (char*) & (regd->titcontext.ds);
-    if(reg == CS) return (char*) & (regd->titcontext.cs);
-    if(reg == SS) return (char*) & (regd->titcontext.ss);
+    if(reg == GS) return (char*) & (regd->regcontext.gs);
+    if(reg == FS) return (char*) & (regd->regcontext.fs);
+    if(reg == ES) return (char*) & (regd->regcontext.es);
+    if(reg == DS) return (char*) & (regd->regcontext.ds);
+    if(reg == CS) return (char*) & (regd->regcontext.cs);
+    if(reg == SS) return (char*) & (regd->regcontext.ss);
 
-    if(reg == DR0) return (char*) & (regd->titcontext.dr0);
-    if(reg == DR1) return (char*) & (regd->titcontext.dr1);
-    if(reg == DR2) return (char*) & (regd->titcontext.dr2);
-    if(reg == DR3) return (char*) & (regd->titcontext.dr3);
-    if(reg == DR6) return (char*) & (regd->titcontext.dr6);
-    if(reg == DR7) return (char*) & (regd->titcontext.dr7);
+    if(reg == DR0) return (char*) & (regd->regcontext.dr0);
+    if(reg == DR1) return (char*) & (regd->regcontext.dr1);
+    if(reg == DR2) return (char*) & (regd->regcontext.dr2);
+    if(reg == DR3) return (char*) & (regd->regcontext.dr3);
+    if(reg == DR6) return (char*) & (regd->regcontext.dr6);
+    if(reg == DR7) return (char*) & (regd->regcontext.dr7);
 
     if(reg == MM0) return (char*) & (regd->mmx[0]);
     if(reg == MM1) return (char*) & (regd->mmx[1]);
@@ -2211,9 +2209,9 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == x87r6) return (char*) & (regd->x87FPURegisters[6]);
     if(reg == x87r7) return (char*) & (regd->x87FPURegisters[7]);
 
-    if(reg == x87TagWord) return (char*) & (regd->titcontext.x87fpu.TagWord);
+    if(reg == x87TagWord) return (char*) & (regd->regcontext.x87fpu.TagWord);
 
-    if(reg == x87ControlWord) return (char*) & (regd->titcontext.x87fpu.ControlWord);
+    if(reg == x87ControlWord) return (char*) & (regd->regcontext.x87fpu.ControlWord);
 
     if(reg == x87TW_0) return (char*) & (regd->x87FPURegisters[0].tag);
     if(reg == x87TW_1) return (char*) & (regd->x87FPURegisters[1].tag);
@@ -2235,7 +2233,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == x87CW_RC) return (char*) & (regd->x87ControlWordFields.RC);
     if(reg == x87CW_PC) return (char*) & (regd->x87ControlWordFields.PC);
 
-    if(reg == x87StatusWord) return (char*) & (regd->titcontext.x87fpu.StatusWord);
+    if(reg == x87StatusWord) return (char*) & (regd->regcontext.x87fpu.StatusWord);
 
     if(reg == x87SW_B) return (char*) & (regd->x87StatusWordFields.B);
     if(reg == x87SW_C3) return (char*) & (regd->x87StatusWordFields.C3);
@@ -2252,7 +2250,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == x87SW_C0) return (char*) & (regd->x87StatusWordFields.C0);
     if(reg == x87SW_TOP) return (char*) & (regd->x87StatusWordFields.TOP);
 
-    if(reg == MxCsr) return (char*) & (regd->titcontext.MxCsr);
+    if(reg == MxCsr) return (char*) & (regd->regcontext.MxCsr);
 
     if(reg == MxCsr_FZ) return (char*) & (regd->MxCsrFields.FZ);
     if(reg == MxCsr_PM) return (char*) & (regd->MxCsrFields.PM);
@@ -2270,22 +2268,22 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == MxCsr_IE) return (char*) & (regd->MxCsrFields.IE);
     if(reg == MxCsr_RC) return (char*) & (regd->MxCsrFields.RC);
 
-    if(reg == XMM0) return (char*) & (regd->titcontext.XmmRegisters[0]);
-    if(reg == XMM1) return (char*) & (regd->titcontext.XmmRegisters[1]);
-    if(reg == XMM2) return (char*) & (regd->titcontext.XmmRegisters[2]);
-    if(reg == XMM3) return (char*) & (regd->titcontext.XmmRegisters[3]);
-    if(reg == XMM4) return (char*) & (regd->titcontext.XmmRegisters[4]);
-    if(reg == XMM5) return (char*) & (regd->titcontext.XmmRegisters[5]);
-    if(reg == XMM6) return (char*) & (regd->titcontext.XmmRegisters[6]);
-    if(reg == XMM7) return (char*) & (regd->titcontext.XmmRegisters[7]);
-    if(reg == XMM8) return (char*) & (regd->titcontext.XmmRegisters[8]);
-    if(reg == XMM9) return (char*) & (regd->titcontext.XmmRegisters[9]);
-    if(reg == XMM10) return (char*) & (regd->titcontext.XmmRegisters[10]);
-    if(reg == XMM11) return (char*) & (regd->titcontext.XmmRegisters[11]);
-    if(reg == XMM12) return (char*) & (regd->titcontext.XmmRegisters[12]);
-    if(reg == XMM13) return (char*) & (regd->titcontext.XmmRegisters[13]);
-    if(reg == XMM14) return (char*) & (regd->titcontext.XmmRegisters[14]);
-    if(reg == XMM15) return (char*) & (regd->titcontext.XmmRegisters[15]);
+    if(reg == XMM0) return (char*) & (regd->regcontext.XmmRegisters[0]);
+    if(reg == XMM1) return (char*) & (regd->regcontext.XmmRegisters[1]);
+    if(reg == XMM2) return (char*) & (regd->regcontext.XmmRegisters[2]);
+    if(reg == XMM3) return (char*) & (regd->regcontext.XmmRegisters[3]);
+    if(reg == XMM4) return (char*) & (regd->regcontext.XmmRegisters[4]);
+    if(reg == XMM5) return (char*) & (regd->regcontext.XmmRegisters[5]);
+    if(reg == XMM6) return (char*) & (regd->regcontext.XmmRegisters[6]);
+    if(reg == XMM7) return (char*) & (regd->regcontext.XmmRegisters[7]);
+    if(reg == XMM8) return (char*) & (regd->regcontext.XmmRegisters[8]);
+    if(reg == XMM9) return (char*) & (regd->regcontext.XmmRegisters[9]);
+    if(reg == XMM10) return (char*) & (regd->regcontext.XmmRegisters[10]);
+    if(reg == XMM11) return (char*) & (regd->regcontext.XmmRegisters[11]);
+    if(reg == XMM12) return (char*) & (regd->regcontext.XmmRegisters[12]);
+    if(reg == XMM13) return (char*) & (regd->regcontext.XmmRegisters[13]);
+    if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
+    if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
 
     return (char*) & null_value;
 }
@@ -2293,11 +2291,11 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 void RegistersView::setRegisters(REGDUMP* reg)
 {
     // tests if new-register-value == old-register-value holds
-    if(mCip != reg->titcontext.cip) //CIP changed
+    if(mCip != reg->regcontext.cip) //CIP changed
     {
         wCipRegDumpStruct = wRegDumpStruct;
         mRegisterUpdates.clear();
-        mCip = reg->titcontext.cip;
+        mCip = reg->regcontext.cip;
     }
 
     QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
@@ -2314,7 +2312,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // now we can save the values
     wRegDumpStruct = (*reg);
 
-    if(mCip != reg->titcontext.cip)
+    if(mCip != reg->regcontext.cip)
         wCipRegDumpStruct = wRegDumpStruct;
 
     // force repaint
