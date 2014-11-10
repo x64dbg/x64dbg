@@ -1173,7 +1173,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(apiname)
     {
         char modname[MAX_MODULE_SIZE] = "";
-        strcpy(modname, name);
+        strcpy_s(modname, name);
         modname[apiname - name] = 0;
         apiname++;
         if(!strlen(apiname))

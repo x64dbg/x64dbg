@@ -65,7 +65,7 @@ UTF8::String UTF8::String::FromFile(const UTF8::String & Path)
         File.read(buf, Length);
         s.AppendString(buf);
 
-        delete buf;
+        delete[] buf;
     }
     else
     {
@@ -94,7 +94,7 @@ long UTF8::String::Search(const UTF8::String & SubString, unsigned int StartPosi
         }
     }
 
-    if(n < 0)
+    if((int)n < 0)
     {
         if(Direction == SearchDirectionFromRightToLeft)
         {
@@ -106,12 +106,11 @@ long UTF8::String::Search(const UTF8::String & SubString, unsigned int StartPosi
         }
     }
 
-    while(((Direction == SearchDirectionFromLeftToRight) && (n < Length() - SubstringLength + 1)) || ((Direction == SearchDirectionFromRightToLeft) && (n >= 0)))
+    while(((Direction == SearchDirectionFromLeftToRight) && (n < Length() - SubstringLength + 1)) || ((Direction == SearchDirectionFromRightToLeft) && ((int)n >= 0)))
     {
 
         if(this->Substring(n, SubstringLength) == SubString)
         {
-
             return n;
         }
 
@@ -390,7 +389,7 @@ void UTF8::String::ConvertFromInt64(int64_t n)
             n /= 10;
             i--;
 
-            if((i < 0) || ((i < 1) && minus))
+            if(((int)i < 0) || ((i < 1) && minus))
             {
                 throw Exception("[ConvertFromInt] Cycle terminated, buffer overflow.");
             }
@@ -492,7 +491,7 @@ UTF8::String UTF8::String::Substring(unsigned int Start, unsigned int Count) con
     tmp[CopyAmount] = 0;
 
     UTF8::String r(tmp);
-    delete tmp;
+    delete[] tmp;
 
     return r;
 }
@@ -559,7 +558,7 @@ void UTF8::String::ConvertFromUTF32(const uint32_t* s)
 
         SetString(tmp);
 
-        delete tmp;
+        delete[] tmp;
     }
 }
 
@@ -680,7 +679,7 @@ UTF8::String UTF8::String::operator[](unsigned int const n) const
         return UTF8::String();
     }
 
-    if(n < 0)
+    if((int)n < 0)
     {
         return UTF8::String();
     }
@@ -728,6 +727,8 @@ unsigned int UTF8::String::GetSequenceLength(const char* StartByte) const
     }
     else
     {
+        if(StartByte == 0)
+            StartByte = "(null)";
         throw Exception(std::string("[GetSequenceLength] Invalid UTF8 start byte (it is empty). My own string is: [") + Data + "] Argument is: [" + StartByte + "]");
     }
 }
