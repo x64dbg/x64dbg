@@ -1871,13 +1871,13 @@ void RegistersView::displayEditDialog()
 void RegistersView::onIncrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 7);
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 8);
 }
 
 void RegistersView::onDecrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 7);
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 8);
 }
 
 void RegistersView::onIncrementAction()
