@@ -12,6 +12,7 @@
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
 #define JIT_ENTRY_MAX_SIZE 512
 #define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
+#define MS_VC_EXCEPTION 0x406D1388
 
 typedef enum
 {

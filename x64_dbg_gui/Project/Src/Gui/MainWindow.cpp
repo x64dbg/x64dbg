@@ -963,7 +963,7 @@ void MainWindow::changeCommandLine()
         cmdline = new char[cbsize];
         DbgFunctions()->GetCmdline(cmdline, 0);
         mLineEdit.setText(QString(cmdline));
-        delete cmdline;
+        delete[] cmdline;
     }
 
     mLineEdit.setCursorPosition(0);

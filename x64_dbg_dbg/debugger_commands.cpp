@@ -199,17 +199,17 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     }
     if(IsBPXEnabled(addr))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (IsBPXEnabled)", addr);
+        dprintf("error setting breakpoint at "fhex"! (IsBPXEnabled)\n", addr);
         return STATUS_ERROR;
     }
     else if(!memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (memread)", addr);
+        dprintf("error setting breakpoint at "fhex"! (memread)\n", addr);
         return STATUS_ERROR;
     }
     else if(!bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (bpnew)", addr);
+        dprintf("error setting breakpoint at "fhex"! (bpnew)\n", addr);
         return STATUS_ERROR;
     }
     else if(!SetBPX(addr, type, (void*)cbUserBreakpoint))

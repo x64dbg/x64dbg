@@ -2,7 +2,6 @@
 #define _BRIDGEMAIN_H_
 
 #include <windows.h>
-#include "..\x64_dbg_dbg\TitanEngine\TitanEngine.h"
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -386,7 +385,7 @@ typedef struct
     bool IE;
 
     unsigned short RC;
-} MxCsr_FIELDS_t;
+} MXCSRFIELDS;
 
 typedef struct
 {
@@ -406,7 +405,7 @@ typedef struct
 
     unsigned short TOP;
 
-} x87StatusWord_FIELDS_t;
+} X87STATUSWORDFIELDS;
 
 typedef struct
 {
@@ -422,17 +421,80 @@ typedef struct
     unsigned short RC;
     unsigned short PC;
 
-} x87ControlWord_FIELDS_t;
+} X87CONTROLWORDFIELDS;
 
 typedef struct
 {
-    TITAN_ENGINE_CONTEXT_t titcontext;
+    BYTE    data[10];
+    int     st_value;
+    int     tag;
+} X87FPUREGISTER;
+
+typedef struct
+{
+    WORD   ControlWord;
+    WORD   StatusWord;
+    WORD   TagWord;
+    DWORD   ErrorOffset;
+    DWORD   ErrorSelector;
+    DWORD   DataOffset;
+    DWORD   DataSelector;
+    DWORD   Cr0NpxState;
+} X87FPU;
+
+typedef struct
+{
+    ULONG_PTR cax;
+    ULONG_PTR ccx;
+    ULONG_PTR cdx;
+    ULONG_PTR cbx;
+    ULONG_PTR csp;
+    ULONG_PTR cbp;
+    ULONG_PTR csi;
+    ULONG_PTR cdi;
+#ifdef _WIN64
+    ULONG_PTR r8;
+    ULONG_PTR r9;
+    ULONG_PTR r10;
+    ULONG_PTR r11;
+    ULONG_PTR r12;
+    ULONG_PTR r13;
+    ULONG_PTR r14;
+    ULONG_PTR r15;
+#endif //_WIN64
+    ULONG_PTR cip;
+    ULONG_PTR eflags;
+    unsigned short gs;
+    unsigned short fs;
+    unsigned short es;
+    unsigned short ds;
+    unsigned short cs;
+    unsigned short ss;
+    ULONG_PTR dr0;
+    ULONG_PTR dr1;
+    ULONG_PTR dr2;
+    ULONG_PTR dr3;
+    ULONG_PTR dr6;
+    ULONG_PTR dr7;
+    BYTE RegisterArea[80];
+    X87FPU x87fpu;
+    DWORD MxCsr;
+#ifdef _WIN64
+    M128A XmmRegisters[16];
+#else // x86
+    M128A XmmRegisters[8];
+#endif
+} REGISTERCONTEXT;
+
+typedef struct
+{
+    REGISTERCONTEXT regcontext;
     FLAGS flags;
-    x87FPURegister_t x87FPURegisters[8];
-    uint64_t mmx[8];
-    MxCsr_FIELDS_t MxCsrFields;
-    x87StatusWord_FIELDS_t x87StatusWordFields;
-    x87ControlWord_FIELDS_t x87ControlWordFields;
+    X87FPUREGISTER x87FPURegisters[8];
+    unsigned long long mmx[8];
+    MXCSRFIELDS MxCsrFields;
+    X87STATUSWORDFIELDS x87StatusWordFields;
+    X87CONTROLWORDFIELDS x87ControlWordFields;
 } REGDUMP;
 
 typedef struct

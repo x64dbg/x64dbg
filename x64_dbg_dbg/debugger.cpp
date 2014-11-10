@@ -115,6 +115,7 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(MS_VC_EXCEPTION, "MS_VC_EXCEPTION"));
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
@@ -1005,7 +1006,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
                     break;
                 }
             }
-            dprintf("DebugString: \"%s\"\n", DebugTextEscaped);
+            dprintf("DebugString: \"%s\"\n", DebugTextEscaped());
         }
     }
 
@@ -1066,63 +1067,58 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
         SetContextDataEx(hActiveThread, UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
-    else if(ExceptionData->ExceptionRecord.ExceptionCode == 0x406D1388) //SetThreadName exception
+    else if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {
-        if(ExceptionData->ExceptionRecord.NumberParameters == sizeof(THREADNAME_INFO) / sizeof(uint))
+        THREADNAME_INFO nameInfo;
+        memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
+        if(nameInfo.dwThreadID == -1) //current thread
+            nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+        if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
         {
-            THREADNAME_INFO nameInfo;
-            memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
-            if(nameInfo.dwThreadID == -1) //current thread
-                nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-            if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
+            Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+            if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
-                Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-                memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
-                if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+                int len = (int)strlen(ThreadName);
+                int escape_count = 0;
+                for(int i = 0; i < len; i++)
+                    if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
+                        escape_count++;
+                Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
+                for(int i = 0, j = 0; i < len; i++)
                 {
-                    int len = (int)strlen(ThreadName);
-                    int escape_count = 0;
-                    for(int i = 0; i < len; i++)
-                        if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
-                            escape_count++;
-                    Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
-                    memset(ThreadNameEscaped, 0, len + escape_count * 3 + 1);
-                    for(int i = 0, j = 0; i < len; i++)
+                    switch(ThreadName[i])
                     {
-                        switch(ThreadName[i])
-                        {
-                        case '\t':
-                            j += sprintf(ThreadNameEscaped + j, "\\t");
-                            break;
-                        case '\f':
-                            j += sprintf(ThreadNameEscaped + j, "\\f");
-                            break;
-                        case '\v':
-                            j += sprintf(ThreadNameEscaped + j, "\\v");
-                            break;
-                        case '\n':
-                            j += sprintf(ThreadNameEscaped + j, "\\n");
-                            break;
-                        case '\r':
-                            j += sprintf(ThreadNameEscaped + j, "\\r");
-                            break;
-                        case '\\':
-                            j += sprintf(ThreadNameEscaped + j, "\\\\");
-                            break;
-                        case '\"':
-                            j += sprintf(ThreadNameEscaped + j, "\\\"");
-                            break;
-                        default:
-                            if(!isprint(ThreadName[i])) //unknown unprintable character
-                                j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
-                            else
-                                j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
-                            break;
-                        }
+                    case '\t':
+                        j += sprintf(ThreadNameEscaped + j, "\\t");
+                        break;
+                    case '\f':
+                        j += sprintf(ThreadNameEscaped + j, "\\f");
+                        break;
+                    case '\v':
+                        j += sprintf(ThreadNameEscaped + j, "\\v");
+                        break;
+                    case '\n':
+                        j += sprintf(ThreadNameEscaped + j, "\\n");
+                        break;
+                    case '\r':
+                        j += sprintf(ThreadNameEscaped + j, "\\r");
+                        break;
+                    case '\\':
+                        j += sprintf(ThreadNameEscaped + j, "\\\\");
+                        break;
+                    case '\"':
+                        j += sprintf(ThreadNameEscaped + j, "\\\"");
+                        break;
+                    default:
+                        if(!isprint(ThreadName[i])) //unknown unprintable character
+                            j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
+                        else
+                            j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
+                        break;
                     }
-                    dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped);
-                    threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
                 }
+                dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped());
+                threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
             }
         }
     }

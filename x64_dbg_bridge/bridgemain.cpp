@@ -40,7 +40,7 @@ BRIDGE_IMPEXP const char* BridgeInit()
     if(szIniFile[len] == L'\\')
         wcscat_s(szIniFile, L".ini");
     else
-        wcscpy_s(&szIniFile[len], sizeof(szIniFile) - len, L".ini");
+        wcscpy_s(&szIniFile[len], _countof(szIniFile) - len, L".ini");
 
     HINSTANCE hInst;
     const char* szLib;

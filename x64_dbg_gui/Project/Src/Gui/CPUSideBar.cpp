@@ -158,19 +158,19 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
         const int_t cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
 #ifdef _WIN64
-        if(cur_VA == regDump.titcontext.cax)  drawLabel(&painter, line, "RAX");
-        if(cur_VA == regDump.titcontext.cbx)  drawLabel(&painter, line, "RBX");
-        if(cur_VA == regDump.titcontext.ccx)  drawLabel(&painter, line, "RCX");
-        if(cur_VA == regDump.titcontext.cdx)  drawLabel(&painter, line, "RDX");
-        if(cur_VA == regDump.titcontext.csi)  drawLabel(&painter, line, "RSI");
-        if(cur_VA == regDump.titcontext.cdi)  drawLabel(&painter, line, "RDI");
+        if(cur_VA == regDump.regcontext.cax)  drawLabel(&painter, line, "RAX");
+        if(cur_VA == regDump.regcontext.cbx)  drawLabel(&painter, line, "RBX");
+        if(cur_VA == regDump.regcontext.ccx)  drawLabel(&painter, line, "RCX");
+        if(cur_VA == regDump.regcontext.cdx)  drawLabel(&painter, line, "RDX");
+        if(cur_VA == regDump.regcontext.csi)  drawLabel(&painter, line, "RSI");
+        if(cur_VA == regDump.regcontext.cdi)  drawLabel(&painter, line, "RDI");
 #else //x86
-        if(cur_VA == regDump.titcontext.cax)  drawLabel(&painter, line, "EAX");
-        if(cur_VA == regDump.titcontext.cbx)  drawLabel(&painter, line, "EBX");
-        if(cur_VA == regDump.titcontext.ccx)  drawLabel(&painter, line, "ECX");
-        if(cur_VA == regDump.titcontext.cdx)  drawLabel(&painter, line, "EDX");
-        if(cur_VA == regDump.titcontext.csi)  drawLabel(&painter, line, "ESI");
-        if(cur_VA == regDump.titcontext.cdi)  drawLabel(&painter, line, "EDI");
+        if(cur_VA == regDump.regcontext.cax)  drawLabel(&painter, line, "EAX");
+        if(cur_VA == regDump.regcontext.cbx)  drawLabel(&painter, line, "EBX");
+        if(cur_VA == regDump.regcontext.ccx)  drawLabel(&painter, line, "ECX");
+        if(cur_VA == regDump.regcontext.cdx)  drawLabel(&painter, line, "EDX");
+        if(cur_VA == regDump.regcontext.csi)  drawLabel(&painter, line, "ESI");
+        if(cur_VA == regDump.regcontext.cdi)  drawLabel(&painter, line, "EDI");
 #endif
 
     }

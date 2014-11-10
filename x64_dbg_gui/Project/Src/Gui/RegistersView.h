@@ -150,8 +150,8 @@ protected slots:
     QString GetStatusWordTOPStateString(unsigned short state);
 
 private:
-    QPushButton* button;
-    bool showfpu;
+    QPushButton* mChangeViewButton;
+    bool mShowFpu;
     int mVScrollOffset;
     int mRowsNeeded;
     int yTopSpacing;
