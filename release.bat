@@ -111,14 +111,14 @@ del x64_dbg.def
 del x64_dbg.a
 copy bin\x64\x64_dbg.lib %RELEASEDIR%\pluginsdk\x64_dbg.lib
 
-echo !upload
+echo release
 
-rmdir %RELEASEDIR%\!upload /S /Q
-mkdir %RELEASEDIR%\!upload
+rmdir %RELEASEDIR%\release /S /Q
+mkdir %RELEASEDIR%\release
 
-xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\!upload /S /Y
-xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\!upload /S /Y
-xcopy %RELEASEDIR%\release %RELEASEDIR%\!upload /S /Y
-xcopy %RELEASEDIR%\help %RELEASEDIR%\!upload /S /Y
+xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
+xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y
+xcopy %RELEASEDIR%\release %RELEASEDIR%\release /S /Y
+xcopy %RELEASEDIR%\help %RELEASEDIR%\release /S /Y
 
 exit 0
