@@ -437,6 +437,7 @@ static void TranslateTitanContextToRegContext(const TITAN_ENGINE_CONTEXT_t* titc
     TranslateTitanFpu(&titcontext->x87fpu, &regcontext->x87fpu);
     regcontext->MxCsr = titcontext->MxCsr;
     memcpy(regcontext->XmmRegisters, titcontext->XmmRegisters, sizeof(regcontext->XmmRegisters));
+    memcpy(regcontext->YmmRegisters, titcontext->YmmRegisters, sizeof(regcontext->YmmRegisters));
 }
 
 static void TranslateTitanFpuRegister(const x87FPURegister_t* titanReg, X87FPUREGISTER* reg)

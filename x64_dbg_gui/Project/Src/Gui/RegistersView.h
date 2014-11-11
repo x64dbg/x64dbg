@@ -56,6 +56,10 @@ public:
         MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7,
         XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
         XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
+        // YMM
+        YMM0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7, YMM8,
+        YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15,
+
         UNKNOWN
     };
 
@@ -180,6 +184,7 @@ private:
     QSet<REGISTER_NAME> mFPUx87;
     QSet<REGISTER_NAME> mFPUMMX;
     QSet<REGISTER_NAME> mFPUXMM;
+    QSet<REGISTER_NAME> mFPUYMM;
     // contains all id's of registers if there occurs a change
     QSet<REGISTER_NAME> mRegisterUpdates;
     // registers that do not allow changes

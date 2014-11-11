@@ -481,8 +481,10 @@ typedef struct
     DWORD MxCsr;
 #ifdef _WIN64
     M128A XmmRegisters[16];
+    BYTE YmmRegisters[32 * 16];
 #else // x86
     M128A XmmRegisters[8];
+    BYTE YmmRegisters[32 * 8];
 #endif
 } REGISTERCONTEXT;
 
