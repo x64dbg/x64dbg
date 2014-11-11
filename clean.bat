@@ -78,3 +78,4 @@ echo cleaning help...
 cd help
 del /Q *.chm
 rmdir /S /Q output
+exit 0

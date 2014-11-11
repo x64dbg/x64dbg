@@ -120,3 +120,5 @@ xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\!upload /S /Y
 xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\!upload /S /Y
 xcopy %RELEASEDIR%\release %RELEASEDIR%\!upload /S /Y
 xcopy %RELEASEDIR%\help %RELEASEDIR%\!upload /S /Y
+
+exit 0
