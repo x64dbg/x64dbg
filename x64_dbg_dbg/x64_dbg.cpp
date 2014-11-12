@@ -170,12 +170,13 @@ static void registercommands()
     dbgcmdnew("msgyn", cbScriptMsgyn, false);
 
     //data
-    dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true);
-    dbgcmdnew("refstr\1strref", cbInstrRefStr, true);
+    dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
+    dbgcmdnew("refstr\1strref", cbInstrRefStr, true); //find string references
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
     dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
+    dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
@@ -300,7 +301,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     if(memleaks())
     {
         char msg[256] = "";
-        sprintf(msg, "%d memory leak(s) found!\n\nPlease contact the authors of x64_dbg.", memleaks());
+        sprintf(msg, "%d memory leak(s) found!\n\nPlease send contact the authors of x64_dbg.", memleaks());
         MessageBoxA(0, msg, "error", MB_ICONERROR | MB_SYSTEMMODAL);
     }
     else
