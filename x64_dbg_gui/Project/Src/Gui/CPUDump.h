@@ -74,6 +74,7 @@ public slots:
     void findPattern();
     void undoSelectionSlot();
     void followStackSlot();
+    void findReferencesSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -152,6 +153,7 @@ private:
     QAction* mBinaryPasteAction;
     QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mFindPatternAction;
+    QAction* mFindReferencesAction;
     QAction* mUndoSelection;
 
     QMenu* mSpecialMenu;
