@@ -1146,8 +1146,12 @@ void CPUDump::hardwareRemoveSlot()
 
 void CPUDump::findReferencesSlot()
 {
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    SELECTIONDATA selection;
+    GuiSelectionGet(GUI_DISASSEMBLY, &selection);
+    QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(selection.start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
