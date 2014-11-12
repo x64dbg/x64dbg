@@ -231,6 +231,12 @@ void CPUDump::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Find References
+    mFindReferencesAction = new QAction("Find &References", this);
+    mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mFindReferencesAction);
+    connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
+
     //Goto menu
     mGotoMenu = new QMenu("&Goto", this);
     //Goto->Expression
@@ -344,6 +350,7 @@ void CPUDump::refreshShortcutsSlot()
     mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
     mSetLabelAction->setShortcut(ConfigShortcut("ActionSetLabel"));
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
 }
 
@@ -1135,6 +1142,13 @@ void CPUDump::hardwareRemoveSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
+}
+
+void CPUDump::findReferencesSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    emit displayReferencesWidget();
 }
 
 void CPUDump::binaryEditSlot()
