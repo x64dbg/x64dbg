@@ -233,6 +233,7 @@ void CPUDump::setupContextMenu()
 
     //Find References
     mFindReferencesAction = new QAction("Find &References", this);
+    mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mFindReferencesAction);
     connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
 
@@ -349,6 +350,7 @@ void CPUDump::refreshShortcutsSlot()
     mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
     mSetLabelAction->setShortcut(ConfigShortcut("ActionSetLabel"));
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
 }
 
