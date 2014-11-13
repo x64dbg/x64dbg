@@ -63,7 +63,8 @@ Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 - Nukem
 - ahmadmansoor
 
-## Developers
-- Mr. eXoDia
+## Developers (in order of joining)
+- [Mr. eXoDia](http://mrexodia.cf)
 - Sigma
-- tr4ceflow
+- [tr4ceflow](http://blog.tr4ceflow.com)
+- [Dreg](http://www.fr33project.org)

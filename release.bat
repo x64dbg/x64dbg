@@ -41,22 +41,6 @@ copy bin\x64\lz4.dll %RELEASEDIR%\bin_base\x64\lz4.dll
 copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\TitanEngine.dll
 copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\XEDParse.dll
 
-echo release
-
-mkdir %RELEASEDIR%\release
-mkdir %RELEASEDIR%\release\x32
-mkdir %RELEASEDIR%\release\x64
-
-copy bin\x96_dbg.exe %RELEASEDIR%\release\x96_dbg.exe
-copy bin\x32\x32_bridge.dll %RELEASEDIR%\release\x32\x32_bridge.dll
-copy bin\x32\x32_dbg.dll %RELEASEDIR%\release\x32\x32_dbg.dll
-copy bin\x32\x32_dbg.exe %RELEASEDIR%\release\x32\x32_dbg.exe
-copy bin\x32\x32_gui.dll %RELEASEDIR%\release\x32\x32_gui.dll
-copy bin\x64\x64_bridge.dll %RELEASEDIR%\release\x64\x64_bridge.dll
-copy bin\x64\x64_dbg.dll %RELEASEDIR%\release\x64\x64_dbg.dll
-copy bin\x64\x64_dbg.exe %RELEASEDIR%\release\x64\x64_dbg.exe
-copy bin\x64\x64_gui.dll %RELEASEDIR%\release\x64\x64_gui.dll
-
 echo help
 
 mkdir %RELEASEDIR%\help
@@ -111,12 +95,24 @@ del x64_dbg.def
 del x64_dbg.a
 copy bin\x64\x64_dbg.lib %RELEASEDIR%\pluginsdk\x64_dbg.lib
 
-echo test
+echo release
 
-rmdir %RELEASEDIR%\test /S /Q
-mkdir %RELEASEDIR%\test
+mkdir %RELEASEDIR%\release
+mkdir %RELEASEDIR%\release\x32
+mkdir %RELEASEDIR%\release\x64
 
-xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\test /S /Y
-xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\test /S /Y
-xcopy %RELEASEDIR%\release %RELEASEDIR%\test /S /Y
-xcopy %RELEASEDIR%\help %RELEASEDIR%\test /S /Y
+copy bin\x96_dbg.exe %RELEASEDIR%\release\x96_dbg.exe
+copy bin\x32\x32_bridge.dll %RELEASEDIR%\release\x32\x32_bridge.dll
+copy bin\x32\x32_dbg.dll %RELEASEDIR%\release\x32\x32_dbg.dll
+copy bin\x32\x32_dbg.exe %RELEASEDIR%\release\x32\x32_dbg.exe
+copy bin\x32\x32_gui.dll %RELEASEDIR%\release\x32\x32_gui.dll
+copy bin\x64\x64_bridge.dll %RELEASEDIR%\release\x64\x64_bridge.dll
+copy bin\x64\x64_dbg.dll %RELEASEDIR%\release\x64\x64_dbg.dll
+copy bin\x64\x64_dbg.exe %RELEASEDIR%\release\x64\x64_dbg.exe
+copy bin\x64\x64_gui.dll %RELEASEDIR%\release\x64\x64_gui.dll
+
+xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
+xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y
+xcopy %RELEASEDIR%\help %RELEASEDIR%\release /S /Y
+
+exit 0
