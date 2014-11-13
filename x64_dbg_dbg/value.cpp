@@ -1557,6 +1557,7 @@ bool startsWith(const char* pre, const char* str)
 #define x87TW_PRE_FIELD_STRING "x87TW_"
 #define MMX_PRE_FIELD_STRING "MM"
 #define XMM_PRE_FIELD_STRING "XMM"
+#define YMM_PRE_FIELD_STRING "YMM"
 #define x8780BITFPU_PRE_FIELD_STRING "x87r"
 #define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
 
@@ -1852,6 +1853,84 @@ void fpustuff(const char* string, uint value)
 
         case 15:
             registerindex = UE_XMM15;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(YMM_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(YMM_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(atoi(string))
+        {
+        case 0:
+            registerindex = UE_YMM0;
+            break;
+
+        case 1:
+            registerindex = UE_YMM1;
+            break;
+
+        case 2:
+            registerindex = UE_YMM2;
+            break;
+
+        case 3:
+            registerindex = UE_YMM3;
+            break;
+
+        case 4:
+            registerindex = UE_YMM4;
+            break;
+
+        case 5:
+            registerindex = UE_YMM5;
+            break;
+
+        case 6:
+            registerindex = UE_YMM6;
+            break;
+
+        case 7:
+            registerindex = UE_YMM7;
+            break;
+
+        case 8:
+            registerindex = UE_YMM8;
+            break;
+
+        case 9:
+            registerindex = UE_YMM9;
+            break;
+
+        case 10:
+            registerindex = UE_YMM10;
+            break;
+
+        case 11:
+            registerindex = UE_YMM11;
+            break;
+
+        case 12:
+            registerindex = UE_YMM12;
+            break;
+
+        case 13:
+            registerindex = UE_YMM13;
+            break;
+
+        case 14:
+            registerindex = UE_YMM14;
+            break;
+
+        case 15:
+            registerindex = UE_YMM15;
             break;
 
         default:
