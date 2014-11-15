@@ -346,6 +346,44 @@ void RegistersView::InitMappings()
 
     offset++;
 
+    mRegisterMapping.insert(YMM0, "YMM0");
+    mRegisterPlaces.insert(YMM0, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM1, "YMM1");
+    mRegisterPlaces.insert(YMM1, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM2, "YMM2");
+    mRegisterPlaces.insert(YMM2, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM3, "YMM3");
+    mRegisterPlaces.insert(YMM3, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM4, "YMM4");
+    mRegisterPlaces.insert(YMM4, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM5, "YMM5");
+    mRegisterPlaces.insert(YMM5, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM6, "YMM6");
+    mRegisterPlaces.insert(YMM6, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM7, "YMM7");
+    mRegisterPlaces.insert(YMM7, Register_Position(offset++, 0, 6, 32 * 2));
+
+#ifdef _WIN64
+    mRegisterMapping.insert(YMM8, "YMM8");
+    mRegisterPlaces.insert(YMM8, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM9, "YMM9");
+    mRegisterPlaces.insert(YMM9, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM10, "YMM10");
+    mRegisterPlaces.insert(YMM10, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM11, "YMM11");
+    mRegisterPlaces.insert(YMM11, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM12, "YMM12");
+    mRegisterPlaces.insert(YMM12, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM13, "YMM13");
+    mRegisterPlaces.insert(YMM13, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM14, "YMM14");
+    mRegisterPlaces.insert(YMM14, Register_Position(offset++, 0, 6, 32 * 2));
+    mRegisterMapping.insert(YMM15, "YMM15");
+    mRegisterPlaces.insert(YMM15, Register_Position(offset++, 0, 6, 32 * 2));
+#endif
+
+    offset++;
+
     mRegisterMapping.insert(DR0, "DR0");
     mRegisterPlaces.insert(DR0, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
     mRegisterMapping.insert(DR1, "DR1");
@@ -936,6 +974,57 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPU.insert(XMM15);
 #endif
 
+    mFPUYMM.insert(YMM0);
+    mMODIFYDISPLAY.insert(YMM0);
+    mFPU.insert(YMM0);
+    mFPUYMM.insert(YMM1);
+    mMODIFYDISPLAY.insert(YMM1);
+    mFPU.insert(YMM1);
+    mFPUYMM.insert(YMM2);
+    mMODIFYDISPLAY.insert(YMM2);
+    mFPU.insert(YMM2);
+    mFPUYMM.insert(YMM3);
+    mMODIFYDISPLAY.insert(YMM3);
+    mFPU.insert(YMM3);
+    mFPUYMM.insert(YMM4);
+    mMODIFYDISPLAY.insert(YMM4);
+    mFPU.insert(YMM4);
+    mFPUYMM.insert(YMM5);
+    mMODIFYDISPLAY.insert(YMM5);
+    mFPU.insert(YMM5);
+    mFPUYMM.insert(YMM6);
+    mMODIFYDISPLAY.insert(YMM6);
+    mFPU.insert(YMM6);
+    mFPUYMM.insert(YMM7);
+    mMODIFYDISPLAY.insert(YMM7);
+    mFPU.insert(YMM7);
+
+#ifdef _WIN64
+    mFPUYMM.insert(YMM8);
+    mMODIFYDISPLAY.insert(YMM8);
+    mFPU.insert(YMM8);
+    mFPUYMM.insert(YMM9);
+    mMODIFYDISPLAY.insert(YMM9);
+    mFPU.insert(YMM9);
+    mFPUYMM.insert(YMM10);
+    mMODIFYDISPLAY.insert(YMM10);
+    mFPU.insert(YMM10);
+    mFPUYMM.insert(YMM11);
+    mMODIFYDISPLAY.insert(YMM11);
+    mFPU.insert(YMM11);
+    mFPUYMM.insert(YMM12);
+    mMODIFYDISPLAY.insert(YMM12);
+    mFPU.insert(YMM12);
+    mFPUYMM.insert(YMM13);
+    mMODIFYDISPLAY.insert(YMM13);
+    mFPU.insert(YMM13);
+    mFPUYMM.insert(YMM14);
+    mMODIFYDISPLAY.insert(YMM14);
+    mFPU.insert(YMM14);
+    mFPUYMM.insert(YMM15);
+    mMODIFYDISPLAY.insert(YMM15);
+    mFPU.insert(YMM15);
+#endif
     //registers that should not be changed
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
@@ -1807,7 +1896,7 @@ void RegistersView::displayEditDialog()
                         fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
-                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+                    else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QByteArray pArray =  mLineEdit.editText.toLocal8Bit();
                         if(pArray.size() == GetSizeRegister(mSelected) * 2)
@@ -1871,13 +1960,13 @@ void RegistersView::displayEditDialog()
 void RegistersView::onIncrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 7);
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 8);
 }
 
 void RegistersView::onDecrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 7);
+        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 8);
 }
 
 void RegistersView::onIncrementAction()
@@ -2121,6 +2210,8 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
         size = 8;
     else if(mFPUXMM.contains(reg_name))
         size = 16;
+    else if(mFPUYMM.contains(reg_name))
+        size = 32;
     else
         size = 0;
 
@@ -2284,6 +2375,23 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == XMM13) return (char*) & (regd->regcontext.XmmRegisters[13]);
     if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
     if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
+
+    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[32 * 0]);
+    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[32 * 1]);
+    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[32 * 2]);
+    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[32 * 3]);
+    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[32 * 4]);
+    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[32 * 5]);
+    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[32 * 6]);
+    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[32 * 7]);
+    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[32 * 8]);
+    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[32 * 9]);
+    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[32 * 10]);
+    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[32 * 11]);
+    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[32 * 12]);
+    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[32 * 13]);
+    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[32 * 14]);
+    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[32 * 15]);
 
     return (char*) & null_value;
 }

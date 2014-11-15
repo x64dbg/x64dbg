@@ -297,7 +297,22 @@
 #define UE_x87_ST5 84
 #define UE_x87_ST6 85
 #define UE_x87_ST7 86
-
+#define UE_YMM0 87
+#define UE_YMM1 88
+#define UE_YMM2 89
+#define UE_YMM3 90
+#define UE_YMM4 91
+#define UE_YMM5 92
+#define UE_YMM6 93
+#define UE_YMM7 94
+#define UE_YMM8 95
+#define UE_YMM9 96
+#define UE_YMM10 97
+#define UE_YMM11 98
+#define UE_YMM12 99
+#define UE_YMM13 100
+#define UE_YMM14 101
+#define UE_YMM15 102
 
 #ifndef CONTEXT_EXTENDED_REGISTERS
 #define CONTEXT_EXTENDED_REGISTERS 0
@@ -361,8 +376,10 @@ typedef struct
     DWORD MxCsr;
 #ifdef _WIN64
     M128A XmmRegisters[16];
+    BYTE YmmRegisters[32 * 16];
 #else // x86
     M128A XmmRegisters[8];
+    BYTE YmmRegisters[32 * 8];
 #endif
 } TITAN_ENGINE_CONTEXT_t;
 
@@ -817,6 +834,8 @@ __declspec(dllexport) ULONG_PTR TITCALL GetContextData(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL SetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);
 __declspec(dllexport) bool TITCALL SetContextDataEx(HANDLE hActiveThread, DWORD IndexOfRegister, ULONG_PTR NewRegisterValue);
 __declspec(dllexport) bool TITCALL SetContextData(DWORD IndexOfRegister, ULONG_PTR NewRegisterValue);
+__declspec(dllexport) bool TITCALL GetAVXContext(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
+__declspec(dllexport) bool TITCALL SetAVXContext(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) void TITCALL ClearExceptionNumber();
 __declspec(dllexport) long TITCALL CurrentExceptionNumber();
 __declspec(dllexport) bool TITCALL MatchPatternEx(HANDLE hProcess, void* MemoryToCheck, int SizeOfMemoryToCheck, void* PatternToMatch, int SizeOfPatternToMatch, PBYTE WildCard);
