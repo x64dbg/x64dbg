@@ -383,8 +383,8 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
     memset(strright, 0, len + 1);
     strncpy(strleft, string - negative, highestop_pos + negative);
     strcpy(strright, string + highestop_pos + 1);
-    strcpy(strleft, UString(strleft).Trim().c_str());
-    strcpy(strright, UString(strright).Trim().c_str());
+    strcpy(strleft, StringUtils::Trim(strleft).c_str());
+    strcpy(strright, StringUtils::Trim(strright).c_str());
     //dprintf("left: %s, right: %s, op: %c\n", strleft(), strright(), string[highestop_pos]);
     if(!*strright)
         return false;

@@ -100,7 +100,7 @@ static int _modpathfromaddr(duint addr, char* path, int size)
         *path = '\0';
         return 0;
     }
-    strcpy_s(path, size, ConvertUtf16ToUtf8(wszModPath).c_str());
+    strcpy_s(path, size, StringUtils::Utf16ToUtf8(wszModPath()).c_str());
     return (int)strlen(path);
 }
 

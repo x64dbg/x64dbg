@@ -112,7 +112,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
             dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
             continue;
         }
-        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, ConvertUtf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
+        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
             continue;

@@ -25,7 +25,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("file does not exist!");
         return STATUS_ERROR;
     }
-    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs("could not open file!");
@@ -892,7 +892,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dprintf("could not get module filename %X!\n", pid);
         return STATUS_ERROR;
     }
-    strcpy_s(szFileName, ConvertUtf16ToUtf8(wszFileName).c_str());
+    strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
@@ -1358,7 +1358,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         return STATUS_ERROR;
     }
     char szModulePath[MAX_PATH] = "";
-    strcpy_s(szModulePath, ConvertUtf16ToUtf8(wszModulePath).c_str());
+    strcpy_s(szModulePath, StringUtils::Utf16ToUtf8(wszModulePath).c_str());
     char szOldSearchPath[MAX_PATH] = "";
     if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {

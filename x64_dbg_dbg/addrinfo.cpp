@@ -28,7 +28,7 @@ void dbsave()
     functioncachesave(root);
     loopcachesave(root);
     bpcachesave(root);
-    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
+    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
         FILE* jsonFile = 0;
@@ -59,7 +59,7 @@ void dbload()
         return;
     dprintf("loading database...");
     DWORD ticks = GetTickCount();
-    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
+    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     LZ4_STATUS status = LZ4_decompress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE)
     {
@@ -139,7 +139,7 @@ bool modload(uint base, uint size, const char* fullpath)
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    std::wstring wszFullPath = ConvertUtf8ToUtf16(fullpath);
+    WString wszFullPath = StringUtils::Utf8ToUtf16(fullpath);
     if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base; //get entry point

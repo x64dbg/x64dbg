@@ -173,8 +173,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
-                std::string temp_string;
-                std::string comment;
+                String temp_string;
+                String comment;
                 ADDRINFO newinfo;
                 char ascii[256 * 2] = "";
                 char unicode[256 * 2] = "";

@@ -235,21 +235,21 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
     char dir[deflen] = "";
-    strcpy_s(dir, ConvertUtf16ToUtf8(wszDir).c_str());
+    strcpy_s(dir, StringUtils::Utf16ToUtf8(wszDir).c_str());
     int len = (int)strlen(dir);
     while(dir[len] != '\\')
         len--;
     dir[len] = 0;
     strcpy(alloctrace, dir);
     PathAppendA(alloctrace, "\\alloctrace.txt");
-    DeleteFileW(ConvertUtf8ToUtf16(alloctrace).c_str());
+    DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
     strcpy(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
-    CreateDirectoryW(ConvertUtf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
     strcpy(szSymbolCachePath, dir);
     PathAppendA(szSymbolCachePath, "symbols");
-    SetCurrentDirectoryW(ConvertUtf8ToUtf16(dir).c_str());;
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());;
     gMsgStack = msgallocstack();
     if(!gMsgStack)
         return "Could not allocate message stack!";
@@ -259,15 +259,15 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char plugindir[deflen] = "";
     strcpy(plugindir, dir);
     PathAppendA(plugindir, "plugins");
-    CreateDirectoryW(ConvertUtf8ToUtf16(plugindir).c_str(), 0);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
     //handle command line
     int argc = 0;
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if(argc == 2) //we have an argument
     {
-        UString str = "init \"";
-        str += ConvertUtf16ToUtf8(argv[1]);
+        String str = "init \"";
+        str += StringUtils::Utf16ToUtf8(argv[1]);
         str += "\"";
         DbgCmdExec(str.c_str());
     }
@@ -275,10 +275,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     {
         if(_wcsicmp(argv[1], L"-a") == 0 && !_wcsicmp(argv[3], L"-e"))
         {
-            UString str = "attach .";
-            str += ConvertUtf16ToUtf8(argv[2]);
+            String str = "attach .";
+            str += StringUtils::Utf16ToUtf8(argv[2]);
             str += ", .";
-            str += ConvertUtf16ToUtf8(argv[4]);
+            str += StringUtils::Utf16ToUtf8(argv[4]);
             DbgCmdExec(str.c_str());
         }
     }

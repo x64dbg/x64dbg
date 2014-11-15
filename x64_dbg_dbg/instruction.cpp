@@ -223,7 +223,7 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
         dputs("directory doesn't exist");
         return STATUS_ERROR;
     }
-    SetCurrentDirectoryW(ConvertUtf8ToUtf16(argv[1]).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
     dputs("current directory changed!");
     return STATUS_CONTINUE;
 }

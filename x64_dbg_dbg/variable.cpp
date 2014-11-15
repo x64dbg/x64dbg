@@ -19,7 +19,7 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
-    std::string name_;
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -64,38 +64,15 @@ VAR* vargetptr()
     return 0;
 }
 
-#include <iostream>
-#include <sstream>
-
-std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
-{
-    std::stringstream ss(s);
-    std::string item;
-    while(std::getline(ss, item, delim))
-    {
-        if(!item.length())
-            continue;
-        elems.push_back(item);
-    }
-    return elems;
-}
-
-std::vector<std::string> split(const std::string & s, char delim)
-{
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
     if(!name)
         return false;
-    std::vector<std::string> names = split(name, '\1');
-    std::string firstName;
+    std::vector<String> names = StringUtils::Split(name, '\1');
+    String firstName;
     for(int i = 0; i < (int)names.size(); i++)
     {
-        std::string name_;
+        String name_;
         name = names.at(i).c_str();
         if(*name != '$')
             name_ = "$";
@@ -119,7 +96,7 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
-    std::string name_;
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -202,7 +179,7 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
-    std::string name_;
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -218,7 +195,7 @@ bool vardel(const char* name, bool delsystem)
     {
         VariableMap::iterator del = found;
         found++;
-        if(found->second.name == std::string(name))
+        if(found->second.name == String(name))
             variables.erase(del);
     }
     return true;
@@ -226,7 +203,7 @@ bool vardel(const char* name, bool delsystem)
 
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
-    std::string name_;
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
