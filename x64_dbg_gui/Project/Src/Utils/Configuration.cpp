@@ -253,6 +253,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionCopy", Shortcut(tr("Actions -> Copy"), "Ctrl+C"));
     defaultShortcuts.insert("ActionCopySymbol", Shortcut(tr("Actions -> Copy Symbol"), "Ctrl+S"));
     defaultShortcuts.insert("ActionLoadScript", Shortcut(tr("Actions -> Load Script"), "Ctrl+O"));
+    defaultShortcuts.insert("ActionReloadScript", Shortcut(tr("Actions -> Reload Script"), "Ctrl+R"));
     defaultShortcuts.insert("ActionUnloadScript", Shortcut(tr("Actions -> Unload Script"), "Ctrl+U"));
     defaultShortcuts.insert("ActionRunScript", Shortcut(tr("Actions -> Run Script"), "Space"));
     defaultShortcuts.insert("ActionToggleBreakpointScript", Shortcut(tr("Actions -> Toggle Script Breakpoint"), "F2"));
