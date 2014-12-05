@@ -95,7 +95,7 @@ static bool _patchrestore(duint addr)
 static int _modpathfromaddr(duint addr, char* path, int size)
 {
     Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "_modpathfromaddr:wszModPath");
-    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)addr, wszModPath, size))
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), wszModPath, size))
     {
         *path = '\0';
         return 0;
@@ -181,6 +181,46 @@ static void _memupdatemap()
     memupdatemap(fdProcessInfo->hProcess);
 }
 
+static duint _fileoffsettova(const char* modname, duint offset)
+{
+    char modpath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromName(modname, modpath, MAX_PATH))
+    {
+        HANDLE FileHandle;
+        DWORD LoadedSize;
+        HANDLE FileMap;
+        ULONG_PTR FileMapVA;
+        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+        {
+            ULONGLONG rva = ConvertFileOffsetToVA(FileMapVA, //FileMapVA
+                                                  FileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
+                                                  false); //Return without ImageBase
+            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
+            return offset < LoadedSize ? rva + modbasefromname(modname) : 0;
+        }
+    }
+    return 0;
+}
+
+static duint _vatofileoffset(duint va)
+{
+    char modpath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(va, modpath, MAX_PATH))
+    {
+        HANDLE FileHandle;
+        DWORD LoadedSize;
+        HANDLE FileMap;
+        ULONG_PTR FileMapVA;
+        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+        {
+            ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - modbasefromaddr(va), true, false);
+            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
+            return offset;
+        }
+    }
+    return 0;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -213,4 +253,6 @@ void dbgfunctionsinit()
     _dbgfunctions.IsProcessElevated = IsProcessElevated;
     _dbgfunctions.GetCmdline = _getcmdline;
     _dbgfunctions.SetCmdline = _setcmdline;
+    _dbgfunctions.FileOffsetToVa = _fileoffsettova;
+    _dbgfunctions.VaToFileOffset = _vatofileoffset;
 }

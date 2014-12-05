@@ -246,6 +246,11 @@ void CPUDump::setupContextMenu()
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
 
+    // Goto->File offset
+    mGotoFileOffset = new QAction("File Offset", this);
+    connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
+    mGotoMenu->addAction(mGotoFileOffset);
+
     //Hex menu
     mHexMenu = new QMenu("&Hex", this);
     //Hex->Ascii
@@ -557,6 +562,27 @@ void CPUDump::gotoExpressionSlot()
         QString cmd;
         DbgCmdExec(cmd.sprintf("dump \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUDump::gotoFileOffsetSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    char modname[MAX_MODULE_SIZE] = "";
+    if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
+    {
+        QMessageBox::critical(this, "Error!", "Not inside a module...");
+        return;
+    }
+    GotoDialog mGotoDialog(this);
+    mGotoDialog.fileOffset = true;
+    mGotoDialog.modName = QString(modname);
+    mGotoDialog.setWindowTitle("Goto File Offset in " + QString(modname));
+    if(mGotoDialog.exec() != QDialog::Accepted)
+        return;
+    uint_t value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    value = DbgFunctions()->FileOffsetToVa(modname, value);
+    DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
 }
 
 void CPUDump::hexAsciiSlot()

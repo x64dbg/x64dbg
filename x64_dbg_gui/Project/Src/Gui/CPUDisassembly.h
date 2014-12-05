@@ -43,6 +43,7 @@ public slots:
     void toggleFunction();
     void assembleAt();
     void gotoExpression();
+    void gotoFileOffset();
     void followActionSlot();
     void gotoPrevious();
     void gotoNext();
@@ -102,6 +103,7 @@ private:
     QAction* msetHwBPOnSlot2Action;
     QAction* msetHwBPOnSlot3Action;
     QAction* mGotoExpression;
+    QAction* mGotoFileOffset;
     QAction* mGotoPrevious;
     QAction* mGotoNext;
     QAction* mReferenceSelectedAddress;

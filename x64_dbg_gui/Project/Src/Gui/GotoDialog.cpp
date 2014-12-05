@@ -19,6 +19,7 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     ui->editExpression->setFocus();
     validRangeStart = 0;
     validRangeEnd = 0;
+    fileOffset = false;
     mValidateThread = new GotoDialogValidateThread(this);
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
@@ -56,6 +57,24 @@ void GotoDialog::validateExpression()
         ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
         ui->buttonOk->setEnabled(false);
         expressionText.clear();
+    }
+    else if(fileOffset)
+    {
+        uint_t offset = DbgValFromString(expression.toUtf8().constData());
+        uint_t va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
+        if(va)
+        {
+            QString addrText = QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
+            ui->buttonOk->setEnabled(true);
+            expressionText = expression;
+        }
+        else
+        {
+            ui->labelError->setText("<font color='red'><b>Invalid file offset...</b></font>");
+            ui->buttonOk->setEnabled(false);
+            expressionText.clear();
+        }
     }
     else
     {

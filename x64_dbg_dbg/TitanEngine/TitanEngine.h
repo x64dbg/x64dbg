@@ -10,6 +10,14 @@
 #include <windows.h>
 #include <stdint.h>
 
+#ifdef __GNUC__
+typedef struct DECLSPEC_ALIGN(16) _M128A
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} M128A, *PM128A;
+#endif //__GNUC__
+
 #pragma pack(push, 1)
 
 // Global.Constant.Structure.Declaration:

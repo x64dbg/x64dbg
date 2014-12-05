@@ -39,6 +39,7 @@ public slots:
 
     void setLabelSlot();
     void gotoExpressionSlot();
+    void gotoFileOffsetSlot();
 
     void hexAsciiSlot();
     void hexUnicodeSlot();
@@ -110,6 +111,7 @@ private:
 
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
+    QAction* mGotoFileOffset;
 
     QMenu* mHexMenu;
     QAction* mHexAsciiAction;
