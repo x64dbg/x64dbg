@@ -229,6 +229,8 @@ static void efree_json(void* ptr)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
+    if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
+        return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
