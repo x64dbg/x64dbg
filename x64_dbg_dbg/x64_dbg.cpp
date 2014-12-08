@@ -82,6 +82,7 @@ static void registercommands()
     dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
+    dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list
