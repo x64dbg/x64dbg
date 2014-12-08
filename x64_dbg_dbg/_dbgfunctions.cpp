@@ -196,7 +196,7 @@ static duint _fileoffsettova(const char* modname, duint offset)
                                                   FileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
                                                   false); //Return without ImageBase
             StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return offset < LoadedSize ? rva + modbasefromname(modname) : 0;
+            return offset < LoadedSize ? (duint)rva + modbasefromname(modname) : 0;
         }
     }
     return 0;
@@ -215,7 +215,7 @@ static duint _vatofileoffset(duint va)
         {
             ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - modbasefromaddr(va), true, false);
             StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return offset;
+            return (duint)offset;
         }
     }
     return 0;

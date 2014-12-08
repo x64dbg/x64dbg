@@ -596,6 +596,12 @@ typedef struct
 
 typedef struct
 {
+    M128A Low; //XMM/SSE part
+    M128A High; //AVX part
+} YmmRegister_t;
+
+typedef struct
+{
     BYTE    data[10];
     int     st_value;
     int     tag;
@@ -652,10 +658,10 @@ typedef struct
     DWORD MxCsr;
 #ifdef _WIN64
     M128A XmmRegisters[16];
-    BYTE YmmRegisters[32 * 16];
+    YmmRegister_t YmmRegisters[16];
 #else // x86
     M128A XmmRegisters[8];
-    BYTE YmmRegisters[32 * 8];
+    YmmRegister_t YmmRegisters[8];
 #endif
 } TITAN_ENGINE_CONTEXT_t;
 
@@ -840,6 +846,7 @@ __declspec(dllexport) bool TITCALL GetContextFPUDataEx(HANDLE hActiveThread, voi
 __declspec(dllexport) void TITCALL Getx87FPURegisters(x87FPURegister_t x87FPURegisters[8], TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) void TITCALL GetMMXRegisters(uint64_t mmx[8], TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) bool TITCALL GetFullContextDataEx(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
+__declspec(dllexport) bool TITCALL SetFullContextDataEx(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextDataEx(HANDLE hActiveThread, DWORD IndexOfRegister);
 __declspec(dllexport) ULONG_PTR TITCALL GetContextData(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL SetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);
