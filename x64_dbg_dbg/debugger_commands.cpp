@@ -1832,6 +1832,7 @@ void cbLoadLibBPX()
     LibAddr = GetContextDataEx(fdProcessInfo->hThread, UE_EAX);
 #endif
     varset("$result", LibAddr, false);
+    backupctx.EFlags &= 0xFFFFFEFF;
     SetThreadContext(fdProcessInfo->hThread, &backupctx);
     VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
     VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
