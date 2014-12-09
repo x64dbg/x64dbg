@@ -99,12 +99,6 @@
     <ClCompile Include="math.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="murmurhash.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="msgqueue.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="threading.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -168,6 +162,12 @@
     <ClCompile Include="stringutils.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="murmurhash.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="msgqueue.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -227,9 +227,6 @@
     <ClInclude Include="math.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="msgqueue.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
     <ClInclude Include="threading.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="plugin_loader.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="murmurhash.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="debugger.h">
@@ -315,6 +309,12 @@
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
     <ClInclude Include="stringutils.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="murmurhash.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="msgqueue.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

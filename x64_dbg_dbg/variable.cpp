@@ -1,4 +1,5 @@
 #include "variable.h"
+#include "threading.h"
 
 static VariableMap variables;
 static VAR* vars;
@@ -19,6 +20,7 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
+    CriticalSectionLocker locker(LockVariables);
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -36,7 +38,7 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 
 void varinit()
 {
-    variables.clear();
+    varfree();
     //General variables
     varnew("$result\1$res", 0, VAR_SYSTEM);
     varnew("$result1\1$res1", 0, VAR_SYSTEM);
@@ -56,6 +58,7 @@ void varinit()
 
 void varfree()
 {
+    CriticalSectionLocker locker(LockVariables);
     variables.clear();
 }
 
@@ -66,6 +69,7 @@ VAR* vargetptr()
 
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
+    CriticalSectionLocker locker(LockVariables);
     if(!name)
         return false;
     std::vector<String> names = StringUtils::Split(name, '\1');
@@ -96,6 +100,7 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
+    CriticalSectionLocker locker(LockVariables);
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -179,6 +184,7 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
+    CriticalSectionLocker locker(LockVariables);
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -203,6 +209,7 @@ bool vardel(const char* name, bool delsystem)
 
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
+    CriticalSectionLocker locker(LockVariables);
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -221,6 +228,7 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 
 bool varenum(VAR* entries, size_t* cbsize)
 {
+    CriticalSectionLocker locker(LockVariables);
     if(!entries && !cbsize || !variables.size())
         return false;
     if(!entries && cbsize)
