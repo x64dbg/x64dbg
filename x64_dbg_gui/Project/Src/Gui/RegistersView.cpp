@@ -342,45 +342,44 @@ void RegistersView::InitMappings()
         mRegisterMapping.insert(XMM15, "XMM15");
         mRegisterPlaces.insert(XMM15, Register_Position(offset++, 0, 6, 16 * 2));
 #endif
-    }
 
-    offset++;
+        offset++;
 
-    mRegisterMapping.insert(YMM0, "YMM0");
-    mRegisterPlaces.insert(YMM0, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM1, "YMM1");
-    mRegisterPlaces.insert(YMM1, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM2, "YMM2");
-    mRegisterPlaces.insert(YMM2, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM3, "YMM3");
-    mRegisterPlaces.insert(YMM3, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM4, "YMM4");
-    mRegisterPlaces.insert(YMM4, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM5, "YMM5");
-    mRegisterPlaces.insert(YMM5, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM6, "YMM6");
-    mRegisterPlaces.insert(YMM6, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM7, "YMM7");
-    mRegisterPlaces.insert(YMM7, Register_Position(offset++, 0, 6, 32 * 2));
-
+        mRegisterMapping.insert(YMM0, "YMM0");
+        mRegisterPlaces.insert(YMM0, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM1, "YMM1");
+        mRegisterPlaces.insert(YMM1, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM2, "YMM2");
+        mRegisterPlaces.insert(YMM2, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM3, "YMM3");
+        mRegisterPlaces.insert(YMM3, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM4, "YMM4");
+        mRegisterPlaces.insert(YMM4, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM5, "YMM5");
+        mRegisterPlaces.insert(YMM5, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM6, "YMM6");
+        mRegisterPlaces.insert(YMM6, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM7, "YMM7");
+        mRegisterPlaces.insert(YMM7, Register_Position(offset++, 0, 6, 32 * 2));
 #ifdef _WIN64
-    mRegisterMapping.insert(YMM8, "YMM8");
-    mRegisterPlaces.insert(YMM8, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM9, "YMM9");
-    mRegisterPlaces.insert(YMM9, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM10, "YMM10");
-    mRegisterPlaces.insert(YMM10, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM11, "YMM11");
-    mRegisterPlaces.insert(YMM11, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM12, "YMM12");
-    mRegisterPlaces.insert(YMM12, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM13, "YMM13");
-    mRegisterPlaces.insert(YMM13, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM14, "YMM14");
-    mRegisterPlaces.insert(YMM14, Register_Position(offset++, 0, 6, 32 * 2));
-    mRegisterMapping.insert(YMM15, "YMM15");
-    mRegisterPlaces.insert(YMM15, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM8, "YMM8");
+        mRegisterPlaces.insert(YMM8, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM9, "YMM9");
+        mRegisterPlaces.insert(YMM9, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM10, "YMM10");
+        mRegisterPlaces.insert(YMM10, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM11, "YMM11");
+        mRegisterPlaces.insert(YMM11, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM12, "YMM12");
+        mRegisterPlaces.insert(YMM12, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM13, "YMM13");
+        mRegisterPlaces.insert(YMM13, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM14, "YMM14");
+        mRegisterPlaces.insert(YMM14, Register_Position(offset++, 0, 6, 32 * 2));
+        mRegisterMapping.insert(YMM15, "YMM15");
+        mRegisterPlaces.insert(YMM15, Register_Position(offset++, 0, 6, 32 * 2));
 #endif
+    }
 
     offset++;
 

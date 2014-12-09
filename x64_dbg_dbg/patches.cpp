@@ -3,8 +3,9 @@
 #include "memory.h"
 #include "debugger.h"
 #include "console.h"
+#include "threading.h"
 
-PatchesInfo patches;
+static PatchesInfo patches;
 
 bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
 {
@@ -18,6 +19,7 @@ bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
     newPatch.oldbyte = oldbyte;
     newPatch.newbyte = newbyte;
     uint key = modhashfromva(addr);
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(key);
     if(found != patches.end()) //we found a patch on the specified address
     {
@@ -41,6 +43,7 @@ bool patchget(uint addr, PATCHINFO* patch)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(modhashfromva(addr));
     if(found == patches.end()) //not found
         return false;
@@ -57,6 +60,7 @@ bool patchdel(uint addr, bool restore)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(modhashfromva(addr));
     if(found == patches.end()) //not found
         return false;
@@ -76,6 +80,7 @@ void patchdelrange(uint start, uint end, bool restore)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator i = patches.begin();
     while(i != patches.end())
     {
@@ -92,6 +97,7 @@ void patchdelrange(uint start, uint end, bool restore)
 
 void patchclear(const char* mod)
 {
+    CriticalSectionLocker locker(LockPatches);
     if(!mod or !*mod)
         patches.clear();
     else
@@ -113,6 +119,7 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
         return false;
     if(!patcheslist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockPatches);
     if(!patcheslist && cbsize)
     {
         *cbsize = patches.size() * sizeof(LOOPSINFO);
