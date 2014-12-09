@@ -27,7 +27,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("file does not exist!");
         return STATUS_ERROR;
     }
-    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs("could not open file!");
@@ -201,17 +201,17 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     }
     if(IsBPXEnabled(addr))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (IsBPXEnabled)", addr);
+        dprintf("error setting breakpoint at "fhex"! (IsBPXEnabled)\n", addr);
         return STATUS_ERROR;
     }
     else if(!memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (memread)", addr);
+        dprintf("error setting breakpoint at "fhex"! (memread)\n", addr);
         return STATUS_ERROR;
     }
     else if(!bpnew(addr, true, singleshoot, oldbytes, BPNORMAL, type, bpname))
     {
-        dprintf("error setting breakpoint at "fhex"!\n (bpnew)", addr);
+        dprintf("error setting breakpoint at "fhex"! (bpnew)\n", addr);
         return STATUS_ERROR;
     }
     else if(!SetBPX(addr, type, (void*)cbUserBreakpoint))
@@ -894,7 +894,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dprintf("could not get module filename %X!\n", pid);
         return STATUS_ERROR;
     }
-    strcpy_s(szFileName, ConvertUtf16ToUtf8(wszFileName).c_str());
+    strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
     return STATUS_CONTINUE;
 }
@@ -1391,7 +1391,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         return STATUS_ERROR;
     }
     char szModulePath[MAX_PATH] = "";
-    strcpy_s(szModulePath, ConvertUtf16ToUtf8(wszModulePath).c_str());
+    strcpy_s(szModulePath, StringUtils::Utf16ToUtf8(wszModulePath).c_str());
     char szOldSearchPath[MAX_PATH] = "";
     if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
@@ -1597,13 +1597,12 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
             char path[JIT_ENTRY_DEF_SIZE];
             dbggetdefjit(path);
             char get_entry[JIT_ENTRY_MAX_SIZE] = "";
+            bool get_last_jit = true;
 
             if(!dbggetjit(get_entry, notfound, & actual_arch, NULL))
-            {
-                dprintf("Error getting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
-                return STATUS_ERROR;
-            }
-            strcpy_s(oldjit, get_entry);
+                get_last_jit = false;
+            else
+                strcpy_s(oldjit, get_entry);
 
             jit_debugger_cmd = path;
             if(!dbgsetjit(jit_debugger_cmd, notfound, & actual_arch, NULL))
@@ -1611,8 +1610,11 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
                 dprintf("Error setting JIT %s\n", (actual_arch == x64) ? "x64" : "x32");
                 return STATUS_ERROR;
             }
-            if(_stricmp(oldjit, path))
-                BridgeSettingSet("JIT", "Old", oldjit);
+            if(get_last_jit)
+            {
+                if(_stricmp(oldjit, path))
+                    BridgeSettingSet("JIT", "Old", oldjit);
+            }
         }
         else if(!_strcmpi(argv[1], "restore"))
         {

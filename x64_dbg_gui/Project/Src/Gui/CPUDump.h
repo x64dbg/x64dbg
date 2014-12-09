@@ -39,6 +39,7 @@ public slots:
 
     void setLabelSlot();
     void gotoExpressionSlot();
+    void gotoFileOffsetSlot();
 
     void hexAsciiSlot();
     void hexUnicodeSlot();
@@ -74,6 +75,7 @@ public slots:
     void findPattern();
     void undoSelectionSlot();
     void followStackSlot();
+    void findReferencesSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -109,6 +111,7 @@ private:
 
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
+    QAction* mGotoFileOffset;
 
     QMenu* mHexMenu;
     QAction* mHexAsciiAction;
@@ -152,6 +155,7 @@ private:
     QAction* mBinaryPasteAction;
     QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mFindPatternAction;
+    QAction* mFindReferencesAction;
     QAction* mUndoSelection;
 
     QMenu* mSpecialMenu;

@@ -262,6 +262,9 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         if(historyHasNext())
             mGotoMenu->addAction(mGotoNext);
         mGotoMenu->addAction(mGotoExpression);
+        char modname[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(wVA, modname))
+            mGotoMenu->addAction(mGotoFileOffset);
         wMenu->addMenu(mGotoMenu);
         wMenu->addSeparator();
 
@@ -435,6 +438,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpression()));
+
+    // File offset action
+    mGotoFileOffset = new QAction("File Offset", this);
+    connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffset()));
 
     //-------------------- Follow in Dump ----------------------------
     // Menu
@@ -887,6 +894,27 @@ void CPUDisassembly::gotoExpression()
     {
         DbgCmdExec(QString().sprintf("disasm \"%s\"", mGoto->expressionText.toUtf8().constData()).toUtf8().constData());
     }
+}
+
+void CPUDisassembly::gotoFileOffset()
+{
+    if(!DbgIsDebugging())
+        return;
+    char modname[MAX_MODULE_SIZE] = "";
+    if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
+    {
+        QMessageBox::critical(this, "Error!", "Not inside a module...");
+        return;
+    }
+    GotoDialog mGotoDialog(this);
+    mGotoDialog.fileOffset = true;
+    mGotoDialog.modName = QString(modname);
+    mGotoDialog.setWindowTitle("Goto File Offset in " + QString(modname));
+    if(mGotoDialog.exec() != QDialog::Accepted)
+        return;
+    uint_t value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    value = DbgFunctions()->FileOffsetToVa(modname, value);
+    DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());
 }
 
 void CPUDisassembly::followActionSlot()

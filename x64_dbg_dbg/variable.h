@@ -32,21 +32,21 @@ struct VAR_VALUE
 
 struct VAR
 {
-    std::string name;
-    std::string alias;
+    String name;
+    String alias;
     VAR_TYPE type;
     VAR_VALUE value;
 };
 
 struct CaseInsensitiveCompare
 {
-    bool operator()(const std::string & str1, const std::string & str2) const
+    bool operator()(const String & str1, const String & str2) const
     {
         return _stricmp(str1.c_str(), str2.c_str()) < 0;
     }
 };
 
-typedef std::map<std::string, VAR, CaseInsensitiveCompare> VariableMap;
+typedef std::map<String, VAR, CaseInsensitiveCompare> VariableMap;
 
 //functions
 void varinit();

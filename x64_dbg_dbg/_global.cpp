@@ -5,21 +5,6 @@ HINSTANCE hInst;
 char dbbasepath[deflen] = "";
 char dbpath[3 * deflen] = "";
 
-void* emalloc(size_t size)
-{
-    return emalloc(size, "emalloc:???");
-}
-
-void* erealloc(void* ptr, size_t size)
-{
-    return erealloc(ptr, size, "erealloc:???");
-}
-
-void efree(void* ptr)
-{
-    efree(ptr, "efree:???");
-}
-
 static int emalloc_count = 0;
 static char alloctrace[MAX_PATH] = "";
 
@@ -141,13 +126,13 @@ void formatdec(char* string)
 
 bool FileExists(const char* file)
 {
-    DWORD attrib = GetFileAttributesW(ConvertUtf8ToUtf16(file).c_str());
+    DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(file).c_str());
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 bool DirExists(const char* dir)
 {
-    DWORD attrib = GetFileAttributesW(ConvertUtf8ToUtf16(dir).c_str());
+    DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(dir).c_str());
     return (attrib == FILE_ATTRIBUTE_DIRECTORY);
 }
 
@@ -156,7 +141,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!PathFromFileHandleW(hFile, wszFileName, sizeof(wszFileName)))
         return false;
-    strcpy_s(szFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
+    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     return true;
 }
 
@@ -173,7 +158,7 @@ bool settingboolget(const char* section, const char* name)
 arch GetFileArchitecture(const char* szFileName)
 {
     arch retval = notfound;
-    HANDLE hFile = CreateFileW(ConvertUtf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         unsigned char data[0x1000];

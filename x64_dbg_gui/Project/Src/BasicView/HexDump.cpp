@@ -267,25 +267,29 @@ void HexDump::printSelected(QPainter* painter, int_t rowBase, int rowOffset, int
 {
     if((col > 0) && ((col - 1) < mDescriptor.size()))
     {
-        int wI = 0;
+        ColumnDescriptor_t curDescriptor = mDescriptor.at(col - 1);
         int wBytePerRowCount = getBytePerRowCount();
         int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
-        int wItemPixWidth = getItemPixelWidth(mDescriptor.at(col - 1));
+        int wItemPixWidth = getItemPixelWidth(curDescriptor);
         int wCharWidth = getCharWidth();
         if(wItemPixWidth == wCharWidth)
             x += 4;
-        int wSelectionX;
-        int wSelectionWidth;
 
-        for(wI = 0; wI < mDescriptor.at(col - 1).itemCount; wI++)
+        for(int i = 0; i < curDescriptor.itemCount; i++)
         {
-            if(isSelected(wRva + wI * getSizeOf(mDescriptor.at(col - 1).data.itemSize)) == true)
+            int wSelectionX = x + i * wItemPixWidth;
+            if(isSelected(wRva + i * getSizeOf(curDescriptor.data.itemSize)) == true)
             {
-                wSelectionX = x + wI * wItemPixWidth;
-                wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
+                int wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
                 painter->setPen(textColor);
                 painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(selectionColor));
+            }
+            int separator = curDescriptor.separator;
+            if(i && separator && !(i % separator))
+            {
+                painter->setPen(separatorColor);
+                painter->drawLine(wSelectionX, y, wSelectionX, y + h);
             }
         }
     }

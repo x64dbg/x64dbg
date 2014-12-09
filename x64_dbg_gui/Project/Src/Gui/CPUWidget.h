@@ -36,7 +36,6 @@ public:
     CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
-    QTabWidget* mRegsTab;
 
 private:
     Ui::CPUWidget* ui;

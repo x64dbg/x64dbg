@@ -72,6 +72,7 @@ public:
     {
         bool isData;
         int itemCount;
+        int separator;
         DataDescriptor_t data;
     } ColumnDescriptor_t;
 

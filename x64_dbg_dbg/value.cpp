@@ -257,6 +257,194 @@ static bool isregister(const char* string)
     return false;
 }
 
+#define MXCSRFLAG_IE 0x1
+#define MXCSRFLAG_DE 0x2
+#define MXCSRFLAG_ZE 0x4
+#define MXCSRFLAG_OE 0x8
+#define MXCSRFLAG_UE 0x10
+#define MXCSRFLAG_PE 0x20
+#define MXCSRFLAG_DAZ 0x40
+#define MXCSRFLAG_IM 0x80
+#define MXCSRFLAG_DM 0x100
+#define MXCSRFLAG_ZM 0x200
+#define MXCSRFLAG_OM 0x400
+#define MXCSRFLAG_UM 0x800
+#define MXCSRFLAG_PM 0x1000
+#define MXCSRFLAG_FZ 0x8000
+
+typedef struct
+{
+    char* name;
+    unsigned int flag;
+
+} FLAG_NAME_VALUE_TABLE_t;
+
+#define MXCSR_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, MXCSRFLAG_##flag_name }
+
+unsigned int getmxcsrflagfromstring(const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t mxcsrnameflagtable[] =
+    {
+        MXCSR_NAME_FLAG_TABLE_ENTRY(IE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(ZE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(OE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(UE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(PE),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DAZ),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(IM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(DM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(ZM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(OM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(UM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(PM),
+        MXCSR_NAME_FLAG_TABLE_ENTRY(FZ)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(mxcsrnameflagtable) / sizeof(*mxcsrnameflagtable)); i++)
+    {
+        if(scmp(string, mxcsrnameflagtable[i].name))
+            return mxcsrnameflagtable[i].flag;
+    }
+
+    return 0;
+}
+
+bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
+{
+    unsigned int flag = getmxcsrflagfromstring(string);
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(mxcsrflags & flag) != 0);
+}
+
+#define x87STATUSWORD_FLAG_I 0x1
+#define x87STATUSWORD_FLAG_D 0x2
+#define x87STATUSWORD_FLAG_Z 0x4
+#define x87STATUSWORD_FLAG_O 0x8
+#define x87STATUSWORD_FLAG_U 0x10
+#define x87STATUSWORD_FLAG_P 0x20
+#define x87STATUSWORD_FLAG_SF 0x40
+#define x87STATUSWORD_FLAG_IR 0x80
+#define x87STATUSWORD_FLAG_C0 0x100
+#define x87STATUSWORD_FLAG_C1 0x200
+#define x87STATUSWORD_FLAG_C2 0x400
+#define x87STATUSWORD_FLAG_C3 0x4000
+#define x87STATUSWORD_FLAG_B 0x8000
+
+#define X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87STATUSWORD_FLAG_##flag_name }
+
+unsigned int getx87statuswordflagfromstring(const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t statuswordflagtable[] =
+    {
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(I),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(D),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(Z),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(O),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(U),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(P),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(SF),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(IR),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C0),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C1),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C2),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C3),
+        X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(B)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(statuswordflagtable) / sizeof(*statuswordflagtable)); i++)
+    {
+        if(scmp(string, statuswordflagtable[i].name))
+            return statuswordflagtable[i].flag;
+    }
+
+    return 0;
+}
+
+bool valx87statuswordflagfromstring(uint statusword, const char* string)
+{
+    unsigned int flag = getx87statuswordflagfromstring(string);
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(statusword & flag) != 0);
+}
+
+#define x87CONTROLWORD_FLAG_IM 0x1
+#define x87CONTROLWORD_FLAG_DM 0x2
+#define x87CONTROLWORD_FLAG_ZM 0x4
+#define x87CONTROLWORD_FLAG_OM 0x8
+#define x87CONTROLWORD_FLAG_UM 0x10
+#define x87CONTROLWORD_FLAG_PM 0x20
+#define x87CONTROLWORD_FLAG_IEM 0x80
+#define x87CONTROLWORD_FLAG_IC 0x1000
+
+#define X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87CONTROLWORD_FLAG_##flag_name }
+
+unsigned int getx87controlwordflagfromstring(const char* string)
+{
+    static FLAG_NAME_VALUE_TABLE_t controlwordflagtable[] =
+    {
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(DM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(ZM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(OM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(UM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(PM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IEM),
+        X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IC)
+    };
+    int i;
+
+    for(i = 0; i < (sizeof(controlwordflagtable) / sizeof(*controlwordflagtable)); i++)
+    {
+        if(scmp(string, controlwordflagtable[i].name))
+            return controlwordflagtable[i].flag;
+    }
+
+    return 0;
+}
+
+bool valx87controlwordflagfromstring(uint controlword, const char* string)
+{
+    unsigned int flag = getx87controlwordflagfromstring(string);
+
+    if(flag == 0)
+        return false;
+
+    return (bool)((int)(controlword & flag) != 0);
+}
+
+unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
+{
+    if(scmp(string, "RC"))
+        return ((mxcsrflags & 0x6000) >> 13);
+
+    return 0;
+}
+
+unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string)
+{
+    if(scmp(string, "TOP"))
+        return ((statusword & 0x3800) >> 11);
+
+    return 0;
+}
+
+unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string)
+{
+    if(scmp(string, "PC"))
+        return ((controlword & 0x300) >> 8);
+    if(scmp(string, "RC"))
+        return ((controlword & 0xC00) >> 10);
+
+    return 0;
+}
+
 bool valflagfromstring(uint eflags, const char* string)
 {
     if(scmp(string, "cf"))
@@ -985,7 +1173,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(apiname)
     {
         char modname[MAX_MODULE_SIZE] = "";
-        strcpy(modname, name);
+        strcpy_s(modname, name);
         modname[apiname - name] = 0;
         apiname++;
         if(!strlen(apiname))
@@ -1347,19 +1535,411 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     return false; //nothing was OK
 }
 
-bool valfromstring(const char* string, uint* value, bool silent, bool baseonly)
+bool longEnough(const char* str, size_t min_length)
 {
-    return valfromstring(string, value, silent, baseonly, 0, 0, 0);
+    size_t length = 0;
+    while(str[length] && length < min_length)
+        length++;
+    if(length == min_length)
+        return true;
+    return false;
 }
 
-bool valfromstring(const char* string, uint* value, bool silent)
+bool startsWith(const char* pre, const char* str)
 {
-    return valfromstring(string, value, silent, false);
+    size_t lenpre = strlen(pre);
+    return longEnough(str, lenpre) ? StrNCmpI(str, pre, (int) lenpre) == 0 : false;
 }
 
-bool valfromstring(const char* string, uint* value)
+#define MxCsr_PRE_FIELD_STRING "MxCsr_"
+#define x87SW_PRE_FIELD_STRING "x87SW_"
+#define x87CW_PRE_FIELD_STRING "x87CW_"
+#define x87TW_PRE_FIELD_STRING "x87TW_"
+#define MMX_PRE_FIELD_STRING "MM"
+#define XMM_PRE_FIELD_STRING "XMM"
+#define YMM_PRE_FIELD_STRING "YMM"
+#define x8780BITFPU_PRE_FIELD_STRING "x87r"
+#define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
+
+
+void fpustuff(const char* string, uint value)
 {
-    return valfromstring(string, value, true);
+    uint xorval = 0;
+    uint flags = 0;
+    uint flag = 0;
+    bool set = false;
+
+    if(value)
+        set = true;
+
+    if(startsWith(MxCsr_PRE_FIELD_STRING, string))
+    {
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            int i = 3;
+            i <<= 13;
+            flags &= ~i;
+            value <<= 13;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_MXCSR, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_MXCSR, flags ^ xorval);
+        }
+    }
+    else if(startsWith(x87TW_PRE_FIELD_STRING, string))
+    {
+        unsigned int i;
+
+        string += STRLEN_USING_SIZEOF(x87TW_PRE_FIELD_STRING);
+        i = atoi(string);
+
+        if(i > 7)
+            return;
+
+        flags = GetContextDataEx(hActiveThread, UE_X87_TAGWORD);
+
+        flag = 3;
+        flag <<= i * 2;
+
+        flags &= ~flag;
+
+        flag = value;
+        flag <<= i * 2;
+
+        flags |= flag;
+
+        SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) flags);
+
+    }
+    else if(startsWith(x87SW_PRE_FIELD_STRING, string))
+    {
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", (int) strlen("TOP")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            int i = 7;
+            i <<= 11;
+            flags &= ~i;
+            value <<= 11;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            flag = getx87statuswordflagfromstring(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, flags ^ xorval);
+        }
+    }
+    else if(startsWith(x87CW_PRE_FIELD_STRING, string))
+    {
+        if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            int i = 3;
+            i <<= 10;
+            flags &= ~i;
+            value <<= 10;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
+        }
+        else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int) strlen("PC")) == 0)
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            int i = 3;
+            i <<= 8;
+            flags &= ~i;
+            value <<= 8;
+            flags |=  value;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
+        }
+        else
+        {
+            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
+            if(flags & flag and !set)
+                xorval = flag;
+            else if(set)
+                xorval = flag;
+            SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags ^ xorval);
+        }
+    }
+    else if(StrNCmpI(string, "x87TagWord", (int) strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_TAGWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "x87StatusWord", (int) strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "x87ControlWord", (int) strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, (unsigned short) value);
+    }
+    else if(StrNCmpI(string, "MxCsr", (int) strlen(string)) == 0)
+    {
+        SetContextDataEx(hActiveThread, UE_MXCSR, value);
+    }
+    else if(startsWith(x8780BITFPU_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(x8780BITFPU_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(*string)
+        {
+        case '0':
+            registerindex = UE_x87_r0;
+            break;
+
+        case '1':
+            registerindex = UE_x87_r1;
+            break;
+
+        case '2':
+            registerindex = UE_x87_r2;
+            break;
+
+        case '3':
+            registerindex = UE_x87_r3;
+            break;
+
+        case '4':
+            registerindex = UE_x87_r4;
+            break;
+
+        case '5':
+            registerindex = UE_x87_r5;
+            break;
+
+        case '6':
+            registerindex = UE_x87_r6;
+            break;
+
+        case '7':
+            registerindex = UE_x87_r7;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(MMX_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(MMX_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(*string)
+        {
+        case '0':
+            registerindex = UE_MMX0;
+            break;
+
+        case '1':
+            registerindex = UE_MMX1;
+            break;
+
+        case '2':
+            registerindex = UE_MMX2;
+            break;
+
+        case '3':
+            registerindex = UE_MMX3;
+            break;
+
+        case '4':
+            registerindex = UE_MMX4;
+            break;
+
+        case '5':
+            registerindex = UE_MMX5;
+            break;
+
+        case '6':
+            registerindex = UE_MMX6;
+            break;
+
+        case '7':
+            registerindex = UE_MMX7;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(XMM_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(XMM_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(atoi(string))
+        {
+        case 0:
+            registerindex = UE_XMM0;
+            break;
+
+        case 1:
+            registerindex = UE_XMM1;
+            break;
+
+        case 2:
+            registerindex = UE_XMM2;
+            break;
+
+        case 3:
+            registerindex = UE_XMM3;
+            break;
+
+        case 4:
+            registerindex = UE_XMM4;
+            break;
+
+        case 5:
+            registerindex = UE_XMM5;
+            break;
+
+        case 6:
+            registerindex = UE_XMM6;
+            break;
+
+        case 7:
+            registerindex = UE_XMM7;
+            break;
+
+        case 8:
+            registerindex = UE_XMM8;
+            break;
+
+        case 9:
+            registerindex = UE_XMM9;
+            break;
+
+        case 10:
+            registerindex = UE_XMM10;
+            break;
+
+        case 11:
+            registerindex = UE_XMM11;
+            break;
+
+        case 12:
+            registerindex = UE_XMM12;
+            break;
+
+        case 13:
+            registerindex = UE_XMM13;
+            break;
+
+        case 14:
+            registerindex = UE_XMM14;
+            break;
+
+        case 15:
+            registerindex = UE_XMM15;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith(YMM_PRE_FIELD_STRING, string))
+    {
+        string += STRLEN_USING_SIZEOF(YMM_PRE_FIELD_STRING);
+        DWORD registerindex;
+        bool found = true;
+        switch(atoi(string))
+        {
+        case 0:
+            registerindex = UE_YMM0;
+            break;
+
+        case 1:
+            registerindex = UE_YMM1;
+            break;
+
+        case 2:
+            registerindex = UE_YMM2;
+            break;
+
+        case 3:
+            registerindex = UE_YMM3;
+            break;
+
+        case 4:
+            registerindex = UE_YMM4;
+            break;
+
+        case 5:
+            registerindex = UE_YMM5;
+            break;
+
+        case 6:
+            registerindex = UE_YMM6;
+            break;
+
+        case 7:
+            registerindex = UE_YMM7;
+            break;
+
+        case 8:
+            registerindex = UE_YMM8;
+            break;
+
+        case 9:
+            registerindex = UE_YMM9;
+            break;
+
+        case 10:
+            registerindex = UE_YMM10;
+            break;
+
+        case 11:
+            registerindex = UE_YMM11;
+            break;
+
+        case 12:
+            registerindex = UE_YMM12;
+            break;
+
+        case 13:
+            registerindex = UE_YMM13;
+            break;
+
+        case 14:
+            registerindex = UE_YMM14;
+            break;
+
+        case 15:
+            registerindex = UE_YMM15;
+            break;
+
+        default:
+            found = false;
+            break;
+        }
+        if(found)
+            SetContextDataEx(hActiveThread, registerindex, value);
+    }
 }
 
 bool valtostring(const char* string, uint* value, bool silent)
@@ -1437,10 +2017,24 @@ bool valtostring(const char* string, uint* value, bool silent)
         {
             uint csp = GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);
+            GuiUpdateRegisterView();
         }
         else
             GuiUpdateAllViews(); //repaint gui
         return ok;
+    }
+    else if((*string == '_'))
+    {
+        if(!DbgIsDebugging())
+        {
+            if(!silent)
+                dputs("not debugging!");
+            return false;
+        }
+        fpustuff(string + 1, * value);
+        GuiUpdateAllViews(); //repaint gui
+
+        return true;
     }
     else if(*string == '!' and isflag(string + 1)) //flag
     {

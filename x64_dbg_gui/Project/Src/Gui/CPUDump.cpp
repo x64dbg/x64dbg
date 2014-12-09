@@ -231,6 +231,12 @@ void CPUDump::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Find References
+    mFindReferencesAction = new QAction("Find &References", this);
+    mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mFindReferencesAction);
+    connect(mFindReferencesAction, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
+
     //Goto menu
     mGotoMenu = new QMenu("&Goto", this);
     //Goto->Expression
@@ -239,6 +245,11 @@ void CPUDump::setupContextMenu()
     this->addAction(mGotoExpression);
     connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpressionSlot()));
     mGotoMenu->addAction(mGotoExpression);
+
+    // Goto->File offset
+    mGotoFileOffset = new QAction("File Offset", this);
+    connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
+    mGotoMenu->addAction(mGotoFileOffset);
 
     //Hex menu
     mHexMenu = new QMenu("&Hex", this);
@@ -344,6 +355,7 @@ void CPUDump::refreshShortcutsSlot()
     mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
     mSetLabelAction->setShortcut(ConfigShortcut("ActionSetLabel"));
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
+    mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
 }
 
@@ -552,6 +564,27 @@ void CPUDump::gotoExpressionSlot()
     }
 }
 
+void CPUDump::gotoFileOffsetSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    char modname[MAX_MODULE_SIZE] = "";
+    if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getInitialSelection()), modname, true))
+    {
+        QMessageBox::critical(this, "Error!", "Not inside a module...");
+        return;
+    }
+    GotoDialog mGotoDialog(this);
+    mGotoDialog.fileOffset = true;
+    mGotoDialog.modName = QString(modname);
+    mGotoDialog.setWindowTitle("Goto File Offset in " + QString(modname));
+    if(mGotoDialog.exec() != QDialog::Accepted)
+        return;
+    uint_t value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
+    value = DbgFunctions()->FileOffsetToVa(modname, value);
+    DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
+}
+
 void CPUDump::hexAsciiSlot()
 {
     Config()->setUint("HexDump", "DefaultView", (uint_t)ViewHexAscii);
@@ -561,6 +594,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
+    wColDesc.separator = 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -568,6 +602,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 16;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -575,6 +610,7 @@ void CPUDump::hexAsciiSlot()
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -592,6 +628,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = true; //hex byte
     wColDesc.itemCount = 16;
+    wColDesc.separator = 4;
     dDesc.itemSize = Byte;
     dDesc.byteMode = HexByte;
     wColDesc.data = dDesc;
@@ -599,6 +636,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = true; //unicode short
     wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
@@ -606,6 +644,7 @@ void CPUDump::hexUnicodeSlot()
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -623,6 +662,7 @@ void CPUDump::textAsciiSlot()
 
     wColDesc.isData = true; //ascii byte
     wColDesc.itemCount = 64;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -630,6 +670,7 @@ void CPUDump::textAsciiSlot()
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -647,6 +688,7 @@ void CPUDump::textUnicodeSlot()
 
     wColDesc.isData = true; //unicode short
     wColDesc.itemCount = 64;
+    wColDesc.separator = 0;
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
@@ -654,6 +696,7 @@ void CPUDump::textUnicodeSlot()
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -671,12 +714,14 @@ void CPUDump::integerSignedShortSlot()
 
     wColDesc.isData = true; //signed short
     wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = SignedDecWord;
     appendResetDescriptor(8 + charwidth * 55, "Signed short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -694,12 +739,14 @@ void CPUDump::integerSignedLongSlot()
 
     wColDesc.isData = true; //signed long
     wColDesc.itemCount = 4;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = SignedDecDword;
     appendResetDescriptor(8 + charwidth * 47, "Signed long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -717,12 +764,14 @@ void CPUDump::integerSignedLongLongSlot()
 
     wColDesc.isData = true; //signed long long
     wColDesc.itemCount = 2;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = SignedDecQword;
     appendResetDescriptor(8 + charwidth * 41, "Signed long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -740,12 +789,14 @@ void CPUDump::integerUnsignedShortSlot()
 
     wColDesc.isData = true; //unsigned short
     wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = UnsignedDecWord;
     appendResetDescriptor(8 + charwidth * 47, "Unsigned short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -763,12 +814,14 @@ void CPUDump::integerUnsignedLongSlot()
 
     wColDesc.isData = true; //unsigned long
     wColDesc.itemCount = 4;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = UnsignedDecDword;
     appendResetDescriptor(8 + charwidth * 43, "Unsigned long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -786,12 +839,14 @@ void CPUDump::integerUnsignedLongLongSlot()
 
     wColDesc.isData = true; //unsigned long long
     wColDesc.itemCount = 2;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = UnsignedDecQword;
     appendResetDescriptor(8 + charwidth * 41, "Unsigned long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -809,12 +864,14 @@ void CPUDump::integerHexShortSlot()
 
     wColDesc.isData = true; //hex short
     wColDesc.itemCount = 8;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Word;
     wColDesc.data.wordMode = HexWord;
     appendResetDescriptor(8 + charwidth * 34, "Hex short (16-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -832,12 +889,14 @@ void CPUDump::integerHexLongSlot()
 
     wColDesc.isData = true; //hex long
     wColDesc.itemCount = 4;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
     appendResetDescriptor(8 + charwidth * 35, "Hex long (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -855,12 +914,14 @@ void CPUDump::integerHexLongLongSlot()
 
     wColDesc.isData = true; //hex long long
     wColDesc.itemCount = 2;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = HexQword;
     appendResetDescriptor(8 + charwidth * 33, "Hex long long (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -878,12 +939,14 @@ void CPUDump::floatFloatSlot()
 
     wColDesc.isData = true; //float dword
     wColDesc.itemCount = 4;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = FloatDword;
     appendResetDescriptor(8 + charwidth * 55, "Float (32-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -901,12 +964,14 @@ void CPUDump::floatDoubleSlot()
 
     wColDesc.isData = true; //float qword
     wColDesc.itemCount = 2;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = DoubleQword;
     appendResetDescriptor(8 + charwidth * 47, "Double (64-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -924,12 +989,14 @@ void CPUDump::floatLongDoubleSlot()
 
     wColDesc.isData = true; //float qword
     wColDesc.itemCount = 2;
+    wColDesc.separator = 0;
     wColDesc.data.itemSize = Tword;
     wColDesc.data.twordMode = FloatTword;
     appendResetDescriptor(8 + charwidth * 59, "Long double (80-bit)", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -947,6 +1014,7 @@ void CPUDump::addressSlot()
 
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
 #ifdef _WIN64
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = HexQword;
@@ -958,6 +1026,7 @@ void CPUDump::addressSlot()
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -1099,6 +1168,17 @@ void CPUDump::hardwareRemoveSlot()
 {
     QString addr_text = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
+}
+
+void CPUDump::findReferencesSlot()
+{
+    SELECTIONDATA selection;
+    GuiSelectionGet(GUI_DISASSEMBLY, &selection);
+    QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(selection.start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
+    emit displayReferencesWidget();
 }
 
 void CPUDump::binaryEditSlot()

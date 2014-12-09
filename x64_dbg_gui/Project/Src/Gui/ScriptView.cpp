@@ -281,6 +281,7 @@ void ScriptView::contextMenuSlot(const QPoint & pos)
     wMenu->addMenu(mLoadMenu);
     if(getRowCount())
     {
+        wMenu->addAction(mScriptReload);
         wMenu->addAction(mScriptUnload);
         wMenu->addSeparator();
         wMenu->addAction(mScriptBpToggle);
@@ -350,6 +351,11 @@ void ScriptView::setupContextMenu()
     connect(mScriptLoad, SIGNAL(triggered()), this, SLOT(openFile()));
     mLoadMenu->addAction(mScriptLoad);
 
+    mScriptReload = new QAction("Reload Script", this);
+    mScriptReload->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mScriptReload);
+    connect(mScriptReload, SIGNAL(triggered()), this, SLOT(reload()));
+
     mScriptUnload = new QAction("Unload Script", this);
     mScriptUnload->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mScriptUnload);
@@ -397,6 +403,7 @@ void ScriptView::setupContextMenu()
 void ScriptView::refreshShortcutsSlot()
 {
     mScriptLoad->setShortcut(ConfigShortcut("ActionLoadScript"));
+    mScriptReload->setShortcut(ConfigShortcut("ActionReloadScript"));
     mScriptUnload->setShortcut(ConfigShortcut("ActionUnloadScript"));
     mScriptRun->setShortcut(ConfigShortcut("ActionRunScript"));
     mScriptBpToggle->setShortcut(ConfigShortcut("ActionToggleBreakpointScript"));
@@ -498,10 +505,18 @@ void ScriptView::setInfoLine(int line, QString info)
 
 void ScriptView::openFile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Select script"), 0, tr("Script files (*.txt *.scr);;All files (*.*)"));
+    filename = QFileDialog::getOpenFileName(this, tr("Select script"), 0, tr("Script files (*.txt *.scr);;All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
+    DbgScriptUnload();
+    DbgScriptLoad(filename.toUtf8().constData());
+}
+
+void ScriptView::reload()
+{
+    if(!filename.length())
+        return;
     DbgScriptUnload();
     DbgScriptLoad(filename.toUtf8().constData());
 }

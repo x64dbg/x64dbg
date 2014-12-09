@@ -1,7 +1,7 @@
 #ifndef _DYNAMICMEM_H
 #define _DYNAMICMEM_H
 
-template<class T>
+template<typename T>
 class Memory
 {
 public:
@@ -34,13 +34,18 @@ public:
         return mPtr;
     }
 
-    template<class U>
+    template<typename U>
     operator U()
     {
         return (U)mPtr;
     }
 
     operator T()
+    {
+        return mPtr;
+    }
+
+    T operator()()
     {
         return mPtr;
     }
