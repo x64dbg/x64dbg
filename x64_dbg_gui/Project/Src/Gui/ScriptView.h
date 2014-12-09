@@ -25,6 +25,7 @@ public slots:
     void setTitle(QString title);
     void setInfoLine(int line, QString info);
     void openFile();
+    void reload();
     void unload();
     void run();
     void bpToggle();
@@ -46,9 +47,11 @@ private:
     //private variables
     int mIpLine;
     bool mEnableSyntaxHighlighting;
+    QString filename;
 
     QMenu* mLoadMenu;
     QAction* mScriptLoad;
+    QAction* mScriptReload;
     QAction* mScriptUnload;
     QAction* mScriptRun;
     QAction* mScriptRunCursor;

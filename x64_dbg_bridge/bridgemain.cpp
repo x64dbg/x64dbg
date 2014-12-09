@@ -73,7 +73,7 @@ BRIDGE_IMPEXP const char* BridgeInit()
     if(szIniFile[len] == L'\\')
         wcscat_s(szIniFile, L".ini");
     else
-        wcscpy_s(&szIniFile[len], sizeof(szIniFile) - len, L".ini");
+        wcscpy_s(&szIniFile[len], _countof(szIniFile) - len, L".ini");
 
     HINSTANCE hInst;
     const char* szLib;
@@ -722,7 +722,7 @@ BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
 /**
  * \brief Loads a script.
  *
- * \param [in] filename 
+ * \param [in] filename
  */
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
 {
@@ -821,7 +821,7 @@ BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line)
 
 /**
  * \brief Sets the current script's instruction pointer, i.e. a
- *        line that should be executed next. 
+ *        line that should be executed next.
  *
  * \param [in] line The line.
  */

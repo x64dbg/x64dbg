@@ -33,6 +33,7 @@ int bpgetlist(std::vector<BREAKPOINT>* list)
         return false;
     BREAKPOINT curBp;
     int count = 0;
+    CriticalSectionLocker locker(LockBreakpoints);
     for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
     {
         curBp = i->second;
@@ -79,6 +80,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     bp.singleshoot = singleshoot;
     bp.titantype = titantype;
     bp.type = type;
+    CriticalSectionLocker locker(LockBreakpoints);
     breakpoints.insert(std::make_pair(BreakpointKey(type, modhashfromva(addr)), bp));
     return true;
 }
@@ -101,6 +103,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     if(!DbgIsDebugging())
         return false;
     BREAKPOINT curBp;
+    CriticalSectionLocker locker(LockBreakpoints);
     if(!name)
     {
         BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
@@ -149,6 +152,7 @@ bool bpdel(uint addr, BP_TYPE type)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockBreakpoints);
     return (breakpoints.erase(BreakpointKey(type, modhashfromva(addr))) > 0);
 }
 
@@ -168,6 +172,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockBreakpoints);
     BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
     if(found == breakpoints.end()) //not found
         return false;
@@ -191,6 +196,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
 {
     if(!DbgIsDebugging() or !name or !*name)
         return false;
+    CriticalSectionLocker locker(LockBreakpoints);
     BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
     if(found == breakpoints.end()) //not found
         return false;
@@ -214,6 +220,7 @@ bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockBreakpoints);
     BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
     if(found == breakpoints.end()) //not found
         return false;
@@ -238,6 +245,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         return false;
     bool retval = true;
     BREAKPOINT curBp;
+    CriticalSectionLocker locker(LockBreakpoints);
     BreakpointsInfo::iterator i = breakpoints.begin();
     while(i != breakpoints.end())
     {
@@ -292,6 +300,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum)
 int bpgetcount(BP_TYPE type, bool enabledonly)
 {
     int count = 0;
+    CriticalSectionLocker locker(LockBreakpoints);
     for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
     {
         if(i->first.first == type && (!enabledonly || i->second.enabled))
@@ -347,6 +356,7 @@ void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
 
 void bpcachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockBreakpoints);
     const JSON jsonbreakpoints = json_array();
     for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
     {
@@ -371,6 +381,7 @@ void bpcachesave(JSON root)
 
 void bpcacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockBreakpoints);
     breakpoints.clear();
     const JSON jsonbreakpoints = json_object_get(root, "breakpoints");
     if(jsonbreakpoints)
@@ -421,5 +432,6 @@ void bpcacheload(JSON root)
 
 void bpclear()
 {
+    CriticalSectionLocker locker(LockBreakpoints);
     BreakpointsInfo().swap(breakpoints);
 }

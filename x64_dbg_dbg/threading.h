@@ -21,6 +21,16 @@ bool waitislocked(WAIT_ID id);
 enum CriticalSectionLock
 {
     LockMemoryPages,
+    LockVariables,
+    LockModules,
+    LockComments,
+    LockLabels,
+    LockBookmarks,
+    LockFunctions,
+    LockLoops,
+    LockBreakpoints,
+    LockPatches,
+    LockThreads,
     LockLast
 };
 

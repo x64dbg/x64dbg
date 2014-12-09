@@ -1,5 +1,7 @@
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
+                       
+                   THIS DOCUMENT HAS BEEN MODIFIED
 
  Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
  Everyone is permitted to copy and distribute verbatim copies
@@ -157,8 +159,8 @@ same work.
 libraries, that use the provided plugin interface mechanism of x64_dbg
 for contibuting additional features to the x64_dbg project and can only
 be run from x64dbg. In fact you are allowed to create and share
-(non-)commercial, non-standalone closed-source plugins for x64dbg without
-distributing the source of the specific plugin.
+(non-)commercial, non-standalone closed-source plugins for x64dbg under
+your own license.
 
   3. Basic Permissions.
 

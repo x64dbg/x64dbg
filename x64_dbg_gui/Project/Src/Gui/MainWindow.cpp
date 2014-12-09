@@ -477,7 +477,7 @@ void MainWindow::displayAboutWidget()
     QString title = "About x32_dbg";
 #endif
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:\nhttp://x64dbg.com\n\nAttribution:\nIcons8 (http://icons8.com)\nYusuke Kamiyamane (http://p.yusukekamiyamane.com)");
+    QMessageBox msg(QMessageBox::Information, title, "Website:\nhttp://x64dbg.com\n\nAttribution:\nIcons8 (http://icons8.com)\nYusuke Kamiyamane (http://p.yusukekamiyamane.com)\n\nCompiled on:\n"__DATE__", "__TIME__);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -963,7 +963,7 @@ void MainWindow::changeCommandLine()
         cmdline = new char[cbsize];
         DbgFunctions()->GetCmdline(cmdline, 0);
         mLineEdit.setText(QString(cmdline));
-        delete cmdline;
+        delete[] cmdline;
     }
 
     mLineEdit.setCursorPosition(0);

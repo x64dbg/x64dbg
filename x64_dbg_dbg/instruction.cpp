@@ -299,7 +299,7 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
         dputs("directory doesn't exist");
         return STATUS_ERROR;
     }
-    SetCurrentDirectoryW(ConvertUtf8ToUtf16(argv[1]).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
     dputs("current directory changed!");
     return STATUS_CONTINUE;
 }
@@ -1158,6 +1158,12 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+struct VALUERANGE
+{
+    uint start;
+    uint end;
+};
+
 /**
  @fn static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 
@@ -1181,20 +1187,25 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
         return true;
     }
     bool found = false;
-    uint value = (uint)refinfo->userinfo;
+    VALUERANGE* range = (VALUERANGE*)refinfo->userinfo;
+    uint start = range->start;
+    uint end = range->end;
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        if(basicinfo->value.value == value)
+        uint value = basicinfo->value.value;
+        if(value >= start && value <= end)
             found = true;
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(basicinfo->memory.value == value)
+        uint value = basicinfo->memory.value;
+        if(value >= start && value <= end)
             found = true;
     }
     if((basicinfo->type & TYPE_ADDR) == TYPE_ADDR)
     {
-        if(basicinfo->addr == value)
+        uint value = basicinfo->addr;
+        if(value >= start && value <= end)
             found = true;
     }
     if(found)
@@ -1230,18 +1241,35 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint value = 0;
-    if(!valfromstring(argv[1], &value, false))
+    std::string newCommand = std::string("reffindrange ") + argv[1] + std::string(",") + argv[1];
+    if(argc > 2)
+        newCommand += std::string(",") + argv[2];
+    if(argc > 3)
+        newCommand += std::string(",") + argv[3];
+    return cmddirectexec(dbggetcommandlist(), newCommand.c_str());
+}
+
+CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
         return STATUS_ERROR;
+    }
+    VALUERANGE range;
+    if(!valfromstring(argv[1], &range.start, false))
+        return STATUS_ERROR;
+    if(argc < 3 or !valfromstring(argv[2], &range.end, false))
+        range.end = range.start;
     uint addr = 0;
-    if(argc < 3 or !valfromstring(argv[2], &addr))
+    if(argc < 4 or !valfromstring(argv[3], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
-    if(argc >= 4)
-        if(!valfromstring(argv[3], &size))
+    if(argc >= 5)
+        if(!valfromstring(argv[4], &size))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefFind, (void*)value, false);
+    int found = reffind(addr, size, cbRefFind, &range, false);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;

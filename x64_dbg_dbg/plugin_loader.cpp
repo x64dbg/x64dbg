@@ -53,7 +53,7 @@ void pluginload(const char* pluginDir)
     //load new plugins
     wchar_t currentDir[deflen] = L"";
     GetCurrentDirectoryW(deflen, currentDir);
-    SetCurrentDirectoryW(ConvertUtf8ToUtf16(pluginDir).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(pluginDir).c_str());
     char searchName[deflen] = "";
 #ifdef _WIN64
     sprintf(searchName, "%s\\*.dp64", pluginDir);
@@ -61,7 +61,7 @@ void pluginload(const char* pluginDir)
     sprintf(searchName, "%s\\*.dp32", pluginDir);
 #endif // _WIN64
     WIN32_FIND_DATAW foundData;
-    HANDLE hSearch = FindFirstFileW(ConvertUtf8ToUtf16(searchName).c_str(), &foundData);
+    HANDLE hSearch = FindFirstFileW(StringUtils::Utf8ToUtf16(searchName).c_str(), &foundData);
     if(hSearch == INVALID_HANDLE_VALUE)
     {
         SetCurrentDirectoryW(currentDir);
@@ -73,8 +73,8 @@ void pluginload(const char* pluginDir)
         //set plugin data
         pluginData.initStruct.pluginHandle = curPluginHandle;
         char szPluginPath[MAX_PATH] = "";
-        sprintf_s(szPluginPath, "%s\\%s", pluginDir, ConvertUtf16ToUtf8(foundData.cFileName).c_str());
-        pluginData.hPlugin = LoadLibraryW(ConvertUtf8ToUtf16(szPluginPath).c_str()); //load the plugin library
+        sprintf_s(szPluginPath, "%s\\%s", pluginDir, StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
+        pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
             dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);

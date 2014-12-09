@@ -29,4 +29,10 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bug.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="manifest.xml" />
+  </ItemGroup>
 </Project>

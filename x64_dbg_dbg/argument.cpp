@@ -6,7 +6,6 @@
 
 #include "argument.h"
 #include "console.h"
-#include "UString/UString.h"
 
 /*
 formatarg:

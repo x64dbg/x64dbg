@@ -195,7 +195,7 @@ void symdownloadallsymbols(const char* szSymbolStore)
             dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
             continue;
         }
-        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, ConvertUtf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
+        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
             continue;
@@ -222,7 +222,7 @@ bool symfromname(const char* name, uint* addr)
 {
     if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
         return false;
-    char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+    char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
     PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
     pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
     pSymbol->MaxNameLen = MAX_LABEL_SIZE;
@@ -253,12 +253,13 @@ const char* symgetsymbolicname(uint addr)
     else //no user labels
     {
         DWORD64 displacement = 0;
-        char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
         PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         pSymbol->MaxNameLen = MAX_LABEL_SIZE;
         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
         {
+            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
             if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
                 strcpy_s(label, pSymbol->Name);
             retval = true;

@@ -5,6 +5,7 @@
  */
 
 #include "variable.h"
+#include "threading.h"
 
 /**
  @brief The variables.
@@ -55,7 +56,8 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
-    std::string name_;
+    CriticalSectionLocker locker(LockVariables);
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -78,7 +80,7 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 
 void varinit()
 {
-    variables.clear();
+    varfree();
     //General variables
     varnew("$result\1$res", 0, VAR_SYSTEM);
     varnew("$result1\1$res1", 0, VAR_SYSTEM);
@@ -104,6 +106,7 @@ void varinit()
 
 void varfree()
 {
+    CriticalSectionLocker locker(LockVariables);
     variables.clear();
 }
 
@@ -120,9 +123,6 @@ VAR* vargetptr()
     return 0;
 }
 
-#include <iostream>
-#include <sstream>
-
 /**
  @fn std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
 
@@ -135,19 +135,6 @@ VAR* vargetptr()
  @return A std::vector&lt;std::string&gt;&amp;
  */
 
-std::vector<std::string> & split(const std::string & s, char delim, std::vector<std::string> & elems)
-{
-    std::stringstream ss(s);
-    std::string item;
-    while(std::getline(ss, item, delim))
-    {
-        if(!item.length())
-            continue;
-        elems.push_back(item);
-    }
-    return elems;
-}
-
 /**
  @fn std::vector<std::string> split(const std::string & s, char delim)
 
@@ -158,13 +145,6 @@ std::vector<std::string> & split(const std::string & s, char delim, std::vector<
 
  @return A std::vector&lt;std::string&gt;
  */
-
-std::vector<std::string> split(const std::string & s, char delim)
-{
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
 
 /**
  @fn bool varnew(const char* name, uint value, VAR_TYPE type)
@@ -180,13 +160,14 @@ std::vector<std::string> split(const std::string & s, char delim)
 
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
+    CriticalSectionLocker locker(LockVariables);
     if(!name)
         return false;
-    std::vector<std::string> names = split(name, '\1');
-    std::string firstName;
+    std::vector<String> names = StringUtils::Split(name, '\1');
+    String firstName;
     for(int i = 0; i < (int)names.size(); i++)
     {
-        std::string name_;
+        String name_;
         name = names.at(i).c_str();
         if(*name != '$')
             name_ = "$";
@@ -223,7 +204,8 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
-    std::string name_;
+    CriticalSectionLocker locker(LockVariables);
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -367,7 +349,8 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
-    std::string name_;
+    CriticalSectionLocker locker(LockVariables);
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -383,7 +366,7 @@ bool vardel(const char* name, bool delsystem)
     {
         VariableMap::iterator del = found;
         found++;
-        if(found->second.name == std::string(name))
+        if(found->second.name == String(name))
             variables.erase(del);
     }
     return true;
@@ -403,7 +386,8 @@ bool vardel(const char* name, bool delsystem)
 
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
-    std::string name_;
+    CriticalSectionLocker locker(LockVariables);
+    String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
@@ -432,6 +416,7 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 
 bool varenum(VAR* entries, size_t* cbsize)
 {
+    CriticalSectionLocker locker(LockVariables);
     if(!entries && !cbsize || !variables.size())
         return false;
     if(!entries && cbsize)

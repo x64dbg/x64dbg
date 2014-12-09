@@ -149,7 +149,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
 
  @brief A macro that defines shellext executable key.
  */
- 
+
 #define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64_dbg\\Command"
 
 /**
@@ -157,7 +157,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
 
  @brief A macro that defines shellext DLL key.
  */
- 
+
 #define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64_dbg\\Command"
 
 /**
@@ -296,7 +296,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(MessageBoxW(0, L"Do you want to register a shell extension?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
             wchar_t szLauncherCommand[MAX_PATH] = L"";
-            swprintf_s(szLauncherCommand, sizeof(szLauncherCommand), L"\"%s\" \"%%1\"", szModulePath);
+            swprintf_s(szLauncherCommand, _countof(szLauncherCommand), L"\"%s\" \"%%1\"", szModulePath);
             RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
             RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
         }

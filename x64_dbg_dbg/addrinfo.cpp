@@ -68,7 +68,7 @@ void dbsave()
     functioncachesave(root);
     loopcachesave(root);
     bpcachesave(root);
-    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
+    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
         FILE* jsonFile = 0;
@@ -105,7 +105,7 @@ void dbload()
         return;
     dprintf("loading database...");
     DWORD ticks = GetTickCount();
-    std::wstring wdbpath = ConvertUtf8ToUtf16(dbpath);
+    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     LZ4_STATUS status = LZ4_decompress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE)
     {
@@ -146,11 +146,21 @@ void dbload()
 void dbclose()
 {
     dbsave();
+    CriticalSectionLocker commentLocker(LockComments);
     CommentsInfo().swap(comments);
+
+    CriticalSectionLocker labelLocker(LockLabels);
     LabelsInfo().swap(labels);
+
+    CriticalSectionLocker bookmarkLocker(LockBookmarks);
     BookmarksInfo().swap(bookmarks);
+
+    CriticalSectionLocker functionLocker(LockFunctions);
     FunctionsInfo().swap(functions);
+
+    CriticalSectionLocker loopLocker(LockLoops);
     LoopsInfo().swap(loops);
+
     bpclear();
     patchclear();
 }
@@ -202,7 +212,7 @@ bool modload(uint base, uint size, const char* fullpath)
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    std::wstring wszFullPath = ConvertUtf8ToUtf16(fullpath);
+    WString wszFullPath = StringUtils::Utf8ToUtf16(fullpath);
     if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base; //get entry point
@@ -264,6 +274,7 @@ bool modload(uint base, uint size, const char* fullpath)
     }
 
     //add module to list
+    CriticalSectionLocker locker(LockModules);
     modinfo.insert(std::make_pair(Range(base, base + size - 1), info));
     symupdatemodulelist();
     return true;
@@ -281,6 +292,7 @@ bool modload(uint base, uint size, const char* fullpath)
 
 bool modunload(uint base)
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(base, base));
     if(found == modinfo.end()) //not found
         return false;
@@ -297,6 +309,7 @@ bool modunload(uint base)
 
 void modclear()
 {
+    CriticalSectionLocker locker(LockModules);
     ModulesInfo().swap(modinfo);
     symupdatemodulelist();
 }
@@ -318,6 +331,7 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     if(!modname)
         return false;
     *modname = '\0';
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return false;
@@ -339,6 +353,7 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
 
 uint modbasefromaddr(uint addr)
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return 0;
@@ -357,6 +372,7 @@ uint modbasefromaddr(uint addr)
 
 uint modhashfromva(uint va) //return a unique hash from a VA
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(va, va));
     if(found == modinfo.end()) //not found
         return va;
@@ -395,6 +411,7 @@ uint modbasefromname(const char* modname)
 {
     if(!modname or strlen(modname) >= MAX_MODULE_SIZE)
         return 0;
+    CriticalSectionLocker locker(LockModules);
     for(ModulesInfo::iterator i = modinfo.begin(); i != modinfo.end(); ++i)
     {
         MODINFO* curMod = &i->second;
@@ -420,6 +437,7 @@ uint modbasefromname(const char* modname)
 
 uint modsizefromaddr(uint addr)
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return 0;
@@ -439,6 +457,7 @@ uint modsizefromaddr(uint addr)
 
 bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return false;
@@ -458,6 +477,7 @@ bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
 
 uint modentryfromaddr(uint addr)
 {
+    CriticalSectionLocker locker(LockModules);
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return 0;
@@ -573,6 +593,7 @@ bool commentset(uint addr, const char* text, bool manual)
     modnamefromaddr(addr, comment.mod, true);
     comment.addr = addr - modbasefromaddr(addr);
     const uint key = modhashfromva(addr);
+    CriticalSectionLocker locker(LockComments);
     if(!comments.insert(std::make_pair(key, comment)).second) //key already present
         comments[key] = comment;
     return true;
@@ -593,6 +614,7 @@ bool commentget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockComments);
     const CommentsInfo::iterator found = comments.find(modhashfromva(addr));
     if(found == comments.end()) //not found
         return false;
@@ -614,6 +636,7 @@ bool commentdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockComments);
     return (comments.erase(modhashfromva(addr)) == 1);
 }
 
@@ -636,6 +659,7 @@ void commentdelrange(uint start, uint end)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockComments);
     CommentsInfo::iterator i = comments.begin();
     while(i != comments.end())
     {
@@ -661,6 +685,7 @@ void commentdelrange(uint start, uint end)
 
 void commentcachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockComments);
     const JSON jsoncomments = json_array();
     const JSON jsonautocomments = json_array();
     for(CommentsInfo::iterator i = comments.begin(); i != comments.end(); ++i)
@@ -685,6 +710,7 @@ void commentcachesave(JSON root)
 
 void commentcacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockComments);
     comments.clear();
     const JSON jsoncomments = json_object_get(root, "comments");
     if(jsoncomments)
@@ -786,6 +812,7 @@ bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
         return false;
     if(!commentlist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockComments);
     if(!commentlist && cbsize)
     {
         *cbsize = comments.size() * sizeof(COMMENTSINFO);
@@ -827,6 +854,7 @@ bool labelset(uint addr, const char* text, bool manual)
     modnamefromaddr(addr, label.mod, true);
     label.addr = addr - modbasefromaddr(addr);
     uint key = modhashfromva(addr);
+    CriticalSectionLocker locker(LockLabels);
     if(!labels.insert(std::make_pair(modhashfromva(key), label)).second) //already present
         labels[key] = label;
     return true;
@@ -847,6 +875,7 @@ bool labelfromstring(const char* text, uint* addr)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockLabels);
     for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i)
     {
         if(!strcmp(i->second.text, text))
@@ -874,6 +903,7 @@ bool labelget(uint addr, char* text)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockLabels);
     const LabelsInfo::iterator found = labels.find(modhashfromva(addr));
     if(found == labels.end()) //not found
         return false;
@@ -896,6 +926,7 @@ bool labeldel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockLabels);
     return (labels.erase(modhashfromva(addr)) > 0);
 }
 
@@ -918,6 +949,7 @@ void labeldelrange(uint start, uint end)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockLabels);
     LabelsInfo::iterator i = labels.begin();
     while(i != labels.end())
     {
@@ -943,6 +975,7 @@ void labeldelrange(uint start, uint end)
 
 void labelcachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockLabels);
     const JSON jsonlabels = json_array();
     const JSON jsonautolabels = json_array();
     for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i)
@@ -967,6 +1000,7 @@ void labelcachesave(JSON root)
 
 void labelcacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockLabels);
     labels.clear();
     const JSON jsonlabels = json_object_get(root, "labels");
     if(jsonlabels)
@@ -1072,6 +1106,7 @@ bool labelenum(LABELSINFO* labellist, size_t* cbsize)
         return false;
     if(!labellist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockLabels);
     if(!labellist && cbsize)
     {
         *cbsize = labels.size() * sizeof(LABELSINFO);
@@ -1105,6 +1140,7 @@ bool bookmarkset(uint addr, bool manual)
     modnamefromaddr(addr, bookmark.mod, true);
     bookmark.addr = addr - modbasefromaddr(addr);
     bookmark.manual = manual;
+    CriticalSectionLocker locker(LockBookmarks);
     if(!bookmarks.insert(std::make_pair(modhashfromva(addr), bookmark)).second)
         return bookmarkdel(addr);
     return true;
@@ -1124,6 +1160,7 @@ bool bookmarkget(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockBookmarks);
     if(bookmarks.count(modhashfromva(addr)))
         return true;
     return false;
@@ -1143,6 +1180,7 @@ bool bookmarkdel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockBookmarks);
     return (bookmarks.erase(modhashfromva(addr)) > 0);
 }
 
@@ -1165,6 +1203,7 @@ void bookmarkdelrange(uint start, uint end)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockBookmarks);
     BookmarksInfo::iterator i = bookmarks.begin();
     while(i != bookmarks.end())
     {
@@ -1190,6 +1229,7 @@ void bookmarkdelrange(uint start, uint end)
 
 void bookmarkcachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockBookmarks);
     const JSON jsonbookmarks = json_array();
     const JSON jsonautobookmarks = json_array();
     for(BookmarksInfo::iterator i = bookmarks.begin(); i != bookmarks.end(); ++i)
@@ -1213,6 +1253,7 @@ void bookmarkcachesave(JSON root)
 
 void bookmarkcacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockBookmarks);
     bookmarks.clear();
     const JSON jsonbookmarks = json_object_get(root, "bookmarks");
     if(jsonbookmarks)
@@ -1304,6 +1345,7 @@ bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
         return false;
     if(!bookmarklist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockBookmarks);
     if(!bookmarklist && cbsize)
     {
         *cbsize = bookmarks.size() * sizeof(BOOKMARKSINFO);
@@ -1344,6 +1386,7 @@ bool functionadd(uint start, uint end, bool manual)
     function.start = start - modbase;
     function.end = end - modbase;
     function.manual = manual;
+    CriticalSectionLocker locker(LockFunctions);
     functions.insert(std::make_pair(ModuleRange(modhashfromva(modbase), Range(function.start, function.end)), function));
     return true;
 }
@@ -1365,6 +1408,7 @@ bool functionget(uint addr, uint* start, uint* end)
     if(!DbgIsDebugging())
         return false;
     uint modbase = modbasefromaddr(addr);
+    CriticalSectionLocker locker(LockFunctions);
     const FunctionsInfo::iterator found = functions.find(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase)));
     if(found == functions.end()) //not found
         return false;
@@ -1391,6 +1435,7 @@ bool functionoverlaps(uint start, uint end)
     if(!DbgIsDebugging() or end < start)
         return false;
     const uint modbase = modbasefromaddr(start);
+    CriticalSectionLocker locker(LockFunctions);
     return (functions.count(ModuleRange(modhashfromva(modbase), Range(start - modbase, end - modbase))) > 0);
 }
 
@@ -1409,6 +1454,7 @@ bool functiondel(uint addr)
     if(!DbgIsDebugging())
         return false;
     const uint modbase = modbasefromaddr(addr);
+    CriticalSectionLocker locker(LockFunctions);
     return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))) > 0);
 }
 
@@ -1431,6 +1477,7 @@ void functiondelrange(uint start, uint end)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockFunctions);
     FunctionsInfo::iterator i = functions.begin();
     while(i != functions.end())
     {
@@ -1456,6 +1503,7 @@ void functiondelrange(uint start, uint end)
 
 void functioncachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockFunctions);
     const JSON jsonfunctions = json_array();
     const JSON jsonautofunctions = json_array();
     for(FunctionsInfo::iterator i = functions.begin(); i != functions.end(); ++i)
@@ -1480,6 +1528,7 @@ void functioncachesave(JSON root)
 
 void functioncacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockFunctions);
     functions.clear();
     const JSON jsonfunctions = json_object_get(root, "functions");
     if(jsonfunctions)
@@ -1577,6 +1626,7 @@ bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
         return false;
     if(!functionlist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockFunctions);
     if(!functionlist && cbsize)
     {
         *cbsize = functions.size() * sizeof(FUNCTIONSINFO);
@@ -1625,6 +1675,7 @@ bool loopadd(uint start, uint end, bool manual)
     else
         loop.parent = 0;
     loop.manual = manual;
+    CriticalSectionLocker locker(LockLoops);
     loops.insert(std::make_pair(DepthModuleRange(finaldepth, ModuleRange(modhashfromva(modbase), Range(loop.start, loop.end))), loop));
     return true;
 }
@@ -1647,6 +1698,7 @@ bool loopget(int depth, uint addr, uint* start, uint* end)
     if(!DbgIsDebugging())
         return false;
     const uint modbase = modbasefromaddr(addr);
+    CriticalSectionLocker locker(LockLoops);
     LoopsInfo::iterator found = loops.find(DepthModuleRange(depth, ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))));
     if(found == loops.end()) //not found
         return false;
@@ -1679,6 +1731,8 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     uint curStart = start - modbase;
     uint curEnd = end - modbase;
     const uint key = modhashfromva(modbase);
+
+    CriticalSectionLocker locker(LockLoops);
 
     //check if the new loop fits in the old loop
     for(LoopsInfo::iterator i = loops.begin(); i != loops.end(); ++i)
@@ -1731,6 +1785,7 @@ bool loopdel(int depth, uint addr)
 
 void loopcachesave(JSON root)
 {
+    CriticalSectionLocker locker(LockLoops);
     const JSON jsonloops = json_array();
     const JSON jsonautoloops = json_array();
     for(LoopsInfo::iterator i = loops.begin(); i != loops.end(); ++i)
@@ -1757,6 +1812,7 @@ void loopcachesave(JSON root)
 
 void loopcacheload(JSON root)
 {
+    CriticalSectionLocker locker(LockLoops);
     loops.clear();
     const JSON jsonloops = json_object_get(root, "loops");
     if(jsonloops)
@@ -1856,6 +1912,7 @@ bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
         return false;
     if(!looplist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockLoops);
     if(!looplist && cbsize)
     {
         *cbsize = loops.size() * sizeof(LOOPSINFO);

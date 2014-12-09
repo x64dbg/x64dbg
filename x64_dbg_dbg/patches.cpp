@@ -9,12 +9,10 @@
 #include "memory.h"
 #include "debugger.h"
 #include "console.h"
+#include "threading.h"
 
-/**
- @brief The patches.
- */
+static PatchesInfo patches;
 
-PatchesInfo patches;
 
 /**
  @fn bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
@@ -40,6 +38,7 @@ bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
     newPatch.oldbyte = oldbyte;
     newPatch.newbyte = newbyte;
     uint key = modhashfromva(addr);
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(key);
     if(found != patches.end()) //we found a patch on the specified address
     {
@@ -74,6 +73,7 @@ bool patchget(uint addr, PATCHINFO* patch)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(modhashfromva(addr));
     if(found == patches.end()) //not found
         return false;
@@ -101,6 +101,7 @@ bool patchdel(uint addr, bool restore)
 {
     if(!DbgIsDebugging())
         return false;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator found = patches.find(modhashfromva(addr));
     if(found == patches.end()) //not found
         return false;
@@ -130,6 +131,7 @@ void patchdelrange(uint start, uint end, bool restore)
         return;
     start -= modbase;
     end -= modbase;
+    CriticalSectionLocker locker(LockPatches);
     PatchesInfo::iterator i = patches.begin();
     while(i != patches.end())
     {
@@ -154,6 +156,7 @@ void patchdelrange(uint start, uint end, bool restore)
 
 void patchclear(const char* mod)
 {
+    CriticalSectionLocker locker(LockPatches);
     if(!mod or !*mod)
         patches.clear();
     else
@@ -186,6 +189,7 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
         return false;
     if(!patcheslist && !cbsize)
         return false;
+    CriticalSectionLocker locker(LockPatches);
     if(!patcheslist && cbsize)
     {
         *cbsize = patches.size() * sizeof(LOOPSINFO);
@@ -246,7 +250,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
             sprintf(error, "failed to get module path of module %s", modname);
         return -1;
     }
-    if(!CopyFileW(szOriginalName, ConvertUtf8ToUtf16(szFileName).c_str(), false))
+    if(!CopyFileW(szOriginalName, StringUtils::Utf8ToUtf16(szFileName).c_str(), false))
     {
         if(error)
             strcpy(error, "failed to make a copy of the original file (patch target is in use?)");
@@ -256,7 +260,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
     DWORD LoadedSize;
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
-    if(StaticFileLoadW(ConvertUtf8ToUtf16(szFileName).c_str(), UE_ACCESS_ALL, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    if(StaticFileLoadW(StringUtils::Utf8ToUtf16(szFileName).c_str(), UE_ACCESS_ALL, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         int patched = 0;
         for(int i = 0; i < count; i++)
@@ -268,7 +272,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
             *ptr = patchlist[i].newbyte;
             patched++;
         }
-        if(!StaticFileUnloadW(ConvertUtf8ToUtf16(szFileName).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA))
+        if(!StaticFileUnloadW(StringUtils::Utf8ToUtf16(szFileName).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA))
         {
             if(error)
                 strcpy(error, "StaticFileUnload failed");
