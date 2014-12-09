@@ -5,21 +5,6 @@ HINSTANCE hInst;
 char dbbasepath[deflen] = "";
 char dbpath[3 * deflen] = "";
 
-void* emalloc(size_t size)
-{
-    return emalloc(size, "emalloc:???");
-}
-
-void* erealloc(void* ptr, size_t size)
-{
-    return erealloc(ptr, size, "erealloc:???");
-}
-
-void efree(void* ptr)
-{
-    efree(ptr, "efree:???");
-}
-
 static int emalloc_count = 0;
 static char alloctrace[MAX_PATH] = "";
 
