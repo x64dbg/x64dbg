@@ -33,6 +33,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);
+    mGeneralRegs->setFixedHeight(1400);
+    mGeneralRegs->ShowFPU(true);
 
     QScrollArea* scrollArea = new QScrollArea;
     scrollArea->setWidget(mGeneralRegs);
@@ -40,10 +42,20 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     scrollArea->horizontalScrollBar()->setStyleSheet("QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}");
     scrollArea->verticalScrollBar()->setStyleSheet("QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}");
 
-    mRegsTab = new QTabWidget(this);
-    mRegsTab->addTab(scrollArea, "General");
+    QPushButton* button_changeview = new QPushButton("");
 
-    ui->mTopRightFrameLayout->addWidget(mRegsTab);
+    mGeneralRegs->SetChangeButton(button_changeview);
+
+    button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
+    QFont font = QFont("Lucida Console");
+    font.setStyleHint(QFont::Monospace);
+    font.setPointSize(8);
+    button_changeview->setFont(font);
+    connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
+
+    ui->mTopRightFrameLayout->addWidget(button_changeview);
+
+    ui->mTopRightFrameLayout->addWidget(scrollArea);
 
     mDump = new CPUDump(0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);

@@ -17,6 +17,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
 
     wColDesc.isData = true; //void*
     wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
 #ifdef _WIN64
     wColDesc.data.itemSize = Qword;
     wColDesc.data.qwordMode = HexQword;
@@ -28,6 +29,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;

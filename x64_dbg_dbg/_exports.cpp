@@ -101,13 +101,14 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
         else //no user labels
         {
             DWORD64 displacement = 0;
-            char buffer[sizeof(SYMBOL_INFO) + MAX_LABEL_SIZE * sizeof(char)];
+            char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
             if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
-                if(bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
+                if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -122,7 +123,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     {
                         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
-                            if(bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
+                            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
@@ -171,7 +173,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
             {
                 DISASM_INSTR instr;
-                std::string temp_string;
+                String temp_string;
+                String comment;
                 ADDRINFO newinfo;
                 char ascii[256 * 2] = "";
                 char unicode[256 * 2] = "";
@@ -179,7 +182,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 memset(&instr, 0, sizeof(DISASM_INSTR));
                 disasmget(addr, &instr);
                 int len_left = MAX_COMMENT_SIZE;
-                for(int i = 0, j = 0; i < instr.argcount; i++)
+                for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(ADDRINFO));
                     newinfo.flags = flaglabel;
@@ -266,18 +269,16 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     else
                         continue;
 
-                    if(!strstr(addrinfo->comment, temp_string.c_str()))
+                    if(!strstr(comment.c_str(), temp_string.c_str()))
                     {
-                        unsigned int maxlen = MAX_COMMENT_SIZE - j - 1;
-                        if(maxlen < temp_string.length())
-                            temp_string.at(maxlen - 1) = 0;
-                        if(j)
-                            j += sprintf(addrinfo->comment + j, ", %s", temp_string.c_str());
-                        else
-                            j += sprintf(addrinfo->comment + j, "%s", temp_string.c_str());
+                        if(comment.length())
+                            comment.append(", ");
+                        comment.append(temp_string);
                         retval = true;
                     }
                 }
+                comment.resize(MAX_COMMENT_SIZE - 1);
+                strcpy_s(addrinfo->comment, comment.c_str());
             }
         }
     }
@@ -332,6 +333,126 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     return cacheResult;
 }
 
+static void GetMxCsrFields(MXCSRFIELDS* MxCsrFields, DWORD MxCsr)
+{
+    MxCsrFields->DAZ = valmxcsrflagfromstring(MxCsr, "DAZ");
+    MxCsrFields->DE = valmxcsrflagfromstring(MxCsr, "DE");
+    MxCsrFields->FZ = valmxcsrflagfromstring(MxCsr, "FZ");
+    MxCsrFields->IE = valmxcsrflagfromstring(MxCsr, "IE");
+    MxCsrFields->IM = valmxcsrflagfromstring(MxCsr, "IM");
+    MxCsrFields->DM = valmxcsrflagfromstring(MxCsr, "DM");
+    MxCsrFields->OE = valmxcsrflagfromstring(MxCsr, "OE");
+    MxCsrFields->OM = valmxcsrflagfromstring(MxCsr, "OM");
+    MxCsrFields->PE = valmxcsrflagfromstring(MxCsr, "PE");
+    MxCsrFields->PM = valmxcsrflagfromstring(MxCsr, "PM");
+    MxCsrFields->UE = valmxcsrflagfromstring(MxCsr, "UE");
+    MxCsrFields->UM = valmxcsrflagfromstring(MxCsr, "UM");
+    MxCsrFields->ZE = valmxcsrflagfromstring(MxCsr, "ZE");
+    MxCsrFields->ZM = valmxcsrflagfromstring(MxCsr, "ZM");
+
+    MxCsrFields->RC = valmxcsrfieldfromstring(MxCsr, "RC");
+}
+
+static void Getx87ControlWordFields(X87CONTROLWORDFIELDS* x87ControlWordFields, WORD ControlWord)
+{
+    x87ControlWordFields->DM = valx87controlwordflagfromstring(ControlWord, "DM");
+    x87ControlWordFields->IC = valx87controlwordflagfromstring(ControlWord, "IC");
+    x87ControlWordFields->IEM = valx87controlwordflagfromstring(ControlWord, "IEM");
+    x87ControlWordFields->IM = valx87controlwordflagfromstring(ControlWord, "IM");
+    x87ControlWordFields->OM = valx87controlwordflagfromstring(ControlWord, "OM");
+    x87ControlWordFields->PM = valx87controlwordflagfromstring(ControlWord, "PM");
+    x87ControlWordFields->UM = valx87controlwordflagfromstring(ControlWord, "UM");
+    x87ControlWordFields->ZM = valx87controlwordflagfromstring(ControlWord, "ZM");
+
+    x87ControlWordFields->RC = valx87controlwordfieldfromstring(ControlWord, "RC");
+    x87ControlWordFields->PC = valx87controlwordfieldfromstring(ControlWord, "PC");
+}
+
+static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WORD StatusWord)
+{
+    x87StatusWordFields->B = valx87statuswordflagfromstring(StatusWord, "B");
+    x87StatusWordFields->C0 = valx87statuswordflagfromstring(StatusWord, "C0");
+    x87StatusWordFields->C1 = valx87statuswordflagfromstring(StatusWord, "C1");
+    x87StatusWordFields->C2 = valx87statuswordflagfromstring(StatusWord, "C2");
+    x87StatusWordFields->C3 = valx87statuswordflagfromstring(StatusWord, "C3");
+    x87StatusWordFields->D = valx87statuswordflagfromstring(StatusWord, "D");
+    x87StatusWordFields->I = valx87statuswordflagfromstring(StatusWord, "I");
+    x87StatusWordFields->IR = valx87statuswordflagfromstring(StatusWord, "IR");
+    x87StatusWordFields->O = valx87statuswordflagfromstring(StatusWord, "O");
+    x87StatusWordFields->P = valx87statuswordflagfromstring(StatusWord, "P");
+    x87StatusWordFields->SF = valx87statuswordflagfromstring(StatusWord, "SF");
+    x87StatusWordFields->U = valx87statuswordflagfromstring(StatusWord, "U");
+    x87StatusWordFields->Z = valx87statuswordflagfromstring(StatusWord, "Z");
+
+    x87StatusWordFields->TOP = valx87statuswordfieldfromstring(StatusWord, "TOP");
+}
+
+static void TranslateTitanFpu(const x87FPU_t* titanfpu, X87FPU* fpu)
+{
+    fpu->ControlWord = titanfpu->ControlWord;
+    fpu->StatusWord = titanfpu->StatusWord;
+    fpu->TagWord = titanfpu->TagWord;
+    fpu->ErrorOffset = titanfpu->ErrorOffset;
+    fpu->ErrorSelector = titanfpu->ErrorSelector;
+    fpu->DataOffset = titanfpu->DataOffset;
+    fpu->DataSelector = titanfpu->DataSelector;
+    fpu->Cr0NpxState = titanfpu->Cr0NpxState;
+}
+
+static void TranslateTitanContextToRegContext(const TITAN_ENGINE_CONTEXT_t* titcontext, REGISTERCONTEXT* regcontext)
+{
+    regcontext->cax = titcontext->cax;
+    regcontext->ccx = titcontext->ccx;
+    regcontext->cdx = titcontext->cdx;
+    regcontext->cbx = titcontext->cbx;
+    regcontext->csp = titcontext->csp;
+    regcontext->cbp = titcontext->cbp;
+    regcontext->csi = titcontext->csi;
+    regcontext->cdi = titcontext->cdi;
+#ifdef _WIN64
+    regcontext->r8 = titcontext->r8;
+    regcontext->r9 = titcontext->r9;
+    regcontext->r10 = titcontext->r10;
+    regcontext->r11 = titcontext->r11;
+    regcontext->r12 = titcontext->r12;
+    regcontext->r13 = titcontext->r13;
+    regcontext->r14 = titcontext->r14;
+    regcontext->r15 = titcontext->r15;
+#endif //_WIN64
+    regcontext->cip = titcontext->cip;
+    regcontext->eflags = titcontext->eflags;
+    regcontext->gs = titcontext->gs;
+    regcontext->fs = titcontext->fs;
+    regcontext->es = titcontext->es;
+    regcontext->ds = titcontext->ds;
+    regcontext->cs = titcontext->cs;
+    regcontext->ss = titcontext->ss;
+    regcontext->dr0 = titcontext->dr0;
+    regcontext->dr1 = titcontext->dr1;
+    regcontext->dr2 = titcontext->dr2;
+    regcontext->dr3 = titcontext->dr3;
+    regcontext->dr6 = titcontext->dr6;
+    regcontext->dr7 = titcontext->dr7;
+    memcpy(regcontext->RegisterArea, titcontext->RegisterArea, sizeof(regcontext->RegisterArea));
+    TranslateTitanFpu(&titcontext->x87fpu, &regcontext->x87fpu);
+    regcontext->MxCsr = titcontext->MxCsr;
+    memcpy(regcontext->XmmRegisters, titcontext->XmmRegisters, sizeof(regcontext->XmmRegisters));
+    memcpy(regcontext->YmmRegisters, titcontext->YmmRegisters, sizeof(regcontext->YmmRegisters));
+}
+
+static void TranslateTitanFpuRegister(const x87FPURegister_t* titanReg, X87FPUREGISTER* reg)
+{
+    memcpy(reg->data, titanReg->data, sizeof(reg->data));
+    reg->st_value = titanReg->st_value;
+    reg->tag = titanReg->tag;
+}
+
+static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FPUREGISTER fpu[8])
+{
+    for(int i = 0; i < 8; i++)
+        TranslateTitanFpuRegister(&titanFpu[i], &fpu[i]);
+}
+
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 {
     if(!DbgIsDebugging())
@@ -340,59 +461,30 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
-    REGDUMP & r = *regdump;
+    TITAN_ENGINE_CONTEXT_t titcontext;
+    if(!GetFullContextDataEx(hActiveThread, &titcontext))
+        return false;
+    TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
-#ifdef _WIN64
-    r.cax = GetContextDataEx(hActiveThread, UE_RAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_RCX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_RDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_RBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_RBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_RSI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_RDI);
-    r.r8 = GetContextDataEx(hActiveThread, UE_R8);
-    r.r9 = GetContextDataEx(hActiveThread, UE_R9);
-    r.r10 = GetContextDataEx(hActiveThread, UE_R10);
-    r.r11 = GetContextDataEx(hActiveThread, UE_R11);
-    r.r12 = GetContextDataEx(hActiveThread, UE_R12);
-    r.r13 = GetContextDataEx(hActiveThread, UE_R13);
-    r.r14 = GetContextDataEx(hActiveThread, UE_R14);
-    r.r15 = GetContextDataEx(hActiveThread, UE_R15);
-#else
-    r.cax = GetContextDataEx(hActiveThread, UE_EAX);
-    r.ccx = GetContextDataEx(hActiveThread, UE_ECX);
-    r.cdx = GetContextDataEx(hActiveThread, UE_EDX);
-    r.cbx = GetContextDataEx(hActiveThread, UE_EBX);
-    r.cbp = GetContextDataEx(hActiveThread, UE_EBP);
-    r.csi = GetContextDataEx(hActiveThread, UE_ESI);
-    r.cdi = GetContextDataEx(hActiveThread, UE_EDI);
-#endif
+    duint cflags = regdump->regcontext.eflags;
+    regdump->flags.c = valflagfromstring(cflags, "cf");
+    regdump->flags.p = valflagfromstring(cflags, "pf");
+    regdump->flags.a = valflagfromstring(cflags, "af");
+    regdump->flags.z = valflagfromstring(cflags, "zf");
+    regdump->flags.s = valflagfromstring(cflags, "sf");
+    regdump->flags.t = valflagfromstring(cflags, "tf");
+    regdump->flags.i = valflagfromstring(cflags, "if");
+    regdump->flags.d = valflagfromstring(cflags, "df");
+    regdump->flags.o = valflagfromstring(cflags, "of");
 
-    r.csp = GetContextDataEx(hActiveThread, UE_CSP);
-    r.cip = GetContextDataEx(hActiveThread, UE_CIP);
-    r.eflags = (unsigned int)GetContextDataEx(hActiveThread, UE_EFLAGS);
-    r.gs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_GS) & 0xFFFF);
-    r.fs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_FS) & 0xFFFF);
-    r.es = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_ES) & 0xFFFF);
-    r.ds = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_DS) & 0xFFFF);
-    r.cs = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_CS) & 0xFFFF);
-    r.ss = (unsigned short)(GetContextDataEx(hActiveThread, UE_SEG_SS) & 0xFFFF);
-    r.dr0 = GetContextDataEx(hActiveThread, UE_DR0);
-    r.dr1 = GetContextDataEx(hActiveThread, UE_DR1);
-    r.dr2 = GetContextDataEx(hActiveThread, UE_DR2);
-    r.dr3 = GetContextDataEx(hActiveThread, UE_DR3);
-    r.dr6 = GetContextDataEx(hActiveThread, UE_DR6);
-    r.dr7 = GetContextDataEx(hActiveThread, UE_DR7);
-    duint cflags = r.eflags;
-    r.flags.c = valflagfromstring(cflags, "cf");
-    r.flags.p = valflagfromstring(cflags, "pf");
-    r.flags.a = valflagfromstring(cflags, "af");
-    r.flags.z = valflagfromstring(cflags, "zf");
-    r.flags.s = valflagfromstring(cflags, "sf");
-    r.flags.t = valflagfromstring(cflags, "tf");
-    r.flags.i = valflagfromstring(cflags, "if");
-    r.flags.d = valflagfromstring(cflags, "df");
-    r.flags.o = valflagfromstring(cflags, "of");
+    x87FPURegister_t x87FPURegisters[8];
+    Getx87FPURegisters(x87FPURegisters,  &titcontext);
+    TranslateTitanFpuRegisters(x87FPURegisters, regdump->x87FPURegisters);
+
+    GetMMXRegisters(regdump->mmx,  &titcontext);
+    GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
+    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
+    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
 
     return true;
 }

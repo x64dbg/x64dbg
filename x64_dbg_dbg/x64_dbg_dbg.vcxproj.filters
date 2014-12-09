@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="Source Files\UString">
-      <UniqueIdentifier>{ee24febc-948e-4226-ba0e-68a9b449fb23}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Interfaces/Exports">
       <UniqueIdentifier>{44fd9eb7-2017-49b8-8d9a-dec680632343}</UniqueIdentifier>
     </Filter>
@@ -39,9 +36,6 @@
     </Filter>
     <Filter Include="Header Files\Third Party\TitanEngine">
       <UniqueIdentifier>{23226861-3b20-42db-8dd6-c5d276ba7a83}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Third Party\UString">
-      <UniqueIdentifier>{adf51b13-6f3b-4b04-9ba9-21fb7a38150d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Third Party\XEDParse">
       <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
@@ -84,15 +78,6 @@
     <ClCompile Include="x64_dbg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UString\Exception.cpp">
-      <Filter>Source Files\UString</Filter>
-    </ClCompile>
-    <ClCompile Include="UString\String.cpp">
-      <Filter>Source Files\UString</Filter>
-    </ClCompile>
-    <ClCompile Include="UString\UString.cpp">
-      <Filter>Source Files\UString</Filter>
-    </ClCompile>
     <ClCompile Include="_dbgfunctions.cpp">
       <Filter>Source Files\Interfaces/Exports</Filter>
     </ClCompile>
@@ -115,12 +100,6 @@
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="math.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="murmurhash.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="msgqueue.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="threading.cpp">
@@ -186,6 +165,15 @@
     <ClCompile Include="capstone_wrapper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="stringutils.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="murmurhash.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="msgqueue.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -230,15 +218,6 @@
     <ClInclude Include="lz4\lz4hc.h">
       <Filter>Header Files\Third Party\lz4</Filter>
     </ClInclude>
-    <ClInclude Include="UString\Exception.h">
-      <Filter>Header Files\Third Party\UString</Filter>
-    </ClInclude>
-    <ClInclude Include="UString\String.h">
-      <Filter>Header Files\Third Party\UString</Filter>
-    </ClInclude>
-    <ClInclude Include="UString\UString.h">
-      <Filter>Header Files\Third Party\UString</Filter>
-    </ClInclude>
     <ClInclude Include="_global.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -254,9 +233,6 @@
     <ClInclude Include="math.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="msgqueue.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
     <ClInclude Include="threading.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -267,9 +243,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="plugin_loader.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="murmurhash.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="debugger.h">
@@ -341,14 +314,14 @@
     <ClInclude Include="undocumented.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
-    <ClInclude Include="capstone\arm.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
+    <ClInclude Include="stringutils.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="capstone\arm64.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
+    <ClInclude Include="murmurhash.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="capstone\capstone.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
+    <ClInclude Include="msgqueue.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="capstone\mips.h">
       <Filter>Header Files\Third Party\capstone</Filter>

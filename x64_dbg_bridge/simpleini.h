@@ -2070,7 +2070,8 @@ CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::AddEntry(
         {
             DeleteString(a_pComment);
             a_pComment = pComment;
-            CopyString(a_pComment);
+            rc = CopyString(a_pComment);
+            if(rc < 0) return rc;
         }
         Delete(a_pSection, a_pKey);
         iKey = keyval.end();

@@ -20,6 +20,8 @@ public:
     QString expressionText;
     uint_t validRangeStart;
     uint_t validRangeEnd;
+    bool fileOffset;
+    QString modName;
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
     void validateExpression();

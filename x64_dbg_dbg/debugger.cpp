@@ -115,6 +115,7 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(MS_VC_EXCEPTION, "MS_VC_EXCEPTION"));
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
@@ -655,7 +656,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
-            strcpy_s(DebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
+            strcpy_s(DebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
@@ -700,12 +701,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(settingboolget("Events", "TlsCallbacks"))
         {
             DWORD NumberOfCallBacks = 0;
-            TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
+            TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, &NumberOfCallBacks);
             if(NumberOfCallBacks)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
                 Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
-                if(!TLSGrabCallBackDataW(ConvertUtf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
+                if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
                     dputs("failed to get TLS callback addresses!");
                 else
                 {
@@ -857,7 +858,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
             strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
-            strcpy_s(DLLDebugFileName, MAX_PATH, ConvertUtf16ToUtf8(wszFileName).c_str());
+            strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
     SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
@@ -1005,7 +1006,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
                     break;
                 }
             }
-            dprintf("DebugString: \"%s\"\n", DebugTextEscaped);
+            dprintf("DebugString: \"%s\"\n", DebugTextEscaped());
         }
     }
 
@@ -1066,63 +1067,58 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
         SetContextDataEx(hActiveThread, UE_CIP, (uint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
-    else if(ExceptionData->ExceptionRecord.ExceptionCode == 0x406D1388) //SetThreadName exception
+    else if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {
-        if(ExceptionData->ExceptionRecord.NumberParameters == sizeof(THREADNAME_INFO) / sizeof(uint))
+        THREADNAME_INFO nameInfo;
+        memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
+        if(nameInfo.dwThreadID == -1) //current thread
+            nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+        if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
         {
-            THREADNAME_INFO nameInfo;
-            memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
-            if(nameInfo.dwThreadID == -1) //current thread
-                nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-            if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
+            Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
+            if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
-                Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-                memset(ThreadName, 0, MAX_THREAD_NAME_SIZE);
-                if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+                int len = (int)strlen(ThreadName);
+                int escape_count = 0;
+                for(int i = 0; i < len; i++)
+                    if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
+                        escape_count++;
+                Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
+                for(int i = 0, j = 0; i < len; i++)
                 {
-                    int len = (int)strlen(ThreadName);
-                    int escape_count = 0;
-                    for(int i = 0; i < len; i++)
-                        if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
-                            escape_count++;
-                    Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
-                    memset(ThreadNameEscaped, 0, len + escape_count * 3 + 1);
-                    for(int i = 0, j = 0; i < len; i++)
+                    switch(ThreadName[i])
                     {
-                        switch(ThreadName[i])
-                        {
-                        case '\t':
-                            j += sprintf(ThreadNameEscaped + j, "\\t");
-                            break;
-                        case '\f':
-                            j += sprintf(ThreadNameEscaped + j, "\\f");
-                            break;
-                        case '\v':
-                            j += sprintf(ThreadNameEscaped + j, "\\v");
-                            break;
-                        case '\n':
-                            j += sprintf(ThreadNameEscaped + j, "\\n");
-                            break;
-                        case '\r':
-                            j += sprintf(ThreadNameEscaped + j, "\\r");
-                            break;
-                        case '\\':
-                            j += sprintf(ThreadNameEscaped + j, "\\\\");
-                            break;
-                        case '\"':
-                            j += sprintf(ThreadNameEscaped + j, "\\\"");
-                            break;
-                        default:
-                            if(!isprint(ThreadName[i])) //unknown unprintable character
-                                j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
-                            else
-                                j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
-                            break;
-                        }
+                    case '\t':
+                        j += sprintf(ThreadNameEscaped + j, "\\t");
+                        break;
+                    case '\f':
+                        j += sprintf(ThreadNameEscaped + j, "\\f");
+                        break;
+                    case '\v':
+                        j += sprintf(ThreadNameEscaped + j, "\\v");
+                        break;
+                    case '\n':
+                        j += sprintf(ThreadNameEscaped + j, "\\n");
+                        break;
+                    case '\r':
+                        j += sprintf(ThreadNameEscaped + j, "\\r");
+                        break;
+                    case '\\':
+                        j += sprintf(ThreadNameEscaped + j, "\\\\");
+                        break;
+                    case '\"':
+                        j += sprintf(ThreadNameEscaped + j, "\\\"");
+                        break;
+                    default:
+                        if(!isprint(ThreadName[i])) //unknown unprintable character
+                            j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
+                        else
+                            j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
+                        break;
                     }
-                    dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped);
-                    threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
                 }
+                dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped());
+                threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
             }
         }
     }
@@ -1176,13 +1172,13 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     bSkipExceptions = false;
     bBreakOnNextDll = false;
     INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
-    bFileIsDll = IsFileDLLW(ConvertUtf8ToUtf16(init->exe).c_str(), 0);
-    pDebuggedEntry = GetPE32DataW(ConvertUtf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
+    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0);
+    pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
     strcpy_s(szFileName, init->exe);
     if(bFileIsDll)
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), false, ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str(), 0);
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), false, StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str(), 0);
     else
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(ConvertUtf8ToUtf16(init->exe).c_str(), ConvertUtf8ToUtf16(init->commandline).c_str(), ConvertUtf8ToUtf16(init->currentfolder).c_str());
+        fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str());
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;
@@ -1564,15 +1560,19 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegSetValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
+        lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
     }
     else
     {
         lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
         if(lRv != ERROR_SUCCESS)
+        {
+            if(error != NULL)
+                *error = ERROR_RW_FILE_NOT_FOUND;
             return false;
+        }
 
-        lRv = RegQueryValueExW(hKey, ConvertUtf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
+        lRv = RegQueryValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
         if(lRv != ERROR_SUCCESS)
         {
             if(error != NULL)
@@ -1755,7 +1755,7 @@ bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out,
             *rw_error_out = rw_error;
         return false;
     }
-    strcpy_s(jit_entry, JIT_ENTRY_MAX_SIZE, ConvertUtf16ToUtf8(wszJitEntry).c_str());
+    strcpy_s(jit_entry, JIT_ENTRY_MAX_SIZE, StringUtils::Utf16ToUtf8(wszJitEntry).c_str());
     return true;
 }
 
@@ -1765,7 +1765,7 @@ bool dbggetdefjit(char* jit_entry)
     path[0] = '"';
     wchar_t wszPath[MAX_PATH] = L"";
     GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
-    strcpy(&path[1], ConvertUtf16ToUtf8(wszPath).c_str());
+    strcpy(&path[1], StringUtils::Utf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
     strcpy(jit_entry, path);
     return true;
@@ -1775,7 +1775,7 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_erro
 {
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey((wchar_t*)ConvertUtf8ToUtf16(jit_cmd).c_str(), & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
+    if(!readwritejitkey((wchar_t*)StringUtils::Utf8ToUtf16(jit_cmd).c_str(), & jit_cmd_size, "Debugger", arch_in, arch_out, & rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;
@@ -1812,7 +1812,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
             continue;
         wchar_t szExePath[MAX_PATH] = L"";
         if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))
-            strcpy_s(pe32.szExeFile, ConvertUtf16ToUtf8(szExePath).c_str());
+            strcpy_s(pe32.szExeFile, StringUtils::Utf16ToUtf8(szExePath).c_str());
         list->push_back(pe32);
     }
     while(Process32Next(hProcessSnap, &pe32));

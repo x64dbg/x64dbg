@@ -2,6 +2,7 @@
 #include "console.h"
 #include "undocumented.h"
 #include "memory.h"
+#include "threading.h"
 
 static std::vector<THREADINFO> threadList;
 static int threadNum;
@@ -18,26 +19,32 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     *curInfo.threadName = '\0';
     if(!threadNum)
         strcpy(curInfo.threadName, "Main Thread");
+    CriticalSectionLocker locker(LockThreads);
     threadList.push_back(curInfo);
     threadNum++;
+    locker.unlock(); //prevent possible deadlocks
     GuiUpdateThreadView();
 }
 
 void threadexit(DWORD dwThreadId)
 {
+    CriticalSectionLocker locker(LockThreads);
     for(unsigned int i = 0; i < threadList.size(); i++)
         if(threadList.at(i).dwThreadId == dwThreadId)
         {
             threadList.erase(threadList.begin() + i);
             break;
         }
+    locker.unlock(); //prevent possible deadlocks
     GuiUpdateThreadView();
 }
 
 void threadclear()
 {
     threadNum = 0;
+    CriticalSectionLocker locker(LockThreads);
     std::vector<THREADINFO>().swap(threadList);
+    locker.unlock(); //prevent possible deadlocks
     GuiUpdateThreadView();
 }
 
@@ -57,6 +64,7 @@ static DWORD GetThreadLastError(uint tebAddress)
 
 void threadgetlist(THREADLIST* list)
 {
+    CriticalSectionLocker locker(LockThreads);
     int count = (int)threadList.size();
     list->count = count;
     if(!count)
@@ -81,6 +89,7 @@ void threadgetlist(THREADLIST* list)
 
 bool threadisvalid(DWORD dwThreadId)
 {
+    CriticalSectionLocker locker(LockThreads);
     for(unsigned int i = 0; i < threadList.size(); i++)
         if(threadList.at(i).dwThreadId == dwThreadId)
             return true;
@@ -89,6 +98,7 @@ bool threadisvalid(DWORD dwThreadId)
 
 bool threadsetname(DWORD dwThreadId, const char* name)
 {
+    CriticalSectionLocker locker(LockThreads);
     for(unsigned int i = 0; i < threadList.size(); i++)
         if(threadList.at(i).dwThreadId == dwThreadId)
         {
@@ -102,6 +112,7 @@ bool threadsetname(DWORD dwThreadId, const char* name)
 
 HANDLE threadgethandle(DWORD dwThreadId)
 {
+    CriticalSectionLocker locker(LockThreads);
     for(unsigned int i = 0; i < threadList.size(); i++)
         if(threadList.at(i).dwThreadId == dwThreadId)
             return threadList.at(i).hThread;
@@ -110,6 +121,7 @@ HANDLE threadgethandle(DWORD dwThreadId)
 
 DWORD threadgetid(HANDLE hThread)
 {
+    CriticalSectionLocker locker(LockThreads);
     for(unsigned int i = 0; i < threadList.size(); i++)
         if(threadList.at(i).hThread == hThread)
             return threadList.at(i).dwThreadId;
