@@ -1,36 +1,23 @@
 /**
- @file console.cpp
-
- @brief Implements the console class.
- */
+\file console.cpp
+\brief Implements the console class.
+*/
 
 #include "console.h"
 
 /**
- @brief The msg[ 66000].
- */
-
-/**
- @fn void dputs(const char* text)
-
- @brief Dputs the given text.
-
- @param text The text.
- */
-
+\brief Print a line with text, terminated with a newline to the console.
+\param text The text to print.
+*/
 void dputs(const char* text)
 {
     dprintf("%s\n", text);
 }
 
 /**
- @fn void dprintf(const char* format, ...)
-
- @brief Dprintfs the given format.
-
- @param format Describes the format to use.
- */
-
+\brief Print a formatted string to the console.
+\param format The printf format to use (see documentation of printf for more information).
+*/
 void dprintf(const char* format, ...)
 {
     va_list args;
