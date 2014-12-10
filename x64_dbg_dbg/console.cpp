@@ -10,8 +10,6 @@
  @brief The msg[ 66000].
  */
 
-static char msg[66000];
-
 /**
  @fn void dputs(const char* text)
 
@@ -37,7 +35,7 @@ void dprintf(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    *msg = 0;
-    vsnprintf(msg, sizeof(msg), format, args);
+    Memory<char*> msg(66000);
+    vsnprintf(msg, msg.size(), format, args);
     GuiAddLogMessage(msg);
 }
