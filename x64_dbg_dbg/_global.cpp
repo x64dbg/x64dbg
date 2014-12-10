@@ -1,82 +1,42 @@
 /**
- @file _global.cpp
-
- @brief Implements the global class.
- */
+\file _global.cpp
+\brief Implements the global class.
+*/
 
 #include "_global.h"
 #include <new>
 
 /**
- @brief The instance.
- */
-
+\brief x64_dbg library instance.
+*/
 HINSTANCE hInst;
 
 /**
- @brief The dbbasepath[deflen].
- */
-
+\brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
+*/
 char dbbasepath[deflen] = "";
 
 /**
- @brief The dbpath[ 3*deflen].
- */
-
+\brief Path of the current program database. UTF-8 encoding.
+*/
 char dbpath[3 * deflen] = "";
 
 /**
- @fn void* emalloc(size_t size)
-
- @brief Emallocs the given size.
-
- @param size The size.
-
- @return null if it fails, else a void*.
- */
-
-/**
- @fn void* erealloc(void* ptr, size_t size)
-
- @brief Ereallocs.
-
- @param [in,out] ptr If non-null, the pointer.
- @param size         The size.
-
- @return null if it fails, else a void*.
- */
-
-/**
- @fn void efree(void* ptr)
-
- @brief Efrees the given pointer.
-
- @param [in,out] ptr If non-null, the pointer.
- */
-
-/**
- @brief Number of emallocs.
- */
-
+\brief Number of allocated buffers by emalloc(). This should be 0 when x64_dbg ends.
+*/
 static int emalloc_count = 0;
 
 /**
- @brief The alloctrace[ maximum path].
- */
-
+\brief Path for debugging, used to create an allocation trace file on emalloc() or efree(). Not used.
+*/
 static char alloctrace[MAX_PATH] = "";
 
 /**
- @fn void* emalloc(size_t size, const char* reason)
-
- @brief Emallocs.
-
- @param size   The size.
- @param reason The reason.
-
- @return null if it fails, else a void*.
- */
-
+\brief Allocates a new buffer.
+\param size The size of the buffer to allocate (in bytes).
+\param reason The reason for allocation (can be used for memory allocation tracking).
+\return Always returns a valid pointer to the buffer you requested. Will quit the application on errors.
+*/
 void* emalloc(size_t size, const char* reason)
 {
     unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
@@ -96,17 +56,12 @@ void* emalloc(size_t size, const char* reason)
 }
 
 /**
- @fn void* erealloc(void* ptr, size_t size, const char* reason)
-
- @brief Ereallocs.
-
- @param [in,out] ptr If non-null, the pointer.
- @param size         The size.
- @param reason       The reason.
-
- @return null if it fails, else a void*.
- */
-
+\brief Reallocates a buffer allocated with emalloc().
+\param [in] Pointer to memory previously allocated with emalloc(). When NULL a new buffer will be allocated by emalloc().
+\param size The new memory size.
+\param reason The reason for allocation (can be used for memory allocation tracking).
+\return Always returns a valid pointer to the buffer you requested. Will quit the application on errors.
+*/
 void* erealloc(void* ptr, size_t size, const char* reason)
 {
     if(!ptr)
@@ -127,14 +82,10 @@ void* erealloc(void* ptr, size_t size, const char* reason)
 }
 
 /**
- @fn void efree(void* ptr, const char* reason)
-
- @brief Efrees.
-
- @param [in,out] ptr If non-null, the pointer.
- @param reason       The reason.
- */
-
+\brief Free memory previously allocated with emalloc().
+\param [in] Pointer to the memory to free.
+\param reason The reason for freeing, should be the same as the reason for allocating.
+*/
 void efree(void* ptr, const char* reason)
 {
     emalloc_count--;
@@ -147,42 +98,29 @@ void efree(void* ptr, const char* reason)
 }
 
 /**
- @fn int memleaks()
-
- @brief Gets the memleaks.
-
- @return An int.
- */
-
+\brief Gets the number of memory leaks. This number is only valid in _dbg_dbgexitsignal().
+\return The number of memory leaks.
+*/
 int memleaks()
 {
     return emalloc_count;
 }
 
 /**
- @fn void setalloctrace(const char* file)
-
- @brief Setalloctraces the given file.
-
- @param file The file.
- */
-
+\brief Sets the path for the allocation trace file.
+\param file UTF-8 filepath.
+*/
 void setalloctrace(const char* file)
 {
     strcpy_s(alloctrace, file);
 }
 
 /**
- @fn bool arraycontains(const char* cmd_list, const char* cmd)
-
- @brief Arraycontains.
-
- @param cmd_list List of commands.
- @param cmd      The command.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief A function to determine if a string is contained in a specifically formatted 'array string'.
+\param cmd_list Array of strings separated by '\1'.
+\param cmd The string to look for.
+\return true if \p cmd is contained in \p cmd_list.
+*/
 bool arraycontains(const char* cmd_list, const char* cmd)
 {
     //TODO: fix this function a little
@@ -211,16 +149,11 @@ bool arraycontains(const char* cmd_list, const char* cmd)
 }
 
 /**
- @fn bool scmp(const char* a, const char* b)
-
- @brief Scmps.
-
- @param a The const char* to process.
- @param b The const char* to process.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Compares two strings without case-sensitivity.
+\param a The first string.
+\param b The second string.
+\return true if the strings are equal (case-insensitive).
+*/
 bool scmp(const char* a, const char* b)
 {
     if(_stricmp(a, b))
@@ -229,13 +162,9 @@ bool scmp(const char* a, const char* b)
 }
 
 /**
- @fn void formathex(char* string)
-
- @brief Formathexes the given string.
-
- @param [in,out] string If non-null, the string.
- */
-
+\brief Formats a string to hexadecimal format (removes all non-hex characters).
+\param [in,out] String to format.
+*/
 void formathex(char* string)
 {
     int len = (int)strlen(string);
@@ -249,13 +178,9 @@ void formathex(char* string)
 }
 
 /**
- @fn void formatdec(char* string)
-
- @brief Formatdecs the given string.
-
- @param [in,out] string If non-null, the string.
- */
-
+\brief Formats a string to decimal format (removed all non-numeric characters).
+\param [in,out] String to format.
+*/
 void formatdec(char* string)
 {
     int len = (int)strlen(string);
@@ -269,15 +194,10 @@ void formatdec(char* string)
 }
 
 /**
- @fn bool FileExists(const char* file)
-
- @brief Queries if a given file exists.
-
- @param file The file.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Queries if a given file exists.
+\param file Path to the file to check (UTF-8).
+\return true if the file exists on the hard drive.
+*/
 bool FileExists(const char* file)
 {
     DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(file).c_str());
@@ -285,15 +205,10 @@ bool FileExists(const char* file)
 }
 
 /**
- @fn bool DirExists(const char* dir)
-
- @brief Queries if a given dir exists.
-
- @param dir The dir.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Queries if a given directory exists.
+\param dir Path to the directory to check (UTF-8).
+\return true if the directory exists.
+*/
 bool DirExists(const char* dir)
 {
     DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(dir).c_str());
@@ -301,16 +216,11 @@ bool DirExists(const char* dir)
 }
 
 /**
- @fn bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
-
- @brief Gets file name from handle.
-
- @param hFile               Handle of the file.
- @param [in,out] szFileName If non-null, filename of the file.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Gets file path from a file handle.
+\param hFile File handle to get the path from.
+\param [in,out] szFileName Buffer of size MAX_PATH.
+\return true if it succeeds, false if it fails.
+*/
 bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 {
     wchar_t wszFileName[MAX_PATH] = L"";
@@ -321,16 +231,11 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 }
 
 /**
- @fn bool settingboolget(const char* section, const char* name)
-
- @brief Settingboolgets.
-
- @param section The section.
- @param name    The name.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Get a boolean setting from the configuration file.
+\param section The section of the setting (UTF-8).
+\param name The name of the setting (UTF-8).
+\return true if the setting was set and equals to true, otherwise returns false.
+*/
 bool settingboolget(const char* section, const char* name)
 {
     uint setting;
@@ -342,15 +247,10 @@ bool settingboolget(const char* section, const char* name)
 }
 
 /**
- @fn arch GetFileArchitecture(const char* szFileName)
-
- @brief Gets file architecture.
-
- @param szFileName Filename of the file.
-
- @return The file architecture.
- */
-
+\brief Gets file architecture.
+\param szFileName UTF-8 encoded file path.
+\return The file architecture (::arch).
+*/
 arch GetFileArchitecture(const char* szFileName)
 {
     arch retval = notfound;
@@ -385,13 +285,9 @@ arch GetFileArchitecture(const char* szFileName)
 }
 
 /**
- @fn bool IsWow64()
-
- @brief Query if this object is wow 64.
-
- @return true if wow 64, false if not.
- */
-
+\brief Query if x64_dbg is running in Wow64 mode.
+\return true if running in Wow64, false otherwise.
+*/
 bool IsWow64()
 {
     BOOL bIsWow64Process = FALSE;
