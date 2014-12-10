@@ -1,8 +1,7 @@
 /**
- @file argument.cpp
-
- @brief Implements the argument class.
- */
+\file argument.cpp
+\brief Implements the argument class.
+*/
 
 #include "argument.h"
 #include "console.h"
@@ -30,13 +29,9 @@ formatarg:
 */
 
 /**
- @fn void argformat(char* cmd)
-
- @brief Argformats the given command.
-
- @param [in,out] cmd If non-null, the command.
- */
-
+\brief Formats a command string (see source code for more information).
+\param [in,out] Command to format.
+*/
 void argformat(char* cmd)
 {
     if(strlen(cmd) >= deflen)
@@ -174,15 +169,10 @@ void argformat(char* cmd)
 */
 
 /**
- @fn int arggetcount(const char* cmd)
-
- @brief Arggetcounts the given command.
-
- @param cmd The command.
-
- @return An int.
- */
-
+\brief Gets the argument count from a command formatted by argformat().
+\param cmd The command to get the argument count from.
+\return The argument count.
+*/
 int arggetcount(const char* cmd)
 {
     int len = (int)strlen(cmd);
@@ -214,6 +204,7 @@ int arggetcount(const char* cmd)
     }
     return arg_count;
 }
+
 /*
 1) get arg count
 2) remove double backslash
@@ -223,18 +214,13 @@ int arggetcount(const char* cmd)
 */
 
 /**
- @fn bool argget(const char* cmd, char* arg, int arg_num, bool optional)
-
- @brief Arggets.
-
- @param cmd          The command.
- @param [in,out] arg If non-null, the argument.
- @param arg_num      The argument number.
- @param optional     true to optional.
-
- @return true if it succeeds, false if it fails.
- */
-
+\brief Gets an argument from a command.
+\param cmd The command to get the argument from.
+\param [out] Buffer of size #deflen.
+\param arg_num The zero-based argument number to retrieve.
+\param optional true if the argument is optional. When false there will be error messages on the console. Used to skip writing error messages yourself.
+\return true if the argument was found in the command.
+*/
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {
     if(strlen(cmd) >= deflen)
