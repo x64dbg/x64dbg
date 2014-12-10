@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-std::vector<String> StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
+StringList StringUtils::Split(const String & s, char delim, std::vector<String> & elems)
 {
     std::stringstream ss(s);
     String item;
@@ -16,7 +16,7 @@ std::vector<String> StringUtils::Split(const String & s, char delim, std::vector
     return elems;
 }
 
-std::vector<String> StringUtils::Split(const String & s, char delim)
+StringList StringUtils::Split(const String & s, char delim)
 {
     std::vector<String> elems;
     Split(s, delim, elems);
