@@ -1090,6 +1090,24 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
     return STATUS_ERROR;
 }
 
+CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
+{
+    int threadCount = threadgetcount();
+    int suspendedCount = threadsuspendall();
+    dprintf("%d/%d thread(s) suspended\n", suspendedCount, threadCount);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[])
+{
+    int threadCount = threadgetcount();
+    int resumeCount = threadresumeall();
+    dprintf("%d/%d thread(s) resumed\n", resumeCount, threadCount);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbDebugSetPriority(int argc, char* argv[])
 {
     if(argc < 3)
