@@ -1006,7 +1006,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    dprintf("%s=\"%s\"\n", argv[1], string);
+    dprintf("%s=\"%s\"\n", argv[1], string());
     return STATUS_CONTINUE;
 }
 
