@@ -20,6 +20,12 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     static char arg1[deflen] = "";
     if(!argget(*argv, arg1, 0, false))
         return STATUS_ERROR;
+    char szResolvedPath[MAX_PATH] = "";
+    if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
+    {
+        dprintf("resolved shortcut \"%s\"->\"%s\"\n", arg1, szResolvedPath);
+        strcpy_s(arg1, szResolvedPath);
+    }
     if(!FileExists(arg1))
     {
         dputs("file does not exist!");
