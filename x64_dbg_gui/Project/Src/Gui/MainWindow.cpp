@@ -586,13 +586,10 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        if(filename.contains(".exe", Qt::CaseInsensitive) || filename.contains(".dll", Qt::CaseInsensitive))
-        {
-            if(DbgIsDebugging())
-                DbgCmdExecDirect("stop");
-            QString cmd;
-            DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
-        }
+        if(DbgIsDebugging())
+            DbgCmdExecDirect("stop");
+        QString cmd;
+        DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
         pEvent->acceptProposedAction();
     }
 }

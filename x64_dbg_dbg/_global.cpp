@@ -1,4 +1,6 @@
 #include "_global.h"
+#include <objbase.h>
+#include <shlobj.h>
 #include <new>
 
 HINSTANCE hInst;
@@ -194,4 +196,57 @@ bool IsWow64()
     //x64_dbg supports WinXP SP3 and later only, so ignore the GetProcAddress crap :D
     IsWow64Process(GetCurrentProcess(), &bIsWow64Process);
     return !!bIsWow64Process;
+}
+
+//Taken from: http://www.cplusplus.com/forum/windows/64088/
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
+{
+    if(szResolvedPath == NULL)
+        return SUCCEEDED(E_INVALIDARG);
+
+    //Initialize COM stuff
+    CoInitialize(NULL);
+
+    //Get a pointer to the IShellLink interface.
+    IShellLink* psl = NULL;
+    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if(SUCCEEDED(hres))
+    {
+        //Get a pointer to the IPersistFile interface.
+        IPersistFile* ppf = NULL;
+        hres = psl->QueryInterface(IID_IPersistFile, (void**)&ppf);
+        if(SUCCEEDED(hres))
+        {
+            //Load the shortcut.
+            hres = ppf->Load(szShortcutPath, STGM_READ);
+
+            if(SUCCEEDED(hres))
+            {
+                //Resolve the link.
+                hres = psl->Resolve(hwnd, 0);
+
+                if(SUCCEEDED(hres))
+                {
+                    //Get the path to the link target.
+                    char szGotPath[MAX_PATH] = {0};
+                    hres = psl->GetPath(szGotPath, _countof(szGotPath), NULL, SLGP_SHORTPATH);
+
+                    if(SUCCEEDED(hres))
+                    {
+                        strcpy_s(szResolvedPath, nSize, szGotPath);
+                    }
+                }
+            }
+
+            //Release the pointer to the IPersistFile interface.
+            ppf->Release();
+        }
+
+        //Release the pointer to the IShellLink interface.
+        psl->Release();
+    }
+
+    //Uninitialize COM stuff
+    CoUninitialize();
+    return SUCCEEDED(hres);
 }

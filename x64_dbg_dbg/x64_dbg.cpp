@@ -74,6 +74,8 @@ static void registercommands()
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
     dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
+    dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
+    dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
     dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
