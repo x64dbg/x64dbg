@@ -9,8 +9,13 @@
 #include "plugin_loader.h"
 #include "simplescript.h"
 #include "symbolinfo.h"
+#include "assemble.h"
 
 static bool bScyllaLoaded = false;
+uint LoadLibThreadID;
+LPVOID DLLNameMem;
+LPVOID ASMAddr;
+TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
@@ -1786,6 +1791,102 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
     dprintf("New rights of "fhex": %s\n", addr, rights);
 
     return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugLoadLib(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dprintf("Error: you must specify the name of the DLL to load\n");
+        return STATUS_ERROR;
+    }
+
+    LoadLibThreadID = fdProcessInfo->dwThreadId;
+    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
+
+    DLLNameMem = VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    ASMAddr = VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+    if(!DLLNameMem || !ASMAddr)
+    {
+        dprintf("Error: couldn't allocate memory in debuggee");
+        return STATUS_ERROR;
+    }
+
+    if(!memwrite(fdProcessInfo->hProcess, DLLNameMem, argv[1],  strlen(argv[1]), NULL))
+    {
+        dprintf("Error: couldn't write process memory");
+        return STATUS_ERROR;
+    }
+
+    int size = 0;
+    int counter = 0;
+    uint LoadLibraryA = 0;
+    char command[50] = "";
+    char error[256] = "";
+
+    GetFullContextDataEx(LoadLibThread, &backupctx);
+
+    valfromstring("kernel32:LoadLibraryA", &LoadLibraryA, false);
+
+    // Arch specific asm code
+#ifdef _WIN64
+    sprintf(command, "mov rcx, "fhex, DLLNameMem);
+#else
+    sprintf(command, "push "fhex, DLLNameMem);
+#endif // _WIN64
+
+    assembleat((uint)ASMAddr, command, &size, error, true);
+    counter += size;
+
+#ifdef _WIN64
+    sprintf(command, "mov rax, "fhex, LoadLibraryA);
+    assembleat((uint)ASMAddr + counter, command, &size, error, true);
+    counter += size;
+    sprintf(command, "call rax");
+#else
+    sprintf(command, "call "fhex, LoadLibraryA);
+#endif // _WIN64
+
+    assembleat((uint)ASMAddr + counter, command, &size, error, true);
+    counter += size;
+
+    SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
+    SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbLoadLibBPX);
+
+    threadsuspendall();
+    ResumeThread(LoadLibThread);
+
+    unlock(WAITID_RUN);
+
+    return STATUS_CONTINUE;
+}
+
+void cbLoadLibBPX()
+{
+    uint LibAddr = 0;
+    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
+#ifdef _WIN64
+    LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
+#else
+    LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
+#endif //_WIN64
+    varset("$result", LibAddr, false);
+    backupctx.eflags &= ~0x100;
+    SetFullContextDataEx(LoadLibThread, &backupctx);
+    VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
+    VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
+    threadresumeall();
+    //update GUI
+    GuiSetDebugState(paused);
+    DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
+    //lock
+    lock(WAITID_RUN);
+    SetForegroundWindow(GuiGetWindowHandle());
+    PLUG_CB_PAUSEDEBUG pauseInfo;
+    pauseInfo.reserved = 0;
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    wait(WAITID_RUN);
 }
 
 void showcommandlineerror(cmdline_error_t* cmdline_error)
