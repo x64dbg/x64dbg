@@ -12,9 +12,10 @@
 #include "assemble.h"
 
 static bool bScyllaLoaded = false;
-CONTEXT backupctx = { 0 };
+uint LoadLibThreadID;
 LPVOID DLLNameMem;
 LPVOID ASMAddr;
+TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
@@ -1776,16 +1777,19 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
+    LoadLibThreadID = fdProcessInfo->dwThreadId;
+    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
+
     DLLNameMem = VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     ASMAddr = VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     if(!DLLNameMem || !ASMAddr)
     {
-        dprintf("Error: couldn't allocate memory");
+        dprintf("Error: couldn't allocate memory in debuggee");
         return STATUS_ERROR;
     }
 
-    if(!WriteProcessMemory(fdProcessInfo->hProcess, DLLNameMem, argv[1],  strlen(argv[1]), NULL))
+    if(!memwrite(fdProcessInfo->hProcess, DLLNameMem, argv[1],  strlen(argv[1]), NULL))
     {
         dprintf("Error: couldn't write process memory");
         return STATUS_ERROR;
@@ -1797,8 +1801,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     char command[50] = "";
     char error[256] = "";
 
-    backupctx.ContextFlags = CONTEXT_FULL;
-    GetThreadContext(fdProcessInfo->hThread, &backupctx);
+    GetFullContextDataEx(LoadLibThread, &backupctx);
 
     valfromstring("kernel32:LoadLibraryA", &LoadLibraryA, false);
 
@@ -1811,11 +1814,20 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     assembleat((uint)ASMAddr, command, &size, error, true);
     counter += size;
+
+#ifdef _WIN64
+    sprintf(command, "mov rax, "fhex, LoadLibraryA);
+    assembleat((uint)ASMAddr + counter, command, &size, error, true);
+    counter += size;
+    sprintf(command, "call rax");
+#else
     sprintf(command, "call "fhex, LoadLibraryA);
+#endif // _WIN64
+
     assembleat((uint)ASMAddr + counter, command, &size, error, true);
     counter += size;
 
-    SetContextDataEx(fdProcessInfo->hThread, UE_CIP, (uint)ASMAddr);
+    SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
     SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbLoadLibBPX);
 
     unlock(WAITID_RUN);
@@ -1826,14 +1838,15 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 void cbLoadLibBPX()
 {
     uint LibAddr = 0;
+    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
 #ifdef _WIN64
-    LibAddr = GetContextDataEx(fdProcessInfo->hThread, UE_RAX);
+    LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
 #else
-    LibAddr = GetContextDataEx(fdProcessInfo->hThread, UE_EAX);
-#endif
+    LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
+#endif //_WIN64
     varset("$result", LibAddr, false);
-    backupctx.EFlags &= 0xFFFFFEFF;
-    SetThreadContext(fdProcessInfo->hThread, &backupctx);
+    backupctx.eflags &= ~0x100;
+    SetFullContextDataEx(LoadLibThread, &backupctx);
     VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
     VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
     //update GUI
