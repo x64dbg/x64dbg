@@ -1854,6 +1854,9 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
     SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbLoadLibBPX);
 
+    threadsuspendall();
+    ResumeThread(LoadLibThread);
+
     unlock(WAITID_RUN);
 
     return STATUS_CONTINUE;
@@ -1873,6 +1876,7 @@ void cbLoadLibBPX()
     SetFullContextDataEx(LoadLibThread, &backupctx);
     VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
     VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
+    threadresumeall();
     //update GUI
     GuiSetDebugState(paused);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
