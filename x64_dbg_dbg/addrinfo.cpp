@@ -244,9 +244,10 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return false;
-    strcpy(modname, found->second.name);
+    String mod = found->second.name;
     if(extension)
-        strcat(modname, found->second.extension); //append extension
+        mod += found->second.extension;
+    strcpy_s(modname, MAX_MODULE_SIZE, mod.c_str());
     return true;
 }
 

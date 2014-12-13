@@ -87,12 +87,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     bool retval = false;
     if(addrinfo->flags & flagmodule) //get module
     {
-        char module[64] = "";
-        if(modnamefromaddr(addr, module, false) and strlen(module) < MAX_MODULE_SIZE) //get module name
-        {
-            strcpy(addrinfo->module, module);
+        if(modnamefromaddr(addr, addrinfo->module, false)) //get module name
             retval = true;
-        }
     }
     if(addrinfo->flags & flaglabel)
     {
