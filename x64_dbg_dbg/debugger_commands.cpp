@@ -10,6 +10,7 @@
 #include "simplescript.h"
 #include "symbolinfo.h"
 #include "assemble.h"
+#include "disasm_fast.h"
 
 static bool bScyllaLoaded = false;
 uint LoadLibThreadID;
@@ -1992,5 +1993,18 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     dprintf("New command line: %s\n", argv[1]);
 
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbDebugSkip(int argc, char* argv[])
+{
+    SetNextDbgContinueStatus(DBG_CONTINUE); //swallow the exception
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    BASIC_INSTRUCTION_INFO basicinfo;
+    memset(&basicinfo, 0, sizeof(basicinfo));
+    disasmfast(cip, &basicinfo);
+    cip += basicinfo.size;
+    SetContextDataEx(hActiveThread, UE_CIP, cip);
+    DebugUpdateGui(cip, false); //update GUI
     return STATUS_CONTINUE;
 }
