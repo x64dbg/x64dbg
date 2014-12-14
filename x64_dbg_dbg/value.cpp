@@ -1173,8 +1173,19 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(apiname)
     {
         char modname[MAX_MODULE_SIZE] = "";
-        strcpy_s(modname, name);
-        modname[apiname - name] = 0;
+        if(name == apiname) //:[expression] <= currently selected module
+        {
+            SELECTIONDATA seldata;
+            memset(&seldata, 0, sizeof(seldata));
+            GuiSelectionGet(GUI_DISASSEMBLY, &seldata);
+            if(!modnamefromaddr(seldata.start, modname, true))
+                return false;
+        }
+        else
+        {
+            strcpy_s(modname, name);
+            modname[apiname - name] = 0;
+        }
         apiname++;
         if(!strlen(apiname))
             return false;
@@ -1204,6 +1215,18 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     {
                         if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
                             addr = modbase;
+                        else if(*apiname == '$') //RVA
+                        {
+                            uint rva;
+                            if(valfromstring(apiname + 1, &rva))
+                                addr = modbase + rva;
+                        }
+                        else if(*apiname == '#') //File Offset
+                        {
+                            uint offset;
+                            if(valfromstring(apiname + 1, &offset))
+                                addr = valfileoffsettova(modname, offset);
+                        }
                         else
                         {
                             uint ordinal;
