@@ -146,6 +146,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actioneStepInto, SIGNAL(triggered()), this, SLOT(execeStepInto()));
     connect(ui->actioneRun, SIGNAL(triggered()), this, SLOT(execeRun()));
     connect(ui->actioneRtr, SIGNAL(triggered()), this, SLOT(execeRtr()));
+    connect(ui->actionSkipNextInstruction, SIGNAL(triggered()), this, SLOT(execSkip()));
     connect(ui->actionScript, SIGNAL(triggered()), this, SLOT(displayScriptWidget()));
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
@@ -281,6 +282,7 @@ void MainWindow::refreshShortcuts()
     ui->actionRtr->setShortcut(ConfigShortcut("DebugRtr"));
     ui->actioneRtr->setShortcut(ConfigShortcut("DebugeRtr"));
     ui->actionCommand->setShortcut(ConfigShortcut("DebugCommand"));
+    ui->actionSkipNextInstruction->setShortcut(ConfigShortcut("DebugSkipNextInstruction"));
 
     ui->actionScylla->setShortcut(ConfigShortcut("PluginsScylla"));
 
@@ -619,6 +621,11 @@ void MainWindow::execeRun()
 void MainWindow::execeRtr()
 {
     DbgCmdExec("ertr");
+}
+
+void MainWindow::execSkip()
+{
+    DbgCmdExec("skip");
 }
 
 void MainWindow::displayCpuWidget()

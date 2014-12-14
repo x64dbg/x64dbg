@@ -80,6 +80,7 @@
     <addaction name="actioneStepOver"/>
     <addaction name="actionRtr"/>
     <addaction name="actioneRtr"/>
+    <addaction name="actionSkipNextInstruction"/>
     <addaction name="separator"/>
     <addaction name="actionCommand"/>
    </widget>
@@ -602,6 +603,18 @@
    </property>
    <property name="text">
     <string>Change Command &amp;Line</string>
+   </property>
+  </action>
+  <action name="actionSkipNextInstruction">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-skip.png</normaloff>:/icons/images/arrow-skip.png</iconset>
+   </property>
+   <property name="text">
+    <string>Skip next instruction</string>
+   </property>
+   <property name="toolTip">
+    <string>Skip next instruction</string>
    </property>
   </action>
  </widget>
