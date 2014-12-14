@@ -1535,7 +1535,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     return false; //nothing was OK
 }
 
-bool longEnough(const char* str, size_t min_length)
+static bool longEnough(const char* str, size_t min_length)
 {
     size_t length = 0;
     while(str[length] && length < min_length)
@@ -1545,7 +1545,7 @@ bool longEnough(const char* str, size_t min_length)
     return false;
 }
 
-bool startsWith(const char* pre, const char* str)
+static bool startsWith(const char* pre, const char* str)
 {
     size_t lenpre = strlen(pre);
     return longEnough(str, lenpre) ? StrNCmpI(str, pre, (int) lenpre) == 0 : false;
@@ -1561,8 +1561,7 @@ bool startsWith(const char* pre, const char* str)
 #define x8780BITFPU_PRE_FIELD_STRING "x87r"
 #define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
 
-
-void fpustuff(const char* string, uint value)
+static void fpustuff(const char* string, uint value)
 {
     uint xorval = 0;
     uint flags = 0;
@@ -2052,4 +2051,44 @@ bool valtostring(const char* string, uint* value, bool silent)
         return true;
     }
     return varset(string, *value, false); //variable
+}
+
+uint valfileoffsettova(const char* modname, uint offset)
+{
+    char modpath[MAX_PATH] = "";
+    if(modpathfromname(modname, modpath, MAX_PATH))
+    {
+        HANDLE FileHandle;
+        DWORD LoadedSize;
+        HANDLE FileMap;
+        ULONG_PTR FileMapVA;
+        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+        {
+            ULONGLONG rva = ConvertFileOffsetToVA(FileMapVA, //FileMapVA
+                                                  FileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
+                                                  false); //Return without ImageBase
+            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
+            return offset < LoadedSize ? (duint)rva + modbasefromname(modname) : 0;
+        }
+    }
+    return 0;
+}
+
+uint valvatofileoffset(uint va)
+{
+    char modpath[MAX_PATH] = "";
+    if(modpathfromaddr(va, modpath, MAX_PATH))
+    {
+        HANDLE FileHandle;
+        DWORD LoadedSize;
+        HANDLE FileMap;
+        ULONG_PTR FileMapVA;
+        if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+        {
+            ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - modbasefromaddr(va), true, false);
+            StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
+            return (duint)offset;
+        }
+    }
+    return 0;
 }
