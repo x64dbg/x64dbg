@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <string>
 #include <shlwapi.h>
+#include <objbase.h>
+#include <shlobj.h>
 
 /**
  @enum arch
@@ -211,6 +213,59 @@ static void CreateUnicodeFile(const wchar_t* file)
  @return An APIENTRY.
  */
 
+//Taken from: http://www.cplusplus.com/forum/windows/64088/
+static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
+{
+    if(szResolvedPath == NULL)
+        return SUCCEEDED(E_INVALIDARG);
+
+    //Initialize COM stuff
+    CoInitialize(NULL);
+
+    //Get a pointer to the IShellLink interface.
+    IShellLink* psl = NULL;
+    HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if(SUCCEEDED(hres))
+    {
+        //Get a pointer to the IPersistFile interface.
+        IPersistFile* ppf = NULL;
+        hres = psl->QueryInterface(IID_IPersistFile, (void**)&ppf);
+        if(SUCCEEDED(hres))
+        {
+            //Load the shortcut.
+            hres = ppf->Load(szShortcutPath, STGM_READ);
+
+            if(SUCCEEDED(hres))
+            {
+                //Resolve the link.
+                hres = psl->Resolve(hwnd, 0);
+
+                if(SUCCEEDED(hres))
+                {
+                    //Get the path to the link target.
+                    char szGotPath[MAX_PATH] = {0};
+                    hres = psl->GetPath(szGotPath, _countof(szGotPath), NULL, SLGP_SHORTPATH);
+
+                    if(SUCCEEDED(hres))
+                    {
+                        strcpy_s(szResolvedPath, nSize, szGotPath);
+                    }
+                }
+            }
+
+            //Release the pointer to the IPersistFile interface.
+            ppf->Release();
+        }
+
+        //Release the pointer to the IShellLink interface.
+        psl->Release();
+    }
+
+    //Uninitialize COM stuff
+    CoUninitialize();
+    return SUCCEEDED(hres);
+}
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     CoInitialize(NULL); //fixed some crash
@@ -305,10 +360,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     if(argc == 2) //one argument -> execute debugger
     {
+        wchar_t szPath[MAX_PATH] = L"";
+        wcscpy_s(szPath, argv[1]);
+        char szResolvedPath[MAX_PATH] = "";
+        if(ResolveShortcut(0, szPath, szResolvedPath, _countof(szResolvedPath)))
+            MultiByteToWideChar(CP_ACP, 0, szResolvedPath, -1, szPath, _countof(szPath));
         std::wstring cmdLine = L"\"";
-        cmdLine += argv[1];
+        cmdLine += szPath;
         cmdLine += L"\"";
-        switch(GetFileArchitecture(argv[1]))
+        switch(GetFileArchitecture(szPath))
         {
         case x32:
             if(sz32Path[0])

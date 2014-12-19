@@ -202,14 +202,15 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("DebugStepOver", Shortcut(tr("Debug -> Step over"), "F8", true));
     defaultShortcuts.insert("DebugeStepOver", Shortcut(tr("Debug -> Step over (skip execptions)"), "Shift+F8", true));
     defaultShortcuts.insert("DebugRtr", Shortcut(tr("Debug -> Execute till return"), "Ctrl+F9", true));
-    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> execute till return (skip exceptions)"), "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugeRtr", Shortcut(tr("Debug -> Execute till return (skip exceptions)"), "Ctrl+Shift+F9", true));
+    defaultShortcuts.insert("DebugSkipNextInstruction", Shortcut(tr("Debug -> Skip next instruction"), "Ctrl+F8", true));
     defaultShortcuts.insert("DebugCommand", Shortcut(tr("Debug -> Command"), "Ctrl+Return", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut(tr("Plugins -> Scylla"), "Ctrl+I", true));
 
     defaultShortcuts.insert("OptionsPreferences", Shortcut(tr("Options -> Preferences"), "", true));
-    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Preferences"), "", true));
-    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Preferences"), "", true));
+    defaultShortcuts.insert("OptionsAppearance", Shortcut(tr("Options -> Appearance"), "", true));
+    defaultShortcuts.insert("OptionsShortcuts", Shortcut(tr("Options -> Shortcuts"), "", true));
 
     defaultShortcuts.insert("HelpAbout", Shortcut(tr("Help -> About"), "", true));
     defaultShortcuts.insert("HelpDonate", Shortcut(tr("Help -> Donate"), "", true));

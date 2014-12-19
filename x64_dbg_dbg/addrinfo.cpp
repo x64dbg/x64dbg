@@ -335,9 +335,10 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return false;
-    strcpy(modname, found->second.name);
+    String mod = found->second.name;
     if(extension)
-        strcat(modname, found->second.extension); //append extension
+        mod += found->second.extension;
+    strcpy_s(modname, MAX_MODULE_SIZE, mod.c_str());
     return true;
 }
 
@@ -482,6 +483,23 @@ uint modentryfromaddr(uint addr)
     if(found == modinfo.end()) //not found
         return 0;
     return found->second.entry;
+}
+
+int modpathfromaddr(duint addr, char* path, int size)
+{
+    Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "modpathfromaddr:wszModPath");
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), wszModPath, size))
+    {
+        *path = '\0';
+        return 0;
+    }
+    strcpy_s(path, size, StringUtils::Utf16ToUtf8(wszModPath()).c_str());
+    return (int)strlen(path);
+}
+
+int modpathfromname(const char* modname, char* path, int size)
+{
+    return modpathfromaddr(modbasefromname(modname), path, size);
 }
 
 /**

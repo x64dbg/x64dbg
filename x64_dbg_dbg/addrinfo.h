@@ -136,6 +136,8 @@ uint modbasefromname(const char* modname);
 uint modsizefromaddr(uint addr);
 bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections);
 uint modentryfromaddr(uint addr);
+int modpathfromaddr(duint addr, char* path, int size);
+int modpathfromname(const char* modname, char* path, int size);
 
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
 

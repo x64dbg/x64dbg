@@ -59,6 +59,7 @@ public slots:
     void execeStepInto();
     void execeRun();
     void execeRtr();
+    void execSkip();
     void displayCpuWidget();
     void displaySymbolWidget();
     void displayReferencesWidget();

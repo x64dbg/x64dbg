@@ -138,6 +138,8 @@ static void registercommands()
     dbgcmdnew("suspendthread\1threadsuspend", cbDebugSuspendthread, true); //suspend thread
     dbgcmdnew("resumethread\1threadresume", cbDebugResumethread, true); //resume thread
     dbgcmdnew("killthread\1threadkill", cbDebugKillthread, true); //kill thread
+    dbgcmdnew("suspendallthreads\1threadsuspendall", cbDebugSuspendAllThreads, true); //suspend all threads
+    dbgcmdnew("resumeallthreads\1threadresumeall", cbDebugResumeAllThreads, true); //resume all threads
     dbgcmdnew("setthreadpriority\1setprioritythread\1threadsetpriority", cbDebugSetPriority, true); //set thread priority
     dbgcmdnew("symdownload\1downloadsym", cbDebugDownloadSymbol, true); //download symbols
     dbgcmdnew("setjit\1jitset", cbDebugSetJIT, false); //set JIT
@@ -146,6 +148,8 @@ static void registercommands()
     dbgcmdnew("setjitauto\1jitsetauto", cbDebugSetJITAuto, false); //set JIT Auto
     dbgcmdnew("getcmdline\1getcommandline", cbDebugGetCmdline, true); //Get CmdLine
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
+    dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
+    dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list

@@ -184,26 +184,76 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         dputs("not enough arguments");
         return STATUS_ERROR;
     }
-    uint set_value = 0;
-    if(!valfromstring(argv[2], &set_value))
+
+    String srcText = argv[2];
+    if(srcText[0] == '#' && srcText[srcText.length() - 1] == '#') //handle mov addr, #DATA#
     {
-        dprintf("invalid src \"%s\"\n", argv[2]);
-        return STATUS_ERROR;
-    }
-    bool isvar = false;
-    uint temp = 0;
-    valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
-    if(!isvar)
-        isvar = vargettype(argv[1], 0);
-    if(!isvar or !valtostring(argv[1], &set_value, true))
-    {
-        uint value;
-        if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
+        //do some checks on the data
+        String dataText = srcText.substr(1, srcText.length() - 2);
+        int len = (int)dataText.length();
+        if(len % 2)
         {
-            dprintf("invalid dest \"%s\"\n", argv[1]);
+            dprintf("invalid hex string \"%s\" (length not divisible by 2)\n");
             return STATUS_ERROR;
         }
-        varnew(argv[1], set_value, VAR_USER);
+        for(int i = 0; i < len; i++)
+        {
+            if(!isxdigit(dataText[i]))
+            {
+                dprintf("invalid hex string \"%s\" (contains invalid characters)\n", dataText.c_str());
+                return STATUS_ERROR;
+            }
+        }
+        //Check the destination
+        uint dest;
+        if(!valfromstring(argv[1], &dest) || !memisvalidreadptr(fdProcessInfo->hProcess, dest))
+        {
+            dprintf("invalid destination \"%s\"\n", argv[1]);
+            return STATUS_ERROR;
+        }
+        //Convert text to byte array (very ugly)
+        Memory<unsigned char*> data(len / 2);
+        for(int i = 0, j = 0; i < len; i += 2, j++)
+        {
+            char b[3] = "";
+            b[0] = dataText[i];
+            b[1] = dataText[i + 1];
+            int res = 0;
+            sscanf_s(b, "%X", &res);
+            data[j] = res;
+        }
+        //Move data to destination
+        if(!memwrite(fdProcessInfo->hProcess, (void*)dest, data, data.size(), 0))
+        {
+            dprintf("failed to write to "fhex"\n", dest);
+            return STATUS_ERROR;
+        }
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return STATUS_CONTINUE;
+    }
+    else
+    {
+        uint set_value = 0;
+        if(!valfromstring(srcText.c_str(), &set_value))
+        {
+            dprintf("invalid src \"%s\"\n", argv[2]);
+            return STATUS_ERROR;
+        }
+        bool isvar = false;
+        uint temp = 0;
+        valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
+        if(!isvar)
+            isvar = vargettype(argv[1], 0);
+        if(!isvar or !valtostring(argv[1], &set_value, true))
+        {
+            uint value;
+            if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
+            {
+                dprintf("invalid dest \"%s\"\n", argv[1]);
+                return STATUS_ERROR;
+            }
+            varnew(argv[1], set_value, VAR_USER);
+        }
     }
     return STATUS_CONTINUE;
 }
@@ -1439,7 +1489,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    dprintf("%s=\"%s\"\n", argv[1], string);
+    dprintf("%s=\"%s\"\n", argv[1], string());
     return STATUS_CONTINUE;
 }
 

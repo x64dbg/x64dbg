@@ -238,7 +238,7 @@ static bool scriptcreatelinemap(const char* filename)
         }
 
         int rawlen = (int)strlen(cur.raw);
-        if(!strlen(cur.raw)) //empty
+        if(!rawlen) //empty
         {
             cur.type = lineempty;
         }

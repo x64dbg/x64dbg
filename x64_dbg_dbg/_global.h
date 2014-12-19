@@ -122,6 +122,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName);
 bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
 
 #include "dynamicmem.h"
 

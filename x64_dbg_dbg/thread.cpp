@@ -102,6 +102,7 @@ void threadclear()
 
 static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
 {
+    //TODO: implement this
     return _Executive;
 }
 
@@ -237,4 +238,29 @@ DWORD threadgetid(HANDLE hThread)
         if(threadList.at(i).hThread == hThread)
             return threadList.at(i).dwThreadId;
     return 0;
+}
+
+int threadgetcount()
+{
+    return (int)threadList.size();
+}
+
+int threadsuspendall()
+{
+    CriticalSectionLocker locker(LockThreads);
+    int count = 0;
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(SuspendThread(threadList.at(i).hThread) != -1)
+            count++;
+    return count;
+}
+
+int threadresumeall()
+{
+    CriticalSectionLocker locker(LockThreads);
+    int count = 0;
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(ResumeThread(threadList.at(i).hThread) != -1)
+            count++;
+    return count;
 }
