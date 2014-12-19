@@ -7,63 +7,20 @@
 #include "math.h"
 #include "value.h"
 
-/**
- @struct BRACKET_PAIR
-
- @brief A bracket pair.
- */
 
 struct BRACKET_PAIR
 {
-    /**
-     @brief The openpos.
-     */
-
     int openpos;
-
-    /**
-     @brief The closepos.
-     */
-
     int closepos;
-
-    /**
-     @brief The layer.
-     */
-
     int layer;
-
-    /**
-     @brief 0=free, 1=open, 2=close.
-     */
-
     int isset;
 };
 
-/**
- @struct EXPRESSION
-
- @brief An expression.
- */
 
 struct EXPRESSION
 {
-    /**
-     @brief The pairs.
-     */
-
     BRACKET_PAIR* pairs;
-
-    /**
-     @brief The total pairs.
-     */
-
     int total_pairs;
-
-    /**
-     @brief The expression.
-     */
-
     char* expression;
 };
 
@@ -78,17 +35,6 @@ operator precedence
 7 ^     (XOR)
 8 |     (OR)
 */
-
-/**
- @fn int mathisoperator(char ch)
-
- @brief  casting operator.
-
- @param ch The ch.
-
- @return The result of the operation.
- */
-
 int mathisoperator(char ch)
 {
     if(ch == '(' or ch == ')')
@@ -114,15 +60,6 @@ int mathisoperator(char ch)
 mathformat:
 - remove doubles
 */
-
-/**
- @fn void mathformat(char* text)
-
- @brief Mathformats the given text.
-
- @param [in,out] text If non-null, the text.
- */
-
 void mathformat(char* text)
 {
     int len = (int)strlen(text);
@@ -137,17 +74,6 @@ void mathformat(char* text)
 /*
 - check for math operators
 */
-
-/**
- @fn bool mathcontains(const char* text)
-
- @brief Mathcontains the given text.
-
- @param text The text.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool mathcontains(const char* text)
 {
     if(*text == '-') //ignore negative values
@@ -195,19 +121,6 @@ static inline int mulhi(int x, int y)
     return (int)(((long long)x * y) >> 32);
 }
 #endif //__MINGW64__
-
-/**
- @fn bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
-
- @brief Mathdounsignedoperations.
-
- @param op           The operation.
- @param left         The left.
- @param right        The right.
- @param [out] result If non-null, the result.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
 {
@@ -258,19 +171,6 @@ bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
     return false;
 }
 
-/**
- @fn bool mathdosignedoperation(char op, sint left, sint right, sint* result)
-
- @brief Mathdosignedoperations.
-
- @param op           The operation.
- @param left         The left.
- @param right        The right.
- @param [out] result If non-null, the result.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool mathdosignedoperation(char op, sint left, sint right, sint* result)
 {
     switch(op)
@@ -320,16 +220,6 @@ bool mathdosignedoperation(char op, sint left, sint right, sint* result)
     return false;
 }
 
-/**
- @fn static void fillpair(EXPRESSION* expstruct, int pos, int layer)
-
- @brief Fillpairs.
-
- @param [in,out] expstruct If non-null, the expstruct.
- @param pos                The position.
- @param layer              The layer.
- */
-
 static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 {
     for(int i = 0; i < expstruct->total_pairs; i++)
@@ -349,18 +239,6 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
         }
     }
 }
-
-/**
- @fn static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
-
- @brief Matchpairs.
-
- @param [in,out] expstruct  If non-null, the expstruct.
- @param [in,out] expression If non-null, the expression.
- @param endlayer            The endlayer.
-
- @return An int.
- */
 
 static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 {
@@ -390,16 +268,6 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
     return 0;
 }
 
-/**
- @fn static int expressionformat(char* exp)
-
- @brief Expressionformats the given exponent.
-
- @param [in,out] exp If non-null, the exponent.
-
- @return An int.
- */
-
 static int expressionformat(char* exp)
 {
     int len = (int)strlen(exp);
@@ -423,18 +291,6 @@ static int expressionformat(char* exp)
     return open;
 }
 
-/**
- @fn static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_len, int new_len)
-
- @brief Adjustpairs.
-
- @param [in,out] exps If non-null, the exps.
- @param cur_open      The current open.
- @param cur_close     The current close.
- @param cur_len       The current length.
- @param new_len       Length of the new.
- */
-
 static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_len, int new_len)
 {
     for(int i = 0; i < exps->total_pairs; i++)
@@ -445,20 +301,6 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
             exps->pairs[i].closepos += new_len - cur_len;
     }
 }
-
-/**
- @fn static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
-
- @brief Printlayers.
-
- @param [in,out] exp  If non-null, the exponent.
- @param [in,out] exps If non-null, the exps.
- @param layer         The layer.
- @param silent        true to silent.
- @param baseonly      true to baseonly.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
 {
@@ -490,18 +332,6 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool
     return true;
 }
 
-/**
- @fn bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
-
- @brief Mathhandlebrackets.
-
- @param [in,out] expression If non-null, the expression.
- @param silent              true to silent.
- @param baseonly            true to baseonly.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
 {
     EXPRESSION expstruct;
@@ -531,22 +361,6 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
 /*
 - handle math
 */
-
-/**
- @fn bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar)
-
- @brief Mathfromstrings.
-
- @param string              The string.
- @param [in,out] value      If non-null, the value.
- @param silent              true to silent.
- @param baseonly            true to baseonly.
- @param [in,out] value_size If non-null, size of the value.
- @param [in,out] isvar      If non-null, the isvar.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar)
 {
     int highestop = 0;
@@ -602,4 +416,3 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
         math_ok = mathdounsignedoperation(string[highestop_pos], left, right, value);
     return math_ok;
 }
-

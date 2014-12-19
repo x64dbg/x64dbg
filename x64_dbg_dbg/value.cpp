@@ -14,47 +14,17 @@
 #include "symbolinfo.h"
 #include <psapi.h>
 
-/**
- @brief The dosignedcalc.
- */
-
 static bool dosignedcalc = false;
-
-/**
- @fn bool valuesignedcalc()
-
- @brief Valuesignedcalcs this object.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool valuesignedcalc()
 {
     return dosignedcalc;
 }
 
-/**
- @fn void valuesetsignedcalc(bool a)
-
- @brief Valuesetsignedcalcs.
-
- @param a true to a.
- */
-
 void valuesetsignedcalc(bool a)
 {
     dosignedcalc = a;
 }
-
-/**
- @fn static bool isflag(const char* string)
-
- @brief Query if 'string' isflag.
-
- @param string The string.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool isflag(const char* string)
 {
@@ -90,16 +60,6 @@ static bool isflag(const char* string)
         return true;
     return false;
 }
-
-/**
- @fn static bool isregister(const char* string)
-
- @brief Query if 'string' isregister.
-
- @param string The string.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool isregister(const char* string)
 {
@@ -526,17 +486,6 @@ bool valflagfromstring(uint eflags, const char* string)
     return false;
 }
 
-/**
- @fn static bool setflag(const char* string, bool set)
-
- @brief Setflags.
-
- @param string The string.
- @param set    true to set.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool setflag(const char* string, bool set)
 {
     uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
@@ -578,17 +527,6 @@ static bool setflag(const char* string, bool set)
         xorval = flag;
     return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags ^ xorval);
 }
-
-/**
- @fn static uint getregister(int* size, const char* string)
-
- @brief Getregisters.
-
- @param [in,out] size If non-null, the size.
- @param string        The string.
-
- @return An uint.
- */
 
 static uint getregister(int* size, const char* string)
 {
@@ -1028,17 +966,6 @@ static uint getregister(int* size, const char* string)
     return 0;
 }
 
-/**
- @fn static bool setregister(const char* string, uint value)
-
- @brief Setregisters.
-
- @param string The string.
- @param value  The value.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool setregister(const char* string, uint value)
 {
     if(scmp(string, "eax"))
@@ -1243,21 +1170,6 @@ static bool setregister(const char* string, uint value)
     return false;
 }
 
-/**
- @fn bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
-
- @brief Valapifromstrings.
-
- @param name                The name.
- @param [in,out] value      If non-null, the value.
- @param [in,out] value_size If non-null, size of the value.
- @param printall            true to printall.
- @param silent              true to silent.
- @param [in,out] hexonly    If non-null, the hexonly.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
 {
     if(!value or !DbgIsDebugging())
@@ -1421,17 +1333,6 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
 /*
 check whether a string is a valid dec number
 */
-
-/**
- @fn static bool isdecnumber(const char* string)
-
- @brief Query if 'string' isdecnumber.
-
- @param string The string.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool isdecnumber(const char* string)
 {
     if(*string != '.' or !string[1]) //dec indicator/no number
@@ -1453,17 +1354,6 @@ static bool isdecnumber(const char* string)
 /*
 check whether a string is a valid hex number
 */
-
-/**
- @fn static bool ishexnumber(const char* string)
-
- @brief Query if 'string' ishexnumber.
-
- @param string The string.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool ishexnumber(const char* string)
 {
     int add = 0;
@@ -1479,22 +1369,6 @@ static bool ishexnumber(const char* string)
             return false;
     return true;
 }
-
-/**
- @fn bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
-
- @brief Valfromstrings.
-
- @param string              The string.
- @param [in,out] value      If non-null, the value.
- @param silent              true to silent.
- @param baseonly            true to baseonly.
- @param [in,out] value_size If non-null, size of the value.
- @param [in,out] isvar      If non-null, the isvar.
- @param [in,out] hexonly    If non-null, the hexonly.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
@@ -1691,18 +1565,6 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
 }
 
 static bool longEnough(const char* str, size_t min_length)
-/**
- @fn bool valfromstring(const char* string, uint* value, bool silent, bool baseonly)
-
- @brief Valfromstrings.
-
- @param string         The string.
- @param [in,out] value If non-null, the value.
- @param silent         true to silent.
- @param baseonly       true to baseonly.
-
- @return true if it succeeds, false if it fails.
- */
 
 {
     size_t length = 0;
@@ -1714,17 +1576,6 @@ static bool longEnough(const char* str, size_t min_length)
 }
 
 static bool startsWith(const char* pre, const char* str)
-/**
- @fn bool valfromstring(const char* string, uint* value, bool silent)
-
- @brief Valfromstrings.
-
- @param string         The string.
- @param [in,out] value If non-null, the value.
- @param silent         true to silent.
-
- @return true if it succeeds, false if it fails.
- */
 
 {
     size_t lenpre = strlen(pre);
@@ -2120,18 +1971,6 @@ static void fpustuff(const char* string, uint value)
             SetContextDataEx(hActiveThread, registerindex, value);
     }
 }
-
-/**
- @fn bool valtostring(const char* string, uint* value, bool silent)
-
- @brief Valtostrings.
-
- @param string         The string.
- @param [in,out] value If non-null, the value.
- @param silent         true to silent.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool valtostring(const char* string, uint* value, bool silent)
 {
