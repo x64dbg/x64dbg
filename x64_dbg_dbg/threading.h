@@ -46,6 +46,7 @@ public:
 
 private:
     CriticalSectionLock gLock;
+    bool Locked;
 };
 
 #endif // _THREADING_H

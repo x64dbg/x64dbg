@@ -53,20 +53,25 @@ CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock lock)
 {
     CriticalSectionInitializeLocks(); //initialize critical sections
     gLock = lock;
+
     EnterCriticalSection(&locks[gLock]);
+    Locked = true;
 }
 
 CriticalSectionLocker::~CriticalSectionLocker()
 {
-    LeaveCriticalSection(&locks[gLock]);
+    if(Locked)
+        LeaveCriticalSection(&locks[gLock]);
 }
 
 void CriticalSectionLocker::unlock()
 {
+    Locked = false;
     LeaveCriticalSection(&locks[gLock]);
 }
 
 void CriticalSectionLocker::relock()
 {
     EnterCriticalSection(&locks[gLock]);
+    Locked = true;
 }
