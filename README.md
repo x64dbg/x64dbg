@@ -3,10 +3,15 @@
 ## Note
 **This is a new version of this repository. The old version can be found [here](https://bitbucket.org/mrexodia/x64_dbg_old).**
 
-Also please run install.bat before you start committing code, this ensures your code is auto-formatted to the *x64_dbg* standards.
+Also please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64_dbg* [standards](https://bitbucket.org/mrexodia/x64_dbg/wiki/x64_dbg_coding_guidelines).
+
+## Compiling
+For a complete guide on compiling *x64_dbg* read [this](https://bitbucket.org/mrexodia/x64_dbg/wiki/Compiling%20the%20whole%20project).
 
 ## Downloads
-Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
+Releases of *x64_dbg* can be found [here](http://download.x64dbg.com).
+Snapshots of *x64_dbg* can be found [here](http://snapshots.x64dbg.com).
+Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 
 ## Overview
 *x64_dbg* is an open-source x32/x64 debugger for Windows.
@@ -41,19 +46,19 @@ Releases of *x64_dbg* can be found on [here](http://download.x64dbg.com).
 *x64_dbg* is licensed under GLPv3, which means you can freely distribute and/or modify the source of *x64_dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the GLPv3 license. They do not have to be open-source and they can be commercial and/or private. The only exception to this is when your plugin uses code copied from *x64_dbg*. In that case you would still have to share the changes to *x64_dbg* with us.
 
 ## Credits
-- Debugger core by TitanEngine Community Edition
-- Disassembly powered by BeaEngine (Updated)
-- Assembly powered by XEDParse
-- Import reconstruction powered by Scylla
-- JSON powered by Jansson
-- Database compression powered by lz4
-- Bug icon by VisualPharm
-- Interface icons by Fugue
+- Debugger core by [TitanEngine Community Edition](https://bitbucket.org/mrexodia/titanengine-update)
+- Disassembly powered by [BeaEngine](http://www.beaengine.org) ([Updated](https://bitbucket.org/mrexodia/beaengine))
+- Assembly powered by [XEDParse](https://bitbucket.org/mrexodia/xedparse)
+- Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)
+- JSON powered by [Jansson](http://www.digip.org/jansson)
+- Database compression powered by [lz4](https://bitbucket.org/mrexodia/lz4)
+- Bug icon by [VisualPharm](http://www.visualpharm.com)
+- Interface icons by [Fugue](http://p.yusukekamiyamane.com)
 - Website by tr4ceflow
 
-## Special Thanks
-- EXETools community
-- Tuts4You community
+## Special Thanks (in no particular order)
+- [EXETools community](http://forum.exetools.com)
+- [Tuts4You community](http://forum.tuts4you.com)
 - acidflash
 - cyberbob
 - Teddy Rogers
