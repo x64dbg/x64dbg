@@ -1,4 +1,8 @@
 #include "Bridge.h"
+#include <QClipboard>
+#include "QBeaEngine.h"
+#include "main.h"
+#include "Exports.h"
 
 /************************************************************************************
                             Global Variables
@@ -8,36 +12,31 @@ static Bridge* mBridge;
 /************************************************************************************
                             Class Members
 ************************************************************************************/
-Bridge::Bridge(QObject *parent) : QObject(parent)
+Bridge::Bridge(QObject* parent) : QObject(parent)
 {
-
+    mBridgeMutex = new QMutex();
+    winId = 0;
+    scriptView = 0;
+    referenceView = 0;
+    bridgeResult = 0;
+    hasBridgeResult = false;
 }
 
-void Bridge::CopyToClipboard(const char* text)
+Bridge::~Bridge()
 {
-    HGLOBAL hText;
-    char *pText;
-    int len=strlen(text);
-    if(!len)
-        return;
+    delete mBridgeMutex;
+}
 
-    hText=GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE, len+1);
-    pText=(char*)GlobalLock(hText);
-    strcpy(pText, text);
-
-    OpenClipboard(0);
-    EmptyClipboard();
-    if(!SetClipboardData(CF_OEMTEXT, hText))
-        MessageBeep(MB_ICONERROR);
-    else
-        MessageBeep(MB_ICONINFORMATION);
-    CloseClipboard();
+void Bridge::CopyToClipboard(const QString & text)
+{
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(text);
 }
 
 void Bridge::BridgeSetResult(int_t result)
 {
-    bridgeResult=result;
-    hasBridgeResult=true;
+    bridgeResult = result;
+    hasBridgeResult = true;
 }
 
 /************************************************************************************
@@ -90,12 +89,12 @@ void Bridge::emitDumpAt(int_t va)
 
 void Bridge::emitScriptAdd(int count, const char** lines)
 {
-    mBridgeMutex.lock();
-    hasBridgeResult=false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
     emit scriptAdd(count, lines);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
 }
 
 void Bridge::emitScriptClear()
@@ -130,13 +129,18 @@ void Bridge::emitScriptMessage(QString message)
 
 int Bridge::emitScriptQuestion(QString message)
 {
-    mBridgeMutex.lock();
-    hasBridgeResult=false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
     emit scriptQuestion(message);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
+}
+
+void Bridge::emitScriptEnableHighlighting(bool enable)
+{
+    emit scriptEnableHighlighting(enable);
 }
 
 void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
@@ -214,6 +218,11 @@ void Bridge::emitUpdateThreads()
     emit updateThreads();
 }
 
+void Bridge::emitUpdateMemory()
+{
+    emit updateMemory();
+}
+
 void Bridge::emitAddRecentFile(QString file)
 {
     emit addRecentFile(file);
@@ -226,23 +235,23 @@ void Bridge::emitSetLastException(unsigned int exceptionCode)
 
 int Bridge::emitMenuAddMenu(int hMenu, QString title)
 {
-    mBridgeMutex.lock();
-    hasBridgeResult=false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
     emit menuAddMenu(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
 int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
 {
-    mBridgeMutex.lock();
-    hasBridgeResult=false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
     emit menuAddMenuEntry(hMenu, title);
     while(!hasBridgeResult) //wait for thread completion
         Sleep(100);
-    mBridgeMutex.unlock();
+    mBridgeMutex->unlock();
     return bridgeResult;
 }
 
@@ -254,6 +263,122 @@ void Bridge::emitMenuAddSeparator(int hMenu)
 void Bridge::emitMenuClearMenu(int hMenu)
 {
     emit menuClearMenu(hMenu);
+}
+
+void Bridge::emitAddMsgToStatusBar(QString msg)
+{
+    emit addMsgToStatusBar(msg);
+}
+
+bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
+{
+    if(!DbgIsDebugging())
+        return false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
+    switch(hWindow)
+    {
+    case GUI_DISASSEMBLY:
+        emit selectionDisasmGet(selection);
+        break;
+    case GUI_DUMP:
+        emit selectionDumpGet(selection);
+        break;
+    case GUI_STACK:
+        emit selectionStackGet(selection);
+        break;
+    default:
+        mBridgeMutex->unlock();
+        return false;
+    }
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex->unlock();
+    if(selection->start > selection->end) //swap start and end
+    {
+        int_t temp = selection->end;
+        selection->end = selection->start;
+        selection->start = temp;
+    }
+    return true;
+}
+
+bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
+{
+    if(!DbgIsDebugging())
+        return false;
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
+    switch(hWindow)
+    {
+    case GUI_DISASSEMBLY:
+        emit selectionDisasmSet(selection);
+        break;
+    case GUI_DUMP:
+        emit selectionDumpSet(selection);
+        break;
+    case GUI_STACK:
+        emit selectionStackSet(selection);
+        break;
+    default:
+        mBridgeMutex->unlock();
+        return false;
+    }
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex->unlock();
+    return bridgeResult;
+}
+
+bool Bridge::emitGetStrWindow(const QString title, QString* text)
+{
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
+    emit getStrWindow(title, text);
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex->unlock();
+    return bridgeResult;
+}
+
+void Bridge::emitAutoCompleteAddCmd(const QString cmd)
+{
+    emit autoCompleteAddCmd(cmd);
+}
+
+void Bridge::emitAutoCompleteDelCmd(const QString cmd)
+{
+    emit autoCompleteDelCmd(cmd);
+}
+
+void Bridge::emitAutoCompleteClearAll()
+{
+    emit autoCompleteClearAll();
+}
+
+void Bridge::emitUpdateSideBar()
+{
+    emit updateSideBar();
+}
+
+void Bridge::emitRepaintTableView()
+{
+    emit repaintTableView();
+}
+
+void Bridge::emitUpdatePatches()
+{
+    emit updatePatches();
+}
+
+void Bridge::emitUpdateCallStack()
+{
+    emit updateCallStack();
+}
+
+void Bridge::emitSymbolRefreshCurrent()
+{
+    emit symbolRefreshCurrent();
 }
 
 /************************************************************************************
@@ -272,7 +397,7 @@ void Bridge::initBridge()
 /************************************************************************************
                             Exported Functions
 ************************************************************************************/
-__declspec(dllexport) int _gui_guiinit(int argc, char *argv[])
+__declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
 {
     return main(argc, argv);
 }
@@ -289,7 +414,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_SET_DEBUG_STATE:
     {
-        Bridge::getBridge()->emitDbgStateChanged(reinterpret_cast<DBGSTATE&>(param1));
+        Bridge::getBridge()->emitDbgStateChanged(reinterpret_cast<DBGSTATE &>(param1));
     }
     break;
 
@@ -389,6 +514,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_SCRIPT_ENABLEHIGHLIGHTING:
+    {
+        Bridge::getBridge()->emitScriptEnableHighlighting((bool)(int_t)param1);
+    }
+    break;
+
     case GUI_SYMBOL_UPDATE_MODULE_LIST:
     {
         Bridge::getBridge()->emitUpdateSymbolList((int)(int_t)param1, (SYMBOLMODULEINFO*)param2);
@@ -439,7 +570,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_SETCELLCONTENT:
     {
-        CELLINFO* info=(CELLINFO*)param1;
+        CELLINFO* info = (CELLINFO*)param1;
         Bridge::getBridge()->emitReferenceSetCellContent(info->row, info->col, QString(info->str));
     }
     break;
@@ -492,6 +623,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_UPDATE_MEMORY_VIEW:
+    {
+        Bridge::getBridge()->emitUpdateMemory();
+    }
+    break;
+
     case GUI_ADD_RECENT_FILE:
     {
         Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
@@ -506,21 +643,22 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_GET_DISASSEMBLY:
     {
-        uint_t parVA=(uint_t)param1;
-        char* text=(char*)param2;
+        uint_t parVA = (uint_t)param1;
+        char* text = (char*)param2;
         if(!text || !parVA || !DbgIsDebugging())
             return 0;
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine* disasm = new QBeaEngine();
-        Instruction_t instr=disasm->DisassembleAt(wBuffer, 16, 0, 0, parVA);
-        QList<CustomRichText_t> richText;
-        BeaHighlight::PrintRtfInstruction(&richText, &instr.disasm);
-        QString finalInstruction="";
-        for(int i=0; i<richText.size(); i++)
-            finalInstruction+=richText.at(i).text;
-        strcpy(text, finalInstruction.toUtf8().constData());
+        QBeaEngine disasm;
+        Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
+        BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm);
+        QList<RichTextPainter::CustomRichText_t> richText;
+        BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
+        QString finalInstruction = "";
+        for(int i = 0; i < richText.size(); i++)
+            finalInstruction += richText.at(i).text;
+        strcpy_s(text, GUI_MAX_DISASSEMBLY_SIZE, finalInstruction.toUtf8().constData());
         return (void*)1;
     }
     break;
@@ -549,8 +687,87 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     }
     break;
 
+    case GUI_SELECTION_GET:
+    {
+        return (void*)(int_t)Bridge::getBridge()->emitSelectionGet((int)(uint_t)param1, (SELECTIONDATA*)param2);
+    }
+    break;
+
+    case GUI_SELECTION_SET:
+    {
+        return (void*)(int_t)Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
+    }
+    break;
+
+    case GUI_GETLINE_WINDOW:
+    {
+        QString text = "";
+        if(Bridge::getBridge()->emitGetStrWindow(QString(reinterpret_cast<const char*>(param1)), &text))
+        {
+            strcpy_s((char*)param2, GUI_MAX_LINE_SIZE, text.toUtf8().constData());
+            return (void*)(uint_t)true;
+        }
+        return (void*)(uint_t)false; //cancel/escape
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_ADDCMD:
+    {
+        Bridge::getBridge()->emitAutoCompleteAddCmd(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_DELCMD:
+    {
+        Bridge::getBridge()->emitAutoCompleteDelCmd(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_AUTOCOMPLETE_CLEARALL:
+    {
+        Bridge::getBridge()->emitAutoCompleteClearAll();
+    }
+    break;
+
+    case GUI_ADD_MSG_TO_STATUSBAR:
+    {
+        Bridge::getBridge()->emitAddMsgToStatusBar(QString((const char*)param1));
+    }
+    break;
+
+    case GUI_UPDATE_SIDEBAR:
+    {
+        Bridge::getBridge()->emitUpdateSideBar();
+    }
+    break;
+
+    case GUI_REPAINT_TABLE_VIEW:
+    {
+        Bridge::getBridge()->emitRepaintTableView();
+    }
+    break;
+
+    case GUI_UPDATE_PATCHES:
+    {
+        Bridge::getBridge()->emitUpdatePatches();
+    }
+    break;
+
+    case GUI_UPDATE_CALLSTACK:
+    {
+        Bridge::getBridge()->emitUpdateCallStack();
+    }
+    break;
+
+    case GUI_SYMBOL_REFRESH_CURRENT:
+    {
+        Bridge::getBridge()->emitSymbolRefreshCurrent();
+    }
+    break;
+
     default:
     {
+
     }
     break;
     }

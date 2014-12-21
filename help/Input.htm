@@ -15,39 +15,23 @@ html,body {
 </head>
 
 <body>
-<P class=rvps3><SPAN class=rvts10><STRONG>Input</STRONG><BR></SPAN><SPAN 
-class=rvts9>This program accepts various options of input:</SPAN><SPAN 
-class=rvts9><BR></SPAN></P>
-<P class=rvps3><SPAN class=rvts11><U>commands</U></SPAN><SPAN class=rvts9>: 
-Commands have the following format: "</SPAN><SPAN 
-class=rvts10>command[space]arg1,[optional space]arg2,argN</SPAN><SPAN 
-class=rvts9>".</SPAN><SPAN class=rvts9><BR></SPAN></P>
-<P class=rvps3><SPAN class=rvts11><U>variables</U></SPAN><SPAN class=rvts9>: 
+<P class=rvps3><STRONG>Input</STRONG><BR>This program accepts 
+various options of input:</P>
+<P class=rvps3><U>commands</U>: 
+Commands have the following format: "command[space]arg1,[optional 
+space]arg2,argN".</P>
+<P class=rvps3><U>variables</U>: 
 Variables optionally start with a $ and can only store one DWORD (QWORD on 
-x64).</SPAN><SPAN class=rvts9><BR></SPAN></P>
-<P class=rvps3><SPAN class=rvts11><U>debug registers</U></SPAN><SPAN 
-class=rvts9>: All debug registers (all sizes) can be used as 
-variables.</SPAN><SPAN class=rvts9><BR></SPAN></P>
-<P class=rvps3><SPAN class=rvts11><U>memory locations</U></SPAN><SPAN 
-class=rvts9>: You can read from a memory location by using one of the 
+x64).</P>
+<P class=rvps3><U> registers</U>: All 
+registers (of all sizes) can be used as variables.</P>
+<P class=rvps3><U>memory locations</U>: You can read from a memory location by using one of the 
 following expressions:<BR>[addr]&nbsp;&nbsp;&nbsp; - read a 
-DWORD/QWORD, depending on the architecture.<BR>         
-                 
-            
-               
-            
-     </SPAN><SPAN 
-class=rvts9>@addr&nbsp;&nbsp;&nbsp;&nbsp; - same as 
-above.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM>         
-                 
-            
-               
-            
-     bytes.</SPAN><SPAN 
-class=rvts9><BR>         
+DWORD/QWORD, depending on the architecture.<BR>@addr&nbsp;&nbsp;&nbsp;&nbsp; - same as 
+above.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM> bytes.<BR>         
        @<EM>n</EM>:addr&nbsp;&nbsp; - same as 
 above.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to 
-read, this can be anything smaller then 4 on x32 and smaller then 8 on x64 when 
+read, this can be anything smaller than 4 on x32 and smaller than 8 on x64 when 
 specified, otherwise there will be an error.<BR>- addr is directly interpreted 
 as a value, when you want to read [addr+1] you should use 
 brackets:<BR>         
@@ -55,39 +39,32 @@ brackets:<BR>
             
                
             
- @(addr+1), @addr+1 will read: [addr]+1.</SPAN></P>
-<P class=rvps3><SPAN 
-class=rvts9>         
-                 
-            
-               
-            
-     </SPAN><SPAN 
-class=rvts9><U>flags</U>: Debug flags (interpreted as integer) can be used 
-as input. Flags are prefixed with a '!' following the flag name or the bit number their on. 
-Valid flags are: !cf, !pf, !af, !zf, !sf, !tf, !if, !df, !of, !rf, !vm, !ac, !vif, !vip and !id.</SPAN><SPAN class=rvts9></P></SPAN>
-<P class=rvps3><SPAN class=rvts11><U>numbers</U></SPAN><SPAN class=rvts9>: All 
+ @(addr+1), @addr+1 will read: [addr]+1.</P>
+<P class=rvps3><U>flags</U>: Debug 
+flags (interpreted as integer) can be used as input. Flags are prefixed with a 
+'!' following the flag name. Valid flags are: !cf, !pf, !af, !zf, !sf, !tf, !if, 
+!df, !of, !rf, !vm, !ac, !vif, !vip and !id.</P>
+<P class=rvps3><U>numbers</U>: All 
 numbers are interpreted as hex by default. If you want to be sure, you can use 
-the "x" prefix. Decimal numbers can be used by prefixing the number with a "." 
-(.123=7B).</SPAN></P>
-<P class=rvps3><SPAN class=rvts9><U>basic calculations</U> :  
-                
-           See "Calculations" for more 
-information.</SPAN></P>
-<P class=rvps3><SPAN class=rvts9><U>DLL exports</U>: Type 'GetProcAddress' and it will 
-automatically be resolved to the actual address of the function. To explicitly define from 
-which module to load the  
-                
-           API, use: "kernel32.dll:GetProcAddress" or 
-"kernel32:GetProcAddress"</SPAN></P>
-<P class=rvps3><SPAN class=rvts9><U>labels/symbols</U>      
-  : user-defined labels  
-                
-           and symbols&nbsp;are a valid 
-expressions.</SPAN></P>
-<P class=rvps3><SPAN class=rvts9>  
-                
-Input  
-                
-for arguments can always be done in any of the above forms, except if stated 
-otherwise.</SPAN></P></body></HTML>
+the "x" prefix or the "0x" prefix. Decimal numbers can be used by prefixing the 
+number with a "." (.123=7B).</P>
+<P class=rvps3><U>basic calculations</U>: See "Calculations" for more information.</P>
+<P class=rvps3><U>DLL exports</U>: Type 
+'GetProcAddress' and it will automatically be resolved to the actual address of 
+the function. To explicitly define from which module 
+to load the API, use: "[module].dll:[api]" or "[module]:[api]". In a similar 
+way you can resolve ordinals, try "[module]:[ordinal]". Another macro allows you to get the 
+loaded base of a module. Try "[module]:0", 
+"[module]:base", "[module]:imagebase" or "[module]:header". When "[module]" is an empty string (":0" for example), the 
+module that is currently selected in the CPU will be 
+used.</P>
+<P class=rvps3><U>RVA/File Offset</U>: 
+If you want to access a module RVA you can either write "[module]:0+[rva]" or 
+you can write "[module]:$[rva]". If you want 
+to convert a file offset to a VA you can use "[module]:#[offset]". When "[module]" is 
+an empty string (":0" for example), the module that is currently selected in the CPU will 
+be used.</P>
+<P class=rvps3><U>labels/symbols</U>: 
+user-defined labels and symbols&nbsp;are a valid expressions.</P>
+<P class=rvps3><STRONG>Input for arguments can always be done in any of 
+the above forms, except if stated otherwise.</STRONG></P></body></HTML>

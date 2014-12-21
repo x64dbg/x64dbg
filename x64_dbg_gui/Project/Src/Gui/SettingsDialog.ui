@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>262</width>
+    <width>308</width>
     <height>220</height>
    </rect>
   </property>
@@ -31,7 +31,7 @@
     <rect>
      <x>2</x>
      <y>2</y>
-     <width>261</width>
+     <width>301</width>
      <height>181</height>
     </rect>
    </property>
@@ -50,8 +50,8 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>46</width>
-       <height>13</height>
+       <width>241</width>
+       <height>16</height>
       </rect>
      </property>
      <property name="text">
@@ -197,6 +197,19 @@
       <string>Thread Entry</string>
      </property>
     </widget>
+    <widget class="QCheckBox" name="chkAttachBreakpoint">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>130</y>
+       <width>121</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Attach Breakpoint</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tabEngine">
     <attribute name="title">
@@ -207,7 +220,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>91</width>
+       <width>241</width>
        <height>16</height>
       </rect>
      </property>
@@ -220,7 +233,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>121</width>
+       <width>241</width>
        <height>16</height>
       </rect>
      </property>
@@ -228,12 +241,12 @@
       <string>Default Breakpoint Type:</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutSettingsWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
        <y>30</y>
-       <width>142</width>
+       <width>231</width>
        <height>19</height>
       </rect>
      </property>
@@ -257,12 +270,12 @@
       </item>
      </layout>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutBreakpoingWidget">
      <property name="geometry">
       <rect>
        <x>20</x>
        <y>80</y>
-       <width>175</width>
+       <width>231</width>
        <height>19</height>
       </rect>
      </property>
@@ -298,7 +311,7 @@
       <rect>
        <x>10</x>
        <y>110</y>
-       <width>151</width>
+       <width>241</width>
        <height>17</height>
       </rect>
      </property>
@@ -311,7 +324,7 @@
       <rect>
        <x>10</x>
        <y>130</y>
-       <width>131</width>
+       <width>241</width>
        <height>17</height>
       </rect>
      </property>
@@ -348,7 +361,7 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>101</width>
+       <width>241</width>
        <height>16</height>
       </rect>
      </property>
@@ -356,7 +369,7 @@
       <string>Ignored Exceptions:</string>
      </property>
     </widget>
-    <widget class="QWidget" name="layoutWidget">
+    <widget class="QWidget" name="layoutExceptionsWidget">
      <property name="geometry">
       <rect>
        <x>170</x>
@@ -390,6 +403,133 @@
      </layout>
     </widget>
    </widget>
+   <widget class="QWidget" name="tabDisasm">
+    <attribute name="title">
+     <string>Disasm</string>
+    </attribute>
+    <widget class="QCheckBox" name="chkArgumentSpaces">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Argument Spaces</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkMemorySpaces">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Memory Spaces</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkUppercase">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Uppercase</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chkOnlyCipAutoComments">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>241</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Autocomments only on CIP</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tabMisc">
+    <attribute name="title">
+     <string>Misc</string>
+    </attribute>
+    <widget class="QCheckBox" name="chkSetJIT">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>281</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set x64_dbg as Just In Time Debugger</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="layoutSettingsPadWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>281</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>JIT:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="editJIT">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QCheckBox" name="chkConfirmBeforeAtt">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>60</y>
+       <width>141</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Confirm before attaching</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbladminwarning">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>271</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QPushButton" name="btnSave">
    <property name="geometry">
@@ -421,6 +561,32 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>chkSystemBreakpoint</tabstop>
+  <tabstop>chkTlsCallbacks</tabstop>
+  <tabstop>chkEntryBreakpoint</tabstop>
+  <tabstop>chkDllEntry</tabstop>
+  <tabstop>chkThreadEntry</tabstop>
+  <tabstop>chkDllLoad</tabstop>
+  <tabstop>chkDllUnload</tabstop>
+  <tabstop>chkThreadStart</tabstop>
+  <tabstop>chkThreadEnd</tabstop>
+  <tabstop>chkDebugStrings</tabstop>
+  <tabstop>radioSigned</tabstop>
+  <tabstop>radioUnsigned</tabstop>
+  <tabstop>radioInt3Short</tabstop>
+  <tabstop>radioInt3Long</tabstop>
+  <tabstop>radioUd2</tabstop>
+  <tabstop>chkUndecorateSymbolNames</tabstop>
+  <tabstop>chkEnableDebugPrivilege</tabstop>
+  <tabstop>listExceptions</tabstop>
+  <tabstop>btnAddRange</tabstop>
+  <tabstop>btnDeleteRange</tabstop>
+  <tabstop>btnAddLast</tabstop>
+  <tabstop>btnSave</tabstop>
+  <tabstop>btnCancel</tabstop>
+ </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>

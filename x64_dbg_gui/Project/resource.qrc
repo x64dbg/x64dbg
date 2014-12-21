@@ -30,5 +30,23 @@
         <file>images/arrow-threads.png</file>
         <file>images/settings.png</file>
         <file>images/strings.png</file>
+        <file>images/color-swatches.png</file>
+        <file>images/call.png</file>
+        <file>images/document-binary.png</file>
+        <file>images/patch.png</file>
+        <file>images/bookmarks.png</file>
+        <file>images/functions.png</file>
+        <file>images/labels.png</file>
+        <file>images/comments.png</file>
+        <file>images/update.png</file>
+        <file>images/callstack.png</file>
+        <file>images/shortcut.png</file>
+        <file>images/donate.png</file>
+        <file>images/calculator.png</file>
+        <file>images/attach.png</file>
+        <file>images/detach.png</file>
+        <file>images/trace.png</file>
+        <file>images/changeargs.png</file>
+        <file>images/arrow-skip.png</file>
     </qresource>
 </RCC>

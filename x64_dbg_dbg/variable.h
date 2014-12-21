@@ -6,10 +6,10 @@
 //enums
 enum VAR_TYPE
 {
-    VAR_SYSTEM=1,
-    VAR_USER=2,
-    VAR_READONLY=3,
-    VAR_HIDDEN=4
+    VAR_SYSTEM = 1,
+    VAR_USER = 2,
+    VAR_READONLY = 3,
+    VAR_HIDDEN = 4
 };
 
 enum VAR_VALUE_TYPE
@@ -32,11 +32,21 @@ struct VAR_VALUE
 
 struct VAR
 {
-    char* name;
+    String name;
+    String alias;
     VAR_TYPE type;
     VAR_VALUE value;
-    VAR* next;
 };
+
+struct CaseInsensitiveCompare
+{
+    bool operator()(const String & str1, const String & str2) const
+    {
+        return _stricmp(str1.c_str(), str2.c_str()) < 0;
+    }
+};
+
+typedef std::map<String, VAR, CaseInsensitiveCompare> VariableMap;
 
 //functions
 void varinit();
@@ -48,6 +58,7 @@ bool varget(const char* name, char* string, int* size, VAR_TYPE* type);
 bool varset(const char* name, uint value, bool setreadonly);
 bool varset(const char* name, const char* string, bool setreadonly);
 bool vardel(const char* name, bool delsystem);
-bool vargettype(const char* name, VAR_TYPE* type);
+bool vargettype(const char* name, VAR_TYPE* type = 0, VAR_VALUE_TYPE* valtype = 0);
+bool varenum(VAR* entries, size_t* cbsize);
 
 #endif // _VARIABLE_H

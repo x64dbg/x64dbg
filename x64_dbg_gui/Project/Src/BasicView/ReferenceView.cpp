@@ -1,4 +1,7 @@
 #include "ReferenceView.h"
+#include <QMessageBox>
+#include "Configuration.h"
+#include "Bridge.h"
 
 ReferenceView::ReferenceView()
 {
@@ -15,16 +18,16 @@ ReferenceView::ReferenceView()
     mMainLayout->addWidget(mSearchProgress);
 
     // Setup signals
-    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int,QString)), this, SLOT(addColumnAt(int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
     connect(Bridge::getBridge(), SIGNAL(referenceDeleteAllColumns()), this, SLOT(deleteAllColumns()));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int,int,QString)), this, SLOT(setCellContent(int,int,QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int,bool)), this, SLOT(setSingleSelection(int,bool)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
-    connect(this, SIGNAL(listContextMenuSignal(QPoint)), this, SLOT(referenceContextMenu(QPoint)));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followAddress()));
+    connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
 
     setupContextMenu();
 }
@@ -36,19 +39,44 @@ void ReferenceView::setupContextMenu()
 
     mFollowDumpAddress = new QAction("Follow in &Dump", this);
     connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
+
+    mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
+    mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mToggleBreakpoint);
+    mList->addAction(mToggleBreakpoint);
+    mSearchList->addAction(mToggleBreakpoint);
+    connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
+
+    mToggleBookmark = new QAction("Toggle Bookmark", this);
+    mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mToggleBookmark);
+    mList->addAction(mToggleBookmark);
+    mSearchList->addAction(mToggleBookmark);
+    connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
+
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void ReferenceView::refreshShortcutsSlot()
+{
+    mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mToggleBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
 }
 
 void ReferenceView::addColumnAt(int width, QString title)
 {
-    QFont wFont("Monospace", 8);
-    wFont.setStyleHint(QFont::Monospace);
-    wFont.setFixedPitch(true);
-    int charwidth=QFontMetrics(wFont).width(QChar(' '));
+    int charwidth = mList->getCharWidth();
     if(width)
-        width=charwidth*width+8;
+        width = charwidth * width + 8;
     else
-        width=0;
+        width = 0;
     mSearchBox->setText("");
+    if(title.toLower() == "&data&")
+    {
+        mFollowDumpDefault = true;
+        title = "Data";
+    }
     mList->addColumnAt(width, title, true);
     mSearchList->addColumnAt(width, title, true);
 }
@@ -61,11 +89,17 @@ void ReferenceView::setRowCount(int_t count)
 
 void ReferenceView::deleteAllColumns()
 {
+    mSearchBox->setText("");
     mList->setTableOffset(0);
     mList->setSingleSelection(0);
     mList->deleteAllColumns();
     mList->reloadData();
+    mSearchList->setTableOffset(0);
+    mSearchList->setSingleSelection(0);
+    mSearchList->deleteAllColumns();
+    mSearchList->reloadData();
     mSearchStartCol = 1;
+    mFollowDumpDefault = false;
 }
 
 void ReferenceView::setCellContent(int r, int c, QString s)
@@ -94,7 +128,7 @@ void ReferenceView::setSearchStartCol(int col)
         this->mSearchStartCol = col;
 }
 
-void ReferenceView::referenceContextMenu(const QPoint &pos)
+void ReferenceView::referenceContextMenu(QMenu* wMenu)
 {
     if(!this->mCurList->getRowCount())
         return;
@@ -104,21 +138,11 @@ void ReferenceView::referenceContextMenu(const QPoint &pos)
     uint_t addr = DbgValFromString(addrText);
     if(!DbgMemIsValidReadPtr(addr))
         return;
-    QMenu* wMenu = new QMenu(this);
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowDumpAddress);
     wMenu->addSeparator();
-
-    //add copy actions
-    int count=this->mCurList->getColumnCount();
-    for(int i=0; i<count; i++)
-    {
-        wMenu->addAction(new QAction(QString("Copy " + this->mCurList->getColTitle(i)), this));
-        wMenu->actions().last()->setObjectName(QString("COPY|")+QString().sprintf("%d", i));
-        connect(wMenu->actions().last(), SIGNAL(triggered()), this, SLOT(copySlot()));
-    }
-
-    wMenu->exec(pos);
+    wMenu->addAction(mToggleBreakpoint);
+    wMenu->addAction(mToggleBookmark);
 }
 
 void ReferenceView::followAddress()
@@ -133,16 +157,70 @@ void ReferenceView::followDumpAddress()
     emit showCpu();
 }
 
-void ReferenceView::copySlot()
+void ReferenceView::followGenericAddress()
 {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if(action && action->objectName().startsWith("COPY|"))
+    if(mFollowDumpDefault)
+        followDumpAddress();
+    else
+        followAddress();
+}
+
+void ReferenceView::toggleBreakpoint()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!this->mCurList->getRowCount())
+        return;
+    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
+    QString wCmd;
+
+    if((wBpType & bp_normal) == bp_normal)
     {
-        bool ok=false;
-        int row=action->objectName().mid(5).toInt(&ok);
-        if(ok)
-        {
-            Bridge::CopyToClipboard(this->mCurList->getCellContent(this->mCurList->getInitialSelection(), row).toUtf8().constData());
-        }
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
+    else
+    {
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+
+    DbgCmdExec(wCmd.toUtf8().constData());
+    this->mSearchList->selectNext();
+}
+
+void ReferenceView::toggleBookmark()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(!this->mCurList->getRowCount())
+        return;
+    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    if(!DbgIsValidExpression(addrText))
+        return;
+    uint_t wVA = DbgValFromString(addrText);
+    if(!DbgMemIsValidReadPtr(wVA))
+        return;
+
+    bool result;
+    if(DbgGetBookmarkAt(wVA))
+        result = DbgSetBookmarkAt(wVA, false);
+    else
+        result = DbgSetBookmarkAt(wVA, true);
+    if(!result)
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetBookmarkAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    GuiUpdateAllViews();
 }

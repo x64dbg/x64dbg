@@ -14,6 +14,7 @@ html,body {
 
 </head>
 
+
 <body>
 <P><STRONG>The basics</STRONG><BR>This page covers the 
 basic principles of plugin development for x64_dbg.</P>
@@ -26,4 +27,14 @@ unloaded. Remove all registered commands and
 callbacks here. Also clean up plugin data.</P>
 <P><U>plugsetup</U>: Called when the plugin initialization 
 was successful, here you 
-can register menus and other GUI-related things.</P></body>
+can register menus and other GUI-related things.</P>
+<P><U>CB*</U>: Instead of calling _plugin_registercallback, 
+you can create a CDECL export which has the name of the callback. For example 
+when you create an export called "CBMENUENTRY", this will be registered as your 
+callback for the event CB_MENUENTRY. Notice that you should <STRONG>not</STRONG>      
+    
+use an underscore in the export name.</P>
+<P><U>CBALLEVENTS</U>: An export with the name "CBALLEVENTS" 
+will get every event registered to it. This is done      
+    
+prior to registering optional other export names.</P></BODY></HTML>

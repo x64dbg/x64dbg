@@ -2,9 +2,7 @@
 #define REFERENCEVIEW_H
 
 #include <QProgressBar>
-#include <QAction>
 #include "SearchListView.h"
-#include "Bridge.h"
 
 class ReferenceView : public SearchListView
 {
@@ -22,10 +20,13 @@ private slots:
     void reloadData();
     void setSingleSelection(int index, bool scroll);
     void setSearchStartCol(int col);
-    void referenceContextMenu(const QPoint & pos);
+    void referenceContextMenu(QMenu* wMenu);
     void followAddress();
     void followDumpAddress();
-    void copySlot();
+    void followGenericAddress();
+    void toggleBreakpoint();
+    void toggleBookmark();
+    void refreshShortcutsSlot();
 
 signals:
     void showCpu();
@@ -34,6 +35,9 @@ private:
     QProgressBar* mSearchProgress;
     QAction* mFollowAddress;
     QAction* mFollowDumpAddress;
+    QAction* mToggleBreakpoint;
+    QAction* mToggleBookmark;
+    bool mFollowDumpDefault;
 };
 
 #endif // REFERENCEVIEW_H

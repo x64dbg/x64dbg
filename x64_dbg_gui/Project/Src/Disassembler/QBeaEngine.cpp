@@ -1,12 +1,11 @@
 #include "QBeaEngine.h"
 
-
 QBeaEngine::QBeaEngine()
 {
     // Reset the Disasm structure
     memset(&mDisasmStruct, 0, sizeof(DISASM));
+    BeaTokenizer::Init();
 }
-
 
 /**
  * @brief       Return the address of the nth instruction before the instruction pointed by ip.                 @n
@@ -22,6 +21,10 @@ QBeaEngine::QBeaEngine()
  */
 ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
 {
+
+    const unsigned int max_instructions = 128;
+
+    Q_UNUSED(base);
     int i;
     uint_t abuf[131], addr, back, cmdsize;
     byte_t* pdata;
@@ -32,17 +35,17 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral;
 
     // Check if the pointer is not null
-    if (data == NULL)
+    if(data == NULL)
         return 0;
 
     // Round the number of back instructions to 127
     if(n < 0)
         n = 0;
-    else if (n > 127)
-        n = 127;
+    else if(n >= max_instructions)
+        n = max_instructions - 1;
 
     // Check if the instruction pointer ip is not outside the memory range
     if(ip >= size)
@@ -66,7 +69,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
 
     for(i = 0; addr < ip; i++)
     {
-        abuf[i % 128] = addr;
+        abuf[i % max_instructions] = addr;
 
         mDisasmStruct.EIP = (UIntPtr)pdata;
         len = Disasm(&mDisasmStruct);
@@ -80,9 +83,8 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
     if(i < n)
         return abuf[0];
     else
-        return abuf[(i - n + 128) % 128];
+        return abuf[(i - n + max_instructions) % max_instructions];
 }
-
 
 /**
  * @brief       Return the address of the nth instruction after the instruction pointed by ip.                 @n
@@ -98,6 +100,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
  */
 ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
 {
+    Q_UNUSED(base);
     int i;
     uint_t cmdsize;
     byte_t* pdata;
@@ -108,13 +111,13 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral;
 
 
     if(data == NULL)
         return 0;
 
-    if (ip >= size)
+    if(ip >= size)
         ip = size - 1;
 
     if(n <= 0)
@@ -138,7 +141,6 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
     return ip;
 }
 
-
 /**
  * @brief       Disassemble the instruction at the given ip RVA.
  *
@@ -161,7 +163,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 #ifdef _WIN64
     mDisasmStruct.Archi = 64;
 #endif
-    mDisasmStruct.Options=NoformatNumeral;
+    mDisasmStruct.Options = NoformatNumeral | ShowSegmentRegs;
 
     mDisasmStruct.EIP = (UIntPtr)((uint_t)data + (uint_t)instIndex);
     mDisasmStruct.VirtualAddr = origBase + origInstRVA;
@@ -172,15 +174,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 
     wInst.instStr = QString(mDisasmStruct.CompleteInstr);
     int instrLen = wInst.instStr.length();
-    if(instrLen && wInst.instStr.at(instrLen-1)==' ')
+    if(instrLen && wInst.instStr.at(instrLen - 1) == ' ')
         wInst.instStr.chop(1);
     wInst.dump = QByteArray((char*)mDisasmStruct.EIP, len);
     wInst.rva = origInstRVA;
-    wInst.lentgh = len;
+    wInst.length = len;
     wInst.disasm = mDisasmStruct;
+
+    //tokenize
+    BeaTokenizer::TokenizeInstruction(&wInst.tokens, &mDisasmStruct);
 
     return wInst;
 }
-
-
-

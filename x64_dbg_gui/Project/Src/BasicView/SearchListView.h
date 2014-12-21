@@ -2,12 +2,14 @@
 #define SEARCHLISTVIEW_H
 
 #include <QWidget>
+#include <QMenu>
 #include <QVBoxLayout>
 #include <QLineEdit>
-#include "StdTable.h"
+#include "SearchListViewTable.h"
 
-namespace Ui {
-    class SearchListView;
+namespace Ui
+{
+class SearchListView;
 }
 
 class SearchListView : public QWidget
@@ -19,23 +21,23 @@ public:
     ~SearchListView();
 
     QVBoxLayout* mMainLayout;
-    StdTable* mList;
-    StdTable* mSearchList;
-    StdTable* mCurList;
+    SearchListViewTable* mList;
+    SearchListViewTable* mSearchList;
+    SearchListViewTable* mCurList;
     QLineEdit* mSearchBox;
     int mSearchStartCol;
 
-    bool findTextInList(StdTable* list, QString text, int row, int startcol, bool startswith);
+    bool findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith);
 
 private slots:
-    void searchTextChanged(const QString &arg1);
+    void searchTextChanged(const QString & arg1);
     void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
 
 signals:
     void enterPressedSignal();
-    void listContextMenuSignal(const QPoint & pos);
+    void listContextMenuSignal(QMenu* wMenu);
 
 private:
     Ui::SearchListView* ui;

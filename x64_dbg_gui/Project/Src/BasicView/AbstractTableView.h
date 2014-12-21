@@ -1,15 +1,37 @@
 #ifndef ABSTRACTTABLEVIEW_H
 #define ABSTRACTTABLEVIEW_H
 
-#include <QtGui>
+#include <QScrollBar>
 #include <QAbstractScrollArea>
 #include <QPushButton>
-#include <QStyleOptionButton>
-#include <QStyle>
-#include <QScrollBar>
-#include <qdebug.h>
-#include <NewTypes.h>
+#include <QApplication>
+#include <QMouseEvent>
+#include <QPainter>
+#include "NewTypes.h"
 
+//Hacky class that fixes a really annoying cursor problem
+class AbstractTableScrollBar : public QScrollBar
+{
+    Q_OBJECT
+public:
+    AbstractTableScrollBar(QScrollBar* scrollbar)
+    {
+        setOrientation(scrollbar->orientation());
+        setParent(scrollbar->parentWidget());
+    }
+
+    void enterEvent(QEvent* event)
+    {
+        Q_UNUSED(event);
+        QApplication::setOverrideCursor(Qt::ArrowCursor);
+    }
+
+    void leaveEvent(QEvent* event)
+    {
+        Q_UNUSED(event);
+        QApplication::restoreOverrideCursor();
+    }
+};
 
 class AbstractTableView : public QAbstractScrollArea
 {
@@ -18,7 +40,11 @@ public:
     enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed};
 
     // Constructor
-    explicit AbstractTableView(QWidget *parent = 0);
+    explicit AbstractTableView(QWidget* parent = 0);
+
+    //config updates
+    virtual void colorsUpdated();
+    virtual void fontsUpdated();
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
@@ -39,6 +65,7 @@ public:
     int scaleFromUint64ToScrollBarRange(int_t value);
     int_t scaleFromScrollBarRangeToUint64(int value);
     void updateScrollBarRange(int_t range);
+
 
     // Coordinates Utils
     int getIndexOffsetFromY(int y);
@@ -67,6 +94,7 @@ public:
     int getNbrOfLineToPrint();
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
+    int getCharWidth();
 
     // Table Offset Management
     int_t getTableOffset();
@@ -76,12 +104,19 @@ public:
     virtual void prepareData();
 
 signals:
+    void enterPressedSignal();
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
+    void tableOffsetChanged(int_t i);
+    void viewableRows(int rows);
+    void repainted();
 
 public slots:
+    void colorsUpdatedSlot();
+    void fontsUpdatedSlot();
+
     // Update/Reload/Refresh/Repaint
-    void reloadData();
+    virtual void reloadData();
     void repaint();
 
     // ScrollBar Management
@@ -130,9 +165,9 @@ private:
 
     QList<Column_t> mColumnList;
 
-    int mRowHeight;
     int_t mRowCount;
 
+    int mMouseWheelScrollDelta;
 
     int_t mTableOffset;
     Header_t mHeader;
@@ -144,6 +179,13 @@ private:
     bool mShouldReload;
 
     ScrollBar64_t mScrollBarAttributes;
+
+protected:
+    QColor backgroundColor;
+    QColor textColor;
+    QColor separatorColor;
+    QColor headerTextColor;
+    QColor selectionColor;
 };
 
 #endif // ABSTRACTTABLEVIEW_H

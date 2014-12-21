@@ -1,25 +1,26 @@
 #ifndef CPUWIDGET_H
 #define CPUWIDGET_H
 
-#include <QtGui>
-#include <QVBoxLayout>
-#include <QTableWidget>
+#include <QWidget>
+#include <QTabWidget>
+#include "CPUSideBar.h"
 #include "CPUDisassembly.h"
 #include "CPUDump.h"
 #include "CPUStack.h"
 #include "RegistersView.h"
-#include "InfoBox.h"
+#include "CPUInfoBox.h"
 
-namespace Ui {
+namespace Ui
+{
 class CPUWidget;
 }
 
 class CPUWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
-    explicit CPUWidget(QWidget *parent = 0);
+    explicit CPUWidget(QWidget* parent = 0);
     ~CPUWidget();
     void setDefaultDisposition(void);
     QVBoxLayout* getTopLeftUpperWidget(void);
@@ -28,17 +29,16 @@ public:
     QVBoxLayout* getBotLeftWidget(void);
     QVBoxLayout* getBotRightWidget(void);
 
-signals:
-
-public slots:
-    void runSelection();
+public:
+    CPUSideBar* mSideBar;
+    CPUDisassembly* mDisas;
+    CPUDump* mDump;
+    CPUStack* mStack;
+    RegistersView* mGeneralRegs;
+    CPUInfoBox* mInfo;
 
 private:
-    Ui::CPUWidget *ui;
-    Disassembly* mDisas;
-    RegistersView* mGeneralRegs;
-    InfoBox* mInfo;
-    QTabWidget* mRegsTab;
+    Ui::CPUWidget* ui;
 };
 
 #endif // CPUWIDGET_H

@@ -1,6 +1,6 @@
 #include "Breakpoints.h"
 
-Breakpoints::Breakpoints(QObject *parent) : QObject(parent)
+Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {
 
 }
@@ -19,34 +19,33 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
 
     switch(type)
     {
-        case bp_normal:
-        {
-            wCmd = "bp " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_normal:
+    {
+        wCmd = "bp " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_hardware:
-        {
-            wCmd = "bph " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_hardware:
+    {
+        wCmd = "bph " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_memory:
-        {
-            wCmd = "bpm " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_memory:
+    {
+        wCmd = "bpm " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
 }
-
 
 /**
  * @brief       Enable breakpoint according to the given breakpoint descriptor.
@@ -55,13 +54,13 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::enableBP(BRIDGEBP bp)
+void Breakpoints::enableBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
     if(bp.type == bp_hardware)
     {
-        // Todo
+        wCmd = "bphwe " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {
@@ -69,7 +68,7 @@ void Breakpoints::enableBP(BRIDGEBP bp)
     }
     else if(bp.type == bp_memory)
     {
-        // Todo
+        wCmd = "bpme " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -113,13 +112,13 @@ void Breakpoints::enableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::disableBP(BRIDGEBP bp)
+void Breakpoints::disableBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
     if(bp.type == bp_hardware)
     {
-        // Todo
+        wCmd = "bphwd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {
@@ -127,7 +126,7 @@ void Breakpoints::disableBP(BRIDGEBP bp)
     }
     else if(bp.type == bp_memory)
     {
-        // Todo
+        wCmd = "bpmd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -171,35 +170,35 @@ void Breakpoints::disableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::removeBP(BRIDGEBP bp)
+void Breakpoints::removeBP(BRIDGEBP & bp)
 {
     QString wCmd = "";
 
     switch(bp.type)
     {
-        case bp_normal:
-        {
-            wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_normal:
+    {
+        wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_hardware:
-        {
-            wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_hardware:
+    {
+        wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        case bp_memory:
-        {
-            wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-        }
-        break;
+    case bp_memory:
+    {
+        wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    }
+    break;
 
-        default:
-        {
+    default:
+    {
 
-        }
-        break;
+    }
+    break;
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -237,7 +236,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
 }
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *
@@ -245,7 +244,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
+void Breakpoints::toggleBPByDisabling(BRIDGEBP & bp)
 {
     if(bp.enabled == true)
         disableBP(bp);
@@ -254,7 +253,7 @@ void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
 }
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *              If breakpoint was previously removed, this method has no effect.@n
@@ -264,7 +263,7 @@ void Breakpoints::toogleBPByDisabling(BRIDGEBP bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
 {
     int wI = 0;
     BPMAP wBPList;
@@ -277,16 +276,49 @@ void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
     {
         if(wBPList.bp[wI].addr == va)
         {
-            toogleBPByDisabling(wBPList.bp[wI]);
+            toggleBPByDisabling(wBPList.bp[wI]);
         }
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);
 }
 
+/**
+ * @brief       returns if a breakpoint is disabled or not
+ *
+ * @param[in]   type    Type of the breakpoint.
+ * @param[in]   va      Virtual Address
+ *
+ * @return      enabled/disabled.
+ */
+BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
+{
+    int wI = 0;
+    BPMAP wBPList;
+
+    // Get breakpoints list
+    DbgGetBpList(type, &wBPList);
+
+    // Find breakpoint at address VA
+    for(wI = 0; wI < wBPList.count; wI++)
+    {
+        if(wBPList.bp[wI].addr == va)
+        {
+            if(wBPList.bp[wI].enabled)
+                return bp_enabled;
+            else
+                return bp_disabled;
+        }
+    }
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+
+    return bp_non_existent;
+}
+
 
 /**
- * @brief       Toogle the given breakpoint by disabling it when enabled.@n
+ * @brief       Toggle the given breakpoint by disabling it when enabled.@n
  *              If breakpoint is initially active and enabled, it will be disabled.@n
  *              If breakpoint is initially active and disabled, it will stay disabled.@n
  *              If breakpoint was previously removed, this method has no effect.@n
@@ -296,7 +328,7 @@ void Breakpoints::toogleBPByDisabling(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
 {
     int wI = 0;
     BPMAP wBPList;
@@ -316,17 +348,17 @@ void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
 
             switch(wBPList.bp[wI].type)
             {
-                case bp_normal:
-                    wNormalWasRemoved = true;
-                    break;
-                case bp_memory:
-                    wMemoryWasRemoved = true;
-                    break;
-                case bp_hardware:
-                    wHardwareWasRemoved = true;
-                    break;
-                default:
-                    break;
+            case bp_normal:
+                wNormalWasRemoved = true;
+                break;
+            case bp_memory:
+                wMemoryWasRemoved = true;
+                break;
+            case bp_hardware:
+                wHardwareWasRemoved = true;
+                break;
+            default:
+                break;
             }
         }
     }
@@ -345,7 +377,4 @@ void Breakpoints::toogleBPByRemoving(BPXTYPE type, uint_t va)
     {
         setBP(bp_hardware, va);
     }
-
-
-
 }

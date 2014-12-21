@@ -1,6 +1,10 @@
 #ifndef _PLUGINS_H
 #define _PLUGINS_H
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 #ifndef PLUG_IMPEXP
 #ifdef BUILD_DBG
 #define PLUG_IMPEXP __declspec(dllexport)
@@ -11,11 +15,18 @@
 
 #include "_plugin_types.h"
 
+//default structure alignments forced
+#ifdef _WIN64
+#pragma pack(push, 16)
+#else //x86
+#pragma pack(push, 8)
+#endif //_WIN64
+
 //defines
 #define PLUG_SDKVERSION 1
 
 //structures
-struct PLUG_INITSTRUCT
+typedef struct
 {
     //provided by the debugger
     int pluginHandle;
@@ -23,120 +34,133 @@ struct PLUG_INITSTRUCT
     int sdkVersion;
     int pluginVersion;
     char pluginName[256];
-};
+} PLUG_INITSTRUCT;
 
-struct PLUG_SETUPSTRUCT
+typedef struct
 {
     //provided by the debugger
     HWND hwndDlg; //gui window handle
     int hMenu; //plugin menu handle
-};
+} PLUG_SETUPSTRUCT;
 
 //callback structures
-struct PLUG_CB_INITDEBUG
+typedef struct
 {
     const char* szFileName;
-};
+} PLUG_CB_INITDEBUG;
 
-struct PLUG_CB_STOPDEBUG
+typedef struct
 {
     void* reserved;
-};
+} PLUG_CB_STOPDEBUG;
 
-struct PLUG_CB_CREATEPROCESS
+typedef struct
 {
     CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo;
     IMAGEHLP_MODULE64* modInfo;
     const char* DebugFileName;
     PROCESS_INFORMATION* fdProcessInfo;
-};
+} PLUG_CB_CREATEPROCESS;
 
-struct PLUG_CB_EXITPROCESS
+typedef struct
 {
     EXIT_PROCESS_DEBUG_INFO* ExitProcess;
-};
+} PLUG_CB_EXITPROCESS;
 
-struct PLUG_CB_CREATETHREAD
+typedef struct
 {
     CREATE_THREAD_DEBUG_INFO* CreateThread;
     DWORD dwThreadId;
-};
+} PLUG_CB_CREATETHREAD;
 
-struct PLUG_CB_EXITTHREAD
+typedef struct
 {
     EXIT_THREAD_DEBUG_INFO* ExitThread;
     DWORD dwThreadId;
-};
+} PLUG_CB_EXITTHREAD;
 
-struct PLUG_CB_SYSTEMBREAKPOINT
+typedef struct
 {
     void* reserved;
-};
+} PLUG_CB_SYSTEMBREAKPOINT;
 
-struct PLUG_CB_LOADDLL
+typedef struct
 {
     LOAD_DLL_DEBUG_INFO* LoadDll;
     IMAGEHLP_MODULE64* modInfo;
     const char* modname;
-};
+} PLUG_CB_LOADDLL;
 
-struct PLUG_CB_UNLOADDLL
+typedef struct
 {
     UNLOAD_DLL_DEBUG_INFO* UnloadDll;
-};
+} PLUG_CB_UNLOADDLL;
 
-struct PLUG_CB_OUTPUTDEBUGSTRING
+typedef struct
 {
     OUTPUT_DEBUG_STRING_INFO* DebugString;
-};
+} PLUG_CB_OUTPUTDEBUGSTRING;
 
-struct PLUG_CB_EXCEPTION
+typedef struct
 {
     EXCEPTION_DEBUG_INFO* Exception;
-};
+} PLUG_CB_EXCEPTION;
 
-struct PLUG_CB_BREAKPOINT
+typedef struct
 {
     BRIDGEBP* breakpoint;
-};
+} PLUG_CB_BREAKPOINT;
 
-struct PLUG_CB_PAUSEDEBUG
+typedef struct
 {
     void* reserved;
-};
+} PLUG_CB_PAUSEDEBUG;
 
-struct PLUG_CB_RESUMEDEBUG
+typedef struct
 {
     void* reserved;
-};
+} PLUG_CB_RESUMEDEBUG;
 
-struct PLUG_CB_STEPPED
+typedef struct
 {
     void* reserved;
-};
+} PLUG_CB_STEPPED;
 
-struct PLUG_CB_ATTACH
+typedef struct
 {
     DWORD dwProcessId;
-};
+} PLUG_CB_ATTACH;
 
-struct PLUG_CB_DETACH
+typedef struct
 {
     PROCESS_INFORMATION* fdProcessInfo;
-};
+} PLUG_CB_DETACH;
 
-struct PLUG_CB_DEBUGEVENT
+typedef struct
 {
     DEBUG_EVENT* DebugEvent;
-};
+} PLUG_CB_DEBUGEVENT;
 
-struct PLUG_CB_MENUENTRY
+typedef struct
 {
     int hEntry;
-};
+} PLUG_CB_MENUENTRY;
+
+typedef struct
+{
+    MSG* message;
+    long* result;
+    bool retval;
+} PLUG_CB_WINEVENT;
+
+typedef struct
+{
+    MSG* message;
+    bool retval;
+} PLUG_CB_WINEVENTGLOBAL;
 
 //enums
-enum CBTYPE
+typedef enum
 {
     CB_INITDEBUG, //PLUG_CB_INITDEBUG
     CB_STOPDEBUG, //PLUG_CB_STOPDEBUG
@@ -156,8 +180,10 @@ enum CBTYPE
     CB_ATTACH, //PLUG_CB_ATTACHED (before attaching, after CB_INITDEBUG)
     CB_DETACH, //PLUG_CB_DETACH (before detaching, before CB_STOPDEBUG)
     CB_DEBUGEVENT, //PLUG_CB_DEBUGEVENT (called on any debug event)
-    CB_MENUENTRY //PLUG_CB_MENUENTRY
-};
+    CB_MENUENTRY, //PLUG_CB_MENUENTRY
+    CB_WINEVENT, //PLUG_CB_WINEVENT
+    CB_WINEVENTGLOBAL //PLUG_CB_WINEVENTGLOBAL
+} CBTYPE;
 
 //typedefs
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
@@ -185,5 +211,7 @@ PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma pack(pop)
 
 #endif // _PLUGINS_H

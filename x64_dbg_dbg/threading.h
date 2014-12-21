@@ -8,7 +8,7 @@ enum WAIT_ID
 {
     WAITID_RUN,
     WAITID_STOP,
-    WAITID_USERDB
+    WAITID_LAST
 };
 
 //functions
@@ -17,5 +17,35 @@ void wait(WAIT_ID id);
 void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
+
+enum CriticalSectionLock
+{
+    LockMemoryPages,
+    LockVariables,
+    LockModules,
+    LockComments,
+    LockLabels,
+    LockBookmarks,
+    LockFunctions,
+    LockLoops,
+    LockBreakpoints,
+    LockPatches,
+    LockThreads,
+    LockLast
+};
+
+void CriticalSectionDeleteLocks();
+
+class CriticalSectionLocker
+{
+public:
+    CriticalSectionLocker(CriticalSectionLock lock);
+    ~CriticalSectionLocker();
+    void unlock();
+    void relock();
+
+private:
+    CriticalSectionLock gLock;
+};
 
 #endif // _THREADING_H

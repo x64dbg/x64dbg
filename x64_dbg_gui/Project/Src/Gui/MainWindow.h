@@ -2,34 +2,40 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtGui>
-#include <QFileDialog>
-#include <QMdiArea>
-#include <QMdiSubWindow>
-#include "CPUWidget.h"
+#include <QDragEnterEvent>
+#include "CloseDialog.h"
 #include "CommandLineEdit.h"
+#include "TabWidget.h"
+#include "CPUWidget.h"
 #include "MemoryMapView.h"
+#include "CallStackView.h"
 #include "LogView.h"
-#include "StatusLabel.h"
+#include "SymbolView.h"
 #include "BreakpointsView.h"
 #include "ScriptView.h"
-#include "SymbolView.h"
 #include "ReferenceView.h"
 #include "ThreadView.h"
-#include "SettingsDialog.h"
+#include "PatchDialog.h"
+#include "CalculatorDialog.h"
+#include "StatusLabel.h"
+#include "UpdateChecker.h"
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
+    static DWORD WINAPI closeThread(void* ptr);
+    void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
+    bool bClose;
 
 public slots:
     void executeCommand();
@@ -53,41 +59,65 @@ public slots:
     void execeStepInto();
     void execeRun();
     void execeRtr();
+    void execSkip();
     void displayCpuWidget();
     void displaySymbolWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
     void openSettings();
+    void openAppearance();
+    void openCalculator();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void findStrings();
+    void findModularCalls();
     void addMenu(int hMenu, QString title);
     void addMenuEntry(int hMenu, QString title);
     void addSeparator(int hMenu);
     void clearMenu(int hMenu);
     void menuEntrySlot();
+    void runSelection();
+    void getStrWindow(const QString title, QString* text);
+    void patchWindow();
+    void displayComments();
+    void displayLabels();
+    void displayBookmarks();
+    void displayFunctions();
+    void checkUpdates();
+    void displayCallstack();
+    void refreshShortcuts();
+    void openShortcuts();
+    void donate();
+    void displayAttach();
+    void detach();
+    void changeCommandLine();
 
 private:
-    Ui::MainWindow *ui;
-
+    Ui::MainWindow* ui;
+    CloseDialog* mCloseDialog;
     CommandLineEdit* mCmdLineEdit;
-    QTabWidget* mTabWidget;
+    MHTabWidget* mTabWidget;
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
+    CallStackView* mCallStackView;
     LogView* mLogView;
     SymbolView* mSymbolView;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
     ReferenceView* mReferenceView;
     ThreadView* mThreadView;
+    PatchDialog* mPatchDialog;
+    CalculatorDialog* mCalculatorDialog;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
 
+    UpdateChecker* mUpdateChecker;
+
     const char* mWindowMainTitle;
 
-    std::vector<QString> mMRUList;
-    unsigned int mMaxMRU;
+    QStringList mMRUList;
+    int mMaxMRU;
     unsigned int lastException;
 
     void loadMRUList(int maxItems);
@@ -95,7 +125,7 @@ private:
     void addMRUEntry(QString entry);
     void removeMRUEntry(QString entry);
     void updateMRUMenu();
-    QString getMRUEntry(size_t index);
+    QString getMRUEntry(int index);
 
     //menu api
     struct MenuEntryInfo

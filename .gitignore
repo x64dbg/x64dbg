@@ -1,13 +1,18 @@
 #ignore directories
-*/obj/
-bin/*/*
-ipch/*
-x64_dbg_*/Win32/*
-x64_dbg_*/x64/*
+bin/
+obj/
+ipch/
+Win32/
+x64/
+release/
+build/
+debug/
+*XE Results*/
 
 #global filetypes to ignore
 *.depend
 *.layout
+*.patch
 *.cscope_file_list
 *.bmarks
 *.chw
@@ -16,19 +21,22 @@ x64_dbg_*/x64/*
 *.opensdf
 *.sdf
 *.suo
+*.autosave
+*.~vsd
+*.dll
+*.exe
+*.pro.user.*
+*.orig
+coverity*
+cov-int*
+COV/
+*.pdb
+ui_*
 
-#whitelisted bin files
-!bin/*/TitanEngine.dll
-!bin/*/test.dll
-!bin/*/test.exe
-!bin/*/dbghelp.dll
-!bin/*/sqlite.dll
-!bin/*/BeaEngine.dll
-!bin/*/Scylla.dll
-
-#files to ignore
+#project to ignore
 todo_bridge.txt
 help/x64_dbg.chm
+help/output/
 
 #debugger files to ignore
 x64_dbg_dbg/ODbgScript.chm
@@ -46,11 +54,17 @@ x64_dbg_gui/Project/GeneratedFiles/
 x64_dbg_gui/Project/release/
 x64_dbg_gui/Project/Win32/
 x64_dbg_gui/Project/x64/
+x64_dbg_gui/Project/Makefile
+x64_dbg_gui/Project/Makefile.Debug
+x64_dbg_gui/Project/Makefile.Release
 x64_dbg_gui/Project/Src/Bridge/libx32_bridge.a
 x64_dbg_gui/Project/Src/Bridge/libx64_bridge.a
 x64_dbg_gui/Project/Src/Bridge/x32_bridge.lib
 x64_dbg_gui/Project/Src/Bridge/x64_bridge.lib
-help/output/*
-*.autosave
-*.~vsd
-release/
+tools/
+RCa*
+*.aps
+
+#exceptions
+!/AStyleWhore.exe
+!/AStyle.dll

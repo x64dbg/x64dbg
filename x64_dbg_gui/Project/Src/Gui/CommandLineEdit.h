@@ -1,29 +1,22 @@
-#ifndef LINEEDIT_H
-#define LINEEDIT_H
+#ifndef COMMANDLINEEDIT_H
+#define COMMANDLINEEDIT_H
 
-#include <QtGui>
-#include <QDebug>
-#include <QLineEdit>
+#include "HistoryLineEdit.h"
+#include <QCompleter>
 
-class CommandLineEdit : public QLineEdit
+class CommandLineEdit : public HistoryLineEdit
 {
     Q_OBJECT
 public:
-    explicit CommandLineEdit(QWidget *parent = 0);
-    void keyPressEvent(QKeyEvent* event);
-    void addCmdToHistory(QString parCmd);
-    void setFocusToCmd();
-    
-signals:
-    void keyPressed(int parKey);
-    
-public slots:
+    explicit CommandLineEdit(QWidget* parent = 0);
 
+public slots:
+    void autoCompleteAddCmd(const QString cmd);
+    void autoCompleteDelCmd(const QString cmd);
+    void autoCompleteClearAll();
 
 private:
-    QList<QString> mCmdHistory;
-    int mCmdIndex;
-    
+    QCompleter* mCompleter;
 };
 
-#endif // LINEEDIT_H
+#endif // COMMANDLINEEDIT_H

@@ -1,14 +1,9 @@
 #ifndef _HEXDUMP_H
 #define _HEXDUMP_H
 
-#include <QtGui>
-#include <QtDebug>
-#include "NewTypes.h"
 #include "AbstractTableView.h"
+#include "RichTextPainter.h"
 #include "MemoryPage.h"
-#include "QBeaEngine.h"
-#include "Bridge.h"
-#include <sstream>
 
 class HexDump : public AbstractTableView
 {
@@ -77,10 +72,13 @@ public:
     {
         bool isData;
         int itemCount;
+        int separator;
         DataDescriptor_t data;
     } ColumnDescriptor_t;
 
-    explicit HexDump(QWidget *parent = 0);
+    explicit HexDump(QWidget* parent = 0);
+    void colorsUpdated();
+    void fontsUpdated();
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
     void mouseMoveEvent(QMouseEvent* event);
@@ -95,13 +93,15 @@ public:
     // Selection Management
     void expandSelectionUpTo(int_t rva);
     void setSingleSelection(int_t rva);
-    int getInitialSelection();
+    int_t getInitialSelection();
+    int_t getSelectionStart();
+    int_t getSelectionEnd();
     bool isSelected(int_t rva);
 
-    QString getString(int col, int_t rva);
+    void getString(int col, int_t rva, QList<RichTextPainter::CustomRichText_t>* richText);
     int getSizeOf(DataSize_e size);
 
-    QString toString(DataDescriptor_t desc, void *data);
+    QString toString(DataDescriptor_t desc, void* data);
 
     QString byteToString(byte_t byte, ByteViewMode_e mode);
     QString wordToString(uint16 word, WordViewMode_e mode);
@@ -128,8 +128,9 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
 
-    void printDumpAt(int_t parVA, bool select);
-    
+    void printDumpAt(int_t parVA, bool select, bool repaint = true);
+    uint_t rvaToVa(int_t rva);
+
 public slots:
     void printDumpAt(int_t parVA);
     void debugStateChanged(DBGSTATE state);
@@ -145,15 +146,17 @@ private:
     } SelectionData_t;
 
     SelectionData_t mSelection;
-    
+
     GuiState_t mGuiState;
 
 protected:
     MemoryPage* mMemPage;
-    int_t mBase;
-    int_t mSize;
     int mByteOffset;
     QList<ColumnDescriptor_t> mDescriptor;
+    int mForceColumn;
+    bool mRvaDisplayEnabled;
+    uint_t mRvaDisplayBase;
+    int_t mRvaDisplayPageBase;
 };
 
 #endif // _HEXDUMP_H

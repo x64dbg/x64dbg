@@ -2,11 +2,10 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
-#include "Bridge.h"
-#include "ExceptionRangeDialog.h"
 
-namespace Ui {
-    class SettingsDialog;
+namespace Ui
+{
+class SettingsDialog;
 }
 
 class SettingsDialog : public QDialog
@@ -14,7 +13,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = 0);
+    explicit SettingsDialog(QWidget* parent = 0);
     ~SettingsDialog();
     void SaveSettings();
     unsigned int lastException;
@@ -30,6 +29,7 @@ private slots:
     void on_chkEntryBreakpoint_stateChanged(int arg1);
     void on_chkDllEntry_stateChanged(int arg1);
     void on_chkThreadEntry_stateChanged(int arg1);
+    void on_chkAttachBreakpoint_stateChanged(int arg1);
     void on_chkDllLoad_stateChanged(int arg1);
     void on_chkDllUnload_stateChanged(int arg1);
     void on_chkThreadStart_stateChanged(int arg1);
@@ -47,20 +47,29 @@ private slots:
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
     void on_btnAddLast_clicked();
+    //Disasm tab
+    void on_chkArgumentSpaces_stateChanged(int arg1);
+    void on_chkMemorySpaces_stateChanged(int arg1);
+    void on_chkUppercase_stateChanged(int arg1);
+    void on_chkOnlyCipAutoComments_stateChanged(int arg1);
+    //Misc tab
+    void on_chkSetJIT_stateChanged(int arg1);
+    void on_chkConfirmBeforeAtt_stateChanged(int arg1);
+
 
 private:
     //enums
     enum CalcType
     {
-        calc_signed=0,
-        calc_unsigned=1
+        calc_signed = 0,
+        calc_unsigned = 1
     };
 
     enum BreakpointType
     {
-        break_int3short=0,
-        break_int3long=1,
-        break_ud2=2
+        break_int3short = 0,
+        break_int3long = 1,
+        break_ud2 = 2
     };
 
     //structures
@@ -86,6 +95,7 @@ private:
         bool eventEntryBreakpoint;
         bool eventDllEntry;
         bool eventThreadEntry;
+        bool eventAttachBreakpoint;
         bool eventDllLoad;
         bool eventDllUnload;
         bool eventThreadStart;
@@ -98,12 +108,22 @@ private:
         bool engineEnableDebugPrivilege;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
+        //Disasm Tab
+        bool disasmArgumentSpaces;
+        bool disasmMemorySpaces;
+        bool disasmUppercase;
+        bool disasmOnlyCipAutoComments;
+        //Misc Tab
+        bool miscSetJIT;
+        bool miscSetJITAuto;
     };
 
     //variables
-    Ui::SettingsDialog *ui;
+    Ui::SettingsDialog* ui;
     SettingsStruct settings;
     QList<RangeStruct> realExceptionRanges;
+    bool bJitOld;
+    bool bJitAutoOld;
 
     //functions
     void GetSettingBool(const char* section, const char* name, bool* set);

@@ -1,9 +1,11 @@
 #include "Disassembly.h"
+#include "Configuration.h"
+#include "Bridge.h"
 
-Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {
-    mBase = 0;
-    mSize = 0;
+    fontsUpdated();
+    mMemPage = new MemoryPage(0, 0);
 
     mInstBuffer.clear();
 
@@ -14,6 +16,10 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
     mSelection = data;
 
     mCipRva = 0;
+    mIsRunning = false;
+
+    mHighlightToken.text = "";
+    mHighlightingMode = false;
 
     mDisasm = new QBeaEngine();
 
@@ -21,70 +27,30 @@ Disassembly::Disassembly(QWidget *parent) : AbstractTableView(parent)
 
     mGuiState = Disassembly::NoState;
 
-    setRowCount(mSize);
+    setRowCount(mMemPage->getSize());
 
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-
-    addColumnAt(charwidth*2*sizeof(int_t)+8, "", false); //address
-    addColumnAt(charwidth*2*12+8, "", false); //bytes
-    addColumnAt(charwidth*40, "", false); //disassembly
-    addColumnAt(100, "", false); //comments
+    addColumnAt(getCharWidth() * 2 * sizeof(int_t) + 8, "", false); //address
+    addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
+    addColumnAt(getCharWidth() * 40, "", false); //disassembly
+    addColumnAt(1000, "", false); //comments
 
     setShowHeader(false); //hide header
 
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(int_t, int_t)), this, SLOT(disassembleAt(int_t, int_t)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
+    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
 }
 
-/************************************************************************************
-                            Private Functions
-************************************************************************************/
-
-void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText)
+void Disassembly::colorsUpdated()
 {
-    int len=richText->size();
-    int charwidth=QFontMetrics(this->font()).width(QChar(' '));
-    for(int i=0; i<len; i++)
-    {
-        CustomRichText_t curRichText=richText->at(i);
-        int curRichTextLength=curRichText.text.length();
-        int backgroundWidth=charwidth*curRichTextLength;
-        if(backgroundWidth+xinc>w)
-            backgroundWidth=w-xinc;
-        if(backgroundWidth<=0) //stop drawing when going outside the specified width
-            break;
-        switch(curRichText.flags)
-        {
-        case FlagNone: //defaults
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            break;
-        case FlagColor: //color only
-            painter->save();
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagBackground: //background only
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        case FlagAll: //color+background
-            painter->save();
-            if(backgroundWidth>0)
-                painter->fillRect(QRect(x+xinc, y, backgroundWidth, h), QBrush(curRichText.textBackground));
-            painter->setPen(QPen(curRichText.textColor));
-            painter->drawText(QRect(x+xinc, y, w-xinc, h), 0, curRichText.text);
-            painter->restore();
-            break;
-        }
-        xinc+=charwidth*curRichTextLength;
-    }
+    AbstractTableView::colorsUpdated();
+    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 }
 
+void Disassembly::fontsUpdated()
+{
+    setFont(ConfigFont("Disassembly"));
+}
 
 /************************************************************************************
                             Reimplemented Functions
@@ -106,133 +72,233 @@ void Disassembly::paintRichText(QPainter* painter, int x, int y, int w, int h, i
  */
 QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    QString wStr = "";
+    Q_UNUSED(rowBase)
+    if(mHighlightingMode)
+    {
+        QPen pen(ConfigColor("InstructionHighlightColor"));
+        pen.setWidth(2);
+        painter->setPen(pen);
+        QRect rect = viewport()->rect();
+        rect.adjust(1, 1, -1, -1);
+        painter->drawRect(rect);
+    }
     int_t wRVA = mInstBuffer.at(rowOffset).rva;
-    bool wIsSelected = isSelected(&mInstBuffer, rowOffset); // isSelected(rowBase, rowOffset);
+    bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
 
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#C0C0C0")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblySelectionColor")));
 
     switch(col)
     {
     case 0: // Draw address (+ label)
     {
-        char label[MAX_LABEL_SIZE]="";
-        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
-        QString addrText=QString("%1").arg(cur_addr, sizeof(int_t)*2, 16, QChar('0')).toUpper();
-        if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
+        char label[MAX_LABEL_SIZE] = "";
+        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+        QString addrText = getAddrText(cur_addr, label);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
+        bool isbookmark = DbgGetBookmarkAt(cur_addr);
+        if(mInstBuffer.at(rowOffset).rva == mCipRva && !mIsRunning) //cip + not running
         {
-            char module[MAX_MODULE_SIZE]="";
-            if(DbgGetModuleAt(cur_addr, module))
-                addrText+=" <"+QString(module)+"."+QString(label)+">";
-            else
-                addrText+=" <"+QString(label)+">";
-        }
-        else
-            *label=0;
-        BPXTYPE bpxtype=DbgGetBpxTypeAt(cur_addr);
-        bool isbookmark=DbgGetBookmarkAt(cur_addr);
-        painter->save();
-        if(mInstBuffer.at(rowOffset).rva == mCipRva) //cip
-        {
-            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#000000")));
-            if(!isbookmark)
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
+            if(!isbookmark) //no bookmark
             {
-                if(bpxtype&bp_normal) //breakpoint
+                if(bpxtype & bp_normal) //normal breakpoint
                 {
-                    painter->setPen(QPen(QColor("#ff0000")));
+                    QColor bpColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
+                    if(!bpColor.alpha()) //we don't want transparent text
+                        bpColor = ConfigColor("DisassemblyBreakpointColor");
+                    if(bpColor == ConfigColor("DisassemblyCipBackgroundColor"))
+                        bpColor = ConfigColor("DisassemblyCipColor");
+                    painter->setPen(QPen(bpColor));
                 }
-                else
+                else if(bpxtype & bp_hardware) //hardware breakpoint only
                 {
-                    painter->setPen(QPen(QColor("#fffbf0")));
+                    QColor hwbpColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+                    if(!hwbpColor.alpha()) //we don't want transparent text
+                        hwbpColor = ConfigColor("DisassemblyHardwareBreakpointColor");
+                    if(hwbpColor == ConfigColor("DisassemblyCipBackgroundColor"))
+                        hwbpColor = ConfigColor("DisassemblyCipColor");
+                    painter->setPen(hwbpColor);
+                }
+                else //no breakpoint
+                {
+                    painter->setPen(QPen(ConfigColor("DisassemblyCipColor")));
                 }
             }
-            else
+            else //bookmark
             {
-                painter->setPen(QPen(QColor("#fee970")));
+                QColor bookmarkColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
+                if(!bookmarkColor.alpha()) //we don't want transparent text
+                    bookmarkColor = ConfigColor("DisassemblyBookmarkColor");
+                if(bookmarkColor == ConfigColor("DisassemblyCipBackgroundColor"))
+                    bookmarkColor = ConfigColor("DisassemblyCipColor");
+                painter->setPen(QPen(bookmarkColor));
             }
         }
-        else //other address
+        else //non-cip address
         {
-            if(!isbookmark)
+            if(!isbookmark) //no bookmark
             {
                 if(*label) //label
                 {
-                    if(bpxtype==bp_none) //label only
-                        painter->setPen(QPen(QColor("#ff0000"))); //red -> address + label text
+                    if(bpxtype == bp_none) //label only
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
+                    }
                     else //label+breakpoint
                     {
-                        if(bpxtype&bp_normal)
+                        if(bpxtype & bp_normal) //label + normal breakpoint
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
                         }
-                        else
+                        else if(bpxtype & bp_hardware) //label + hardware breakpoint only
                         {
-                            painter->setPen(QPen(QColor("#000000"))); //black address
+                            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill ?
+                        }
+                        else //other cases -> do as normal
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
                         }
                     }
                 }
                 else //no label
                 {
-                    if(bpxtype==bp_none) //no label, no breakpoint
+                    if(bpxtype == bp_none) //no label, no breakpoint
                     {
+                        QColor background;
                         if(wIsSelected)
-                            painter->setPen(QPen(QColor("#000000"))); //black address
-                        else
-                            painter->setPen(QPen(QColor("#808080")));
-                    }
-                    else //breakpoint only
-                    {
-                        if(bpxtype&bp_normal)
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#ff0000"))); //fill red
+                            background = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+                            painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
                         }
                         else
                         {
+                            background = ConfigColor("DisassemblyAddressBackgroundColor");
+                            painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                        }
+                        if(background.alpha())
+                            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
+                    }
+                    else //breakpoint only
+                    {
+                        if(bpxtype & bp_normal) //normal breakpoint
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //hardware breakpoint only
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
+                        }
+                        else //other cases (memory breakpoint in disassembly) -> do as normal
+                        {
+                            QColor background;
                             if(wIsSelected)
-                                painter->setPen(QPen(QColor("#000000"))); //black address
+                            {
+                                background = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+                                painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                            }
                             else
-                                painter->setPen(QPen(QColor("#808080")));
+                            {
+                                background = ConfigColor("DisassemblyAddressBackgroundColor");
+                                painter->setPen(QPen(ConfigColor("DisassemblyAddressColor")));
+                            }
+                            if(background.alpha())
+                                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
                         }
                     }
                 }
             }
-            else
+            else //bookmark
             {
-                painter->fillRect(QRect(x, y, w, h), QBrush(QColor("#fee970")));
-                if(wIsSelected)
-                    painter->setPen(QPen(QColor("#000000"))); //black address
-                else
-                    painter->setPen(QPen(QColor("#808080")));
+                if(*label) //label + bookmark
+                {
+                    if(bpxtype == bp_none) //label + bookmark
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill label background
+                    }
+                    else //label+breakpoint+bookmark
+                    {
+                        QColor color = ConfigColor("DisassemblyBookmarkBackgroundColor");
+                        if(!color.alpha()) //we don't want transparent text
+                            color = ConfigColor("DisassemblyAddressColor");
+                        painter->setPen(QPen(color));
+                        if(bpxtype & bp_normal) //label + bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //label + bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill ?
+                        }
+                    }
+                }
+                else //bookmark, no label
+                {
+                    if(bpxtype == bp_none) //bookmark only
+                    {
+                        painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address
+                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
+                    }
+                    else //bookmark + breakpoint
+                    {
+                        QColor color = ConfigColor("DisassemblyBookmarkBackgroundColor");
+                        if(!color.alpha()) //we don't want transparent text
+                            color = ConfigColor("DisassemblyAddressColor");
+                        painter->setPen(QPen(color));
+                        if(bpxtype & bp_normal) //bookmark + normal breakpoint
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                        }
+                        else if(bpxtype & bp_hardware) //bookmark + hardware breakpoint only
+                        {
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill red
+                        }
+                        else //other cases (bookmark + memory breakpoint in disassembly) -> do as normal
+                        {
+                            painter->setPen(QPen(ConfigColor("DisassemblyBookmarkColor"))); //black address (DisassemblySelectedAddressColor)
+                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBookmarkBackgroundColor"))); //fill bookmark color
+                        }
+                    }
+                }
             }
         }
         painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
-        painter->restore();
-        break;
     }
+    break;
 
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
         //draw functions
-        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
+        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
-        switch(DbgGetFunctionTypeAt(cur_addr))
+        FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
+        if(funcLast == FUNC_END)
+            funcFirst = funcLast;
+        switch(funcFirst)
         {
         case FUNC_SINGLE:
-            funcType=Function_single;
+            funcType = Function_single;
             break;
         case FUNC_NONE:
-            funcType=Function_none;
+            funcType = Function_none;
             break;
         case FUNC_BEGIN:
-            funcType=Function_start;
+            funcType = Function_start;
             break;
         case FUNC_MIDDLE:
-            funcType=Function_middle;
+            funcType = Function_middle;
             break;
         case FUNC_END:
-            funcType=Function_end;
+            funcType = Function_end;
             break;
         }
         int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
@@ -241,70 +307,94 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
 
         //draw bytes
+        QColor bytesColor = ConfigColor("DisassemblyBytesColor");
+        QColor patchedBytesColor = ConfigColor("DisassemblyModifiedBytesColor");
+        QList<RichTextPainter::CustomRichText_t> richBytes;
+        RichTextPainter::CustomRichText_t space;
+        space.highlight = false;
+        space.flags = RichTextPainter::FlagNone;
+        space.text = " ";
+        RichTextPainter::CustomRichText_t curByte;
+        curByte.highlight = false;
+        curByte.flags = RichTextPainter::FlagColor;
         for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
-            wStr += QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
-
-        painter->drawText(QRect(x + jumpsize + funcsize, y, getColumnWidth(col) - jumpsize - funcsize, getRowHeight()), 0, wStr);
-
-        wStr = "";
-
-        break;
+        {
+            if(i)
+                richBytes.push_back(space);
+            curByte.text = QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
+            curByte.textColor = DbgFunctions()->PatchGet(cur_addr + i) ? patchedBytesColor : bytesColor;
+            richBytes.push_back(curByte);
+        }
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes, getCharWidth());
     }
+    break;
 
     case 2: //draw disassembly (with colours needed)
     {
-        int_t cur_addr=mInstBuffer.at(rowOffset).rva+mBase;
-        int loopsize=0;
-        int depth=0;
+        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+        int loopsize = 0;
+        int depth = 0;
+
         while(1) //paint all loop depths
         {
-            LOOPTYPE loopType=DbgGetLoopTypeAt(cur_addr, depth);
-            if(loopType==LOOP_NONE)
+            LOOPTYPE loopType = DbgGetLoopTypeAt(cur_addr, depth);
+            if(loopType == LOOP_NONE)
                 break;
             Function_t funcType;
             switch(loopType)
             {
-            case LOOP_NONE:
-                funcType=Function_none;
-                break;
             case LOOP_BEGIN:
-                funcType=Function_start;
+                funcType = Function_start;
                 break;
             case LOOP_ENTRY:
-                funcType=Function_loop_entry;
+                funcType = Function_loop_entry;
                 break;
             case LOOP_MIDDLE:
-                funcType=Function_middle;
+                funcType = Function_middle;
                 break;
             case LOOP_END:
-                funcType=Function_end;
+                funcType = Function_end;
+                break;
+            default:
                 break;
             }
-            loopsize+=paintFunctionGraphic(painter, x+loopsize, y, funcType, true);
+            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, true);
             depth++;
         }
 
-        QList<CustomRichText_t> richText;
-        BeaHighlight::PrintRtfInstruction(&richText, &mInstBuffer.at(rowOffset).disasm);
-        Disassembly::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), 4, &richText);
-        break;
+        QList<RichTextPainter::CustomRichText_t> richText;
+
+        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].tokens;
+        if(mHighlightToken.text.length())
+            BeaTokenizer::TokenToRichText(token, &richText, &mHighlightToken);
+        else
+            BeaTokenizer::TokenToRichText(token, &richText, 0);
+        int xinc = 4;
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, getCharWidth());
+        token->x = x + loopsize + xinc;
     }
+    break;
 
     case 3: //draw comments
     {
-        char comment[MAX_COMMENT_SIZE]="";
-        if(DbgGetCommentAt(mInstBuffer.at(rowOffset).rva+mBase, comment))
-            wStr=QString(comment);
-        else
-            wStr="";
+        char comment[MAX_COMMENT_SIZE] = "";
+        if(DbgGetCommentAt(rvaToVa(mInstBuffer.at(rowOffset).rva), comment))
+        {
+            painter->setPen(ConfigColor("DisassemblyCommentColor"));
+            int width = getCharWidth() * QString(comment).length() + 4;
+            if(width > w)
+                width = w;
+            if(width)
+                painter->fillRect(QRect(x + 2, y, width, h), QBrush(ConfigColor("DisassemblyCommentBackgroundColor"))); //fill bookmark color
+            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
+        }
     }
     break;
 
     default:
         break;
     }
-
-    return wStr;
+    return "";
 }
 
 
@@ -333,17 +423,23 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
         {
             int wI = getIndexOffsetFromY(transY(event->y()));
 
-            if(mSize > 0)
+            if(mMemPage->getSize() > 0)
             {
                 // Bound
                 wI = wI >= mInstBuffer.size() ? mInstBuffer.size() - 1 : wI;
                 wI = wI < 0 ? 0 : wI;
 
                 int_t wRowIndex = mInstBuffer.at(wI).rva;
+                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
-                    expandSelectionUpTo(wRowIndex);
+                    setSingleSelection(getInitialSelection());
+                    expandSelectionUpTo(getInstructionRVA(getInitialSelection(), 1) - 1);
+                    if(wRowIndex > getInitialSelection()) //select down
+                        expandSelectionUpTo(wRowIndex + wInstrSize);
+                    else
+                        expandSelectionUpTo(wRowIndex);
 
                     repaint();
 
@@ -368,21 +464,63 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
  */
 void Disassembly::mousePressEvent(QMouseEvent* event)
 {
-    //qDebug() << "Disassembly::mousePressEvent";
-
     bool wAccept = false;
 
     if(DbgIsDebugging() && ((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
         if(getGuiState() == AbstractTableView::NoState)
         {
-            if(event->y() > getHeaderHeight())
+            if(mHighlightingMode)
+            {
+                if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
+                {
+                    int rowOffset = getIndexOffsetFromY(transY(event->y()));
+                    if(rowOffset < mInstBuffer.size())
+                    {
+                        BeaTokenizer::BeaSingleToken token;
+                        if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), getCharWidth()))
+                        {
+                            if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
+                                mHighlightToken = token;
+                            else
+                            {
+                                mHighlightToken.value.value = 0;
+                                mHighlightToken.text = "";
+                            }
+                        }
+                        else
+                        {
+                            mHighlightToken.value.value = 0;
+                            mHighlightToken.text = "";
+                        }
+                    }
+                }
+                else
+                {
+                    mHighlightToken.value.value = 0;
+                    mHighlightToken.text = "";
+                }
+            }
+            else if(event->y() > getHeaderHeight())
             {
                 int_t wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
+                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
-                    setSingleSelection(wRowIndex);
+                    if(!(event->modifiers() & Qt::ShiftModifier)) //SHIFT pressed
+                        setSingleSelection(wRowIndex);
+                    if(getSelectionStart() > wRowIndex) //select up
+                    {
+                        setSingleSelection(getInitialSelection());
+                        expandSelectionUpTo(getInstructionRVA(getInitialSelection(), 1) - 1);
+                        expandSelectionUpTo(wRowIndex);
+                    }
+                    else //select down
+                    {
+                        setSingleSelection(getInitialSelection());
+                        expandSelectionUpTo(wRowIndex + wInstrSize);
+                    }
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
@@ -447,36 +585,37 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         int_t botRVA = getTableOffset();
         int_t topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
 
-        if(key == Qt::Key_Up)
-            selectPrevious();
-        else
-            selectNext();
+        bool expand = false;
+        if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
+            expand = true;
 
-        if(getInitialSelection() < botRVA)
+        if(key == Qt::Key_Up)
+            selectPrevious(expand);
+        else
+            selectNext(expand);
+
+        if(getSelectionStart() < botRVA)
         {
-            setTableOffset(getInitialSelection());
+            setTableOffset(getSelectionStart());
         }
-        else if(getInitialSelection() >= topRVA)
+        else if(getSelectionEnd() >= topRVA)
         {
-            setTableOffset(getInstructionRVA(getInitialSelection(),-getNbrOfLineToPrint() + 2));
+            setTableOffset(getInstructionRVA(getSelectionEnd(), -getNbrOfLineToPrint() + 2));
         }
 
         repaint();
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
-        uint_t dest = DbgGetBranchDestination(getInitialSelection() + mBase);
+        uint_t dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!dest)
             return;
-        QString cmd="disasm "+QString("%1").arg(dest, sizeof(int_t)*2, 16, QChar('0')).toUpper();
+        QString cmd = "disasm " + QString("%1").arg(dest, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else
-    {
         AbstractTableView::keyPressEvent(event);
-    }
 }
-
 
 /************************************************************************************
                             ScrollBar Management
@@ -538,35 +677,17 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     int_t rva = addr;
     Instruction_t instruction = DisassembleAt(selHeadRVA);
     Int32 branchType = instruction.disasm.Instruction.BranchType;
+
     GraphicDump_t wPict = GD_Nothing;
 
-    if(     branchType == (Int32)JO      ||
-            branchType == (Int32)JC      ||
-            branchType == (Int32)JE      ||
-            branchType == (Int32)JA      ||
-            branchType == (Int32)JS      ||
-            branchType == (Int32)JP      ||
-            branchType == (Int32)JL      ||
-            branchType == (Int32)JG      ||
-            branchType == (Int32)JB      ||
-            branchType == (Int32)JECXZ   ||
-            branchType == (Int32)JmpType ||
-            branchType == (Int32)RetType ||
-            branchType == (Int32)JNO     ||
-            branchType == (Int32)JNC     ||
-            branchType == (Int32)JNE     ||
-            branchType == (Int32)JNA     ||
-            branchType == (Int32)JNS     ||
-            branchType == (Int32)JNP     ||
-            branchType == (Int32)JNL     ||
-            branchType == (Int32)JNG     ||
-            branchType == (Int32)JNB)
+    if(branchType && branchType != RetType && branchType != CallType)
     {
-        int_t destRVA = (int_t)instruction.disasm.Instruction.AddrValue;
+        int_t destRVA = (int_t)DbgGetBranchDestination(rvaToVa(instruction.rva));
 
-        if(destRVA > (int_t)mBase)
+        int_t base = mMemPage->getBase();
+        if(destRVA >= base && destRVA < base + (int_t)mMemPage->getSize())
         {
-            destRVA -= (int_t)mBase;
+            destRVA -= (int_t)mMemPage->getBase();
 
             if(destRVA < selHeadRVA)
             {
@@ -589,12 +710,19 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         }
     }
 
-    painter->save() ;
+    bool bIsExecute = DbgIsJumpGoingToExecute(rvaToVa(instruction.rva));
 
-    if(DbgIsJumpGoingToExecute(instruction.rva+mBase)) //change pen color when jump is executed
-        painter->setPen(QColor(255, 0, 0));
+    if(branchType == JmpType) //unconditional
+    {
+        painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
+    }
     else
-        painter->setPen(QColor(128, 128, 128));
+    {
+        if(bIsExecute)
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineTrueColor"));
+        else
+            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineFalseColor"));
+    }
 
     if(wPict == GD_Vert)
     {
@@ -605,7 +733,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
         painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
     }
-    if(wPict == GD_FootToTop)
+    else if(wPict == GD_FootToTop)
     {
         painter->drawLine(x, y + getRowHeight() / 2, x + 5, y + getRowHeight() / 2);
         painter->drawLine(x, y, x, y + getRowHeight() / 2);
@@ -623,7 +751,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawLine(x, y + getRowHeight() / 2, x, y + getRowHeight());
         painter->drawPolyline(wPoints, 3);
     }
-    if(wPict == GD_HeadFromTop)
+    else if(wPict == GD_HeadFromTop)
     {
         QPoint wPoints[] =
         {
@@ -636,8 +764,6 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
         painter->drawLine(x, y, x, y + getRowHeight() / 2);
         painter->drawPolyline(wPoints, 3);
     }
-
-    painter->restore();
 
     return 7;
 }
@@ -658,67 +784,66 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 
 int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop)
 {
-    if(loop && funcType==Function_none)
+    if(loop && funcType == Function_none)
         return 0;
-    painter->save();
     painter->setPen(QPen(Qt::black, 2)); //thick black line
-    int height=getRowHeight();
-    int x_add=5;
-    int y_add=4;
-    int end_add=2;
-    int line_width=3;
+    int height = getRowHeight();
+    int x_add = 5;
+    int y_add = 4;
+    int end_add = 2;
+    int line_width = 3;
     if(loop)
     {
-        end_add=-1;
-        x_add=4;
+        end_add = -1;
+        x_add = 4;
     }
     switch(funcType)
     {
     case Function_single:
     {
         if(loop)
-            y_add=height/2+1;
-        painter->drawLine(x+x_add+line_width, y+y_add, x+x_add, y+y_add);
-        painter->drawLine(x+x_add, y+y_add, x+x_add, y+height-y_add-1);
+            y_add = height / 2 + 1;
+        painter->drawLine(x + x_add + line_width, y + y_add, x + x_add, y + y_add);
+        painter->drawLine(x + x_add, y + y_add, x + x_add, y + height - y_add - 1);
         if(loop)
-            y_add=height/2-1;
-        painter->drawLine(x+x_add, y+height-y_add, x+x_add+line_width, y+height-y_add);
+            y_add = height / 2 - 1;
+        painter->drawLine(x + x_add, y + height - y_add, x + x_add + line_width, y + height - y_add);
     }
     break;
 
     case Function_start:
     {
         if(loop)
-            y_add=height/2+1;
-        painter->drawLine(x+x_add+line_width, y+y_add, x+x_add, y+y_add);
-        painter->drawLine(x+x_add, y+y_add, x+x_add, y+height);
+            y_add = height / 2 + 1;
+        painter->drawLine(x + x_add + line_width, y + y_add, x + x_add, y + y_add);
+        painter->drawLine(x + x_add, y + y_add, x + x_add, y + height);
     }
     break;
 
     case Function_middle:
     {
-        painter->drawLine(x+x_add, y, x+x_add, y+height);
+        painter->drawLine(x + x_add, y, x + x_add, y + height);
     }
     break;
 
     case Function_loop_entry:
     {
-        int trisize=2;
-        int y_start=(height-trisize*2)/2+y;
-        painter->drawLine(x+x_add, y_start, x+trisize+x_add, y_start+trisize);
-        painter->drawLine(x+trisize+x_add, y_start+trisize, x+x_add, y_start+trisize*2);
+        int trisize = 2;
+        int y_start = (height - trisize * 2) / 2 + y;
+        painter->drawLine(x + x_add, y_start, x + trisize + x_add, y_start + trisize);
+        painter->drawLine(x + trisize + x_add, y_start + trisize, x + x_add, y_start + trisize * 2);
 
-        painter->drawLine(x+x_add, y, x+x_add, y_start-1);
-        painter->drawLine(x+x_add, y_start+trisize*2+2, x+x_add, y+height);
+        painter->drawLine(x + x_add, y, x + x_add, y_start - 1);
+        painter->drawLine(x + x_add, y_start + trisize * 2 + 2, x + x_add, y + height);
     }
     break;
 
     case Function_end:
     {
         if(loop)
-            y_add=height/2-1;
-        painter->drawLine(x+x_add, y, x+x_add, y+height-y_add);
-        painter->drawLine(x+x_add, y+height-y_add, x+x_add+line_width, y+height-y_add);
+            y_add = height / 2 - 1;
+        painter->drawLine(x + x_add, y, x + x_add, y + height - y_add);
+        painter->drawLine(x + x_add, y + height - y_add, x + x_add + line_width, y + height - y_add);
     }
     break;
 
@@ -728,8 +853,7 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     }
     break;
     }
-    painter->restore();
-    return x_add+line_width+end_add;
+    return x_add + line_width + end_add;
 }
 
 
@@ -759,7 +883,7 @@ int_t Disassembly::getPreviousInstructionRVA(int_t rva, uint_t count)
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
     wBuffer.resize(wMaxByteCountToRead);
 
-    DbgMemRead(mBase + wBottomByteRealRVA, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
+    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
 
     int_t addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
 
@@ -785,13 +909,15 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
     int_t wMaxByteCountToRead;
     int_t wNewRVA;
 
-    wRemainingBytes = mSize - rva;
+    if(mMemPage->getSize() < (uint_t)rva)
+        return rva;
+    wRemainingBytes = mMemPage->getSize() - rva;
 
     wMaxByteCountToRead = 16 * (count + 1);
     wMaxByteCountToRead = wRemainingBytes > wMaxByteCountToRead ? wMaxByteCountToRead : wRemainingBytes;
     wBuffer.resize(wMaxByteCountToRead);
 
-    DbgMemRead(mBase + rva, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
+    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
     wNewRVA = mDisasm->DisassembleNext(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
     wNewRVA += rva;
@@ -839,20 +965,20 @@ int_t Disassembly::getInstructionRVA(int_t index, int_t count)
 Instruction_t Disassembly::DisassembleAt(int_t rva)
 {
     QByteArray wBuffer;
-    int_t base = mBase;
+    int_t base = mMemPage->getBase();
     int_t wMaxByteCountToRead = 16 * 2;
 
     // Bounding
     //TODO: fix problems with negative sizes
     int_t size = getSize();
     if(!size)
-        size=rva;
+        size = rva;
 
     wMaxByteCountToRead = wMaxByteCountToRead > (size - rva) ? (size - rva) : wMaxByteCountToRead;
 
     wBuffer.resize(wMaxByteCountToRead);
 
-    DbgMemRead(mBase+rva, reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead);
+    mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), rva, wMaxByteCountToRead);
 
     return mDisasm->DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, base, rva);
 }
@@ -882,15 +1008,16 @@ void Disassembly::expandSelectionUpTo(int_t to)
     if(to < mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = to;
-        mSelection.toIndex = mSelection.firstSelectedIndex;
     }
     else if(to > mSelection.firstSelectedIndex)
     {
-        mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
     }
+    else if(to == mSelection.firstSelectedIndex)
+    {
+        setSingleSelection(to);
+    }
 }
-
 
 void Disassembly::setSingleSelection(int_t index)
 {
@@ -921,20 +1048,59 @@ int_t Disassembly::getSelectionEnd()
     return mSelection.toIndex;
 }
 
-
-void Disassembly::selectNext()
+void Disassembly::selectNext(bool expand)
 {
-    int_t wAddr = getInstructionRVA(getInitialSelection(), 1);
-
-    setSingleSelection(wAddr);
+    int_t wAddr;
+    int_t wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    if(expand)
+    {
+        if(getSelectionEnd() == getInitialSelection() && wStart != getSelectionEnd()) //decrease down
+        {
+            wAddr = getInstructionRVA(getSelectionStart(), 1);
+            expandSelectionUpTo(wAddr);
+        }
+        else //expand down
+        {
+            wAddr = getSelectionEnd() + 1;
+            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            expandSelectionUpTo(wAddr + wInstrSize);
+        }
+    }
+    else //select next instruction
+    {
+        wAddr = getSelectionEnd() + 1;
+        setSingleSelection(wAddr);
+        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        expandSelectionUpTo(wAddr + wInstrSize);
+    }
 }
 
 
-void Disassembly::selectPrevious()
+void Disassembly::selectPrevious(bool expand)
 {
-    int_t wAddr = getInstructionRVA(getInitialSelection(), -1);
-
-    setSingleSelection(wAddr);
+    int_t wAddr;
+    int_t wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    if(expand)
+    {
+        if(getSelectionStart() == getInitialSelection() && wStart != getSelectionEnd()) //decrease up
+        {
+            wAddr = getInstructionRVA(getSelectionEnd() + 1, -2);
+            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            expandSelectionUpTo(wAddr + wInstrSize);
+        }
+        else //expand up
+        {
+            wAddr = getInstructionRVA(wStart + 1, -2);
+            expandSelectionUpTo(wAddr);
+        }
+    }
+    else
+    {
+        wAddr = getInstructionRVA(getSelectionStart(), -1);
+        setSingleSelection(wAddr);
+        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        expandSelectionUpTo(wAddr + wInstrSize);
+    }
 }
 
 
@@ -958,7 +1124,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 {
     if(buffer->size() > 0 && index >= 0 && index < buffer->size())
     {
-        if(buffer->at(index).rva >= mSelection.fromIndex && buffer->at(index).rva <= mSelection.toIndex)
+        if((int_t)buffer->at(index).rva >= mSelection.fromIndex && (int_t)buffer->at(index).rva <= mSelection.toIndex)
             return true;
         else
             return false;
@@ -973,6 +1139,38 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 /************************************************************************************
                          Update/Reload/Refresh/Repaint
 ************************************************************************************/
+
+void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer)
+{
+    instBuffer->clear();
+    Instruction_t wInst;
+    for(int wI = 0; wI < wCount; wI++)
+    {
+        wInst = DisassembleAt(wRVA);
+        instBuffer->append(wInst);
+        wRVA += wInst.length;
+    }
+}
+
+void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer)
+{
+    if(startRva == endRva)
+        prepareDataCount(startRva, 1, instBuffer);
+    else
+    {
+        int wCount = 0;
+        int_t addr = startRva;
+        while(addr < endRva)
+        {
+            addr = getNextInstructionRVA(addr, 1);
+            wCount++;
+        }
+        if(addr - 1 != endRva)
+            wCount--;
+        prepareDataCount(startRva, wCount, instBuffer);
+    }
+}
+
 void Disassembly::prepareData()
 {
     int_t wViewableRowsCount = getViewableRowsCount();
@@ -997,19 +1195,13 @@ void Disassembly::prepareData()
 
     setNbrOfLineToPrint(wCount);
 
-    int wI = 0;
-    int_t wRVA = 0;
-    Instruction_t wInst;
+    prepareDataCount(getTableOffset(), wCount, &mInstBuffer);
+}
 
-    wRVA = getTableOffset();
-    mInstBuffer.clear();
-
-    for(wI = 0; wI < wCount; wI++)
-    {
-        wInst = DisassembleAt(wRVA);
-        mInstBuffer.append(wInst);
-        wRVA += wInst.lentgh;
-    }
+void Disassembly::reloadData()
+{
+    emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
+    AbstractTableView::reloadData();
 }
 
 
@@ -1018,7 +1210,7 @@ void Disassembly::prepareData()
 ************************************************************************************/
 uint_t Disassembly::rvaToVa(int_t rva)
 {
-    return mBase + rva;
+    return mMemPage->va(rva);
 }
 
 void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset)
@@ -1036,15 +1228,15 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     if(history)
     {
         //truncate everything right from the current VA
-        if(mVaHistory.size() && mCurrentVa<mVaHistory.size()-1) //mCurrentVa is not the last
-            mVaHistory.erase(mVaHistory.begin()+mCurrentVa+1, mVaHistory.end());
+        if(mVaHistory.size() && mCurrentVa < mVaHistory.size() - 1) //mCurrentVa is not the last
+            mVaHistory.erase(mVaHistory.begin() + mCurrentVa + 1, mVaHistory.end());
 
         //NOTE: mCurrentVa always points to the last entry of the list
 
         //add the currently selected address to the history
-        int_t selectionVA=rvaToVa(getInitialSelection()); //currently selected VA
-        int_t selectionTableOffset=getTableOffset();
-        if(selectionVA && mVaHistory.size() && mVaHistory.last().va!=selectionVA) //do not have 2x the same va in a row
+        int_t selectionVA = rvaToVa(getInitialSelection()); //currently selected VA
+        int_t selectionTableOffset = getTableOffset();
+        if(selectionVA && mVaHistory.size() && mVaHistory.last().va != selectionVA) //do not have 2x the same va in a row
         {
             if(mVaHistory.size() >= 1024) //max 1024 in the history
             {
@@ -1052,24 +1244,28 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
                 mVaHistory.erase(mVaHistory.begin()); //remove the oldest element
             }
             mCurrentVa++;
-            newHistory.va=selectionVA;
-            newHistory.tableOffset=selectionTableOffset;
+            newHistory.va = selectionVA;
+            newHistory.tableOffset = selectionTableOffset;
             mVaHistory.push_back(newHistory);
         }
     }
 
     // Set base and size (Useful when memory page changed)
-    mBase = wBase;
-    mSize = wSize;
+    mMemPage->setAttributes(wBase, wSize);
+
+    if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
+        mRvaDisplayEnabled = false;
 
     setRowCount(wSize);
 
     setSingleSelection(wRVA);               // Selects disassembled instruction
+    int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+    expandSelectionUpTo(wRVA + wInstrSize);
 
     //set CIP rva
     mCipRva = wCipRva;
 
-    if(newTableOffset==-1) //nothing specified
+    if(newTableOffset == -1) //nothing specified
     {
         // Update table offset depending on the location of the instruction to disassemble
         if(mInstBuffer.size() > 0 && wRVA >= (int_t)mInstBuffer.first().rva && wRVA < (int_t)mInstBuffer.last().rva)
@@ -1098,7 +1294,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         }
         else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
         {
-            setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().lentgh);
+            setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().length);
         }
         else
         {
@@ -1108,11 +1304,11 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         if(history)
         {
             //new disassembled address
-            newHistory.va=parVA;
-            newHistory.tableOffset=getTableOffset();
+            newHistory.va = parVA;
+            newHistory.tableOffset = getTableOffset();
             if(mVaHistory.size())
             {
-                if(mVaHistory.last().va!=parVA) //not 2x the same va in history
+                if(mVaHistory.last().va != parVA) //not 2x the same va in history
                 {
                     if(mVaHistory.size() >= 1024) //max 1024 in the history
                     {
@@ -1140,9 +1336,21 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         MessageBoxA(GuiGetWindowHandle(), strList.toUtf8().constData(), QString().sprintf("mCurrentVa=%d", mCurrentVa).toUtf8().constData(), MB_ICONINFORMATION);
     }
     */
-
+    emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
     reloadData();
+
 }
+
+QList<Instruction_t>* Disassembly::instructionsBuffer()
+{
+    return &mInstBuffer;
+}
+
+const int_t Disassembly::currentEIP() const
+{
+    return mCipRva;
+}
+
 
 void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 {
@@ -1152,9 +1360,11 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 
 void Disassembly::disassembleClear()
 {
+    mHighlightingMode = false;
+    mHighlightToken.value.value = 0;
+    mHighlightToken.text = "";
     historyClear();
-    mBase = 0;
-    mSize = 0;
+    mMemPage->setAttributes(0, 0);
     setRowCount(0);
     reloadData();
 }
@@ -1162,20 +1372,30 @@ void Disassembly::disassembleClear()
 
 void Disassembly::debugStateChangedSlot(DBGSTATE state)
 {
-    if(state==stopped)
+    switch(state)
     {
+    case stopped:
         disassembleClear();
+        break;
+    case paused:
+        mIsRunning = false;
+        break;
+    case running:
+        mIsRunning = true;
+        break;
+    default:
+        break;
     }
 }
 
-int_t Disassembly::getBase()
+const int_t Disassembly::getBase() const
 {
-    return mBase;
+    return mMemPage->getBase();
 }
 
 int_t Disassembly::getSize()
 {
-    return mSize;
+    return mMemPage->getSize();
 }
 
 void Disassembly::historyClear()
@@ -1195,7 +1415,7 @@ void Disassembly::historyPrevious()
 void Disassembly::historyNext()
 {
     int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size()-1) //we are at the newest history entry
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
         return;
     mCurrentVa++;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
@@ -1211,7 +1431,55 @@ bool Disassembly::historyHasPrevious()
 bool Disassembly::historyHasNext()
 {
     int size = mVaHistory.size();
-    if(!size || mCurrentVa >= mVaHistory.size()-1) //we are at the newest history entry
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
         return false;
     return true;
+}
+
+QString Disassembly::getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE])
+{
+    QString addrText = "";
+    if(mRvaDisplayEnabled) //RVA display
+    {
+        int_t rva = cur_addr - mRvaDisplayBase;
+        if(rva == 0)
+        {
+#ifdef _WIN64
+            addrText = "$ ==>            ";
+#else
+            addrText = "$ ==>    ";
+#endif //_WIN64
+        }
+        else if(rva > 0)
+        {
+#ifdef _WIN64
+            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+        else if(rva < 0)
+        {
+#ifdef _WIN64
+            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+#else
+            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+#endif //_WIN64
+        }
+    }
+    addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    char label_[MAX_LABEL_SIZE] = "";
+    if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
+    {
+        char module[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+            addrText += " <" + QString(module) + "." + QString(label_) + ">";
+        else
+            addrText += " <" + QString(label_) + ">";
+    }
+    else
+        *label_ = 0;
+    if(label)
+        strcpy_s(label, MAX_LABEL_SIZE, label_);
+    return addrText;
 }

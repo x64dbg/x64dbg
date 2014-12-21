@@ -2,7 +2,7 @@
 
 StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
 {
-    this->setFrameStyle(QFrame::Sunken|QFrame::Panel); //sunken style
+    this->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
     this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
     this->setTextFormat(Qt::RichText); //rich text
     if(parent) //the debug-status label only has a parent
@@ -14,7 +14,10 @@ StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
         connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     }
     else //last log message
+    {
         connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(logUpdate(QString)));
+        connect(Bridge::getBridge(), SIGNAL(addMsgToStatusBar(QString)), this, SLOT(logUpdate(QString)));
+    }
 }
 
 void StatusLabel::debugStateChangedSlot(DBGSTATE state)
@@ -41,12 +44,14 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
     default:
         break;
     }
+    this->repaint();
 }
 
 void StatusLabel::logUpdate(QString message)
 {
     if(labelText.contains(QChar('\n'))) //newline
-        labelText="";
-    labelText+=message;
+        labelText = "";
+    labelText += message;
     setText(labelText);
+    this->repaint();
 }

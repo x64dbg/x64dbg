@@ -2,29 +2,23 @@
 #define BRIDGE_H
 
 #include <QObject>
-#include <QDebug>
-#include <QtGui>
-#include "BeaHighlight.h"
-#include "NewTypes.h"
-#include "ReferenceView.h"
-
-#include "main.h"
-
-#include "Exports.h"
+#include <QMutex>
 #include "Imports.h"
-
+#include "NewTypes.h"
+#include "SearchListView.h"
 
 class Bridge : public QObject
 {
     Q_OBJECT
 public:
-    explicit Bridge(QObject *parent = 0);
+    explicit Bridge(QObject* parent = 0);
+    ~Bridge();
 
     static Bridge* getBridge();
     static void initBridge();
 
     // Misc functions
-    static void CopyToClipboard(const char* text);
+    static void CopyToClipboard(const QString & text);
 
     //result function
     void BridgeSetResult(int_t result);
@@ -47,6 +41,7 @@ public:
     void emitScriptSetInfoLine(int line, QString info);
     void emitScriptMessage(QString message);
     int emitScriptQuestion(QString message);
+    void emitScriptEnableHighlighting(bool enable);
     void emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void emitAddMsgToSymbolLog(QString msg);
     void emitClearSymbolLog();
@@ -62,18 +57,31 @@ public:
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
     void emitUpdateThreads();
+    void emitUpdateMemory();
     void emitAddRecentFile(QString file);
     void emitSetLastException(unsigned int exceptionCode);
     int emitMenuAddMenu(int hMenu, QString title);
     int emitMenuAddMenuEntry(int hMenu, QString title);
     void emitMenuAddSeparator(int hMenu);
     void emitMenuClearMenu(int hMenu);
+    bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
+    bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
+    bool emitGetStrWindow(const QString title, QString* text);
+    void emitAutoCompleteAddCmd(const QString cmd);
+    void emitAutoCompleteDelCmd(const QString cmd);
+    void emitAutoCompleteClearAll();
+    void emitAddMsgToStatusBar(QString msg);
+    void emitUpdateSideBar();
+    void emitRepaintTableView();
+    void emitUpdatePatches();
+    void emitUpdateCallStack();
+    void emitSymbolRefreshCurrent();
 
     //Public variables
     void* winId;
     QWidget* scriptView;
     SearchListView* referenceView;
-    
+
 signals:
     void disassembleAt(int_t va, int_t eip);
     void repaintGui();
@@ -92,6 +100,7 @@ signals:
     void scriptSetInfoLine(int line, QString info);
     void scriptMessage(QString message);
     void scriptQuestion(QString message);
+    void scriptEnableHighlighting(bool enable);
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void addMsgToSymbolLog(QString msg);
     void clearSymbolLog();
@@ -107,15 +116,32 @@ signals:
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
     void updateThreads();
+    void updateMemory();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
     void menuAddMenu(int hMenu, QString title);
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
     void menuClearMenu(int hMenu);
+    void selectionDisasmGet(SELECTIONDATA* selection);
+    void selectionDisasmSet(const SELECTIONDATA* selection);
+    void selectionDumpGet(SELECTIONDATA* selection);
+    void selectionDumpSet(const SELECTIONDATA* selection);
+    void selectionStackGet(SELECTIONDATA* selection);
+    void selectionStackSet(const SELECTIONDATA* selection);
+    void getStrWindow(const QString title, QString* text);
+    void autoCompleteAddCmd(const QString cmd);
+    void autoCompleteDelCmd(const QString cmd);
+    void autoCompleteClearAll();
+    void addMsgToStatusBar(QString msg);
+    void updateSideBar();
+    void repaintTableView();
+    void updatePatches();
+    void updateCallStack();
+    void symbolRefreshCurrent();
 
 private:
-    QMutex mBridgeMutex;
+    QMutex* mBridgeMutex;
     int_t bridgeResult;
     bool hasBridgeResult;
 

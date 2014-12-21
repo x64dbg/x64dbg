@@ -1,40 +1,43 @@
 #include "BreakpointsView.h"
+#include "Configuration.h"
+#include "Bridge.h"
+#include "Breakpoints.h"
 
-BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
+BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
 {
-    // Hardware
-    mHardBPTable = new StdTable(this);
-    int wCharWidth = QFontMetrics(mHardBPTable->font()).width(QChar(' '));
-    mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Hardware", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mHardBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mHardBPTable->addColumnAt(wCharWidth*10, "Comment", false);
-
     // Software
     mSoftBPTable = new StdTable(this);
+    int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Software", false);
-    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mSoftBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mSoftBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mSoftBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Software", false, "Address");
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mSoftBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
+
+    // Hardware
+    mHardBPTable = new StdTable(this);
+    mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Hardware", false, "Address");
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mHardBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mHardBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
 
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8+wCharWidth*2*sizeof(uint_t), "Memory", false);
-    mMemBPTable->addColumnAt(8+wCharWidth*32, "Name", false);
-    mMemBPTable->addColumnAt(8+wCharWidth*32, "Module/Label", false);
-    mMemBPTable->addColumnAt(8+wCharWidth*8, "State", false);
-    mMemBPTable->addColumnAt(wCharWidth*10, "Comment", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Memory", false, "Address");
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
+    mMemBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
+    mMemBPTable->addColumnAt(wCharWidth * 10, "Comment", false);
 
     // Splitter
     mSplitter = new QSplitter(this);
     mSplitter->setOrientation(Qt::Vertical);
-    mSplitter->addWidget(mHardBPTable);
     mSplitter->addWidget(mSoftBPTable);
+    mSplitter->addWidget(mHardBPTable);
     mSplitter->addWidget(mMemBPTable);
 
     // Layout
@@ -49,11 +52,17 @@ BreakpointsView::BreakpointsView(QWidget *parent) : QWidget(parent)
     setupSoftBPRightClickContextMenu();
     setupMemBPRightClickContextMenu();
 
+    refreshShortcutsSlot();
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+
     // Signals/Slots
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(reloadData()));
-    connect(mHardBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
-    connect(mSoftBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
-    connect(mMemBPTable, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
+    connect(mHardBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
+    connect(mHardBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickHardwareSlot()));
+    connect(mSoftBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
+    connect(mSoftBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickSoftwareSlot()));
+    connect(mMemBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
+    connect(mMemBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickMemorySlot()));
 }
 
 
@@ -67,16 +76,16 @@ void BreakpointsView::reloadData()
     mHardBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mHardBPTable->setCellContent(wI, 0, addr_text);
         mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mHardBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -86,7 +95,7 @@ void BreakpointsView::reloadData()
         else
             mHardBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mHardBPTable->setCellContent(wI, 4, comment);
     }
@@ -99,16 +108,16 @@ void BreakpointsView::reloadData()
     mSoftBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mSoftBPTable->setCellContent(wI, 0, addr_text);
         mSoftBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mSoftBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -118,7 +127,7 @@ void BreakpointsView::reloadData()
         else
             mSoftBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mSoftBPTable->setCellContent(wI, 4, comment);
     }
@@ -131,16 +140,16 @@ void BreakpointsView::reloadData()
     mMemBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text=QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         mMemBPTable->setCellContent(wI, 0, addr_text);
         mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
         QString label_text;
-        char label[MAX_LABEL_SIZE]="";
+        char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(wBPList.bp[wI].addr, SEG_DEFAULT, label))
-            label_text="<"+QString(wBPList.bp[wI].mod)+"."+QString(label)+">";
+            label_text = "<" + QString(wBPList.bp[wI].mod) + "." + QString(label) + ">";
         else
-            label_text=QString(wBPList.bp[wI].mod);
+            label_text = QString(wBPList.bp[wI].mod);
         mMemBPTable->setCellContent(wI, 2, label_text);
 
         if(wBPList.bp[wI].active == false)
@@ -150,7 +159,7 @@ void BreakpointsView::reloadData()
         else
             mMemBPTable->setCellContent(wI, 3, "Disabled");
 
-        char comment[MAX_COMMENT_SIZE]="";
+        char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
             mMemBPTable->setCellContent(wI, 4, comment);
     }
@@ -168,7 +177,6 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     // Remove
     mHardBPRemoveAction = new QAction("Remove", this);
     mHardBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mHardBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mHardBPTable->addAction(mHardBPRemoveAction);
     connect(mHardBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeHardBPActionSlot()));
 
@@ -179,18 +187,30 @@ void BreakpointsView::setupHardBPRightClickContextMenu()
     // Enable/Disable
     mHardBPEnableDisableAction = new QAction("Enable", this);
     mHardBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mHardBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mHardBPTable->addAction(mHardBPEnableDisableAction);
     connect(mHardBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableHardBPActionSlot()));
 }
 
+void BreakpointsView::refreshShortcutsSlot()
+{
+    mHardBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mHardBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
+
+    mSoftBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mSoftBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
+
+    mMemBPRemoveAction->setShortcut(ConfigShortcut("ActionDeleteBreakpoint"));
+    mMemBPEnableDisableAction->setShortcut(ConfigShortcut("ActionEnableDisableBreakpoint"));
+}
+
 void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 {
-    if(mHardBPTable->getRowCount() != 0)
+    StdTable* table = mHardBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -228,25 +248,46 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mHardBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mHardBPTable->mapToGlobal(pos));
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        table->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
+
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeHardBPActionSlot()
 {
-    //qDebug() << "mHardBPTable->getInitialSelection()" << mHardBPTable->getInitialSelection();
-    uint_t wVA = mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mHardBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_hardware, wVA);
 }
 
 void BreakpointsView::removeAllHardBPActionSlot()
 {
-
+    DbgCmdExec("bphwc");
 }
 
 void BreakpointsView::enableDisableHardBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_hardware, mHardBPTable->getCellContent(mHardBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mHardBPTable;
+    Breakpoints::toggleBPByDisabling(bp_hardware, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
+}
+
+void BreakpointsView::doubleClickHardwareSlot()
+{
+    StdTable* table = mHardBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }
 
 
@@ -258,7 +299,6 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     // Remove
     mSoftBPRemoveAction = new QAction("Remove", this);
     mSoftBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mSoftBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mSoftBPTable->addAction(mSoftBPRemoveAction);
     connect(mSoftBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeSoftBPActionSlot()));
 
@@ -269,18 +309,18 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     // Enable/Disable
     mSoftBPEnableDisableAction = new QAction("Enable", this);
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mSoftBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
 }
 
 void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 {
-    if(mSoftBPTable->getRowCount() != 0)
+    StdTable* table = mSoftBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -318,24 +358,46 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mSoftBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mSoftBPTable->mapToGlobal(pos));
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        table->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
+
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeSoftBPActionSlot()
 {
-    uint_t wVA = mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mSoftBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_normal, wVA);
 }
 
 void BreakpointsView::removeAllSoftBPActionSlot()
 {
-
+    DbgCmdExec("bc");
 }
 
 void BreakpointsView::enableDisableSoftBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_normal, mSoftBPTable->getCellContent(mSoftBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mSoftBPTable;
+    Breakpoints::toggleBPByDisabling(bp_normal, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
+}
+
+void BreakpointsView::doubleClickSoftwareSlot()
+{
+    StdTable* table = mSoftBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }
 
 
@@ -347,7 +409,6 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     // Remove
     mMemBPRemoveAction = new QAction("Remove", this);
     mMemBPRemoveAction->setShortcutContext(Qt::WidgetShortcut);
-    mMemBPRemoveAction->setShortcut(QKeySequence(Qt::Key_Delete));
     mMemBPTable->addAction(mMemBPRemoveAction);
     connect(mMemBPRemoveAction, SIGNAL(triggered()), this, SLOT(removeMemBPActionSlot()));
 
@@ -358,18 +419,18 @@ void BreakpointsView::setupMemBPRightClickContextMenu()
     // Enable/Disable
     mMemBPEnableDisableAction = new QAction("Enable", this);
     mMemBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
-    mMemBPEnableDisableAction->setShortcut(QKeySequence(Qt::Key_Space));
     mMemBPTable->addAction(mMemBPEnableDisableAction);
     connect(mMemBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableMemBPActionSlot()));
 }
 
 void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 {
-    if(mMemBPTable->getRowCount() != 0)
+    StdTable* table = mMemBPTable;
+    if(table->getRowCount() != 0)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -407,22 +468,44 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
         // Remove All
         wMenu->addAction(mMemBPRemoveAllAction);
 
-        QAction* wAction = wMenu->exec(mMemBPTable->mapToGlobal(pos));
+        //Copy
+        QMenu wCopyMenu("&Copy", this);
+        table->setupCopyMenu(&wCopyMenu);
+        if(wCopyMenu.actions().length())
+        {
+            wMenu->addSeparator();
+            wMenu->addMenu(&wCopyMenu);
+        }
+
+        wMenu->exec(table->mapToGlobal(pos));
     }
 }
 
 void BreakpointsView::removeMemBPActionSlot()
 {
-    uint_t wVA = mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16);
+    StdTable* table = mMemBPTable;
+    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_memory, wVA);
 }
 
 void BreakpointsView::removeAllMemBPActionSlot()
 {
-
+    DbgCmdExec("bpmc");
 }
 
 void BreakpointsView::enableDisableMemBPActionSlot()
 {
-    Breakpoints::toogleBPByDisabling(bp_memory, mMemBPTable->getCellContent(mMemBPTable->getInitialSelection(), 0).toULongLong(0, 16));
+    StdTable* table = mMemBPTable;
+    Breakpoints::toggleBPByDisabling(bp_memory, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
+    int_t sel = table->getInitialSelection();
+    if(sel + 1 < table->getRowCount())
+        table->setSingleSelection(sel + 1);
+}
+
+void BreakpointsView::doubleClickMemorySlot()
+{
+    StdTable* table = mMemBPTable;
+    QString addrText = table->getCellContent(table->getInitialSelection(), 0);
+    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
+    emit showCpu();
 }

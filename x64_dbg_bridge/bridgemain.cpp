@@ -1,10 +1,10 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
-#include <new>
+#include "simpleini.h"
 
 static HINSTANCE hInst;
-static char szIniFile[1024]="";
+static wchar_t szIniFile[MAX_PATH] = L"";
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -14,120 +14,65 @@ static char szIniFile[1024]="";
 #define gui_lib "x32_gui.dll"
 #endif // _WIN64
 
+#define LOADLIBRARY(name) \
+    szLib=name; \
+    hInst=LoadLibraryA(name); \
+    if(!hInst) \
+        return "Error loading library \""name"\"!"
+
+#define LOADEXPORT(name) \
+    *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
+    if(!name) \
+    { \
+        sprintf(szError, "Export %s:%s could not be found!", szLib, #name); \
+        return szError; \
+    }
+
 //Bridge
 BRIDGE_IMPEXP const char* BridgeInit()
 {
     ///Settings load
-    if(!GetModuleFileNameA(0, szIniFile, 1024))
+    if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
         return "Error getting module path!";
-    int len=strlen(szIniFile);
-    while(szIniFile[len]!='.' && szIniFile[len]!='\\')
+    int len = (int)wcslen(szIniFile);
+    while(szIniFile[len] != L'.' && szIniFile[len] != L'\\' && len)
         len--;
-    if(szIniFile[len]=='\\')
-        strcat(szIniFile, ".ini");
+    if(szIniFile[len] == L'\\')
+        wcscat_s(szIniFile, L".ini");
     else
-        strcpy(&szIniFile[len], ".ini");
-    ///GUI Load
-    hInstGui=LoadLibraryA(gui_lib); //Sigma
-    if(!hInstGui)
-        return "Error loading GUI library ("gui_lib")!";
-    //_gui_guiinit
-    _gui_guiinit=(GUIGUIINIT)GetProcAddress(hInstGui, "_gui_guiinit");
-    if(!_gui_guiinit)
-        return "Export \"_gui_guiinit\" could not be found!";
-    //_gui_sendmessage;
-    _gui_sendmessage=(GUISENDMESSAGE)GetProcAddress(hInstGui, "_gui_sendmessage");
-    if(!_gui_sendmessage)
-        return "Export \"_gui_sendmessage\" could not be found!";
+        wcscpy_s(&szIniFile[len], _countof(szIniFile) - len, L".ini");
 
-    ///DBG Load
-    hInstDbg=LoadLibraryA(dbg_lib); //Mr. eXoDia
-    if(!hInstDbg)
-        return "Error loading debugger library ("dbg_lib")!";
-    //_dbg_dbginit
-    _dbg_dbginit=(DBGDBGINIT)GetProcAddress(hInstDbg, "_dbg_dbginit");
-    if(!_dbg_dbginit)
-        return "Export \"_dbg_dbginit\" could not be found!";
-    //_dbg_memfindbaseaddr
-    _dbg_memfindbaseaddr=(DBGMEMFINDBASEADDR)GetProcAddress(hInstDbg, "_dbg_memfindbaseaddr");
-    if(!_dbg_memfindbaseaddr)
-        return "Export \"_dbg_memfindbaseaddr\" could not be found!";
-    //_dbg_memread
-    _dbg_memread=(DBGMEMREAD)GetProcAddress(hInstDbg, "_dbg_memread");
-    if(!_dbg_memread)
-        return "Export \"_dbg_memread\" could not be found!";
-    //_dbg_memwrite
-    _dbg_memwrite=(DBGMEMWRITE)GetProcAddress(hInstDbg, "_dbg_memwrite");
-    if(!_dbg_memwrite)
-        return "Export \"_dbg_memwrite\" could not be found!";
-    //_dbg_dbgcmdexec
-    _dbg_dbgcmdexec=(DBGDBGCMDEXEC)GetProcAddress(hInstDbg, "_dbg_dbgcmdexec");
-    if(!_dbg_dbgcmdexec)
-        return "Export \"_dbg_dbgcmdexec\" could not be found!";
-    //_dbg_memmap
-    _dbg_memmap=(DBGMEMMAP)GetProcAddress(hInstDbg, "_dbg_memmap");
-    if(!_dbg_memmap)
-        return "Export \"_dbg_memmap\" could not be found!";
-    //_dbg_dbgexitsignal
-    _dbg_dbgexitsignal=(DBGDBGEXITSIGNAL)GetProcAddress(hInstDbg, "_dbg_dbgexitsignal");
-    if(!_dbg_dbgexitsignal)
-        return "Export \"_dbg_dbgexitsignal\" could not be found!";
-    //_dbg_valfromstring
-    _dbg_valfromstring=(DBGVALFROMSTRING)GetProcAddress(hInstDbg, "_dbg_valfromstring");
-    if(!_dbg_valfromstring)
-        return "Export \"_dbg_valfromstring\" could not be found!";
-    //_dbg_isdebugging
-    _dbg_isdebugging=(DBGISDEBUGGING)GetProcAddress(hInstDbg, "_dbg_isdebugging");
-    if(!_dbg_isdebugging)
-        return "Export \"_dbg_isdebugging\" could not be found!";
-    //_dbg_isjumpgoingtoexecute
-    _dbg_isjumpgoingtoexecute=(DBGISJUMPGOINGTOEXECUTE)GetProcAddress(hInstDbg, "_dbg_isjumpgoingtoexecute");
-    if(!_dbg_isjumpgoingtoexecute)
-        return "Export \"_dbg_isjumpgoingtoexecute\" could not be found!";
-    //_dbg_addrinfoget
-    _dbg_addrinfoget=(DBGADDRINFOGET)GetProcAddress(hInstDbg, "_dbg_addrinfoget");
-    if(!_dbg_addrinfoget)
-        return "Export \"_dbg_addrinfoget\" could not be found!";
-    //_dbg_addrinfoset
-    _dbg_addrinfoset=(DBGADDRINFOSET)GetProcAddress(hInstDbg, "_dbg_addrinfoset");
-    if(!_dbg_addrinfoset)
-        return "Export \"_dbg_addrinfoset\" could not be found!";
-    //_dbg_bpgettypeat
-    _dbg_bpgettypeat=(DBGBPGETTYPEAT)GetProcAddress(hInstDbg, "_dbg_bpgettypeat");
-    if(!_dbg_bpgettypeat)
-        return "Export \"_dbg_bpgettypeat\" could not be found!";
-    //_dbg_getregdump
-    _dbg_getregdump=(DBGGETREGDUMP)GetProcAddress(hInstDbg, "_dbg_getregdump");
-    if(!_dbg_getregdump)
-        return "Export \"_dbg_getregdump\" could not be found!";
-    //_dbg_valtostring
-    _dbg_valtostring=(DBGVALTOSTRING)GetProcAddress(hInstDbg, "_dbg_valtostring");
-    if(!_dbg_valtostring)
-        return "Export \"_dbg_valtostring\" could not be found!";
-    //_dbg_memisvalidreadptr
-    _dbg_memisvalidreadptr=(DBGMEMISVALIDREADPTR)GetProcAddress(hInstDbg, "_dbg_memisvalidreadptr");
-    if(!_dbg_memisvalidreadptr)
-        return "Export \"_dbg_memisvalidreadptr\" could not be found!";
-    //_dbg_getbplist
-    _dbg_getbplist=(DBGGETBPLIST)GetProcAddress(hInstDbg, "_dbg_getbplist");
-    if(!_dbg_getbplist)
-        return "Export \"_dbg_getbplist\" could not be found!";
-    //_dbg_dbgcmddirectexec
-    _dbg_dbgcmddirectexec=(DBGDBGCMDEXECDIRECT)GetProcAddress(hInstDbg, "_dbg_dbgcmddirectexec");
-    if(!_dbg_dbgcmddirectexec)
-        return "Export \"_dbg_dbgcmddirectexec\" could not be found!";
-    //_dbg_getbranchdestination
-    _dbg_getbranchdestination=(DBGGETBRANCHDESTINATION)GetProcAddress(hInstDbg, "_dbg_getbranchdestination");
-    if(!_dbg_getbranchdestination)
-        return "Export \"_dbg_getbranchdestination\" could not be found!";
-    //_dbg_functionoverlaps
-    _dbg_functionoverlaps=(DBGFUNCTIONOVERLAPS)GetProcAddress(hInstDbg, "_dbg_functionoverlaps");
-    if(!_dbg_functionoverlaps)
-        return "Export \"_dbg_functionoverlaps\" could not be found!";
-    //_dbg_sendmessage
-    _dbg_sendmessage=(DBGSENDMESSAGE)GetProcAddress(hInstDbg, "_dbg_sendmessage");
-    if(!_dbg_sendmessage)
-        return "Export \"_dbg_sendmessage\" could not be found!";
+    HINSTANCE hInst;
+    const char* szLib;
+    static char szError[256] = "";
+
+    //GUI Load
+    LOADLIBRARY(gui_lib);
+    LOADEXPORT(_gui_guiinit);
+    LOADEXPORT(_gui_sendmessage);
+
+    //DBG Load
+    LOADLIBRARY(dbg_lib);
+    LOADEXPORT(_dbg_dbginit);
+    LOADEXPORT(_dbg_memfindbaseaddr);
+    LOADEXPORT(_dbg_memread);
+    LOADEXPORT(_dbg_memwrite);
+    LOADEXPORT(_dbg_dbgcmdexec);
+    LOADEXPORT(_dbg_memmap);
+    LOADEXPORT(_dbg_dbgexitsignal);
+    LOADEXPORT(_dbg_valfromstring);
+    LOADEXPORT(_dbg_isdebugging);
+    LOADEXPORT(_dbg_isjumpgoingtoexecute);
+    LOADEXPORT(_dbg_addrinfoget);
+    LOADEXPORT(_dbg_addrinfoset);
+    LOADEXPORT(_dbg_bpgettypeat);
+    LOADEXPORT(_dbg_getregdump);
+    LOADEXPORT(_dbg_valtostring);
+    LOADEXPORT(_dbg_memisvalidreadptr);
+    LOADEXPORT(_dbg_getbplist);
+    LOADEXPORT(_dbg_dbgcmddirectexec);
+    LOADEXPORT(_dbg_getbranchdestination);
+    LOADEXPORT(_dbg_sendmessage);
     return 0;
 }
 
@@ -136,14 +81,12 @@ BRIDGE_IMPEXP const char* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     _gui_guiinit(0, 0); //remove arguments
-    _dbg_dbgexitsignal(); //send exit signal to debugger
     return 0;
 }
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    //unsigned char* a=(unsigned char*)VirtualAlloc(0, size, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    unsigned char* a=new (std::nothrow)unsigned char[size];
+    unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
@@ -155,16 +98,20 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
-    //VirtualFree(ptr, 0, MEM_RELEASE);
-    delete[] (unsigned char*)ptr;
+    GlobalFree(ptr);
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)
 {
     if(!section || !key || !value)
         return false;
-    if(!GetPrivateProfileStringA(section, key, "", value, MAX_SETTING_SIZE, szIniFile))
+    CSimpleIniA inifile(true, false, false);
+    if(inifile.LoadFile(szIniFile) < 0)
         return false;
+    const char* szValue = inifile.GetValue(section, key);
+    if(!szValue)
+        return false;
+    strcpy_s(value, MAX_SETTING_SIZE, szValue);
     return true;
 }
 
@@ -172,13 +119,13 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 {
     if(!section || !key || !value)
         return false;
-    char newvalue[MAX_SETTING_SIZE]="";
+    char newvalue[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet(section, key, newvalue))
         return false;
 #ifdef _WIN64
-    int ret=sscanf(newvalue, "%llX", value);
+    int ret = sscanf(newvalue, "%llX", value);
 #else
-    int ret=sscanf(newvalue, "%X", value);
+    int ret = sscanf(newvalue, "%X", value);
 #endif //_WIN64
     if(ret)
         return true;
@@ -187,18 +134,22 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
-    if(!section || !key || !value)
+    if(!section)
         return false;
-    if(!WritePrivateProfileStringA(section, key, value, szIniFile))
-        return false;
-    return true;
+    CSimpleIniA inifile(true, false, false);
+    inifile.LoadFile(szIniFile);
+    if(!key || !value) //delete value/key when 0
+        inifile.Delete(section, key, true);
+    else
+        inifile.SetValue(section, key, value);
+    return inifile.SaveFile(szIniFile, false) >= 0;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
 {
     if(!section || !key)
         return false;
-    char newvalue[MAX_SETTING_SIZE]="";
+    char newvalue[MAX_SETTING_SIZE] = "";
 #ifdef _WIN64
     sprintf(newvalue, "%llX", value);
 #else
@@ -207,10 +158,20 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
     return BridgeSettingSet(section, key, newvalue);
 }
 
+BRIDGE_IMPEXP int BridgeGetDbgVersion()
+{
+    return DBG_VERSION;
+}
+
 //Debugger
 BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 {
-    bool ret=_dbg_memread(va, dest, size, 0);
+    if(IsBadWritePtr(dest, size))
+    {
+        GuiAddLogMessage("DbgMemRead with invalid boundaries!\n");
+        return false;
+    }
+    bool ret = _dbg_memread(va, dest, size, 0);
     if(!ret)
         memset(dest, 0x90, size);
     return ret;
@@ -218,12 +179,17 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
 
 BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
 {
+    if(IsBadReadPtr(src, size))
+    {
+        GuiAddLogMessage("DbgMemWrite with invalid boundaries!\n");
+        return false;
+    }
     return _dbg_memwrite(va, src, size, 0);
 }
 
 BRIDGE_IMPEXP duint DbgMemGetPageSize(duint base)
 {
-    duint size=0;
+    duint size = 0;
     _dbg_memfindbaseaddr(base, &size);
     return size;
 }
@@ -245,7 +211,7 @@ BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap)
 
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 {
-    duint value=0;
+    duint value = 0;
     return _dbg_valfromstring(expression, &value);
 }
 
@@ -265,15 +231,17 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flaglabel;
+    info.flags = flaglabel;
     if(!_dbg_addrinfoget(addr, segment, &info))
     {
-        duint addr_=0;
+        duint addr_ = 0;
         if(!DbgMemIsValidReadPtr(addr))
             return false;
         DbgMemRead(addr, (unsigned char*)&addr_, sizeof(duint));
-        if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &info))
+        ADDRINFO ptrinfo = info;
+        if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &ptrinfo))
             return false;
+        sprintf_s(info.label, "&%s", ptrinfo.label);
     }
     strcpy(text, info.label);
     return true;
@@ -281,11 +249,11 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
 
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
 {
-    if(!text || strlen(text)>=MAX_LABEL_SIZE || !addr)
+    if(!text || strlen(text) >= MAX_LABEL_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flaglabel;
+    info.flags = flaglabel;
     strcpy(info.label, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -298,7 +266,7 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagcomment;
+    info.flags = flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.comment);
@@ -307,11 +275,11 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
 {
-    if(!text || strlen(text)>=MAX_COMMENT_SIZE || !addr)
+    if(!text || strlen(text) >= MAX_COMMENT_SIZE || !addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagcomment;
+    info.flags = flagcomment;
     strcpy(info.comment, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
@@ -324,7 +292,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagmodule;
+    info.flags = flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     strcpy(text, info.module);
@@ -337,7 +305,7 @@ BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagbookmark;
+    info.flags = flagbookmark;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
     return info.isbookmark;
@@ -349,14 +317,19 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
         return false;
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagbookmark;
-    info.isbookmark=isbookmark;
+    info.flags = flagbookmark;
+    info.isbookmark = isbookmark;
     return _dbg_addrinfoset(addr, &info);
 }
 
 BRIDGE_IMPEXP const char* DbgInit()
 {
     return _dbg_dbginit();
+}
+
+BRIDGE_IMPEXP void DbgExit()
+{
+    _dbg_dbgexitsignal(); //send exit signal to debugger
 }
 
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
@@ -366,7 +339,7 @@ BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr)
 
 BRIDGE_IMPEXP duint DbgValFromString(const char* string)
 {
-    duint value=0;
+    duint value = 0;
     _dbg_valfromstring(string, &value);
     return value;
 }
@@ -378,7 +351,7 @@ BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
-    duint valueCopy=value;
+    duint valueCopy = value;
     return _dbg_valtostring(string, &valueCopy);
 }
 
@@ -401,81 +374,40 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
 {
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
-    info.flags=flagfunction;
+    info.flags = flagfunction;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return FUNC_NONE;
-    duint start=info.function.start;
-    duint end=info.function.end;
-    if(start==end)
+    duint start = info.function.start;
+    duint end = info.function.end;
+    if(start == end)
         return FUNC_SINGLE;
-    else if(addr==start)
+    else if(addr == start)
         return FUNC_BEGIN;
-    else if(addr==end)
+    else if(addr == end)
         return FUNC_END;
     return FUNC_MIDDLE;
 }
 
 BRIDGE_IMPEXP LOOPTYPE DbgGetLoopTypeAt(duint addr, int depth)
 {
-    //NOTE: test code for 'function.exe'
-    /*if(depth==0)
-    {
-        if(addr==0x00401348)
-            return LOOP_BEGIN;
-        else if(addr==0x004013A8)
-            return LOOP_ENTRY;
-        else if(addr>0x00401348 && addr<0x004013B3)
-            return LOOP_MIDDLE;
-        else if(addr==0x004013B3)
-            return LOOP_END;
-    }
-    else if(depth==1)
-    {
-        if(addr==0x00401351)
-            return LOOP_BEGIN;
-        else if(addr==0x00401398)
-            return LOOP_ENTRY;
-        else if(addr>0x00401351 && addr<0x004013A3)
-            return LOOP_MIDDLE;
-        else if(addr==0x004013A3)
-            return LOOP_END;
-    }
-    else if(depth==2)
-    {
-        if(addr==0x0040135A)
-            return LOOP_BEGIN;
-        else if(addr==0x00401388)
-            return LOOP_ENTRY;
-        else if(addr>0x0040135A && addr<0x00401393)
-            return LOOP_MIDDLE;
-        else if(addr==0x00401393)
-            return LOOP_END;
-    }*/
-    return LOOP_NONE;
+    ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags = flagloop;
+    info.loop.depth = depth;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return LOOP_NONE;
+    duint start = info.loop.start;
+    duint end = info.loop.end;
+    if(addr == start)
+        return LOOP_BEGIN;
+    else if(addr == end)
+        return LOOP_END;
+    return LOOP_MIDDLE;
 }
 
 BRIDGE_IMPEXP duint DbgGetBranchDestination(duint addr)
 {
     return _dbg_getbranchdestination(addr);
-}
-
-BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
-{
-    return _dbg_functionoverlaps(start, end);
-}
-
-BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
-{
-    ADDRINFO info;
-    memset(&info, 0, sizeof(info));
-    info.flags=flagfunction;
-    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
-        return false;
-    if(start)
-        *start=info.function.start;
-    if(end)
-        *end=info.function.end;
-    return true;
 }
 
 BRIDGE_IMPEXP void DbgScriptLoad(const char* filename)
@@ -534,12 +466,17 @@ BRIDGE_IMPEXP void DbgScriptSetIp(int line)
     _dbg_sendmessage(DBG_SCRIPT_SETIP, (void*)(duint)line, 0);
 }
 
+BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
+{
+    return !!_dbg_sendmessage(DBG_SCRIPT_GETBRANCHINFO, (void*)(duint)line, info);
+}
+
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
-    cbInfo.base=base;
-    cbInfo.cbSymbolEnum=cbSymbolEnum;
-    cbInfo.user=user;
+    cbInfo.base = base;
+    cbInfo.cbSymbolEnum = cbSymbolEnum;
+    cbInfo.user = user;
     _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
@@ -562,7 +499,7 @@ BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr)
 
 BRIDGE_IMPEXP bool DbgStackCommentGet(duint addr, STACK_COMMENT* comment)
 {
-    return (bool)(duint)_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
+    return !!_dbg_sendmessage(DBG_STACK_COMMENT_GET, (void*)addr, comment);
 }
 
 BRIDGE_IMPEXP void DbgGetThreadList(THREADLIST* list)
@@ -583,6 +520,180 @@ BRIDGE_IMPEXP void DbgDisasmFastAt(duint addr, BASIC_INSTRUCTION_INFO* basicinfo
 BRIDGE_IMPEXP void DbgMenuEntryClicked(int hEntry)
 {
     _dbg_sendmessage(DBG_MENU_ENTRY_CLICKED, (void*)(duint)hEntry, 0);
+}
+
+
+BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    if(!_dbg_sendmessage(DBG_FUNCTION_GET, &info, 0))
+        return false;
+    *start = info.start;
+    *end = info.end;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionOverlaps(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    if(!_dbg_sendmessage(DBG_FUNCTION_OVERLAPS, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionAdd(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    info.manual = false;
+    if(!_dbg_sendmessage(DBG_FUNCTION_ADD, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgFunctionDel(duint addr)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    if(!_dbg_sendmessage(DBG_FUNCTION_DEL, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    info.depth = depth;
+    if(!_dbg_sendmessage(DBG_LOOP_GET, &info, 0))
+        return false;
+    *start = info.start;
+    *end = info.end;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopOverlaps(int depth, duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    info.depth = depth;
+    if(!_dbg_sendmessage(DBG_LOOP_OVERLAPS, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopAdd(duint start, duint end)
+{
+    FUNCTION_LOOP_INFO info;
+    info.start = start;
+    info.end = end;
+    info.manual = false;
+    if(!_dbg_sendmessage(DBG_LOOP_ADD, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgLoopDel(int depth, duint addr)
+{
+    FUNCTION_LOOP_INFO info;
+    info.addr = addr;
+    info.depth = depth;
+    if(!_dbg_sendmessage(DBG_LOOP_DEL, &info, 0))
+        return false;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgIsRunLocked()
+{
+    if(_dbg_sendmessage(DBG_IS_RUN_LOCKED, 0, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP bool DbgIsBpDisabled(duint addr)
+{
+    if(_dbg_sendmessage(DBG_IS_BP_DISABLED, (void*)addr, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoCommentAt(duint addr, const char* text)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_COMMENT_AT, (void*)addr, (void*)text))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoCommentRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_COMMENT_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoLabelAt(duint addr, const char* text)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_LABEL_AT, (void*)addr, (void*)text))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoLabelRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_LABEL_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoBookmarkAt(duint addr)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_BOOKMARK_AT, (void*)addr, 0))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoBookmarkRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_BOOKMARK_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgSetAutoFunctionAt(duint start, duint end)
+{
+    if(_dbg_sendmessage(DBG_SET_AUTO_FUNCTION_AT, (void*)start, (void*)end))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP void DbgClearAutoFunctionRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_AUTO_FUNCTION_RANGE, (void*)start, (void*)end);
+}
+
+BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
+{
+    if(_dbg_sendmessage(DBG_GET_STRING_AT, (void*)addr, text))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
+{
+    return (const DBGFUNCTIONS*)_dbg_sendmessage(DBG_GET_FUNCTIONS, 0, 0);
+}
+
+BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
+{
+    if(_dbg_sendmessage(DBG_WIN_EVENT, message, result))
+        return true;
+    return false;
+}
+
+BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
+{
+    if(_dbg_sendmessage(DBG_WIN_EVENT_GLOBAL, message, 0))
+        return true;
+    return false;
 }
 
 //GUI
@@ -613,6 +724,8 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateBreakpointsView();
     GuiUpdateDumpView();
     GuiUpdateThreadView();
+    GuiUpdateSideBar();
+    GuiRepaintTableView();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -685,6 +798,11 @@ BRIDGE_IMPEXP int GuiScriptMsgyn(const char* message)
     return (int)(duint)_gui_sendmessage(GUI_SCRIPT_MSGYN, (void*)message, 0);
 }
 
+BRIDGE_IMPEXP void GuiScriptEnableHighlighting(bool enable)
+{
+    _gui_sendmessage(GUI_SCRIPT_ENABLEHIGHLIGHTING, (void*)(duint)enable, 0);
+}
+
 BRIDGE_IMPEXP void GuiSymbolLogAdd(const char* message)
 {
     _gui_sendmessage(GUI_SYMBOL_LOG_ADD, (void*)message, 0);
@@ -710,6 +828,11 @@ BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title)
     _gui_sendmessage(GUI_REF_ADDCOLUMN, (void*)(duint)width, (void*)title);
 }
 
+BRIDGE_IMPEXP void GuiSymbolRefreshCurrent()
+{
+    _gui_sendmessage(GUI_SYMBOL_REFRESH_CURRENT, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count)
 {
     _gui_sendmessage(GUI_REF_SETROWCOUNT, (void*)(duint)count, 0);
@@ -728,9 +851,9 @@ BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 {
     CELLINFO info;
-    info.row=row;
-    info.col=col;
-    info.str=str;
+    info.row = row;
+    info.col = col;
+    info.str = str;
     _gui_sendmessage(GUI_REF_SETCELLCONTENT, &info, 0);
 }
 
@@ -769,6 +892,11 @@ BRIDGE_IMPEXP void GuiUpdateDumpView()
     _gui_sendmessage(GUI_UPDATE_DUMP_VIEW, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiUpdateMemoryView()
+{
+    _gui_sendmessage(GUI_UPDATE_MEMORY_VIEW, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiUpdateThreadView()
 {
     _gui_sendmessage(GUI_UPDATE_THREAD_VIEW, 0, 0);
@@ -786,7 +914,7 @@ BRIDGE_IMPEXP void GuiSetLastException(unsigned int exception)
 
 BRIDGE_IMPEXP bool GuiGetDisassembly(duint addr, char* text)
 {
-    return (bool)(duint)_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
+    return !!_gui_sendmessage(GUI_GET_DISASSEMBLY, (void*)addr, text);
 }
 
 BRIDGE_IMPEXP int GuiMenuAdd(int hMenu, const char* title)
@@ -809,10 +937,65 @@ BRIDGE_IMPEXP void GuiMenuClear(int hMenu)
     _gui_sendmessage(GUI_MENU_CLEAR, (void*)(duint)hMenu, 0);
 }
 
+BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
+{
+    return !!_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
+}
+
+BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
+{
+    return !!_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
+}
+
+BRIDGE_IMPEXP bool GuiGetLineWindow(const char* title, char* text)
+{
+    return !!_gui_sendmessage(GUI_GETLINE_WINDOW, (void*)title, text);
+}
+
+BRIDGE_IMPEXP void GuiAutoCompleteAddCmd(const char* cmd)
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_ADDCMD, (void*)cmd, 0);
+}
+
+BRIDGE_IMPEXP void GuiAutoCompleteDelCmd(const char* cmd)
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_DELCMD, (void*)cmd, 0);
+}
+
+BRIDGE_IMPEXP void GuiAutoCompleteClearAll()
+{
+    _gui_sendmessage(GUI_AUTOCOMPLETE_CLEARALL, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiAddStatusBarMessage(const char* msg)
+{
+    _gui_sendmessage(GUI_ADD_MSG_TO_STATUSBAR, (void*)msg, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateSideBar()
+{
+    _gui_sendmessage(GUI_UPDATE_SIDEBAR, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiRepaintTableView()
+{
+    _gui_sendmessage(GUI_REPAINT_TABLE_VIEW, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdatePatches()
+{
+    _gui_sendmessage(GUI_UPDATE_PATCHES, 0, 0);
+}
+
+BRIDGE_IMPEXP void GuiUpdateCallStack()
+{
+    _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
+}
+
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-    hInst=hinstDLL;
+    hInst = hinstDLL;
     return TRUE;
 }
 

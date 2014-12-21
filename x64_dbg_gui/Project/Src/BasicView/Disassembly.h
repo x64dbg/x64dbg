@@ -1,22 +1,17 @@
 #ifndef DISASSEMBLY_H
 #define DISASSEMBLY_H
 
-#include <QtGui>
-#include <QtDebug>
-#include "NewTypes.h"
-#include "Bridge.h"
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
-#include "BeaHighlight.h"
+#include "MemoryPage.h"
 
 class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit Disassembly(QWidget *parent = 0);
-
-    // Private Functions
-    void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const QList<CustomRichText_t>* richText);
+    explicit Disassembly(QWidget* parent = 0);
+    void colorsUpdated();
+    void fontsUpdated();
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
@@ -63,18 +58,19 @@ public:
     int_t getSelectionSize();
     int_t getSelectionStart();
     int_t getSelectionEnd();
-    void selectNext();
-    void selectPrevious();
+    void selectNext(bool expand);
+    void selectPrevious(bool expand);
     bool isSelected(int_t base, int_t offset);
     bool isSelected(QList<Instruction_t>* buffer, int index);
 
     // Update/Reload/Refresh/Repaint
     void prepareData();
+    void reloadData();
 
     // Public Methods
     uint_t rvaToVa(int_t rva);
     void disassembleClear();
-    int_t getBase();
+    const int_t getBase() const;
     int_t getSize();
 
     // history management
@@ -87,9 +83,18 @@ public:
     //disassemble
     void disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
 
+    QList<Instruction_t>* instructionsBuffer();
+    const int_t baseAddress() const;
+    const int_t currentEIP() const;
+
+    QString getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE]);
+    void prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer);
+    void prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer);
+
 signals:
     void selectionChanged(int_t parVA);
-    
+    void disassembledAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
+
 public slots:
     void disassembleAt(int_t parVA, int_t parCIP);
     void debugStateChangedSlot(DBGSTATE state);
@@ -110,11 +115,9 @@ private:
     SelectionData_t mSelection;
 
     bool mIsLastInstDisplayed;
+    bool mIsRunning;
 
     GuiState_t mGuiState;
-
-    int_t mBase;
-    int_t mSize;
 
     int_t mCipRva;
 
@@ -128,6 +131,14 @@ private:
 
     QList<HistoryData_t> mVaHistory;
     int mCurrentVa;
+    BeaTokenizer::BeaSingleToken mHighlightToken;
+
+protected:
+    bool mRvaDisplayEnabled;
+    uint_t mRvaDisplayBase;
+    int_t mRvaDisplayPageBase;
+    bool mHighlightingMode;
+    MemoryPage* mMemPage;
 };
 
 #endif // DISASSEMBLY_H

@@ -18,6 +18,7 @@
 #endif // deflen
 
 #include "bridgemain.h"
+#include "_dbgfunctions.h"
 
 #endif // BUILD_DBG
 
