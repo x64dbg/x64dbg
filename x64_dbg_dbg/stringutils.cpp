@@ -23,6 +23,50 @@ StringList StringUtils::Split(const String & s, char delim)
     return elems;
 }
 
+String StringUtils::Escape(const String & s)
+{
+    String escaped = "";
+    for(size_t i = 0; i < s.length(); i++)
+    {
+        char ch = s[i];
+        switch(ch)
+        {
+        case '\t':
+            escaped += "\\t";
+            break;
+        case '\f':
+            escaped += "\\f";
+            break;
+        case '\v':
+            escaped += "\\v";
+            break;
+        case '\n':
+            escaped += "\\n";
+            break;
+        case '\r':
+            escaped += "\\r";
+            break;
+        case '\\':
+            escaped += "\\\\";
+            break;
+        case '\"':
+            escaped += "\\\"";
+            break;
+        default:
+            if(!isprint(ch)) //unknown unprintable character
+            {
+                char buf[16] = "";
+                sprintf_s(buf, "\\%.2X", ch);
+                escaped += buf;
+            }
+            else
+                escaped += ch;
+            break;
+        }
+    }
+    return escaped;
+}
+
 //Trim functions taken from: http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring/16743707#16743707
 const String StringUtils::WHITESPACE = " \n\r\t";
 

@@ -439,7 +439,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     }
     else
         DeleteFileA(alloctrace);
-    CriticalSectionDeleteLocks();
+    CriticalSectionLocker::Deinitialize();
 }
 
 /**

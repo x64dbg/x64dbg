@@ -231,42 +231,7 @@ bool modload(uint base, uint size, const char* fullpath)
                 for(int k = 0; k < len; k++)
                     if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                         escape_count++;
-                Memory<char*> SectionNameEscaped(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
-                memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
-                for(int k = 0, l = 0; k < len; k++)
-                {
-                    switch(SectionName[k])
-                    {
-                    case '\t':
-                        l += sprintf(SectionNameEscaped + l, "\\t");
-                        break;
-                    case '\f':
-                        l += sprintf(SectionNameEscaped + l, "\\f");
-                        break;
-                    case '\v':
-                        l += sprintf(SectionNameEscaped + l, "\\v");
-                        break;
-                    case '\n':
-                        l += sprintf(SectionNameEscaped + l, "\\n");
-                        break;
-                    case '\r':
-                        l += sprintf(SectionNameEscaped + l, "\\r");
-                        break;
-                    case '\\':
-                        l += sprintf(SectionNameEscaped + l, "\\\\");
-                        break;
-                    case '\"':
-                        l += sprintf(SectionNameEscaped + l, "\\\"");
-                        break;
-                    default:
-                        if(!isprint(SectionName[k])) //unknown unprintable character
-                            l += sprintf(SectionNameEscaped + l, "\\x%.2X", SectionName[k]);
-                        else
-                            l += sprintf(SectionNameEscaped + l, "%c", SectionName[k]);
-                        break;
-                    }
-                }
-                strcpy_s(curSection.name, SectionNameEscaped);
+                strcpy_s(curSection.name, StringUtils::Escape(SectionName).c_str());
                 info.sections.push_back(curSection);
             }
         }

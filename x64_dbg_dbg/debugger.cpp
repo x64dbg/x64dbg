@@ -112,6 +112,7 @@ static SIZE_T cachePrivateUsage = 0;
  */
 
 static HANDLE hEvent = 0;
+static String lastDebugText;
 
 /**
  @brief Superglobal variables.
@@ -1389,6 +1390,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
+
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
@@ -1399,46 +1401,15 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         Memory<char*> DebugText(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
         if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
-            int len = (int)strlen(DebugText);
-            int escape_count = 0;
-            for(int i = 0; i < len; i++)
-                if(DebugText[i] == '\\' or DebugText[i] == '\"' or !isprint(DebugText[i]))
-                    escape_count++;
-            Memory<char*> DebugTextEscaped(len + escape_count * 3 + 1, "cbOutputDebugString:DebugTextEscaped");
-            for(int i = 0, j = 0; i < len; i++)
+            String str = String(DebugText);
+            if(str != lastDebugText) //fix for every string being printed twice
             {
-                switch(DebugText[i])
-                {
-                case '\t':
-                    j += sprintf(DebugTextEscaped + j, "\\t");
-                    break;
-                case '\f':
-                    j += sprintf(DebugTextEscaped + j, "\\f");
-                    break;
-                case '\v':
-                    j += sprintf(DebugTextEscaped + j, "\\v");
-                    break;
-                case '\n':
-                    j += sprintf(DebugTextEscaped + j, "\\n");
-                    break;
-                case '\r':
-                    j += sprintf(DebugTextEscaped + j, "\\r");
-                    break;
-                case '\\':
-                    j += sprintf(DebugTextEscaped + j, "\\\\");
-                    break;
-                case '\"':
-                    j += sprintf(DebugTextEscaped + j, "\\\"");
-                    break;
-                default:
-                    if(!isprint(DebugText[i])) //unknown unprintable character
-                        j += sprintf(DebugTextEscaped + j, "\\%.2x", DebugText[i]);
-                    else
-                        j += sprintf(DebugTextEscaped + j, "%c", DebugText[i]);
-                    break;
-                }
+                if(str != "\n")
+                    dprintf("DebugString: \"%s\"\n", StringUtils::Escape(str).c_str());
+                lastDebugText = str;
             }
-            dprintf("DebugString: \"%s\"\n", DebugTextEscaped());
+            else
+                lastDebugText = "";
         }
     }
 
@@ -1518,47 +1489,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
             if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
-                int len = (int)strlen(ThreadName);
-                int escape_count = 0;
-                for(int i = 0; i < len; i++)
-                    if(ThreadName[i] == '\\' or ThreadName[i] == '\"' or !isprint(ThreadName[i]))
-                        escape_count++;
-                Memory<char*> ThreadNameEscaped(len + escape_count * 3 + 1, "cbException:ThreadNameEscaped");
-                for(int i = 0, j = 0; i < len; i++)
-                {
-                    switch(ThreadName[i])
-                    {
-                    case '\t':
-                        j += sprintf(ThreadNameEscaped + j, "\\t");
-                        break;
-                    case '\f':
-                        j += sprintf(ThreadNameEscaped + j, "\\f");
-                        break;
-                    case '\v':
-                        j += sprintf(ThreadNameEscaped + j, "\\v");
-                        break;
-                    case '\n':
-                        j += sprintf(ThreadNameEscaped + j, "\\n");
-                        break;
-                    case '\r':
-                        j += sprintf(ThreadNameEscaped + j, "\\r");
-                        break;
-                    case '\\':
-                        j += sprintf(ThreadNameEscaped + j, "\\\\");
-                        break;
-                    case '\"':
-                        j += sprintf(ThreadNameEscaped + j, "\\\"");
-                        break;
-                    default:
-                        if(!isprint(ThreadName[i])) //unknown unprintable character
-                            j += sprintf(ThreadNameEscaped + j, "\\%.2x", ThreadName[i]);
-                        else
-                            j += sprintf(ThreadNameEscaped + j, "%c", ThreadName[i]);
-                        break;
-                    }
-                }
-                dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped());
-                threadsetname(nameInfo.dwThreadID, ThreadNameEscaped);
+                String ThreadNameEscaped = StringUtils::Escape(ThreadName);
+                dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                threadsetname(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
             }
         }
     }

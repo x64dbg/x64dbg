@@ -4,6 +4,9 @@
 */
 
 #include "console.h"
+#include "threading.h"
+
+static char msg[66000] = "";
 
 /**
 \brief Print a line with text, terminated with a newline to the console.
@@ -20,9 +23,9 @@ void dputs(const char* text)
 */
 void dprintf(const char* format, ...)
 {
+    CriticalSectionLocker locker(LockDprintf);
     va_list args;
     va_start(args, format);
-    Memory<char*> msg(66000);
-    vsnprintf(msg, msg.size(), format, args);
+    vsnprintf(msg, sizeof(msg), format, args);
     GuiAddLogMessage(msg);
 }

@@ -167,6 +167,7 @@ private:
 
     int_t mRowCount;
 
+    int mMouseWheelScrollDelta;
 
     int_t mTableOffset;
     Header_t mHeader;
