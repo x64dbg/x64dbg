@@ -451,10 +451,6 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
     return true;
 }
 
-/*
-- handle math
-*/
-
 /**
 \brief Calculate the value of an expression string.
 \param string The string to calculate the value of. Cannot be null.
