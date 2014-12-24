@@ -1,7 +1,7 @@
 /**
  @file math.cpp
 
- @brief Implements the mathematics class.
+ @brief Implements various functionalities that have to do with handling expression text.
  */
 
 #include "math.h"
@@ -302,7 +302,7 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 \param [in,out] expstruct The expression structure. Cannot be null.
 \param [in,out] expression The expression text to parse. Cannot be null.
 \param endlayer The layer to stop on. This variable is used for the recursion termination condition.
-\return The position in the \pexpression mathpairs ended in.
+\return The position in the \p expression mathpairs ended in.
 */
 static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer = 0)
 {
