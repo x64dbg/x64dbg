@@ -13,20 +13,6 @@
 #include <cwctype>
 #include <cwchar>
 
-/**
- @fn uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
-
- @brief Disasmbacks.
-
- @param [in,out] data If non-null, the data.
- @param base          The base.
- @param size          The size.
- @param ip            The IP.
- @param n             The int to process.
-
- @return An uint.
- */
-
 uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
 {
     int i;
@@ -91,20 +77,6 @@ uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
         return abuf[(i - n + 128) % 128];
 }
 
-/**
- @fn uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
-
- @brief Disasmnexts.
-
- @param [in,out] data If non-null, the data.
- @param base          The base.
- @param size          The size.
- @param ip            The IP.
- @param n             The int to process.
-
- @return An uint.
- */
-
 uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 {
     int i;
@@ -147,16 +119,6 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
     return ip;
 }
 
-/**
- @fn const char* disasmtext(uint addr)
-
- @brief Disasmtexts the given address.
-
- @param addr The address.
-
- @return null if it fails, else a char*.
- */
-
 const char* disasmtext(uint addr)
 {
     unsigned char buffer[16] = "";
@@ -176,16 +138,6 @@ const char* disasmtext(uint addr)
         strcpy(instruction, disasm.CompleteInstr);
     return instruction;
 }
-
-/**
- @fn static SEGMENTREG ConvertBeaSeg(int beaSeg)
-
- @brief Convert bea segment.
-
- @param beaSeg The bea segment.
-
- @return The bea converted segment.
- */
 
 static SEGMENTREG ConvertBeaSeg(int beaSeg)
 {
@@ -212,19 +164,6 @@ static SEGMENTREG ConvertBeaSeg(int beaSeg)
     }
     return SEG_DEFAULT;
 }
-
-/**
- @fn static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG* arg, uint addr)
-
- @brief Handles the argument.
-
- @param [in,out] Argument    If non-null, the argument.
- @param [in,out] Instruction If non-null, the instruction.
- @param [in,out] arg         If non-null, the argument.
- @param addr                 The address.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG* arg, uint addr)
 {
@@ -282,16 +221,6 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     return true;
 }
 
-/**
- @fn void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
-
- @brief Disasmgets.
-
- @param [in,out] buffer If non-null, the buffer.
- @param addr            The address.
- @param [in,out] instr  If non-null, the instr.
- */
-
 void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
 {
     if(!DbgIsDebugging())
@@ -333,15 +262,6 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
         instr->argcount++;
 }
 
-/**
- @fn void disasmget(uint addr, DISASM_INSTR* instr)
-
- @brief Disasmgets.
-
- @param addr           The address.
- @param [in,out] instr If non-null, the instr.
- */
-
 void disasmget(uint addr, DISASM_INSTR* instr)
 {
     if(!DbgIsDebugging())
@@ -355,14 +275,6 @@ void disasmget(uint addr, DISASM_INSTR* instr)
     disasmget(buffer, addr, instr);
 }
 
-/**
- @fn void disasmprint(uint addr)
-
- @brief Disasmprints the given address.
-
- @param addr The address.
- */
-
 void disasmprint(uint addr)
 {
     DISASM_INSTR instr;
@@ -372,17 +284,6 @@ void disasmprint(uint addr)
     for(int i = 0; i < instr.argcount; i++)
         dprintf(" %d:%d:%"fext"X:%"fext"X:%"fext"X\n", i, instr.arg[i].type, instr.arg[i].constant, instr.arg[i].value, instr.arg[i].memvalue);
 }
-
-/**
- @fn static bool isasciistring(const unsigned char* data, int maxlen)
-
- @brief Query if 'data' isasciistring.
-
- @param data   The data.
- @param maxlen The maxlen.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool isasciistring(const unsigned char* data, int maxlen)
 {
@@ -400,17 +301,6 @@ static bool isasciistring(const unsigned char* data, int maxlen)
             return false;
     return true;
 }
-
-/**
- @fn static bool isunicodestring(const unsigned char* data, int maxlen)
-
- @brief Query if 'data' isunicodestring.
-
- @param data   The data.
- @param maxlen The maxlen.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool isunicodestring(const unsigned char* data, int maxlen)
 {
@@ -433,16 +323,6 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
     return true;
 }
 
-/**
- @fn bool disasmispossiblestring(uint addr)
-
- @brief Disasmispossiblestrings the given address.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool disasmispossiblestring(uint addr)
 {
     unsigned char data[11];
@@ -457,20 +337,6 @@ bool disasmispossiblestring(uint addr)
         return true;
     return false;
 }
-
-/**
- @fn bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
-
- @brief Disasmgetstringats.
-
- @param addr             The address.
- @param [in,out] type    If non-null, the type.
- @param [in,out] ascii   If non-null, the ASCII.
- @param [in,out] unicode If non-null, the unicode.
- @param maxlen           The maxlen.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode, int maxlen)
 {
@@ -563,17 +429,6 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     return false;
 }
 
-/**
- @fn int disasmgetsize(uint addr, unsigned char* data)
-
- @brief Disasmgetsizes.
-
- @param addr          The address.
- @param [in,out] data If non-null, the data.
-
- @return An int.
- */
-
 int disasmgetsize(uint addr, unsigned char* data)
 {
     DISASM disasm;
@@ -589,16 +444,6 @@ int disasmgetsize(uint addr, unsigned char* data)
         len = 1;
     return len;
 }
-
-/**
- @fn int disasmgetsize(uint addr)
-
- @brief Disasmgetsizes the given address.
-
- @param addr The address.
-
- @return An int.
- */
 
 int disasmgetsize(uint addr)
 {

@@ -22,40 +22,13 @@
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
 
-/**
- @brief Stack of messages.
- */
-
 static MESSAGE_STACK* gMsgStack = 0;
-
-/**
- @brief List of commands.
- */
 
 static COMMAND* command_list = 0;
 
-/**
- @brief The command loop thread.
- */
-
 static HANDLE hCommandLoopThread = 0;
 
-/**
- @brief The alloctrace[ maximum path].
- */
-
 static char alloctrace[MAX_PATH] = "";
-
-/**
- @fn static CMDRESULT cbStrLen(int argc, char* argv[])
-
- @brief String length.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
@@ -68,33 +41,11 @@ static CMDRESULT cbStrLen(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn static CMDRESULT cbCls(int argc, char* argv[])
-
- @brief Cls.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 static CMDRESULT cbCls(int argc, char* argv[])
 {
     GuiLogClear();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn static CMDRESULT cbPrintf(int argc, char* argv[])
-
- @brief Printfs.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 static CMDRESULT cbPrintf(int argc, char* argv[])
 {
@@ -104,12 +55,6 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
         dprintf("%s", argv[1]);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn static void registercommands()
-
- @brief Registercommands this object.
- */
 
 static void registercommands()
 {
@@ -255,17 +200,6 @@ static void registercommands()
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
 }
 
-/**
- @fn static bool cbCommandProvider(char* cmd, int maxlen)
-
- @brief Command provider.
-
- @param [in,out] cmd If non-null, the command.
- @param maxlen       The maxlen.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
@@ -281,16 +215,6 @@ static bool cbCommandProvider(char* cmd, int maxlen)
     return true;
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
-
- @brief Debug dbgcmdexec.
-
- @param cmd The command.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
     int len = (int)strlen(cmd);
@@ -299,57 +223,21 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
 }
 
-/**
- @fn static DWORD WINAPI DbgCommandLoopThread(void* a)
-
- @brief Debug command loop thread.
-
- @param [in,out] a If non-null, the void* to process.
-
- @return A WINAPI.
- */
-
 static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
     cmdloop(command_list, cbBadCmd, cbCommandProvider, cmdfindmain, false);
     return 0;
 }
 
-/**
- @fn static void* emalloc_json(size_t size)
-
- @brief Emalloc JSON.
-
- @param size The size.
-
- @return null if it fails, else a void*.
- */
-
 static void* emalloc_json(size_t size)
 {
     return emalloc(size, "json:ptr");
 }
 
-/**
- @fn static void efree_json(void* ptr)
-
- @brief Efree JSON.
-
- @param [in,out] ptr If non-null, the pointer.
- */
-
 static void efree_json(void* ptr)
 {
     efree(ptr, "json:ptr");
 }
-
-/**
- @fn extern "C" DLL_EXPORT const char* _dbg_dbginit()
-
- @brief Debug dbginit.
-
- @return null if it fails, else a char*.
- */
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
@@ -414,12 +302,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     return 0;
 }
 
-/**
- @fn extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
-
- @brief Debug dbgexitsignal.
- */
-
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
     cbStopDebug(0, 0);
@@ -442,30 +324,12 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     CriticalSectionLocker::Deinitialize();
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
-
- @brief Debug dbgcmddirectexec.
-
- @param cmd The command.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
     if(cmddirectexec(command_list, cmd) == STATUS_ERROR)
         return false;
     return true;
 }
-
-/**
- @fn COMMAND* dbggetcommandlist()
-
- @brief Gets the dbggetcommandlist.
-
- @return null if it fails, else a COMMAND*.
- */
 
 COMMAND* dbggetcommandlist()
 {

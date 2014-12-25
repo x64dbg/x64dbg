@@ -14,18 +14,6 @@
 static PatchesInfo patches;
 
 
-/**
- @fn bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
-
- @brief Patchsets.
-
- @param addr    The address.
- @param oldbyte The oldbyte.
- @param newbyte The newbyte.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
 {
     if(!DbgIsDebugging() || !memisvalidreadptr(fdProcessInfo->hProcess, addr))
@@ -58,17 +46,6 @@ bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
     return true;
 }
 
-/**
- @fn bool patchget(uint addr, PATCHINFO* patch)
-
- @brief Patchgets.
-
- @param addr           The address.
- @param [in,out] patch If non-null, the patch.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool patchget(uint addr, PATCHINFO* patch)
 {
     if(!DbgIsDebugging())
@@ -86,17 +63,6 @@ bool patchget(uint addr, PATCHINFO* patch)
     return (found->second.oldbyte != found->second.newbyte);
 }
 
-/**
- @fn bool patchdel(uint addr, bool restore)
-
- @brief Patchdels.
-
- @param addr    The address.
- @param restore true to restore.
-
- @return true if it succeeds, false if it fails.
- */
-
 bool patchdel(uint addr, bool restore)
 {
     if(!DbgIsDebugging())
@@ -110,16 +76,6 @@ bool patchdel(uint addr, bool restore)
     patches.erase(found);
     return true;
 }
-
-/**
- @fn void patchdelrange(uint start, uint end, bool restore)
-
- @brief Patchdelranges.
-
- @param start   The start.
- @param end     The end.
- @param restore true to restore.
- */
 
 void patchdelrange(uint start, uint end, bool restore)
 {
@@ -146,14 +102,6 @@ void patchdelrange(uint start, uint end, bool restore)
     }
 }
 
-/**
- @fn void patchclear(const char* mod)
-
- @brief Patchclears the given modifier.
-
- @param mod The modifier.
- */
-
 void patchclear(const char* mod)
 {
     CriticalSectionLocker locker(LockPatches);
@@ -171,17 +119,6 @@ void patchclear(const char* mod)
         }
     }
 }
-
-/**
- @fn bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
-
- @brief Patchenums.
-
- @param [in,out] patcheslist If non-null, the patcheslist.
- @param [in,out] cbsize      If non-null, the cbsize.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
 {
@@ -204,19 +141,6 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
     }
     return true;
 }
-
-/**
- @fn int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, char* error)
-
- @brief Patchfiles.
-
- @param patchlist      The patchlist.
- @param count          Number of.
- @param szFileName     Filename of the file.
- @param [in,out] error If non-null, the error.
-
- @return An int.
- */
 
 int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, char* error)
 {

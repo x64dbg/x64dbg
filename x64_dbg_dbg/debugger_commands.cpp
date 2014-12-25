@@ -18,26 +18,11 @@
 #include "assemble.h"
 #include "disasm_fast.h"
 
-/**
- @brief The scylla loaded.
- */
-
 static bool bScyllaLoaded = false;
 uint LoadLibThreadID;
 LPVOID DLLNameMem;
 LPVOID ASMAddr;
 TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
-
-/**
- @fn CMDRESULT cbDebugInit(int argc, char* argv[])
-
- @brief Debug initialise.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
@@ -117,17 +102,6 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbStopDebug(int argc, char* argv[])
-
- @brief Stops a debug.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbStopDebug(int argc, char* argv[])
 {
     scriptreset(); //reset the currently-loaded script
@@ -136,17 +110,6 @@ CMDRESULT cbStopDebug(int argc, char* argv[])
     wait(WAITID_STOP);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugRun(int argc, char* argv[])
-
- @brief Debug run.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugRun(int argc, char* argv[])
 {
@@ -163,34 +126,12 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugErun(int argc, char* argv[])
-
- @brief Debug erun.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugErun(int argc, char* argv[])
 {
     if(waitislocked(WAITID_RUN))
         dbgsetskipexceptions(true);
     return cbDebugRun(argc, argv);
 }
-
-/**
- @fn CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
-
- @brief Debug set bpx options.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
@@ -228,17 +169,6 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
     dprintf("default breakpoint type set to: %s\n", a);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetBPX(int argc, char* argv[])
-
- @brief Debug set bpx.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 {
@@ -310,17 +240,6 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
-
- @brief Debug delete bpx.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -375,17 +294,6 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
-
- @brief Debug enable bpx.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -435,17 +343,6 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
-
- @brief Debug disable bpx.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -494,33 +391,11 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugBplist(int argc, char* argv[])
-
- @brief Debug bplist.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugBplist(int argc, char* argv[])
 {
     bpenumall(cbBreakpointList);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugStepInto(int argc, char* argv[])
-
- @brief Debug step into.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugStepInto(int argc, char* argv[])
 {
@@ -529,33 +404,11 @@ CMDRESULT cbDebugStepInto(int argc, char* argv[])
     return cbDebugRun(argc, argv);
 }
 
-/**
- @fn CMDRESULT cbDebugeStepInto(int argc, char* argv[])
-
- @brief Debuge step into.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugeStepInto(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugStepInto(argc, argv);
 }
-
-/**
- @fn CMDRESULT cbDebugStepOver(int argc, char* argv[])
-
- @brief Debug step over.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugStepOver(int argc, char* argv[])
 {
@@ -564,33 +417,11 @@ CMDRESULT cbDebugStepOver(int argc, char* argv[])
     return cbDebugRun(argc, argv);
 }
 
-/**
- @fn CMDRESULT cbDebugeStepOver(int argc, char* argv[])
-
- @brief Debuge step over.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugeStepOver(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugStepOver(argc, argv);
 }
-
-/**
- @fn CMDRESULT cbDebugSingleStep(int argc, char* argv[])
-
- @brief Debug single step.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSingleStep(int argc, char* argv[])
 {
@@ -606,33 +437,11 @@ CMDRESULT cbDebugSingleStep(int argc, char* argv[])
     return cbDebugRun(argc, argv);
 }
 
-/**
- @fn CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
-
- @brief Debuge single step.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugeSingleStep(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugSingleStep(argc, argv);
 }
-
-/**
- @fn CMDRESULT cbDebugHide(int argc, char* argv[])
-
- @brief Debug hide.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugHide(int argc, char* argv[])
 {
@@ -642,17 +451,6 @@ CMDRESULT cbDebugHide(int argc, char* argv[])
         dputs("something went wrong");
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugDisasm(int argc, char* argv[])
-
- @brief Debug disasm.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugDisasm(int argc, char* argv[])
 {
@@ -666,17 +464,6 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     DebugUpdateGui(addr, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
-
- @brief Debug set memory bpx.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 {
@@ -738,17 +525,6 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
-
- @brief Debug delete memory breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -795,17 +571,6 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugRtr(int argc, char* argv[])
-
- @brief Debug rtr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugRtr(int argc, char* argv[])
 {
     StepOver((void*)cbRtrStep);
@@ -813,33 +578,11 @@ CMDRESULT cbDebugRtr(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugeRtr(int argc, char* argv[])
-
- @brief Debuge rtr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugeRtr(int argc, char* argv[])
 {
     dbgsetskipexceptions(true);
     return cbDebugRtr(argc, argv);
 }
-
-/**
- @fn CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
-
- @brief Debug set hardware breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
 {
@@ -923,17 +666,6 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
-
- @brief Debug delete hardware breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -976,17 +708,6 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugAlloc(int argc, char* argv[])
-
- @brief Debug allocate.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
     char arg1[deflen] = ""; //size
@@ -1007,17 +728,6 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugFree(int argc, char* argv[])
-
- @brief Debug free.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugFree(int argc, char* argv[])
 {
@@ -1046,17 +756,6 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugMemset(int argc, char* argv[])
-
- @brief Debug memset.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugMemset(int argc, char* argv[])
 {
@@ -1096,17 +795,6 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugBenchmark(int argc, char* argv[])
-
- @brief Debug benchmark.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 {
     uint addr = memfindbaseaddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
@@ -1123,17 +811,6 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugPause(int argc, char* argv[])
-
- @brief Debug pause.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugPause(int argc, char* argv[])
 {
     if(waitislocked(WAITID_RUN))
@@ -1145,16 +822,6 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
     DebugBreakProcess(fdProcessInfo->hProcess);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn static DWORD WINAPI scyllaThread(void* lpParam)
-
- @brief Scylla thread.
-
- @param [in,out] lpParam If non-null, the parameter.
-
- @return A WINAPI.
- */
 
 static DWORD WINAPI scyllaThread(void* lpParam)
 {
@@ -1185,17 +852,6 @@ static DWORD WINAPI scyllaThread(void* lpParam)
     return 0;
 }
 
-/**
- @fn CMDRESULT cbDebugStartScylla(int argc, char* argv[])
-
- @brief Debug start scylla.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugStartScylla(int argc, char* argv[])
 {
     if(bScyllaLoaded)
@@ -1207,17 +863,6 @@ CMDRESULT cbDebugStartScylla(int argc, char* argv[])
     CloseHandle(CreateThread(0, 0, scyllaThread, 0, 0, 0));
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugAttach(int argc, char* argv[])
-
- @brief Debug attach.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugAttach(int argc, char* argv[])
 {
@@ -1270,17 +915,6 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDetach(int argc, char* argv[])
-
- @brief Debug detach.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDetach(int argc, char* argv[])
 {
     unlock(WAITID_RUN); //run
@@ -1289,17 +923,6 @@ CMDRESULT cbDebugDetach(int argc, char* argv[])
     DebugBreakProcess(fdProcessInfo->hProcess);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugDump(int argc, char* argv[])
-
- @brief Debug dump.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugDump(int argc, char* argv[])
 {
@@ -1317,17 +940,6 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
     GuiDumpAt(addr);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugStackDump(int argc, char* argv[])
-
- @brief Debug stack dump.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugStackDump(int argc, char* argv[])
 {
@@ -1349,17 +961,6 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugContinue(int argc, char* argv[])
-
- @brief Debug continue.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugContinue(int argc, char* argv[])
 {
     if(argc < 2)
@@ -1374,17 +975,6 @@ CMDRESULT cbDebugContinue(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugBpDll(int argc, char* argv[])
-
- @brief Debug bp DLL.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugBpDll(int argc, char* argv[])
 {
@@ -1414,17 +1004,6 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugBcDll(int argc, char* argv[])
-
- @brief Debug bc DLL.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugBcDll(int argc, char* argv[])
 {
     if(argc < 2)
@@ -1440,17 +1019,6 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
     dputs("dll breakpoint removed!");
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
-
- @brief Debug switchthread.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
 {
@@ -1469,17 +1037,6 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
     dputs("thread switched!");
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
-
- @brief Debug suspendthread.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
 {
@@ -1503,17 +1060,6 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugResumethread(int argc, char* argv[])
-
- @brief Debug resumethread.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugResumethread(int argc, char* argv[])
 {
     uint threadid = fdProcessInfo->dwThreadId;
@@ -1535,17 +1081,6 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugKillthread(int argc, char* argv[])
-
- @brief Debug killthread.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugKillthread(int argc, char* argv[])
 {
@@ -1657,17 +1192,6 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
-
- @brief Debug enable hardware breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -1715,17 +1239,6 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
-
- @brief Debug disable hardware breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -1763,17 +1276,6 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
-
- @brief Debug enable memory breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
 {
@@ -1822,17 +1324,6 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
-
- @brief Debug disable memory breakpoint.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -1872,17 +1363,6 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
-
- @brief Debug download symbol.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
 {
@@ -1952,17 +1432,6 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
-
- @brief Debug get just-in-time automatic.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 {
     bool jit_auto = false;
@@ -2007,17 +1476,6 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
-
- @brief Debug set just-in-time automatic.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 {
@@ -2096,17 +1554,6 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetJIT(int argc, char* argv[])
-
- @brief Debug set just-in-time.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetJIT(int argc, char* argv[])
 {
@@ -2242,17 +1689,6 @@ CMDRESULT cbDebugSetJIT(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugGetJIT(int argc, char* argv[])
-
- @brief Debug get just-in-time.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 {
     char get_entry[JIT_ENTRY_MAX_SIZE] = "";
@@ -2308,17 +1744,6 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
-
- @brief Debug get page rights.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 {
     uint addr = 0;
@@ -2340,17 +1765,6 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
-
- @brief Debug set page rights.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 {
@@ -2543,17 +1957,6 @@ void showcommandlineerror(cmdline_error_t* cmdline_error)
     }
 }
 
-/**
- @fn CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
-
- @brief Debug get cmdline.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
 {
     char* cmd_line;
@@ -2571,17 +1974,6 @@ CMDRESULT cbDebugGetCmdline(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
-
- @brief Debug set cmdline.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 {

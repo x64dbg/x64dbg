@@ -9,20 +9,6 @@
 #include "memory.h"
 #include "console.h"
 
-/**
- @fn int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
-
- @brief Reffinds.
-
- @param addr              The address.
- @param size              The size.
- @param cbRef             The reference.
- @param [in,out] userinfo If non-null, the userinfo.
- @param silent            true to silent.
-
- @return An int.
- */
-
 int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
 {
     uint start_addr;

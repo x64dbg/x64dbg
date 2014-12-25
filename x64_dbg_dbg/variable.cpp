@@ -170,7 +170,6 @@ bool varset(const char* name, uint value, bool setreadonly)
     return varset(name, &varvalue, setreadonly);
 }
 
-
 bool varset(const char* name, const char* string, bool setreadonly)
 {
     VAR_VALUE varvalue;

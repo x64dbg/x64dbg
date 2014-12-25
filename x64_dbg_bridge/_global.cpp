@@ -1,9 +1,3 @@
-/**********************************************************************************************//**
- * \file _global.cpp
- *
- * \brief Defines the global function pointers to the GUI's and the DBG's exported functions.
- *        These are used to load all the exported functions into when initializing the Bridge.
- **************************************************************************************************/
 #include "_global.h"
 
 GUIGUIINIT _gui_guiinit;

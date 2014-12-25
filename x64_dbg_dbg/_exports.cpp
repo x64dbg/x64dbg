@@ -22,73 +22,22 @@
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
 
-/**
- @brief The only cip automatic comments.
- */
-
 static bool bOnlyCipAutoComments = false;
-
-/**
- @fn extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
-
- @brief Debug memfindbaseaddr.
-
- @param addr          The address.
- @param [in,out] size If non-null, the size.
-
- @return A duint.
- */
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
     return memfindbaseaddr(addr, size);
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
-
- @brief Debug memread.
-
- @param addr          The address.
- @param [in,out] dest If non-null, destination for the.
- @param size          The size.
- @param [in,out] read If non-null, the read.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
     return memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
-
- @brief Debug memwrite.
-
- @param addr             The address.
- @param src              Source for the.
- @param size             The size.
- @param [in,out] written If non-null, the written.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
 {
     return memwrite(fdProcessInfo->hProcess, (void*)addr, src, size, written);
 }
-
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
-
- @brief Debug memmap.
-
- @param [in,out] memmap If non-null, the memmap.
-
- @return true if it succeeds, false if it fails.
- */
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 {
@@ -106,44 +55,15 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     return true;
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
-
- @brief Debug memisvalidreadptr.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 {
     return memisvalidreadptr(fdProcessInfo->hProcess, addr);
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
-
- @brief Debug valfromstring.
-
- @param string         The string.
- @param [in,out] value If non-null, the value.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 {
     return valfromstring(string, value);
 }
-
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_isdebugging()
-
- @brief Determines if we can debug isdebugging.
-
- @return true if it succeeds, false if it fails.
- */
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
@@ -151,16 +71,6 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
         return true;
     return false;
 }
-
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
-
- @brief Debug isjumpgoingtoexecute.
-
- @param addr The address.
-
- @return true if it succeeds, false if it fails.
- */
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
 {
@@ -175,18 +85,6 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     }
     return cacheResult;
 }
-
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
-
- @brief Debug addrinfoget.
-
- @param addr              The address.
- @param segment           The segment.
- @param [in,out] addrinfo If non-null, the addrinfo.
-
- @return true if it succeeds, false if it fails.
- */
 
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
@@ -389,17 +287,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     return retval;
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
-
- @brief Debug addrinfoset.
-
- @param addr              The address.
- @param [in,out] addrinfo If non-null, the addrinfo.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
 {
     bool retval = false;
@@ -422,16 +309,6 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     }
     return retval;
 }
-
-/**
- @fn extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
-
- @brief Debug bpgettypeat.
-
- @param addr The address.
-
- @return An int.
- */
 
 extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
 {
@@ -614,32 +491,10 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     return true;
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
-
- @brief Debug valtostring.
-
- @param string         The string.
- @param [in,out] value If non-null, the value.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
 {
     return valtostring(string, value, true);
 }
-
-/**
- @fn extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
-
- @brief Debug getbplist.
-
- @param type           The type.
- @param [in,out] bpmap If non-null, the bpmap.
-
- @return An int.
- */
 
 extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
 {
@@ -733,16 +588,6 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     return retcount;
 }
 
-/**
- @fn extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
-
- @brief Debug getbranchdestination.
-
- @param addr The address.
-
- @return An uint.
- */
-
 extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
 {
     DISASM_INSTR instr;
@@ -764,33 +609,10 @@ extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
         return instr.arg[0].value;
 }
 
-/**
- @fn extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
-
- @brief Debug functionoverlaps.
-
- @param start The start.
- @param end   The end.
-
- @return true if it succeeds, false if it fails.
- */
-
 extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
 {
     return functionoverlaps(start, end);
 }
-
-/**
- @fn extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2)
-
- @brief Debug sendmessage.
-
- @param type            The type.
- @param [in,out] param1 If non-null, the first parameter.
- @param [in,out] param2 If non-null, the second parameter.
-
- @return An uint.
- */
 
 extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2)
 {

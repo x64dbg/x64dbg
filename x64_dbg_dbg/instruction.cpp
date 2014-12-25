@@ -19,22 +19,7 @@
 #include "reference.h"
 #include "disasm_helper.h"
 
-/**
- @brief The refinit.
- */
-
 static bool bRefinit = false;
-
-/**
- @fn CMDRESULT cbBadCmd(int argc, char* argv[])
-
- @brief Bad command.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -92,17 +77,6 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrVar(int argc, char* argv[])
-
- @brief Instr variable.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrVar(int argc, char* argv[])
 {
     if(argc < 2)
@@ -141,17 +115,6 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrVarDel(int argc, char* argv[])
-
- @brief Instr variable delete.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrVarDel(int argc, char* argv[])
 {
     if(argc < 2)
@@ -165,17 +128,6 @@ CMDRESULT cbInstrVarDel(int argc, char* argv[])
         dprintf("deleted variable \"%s\"\n", argv[1]);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrMov(int argc, char* argv[])
-
- @brief Instr mov.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrMov(int argc, char* argv[])
 {
@@ -258,17 +210,6 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrVarList(int argc, char* argv[])
-
- @brief Instr variable list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrVarList(int argc, char* argv[])
 {
     char arg1[deflen] = "";
@@ -326,17 +267,6 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrChd(int argc, char* argv[])
-
- @brief Instr chd.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrChd(int argc, char* argv[])
 {
     if(argc < 2)
@@ -353,17 +283,6 @@ CMDRESULT cbInstrChd(int argc, char* argv[])
     dputs("current directory changed!");
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrCmt(int argc, char* argv[])
-
- @brief Instr comment.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrCmt(int argc, char* argv[])
 {
@@ -382,17 +301,6 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrCmtdel(int argc, char* argv[])
-
- @brief Instr cmtdel.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrCmtdel(int argc, char* argv[])
 {
@@ -413,17 +321,6 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrLbl(int argc, char* argv[])
-
- @brief Instr label.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrLbl(int argc, char* argv[])
 {
     if(argc < 3)
@@ -443,17 +340,6 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrLbldel(int argc, char* argv[])
-
- @brief Instr lbldel.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrLbldel(int argc, char* argv[])
 {
     if(argc < 2)
@@ -471,17 +357,6 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
-
- @brief Instr bookmark set.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
 {
@@ -502,17 +377,6 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
-
- @brief Instr bookmark delete.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 {
     if(argc < 2)
@@ -532,17 +396,6 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbLoaddb(int argc, char* argv[])
-
- @brief Loaddbs.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbLoaddb(int argc, char* argv[])
 {
     dbload();
@@ -550,33 +403,11 @@ CMDRESULT cbLoaddb(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbSavedb(int argc, char* argv[])
-
- @brief Savedbs.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbSavedb(int argc, char* argv[])
 {
     dbsave();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbAssemble(int argc, char* argv[])
-
- @brief Assembles.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbAssemble(int argc, char* argv[])
 {
@@ -612,17 +443,6 @@ CMDRESULT cbAssemble(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbFunctionAdd(int argc, char* argv[])
-
- @brief Function add.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbFunctionAdd(int argc, char* argv[])
 {
     if(argc < 3)
@@ -644,17 +464,6 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbFunctionDel(int argc, char* argv[])
-
- @brief Function delete.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbFunctionDel(int argc, char* argv[])
 {
     if(argc < 2)
@@ -674,17 +483,6 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrCmp(int argc, char* argv[])
-
- @brief Instr compare.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrCmp(int argc, char* argv[])
 {
@@ -725,17 +523,6 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrGpa(int argc, char* argv[])
-
- @brief Instr gpa.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrGpa(int argc, char* argv[])
 {
     if(argc < 2)
@@ -755,17 +542,6 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrAdd(int argc, char* argv[])
-
- @brief Instr add.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrAdd(int argc, char* argv[])
 {
     if(argc < 3)
@@ -777,17 +553,6 @@ CMDRESULT cbInstrAdd(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s+%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrAnd(int argc, char* argv[])
-
- @brief Instr and.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
 {
@@ -801,17 +566,6 @@ CMDRESULT cbInstrAnd(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
-/**
- @fn CMDRESULT cbInstrDec(int argc, char* argv[])
-
- @brief Instr decrement.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrDec(int argc, char* argv[])
 {
     if(argc < 2)
@@ -823,17 +577,6 @@ CMDRESULT cbInstrDec(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s-1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrDiv(int argc, char* argv[])
-
- @brief Instr div.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
 {
@@ -847,17 +590,6 @@ CMDRESULT cbInstrDiv(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
-/**
- @fn CMDRESULT cbInstrInc(int argc, char* argv[])
-
- @brief Instr increment.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrInc(int argc, char* argv[])
 {
     if(argc < 2)
@@ -869,17 +601,6 @@ CMDRESULT cbInstrInc(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s+1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrMul(int argc, char* argv[])
-
- @brief Instr mul.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
 {
@@ -893,17 +614,6 @@ CMDRESULT cbInstrMul(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
-/**
- @fn CMDRESULT cbInstrNeg(int argc, char* argv[])
-
- @brief Instr negative.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrNeg(int argc, char* argv[])
 {
     if(argc < 2)
@@ -915,17 +625,6 @@ CMDRESULT cbInstrNeg(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s*-1", argv[1], argv[1]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrNot(int argc, char* argv[])
-
- @brief Instr not.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
 {
@@ -939,17 +638,6 @@ CMDRESULT cbInstrNot(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
-/**
- @fn CMDRESULT cbInstrOr(int argc, char* argv[])
-
- @brief Instr or.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrOr(int argc, char* argv[])
 {
     if(argc < 3)
@@ -961,17 +649,6 @@ CMDRESULT cbInstrOr(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s|%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrRol(int argc, char* argv[])
-
- @brief Instr rol.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
 {
@@ -989,17 +666,6 @@ CMDRESULT cbInstrRol(int argc, char* argv[])
     return res;
 }
 
-/**
- @fn CMDRESULT cbInstrRor(int argc, char* argv[])
-
- @brief Instr ror.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrRor(int argc, char* argv[])
 {
     if(argc < 3)
@@ -1015,17 +681,6 @@ CMDRESULT cbInstrRor(int argc, char* argv[])
     valuesetsignedcalc(signedcalc);
     return res;
 }
-
-/**
- @fn CMDRESULT cbInstrShl(int argc, char* argv[])
-
- @brief Instr shl.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrShl(int argc, char* argv[])
 {
@@ -1043,17 +698,6 @@ CMDRESULT cbInstrShl(int argc, char* argv[])
     return res;
 }
 
-/**
- @fn CMDRESULT cbInstrShr(int argc, char* argv[])
-
- @brief Instr shr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrShr(int argc, char* argv[])
 {
     if(argc < 3)
@@ -1070,17 +714,6 @@ CMDRESULT cbInstrShr(int argc, char* argv[])
     return res;
 }
 
-/**
- @fn CMDRESULT cbInstrSub(int argc, char* argv[])
-
- @brief Instr sub.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrSub(int argc, char* argv[])
 {
     if(argc < 3)
@@ -1092,17 +725,6 @@ CMDRESULT cbInstrSub(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s-%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
-
-/**
- @fn CMDRESULT cbInstrTest(int argc, char* argv[])
-
- @brief Tests instr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
 {
@@ -1130,17 +752,6 @@ CMDRESULT cbInstrTest(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrXor(int argc, char* argv[])
-
- @brief Instr exclusive-or.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrXor(int argc, char* argv[])
 {
     if(argc < 3)
@@ -1153,17 +764,6 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
-/**
- @fn CMDRESULT cbInstrRefinit(int argc, char* argv[])
-
- @brief Instr refinit.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     GuiReferenceDeleteAllColumns();
@@ -1174,17 +774,6 @@ CMDRESULT cbInstrRefinit(int argc, char* argv[])
     bRefinit = true;
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrRefadd(int argc, char* argv[])
-
- @brief Instr refadd.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrRefadd(int argc, char* argv[])
 {
@@ -1213,18 +802,6 @@ struct VALUERANGE
     uint start;
     uint end;
 };
-
-/**
- @fn static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
-
- @brief reffind value[,page].
-
- @param [in,out] disasm    If non-null, the disasm.
- @param [in,out] basicinfo If non-null, the basicinfo.
- @param [in,out] refinfo   If non-null, the refinfo.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
@@ -1273,17 +850,6 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     return found;
 }
 
-/**
- @fn CMDRESULT cbInstrRefFind(int argc, char* argv[])
-
- @brief Instr reference find.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrRefFind(int argc, char* argv[])
 {
     if(argc < 2)
@@ -1324,18 +890,6 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
-
- @brief refstr [page].
-
- @param [in,out] disasm    If non-null, the disasm.
- @param [in,out] basicinfo If non-null, the basicinfo.
- @param [in,out] refinfo   If non-null, the refinfo.
-
- @return true if it succeeds, false if it fails.
- */
 
 bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
@@ -1385,17 +939,6 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     return found;
 }
 
-/**
- @fn CMDRESULT cbInstrRefStr(int argc, char* argv[])
-
- @brief Instr reference string.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
     uint addr;
@@ -1411,17 +954,6 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrSetstr(int argc, char* argv[])
-
- @brief Instr setstr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrSetstr(int argc, char* argv[])
 {
@@ -1446,17 +978,6 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
     cmddirectexec(dbggetcommandlist(), cmd);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrGetstr(int argc, char* argv[])
-
- @brief Instr getstr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrGetstr(int argc, char* argv[])
 {
@@ -1492,17 +1013,6 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
     dprintf("%s=\"%s\"\n", argv[1], string());
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrCopystr(int argc, char* argv[])
-
- @brief Instr copystr.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrCopystr(int argc, char* argv[])
 {
@@ -1551,17 +1061,6 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
     GuiUpdatePatches();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrFind(int argc, char* argv[])
-
- @brief Instr find.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrFind(int argc, char* argv[])
 {
@@ -1613,17 +1112,6 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     varset("$result", result, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrFindAll(int argc, char* argv[])
-
- @brief Instr find all.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrFindAll(int argc, char* argv[])
 {
@@ -1722,18 +1210,6 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
-
- @brief modcallfind [page].
-
- @param [in,out] disasm    If non-null, the disasm.
- @param [in,out] basicinfo If non-null, the basicinfo.
- @param [in,out] refinfo   If non-null, the refinfo.
-
- @return true if it succeeds, false if it fails.
- */
-
 static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!refinfo) //initialize
@@ -1766,17 +1242,6 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     return found;
 }
 
-/**
- @fn CMDRESULT cbInstrModCallFind(int argc, char* argv[])
-
- @brief Instr modifier call find.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 {
     uint addr;
@@ -1792,17 +1257,6 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrCommentList(int argc, char* argv[])
-
- @brief Instr comment list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
@@ -1839,17 +1293,6 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrLabelList(int argc, char* argv[])
-
- @brief Instr label list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
@@ -1885,17 +1328,6 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
-
- @brief Instr bookmark list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
@@ -1928,17 +1360,6 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
-
-/**
- @fn CMDRESULT cbInstrFunctionList(int argc, char* argv[])
-
- @brief Instr function list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
@@ -1986,17 +1407,6 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrLoopList(int argc, char* argv[])
-
- @brief Instr loop list.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
@@ -2043,17 +1453,6 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-/**
- @fn CMDRESULT cbInstrSleep(int argc, char* argv[])
-
- @brief Instr sleep.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
-
 CMDRESULT cbInstrSleep(int argc, char* argv[])
 {
     uint ms = 100;
@@ -2065,18 +1464,6 @@ CMDRESULT cbInstrSleep(int argc, char* argv[])
     Sleep((DWORD)ms);
     return STATUS_CONTINUE;
 }
-
-/**
- @fn static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
-
- @brief reffindasm value[,page].
-
- @param [in,out] disasm    If non-null, the disasm.
- @param [in,out] basicinfo If non-null, the basicinfo.
- @param [in,out] refinfo   If non-null, the refinfo.
-
- @return true if it succeeds, false if it fails.
- */
 
 static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
@@ -2104,17 +1491,6 @@ static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     }
     return found;
 }
-
-/**
- @fn CMDRESULT cbInstrFindAsm(int argc, char* argv[])
-
- @brief Instr find assembly.
-
- @param argc          The argc.
- @param [in,out] argv If non-null, the argv.
-
- @return A CMDRESULT.
- */
 
 CMDRESULT cbInstrFindAsm(int argc, char* argv[])
 {
