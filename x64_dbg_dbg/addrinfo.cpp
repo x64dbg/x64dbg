@@ -380,7 +380,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 ///comment functions
 bool commentset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or text[0] == '\1' or strlen(text) >= MAX_COMMENT_SIZE - 1)
         return false;
     if(!*text) //NOTE: delete when there is no text
     {
