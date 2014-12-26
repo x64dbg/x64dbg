@@ -521,7 +521,10 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     default:
-        break;
+    {
+        binaryEditSlot();
+    }
+    break;
     }
 }
 
