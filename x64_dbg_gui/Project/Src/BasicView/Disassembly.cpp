@@ -380,13 +380,28 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(rvaToVa(mInstBuffer.at(rowOffset).rva), comment))
         {
-            painter->setPen(ConfigColor("DisassemblyCommentColor"));
-            int width = getCharWidth() * QString(comment).length() + 4;
+            QString commentText;
+            QColor penColor;
+            QColor backgroundColor;
+            if(comment[0] == '\1') //automatic comment
+            {
+                penColor = ConfigColor("DisassemblyAutoCommentColor");
+                backgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+                commentText = QString(comment + 1);
+            }
+            else //user comment
+            {
+                penColor = ConfigColor("DisassemblyCommentColor");
+                backgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
+                commentText = comment;
+            }
+            painter->setPen(penColor);
+            int width = getCharWidth() * commentText.length() + 4;
             if(width > w)
                 width = w;
             if(width)
-                painter->fillRect(QRect(x + 2, y, width, h), QBrush(ConfigColor("DisassemblyCommentBackgroundColor"))); //fill bookmark color
-            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, QString(comment));
+                painter->fillRect(QRect(x + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
         }
     }
     break;

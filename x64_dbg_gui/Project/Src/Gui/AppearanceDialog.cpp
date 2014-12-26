@@ -428,6 +428,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Hardware Breakpoints", "DisassemblyHardwareBreakpointColor", "DisassemblyHardwareBreakpointBackgroundColor");
     colorInfoListAppend("Bookmarks", "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend("Comments", "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
+    colorInfoListAppend("Automatic Comments", "DisassemblyAutoCommentColor", "DisassemblyAutoCommentBackgroundColor");
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
     colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");

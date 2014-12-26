@@ -39,6 +39,8 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyModifiedBytesColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyAutoCommentColor", QColor("#808080"));
+    defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
 
     defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
