@@ -196,7 +196,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
         if(!isvar)
             isvar = vargettype(argv[1], 0);
-        if(!isvar or !valtostring(argv[1], &set_value, true))
+        if(!isvar or !valtostring(argv[1], set_value, true))
         {
             uint value;
             if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination

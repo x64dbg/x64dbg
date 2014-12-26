@@ -363,8 +363,7 @@ BRIDGE_IMPEXP bool DbgGetRegDump(REGDUMP* regdump)
 // FIXME all
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value)
 {
-    duint valueCopy = value;
-    return _dbg_valtostring(string, &valueCopy);
+    return _dbg_valtostring(string, value);
 }
 
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr)
