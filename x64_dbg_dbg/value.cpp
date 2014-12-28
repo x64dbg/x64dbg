@@ -1213,8 +1213,10 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     uint addr = (uint)GetProcAddress(mod, apiname);
                     if(!addr) //not found
                     {
-                        if(!_stricmp(apiname, "base") or !_stricmp(apiname, "imagebase") or !_stricmp(apiname, "header"))
+                        if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
                             addr = modbase;
+                        else if(scmp(apiname, "entry") or scmp(apiname, "oep") or scmp(apiname, "ep")) //get entry point
+                            addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
                         else if(*apiname == '$') //RVA
                         {
                             uint rva;
@@ -1233,7 +1235,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             if(valfromstring(apiname, &ordinal))
                             {
                                 addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
-                                if(!addr and !ordinal)
+                                if(!addr and !ordinal) //support for getting the image base using <modname>:0
                                     addr = modbase;
                             }
                         }

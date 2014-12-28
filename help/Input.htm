@@ -64,6 +64,12 @@ you can write "[module]:$[rva]". If you want
 to convert a file offset to a VA you can use "[module]:#[offset]". When "[module]" is 
 an empty string (":0" for example), the module that is currently selected in the CPU will 
 be used.</P>
+<P class=rvps3><U>Module Entry Points</U> 
+              
+     : To 
+access a module entry point you can write "[module]:entry", "[module]:oep" or "[module]:ep". Notice that when 
+there are exports with the names "entry", "oep" or "ep" the address of these will be 
+returned instead.</P>
 <P class=rvps3><U>labels/symbols</U>: 
 user-defined labels and symbols&nbsp;are a valid expressions.</P>
 <P class=rvps3><STRONG>Input for arguments can always be done in any of 
