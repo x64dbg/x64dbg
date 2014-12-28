@@ -30,6 +30,7 @@ private slots:
     void symbolRefreshCurrent();
     void moduleContextMenu(const QPoint & pos);
     void moduleFollow();
+    void moduleEntryFollow();
     void moduleDownloadSymbols();
     void moduleDownloadAllSymbols();
     void toggleBreakpoint();
@@ -52,6 +53,7 @@ private:
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     QAction* mFollowModuleAction;
+    QAction* mFollowModuleEntryAction;
     QAction* mDownloadSymbolsAction;
     QAction* mDownloadAllSymbolsAction;
 

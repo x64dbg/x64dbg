@@ -111,6 +111,9 @@ void SymbolView::setupContextMenu()
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
+    mFollowModuleEntryAction = new QAction("Follow &Entry Point in Disassembler", this);
+    connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
+
     mDownloadSymbolsAction = new QAction("&Download Symbols for This Module", this);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
@@ -231,6 +234,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowModuleAction);
+    wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
     QMenu wCopyMenu("&Copy", this);
@@ -246,6 +250,12 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
 void SymbolView::moduleFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
+    emit showCpu();
+}
+
+void SymbolView::moduleEntryFollow()
+{
+    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + "?entry").toUtf8().constData());
     emit showCpu();
 }
 
