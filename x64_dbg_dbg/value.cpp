@@ -1169,7 +1169,13 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(!value or !DbgIsDebugging())
         return false;
     //explicit API handling
-    const char* apiname = strstr(name, ":");
+    const char* apiname = strstr(name, ":"); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
+    bool noexports = false;
+    if(!apiname)
+    {
+        apiname = strstr(name, "?"); //the '?' character cannot be in a path either
+        noexports = true;
+    }
     if(apiname)
     {
         char modname[MAX_MODULE_SIZE] = "";
@@ -1210,7 +1216,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 }
                 else
                 {
-                    uint addr = (uint)GetProcAddress(mod, apiname);
+                    uint addr = noexports ? 0 : (uint)GetProcAddress(mod, apiname);
                     if(!addr) //not found
                     {
                         if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
@@ -1234,7 +1240,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             uint ordinal;
                             if(valfromstring(apiname, &ordinal))
                             {
-                                addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
+                                addr = noexports ? 0 : (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
                                 if(!addr and !ordinal) //support for getting the image base using <modname>:0
                                     addr = modbase;
                             }
