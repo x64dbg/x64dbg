@@ -33,6 +33,7 @@ private slots:
     void moduleEntryFollow();
     void moduleDownloadSymbols();
     void moduleDownloadAllSymbols();
+    void moduleCopyPath();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
@@ -56,6 +57,7 @@ private:
     QAction* mFollowModuleEntryAction;
     QAction* mDownloadSymbolsAction;
     QAction* mDownloadAllSymbolsAction;
+    QAction* mCopyPathAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

@@ -120,6 +120,9 @@ void SymbolView::setupContextMenu()
     mDownloadAllSymbolsAction = new QAction("Download Symbols for &All Modules", this);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
+    mCopyPathAction = new QAction("Copy File &Path", this);
+    connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
+
     //Shortcuts
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -237,6 +240,10 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
+    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+        wMenu->addAction(mCopyPathAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -257,6 +264,14 @@ void SymbolView::moduleEntryFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + "?entry").toUtf8().constData());
     emit showCpu();
+}
+
+void SymbolView::moduleCopyPath()
+{
+    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+        Bridge::CopyToClipboard(szModPath);
 }
 
 void SymbolView::moduleDownloadSymbols()
