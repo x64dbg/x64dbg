@@ -1217,7 +1217,9 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 else
                 {
                     uint addr = noexports ? 0 : (uint)GetProcAddress(mod, apiname);
-                    if(!addr) //not found
+                    if(addr) //found exported function
+                        addr = modbase + (addr - (uint)mod); //correct for loaded base
+                    else //not found
                     {
                         if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
                             addr = modbase;
@@ -1241,7 +1243,9 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             if(valfromstring(apiname, &ordinal))
                             {
                                 addr = noexports ? 0 : (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
-                                if(!addr and !ordinal) //support for getting the image base using <modname>:0
+                                if(addr) //found exported function
+                                    addr = modbase + (addr - (uint)mod); //correct for loaded base
+                                else if(!ordinal) //support for getting the image base using <modname>:0
                                     addr = modbase;
                             }
                         }
@@ -1253,12 +1257,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             *value_size = sizeof(uint);
                         if(hexonly)
                             *hexonly = true;
-                        uint rva;
-                        if(addr == modbase)
-                            rva = 0;
-                        else
-                            rva = addr - (uint)mod;
-                        *value = modbase + rva;
+                        *value = addr;
                         return true;
                     }
                 }
