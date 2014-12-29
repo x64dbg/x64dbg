@@ -1169,12 +1169,16 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(!value or !DbgIsDebugging())
         return false;
     //explicit API handling
-    const char* apiname = strstr(name, ":"); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
+    const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
     bool noexports = false;
-    if(!apiname)
+    if(!apiname) //not found
     {
-        apiname = strstr(name, "?"); //the '?' character cannot be in a path either
-        noexports = true;
+        apiname = strrchr(name, '.'); //kernel32.GetProcAddress support
+        if(!apiname) //not found
+        {
+            apiname = strchr(name, '?'); //the '?' character cannot be in a path either
+            noexports = true;
+        }
     }
     if(apiname)
     {
@@ -1204,45 +1208,49 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         }
         else
         {
-            wchar_t* szBaseName = wcschr(szModName, L'\\');
-            if(szBaseName)
+            HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
+            if(!mod)
             {
-                szBaseName++;
-                HMODULE mod = LoadLibraryExW(szModName, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
-                if(!mod)
+                if(!silent)
+                    dprintf("unable to load library %s\n", szModName);
+            }
+            else
+            {
+                uint addr = noexports ? 0 : (uint)GetProcAddress(mod, apiname);
+                if(addr) //found exported function
+                    addr = modbase + (addr - (uint)mod); //correct for loaded base
+                else //not found
                 {
-                    if(!silent)
-                        dprintf("unable to load library %s\n", szBaseName);
-                }
-                else
-                {
-                    uint addr = noexports ? 0 : (uint)GetProcAddress(mod, apiname);
-                    if(addr) //found exported function
-                        addr = modbase + (addr - (uint)mod); //correct for loaded base
-                    else //not found
+                    if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
+                        addr = modbase;
+                    else if(scmp(apiname, "entry") or scmp(apiname, "oep") or scmp(apiname, "ep")) //get entry point
+                        addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
+                    else if(*apiname == '$') //RVA
                     {
-                        if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
-                            addr = modbase;
-                        else if(scmp(apiname, "entry") or scmp(apiname, "oep") or scmp(apiname, "ep")) //get entry point
-                            addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
-                        else if(*apiname == '$') //RVA
+                        uint rva;
+                        if(valfromstring(apiname + 1, &rva))
+                            addr = modbase + rva;
+                    }
+                    else if(*apiname == '#') //File Offset
+                    {
+                        uint offset;
+                        if(valfromstring(apiname + 1, &offset))
+                            addr = valfileoffsettova(modname, offset);
+                    }
+                    else
+                    {
+                        if(noexports) //get the exported functions with the '?' delimiter
                         {
-                            uint rva;
-                            if(valfromstring(apiname + 1, &rva))
-                                addr = modbase + rva;
-                        }
-                        else if(*apiname == '#') //File Offset
-                        {
-                            uint offset;
-                            if(valfromstring(apiname + 1, &offset))
-                                addr = valfileoffsettova(modname, offset);
+                            addr = (uint)GetProcAddress(mod, apiname);
+                            if(addr) //found exported function
+                                addr = modbase + (addr - (uint)mod); //correct for loaded base
                         }
                         else
                         {
                             uint ordinal;
                             if(valfromstring(apiname, &ordinal))
                             {
-                                addr = noexports ? 0 : (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
+                                addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
                                 if(addr) //found exported function
                                     addr = modbase + (addr - (uint)mod); //correct for loaded base
                                 else if(!ordinal) //support for getting the image base using <modname>:0
@@ -1250,25 +1258,23 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             }
                         }
                     }
-                    FreeLibrary(mod);
-                    if(addr) //found!
-                    {
-                        if(value_size)
-                            *value_size = sizeof(uint);
-                        if(hexonly)
-                            *hexonly = true;
-                        *value = addr;
-                        return true;
-                    }
+                }
+                FreeLibrary(mod);
+                if(addr) //found!
+                {
+                    if(value_size)
+                        *value_size = sizeof(uint);
+                    if(hexonly)
+                        *hexonly = true;
+                    *value = addr;
+                    return true;
                 }
             }
-            else if(!silent)
-                dputs("unknown error");
         }
         return false;
     }
     int found = 0;
-    int kernelbase = -1;
+    int kernel32 = -1;
     DWORD cbNeeded = 0;
     Memory<uint*> addrfound;
     if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
@@ -1282,7 +1288,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 wchar_t szModuleName[MAX_PATH] = L"";
                 if(GetModuleFileNameExW(fdProcessInfo->hProcess, hMods[i], szModuleName, MAX_PATH))
                 {
-                    wchar_t* szBaseName = wcschr(szModuleName, L'\\');
+                    wchar_t* szBaseName = wcsrchr(szModuleName, L'\\');
                     if(szBaseName)
                     {
                         szBaseName++;
@@ -1292,8 +1298,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             ULONG_PTR funcAddress = (ULONG_PTR)GetProcAddress(hModule, name);
                             if(funcAddress)
                             {
-                                if(!_wcsicmp(szBaseName, L"kernelbase.dll"))
-                                    kernelbase = found;
+                                if(!_wcsicmp(szBaseName, L"kernel32.dll"))
+                                    kernel32 = found;
                                 uint rva = funcAddress - (uint)hModule;
                                 addrfound[found] = (uint)hMods[i] + rva;
                                 found++;
@@ -1311,13 +1317,13 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         *value_size = sizeof(uint);
     if(hexonly)
         *hexonly = true;
-    if(kernelbase != -1)
+    if(kernel32 != -1) //prioritize kernel32 exports
     {
-        *value = addrfound[kernelbase];
+        *value = addrfound[kernel32];
         if(!printall or silent)
             return true;
         for(int i = 0; i < found; i++)
-            if(i != kernelbase)
+            if(i != kernel32)
                 dprintf(fhex"\n", addrfound[i]);
     }
     else

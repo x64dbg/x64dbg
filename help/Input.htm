@@ -49,38 +49,36 @@ numbers are interpreted as hex by default. If you want to be sure, you can use
 the "x" prefix or the "0x" prefix. Decimal numbers can be used by prefixing the 
 number with a "." (.123=7B).</P>
 <P class=rvps3><U>basic calculations</U>: See "Calculations" for more information.</P>
-<P class=rvps3><U>DLL exports</U>  
-    : Type 'GetProcAddress' and it will automatically be 
+<P class=rvps3><U>Module Data</U>:</P>
+<OL>
+  <LI>
+<DIV class=rvps3><U>DLL exports</U>:  
+     Type 'GetProcAddress' and it will automatically be 
 resolved to the actual address of the function. 
 To explicitly define from which module to load the API, use: 
 "[module].dll:[api]" or "[module]:[api]". In a similar way you can resolve ordinals, try "[module]:[ordinal]". Another 
 macro allows you to get the loaded 
 base of a module. When "[module]" is an empty string (":GetProcAddress" for example), the 
 module that is currently selected in the CPU will be 
-used.</P>
-<P class=rvps3><U>Loaded Module&nbsp;Bases</U>  
-            
-        
-           
-    : If you want to access the loaded module base, 
-you can write: "[module]:0", "[module]:base", "[module]:imagebase" or 
-"[module]:header". You can also use '?' as a delimiter instead of ':'. This is 
-useful if the module contains an export called "imagebase" for 
-example.</P>
-<P class=rvps3><U>RVA/File Offset</U>: 
-If you want to access a module RVA you can either write "[module]:0+[rva]" or 
-you can write "[module]:$[rva]". If you want 
-to convert a file offset to a VA you can use "[module]:#[offset]". When "[module]" is 
-an empty string (":0" for example), the module that is currently selected in the CPU will 
-be used.</P>
-<P class=rvps3><U>Module Entry Points</U> : To access a module entry point you can write "[module]:entry", 
-"[module]:oep" or "[module]:ep". Notice that when there are exports with the 
-names "entry", 
-              
-     "oep" or 
-"ep" the address of these will be returned instead. You can also use '?' as 
-a delimiter instead of ':'. This is useful if the module contains an export called "entry" 
-for example.</P>
+used.</DIV><U> </U>
+  <LI><U>Loaded Module&nbsp;Bases</U>: 
+  If you want to access the loaded module base, you can write: "[module]:0", 
+  "[module]:base", "[module]:imagebase" or "[module]:header". 
+  <LI><U>RVA/File Offset</U>: If you 
+  want to access a module RVA you can either write "[module]:0+[rva]" or you can 
+  write "[module]:$[rva]". If you want to convert a file offset to a VA you can 
+  use "[module]:#[offset]". When "[module]" is an empty string (":0" for 
+  example), the module that is currently selected in the CPU will be used. 
+  <LI><U>Module Entry Points</U>: To 
+  access a module entry point you can write "[module]:entry", "[module]:oep" or 
+  "[module]:ep". Notice that when there are exports with the names "entry", 
+  "oep" or "ep" the address of these will be returned 
+  instead.<BR><BR><STRONG>Notice</STRONG>: Instead of the ':' delimiter you can 
+  also use a '.' If you need to query module information such as 
+  "[module]:imagebase" or "[module]":entry" you are adviced to 
+  use a '?' as delimiter instead ("[module]?entry"). The '?'&nbsp;does 
+  checking for named exports later, so it will still work when there is an 
+  export called "entry" in the module.</LI></OL>
 <P class=rvps3><U>labels/symbols</U>: 
 user-defined labels and symbols&nbsp;are a valid expressions.</P>
 <P class=rvps3><STRONG>Input for arguments can always be done in any of 
