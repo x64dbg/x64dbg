@@ -848,6 +848,11 @@ BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns()
     _gui_sendmessage(GUI_REF_DELETEALLCOLUMNS, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiReferenceInitialize(const char* name)
+{
+    _gui_sendmessage(GUI_REF_INITIALIZE, (void*)name, 0);
+}
+
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str)
 {
     CELLINFO info;

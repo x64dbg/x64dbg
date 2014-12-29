@@ -724,16 +724,16 @@ typedef enum
     GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
     GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL,      // param1=ununsed,              param2=unused
+    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,              param2=unused
     GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
     GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT,      // param1=unused,               param2=unused
-    GUI_UPDATE_MEMORY_VIEW         // param1=unused,               param2=unused
-
+    GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
+    GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
+    GUI_REF_INITIALIZE              // param1=const char* name      param2=unused
 } GUIMSG;
 
 //GUI structures
@@ -780,6 +780,7 @@ BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
 BRIDGE_IMPEXP int GuiReferenceGetRowCount();
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns();
+BRIDGE_IMPEXP void GuiReferenceInitialize(const char* name);
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str);
 BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
