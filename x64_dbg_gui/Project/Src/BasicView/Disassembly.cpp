@@ -1175,13 +1175,11 @@ void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instructi
     {
         int wCount = 0;
         int_t addr = startRva;
-        while(addr < endRva)
+        while(addr <= endRva)
         {
             addr = getNextInstructionRVA(addr, 1);
             wCount++;
         }
-        if(addr - 1 != endRva)
-            wCount--;
         prepareDataCount(startRva, wCount, instBuffer);
     }
 }
