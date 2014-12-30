@@ -169,7 +169,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     len--;
                 if(len)
                     len++;
-                sprintf(addrinfo->comment, "%s:%u", filename + len, line.LineNumber);
+                sprintf_s(addrinfo->comment, "\1%s:%u", filename + len, line.LineNumber);
                 retval = true;
             }
             else if(!bOnlyCipAutoComments || addr == GetContextDataEx(hActiveThread, UE_CIP)) //no line number
@@ -279,8 +279,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                         retval = true;
                     }
                 }
-                comment.resize(MAX_COMMENT_SIZE - 1);
-                strcpy_s(addrinfo->comment, comment.c_str());
+                comment.resize(MAX_COMMENT_SIZE - 2);
+                String fullComment = "\1";
+                fullComment += comment;
+                strcpy_s(addrinfo->comment, fullComment.c_str());
             }
         }
     }

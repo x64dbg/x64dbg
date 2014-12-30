@@ -20,7 +20,6 @@ ReferenceView::ReferenceView()
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
-    connect(Bridge::getBridge(), SIGNAL(referenceDeleteAllColumns()), this, SLOT(deleteAllColumns()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
@@ -58,6 +57,17 @@ void ReferenceView::setupContextMenu()
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
 
+void ReferenceView::disconnectBridge()
+{
+    disconnect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
+}
+
 void ReferenceView::refreshShortcutsSlot()
 {
     mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
@@ -85,21 +95,6 @@ void ReferenceView::setRowCount(int_t count)
 {
     mSearchBox->setText("");
     mList->setRowCount(count);
-}
-
-void ReferenceView::deleteAllColumns()
-{
-    mSearchBox->setText("");
-    mList->setTableOffset(0);
-    mList->setSingleSelection(0);
-    mList->deleteAllColumns();
-    mList->reloadData();
-    mSearchList->setTableOffset(0);
-    mSearchList->setSingleSelection(0);
-    mSearchList->deleteAllColumns();
-    mSearchList->reloadData();
-    mSearchStartCol = 1;
-    mFollowDumpDefault = false;
 }
 
 void ReferenceView::setCellContent(int r, int c, QString s)

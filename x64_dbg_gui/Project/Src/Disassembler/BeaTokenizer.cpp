@@ -136,6 +136,8 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         type = TokenMnemonicPushPop;
     else if(IsNopInstruction(mnemonic, disasm)) //nop instructions
         type = TokenMnemonicNop;
+    else if(mnemonic == "int3" || mnemonic == "int 3") //int3 instruction on request
+        type = TokenMnemonicInt3;
     else if(completeInstr.contains("movs") || completeInstr.contains("cmps") || completeInstr.contains("scas") || completeInstr.contains("lods") || completeInstr.contains("stos") || completeInstr.contains("outs"))
     {
         completeInstr = completeInstr.replace("rep ", "").replace("repne ", "");
@@ -470,6 +472,7 @@ void BeaTokenizer::Init()
     AddColorName(TokenMnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
     AddColorName(TokenMnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
     AddColorName(TokenMnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
+    AddColorName(TokenMnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
     //memory
     AddColorName(TokenMemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     AddColorName(TokenMemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");

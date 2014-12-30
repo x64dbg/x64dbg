@@ -766,7 +766,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Script");
     GuiReferenceAddColumn(sizeof(uint) * 2, "Address");
     GuiReferenceAddColumn(0, "Data");
     GuiReferenceSetRowCount(0);
@@ -805,9 +805,9 @@ struct VALUERANGE
 
 static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!refinfo) //initialize
+    if(!disasm && !basicinfo) //initialize
     {
-        GuiReferenceDeleteAllColumns();
+        GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
@@ -885,7 +885,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         if(!valfromstring(argv[4], &size))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefFind, &range, false);
+    int found = reffind(addr, size, cbRefFind, &range, false, "Constant");
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -893,9 +893,9 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
 
 bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!refinfo) //initialize
+    if(!disasm && !basicinfo) //initialize
     {
-        GuiReferenceDeleteAllColumns();
+        GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
         GuiReferenceAddColumn(500, "String");
@@ -949,7 +949,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
         if(!valfromstring(argv[2], &size, true))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefStr, 0, false);
+    int found = reffind(addr, size, cbRefStr, 0, false, "Strings");
     dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1164,7 +1164,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     else
         find_size = size - start;
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Occurrences");
     GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     if(findData)
         GuiReferenceAddColumn(0, "&Data&");
@@ -1212,9 +1212,9 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
 
 static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!refinfo) //initialize
+    if(!disasm && !basicinfo) //initialize
     {
-        GuiReferenceDeleteAllColumns();
+        GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
@@ -1252,7 +1252,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
         if(!valfromstring(argv[2], &size, true))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbModCallFind, 0, false);
+    int found = reffind(addr, size, cbModCallFind, 0, false, "Calls");
     dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1261,7 +1261,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Comments");
     GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Comment");
@@ -1296,7 +1296,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
 CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Labels");
     GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Label");
@@ -1331,7 +1331,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
 CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Bookmarks");
     GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
@@ -1364,7 +1364,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Functions");
     GuiReferenceAddColumn(2 * sizeof(uint), "Start");
     GuiReferenceAddColumn(2 * sizeof(uint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
@@ -1410,7 +1410,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
-    GuiReferenceDeleteAllColumns();
+    GuiReferenceInitialize("Loops");
     GuiReferenceAddColumn(2 * sizeof(uint), "Start");
     GuiReferenceAddColumn(2 * sizeof(uint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
@@ -1467,9 +1467,9 @@ CMDRESULT cbInstrSleep(int argc, char* argv[])
 
 static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!refinfo) //initialize
+    if(!disasm && !basicinfo) //initialize
     {
-        GuiReferenceDeleteAllColumns();
+        GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
@@ -1521,7 +1521,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     disasmfast(dest, addr + size / 2, &basicinfo);
 
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false);
+    int found = reffind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, "Command");
     dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;

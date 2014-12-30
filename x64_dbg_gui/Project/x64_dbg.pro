@@ -84,7 +84,8 @@ SOURCES += \
     Src/Gui/CalculatorDialog.cpp \
     Src/Gui/AttachDialog.cpp \
     Src/Gui/PageMemoryRights.cpp \
-    Src/Gui/SelectFields.cpp
+    Src/Gui/SelectFields.cpp \
+    Src/Gui/ReferenceManager.cpp
 
 
 HEADERS += \
@@ -147,7 +148,8 @@ HEADERS += \
     Src/Gui/CalculatorDialog.h \
     Src/Gui/AttachDialog.h \
     Src/Gui/PageMemoryRights.h \
-    Src/Gui/SelectFields.h
+    Src/Gui/SelectFields.h \
+    Src/Gui/ReferenceManager.h
 
 
 INCLUDEPATH += \

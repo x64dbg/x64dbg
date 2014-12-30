@@ -708,7 +708,12 @@ void CPUDisassembly::setComment()
     QString addr_text = QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)wVA, comment_text))
-        mLineEdit.setText(QString(comment_text));
+    {
+        if(comment_text[0] == '\1') //automatic comment
+            mLineEdit.setText(QString(comment_text + 1));
+        else
+            mLineEdit.setText(QString(comment_text));
+    }
     mLineEdit.setWindowTitle("Add comment at " + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1160,7 +1165,12 @@ void CPUDisassembly::copySelection(bool copyBytes)
         char comment[MAX_COMMENT_SIZE] = "";
         QString fullComment;
         if(DbgGetCommentAt(cur_addr, comment))
-            fullComment = " ;" + QString(comment);
+        {
+            if(comment[0] == '\1') //automatic comment
+                fullComment = " ;" + QString(comment + 1);
+            else
+                fullComment = " ;" + QString(comment);
+        }
         clipboard += address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             clipboard += " | " + bytes.leftJustified(bytesLen, QChar(' '), true);

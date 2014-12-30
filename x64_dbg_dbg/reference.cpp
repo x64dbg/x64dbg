@@ -9,7 +9,7 @@
 #include "memory.h"
 #include "console.h"
 
-int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
+int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, const char* name)
 {
     uint start_addr;
     uint start_size;
@@ -53,10 +53,17 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent)
     disasm.VirtualAddr = (UInt64)start_addr;
     uint i = 0;
     BASIC_INSTRUCTION_INFO basicinfo;
-    cbRef(&disasm, &basicinfo, 0); //allow initializing
     REFINFO refinfo;
     memset(&refinfo, 0, sizeof(REFINFO));
     refinfo.userinfo = userinfo;
+    char fullName[deflen] = "";
+    char modname[MAX_MODULE_SIZE] = "";
+    if(modnamefromaddr(start_addr, modname, true))
+        sprintf_s(fullName, "%s (%s)", name, modname);
+    else
+        sprintf_s(fullName, "%s (%p)", name, start_addr);
+    refinfo.name = fullName;
+    cbRef(0, 0, &refinfo); //allow initializing
     while(i < start_size)
     {
         if(!(i % 0x1000))

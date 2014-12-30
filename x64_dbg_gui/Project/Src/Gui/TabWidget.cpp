@@ -5,11 +5,12 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabWidget::MHTabWidget(QWidget* parent) : QTabWidget(parent)
+MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : QTabWidget(parent)
 {
-    m_tabBar = new MHTabBar(this);
+    m_tabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
+    connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
 
     setTabBar(m_tabBar);
     setMovable(true);
@@ -29,6 +30,7 @@ MHTabWidget::~MHTabWidget(void)
 {
     disconnect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     disconnect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
+    disconnect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     delete m_tabBar;
 }
 
@@ -118,6 +120,11 @@ void MHTabWidget::DetachTab(int index, QPoint & dropPoint)
     detachedWidget->showNormal();
     detachedWidget->setGeometry(x, y, w, h);
     detachedWidget->showNormal();
+}
+
+void MHTabWidget::DeleteTab(int index)
+{
+    removeTab(index);
 }
 
 //////////////////////////////////////////////////////////////////////////////
