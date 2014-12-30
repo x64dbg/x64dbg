@@ -47,6 +47,7 @@
         <file>images/detach.png</file>
         <file>images/trace.png</file>
         <file>images/changeargs.png</file>
+        <file>images/arrow-skip.png</file>
         <file>images/tables-relation.png</file>
     </qresource>
 </RCC>

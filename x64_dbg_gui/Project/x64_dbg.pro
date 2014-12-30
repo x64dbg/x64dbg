@@ -99,7 +99,8 @@ SOURCES += \
     Src/Gui/CalculatorDialog.cpp \
     Src/Gui/AttachDialog.cpp \
     Src/Gui/PageMemoryRights.cpp \
-    Src/Gui/SelectFields.cpp
+    Src/Gui/SelectFields.cpp \
+    Src/Gui/ReferenceManager.cpp
     Src/BasicView/FlowGraphScene.cpp \
     Src/BasicView/FlowGraphView.cpp \
     Src/BasicView/FlowGraphBlock.cpp \
@@ -167,7 +168,8 @@ HEADERS += \
     Src/Gui/CalculatorDialog.h \
     Src/Gui/AttachDialog.h \
     Src/Gui/PageMemoryRights.h \
-    Src/Gui/SelectFields.h
+    Src/Gui/SelectFields.h \
+    Src/Gui/ReferenceManager.h
     Src/BasicView/HeaderButton.h \
     Src/ThirdPartyLibs/BeaEngine/basic_types.h \
     Src/ThirdPartyLibs/BeaEngine/BeaEngine.h \

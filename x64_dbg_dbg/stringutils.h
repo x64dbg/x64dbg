@@ -6,12 +6,15 @@
 
 typedef std::string String;
 typedef std::wstring WString;
+typedef std::vector<String> StringList;
+typedef std::vector<WString> WStringList;
 
 class StringUtils
 {
 public:
-    static std::vector<String> Split(const String & s, char delim, std::vector<String> & elems);
-    static std::vector<String> Split(const String & s, char delim);
+    static StringList Split(const String & s, char delim, std::vector<String> & elems);
+    static StringList Split(const String & s, char delim);
+    static String Escape(const String & s);
     static String Trim(const String & s);
     static String TrimLeft(const String & s);
     static String TrimRight(const String & s);

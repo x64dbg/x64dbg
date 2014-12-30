@@ -168,42 +168,7 @@ bool modload(uint base, uint size, const char* fullpath)
                 for(int k = 0; k < len; k++)
                     if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                         escape_count++;
-                Memory<char*> SectionNameEscaped(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
-                memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
-                for(int k = 0, l = 0; k < len; k++)
-                {
-                    switch(SectionName[k])
-                    {
-                    case '\t':
-                        l += sprintf(SectionNameEscaped + l, "\\t");
-                        break;
-                    case '\f':
-                        l += sprintf(SectionNameEscaped + l, "\\f");
-                        break;
-                    case '\v':
-                        l += sprintf(SectionNameEscaped + l, "\\v");
-                        break;
-                    case '\n':
-                        l += sprintf(SectionNameEscaped + l, "\\n");
-                        break;
-                    case '\r':
-                        l += sprintf(SectionNameEscaped + l, "\\r");
-                        break;
-                    case '\\':
-                        l += sprintf(SectionNameEscaped + l, "\\\\");
-                        break;
-                    case '\"':
-                        l += sprintf(SectionNameEscaped + l, "\\\"");
-                        break;
-                    default:
-                        if(!isprint(SectionName[k])) //unknown unprintable character
-                            l += sprintf(SectionNameEscaped + l, "\\x%.2X", SectionName[k]);
-                        else
-                            l += sprintf(SectionNameEscaped + l, "%c", SectionName[k]);
-                        break;
-                    }
-                }
-                strcpy_s(curSection.name, SectionNameEscaped);
+                strcpy_s(curSection.name, StringUtils::Escape(SectionName).c_str());
                 info.sections.push_back(curSection);
             }
         }
@@ -244,9 +209,10 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
     const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
     if(found == modinfo.end()) //not found
         return false;
-    strcpy(modname, found->second.name);
+    String mod = found->second.name;
     if(extension)
-        strcat(modname, found->second.extension); //append extension
+        mod += found->second.extension;
+    strcpy_s(modname, MAX_MODULE_SIZE, mod.c_str());
     return true;
 }
 
@@ -320,6 +286,23 @@ uint modentryfromaddr(uint addr)
     if(found == modinfo.end()) //not found
         return 0;
     return found->second.entry;
+}
+
+int modpathfromaddr(duint addr, char* path, int size)
+{
+    Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "modpathfromaddr:wszModPath");
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), wszModPath, size))
+    {
+        *path = '\0';
+        return 0;
+    }
+    strcpy_s(path, size, StringUtils::Utf16ToUtf8(wszModPath()).c_str());
+    return (int)strlen(path);
+}
+
+int modpathfromname(const char* modname, char* path, int size)
+{
+    return modpathfromaddr(modbasefromname(modname), path, size);
 }
 
 ///api functions
@@ -397,7 +380,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 ///comment functions
 bool commentset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or text[0] == '\1' or strlen(text) >= MAX_COMMENT_SIZE - 1)
         return false;
     if(!*text) //NOTE: delete when there is no text
     {

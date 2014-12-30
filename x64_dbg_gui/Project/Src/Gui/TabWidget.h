@@ -22,7 +22,7 @@ class MHTabWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    MHTabWidget(QWidget* parent);
+    MHTabWidget(QWidget* parent, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
     QTabBar* tabBar();
 
@@ -38,6 +38,9 @@ public slots:
 
     // Attach Tab
     void AttachTab(QWidget* parent);
+
+    // Delete Tab
+    void DeleteTab(int index);
 
 public Q_SLOTS:
     void setCurrentIndex(int index);

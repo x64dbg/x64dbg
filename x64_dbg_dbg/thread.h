@@ -13,5 +13,8 @@ bool threadisvalid(DWORD dwThreadId);
 bool threadsetname(DWORD dwTHreadId, const char* name);
 HANDLE threadgethandle(DWORD dwThreadId);
 DWORD threadgetid(HANDLE hThread);
+int threadgetcount();
+int threadsuspendall();
+int threadresumeall();
 
 #endif //_THREAD_H

@@ -428,6 +428,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Hardware Breakpoints", "DisassemblyHardwareBreakpointColor", "DisassemblyHardwareBreakpointBackgroundColor");
     colorInfoListAppend("Bookmarks", "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend("Comments", "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
+    colorInfoListAppend("Automatic Comments", "DisassemblyAutoCommentColor", "DisassemblyAutoCommentBackgroundColor");
     colorInfoListAppend("Labels", "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend("Addresses", "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
     colorInfoListAppend("Selected Addresses", "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
@@ -475,6 +476,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Unconditional Jumps", "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
     colorInfoListAppend("NOPs", "InstructionNopColor", "InstructionNopBackgroundColor");
     colorInfoListAppend("FAR", "InstructionFarColor", "InstructionFarBackgroundColor");
+    colorInfoListAppend("INT3s", "InstructionInt3Color", "InstructionInt3BackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend("SSE Registers", "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");

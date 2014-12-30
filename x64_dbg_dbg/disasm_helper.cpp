@@ -309,7 +309,7 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
         return false;
     for(int i = 0; i < len * 2; i += 2)
     {
-        if(data[i + 1])
+        if(data[i + 1]) //Extended ASCII only
             return false;
         if(!isprint(data[i]) and !isspace(data[i]))
             return false;
@@ -327,7 +327,7 @@ bool disasmispossiblestring(uint addr)
     memcpy(&test, data, sizeof(uint));
     if(memisvalidreadptr(fdProcessInfo->hProcess, test)) //imports/pointers
         return false;
-    if(isasciistring(data, sizeof(data)) or isunicodestring(data, sizeof(data)))
+    if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
         return true;
     return false;
 }

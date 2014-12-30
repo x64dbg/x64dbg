@@ -34,7 +34,7 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
     horizontalScrollBar()->setRange(0, 0);
     horizontalScrollBar()->setPageStep(650);
-
+    mMouseWheelScrollDelta = 4;
     setMouseTracking(true);
 
     // Signals/Slots Connections
@@ -376,17 +376,18 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
  */
 void AbstractTableView::wheelEvent(QWheelEvent* event)
 {
-    //qDebug() << "wheelEvent";
+    int numDegrees = event->delta() / 8;
+    int numSteps = numDegrees / 15;
 
-    if(event->delta() > 0)
+    if(numSteps > 0)
     {
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
     }
     else
     {
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
-        verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
     }
 }
 
@@ -496,7 +497,9 @@ void AbstractTableView::vertSliderActionSlot(int action)
 
     // Call the hook (Usefull for disassembly)
     mTableOffset = sliderMovedHook(action, mTableOffset, wDelta);
-    emit tableOffsetChanged(mTableOffset);
+
+    //this emit causes massive lag in the GUI
+    //emit tableOffsetChanged(mTableOffset);
 
     // Scale the new table offset to the 32bits scrollbar range
 #ifdef _WIN64
@@ -505,7 +508,8 @@ void AbstractTableView::vertSliderActionSlot(int action)
     wNewScrollBarValue = mTableOffset;
 #endif
 
-    emit repainted();
+    //this emit causes massive lag in the GUI
+    //emit repainted();
 
     // Update scrollbar attributes
     verticalScrollBar()->setValue(wNewScrollBarValue);

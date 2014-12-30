@@ -18,7 +18,7 @@ class MHTabBar: public QTabBar
 {
     Q_OBJECT
 public:
-    MHTabBar(QWidget* parent);
+    MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete);
     ~MHTabBar(void);
 
 protected:
@@ -36,8 +36,12 @@ signals:
     void OnDetachTab(int index, QPoint & dropPoint);
     // Move Tab
     void OnMoveTab(int fromIndex, int toIndex);
+    // Delete Tab
+    void OnDeleteTab(int index);
 
 private:
+    bool mAllowDetach;
+    bool mAllowDelete;
     /*
     QPoint       m_dragStartPos;
     QPoint       m_dragMovedPos;

@@ -34,7 +34,7 @@ int mathisoperator(char ch)
         return 1;
     else if(ch == '~')
         return 2;
-    else if(ch == '*' or ch == '$' or ch == '/' or ch == '%')
+    else if(ch == '*' or ch == '`' or ch == '/' or ch == '%')
         return 3;
     else if(ch == '+' or ch == '-')
         return 4;
@@ -122,7 +122,7 @@ bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
     case '*':
         *result = left * right;
         return true;
-    case '$':
+    case '`':
         *result = umulhi(left, right);
         return true;
     case '/':
@@ -171,7 +171,7 @@ bool mathdosignedoperation(char op, sint left, sint right, sint* result)
     case '*':
         *result = left * right;
         return true;
-    case '$':
+    case '`':
         *result = mulhi(left, right);
         return true;
     case '/':

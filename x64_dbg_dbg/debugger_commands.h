@@ -50,9 +50,12 @@ CMDRESULT cbDebugGetJITAuto(int argc, char* argv[]);
 CMDRESULT cbDebugSetJITAuto(int argc, char* argv[]);
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[]);
 CMDRESULT cbDebugKillthread(int argc, char* argv[]);
+CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[]);
+CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[]);
 CMDRESULT cbDebugSetPriority(int argc, char* argv[]);
 CMDRESULT cbDebugGetCmdline(int argc, char* argv[]);
 CMDRESULT cbDebugSetCmdline(int argc, char* argv[]);
+CMDRESULT cbDebugLoadLib(int argc, char* argv[]);
 CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
 CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[]);
@@ -61,6 +64,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[]);
 CMDRESULT cbDebugAnalyse(int argc, char* argv[]);
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
+CMDRESULT cbDebugSkip(int argc, char* argv[]);
 
 //misc
 void showcommandlineerror(cmdline_error_t* cmdline_error);

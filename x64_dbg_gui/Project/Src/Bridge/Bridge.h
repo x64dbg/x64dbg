@@ -5,7 +5,7 @@
 #include <QMutex>
 #include "Imports.h"
 #include "NewTypes.h"
-#include "SearchListView.h"
+#include "ReferenceManager.h"
 
 class Bridge : public QObject
 {
@@ -48,12 +48,12 @@ public:
     void emitSetSymbolProgress(int progress);
     void emitReferenceAddColumnAt(int width, QString title);
     void emitReferenceSetRowCount(int_t count);
-    void emitReferenceDeleteAllColumns();
     void emitReferenceSetCellContent(int r, int c, QString s);
     void emitReferenceReloadData();
     void emitReferenceSetSingleSelection(int index, bool scroll);
     void emitReferenceSetProgress(int progress);
     void emitReferenceSetSearchStartCol(int col);
+    void emitReferenceInitialize(QString name);
     void emitStackDumpAt(uint_t va, uint_t csp);
     void emitUpdateDump();
     void emitUpdateThreads();
@@ -81,7 +81,7 @@ public:
     //Public variables
     void* winId;
     QWidget* scriptView;
-    SearchListView* referenceView;
+    ReferenceManager* referenceManager;
 
 signals:
     void disassembleAt(int_t va, int_t eip);
@@ -108,12 +108,12 @@ signals:
     void setSymbolProgress(int progress);
     void referenceAddColumnAt(int width, QString title);
     void referenceSetRowCount(int_t count);
-    void referenceDeleteAllColumns();
     void referenceSetCellContent(int r, int c, QString s);
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
     void referenceSetSearchStartCol(int col);
+    void referenceInitialize(QString name);
     void stackDumpAt(uint_t va, uint_t csp);
     void updateDump();
     void updateThreads();

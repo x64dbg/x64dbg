@@ -97,7 +97,12 @@ void BreakpointsView::reloadData()
 
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-            mHardBPTable->setCellContent(wI, 4, comment);
+        {
+            if(comment[0] == '\1') //automatic comment
+                mHardBPTable->setCellContent(wI, 4, QString(comment + 1));
+            else
+                mHardBPTable->setCellContent(wI, 4, comment);
+        }
     }
     mHardBPTable->reloadData();
     if(wBPList.count)
@@ -129,7 +134,12 @@ void BreakpointsView::reloadData()
 
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-            mSoftBPTable->setCellContent(wI, 4, comment);
+        {
+            if(comment[0] == '\1') //automatic comment
+                mSoftBPTable->setCellContent(wI, 4, QString(comment + 1));
+            else
+                mSoftBPTable->setCellContent(wI, 4, comment);
+        }
     }
     mSoftBPTable->reloadData();
     if(wBPList.count)
@@ -161,7 +171,12 @@ void BreakpointsView::reloadData()
 
         char comment[MAX_COMMENT_SIZE] = "";
         if(DbgGetCommentAt(wBPList.bp[wI].addr, comment))
-            mMemBPTable->setCellContent(wI, 4, comment);
+        {
+            if(comment[0] == '\1') //automatic comment
+                mMemBPTable->setCellContent(wI, 4, QString(comment + 1));
+            else
+                mMemBPTable->setCellContent(wI, 4, comment);
+        }
     }
     mMemBPTable->reloadData();
     if(wBPList.count)
