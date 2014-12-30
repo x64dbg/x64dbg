@@ -1,11 +1,13 @@
 #include "ReferenceManager.h"
 #include "Bridge.h"
 
-ReferenceManager::ReferenceManager(QWidget* parent) : MHTabWidget(parent, false, true)
+ReferenceManager::ReferenceManager(QWidget* parent) : QTabWidget(parent)
 {
-    this->setMovable(true);
+    setMovable(true);
+    setTabsClosable(true);
     mCurrentReferenceView = 0;
     connect(Bridge::getBridge(), SIGNAL(referenceInitialize(QString)), this, SLOT(newReferenceView(QString)));
+    connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 }
 
 ReferenceView* ReferenceManager::currentReferenceView()
@@ -22,4 +24,9 @@ void ReferenceManager::newReferenceView(QString name)
     insertTab(0, mCurrentReferenceView, name);
     setCurrentIndex(0);
     Bridge::getBridge()->BridgeSetResult(1);
+}
+
+void ReferenceManager::closeTab(int index)
+{
+    removeTab(index);
 }
