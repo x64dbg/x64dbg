@@ -82,11 +82,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setWindowTitle("CPU");
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
-    // Reference View
-    mReferenceView = new ReferenceView();
-    Bridge::getBridge()->referenceView = mReferenceView;
-    mReferenceView->setWindowTitle("References");
-    mReferenceView->setWindowIcon(QIcon(":/icons/images/search.png"));
+    // Reference Manager
+    mReferenceManager = new ReferenceManager();
+    Bridge::getBridge()->referenceManager = mReferenceManager;
+    mReferenceManager->setWindowTitle("References");
+    mReferenceManager->setWindowIcon(QIcon(":/icons/images/search.png"));
 
     // Thread View
     mThreadView = new ThreadView();
@@ -105,7 +105,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mCallStackView, mCallStackView->windowIcon(), mCallStackView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
-    mTabWidget->addTab(mReferenceView, mReferenceView->windowIcon(), mReferenceView->windowTitle());
+    mTabWidget->addTab(mReferenceManager, mReferenceManager->windowIcon(), mReferenceManager->windowTitle());
     mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
 
     setCentralWidget(mTabWidget);
@@ -152,7 +152,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
-    connect(mReferenceView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(openSettings()));
@@ -644,9 +644,9 @@ void MainWindow::displaySymbolWidget()
 
 void MainWindow::displayReferencesWidget()
 {
-    mReferenceView->show();
-    mReferenceView->setFocus();
-    setTab(mReferenceView);
+    mReferenceManager->show();
+    mReferenceManager->setFocus();
+    setTab(mReferenceManager);
 }
 
 void MainWindow::displayThreadsWidget()

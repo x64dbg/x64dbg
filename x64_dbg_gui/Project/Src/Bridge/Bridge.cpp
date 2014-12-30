@@ -17,7 +17,7 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
     mBridgeMutex = new QMutex();
     winId = 0;
     scriptView = 0;
-    referenceView = 0;
+    referenceManager = 0;
     bridgeResult = 0;
     hasBridgeResult = false;
 }
@@ -173,11 +173,6 @@ void Bridge::emitReferenceSetRowCount(int_t count)
     emit referenceSetRowCount(count);
 }
 
-void Bridge::emitReferenceDeleteAllColumns()
-{
-    emit referenceDeleteAllColumns();
-}
-
 void Bridge::emitReferenceSetCellContent(int r, int c, QString s)
 {
     emit referenceSetCellContent(r, c, s);
@@ -201,6 +196,16 @@ void Bridge::emitReferenceSetProgress(int progress)
 void Bridge::emitReferenceSetSearchStartCol(int col)
 {
     emit referenceSetSearchStartCol(col);
+}
+
+void Bridge::emitReferenceInitialize(QString name)
+{
+    mBridgeMutex->lock();
+    hasBridgeResult = false;
+    emit referenceInitialize(name);
+    while(!hasBridgeResult) //wait for thread completion
+        Sleep(100);
+    mBridgeMutex->unlock();
 }
 
 void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
@@ -558,13 +563,13 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_GETROWCOUNT:
     {
-        return (void*)Bridge::getBridge()->referenceView->mList->getRowCount();
+        return (void*)(void*)Bridge::getBridge()->referenceManager->currentReferenceView()->mList->getRowCount();
     }
     break;
 
     case GUI_REF_DELETEALLCOLUMNS:
     {
-        Bridge::getBridge()->emitReferenceDeleteAllColumns();
+        GuiReferenceInitialize("References");
     }
     break;
 
@@ -577,7 +582,7 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_REF_GETCELLCONTENT:
     {
-        return (void*)Bridge::getBridge()->referenceView->mList->getCellContent((int)(int_t)param1, (int)(int_t)param2).toUtf8().constData();
+        return (void*)Bridge::getBridge()->referenceManager->currentReferenceView()->mList->getCellContent((int)(int_t)param1, (int)(int_t)param2).toUtf8().constData();
     }
     break;
 
@@ -602,6 +607,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_REF_SETSEARCHSTARTCOL:
     {
         Bridge::getBridge()->emitReferenceSetSearchStartCol((int)(int_t)param1);
+    }
+    break;
+
+    case GUI_REF_INITIALIZE:
+    {
+        Bridge::getBridge()->emitReferenceInitialize(QString(reinterpret_cast<const char*>(param1)));
     }
     break;
 

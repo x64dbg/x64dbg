@@ -13,7 +13,7 @@
 #include "SymbolView.h"
 #include "BreakpointsView.h"
 #include "ScriptView.h"
-#include "ReferenceView.h"
+#include "ReferenceManager.h"
 #include "ThreadView.h"
 #include "PatchDialog.h"
 #include "CalculatorDialog.h"
@@ -104,7 +104,7 @@ private:
     SymbolView* mSymbolView;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
-    ReferenceView* mReferenceView;
+    ReferenceManager* mReferenceManager;
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
