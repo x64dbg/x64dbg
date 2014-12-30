@@ -423,6 +423,18 @@ typedef struct
 
 } X87CONTROLWORDFIELDS;
 
+typedef struct DECLSPEC_ALIGN(16) _XMMREGISTER
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} XMMREGISTER;
+
+typedef struct
+{
+    XMMREGISTER Low; //XMM/SSE part
+    XMMREGISTER High; //AVX part
+} YMMREGISTER;
+
 typedef struct
 {
     BYTE    data[10];
@@ -480,11 +492,11 @@ typedef struct
     X87FPU x87fpu;
     DWORD MxCsr;
 #ifdef _WIN64
-    M128A XmmRegisters[16];
-    BYTE YmmRegisters[32 * 16];
+    XMMREGISTER XmmRegisters[16];
+    YMMREGISTER YmmRegisters[16];
 #else // x86
-    M128A XmmRegisters[8];
-    BYTE YmmRegisters[32 * 8];
+    XMMREGISTER XmmRegisters[8];
+    YMMREGISTER YmmRegisters[8];
 #endif
 } REGISTERCONTEXT;
 
