@@ -358,7 +358,10 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     default:
-        break;
+    {
+        modifySlot();
+    }
+    break;
     }
 }
 

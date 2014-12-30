@@ -16,6 +16,7 @@ bool valx87controlwordflagfromstring(uint controlword, const char* string);
 unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string);
 unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string);
 unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string);
-void fpustuff(const char* string, uint value);
+uint valfileoffsettova(const char* modname, uint offset);
+uint valvatofileoffset(uint va);
 
 #endif // _VALUE_H

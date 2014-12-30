@@ -111,11 +111,17 @@ void SymbolView::setupContextMenu()
     mFollowModuleAction->setShortcut(QKeySequence("enter"));
     connect(mFollowModuleAction, SIGNAL(triggered()), this, SLOT(moduleFollow()));
 
+    mFollowModuleEntryAction = new QAction("Follow &Entry Point in Disassembler", this);
+    connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
+
     mDownloadSymbolsAction = new QAction("&Download Symbols for This Module", this);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
     mDownloadAllSymbolsAction = new QAction("Download Symbols for &All Modules", this);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
+
+    mCopyPathAction = new QAction("Copy File &Path", this);
+    connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
     //Shortcuts
     refreshShortcutsSlot();
@@ -231,8 +237,13 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowModuleAction);
+    wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
+    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+        wMenu->addAction(mCopyPathAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -247,6 +258,20 @@ void SymbolView::moduleFollow()
 {
     DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
     emit showCpu();
+}
+
+void SymbolView::moduleEntryFollow()
+{
+    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + "?entry").toUtf8().constData());
+    emit showCpu();
+}
+
+void SymbolView::moduleCopyPath()
+{
+    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+        Bridge::CopyToClipboard(szModPath);
 }
 
 void SymbolView::moduleDownloadSymbols()

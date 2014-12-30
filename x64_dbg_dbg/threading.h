@@ -31,21 +31,26 @@ enum CriticalSectionLock
     LockBreakpoints,
     LockPatches,
     LockThreads,
+    LockDprintf,
     LockLast
 };
-
-void CriticalSectionDeleteLocks();
 
 class CriticalSectionLocker
 {
 public:
+    static void Deinitialize();
     CriticalSectionLocker(CriticalSectionLock lock);
     ~CriticalSectionLocker();
     void unlock();
     void relock();
 
 private:
+    static void Initialize();
+    static bool bInitDone;
+    static CRITICAL_SECTION locks[LockLast];
+
     CriticalSectionLock gLock;
+    bool Locked;
 };
 
 #endif // _THREADING_H

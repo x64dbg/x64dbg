@@ -465,7 +465,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUINTDISPLAY.insert(CDX);
     mLABELDISPLAY.insert(CDX);
     mMODIFYDISPLAY.insert(CDX);
-    mCANSTOREADDRESS.insert(CCX);
+    mCANSTOREADDRESS.insert(CDX);
 
     mSETONEZEROTOGGLE.insert(CBP);
     mINCREMENTDECREMET.insert(CBP);
