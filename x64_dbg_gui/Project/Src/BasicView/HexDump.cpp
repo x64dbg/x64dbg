@@ -238,7 +238,7 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
-        printDumpAt(mMemPage->getBase(), false);
+        printDumpAt(mMemPage->getBase(), false, false);
 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();

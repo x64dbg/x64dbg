@@ -361,6 +361,10 @@ void CPUDump::refreshShortcutsSlot()
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    // Reset byte offset when base address is reached
+    if(rowBase == 0 && mByteOffset != 0)
+        printDumpAt(mMemPage->getBase(), false, false);
+
     QString wStr = "";
     if(!col) //address
     {
