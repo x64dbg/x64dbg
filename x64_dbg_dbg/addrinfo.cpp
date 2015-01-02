@@ -45,7 +45,8 @@ void dbsave()
             return;
         }
         fclose(jsonFile);
-        LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
+        if(!settingboolget("Engine", "DisableCompression"))
+            LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
         DeleteFileW(wdbpath.c_str());
@@ -60,8 +61,9 @@ void dbload()
     dprintf("loading database...");
     DWORD ticks = GetTickCount();
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    bool compress = !settingboolget("Engine", "DisableCompression");
     LZ4_STATUS status = LZ4_decompress_fileW(wdbpath.c_str(), wdbpath.c_str());
-    if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE)
+    if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE && compress)
     {
         dputs("\ninvalid database file!");
         return;
@@ -74,7 +76,7 @@ void dbload()
     }
     JSON root = json_loadf(jsonFile, 0, 0);
     fclose(jsonFile);
-    if(status != LZ4_INVALID_ARCHIVE)
+    if(status != LZ4_INVALID_ARCHIVE && compress)
         LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(!root)
     {
