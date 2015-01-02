@@ -5,6 +5,7 @@
 
 static HINSTANCE hInst;
 static wchar_t szIniFile[MAX_PATH] = L"";
+static CRITICAL_SECTION csIni;
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -105,14 +106,20 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
 {
     if(!section || !key || !value)
         return false;
+    EnterCriticalSection(&csIni);
     CSimpleIniA inifile(true, false, false);
-    if(inifile.LoadFile(szIniFile) < 0)
-        return false;
-    const char* szValue = inifile.GetValue(section, key);
-    if(!szValue)
-        return false;
-    strcpy_s(value, MAX_SETTING_SIZE, szValue);
-    return true;
+    bool success = false;
+    if(inifile.LoadFile(szIniFile) >= 0)
+    {
+        const char* szValue = inifile.GetValue(section, key);
+        if(szValue)
+        {
+            strcpy_s(value, MAX_SETTING_SIZE, szValue);
+            success = true;
+        }
+    }
+    LeaveCriticalSection(&csIni);
+    return success;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
@@ -134,15 +141,20 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
-    if(!section)
-        return false;
-    CSimpleIniA inifile(true, false, false);
-    inifile.LoadFile(szIniFile);
-    if(!key || !value) //delete value/key when 0
-        inifile.Delete(section, key, true);
-    else
-        inifile.SetValue(section, key, value);
-    return inifile.SaveFile(szIniFile, false) >= 0;
+    bool success = false;
+    if(section)
+    {
+        EnterCriticalSection(&csIni);
+        CSimpleIniA inifile(true, false, false);
+        inifile.LoadFile(szIniFile);
+        if(!key || !value) //delete value/key when 0
+            inifile.Delete(section, key, true);
+        else
+            inifile.SetValue(section, key, value);
+        success = inifile.SaveFile(szIniFile, false) >= 0;
+        LeaveCriticalSection(&csIni);
+    }
+    return success;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
@@ -1000,7 +1012,7 @@ BRIDGE_IMPEXP void GuiUpdateCallStack()
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
+    InitializeCriticalSection(&csIni);
     hInst = hinstDLL;
     return TRUE;
 }
-
