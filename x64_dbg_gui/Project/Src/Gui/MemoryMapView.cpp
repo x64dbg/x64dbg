@@ -9,12 +9,12 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "ADDR", false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "SIZE", false, "Size"); //size
-    addColumnAt(8 + charwidth * 32, "INFO", false, "Page Information"); //page information
-    addColumnAt(8 + charwidth * 3, "TYP", false, "Allocation Type"); //allocation type
-    addColumnAt(8 + charwidth * 5, "CPROT", false, "Current Protection"); //current protection
-    addColumnAt(8 + charwidth * 5, "APROT", false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Address", false, "Address"); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Size", false, "Size"); //size
+    addColumnAt(8 + charwidth * 32, "Info", false, "Page Information"); //page information
+    addColumnAt(8 + charwidth * 5, "Type", false, "Allocation Type"); //allocation type
+    addColumnAt(8 + charwidth * 11, "Protection", false, "Current Protection"); //current protection
+    addColumnAt(8 + charwidth * 8, "Initial", false, "Allocation Protection"); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
