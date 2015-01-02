@@ -198,8 +198,8 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 #endif //_WIN64
     addColumnAt(8 + charwidth * 14, "Suspend Count", false);
     addColumnAt(8 + charwidth * 12, "Priority", false);
-    addColumnAt(8 + charwidth * 16, "WaitReason", false);
-    addColumnAt(8 + charwidth * 10, "LastError", false);
+    addColumnAt(8 + charwidth * 12, "Wait Reason", false);
+    addColumnAt(8 + charwidth * 11, "Last Error", false);
     addColumnAt(0, "Name", false);
 
     //setCopyMenuOnly(true);

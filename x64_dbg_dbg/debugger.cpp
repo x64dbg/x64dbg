@@ -273,7 +273,7 @@ void cbUserBreakpoint()
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint = 0;
     if(!bpget(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
-        dputs("breakpoint reached not in list!");
+        dputs("Breakpoint reached not in list!");
     else
     {
         const char* bptype = "INT3";
@@ -324,7 +324,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint = 0;
     if(!bpget((uint)ExceptionAddress, BPHARDWARE, 0, &bp))
-        dputs("hardware breakpoint reached not in list!");
+        dputs("Hardware breakpoint reached not in list!");
     else
     {
         const char* bpsize = "";
@@ -363,16 +363,16 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
         if(symbolicname)
         {
             if(*bp.name)
-                dprintf("hardware breakpoint (%s%s) \"%s\" at %s ("fhex")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
+                dprintf("Hardware breakpoint (%s%s) \"%s\" at %s ("fhex")!\n", bpsize, bptype, bp.name, symbolicname, bp.addr);
             else
-                dprintf("hardware breakpoint (%s%s) at %s ("fhex")!\n", bpsize, bptype, symbolicname, bp.addr);
+                dprintf("Hardware breakpoint (%s%s) at %s ("fhex")!\n", bpsize, bptype, symbolicname, bp.addr);
         }
         else
         {
             if(*bp.name)
-                dprintf("hardware breakpoint (%s%s) \"%s\" at "fhex"!\n", bpsize, bptype, bp.name, bp.addr);
+                dprintf("Hardware breakpoint (%s%s) \"%s\" at "fhex"!\n", bpsize, bptype, bp.name, bp.addr);
             else
-                dprintf("hardware breakpoint (%s%s) at "fhex"!\n", bpsize, bptype, bp.addr);
+                dprintf("Hardware breakpoint (%s%s) at "fhex"!\n", bpsize, bptype, bp.addr);
         }
         bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint = &pluginBp;
@@ -401,7 +401,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint = 0;
     if(!bpget(base, BPMEMORY, 0, &bp))
-        dputs("memory breakpoint reached not in list!");
+        dputs("Memory breakpoint reached not in list!");
     else
     {
         const char* bptype = "";
@@ -424,16 +424,16 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
         if(symbolicname)
         {
             if(*bp.name)
-                dprintf("memory breakpoint%s \"%s\" at %s ("fhex", "fhex")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
+                dprintf("Memory breakpoint%s \"%s\" at %s ("fhex", "fhex")!\n", bptype, bp.name, symbolicname, bp.addr, ExceptionAddress);
             else
-                dprintf("memory breakpoint%s at %s ("fhex", "fhex")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
+                dprintf("Memory breakpoint%s at %s ("fhex", "fhex")!\n", bptype, symbolicname, bp.addr, ExceptionAddress);
         }
         else
         {
             if(*bp.name)
-                dprintf("memory breakpoint%s \"%s\" at "fhex" ("fhex")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
+                dprintf("Memory breakpoint%s \"%s\" at "fhex" ("fhex")!\n", bptype, bp.name, bp.addr, ExceptionAddress);
             else
-                dprintf("memory breakpoint%s at "fhex" ("fhex")!\n", bptype, bp.addr, ExceptionAddress);
+                dprintf("Memory breakpoint%s at "fhex" ("fhex")!\n", bptype, bp.addr, ExceptionAddress);
         }
         bptobridge(&bp, &pluginBp);
         bpInfo.breakpoint = &pluginBp;
@@ -537,7 +537,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     case BPNORMAL:
     {
         if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
-            dprintf("could not set breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set breakpoint "fhex"!\n", bp->addr);
     }
     break;
 
@@ -546,7 +546,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         uint size = 0;
         memfindbaseaddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
-            dprintf("could not set memory breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set memory breakpoint "fhex"!\n", bp->addr);
     }
     break;
 
@@ -555,14 +555,14 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         DWORD drx = 0;
         if(!GetUnusedHardwareBreakPointRegister(&drx))
         {
-            dputs("you can only set 4 hardware breakpoints");
+            dputs("You can only set 4 hardware breakpoints");
             return false;
         }
         int titantype = bp->titantype;
         TITANSETDRX(titantype, drx);
         bpsettitantype(bp->addr, BPHARDWARE, titantype);
         if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
-            dprintf("could not set hardware breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set hardware breakpoint "fhex"!\n", bp->addr);
     }
     break;
 
@@ -708,7 +708,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
                 Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
                 if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
-                    dputs("failed to get TLS callback addresses!");
+                    dputs("Failed to get TLS callback addresses!");
                 else
                 {
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
@@ -821,9 +821,9 @@ static void cbSystemBreakpoint(void* ExceptionData)
     hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     //log message
     if(bIsAttached)
-        dputs("attach breakpoint reached!");
+        dputs("Attach breakpoint reached!");
     else
-        dputs("system breakpoint reached!");
+        dputs("System breakpoint reached!");
     bSkipExceptions = false; //we are not skipping first-chance exceptions
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
@@ -1015,7 +1015,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
                 dputs("DetachDebuggerEx failed...");
             else
-                dputs("detached!");
+                dputs("Detached!");
             isDetachedByUser = false;
             return;
         }
@@ -1061,9 +1061,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     if(ExceptionData->dwFirstChance) //first chance exception
     {
         if(exceptionName)
-            dprintf("first chance exception on "fhex" (%.8X, %s)!\n", addr, ExceptionCode, exceptionName);
+            dprintf("First chance exception on "fhex" (%.8X, %s)!\n", addr, ExceptionCode, exceptionName);
         else
-            dprintf("first chance exception on "fhex" (%.8X)!\n", addr, ExceptionCode);
+            dprintf("First chance exception on "fhex" (%.8X)!\n", addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
         if(bSkipExceptions || dbgisignoredexception(ExceptionCode))
             return;
@@ -1071,9 +1071,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     else //lock the exception
     {
         if(exceptionName)
-            dprintf("last chance exception on "fhex" (%.8X, %s)!\n", addr, ExceptionCode, exceptionName);
+            dprintf("Last chance exception on "fhex" (%.8X, %s)!\n", addr, ExceptionCode, exceptionName);
         else
-            dprintf("last chance exception on "fhex" (%.8X)!\n", addr, ExceptionCode);
+            dprintf("Last chance exception on "fhex" (%.8X)!\n", addr, ExceptionCode);
         SetNextDbgContinueStatus(DBG_CONTINUE);
     }
 
@@ -1115,7 +1115,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;
-        dputs("error starting process (invalid pe?)!");
+        dputs("Error starting process (invalid pe?)!");
         unlock(WAITID_STOP);
         return 0;
     }
@@ -1192,7 +1192,8 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bpdel(bp->addr, BPNORMAL) and (!bp->enabled or DeleteBPX(bp->addr)))
         return true;
-    dprintf("delete breakpoint failed: "fhex"\n", bp->addr);
+
+    dprintf("Delete breakpoint failed: "fhex"\n", bp->addr);
     return false;
 }
 
@@ -1200,9 +1201,10 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPNORMAL or bp->enabled)
         return true;
+
     if(!bpenable(bp->addr, BPNORMAL, true) or !SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
     {
-        dprintf("could not enable breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
@@ -1212,9 +1214,10 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPNORMAL or !bp->enabled)
         return true;
+
     if(!bpenable(bp->addr, BPNORMAL, false) or !DeleteBPX(bp->addr))
     {
-        dprintf("could not disable breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
@@ -1227,7 +1230,7 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     DWORD drx = 0;
     if(!GetUnusedHardwareBreakPointRegister(&drx))
     {
-        dprintf("did not enable hardware breakpoint "fhex" (all slots full)\n", bp->addr);
+        dprintf("Did not enable hardware breakpoint "fhex" (all slots full)\n", bp->addr);
         return true;
     }
     int titantype = bp->titantype;
@@ -1247,7 +1250,7 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!bpenable(bp->addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
-        dprintf("could not disable hardware breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable hardware breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
@@ -1261,7 +1264,7 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
     memfindbaseaddr(bp->addr, &size);
     if(!bpenable(bp->addr, BPMEMORY, true) or !SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
     {
-        dprintf("could not enable memory breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable memory breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
@@ -1273,7 +1276,7 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!bpenable(bp->addr, BPMEMORY, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
-        dprintf("could not disable memory breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable memory breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
@@ -1309,7 +1312,7 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     memfindbaseaddr(bp->addr, &size);
     if(!bpdel(bp->addr, BPMEMORY) or !RemoveMemoryBPX(bp->addr, size))
     {
-        dprintf("delete memory breakpoint failed: "fhex"\n", bp->addr);
+        dprintf("Delete memory breakpoint failed: "fhex"\n", bp->addr);
         return STATUS_ERROR;
     }
     return true;
@@ -1321,7 +1324,7 @@ bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!bpdel(bp->addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
-        dprintf("delete hardware breakpoint failed: "fhex"\n", bp->addr);
+        dprintf("Delete hardware breakpoint failed: "fhex"\n", bp->addr);
         return STATUS_ERROR;
     }
     return true;
@@ -1412,7 +1415,7 @@ void cbDetach()
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
         dputs("DetachDebuggerEx failed...");
     else
-        dputs("detached!");
+        dputs("Detached!");
     return;
 }
 
