@@ -32,7 +32,10 @@ static CRITICAL_SECTION csIni;
 //Bridge
 BRIDGE_IMPEXP const char* BridgeInit()
 {
-    ///Settings load
+    //Initialize critial section
+    InitializeCriticalSection(&csIni);
+
+    //Settings load
     if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
         return "Error getting module path!";
     int len = (int)wcslen(szIniFile);
@@ -82,6 +85,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     _gui_guiinit(0, 0); //remove arguments
+    DeleteCriticalSection(&csIni);
     return 0;
 }
 
@@ -1012,7 +1016,6 @@ BRIDGE_IMPEXP void GuiUpdateCallStack()
 //Main
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-    InitializeCriticalSection(&csIni);
     hInst = hinstDLL;
     return TRUE;
 }
