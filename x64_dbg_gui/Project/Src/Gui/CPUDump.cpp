@@ -361,6 +361,10 @@ void CPUDump::refreshShortcutsSlot()
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    // Reset byte offset when base address is reached
+    if(rowBase == 0 && mByteOffset != 0)
+        printDumpAt(mMemPage->getBase(), false, false);
+
     QString wStr = "";
     if(!col) //address
     {
@@ -427,9 +431,11 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         uint_t data = 0;
         int_t wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(uint_t));
+        char modname[MAX_MODULE_SIZE] = "";
+        DbgGetModuleAt(data, modname);
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
-            wStr = QString(label_text);
+            wStr = QString(modname) + "." + QString(label_text);
     }
     else //data
     {
@@ -521,7 +527,10 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     default:
-        break;
+    {
+        binaryEditSlot();
+    }
+    break;
     }
 }
 

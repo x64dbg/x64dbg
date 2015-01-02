@@ -169,6 +169,10 @@ void CPUStack::refreshShortcutsSlot()
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    // Reset byte offset when base address is reached
+    if(rowBase == 0 && mByteOffset != 0)
+        printDumpAt(mMemPage->getBase(), false, false);
+
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
     int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
@@ -358,7 +362,10 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     default:
-        break;
+    {
+        modifySlot();
+    }
+    break;
     }
 }
 

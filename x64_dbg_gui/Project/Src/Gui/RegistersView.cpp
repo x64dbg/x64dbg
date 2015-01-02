@@ -465,7 +465,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUINTDISPLAY.insert(CDX);
     mLABELDISPLAY.insert(CDX);
     mMODIFYDISPLAY.insert(CDX);
-    mCANSTOREADDRESS.insert(CCX);
+    mCANSTOREADDRESS.insert(CDX);
 
     mSETONEZEROTOGGLE.insert(CBP);
     mINCREMENTDECREMET.insert(CBP);
@@ -2375,22 +2375,22 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
     if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
 
-    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[32 * 0]);
-    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[32 * 1]);
-    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[32 * 2]);
-    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[32 * 3]);
-    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[32 * 4]);
-    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[32 * 5]);
-    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[32 * 6]);
-    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[32 * 7]);
-    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[32 * 8]);
-    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[32 * 9]);
-    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[32 * 10]);
-    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[32 * 11]);
-    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[32 * 12]);
-    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[32 * 13]);
-    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[32 * 14]);
-    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[32 * 15]);
+    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[0]);
+    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[1]);
+    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[2]);
+    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[3]);
+    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[4]);
+    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[5]);
+    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[6]);
+    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[7]);
+    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[8]);
+    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[9]);
+    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[10]);
+    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[11]);
+    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[12]);
+    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[13]);
+    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[14]);
+    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[15]);
 
     return (char*) & null_value;
 }

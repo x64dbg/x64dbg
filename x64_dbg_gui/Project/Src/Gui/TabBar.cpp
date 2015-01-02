@@ -14,8 +14,10 @@
 //////////////////////////////////////////////////////////////
 // Default Constructor
 //////////////////////////////////////////////////////////////
-MHTabBar::MHTabBar(QWidget* parent) : QTabBar(parent)
+MHTabBar::MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete) : QTabBar(parent)
 {
+    mAllowDetach = allowDetach;
+    mAllowDelete = allowDelete;
     setAcceptDrops(true);
     setElideMode(Qt::ElideRight);
     setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
@@ -31,13 +33,24 @@ MHTabBar::~MHTabBar(void)
 
 void MHTabBar::contextMenuEvent(QContextMenuEvent* event)
 {
+    if(!mAllowDetach && !mAllowDelete)
+        return;
     QMenu wMenu(this);
     QAction wDetach("&Detach", this);
-    wMenu.addAction(&wDetach);
-    if(wMenu.exec(event->globalPos()) == &wDetach)
+    if(mAllowDetach)
+        wMenu.addAction(&wDetach);
+    QAction wDelete("&Delete", this);
+    if(mAllowDelete)
+        wMenu.addAction(&wDelete);
+    QAction* executed = wMenu.exec(event->globalPos());
+    if(executed == &wDetach)
     {
         QPoint p(0, 0);
         OnDetachTab((int)tabAt(event->pos()), p);
+    }
+    else if(executed == &wDelete)
+    {
+        OnDeleteTab((int)tabAt(event->pos()));
     }
 }
 

@@ -37,7 +37,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 23
+#define DBG_VERSION 24
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
@@ -423,6 +423,18 @@ typedef struct
 
 } X87CONTROLWORDFIELDS;
 
+typedef struct DECLSPEC_ALIGN(16) _XMMREGISTER
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} XMMREGISTER;
+
+typedef struct
+{
+    XMMREGISTER Low; //XMM/SSE part
+    XMMREGISTER High; //AVX part
+} YMMREGISTER;
+
 typedef struct
 {
     BYTE    data[10];
@@ -480,11 +492,11 @@ typedef struct
     X87FPU x87fpu;
     DWORD MxCsr;
 #ifdef _WIN64
-    M128A XmmRegisters[16];
-    BYTE YmmRegisters[32 * 16];
+    XMMREGISTER XmmRegisters[16];
+    YMMREGISTER YmmRegisters[16];
 #else // x86
-    M128A XmmRegisters[8];
-    BYTE YmmRegisters[32 * 8];
+    XMMREGISTER XmmRegisters[8];
+    YMMREGISTER YmmRegisters[8];
 #endif
 } REGISTERCONTEXT;
 
@@ -724,16 +736,16 @@ typedef enum
     GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
     GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL,      // param1=ununsed,              param2=unused
+    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,              param2=unused
     GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
     GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
     GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
     GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT,      // param1=unused,               param2=unused
-    GUI_UPDATE_MEMORY_VIEW         // param1=unused,               param2=unused
-
+    GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
+    GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
+    GUI_REF_INITIALIZE              // param1=const char* name      param2=unused
 } GUIMSG;
 
 //GUI structures
@@ -780,6 +792,7 @@ BRIDGE_IMPEXP void GuiReferenceAddColumn(int width, const char* title);
 BRIDGE_IMPEXP void GuiReferenceSetRowCount(int count);
 BRIDGE_IMPEXP int GuiReferenceGetRowCount();
 BRIDGE_IMPEXP void GuiReferenceDeleteAllColumns();
+BRIDGE_IMPEXP void GuiReferenceInitialize(const char* name);
 BRIDGE_IMPEXP void GuiReferenceSetCellContent(int row, int col, const char* str);
 BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();

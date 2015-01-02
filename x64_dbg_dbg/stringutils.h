@@ -14,6 +14,7 @@ class StringUtils
 public:
     static StringList Split(const String & s, char delim, std::vector<String> & elems);
     static StringList Split(const String & s, char delim);
+    static String Escape(const String & s);
     static String Trim(const String & s);
     static String TrimLeft(const String & s);
     static String TrimRight(const String & s);

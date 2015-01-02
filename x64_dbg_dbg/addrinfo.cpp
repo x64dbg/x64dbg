@@ -45,7 +45,8 @@ void dbsave()
             return;
         }
         fclose(jsonFile);
-        LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
+        if(!settingboolget("Engine", "DisableCompression"))
+            LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
         DeleteFileW(wdbpath.c_str());
@@ -60,8 +61,9 @@ void dbload()
     dprintf("loading database...");
     DWORD ticks = GetTickCount();
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    bool compress = !settingboolget("Engine", "DisableCompression");
     LZ4_STATUS status = LZ4_decompress_fileW(wdbpath.c_str(), wdbpath.c_str());
-    if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE)
+    if(status != LZ4_SUCCESS && status != LZ4_INVALID_ARCHIVE && compress)
     {
         dputs("\ninvalid database file!");
         return;
@@ -74,7 +76,7 @@ void dbload()
     }
     JSON root = json_loadf(jsonFile, 0, 0);
     fclose(jsonFile);
-    if(status != LZ4_INVALID_ARCHIVE)
+    if(status != LZ4_INVALID_ARCHIVE && compress)
         LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     if(!root)
     {
@@ -168,42 +170,7 @@ bool modload(uint base, uint size, const char* fullpath)
                 for(int k = 0; k < len; k++)
                     if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
                         escape_count++;
-                Memory<char*> SectionNameEscaped(len + escape_count * 3 + 1, "_dbg_memmap:SectionNameEscaped");
-                memset(SectionNameEscaped, 0, len + escape_count * 3 + 1);
-                for(int k = 0, l = 0; k < len; k++)
-                {
-                    switch(SectionName[k])
-                    {
-                    case '\t':
-                        l += sprintf(SectionNameEscaped + l, "\\t");
-                        break;
-                    case '\f':
-                        l += sprintf(SectionNameEscaped + l, "\\f");
-                        break;
-                    case '\v':
-                        l += sprintf(SectionNameEscaped + l, "\\v");
-                        break;
-                    case '\n':
-                        l += sprintf(SectionNameEscaped + l, "\\n");
-                        break;
-                    case '\r':
-                        l += sprintf(SectionNameEscaped + l, "\\r");
-                        break;
-                    case '\\':
-                        l += sprintf(SectionNameEscaped + l, "\\\\");
-                        break;
-                    case '\"':
-                        l += sprintf(SectionNameEscaped + l, "\\\"");
-                        break;
-                    default:
-                        if(!isprint(SectionName[k])) //unknown unprintable character
-                            l += sprintf(SectionNameEscaped + l, "\\x%.2X", SectionName[k]);
-                        else
-                            l += sprintf(SectionNameEscaped + l, "%c", SectionName[k]);
-                        break;
-                    }
-                }
-                strcpy_s(curSection.name, SectionNameEscaped);
+                strcpy_s(curSection.name, StringUtils::Escape(SectionName).c_str());
                 info.sections.push_back(curSection);
             }
         }
@@ -415,7 +382,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 ///comment functions
 bool commentset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_COMMENT_SIZE - 1)
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or text[0] == '\1' or strlen(text) >= MAX_COMMENT_SIZE - 1)
         return false;
     if(!*text) //NOTE: delete when there is no text
     {
