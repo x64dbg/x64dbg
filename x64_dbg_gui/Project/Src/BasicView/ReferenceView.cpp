@@ -7,6 +7,7 @@ ReferenceView::ReferenceView()
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
+    mFollowDumpDefault = false;
 
     // Create search progress bar
     mSearchProgress = new QProgressBar();
