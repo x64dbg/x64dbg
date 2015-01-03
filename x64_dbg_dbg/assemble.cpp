@@ -30,7 +30,11 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
 #endif
     parse.cbUnknown = cbUnknown;
     parse.cip = addr;
-    strcpy(parse.instr, instruction);
+    String instr = instruction;
+    size_t pos = instr.find(" short ");
+    if(pos != String::npos)
+        instr.erase(pos, 6);
+    strcpy(parse.instr, instr.c_str());
     if(XEDParseAssemble(&parse) == XEDPARSE_ERROR)
     {
         if(error)
