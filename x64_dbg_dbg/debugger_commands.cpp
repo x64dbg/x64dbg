@@ -606,25 +606,30 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         }
     }
     char arg3[deflen] = ""; //size
-    uint size = UE_HARDWARE_SIZE_1;
+    DWORD titsize;
     if(argget(*argv, arg3, 2, true))
     {
+        uint size;
         if(!valfromstring(arg3, &size))
             return STATUS_ERROR;
         switch(size)
         {
+        case 1:
+            titsize = UE_HARDWARE_SIZE_1;
+            break;
         case 2:
-            size = UE_HARDWARE_SIZE_2;
+            titsize = UE_HARDWARE_SIZE_2;
             break;
         case 4:
-            size = UE_HARDWARE_SIZE_4;
+            titsize = UE_HARDWARE_SIZE_4;
             break;
 #ifdef _WIN64
         case 8:
-            size = UE_HARDWARE_SIZE_8;
+            titsize = UE_HARDWARE_SIZE_8;
             break;
 #endif // _WIN64
         default:
+            titsize = UE_HARDWARE_SIZE_1;
             dputs("Invalid size, using 1");
             break;
         }
@@ -643,16 +648,21 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     int titantype = 0;
     TITANSETDRX(titantype, drx);
     TITANSETTYPE(titantype, type);
-    TITANSETSIZE(titantype, size);
+    TITANSETSIZE(titantype, titsize);
     //TODO: hwbp in multiple threads TEST
     if(bpget(addr, BPHARDWARE, 0, 0))
     {
         dputs("Hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
-    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0) or !SetHardwareBreakPoint(addr, drx, type, (DWORD)size, (void*)cbHardwareBreakpoint))
+    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0))
     {
-        dputs("Error setting hardware breakpoint!");
+        dputs("error setting hardware breakpoint (bpnew)!");
+        return STATUS_ERROR;
+    }
+    if(!SetHardwareBreakPoint(addr, drx, type, titsize, (void*)cbHardwareBreakpoint))
+    {
+        dputs("error setting hardware breakpoint (TitanEngine)!");
         return STATUS_ERROR;
     }
     dprintf("Hardware breakpoint at "fhex" set!\n", addr);
