@@ -75,6 +75,7 @@ CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     setupContextMenu();
 
@@ -1313,4 +1314,11 @@ void CPUDump::followStackSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
+}
+
+void CPUDump::selectionUpdatedSlot()
+{
+    QString selStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString selEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    GuiAddStatusBarMessage(QString("Dump: " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
 }
