@@ -238,6 +238,11 @@ void Bridge::emitSetLastException(unsigned int exceptionCode)
     emit setLastException(exceptionCode);
 }
 
+void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
+{
+    emit menuAddMenuToList(parent, menu, hMenu, hParentMenu);
+}
+
 int Bridge::emitMenuAddMenu(int hMenu, QString title)
 {
     mBridgeMutex->lock();

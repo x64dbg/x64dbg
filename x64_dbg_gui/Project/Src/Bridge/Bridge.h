@@ -60,10 +60,12 @@ public:
     void emitUpdateMemory();
     void emitAddRecentFile(QString file);
     void emitSetLastException(unsigned int exceptionCode);
+    void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
     int emitMenuAddMenu(int hMenu, QString title);
     int emitMenuAddMenuEntry(int hMenu, QString title);
     void emitMenuAddSeparator(int hMenu);
     void emitMenuClearMenu(int hMenu);
+    void emitMenuRemoveEntry(int hEntry);
     bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
     bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
     bool emitGetStrWindow(const QString title, QString* text);
@@ -119,10 +121,12 @@ signals:
     void updateMemory();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
+    void menuAddMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu);
     void menuAddMenu(int hMenu, QString title);
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
     void menuClearMenu(int hMenu);
+    void menuRemoveMenuEntry(int hEntry);
     void selectionDisasmGet(SELECTIONDATA* selection);
     void selectionDisasmSet(const SELECTIONDATA* selection);
     void selectionDumpGet(SELECTIONDATA* selection);
