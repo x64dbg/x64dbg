@@ -150,6 +150,9 @@ void CPUStack::setupContextMenu()
     mFollowStack = new QAction("Follow in &Stack", this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -332,6 +335,9 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
                 wMenu->addAction(mFollowDisasm);
             wMenu->addAction(mFollowDump);
         }
+
+    wMenu->addSeparator();
+    wMenu->addActions(mPluginMenu->actions());
 
     wMenu->exec(event->globalPos());
 }

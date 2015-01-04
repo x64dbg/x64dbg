@@ -228,7 +228,6 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
-
         wMenu->addAction(mSetLabel);
         wMenu->addAction(mSetComment);
         wMenu->addAction(mSetBookmark);
@@ -272,6 +271,9 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
+
+        wMenu->addSeparator();
+        wMenu->addActions(mPluginMenu->actions());
 
         wMenu->exec(event->globalPos());
     }
@@ -518,6 +520,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mEnableHighlightingMode);
     connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
+
+    // Plugins
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));

@@ -162,7 +162,7 @@ void pluginload(const char* pluginDir)
         int hNewMenu = GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_PLUGIN_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -172,7 +172,55 @@ void pluginload(const char* pluginDir)
             newMenu.hEntryPlugin = -1;
             newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
             pluginMenuList.push_back(newMenu);
-            pluginData.hMenu = hNewMenu;
+            pluginData.hMenu = newMenu.hEntryMenu;
+        }
+        //add disasm plugin menu
+        hNewMenu = GuiMenuAdd(GUI_DISASM_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_DISASM_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuDisasm = newMenu.hEntryMenu;
+        }
+        //add dump plugin menu
+        hNewMenu = GuiMenuAdd(GUI_DUMP_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_DUMP_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuDump = newMenu.hEntryMenu;
+        }
+        //add stack plugin menu
+        hNewMenu = GuiMenuAdd(GUI_STACK_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_STACK_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuStack = newMenu.hEntryMenu;
         }
         pluginList.push_back(pluginData);
         //setup plugin
@@ -180,7 +228,10 @@ void pluginload(const char* pluginDir)
         {
             PLUG_SETUPSTRUCT setupStruct;
             setupStruct.hwndDlg = GuiGetWindowHandle();
-            setupStruct.hMenu = hNewMenu;
+            setupStruct.hMenu = pluginData.hMenu;
+            setupStruct.hMenuDisasm = pluginData.hMenuDisasm;
+            setupStruct.hMenuDump = pluginData.hMenuDump;
+            setupStruct.hMenuStack = pluginData.hMenuStack;
             pluginData.plugsetup(&setupStruct);
         }
         curPluginHandle++;

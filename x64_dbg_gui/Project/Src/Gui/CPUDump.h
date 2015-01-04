@@ -160,6 +160,7 @@ private:
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
+    QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
 

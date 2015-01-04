@@ -341,6 +341,10 @@ void CPUDump::setupContextMenu()
     mDisassemblyAction = new QAction("&Disassembly", this);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
 
+    //Plugins
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -497,6 +501,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mMemoryExecuteMenu->menuAction()->setVisible(true);
         mMemoryRemove->setVisible(false);
     }
+
+    wMenu->addSeparator();
+    wMenu->addActions(mPluginMenu->actions());
 
     wMenu->exec(event->globalPos()); //execute context menu
 }

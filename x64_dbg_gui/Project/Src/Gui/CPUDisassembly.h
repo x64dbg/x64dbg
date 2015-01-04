@@ -80,6 +80,7 @@ private:
     QMenu* mReferencesMenu;
     QMenu* mSearchMenu;
     QMenu* mCopyMenu;
+    QMenu* mPluginMenu;
 
     QAction* mBinaryEditAction;
     QAction* mBinaryFillAction;

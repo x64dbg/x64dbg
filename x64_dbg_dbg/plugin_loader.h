@@ -24,6 +24,9 @@ struct PLUG_DATA
     PLUGSTOP plugstop;
     PLUGSETUP plugsetup;
     int hMenu;
+    int hMenuDisasm;
+    int hMenuDump;
+    int hMenuStack;
     PLUG_INITSTRUCT initStruct;
 };
 
