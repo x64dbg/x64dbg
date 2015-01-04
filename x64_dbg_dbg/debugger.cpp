@@ -117,6 +117,7 @@ void dbginit()
     exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
     exceptionNames.insert(std::make_pair(MS_VC_EXCEPTION, "MS_VC_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(0xC00001A5, "STATUS_INVALID_EXCEPTION_HANDLER"));
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
