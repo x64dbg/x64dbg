@@ -1057,7 +1057,7 @@ void CPUDump::selectionGet(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDump::selectionSet(const SELECTIONDATA* selection)
@@ -1068,13 +1068,13 @@ void CPUDump::selectionSet(const SELECTIONDATA* selection)
     int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
-        Bridge::getBridge()->BridgeSetResult(0);
+        Bridge::getBridge()->setResult(0);
         return;
     }
     setSingleSelection(start - selMin);
     expandSelectionUpTo(end - selMin);
     reloadData();
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDump::memoryAccessSingleshootSlot()
