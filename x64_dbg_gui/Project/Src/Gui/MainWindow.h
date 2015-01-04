@@ -89,6 +89,7 @@ public slots:
     void displayCallstack();
     void refreshShortcuts();
     void openShortcuts();
+    void changeTopmost(bool checked);
     void donate();
     void displayAttach();
     void detach();

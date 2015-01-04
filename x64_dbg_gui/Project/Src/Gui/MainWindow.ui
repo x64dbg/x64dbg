@@ -107,6 +107,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
+    <addaction name="actionTopmost"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -615,6 +616,21 @@
    </property>
    <property name="toolTip">
     <string>Skip next instruction</string>
+   </property>
+  </action>
+  <action name="actionTopmost">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/topmost.png</normaloff>:/icons/images/topmost.png</iconset>
+   </property>
+   <property name="text">
+    <string>Topmost</string>
+   </property>
+   <property name="toolTip">
+    <string>Topmost Window</string>
    </property>
   </action>
  </widget>

@@ -48,5 +48,6 @@
         <file>images/trace.png</file>
         <file>images/changeargs.png</file>
         <file>images/arrow-skip.png</file>
+        <file>images/topmost.png</file>
     </qresource>
 </RCC>

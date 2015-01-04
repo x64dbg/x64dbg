@@ -176,6 +176,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCalls, SIGNAL(triggered()), this, SLOT(findModularCalls()));
     connect(ui->actionAppearance, SIGNAL(triggered()), this, SLOT(openAppearance()));
     connect(ui->actionShortcuts, SIGNAL(triggered()), this, SLOT(openShortcuts()));
+    connect(ui->actionTopmost, SIGNAL(toggled(bool)), this, SLOT(changeTopmost(bool)));
     connect(ui->actionCalculator, SIGNAL(triggered()), this, SLOT(openCalculator()));
     connect(ui->actionPatches, SIGNAL(triggered()), this, SLOT(patchWindow()));
     connect(ui->actionComments, SIGNAL(triggered()), this, SLOT(displayComments()));
@@ -294,6 +295,7 @@ void MainWindow::refreshShortcuts()
     ui->actionSettings->setShortcut(ConfigShortcut("OptionsPreferences"));
     ui->actionAppearance->setShortcut(ConfigShortcut("OptionsAppearance"));
     ui->actionShortcuts->setShortcut(ConfigShortcut("OptionsShortcuts"));
+    ui->actionTopmost->setShortcut(ConfigShortcut("OptionsTopmost"));
 
     ui->actionAbout->setShortcut(ConfigShortcut("HelpAbout"));
     ui->actionDonate->setShortcut(ConfigShortcut("HelpDonate"));
@@ -685,6 +687,14 @@ void MainWindow::openShortcuts()
 {
     ShortcutsDialog shortcuts(this);
     shortcuts.exec();
+}
+
+void MainWindow::changeTopmost(bool checked)
+{
+    if(checked)
+        SetWindowPos(this->winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    else
+        SetWindowPos(this->winId(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 }
 
 void MainWindow::addRecentFile(QString file)
