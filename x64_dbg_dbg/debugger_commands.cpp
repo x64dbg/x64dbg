@@ -606,7 +606,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         }
     }
     char arg3[deflen] = ""; //size
-    DWORD titsize;
+    DWORD titsize = UE_HARDWARE_SIZE_1;
     if(argget(*argv, arg3, 2, true))
     {
         uint size;
