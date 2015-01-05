@@ -653,9 +653,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                     dputs("Failed to get TLS callback addresses!");
                 else
                 {
+                    uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i + 1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + pDebuggedBase, i + 1);
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
@@ -816,10 +817,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
+
+    char command[256] = "";
+    bool bIsDebuggingThis = false;
     if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
+        bIsDebuggingThis = true;
         pDebuggedBase = (uint)base;
-        char command[256] = "";
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;
@@ -828,6 +832,31 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         }
     }
     GuiUpdateBreakpointsView();
+
+    if(settingboolget("Events", "TlsCallbacks"))
+    {
+        DWORD NumberOfCallBacks = 0;
+        TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, &NumberOfCallBacks);
+        if(NumberOfCallBacks)
+        {
+            dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
+            Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbLoadDll:TLSCallBacks");
+            if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
+                dputs("Failed to get TLS callback addresses!");
+            else
+            {
+                uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_IMAGEBASE);
+                for(unsigned int i = 0; i < NumberOfCallBacks; i++)
+                {
+                    if(bIsDebuggingThis)
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1);
+                    else
+                        sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1, modname);
+                    cmddirectexec(dbggetcommandlist(), command);
+                }
+            }
+        }
+    }
 
     if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
