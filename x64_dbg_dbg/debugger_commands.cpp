@@ -11,6 +11,11 @@
 #include "symbolinfo.h"
 #include "assemble.h"
 #include "disasm_fast.h"
+#include "module.h"
+#include "comment.h"
+#include "label.h"
+#include "bookmark.h"
+#include "function.h"
 
 static bool bScyllaLoaded = false;
 uint LoadLibThreadID;

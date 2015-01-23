@@ -3,6 +3,7 @@
 #include "patches.h"
 #include "console.h"
 #include "threading.h"
+#include "module.h"
 
 MemoryMap memoryPages;
 bool bListAllPages = false;

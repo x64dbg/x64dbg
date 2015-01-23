@@ -15,6 +15,12 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
+#include "module.h"
+#include "comment.h"
+#include "label.h"
+#include "bookmark.h"
+#include "function.h"
+#include "loop.h"
 
 static bool bOnlyCipAutoComments = false;
 

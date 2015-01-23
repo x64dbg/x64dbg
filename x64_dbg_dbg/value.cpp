@@ -6,7 +6,8 @@
 #include "memory.h"
 #include "addrinfo.h"
 #include "symbolinfo.h"
-#include <psapi.h>
+#include "module.h"
+#include "label.h"
 
 static bool dosignedcalc = false;
 

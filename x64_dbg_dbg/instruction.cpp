@@ -12,6 +12,11 @@
 #include "disasm_fast.h"
 #include "reference.h"
 #include "disasm_helper.h"
+#include "comment.h"
+#include "label.h"
+#include "bookmark.h"
+#include "function.h"
+#include "loop.h"
 
 static bool bRefinit = false;
 

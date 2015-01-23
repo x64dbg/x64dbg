@@ -4,6 +4,7 @@
 #include "debugger.h"
 #include "console.h"
 #include "threading.h"
+#include "module.h"
 
 static PatchesInfo patches;
 
@@ -122,7 +123,7 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
     CriticalSectionLocker locker(LockPatches);
     if(!patcheslist && cbsize)
     {
-        *cbsize = patches.size() * sizeof(LOOPSINFO);
+        *cbsize = patches.size() * sizeof(PATCHINFO);
         return true;
     }
     int j = 0;

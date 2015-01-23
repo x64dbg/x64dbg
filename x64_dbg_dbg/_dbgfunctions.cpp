@@ -8,6 +8,7 @@
 #include "disasm_fast.h"
 #include "stackinfo.h"
 #include "symbolinfo.h"
+#include "module.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 

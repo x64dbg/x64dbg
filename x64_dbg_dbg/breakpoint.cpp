@@ -4,6 +4,10 @@
 #include "console.h"
 #include "memory.h"
 #include "threading.h"
+#include "module.h"
+
+typedef std::pair<BP_TYPE, uint> BreakpointKey;
+typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
 
 static BreakpointsInfo breakpoints;
 

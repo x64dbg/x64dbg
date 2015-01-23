@@ -12,6 +12,7 @@
 #include "x64_dbg.h"
 #include "exception.h"
 #include "error.h"
+#include "module.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";

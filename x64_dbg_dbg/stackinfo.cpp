@@ -6,6 +6,7 @@
 #include "BeaEngine\BeaEngine.h"
 #include "addrinfo.h"
 #include "_exports.h"
+#include "module.h"
 
 bool stackcommentget(uint addr, STACK_COMMENT* comment)
 {
