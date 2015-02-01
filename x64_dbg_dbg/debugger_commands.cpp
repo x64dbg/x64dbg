@@ -1846,7 +1846,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     // Arch specific asm code
 #ifdef _WIN64
-    sprintf(command, "mov rcx, "fhex, DLLNameMem);
+	sprintf(command, "mov rcx, "fhex, (uint)DLLNameMem);
 #else
     sprintf(command, "push "fhex, DLLNameMem);
 #endif // _WIN64
