@@ -296,7 +296,7 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagcomment;
-	strcpy_s(info.comment, MAX_COMMENT_SIZE, text);
+    strcpy_s(info.comment, MAX_COMMENT_SIZE, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
@@ -311,7 +311,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     info.flags = flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
-	strcpy_s(text, MAX_MODULE_SIZE, info.module);
+    strcpy_s(text, MAX_MODULE_SIZE, info.module);
     return true;
 }
 

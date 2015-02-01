@@ -75,7 +75,7 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
 COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 {
     char new_cmd[deflen] = "";
-	strcpy_s(new_cmd, deflen, cmd);
+    strcpy_s(new_cmd, deflen, cmd);
     int len = (int)strlen(new_cmd);
     int start = 0;
     while(new_cmd[start] != ' ' and start < len)
