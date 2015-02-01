@@ -434,7 +434,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
         if(strstr(text, " bytes -  "))
         {
             Memory<char*> newtext(len + 1, "SymRegisterCallbackProc64:newtext");
-            strcpy(newtext, text);
+            strcpy_s(newtext, len + 1, text);
             strstr(newtext, " bytes -  ")[8] = 0;
             GuiSymbolLogAdd(newtext);
             suspress = true;
@@ -598,7 +598,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     {
         wchar_t wszFileName[MAX_PATH] = L"";
         if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
-            strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+            strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
             strcpy_s(DebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
@@ -801,7 +801,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         wchar_t wszFileName[MAX_PATH] = L"";
         if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
-            strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+            strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
             strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
@@ -1126,12 +1126,12 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
-    strcpy(szBaseFileName, szFileName);
+    strcpy_s(szBaseFileName, szFileName);
     int len = (int)strlen(szBaseFileName);
     while(szBaseFileName[len] != '\\' and len)
         len--;
     if(len)
-        strcpy(szBaseFileName, szBaseFileName + len + 1);
+        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
     GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
@@ -1497,35 +1497,35 @@ bool dbgpagerightstostring(DWORD protect, char* rights)
     switch(protect & 0xFF)
     {
     case PAGE_EXECUTE:
-        strcpy(rights, "E---");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "E---");
         break;
     case PAGE_EXECUTE_READ:
-        strcpy(rights, "ER--");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ER--");
         break;
     case PAGE_EXECUTE_READWRITE:
-        strcpy(rights, "ERW-");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ERW-");
         break;
     case PAGE_EXECUTE_WRITECOPY:
-        strcpy(rights, "ERWC");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ERWC");
         break;
     case PAGE_NOACCESS:
-        strcpy(rights, "----");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "----");
         break;
     case PAGE_READONLY:
-        strcpy(rights, "-R--");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-R--");
         break;
     case PAGE_READWRITE:
-        strcpy(rights, "-RW-");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-RW-");
         break;
     case PAGE_WRITECOPY:
-        strcpy(rights, "-RWC");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-RWC");
         break;
     }
 
     if(protect & PAGE_GUARD)
-        strcat(rights, "G");
+        strcat_s(rights, RIGHTS_STRING_SIZE, "G");
     else
-        strcat(rights, "-");
+        strcat_s(rights, RIGHTS_STRING_SIZE, "-");
 
     return true;
 }
@@ -1671,9 +1671,9 @@ bool dbggetdefjit(char* jit_entry)
     path[0] = '"';
     wchar_t wszPath[MAX_PATH] = L"";
     GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
-    strcpy(&path[1], StringUtils::Utf16ToUtf8(wszPath).c_str());
+    strcpy_s(&path[1], JIT_ENTRY_DEF_SIZE - 1, StringUtils::Utf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
-    strcpy(jit_entry, path);
+    strcpy_s(jit_entry, JIT_ENTRY_DEF_SIZE, path);
     return true;
 }
 

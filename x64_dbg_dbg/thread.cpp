@@ -18,7 +18,7 @@ void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     curInfo.ThreadLocalBase = (uint)CreateThread->lpThreadLocalBase;
     *curInfo.threadName = '\0';
     if(!threadNum)
-        strcpy(curInfo.threadName, "Main Thread");
+        strcpy_s(curInfo.threadName, "Main Thread");
     CriticalSectionLocker locker(LockThreads);
     threadList.push_back(curInfo);
     threadNum++;

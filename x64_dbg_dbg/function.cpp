@@ -126,7 +126,7 @@ void functioncacheload(JSON root)
             FUNCTIONSINFO curFunction;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curFunction.mod, mod);
+                strcpy_s(curFunction.mod, mod);
             else
                 *curFunction.mod = '\0';
             curFunction.start = (uint)json_hex_value(json_object_get(value, "start"));
@@ -148,7 +148,7 @@ void functioncacheload(JSON root)
             FUNCTIONSINFO curFunction;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curFunction.mod, mod);
+                strcpy_s(curFunction.mod, mod);
             else
                 *curFunction.mod = '\0';
             curFunction.start = (uint)json_hex_value(json_object_get(value, "start"));

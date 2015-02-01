@@ -111,7 +111,7 @@ void formathex(char* string)
     for(int i = 0, j = 0; i < len; i++)
         if(isxdigit(string[i]))
             j += sprintf(new_string + j, "%c", string[i]);
-    strcpy(string, new_string);
+    strcpy_s(string, len + 1, new_string);
 }
 
 void formatdec(char* string)
@@ -123,7 +123,7 @@ void formatdec(char* string)
     for(int i = 0, j = 0; i < len; i++)
         if(isdigit(string[i]))
             j += sprintf(new_string + j, "%c", string[i]);
-    strcpy(string, new_string);
+    strcpy_s(string, len + 1, new_string);
 }
 
 bool FileExists(const char* file)

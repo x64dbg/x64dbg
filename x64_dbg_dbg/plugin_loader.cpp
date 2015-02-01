@@ -315,7 +315,7 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
         return false;
     PLUG_COMMAND plugCmd;
     plugCmd.pluginHandle = pluginHandle;
-    strcpy(plugCmd.command, command);
+    strcpy_s(plugCmd.command, command);
     if(!dbgcmdnew(command, (CBCOMMAND)cbCommand, debugonly))
         return false;
     pluginCommandList.push_back(plugCmd);

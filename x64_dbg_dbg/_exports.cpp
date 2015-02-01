@@ -163,7 +163,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
             {
                 char filename[deflen] = "";
-                strcpy(filename, line.FileName);
+                strcpy_s(filename, line.FileName);
                 int len = (int)strlen(filename);
                 while(filename[len] != '\\' and len != 0)
                     len--;
@@ -568,8 +568,8 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         //TODO: fix this
         if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
             curBp.active = true;
-        strcpy(curBp.mod, list[i].mod);
-        strcpy(curBp.name, list[i].name);
+        strcpy_s(curBp.mod, list[i].mod);
+        strcpy_s(curBp.name, list[i].name);
         curBp.singleshoot = list[i].singleshoot;
         curBp.slot = slot;
         if(curBp.active)

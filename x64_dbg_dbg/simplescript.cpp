@@ -98,7 +98,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             i++;
@@ -110,7 +110,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             linemap.push_back(entry);
@@ -121,7 +121,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             linemap.push_back(entry);
@@ -132,7 +132,7 @@ static bool scriptcreatelinemap(const char* filename)
     if(*temp)
     {
         memset(&entry, 0, sizeof(entry));
-        strcpy(entry.raw, temp);
+        strcpy_s(entry.raw, temp);
         linemap.push_back(entry);
     }
     unsigned int linemapsize = (unsigned int)linemap.size();
@@ -152,7 +152,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             if(*(comment - 1) == ' ') //space before comment
             {
-                strcpy(line_comment, comment);
+                strcpy_s(line_comment, comment);
                 *(comment - 1) = '\0';
             }
             else //no space before comment
@@ -170,7 +170,7 @@ static bool scriptcreatelinemap(const char* filename)
         else if(!strncmp(cur.raw, "//", 2)) //comment
         {
             cur.type = linecomment;
-            strcpy(cur.u.comment, cur.raw);
+            strcpy_s(cur.u.comment, cur.raw);
         }
         else if(cur.raw[rawlen - 1] == ':') //label
         {
@@ -203,20 +203,20 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linebranch;
             cur.u.branch.type = scriptgetbranchtype(cur.raw);
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
-            strcpy(newraw, cur.raw);
+            strcpy_s(newraw, cur.raw);
             argformat(newraw);
             int len = (int)strlen(newraw);
             for(int i = 0; i < len; i++)
                 if(newraw[i] == ' ')
                 {
-                    strcpy(cur.u.branch.branchlabel, newraw + i + 1);
+                    strcpy_s(cur.u.branch.branchlabel, newraw + i + 1);
                     break;
                 }
         }
         else
         {
             cur.type = linecommand;
-            strcpy(cur.u.command, cur.raw);
+            strcpy_s(cur.u.command, cur.raw);
         }
 
         //append the comment to the raw line again
@@ -246,8 +246,8 @@ static bool scriptcreatelinemap(const char* filename)
     {
         memset(&entry, 0, sizeof(entry));
         entry.type = linecommand;
-        strcpy(entry.raw, "ret");
-        strcpy(entry.u.command, "ret");
+        strcpy_s(entry.raw, "ret");
+        strcpy_s(entry.u.command, "ret");
         linemap.push_back(entry);
     }
     return true;

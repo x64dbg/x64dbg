@@ -135,7 +135,7 @@ void loopcacheload(JSON root)
             LOOPSINFO curLoop;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curLoop.mod, mod);
+                strcpy_s(curLoop.mod, mod);
             else
                 *curLoop.mod = '\0';
             curLoop.start = (uint)json_hex_value(json_object_get(value, "start"));
@@ -158,7 +158,7 @@ void loopcacheload(JSON root)
             LOOPSINFO curLoop;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curLoop.mod, mod);
+                strcpy_s(curLoop.mod, mod);
             else
                 *curLoop.mod = '\0';
             curLoop.start = (uint)json_hex_value(json_object_get(value, "start"));

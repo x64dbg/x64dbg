@@ -104,7 +104,7 @@ void bookmarkcacheload(JSON root)
             BOOKMARKSINFO curBookmark;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curBookmark.mod, mod);
+                strcpy_s(curBookmark.mod, mod);
             else
                 *curBookmark.mod = '\0';
             curBookmark.addr = (uint)json_hex_value(json_object_get(value, "address"));
@@ -123,7 +123,7 @@ void bookmarkcacheload(JSON root)
             BOOKMARKSINFO curBookmark;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curBookmark.mod, mod);
+                strcpy_s(curBookmark.mod, mod);
             else
                 *curBookmark.mod = '\0';
             curBookmark.addr = (uint)json_hex_value(json_object_get(value, "address"));

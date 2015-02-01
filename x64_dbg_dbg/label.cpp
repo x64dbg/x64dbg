@@ -19,7 +19,7 @@ bool labelset(uint addr, const char* text, bool manual)
     }
     LABELSINFO label;
     label.manual = manual;
-    strcpy(label.text, text);
+    strcpy_s(label.text, text);
     modnamefromaddr(addr, label.mod, true);
     label.addr = addr - modbasefromaddr(addr);
     uint key = modhashfromva(addr);
@@ -55,7 +55,7 @@ bool labelget(uint addr, char* text)
     if(found == labels.end()) //not found
         return false;
     if(text)
-        strcpy(text, found->second.text);
+        strcpy_s(text, MAX_LABEL_SIZE, found->second.text);
     return true;
 }
 
@@ -132,14 +132,14 @@ void labelcacheload(JSON root)
             LABELSINFO curLabel;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curLabel.mod, mod);
+                strcpy_s(curLabel.mod, mod);
             else
                 *curLabel.mod = '\0';
             curLabel.addr = (uint)json_hex_value(json_object_get(value, "address"));
             curLabel.manual = true;
             const char* text = json_string_value(json_object_get(value, "text"));
             if(text)
-                strcpy(curLabel.text, text);
+                strcpy_s(curLabel.text, text);
             else
                 continue; //skip
             int len = (int)strlen(curLabel.text);
@@ -160,7 +160,7 @@ void labelcacheload(JSON root)
             LABELSINFO curLabel;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curLabel.mod, mod);
+                strcpy_s(curLabel.mod, mod);
             else
                 *curLabel.mod = '\0';
             curLabel.addr = (uint)json_hex_value(json_object_get(value, "address"));

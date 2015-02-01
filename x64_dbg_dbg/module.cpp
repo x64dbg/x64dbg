@@ -18,7 +18,7 @@ bool modload(uint base, uint size, const char* fullpath)
         len--;
     if(len)
         len++;
-    strcpy(name, fullpath + len);
+    strcpy_s(name, fullpath + len);
     _strlwr(name);
     len = (int)strlen(name);
     name[MAX_MODULE_SIZE - 1] = 0; //ignore later characters
@@ -30,12 +30,12 @@ bool modload(uint base, uint size, const char* fullpath)
     info.hash = modhashfromname(name);
     if(len)
     {
-        strcpy(info.extension, name + len);
+        strcpy_s(info.extension, name + len);
         name[len] = 0; //remove extension
     }
     info.base = base;
     info.size = size;
-    strcpy(info.name, name);
+    strcpy_s(info.name, name);
 
     //process module sections
     HANDLE FileHandle;

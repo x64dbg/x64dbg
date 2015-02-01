@@ -34,11 +34,11 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
     size_t pos = instr.find(" short ");
     if(pos != String::npos)
         instr.erase(pos, 6);
-    strcpy(parse.instr, instr.c_str());
+    strcpy_s(parse.instr, instr.c_str());
     if(XEDParseAssemble(&parse) == XEDPARSE_ERROR)
     {
         if(error)
-            strcpy(error, parse.error);
+            strcpy_s(error, MAX_ERROR_SIZE, parse.error);
         return false;
     }
 

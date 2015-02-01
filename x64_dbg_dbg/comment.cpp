@@ -19,7 +19,7 @@ bool commentset(uint addr, const char* text, bool manual)
     }
     COMMENTSINFO comment;
     comment.manual = manual;
-    strcpy(comment.text, text);
+    strcpy_s(comment.text, text);
     modnamefromaddr(addr, comment.mod, true);
     comment.addr = addr - modbasefromaddr(addr);
     const uint key = modhashfromva(addr);
@@ -37,7 +37,7 @@ bool commentget(uint addr, char* text)
     const CommentsInfo::iterator found = comments.find(modhashfromva(addr));
     if(found == comments.end()) //not found
         return false;
-    strcpy(text, found->second.text);
+    strcpy_s(text, MAX_COMMENT_SIZE, found->second.text);
     return true;
 }
 
@@ -114,14 +114,14 @@ void commentcacheload(JSON root)
             COMMENTSINFO curComment;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curComment.mod, mod);
+                strcpy_s(curComment.mod, mod);
             else
                 *curComment.mod = '\0';
             curComment.addr = (uint)json_hex_value(json_object_get(value, "address"));
             curComment.manual = true;
             const char* text = json_string_value(json_object_get(value, "text"));
             if(text)
-                strcpy(curComment.text, text);
+                strcpy_s(curComment.text, text);
             else
                 continue; //skip
             const uint key = modhashfromname(curComment.mod) + curComment.addr;
@@ -138,7 +138,7 @@ void commentcacheload(JSON root)
             COMMENTSINFO curComment;
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy(curComment.mod, mod);
+                strcpy_s(curComment.mod, mod);
             else
                 *curComment.mod = '\0';
             curComment.addr = (uint)json_hex_value(json_object_get(value, "address"));

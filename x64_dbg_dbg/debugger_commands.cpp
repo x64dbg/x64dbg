@@ -79,14 +79,14 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     argget(*argv, arg3, 2, true);
 
     static char currentfolder[deflen] = "";
-    strcpy(currentfolder, arg1);
+    strcpy_s(currentfolder, arg1);
     int len = (int)strlen(currentfolder);
     while(currentfolder[len] != '\\' and len != 0)
         len--;
     currentfolder[len] = 0;
 
     if(DirExists(arg3))
-        strcpy(currentfolder, arg3);
+        strcpy_s(currentfolder, arg3);
     //initialize
     wait(WAITID_STOP); //wait for the debugger to stop
     waitclear(); //clear waiting flags NOTE: thread-unsafe
@@ -180,7 +180,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     bool has_arg2 = argget(*argv, argtype, 2, true);
     if(!has_arg2 and (scmp(argname, "ss") or scmp(argname, "long") or scmp(argname, "ud2")))
     {
-        strcpy(argtype, argname);
+        strcpy_s(argtype, argname);
         *argname = 0;
     }
     _strlwr(argtype);
@@ -483,7 +483,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         else if(*arg2 == '0')
             restore = false;
         else
-            strcpy(arg3, arg2);
+            strcpy_s(arg3, arg2);
     }
     DWORD type = UE_MEMORY;
     if(*arg3)
@@ -1379,7 +1379,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     const char* szSymbolStore = szDefaultStore;
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
     {
-        strcpy(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
+        strcpy_s(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore);
     }
     if(argc < 2) //no arguments
@@ -1838,7 +1838,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     int counter = 0;
     uint LoadLibraryA = 0;
     char command[50] = "";
-    char error[256] = "";
+    char error[MAX_ERROR_SIZE] = "";
 
     GetFullContextDataEx(LoadLibThread, &backupctx);
 

@@ -42,7 +42,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         ADDRINFO addrinfo;
         addrinfo.flags = flaglabel;
         if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-            strcpy(label, addrinfo.label);
+            strcpy_s(label, addrinfo.label);
         char module[MAX_MODULE_SIZE] = "";
         modnamefromaddr(data, module, false);
         char returnToAddr[MAX_COMMENT_SIZE] = "";
@@ -58,7 +58,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
             *label = 0;
             addrinfo.flags = flaglabel;
             if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                strcpy(label, addrinfo.label);
+                strcpy_s(label, addrinfo.label);
             *module = 0;
             modnamefromaddr(data, module, false);
             char returnFromAddr[MAX_COMMENT_SIZE] = "";
@@ -71,7 +71,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         }
         else
             sprintf_s(comment->comment, "return to %s from ???", returnToAddr);
-        strcpy(comment->color, "#ff0000");
+        strcpy_s(comment->color, "#ff0000");
         return true;
     }
 
@@ -92,7 +92,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     ADDRINFO addrinfo;
     addrinfo.flags = flaglabel;
     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-        strcpy(label, addrinfo.label);
+        strcpy_s(label, addrinfo.label);
     char module[MAX_MODULE_SIZE] = "";
     modnamefromaddr(data, module, false);
     char addrInfo[MAX_COMMENT_SIZE] = "";
@@ -151,7 +151,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                 ADDRINFO addrinfo;
                 addrinfo.flags = flaglabel;
                 if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                    strcpy(label, addrinfo.label);
+                    strcpy_s(label, addrinfo.label);
                 char module[MAX_MODULE_SIZE] = "";
                 modnamefromaddr(data, module, false);
                 char returnToAddr[MAX_COMMENT_SIZE] = "";
@@ -174,7 +174,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     *label = 0;
                     addrinfo.flags = flaglabel;
                     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                        strcpy(label, addrinfo.label);
+                        strcpy_s(label, addrinfo.label);
                     *module = 0;
                     modnamefromaddr(data, module, false);
                     char returnFromAddr[MAX_COMMENT_SIZE] = "";

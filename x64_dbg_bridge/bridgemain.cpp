@@ -259,7 +259,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
             return false;
         sprintf_s(info.label, "&%s", ptrinfo.label);
     }
-    strcpy(text, info.label);
+    strcpy_s(text, MAX_LABEL_SIZE, info.label);
     return true;
 }
 
@@ -270,7 +270,7 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flaglabel;
-    strcpy(info.label, text);
+    strcpy_s(info.label, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
@@ -285,7 +285,7 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
     info.flags = flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
-    strcpy(text, info.comment);
+    strcpy_s(text, MAX_COMMENT_SIZE, info.comment);
     return true;
 }
 

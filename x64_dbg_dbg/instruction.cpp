@@ -240,7 +240,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         if(variables[i].alias.length())
             continue;
         char name[deflen] = "";
-        strcpy(name, variables[i].name.c_str());
+        strcpy_s(name, variables[i].name.c_str());
         uint value = (uint)variables[i].value.u.value;
         if(variables[i].type != VAR_HIDDEN)
         {
@@ -429,7 +429,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
     bool fillnop = false;
     if(argc > 3)
         fillnop = true;
-    char error[256] = "";
+    char error[MAX_ERROR_SIZE] = "";
     int size = 0;
     if(!assembleat(addr, argv[2], &size, error, fillnop))
     {
@@ -1076,9 +1076,9 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
     if(argv[2][0] == '#')
-        strcpy(pattern, argv[2] + 1);
+        strcpy_s(pattern, argv[2] + 1);
     else
-        strcpy(pattern, argv[2]);
+        strcpy_s(pattern, argv[2]);
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
@@ -1128,9 +1128,9 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     char pattern[deflen] = "";
     //remove # from the start and end of the pattern (ODBGScript support)
     if(argv[2][0] == '#')
-        strcpy(pattern, argv[2] + 1);
+        strcpy_s(pattern, argv[2] + 1);
     else
-        strcpy(pattern, argv[2]);
+        strcpy_s(pattern, argv[2]);
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
@@ -1513,7 +1513,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
 
     unsigned char dest[16];
     int asmsize = 0;
-    char error[256] = "";
+    char error[MAX_ERROR_SIZE] = "";
     if(!assemble(addr + size / 2, dest, &asmsize, argv[1], error))
     {
         dprintf("failed to assemble \"%s\" (%s)!\n", argv[1], error);

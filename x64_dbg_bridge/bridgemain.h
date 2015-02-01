@@ -60,6 +60,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
+#define MAX_SECTION_SIZE 10
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
