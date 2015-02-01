@@ -657,7 +657,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                     uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-						sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + pDebuggedBase, i + 1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + pDebuggedBase, i + 1);
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
@@ -666,7 +666,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-			sprintf(command, "bp "fhex",\"entry breakpoint\",ss", (uint)CreateProcessInfo->lpStartAddress);
+            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", (uint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(dbggetcommandlist(), command);
         }
     }
@@ -706,7 +706,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256] = "";
-		sprintf(command, "bp "fhex",\"Thread %X\",ss", (uint)CreateThread->lpStartAddress, dwThreadId);
+        sprintf(command, "bp "fhex",\"Thread %X\",ss", (uint)CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(dbggetcommandlist(), command);
     }
 
