@@ -29,7 +29,7 @@ void argformat(char* cmd)
 
     char command_[deflen] = "";
     char* command = command_;
-    strcpy(command, cmd);
+	strcpy_s(command, deflen, cmd);
     while(*command == ' ')
         command++;
 
@@ -112,7 +112,7 @@ void argformat(char* cmd)
                 j += sprintf(temp + j, "%c", arguments[i]);
         }
         arguments = arguments_;
-        strcpy(arguments, temp);
+		strcpy_s(arguments, deflen, temp);
     }
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
@@ -128,7 +128,7 @@ void argformat(char* cmd)
             i += 2;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
-    strcpy(arguments, temp);
+	strcpy_s(arguments, deflen, temp);
 
     len = (int)strlen(arguments);
     for(int i = 0, j = 0; i < len; i++)
@@ -137,7 +137,7 @@ void argformat(char* cmd)
             i++;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
-    strcpy(arguments, temp);
+	strcpy_s(arguments, deflen, temp);
 
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
