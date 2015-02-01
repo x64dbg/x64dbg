@@ -666,7 +666,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
+            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", (uint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(dbggetcommandlist(), command);
         }
     }
@@ -706,7 +706,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256] = "";
-        sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
+        sprintf(command, "bp "fhex",\"Thread %X\",ss", (uint)CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(dbggetcommandlist(), command);
     }
 
