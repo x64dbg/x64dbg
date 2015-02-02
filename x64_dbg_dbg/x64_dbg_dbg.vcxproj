@@ -37,6 +37,7 @@
     <ClCompile Include="msgqueue.cpp" />
     <ClCompile Include="murmurhash.cpp" />
     <ClCompile Include="patches.cpp" />
+    <ClCompile Include="patternfind.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="msgqueue.h" />
     <ClInclude Include="murmurhash.h" />
     <ClInclude Include="patches.h" />
+    <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />

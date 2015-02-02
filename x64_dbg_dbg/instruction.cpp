@@ -17,6 +17,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
+#include "patternfind.h"
 
 static bool bRefinit = false;
 
@@ -1106,7 +1107,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     }
     else
         find_size = size - start;
-    uint foundoffset = memfindpattern(data + start, find_size, pattern);
+    uint foundoffset = patternfind(data + start, find_size, pattern);
     uint result = 0;
     if(foundoffset != -1)
         result = addr + foundoffset;
@@ -1179,7 +1180,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     while(refCount < 5000)
     {
         int patternsize = 0;
-        uint foundoffset = memfindpattern(data + start + i, find_size - i, pattern, &patternsize);
+        uint foundoffset = patternfind(data + start + i, find_size - i, pattern, &patternsize);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;

@@ -192,6 +192,9 @@
     <ClCompile Include="thread.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="patternfind.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -364,6 +367,9 @@
     </ClInclude>
     <ClInclude Include="thread.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="patternfind.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
