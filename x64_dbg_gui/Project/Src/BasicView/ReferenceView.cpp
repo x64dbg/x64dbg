@@ -201,7 +201,6 @@ void ReferenceView::toggleBreakpoint()
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
-    this->mSearchList->selectNext();
 }
 
 void ReferenceView::toggleBookmark()

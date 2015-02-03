@@ -6,6 +6,14 @@ ReferenceManager::ReferenceManager(QWidget* parent) : QTabWidget(parent)
     setMovable(true);
     setTabsClosable(true);
     mCurrentReferenceView = 0;
+
+    //Close All Tabs
+    mCloseAllTabs = new QPushButton(this);
+    mCloseAllTabs->setIcon(QIcon(":/icons/images/close-all-tabs.png"));
+    mCloseAllTabs->setToolTip("Close All Tabs");
+    connect(mCloseAllTabs, SIGNAL(clicked()), this, SLOT(closeAllTabs()));
+    setCornerWidget(mCloseAllTabs, Qt::TopLeftCorner);
+
     connect(Bridge::getBridge(), SIGNAL(referenceInitialize(QString)), this, SLOT(newReferenceView(QString)));
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 }
@@ -29,4 +37,9 @@ void ReferenceManager::newReferenceView(QString name)
 void ReferenceManager::closeTab(int index)
 {
     removeTab(index);
+}
+
+void ReferenceManager::closeAllTabs()
+{
+    clear();
 }

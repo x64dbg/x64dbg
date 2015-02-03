@@ -49,5 +49,6 @@
         <file>images/changeargs.png</file>
         <file>images/arrow-skip.png</file>
         <file>images/topmost.png</file>
+        <file>images/close-all-tabs.png</file>
     </qresource>
 </RCC>
