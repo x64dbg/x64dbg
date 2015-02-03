@@ -604,6 +604,9 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiDumpAt(memfindbaseaddr(GetContextData(UE_CIP), 0)+PAGE_SIZE); //dump somewhere
+
     //init program database
     int len = (int)strlen(szFileName);
     while(szFileName[len] != '\\' && len != 0)
