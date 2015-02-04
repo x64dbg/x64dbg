@@ -91,6 +91,7 @@ public slots:
     void openShortcuts();
     void changeTopmost(bool checked);
     void donate();
+    void reportBug();
     void displayAttach();
     void detach();
     void changeCommandLine();

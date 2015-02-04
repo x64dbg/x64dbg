@@ -186,6 +186,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCheckUpdates, SIGNAL(triggered()), this, SLOT(checkUpdates()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
+    connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
@@ -301,6 +302,7 @@ void MainWindow::refreshShortcuts()
     ui->actionDonate->setShortcut(ConfigShortcut("HelpDonate"));
     ui->actionCheckUpdates->setShortcut(ConfigShortcut("HelpCheckForUpdates"));
     ui->actionCalculator->setShortcut(ConfigShortcut("HelpCalculator"));
+    ui->actionReportBug->setShortcut(ConfigShortcut("HelpReportBug"));
 
     ui->actionStrings->setShortcut(ConfigShortcut("ActionFindStrings"));
     ui->actionCalls->setShortcut(ConfigShortcut("ActionFindIntermodularCalls"));
@@ -969,7 +971,20 @@ void MainWindow::donate()
     msg.setDefaultButton(QMessageBox::Ok);
     if(msg.exec() != QMessageBox::Ok)
         return;
-    QDesktopServices::openUrl(QUrl("https://blockchain.info/address/1GuXgtCrLk4aYgivAT7xAi8zVHWk5CkEoY"));
+    QDesktopServices::openUrl(QUrl("http://donate.x64dbg.com"));
+}
+
+void MainWindow::reportBug()
+{
+    QMessageBox msg(QMessageBox::Information, "Report Bug", "You will be taken to a website where you can report a bug.\nMake sure to fill in as much information as possible.");
+    msg.setWindowIcon(QIcon(":/icons/images/bug-report.png"));
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msg.setDefaultButton(QMessageBox::Ok);
+    if(msg.exec() != QMessageBox::Ok)
+        return;
+    QDesktopServices::openUrl(QUrl("http://report.x64dbg.com"));
 }
 
 void MainWindow::displayAttach()
