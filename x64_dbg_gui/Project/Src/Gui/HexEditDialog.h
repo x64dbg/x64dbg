@@ -28,6 +28,8 @@ private slots:
     void on_btnUnicode2Hex_clicked();
     void on_chkKeepSize_toggled(bool checked);
     void dataChangedSlot();
+    void on_lineEditAscii_textEdited(const QString &arg1);
+    void on_lineEditUnicode_textEdited(const QString &arg1);
 
 private:
     Ui::HexEditDialog* ui;
