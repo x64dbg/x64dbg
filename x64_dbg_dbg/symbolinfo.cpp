@@ -2,6 +2,8 @@
 #include "debugger.h"
 #include "addrinfo.h"
 #include "console.h"
+#include "module.h"
+#include "label.h"
 
 struct SYMBOLCBDATA
 {
@@ -16,7 +18,7 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID 
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
     curSymbol.addr = (duint)pSymInfo->Address;
     curSymbol.decoratedSymbol = (char*)BridgeAlloc(len + 1);
-    strcpy(curSymbol.decoratedSymbol, pSymInfo->Name);
+    strcpy_s(curSymbol.decoratedSymbol, len + 1, pSymInfo->Name);
     curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
     if(strstr(pSymInfo->Name, "Ordinal"))
     {

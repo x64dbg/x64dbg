@@ -11,6 +11,11 @@
 #include "symbolinfo.h"
 #include "assemble.h"
 #include "disasm_fast.h"
+#include "module.h"
+#include "comment.h"
+#include "label.h"
+#include "bookmark.h"
+#include "function.h"
 
 static bool bScyllaLoaded = false;
 uint LoadLibThreadID;
@@ -74,14 +79,14 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     argget(*argv, arg3, 2, true);
 
     static char currentfolder[deflen] = "";
-    strcpy(currentfolder, arg1);
+    strcpy_s(currentfolder, arg1);
     int len = (int)strlen(currentfolder);
     while(currentfolder[len] != '\\' and len != 0)
         len--;
     currentfolder[len] = 0;
 
     if(DirExists(arg3))
-        strcpy(currentfolder, arg3);
+        strcpy_s(currentfolder, arg3);
     //initialize
     wait(WAITID_STOP); //wait for the debugger to stop
     waitclear(); //clear waiting flags NOTE: thread-unsafe
@@ -175,7 +180,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     bool has_arg2 = argget(*argv, argtype, 2, true);
     if(!has_arg2 and (scmp(argname, "ss") or scmp(argname, "long") or scmp(argname, "ud2")))
     {
-        strcpy(argtype, argname);
+        strcpy_s(argtype, argname);
         *argname = 0;
     }
     _strlwr(argtype);
@@ -478,7 +483,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         else if(*arg2 == '0')
             restore = false;
         else
-            strcpy(arg3, arg2);
+            strcpy_s(arg3, arg2);
     }
     DWORD type = UE_MEMORY;
     if(*arg3)
@@ -606,25 +611,30 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         }
     }
     char arg3[deflen] = ""; //size
-    uint size = UE_HARDWARE_SIZE_1;
+    DWORD titsize = UE_HARDWARE_SIZE_1;
     if(argget(*argv, arg3, 2, true))
     {
+        uint size;
         if(!valfromstring(arg3, &size))
             return STATUS_ERROR;
         switch(size)
         {
+        case 1:
+            titsize = UE_HARDWARE_SIZE_1;
+            break;
         case 2:
-            size = UE_HARDWARE_SIZE_2;
+            titsize = UE_HARDWARE_SIZE_2;
             break;
         case 4:
-            size = UE_HARDWARE_SIZE_4;
+            titsize = UE_HARDWARE_SIZE_4;
             break;
 #ifdef _WIN64
         case 8:
-            size = UE_HARDWARE_SIZE_8;
+            titsize = UE_HARDWARE_SIZE_8;
             break;
 #endif // _WIN64
         default:
+            titsize = UE_HARDWARE_SIZE_1;
             dputs("Invalid size, using 1");
             break;
         }
@@ -643,16 +653,21 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     int titantype = 0;
     TITANSETDRX(titantype, drx);
     TITANSETTYPE(titantype, type);
-    TITANSETSIZE(titantype, size);
+    TITANSETSIZE(titantype, titsize);
     //TODO: hwbp in multiple threads TEST
     if(bpget(addr, BPHARDWARE, 0, 0))
     {
         dputs("Hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
-    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0) or !SetHardwareBreakPoint(addr, drx, type, (DWORD)size, (void*)cbHardwareBreakpoint))
+    if(!bpnew(addr, true, false, 0, BPHARDWARE, titantype, 0))
     {
-        dputs("Error setting hardware breakpoint!");
+        dputs("error setting hardware breakpoint (bpnew)!");
+        return STATUS_ERROR;
+    }
+    if(!SetHardwareBreakPoint(addr, drx, type, titsize, (void*)cbHardwareBreakpoint))
+    {
+        dputs("error setting hardware breakpoint (TitanEngine)!");
         return STATUS_ERROR;
     }
     dprintf("Hardware breakpoint at "fhex" set!\n", addr);
@@ -1364,7 +1379,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     const char* szSymbolStore = szDefaultStore;
     if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore)) //get default symbol store from settings
     {
-        strcpy(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
+        strcpy_s(szDefaultStore, "http://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore);
     }
     if(argc < 2) //no arguments
@@ -1823,7 +1838,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     int counter = 0;
     uint LoadLibraryA = 0;
     char command[50] = "";
-    char error[256] = "";
+    char error[MAX_ERROR_SIZE] = "";
 
     GetFullContextDataEx(LoadLibThread, &backupctx);
 
@@ -1831,7 +1846,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     // Arch specific asm code
 #ifdef _WIN64
-    sprintf(command, "mov rcx, "fhex, DLLNameMem);
+    sprintf(command, "mov rcx, "fhex, (uint)DLLNameMem);
 #else
     sprintf(command, "push "fhex, DLLNameMem);
 #endif // _WIN64

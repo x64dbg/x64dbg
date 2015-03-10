@@ -4,6 +4,10 @@
 #include "console.h"
 #include "memory.h"
 #include "threading.h"
+#include "module.h"
+
+typedef std::pair<BP_TYPE, uint> BreakpointKey;
+typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
 
 static BreakpointsInfo breakpoints;
 
@@ -189,8 +193,8 @@ void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
     bridge->active = bp->active;
     bridge->addr = bp->addr;
     bridge->enabled = bp->enabled;
-    strcpy(bridge->mod, bp->mod);
-    strcpy(bridge->name, bp->name);
+    strcpy_s(bridge->mod, bp->mod);
+    strcpy_s(bridge->name, bp->name);
     bridge->singleshoot = bp->singleshoot;
     switch(bp->type)
     {

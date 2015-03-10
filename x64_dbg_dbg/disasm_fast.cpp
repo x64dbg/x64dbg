@@ -23,7 +23,7 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     //copy instruction text
-    strcpy(basicinfo->instruction, disasm->CompleteInstr);
+    strcpy_s(basicinfo->instruction, disasm->CompleteInstr);
     //find immidiat
     if(disasm->Instruction.BranchType == 0) //no branch
     {
@@ -55,7 +55,7 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Argument1.Memory.Displacement;
-            strcpy(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
+            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
         }
         basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
     }
@@ -65,7 +65,7 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Argument2.Memory.Displacement;
-            strcpy(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
+            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
         }
         basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
     }
@@ -82,14 +82,14 @@ void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Instruction.AddrValue;
-            strcpy(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
+            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
             basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
         }
         else if((disasm->Argument2.ArgType & RELATIVE_) == RELATIVE_)
         {
             basicinfo->type |= TYPE_MEMORY;
             basicinfo->memory.value = (ULONG_PTR)disasm->Instruction.AddrValue;
-            strcpy(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
+            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
             basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
         }
     }

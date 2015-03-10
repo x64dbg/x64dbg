@@ -60,6 +60,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
+#define MAX_SECTION_SIZE 10
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -678,6 +679,9 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
+#define GUI_DISASM_MENU 1
+#define GUI_DUMP_MENU 2
+#define GUI_STACK_MENU 3
 
 #define GUI_DISASSEMBLY 0
 #define GUI_DUMP 1

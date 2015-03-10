@@ -10,6 +10,9 @@
 #include "symbolinfo.h"
 #include "variable.h"
 #include "x64_dbg.h"
+#include "exception.h"
+#include "error.h"
+#include "module.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -24,7 +27,6 @@ static bool bSkipExceptions = false;
 static bool bBreakOnNextDll = false;
 static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
-static std::map<unsigned int, const char*> exceptionNames;
 static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
 static String lastDebugText;
@@ -56,67 +58,8 @@ static DWORD WINAPI memMapThread(void* ptr)
 
 void dbginit()
 {
-    exceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
-    exceptionNames.insert(std::make_pair(0x4000001C, "STATUS_WX86_UNSIMULATE"));
-    exceptionNames.insert(std::make_pair(0x4000001D, "STATUS_WX86_CONTINUE"));
-    exceptionNames.insert(std::make_pair(0x4000001E, "STATUS_WX86_SINGLE_STEP"));
-    exceptionNames.insert(std::make_pair(0x4000001F, "STATUS_WX86_BREAKPOINT"));
-    exceptionNames.insert(std::make_pair(0x40000020, "STATUS_WX86_EXCEPTION_CONTINUE"));
-    exceptionNames.insert(std::make_pair(0x40000021, "STATUS_WX86_EXCEPTION_LASTCHANCE"));
-    exceptionNames.insert(std::make_pair(0x40000022, "STATUS_WX86_EXCEPTION_CHAIN"));
-    exceptionNames.insert(std::make_pair(0x40000028, "STATUS_WX86_CREATEWX86TIB"));
-    exceptionNames.insert(std::make_pair(0x40010003, "DBG_TERMINATE_THREAD"));
-    exceptionNames.insert(std::make_pair(0x40010004, "DBG_TERMINATE_PROCESS"));
-    exceptionNames.insert(std::make_pair(0x40010005, "DBG_CONTROL_C"));
-    exceptionNames.insert(std::make_pair(0x40010006, "DBG_PRINTEXCEPTION_C"));
-    exceptionNames.insert(std::make_pair(0x40010007, "DBG_RIPEXCEPTION"));
-    exceptionNames.insert(std::make_pair(0x40010008, "DBG_CONTROL_BREAK"));
-    exceptionNames.insert(std::make_pair(0x40010009, "DBG_COMMAND_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(0x80000001, "EXCEPTION_GUARD_PAGE"));
-    exceptionNames.insert(std::make_pair(0x80000002, "EXCEPTION_DATATYPE_MISALIGNMENT"));
-    exceptionNames.insert(std::make_pair(0x80000003, "EXCEPTION_BREAKPOINT"));
-    exceptionNames.insert(std::make_pair(0x80000004, "EXCEPTION_SINGLE_STEP"));
-    exceptionNames.insert(std::make_pair(0x80000026, "STATUS_LONGJUMP"));
-    exceptionNames.insert(std::make_pair(0x80000029, "STATUS_UNWIND_CONSOLIDATE"));
-    exceptionNames.insert(std::make_pair(0x80010001, "DBG_EXCEPTION_NOT_HANDLED"));
-    exceptionNames.insert(std::make_pair(0xC0000005, "EXCEPTION_ACCESS_VIOLATION"));
-    exceptionNames.insert(std::make_pair(0xC0000006, "EXCEPTION_IN_PAGE_ERROR"));
-    exceptionNames.insert(std::make_pair(0xC0000008, "EXCEPTION_INVALID_HANDLE"));
-    exceptionNames.insert(std::make_pair(0xC000000D, "STATUS_INVALID_PARAMETER"));
-    exceptionNames.insert(std::make_pair(0xC0000017, "STATUS_NO_MEMORY"));
-    exceptionNames.insert(std::make_pair(0xC000001D, "EXCEPTION_ILLEGAL_INSTRUCTION"));
-    exceptionNames.insert(std::make_pair(0xC0000025, "EXCEPTION_NONCONTINUABLE_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(0xC0000026, "EXCEPTION_INVALID_DISPOSITION"));
-    exceptionNames.insert(std::make_pair(0xC000008C, "EXCEPTION_ARRAY_BOUNDS_EXCEEDED"));
-    exceptionNames.insert(std::make_pair(0xC000008D, "EXCEPTION_FLT_DENORMAL_OPERAND"));
-    exceptionNames.insert(std::make_pair(0xC000008E, "EXCEPTION_FLT_DIVIDE_BY_ZERO"));
-    exceptionNames.insert(std::make_pair(0xC000008F, "EXCEPTION_FLT_INEXACT_RESULT"));
-    exceptionNames.insert(std::make_pair(0xC0000090, "EXCEPTION_FLT_INVALID_OPERATION"));
-    exceptionNames.insert(std::make_pair(0xC0000091, "EXCEPTION_FLT_OVERFLOW"));
-    exceptionNames.insert(std::make_pair(0xC0000092, "EXCEPTION_FLT_STACK_CHECK"));
-    exceptionNames.insert(std::make_pair(0xC0000093, "EXCEPTION_FLT_UNDERFLOW"));
-    exceptionNames.insert(std::make_pair(0xC0000094, "EXCEPTION_INT_DIVIDE_BY_ZERO"));
-    exceptionNames.insert(std::make_pair(0xC0000095, "EXCEPTION_INT_OVERFLOW"));
-    exceptionNames.insert(std::make_pair(0xC0000096, "EXCEPTION_PRIV_INSTRUCTION"));
-    exceptionNames.insert(std::make_pair(0xC00000FD, "EXCEPTION_STACK_OVERFLOW"));
-    exceptionNames.insert(std::make_pair(0xC0000135, "STATUS_DLL_NOT_FOUND"));
-    exceptionNames.insert(std::make_pair(0xC0000138, "STATUS_ORDINAL_NOT_FOUND"));
-    exceptionNames.insert(std::make_pair(0xC0000139, "STATUS_ENTRYPOINT_NOT_FOUND"));
-    exceptionNames.insert(std::make_pair(0xC000013A, "STATUS_CONTROL_C_EXIT"));
-    exceptionNames.insert(std::make_pair(0xC0000142, "STATUS_DLL_INIT_FAILED"));
-    exceptionNames.insert(std::make_pair(0xC000014A, "STATUS_ILLEGAL_FLOAT_CONTEXT"));
-    exceptionNames.insert(std::make_pair(0xC0000194, "EXCEPTION_POSSIBLE_DEADLOCK"));
-    exceptionNames.insert(std::make_pair(0xC00002B4, "STATUS_FLOAT_MULTIPLE_FAULTS"));
-    exceptionNames.insert(std::make_pair(0xC00002B5, "STATUS_FLOAT_MULTIPLE_TRAPS"));
-    exceptionNames.insert(std::make_pair(0xC00002C5, "STATUS_DATATYPE_MISALIGNMENT_ERROR"));
-    exceptionNames.insert(std::make_pair(0xC00002C9, "STATUS_REG_NAT_CONSUMPTION"));
-    exceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
-    exceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
-    exceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
-    exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
-    exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(MS_VC_EXCEPTION, "MS_VC_EXCEPTION"));
+    exceptioninit();
+    errorinit();
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
@@ -491,7 +434,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
         if(strstr(text, " bytes -  "))
         {
             Memory<char*> newtext(len + 1, "SymRegisterCallbackProc64:newtext");
-            strcpy(newtext, text);
+            strcpy_s(newtext, len + 1, text);
             strstr(newtext, " bytes -  ")[8] = 0;
             GuiSymbolLogAdd(newtext);
             suspress = true;
@@ -655,11 +598,14 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     {
         wchar_t wszFileName[MAX_PATH] = L"";
         if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
-            strcpy(DebugFileName, "??? (GetFileNameFromHandle failed!)");
+            strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
             strcpy_s(DebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
+
+    memupdatemap(fdProcessInfo->hProcess);
+    GuiDumpAt(memfindbaseaddr(GetContextData(UE_CIP), 0)+PAGE_SIZE); //dump somewhere
 
     //init program database
     int len = (int)strlen(szFileName);
@@ -711,9 +657,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                     dputs("Failed to get TLS callback addresses!");
                 else
                 {
+                    uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i], i + 1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + pDebuggedBase, i + 1);
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
@@ -722,7 +669,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
         if(settingboolget("Events", "EntryBreakpoint"))
         {
-            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", CreateProcessInfo->lpStartAddress);
+            sprintf(command, "bp "fhex",\"entry breakpoint\",ss", (uint)CreateProcessInfo->lpStartAddress);
             cmddirectexec(dbggetcommandlist(), command);
         }
     }
@@ -762,7 +709,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadEntry"))
     {
         char command[256] = "";
-        sprintf(command, "bp "fhex",\"Thread %X\",ss", CreateThread->lpStartAddress, dwThreadId);
+        sprintf(command, "bp "fhex",\"Thread %X\",ss", (uint)CreateThread->lpStartAddress, dwThreadId);
         cmddirectexec(dbggetcommandlist(), command);
     }
 
@@ -857,7 +804,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         wchar_t wszFileName[MAX_PATH] = L"";
         if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
-            strcpy(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+            strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
         else
             strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
@@ -874,10 +821,13 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
+
+    char command[256] = "";
+    bool bIsDebuggingThis = false;
     if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
     {
+        bIsDebuggingThis = true;
         pDebuggedBase = (uint)base;
-        char command[256] = "";
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             bAlreadySetEntry = true;
@@ -886,6 +836,31 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         }
     }
     GuiUpdateBreakpointsView();
+
+    if(settingboolget("Events", "TlsCallbacks"))
+    {
+        DWORD NumberOfCallBacks = 0;
+        TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, &NumberOfCallBacks);
+        if(NumberOfCallBacks)
+        {
+            dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
+            Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbLoadDll:TLSCallBacks");
+            if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
+                dputs("Failed to get TLS callback addresses!");
+            else
+            {
+                uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_IMAGEBASE);
+                for(unsigned int i = 0; i < NumberOfCallBacks; i++)
+                {
+                    if(bIsDebuggingThis)
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1);
+                    else
+                        sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1, modname);
+                    cmddirectexec(dbggetcommandlist(), command);
+                }
+            }
+        }
+    }
 
     if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
@@ -1055,9 +1030,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             }
         }
     }
-    const char* exceptionName = 0;
-    if(exceptionNames.count(ExceptionCode))
-        exceptionName = exceptionNames[ExceptionCode];
+    const char* exceptionName = exceptionnamefromcode(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
         if(exceptionName)
@@ -1156,12 +1129,12 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
     //set GUI title
-    strcpy(szBaseFileName, szFileName);
+    strcpy_s(szBaseFileName, szFileName);
     int len = (int)strlen(szBaseFileName);
     while(szBaseFileName[len] != '\\' and len)
         len--;
     if(len)
-        strcpy(szBaseFileName, szBaseFileName + len + 1);
+        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
     GuiUpdateWindowTitle(szBaseFileName);
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
@@ -1527,35 +1500,35 @@ bool dbgpagerightstostring(DWORD protect, char* rights)
     switch(protect & 0xFF)
     {
     case PAGE_EXECUTE:
-        strcpy(rights, "E---");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "E---");
         break;
     case PAGE_EXECUTE_READ:
-        strcpy(rights, "ER--");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ER--");
         break;
     case PAGE_EXECUTE_READWRITE:
-        strcpy(rights, "ERW-");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ERW-");
         break;
     case PAGE_EXECUTE_WRITECOPY:
-        strcpy(rights, "ERWC");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "ERWC");
         break;
     case PAGE_NOACCESS:
-        strcpy(rights, "----");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "----");
         break;
     case PAGE_READONLY:
-        strcpy(rights, "-R--");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-R--");
         break;
     case PAGE_READWRITE:
-        strcpy(rights, "-RW-");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-RW-");
         break;
     case PAGE_WRITECOPY:
-        strcpy(rights, "-RWC");
+        strcpy_s(rights, RIGHTS_STRING_SIZE, "-RWC");
         break;
     }
 
     if(protect & PAGE_GUARD)
-        strcat(rights, "G");
+        strcat_s(rights, RIGHTS_STRING_SIZE, "G");
     else
-        strcat(rights, "-");
+        strcat_s(rights, RIGHTS_STRING_SIZE, "-");
 
     return true;
 }
@@ -1701,9 +1674,9 @@ bool dbggetdefjit(char* jit_entry)
     path[0] = '"';
     wchar_t wszPath[MAX_PATH] = L"";
     GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
-    strcpy(&path[1], StringUtils::Utf16ToUtf8(wszPath).c_str());
+    strcpy_s(&path[1], JIT_ENTRY_DEF_SIZE - 1, StringUtils::Utf16ToUtf8(wszPath).c_str());
     strcat(path, ATTACH_CMD_LINE);
-    strcpy(jit_entry, path);
+    strcpy_s(jit_entry, JIT_ENTRY_DEF_SIZE, path);
     return true;
 }
 

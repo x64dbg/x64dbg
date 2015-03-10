@@ -6,7 +6,8 @@
 #include "memory.h"
 #include "addrinfo.h"
 #include "symbolinfo.h"
-#include <psapi.h>
+#include "module.h"
+#include "label.h"
 
 static bool dosignedcalc = false;
 
@@ -1408,9 +1409,9 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             }
         }
         else
-            strcpy(newstring, string);
+            strcpy_s(newstring, len * 2, string);
         Memory<char*> string_(len + 256, "valfromstring:string_");
-        strcpy(string_, newstring);
+        strcpy_s(string_, len + 256, newstring);
         int add = 0;
         bool negative = (*string_ == '-');
         while(mathisoperator(string_[add + negative]) > 2)
@@ -1462,7 +1463,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             }
         }
         else
-            strcpy(newstring, string);
+            strcpy_s(newstring, len * 2, string);
         int read_size = sizeof(uint);
         int add = 1;
         if(newstring[2] == ':' and isdigit((newstring[1]))) //@n: (number of bytes to read)
@@ -2009,7 +2010,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             }
         }
         else
-            strcpy(newstring, string);
+            strcpy_s(newstring, len * 2, string);
         int read_size = sizeof(uint);
         int add = 1;
         if(newstring[2] == ':' and isdigit((newstring[1])))
@@ -2043,8 +2044,9 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool ok = setregister(string, *value);
-        Memory<char*> regName(strlen(string) + 1, "valtostring:regname");
-        strcpy(regName, string);
+        int len = (int)strlen(string);
+        Memory<char*> regName(len + 1, "valtostring:regname");
+        strcpy_s(regName, len + 1, string);
         _strlwr(regName);
         if(strstr(regName, "ip"))
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view

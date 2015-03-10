@@ -8,6 +8,7 @@
 #include "disasm_fast.h"
 #include "stackinfo.h"
 #include "symbolinfo.h"
+#include "module.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -41,7 +42,7 @@ static bool _sectionfromaddr(duint addr, char* section)
         {
             const char* name = (const char*)GetPE32DataFromMappedFile(FileMapVA, sectionNumber, UE_SECTIONNAME);
             if(section)
-                strcpy(section, name);
+                strcpy_s(section, MAX_SECTION_SIZE, name); //maxi
             StaticFileUnloadW(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
             return true;
         }
@@ -130,7 +131,7 @@ static bool _getjit(char* jit, bool jit64)
     {
         if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy, NULL))
             return false;
-        strcpy(jit, jit_tmp);
+        strcpy_s(jit, MAX_SETTING_SIZE, jit_tmp);
     }
     else // if jit input == NULL: it returns false if there are not an OLD JIT STORED.
     {

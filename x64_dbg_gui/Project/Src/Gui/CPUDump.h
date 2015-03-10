@@ -77,6 +77,8 @@ public slots:
     void followStackSlot();
     void findReferencesSlot();
 
+    void selectionUpdatedSlot();
+
 private:
     QMenu* mBreakpointMenu;
 
@@ -160,6 +162,7 @@ private:
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
+    QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
 

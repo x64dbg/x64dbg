@@ -127,9 +127,9 @@ const char* disasmtext(uint addr)
     int len = Disasm(&disasm);
     static char instruction[INSTRUCT_LENGTH] = "";
     if(len == UNKNOWN_OPCODE)
-        strcpy(instruction, "???");
+        strcpy_s(instruction, "???");
     else
-        strcpy(instruction, disasm.CompleteInstr);
+        strcpy_s(instruction, disasm.CompleteInstr);
     return instruction;
 }
 
@@ -166,7 +166,7 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     if(!*argmnemonic)
         return false;
     arg->memvalue = 0;
-    strcpy(arg->mnemonic, argmnemonic);
+    strcpy_s(arg->mnemonic, argmnemonic);
     if((argtype & MEMORY_TYPE) == MEMORY_TYPE)
     {
         arg->type = arg_memory;
@@ -233,7 +233,7 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
     disasm.VirtualAddr = addr;
     disasm.EIP = (UIntPtr)buffer;
     int len = Disasm(&disasm);
-    strcpy(instr->instruction, disasm.CompleteInstr);
+    strcpy_s(instr->instruction, disasm.CompleteInstr);
     if(len == UNKNOWN_OPCODE)
     {
         instr->instr_size = 1;

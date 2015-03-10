@@ -91,6 +91,7 @@
     <addaction name="actionCalculator"/>
     <addaction name="actionCheckUpdates"/>
     <addaction name="actionDonate"/>
+    <addaction name="actionReportBug"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -107,6 +108,7 @@
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
+    <addaction name="actionTopmost"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -164,8 +166,11 @@
    <addaction name="actionStrings"/>
    <addaction name="actionCalls"/>
    <addaction name="separator"/>
-   <addaction name="actionCheckUpdates"/>
    <addaction name="actionCalculator"/>
+   <addaction name="actionCheckUpdates"/>
+   <addaction name="actionDonate"/>
+   <addaction name="actionReportBug"/>
+   <addaction name="actionAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QToolBar" name="cmdBar">
@@ -615,6 +620,33 @@
    </property>
    <property name="toolTip">
     <string>Skip next instruction</string>
+   </property>
+  </action>
+  <action name="actionTopmost">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/topmost.png</normaloff>:/icons/images/topmost.png</iconset>
+   </property>
+   <property name="text">
+    <string>Topmost</string>
+   </property>
+   <property name="toolTip">
+    <string>Topmost Window</string>
+   </property>
+  </action>
+  <action name="actionReportBug">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/bug-report.png</normaloff>:/icons/images/bug-report.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Report Bug</string>
+   </property>
+   <property name="toolTip">
+    <string>Report Bug</string>
    </property>
   </action>
  </widget>
