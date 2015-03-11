@@ -5,6 +5,7 @@ static std::map<unsigned int, const char*> exceptionNames;
 
 void exceptioninit()
 {
+    exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
     exceptionNames.insert(std::make_pair(0x4000001C, "STATUS_WX86_UNSIMULATE"));
     exceptionNames.insert(std::make_pair(0x4000001D, "STATUS_WX86_CONTINUE"));
@@ -21,6 +22,7 @@ void exceptioninit()
     exceptionNames.insert(std::make_pair(0x40010007, "DBG_RIPEXCEPTION"));
     exceptionNames.insert(std::make_pair(0x40010008, "DBG_CONTROL_BREAK"));
     exceptionNames.insert(std::make_pair(0x40010009, "DBG_COMMAND_EXCEPTION"));
+    exceptionNames.insert(std::make_pair(0x406D1388, "MS_VC_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0x80000001, "EXCEPTION_GUARD_PAGE"));
     exceptionNames.insert(std::make_pair(0x80000002, "EXCEPTION_DATATYPE_MISALIGNMENT"));
     exceptionNames.insert(std::make_pair(0x80000003, "EXCEPTION_BREAKPOINT"));
@@ -55,6 +57,7 @@ void exceptioninit()
     exceptionNames.insert(std::make_pair(0xC0000142, "STATUS_DLL_INIT_FAILED"));
     exceptionNames.insert(std::make_pair(0xC000014A, "STATUS_ILLEGAL_FLOAT_CONTEXT"));
     exceptionNames.insert(std::make_pair(0xC0000194, "EXCEPTION_POSSIBLE_DEADLOCK"));
+    exceptionNames.insert(std::make_pair(0xC00001A5, "STATUS_INVALID_EXCEPTION_HANDLER"));
     exceptionNames.insert(std::make_pair(0xC00002B4, "STATUS_FLOAT_MULTIPLE_FAULTS"));
     exceptionNames.insert(std::make_pair(0xC00002B5, "STATUS_FLOAT_MULTIPLE_TRAPS"));
     exceptionNames.insert(std::make_pair(0xC00002C5, "STATUS_DATATYPE_MISALIGNMENT_ERROR"));
@@ -62,16 +65,14 @@ void exceptioninit()
     exceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
     exceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
     exceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
-    exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(0x406D1388, "MS_VC_EXCEPTION"));
-    exceptionNames.insert(std::make_pair(0xC00001A5, "STATUS_INVALID_EXCEPTION_HANDLER"));
 }
 
 const char* exceptionnamefromcode(unsigned int ExceptionCode)
 {
     if(!exceptionNames.count(ExceptionCode))
-        return 0;
+        return nullptr;
+
     return exceptionNames[ExceptionCode];
 }
