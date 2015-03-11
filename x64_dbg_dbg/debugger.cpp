@@ -203,14 +203,14 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     else
         sprintf(modtext, "Module: %s - ", modname);
     char title[1024] = "";
-    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadgetid(hActiveThread));
+    sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
 }
 
 void cbUserBreakpoint()
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -260,7 +260,7 @@ void cbUserBreakpoint()
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
@@ -335,7 +335,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
 
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     uint size;
     uint base = memfindbaseaddr((uint)ExceptionAddress, &size, true);
@@ -540,7 +540,7 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 
 void cbStep()
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     isStepping = false;
     GuiSetDebugState(paused);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
@@ -559,7 +559,7 @@ void cbStep()
 
 static void cbRtrFinalStep()
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     GuiSetDebugState(paused);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
@@ -605,7 +605,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     memupdatemap(fdProcessInfo->hProcess);
-    GuiDumpAt(memfindbaseaddr(GetContextData(UE_CIP), 0)+PAGE_SIZE); //dump somewhere
+    GuiDumpAt(memfindbaseaddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     //init program database
     int len = (int)strlen(szFileName);
@@ -704,7 +704,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     threadcreate(CreateThread); //update thread list
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    hActiveThread = threadgethandle(dwThreadId);
+    hActiveThread = ThreadGetHandle(dwThreadId);
 
     if(settingboolget("Events", "ThreadEntry"))
     {
@@ -739,7 +739,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
 static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
@@ -765,7 +765,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 
 static void cbSystemBreakpoint(void* ExceptionData)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     //log message
     if(bIsAttached)
         dputs("Attach breakpoint reached!");
@@ -797,7 +797,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     void* base = LoadDll->lpBaseOfDll;
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
@@ -900,7 +900,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_UNLOADDLL callbackInfo;
     callbackInfo.UnloadDll = UnloadDll;
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
@@ -934,7 +934,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
 
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
     plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
@@ -973,7 +973,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
-    hActiveThread = threadgethandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception = ExceptionData;
     unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
@@ -1019,14 +1019,14 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
         if(nameInfo.dwThreadID == -1) //current thread
             nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-        if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and threadisvalid(nameInfo.dwThreadID)) //passed basic checks
+        if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
             if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName);
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
-                threadsetname(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
             }
         }
     }

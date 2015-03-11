@@ -6,150 +6,239 @@
 
 static std::vector<THREADINFO> threadList;
 static int threadNum;
-static int currentThread;
 
 void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     THREADINFO curInfo;
-    curInfo.ThreadNumber = threadNum;
-    curInfo.hThread = CreateThread->hThread;
-    curInfo.dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    curInfo.ThreadStartAddress = (uint)CreateThread->lpStartAddress;
-    curInfo.ThreadLocalBase = (uint)CreateThread->lpThreadLocalBase;
-    *curInfo.threadName = '\0';
-    if(!threadNum)
+    memset(&curInfo, 0, sizeof(THREADINFO));
+
+    curInfo.ThreadNumber        = threadNum;
+    curInfo.Handle              = CreateThread->hThread;
+    curInfo.ThreadId            = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    curInfo.ThreadStartAddress  = (uint)CreateThread->lpStartAddress;
+    curInfo.ThreadLocalBase     = (uint)CreateThread->lpThreadLocalBase;
+
+    // The first thread (#0) is always the main program thread
+    if(threadNum <= 0)
         strcpy_s(curInfo.threadName, "Main Thread");
-    CriticalSectionLocker locker(LockThreads);
+
+    // Modify global thread list
+    EXCLUSIVE_ACQUIRE(LockThreads);
     threadList.push_back(curInfo);
     threadNum++;
-    locker.unlock(); //prevent possible deadlocks
+    EXCLUSIVE_RELEASE();
+
+    // Notify GUI
     GuiUpdateThreadView();
 }
 
 void threadexit(DWORD dwThreadId)
 {
-    CriticalSectionLocker locker(LockThreads);
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(threadList.at(i).dwThreadId == dwThreadId)
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(itr->ThreadId == dwThreadId)
         {
-            threadList.erase(threadList.begin() + i);
+            threadList.erase(itr);
             break;
         }
-    locker.unlock(); //prevent possible deadlocks
+    }
+
+    EXCLUSIVE_RELEASE();
     GuiUpdateThreadView();
 }
 
 void threadclear()
 {
     threadNum = 0;
-    CriticalSectionLocker locker(LockThreads);
-    std::vector<THREADINFO>().swap(threadList);
-    locker.unlock(); //prevent possible deadlocks
+
+    // Clear the current array of threads
+    EXCLUSIVE_ACQUIRE(LockThreads);
+    threadList.clear();
+    EXCLUSIVE_RELEASE();
+
+    // Update the GUI's list
     GuiUpdateThreadView();
 }
 
-static THREADWAITREASON GetThreadWaitReason(DWORD dwThreadId)
+bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
 {
-    //TODO: implement this
+    //
+    // TODO: Keep a cached copy of this inside of the vector
+    //
+    memset(Teb, 0, sizeof(TEB));
+
+    return memread(fdProcessInfo->hProcess, (void*)TEBAddress, Teb, sizeof(TEB), nullptr);
+}
+
+int ThreadGetSuspendCount(HANDLE Thread)
+{
+    //
+    // Suspend a thread in order to get the previous suspension count
+    // WARNING: This function is very bad (threads should not be randomly interrupted)
+    //
+    int suspendCount = (int)SuspendThread(Thread);
+
+    if(suspendCount == -1)
+        return 0;
+
+    // Resume the thread's normal execution
+    ResumeThread(Thread);
+
+    return suspendCount;
+}
+
+THREADPRIORITY ThreadGetPriority(HANDLE Thread)
+{
+    return (THREADPRIORITY)GetThreadPriority(Thread);
+}
+
+THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
+{
+    UNREFERENCED_PARAMETER(Thread);
+
+    //TODO: Implement this
     return _Executive;
 }
 
-static DWORD GetThreadLastError(uint tebAddress)
+DWORD ThreadGetLastError(uint tebAddress)
 {
     TEB teb;
-    memset(&teb, 0, sizeof(TEB));
-    if(!memread(fdProcessInfo->hProcess, (void*)tebAddress, &teb, sizeof(TEB), 0))
+    if(!ThreadGetTeb(tebAddress, &teb))
+    {
+        // TODO: Assert
         return 0;
+    }
+
     return teb.LastErrorValue;
 }
 
-void threadgetlist(THREADLIST* list)
+void ThreadGetList(THREADLIST* list)
 {
-    CriticalSectionLocker locker(LockThreads);
-    int count = (int)threadList.size();
-    list->count = count;
-    if(!count)
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    //
+    // This function converts a C++ std::vector to a C-style THREADLIST[]
+    // Also assume BridgeAlloc zeros the returned buffer
+    //
+    size_t count = threadList.size();
+
+    if(count <= 0)
         return;
-    list->list = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
-    for(int i = 0; i < count; i++)
+
+    list->count = (int)count;
+    list->list  = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
+
+    // Fill out the list data
+    for(size_t i = 0; i < count; i++)
     {
-        if(hActiveThread == threadList.at(i).hThread)
-            currentThread = i;
-        memset(&list->list[i], 0, sizeof(THREADALLINFO));
-        memcpy(&list->list[i].BasicInfo, &threadList.at(i), sizeof(THREADINFO));
-        HANDLE hThread = list->list[i].BasicInfo.hThread;
-        list->list[i].ThreadCip = GetContextDataEx(hThread, UE_CIP);
-        list->list[i].SuspendCount = SuspendThread(hThread);
-        ResumeThread(hThread);
-        list->list[i].Priority = (THREADPRIORITY)GetThreadPriority(list->list[i].BasicInfo.hThread);
-        list->list[i].WaitReason = GetThreadWaitReason(list->list[i].BasicInfo.dwThreadId);
-        list->list[i].LastError = GetThreadLastError(list->list[i].BasicInfo.ThreadLocalBase);
+        HANDLE threadHandle = threadList[i].Handle;
+
+        // Get the debugger's current thread index
+        if(threadHandle == hActiveThread)
+            list->CurrentThread = (int)i;
+
+        memcpy(&list->list[i].BasicInfo, &threadList[i], sizeof(THREADINFO));
+
+        list->list[i].ThreadCip     = GetContextDataEx(threadHandle, UE_CIP);
+        list->list[i].SuspendCount  = ThreadGetSuspendCount(threadHandle);
+        list->list[i].Priority      = ThreadGetPriority(threadHandle);
+        list->list[i].WaitReason    = ThreadGetWaitReason(threadHandle);
+        list->list[i].LastError     = ThreadGetLastError(list->list[i].BasicInfo.ThreadLocalBase);
     }
-    list->CurrentThread = currentThread;
 }
 
-bool threadisvalid(DWORD dwThreadId)
+bool ThreadIsValid(DWORD dwThreadId)
 {
-    CriticalSectionLocker locker(LockThreads);
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(threadList.at(i).dwThreadId == dwThreadId)
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(itr->ThreadId == dwThreadId)
             return true;
+    }
+
     return false;
 }
 
-bool threadsetname(DWORD dwThreadId, const char* name)
+bool ThreadSetName(DWORD dwThreadId, const char* name)
 {
-    CriticalSectionLocker locker(LockThreads);
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(threadList.at(i).dwThreadId == dwThreadId)
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(itr->ThreadId == dwThreadId)
         {
             if(name)
-                strcpy_s(threadList.at(i).threadName, name);
+                strcpy_s(itr->threadName, name);
             else
-                *threadList.at(i).threadName = '\0';
+                itr->threadName[0] = '\0';
         }
+    }
+
     return false;
 }
 
-HANDLE threadgethandle(DWORD dwThreadId)
+HANDLE ThreadGetHandle(DWORD dwThreadId)
 {
-    CriticalSectionLocker locker(LockThreads);
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(threadList.at(i).dwThreadId == dwThreadId)
-            return threadList.at(i).hThread;
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(itr->ThreadId == dwThreadId)
+            return itr->Handle;
+    }
+
+    // TODO: Set an assert if the handle is never found,
+    // using a bad handle causes random/silent issues everywhere
     return 0;
 }
 
-DWORD threadgetid(HANDLE hThread)
+DWORD ThreadGetId(HANDLE hThread)
 {
-    CriticalSectionLocker locker(LockThreads);
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(threadList.at(i).hThread == hThread)
-            return threadList.at(i).dwThreadId;
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(itr->Handle == hThread)
+            return itr->ThreadId;
+    }
+
+    // TODO: Same problem with threadgethandle()
+    // TODO: Different handles can map to the same thread
     return 0;
 }
 
-int threadgetcount()
+int ThreadGetCount()
 {
     return (int)threadList.size();
 }
 
-int threadsuspendall()
+int ThreadSuspendAll()
 {
-    CriticalSectionLocker locker(LockThreads);
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
     int count = 0;
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(SuspendThread(threadList.at(i).hThread) != -1)
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(SuspendThread(itr->Handle) != -1)
             count++;
+    }
+
     return count;
 }
 
-int threadresumeall()
+int ThreadResumeAll()
 {
-    CriticalSectionLocker locker(LockThreads);
+    EXCLUSIVE_ACQUIRE(LockThreads);
+
     int count = 0;
-    for(unsigned int i = 0; i < threadList.size(); i++)
-        if(ResumeThread(threadList.at(i).hThread) != -1)
+    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    {
+        if(ResumeThread(itr->Handle) != -1)
             count++;
+    }
+
     return count;
 }

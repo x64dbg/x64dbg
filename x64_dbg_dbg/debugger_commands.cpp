@@ -1035,13 +1035,13 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf("Invalid thread %X\n", threadid);
         return STATUS_ERROR;
     }
     //switch thread
-    hActiveThread = threadgethandle((DWORD)threadid);
+    hActiveThread = ThreadGetHandle((DWORD)threadid);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     dputs("Thread switched!");
     return STATUS_CONTINUE;
@@ -1053,13 +1053,13 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf("Invalid thread %X\n", threadid);
         return STATUS_ERROR;
     }
     //suspend thread
-    if(SuspendThread(threadgethandle((DWORD)threadid)) == -1)
+    if(SuspendThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs("Error suspending thread");
         return STATUS_ERROR;
@@ -1075,13 +1075,13 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf("Invalid thread %X\n", threadid);
         return STATUS_ERROR;
     }
     //resume thread
-    if(ResumeThread(threadgethandle((DWORD)threadid)) == -1)
+    if(ResumeThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs("Error resuming thread");
         return STATUS_ERROR;
@@ -1101,13 +1101,13 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
     if(argc > 2)
         if(!valfromstring(argv[2], &exitcode, false))
             return STATUS_ERROR;
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf("Invalid thread %X\n", threadid);
         return STATUS_ERROR;
     }
     //terminate thread
-    if(TerminateThread(threadgethandle((DWORD)threadid), (DWORD)exitcode) != 0)
+    if(TerminateThread(ThreadGetHandle((DWORD)threadid), (DWORD)exitcode) != 0)
     {
         GuiUpdateAllViews();
         dputs("Thread terminated");
@@ -1119,8 +1119,8 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
 
 CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
 {
-    int threadCount = threadgetcount();
-    int suspendedCount = threadsuspendall();
+    int threadCount = ThreadGetCount();
+    int suspendedCount = ThreadSuspendAll();
     dprintf("%d/%d thread(s) suspended\n", suspendedCount, threadCount);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
@@ -1128,8 +1128,8 @@ CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
 
 CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[])
 {
-    int threadCount = threadgetcount();
-    int resumeCount = threadresumeall();
+    int threadCount = ThreadGetCount();
+    int resumeCount = ThreadResumeAll();
     dprintf("%d/%d thread(s) resumed\n", resumeCount, threadCount);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
@@ -1185,13 +1185,13 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
             return STATUS_ERROR;
         }
     }
-    if(!threadisvalid((DWORD)threadid)) //check if the thread is valid
+    if(!ThreadIsValid((DWORD)threadid)) //check if the thread is valid
     {
         dprintf("Invalid thread %X\n", threadid);
         return STATUS_ERROR;
     }
     //set thread priority
-    if(SetThreadPriority(threadgethandle((DWORD)threadid), (int)priority) == 0)
+    if(SetThreadPriority(ThreadGetHandle((DWORD)threadid), (int)priority) == 0)
     {
         dputs("Error setting thread priority");
         return STATUS_ERROR;
@@ -1817,7 +1817,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     }
 
     LoadLibThreadID = fdProcessInfo->dwThreadId;
-    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
+    HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 
     DLLNameMem = VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     ASMAddr = VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -1869,7 +1869,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
     SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbLoadLibBPX);
 
-    threadsuspendall();
+    ThreadSuspendAll();
     ResumeThread(LoadLibThread);
 
     unlock(WAITID_RUN);
@@ -1880,7 +1880,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 void cbLoadLibBPX()
 {
     uint LibAddr = 0;
-    HANDLE LoadLibThread = threadgethandle((DWORD)LoadLibThreadID);
+    HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 #ifdef _WIN64
     LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
 #else
@@ -1891,7 +1891,7 @@ void cbLoadLibBPX()
     SetFullContextDataEx(LoadLibThread, &backupctx);
     VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
     VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
-    threadresumeall();
+    ThreadResumeAll();
     //update GUI
     GuiSetDebugState(paused);
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);

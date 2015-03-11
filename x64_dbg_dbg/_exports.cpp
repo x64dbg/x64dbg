@@ -719,7 +719,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_GET_THREAD_LIST:
     {
-        threadgetlist((THREADLIST*)param1);
+        ThreadGetList((THREADLIST*)param1);
     }
     break;
 
