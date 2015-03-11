@@ -10,153 +10,188 @@ static BookmarksInfo bookmarks;
 
 bool bookmarkset(uint addr, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    // CHECK: Export call
+    if(!DbgIsDebugging())
         return false;
+
+    // Validate the incoming address
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, addr))
+        return false;
+
     BOOKMARKSINFO bookmark;
     modnamefromaddr(addr, bookmark.mod, true);
-    bookmark.addr = addr - modbasefromaddr(addr);
+    bookmark.addr   = addr - modbasefromaddr(addr);
     bookmark.manual = manual;
-    CriticalSectionLocker locker(LockBookmarks);
+
+    // Exclusive lock to insert new data
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
+
     if(!bookmarks.insert(std::make_pair(modhashfromva(addr), bookmark)).second)
         return bookmarkdel(addr);
+
     return true;
 }
 
 bool bookmarkget(uint addr)
 {
-    if(!DbgIsDebugging())
-        return false;
-    CriticalSectionLocker locker(LockBookmarks);
-    if(bookmarks.count(modhashfromva(addr)))
-        return true;
-    return false;
+    SHARED_ACQUIRE(LockBookmarks);
+    return (bookmarks.count(modhashfromva(addr)) > 0);
 }
 
 bool bookmarkdel(uint addr)
 {
+    // CHECK: Export call
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockBookmarks);
+
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
     return (bookmarks.erase(modhashfromva(addr)) > 0);
 }
 
 void bookmarkdelrange(uint start, uint end)
 {
+    // CHECK: Export call
     if(!DbgIsDebugging())
         return;
-    bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end))
-        return;
-    start -= modbase;
-    end -= modbase;
-    CriticalSectionLocker locker(LockBookmarks);
-    BookmarksInfo::iterator i = bookmarks.begin();
-    while(i != bookmarks.end())
+
+    // Are all bookmarks going to be deleted?
+    if(start == 0x00000000 && end == 0xFFFFFFFF)
     {
-        if(i->second.manual) //ignore manual
+        EXCLUSIVE_ACQUIRE(LockBookmarks);
+        bookmarks.clear();
+    }
+    else
+    {
+        // Make sure 'start' and 'end' reference the same module
+        uint modbase = modbasefromaddr(start);
+
+        if(modbase != modbasefromaddr(end))
+            return;
+
+        start   -= modbase;
+        end     -= modbase;
+
+        EXCLUSIVE_ACQUIRE(LockBookmarks);
+        for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
         {
-            i++;
-            continue;
+            // Ignore manually set entries
+            if(itr->second.manual)
+            {
+                itr++;
+                continue;
+            }
+
+            if(itr->second.addr >= start && itr->second.addr < end)
+                bookmarks.erase(itr);
+
+            itr++;
         }
-        if(bDelAll || (i->second.addr >= start && i->second.addr < end))
-            bookmarks.erase(i++);
-        else
-            i++;
     }
 }
 
 void bookmarkcachesave(JSON root)
 {
-    CriticalSectionLocker locker(LockBookmarks);
-    const JSON jsonbookmarks = json_array();
-    const JSON jsonautobookmarks = json_array();
-    for(BookmarksInfo::iterator i = bookmarks.begin(); i != bookmarks.end(); ++i)
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
+
+    const JSON jsonbookmarks        = json_array();
+    const JSON jsonautobookmarks    = json_array();
+
+    // Save to the JSON root
+    for(auto itr = bookmarks.begin(); itr != bookmarks.end(); itr++)
     {
-        const BOOKMARKSINFO curBookmark = i->second;
         JSON curjsonbookmark = json_object();
-        json_object_set_new(curjsonbookmark, "module", json_string(curBookmark.mod));
-        json_object_set_new(curjsonbookmark, "address", json_hex(curBookmark.addr));
-        if(curBookmark.manual)
+
+        json_object_set_new(curjsonbookmark, "module", json_string(itr->second.mod));
+        json_object_set_new(curjsonbookmark, "address", json_hex(itr->second.addr));
+
+        if(itr->second.manual)
             json_array_append_new(jsonbookmarks, curjsonbookmark);
         else
             json_array_append_new(jsonautobookmarks, curjsonbookmark);
     }
+
     if(json_array_size(jsonbookmarks))
         json_object_set(root, "bookmarks", jsonbookmarks);
-    json_decref(jsonbookmarks);
+
     if(json_array_size(jsonautobookmarks))
         json_object_set(root, "autobookmarks", jsonautobookmarks);
+
+    json_decref(jsonbookmarks);
     json_decref(jsonautobookmarks);
 }
 
 void bookmarkcacheload(JSON root)
 {
-    CriticalSectionLocker locker(LockBookmarks);
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
+
+    auto AddBookmarks = [](const JSON Object, bool Manual)
+    {
+        size_t i;
+        JSON value;
+
+        json_array_foreach(Object, i, value)
+        {
+            BOOKMARKSINFO bookmarkInfo;
+            memset(&bookmarkInfo, 0, sizeof(BOOKMARKSINFO));
+
+            // Load the module name
+            const char* mod = json_string_value(json_object_get(value, "module"));
+
+            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+                strcpy_s(bookmarkInfo.mod, mod);
+
+            // Load address and set auto-generated flag
+            bookmarkInfo.addr   = (uint)json_hex_value(json_object_get(value, "address"));
+            bookmarkInfo.manual = Manual;
+
+            const uint key = modhashfromname(bookmarkInfo.mod) + bookmarkInfo.addr;
+            bookmarks.insert(std::make_pair(key, bookmarkInfo));
+        }
+    };
+
+    // Remove existing entries
     bookmarks.clear();
-    const JSON jsonbookmarks = json_object_get(root, "bookmarks");
+
+    const JSON jsonbookmarks        = json_object_get(root, "bookmarks");
+    const JSON jsonautobookmarks    = json_object_get(root, "autobookmarks");
+
+    // Load user-set bookmarks
     if(jsonbookmarks)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonbookmarks, i, value)
-        {
-            BOOKMARKSINFO curBookmark;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curBookmark.mod, mod);
-            else
-                *curBookmark.mod = '\0';
-            curBookmark.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curBookmark.manual = true;
-            const uint key = modhashfromname(curBookmark.mod) + curBookmark.addr;
-            bookmarks.insert(std::make_pair(key, curBookmark));
-        }
-    }
-    JSON jsonautobookmarks = json_object_get(root, "autobookmarks");
+        AddBookmarks(jsonbookmarks, true);
+
+    // Load auto-set bookmarks
     if(jsonautobookmarks)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonautobookmarks, i, value)
-        {
-            BOOKMARKSINFO curBookmark;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curBookmark.mod, mod);
-            else
-                *curBookmark.mod = '\0';
-            curBookmark.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curBookmark.manual = false;
-            const uint key = modhashfromname(curBookmark.mod) + curBookmark.addr;
-            bookmarks.insert(std::make_pair(key, curBookmark));
-        }
-    }
+        AddBookmarks(jsonbookmarks, false);
 }
 
 bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
 {
-    if(!DbgIsDebugging())
-        return false;
+    // The array container must be set, or the size must be set, or both
     if(!bookmarklist && !cbsize)
         return false;
-    CriticalSectionLocker locker(LockBookmarks);
-    if(!bookmarklist && cbsize)
+
+    SHARED_ACQUIRE(LockBookmarks);
+
+    // Return the size if set
+    if(cbsize)
     {
         *cbsize = bookmarks.size() * sizeof(BOOKMARKSINFO);
         return true;
     }
-    int j = 0;
-    for(BookmarksInfo::iterator i = bookmarks.begin(); i != bookmarks.end(); ++i, j++)
+
+    // TODO: only ModBaseFromName seems wrong
+    for(auto itr = bookmarks.begin(); itr != bookmarks.end(); itr++, bookmarklist++)
     {
-        bookmarklist[j] = i->second;
-        bookmarklist[j].addr += modbasefromname(bookmarklist[j].mod);
+        *bookmarklist       = itr->second;
+        bookmarklist->addr  += modbasefromname(bookmarklist->mod);
     }
+
     return true;
 }
 
 void bookmarkclear()
 {
-    CriticalSectionLocker locker(LockBookmarks);
-    BookmarksInfo().swap(bookmarks);
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
+
+    bookmarks.clear();
 }

@@ -24,7 +24,6 @@ bool waitislocked(WAIT_ID id);
 // Better, but requires VISTA+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
 //
-
 #define EXCLUSIVE_ACQUIRE(Index)    CriticalSectionLocker __ThreadLock(Index, false);
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
@@ -45,6 +44,13 @@ enum CriticalSectionLock
     LockPatches,
     LockThreads,
     LockDprintf,
+
+    // This is defined because of a bug in the Windows 8.1 kernel;
+    // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
+    // a deadlock.
+    // https://bitbucket.org/mrexodia/x64_dbg/issue/247/x64-dbg-bug-string-references-function
+    LockWin8Workaround,
+
     LockLast
 };
 
