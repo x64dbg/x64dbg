@@ -18,6 +18,9 @@ void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
 
+#define EXCLUSIVE_ACQUIRE(Index)    CriticalSectionLocker __ThreadLock(Index);
+#define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
+
 enum CriticalSectionLock
 {
     LockMemoryPages,
@@ -38,19 +41,22 @@ enum CriticalSectionLock
 class CriticalSectionLocker
 {
 public:
+    static void Initialize();
     static void Deinitialize();
-    CriticalSectionLocker(CriticalSectionLock lock);
+
+    CriticalSectionLocker(CriticalSectionLock LockIndex);
     ~CriticalSectionLocker();
-    void unlock();
-    void relock();
+
+    void Unlock();
+    void Lock();
+    bool TryLock();
 
 private:
-    static void Initialize();
-    static bool bInitDone;
-    static CRITICAL_SECTION locks[LockLast];
+    static bool m_Initialized;
+    static CRITICAL_SECTION m_Locks[LockLast];
 
-    CriticalSectionLock gLock;
-    bool Locked;
+    CRITICAL_SECTION* m_Section;
+    BYTE m_LockCount;
 };
 
 #endif // _THREADING_H

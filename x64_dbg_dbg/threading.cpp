@@ -28,53 +28,78 @@ bool waitislocked(WAIT_ID id)
     return waitarray[id];
 }
 
-CRITICAL_SECTION CriticalSectionLocker::locks[LockLast] = {};
-bool CriticalSectionLocker::bInitDone = false;
+bool CriticalSectionLocker::m_Initialized = false;
+CRITICAL_SECTION CriticalSectionLocker::m_Locks[LockLast];
 
 void CriticalSectionLocker::Initialize()
 {
-    if(bInitDone)
+    if(m_Initialized)
         return;
+
+    // Destroy previous data if any existed
+    memset(m_Locks, 0, sizeof(m_Locks));
+
     for(int i = 0; i < LockLast; i++)
-        InitializeCriticalSection(&locks[i]);
-    bInitDone = true;
+        InitializeCriticalSection(&m_Locks[i]);
+
+    m_Initialized = true;
 }
 
 void CriticalSectionLocker::Deinitialize()
 {
-    if(!bInitDone)
+    if(!m_Initialized)
         return;
+
     for(int i = 0; i < LockLast; i++)
     {
-        EnterCriticalSection(&locks[i]); //obtain ownership
-        DeleteCriticalSection(&locks[i]);
+        // Wait for the lock's ownership to be released
+        EnterCriticalSection(&m_Locks[i]);
+        LeaveCriticalSection(&m_Locks[i]);
+
+        // Render the lock data invalid
+        DeleteCriticalSection(&m_Locks[i]);
     }
-    bInitDone = false;
+
+    m_Initialized = false;
 }
 
-CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock lock)
+CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock LockIndex)
 {
-    Initialize(); //initialize critical sections
-    gLock = lock;
+    m_Section   = &m_Locks[LockIndex];
+    m_LockCount = 0;
 
-    EnterCriticalSection(&locks[gLock]);
-    Locked = true;
+    Lock();
 }
 
 CriticalSectionLocker::~CriticalSectionLocker()
 {
-    if(Locked)
-        LeaveCriticalSection(&locks[gLock]);
+    if(m_LockCount > 0)
+        LeaveCriticalSection(m_Section);
+
+    // TODO: Assert that the lock count is zero on destructor
 }
 
-void CriticalSectionLocker::unlock()
+void CriticalSectionLocker::Unlock()
 {
-    Locked = false;
-    LeaveCriticalSection(&locks[gLock]);
+    m_LockCount--;
+    LeaveCriticalSection(m_Section);
 }
 
-void CriticalSectionLocker::relock()
+void CriticalSectionLocker::Lock()
 {
-    EnterCriticalSection(&locks[gLock]);
-    Locked = true;
+    EnterCriticalSection(m_Section);
+    m_LockCount++;
+}
+
+bool CriticalSectionLocker::TryLock()
+{
+    // Only enter the critical section if it's currently owned by the
+    // thread, or if it is not being used at all
+    if(TryEnterCriticalSection(m_Section))
+    {
+        Lock();
+        return true;
+    }
+
+    return false;
 }
