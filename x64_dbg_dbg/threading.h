@@ -18,8 +18,18 @@ void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
 
-#define EXCLUSIVE_ACQUIRE(Index)    CriticalSectionLocker __ThreadLock(Index);
+//
+// THREAD SYNCHRONIZATION
+//
+// Better, but requires VISTA+
+// https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
+//
+
+#define EXCLUSIVE_ACQUIRE(Index)    CriticalSectionLocker __ThreadLock(Index, false);
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
+
+#define SHARED_ACQUIRE(Index)       CriticalSectionLocker __SThreadLock(Index, true);
+#define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum CriticalSectionLock
 {
@@ -44,18 +54,18 @@ public:
     static void Initialize();
     static void Deinitialize();
 
-    CriticalSectionLocker(CriticalSectionLock LockIndex);
+    CriticalSectionLocker(CriticalSectionLock LockIndex, bool Shared);
     ~CriticalSectionLocker();
 
     void Unlock();
-    void Lock();
-    bool TryLock();
+    void Lock(bool Shared);
 
 private:
     static bool m_Initialized;
-    static CRITICAL_SECTION m_Locks[LockLast];
+    static SRWLOCK m_Locks[LockLast];
 
-    CRITICAL_SECTION* m_Section;
+    SRWLOCK* m_Lock;
+    bool m_Shared;
     BYTE m_LockCount;
 };
 

@@ -65,7 +65,7 @@ void threadclear()
 bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
 {
     //
-    // TODO: Keep a cached copy of this inside of the vector
+    // TODO: Keep a cached copy inside the vector
     //
     memset(Teb, 0, sizeof(TEB));
 
@@ -107,7 +107,7 @@ DWORD ThreadGetLastError(uint tebAddress)
     TEB teb;
     if(!ThreadGetTeb(tebAddress, &teb))
     {
-        // TODO: Assert
+        // TODO: Assert (Why would the TEB fail?)
         return 0;
     }
 
@@ -116,7 +116,7 @@ DWORD ThreadGetLastError(uint tebAddress)
 
 void ThreadGetList(THREADLIST* list)
 {
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
     //
     // This function converts a C++ std::vector to a C-style THREADLIST[]
@@ -151,7 +151,7 @@ void ThreadGetList(THREADLIST* list)
 
 bool ThreadIsValid(DWORD dwThreadId)
 {
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
@@ -166,6 +166,7 @@ bool ThreadSetName(DWORD dwThreadId, const char* name)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
+    // This modifies a variable (name), so an exclusive lock is required
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
         if(itr->ThreadId == dwThreadId)
@@ -182,7 +183,7 @@ bool ThreadSetName(DWORD dwThreadId, const char* name)
 
 HANDLE ThreadGetHandle(DWORD dwThreadId)
 {
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
@@ -197,16 +198,24 @@ HANDLE ThreadGetHandle(DWORD dwThreadId)
 
 DWORD ThreadGetId(HANDLE hThread)
 {
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
+    // Search for the ID in the local list
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
         if(itr->Handle == hThread)
             return itr->ThreadId;
     }
 
+    // Wasn't found, check with Windows
+    // This also returns 0 on error
+    /*
+    REQUIRES VISTA+
+
+    return GetThreadId(hThread);
+    */
+
     // TODO: Same problem with threadgethandle()
-    // TODO: Different handles can map to the same thread
     return 0;
 }
 
@@ -217,7 +226,10 @@ int ThreadGetCount()
 
 int ThreadSuspendAll()
 {
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    //
+    // SuspendThread does not modify any internal variables
+    //
+    SHARED_ACQUIRE(LockThreads);
 
     int count = 0;
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
@@ -231,6 +243,9 @@ int ThreadSuspendAll()
 
 int ThreadResumeAll()
 {
+    //
+    // ResumeThread does not modify any internal variables
+    //
     EXCLUSIVE_ACQUIRE(LockThreads);
 
     int count = 0;

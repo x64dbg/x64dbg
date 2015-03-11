@@ -29,7 +29,7 @@ bool waitislocked(WAIT_ID id)
 }
 
 bool CriticalSectionLocker::m_Initialized = false;
-CRITICAL_SECTION CriticalSectionLocker::m_Locks[LockLast];
+SRWLOCK CriticalSectionLocker::m_Locks[LockLast];
 
 void CriticalSectionLocker::Initialize()
 {
@@ -40,7 +40,7 @@ void CriticalSectionLocker::Initialize()
     memset(m_Locks, 0, sizeof(m_Locks));
 
     for(int i = 0; i < LockLast; i++)
-        InitializeCriticalSection(&m_Locks[i]);
+        InitializeSRWLock(&m_Locks[i]);
 
     m_Initialized = true;
 }
@@ -53,28 +53,28 @@ void CriticalSectionLocker::Deinitialize()
     for(int i = 0; i < LockLast; i++)
     {
         // Wait for the lock's ownership to be released
-        EnterCriticalSection(&m_Locks[i]);
-        LeaveCriticalSection(&m_Locks[i]);
+        AcquireSRWLockExclusive(&m_Locks[i]);
+        ReleaseSRWLockExclusive(&m_Locks[i]);
 
-        // Render the lock data invalid
-        DeleteCriticalSection(&m_Locks[i]);
+        // Invalidate data
+        memset(&m_Locks[i], 0, sizeof(SRWLOCK));
     }
 
     m_Initialized = false;
 }
 
-CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock LockIndex)
+CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock LockIndex, bool Shared)
 {
-    m_Section   = &m_Locks[LockIndex];
+    m_Lock      = &m_Locks[LockIndex];
     m_LockCount = 0;
 
-    Lock();
+    Lock(Shared);
 }
 
 CriticalSectionLocker::~CriticalSectionLocker()
 {
     if(m_LockCount > 0)
-        LeaveCriticalSection(m_Section);
+        Unlock();
 
     // TODO: Assert that the lock count is zero on destructor
 }
@@ -82,24 +82,20 @@ CriticalSectionLocker::~CriticalSectionLocker()
 void CriticalSectionLocker::Unlock()
 {
     m_LockCount--;
-    LeaveCriticalSection(m_Section);
+
+    if(m_Shared)
+        ReleaseSRWLockShared(m_Lock);
+    else
+        ReleaseSRWLockExclusive(m_Lock);
 }
 
-void CriticalSectionLocker::Lock()
+void CriticalSectionLocker::Lock(bool Shared)
 {
-    EnterCriticalSection(m_Section);
+    if(Shared)
+        AcquireSRWLockShared(m_Lock);
+    else
+        AcquireSRWLockExclusive(m_Lock);
+
+    m_Shared = Shared;
     m_LockCount++;
-}
-
-bool CriticalSectionLocker::TryLock()
-{
-    // Only enter the critical section if it's currently owned by the
-    // thread, or if it is not being used at all
-    if(TryEnterCriticalSection(m_Section))
-    {
-        Lock();
-        return true;
-    }
-
-    return false;
 }

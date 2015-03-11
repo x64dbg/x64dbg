@@ -77,10 +77,12 @@ bool modload(uint base, uint size, const char* fullpath)
 
 bool modunload(uint base)
 {
-    CriticalSectionLocker locker(LockModules);
+    EXCLUSIVE_ACQUIRE(LockModules);
+
     const ModulesInfo::iterator found = modinfo.find(Range(base, base));
     if(found == modinfo.end()) //not found
         return false;
+
     modinfo.erase(found);
     symupdatemodulelist();
     return true;
@@ -88,8 +90,12 @@ bool modunload(uint base)
 
 void modclear()
 {
-    CriticalSectionLocker locker(LockModules);
-    ModulesInfo().swap(modinfo);
+    EXCLUSIVE_ACQUIRE(LockModules);
+
+    // Remove all modules in the list
+    modinfo.clear();
+
+    // Tell the symbol updater
     symupdatemodulelist();
 }
 
@@ -97,98 +103,143 @@ bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
     if(!modname)
         return false;
-    *modname = '\0';
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
-    if(found == modinfo.end()) //not found
+
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(addr, addr));
+
+    if(found == modinfo.end())
         return false;
-    String mod = found->second.name;
+
+    // Zero buffer first
+    memset(modname, 0, MAX_MODULE_SIZE);
+
+    // Append the module path/name
+    strcat_s(modname, MAX_MODULE_SIZE, found->second.name);
+
+    // Append the extension
     if(extension)
-        mod += found->second.extension;
-    strcpy_s(modname, MAX_MODULE_SIZE, mod.c_str());
+        strcat_s(modname, MAX_MODULE_SIZE, found->second.extension);
+
     return true;
 }
 
 uint modbasefromaddr(uint addr)
 {
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
-    if(found == modinfo.end()) //not found
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(addr, addr));
+
+    if(found == modinfo.end())
         return 0;
+
     return found->second.base;
 }
 
-uint modhashfromva(uint va) //return a unique hash from a VA
+uint modhashfromva(uint va)
 {
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(va, va));
-    if(found == modinfo.end()) //not found
+    //
+    // Returns a unique hash from a virtual address
+    //
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(va, va));
+
+    if(found == modinfo.end())
         return va;
+
     return found->second.hash + (va - found->second.base);
 }
 
-uint modhashfromname(const char* mod) //return MODINFO.hash
+uint modhashfromname(const char* mod)
 {
-    if(!mod or !*mod)
+    //
+    // return MODINFO.hash (based on the name)
+    //
+    if(!mod || !mod[0])
         return 0;
-    int len = (int)strlen(mod);
-    return murmurhash(mod, len);
+
+    return murmurhash(mod, (int)strlen(mod));
 }
 
 uint modbasefromname(const char* modname)
 {
-    if(!modname or strlen(modname) >= MAX_MODULE_SIZE)
+    if(!modname || strlen(modname) >= MAX_MODULE_SIZE)
         return 0;
-    CriticalSectionLocker locker(LockModules);
-    for(ModulesInfo::iterator i = modinfo.begin(); i != modinfo.end(); ++i)
+
+    SHARED_ACQUIRE(LockModules);
+
+    for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
     {
-        MODINFO* curMod = &i->second;
-        char curmodname[MAX_MODULE_SIZE] = "";
-        sprintf(curmodname, "%s%s", curMod->name, curMod->extension);
-        if(!_stricmp(curmodname, modname)) //with extension
-            return curMod->base;
-        if(!_stricmp(curMod->name, modname)) //without extension
-            return curMod->base;
+        char curmodname[MAX_MODULE_SIZE];
+        sprintf(curmodname, "%s%s", itr->second.name, itr->second.extension);
+
+        // Test with extension
+        if(!_stricmp(curmodname, modname))
+            return itr->second.base;
+
+        // Test without extension
+        if(!_stricmp(itr->second.name, modname))
+            return itr->second.base;
     }
+
     return 0;
 }
 
 uint modsizefromaddr(uint addr)
 {
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
-    if(found == modinfo.end()) //not found
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(addr, addr));
+
+    if(found == modinfo.end())
         return 0;
+
     return found->second.size;
 }
 
 bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
 {
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
-    if(found == modinfo.end()) //not found
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(addr, addr));
+
+    if(found == modinfo.end())
         return false;
+
+    // Copy vector <-> vector
     *sections = found->second.sections;
     return true;
 }
 
 uint modentryfromaddr(uint addr)
 {
-    CriticalSectionLocker locker(LockModules);
-    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    SHARED_ACQUIRE(LockModules);
+
+    // Was the module found with this address?
+    auto found = modinfo.find(Range(addr, addr));
+
     if(found == modinfo.end()) //not found
         return 0;
+
     return found->second.entry;
 }
 
 int modpathfromaddr(duint addr, char* path, int size)
 {
     Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "modpathfromaddr:wszModPath");
+
     if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), wszModPath, size))
     {
         *path = '\0';
         return 0;
     }
+
     strcpy_s(path, size, StringUtils::Utf16ToUtf8(wszModPath()).c_str());
     return (int)strlen(path);
 }
