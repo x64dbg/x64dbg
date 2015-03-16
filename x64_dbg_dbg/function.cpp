@@ -12,18 +12,18 @@ bool functionadd(uint start, uint end, bool manual)
 {
     if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
         return false;
-    const uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end)) //the function boundaries are not in the same module
+    const uint modbase = ModBaseFromAddr(start);
+    if(modbase != ModBaseFromAddr(end)) //the function boundaries are not in the same module
         return false;
     if(functionoverlaps(start, end))
         return false;
     FUNCTIONSINFO function;
-    modnamefromaddr(start, function.mod, true);
+    ModNameFromAddr(start, function.mod, true);
     function.start = start - modbase;
     function.end = end - modbase;
     function.manual = manual;
     CriticalSectionLocker locker(LockFunctions);
-    functions.insert(std::make_pair(ModuleRange(modhashfromva(modbase), Range(function.start, function.end)), function));
+    functions.insert(std::make_pair(ModuleRange(ModHashFromAddr(modbase), Range(function.start, function.end)), function));
     return true;
 }
 
@@ -31,9 +31,9 @@ bool functionget(uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
         return false;
-    uint modbase = modbasefromaddr(addr);
+    uint modbase = ModBaseFromAddr(addr);
     CriticalSectionLocker locker(LockFunctions);
-    const FunctionsInfo::iterator found = functions.find(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase)));
+    const FunctionsInfo::iterator found = functions.find(ModuleRange(ModHashFromAddr(modbase), Range(addr - modbase, addr - modbase)));
     if(found == functions.end()) //not found
         return false;
     if(start)
@@ -47,18 +47,18 @@ bool functionoverlaps(uint start, uint end)
 {
     if(!DbgIsDebugging() or end < start)
         return false;
-    const uint modbase = modbasefromaddr(start);
+    const uint modbase = ModBaseFromAddr(start);
     CriticalSectionLocker locker(LockFunctions);
-    return (functions.count(ModuleRange(modhashfromva(modbase), Range(start - modbase, end - modbase))) > 0);
+    return (functions.count(ModuleRange(ModHashFromAddr(modbase), Range(start - modbase, end - modbase))) > 0);
 }
 
 bool functiondel(uint addr)
 {
     if(!DbgIsDebugging())
         return false;
-    const uint modbase = modbasefromaddr(addr);
+    const uint modbase = ModBaseFromAddr(addr);
     CriticalSectionLocker locker(LockFunctions);
-    return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))) > 0);
+    return (functions.erase(ModuleRange(ModHashFromAddr(modbase), Range(addr - modbase, addr - modbase))) > 0);
 }
 
 void functiondelrange(uint start, uint end)
@@ -66,8 +66,8 @@ void functiondelrange(uint start, uint end)
     if(!DbgIsDebugging())
         return;
     bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end))
+    uint modbase = ModBaseFromAddr(start);
+    if(modbase != ModBaseFromAddr(end))
         return;
     start -= modbase;
     end -= modbase;
@@ -134,8 +134,8 @@ void functioncacheload(JSON root)
             if(curFunction.end < curFunction.start)
                 continue; //invalid function
             curFunction.manual = true;
-            const uint key = modhashfromname(curFunction.mod);
-            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
+            const uint key = ModHashFromName(curFunction.mod);
+            functions.insert(std::make_pair(ModuleRange(ModHashFromName(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
         }
     }
     JSON jsonautofunctions = json_object_get(root, "autofunctions");
@@ -156,8 +156,8 @@ void functioncacheload(JSON root)
             if(curFunction.end < curFunction.start)
                 continue; //invalid function
             curFunction.manual = true;
-            const uint key = modhashfromname(curFunction.mod);
-            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
+            const uint key = ModHashFromName(curFunction.mod);
+            functions.insert(std::make_pair(ModuleRange(ModHashFromName(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
         }
     }
 }
@@ -178,7 +178,7 @@ bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
     for(FunctionsInfo::iterator i = functions.begin(); i != functions.end(); ++i, j++)
     {
         functionlist[j] = i->second;
-        uint modbase = modbasefromname(functionlist[j].mod);
+        uint modbase = ModBaseFromName(functionlist[j].mod);
         functionlist[j].start += modbase;
         functionlist[j].end += modbase;
     }

@@ -1189,7 +1189,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             SELECTIONDATA seldata;
             memset(&seldata, 0, sizeof(seldata));
             GuiSelectionGet(GUI_DISASSEMBLY, &seldata);
-            if(!modnamefromaddr(seldata.start, modname, true))
+            if(!ModNameFromAddr(seldata.start, modname, true))
                 return false;
         }
         else
@@ -1200,7 +1200,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         apiname++;
         if(!strlen(apiname))
             return false;
-        uint modbase = modbasefromname(modname);
+        uint modbase = ModBaseFromName(modname);
         wchar_t szModName[MAX_PATH] = L"";
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
@@ -2094,7 +2094,7 @@ bool valtostring(const char* string, uint* value, bool silent)
 uint valfileoffsettova(const char* modname, uint offset)
 {
     char modpath[MAX_PATH] = "";
-    if(modpathfromname(modname, modpath, MAX_PATH))
+    if(ModPathFromName(modname, modpath, MAX_PATH))
     {
         HANDLE FileHandle;
         DWORD LoadedSize;
@@ -2106,7 +2106,7 @@ uint valfileoffsettova(const char* modname, uint offset)
                                                   FileMapVA + (ULONG_PTR)offset, //Offset inside FileMapVA
                                                   false); //Return without ImageBase
             StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return offset < LoadedSize ? (duint)rva + modbasefromname(modname) : 0;
+            return offset < LoadedSize ? (duint)rva + ModBaseFromName(modname) : 0;
         }
     }
     return 0;
@@ -2115,7 +2115,7 @@ uint valfileoffsettova(const char* modname, uint offset)
 uint valvatofileoffset(uint va)
 {
     char modpath[MAX_PATH] = "";
-    if(modpathfromaddr(va, modpath, MAX_PATH))
+    if(ModPathFromAddr(va, modpath, MAX_PATH))
     {
         HANDLE FileHandle;
         DWORD LoadedSize;
@@ -2123,7 +2123,7 @@ uint valvatofileoffset(uint va)
         ULONG_PTR FileMapVA;
         if(StaticFileLoadW(StringUtils::Utf8ToUtf16(modpath).c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
         {
-            ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - modbasefromaddr(va), true, false);
+            ULONGLONG offset = ConvertVAtoFileOffsetEx(FileMapVA, LoadedSize, 0, va - ModBaseFromAddr(va), true, false);
             StaticFileUnloadW(StringUtils::Utf8ToUtf16(modpath).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA);
             return (duint)offset;
         }

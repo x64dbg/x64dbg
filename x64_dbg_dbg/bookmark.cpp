@@ -19,14 +19,14 @@ bool bookmarkset(uint addr, bool manual)
         return false;
 
     BOOKMARKSINFO bookmark;
-    modnamefromaddr(addr, bookmark.mod, true);
-    bookmark.addr   = addr - modbasefromaddr(addr);
+    ModNameFromAddr(addr, bookmark.mod, true);
+    bookmark.addr   = addr - ModBaseFromAddr(addr);
     bookmark.manual = manual;
 
     // Exclusive lock to insert new data
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
-    if(!bookmarks.insert(std::make_pair(modhashfromva(addr), bookmark)).second)
+    if(!bookmarks.insert(std::make_pair(ModHashFromAddr(addr), bookmark)).second)
         return bookmarkdel(addr);
 
     return true;
@@ -35,7 +35,7 @@ bool bookmarkset(uint addr, bool manual)
 bool bookmarkget(uint addr)
 {
     SHARED_ACQUIRE(LockBookmarks);
-    return (bookmarks.count(modhashfromva(addr)) > 0);
+    return (bookmarks.count(ModHashFromAddr(addr)) > 0);
 }
 
 bool bookmarkdel(uint addr)
@@ -45,7 +45,7 @@ bool bookmarkdel(uint addr)
         return false;
 
     EXCLUSIVE_ACQUIRE(LockBookmarks);
-    return (bookmarks.erase(modhashfromva(addr)) > 0);
+    return (bookmarks.erase(ModHashFromAddr(addr)) > 0);
 }
 
 void bookmarkdelrange(uint start, uint end)
@@ -63,9 +63,9 @@ void bookmarkdelrange(uint start, uint end)
     else
     {
         // Make sure 'start' and 'end' reference the same module
-        uint modbase = modbasefromaddr(start);
+        uint modbase = ModBaseFromAddr(start);
 
-        if(modbase != modbasefromaddr(end))
+        if(modbase != ModBaseFromAddr(end))
             return;
 
         start   -= modbase;
@@ -144,7 +144,7 @@ void bookmarkcacheload(JSON root)
             bookmarkInfo.addr   = (uint)json_hex_value(json_object_get(value, "address"));
             bookmarkInfo.manual = Manual;
 
-            const uint key = modhashfromname(bookmarkInfo.mod) + bookmarkInfo.addr;
+            const uint key = ModHashFromName(bookmarkInfo.mod) + bookmarkInfo.addr;
             bookmarks.insert(std::make_pair(key, bookmarkInfo));
         }
     };
@@ -183,7 +183,7 @@ bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
     for(auto itr = bookmarks.begin(); itr != bookmarks.end(); itr++, bookmarklist++)
     {
         *bookmarklist       = itr->second;
-        bookmarklist->addr  += modbasefromname(bookmarklist->mod);
+        bookmarklist->addr  += ModBaseFromName(bookmarklist->mod);
     }
 
     return true;

@@ -20,9 +20,9 @@ bool commentset(uint addr, const char* text, bool manual)
     COMMENTSINFO comment;
     comment.manual = manual;
     strcpy_s(comment.text, text);
-    modnamefromaddr(addr, comment.mod, true);
-    comment.addr = addr - modbasefromaddr(addr);
-    const uint key = modhashfromva(addr);
+    ModNameFromAddr(addr, comment.mod, true);
+    comment.addr = addr - ModBaseFromAddr(addr);
+    const uint key = ModHashFromAddr(addr);
     CriticalSectionLocker locker(LockComments);
     if(!comments.insert(std::make_pair(key, comment)).second) //key already present
         comments[key] = comment;
@@ -34,7 +34,7 @@ bool commentget(uint addr, char* text)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockComments);
-    const CommentsInfo::iterator found = comments.find(modhashfromva(addr));
+    const CommentsInfo::iterator found = comments.find(ModHashFromAddr(addr));
     if(found == comments.end()) //not found
         return false;
     strcpy_s(text, MAX_COMMENT_SIZE, found->second.text);
@@ -46,7 +46,7 @@ bool commentdel(uint addr)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockComments);
-    return (comments.erase(modhashfromva(addr)) == 1);
+    return (comments.erase(ModHashFromAddr(addr)) == 1);
 }
 
 void commentdelrange(uint start, uint end)
@@ -54,8 +54,8 @@ void commentdelrange(uint start, uint end)
     if(!DbgIsDebugging())
         return;
     bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end))
+    uint modbase = ModBaseFromAddr(start);
+    if(modbase != ModBaseFromAddr(end))
         return;
     start -= modbase;
     end -= modbase;
@@ -124,7 +124,7 @@ void commentcacheload(JSON root)
                 strcpy_s(curComment.text, text);
             else
                 continue; //skip
-            const uint key = modhashfromname(curComment.mod) + curComment.addr;
+            const uint key = ModHashFromName(curComment.mod) + curComment.addr;
             comments.insert(std::make_pair(key, curComment));
         }
     }
@@ -148,7 +148,7 @@ void commentcacheload(JSON root)
                 strcpy_s(curComment.text, text);
             else
                 continue; //skip
-            const uint key = modhashfromname(curComment.mod) + curComment.addr;
+            const uint key = ModHashFromName(curComment.mod) + curComment.addr;
             comments.insert(std::make_pair(key, curComment));
         }
     }
@@ -170,7 +170,7 @@ bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
     for(CommentsInfo::iterator i = comments.begin(); i != comments.end(); ++i, j++)
     {
         commentlist[j] = i->second;
-        commentlist[j].addr += modbasefromname(commentlist[j].mod);
+        commentlist[j].addr += ModBaseFromName(commentlist[j].mod);
     }
     return true;
 }

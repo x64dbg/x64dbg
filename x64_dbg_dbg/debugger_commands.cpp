@@ -1119,18 +1119,16 @@ CMDRESULT cbDebugKillthread(int argc, char* argv[])
 
 CMDRESULT cbDebugSuspendAllThreads(int argc, char* argv[])
 {
-    int threadCount = ThreadGetCount();
-    int suspendedCount = ThreadSuspendAll();
-    dprintf("%d/%d thread(s) suspended\n", suspendedCount, threadCount);
+    dprintf("%d/%d thread(s) suspended\n", ThreadSuspendAll(), ThreadGetCount());
+
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbDebugResumeAllThreads(int argc, char* argv[])
 {
-    int threadCount = ThreadGetCount();
-    int resumeCount = ThreadResumeAll();
-    dprintf("%d/%d thread(s) resumed\n", resumeCount, threadCount);
+    dprintf("%d/%d thread(s) resumed\n", ThreadResumeAll(), ThreadGetCount());
+
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -1390,7 +1388,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     //get some module information
-    uint modbase = modbasefromname(argv[1]);
+    uint modbase = ModBaseFromName(argv[1]);
     if(!modbase)
     {
         dprintf("Invalid module \"%s\"!\n", argv[1]);

@@ -198,7 +198,7 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
     }
     char modname[MAX_MODULE_SIZE] = "";
     char modtext[MAX_MODULE_SIZE * 2] = "";
-    if(!modnamefromaddr(disasm_addr, modname, true))
+    if(!ModNameFromAddr(disasm_addr, modname, true))
         *modname = 0;
     else
         sprintf(modtext, "Module: %s - ", modname);
@@ -637,7 +637,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";
-    if(modnamefromaddr((uint)base, modname, true))
+    if(ModNameFromAddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
@@ -688,7 +688,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     threadInfo.hThread = CreateProcessInfo->hThread;
     threadInfo.lpStartAddress = CreateProcessInfo->lpStartAddress;
     threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
-    threadcreate(&threadInfo);
+    ThreadCreate(&threadInfo);
 }
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
@@ -702,7 +702,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
-    threadcreate(CreateThread); //update thread list
+    ThreadCreate(CreateThread); //update thread list
     DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     hActiveThread = ThreadGetHandle(dwThreadId);
 
@@ -745,7 +745,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     callbackInfo.ExitThread = ExitThread;
     callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
-    threadexit(dwThreadId);
+    ThreadExit(dwThreadId);
     dprintf("Thread %X exit\n", dwThreadId);
 
     if(settingboolget("Events", "ThreadEnd"))
@@ -817,7 +817,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";
-    if(modnamefromaddr((uint)base, modname, true))
+    if(ModNameFromAddr((uint)base, modname, true))
         bpenumall(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     bool bAlreadySetEntry = false;
@@ -907,7 +907,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
     void* base = UnloadDll->lpBaseOfDll;
     char modname[256] = "???";
-    if(modnamefromaddr((uint)base, modname, true))
+    if(ModNameFromAddr((uint)base, modname, true))
         bpenumall(cbRemoveModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
@@ -928,7 +928,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         wait(WAITID_RUN);
     }
 
-    modunload((uint)base);
+    ModUnload((uint)base);
 }
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
@@ -1151,8 +1151,8 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
     dbclose();
-    modclear();
-    threadclear();
+    ModClear();
+    ThreadClear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", (uint)0, true);
@@ -1367,8 +1367,8 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
     dbclose();
-    modclear();
-    threadclear();
+    ModClear();
+    ThreadClear();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", (uint)0, true);

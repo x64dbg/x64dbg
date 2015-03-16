@@ -21,7 +21,7 @@ int bpgetlist(std::vector<BREAKPOINT>* list)
     for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
     {
         curBp = i->second;
-        curBp.addr += modbasefromname(curBp.mod);
+        curBp.addr += ModBaseFromName(curBp.mod);
         curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
         count++;
         if(list)
@@ -35,8 +35,8 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or bpget(addr, type, name, 0))
         return false;
     BREAKPOINT bp;
-    modnamefromaddr(addr, bp.mod, true);
-    uint modbase = modbasefromaddr(addr);
+    ModNameFromAddr(addr, bp.mod, true);
+    uint modbase = ModBaseFromAddr(addr);
     bp.active = true;
     bp.addr = addr - modbase;
     bp.enabled = enabled;
@@ -49,7 +49,7 @@ bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE ty
     bp.titantype = titantype;
     bp.type = type;
     CriticalSectionLocker locker(LockBreakpoints);
-    breakpoints.insert(std::make_pair(BreakpointKey(type, modhashfromva(addr)), bp));
+    breakpoints.insert(std::make_pair(BreakpointKey(type, ModHashFromAddr(addr)), bp));
     return true;
 }
 
@@ -61,13 +61,13 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
     CriticalSectionLocker locker(LockBreakpoints);
     if(!name)
     {
-        BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+        BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
         if(found == breakpoints.end()) //not found
             return false;
         if(!bp)
             return true;
         curBp = found->second;
-        curBp.addr += modbasefromaddr(addr);
+        curBp.addr += ModBaseFromAddr(addr);
         curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
         *bp = curBp;
         return true;
@@ -81,7 +81,7 @@ bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
             {
                 if(bp)
                 {
-                    curBp.addr += modbasefromname(curBp.mod);
+                    curBp.addr += ModBaseFromName(curBp.mod);
                     curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
                     *bp = curBp;
                 }
@@ -97,7 +97,7 @@ bool bpdel(uint addr, BP_TYPE type)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockBreakpoints);
-    return (breakpoints.erase(BreakpointKey(type, modhashfromva(addr))) > 0);
+    return (breakpoints.erase(BreakpointKey(type, ModHashFromAddr(addr))) > 0);
 }
 
 bool bpenable(uint addr, BP_TYPE type, bool enable)
@@ -105,7 +105,7 @@ bool bpenable(uint addr, BP_TYPE type, bool enable)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
     if(found == breakpoints.end()) //not found
         return false;
     breakpoints[found->first].enabled = enable;
@@ -117,7 +117,7 @@ bool bpsetname(uint addr, BP_TYPE type, const char* name)
     if(!DbgIsDebugging() or !name or !*name)
         return false;
     CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
     if(found == breakpoints.end()) //not found
         return false;
     strcpy_s(breakpoints[found->first].name, name);
@@ -129,7 +129,7 @@ bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, modhashfromva(addr)));
+    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
     if(found == breakpoints.end()) //not found
         return false;
     breakpoints[found->first].titantype = titantype;
@@ -149,7 +149,7 @@ bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
         BreakpointsInfo::iterator j = i;
         ++i;
         curBp = j->second;
-        curBp.addr += modbasefromname(curBp.mod); //RVA to VA
+        curBp.addr += ModBaseFromName(curBp.mod); //RVA to VA
         curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr); //TODO: wtf am I doing?
         if(module and * module)
         {
@@ -263,7 +263,7 @@ void bpcacheload(JSON root)
             const char* mod = json_string_value(json_object_get(value, "module"));
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(curBreakpoint.mod, mod);
-            const uint key = modhashfromname(curBreakpoint.mod) + curBreakpoint.addr;
+            const uint key = ModHashFromName(curBreakpoint.mod) + curBreakpoint.addr;
             breakpoints.insert(std::make_pair(BreakpointKey(curBreakpoint.type, key), curBreakpoint));
         }
     }

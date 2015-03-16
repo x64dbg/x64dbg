@@ -27,7 +27,7 @@ void memupdatemap(HANDLE hProcess)
                 curAllocationBase = (uint)mbi.AllocationBase;
                 MEMPAGE curPage;
                 *curPage.info = 0;
-                modnamefromaddr(MyAddress, curPage.info, true);
+                ModNameFromAddr(MyAddress, curPage.info, true);
                 memcpy(&curPage.mbi, &mbi, sizeof(mbi));
                 pageVector.push_back(curPage);
             }
@@ -50,11 +50,11 @@ void memupdatemap(HANDLE hProcess)
         if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        uint base = modbasefromname(pageVector.at(i).info);
+        uint base = ModBaseFromName(pageVector.at(i).info);
         if(!base)
             continue;
         std::vector<MODSECTIONINFO> sections;
-        if(!modsectionsfromaddr(base, &sections))
+        if(!ModSectionsFromAddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
         if(!SectionNumber) //no sections = skip

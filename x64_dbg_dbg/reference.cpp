@@ -53,7 +53,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
     refinfo.userinfo = userinfo;
     char fullName[deflen] = "";
     char modname[MAX_MODULE_SIZE] = "";
-    if(modnamefromaddr(start_addr, modname, true))
+    if(ModNameFromAddr(start_addr, modname, true))
         sprintf_s(fullName, "%s (%s)", name, modname);
     else
         sprintf_s(fullName, "%s (%p)", name, start_addr);

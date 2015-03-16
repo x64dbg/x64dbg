@@ -69,6 +69,7 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
     if(IsFileBeingDebugged())
         return true;
+
     return false;
 }
 
@@ -93,7 +94,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     bool retval = false;
     if(addrinfo->flags & flagmodule) //get module
     {
-        if(modnamefromaddr(addr, addrinfo->module, false)) //get module name
+        if(ModNameFromAddr(addr, addrinfo->module, false)) //get module name
             retval = true;
     }
     if(addrinfo->flags & flaglabel)
@@ -701,7 +702,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_MODBASE_FROM_NAME:
     {
-        return modbasefromname((const char*)param1);
+        return ModBaseFromName((const char*)param1);
     }
     break;
 

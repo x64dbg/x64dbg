@@ -5,34 +5,32 @@
 #include "threading.h"
 
 static std::vector<THREADINFO> threadList;
-static int threadNum;
 
-void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
+void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     THREADINFO curInfo;
     memset(&curInfo, 0, sizeof(THREADINFO));
 
-    curInfo.ThreadNumber        = threadNum;
+    curInfo.ThreadNumber        = ThreadGetCount();
     curInfo.Handle              = CreateThread->hThread;
     curInfo.ThreadId            = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     curInfo.ThreadStartAddress  = (uint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase     = (uint)CreateThread->lpThreadLocalBase;
 
     // The first thread (#0) is always the main program thread
-    if(threadNum <= 0)
+    if(curInfo.ThreadNumber <= 0)
         strcpy_s(curInfo.threadName, "Main Thread");
 
     // Modify global thread list
     EXCLUSIVE_ACQUIRE(LockThreads);
     threadList.push_back(curInfo);
-    threadNum++;
     EXCLUSIVE_RELEASE();
 
     // Notify GUI
     GuiUpdateThreadView();
 }
 
-void threadexit(DWORD dwThreadId)
+void ThreadExit(DWORD dwThreadId)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
@@ -49,10 +47,8 @@ void threadexit(DWORD dwThreadId)
     GuiUpdateThreadView();
 }
 
-void threadclear()
+void ThreadClear()
 {
-    threadNum = 0;
-
     // Clear the current array of threads
     EXCLUSIVE_ACQUIRE(LockThreads);
     threadList.clear();
@@ -62,56 +58,9 @@ void threadclear()
     GuiUpdateThreadView();
 }
 
-bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
+int ThreadGetCount()
 {
-    //
-    // TODO: Keep a cached copy inside the vector
-    //
-    memset(Teb, 0, sizeof(TEB));
-
-    return memread(fdProcessInfo->hProcess, (void*)TEBAddress, Teb, sizeof(TEB), nullptr);
-}
-
-int ThreadGetSuspendCount(HANDLE Thread)
-{
-    //
-    // Suspend a thread in order to get the previous suspension count
-    // WARNING: This function is very bad (threads should not be randomly interrupted)
-    //
-    int suspendCount = (int)SuspendThread(Thread);
-
-    if(suspendCount == -1)
-        return 0;
-
-    // Resume the thread's normal execution
-    ResumeThread(Thread);
-
-    return suspendCount;
-}
-
-THREADPRIORITY ThreadGetPriority(HANDLE Thread)
-{
-    return (THREADPRIORITY)GetThreadPriority(Thread);
-}
-
-THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
-{
-    UNREFERENCED_PARAMETER(Thread);
-
-    //TODO: Implement this
-    return _Executive;
-}
-
-DWORD ThreadGetLastError(uint tebAddress)
-{
-    TEB teb;
-    if(!ThreadGetTeb(tebAddress, &teb))
-    {
-        // TODO: Assert (Why would the TEB fail?)
-        return 0;
-    }
-
-    return teb.LastErrorValue;
+    return (int)threadList.size();
 }
 
 void ThreadGetList(THREADLIST* list)
@@ -162,19 +111,72 @@ bool ThreadIsValid(DWORD dwThreadId)
     return false;
 }
 
+bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
+{
+    //
+    // TODO: Keep a cached copy inside the vector
+    //
+    memset(Teb, 0, sizeof(TEB));
+
+    return memread(fdProcessInfo->hProcess, (void*)TEBAddress, Teb, sizeof(TEB), nullptr);
+}
+
+int ThreadGetSuspendCount(HANDLE Thread)
+{
+    //
+    // Suspend a thread in order to get the previous suspension count
+    // WARNING: This function is very bad (threads should not be randomly interrupted)
+    //
+    int suspendCount = (int)SuspendThread(Thread);
+
+    if(suspendCount == -1)
+        return 0;
+
+    // Resume the thread's normal execution
+    ResumeThread(Thread);
+
+    return suspendCount;
+}
+
+THREADPRIORITY ThreadGetPriority(HANDLE Thread)
+{
+    return (THREADPRIORITY)GetThreadPriority(Thread);
+}
+
+THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
+{
+    UNREFERENCED_PARAMETER(Thread);
+
+    // TODO: Implement this
+    return _Executive;
+}
+
+DWORD ThreadGetLastError(uint tebAddress)
+{
+    TEB teb;
+    if(!ThreadGetTeb(tebAddress, &teb))
+    {
+        // TODO: Assert (Why would the TEB fail?)
+        return 0;
+    }
+
+    return teb.LastErrorValue;
+}
+
 bool ThreadSetName(DWORD dwThreadId, const char* name)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
-    // This modifies a variable (name), so an exclusive lock is required
+    // Modifies a variable (name), so an exclusive lock is required
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
         if(itr->ThreadId == dwThreadId)
         {
-            if(name)
-                strcpy_s(itr->threadName, name);
-            else
-                itr->threadName[0] = '\0';
+            if(!name)
+                name = "";
+
+            strcpy_s(itr->threadName, name);
+            return true;
         }
     }
 
@@ -208,20 +210,11 @@ DWORD ThreadGetId(HANDLE hThread)
     }
 
     // Wasn't found, check with Windows
-    // This also returns 0 on error
-    /*
-    REQUIRES VISTA+
+    DWORD id = GetThreadId(hThread);
 
-    return GetThreadId(hThread);
-    */
-
-    // TODO: Same problem with threadgethandle()
-    return 0;
-}
-
-int ThreadGetCount()
-{
-    return (int)threadList.size();
+    // Returns 0 on error;
+    // TODO: Same problem with ThreadGetHandle()
+    return id;
 }
 
 int ThreadSuspendAll()
@@ -246,7 +239,7 @@ int ThreadResumeAll()
     //
     // ResumeThread does not modify any internal variables
     //
-    EXCLUSIVE_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
     int count = 0;
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)

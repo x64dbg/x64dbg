@@ -59,7 +59,7 @@ static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID User
     SYMBOLMODULEINFO curModule;
     memset(&curModule, 0, sizeof(SYMBOLMODULEINFO));
     curModule.base = BaseOfDll;
-    modnamefromaddr(BaseOfDll, curModule.name, true);
+    ModNameFromAddr(BaseOfDll, curModule.name, true);
     ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
     return TRUE;
 }
@@ -166,7 +166,7 @@ const char* symgetsymbolicname(uint addr)
     if(retval)
     {
         char modname[MAX_MODULE_SIZE] = "";
-        if(modnamefromaddr(addr, modname, false))
+        if(ModNameFromAddr(addr, modname, false))
             sprintf(symbolicname, "%s.%s", modname, label);
         else
             sprintf(symbolicname, "<%s>", label);

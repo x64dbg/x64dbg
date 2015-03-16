@@ -24,7 +24,7 @@ static bool _assembleatex(duint addr, const char* instruction, char* error, bool
 
 static bool _sectionfromaddr(duint addr, char* section)
 {
-    HMODULE hMod = (HMODULE)modbasefromaddr(addr);
+    HMODULE hMod = (HMODULE)ModBaseFromAddr(addr);
     if(!hMod)
         return false;
     wchar_t curModPath[MAX_PATH] = L"";
@@ -169,10 +169,10 @@ void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
     _dbgfunctions.SectionFromAddr = _sectionfromaddr;
-    _dbgfunctions.ModNameFromAddr = modnamefromaddr;
-    _dbgfunctions.ModBaseFromAddr = modbasefromaddr;
-    _dbgfunctions.ModBaseFromName = modbasefromname;
-    _dbgfunctions.ModSizeFromAddr = modsizefromaddr;
+    _dbgfunctions.ModNameFromAddr = ModNameFromAddr;
+    _dbgfunctions.ModBaseFromAddr = ModBaseFromAddr;
+    _dbgfunctions.ModBaseFromName = ModBaseFromName;
+    _dbgfunctions.ModSizeFromAddr = ModSizeFromAddr;
     _dbgfunctions.Assemble = assemble;
     _dbgfunctions.PatchGet = _patchget;
     _dbgfunctions.PatchInRange = _patchinrange;
@@ -181,8 +181,8 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchEnum = (PATCHENUM)patchenum;
     _dbgfunctions.PatchRestore = _patchrestore;
     _dbgfunctions.PatchFile = (PATCHFILE)patchfile;
-    _dbgfunctions.ModPathFromAddr = modpathfromaddr;
-    _dbgfunctions.ModPathFromName = modpathfromname;
+    _dbgfunctions.ModPathFromAddr = ModPathFromAddr;
+    _dbgfunctions.ModPathFromName = ModPathFromName;
     _dbgfunctions.DisasmFast = disasmfast;
     _dbgfunctions.MemUpdateMap = _memupdatemap;
     _dbgfunctions.GetCallStack = _getcallstack;

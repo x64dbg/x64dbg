@@ -44,7 +44,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
             strcpy_s(label, addrinfo.label);
         char module[MAX_MODULE_SIZE] = "";
-        modnamefromaddr(data, module, false);
+        ModNameFromAddr(data, module, false);
         char returnToAddr[MAX_COMMENT_SIZE] = "";
         if(*module)
             sprintf(returnToAddr, "%s.", module);
@@ -60,7 +60,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
             if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
                 strcpy_s(label, addrinfo.label);
             *module = 0;
-            modnamefromaddr(data, module, false);
+            ModNameFromAddr(data, module, false);
             char returnFromAddr[MAX_COMMENT_SIZE] = "";
             if(*module)
                 sprintf(returnFromAddr, "%s.", module);
@@ -94,7 +94,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
         strcpy_s(label, addrinfo.label);
     char module[MAX_MODULE_SIZE] = "";
-    modnamefromaddr(data, module, false);
+    ModNameFromAddr(data, module, false);
     char addrInfo[MAX_COMMENT_SIZE] = "";
     if(*module) //module
     {
@@ -153,7 +153,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                 if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
                     strcpy_s(label, addrinfo.label);
                 char module[MAX_MODULE_SIZE] = "";
-                modnamefromaddr(data, module, false);
+                ModNameFromAddr(data, module, false);
                 char returnToAddr[MAX_COMMENT_SIZE] = "";
                 if(*module)
                     sprintf(returnToAddr, "%s.", module);
@@ -176,7 +176,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
                         strcpy_s(label, addrinfo.label);
                     *module = 0;
-                    modnamefromaddr(data, module, false);
+                    ModNameFromAddr(data, module, false);
                     char returnFromAddr[MAX_COMMENT_SIZE] = "";
                     if(*module)
                         sprintf(returnFromAddr, "%s.", module);

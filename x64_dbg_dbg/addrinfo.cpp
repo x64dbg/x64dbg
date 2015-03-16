@@ -123,7 +123,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     if(!export_dir.NumberOfFunctions or !NumberOfNames) //no named exports
         return false;
     char modname[MAX_MODULE_SIZE] = "";
-    modnamefromaddr(base, modname, true);
+    ModNameFromAddr(base, modname, true);
     uint original_name_va = export_dir.Name + base;
     char original_name[deflen] = "";
     memset(original_name, 0, sizeof(original_name));
