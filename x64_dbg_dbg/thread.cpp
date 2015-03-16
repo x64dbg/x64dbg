@@ -60,6 +60,7 @@ void ThreadClear()
 
 int ThreadGetCount()
 {
+    SHARED_ACQUIRE(LockThreads);
     return (int)threadList.size();
 }
 
