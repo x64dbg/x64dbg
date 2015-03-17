@@ -103,9 +103,9 @@ bool ThreadIsValid(DWORD dwThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(itr->ThreadId == dwThreadId)
+        if(entry.ThreadId == dwThreadId)
             return true;
     }
 
@@ -169,14 +169,14 @@ bool ThreadSetName(DWORD dwThreadId, const char* name)
     EXCLUSIVE_ACQUIRE(LockThreads);
 
     // Modifies a variable (name), so an exclusive lock is required
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(itr->ThreadId == dwThreadId)
+        if(entry.ThreadId == dwThreadId)
         {
             if(!name)
                 name = "";
 
-            strcpy_s(itr->threadName, name);
+            strcpy_s(entry.threadName, name);
             return true;
         }
     }
@@ -188,10 +188,10 @@ HANDLE ThreadGetHandle(DWORD dwThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(itr->ThreadId == dwThreadId)
-            return itr->Handle;
+        if(entry.ThreadId == dwThreadId)
+            return entry.Handle;
     }
 
     // TODO: Set an assert if the handle is never found,
@@ -204,10 +204,10 @@ DWORD ThreadGetId(HANDLE hThread)
     SHARED_ACQUIRE(LockThreads);
 
     // Search for the ID in the local list
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(itr->Handle == hThread)
-            return itr->ThreadId;
+        if(entry.Handle == hThread)
+            return entry.ThreadId;
     }
 
     // Wasn't found, check with Windows
@@ -226,9 +226,9 @@ int ThreadSuspendAll()
     SHARED_ACQUIRE(LockThreads);
 
     int count = 0;
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(SuspendThread(itr->Handle) != -1)
+        if(SuspendThread(entry.Handle) != -1)
             count++;
     }
 
@@ -243,9 +243,9 @@ int ThreadResumeAll()
     SHARED_ACQUIRE(LockThreads);
 
     int count = 0;
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto & entry : threadList)
     {
-        if(ResumeThread(itr->Handle) != -1)
+        if(ResumeThread(entry.Handle) != -1)
             count++;
     }
 
