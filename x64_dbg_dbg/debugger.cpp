@@ -225,7 +225,7 @@ void cbUserBreakpoint()
             bptype = "UD2";
         else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
             bptype = "LONG INT3";
-        const char* symbolicname = symgetsymbolicname(bp.addr);
+        const char* symbolicname = SymGetSymbolicName(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -302,7 +302,7 @@ void cbHardwareBreakpoint(void* ExceptionAddress)
             bptype = "write";
             break;
         }
-        const char* symbolicname = symgetsymbolicname(bp.addr);
+        const char* symbolicname = SymGetSymbolicName(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -363,7 +363,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
             bptype = " (read/write/execute)";
             break;
         }
-        const char* symbolicname = symgetsymbolicname(bp.addr);
+        const char* symbolicname = SymGetSymbolicName(bp.addr);
         if(symbolicname)
         {
             if(*bp.name)
@@ -633,7 +633,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(modInfo);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
+        ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";
@@ -813,7 +813,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
-        modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
+        ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";

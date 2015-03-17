@@ -1559,7 +1559,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         return true;
     else if(labelfromstring(string, value)) //then come labels
         return true;
-    else if(symfromname(string, value)) //then come symbols
+    else if(SymAddrFromName(string, value)) //then come symbols
         return true;
     else if(varget(string, value, value_size, 0)) //finally variables
     {

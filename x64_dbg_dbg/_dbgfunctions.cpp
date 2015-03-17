@@ -186,7 +186,7 @@ void dbgfunctionsinit()
     _dbgfunctions.DisasmFast = disasmfast;
     _dbgfunctions.MemUpdateMap = _memupdatemap;
     _dbgfunctions.GetCallStack = _getcallstack;
-    _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
+    _dbgfunctions.SymbolDownloadAllSymbols = SymDownloadAllSymbols;
     _dbgfunctions.GetJit = _getjit;
     _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;

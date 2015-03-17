@@ -1382,7 +1382,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     }
     if(argc < 2) //no arguments
     {
-        symdownloadallsymbols(szSymbolStore); //download symbols for all modules
+        SymDownloadAllSymbols(szSymbolStore); //download symbols for all modules
         GuiSymbolRefreshCurrent();
         dputs("Done! See symbol log for more information");
         return STATUS_CONTINUE;

@@ -690,7 +690,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_SYMBOL_ENUM:
     {
         SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
-        symenum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
+        SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
     }
     break;
 

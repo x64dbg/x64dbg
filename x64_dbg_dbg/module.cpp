@@ -80,9 +80,9 @@ bool ModLoad(uint base, uint size, const char* fullpath)
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
     modinfo.insert(std::make_pair(Range(base, base + size - 1), info));
-    EXCLUSIVE_RELEASE(LockModules);
+    EXCLUSIVE_RELEASE();
 
-    symupdatemodulelist();
+    SymUpdateModuleList();
     return true;
 }
 
@@ -103,7 +103,7 @@ bool ModUnload(uint base)
     StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
 
     // Update symbols
-    symupdatemodulelist();
+    SymUpdateModuleList();
     return true;
 }
 
@@ -112,10 +112,10 @@ void ModClear()
     // Remove all modules in the list
     EXCLUSIVE_ACQUIRE(LockModules);
     modinfo.clear();
-    EXCLUSIVE_RELEASE(LockModules);
+    EXCLUSIVE_RELEASE();
 
     // Tell the symbol updater
-    symupdatemodulelist();
+    SymUpdateModuleList();
 }
 
 MODINFO* ModInfoFromAddr(uint addr)
