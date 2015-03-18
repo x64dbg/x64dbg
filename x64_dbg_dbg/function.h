@@ -1,5 +1,4 @@
-#ifndef _FUNCTION_H
-#define _FUNCTION_H
+#pragma once
 
 #include "addrinfo.h"
 
@@ -11,14 +10,12 @@ struct FUNCTIONSINFO
     bool manual;
 };
 
-bool functionadd(uint start, uint end, bool manual);
-bool functionget(uint addr, uint* start, uint* end);
-bool functionoverlaps(uint start, uint end);
-bool functiondel(uint addr);
-void functiondelrange(uint start, uint end);
-void functioncachesave(JSON root);
-void functioncacheload(JSON root);
-bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize);
-void functionclear();
-
-#endif //_FUNCTION_H
+bool FunctionAdd(uint Start, uint End, bool Manual);
+bool FunctionGet(uint Address, uint* Start, uint* End);
+bool FunctionOverlaps(uint Start, uint End);
+bool FunctionDelete(uint Address);
+void FunctionDelRange(uint Start, uint End);
+void FunctionCacheSave(JSON Root);
+void FunctionCacheLoad(JSON Root);
+bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);
+void FunctionClear();

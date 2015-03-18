@@ -105,7 +105,6 @@ bool ModUnload(uint base)
 
 void ModClear()
 {
-    // Remove all modules in the list
     EXCLUSIVE_ACQUIRE(LockModules);
     modinfo.clear();
     EXCLUSIVE_RELEASE();
@@ -141,13 +140,9 @@ bool ModNameFromAddr(uint addr, char* modname, bool extension)
     if(!module)
         return false;
 
-    // Zero buffer first
-    memset(modname, 0, MAX_MODULE_SIZE);
+    // Copy initial module name
+    strcpy_s(modname, MAX_MODULE_SIZE, module->name);
 
-    // Append the module path/name
-    strcat_s(modname, MAX_MODULE_SIZE, module->name);
-
-    // Append the extension
     if(extension)
         strcat_s(modname, MAX_MODULE_SIZE, module->extension);
 

@@ -23,8 +23,8 @@ void dbsave()
     JSON root = json_object();
     commentcachesave(root);
     labelcachesave(root);
-    bookmarkcachesave(root);
-    functioncachesave(root);
+    BookmarkCacheSave(root);
+    FunctionCacheSave(root);
     loopcachesave(root);
     BpCacheSave(root);
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
@@ -84,8 +84,8 @@ void dbload()
     }
     commentcacheload(root);
     labelcacheload(root);
-    bookmarkcacheload(root);
-    functioncacheload(root);
+    BookmarkCacheLoad(root);
+    FunctionCacheLoad(root);
     loopcacheload(root);
     BpCacheLoad(root);
     json_decref(root); //free root
@@ -97,8 +97,8 @@ void dbclose()
     dbsave();
     commentclear();
     labelclear();
-    bookmarkclear();
-    functionclear();
+    BookmarkClear();
+    FunctionClear();
     loopclear();
     BpClear();
     patchclear();

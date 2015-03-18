@@ -66,12 +66,13 @@ void BookmarkDelRange(uint Start, uint End)
     }
     else
     {
-        // Make sure 'start' and 'end' reference the same module
+        // Make sure 'Start' and 'End' reference the same module
         uint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
 
+        // Virtual -> relative offset
         Start   -= moduleBase;
         End     -= moduleBase;
 

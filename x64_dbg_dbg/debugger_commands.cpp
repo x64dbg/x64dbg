@@ -813,8 +813,8 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
     {
         commentset(i, "test", false);
         labelset(i, "test", false);
-        bookmarkset(i, false);
-        functionadd(i, i, false);
+        BookmarkSet(i, false);
+        FunctionAdd(i, i, false);
     }
     dprintf("%ums\n", GetTickCount() - ticks);
     return STATUS_CONTINUE;
