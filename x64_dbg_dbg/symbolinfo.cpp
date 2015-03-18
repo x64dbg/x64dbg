@@ -67,9 +67,9 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
         SYMBOLMODULEINFO curModule;
         curModule.base = BaseOfDll;
 
-        // Zero module name if one isn't found
+        // Terminate module name if one isn't found
         if(!ModNameFromAddr(BaseOfDll, curModule.name, true))
-            memset(curModule.name, 0, MAX_MODULE_SIZE);
+            curModule.name[0] = '\0';
 
         ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
         return TRUE;

@@ -1,5 +1,4 @@
-#ifndef _THREADING_H
-#define _THREADING_H
+#pragma once
 
 #include "_global.h"
 
@@ -24,13 +23,13 @@ bool waitislocked(WAIT_ID id);
 // Better, but requires VISTA+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
 //
-#define EXCLUSIVE_ACQUIRE(Index)    CriticalSectionLocker __ThreadLock(Index, false);
+#define EXCLUSIVE_ACQUIRE(Index)    ExclusiveSectionLocker __ThreadLock(SectionLock::##Index);
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
-#define SHARED_ACQUIRE(Index)       CriticalSectionLocker __SThreadLock(Index, true);
+#define SHARED_ACQUIRE(Index)       SharedSectionLocker __SThreadLock(SectionLock::##Index);
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
-enum CriticalSectionLock
+enum SectionLock
 {
     LockMemoryPages,
     LockVariables,
@@ -54,25 +53,33 @@ enum CriticalSectionLock
     LockLast
 };
 
-class CriticalSectionLocker
+class ExclusiveSectionLocker
 {
 public:
     static void Initialize();
     static void Deinitialize();
 
-    CriticalSectionLocker(CriticalSectionLock LockIndex, bool Shared);
-    ~CriticalSectionLocker();
+    ExclusiveSectionLocker(SectionLock LockIndex);
+    ~ExclusiveSectionLocker();
 
+    void Lock();
     void Unlock();
-    void Lock(bool Shared);
 
 private:
-    static bool m_Initialized;
-    static SRWLOCK m_Locks[LockLast];
+    static bool     m_Initialized;
+    static SRWLOCK  m_Locks[SectionLock::LockLast];
 
-    SRWLOCK* m_Lock;
-    bool m_Shared;
-    BYTE m_LockCount;
+protected:
+    SRWLOCK*    m_Lock;
+    BYTE        m_LockCount;
 };
 
-#endif // _THREADING_H
+class SharedSectionLocker : public ExclusiveSectionLocker
+{
+public:
+    SharedSectionLocker(SectionLock LockIndex);
+    ~SharedSectionLocker();
+
+    void Lock();
+    void Unlock();
+};

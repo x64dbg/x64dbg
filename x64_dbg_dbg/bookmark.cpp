@@ -32,30 +32,34 @@ bool bookmarkset(uint addr, bool manual)
     return true;
 }
 
-bool bookmarkget(uint addr)
+bool bookmarkget(uint Address)
 {
+    // CHECK: Export call
+    if(!DbgIsDebugging())
+        return false;
+
     SHARED_ACQUIRE(LockBookmarks);
-    return (bookmarks.count(ModHashFromAddr(addr)) > 0);
+    return (bookmarks.count(ModHashFromAddr(Address)) > 0);
 }
 
-bool bookmarkdel(uint addr)
+bool bookmarkdel(uint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
         return false;
 
     EXCLUSIVE_ACQUIRE(LockBookmarks);
-    return (bookmarks.erase(ModHashFromAddr(addr)) > 0);
+    return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void bookmarkdelrange(uint start, uint end)
+void bookmarkdelrange(uint Start, uint End)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
         return;
 
     // Are all bookmarks going to be deleted?
-    if(start == 0x00000000 && end == 0xFFFFFFFF)
+    if(Start == 0x00000000 && End == 0xFFFFFFFF)
     {
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         bookmarks.clear();
@@ -63,13 +67,13 @@ void bookmarkdelrange(uint start, uint end)
     else
     {
         // Make sure 'start' and 'end' reference the same module
-        uint modbase = ModBaseFromAddr(start);
+        uint modbase = ModBaseFromAddr(Start);
 
-        if(modbase != ModBaseFromAddr(end))
+        if(modbase != ModBaseFromAddr(End))
             return;
 
-        start   -= modbase;
-        end     -= modbase;
+        Start   -= modbase;
+        End     -= modbase;
 
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
@@ -81,7 +85,7 @@ void bookmarkdelrange(uint start, uint end)
                 continue;
             }
 
-            if(itr->second.addr >= start && itr->second.addr < end)
+            if(itr->second.addr >= Start && itr->second.addr < End)
                 bookmarks.erase(itr);
 
             itr++;
@@ -192,6 +196,6 @@ bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
 void bookmarkclear()
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
-
     bookmarks.clear();
+    EXCLUSIVE_RELEASE();
 }

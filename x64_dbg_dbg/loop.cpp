@@ -208,6 +208,6 @@ bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
 void loopclear()
 {
     EXCLUSIVE_ACQUIRE(LockLoops);
-
     loops.clear();
+    EXCLUSIVE_RELEASE();
 }

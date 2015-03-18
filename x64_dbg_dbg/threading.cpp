@@ -28,10 +28,10 @@ bool waitislocked(WAIT_ID id)
     return waitarray[id];
 }
 
-bool CriticalSectionLocker::m_Initialized = false;
-SRWLOCK CriticalSectionLocker::m_Locks[LockLast];
+bool ExclusiveSectionLocker::m_Initialized = false;
+SRWLOCK ExclusiveSectionLocker::m_Locks[SectionLock::LockLast];
 
-void CriticalSectionLocker::Initialize()
+void ExclusiveSectionLocker::Initialize()
 {
     if(m_Initialized)
         return;
@@ -39,18 +39,18 @@ void CriticalSectionLocker::Initialize()
     // Destroy previous data if any existed
     memset(m_Locks, 0, sizeof(m_Locks));
 
-    for(int i = 0; i < LockLast; i++)
+    for(int i = 0; i < ARRAYSIZE(m_Locks); i++)
         InitializeSRWLock(&m_Locks[i]);
 
     m_Initialized = true;
 }
 
-void CriticalSectionLocker::Deinitialize()
+void ExclusiveSectionLocker::Deinitialize()
 {
     if(!m_Initialized)
         return;
 
-    for(int i = 0; i < LockLast; i++)
+    for(int i = 0; i < ARRAYSIZE(m_Locks); i++)
     {
         // Wait for the lock's ownership to be released
         AcquireSRWLockExclusive(&m_Locks[i]);
@@ -63,39 +63,56 @@ void CriticalSectionLocker::Deinitialize()
     m_Initialized = false;
 }
 
-CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock LockIndex, bool Shared)
+ExclusiveSectionLocker::ExclusiveSectionLocker(SectionLock LockIndex)
 {
     m_Lock      = &m_Locks[LockIndex];
     m_LockCount = 0;
 
-    Lock(Shared);
+    Lock();
 }
 
-CriticalSectionLocker::~CriticalSectionLocker()
+ExclusiveSectionLocker::~ExclusiveSectionLocker()
 {
     if(m_LockCount > 0)
         Unlock();
 
     // TODO: Assert that the lock count is zero on destructor
+#ifdef _DEBUG
+    if(m_LockCount > 0)
+        __debugbreak();
+#endif
 }
 
-void CriticalSectionLocker::Unlock()
+void ExclusiveSectionLocker::Lock()
+{
+    AcquireSRWLockExclusive(m_Lock);
+
+    m_LockCount++;
+}
+
+void ExclusiveSectionLocker::Unlock()
 {
     m_LockCount--;
 
-    if(m_Shared)
-        ReleaseSRWLockShared(m_Lock);
-    else
-        ReleaseSRWLockExclusive(m_Lock);
+    ReleaseSRWLockExclusive(m_Lock);
 }
 
-void CriticalSectionLocker::Lock(bool Shared)
+SharedSectionLocker::SharedSectionLocker(SectionLock LockIndex)
+    : ExclusiveSectionLocker(LockIndex)
 {
-    if(Shared)
-        AcquireSRWLockShared(m_Lock);
-    else
-        AcquireSRWLockExclusive(m_Lock);
+    // Nothing to do here; parent class constructor is called
+}
 
-    m_Shared = Shared;
+void SharedSectionLocker::Lock()
+{
+    AcquireSRWLockShared(m_Lock);
+
     m_LockCount++;
+}
+
+void SharedSectionLocker::Unlock()
+{
+    m_LockCount--;
+
+    ReleaseSRWLockShared(m_Lock);
 }

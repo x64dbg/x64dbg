@@ -11,7 +11,7 @@ struct BOOKMARKSINFO
 };
 
 bool bookmarkset(uint addr, bool manual);
-bool bookmarkget(uint addr);
+bool bookmarkget(uint Address);
 bool bookmarkdel(uint addr);
 void bookmarkdelrange(uint start, uint end);
 void bookmarkcachesave(JSON root);
