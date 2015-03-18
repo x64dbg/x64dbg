@@ -247,6 +247,8 @@ uint ModEntryFromAddr(uint addr)
 
 int ModPathFromAddr(duint addr, char* path, int size)
 {
+    SHARED_ACQUIRE(LockModules);
+
     auto module = ModInfoFromAddr(addr);
 
     if(!module)
