@@ -6,13 +6,13 @@
 
 static ModulesInfo modinfo;
 
-bool ModLoad(uint base, uint size, const char* fullpath)
+bool ModLoad(uint Base, uint Size, const char* FullPath)
 {
     //
     // Handle a new module being loaded
     //
     // TODO: Do loaded modules always require a path?
-    if(!base or !size or !fullpath)
+    if(!Base || !Size || !FullPath)
         return false;
 
     MODINFO info;
@@ -21,7 +21,8 @@ bool ModLoad(uint base, uint size, const char* fullpath)
     char dir[deflen];
     char* file;
 
-    GetFullPathNameA(fullpath, deflen, dir, &file);
+    if(GetFullPathNameA(FullPath, ARRAYSIZE(dir), dir, &file) == 0)
+        return false;
 
     // Make everything lowercase
     _strlwr(dir);
@@ -42,13 +43,13 @@ bool ModLoad(uint base, uint size, const char* fullpath)
 
     // Module base address/size/hash index
     info.hash = ModHashFromName(info.name);
-    info.base = base;
-    info.size = size;
+    info.base = Base;
+    info.size = Size;
 
     // Process module sections
     info.sections.clear();
 
-    WString wszFullPath = StringUtils::Utf8ToUtf16(fullpath);
+    WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
     if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.Handle, &info.FileMapSize, &info.MapHandle, &info.FileMapVA))
     {
         // Get the entry point
@@ -75,19 +76,19 @@ bool ModLoad(uint base, uint size, const char* fullpath)
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
-    modinfo.insert(std::make_pair(Range(base, base + size - 1), info));
+    modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), info));
     EXCLUSIVE_RELEASE();
 
     SymUpdateModuleList();
     return true;
 }
 
-bool ModUnload(uint base)
+bool ModUnload(uint Base)
 {
     EXCLUSIVE_ACQUIRE(LockModules);
 
     // Find the iterator index
-    const auto found = modinfo.find(Range(base, base));
+    const auto found = modinfo.find(Range(Base, Base));
 
     if(found == modinfo.end())
         return false;
@@ -113,12 +114,12 @@ void ModClear()
     SymUpdateModuleList();
 }
 
-MODINFO* ModInfoFromAddr(uint addr)
+MODINFO* ModInfoFromAddr(uint Address)
 {
     //
     // NOTE: THIS DOES _NOT_ USE LOCKS
     //
-    auto found = modinfo.find(Range(addr, addr));
+    auto found = modinfo.find(Range(Address, Address));
 
     // Was the module found with this address?
     if(found == modinfo.end())
@@ -127,33 +128,33 @@ MODINFO* ModInfoFromAddr(uint addr)
     return &found->second;
 }
 
-bool ModNameFromAddr(uint addr, char* modname, bool extension)
+bool ModNameFromAddr(uint Address, char* Name, bool Extension)
 {
-    if(!modname)
+    if(!Name)
         return false;
 
     SHARED_ACQUIRE(LockModules);
 
     // Get a pointer to module information
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return false;
 
     // Copy initial module name
-    strcpy_s(modname, MAX_MODULE_SIZE, module->name);
+    strcpy_s(Name, MAX_MODULE_SIZE, module->name);
 
-    if(extension)
-        strcat_s(modname, MAX_MODULE_SIZE, module->extension);
+    if(Extension)
+        strcat_s(Name, MAX_MODULE_SIZE, module->extension);
 
     return true;
 }
 
-uint ModBaseFromAddr(uint addr)
+uint ModBaseFromAddr(uint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return 0;
@@ -161,35 +162,35 @@ uint ModBaseFromAddr(uint addr)
     return module->base;
 }
 
-uint ModHashFromAddr(uint addr)
+uint ModHashFromAddr(uint Address)
 {
     //
     // Returns a unique hash from a virtual address
     //
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
-        return addr;
+        return Address;
 
-    return module->hash + (addr - module->base);
+    return module->hash + (Address - module->base);
 }
 
-uint ModHashFromName(const char* mod)
+uint ModHashFromName(const char* Module)
 {
     //
     // return MODINFO.hash (based on the name)
     //
-    if(!mod || !mod[0])
+    if(!Module || Module[0] == '\0')
         return 0;
 
-    return murmurhash(mod, (int)strlen(mod));
+    return murmurhash(Module, (int)strlen(Module));
 }
 
-uint ModBaseFromName(const char* modname)
+uint ModBaseFromName(const char* Module)
 {
-    if(!modname || strlen(modname) >= MAX_MODULE_SIZE)
+    if(!Module || strlen(Module) >= MAX_MODULE_SIZE)
         return 0;
 
     SHARED_ACQUIRE(LockModules);
@@ -200,18 +201,18 @@ uint ModBaseFromName(const char* modname)
         sprintf(curmodname, "%s%s", itr->second.name, itr->second.extension);
 
         // Test with and without extension
-        if(!_stricmp(curmodname, modname) || !_stricmp(itr->second.name, modname))
+        if(!_stricmp(curmodname, Module) || !_stricmp(itr->second.name, Module))
             return itr->second.base;
     }
 
     return 0;
 }
 
-uint ModSizeFromAddr(uint addr)
+uint ModSizeFromAddr(uint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return 0;
@@ -219,25 +220,25 @@ uint ModSizeFromAddr(uint addr)
     return module->size;
 }
 
-bool ModSectionsFromAddr(uint addr, std::vector<MODSECTIONINFO>* sections)
+bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections)
 {
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return false;
 
     // Copy vector <-> vector
-    *sections = module->sections;
+    *Sections = module->sections;
     return true;
 }
 
-uint ModEntryFromAddr(uint addr)
+uint ModEntryFromAddr(uint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return 0;
@@ -245,20 +246,20 @@ uint ModEntryFromAddr(uint addr)
     return module->entry;
 }
 
-int ModPathFromAddr(duint addr, char* path, int size)
+int ModPathFromAddr(duint Address, char* Path, int Size)
 {
     SHARED_ACQUIRE(LockModules);
 
-    auto module = ModInfoFromAddr(addr);
+    auto module = ModInfoFromAddr(Address);
 
     if(!module)
         return 0;
 
-    strcpy_s(path, size, module->path);
-    return (int)strlen(path);
+    strcpy_s(Path, Size, module->path);
+    return (int)strlen(Path);
 }
 
-int ModPathFromName(const char* modname, char* path, int size)
+int ModPathFromName(const char* Module, char* Path, int Size)
 {
-    return ModPathFromAddr(ModBaseFromName(modname), path, size);
+    return ModPathFromAddr(ModBaseFromName(Module), Path, Size);
 }

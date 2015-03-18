@@ -31,17 +31,17 @@ struct MODINFO
 
 typedef std::map<Range, MODINFO, RangeCompare> ModulesInfo;
 
-bool ModLoad(uint base, uint size, const char* fullpath);
-bool ModUnload(uint base);
+bool ModLoad(uint Base, uint Size, const char* FullPath);
+bool ModUnload(uint Base);
 void ModClear();
-MODINFO* ModInfoFromAddr(uint addr);
-bool ModNameFromAddr(uint addr, char* modname, bool extension);
-uint ModBaseFromAddr(uint addr);
-uint ModHashFromAddr(uint addr);
-uint ModHashFromName(const char* mod);
-uint ModBaseFromName(const char* modname);
-uint ModSizeFromAddr(uint addr);
-bool ModSectionsFromAddr(uint addr, std::vector<MODSECTIONINFO>* sections);
-uint ModEntryFromAddr(uint addr);
-int ModPathFromAddr(duint addr, char* path, int size);
-int ModPathFromName(const char* modname, char* path, int size);
+MODINFO* ModInfoFromAddr(uint Address);
+bool ModNameFromAddr(uint Address, char* Name, bool Extension);
+uint ModBaseFromAddr(uint Address);
+uint ModHashFromAddr(uint Address);
+uint ModHashFromName(const char* Module);
+uint ModBaseFromName(const char* Module);
+uint ModSizeFromAddr(uint Address);
+bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections);
+uint ModEntryFromAddr(uint Address);
+int ModPathFromAddr(duint Address, char* Path, int Size);
+int ModPathFromName(const char* Module, char* Path, int Size);
