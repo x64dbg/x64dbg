@@ -309,7 +309,7 @@ void BpCacheSave(JSON Root)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Create a JSON array to store each sub-object with a breakpoint
-    const JSON jsonbreakpoints = json_array();
+    const JSON jsonBreakpoints = json_array();
 
     // Loop all breakpoints
     for(auto & i : breakpoints)
@@ -332,14 +332,14 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
         json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
         json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
-        json_array_append_new(jsonbreakpoints, jsonObj);
+        json_array_append_new(jsonBreakpoints, jsonObj);
     }
 
-    if(json_array_size(jsonbreakpoints))
-        json_object_set(Root, "breakpoints", jsonbreakpoints);
+    if(json_array_size(jsonBreakpoints))
+        json_object_set(Root, "breakpoints", jsonBreakpoints);
 
     // Notify garbage collector
-    json_decref(jsonbreakpoints);
+    json_decref(jsonBreakpoints);
 }
 
 void BpCacheLoad(JSON Root)
@@ -350,15 +350,15 @@ void BpCacheLoad(JSON Root)
     breakpoints.clear();
 
     // Get a handle to the root object -> breakpoints subtree
-    const JSON jsonbreakpoints = json_object_get(Root, "breakpoints");
+    const JSON jsonBreakpoints = json_object_get(Root, "breakpoints");
 
     // Return if there was nothing to load
-    if(!jsonbreakpoints)
+    if(!jsonBreakpoints)
         return;
 
     size_t i;
     JSON value;
-    json_array_foreach(jsonbreakpoints, i, value)
+    json_array_foreach(jsonBreakpoints, i, value)
     {
         BREAKPOINT breakpoint;
         memset(&breakpoint, 0, sizeof(BREAKPOINT));

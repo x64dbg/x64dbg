@@ -67,13 +67,13 @@ void BookmarkDelRange(uint Start, uint End)
     else
     {
         // Make sure 'start' and 'end' reference the same module
-        uint modbase = ModBaseFromAddr(Start);
+        uint moduleBase = ModBaseFromAddr(Start);
 
-        if(modbase != ModBaseFromAddr(End))
+        if(moduleBase != ModBaseFromAddr(End))
             return;
 
-        Start   -= modbase;
-        End     -= modbase;
+        Start   -= moduleBase;
+        End     -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
@@ -86,9 +86,9 @@ void BookmarkDelRange(uint Start, uint End)
             }
 
             if(itr->second.addr >= Start && itr->second.addr < End)
-                bookmarks.erase(itr);
-
-            itr++;
+                itr = bookmarks.erase(itr);
+            else
+                itr++;
         }
     }
 }
