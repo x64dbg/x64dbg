@@ -109,9 +109,9 @@ void FunctionDelRange(uint Start, uint End)
     }
     else
     {
+        // The start and end address must be in the same module
         uint moduleBase = ModBaseFromAddr(Start);
 
-        // The start and end address must be in the same module
         if(moduleBase != ModBaseFromAddr(End))
             return;
 

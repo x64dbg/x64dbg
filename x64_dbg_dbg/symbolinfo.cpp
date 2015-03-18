@@ -65,10 +65,10 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
     auto EnumModules = [](LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext) -> BOOL
     {
         SYMBOLMODULEINFO curModule;
-        curModule.base = BaseOfDll;
+        curModule.base = (duint)BaseOfDll;
 
         // Terminate module name if one isn't found
-        if(!ModNameFromAddr(BaseOfDll, curModule.name, true))
+        if(!ModNameFromAddr(curModule.base, curModule.name, true))
             curModule.name[0] = '\0';
 
         ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);

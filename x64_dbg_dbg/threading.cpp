@@ -86,14 +86,12 @@ ExclusiveSectionLocker::~ExclusiveSectionLocker()
 void ExclusiveSectionLocker::Lock()
 {
     AcquireSRWLockExclusive(m_Lock);
-
     m_LockCount++;
 }
 
 void ExclusiveSectionLocker::Unlock()
 {
     m_LockCount--;
-
     ReleaseSRWLockExclusive(m_Lock);
 }
 
@@ -106,13 +104,11 @@ SharedSectionLocker::SharedSectionLocker(SectionLock LockIndex)
 void SharedSectionLocker::Lock()
 {
     AcquireSRWLockShared(m_Lock);
-
     m_LockCount++;
 }
 
 void SharedSectionLocker::Unlock()
 {
     m_LockCount--;
-
     ReleaseSRWLockShared(m_Lock);
 }

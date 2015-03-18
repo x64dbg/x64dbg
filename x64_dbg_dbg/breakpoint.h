@@ -43,7 +43,7 @@ bool BpSetName(uint Address, BP_TYPE Type, const char* Name);
 bool BpSetTitanType(uint Address, BP_TYPE Type, int TitanType);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
-int BpGetCount(BP_TYPE Type, bool EnabledOnly);
+int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root);
