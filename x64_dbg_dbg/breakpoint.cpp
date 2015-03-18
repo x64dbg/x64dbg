@@ -101,7 +101,7 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     // Name is optional
     if(!Name || Name[0] == '\0')
     {
-        // Perform a lookup by an address only
+        // Perform a lookup by address only
         BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
         if(!bpInfo)
@@ -221,16 +221,16 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
 
     for(auto & i : breakpoints)
     {
-        BREAKPOINT bpInfo   = i.second;
-        bpInfo.addr         += ModBaseFromName(bpInfo.mod);
-        bpInfo.active       = memisvalidreadptr(fdProcessInfo->hProcess, bpInfo.addr);
-
         // If a module name was sent, check it
         if(Module && Module[0] != '\0')
         {
-            if(strcmp(bpInfo.mod, Module) != 0)
+            if(strcmp(i.second.mod, Module) != 0)
                 continue;
         }
+
+        BREAKPOINT bpInfo   = i.second;
+        bpInfo.addr         += ModBaseFromName(bpInfo.mod);
+        bpInfo.active       = memisvalidreadptr(fdProcessInfo->hProcess, bpInfo.addr);
 
         // Execute the callback
         if(!EnumCallback(&bpInfo))

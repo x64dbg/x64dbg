@@ -85,6 +85,7 @@ void BookmarkDelRange(uint Start, uint End)
                 continue;
             }
 
+            // [Start, End)
             if(itr->second.addr >= Start && itr->second.addr < End)
                 itr = bookmarks.erase(itr);
             else
@@ -103,15 +104,15 @@ void BookmarkCacheSave(JSON Root)
     // Save to the JSON root
     for(auto & itr : bookmarks)
     {
-        JSON curjsonbookmark = json_object();
+        JSON currentBookmark = json_object();
 
-        json_object_set_new(curjsonbookmark, "module", json_string(itr.second.mod));
-        json_object_set_new(curjsonbookmark, "address", json_hex(itr.second.addr));
+        json_object_set_new(currentBookmark, "module", json_string(itr.second.mod));
+        json_object_set_new(currentBookmark, "address", json_hex(itr.second.addr));
 
         if(itr.second.manual)
-            json_array_append_new(jsonBookmarks, curjsonbookmark);
+            json_array_append_new(jsonBookmarks, currentBookmark);
         else
-            json_array_append_new(jsonAutoBookmarks, curjsonbookmark);
+            json_array_append_new(jsonAutoBookmarks, currentBookmark);
     }
 
     if(json_array_size(jsonBookmarks))
