@@ -46,20 +46,6 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID U
     return TRUE;
 }
 
-#ifdef _WIN64
-static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
-#else
-static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
-#endif //_WIN64
-{
-    SYMBOLMODULEINFO curModule;
-    curModule.base = BaseOfDll;
-    ModNameFromAddr(BaseOfDll, curModule.name, true);
-
-    ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
-    return TRUE;
-}
-
 void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
     SYMBOLCBDATA symbolCbData;
@@ -76,7 +62,21 @@ void SymUpdateModuleList()
     // Build the vector of modules
     std::vector<SYMBOLMODULEINFO> modList;
 
-    if(!SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList))
+    //
+    // Inline lambda enum
+    //
+    auto EnumModules = [](LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext) -> BOOL
+    {
+        SYMBOLMODULEINFO curModule;
+        curModule.base = BaseOfDll;
+        ModNameFromAddr(BaseOfDll, curModule.name, true);
+
+        ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
+        return TRUE;
+    };
+
+    // Execute the symbol enumerator (Force cast to STDCALL)
+    if(!SymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, &modList))
         dputs("SymEnumerateModules failed!");
 
     // Send the module data to the GUI for updating
