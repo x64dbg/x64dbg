@@ -17,9 +17,7 @@ bool ModLoad(uint base, uint size, const char* fullpath)
 
     MODINFO info;
 
-    //
     // Break the module path into a directory and file name
-    //
     char dir[deflen];
     char* file;
 
@@ -42,16 +40,12 @@ bool ModLoad(uint base, uint size, const char* fullpath)
     // Copy the name to the module struct
     strcpy_s(info.name, file);
 
-    //
     // Module base address/size/hash index
-    //
     info.hash = ModHashFromName(info.name);
     info.base = base;
     info.size = size;
 
-    //
     // Process module sections
-    //
     info.sections.clear();
 
     WString wszFullPath = StringUtils::Utf8ToUtf16(fullpath);

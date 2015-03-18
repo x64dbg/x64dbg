@@ -11,266 +11,386 @@ typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
 
 static BreakpointsInfo breakpoints;
 
-int bpgetlist(std::vector<BREAKPOINT>* list)
+BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address)
 {
-    if(!DbgIsDebugging())
-        return false;
-    BREAKPOINT curBp;
-    int count = 0;
-    CriticalSectionLocker locker(LockBreakpoints);
-    for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
-    {
-        curBp = i->second;
-        curBp.addr += ModBaseFromName(curBp.mod);
-        curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
-        count++;
-        if(list)
-            list->push_back(curBp);
-    }
-    return count;
+    //
+    // NOTE: THIS DOES _NOT_ USE LOCKS
+    //
+    auto found = breakpoints.find(BreakpointKey(Type, ModHashFromAddr(Address)));
+
+    // Was the module found with this address?
+    if(found == breakpoints.end())
+        return nullptr;
+
+    return &found->second;
 }
 
-bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name)
+int BpGetList(std::vector<BREAKPOINT>* List)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or bpget(addr, type, name, 0))
+    // CHECK: Exported function
+    if(!DbgIsDebugging())
         return false;
+
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    // Did the caller request an output?
+    if(List)
+    {
+        // Enumerate all breakpoints in the global list, fixing the relative
+        // offset to a virtual address
+        for(auto & i : breakpoints)
+        {
+            BREAKPOINT currentBp    = i.second;
+            currentBp.addr          += ModBaseFromName(currentBp.mod);
+            currentBp.active        = memisvalidreadptr(fdProcessInfo->hProcess, currentBp.addr);
+
+            List->push_back(currentBp);
+        }
+    }
+
+    return breakpoints.size();
+}
+
+bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
+{
+    // CHECK: Command function
+    if(!DbgIsDebugging())
+        return false;
+
+    // Fail if the address is a bad memory region
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
+        return false;
+
+    // Fail if the breakpoint already exists
+    if(BpGet(Address, Type, Name, nullptr))
+        return false;
+
+    // Default to an empty name if one wasn't supplied
+    if(!Name)
+        Name = "";
+
     BREAKPOINT bp;
-    ModNameFromAddr(addr, bp.mod, true);
-    uint modbase = ModBaseFromAddr(addr);
-    bp.active = true;
-    bp.addr = addr - modbase;
-    bp.enabled = enabled;
-    if(name and * name)
-        strcpy_s(bp.name, name);
-    else
-        *bp.name = '\0';
-    bp.oldbytes = oldbytes;
-    bp.singleshoot = singleshoot;
-    bp.titantype = titantype;
-    bp.type = type;
-    CriticalSectionLocker locker(LockBreakpoints);
-    breakpoints.insert(std::make_pair(BreakpointKey(type, ModHashFromAddr(addr)), bp));
+    memset(&bp, 0, sizeof(BREAKPOINT));
+
+    ModNameFromAddr(Address, bp.mod, true);
+    strcpy_s(bp.name, Name);
+
+    bp.active       = true;
+    bp.addr         = Address - ModBaseFromAddr(Address);
+    bp.enabled      = Enable;
+    bp.oldbytes     = OldBytes;
+    bp.singleshoot  = Singleshot;
+    bp.titantype    = TitanType;
+    bp.type         = Type;
+
+    // Insert new entry to the global list
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp));
     return true;
 }
 
-bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp)
+bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
+    // CHECK: Export/Command function
     if(!DbgIsDebugging())
         return false;
-    BREAKPOINT curBp;
-    CriticalSectionLocker locker(LockBreakpoints);
-    if(!name)
+
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    // Name is optional
+    if(!Name || Name[0] == '\0')
     {
-        BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
-        if(found == breakpoints.end()) //not found
+        // Perform a lookup by an address only
+        BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+        if(!bpInfo)
             return false;
-        if(!bp)
+
+        // Succeed even if the user didn't request anything
+        if(!Bp)
             return true;
-        curBp = found->second;
-        curBp.addr += ModBaseFromAddr(addr);
-        curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
-        *bp = curBp;
+
+        *Bp         = *bpInfo;
+        Bp->addr    += ModBaseFromAddr(Address);
+        Bp->active  = memisvalidreadptr(fdProcessInfo->hProcess, Bp->addr);
         return true;
     }
-    for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
+
+    // Do a lookup by breakpoint name
+    for(auto & i : breakpoints)
     {
-        curBp = i->second;
-        if(name and * name)
+        // Do the names match?
+        if(strcmp(Name, i.second.name) != 0)
+            continue;
+
+        // Fill out the optional user buffer
+        if(Bp)
         {
-            if(!strcmp(name, curBp.name))
-            {
-                if(bp)
-                {
-                    curBp.addr += ModBaseFromName(curBp.mod);
-                    curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr);
-                    *bp = curBp;
-                }
-                return true;
-            }
+            *Bp         = i.second;
+            Bp->addr    += ModBaseFromAddr(Address);
+            Bp->active  = memisvalidreadptr(fdProcessInfo->hProcess, Bp->addr);
         }
+
+        // Return true if the name was found at all
+        return true;
     }
+
     return false;
 }
 
-bool bpdel(uint addr, BP_TYPE type)
+bool BpDelete(uint Address, BP_TYPE Type)
 {
+    // CHECK: Command function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockBreakpoints);
-    return (breakpoints.erase(BreakpointKey(type, ModHashFromAddr(addr))) > 0);
+
+    // Erase the index from the global list
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
 }
 
-bool bpenable(uint addr, BP_TYPE type, bool enable)
+bool BpEnable(uint Address, BP_TYPE Type, bool Enable)
 {
+    // CHECK: Command function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
-    if(found == breakpoints.end()) //not found
+
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Check if the breakpoint exists first
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
         return false;
-    breakpoints[found->first].enabled = enable;
+
+    bpInfo->enabled = Enable;
     return true;
 }
 
-bool bpsetname(uint addr, BP_TYPE type, const char* name)
+bool BpSetName(uint Address, BP_TYPE Type, const char* Name)
 {
-    if(!DbgIsDebugging() or !name or !*name)
+    // CHECK: Future(?); This is not used anywhere
+    if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
-    if(found == breakpoints.end()) //not found
+
+    // If a name wasn't supplied, set to nothing
+    if(!Name)
+        Name = "";
+
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Check if the breakpoint exists first
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
         return false;
-    strcpy_s(breakpoints[found->first].name, name);
+
+    strcpy_s(bpInfo->name, Name);
     return true;
 }
 
-bool bpsettitantype(uint addr, BP_TYPE type, int titantype)
+bool BpSetTitanType(uint Address, BP_TYPE Type, int TitanType)
 {
+    // CHECK: Command function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator found = breakpoints.find(BreakpointKey(type, ModHashFromAddr(addr)));
-    if(found == breakpoints.end()) //not found
+
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set the TitanEngine type, separate from BP_TYPE
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
         return false;
-    breakpoints[found->first].titantype = titantype;
+
+    bpInfo->titantype = TitanType;
     return true;
 }
 
-bool bpenumall(BPENUMCALLBACK cbEnum, const char* module)
+bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
 {
     if(!DbgIsDebugging())
         return false;
-    bool retval = true;
-    BREAKPOINT curBp;
-    CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo::iterator i = breakpoints.begin();
-    while(i != breakpoints.end())
+
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    // Loop each entry, executing the user's callback
+    bool callbackStatus = false;
+
+    for(auto & i : breakpoints)
     {
-        BreakpointsInfo::iterator j = i;
-        ++i;
-        curBp = j->second;
-        curBp.addr += ModBaseFromName(curBp.mod); //RVA to VA
-        curBp.active = memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr); //TODO: wtf am I doing?
-        if(module and * module)
+        BREAKPOINT bpInfo   = i.second;
+        bpInfo.addr         += ModBaseFromName(bpInfo.mod);
+        bpInfo.active       = memisvalidreadptr(fdProcessInfo->hProcess, bpInfo.addr);
+
+        // If a module name was sent, check it
+        if(Module && Module[0] != '\0')
         {
-            if(!strcmp(curBp.mod, module))
-            {
-                if(!cbEnum(&curBp))
-                    retval = false;
-            }
+            if(strcmp(bpInfo.mod, Module) != 0)
+                continue;
         }
-        else
-        {
-            if(!cbEnum(&curBp))
-                retval = false;
-        }
+
+        // Execute the callback
+        if(!EnumCallback(&bpInfo))
+            callbackStatus = false;
     }
-    return retval;
+
+    return callbackStatus;
 }
 
-bool bpenumall(BPENUMCALLBACK cbEnum)
+bool BpEnumAll(BPENUMCALLBACK EnumCallback)
 {
-    return bpenumall(cbEnum, 0);
+    return BpEnumAll(EnumCallback, nullptr);
 }
 
-int bpgetcount(BP_TYPE type, bool enabledonly)
+int BpGetCount(BP_TYPE Type, bool EnabledOnly)
 {
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    // Count the number of enabled/disabled breakpoint types
     int count = 0;
-    CriticalSectionLocker locker(LockBreakpoints);
-    for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
+
+    for(auto & i : breakpoints)
     {
-        if(i->first.first == type && (!enabledonly || i->second.enabled))
-            count++;
+        // Check if the type matches
+        if(i.first.first != Type)
+            continue;
+
+        // If it's not enabled, skip it
+        if(EnabledOnly && !i.second.enabled)
+            continue;
+
+        count++;
     }
+
     return count;
 }
 
-void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge)
+void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
 {
-    if(!bp or !bridge)
+    //
+    // Convert a debugger breakpoint to an open/exported
+    // bridge breakpoint
+    //
+    // TOOD: ASSERT(?) These should never be null
+    if(!Bp or !BridgeBp)
         return;
-    memset(bridge, 0, sizeof(BRIDGEBP));
-    bridge->active = bp->active;
-    bridge->addr = bp->addr;
-    bridge->enabled = bp->enabled;
-    strcpy_s(bridge->mod, bp->mod);
-    strcpy_s(bridge->name, bp->name);
-    bridge->singleshoot = bp->singleshoot;
-    switch(bp->type)
+
+    memset(BridgeBp, 0, sizeof(BRIDGEBP));
+    strcpy_s(BridgeBp->mod, Bp->mod);
+    strcpy_s(BridgeBp->name, Bp->name);
+
+    BridgeBp->active        = Bp->active;
+    BridgeBp->addr          = Bp->addr;
+    BridgeBp->enabled       = Bp->enabled;
+    BridgeBp->singleshoot   = Bp->singleshoot;
+
+    switch(Bp->type)
     {
     case BPNORMAL:
-        bridge->type = bp_normal;
+        BridgeBp->type = bp_normal;
         break;
     case BPHARDWARE:
-        bridge->type = bp_hardware;
+        BridgeBp->type = bp_hardware;
         break;
     case BPMEMORY:
-        bridge->type = bp_memory;
-        break; //so that's why it didn't show in the gui.
+        BridgeBp->type = bp_memory;
+        break;
     default:
-        bridge->type = bp_none;
+        BridgeBp->type = bp_none;
         break;
     }
 }
 
-void bpcachesave(JSON root)
+void BpCacheSave(JSON Root)
 {
-    CriticalSectionLocker locker(LockBreakpoints);
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Create a JSON array to store each sub-object with a breakpoint
     const JSON jsonbreakpoints = json_array();
-    for(BreakpointsInfo::iterator i = breakpoints.begin(); i != breakpoints.end(); ++i)
+
+    // Loop all breakpoints
+    for(auto & i : breakpoints)
     {
-        const BREAKPOINT curBreakpoint = i->second;
-        if(curBreakpoint.singleshoot)
-            continue; //skip
-        JSON curjsonbreakpoint = json_object();
-        json_object_set_new(curjsonbreakpoint, "address", json_hex(curBreakpoint.addr));
-        json_object_set_new(curjsonbreakpoint, "enabled", json_boolean(curBreakpoint.enabled));
-        if(curBreakpoint.type == BPNORMAL)
-            json_object_set_new(curjsonbreakpoint, "oldbytes", json_hex(curBreakpoint.oldbytes));
-        json_object_set_new(curjsonbreakpoint, "type", json_integer(curBreakpoint.type));
-        json_object_set_new(curjsonbreakpoint, "titantype", json_hex(curBreakpoint.titantype));
-        json_object_set_new(curjsonbreakpoint, "name", json_string(curBreakpoint.name));
-        json_object_set_new(curjsonbreakpoint, "module", json_string(curBreakpoint.mod));
-        json_array_append_new(jsonbreakpoints, curjsonbreakpoint);
+        auto & breakpoint = i.second;
+
+        // Ignore single-shot breakpoints
+        if(breakpoint.singleshoot)
+            continue;
+
+        JSON jsonObj = json_object();
+        json_object_set_new(jsonObj, "address", json_hex(breakpoint.addr));
+        json_object_set_new(jsonObj, "enabled", json_boolean(breakpoint.enabled));
+
+        // "Normal" breakpoints save the old data
+        if(breakpoint.type == BPNORMAL)
+            json_object_set_new(jsonObj, "oldbytes", json_hex(breakpoint.oldbytes));
+
+        json_object_set_new(jsonObj, "type", json_integer(breakpoint.type));
+        json_object_set_new(jsonObj, "titantype", json_hex(breakpoint.titantype));
+        json_object_set_new(jsonObj, "name", json_string(breakpoint.name));
+        json_object_set_new(jsonObj, "module", json_string(breakpoint.mod));
+        json_array_append_new(jsonbreakpoints, jsonObj);
     }
+
     if(json_array_size(jsonbreakpoints))
-        json_object_set(root, "breakpoints", jsonbreakpoints);
+        json_object_set(Root, "breakpoints", jsonbreakpoints);
+
+    // Notify garbage collector
     json_decref(jsonbreakpoints);
 }
 
-void bpcacheload(JSON root)
+void BpCacheLoad(JSON Root)
 {
-    CriticalSectionLocker locker(LockBreakpoints);
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Remove all existing elements
     breakpoints.clear();
-    const JSON jsonbreakpoints = json_object_get(root, "breakpoints");
-    if(jsonbreakpoints)
+
+    // Get a handle to the root object -> breakpoints subtree
+    const JSON jsonbreakpoints = json_object_get(Root, "breakpoints");
+
+    // Return if there was nothing to load
+    if(!jsonbreakpoints)
+        return;
+
+    size_t i;
+    JSON value;
+    json_array_foreach(jsonbreakpoints, i, value)
     {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonbreakpoints, i, value)
-        {
-            BREAKPOINT curBreakpoint;
-            memset(&curBreakpoint, 0, sizeof(BREAKPOINT));
-            curBreakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
-            if(curBreakpoint.type == BPNORMAL)
-                curBreakpoint.oldbytes = (short)json_hex_value(json_object_get(value, "oldbytes"));
-            curBreakpoint.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curBreakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
-            curBreakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
-            const char* name = json_string_value(json_object_get(value, "name"));
-            if(name)
-                strcpy_s(curBreakpoint.name, name);
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curBreakpoint.mod, mod);
-            const uint key = ModHashFromName(curBreakpoint.mod) + curBreakpoint.addr;
-            breakpoints.insert(std::make_pair(BreakpointKey(curBreakpoint.type, key), curBreakpoint));
-        }
+        BREAKPOINT breakpoint;
+        memset(&breakpoint, 0, sizeof(BREAKPOINT));
+
+        if(breakpoint.type == BPNORMAL)
+            breakpoint.oldbytes = (short)json_hex_value(json_object_get(value, "oldbytes"));
+        breakpoint.type         = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
+        breakpoint.addr         = (uint)json_hex_value(json_object_get(value, "address"));
+        breakpoint.enabled      = json_boolean_value(json_object_get(value, "enabled"));
+        breakpoint.titantype    = (DWORD)json_hex_value(json_object_get(value, "titantype"));
+
+        // Name
+        const char* name = json_string_value(json_object_get(value, "name"));
+
+        if(name)
+            strcpy_s(breakpoint.name, name);
+
+        // Module
+        const char* mod = json_string_value(json_object_get(value, "module"));
+
+        if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+            strcpy_s(breakpoint.mod, mod);
+
+        // Build the hash map key: MOD_HASH + ADDRESS
+        const uint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
+        breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
     }
 }
 
-void bpclear()
+void BpClear()
 {
-    CriticalSectionLocker locker(LockBreakpoints);
-    BreakpointsInfo().swap(breakpoints);
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+    breakpoints.clear();
+    EXCLUSIVE_RELEASE();
 }

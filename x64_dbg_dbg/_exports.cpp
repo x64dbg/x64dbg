@@ -318,20 +318,20 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     static uint cacheAddr;
     static int cacheBpCount;
     static int cacheResult;
-    int bpcount = bpgetlist(0);
+    int bpcount = BpGetList(nullptr);
     if(cacheAddr != addr or cacheBpCount != bpcount)
     {
         BREAKPOINT bp;
         cacheAddr = addr;
         cacheResult = 0;
         cacheBpCount = bpcount;
-        if(bpget(addr, BPNORMAL, 0, &bp))
+        if(BpGet(addr, BPNORMAL, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_normal;
-        if(bpget(addr, BPHARDWARE, 0, &bp))
+        if(BpGet(addr, BPHARDWARE, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_hardware;
-        if(bpget(addr, BPMEMORY, 0, &bp))
+        if(BpGet(addr, BPMEMORY, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_memory;
     }
@@ -504,7 +504,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     if(!bpmap)
         return 0;
     std::vector<BREAKPOINT> list;
-    int bpcount = bpgetlist(&list);
+    int bpcount = BpGetList(&list);
     if(bpcount == 0)
     {
         bpmap->count = 0;
@@ -867,7 +867,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_IS_BP_DISABLED:
     {
         BREAKPOINT bp;
-        if(bpget((uint)param1, BPNORMAL, 0, &bp))
+        if(BpGet((uint)param1, BPNORMAL, 0, &bp))
             return !(uint)bp.enabled;
         return (uint)false;
     }

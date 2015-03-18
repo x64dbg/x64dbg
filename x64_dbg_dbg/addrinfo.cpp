@@ -26,7 +26,7 @@ void dbsave()
     bookmarkcachesave(root);
     functioncachesave(root);
     loopcachesave(root);
-    bpcachesave(root);
+    BpCacheSave(root);
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
@@ -87,7 +87,7 @@ void dbload()
     bookmarkcacheload(root);
     functioncacheload(root);
     loopcacheload(root);
-    bpcacheload(root);
+    BpCacheLoad(root);
     json_decref(root); //free root
     dprintf("%ums\n", GetTickCount() - ticks);
 }
@@ -100,7 +100,7 @@ void dbclose()
     bookmarkclear();
     functionclear();
     loopclear();
-    bpclear();
+    BpClear();
     patchclear();
 }
 
