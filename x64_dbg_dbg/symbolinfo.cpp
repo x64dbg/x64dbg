@@ -57,11 +57,8 @@ void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
         dputs("SymEnumSymbols failed!");
 }
 
-void SymUpdateModuleList()
+bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
 {
-    // Build the vector of modules
-    std::vector<SYMBOLMODULEINFO> modList;
-
     //
     // Inline lambda enum
     //
@@ -69,15 +66,32 @@ void SymUpdateModuleList()
     {
         SYMBOLMODULEINFO curModule;
         curModule.base = BaseOfDll;
-        ModNameFromAddr(BaseOfDll, curModule.name, true);
+
+        // Zero module name if one isn't found
+        if(!ModNameFromAddr(BaseOfDll, curModule.name, true))
+            memset(curModule.name, 0, MAX_MODULE_SIZE);
 
         ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
         return TRUE;
     };
 
     // Execute the symbol enumerator (Force cast to STDCALL)
-    if(!SymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, &modList))
-        dputs("SymEnumerateModules failed!");
+    if(!SymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
+    {
+        dputs("SymEnumerateModules64 failed!");
+        return false;
+    }
+
+    return true;
+}
+
+void SymUpdateModuleList()
+{
+    // Build the vector of modules
+    std::vector<SYMBOLMODULEINFO> modList;
+
+    if(!SymGetModuleList(&modList))
+        return;
 
     // Send the module data to the GUI for updating
     GuiSymbolUpdateModuleList((int)modList.size(), modList.data());
@@ -92,8 +106,8 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     // Build the vector of modules
     std::vector<SYMBOLMODULEINFO> modList;
 
-    if(!SymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList))
-        dputs("SymEnumerateModules failed!");
+    if(!SymGetModuleList(&modList))
+        return;
 
     // Skip loading if there aren't any found modules
     if(modList.size() <= 0)
@@ -118,7 +132,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         return;
     }
 
-    // Reload all modules
+    // Reload
     for(auto & module : modList)
     {
         dprintf("Downloading symbols for %s...\n", module.name);
