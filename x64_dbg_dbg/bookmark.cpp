@@ -8,31 +8,31 @@ typedef std::map<uint, BOOKMARKSINFO> BookmarksInfo;
 
 static BookmarksInfo bookmarks;
 
-bool bookmarkset(uint addr, bool manual)
+bool BookmarkSet(uint Address, bool Manual)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
         return false;
 
     // Validate the incoming address
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
         return false;
 
     BOOKMARKSINFO bookmark;
-    ModNameFromAddr(addr, bookmark.mod, true);
-    bookmark.addr   = addr - ModBaseFromAddr(addr);
-    bookmark.manual = manual;
+    ModNameFromAddr(Address, bookmark.mod, true);
+    bookmark.addr   = Address - ModBaseFromAddr(Address);
+    bookmark.manual = Manual;
 
     // Exclusive lock to insert new data
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
-    if(!bookmarks.insert(std::make_pair(ModHashFromAddr(addr), bookmark)).second)
-        return bookmarkdel(addr);
+    if(!bookmarks.insert(std::make_pair(ModHashFromAddr(Address), bookmark)).second)
+        return BookmarkDel(Address);
 
     return true;
 }
 
-bool bookmarkget(uint Address)
+bool BookmarkGet(uint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -42,7 +42,7 @@ bool bookmarkget(uint Address)
     return (bookmarks.count(ModHashFromAddr(Address)) > 0);
 }
 
-bool bookmarkdel(uint Address)
+bool BookmarkDel(uint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -52,7 +52,7 @@ bool bookmarkdel(uint Address)
     return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void bookmarkdelrange(uint Start, uint End)
+void BookmarkDelRange(uint Start, uint End)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -93,41 +93,42 @@ void bookmarkdelrange(uint Start, uint End)
     }
 }
 
-void bookmarkcachesave(JSON root)
+void BookmarkCacheSave(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
-    const JSON jsonbookmarks        = json_array();
-    const JSON jsonautobookmarks    = json_array();
+    const JSON jsonBookmarks        = json_array();
+    const JSON jsonAutoBookmarks    = json_array();
 
     // Save to the JSON root
-    for(auto itr = bookmarks.begin(); itr != bookmarks.end(); itr++)
+    for(auto & itr : bookmarks)
     {
         JSON curjsonbookmark = json_object();
 
-        json_object_set_new(curjsonbookmark, "module", json_string(itr->second.mod));
-        json_object_set_new(curjsonbookmark, "address", json_hex(itr->second.addr));
+        json_object_set_new(curjsonbookmark, "module", json_string(itr.second.mod));
+        json_object_set_new(curjsonbookmark, "address", json_hex(itr.second.addr));
 
-        if(itr->second.manual)
-            json_array_append_new(jsonbookmarks, curjsonbookmark);
+        if(itr.second.manual)
+            json_array_append_new(jsonBookmarks, curjsonbookmark);
         else
-            json_array_append_new(jsonautobookmarks, curjsonbookmark);
+            json_array_append_new(jsonAutoBookmarks, curjsonbookmark);
     }
 
-    if(json_array_size(jsonbookmarks))
-        json_object_set(root, "bookmarks", jsonbookmarks);
+    if(json_array_size(jsonBookmarks))
+        json_object_set(Root, "bookmarks", jsonBookmarks);
 
-    if(json_array_size(jsonautobookmarks))
-        json_object_set(root, "autobookmarks", jsonautobookmarks);
+    if(json_array_size(jsonAutoBookmarks))
+        json_object_set(Root, "autobookmarks", jsonAutoBookmarks);
 
-    json_decref(jsonbookmarks);
-    json_decref(jsonautobookmarks);
+    json_decref(jsonBookmarks);
+    json_decref(jsonAutoBookmarks);
 }
 
-void bookmarkcacheload(JSON root)
+void BookmarkCacheLoad(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
+    // Inline lambda to parse each JSON entry
     auto AddBookmarks = [](const JSON Object, bool Manual)
     {
         size_t i;
@@ -156,44 +157,44 @@ void bookmarkcacheload(JSON root)
     // Remove existing entries
     bookmarks.clear();
 
-    const JSON jsonbookmarks        = json_object_get(root, "bookmarks");
-    const JSON jsonautobookmarks    = json_object_get(root, "autobookmarks");
+    const JSON jsonBookmarks        = json_object_get(Root, "bookmarks");
+    const JSON jsonAutoBookmarks    = json_object_get(Root, "autobookmarks");
 
     // Load user-set bookmarks
-    if(jsonbookmarks)
-        AddBookmarks(jsonbookmarks, true);
+    if(jsonBookmarks)
+        AddBookmarks(jsonBookmarks, true);
 
     // Load auto-set bookmarks
-    if(jsonautobookmarks)
-        AddBookmarks(jsonbookmarks, false);
+    if(jsonAutoBookmarks)
+        AddBookmarks(jsonAutoBookmarks, false);
 }
 
-bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize)
+bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
 {
     // The array container must be set, or the size must be set, or both
-    if(!bookmarklist && !cbsize)
+    if(!List && !Size)
         return false;
 
     SHARED_ACQUIRE(LockBookmarks);
 
     // Return the size if set
-    if(cbsize)
+    if(Size)
     {
-        *cbsize = bookmarks.size() * sizeof(BOOKMARKSINFO);
+        *Size = bookmarks.size() * sizeof(BOOKMARKSINFO);
         return true;
     }
 
-    // TODO: only ModBaseFromName seems wrong
-    for(auto itr = bookmarks.begin(); itr != bookmarks.end(); itr++, bookmarklist++)
+    // Copy struct and adjust the relative offset to a virtual address
+    for(auto & itr : bookmarks)
     {
-        *bookmarklist       = itr->second;
-        bookmarklist->addr  += ModBaseFromName(bookmarklist->mod);
+        *List       = itr.second;
+        List->addr  += ModBaseFromName(List->mod);
     }
 
     return true;
 }
 
-void bookmarkclear()
+void BookmarkClear()
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
     bookmarks.clear();

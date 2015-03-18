@@ -78,7 +78,6 @@ class SharedSectionLocker : public ExclusiveSectionLocker
 {
 public:
     SharedSectionLocker(SectionLock LockIndex);
-    ~SharedSectionLocker();
 
     void Lock();
     void Unlock();
