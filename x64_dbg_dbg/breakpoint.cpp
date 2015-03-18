@@ -392,5 +392,4 @@ void BpClear()
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     breakpoints.clear();
-    EXCLUSIVE_RELEASE();
 }

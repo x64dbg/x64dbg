@@ -54,7 +54,9 @@ bool ModLoad(uint base, uint size, const char* fullpath)
         // Get the entry point
         info.entry = GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_OEP) + info.base;
 
+        // Enumerate all PE sections
         int sectionCount = (int)GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_SECTIONNUMBER);
+
         for(int i = 0; i < sectionCount; i++)
         {
             MODSECTIONINFO curSection;

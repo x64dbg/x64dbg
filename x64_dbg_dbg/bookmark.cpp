@@ -27,7 +27,7 @@ bool BookmarkSet(uint Address, bool Manual)
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
     if(!bookmarks.insert(std::make_pair(ModHashFromAddr(Address), bookmark)).second)
-        return BookmarkDel(Address);
+        return BookmarkDelete(Address);
 
     return true;
 }
@@ -42,7 +42,7 @@ bool BookmarkGet(uint Address)
     return (bookmarks.count(ModHashFromAddr(Address)) > 0);
 }
 
-bool BookmarkDel(uint Address)
+bool BookmarkDelete(uint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -198,5 +198,4 @@ void BookmarkClear()
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
     bookmarks.clear();
-    EXCLUSIVE_RELEASE();
 }
