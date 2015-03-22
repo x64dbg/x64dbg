@@ -8,175 +8,244 @@ typedef std::map<uint, COMMENTSINFO> CommentsInfo;
 
 static CommentsInfo comments;
 
-bool commentset(uint addr, const char* text, bool manual)
+bool CommentSet(uint Address, const char* Text, bool Manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or text[0] == '\1' or strlen(text) >= MAX_COMMENT_SIZE - 1)
+    // CHECK: Exported/Command function
+    if(!DbgIsDebugging())
         return false;
-    if(!*text) //NOTE: delete when there is no text
+
+    // A valid memory address must be supplied
+    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
+        return false;
+
+    // Make sure the string is supplied, within bounds, and not a special delimiter
+    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_COMMENT_SIZE - 1)
+        return false;
+
+    // Delete the comment if no text was supplied
+    if(!*Text)
     {
-        commentdel(addr);
+        CommentDelete(Address);
         return true;
     }
+
+    // Fill out the structure
     COMMENTSINFO comment;
-    comment.manual = manual;
-    strcpy_s(comment.text, text);
-    ModNameFromAddr(addr, comment.mod, true);
-    comment.addr = addr - ModBaseFromAddr(addr);
-    const uint key = ModHashFromAddr(addr);
-    CriticalSectionLocker locker(LockComments);
-    if(!comments.insert(std::make_pair(key, comment)).second) //key already present
+    strcpy_s(comment.text, Text);
+    ModNameFromAddr(Address, comment.mod, true);
+
+    comment.manual  = Manual;
+    comment.addr    = Address - ModBaseFromAddr(Address);
+
+    // Insert into list
+    const uint key = ModHashFromAddr(Address);
+
+    EXCLUSIVE_ACQUIRE(LockComments);
+
+    // Only add if the key wasn't present
+    if(!comments.insert(std::make_pair(key, comment)).second)
         comments[key] = comment;
+
     return true;
 }
 
-bool commentget(uint addr, char* text)
+bool CommentGet(uint Address, char* Text)
 {
+    // CHECK: Exported/Command function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockComments);
-    const CommentsInfo::iterator found = comments.find(ModHashFromAddr(addr));
-    if(found == comments.end()) //not found
+
+    SHARED_ACQUIRE(LockComments);
+
+    // Get an existing comment and copy the string buffer
+    auto found = comments.find(ModHashFromAddr(Address));
+
+    // Was it found?
+    if(found == comments.end())
         return false;
-    strcpy_s(text, MAX_COMMENT_SIZE, found->second.text);
+
+    strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
     return true;
 }
 
-bool commentdel(uint addr)
+bool CommentDelete(uint Address)
 {
+    // CHECK: Command/Sub function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockComments);
-    return (comments.erase(ModHashFromAddr(addr)) == 1);
+
+    EXCLUSIVE_ACQUIRE(LockComments);
+    return (comments.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void commentdelrange(uint start, uint end)
+void CommentDelRange(uint Start, uint End)
 {
+    // CHECK: Export function
     if(!DbgIsDebugging())
         return;
-    bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = ModBaseFromAddr(start);
-    if(modbase != ModBaseFromAddr(end))
-        return;
-    start -= modbase;
-    end -= modbase;
-    CriticalSectionLocker locker(LockComments);
-    CommentsInfo::iterator i = comments.begin();
-    while(i != comments.end())
+
+    // Are all comments going to be deleted?
+    if(Start == 0x00000000 && End == 0xFFFFFFFF)
     {
-        if(i->second.manual) //ignore manual
+        EXCLUSIVE_ACQUIRE(LockComments);
+        comments.clear();
+    }
+    else
+    {
+        // Make sure 'Start' and 'End' reference the same module
+        uint moduleBase = ModBaseFromAddr(Start);
+
+        if(moduleBase != ModBaseFromAddr(End))
+            return;
+
+        // Virtual -> relative offset
+        Start   -= moduleBase;
+        End     -= moduleBase;
+
+        EXCLUSIVE_ACQUIRE(LockComments);
+        for(auto itr = comments.begin(); itr != comments.end();)
         {
-            i++;
-            continue;
+            // Ignore manually set entries
+            if(itr->second.manual)
+            {
+                itr++;
+                continue;
+            }
+
+            // [Start, End)
+            if(itr->second.addr >= Start && itr->second.addr < End)
+                itr = comments.erase(itr);
+            else
+                itr++;
         }
-        if(bDelAll || (i->second.addr >= start && i->second.addr < end))
-            comments.erase(i++);
-        else
-            i++;
     }
 }
 
-void commentcachesave(JSON root)
+void CommentCacheSave(JSON Root)
 {
-    CriticalSectionLocker locker(LockComments);
-    const JSON jsoncomments = json_array();
-    const JSON jsonautocomments = json_array();
-    for(CommentsInfo::iterator i = comments.begin(); i != comments.end(); ++i)
+    EXCLUSIVE_ACQUIRE(LockComments);
+
+    const JSON jsonComments     = json_array();
+    const JSON jsonAutoComments = json_array();
+
+    // Build the JSON array
+    for(auto & itr : comments)
     {
-        const COMMENTSINFO curComment = i->second;
-        JSON curjsoncomment = json_object();
-        json_object_set_new(curjsoncomment, "module", json_string(curComment.mod));
-        json_object_set_new(curjsoncomment, "address", json_hex(curComment.addr));
-        json_object_set_new(curjsoncomment, "text", json_string(curComment.text));
-        if(curComment.manual)
-            json_array_append_new(jsoncomments, curjsoncomment);
+        JSON currentComment = json_object();
+
+        json_object_set_new(currentComment, "module", json_string(itr.second.mod));
+        json_object_set_new(currentComment, "address", json_hex(itr.second.addr));
+        json_object_set_new(currentComment, "text", json_string(itr.second.text));
+
+        if(itr.second.manual)
+            json_array_append_new(jsonComments, currentComment);
         else
-            json_array_append_new(jsonautocomments, curjsoncomment);
+            json_array_append_new(jsonAutoComments, currentComment);
     }
-    if(json_array_size(jsoncomments))
-        json_object_set(root, "comments", jsoncomments);
-    json_decref(jsoncomments);
-    if(json_array_size(jsonautocomments))
-        json_object_set(root, "autocomments", jsonautocomments);
-    json_decref(jsonautocomments);
+
+    // Save to the JSON root
+    if(json_array_size(jsonComments))
+        json_object_set(Root, "comments", jsonComments);
+
+    if(json_array_size(jsonAutoComments))
+        json_object_set(Root, "autocomments", jsonAutoComments);
+
+    json_decref(jsonComments);
+    json_decref(jsonAutoComments);
 }
 
-void commentcacheload(JSON root)
+void CommentCacheLoad(JSON Root)
 {
-    CriticalSectionLocker locker(LockComments);
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
+
+    // Inline lambda to parse each JSON entry
+    auto AddBookmarks = [](const JSON Object, bool Manual)
+    {
+        size_t i;
+        JSON value;
+
+        json_array_foreach(Object, i, value)
+        {
+            COMMENTSINFO commentInfo;
+
+            // Module
+            const char* mod = json_string_value(json_object_get(value, "module"));
+
+            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+                strcpy_s(commentInfo.mod, mod);
+            else
+                commentInfo.mod[0] = '\0';
+
+            // Address/Manual
+            commentInfo.addr    = (uint)json_hex_value(json_object_get(value, "address"));
+            commentInfo.manual  = Manual;
+
+            // String value
+            const char* text = json_string_value(json_object_get(value, "text"));
+
+            if(text)
+                strcpy_s(commentInfo.text, text);
+            else
+            {
+                // Skip blank comments
+                continue;
+            }
+
+            const uint key = ModHashFromName(commentInfo.mod) + commentInfo.addr;
+            comments.insert(std::make_pair(key, commentInfo));
+        }
+    };
+
+    // Remove existing entries
     comments.clear();
-    const JSON jsoncomments = json_object_get(root, "comments");
-    if(jsoncomments)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsoncomments, i, value)
-        {
-            COMMENTSINFO curComment;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curComment.mod, mod);
-            else
-                *curComment.mod = '\0';
-            curComment.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curComment.manual = true;
-            const char* text = json_string_value(json_object_get(value, "text"));
-            if(text)
-                strcpy_s(curComment.text, text);
-            else
-                continue; //skip
-            const uint key = ModHashFromName(curComment.mod) + curComment.addr;
-            comments.insert(std::make_pair(key, curComment));
-        }
-    }
-    JSON jsonautocomments = json_object_get(root, "autocomments");
-    if(jsonautocomments)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonautocomments, i, value)
-        {
-            COMMENTSINFO curComment;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curComment.mod, mod);
-            else
-                *curComment.mod = '\0';
-            curComment.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curComment.manual = false;
-            const char* text = json_string_value(json_object_get(value, "text"));
-            if(text)
-                strcpy_s(curComment.text, text);
-            else
-                continue; //skip
-            const uint key = ModHashFromName(curComment.mod) + curComment.addr;
-            comments.insert(std::make_pair(key, curComment));
-        }
-    }
+
+    const JSON jsonComments     = json_object_get(Root, "comments");
+    const JSON jsonAutoComments = json_object_get(Root, "autocomments");
+
+    // Load user-set comments
+    if(jsonComments)
+        AddBookmarks(jsonComments, true);
+
+    // Load auto-set comments
+    if(jsonAutoComments)
+        AddBookmarks(jsonAutoComments, false);
 }
 
-bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize)
+bool CommentEnum(COMMENTSINFO* List, size_t* Size)
 {
+    // CHECK: Command function
     if(!DbgIsDebugging())
         return false;
-    if(!commentlist && !cbsize)
+
+    // At least 1 parameter must be supplied
+    if(!List && !Size)
         return false;
-    CriticalSectionLocker locker(LockComments);
-    if(!commentlist && cbsize)
+
+    SHARED_ACQUIRE(LockComments);
+
+    // Check if the user requested size only
+    if(Size)
     {
-        *cbsize = comments.size() * sizeof(COMMENTSINFO);
-        return true;
+        *Size = comments.size() * sizeof(COMMENTSINFO);
+
+        if(!List)
+            return true;
     }
-    int j = 0;
-    for(CommentsInfo::iterator i = comments.begin(); i != comments.end(); ++i, j++)
+
+    // Populate the returned array
+    for(auto & itr : comments)
     {
-        commentlist[j] = i->second;
-        commentlist[j].addr += ModBaseFromName(commentlist[j].mod);
+        *List       = itr.second;
+        List->addr  += ModBaseFromName(List->mod);
+
+        List++;
     }
+
     return true;
 }
 
-void commentclear()
+void CommentClear()
 {
-    CriticalSectionLocker locker(LockComments);
-    CommentsInfo().swap(comments);
+    EXCLUSIVE_ACQUIRE(LockComments);
+    comments.clear();
 }

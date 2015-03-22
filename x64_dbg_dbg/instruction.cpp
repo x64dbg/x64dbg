@@ -294,7 +294,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!commentset(addr, argv[2], true))
+    if(!CommentSet(addr, argv[2], true))
     {
         dputs("error setting comment");
         return STATUS_ERROR;
@@ -312,7 +312,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!commentdel(addr))
+    if(!CommentDelete(addr))
     {
         dputs("error deleting comment");
         return STATUS_ERROR;
@@ -1270,14 +1270,14 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
     size_t cbsize;
-    commentenum(0, &cbsize);
+    CommentEnum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no comments");
         return STATUS_CONTINUE;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
-    commentenum(comments, 0);
+    CommentEnum(comments, 0);
     int count = (int)(cbsize / sizeof(COMMENTSINFO));
     for(int i = 0; i < count; i++)
     {
@@ -1400,7 +1400,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(commentget(functions[i].start, comment))
+            if(CommentGet(functions[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
@@ -1446,7 +1446,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(commentget(loops[i].start, comment))
+            if(CommentGet(loops[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }

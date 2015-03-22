@@ -21,7 +21,7 @@ void dbsave()
     dprintf("saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
-    commentcachesave(root);
+    CommentCacheSave(root);
     labelcachesave(root);
     BookmarkCacheSave(root);
     FunctionCacheSave(root);
@@ -82,7 +82,7 @@ void dbload()
         dputs("\ninvalid database file (JSON)!");
         return;
     }
-    commentcacheload(root);
+    CommentCacheLoad(root);
     labelcacheload(root);
     BookmarkCacheLoad(root);
     FunctionCacheLoad(root);
@@ -95,7 +95,7 @@ void dbload()
 void dbclose()
 {
     dbsave();
-    commentclear();
+    CommentClear();
     labelclear();
     BookmarkClear();
     FunctionClear();

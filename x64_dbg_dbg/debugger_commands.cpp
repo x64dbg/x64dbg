@@ -811,7 +811,7 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
     char comment[MAX_COMMENT_SIZE] = "";
     for(uint i = addr; i < addr + 100000; i++)
     {
-        commentset(i, "test", false);
+        CommentSet(i, "test", false);
         labelset(i, "test", false);
         BookmarkSet(i, false);
         FunctionAdd(i, i, false);

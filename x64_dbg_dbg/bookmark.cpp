@@ -183,7 +183,9 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
     if(Size)
     {
         *Size = bookmarks.size() * sizeof(BOOKMARKSINFO);
-        return true;
+
+        if(!List)
+            return true;
     }
 
     // Copy struct and adjust the relative offset to a virtual address

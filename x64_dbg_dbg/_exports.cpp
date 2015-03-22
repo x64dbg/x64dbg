@@ -154,7 +154,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     if(addrinfo->flags & flagcomment)
     {
         *addrinfo->comment = 0;
-        if(commentget(addr, addrinfo->comment))
+        if(CommentGet(addr, addrinfo->comment))
             retval = true;
         else
         {
@@ -300,7 +300,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     }
     if(addrinfo->flags & flagcomment) //set comment
     {
-        if(commentset(addr, addrinfo->comment, true))
+        if(CommentSet(addr, addrinfo->comment, true))
             retval = true;
     }
     if(addrinfo->flags & flagbookmark) //set bookmark
@@ -875,13 +875,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SET_AUTO_COMMENT_AT:
     {
-        return (uint)commentset((uint)param1, (const char*)param2, false);
+        return (uint)CommentSet((uint)param1, (const char*)param2, false);
     }
     break;
 
     case DBG_DELETE_AUTO_COMMENT_RANGE:
     {
-        commentdelrange((uint)param1, (uint)param2);
+        CommentDelRange((uint)param1, (uint)param2);
     }
     break;
 
