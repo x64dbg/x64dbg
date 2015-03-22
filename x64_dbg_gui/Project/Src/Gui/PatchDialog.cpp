@@ -507,8 +507,8 @@ void PatchDialog::on_btnImport_clicked()
 
     typedef struct _IMPORTSTATUS
     {
-        bool nomatchoriginal;
-        bool matchold;
+        bool badoriginal;
+        bool alreadypatched;
     } IMPORTSTATUS;
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
@@ -545,13 +545,13 @@ void PatchDialog::on_btnImport_clicked()
             continue;
         unsigned char checkbyte = 0;
         DbgMemRead(curPatch.addr, &checkbyte, sizeof(checkbyte));
-        if(checkbyte == newbyte)
+        IMPORTSTATUS status;
+        if(status.alreadypatched = checkbyte == newbyte)
             bAlreadyDone = true;
-        else if(checkbyte != oldbyte)
+        else if(status.badoriginal = checkbyte != oldbyte)
             bBadOriginal = true;
         curPatch.oldbyte = oldbyte;
         curPatch.newbyte = newbyte;
-        IMPORTSTATUS status = {checkbyte != oldbyte && !checkbyte == newbyte, checkbyte == newbyte};
         patchList.push_back(QPair<DBGPATCHINFO, IMPORTSTATUS>(curPatch, status));
     }
 
@@ -590,12 +590,11 @@ void PatchDialog::on_btnImport_clicked()
     int patched = 0;
     for(int i = 0; i < patchList.size(); i++)
     {
-        if(!bPatchBadOriginals && patchList.at(i).second.nomatchoriginal)
+        if(!bPatchBadOriginals && patchList.at(i).second.badoriginal)
             continue;
         curPatch = patchList.at(i).first;
-        if(bUndoPatched && patchList.at(i).second.matchold)
+        if(bUndoPatched && patchList.at(i).second.alreadypatched)
         {
-            GuiAddStatusBarMessage("undo!");
             if(DbgFunctions()->MemPatch(curPatch.addr, &curPatch.oldbyte, 1))
                 patched++;
         }
