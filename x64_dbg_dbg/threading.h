@@ -2,7 +2,6 @@
 
 #include "_global.h"
 
-//enums
 enum WAIT_ID
 {
     WAITID_RUN,
@@ -23,10 +22,13 @@ bool waitislocked(WAIT_ID id);
 // Better, but requires VISTA+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
 //
-#define EXCLUSIVE_ACQUIRE(Index)    ExclusiveSectionLocker __ThreadLock(SectionLock::##Index);
+#define CriticalSectionLocker
+#define locker(x) EXCLUSIVE_ACQUIRE(x)
+
+#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<false> __ThreadLock(SectionLock::##Index);
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
-#define SHARED_ACQUIRE(Index)       SharedSectionLocker __SThreadLock(SectionLock::##Index);
+#define SHARED_ACQUIRE(Index)       SectionLocker<true> __SThreadLock(SectionLock::##Index);
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum SectionLock
@@ -53,32 +55,56 @@ enum SectionLock
     LockLast
 };
 
-class ExclusiveSectionLocker
+class SectionLockerGlobal
 {
+    template<bool Shared> friend class SectionLocker;
+
 public:
     static void Initialize();
     static void Deinitialize();
 
-    ExclusiveSectionLocker(SectionLock LockIndex);
-    ~ExclusiveSectionLocker();
-
-    void Lock();
-    void Unlock();
-
-private:
+protected:
     static bool     m_Initialized;
     static SRWLOCK  m_Locks[SectionLock::LockLast];
-
-protected:
-    SRWLOCK*    m_Lock;
-    BYTE        m_LockCount;
 };
 
-class SharedSectionLocker : public ExclusiveSectionLocker
+template<bool Shared>
+class SectionLocker
 {
 public:
-    SharedSectionLocker(SectionLock LockIndex);
+    SectionLocker(SectionLock LockIndex)
+    {
+        m_Lock      = &SectionLockerGlobal::m_Locks[LockIndex];
+        m_LockCount = 0;
 
-    void Lock();
-    void Unlock();
+        Lock();
+    }
+
+    ~SectionLocker()
+    {
+        if(m_LockCount > 0)
+            Unlock();
+
+        // TODO: Assert that the lock count is zero on destructor
+#ifdef _DEBUG
+        if(m_LockCount > 0)
+            __debugbreak();
+#endif
+    }
+
+    inline void Lock()
+    {
+        AcquireSRWLockExclusive(m_Lock);
+        m_LockCount++;
+    }
+
+    inline void Unlock()
+    {
+        m_LockCount--;
+        ReleaseSRWLockExclusive(m_Lock);
+    }
+
+protected:
+    PSRWLOCK    m_Lock;
+    BYTE        m_LockCount;
 };

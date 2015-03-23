@@ -68,7 +68,7 @@ void dbload()
         return;
     }
     FILE* jsonFile = 0;
-    if(_wfopen_s(&jsonFile, wdbpath.c_str(), L"rb"))
+    if(_wfopen_s(&jsonFile, wdbpath.c_str(), L"rb") != 0)
     {
         dputs("\nfailed to open database file!");
         return;

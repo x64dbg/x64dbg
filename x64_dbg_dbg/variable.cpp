@@ -20,16 +20,23 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
     VariableMap::iterator found = variables.find(name_);
-    if(found == variables.end()) //not found
+    if(found == variables.end())  //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        EXCLUSIVE_RELEASE();
+
         return varset(found->second.alias.c_str(), value, setreadonly);
+    }
+
     if(!setreadonly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
     varsetvalue(&found->second, value);
@@ -69,9 +76,11 @@ VAR* vargetptr()
 
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
-    CriticalSectionLocker locker(LockVariables);
     if(!name)
         return false;
+
+    CriticalSectionLocker locker(LockVariables);
+
     std::vector<String> names = StringUtils::Split(name, '\1');
     String firstName;
     for(int i = 0; i < (int)names.size(); i++)
@@ -100,7 +109,8 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -109,7 +119,12 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        EXCLUSIVE_RELEASE();
+
         return varget(found->second.alias.c_str(), value, size, type);
+    }
     if(type)
         *type = found->second.type;
     if(size)
@@ -184,7 +199,8 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -193,7 +209,13 @@ bool vardel(const char* name, bool delsystem)
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        EXCLUSIVE_RELEASE();
+
         return vardel(found->second.alias.c_str(), delsystem);
+    }
+
     if(!delsystem && found->second.type != VAR_USER)
         return false;
     found = variables.begin();

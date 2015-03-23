@@ -33,8 +33,8 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
 
         if(extensionPos)
         {
+            strcpy_s(info.extension, extensionPos);
             extensionPos[0] = '\0';
-            strcpy_s(info.extension, extensionPos + 1);
         }
     }
 
@@ -98,6 +98,7 @@ bool ModUnload(uint Base)
 
     // Unload everything from TitanEngine
     StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
+    EXCLUSIVE_RELEASE();
 
     // Update symbols
     SymUpdateModuleList();

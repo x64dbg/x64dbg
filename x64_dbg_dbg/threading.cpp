@@ -28,10 +28,10 @@ bool waitislocked(WAIT_ID id)
     return waitarray[id];
 }
 
-bool ExclusiveSectionLocker::m_Initialized = false;
-SRWLOCK ExclusiveSectionLocker::m_Locks[SectionLock::LockLast];
+bool SectionLockerGlobal::m_Initialized = false;
+SRWLOCK SectionLockerGlobal::m_Locks[SectionLock::LockLast];
 
-void ExclusiveSectionLocker::Initialize()
+void SectionLockerGlobal::Initialize()
 {
     if(m_Initialized)
         return;
@@ -45,7 +45,7 @@ void ExclusiveSectionLocker::Initialize()
     m_Initialized = true;
 }
 
-void ExclusiveSectionLocker::Deinitialize()
+void SectionLockerGlobal::Deinitialize()
 {
     if(!m_Initialized)
         return;
@@ -63,38 +63,7 @@ void ExclusiveSectionLocker::Deinitialize()
     m_Initialized = false;
 }
 
-ExclusiveSectionLocker::ExclusiveSectionLocker(SectionLock LockIndex)
-{
-    m_Lock      = &m_Locks[LockIndex];
-    m_LockCount = 0;
-
-    Lock();
-}
-
-ExclusiveSectionLocker::~ExclusiveSectionLocker()
-{
-    if(m_LockCount > 0)
-        Unlock();
-
-    // TODO: Assert that the lock count is zero on destructor
-#ifdef _DEBUG
-    if(m_LockCount > 0)
-        __debugbreak();
-#endif
-}
-
-void ExclusiveSectionLocker::Lock()
-{
-    AcquireSRWLockExclusive(m_Lock);
-    m_LockCount++;
-}
-
-void ExclusiveSectionLocker::Unlock()
-{
-    m_LockCount--;
-    ReleaseSRWLockExclusive(m_Lock);
-}
-
+/*
 SharedSectionLocker::SharedSectionLocker(SectionLock LockIndex)
     : ExclusiveSectionLocker(LockIndex)
 {
@@ -112,3 +81,4 @@ void SharedSectionLocker::Unlock()
     m_LockCount--;
     ReleaseSRWLockShared(m_Lock);
 }
+*/
