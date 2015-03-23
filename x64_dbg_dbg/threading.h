@@ -94,14 +94,22 @@ public:
 
     inline void Lock()
     {
-        AcquireSRWLockExclusive(m_Lock);
+        if(Shared)
+            AcquireSRWLockShared(m_Lock);
+        else
+            AcquireSRWLockExclusive(m_Lock);
+
         m_LockCount++;
     }
 
     inline void Unlock()
     {
         m_LockCount--;
-        ReleaseSRWLockExclusive(m_Lock);
+
+        if(Shared)
+            ReleaseSRWLockShared(m_Lock);
+        else
+            ReleaseSRWLockExclusive(m_Lock);
     }
 
 protected:
