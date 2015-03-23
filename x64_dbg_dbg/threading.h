@@ -25,10 +25,10 @@ bool waitislocked(WAIT_ID id);
 #define CriticalSectionLocker
 #define locker(x) EXCLUSIVE_ACQUIRE(x)
 
-#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<false> __ThreadLock(SectionLock::##Index);
+#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock;
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
-#define SHARED_ACQUIRE(Index)       SectionLocker<true> __SThreadLock(SectionLock::##Index);
+#define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock;
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum SectionLock
@@ -57,26 +57,24 @@ enum SectionLock
 
 class SectionLockerGlobal
 {
-    template<bool Shared> friend class SectionLocker;
+    template<SectionLock LockIndex, bool Shared> friend class SectionLocker;
 
 public:
     static void Initialize();
     static void Deinitialize();
 
-protected:
+private:
     static bool     m_Initialized;
     static SRWLOCK  m_Locks[SectionLock::LockLast];
 };
 
-template<bool Shared>
+template<SectionLock LockIndex, bool Shared>
 class SectionLocker
 {
 public:
-    SectionLocker(SectionLock LockIndex)
+    SectionLocker()
     {
-        m_Lock      = &SectionLockerGlobal::m_Locks[LockIndex];
         m_LockCount = 0;
-
         Lock();
     }
 
@@ -95,9 +93,9 @@ public:
     inline void Lock()
     {
         if(Shared)
-            AcquireSRWLockShared(m_Lock);
+            AcquireSRWLockShared(&Internal::m_Locks[LockIndex]);
         else
-            AcquireSRWLockExclusive(m_Lock);
+            AcquireSRWLockExclusive(&Internal::m_Locks[LockIndex]);
 
         m_LockCount++;
     }
@@ -107,12 +105,14 @@ public:
         m_LockCount--;
 
         if(Shared)
-            ReleaseSRWLockShared(m_Lock);
+            ReleaseSRWLockShared(&Internal::m_Locks[LockIndex]);
         else
-            ReleaseSRWLockExclusive(m_Lock);
+            ReleaseSRWLockExclusive(&Internal::m_Locks[LockIndex]);
     }
 
+private:
+    using Internal = SectionLockerGlobal;
+
 protected:
-    PSRWLOCK    m_Lock;
-    BYTE        m_LockCount;
+    BYTE m_LockCount;
 };
