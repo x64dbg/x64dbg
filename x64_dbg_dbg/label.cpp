@@ -10,7 +10,7 @@ static LabelsInfo labels;
 
 bool labelset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
+    if(!DbgIsDebugging() or !MemIsValidReadPtr(addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
         return false;
     if(!*text) //NOTE: delete when there is no text
     {

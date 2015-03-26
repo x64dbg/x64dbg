@@ -15,7 +15,7 @@ bool FunctionAdd(uint Start, uint End, bool Manual)
         return false;
 
     // Make sure memory is readable
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, Start))
+    if(!MemIsValidReadPtr(Start))
         return false;
 
     // Fail if boundary exceeds module size

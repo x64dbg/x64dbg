@@ -1477,7 +1477,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return false;
         uint addr = *value;
         *value = 0;
-        if(!memread(fdProcessInfo->hProcess, (void*)addr, value, read_size, 0))
+        if(!MemRead((void*)addr, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to read memory");
@@ -2025,7 +2025,7 @@ bool valtostring(const char* string, uint* value, bool silent)
         {
             return false;
         }
-        if(!mempatch(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
+        if(!MemPatch((void*)temp, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");

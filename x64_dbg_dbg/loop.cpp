@@ -10,7 +10,7 @@ static LoopsInfo loops;
 
 bool loopadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
+    if(!DbgIsDebugging() or end < start or !MemIsValidReadPtr(start))
         return false;
     const uint modbase = ModBaseFromAddr(start);
     if(modbase != ModBaseFromAddr(end)) //the function boundaries are not in the same mem page

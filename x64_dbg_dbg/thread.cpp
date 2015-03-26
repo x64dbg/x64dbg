@@ -34,6 +34,7 @@ void ThreadExit(DWORD dwThreadId)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
+    // Don't use a foreach loop here because of the erase() call
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
         if(itr->ThreadId == dwThreadId)
@@ -119,7 +120,7 @@ bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
     //
     memset(Teb, 0, sizeof(TEB));
 
-    return memread(fdProcessInfo->hProcess, (void*)TEBAddress, Teb, sizeof(TEB), nullptr);
+    return MemRead((void*)TEBAddress, Teb, sizeof(TEB), nullptr);
 }
 
 int ThreadGetSuspendCount(HANDLE Thread)

@@ -219,7 +219,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf("Error setting breakpoint at "fhex"! (IsBPXEnabled)\n", addr);
         return STATUS_ERROR;
     }
-    else if(!memread(fdProcessInfo->hProcess, (void*)addr, &oldbytes, sizeof(short), 0))
+    else if(!MemRead((void*)addr, &oldbytes, sizeof(short), 0))
     {
         dprintf("Error setting breakpoint at "fhex"! (memread)\n", addr);
         return STATUS_ERROR;
@@ -458,7 +458,7 @@ CMDRESULT cbDebugDisasm(int argc, char* argv[])
     if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &addr))
             addr = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!MemIsValidReadPtr(addr))
         return STATUS_CONTINUE;
     DebugUpdateGui(addr, false);
     return STATUS_CONTINUE;
@@ -505,7 +505,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         }
     }
     uint size = 0;
-    uint base = memfindbaseaddr(addr, &size, true);
+    uint base = MemFindBaseAddr(addr, &size, true);
     bool singleshoot = false;
     if(!restore)
         singleshoot = true;
@@ -544,7 +544,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     if(BpGet(0, BPMEMORY, arg1, &found)) //found a breakpoint with name
     {
         uint size;
-        memfindbaseaddr(found.addr, &size);
+        MemFindBaseAddr(found.addr, &size);
         if(!BpDelete(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
         {
             dprintf("Delete memory breakpoint failed: "fhex"\n", found.addr);
@@ -559,7 +559,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint size;
-    memfindbaseaddr(found.addr, &size);
+    MemFindBaseAddr(found.addr, &size);
     if(!BpDelete(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
     {
         dprintf("Delete memory breakpoint failed: "fhex"\n", found.addr);
@@ -724,7 +724,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     if(argget(*argv, arg1, 0, true))
         if(!valfromstring(arg1, &size, false))
             return STATUS_ERROR;
-    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, size, PAGE_EXECUTE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, size, PAGE_EXECUTE_READWRITE);
     if(!mem)
         dputs("VirtualAllocEx failed");
     else
@@ -732,7 +732,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     if(mem)
         varset("$lastalloc", mem, true);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess);
+    MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
     varset("$res", mem, false);
     return STATUS_CONTINUE;
@@ -760,7 +760,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     if(!ok)
         dputs("VirtualFreeEx failed");
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess);
+    MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
     varset("$res", ok, false);
     return STATUS_CONTINUE;
@@ -786,7 +786,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     }
     else
     {
-        uint base = memfindbaseaddr(addr, &size, true);
+        uint base = MemFindBaseAddr(addr, &size, true);
         if(!base)
         {
             dputs("invalid address specified");
@@ -806,7 +806,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 {
-    uint addr = memfindbaseaddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
+    uint addr = MemFindBaseAddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
     DWORD ticks = GetTickCount();
     char comment[MAX_COMMENT_SIZE] = "";
     for(uint i = addr; i < addr + 100000; i++)
@@ -962,7 +962,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     }
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     duint size = 0;
-    duint base = memfindbaseaddr(csp, &size);
+    duint base = MemFindBaseAddr(csp, &size);
     if(base && addr >= base && addr < (base + size))
         GuiStackDumpAt(addr, csp);
     else
@@ -1320,7 +1320,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint size = 0;
-    memfindbaseaddr(found.addr, &size);
+    MemFindBaseAddr(found.addr, &size);
     if(!BpEnable(found.addr, BPMEMORY, true) or !SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
     {
         dprintf("Could not enable memory breakpoint "fhex"\n", found.addr);
@@ -1360,7 +1360,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint size = 0;
-    memfindbaseaddr(found.addr, &size);
+    MemFindBaseAddr(found.addr, &size);
     if(!BpEnable(found.addr, BPMEMORY, false) or !RemoveMemoryBPX(found.addr, size))
     {
         dprintf("Could not disable memory breakpoint "fhex"\n", found.addr);
@@ -1798,7 +1798,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     //update the memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess);
+    MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
 
     dprintf("New rights of "fhex": %s\n", addr, rights);
@@ -1826,7 +1826,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!memwrite(fdProcessInfo->hProcess, DLLNameMem, argv[1],  strlen(argv[1]), NULL))
+    if(!MemWrite(DLLNameMem, argv[1],  strlen(argv[1]), NULL))
     {
         dprintf("Error: couldn't write process memory");
         return STATUS_ERROR;
@@ -2000,7 +2000,7 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     //update the memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess);
+    MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
 
     dprintf("New command line: %s\n", argv[1]);

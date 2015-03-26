@@ -42,7 +42,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         {
             BREAKPOINT currentBp    = i.second;
             currentBp.addr          += ModBaseFromName(currentBp.mod);
-            currentBp.active        = memisvalidreadptr(fdProcessInfo->hProcess, currentBp.addr);
+            currentBp.active        = MemIsValidReadPtr(currentBp.addr);
 
             List->push_back(currentBp);
         }
@@ -58,7 +58,7 @@ bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE T
         return false;
 
     // Fail if the address is a bad memory region
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
+    if(!MemIsValidReadPtr(Address))
         return false;
 
     // Fail if the breakpoint already exists
@@ -113,7 +113,7 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
         *Bp         = *bpInfo;
         Bp->addr    += ModBaseFromAddr(Address);
-        Bp->active  = memisvalidreadptr(fdProcessInfo->hProcess, Bp->addr);
+        Bp->active  = MemIsValidReadPtr(Bp->addr);
         return true;
     }
 
@@ -129,7 +129,7 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         {
             *Bp         = i.second;
             Bp->addr    += ModBaseFromAddr(Address);
-            Bp->active  = memisvalidreadptr(fdProcessInfo->hProcess, Bp->addr);
+            Bp->active  = MemIsValidReadPtr(Bp->addr);
         }
 
         // Return true if the name was found at all
@@ -230,7 +230,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
 
         BREAKPOINT bpInfo   = i.second;
         bpInfo.addr         += ModBaseFromName(bpInfo.mod);
-        bpInfo.active       = memisvalidreadptr(fdProcessInfo->hProcess, bpInfo.addr);
+        bpInfo.active       = MemIsValidReadPtr(bpInfo.addr);
 
         // Execute the callback
         if(!EnumCallback(&bpInfo))

@@ -10,7 +10,7 @@ static PatchesInfo patches;
 
 bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
 {
-    if(!DbgIsDebugging() || !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!DbgIsDebugging() || !MemIsValidReadPtr(addr))
         return false;
     if(oldbyte == newbyte)
         return true; //no need to make a patch for a byte that is equal to itself
@@ -66,7 +66,7 @@ bool patchdel(uint addr, bool restore)
     if(found == patches.end()) //not found
         return false;
     if(restore)
-        memwrite(fdProcessInfo->hProcess, (void*)(found->second.addr + ModBaseFromAddr(addr)), &found->second.oldbyte, sizeof(char), 0);
+        MemWrite((void*)(found->second.addr + ModBaseFromAddr(addr)), &found->second.oldbyte, sizeof(char), 0);
     patches.erase(found);
     return true;
 }
@@ -88,7 +88,7 @@ void patchdelrange(uint start, uint end, bool restore)
         if(bDelAll || (i->second.addr >= start && i->second.addr < end))
         {
             if(restore)
-                memwrite(fdProcessInfo->hProcess, (void*)(i->second.addr + modbase), &i->second.oldbyte, sizeof(char), 0);
+                MemWrite((void*)(i->second.addr + modbase), &i->second.oldbyte, sizeof(char), 0);
             patches.erase(i++);
         }
         else

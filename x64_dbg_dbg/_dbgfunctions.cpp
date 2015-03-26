@@ -72,7 +72,7 @@ static bool _patchinrange(duint start, duint end)
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    return mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
+    return MemPatch((void*)va, (void*)src, size, 0);
 }
 
 static void _patchrestorerange(duint start, duint end)
@@ -162,7 +162,7 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 
 static void _memupdatemap()
 {
-    memupdatemap(fdProcessInfo->hProcess);
+    MemUpdateMap(fdProcessInfo->hProcess);
 }
 
 void dbgfunctionsinit()

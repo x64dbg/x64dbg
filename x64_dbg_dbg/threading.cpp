@@ -62,23 +62,3 @@ void SectionLockerGlobal::Deinitialize()
 
     m_Initialized = false;
 }
-
-/*
-SharedSectionLocker::SharedSectionLocker(SectionLock LockIndex)
-    : ExclusiveSectionLocker(LockIndex)
-{
-    // Nothing to do here; parent class constructor is called
-}
-
-void SharedSectionLocker::Lock()
-{
-    AcquireSRWLockShared(m_Lock);
-    m_LockCount++;
-}
-
-void SharedSectionLocker::Unlock()
-{
-    m_LockCount--;
-    ReleaseSRWLockShared(m_Lock);
-}
-*/

@@ -158,7 +158,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         }
         //Check the destination
         uint dest;
-        if(!valfromstring(argv[1], &dest) || !memisvalidreadptr(fdProcessInfo->hProcess, dest))
+        if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
         {
             dprintf("invalid destination \"%s\"\n", argv[1]);
             return STATUS_ERROR;
@@ -175,7 +175,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             data[j] = res;
         }
         //Move data to destination
-        if(!memwrite(fdProcessInfo->hProcess, (void*)dest, data, data.size(), 0))
+        if(!MemWrite((void*)dest, data, data.size(), 0))
         {
             dprintf("failed to write to "fhex"\n", dest);
             return STATUS_ERROR;
@@ -1053,7 +1053,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!mempatch(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
+    if(!MemPatch((void*)addr, string, strlen(string), 0))
     {
         dputs("memwrite failed!");
         return STATUS_ERROR;
@@ -1084,14 +1084,14 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     uint size = 0;
-    uint base = memfindbaseaddr(addr, &size, true);
+    uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
-    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    if(!MemRead((void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1136,14 +1136,14 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     uint size = 0;
-    uint base = memfindbaseaddr(addr, &size, true);
+    uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
-    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
+    if(!MemRead((void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1192,7 +1192,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         if(findData)
         {
             Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
-            memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
+            MemRead((void*)result, printData, patternsize, 0);
             for(int j = 0, k = 0; j < patternsize; j++)
             {
                 if(j)

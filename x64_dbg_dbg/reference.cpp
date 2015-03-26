@@ -10,7 +10,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
     uint start_size;
     uint base;
     uint base_size;
-    base = memfindbaseaddr(addr, &base_size, true);
+    base = MemFindBaseAddr(addr, &base_size, true);
     if(!base or !base_size)
     {
         if(!silent)
@@ -33,7 +33,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
             start_size = maxsize;
     }
     Memory<unsigned char*> data(start_size, "reffind:data");
-    if(!memread(fdProcessInfo->hProcess, (const void*)start_addr, data, start_size, 0))
+    if(!MemRead((void*)start_addr, data, start_size, 0))
     {
         if(!silent)
             dputs("error reading memory");

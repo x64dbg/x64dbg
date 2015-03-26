@@ -117,7 +117,7 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
 bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     unsigned int data[16];
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
         return false;
     return disasmfast((unsigned char*)data, addr, basicinfo);
 }

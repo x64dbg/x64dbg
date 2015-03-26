@@ -15,7 +15,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
         return false;
 
     // A valid memory address must be supplied
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
+    if(!MemIsValidReadPtr(Address))
         return false;
 
     // Make sure the string is supplied, within bounds, and not a special delimiter

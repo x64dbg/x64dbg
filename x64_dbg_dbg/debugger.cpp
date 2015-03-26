@@ -49,7 +49,7 @@ static DWORD WINAPI memMapThread(void* ptr)
         if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when
         {
             cachePrivateUsage = PrivateUsage;
-            memupdatemap(fdProcessInfo->hProcess);
+            MemUpdateMap(fdProcessInfo->hProcess);
         }
         Sleep(1000);
     }
@@ -185,7 +185,7 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
+    if(MemIsValidReadPtr(disasm_addr))
         GuiDisasmAt(disasm_addr, cip);
     uint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
@@ -338,7 +338,7 @@ void cbMemoryBreakpoint(void* ExceptionAddress)
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     uint size;
-    uint base = memfindbaseaddr((uint)ExceptionAddress, &size, true);
+    uint base = MemFindBaseAddr((uint)ExceptionAddress, &size, true);
     BREAKPOINT bp;
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
@@ -487,7 +487,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     case BPMEMORY:
     {
         uint size = 0;
-        memfindbaseaddr(bp->addr, &size);
+        MemFindBaseAddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
             dprintf("Could not set memory breakpoint "fhex"!\n", bp->addr);
     }
@@ -576,7 +576,7 @@ static unsigned char getCIPch()
 {
     unsigned char ch = 0x90;
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    memread(fdProcessInfo->hProcess, (void*)cip, &ch, 1, 0);
+    MemRead((void*)cip, &ch, 1, 0);
     return ch;
 }
 
@@ -604,8 +604,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
-    memupdatemap(fdProcessInfo->hProcess);
-    GuiDumpAt(memfindbaseaddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
+    MemUpdateMap(fdProcessInfo->hProcess);
+    GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     //init program database
     int len = (int)strlen(szFileName);
@@ -635,7 +635,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess); //update memory map
+    MemUpdateMap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";
     if(ModNameFromAddr((uint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
@@ -723,7 +723,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadStart"))
     {
         dbggetprivateusage(fdProcessInfo->hProcess, true);
-        memupdatemap(fdProcessInfo->hProcess); //update memory map
+        MemUpdateMap(fdProcessInfo->hProcess); //update memory map
         //update GUI
         GuiSetDebugState(paused);
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
@@ -773,7 +773,7 @@ static void cbSystemBreakpoint(void* ExceptionData)
         dputs("System breakpoint reached!");
     bSkipExceptions = false; //we are not skipping first-chance exceptions
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    GuiDumpAt(memfindbaseaddr(cip, 0, true)); //dump somewhere
+    GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;
@@ -815,7 +815,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    memupdatemap(fdProcessInfo->hProcess); //update memory map
+    MemUpdateMap(fdProcessInfo->hProcess); //update memory map
     char modname[256] = "";
     if(ModNameFromAddr((uint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
@@ -942,7 +942,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     if(!DebugString->fUnicode) //ASCII
     {
         Memory<char*> DebugText(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
-        if(memread(fdProcessInfo->hProcess, DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
+        if(MemRead(DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
             String str = String(DebugText);
             if(str != lastDebugText) //fix for every string being printed twice
@@ -1022,7 +1022,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-            if(memread(fdProcessInfo->hProcess, nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+            if(MemRead((void*)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName);
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
@@ -1234,7 +1234,7 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPMEMORY or bp->enabled)
         return true;
     uint size = 0;
-    memfindbaseaddr(bp->addr, &size);
+    MemFindBaseAddr(bp->addr, &size);
     if(!BpEnable(bp->addr, BPMEMORY, true) or !SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
     {
         dprintf("Could not enable memory breakpoint "fhex"\n", bp->addr);
@@ -1282,7 +1282,7 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     if(!bp->enabled)
         return true;
     uint size;
-    memfindbaseaddr(bp->addr, &size);
+    MemFindBaseAddr(bp->addr, &size);
     if(!BpDelete(bp->addr, BPMEMORY) or !RemoveMemoryBPX(bp->addr, size))
     {
         dprintf("Delete memory breakpoint failed: "fhex"\n", bp->addr);
@@ -1743,7 +1743,7 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 
     //cast-trick to calculate the address of the remote peb field ProcessParameters
     cmd_line_error->addr = (uint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
-    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters), &size))
+    if(!MemRead((void*)cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters), &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
         return false;
@@ -1762,7 +1762,7 @@ static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_err
     unsigned char data[100];
 
     cmd_line_error->addr = getcommandline;
-    if(!memread(fdProcessInfo->hProcess, (const void*) cmd_line_error->addr, & data, sizeof(data), & size))
+    if(!MemRead((void*) cmd_line_error->addr, & data, sizeof(data), & size))
     {
         cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
         return false;
@@ -1796,7 +1796,7 @@ static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_err
 #endif
 
     //update the pointer in the debuggee
-    if(!memwrite(fdProcessInfo->hProcess, (void*)command_line_stored, &new_command_line, sizeof(new_command_line), &size))
+    if(!MemWrite((void*)command_line_stored, &new_command_line, sizeof(new_command_line), &size))
     {
         cmd_line_error->addr = command_line_stored;
         cmd_line_error->type = CMDL_ERR_WRITE_GETCOMMANDLINESTORED;
@@ -1865,21 +1865,21 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     new_command_line.Buffer = command_linewstr;
 
-    uint mem = (uint)memalloc(fdProcessInfo->hProcess, 0, new_command_line.Length * 2, PAGE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2, PAGE_READWRITE);
     if(!mem)
     {
         cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
         return false;
     }
 
-    if(!memwrite(fdProcessInfo->hProcess, (void*)mem, new_command_line.Buffer, new_command_line.Length, &size))
+    if(!MemWrite((void*)mem, new_command_line.Buffer, new_command_line.Length, &size))
     {
         cmd_line_error->addr = mem;
         cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
         return false;
     }
 
-    if(!memwrite(fdProcessInfo->hProcess, (void*)(mem + new_command_line.Length), cmd_line, strlen(cmd_line) + 1, &size))
+    if(!MemWrite((void*)(mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1, &size))
     {
         cmd_line_error->addr = mem + new_command_line.Length;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
@@ -1890,7 +1890,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
 
     new_command_line.Buffer = (PWSTR) mem;
-    if(!memwrite(fdProcessInfo->hProcess, (void*)command_line_addr, &new_command_line, sizeof(new_command_line), &size))
+    if(!MemWrite((void*)command_line_addr, &new_command_line, sizeof(new_command_line), &size))
     {
         cmd_line_error->addr = command_line_addr;
         cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
@@ -1912,7 +1912,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
         return false;
 
-    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, &CommandLine, sizeof(CommandLine), &size))
+    if(!MemRead((void*)cmd_line_error->addr, &CommandLine, sizeof(CommandLine), &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
         return false;
@@ -1921,7 +1921,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
 
     cmd_line_error->addr = (uint) CommandLine.Buffer;
-    if(!memread(fdProcessInfo->hProcess, (const void*)cmd_line_error->addr, wstr_cmd, CommandLine.Length, &size))
+    if(!MemRead((void*)cmd_line_error->addr, wstr_cmd, CommandLine.Length, &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
         return false;

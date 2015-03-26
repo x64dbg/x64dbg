@@ -15,7 +15,7 @@ bool BookmarkSet(uint Address, bool Manual)
         return false;
 
     // Validate the incoming address
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, Address))
+    if(!MemIsValidReadPtr(Address))
         return false;
 
     BOOKMARKSINFO bookmark;

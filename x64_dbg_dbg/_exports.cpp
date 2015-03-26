@@ -26,17 +26,17 @@ static bool bOnlyCipAutoComments = false;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
-    return memfindbaseaddr(addr, size);
+    return MemFindBaseAddr(addr, size);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
+    return MemRead((void*)addr, dest, size, read);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
 {
-    return memwrite(fdProcessInfo->hProcess, (void*)addr, src, size, written);
+    return MemWrite((void*)addr, (void*)src, size, written);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
@@ -57,7 +57,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 
 extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 {
-    return memisvalidreadptr(fdProcessInfo->hProcess, addr);
+    return MemIsValidReadPtr(addr);
 }
 
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
@@ -122,7 +122,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
                 {
                     uint val = 0;
-                    if(memread(fdProcessInfo->hProcess, (const void*)basicinfo.memory.value, &val, sizeof(val), 0))
+                    if(MemRead((void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
                         if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
@@ -567,7 +567,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         curBp.addr = list[i].addr;
         curBp.enabled = list[i].enabled;
         //TODO: fix this
-        if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
+        if(MemIsValidReadPtr(curBp.addr))
             curBp.active = true;
         strcpy_s(curBp.mod, list[i].mod);
         strcpy_s(curBp.name, list[i].name);
@@ -776,7 +776,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         if(!param1 or !param2)
             return 0;
         unsigned char data[16];
-        if(!memread(fdProcessInfo->hProcess, param1, data, sizeof(data), 0))
+        if(!MemRead(param1, data, sizeof(data), 0))
             return 0;
         DISASM disasm;
         memset(&disasm, 0, sizeof(disasm));

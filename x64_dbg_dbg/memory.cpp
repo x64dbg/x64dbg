@@ -8,7 +8,7 @@
 MemoryMap memoryPages;
 bool bListAllPages = false;
 
-void memupdatemap(HANDLE hProcess)
+void MemUpdateMap(HANDLE hProcess)
 {
     CriticalSectionLocker locker(LockMemoryPages);
     MEMORY_BASIC_INFORMATION mbi;
@@ -123,102 +123,139 @@ void memupdatemap(HANDLE hProcess)
     }
 }
 
-uint memfindbaseaddr(uint addr, uint* size, bool refresh)
+uint MemFindBaseAddr(uint addr, uint* Size, bool refresh)
 {
+    // Update the memory map if needed
     if(refresh)
-        memupdatemap(fdProcessInfo->hProcess); //update memory map
-    CriticalSectionLocker locker(LockMemoryPages);
-    MemoryMap::iterator found = memoryPages.find(std::make_pair(addr, addr));
+        MemUpdateMap(fdProcessInfo->hProcess);
+
+    SHARED_ACQUIRE(LockMemoryPages);
+
+    // Search for the memory page address
+    auto found = memoryPages.find(std::make_pair(addr, addr));
+
     if(found == memoryPages.end())
         return 0;
-    if(size)
-        *size = found->second.mbi.RegionSize;
+
+    // Return the allocation region size when requested
+    if(Size)
+        *Size = found->second.mbi.RegionSize;
+
     return found->first.first;
 }
 
-bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Buffer must be supplied and size must be greater than 0
+    if(!Buffer || Size <= 0)
         return false;
-    SIZE_T read = 0;
-    DWORD oldprotect = 0;
-    bool ret = MemoryReadSafe(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
-    if(ret and read == nSize) //'normal' RPM worked!
-    {
-        if(lpNumberOfBytesRead)
-            *lpNumberOfBytesRead = read;
+
+    // If the 'bytes read' parameter is null, use a temp
+    SIZE_T bytesReadTemp = 0;
+
+    if(!NumberOfBytesRead)
+        NumberOfBytesRead = &bytesReadTemp;
+
+    // Normal single-call read
+    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
+
+    // Did the normal memory read work?
+    if(ret && *NumberOfBytesRead == Size)
         return true;
-    }
-    for(uint i = 0; i < nSize; i++) //read byte-per-byte
+
+    // Read byte-by-byte
+    // TODO: Replace this with a better method (PAGE_SIZE)
+    for(uint i = 0; i < Size; i++)
     {
-        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
-        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
-        ret = MemoryReadSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' RPM
-        if(!ret) //we failed
+        unsigned char* curaddr  = (unsigned char*)BaseAddress + i;
+        unsigned char* curbuf   = (unsigned char*)Buffer + i;
+
+        ret = MemoryReadSafe(fdProcessInfo->hProcess, curaddr, curbuf, 1, nullptr);
+
+        if(!ret)
         {
-            if(lpNumberOfBytesRead)
-                *lpNumberOfBytesRead = i;
+            *NumberOfBytesRead = i;
+
             SetLastError(ERROR_PARTIAL_COPY);
             return false;
         }
     }
+
     return true;
 }
 
-bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Buffer must be supplied and size must be greater than 0
+    if(!Buffer || Size <= 0)
         return false;
-    SIZE_T written = 0;
-    DWORD oldprotect = 0;
-    bool ret = MemoryWriteSafe(hProcess, lpBaseAddress, lpBuffer, nSize, &written);
-    if(ret and written == nSize) //'normal' WPM worked!
-    {
-        if(lpNumberOfBytesWritten)
-            *lpNumberOfBytesWritten = written;
+
+    // If the 'bytes written' parameter is null, use a temp
+    SIZE_T bytesWrittenTemp = 0;
+
+    if(!NumberOfBytesWritten)
+        NumberOfBytesWritten = &bytesWrittenTemp;
+
+    // Try a regular WriteProcessMemory call
+    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesWritten);
+
+    if(ret and * NumberOfBytesWritten == Size)
         return true;
-    }
-    for(uint i = 0; i < nSize; i++) //write byte-per-byte
+
+    // Fallback: Write byte-by-byte
+    for(SIZE_T i = 0; i < Size; i++)
     {
-        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
-        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
-        ret = MemoryWriteSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' WPM
-        if(!ret) //we failed
+        unsigned char* curaddr  = (unsigned char*)BaseAddress + i;
+        unsigned char* curbuf   = (unsigned char*)Buffer + i;
+
+        ret = MemoryWriteSafe(fdProcessInfo->hProcess, curaddr, curbuf, 1, nullptr);
+
+        if(!ret)
         {
-            if(lpNumberOfBytesWritten)
-                *lpNumberOfBytesWritten = i;
+            *NumberOfBytesWritten = i;
+
             SetLastError(ERROR_PARTIAL_COPY);
             return false;
         }
     }
+
     return true;
 }
 
-bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Buffer and size must be valid
+    if(!Buffer || Size <= 0)
         return false;
-    Memory<unsigned char*> olddata(nSize, "mempatch:olddata");
-    if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
-        return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
-    unsigned char* newdata = (unsigned char*)lpBuffer;
-    for(uint i = 0; i < nSize; i++)
-        patchset((uint)lpBaseAddress + i, olddata[i], newdata[i]);
-    return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+
+    // Allocate the memory
+    Memory<unsigned char*> olddata(Size, "mempatch:olddata");
+
+    if(!MemRead(BaseAddress, olddata, Size, nullptr))
+    {
+        // If no memory can be read, no memory can be written. Fail out
+        // of this function.
+        return false;
+    }
+
+    for(SIZE_T i = 0; i < Size; i++)
+        patchset((uint)BaseAddress + i, olddata[i], ((unsigned char*)Buffer)[i]);
+
+    return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }
 
-bool memisvalidreadptr(HANDLE hProcess, uint addr)
+bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return memread(hProcess, (void*)addr, &a, 1, 0);
+    return MemRead((void*)Address, &a, 1, nullptr);
 }
 
-void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
+void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect)
 {
-    return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE | MEM_COMMIT, fdProtect);
+    return VirtualAllocEx(fdProcessInfo->hProcess, (void*)Address, Size, MEM_RESERVE | MEM_COMMIT, Protect);
 }
 
-void memfree(HANDLE hProcess, uint addr)
+void MemFreeRemote(uint Address)
 {
-    VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
+    VirtualFreeEx(fdProcessInfo->hProcess, (void*)Address, 0, MEM_RELEASE);
 }
