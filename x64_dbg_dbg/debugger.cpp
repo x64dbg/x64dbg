@@ -58,8 +58,8 @@ static DWORD WINAPI memMapThread(void* ptr)
 
 void dbginit()
 {
-    exceptioninit();
-    errorinit();
+    ExceptionCodeInit();
+    ErrorCodeInit();
     CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
 }
 
@@ -1030,7 +1030,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             }
         }
     }
-    const char* exceptionName = exceptionnamefromcode(ExceptionCode);
+    const char* exceptionName = ExceptionCodeToName(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
         if(exceptionName)

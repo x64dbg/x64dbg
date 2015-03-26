@@ -1,9 +1,9 @@
 #include "error.h"
-#include <map>
+#include <unordered_map>
 
-static std::map<unsigned int, const char*> errorNames;
+std::unordered_map<unsigned int, const char*> errorNames;
 
-void errorinit()
+void ErrorCodeInit()
 {
     errorNames.insert(std::make_pair(0, "ERROR_SUCCESS"));
     errorNames.insert(std::make_pair(1, "ERROR_INVALID_FUNCTION"));
@@ -2194,7 +2194,7 @@ void errorinit()
     errorNames.insert(std::make_pair(15301, "ERROR_HASH_NOT_PRESENT"));
 }
 
-const char* errornamefromcode(unsigned int ErrorCode)
+const char* ErrorCodeToName(unsigned int ErrorCode)
 {
     if(!errorNames.count(ErrorCode))
         return nullptr;

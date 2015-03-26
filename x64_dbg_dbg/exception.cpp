@@ -1,9 +1,9 @@
 #include "exception.h"
-#include <map>
+#include <unordered_map>
 
-static std::map<unsigned int, const char*> exceptionNames;
+std::unordered_map<unsigned int, const char*> exceptionNames;
 
-void exceptioninit()
+void ExceptionCodeInit()
 {
     exceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     exceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
@@ -69,7 +69,7 @@ void exceptioninit()
     exceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
 }
 
-const char* exceptionnamefromcode(unsigned int ExceptionCode)
+const char* ExceptionCodeToName(unsigned int ExceptionCode)
 {
     if(!exceptionNames.count(ExceptionCode))
         return nullptr;
