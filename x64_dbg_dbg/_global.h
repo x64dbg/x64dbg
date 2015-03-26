@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"

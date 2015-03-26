@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "debugger.h"
 
-typedef std::map<uint, LABELSINFO> LabelsInfo;
+typedef std::unordered_map<uint, LABELSINFO> LabelsInfo;
 
 static LabelsInfo labels;
 

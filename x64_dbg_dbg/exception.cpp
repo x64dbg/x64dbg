@@ -5,6 +5,7 @@ std::unordered_map<unsigned int, const char*> ExceptionNames;
 
 void ExceptionCodeInit()
 {
+	ExceptionNames.clear();
     ExceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     ExceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
     ExceptionNames.insert(std::make_pair(0x4000001C, "STATUS_WX86_UNSIMULATE"));

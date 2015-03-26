@@ -4,7 +4,7 @@
 #include "debugger.h"
 #include "memory.h"
 
-typedef std::map<uint, COMMENTSINFO> CommentsInfo;
+typedef std::unordered_map<uint, COMMENTSINFO> CommentsInfo;
 
 static CommentsInfo comments;
 
@@ -23,7 +23,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
         return false;
 
     // Delete the comment if no text was supplied
-    if(!*Text)
+    if(Text[0] == '\0')
     {
         CommentDelete(Address);
         return true;
@@ -42,7 +42,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
 
     EXCLUSIVE_ACQUIRE(LockComments);
 
-    // Only add if the key wasn't present
+    // Insert if possible, otherwise replace
     if(!comments.insert(std::make_pair(key, comment)).second)
         comments[key] = comment;
 
