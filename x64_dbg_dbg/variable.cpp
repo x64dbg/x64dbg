@@ -68,13 +68,22 @@ void varinit()
 
 void varfree()
 {
-    EXCLUSIVE_ACQUIRE(LockVariables);
+	EXCLUSIVE_ACQUIRE(LockVariables);
+
+	// Each variable must be deleted manually; strings especially
+	// because there are sub-allocations
+	VAR_VALUE emptyValue;
+
+	for (auto& itr : variables)
+		varsetvalue(&itr.second, &emptyValue);
+
+	// Now clear all vector elements
     variables.clear();
 }
 
 VAR* vargetptr()
 {
-    // TODO: Implement this? Or remove it.
+    // TODO: Implement this? Or remove it
     return nullptr;
 }
 
