@@ -156,46 +156,49 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
 	if (!MemIsCanonicalAddress((uint)BaseAddress))
 		return false;
 
-    // Buffer must be supplied and size must be greater than 0
-    if(!Buffer || Size <= 0)
-        return false;
+	// Buffer must be supplied and size must be greater than 0
+	if (!Buffer || Size <= 0)
+		return false;
 
-    // If the 'bytes read' parameter is null, use a temp
-    SIZE_T bytesReadTemp = 0;
+	// If the 'bytes read' parameter is null, use a temp
+	SIZE_T bytesReadTemp = 0;
 
-    if(!NumberOfBytesRead)
-        NumberOfBytesRead = &bytesReadTemp;
+	if (!NumberOfBytesRead)
+		NumberOfBytesRead = &bytesReadTemp;
 
-    // Normal single-call read
-    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
+	// Normal single-call read
+	bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
 
-    if(ret && *NumberOfBytesRead == Size)
-        return true;
+	if (ret && *NumberOfBytesRead == Size)
+		return true;
 
-    // Read page-by-page
+	// Read page-by-page (Skip if only 1 page exists)
 	// If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
 	SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-	// Determine the number of bytes between ADDRESS and the next page
-	uint offset		= 0;
-	uint readBase	= (uint)BaseAddress;
-	uint readSize	= ROUND_TO_PAGES(readBase) - readBase;
-
-	// Reset the bytes read count
-	*NumberOfBytesRead = 0;
-
-	for (SIZE_T i = 0; i < pageCount; i++)
+	if (pageCount > 1)
 	{
-		SIZE_T bytesRead = 0;
+		// Determine the number of bytes between ADDRESS and the next page
+		uint offset = 0;
+		uint readBase = (uint)BaseAddress;
+		uint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
-		if (MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
-			*NumberOfBytesRead += bytesRead;
+		// Reset the bytes read count
+		*NumberOfBytesRead = 0;
 
-		offset		+= readSize;
-		readBase	+= readSize;
+		for (SIZE_T i = 0; i < pageCount; i++)
+		{
+			SIZE_T bytesRead = 0;
 
-		Size		-= readSize;
-		readSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+			if (MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
+				*NumberOfBytesRead += bytesRead;
+
+			offset		+= readSize;
+			readBase	+= readSize;
+
+			Size		-= readSize;
+			readSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+		}
 	}
 
 	SetLastError(ERROR_PARTIAL_COPY);
@@ -224,30 +227,33 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     if(ret and * NumberOfBytesWritten == Size)
         return true;
 
-	// Write page-by-page
+	// Write page-by-page (Skip if only 1 page exists)
 	// See: MemRead
 	SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-	// Determine the number of bytes between ADDRESS and the next page
-	uint offset = 0;
-	uint writeBase = (uint)BaseAddress;
-	uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
-
-	// Reset the bytes read count
-	*NumberOfBytesWritten = 0;
-
-	for (SIZE_T i = 0; i < pageCount; i++)
+	if (pageCount > 1)
 	{
-		SIZE_T bytesWritten = 0;
+		// Determine the number of bytes between ADDRESS and the next page
+		uint offset = 0;
+		uint writeBase = (uint)BaseAddress;
+		uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
 
-		if (MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
-			*NumberOfBytesWritten += bytesWritten;
+		// Reset the bytes read count
+		*NumberOfBytesWritten = 0;
 
-		offset		+= writeSize;
-		writeBase	+= writeSize;
+		for (SIZE_T i = 0; i < pageCount; i++)
+		{
+			SIZE_T bytesWritten = 0;
 
-		Size		-= writeSize;
-		writeSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+			if (MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
+				*NumberOfBytesWritten += bytesWritten;
+
+			offset		+= writeSize;
+			writeBase	+= writeSize;
+
+			Size		-= writeSize;
+			writeSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+		}
 	}
 
 	SetLastError(ERROR_PARTIAL_COPY);
@@ -285,10 +291,11 @@ bool MemIsValidReadPtr(uint Address)
 bool MemIsCanonicalAddress(uint Address)
 {
 #ifndef _WIN64
-	// 32-bit mode only supports 4GB max
+	// 32-bit mode only supports 4GB max, so limits are
+	// not an issue
 	return true;
 #else
-	// The most-significant 17 bits must be all 1 or all 0
+	// The most-significant 16 bits must be all 1 or all 0
 	// NOTE: Compiler optimizes this to a few bit shifts
 	switch (Address & 0xFFFF800000000000)
 	{
