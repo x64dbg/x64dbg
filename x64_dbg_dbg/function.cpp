@@ -102,7 +102,8 @@ void FunctionDelRange(uint Start, uint End)
         return;
 
     // Should all functions be deleted?
-    if(Start == 0x00000000 && End == 0xFFFFFFFF)
+	// 0x00000000 - 0xFFFFFFFF
+    if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockFunctions);
         functions.clear();

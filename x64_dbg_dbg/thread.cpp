@@ -212,6 +212,7 @@ DWORD ThreadGetId(HANDLE hThread)
     }
 
     // Wasn't found, check with Windows
+	// NOTE: Requires VISTA+
     DWORD id = GetThreadId(hThread);
 
     // Returns 0 on error;

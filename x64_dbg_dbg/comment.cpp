@@ -85,7 +85,8 @@ void CommentDelRange(uint Start, uint End)
         return;
 
     // Are all comments going to be deleted?
-    if(Start == 0x00000000 && End == 0xFFFFFFFF)
+	// 0x00000000 - 0xFFFFFFFF
+    if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockComments);
         comments.clear();

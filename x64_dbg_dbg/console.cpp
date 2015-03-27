@@ -1,5 +1,4 @@
 #include "console.h"
-#include "threading.h"
 
 void dputs(const char* Text)
 {

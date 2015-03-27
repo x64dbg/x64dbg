@@ -275,7 +275,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     // bridge breakpoint
     //
     // TOOD: ASSERT(?) These should never be null
-    if(!Bp or !BridgeBp)
+    if(!Bp || !BridgeBp)
         return;
 
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
