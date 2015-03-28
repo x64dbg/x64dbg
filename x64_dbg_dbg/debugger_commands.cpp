@@ -1403,7 +1403,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     char szModulePath[MAX_PATH] = "";
     strcpy_s(szModulePath, StringUtils::Utf16ToUtf8(wszModulePath).c_str());
     char szOldSearchPath[MAX_PATH] = "";
-    if(!SymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
+    if(!SafeSymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
     {
         dputs("SymGetSearchPath failed!");
         return STATUS_ERROR;
@@ -1412,24 +1412,24 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
     if(argc > 2)
         szSymbolStore = argv[2];
     sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
-    if(!SymSetSearchPath(fdProcessInfo->hProcess, szServerSearchPath)) //set new search path
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, szServerSearchPath)) //set new search path
     {
         dputs("SymSetSearchPath (1) failed!");
         return STATUS_ERROR;
     }
-    if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
+    if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
     {
-        SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
+        SafeSymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
         dputs("SymUnloadModule64 failed!");
         return STATUS_ERROR;
     }
-    if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
+    if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, szModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
     {
         dputs("SymLoadModuleEx failed!");
-        SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
+        SafeSymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath);
         return STATUS_ERROR;
     }
-    if(!SymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath))
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath))
     {
         dputs("SymSetSearchPath (2) failed!");
         return STATUS_ERROR;

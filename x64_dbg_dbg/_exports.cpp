@@ -108,10 +108,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-            if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+            if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
                 pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -124,10 +124,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     uint val = 0;
                     if(MemRead((void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
-                        if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
+                        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
                             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
@@ -161,7 +161,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
+            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
             {
                 char filename[deflen] = "";
                 strcpy_s(filename, line.FileName);
