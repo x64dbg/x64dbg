@@ -179,9 +179,9 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
 	if (pageCount > 1)
 	{
 		// Determine the number of bytes between ADDRESS and the next page
-		uint offset = 0;
-		uint readBase = (uint)BaseAddress;
-		uint readSize = ROUND_TO_PAGES(readBase) - readBase;
+		uint offset		= 0;
+		uint readBase	= (uint)BaseAddress;
+		uint readSize	= ROUND_TO_PAGES(readBase) - readBase;
 
 		// Reset the bytes read count
 		*NumberOfBytesRead = 0;
@@ -234,9 +234,9 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
 	if (pageCount > 1)
 	{
 		// Determine the number of bytes between ADDRESS and the next page
-		uint offset = 0;
-		uint writeBase = (uint)BaseAddress;
-		uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
+		uint offset		= 0;
+		uint writeBase	= (uint)BaseAddress;
+		uint writeSize	= ROUND_TO_PAGES(writeBase) - writeBase;
 
 		// Reset the bytes read count
 		*NumberOfBytesWritten = 0;
@@ -295,16 +295,12 @@ bool MemIsCanonicalAddress(uint Address)
 	// not an issue
 	return true;
 #else
-	// The most-significant 16 bits must be all 1 or all 0
-	// NOTE: Compiler optimizes this to a few bit shifts
-	switch (Address & 0xFFFF800000000000)
-	{
-	case 0xFFFF800000000000:
-	case 0x0000000000000000:
-		return true;
-	}
-
-	return false;
+	// The most-significant 16 bits must be all 1 or all 0.
+	// (64 - 16) = 48bit linear address range.
+	//
+	// 0xFFFF800000000000 = Significant 16 bits set
+	// 0x0000800000000000 = 48th bit set
+	return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
 #endif // _WIN64
 }
 
