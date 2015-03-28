@@ -20,13 +20,13 @@ bool BookmarkSet(uint Address, bool Manual)
 
     BOOKMARKSINFO bookmark;
     ModNameFromAddr(Address, bookmark.mod, true);
-    bookmark.addr   = Address - ModBaseFromAddr(Address);
+    bookmark.addr   = Address;
     bookmark.manual = Manual;
 
     // Exclusive lock to insert new data
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
-    if(!bookmarks.insert(std::make_pair(ModHashFromAddr(Address), bookmark)).second)
+    if(!bookmarks.insert(std::make_pair(Address, bookmark)).second)
         return BookmarkDelete(Address);
 
     return true;
@@ -39,7 +39,7 @@ bool BookmarkGet(uint Address)
         return false;
 
     SHARED_ACQUIRE(LockBookmarks);
-    return (bookmarks.count(ModHashFromAddr(Address)) > 0);
+    return (bookmarks.count(Address) > 0);
 }
 
 bool BookmarkDelete(uint Address)
@@ -49,7 +49,7 @@ bool BookmarkDelete(uint Address)
         return false;
 
     EXCLUSIVE_ACQUIRE(LockBookmarks);
-    return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
+    return (bookmarks.erase(Address) > 0);
 }
 
 void BookmarkDelRange(uint Start, uint End)
@@ -72,10 +72,6 @@ void BookmarkDelRange(uint Start, uint End)
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
-
-        // Virtual -> relative offset
-        Start   -= moduleBase;
-        End     -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
@@ -108,8 +104,12 @@ void BookmarkCacheSave(JSON Root)
     {
         JSON currentBookmark = json_object();
 
+		// The address must be adjusted to use an offset
+		// OFFSET = ADDRESS - MOD_BASE
+		uint virtualOffset = itr.second.addr - ModBaseFromAddr(itr.second.addr);
+
         json_object_set_new(currentBookmark, "module", json_string(itr.second.mod));
-        json_object_set_new(currentBookmark, "address", json_hex(itr.second.addr));
+        json_object_set_new(currentBookmark, "address", json_hex(virtualOffset));
 
         if(itr.second.manual)
             json_array_append_new(jsonBookmarks, currentBookmark);
@@ -152,8 +152,11 @@ void BookmarkCacheLoad(JSON Root)
             bookmarkInfo.addr   = (uint)json_hex_value(json_object_get(value, "address"));
             bookmarkInfo.manual = Manual;
 
-            const uint key = ModHashFromName(bookmarkInfo.mod) + bookmarkInfo.addr;
-            bookmarks.insert(std::make_pair(key, bookmarkInfo));
+			// The offset must be adjusted to use virtual addressing
+			// ADDRESS = OFFSET + MOD_BASE
+			bookmarkInfo.addr += ModBaseFromName(bookmarkInfo.mod);
+
+            bookmarks.insert(std::make_pair(bookmarkInfo.addr, bookmarkInfo));
         }
     };
 
@@ -189,11 +192,11 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
             return true;
     }
 
-    // Copy struct and adjust the relative offset to a virtual address
+    // Copy struct over
     for(auto & itr : bookmarks)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(List->mod);
+        *List = itr.second;
+		List++;
     }
 
     return true;
