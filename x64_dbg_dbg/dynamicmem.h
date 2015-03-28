@@ -4,6 +4,10 @@ template<typename T>
 class Memory
 {
 public:
+	//
+	// This class guarantees that the returned allocated memory
+	// will always be zeroed
+	//
     Memory(const char* Reason = "Memory:???")
     {
         m_Ptr		= nullptr;
