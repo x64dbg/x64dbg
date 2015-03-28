@@ -32,6 +32,7 @@ enum CriticalSectionLock
     LockPatches,
     LockThreads,
     LockDprintf,
+    LockSym,
     LockLast
 };
 

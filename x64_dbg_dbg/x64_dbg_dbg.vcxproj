@@ -19,6 +19,7 @@
     <ClCompile Include="command.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
+    <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="debugger_commands.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />

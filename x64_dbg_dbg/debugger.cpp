@@ -622,17 +622,17 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbload();
-    SymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
+    SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
-    SymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
-    SymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
-    SymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    SafeSymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
+    SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
+    SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(modInfo);
-    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+    if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
@@ -697,7 +697,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     //Cleanup
-    SymCleanup(fdProcessInfo->hProcess);
+    SafeSymCleanup(fdProcessInfo->hProcess);
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
@@ -808,11 +808,11 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         else
             strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
-    SymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
+    SafeSymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
-    if(SymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
+    if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         modload((uint)base, modInfo.ImageSize, modInfo.ImageName);
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     memupdatemap(fdProcessInfo->hProcess); //update memory map
@@ -910,7 +910,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     if(modnamefromaddr((uint)base, modname, true))
         bpenumall(cbRemoveModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
-    SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
+    SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)base);
     dprintf("DLL Unloaded: "fhex" %s\n", base, modname);
 
     if(bBreakOnNextDll || settingboolget("Events", "DllUnload"))

@@ -22,12 +22,7 @@
 #include "DeviceNameResolver\DeviceNameResolver.h"
 #include "handle.h"
 #include "stringutils.h"
-
-#ifdef __GNUC__
-#include "dbghelp\dbghelp.h"
-#else
-#include <dbghelp.h>
-#endif //__GNUC__
+#include "dbghelp_safe.h"
 
 #ifndef __GNUC__
 #define and &&
