@@ -97,9 +97,7 @@ bool arraycontains(const char* cmd_list, const char* cmd)
 
 bool scmp(const char* a, const char* b)
 {
-    if(_stricmp(a, b))
-        return false;
-    return true;
+	return _stricmp(a, b) == 0;
 }
 
 void formathex(char* string)

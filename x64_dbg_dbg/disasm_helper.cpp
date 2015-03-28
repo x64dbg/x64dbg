@@ -321,11 +321,11 @@ bool disasmispossiblestring(uint addr)
 {
     unsigned char data[11];
     memset(data, 0, sizeof(data));
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data) - 3, 0))
+    if(!MemRead((void*)addr, data, sizeof(data) - 3, 0))
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(memisvalidreadptr(fdProcessInfo->hProcess, test)) //imports/pointers
+    if(MemIsValidReadPtr(test)) //imports/pointers
         return false;
     if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
         return true;
@@ -340,11 +340,11 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         return false;
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
     memset(data, 0, (maxlen + 1) * 2);
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen + 1) * 2, 0))
+    if(!MemRead((void*)addr, data, (maxlen + 1) * 2, 0))
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(memisvalidreadptr(fdProcessInfo->hProcess, test))
+    if(MemIsValidReadPtr(test))
         return false;
     if(isasciistring(data, maxlen))
     {
@@ -442,7 +442,7 @@ int disasmgetsize(uint addr, unsigned char* data)
 int disasmgetsize(uint addr)
 {
     char data[16];
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
         return 1;
     return disasmgetsize(addr, (unsigned char*)data);
 }

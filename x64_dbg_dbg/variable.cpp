@@ -6,30 +6,36 @@ static VAR* vars;
 
 static void varsetvalue(VAR* var, VAR_VALUE* value)
 {
-    switch(var->value.type)
+    // VAR_STRING needs to be freed before destroying it
+    if(var->value.type == VAR_STRING)
     {
-    case VAR_STRING:
         var->value.u.data->clear();
         delete var->value.u.data;
-        break;
-    default:
-        break;
     }
+
+    // Replace all information in the struct
     memcpy(&var->value, value, sizeof(VAR_VALUE));
 }
 
 static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 {
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
     name_ += name;
     VariableMap::iterator found = variables.find(name_);
-    if(found == variables.end()) //not found
+    if(found == variables.end())  //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        EXCLUSIVE_RELEASE();
+
         return varset(found->second.alias.c_str(), value, setreadonly);
+    }
+
     if(!setreadonly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
     varsetvalue(&found->second, value);
@@ -39,39 +45,55 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
 void varinit()
 {
     varfree();
-    //General variables
+
+    // General variables
     varnew("$result\1$res", 0, VAR_SYSTEM);
     varnew("$result1\1$res1", 0, VAR_SYSTEM);
     varnew("$result2\1$res2", 0, VAR_SYSTEM);
     varnew("$result3\1$res3", 0, VAR_SYSTEM);
     varnew("$result4\1$res4", 0, VAR_SYSTEM);
-    //InitDebug variables
-    varnew("$hProcess\1$hp", 0, VAR_READONLY);
-    varnew("$pid", 0, VAR_READONLY);
-    //hidden variables
+
+    // InitDebug variables
+    varnew("$hProcess\1$hp", 0, VAR_READONLY);  // Process handle
+    varnew("$pid", 0, VAR_READONLY);            // Process ID
+
+    // Hidden variables
     varnew("$ans\1$an", 0, VAR_HIDDEN);
-    //read-only variables
-    varnew("$lastalloc", 0, VAR_READONLY);
-    varnew("$_EZ_FLAG", 0, VAR_READONLY); //equal/zero flag for internal use (1=equal, 0=unequal)
-    varnew("$_BS_FLAG", 0, VAR_READONLY); //bigger/smaller flag for internal use (1=bigger, 0=smaller)
+
+    // Read-only variables
+    varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation
+    varnew("$_EZ_FLAG", 0, VAR_READONLY);   // Equal/zero flag for internal use (1=equal, 0=unequal)
+    varnew("$_BS_FLAG", 0, VAR_READONLY);   // Bigger/smaller flag for internal use (1=bigger, 0=smaller)
 }
 
 void varfree()
 {
-    CriticalSectionLocker locker(LockVariables);
+	EXCLUSIVE_ACQUIRE(LockVariables);
+
+	// Each variable must be deleted manually; strings especially
+	// because there are sub-allocations
+	VAR_VALUE emptyValue;
+
+	for (auto& itr : variables)
+		varsetvalue(&itr.second, &emptyValue);
+
+	// Now clear all vector elements
     variables.clear();
 }
 
 VAR* vargetptr()
 {
-    return 0;
+    // TODO: Implement this? Or remove it
+    return nullptr;
 }
 
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
-    CriticalSectionLocker locker(LockVariables);
     if(!name)
         return false;
+
+    CriticalSectionLocker locker(LockVariables);
+
     std::vector<String> names = StringUtils::Split(name, '\1');
     String firstName;
     for(int i = 0; i < (int)names.size(); i++)
@@ -100,7 +122,8 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
 
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
-    CriticalSectionLocker locker(LockVariables);
+    SHARED_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -109,7 +132,12 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        SHARED_RELEASE();
+
         return varget(found->second.alias.c_str(), value, size, type);
+    }
     if(type)
         *type = found->second.type;
     if(size)
@@ -184,7 +212,8 @@ bool varset(const char* name, const char* string, bool setreadonly)
 
 bool vardel(const char* name, bool delsystem)
 {
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -193,7 +222,13 @@ bool vardel(const char* name, bool delsystem)
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
+    {
+        // Release the lock (potential deadlock here)
+        EXCLUSIVE_RELEASE();
+
         return vardel(found->second.alias.c_str(), delsystem);
+    }
+
     if(!delsystem && found->second.type != VAR_USER)
         return false;
     found = variables.begin();
@@ -209,7 +244,8 @@ bool vardel(const char* name, bool delsystem)
 
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
-    CriticalSectionLocker locker(LockVariables);
+    SHARED_ACQUIRE(LockVariables);
+
     String name_;
     if(*name != '$')
         name_ = "$";
@@ -226,18 +262,29 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
     return true;
 }
 
-bool varenum(VAR* entries, size_t* cbsize)
+bool varenum(VAR* List, size_t* Size)
 {
-    CriticalSectionLocker locker(LockVariables);
-    if(!entries && !cbsize || !variables.size())
+    // A list or size must be requested
+    if(!List && !Size)
         return false;
-    if(!entries && cbsize)
+
+    SHARED_ACQUIRE(LockVariables);
+
+    if(Size)
     {
-        *cbsize = variables.size() * sizeof(VAR);
-        return true;
+        // Size requested, so return it
+        *Size = variables.size() * sizeof(VAR);
+
+        if(!List)
+            return true;
     }
-    int j = 0;
-    for(VariableMap::iterator i = variables.begin(); i != variables.end(); ++i, j++)
-        entries[j] = i->second;
+
+    // Fill out all list entries
+    for(auto & itr : variables)
+    {
+        *List = itr.second;
+        List++;
+    }
+
     return true;
 }

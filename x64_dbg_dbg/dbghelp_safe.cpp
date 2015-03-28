@@ -10,7 +10,6 @@ DWORD
     __in DWORD flags
     )
 {
-    CriticalSectionLocker locker(LockSym);
     return UnDecorateSymbolName(name, outputString, maxStringLength, flags);
 }
 BOOL
@@ -19,7 +18,7 @@ BOOL
     __in DWORD64 BaseOfDll
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymUnloadModule64(hProcess, BaseOfDll);
 }
 BOOL
@@ -28,7 +27,7 @@ BOOL
     __in_opt PCSTR SearchPath
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymSetSearchPath(hProcess, SearchPath);
 }
 DWORD
@@ -36,7 +35,7 @@ DWORD
     __in DWORD   SymOptions
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymSetOptions(SymOptions);
 }
 BOOL
@@ -46,7 +45,7 @@ BOOL
     __in BOOL fInvadeProcess
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymInitialize(hProcess, UserSearchPath, fInvadeProcess);
 }
 BOOL
@@ -56,7 +55,7 @@ BOOL
     __in ULONG64 UserContext
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymRegisterCallback64(hProcess, CallbackFunction, UserContext);
 }
 DWORD64
@@ -71,7 +70,7 @@ DWORD64
     __in_opt DWORD Flags
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymLoadModuleEx(hProcess, hFile, ImageName, ModuleName, BaseOfDll, DllSize, Data, Flags);
 }
 BOOL
@@ -81,7 +80,7 @@ BOOL
     __out PIMAGEHLP_MODULE64 ModuleInfo
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymGetModuleInfo64(hProcess, qwAddr, ModuleInfo);
 }
 BOOL
@@ -91,7 +90,7 @@ BOOL
     __in DWORD SearchPathLength
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymGetSearchPath(hProcess, SearchPath, SearchPathLength);
 }
 BOOL
@@ -103,8 +102,18 @@ BOOL
     __in_opt PVOID UserContext
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymEnumSymbols(hProcess, BaseOfDll, Mask, EnumSymbolsCallback, UserContext);
+}
+BOOL
+	SafeSymEnumerateModules64(
+	__in HANDLE hProcess,
+	__in PSYM_ENUMMODULES_CALLBACK64 EnumModulesCallback,
+	__in_opt PVOID UserContext
+	)
+{
+	EXCLUSIVE_ACQUIRE(LockSym);
+	return SymEnumerateModules64(hProcess, EnumModulesCallback, UserContext);
 }
 BOOL
     SafeSymEnumerateModules(
@@ -113,7 +122,7 @@ BOOL
     __in_opt PVOID UserContext
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymEnumerateModules(hProcess, EnumModulesCallback, UserContext);
 }
 BOOL
@@ -124,7 +133,7 @@ BOOL
     __out PIMAGEHLP_LINE64 Line64
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymGetLineFromAddr64(hProcess, qwAddr, pdwDisplacement, Line64);
 }
 BOOL
@@ -134,7 +143,7 @@ BOOL
     __inout PSYMBOL_INFO Symbol
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymFromName(hProcess, Name, Symbol);
 }
 BOOL
@@ -145,7 +154,7 @@ BOOL
     __inout PSYMBOL_INFO Symbol
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymFromAddr(hProcess, Address, Displacement, Symbol);
 }
 BOOL
@@ -153,6 +162,6 @@ BOOL
     __in HANDLE hProcess
     )
 {
-    CriticalSectionLocker locker(LockSym);
+    EXCLUSIVE_ACQUIRE(LockSym);
     return SymCleanup(hProcess);
 }

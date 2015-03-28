@@ -1,5 +1,4 @@
-#ifndef _BOOKMARK_H
-#define _BOOKMARK_H
+#pragma once
 
 #include "_global.h"
 
@@ -10,13 +9,11 @@ struct BOOKMARKSINFO
     bool manual;
 };
 
-bool bookmarkset(uint addr, bool manual);
-bool bookmarkget(uint addr);
-bool bookmarkdel(uint addr);
-void bookmarkdelrange(uint start, uint end);
-void bookmarkcachesave(JSON root);
-void bookmarkcacheload(JSON root);
-bool bookmarkenum(BOOKMARKSINFO* bookmarklist, size_t* cbsize);
-void bookmarkclear();
-
-#endif //_BOOKMARK_H
+bool BookmarkSet(uint Address, bool Manual);
+bool BookmarkGet(uint Address);
+bool BookmarkDelete(uint Address);
+void BookmarkDelRange(uint Start, uint End);
+void BookmarkCacheSave(JSON Root);
+void BookmarkCacheLoad(JSON Root);
+bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size);
+void BookmarkClear();

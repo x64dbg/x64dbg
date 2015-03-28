@@ -20,6 +20,7 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
 
     setupContextMenu();
 }
@@ -144,6 +145,11 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     }
 
     wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void MemoryMapView::doubleClickedSlot()
+{
+    followDisassemblerSlot();
 }
 
 QString MemoryMapView::getProtectionString(DWORD Protect)

@@ -11,166 +11,234 @@ struct SYMBOLCBDATA
     void* user;
 };
 
-static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
+static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
-    int len = (int)strlen(pSymInfo->Name);
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
-    curSymbol.addr = (duint)pSymInfo->Address;
-    curSymbol.decoratedSymbol = (char*)BridgeAlloc(len + 1);
-    strcpy_s(curSymbol.decoratedSymbol, len + 1, pSymInfo->Name);
+
+    curSymbol.addr              = (duint)SymInfo->Address;
+    curSymbol.decoratedSymbol   = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
     curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
-    if(strstr(pSymInfo->Name, "Ordinal"))
+    strcpy_s(curSymbol.decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
+
+    // Skip bad ordinals
+    if(strstr(SymInfo->Name, "Ordinal"))
     {
-        //skip bad ordinals
-        if(pSymInfo->Address == pSymInfo->ModBase)
+        // Does the symbol point to the module base?
+        if(SymInfo->Address == SymInfo->ModBase)
             return TRUE;
     }
-    if(!SafeUnDecorateSymbolName(pSymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
+
+    // Convert a mangled/decorated C++ name to a readable format
+    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
-        curSymbol.undecoratedSymbol = 0;
+        curSymbol.undecoratedSymbol = nullptr;
     }
     else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
-        curSymbol.undecoratedSymbol = 0;
+        curSymbol.undecoratedSymbol = nullptr;
     }
+
     SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
 }
 
-void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
     SYMBOLCBDATA symbolCbData;
-    symbolCbData.cbSymbolEnum = cbSymbolEnum;
-    symbolCbData.user = user;
-    char mask[] = "*";
-    SafeSymEnumSymbols(fdProcessInfo->hProcess, base, mask, EnumSymbols, &symbolCbData);
+    symbolCbData.cbSymbolEnum   = EnumCallback;
+    symbolCbData.user           = UserData;
+
+    // Enumerate every single symbol for the module in 'base'
+    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
+        dputs("SymEnumSymbols failed!");
 }
 
-#ifdef _WIN64
-static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
-#else
-static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
-#endif //_WIN64
+bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
 {
-    SYMBOLMODULEINFO curModule;
-    memset(&curModule, 0, sizeof(SYMBOLMODULEINFO));
-    curModule.base = BaseOfDll;
-    modnamefromaddr(BaseOfDll, curModule.name, true);
-    ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
-    return TRUE;
+    //
+    // Inline lambda enum
+    //
+    auto EnumModules = [](LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext) -> BOOL
+    {
+        SYMBOLMODULEINFO curModule;
+        curModule.base = (duint)BaseOfDll;
+
+        // Terminate module name if one isn't found
+        if(!ModNameFromAddr(curModule.base, curModule.name, true))
+            curModule.name[0] = '\0';
+
+        ((std::vector<SYMBOLMODULEINFO>*)UserContext)->push_back(curModule);
+        return TRUE;
+    };
+
+    // Execute the symbol enumerator (Force cast to STDCALL)
+    if(!SafeSymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
+    {
+        dputs("SymEnumerateModules64 failed!");
+        return false;
+    }
+
+    return true;
 }
 
-void symupdatemodulelist()
+void SymUpdateModuleList()
 {
+    // Build the vector of modules
     std::vector<SYMBOLMODULEINFO> modList;
-    modList.clear();
-    SafeSymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
-    int modcount = (int)modList.size();
-    SYMBOLMODULEINFO* modListBridge = (SYMBOLMODULEINFO*)BridgeAlloc(sizeof(SYMBOLMODULEINFO) * modcount);
-    for(int i = 0; i < modcount; i++)
-        memcpy(&modListBridge[i], &modList.at(i), sizeof(SYMBOLMODULEINFO));
-    GuiSymbolUpdateModuleList(modcount, modListBridge);
-}
 
-void symdownloadallsymbols(const char* szSymbolStore)
-{
-    if(!szSymbolStore)
-        szSymbolStore = "http://msdl.microsoft.com/download/symbols";
-    std::vector<SYMBOLMODULEINFO> modList;
-    modList.clear();
-    SafeSymEnumerateModules(fdProcessInfo->hProcess, EnumModules, &modList);
-    int modcount = (int)modList.size();
-    if(!modcount)
+    if(!SymGetModuleList(&modList))
         return;
-    char szOldSearchPath[MAX_PATH] = "";
-    if(!SafeSymGetSearchPath(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current path
+
+	// Create a new array to be sent to the GUI thread
+	size_t moduleCount		= modList.size();
+	SYMBOLMODULEINFO *data	= (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+
+	// Direct copy from std::vector data
+	memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
+
+    // Send the module data to the GUI for updating
+    GuiSymbolUpdateModuleList((int)moduleCount, data);
+}
+
+void SymDownloadAllSymbols(const char* SymbolStore)
+{
+    // Default to Microsoft's symbol server
+    if(!SymbolStore)
+        SymbolStore = "http://msdl.microsoft.com/download/symbols";
+
+    // Build the vector of modules
+    std::vector<SYMBOLMODULEINFO> modList;
+
+    if(!SymGetModuleList(&modList))
+        return;
+
+    // Skip loading if there aren't any found modules
+    if(modList.size() <= 0)
+        return;
+
+    // Backup the current symbol search path
+    char oldSearchPath[MAX_PATH];
+
+    if(!SafeSymGetSearchPath(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
     {
         dputs("SymGetSearchPath failed!");
         return;
     }
-    char szServerSearchPath[MAX_PATH * 2] = "";
-    sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
-    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, szServerSearchPath)) //update search path
+
+    // Use the custom server path and directory
+    char customSearchPath[MAX_PATH * 2];
+    sprintf_s(customSearchPath, "SRV*%s*%s", szSymbolCachePath, SymbolStore);
+
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, customSearchPath))
     {
         dputs("SymSetSearchPath (1) failed!");
         return;
     }
-    for(int i = 0; i < modcount; i++) //reload all modules
+
+    // Reload
+    for(auto & module : modList)
     {
-        dprintf("downloading symbols for %s...\n", modList.at(i).name);
-        uint modbase = modList.at(i).base;
-        wchar_t szModulePath[MAX_PATH] = L"";
-        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModulePath, MAX_PATH))
+        dprintf("Downloading symbols for %s...\n", module.name);
+
+        wchar_t modulePath[MAX_PATH];
+        if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
         {
-            dprintf("GetModuleFileNameExW("fhex") failed!\n", modbase);
+            dprintf("GetModuleFileNameExW("fhex") failed!\n", module.base);
             continue;
         }
-        if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase))
+
+        if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
         {
-            dprintf("SymUnloadModule64("fhex") failed!\n", modbase);
+            dprintf("SymUnloadModule64("fhex") failed!\n", module.base);
             continue;
         }
-        if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(szModulePath).c_str(), 0, (DWORD64)modbase, 0, 0, 0))
+
+        if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(modulePath).c_str(), 0, (DWORD64)module.base, 0, 0, 0))
         {
-            dprintf("SymLoadModuleEx("fhex") failed!\n", modbase);
+            dprintf("SymLoadModuleEx("fhex") failed!\n", module.base);
             continue;
         }
     }
-    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, szOldSearchPath)) //restore search path
-    {
+
+    // Restore the old search path
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, oldSearchPath))
         dputs("SymSetSearchPath (2) failed!");
-    }
 }
 
-bool symfromname(const char* name, uint* addr)
+bool SymAddrFromName(const char* Name, uint* Address)
 {
-    if(!name or !strlen(name) or !addr or !_strnicmp(name, "ordinal", 7)) //skip 'OrdinalXXX'
+    if(!Name || Name[0] == '\0')
         return false;
+
+    if(!Address)
+        return false;
+
+    // Skip 'OrdinalXXX'
+    if(!_strnicmp(Name, "Ordinal", 7))
+        return false;
+
+    // According to MSDN:
+    // Note that the total size of the data is the SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
     char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-    if(!SafeSymFromName(fdProcessInfo->hProcess, name, pSymbol))
+
+    PSYMBOL_INFO symbol     = (PSYMBOL_INFO)&buffer;
+    symbol->SizeOfStruct    = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen      = MAX_LABEL_SIZE;
+
+    if(!SafeSymFromName(fdProcessInfo->hProcess, Name, symbol))
         return false;
-    *addr = (uint)pSymbol->Address;
+
+    *Address = (uint)symbol->Address;
     return true;
 }
 
-const char* symgetsymbolicname(uint addr)
+const char* SymGetSymbolicName(uint Address)
 {
-    //[modname.]symbolname
-    static char symbolicname[MAX_MODULE_SIZE + MAX_SYM_NAME] = "";
-    char label[MAX_SYM_NAME] = "";
-    bool retval = false;
-    if(labelget(addr, label)) //user labels have priority
-        retval = true;
-    else //no user labels
+    //
+    // This resolves an address to a module and symbol:
+    // [modname.]symbolname
+    //
+    char label[MAX_SYM_NAME];
+
+    // User labels have priority, but if one wasn't found,
+    // default to a symbol lookup
+    if(!labelget(Address, label))
     {
-        DWORD64 displacement = 0;
         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-        PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-        pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-        pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
-        {
-            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-            if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
-                strcpy_s(label, pSymbol->Name);
-            retval = true;
-        }
+
+        PSYMBOL_INFO symbol     = (PSYMBOL_INFO)buffer;
+        symbol->SizeOfStruct    = sizeof(SYMBOL_INFO);
+        symbol->MaxNameLen      = MAX_LABEL_SIZE;
+
+        // Perform a symbol lookup
+        DWORD64 displacement = 0;
+
+        if(!SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)Address, &displacement, symbol))
+            return nullptr;
+
+        // If the symbol wasn't at offset 0 (start from the beginning) ignore it
+        if(displacement != 0)
+            return nullptr;
+
+        // Terminate the string for sanity
+        symbol->Name[symbol->MaxNameLen - 1] = '\0';
+
+        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
+            strcpy_s(label, symbol->Name);
     }
-    if(retval)
-    {
-        char modname[MAX_MODULE_SIZE] = "";
-        if(modnamefromaddr(addr, modname, false))
-            sprintf(symbolicname, "%s.%s", modname, label);
-        else
-            sprintf(symbolicname, "<%s>", label);
-        return symbolicname;
-    }
-    return 0;
+
+    // TODO: FIXME: STATIC VARIABLE
+    static char symbolicname[MAX_MODULE_SIZE + MAX_SYM_NAME];
+    char modname[MAX_MODULE_SIZE];
+
+    if(ModNameFromAddr(Address, modname, false))
+        sprintf_s(symbolicname, "%s.%s", modname, label);
+    else
+        sprintf_s(symbolicname, "<%s>", label);
+
+    return symbolicname;
 }

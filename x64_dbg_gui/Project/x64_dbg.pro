@@ -151,7 +151,8 @@ HEADERS += \
     Src/Gui/PageMemoryRights.h \
     Src/Gui/SelectFields.h \
     Src/Gui/ReferenceManager.h \
-    Src/Bridge/BridgeResult.h
+    Src/Bridge/BridgeResult.h \
+    Src/Utils/StringUtil.h
 
 
 INCLUDEPATH += \

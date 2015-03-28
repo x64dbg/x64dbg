@@ -28,53 +28,37 @@ bool waitislocked(WAIT_ID id)
     return waitarray[id];
 }
 
-CRITICAL_SECTION CriticalSectionLocker::locks[LockLast] = {};
-bool CriticalSectionLocker::bInitDone = false;
+bool SectionLockerGlobal::m_Initialized = false;
+SRWLOCK SectionLockerGlobal::m_Locks[SectionLock::LockLast];
 
-void CriticalSectionLocker::Initialize()
+void SectionLockerGlobal::Initialize()
 {
-    if(bInitDone)
+    if(m_Initialized)
         return;
-    for(int i = 0; i < LockLast; i++)
-        InitializeCriticalSection(&locks[i]);
-    bInitDone = true;
+
+    // Destroy previous data if any existed
+    memset(m_Locks, 0, sizeof(m_Locks));
+
+    for(int i = 0; i < ARRAYSIZE(m_Locks); i++)
+        InitializeSRWLock(&m_Locks[i]);
+
+    m_Initialized = true;
 }
 
-void CriticalSectionLocker::Deinitialize()
+void SectionLockerGlobal::Deinitialize()
 {
-    if(!bInitDone)
+    if(!m_Initialized)
         return;
-    for(int i = 0; i < LockLast; i++)
+
+    for(int i = 0; i < ARRAYSIZE(m_Locks); i++)
     {
-        EnterCriticalSection(&locks[i]); //obtain ownership
-        DeleteCriticalSection(&locks[i]);
+        // Wait for the lock's ownership to be released
+        AcquireSRWLockExclusive(&m_Locks[i]);
+        ReleaseSRWLockExclusive(&m_Locks[i]);
+
+        // Invalidate data
+        memset(&m_Locks[i], 0, sizeof(SRWLOCK));
     }
-    bInitDone = false;
-}
 
-CriticalSectionLocker::CriticalSectionLocker(CriticalSectionLock lock)
-{
-    Initialize(); //initialize critical sections
-    gLock = lock;
-
-    EnterCriticalSection(&locks[gLock]);
-    Locked = true;
-}
-
-CriticalSectionLocker::~CriticalSectionLocker()
-{
-    if(Locked)
-        LeaveCriticalSection(&locks[gLock]);
-}
-
-void CriticalSectionLocker::unlock()
-{
-    Locked = false;
-    LeaveCriticalSection(&locks[gLock]);
-}
-
-void CriticalSectionLocker::relock()
-{
-    EnterCriticalSection(&locks[gLock]);
-    Locked = true;
+    m_Initialized = false;
 }

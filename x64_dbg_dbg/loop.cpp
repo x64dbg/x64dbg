@@ -10,16 +10,16 @@ static LoopsInfo loops;
 
 bool loopadd(uint start, uint end, bool manual)
 {
-    if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
+    if(!DbgIsDebugging() or end < start or !MemIsValidReadPtr(start))
         return false;
-    const uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end)) //the function boundaries are not in the same mem page
+    const uint modbase = ModBaseFromAddr(start);
+    if(modbase != ModBaseFromAddr(end)) //the function boundaries are not in the same mem page
         return false;
     int finaldepth;
     if(loopoverlaps(0, start, end, &finaldepth)) //loop cannot overlap another loop
         return false;
     LOOPSINFO loop;
-    modnamefromaddr(start, loop.mod, true);
+    ModNameFromAddr(start, loop.mod, true);
     loop.start = start - modbase;
     loop.end = end - modbase;
     loop.depth = finaldepth;
@@ -29,7 +29,7 @@ bool loopadd(uint start, uint end, bool manual)
         loop.parent = 0;
     loop.manual = manual;
     CriticalSectionLocker locker(LockLoops);
-    loops.insert(std::make_pair(DepthModuleRange(finaldepth, ModuleRange(modhashfromva(modbase), Range(loop.start, loop.end))), loop));
+    loops.insert(std::make_pair(DepthModuleRange(finaldepth, ModuleRange(ModHashFromAddr(modbase), Range(loop.start, loop.end))), loop));
     return true;
 }
 
@@ -38,9 +38,9 @@ bool loopget(int depth, uint addr, uint* start, uint* end)
 {
     if(!DbgIsDebugging())
         return false;
-    const uint modbase = modbasefromaddr(addr);
+    const uint modbase = ModBaseFromAddr(addr);
     CriticalSectionLocker locker(LockLoops);
-    LoopsInfo::iterator found = loops.find(DepthModuleRange(depth, ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))));
+    LoopsInfo::iterator found = loops.find(DepthModuleRange(depth, ModuleRange(ModHashFromAddr(modbase), Range(addr - modbase, addr - modbase))));
     if(found == loops.end()) //not found
         return false;
     if(start)
@@ -56,10 +56,10 @@ bool loopoverlaps(int depth, uint start, uint end, int* finaldepth)
     if(!DbgIsDebugging())
         return false;
 
-    const uint modbase = modbasefromaddr(start);
+    const uint modbase = ModBaseFromAddr(start);
     uint curStart = start - modbase;
     uint curEnd = end - modbase;
-    const uint key = modhashfromva(modbase);
+    const uint key = ModHashFromAddr(modbase);
 
     CriticalSectionLocker locker(LockLoops);
 
@@ -145,7 +145,7 @@ void loopcacheload(JSON root)
             if(curLoop.end < curLoop.start)
                 continue; //invalid loop
             curLoop.manual = true;
-            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
+            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(ModHashFromName(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
         }
     }
     JSON jsonautoloops = json_object_get(root, "autoloops");
@@ -168,36 +168,45 @@ void loopcacheload(JSON root)
             if(curLoop.end < curLoop.start)
                 continue; //invalid loop
             curLoop.manual = false;
-            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(modhashfromname(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
+            loops.insert(std::make_pair(DepthModuleRange(curLoop.depth, ModuleRange(ModHashFromName(curLoop.mod), Range(curLoop.start, curLoop.end))), curLoop));
         }
     }
 }
 
-bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
+bool loopenum(LOOPSINFO* List, size_t* Size)
 {
-    if(!DbgIsDebugging())
+    // If looplist or size is not requested, fail
+    if(!List && !Size)
         return false;
-    if(!looplist && !cbsize)
-        return false;
-    CriticalSectionLocker locker(LockLoops);
-    if(!looplist && cbsize)
+
+    SHARED_ACQUIRE(LockLoops);
+
+    // See if the caller requested an output size
+    if(Size)
     {
-        *cbsize = loops.size() * sizeof(LOOPSINFO);
-        return true;
+        *Size = loops.size() * sizeof(LOOPSINFO);
+
+        if(!List)
+            return true;
     }
-    int j = 0;
-    for(LoopsInfo::iterator i = loops.begin(); i != loops.end(); ++i, j++)
+
+    for(auto itr = loops.begin(); itr != loops.end(); itr++)
     {
-        looplist[j] = i->second;
-        uint modbase = modbasefromname(looplist[j].mod);
-        looplist[j].start += modbase;
-        looplist[j].end += modbase;
+        *List = itr->second;
+
+        // Adjust the offset to a real virtual address
+        uint modbase    = ModBaseFromName(List->mod);
+        List->start		+= modbase;
+        List->end		+= modbase;
+
+        List++;
     }
+
     return true;
 }
 
 void loopclear()
 {
-    CriticalSectionLocker locker(LockLoops);
-    LoopsInfo().swap(loops);
+    EXCLUSIVE_ACQUIRE(LockLoops);
+    loops.clear();
 }

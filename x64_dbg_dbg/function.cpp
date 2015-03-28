@@ -8,185 +8,257 @@ typedef std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> FunctionsInfo;
 
 static FunctionsInfo functions;
 
-bool functionadd(uint start, uint end, bool manual)
+bool FunctionAdd(uint Start, uint End, bool Manual)
 {
-    if(!DbgIsDebugging() or end < start or !memisvalidreadptr(fdProcessInfo->hProcess, start))
+    // CHECK: Export/Command function
+    if(!DbgIsDebugging())
         return false;
-    const uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end)) //the function boundaries are not in the same module
+
+    // Make sure memory is readable
+    if(!MemIsValidReadPtr(Start))
         return false;
-    if(functionoverlaps(start, end))
+
+    // Fail if boundary exceeds module size
+    const uint moduleBase = ModBaseFromAddr(Start);
+
+    if(moduleBase != ModBaseFromAddr(End))
         return false;
+
+    // Fail if 'Start' and 'End' are incompatible
+    if(Start > End || FunctionOverlaps(Start, End))
+        return false;
+
     FUNCTIONSINFO function;
-    modnamefromaddr(start, function.mod, true);
-    function.start = start - modbase;
-    function.end = end - modbase;
-    function.manual = manual;
-    CriticalSectionLocker locker(LockFunctions);
-    functions.insert(std::make_pair(ModuleRange(modhashfromva(modbase), Range(function.start, function.end)), function));
+    ModNameFromAddr(Start, function.mod, true);
+    function.start  = Start - moduleBase;
+    function.end    = End - moduleBase;
+    function.manual = Manual;
+
+    // Insert to global table
+    EXCLUSIVE_ACQUIRE(LockFunctions);
+
+    functions.insert(std::make_pair(ModuleRange(ModHashFromAddr(moduleBase), Range(function.start, function.end)), function));
     return true;
 }
 
-bool functionget(uint addr, uint* start, uint* end)
+bool FunctionGet(uint Address, uint* Start, uint* End)
 {
+    // CHECK: Exported function
     if(!DbgIsDebugging())
         return false;
-    uint modbase = modbasefromaddr(addr);
-    CriticalSectionLocker locker(LockFunctions);
-    const FunctionsInfo::iterator found = functions.find(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase)));
-    if(found == functions.end()) //not found
+
+    const uint modbase = ModBaseFromAddr(Address);
+
+    // Lookup by module hash, then function range
+    SHARED_ACQUIRE(LockFunctions);
+
+    auto found = functions.find(ModuleRange(ModHashFromAddr(modbase), Range(Address - modbase, Address - modbase)));
+
+    // Was this range found?
+    if(found == functions.end())
         return false;
-    if(start)
-        *start = found->second.start + modbase;
-    if(end)
-        *end = found->second.end + modbase;
+
+    if(Start)
+        *Start = found->second.start + modbase;
+
+    if(End)
+        *End = found->second.end + modbase;
+
     return true;
 }
 
-bool functionoverlaps(uint start, uint end)
+bool FunctionOverlaps(uint Start, uint End)
 {
-    if(!DbgIsDebugging() or end < start)
-        return false;
-    const uint modbase = modbasefromaddr(start);
-    CriticalSectionLocker locker(LockFunctions);
-    return (functions.count(ModuleRange(modhashfromva(modbase), Range(start - modbase, end - modbase))) > 0);
-}
-
-bool functiondel(uint addr)
-{
+    // CHECK: Exported function
     if(!DbgIsDebugging())
         return false;
-    const uint modbase = modbasefromaddr(addr);
-    CriticalSectionLocker locker(LockFunctions);
-    return (functions.erase(ModuleRange(modhashfromva(modbase), Range(addr - modbase, addr - modbase))) > 0);
+
+    // A function can't end before it begins
+    if(Start > End)
+        return false;
+
+    const uint moduleBase = ModBaseFromAddr(Start);
+
+    SHARED_ACQUIRE(LockFunctions);
+    return (functions.count(ModuleRange(ModHashFromAddr(moduleBase), Range(Start - moduleBase, End - moduleBase))) > 0);
 }
 
-void functiondelrange(uint start, uint end)
+bool FunctionDelete(uint Address)
 {
+    // CHECK: Exported function
+    if(!DbgIsDebugging())
+        return false;
+
+    const uint moduleBase = ModBaseFromAddr(Address);
+
+    EXCLUSIVE_ACQUIRE(LockFunctions);
+    return (functions.erase(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase))) > 0);
+}
+
+void FunctionDelRange(uint Start, uint End)
+{
+    // CHECK: Exported function
     if(!DbgIsDebugging())
         return;
-    bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = modbasefromaddr(start);
-    if(modbase != modbasefromaddr(end))
-        return;
-    start -= modbase;
-    end -= modbase;
-    CriticalSectionLocker locker(LockFunctions);
-    FunctionsInfo::iterator i = functions.begin();
-    while(i != functions.end())
+
+    // Should all functions be deleted?
+	// 0x00000000 - 0xFFFFFFFF
+    if(Start == 0 && End == ~0)
     {
-        if(i->second.manual) //ignore manual
+        EXCLUSIVE_ACQUIRE(LockFunctions);
+        functions.clear();
+    }
+    else
+    {
+        // The start and end address must be in the same module
+        uint moduleBase = ModBaseFromAddr(Start);
+
+        if(moduleBase != ModBaseFromAddr(End))
+            return;
+
+        // Convert these to a relative offset
+        Start   -= moduleBase;
+        End     -= moduleBase;
+
+        EXCLUSIVE_ACQUIRE(LockFunctions);
+        for(auto itr = functions.begin(); itr != functions.end();)
         {
-            i++;
-            continue;
+            // Ignore manually set entries
+            if(itr->second.manual)
+            {
+                itr++;
+                continue;
+            }
+
+            // [Start, End]
+            if(itr->second.end >= Start && itr->second.start <= End)
+                itr = functions.erase(itr);
+            else
+                itr++;
         }
-        if(bDelAll or !(i->second.start <= end and i->second.end >= start))
-            functions.erase(i++);
-        else
-            i++;
     }
 }
 
-void functioncachesave(JSON root)
+void FunctionCacheSave(JSON Root)
 {
-    CriticalSectionLocker locker(LockFunctions);
-    const JSON jsonfunctions = json_array();
-    const JSON jsonautofunctions = json_array();
-    for(FunctionsInfo::iterator i = functions.begin(); i != functions.end(); ++i)
+    EXCLUSIVE_ACQUIRE(LockFunctions);
+
+    // Allocate JSON object array
+    const JSON jsonFunctions        = json_array();
+    const JSON jsonAutoFunctions    = json_array();
+
+    for(auto & i : functions)
     {
-        const FUNCTIONSINFO curFunction = i->second;
-        JSON curjsonfunction = json_object();
-        json_object_set_new(curjsonfunction, "module", json_string(curFunction.mod));
-        json_object_set_new(curjsonfunction, "start", json_hex(curFunction.start));
-        json_object_set_new(curjsonfunction, "end", json_hex(curFunction.end));
-        if(curFunction.manual)
-            json_array_append_new(jsonfunctions, curjsonfunction);
+        JSON currentFunction = json_object();
+
+        json_object_set_new(currentFunction, "module", json_string(i.second.mod));
+        json_object_set_new(currentFunction, "start", json_hex(i.second.start));
+        json_object_set_new(currentFunction, "end", json_hex(i.second.end));
+
+        if(i.second.manual)
+            json_array_append_new(jsonFunctions, currentFunction);
         else
-            json_array_append_new(jsonautofunctions, curjsonfunction);
+            json_array_append_new(jsonAutoFunctions, currentFunction);
     }
-    if(json_array_size(jsonfunctions))
-        json_object_set(root, "functions", jsonfunctions);
-    json_decref(jsonfunctions);
-    if(json_array_size(jsonautofunctions))
-        json_object_set(root, "autofunctions", jsonautofunctions);
-    json_decref(jsonautofunctions);
+
+    if(json_array_size(jsonFunctions))
+        json_object_set(Root, "functions", jsonFunctions);
+
+    if(json_array_size(jsonAutoFunctions))
+        json_object_set(Root, "autofunctions", jsonAutoFunctions);
+
+    // Decrease reference count to avoid leaking memory
+    json_decref(jsonFunctions);
+    json_decref(jsonAutoFunctions);
 }
 
-void functioncacheload(JSON root)
+void FunctionCacheLoad(JSON Root)
 {
-    CriticalSectionLocker locker(LockFunctions);
+    EXCLUSIVE_ACQUIRE(LockFunctions);
+
+    // Delete existing entries
     functions.clear();
-    const JSON jsonfunctions = json_object_get(root, "functions");
-    if(jsonfunctions)
+
+    // Inline lambda to enumerate all JSON array indices
+    auto InsertFunctions = [](const JSON Object, bool Manual)
     {
         size_t i;
         JSON value;
-        json_array_foreach(jsonfunctions, i, value)
+        json_array_foreach(Object, i, value)
         {
-            FUNCTIONSINFO curFunction;
+            FUNCTIONSINFO function;
+
+            // Copy module name
             const char* mod = json_string_value(json_object_get(value, "module"));
+
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curFunction.mod, mod);
+                strcpy_s(function.mod, mod);
             else
-                *curFunction.mod = '\0';
-            curFunction.start = (uint)json_hex_value(json_object_get(value, "start"));
-            curFunction.end = (uint)json_hex_value(json_object_get(value, "end"));
-            if(curFunction.end < curFunction.start)
-                continue; //invalid function
-            curFunction.manual = true;
-            const uint key = modhashfromname(curFunction.mod);
-            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
+                function.mod[0] = '\0';
+
+            // Function address
+            function.start  = (uint)json_hex_value(json_object_get(value, "start"));
+            function.end    = (uint)json_hex_value(json_object_get(value, "end"));
+            function.manual = Manual;
+
+            // Sanity check
+            if(function.end < function.start)
+                continue;
+
+            const uint key = ModHashFromName(function.mod);
+            functions.insert(std::make_pair(ModuleRange(ModHashFromName(function.mod), Range(function.start, function.end)), function));
         }
-    }
-    JSON jsonautofunctions = json_object_get(root, "autofunctions");
-    if(jsonautofunctions)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonautofunctions, i, value)
-        {
-            FUNCTIONSINFO curFunction;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curFunction.mod, mod);
-            else
-                *curFunction.mod = '\0';
-            curFunction.start = (uint)json_hex_value(json_object_get(value, "start"));
-            curFunction.end = (uint)json_hex_value(json_object_get(value, "end"));
-            if(curFunction.end < curFunction.start)
-                continue; //invalid function
-            curFunction.manual = true;
-            const uint key = modhashfromname(curFunction.mod);
-            functions.insert(std::make_pair(ModuleRange(modhashfromname(curFunction.mod), Range(curFunction.start, curFunction.end)), curFunction));
-        }
-    }
+    };
+
+    const JSON jsonFunctions        = json_object_get(Root, "functions");
+    const JSON jsonAutoFunctions    = json_object_get(Root, "autofunctions");
+
+    if(jsonFunctions)
+        InsertFunctions(jsonFunctions, true);
+
+    if(jsonAutoFunctions)
+        InsertFunctions(jsonAutoFunctions, false);
 }
 
-bool functionenum(FUNCTIONSINFO* functionlist, size_t* cbsize)
+bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
 {
+    // CHECK: Exported function
     if(!DbgIsDebugging())
         return false;
-    if(!functionlist && !cbsize)
+
+    // If a list isn't passed and the size not requested, fail
+    if(!List && !Size)
         return false;
-    CriticalSectionLocker locker(LockFunctions);
-    if(!functionlist && cbsize)
+
+    SHARED_ACQUIRE(LockFunctions);
+
+    // Did the caller request the buffer size needed?
+    if(Size)
     {
-        *cbsize = functions.size() * sizeof(FUNCTIONSINFO);
-        return true;
+        *Size = functions.size() * sizeof(FUNCTIONSINFO);
+
+        if(!List)
+            return true;
     }
-    int j = 0;
-    for(FunctionsInfo::iterator i = functions.begin(); i != functions.end(); ++i, j++)
+
+    // Fill out the buffer
+    for(auto & itr : functions)
     {
-        functionlist[j] = i->second;
-        uint modbase = modbasefromname(functionlist[j].mod);
-        functionlist[j].start += modbase;
-        functionlist[j].end += modbase;
+        // Adjust for relative to virtual addresses
+        uint moduleBase = ModBaseFromName(itr.second.mod);
+
+        *List           = itr.second;
+        List->start     += moduleBase;
+        List->end       += moduleBase;
+
+        List++;
     }
+
     return true;
 }
 
-void functionclear()
+void FunctionClear()
 {
-    CriticalSectionLocker locker(LockFunctions);
-    FunctionsInfo().swap(functions);
+    EXCLUSIVE_ACQUIRE(LockFunctions);
+    functions.clear();
 }

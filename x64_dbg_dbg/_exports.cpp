@@ -26,17 +26,17 @@ static bool bOnlyCipAutoComments = false;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
-    return memfindbaseaddr(addr, size);
+    return MemFindBaseAddr(addr, size);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return memread(fdProcessInfo->hProcess, (void*)addr, dest, size, read);
+    return MemRead((void*)addr, dest, size, read);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
 {
-    return memwrite(fdProcessInfo->hProcess, (void*)addr, src, size, written);
+    return MemWrite((void*)addr, (void*)src, size, written);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
@@ -57,7 +57,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
 
 extern "C" DLL_EXPORT bool _dbg_memisvalidreadptr(duint addr)
 {
-    return memisvalidreadptr(fdProcessInfo->hProcess, addr);
+    return MemIsValidReadPtr(addr);
 }
 
 extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
@@ -69,6 +69,7 @@ extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
     if(IsFileBeingDebugged())
         return true;
+
     return false;
 }
 
@@ -93,7 +94,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     bool retval = false;
     if(addrinfo->flags & flagmodule) //get module
     {
-        if(modnamefromaddr(addr, addrinfo->module, false)) //get module name
+        if(ModNameFromAddr(addr, addrinfo->module, false)) //get module name
             retval = true;
     }
     if(addrinfo->flags & flaglabel)
@@ -121,7 +122,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
                 {
                     uint val = 0;
-                    if(memread(fdProcessInfo->hProcess, (const void*)basicinfo.memory.value, &val, sizeof(val), 0))
+                    if(MemRead((void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
                         if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
@@ -137,12 +138,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagbookmark)
     {
-        addrinfo->isbookmark = bookmarkget(addr);
+        addrinfo->isbookmark = BookmarkGet(addr);
         retval = true;
     }
     if(addrinfo->flags & flagfunction)
     {
-        if(functionget(addr, &addrinfo->function.start, &addrinfo->function.end))
+        if(FunctionGet(addr, &addrinfo->function.start, &addrinfo->function.end))
             retval = true;
     }
     if(addrinfo->flags & flagloop)
@@ -153,7 +154,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     if(addrinfo->flags & flagcomment)
     {
         *addrinfo->comment = 0;
-        if(commentget(addr, addrinfo->comment))
+        if(CommentGet(addr, addrinfo->comment))
             retval = true;
         else
         {
@@ -299,15 +300,15 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     }
     if(addrinfo->flags & flagcomment) //set comment
     {
-        if(commentset(addr, addrinfo->comment, true))
+        if(CommentSet(addr, addrinfo->comment, true))
             retval = true;
     }
     if(addrinfo->flags & flagbookmark) //set bookmark
     {
         if(addrinfo->isbookmark)
-            retval = bookmarkset(addr, true);
+            retval = BookmarkSet(addr, true);
         else
-            retval = bookmarkdel(addr);
+            retval = BookmarkDelete(addr);
     }
     return retval;
 }
@@ -317,20 +318,20 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     static uint cacheAddr;
     static int cacheBpCount;
     static int cacheResult;
-    int bpcount = bpgetlist(0);
+    int bpcount = BpGetList(nullptr);
     if(cacheAddr != addr or cacheBpCount != bpcount)
     {
         BREAKPOINT bp;
         cacheAddr = addr;
         cacheResult = 0;
         cacheBpCount = bpcount;
-        if(bpget(addr, BPNORMAL, 0, &bp))
+        if(BpGet(addr, BPNORMAL, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_normal;
-        if(bpget(addr, BPHARDWARE, 0, &bp))
+        if(BpGet(addr, BPHARDWARE, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_hardware;
-        if(bpget(addr, BPMEMORY, 0, &bp))
+        if(BpGet(addr, BPMEMORY, 0, &bp))
             if(bp.enabled)
                 cacheResult |= bp_memory;
     }
@@ -503,7 +504,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     if(!bpmap)
         return 0;
     std::vector<BREAKPOINT> list;
-    int bpcount = bpgetlist(&list);
+    int bpcount = BpGetList(&list);
     if(bpcount == 0)
     {
         bpmap->count = 0;
@@ -566,7 +567,7 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         curBp.addr = list[i].addr;
         curBp.enabled = list[i].enabled;
         //TODO: fix this
-        if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
+        if(MemIsValidReadPtr(curBp.addr))
             curBp.active = true;
         strcpy_s(curBp.mod, list[i].mod);
         strcpy_s(curBp.name, list[i].name);
@@ -613,7 +614,7 @@ extern "C" DLL_EXPORT uint _dbg_getbranchdestination(uint addr)
 
 extern "C" DLL_EXPORT bool _dbg_functionoverlaps(uint start, uint end)
 {
-    return functionoverlaps(start, end);
+    return FunctionOverlaps(start, end);
 }
 
 extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* param2)
@@ -689,7 +690,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_SYMBOL_ENUM:
     {
         SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
-        symenum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
+        SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
     }
     break;
 
@@ -701,7 +702,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_MODBASE_FROM_NAME:
     {
-        return modbasefromname((const char*)param1);
+        return ModBaseFromName((const char*)param1);
     }
     break;
 
@@ -719,7 +720,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_GET_THREAD_LIST:
     {
-        threadgetlist((THREADLIST*)param1);
+        ThreadGetList((THREADLIST*)param1);
     }
     break;
 
@@ -775,7 +776,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         if(!param1 or !param2)
             return 0;
         unsigned char data[16];
-        if(!memread(fdProcessInfo->hProcess, param1, data, sizeof(data), 0))
+        if(!MemRead(param1, data, sizeof(data), 0))
             return 0;
         DISASM disasm;
         memset(&disasm, 0, sizeof(disasm));
@@ -804,28 +805,28 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_FUNCTION_GET:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)functionget(info->addr, &info->start, &info->end);
+        return (uint)FunctionGet(info->addr, &info->start, &info->end);
     }
     break;
 
     case DBG_FUNCTION_OVERLAPS:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)functionoverlaps(info->start, info->end);
+        return (uint)FunctionOverlaps(info->start, info->end);
     }
     break;
 
     case DBG_FUNCTION_ADD:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)functionadd(info->start, info->end, info->manual);
+        return (uint)FunctionAdd(info->start, info->end, info->manual);
     }
     break;
 
     case DBG_FUNCTION_DEL:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)functiondel(info->addr);
+        return (uint)FunctionDelete(info->addr);
     }
     break;
 
@@ -866,7 +867,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_IS_BP_DISABLED:
     {
         BREAKPOINT bp;
-        if(bpget((uint)param1, BPNORMAL, 0, &bp))
+        if(BpGet((uint)param1, BPNORMAL, 0, &bp))
             return !(uint)bp.enabled;
         return (uint)false;
     }
@@ -874,13 +875,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SET_AUTO_COMMENT_AT:
     {
-        return (uint)commentset((uint)param1, (const char*)param2, false);
+        return (uint)CommentSet((uint)param1, (const char*)param2, false);
     }
     break;
 
     case DBG_DELETE_AUTO_COMMENT_RANGE:
     {
-        commentdelrange((uint)param1, (uint)param2);
+        CommentDelRange((uint)param1, (uint)param2);
     }
     break;
 
@@ -898,25 +899,25 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SET_AUTO_BOOKMARK_AT:
     {
-        return (uint)bookmarkset((uint)param1, false);
+        return (uint)BookmarkSet((uint)param1, false);
     }
     break;
 
     case DBG_DELETE_AUTO_BOOKMARK_RANGE:
     {
-        bookmarkdelrange((uint)param1, (uint)param2);
+        BookmarkDelRange((uint)param1, (uint)param2);
     }
     break;
 
     case DBG_SET_AUTO_FUNCTION_AT:
     {
-        return (uint)functionadd((uint)param1, (uint)param2, false);
+        return (uint)FunctionAdd((uint)param1, (uint)param2, false);
     }
     break;
 
     case DBG_DELETE_AUTO_FUNCTION_RANGE:
     {
-        functiondelrange((uint)param1, (uint)param2);
+        FunctionDelRange((uint)param1, (uint)param2);
     }
     break;
 
