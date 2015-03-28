@@ -35,16 +35,13 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
     ModNameFromAddr(Address, comment.mod, true);
 
     comment.manual  = Manual;
-    comment.addr    = Address - ModBaseFromAddr(Address);
+    comment.addr    = Address;
 
-    // Insert into list
-    const uint key = ModHashFromAddr(Address);
+	EXCLUSIVE_ACQUIRE(LockComments);
 
-    EXCLUSIVE_ACQUIRE(LockComments);
-
-    // Insert if possible, otherwise replace
-    if(!comments.insert(std::make_pair(key, comment)).second)
-        comments[key] = comment;
+	// Insert if possible, otherwise replace
+	if (!comments.insert(std::make_pair(Address, comment)).second)
+        comments[Address] = comment;
 
     return true;
 }
@@ -58,7 +55,7 @@ bool CommentGet(uint Address, char* Text)
     SHARED_ACQUIRE(LockComments);
 
     // Get an existing comment and copy the string buffer
-    auto found = comments.find(ModHashFromAddr(Address));
+    auto found = comments.find(Address);
 
     // Was it found?
     if(found == comments.end())
@@ -75,7 +72,7 @@ bool CommentDelete(uint Address)
         return false;
 
     EXCLUSIVE_ACQUIRE(LockComments);
-    return (comments.erase(ModHashFromAddr(Address)) > 0);
+    return (comments.erase(Address) > 0);
 }
 
 void CommentDelRange(uint Start, uint End)
@@ -98,10 +95,6 @@ void CommentDelRange(uint Start, uint End)
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
-
-        // Virtual -> relative offset
-        Start   -= moduleBase;
-        End     -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockComments);
         for(auto itr = comments.begin(); itr != comments.end();)
@@ -126,16 +119,19 @@ void CommentCacheSave(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockComments);
 
-    const JSON jsonComments     = json_array();
-    const JSON jsonAutoComments = json_array();
+	const JSON jsonComments		= json_array();
+	const JSON jsonAutoComments = json_array();
 
     // Build the JSON array
     for(auto & itr : comments)
     {
         JSON currentComment = json_object();
 
+		// OFFSET = ADDRESS - MOD_BASE
+		uint virtualOffset = itr.second.addr - ModBaseFromAddr(itr.second.addr);
+
         json_object_set_new(currentComment, "module", json_string(itr.second.mod));
-        json_object_set_new(currentComment, "address", json_hex(itr.second.addr));
+        json_object_set_new(currentComment, "address", json_hex(virtualOffset));
         json_object_set_new(currentComment, "text", json_string(itr.second.text));
 
         if(itr.second.manual)
@@ -192,8 +188,10 @@ void CommentCacheLoad(JSON Root)
                 continue;
             }
 
-            const uint key = ModHashFromName(commentInfo.mod) + commentInfo.addr;
-            comments.insert(std::make_pair(key, commentInfo));
+			// ADDRESS = OFFSET + MOD_BASE
+			commentInfo.addr += ModBaseFromName(commentInfo.mod);
+
+            comments.insert(std::make_pair(commentInfo.addr, commentInfo));
         }
     };
 
@@ -236,9 +234,7 @@ bool CommentEnum(COMMENTSINFO* List, size_t* Size)
     // Populate the returned array
     for(auto & itr : comments)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(List->mod);
-
+        *List = itr.second;
         List++;
     }
 
