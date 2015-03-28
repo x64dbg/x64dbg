@@ -224,7 +224,7 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     // Try a regular WriteProcessMemory call
     bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesWritten);
 
-    if(ret and * NumberOfBytesWritten == Size)
+    if(ret && * NumberOfBytesWritten == Size)
         return true;
 
 	// Write page-by-page (Skip if only 1 page exists)

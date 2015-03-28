@@ -52,6 +52,7 @@ enum SectionLock
     // a deadlock.
     // https://bitbucket.org/mrexodia/x64_dbg/issue/247/x64-dbg-bug-string-references-function
     LockWin8Workaround,
+
     LockLast,
 };
 
