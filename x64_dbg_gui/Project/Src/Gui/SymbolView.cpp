@@ -195,10 +195,12 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     for(int i = 0; i < module_count; i++)
     {
         mModuleBaseList.insert(modules[i].name, modules[i].base);
-        mModuleList->setCellContent(i, 0, AddressToString(modules[i].base));
+        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->reloadData();
+    if(modules)
+        BridgeFree(modules);
 }
 
 void SymbolView::symbolContextMenu(QMenu* wMenu)
