@@ -93,8 +93,15 @@ void SymUpdateModuleList()
     if(!SymGetModuleList(&modList))
         return;
 
+	// Create a new array to be sent to the GUI thread
+	size_t moduleCount		= modList.size();
+	SYMBOLMODULEINFO *data	= (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+
+	// Direct copy from std::vector data
+	memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
+
     // Send the module data to the GUI for updating
-    GuiSymbolUpdateModuleList((int)modList.size(), modList.data());
+    GuiSymbolUpdateModuleList((int)moduleCount, data);
 }
 
 void SymDownloadAllSymbols(const char* SymbolStore)

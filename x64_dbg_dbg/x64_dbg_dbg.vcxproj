@@ -248,6 +248,9 @@
       <ModeOfStaticAnalysis>None</ModeOfStaticAnalysis>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <UseProcessorExtensions>AVXI</UseProcessorExtensions>
+      <CheckUndimensionedArrays>false</CheckUndimensionedArrays>
+      <CheckPointers>None</CheckPointers>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -266,8 +269,11 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
-      <UseIntelOptimizedHeaders>true</UseIntelOptimizedHeaders>
+      <UseIntelOptimizedHeaders>false</UseIntelOptimizedHeaders>
       <Optimization>Disabled</Optimization>
+      <CheckPointers>Rw</CheckPointers>
+      <CheckDanglingPointers>None</CheckDanglingPointers>
+      <CheckUndimensionedArrays>true</CheckUndimensionedArrays>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
