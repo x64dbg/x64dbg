@@ -10,7 +10,6 @@ DWORD
     __in DWORD flags
     )
 {
-	EXCLUSIVE_ACQUIRE(LockSym);
     return UnDecorateSymbolName(name, outputString, maxStringLength, flags);
 }
 BOOL
