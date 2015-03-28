@@ -45,14 +45,14 @@ enum SectionLock
     LockPatches,
     LockThreads,
     LockDprintf,
+	LockSym,
 
     // This is defined because of a bug in the Windows 8.1 kernel;
     // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
     // a deadlock.
     // https://bitbucket.org/mrexodia/x64_dbg/issue/247/x64-dbg-bug-string-references-function
     LockWin8Workaround,
-
-    LockLast
+    LockLast,
 };
 
 class SectionLockerGlobal

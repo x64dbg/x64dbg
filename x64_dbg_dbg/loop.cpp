@@ -173,33 +173,33 @@ void loopcacheload(JSON root)
     }
 }
 
-bool loopenum(LOOPSINFO* looplist, size_t* cbsize)
+bool loopenum(LOOPSINFO* List, size_t* Size)
 {
     // If looplist or size is not requested, fail
-    if(!looplist && !cbsize)
+    if(!List && !Size)
         return false;
 
     SHARED_ACQUIRE(LockLoops);
 
     // See if the caller requested an output size
-    if(cbsize)
+    if(Size)
     {
-        *cbsize = loops.size() * sizeof(LOOPSINFO);
+        *Size = loops.size() * sizeof(LOOPSINFO);
 
-        if(!looplist)
+        if(!List)
             return true;
     }
 
     for(auto itr = loops.begin(); itr != loops.end(); itr++)
     {
-        *looplist = itr->second;
+        *List = itr->second;
 
         // Adjust the offset to a real virtual address
-        uint modbase    = ModBaseFromName(looplist->mod);
-        looplist->start += modbase;
-        looplist->end   += modbase;
+        uint modbase    = ModBaseFromName(List->mod);
+        List->start		+= modbase;
+        List->end		+= modbase;
 
-        looplist++;
+        List++;
     }
 
     return true;
@@ -209,5 +209,4 @@ void loopclear()
 {
     EXCLUSIVE_ACQUIRE(LockLoops);
     loops.clear();
-    EXCLUSIVE_RELEASE();
 }

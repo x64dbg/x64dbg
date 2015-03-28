@@ -30,7 +30,7 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID U
     }
 
     // Convert a mangled/decorated C++ name to a readable format
-    if(!UnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
+    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
     {
         BridgeFree(curSymbol.undecoratedSymbol);
         curSymbol.undecoratedSymbol = nullptr;
@@ -53,7 +53,7 @@ void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     symbolCbData.user           = UserData;
 
     // Enumerate every single symbol for the module in 'base'
-    if(!SymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
+    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
         dputs("SymEnumSymbols failed!");
 }
 
@@ -76,7 +76,7 @@ bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
     };
 
     // Execute the symbol enumerator (Force cast to STDCALL)
-    if(!SymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
+    if(!SafeSymEnumerateModules64(fdProcessInfo->hProcess, EnumModules, List))
     {
         dputs("SymEnumerateModules64 failed!");
         return false;
@@ -116,7 +116,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     // Backup the current symbol search path
     char oldSearchPath[MAX_PATH];
 
-    if(!SymGetSearchPath(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
+    if(!SafeSymGetSearchPath(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
     {
         dputs("SymGetSearchPath failed!");
         return;
@@ -126,7 +126,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     char customSearchPath[MAX_PATH * 2];
     sprintf_s(customSearchPath, "SRV*%s*%s", szSymbolCachePath, SymbolStore);
 
-    if(!SymSetSearchPath(fdProcessInfo->hProcess, customSearchPath))
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, customSearchPath))
     {
         dputs("SymSetSearchPath (1) failed!");
         return;
@@ -144,13 +144,13 @@ void SymDownloadAllSymbols(const char* SymbolStore)
             continue;
         }
 
-        if(!SymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
+        if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
         {
             dprintf("SymUnloadModule64("fhex") failed!\n", module.base);
             continue;
         }
 
-        if(!SymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(modulePath).c_str(), 0, (DWORD64)module.base, 0, 0, 0))
+        if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(modulePath).c_str(), 0, (DWORD64)module.base, 0, 0, 0))
         {
             dprintf("SymLoadModuleEx("fhex") failed!\n", module.base);
             continue;
@@ -158,7 +158,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     }
 
     // Restore the old search path
-    if(!SymSetSearchPath(fdProcessInfo->hProcess, oldSearchPath))
+    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, oldSearchPath))
         dputs("SymSetSearchPath (2) failed!");
 }
 
@@ -182,7 +182,7 @@ bool SymAddrFromName(const char* Name, uint* Address)
     symbol->SizeOfStruct    = sizeof(SYMBOL_INFO);
     symbol->MaxNameLen      = MAX_LABEL_SIZE;
 
-    if(!SymFromName(fdProcessInfo->hProcess, Name, symbol))
+    if(!SafeSymFromName(fdProcessInfo->hProcess, Name, symbol))
         return false;
 
     *Address = (uint)symbol->Address;
@@ -210,7 +210,7 @@ const char* SymGetSymbolicName(uint Address)
         // Perform a symbol lookup
         DWORD64 displacement = 0;
 
-        if(!SymFromAddr(fdProcessInfo->hProcess, (DWORD64)Address, &displacement, symbol))
+        if(!SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)Address, &displacement, symbol))
             return nullptr;
 
         // If the symbol wasn't at offset 0 (start from the beginning) ignore it
@@ -220,7 +220,7 @@ const char* SymGetSymbolicName(uint Address)
         // Terminate the string for sanity
         symbol->Name[symbol->MaxNameLen - 1] = '\0';
 
-        if(!bUndecorateSymbolNames || !UnDecorateSymbolName(symbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
+        if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(symbol->Name, label, MAX_SYM_NAME, UNDNAME_COMPLETE))
             strcpy_s(label, symbol->Name);
     }
 
