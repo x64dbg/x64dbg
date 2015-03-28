@@ -1,12 +1,19 @@
 #include "math.h"
 #include "value.h"
 
+enum BRACKET_TYPE
+{
+	BRACKET_FREE,
+	BRACKET_OPEN,
+	BRACKET_CLOSE,
+};
+
 struct BRACKET_PAIR
 {
     int openpos;
     int closepos;
     int layer;
-    int isset; //0=free, 1=open, 2=close
+    BRACKET_TYPE isset;
 };
 
 struct EXPRESSION
@@ -79,37 +86,37 @@ bool mathcontains(const char* text)
 }
 
 #ifdef __MINGW64__
-static inline unsigned long long umulhi(unsigned long long x, unsigned long long y)
+inline unsigned long long umulhi(unsigned long long x, unsigned long long y)
 {
     return (unsigned long long)(((__uint128_t)x * y) >> 64);
 }
 
-static inline long long mulhi(long long x, long long y)
+inline long long mulhi(long long x, long long y)
 {
     return (long long)(((__int128_t)x * y) >> 64);
 }
 #elif _WIN64
 #include <intrin.h>
-static inline unsigned long long umulhi(unsigned long long x, unsigned long long y)
+inline unsigned long long umulhi(unsigned long long x, unsigned long long y)
 {
     unsigned __int64 res;
     _umul128(x, y, &res);
     return res;
 }
 
-static inline long long mulhi(long long x, long long y)
+inline long long mulhi(long long x, long long y)
 {
     __int64 res;
     _mul128(x, y, &res);
     return res;
 }
 #else
-static inline unsigned int umulhi(unsigned int x, unsigned int y)
+inline unsigned int umulhi(unsigned int x, unsigned int y)
 {
     return (unsigned int)(((unsigned long long)x * y) >> 32);
 }
 
-static inline int mulhi(int x, int y)
+inline int mulhi(int x, int y)
 {
     return (int)(((long long)x * y) >> 32);
 }
@@ -213,7 +220,7 @@ bool mathdosignedoperation(char op, sint left, sint right, sint* result)
     return false;
 }
 
-static void fillpair(EXPRESSION* expstruct, int pos, int layer)
+void fillpair(EXPRESSION* expstruct, int pos, int layer)
 {
     for(int i = 0; i < expstruct->total_pairs; i++)
     {
@@ -221,20 +228,20 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
         {
             expstruct->pairs[i].layer = layer;
             expstruct->pairs[i].openpos = pos;
-            expstruct->pairs[i].isset = 1;
+            expstruct->pairs[i].isset = BRACKET_OPEN;
             break;
         }
         else if(expstruct->pairs[i].layer == layer and expstruct->pairs[i].isset == 1)
         {
             expstruct->pairs[i].closepos = pos;
-            expstruct->pairs[i].isset = 2;
+            expstruct->pairs[i].isset = BRACKET_CLOSE;
             break;
         }
     }
 }
 
 
-static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
+int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
 {
     int layer = endlayer;
     int len = (int)strlen(expression);
@@ -262,7 +269,7 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
     return 0;
 }
 
-static int expressionformat(char* exp)
+int expressionformat(char* exp)
 {
     int len = (int)strlen(exp);
     int open = 0;
@@ -285,7 +292,7 @@ static int expressionformat(char* exp)
     return open;
 }
 
-static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_len, int new_len)
+void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_len, int new_len)
 {
     for(int i = 0; i < exps->total_pairs; i++)
     {
@@ -296,7 +303,7 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
     }
 }
 
-static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
+bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
 {
     for(int i = 0; i < exps->total_pairs; i++)
     {
