@@ -198,11 +198,12 @@ uint ModBaseFromName(const char* Module)
 
     for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
     {
-        char curmodname[MAX_MODULE_SIZE];
-        sprintf(curmodname, "%s%s", itr->second.name, itr->second.extension);
+        char currentModule[MAX_MODULE_SIZE];
+		strcpy_s(currentModule, itr->second.name);
+		strcat_s(currentModule, itr->second.extension);
 
         // Test with and without extension
-        if(!_stricmp(curmodname, Module) || !_stricmp(itr->second.name, Module))
+        if(!_stricmp(currentModule, Module) || !_stricmp(itr->second.name, Module))
             return itr->second.base;
     }
 

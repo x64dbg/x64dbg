@@ -31,6 +31,9 @@
     <None Include="..\bug.ico" />
     <None Include="manifest.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="app.manifest" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A22175E-6B72-FDCC-1603-C4A2163C7900}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
