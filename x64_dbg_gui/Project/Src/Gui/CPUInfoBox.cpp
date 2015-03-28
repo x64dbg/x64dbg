@@ -184,7 +184,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     char section[MAX_SECTION_SIZE] = "";
     if(DbgFunctions()->SectionFromAddr(parVA, section))
         info += "\"" + QString(section) + "\":";
-    info += QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    info += AddressToString(parVA);
     char label[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
         info += " <" + QString(label) + ">";

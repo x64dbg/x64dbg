@@ -404,7 +404,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 #endif //_WIN64
             }
         }
-        addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        addrText += AddressToString(cur_addr);
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
