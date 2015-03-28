@@ -16,7 +16,7 @@ static QString AddressToString(int_t Address)
     char temp[32];
 
 #ifdef _WIN64
-    sprintf_s(temp, "%16llX", Address);
+    sprintf_s(temp, "%016llX", Address);
 #else
     sprintf_s(temp, "%08X", Address);
 #endif // _WIN64
