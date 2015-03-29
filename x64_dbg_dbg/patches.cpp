@@ -6,7 +6,7 @@
 #include "threading.h"
 #include "module.h"
 
-typedef std::map<uint, PATCHINFO> PatchesInfo;
+typedef std::unordered_map<uint, PATCHINFO> PatchesInfo;
 
 static PatchesInfo patches;
 
