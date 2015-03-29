@@ -812,7 +812,7 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
     for(uint i = addr; i < addr + 100000; i++)
     {
         CommentSet(i, "test", false);
-        labelset(i, "test", false);
+        LabelSet(i, "test", false);
         BookmarkSet(i, false);
         FunctionAdd(i, i, false);
     }

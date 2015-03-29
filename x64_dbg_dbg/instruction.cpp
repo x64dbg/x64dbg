@@ -331,7 +331,7 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!labelset(addr, argv[2], true))
+    if(!LabelSet(addr, argv[2], true))
     {
         dputs("error setting label");
         return STATUS_ERROR;
@@ -350,7 +350,7 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!labeldel(addr))
+    if(!LabelDelete(addr))
     {
         dputs("error deleting label");
         return STATUS_ERROR;
@@ -1228,7 +1228,7 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     {
         uint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
         char label[MAX_LABEL_SIZE] = "";
-        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !labelget(ptr, label); //a non-user label
+        found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label); //a non-user label
     }
     if(found)
     {
@@ -1305,14 +1305,14 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Label");
     GuiReferenceReloadData();
     size_t cbsize;
-    labelenum(0, &cbsize);
+    LabelEnum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no labels");
         return STATUS_CONTINUE;
     }
     Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
-    labelenum(labels, 0);
+    LabelEnum(labels, 0);
     int count = (int)(cbsize / sizeof(LABELSINFO));
     for(int i = 0; i < count; i++)
     {
@@ -1395,7 +1395,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         if(GuiGetDisassembly(functions[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
-        if(labelget(functions[i].start, label))
+        if(LabelGet(functions[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {
@@ -1441,7 +1441,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         if(GuiGetDisassembly(loops[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
-        if(labelget(loops[i].start, label))
+        if(LabelGet(loops[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {

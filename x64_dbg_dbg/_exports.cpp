@@ -99,7 +99,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flaglabel)
     {
-        if(labelget(addr, addrinfo->label))
+        if(LabelGet(addr, addrinfo->label))
             retval = true;
         else //no user labels
         {
@@ -295,7 +295,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     bool retval = false;
     if(addrinfo->flags & flaglabel) //set label
     {
-        if(labelset(addr, addrinfo->label, true))
+        if(LabelSet(addr, addrinfo->label, true))
             retval = true;
     }
     if(addrinfo->flags & flagcomment) //set comment
@@ -887,13 +887,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SET_AUTO_LABEL_AT:
     {
-        return (uint)labelset((uint)param1, (const char*)param2, false);
+        return (uint)LabelSet((uint)param1, (const char*)param2, false);
     }
     break;
 
     case DBG_DELETE_AUTO_LABEL_RANGE:
     {
-        labeldelrange((uint)param1, (uint)param2);
+        LabelDelRange((uint)param1, (uint)param2);
     }
     break;
 

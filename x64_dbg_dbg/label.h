@@ -1,5 +1,4 @@
-#ifndef _LABEL_H
-#define _LABEL_H
+#pragma once
 
 #include "_global.h"
 
@@ -11,14 +10,12 @@ struct LABELSINFO
     bool manual;
 };
 
-bool labelset(uint addr, const char* text, bool manual);
+bool LabelSet(uint addr, const char* text, bool manual);
 bool labelfromstring(const char* text, uint* addr);
-bool labelget(uint addr, char* text);
-bool labeldel(uint addr);
-void labeldelrange(uint start, uint end);
+bool LabelGet(uint addr, char* text);
+bool LabelDelete(uint addr);
+void LabelDelRange(uint start, uint end);
 void labelcachesave(JSON root);
 void labelcacheload(JSON root);
-bool labelenum(LABELSINFO* labellist, size_t* cbsize);
-void labelclear();
-
-#endif //_LABEL_H
+bool LabelEnum(LABELSINFO* labellist, size_t* cbsize);
+void LabelClear();

@@ -8,89 +8,139 @@ typedef std::unordered_map<uint, LABELSINFO> LabelsInfo;
 
 static LabelsInfo labels;
 
-bool labelset(uint addr, const char* text, bool manual)
+bool LabelSet(uint Address, const char* Text, bool Manual)
 {
-    if(!DbgIsDebugging() or !MemIsValidReadPtr(addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
-        return false;
-    if(!*text) //NOTE: delete when there is no text
-    {
-        labeldel(addr);
-        return true;
-    }
-    LABELSINFO label;
-    label.manual = manual;
-    strcpy_s(label.text, text);
-    ModNameFromAddr(addr, label.mod, true);
-    label.addr = addr - ModBaseFromAddr(addr);
-    uint key = ModHashFromAddr(addr);
-    CriticalSectionLocker locker(LockLabels);
-    if(!labels.insert(std::make_pair(ModHashFromAddr(key), label)).second) //already present
+	// CHECK: Exported/Command function
+	if (!DbgIsDebugging())
+		return false;
+
+	// A valid memory address must be supplied
+	if (!MemIsValidReadPtr(Address))
+		return false;
+
+	// Make sure the string is supplied, within bounds, and not a special delimiter
+	if (!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1)
+		return false;
+
+	// Labels cannot be "address" of actual variables
+	if (strstr(Text, "&"))
+		return false;
+
+	// Delete the label if no text was supplied
+    if(Text[0] == '\0')
+        return LabelDelete(Address);
+
+	// Fill out the structure data
+    LABELSINFO labelInfo;
+    labelInfo.manual	= Manual;
+	labelInfo.addr		= Address - ModBaseFromAddr(Address);
+	strcpy_s(labelInfo.text, Text);
+    ModNameFromAddr(Address, labelInfo.mod, true);
+
+	EXCLUSIVE_ACQUIRE(LockLabels);
+
+	// Insert label by key
+	uint key = ModHashFromAddr(Address);
+
+    if(!labels.insert(std::make_pair(ModHashFromAddr(key), label)).second)
         labels[key] = label;
+
     return true;
 }
 
-bool labelfromstring(const char* text, uint* addr)
+bool LabelFromString(const char* Text, uint* Address)
 {
+	// CHECK: Future? (Not used)
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockLabels);
-    for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i)
-    {
-        if(!strcmp(i->second.text, text))
-        {
-            if(addr)
-                *addr = i->second.addr + ModBaseFromName(i->second.mod);
-            return true;
-        }
-    }
+
+	SHARED_ACQUIRE(LockLabels);
+
+	for (auto& itr : labels)
+	{
+		// Check if the actual label name matches
+		if (strcmp(itr.second.text, Text))
+			continue;
+
+		if (Address)
+			*Address = itr.second.addr + ModBaseFromName(itr.second.mod);
+
+		// Set status to indicate if label was ever found
+		return true;
+	}
+
     return false;
 }
 
-bool labelget(uint addr, char* text)
+bool LabelGet(uint Address, char* Text)
 {
+	// CHECK: Export function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockLabels);
-    const LabelsInfo::iterator found = labels.find(ModHashFromAddr(addr));
-    if(found == labels.end()) //not found
+
+	SHARED_ACQUIRE(LockLabels);
+
+	// Was the label at this address exist?
+	auto found = labels.find(ModHashFromAddr(Address));
+
+    if(found == labels.end())
         return false;
-    if(text)
-        strcpy_s(text, MAX_LABEL_SIZE, found->second.text);
+
+	// Copy to user buffer
+    if(Text)
+        strcpy_s(Text, MAX_LABEL_SIZE, found->second.text);
+
     return true;
 }
 
-bool labeldel(uint addr)
+bool LabelDelete(uint Address)
 {
+	// CHECK: Export function
     if(!DbgIsDebugging())
         return false;
-    CriticalSectionLocker locker(LockLabels);
-    return (labels.erase(ModHashFromAddr(addr)) > 0);
+
+	EXCLUSIVE_ACQUIRE(LockLabels);
+    return (labels.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void labeldelrange(uint start, uint end)
+void LabelDelRange(uint Start, uint End)
 {
-    if(!DbgIsDebugging())
-        return;
-    bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = ModBaseFromAddr(start);
-    if(modbase != ModBaseFromAddr(end))
-        return;
-    start -= modbase;
-    end -= modbase;
-    CriticalSectionLocker locker(LockLabels);
-    LabelsInfo::iterator i = labels.begin();
-    while(i != labels.end())
-    {
-        if(i->second.manual) //ignore manual
-        {
-            i++;
-            continue;
-        }
-        if(bDelAll || (i->second.addr >= start && i->second.addr < end))
-            labels.erase(i++);
-        else
-            i++;
-    }
+	// CHECK: Export function
+	if (!DbgIsDebugging())
+		return;
+
+	// Are all comments going to be deleted?
+	// 0x00000000 - 0xFFFFFFFF
+	if (Start == 0 && End == ~0)
+	{
+		EXCLUSIVE_ACQUIRE(LockLabels);
+		labels.clear();
+	}
+	else
+	{
+		// Make sure 'Start' and 'End' reference the same module
+		uint moduleBase = ModBaseFromAddr(Start);
+
+		if (moduleBase != ModBaseFromAddr(End))
+			return;
+
+		EXCLUSIVE_ACQUIRE(LockLabels);
+		for (auto itr = labels.begin(); itr != labels.end();)
+		{
+			// Ignore manually set entries
+			if (itr->second.manual)
+			{
+				itr++;
+				continue;
+			}
+
+			// [Start, End)
+			if (itr->second.addr >= Start && itr->second.addr < End)
+				itr = labels.erase(itr);
+			else
+				itr++;
+		}
+	}
 }
 
 void labelcachesave(JSON root)
@@ -176,29 +226,41 @@ void labelcacheload(JSON root)
     }
 }
 
-bool labelenum(LABELSINFO* labellist, size_t* cbsize)
+bool LabelEnum(LABELSINFO* List, size_t* Size)
 {
+	// CHECK: Export function
     if(!DbgIsDebugging())
         return false;
-    if(!labellist && !cbsize)
+
+	// At least 1 parameter is required
+    if(!List && !Size)
         return false;
-    CriticalSectionLocker locker(LockLabels);
-    if(!labellist && cbsize)
+
+	EXCLUSIVE_ACQUIRE(LockLabels);
+
+	// See if the user requested a size
+    if(Size)
     {
-        *cbsize = labels.size() * sizeof(LABELSINFO);
-        return true;
+        *Size = labels.size() * sizeof(LABELSINFO);
+        
+		if (!List)
+			return true;
     }
-    int j = 0;
-    for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i, j++)
-    {
-        labellist[j] = i->second;
-        labellist[j].addr += ModBaseFromName(labellist[j].mod);
-    }
+
+	// Fill out the return list while converting the offset
+	// to a virtual address
+	for (auto& itr : labels)
+	{
+		*List		= itr.second;
+		List->addr	+= ModBaseFromName(itr.econd.mod);
+		List++;
+	}
+
     return true;
 }
 
-void labelclear()
+void LabelClear()
 {
-    CriticalSectionLocker locker(LockLabels);
-    LabelsInfo().swap(labels);
+	EXCLUSIVE_ACQUIRE(LockLabels);
+	labels.clear();
 }

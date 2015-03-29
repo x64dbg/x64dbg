@@ -96,7 +96,7 @@ void dbclose()
 {
     dbsave();
     CommentClear();
-    labelclear();
+    LabelClear();
     BookmarkClear();
     FunctionClear();
     loopclear();

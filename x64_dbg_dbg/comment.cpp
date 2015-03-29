@@ -24,10 +24,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
 
     // Delete the comment if no text was supplied
     if(Text[0] == '\0')
-    {
-        CommentDelete(Address);
-        return true;
-    }
+        return CommentDelete(Address);
 
     // Fill out the structure
     COMMENTSINFO comment;

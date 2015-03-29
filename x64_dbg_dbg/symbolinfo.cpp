@@ -206,7 +206,7 @@ const char* SymGetSymbolicName(uint Address)
 
     // User labels have priority, but if one wasn't found,
     // default to a symbol lookup
-    if(!labelget(Address, label))
+    if(!LabelGet(Address, label))
     {
         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 

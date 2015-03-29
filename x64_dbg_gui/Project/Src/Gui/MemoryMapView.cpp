@@ -302,8 +302,14 @@ void MemoryMapView::followDumpSlot()
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
+    QString commandText = QString("disasm %1").arg(getCellContent(getInitialSelection(), 0));
+
+    // If there was no address loaded, the length
+    // will only be the command length
+    if (commandText.length() <= 8)
+        return;
+
+    DbgCmdExecDirect(commandText.toUtf8().constData());
     emit showCpu();
 }
 
