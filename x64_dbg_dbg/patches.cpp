@@ -95,7 +95,7 @@ bool PatchDelete(uint Address, bool Restore)
 	// Do a list lookup with hash
     auto found = patches.find(ModHashFromAddr(Address));
 
-    if(found == patches.end()) //not found
+    if(found == patches.end())
         return false;
     
 	// Restore the original byte at this address
