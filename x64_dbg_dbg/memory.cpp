@@ -277,7 +277,7 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     }
 
     for(SIZE_T i = 0; i < Size; i++)
-        patchset((uint)BaseAddress + i, oldData[i], ((unsigned char*)Buffer)[i]);
+        PatchSet((uint)BaseAddress + i, oldData[i], ((unsigned char*)Buffer)[i]);
 
     return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }

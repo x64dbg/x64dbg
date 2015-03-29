@@ -1,5 +1,4 @@
-#ifndef _PATCHES_H
-#define _PATCHES_H
+#pragma once
 
 #include "_global.h"
 
@@ -10,14 +9,11 @@ struct PATCHINFO
     unsigned char oldbyte;
     unsigned char newbyte;
 };
-typedef std::map<uint, PATCHINFO> PatchesInfo;
 
-bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte);
-bool patchget(uint addr, PATCHINFO* patch);
-bool patchdel(uint addr, bool restore);
-void patchdelrange(uint start, uint end, bool restore);
-void patchclear(const char* mod = 0);
-bool patchenum(PATCHINFO* patchlist, size_t* cbsize);
-int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, char* error);
-
-#endif //_PATCHES_H
+bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte);
+bool PatchGet(uint Address, PATCHINFO* Patch);
+bool PatchDelete(uint Address, bool Restore);
+void PatchDelRange(uint Start, uint End, bool Restore);
+bool PatchEnum(PATCHINFO* List, size_t* Size);
+int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Error);
+void PatchClear(const char* Module = nullptr);

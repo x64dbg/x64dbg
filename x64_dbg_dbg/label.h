@@ -10,12 +10,12 @@ struct LABELSINFO
     bool manual;
 };
 
-bool LabelSet(uint addr, const char* text, bool manual);
-bool labelfromstring(const char* text, uint* addr);
-bool LabelGet(uint addr, char* text);
-bool LabelDelete(uint addr);
-void LabelDelRange(uint start, uint end);
+bool LabelSet(uint Address, const char* Text, bool Manual);
+bool LabelFromString(const char* Text, uint* Address);
+bool LabelGet(uint Address, char* Text);
+bool LabelDelete(uint Address);
+void LabelDelRange(uint Start, uint End);
 void labelcachesave(JSON root);
 void labelcacheload(JSON root);
-bool LabelEnum(LABELSINFO* labellist, size_t* cbsize);
+bool LabelEnum(LABELSINFO* List, size_t* Size);
 void LabelClear();

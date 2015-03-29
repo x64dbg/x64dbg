@@ -1557,7 +1557,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         return false;
     else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
         return true;
-    else if(labelfromstring(string, value)) //then come labels
+    else if(LabelFromString(string, value)) //then come labels
         return true;
     else if(SymAddrFromName(string, value)) //then come symbols
         return true;

@@ -101,7 +101,7 @@ void dbclose()
     FunctionClear();
     loopclear();
     BpClear();
-    patchclear();
+    PatchClear();
 }
 
 ///api functions

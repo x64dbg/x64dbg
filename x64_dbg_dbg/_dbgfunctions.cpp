@@ -53,7 +53,7 @@ static bool _sectionfromaddr(duint addr, char* section)
 
 static bool _patchget(duint addr)
 {
-    return patchget(addr, 0);
+    return PatchGet(addr, 0);
 }
 
 static bool _patchinrange(duint start, duint end)
@@ -84,13 +84,13 @@ static void _patchrestorerange(duint start, duint end)
         end = a;
     }
     for(duint i = start; i < end + 1; i++)
-        patchdel(i, true);
+        PatchDelete(i, true);
     GuiUpdatePatches();
 }
 
 static bool _patchrestore(duint addr)
 {
-    return patchdel(addr, true);
+    return PatchDelete(addr, true);
 }
 
 static void _getcallstack(DBGCALLSTACK* callstack)
@@ -178,9 +178,9 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchInRange = _patchinrange;
     _dbgfunctions.MemPatch = _mempatch;
     _dbgfunctions.PatchRestoreRange = _patchrestorerange;
-    _dbgfunctions.PatchEnum = (PATCHENUM)patchenum;
+    _dbgfunctions.PatchEnum = (PATCHENUM)PatchEnum;
     _dbgfunctions.PatchRestore = _patchrestore;
-    _dbgfunctions.PatchFile = (PATCHFILE)patchfile;
+    _dbgfunctions.PatchFile = (PATCHFILE)PatchFile;
     _dbgfunctions.ModPathFromAddr = ModPathFromAddr;
     _dbgfunctions.ModPathFromName = ModPathFromName;
     _dbgfunctions.DisasmFast = disasmfast;

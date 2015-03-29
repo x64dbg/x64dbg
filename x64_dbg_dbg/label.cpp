@@ -42,8 +42,8 @@ bool LabelSet(uint Address, const char* Text, bool Manual)
 	// Insert label by key
 	uint key = ModHashFromAddr(Address);
 
-    if(!labels.insert(std::make_pair(ModHashFromAddr(key), label)).second)
-        labels[key] = label;
+    if(!labels.insert(std::make_pair(ModHashFromAddr(key), labelInfo)).second)
+        labels[key] = labelInfo;
 
     return true;
 }
@@ -252,7 +252,7 @@ bool LabelEnum(LABELSINFO* List, size_t* Size)
 	for (auto& itr : labels)
 	{
 		*List		= itr.second;
-		List->addr	+= ModBaseFromName(itr.econd.mod);
+		List->addr	+= ModBaseFromName(itr.second.mod);
 		List++;
 	}
 
