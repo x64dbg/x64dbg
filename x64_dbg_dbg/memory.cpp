@@ -224,7 +224,7 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     // Try a regular WriteProcessMemory call
     bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesWritten);
 
-    if(ret && * NumberOfBytesWritten == Size)
+    if(ret && *NumberOfBytesWritten == Size)
         return true;
 
 	// Write page-by-page (Skip if only 1 page exists)
@@ -285,7 +285,7 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
 bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return MemRead((void*)Address, &a, 1, nullptr);
+    return MemRead((void*)Address, &a, sizeof(unsigned char), nullptr);
 }
 
 bool MemIsCanonicalAddress(uint Address)

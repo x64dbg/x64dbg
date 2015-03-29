@@ -53,17 +53,14 @@ static bool _sectionfromaddr(duint addr, char* section)
 
 static bool _patchget(duint addr)
 {
-    return PatchGet(addr, 0);
+    return PatchGet(addr, nullptr);
 }
 
 static bool _patchinrange(duint start, duint end)
 {
     if(start > end)
-    {
-        duint a = start;
-        start = end;
-        end = a;
-    }
+		std::swap(start, end);
+
     for(duint i = start; i < end + 1; i++)
         if(_patchget(i))
             return true;
@@ -77,12 +74,9 @@ static bool _mempatch(duint va, const unsigned char* src, duint size)
 
 static void _patchrestorerange(duint start, duint end)
 {
-    if(start > end)
-    {
-        duint a = start;
-        start = end;
-        end = a;
-    }
+	if (start > end)
+		std::swap(start, end);
+
     for(duint i = start; i < end + 1; i++)
         PatchDelete(i, true);
     GuiUpdatePatches();
@@ -120,7 +114,7 @@ static bool _getcmdline(char* cmd_line, size_t* cbsize)
 
 static bool _setcmdline(const char* cmd_line)
 {
-    return dbgsetcmdline(cmd_line, NULL);
+    return dbgsetcmdline(cmd_line, nullptr);
 }
 
 static bool _getjit(char* jit, bool jit64)

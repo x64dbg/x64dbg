@@ -28,7 +28,7 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
 	ModNameFromAddr(Address, newPatch.mod, true);
 
 	// Generate a key for this address
-    uint key = ModHashFromAddr(Address);
+    const uint key = ModHashFromAddr(Address);
 
 	EXCLUSIVE_ACQUIRE(LockPatches);
 

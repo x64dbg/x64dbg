@@ -40,7 +40,7 @@ bool LabelSet(uint Address, const char* Text, bool Manual)
 	EXCLUSIVE_ACQUIRE(LockLabels);
 
 	// Insert label by key
-	uint key = ModHashFromAddr(Address);
+	const uint key = ModHashFromAddr(Address);
 
     if(!labels.insert(std::make_pair(ModHashFromAddr(key), labelInfo)).second)
         labels[key] = labelInfo;
