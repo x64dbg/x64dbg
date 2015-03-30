@@ -22,7 +22,7 @@ void dbsave()
     DWORD ticks = GetTickCount();
     JSON root = json_object();
     CommentCacheSave(root);
-    labelcachesave(root);
+    LabelCacheSave(root);
     BookmarkCacheSave(root);
     FunctionCacheSave(root);
     loopcachesave(root);
@@ -83,7 +83,7 @@ void dbload()
         return;
     }
     CommentCacheLoad(root);
-    labelcacheload(root);
+    LabelCacheLoad(root);
     BookmarkCacheLoad(root);
     FunctionCacheLoad(root);
     loopcacheload(root);

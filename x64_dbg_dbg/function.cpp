@@ -186,27 +186,28 @@ void FunctionCacheLoad(JSON Root)
         JSON value;
         json_array_foreach(Object, i, value)
         {
-            FUNCTIONSINFO function;
+            FUNCTIONSINFO functionInfo;
+			memset(&functionInfo, 0, sizeof(FUNCTIONSINFO));
 
             // Copy module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(function.mod, mod);
+                strcpy_s(functionInfo.mod, mod);
             else
-                function.mod[0] = '\0';
+                functionInfo.mod[0] = '\0';
 
             // Function address
-            function.start  = (uint)json_hex_value(json_object_get(value, "start"));
-            function.end    = (uint)json_hex_value(json_object_get(value, "end"));
-            function.manual = Manual;
+            functionInfo.start  = (uint)json_hex_value(json_object_get(value, "start"));
+            functionInfo.end    = (uint)json_hex_value(json_object_get(value, "end"));
+            functionInfo.manual = Manual;
 
             // Sanity check
-            if(function.end < function.start)
+            if(functionInfo.end < functionInfo.start)
                 continue;
 
-            const uint key = ModHashFromName(function.mod);
-            functions.insert(std::make_pair(ModuleRange(ModHashFromName(function.mod), Range(function.start, function.end)), function));
+            const uint key = ModHashFromName(functionInfo.mod);
+            functions.insert(std::make_pair(ModuleRange(key, Range(functionInfo.start, functionInfo.end)), functionInfo));
         }
     };
 

@@ -165,6 +165,7 @@ void CommentCacheLoad(JSON Root)
         json_array_foreach(Object, i, value)
         {
             COMMENTSINFO commentInfo;
+			memset(&commentInfo, 0, sizeof(COMMENTSINFO));
 
             // Module
             const char* mod = json_string_value(json_object_get(value, "module"));

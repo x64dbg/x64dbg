@@ -29,9 +29,12 @@ PLUG_IMPEXP bool _plugin_unregistercommand(int pluginHandle, const char* command
 
 PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
 {
+	// TODO: This should just be an alias to dprintf
     va_list args;
     va_start(args, format);
     vsprintf(msg, format, args);
+	va_end(args);
+
     GuiAddLogMessage(msg);
 }
 

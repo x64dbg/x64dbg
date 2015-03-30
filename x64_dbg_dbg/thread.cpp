@@ -70,8 +70,8 @@ void ThreadGetList(THREADLIST* list)
     SHARED_ACQUIRE(LockThreads);
 
     //
-    // This function converts a C++ std::vector to a C-style THREADLIST[]
-    // Also assume BridgeAlloc zeros the returned buffer
+    // This function converts a C++ std::vector to a C-style THREADLIST[].
+    // Also assume BridgeAlloc zeros the returned buffer.
     //
     size_t count = threadList.size();
 

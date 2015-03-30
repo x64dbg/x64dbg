@@ -143,87 +143,105 @@ void LabelDelRange(uint Start, uint End)
 	}
 }
 
-void labelcachesave(JSON root)
+void LabelCacheSave(JSON Root)
 {
-    CriticalSectionLocker locker(LockLabels);
-    const JSON jsonlabels = json_array();
-    const JSON jsonautolabels = json_array();
-    for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i)
+	EXCLUSIVE_ACQUIRE(LockLabels);
+
+	// Create the sub-root structures in memory
+    const JSON jsonLabels		= json_array();
+    const JSON jsonAutoLabels	= json_array();
+
+	// Iterator each label
+    for(auto& itr : labels)
     {
-        const LABELSINFO curLabel = i->second;
-        JSON curjsonlabel = json_object();
-        json_object_set_new(curjsonlabel, "module", json_string(curLabel.mod));
-        json_object_set_new(curjsonlabel, "address", json_hex(curLabel.addr));
-        json_object_set_new(curjsonlabel, "text", json_string(curLabel.text));
-        if(curLabel.manual)
-            json_array_append_new(jsonlabels, curjsonlabel);
+        JSON jsonLabel = json_object();
+        json_object_set_new(jsonLabel, "module", json_string(itr.second.mod));
+        json_object_set_new(jsonLabel, "address", json_hex(itr.second.addr));
+        json_object_set_new(jsonLabel, "text", json_string(itr.second.text));
+
+		// Was the label manually added?
+        if(itr.second.manual)
+            json_array_append_new(jsonLabels, jsonLabel);
         else
-            json_array_append_new(jsonautolabels, curjsonlabel);
+            json_array_append_new(jsonAutoLabels, jsonLabel);
     }
-    if(json_array_size(jsonlabels))
-        json_object_set(root, "labels", jsonlabels);
-    json_decref(jsonlabels);
-    if(json_array_size(jsonautolabels))
-        json_object_set(root, "autolabels", jsonautolabels);
-    json_decref(jsonautolabels);
+
+	// Apply the object to the global root
+    if(json_array_size(jsonLabels))
+        json_object_set(Root, "labels", jsonLabels);
+
+    if(json_array_size(jsonAutoLabels))
+        json_object_set(Root, "autolabels", jsonAutoLabels);
+
+	json_decref(jsonLabels);
+	json_decref(jsonAutoLabels);
 }
 
-void labelcacheload(JSON root)
+void LabelCacheLoad(JSON Root)
 {
-    CriticalSectionLocker locker(LockLabels);
-    labels.clear();
-    const JSON jsonlabels = json_object_get(root, "labels");
-    if(jsonlabels)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonlabels, i, value)
-        {
-            LABELSINFO curLabel;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curLabel.mod, mod);
-            else
-                *curLabel.mod = '\0';
-            curLabel.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curLabel.manual = true;
-            const char* text = json_string_value(json_object_get(value, "text"));
-            if(text)
-                strcpy_s(curLabel.text, text);
-            else
-                continue; //skip
-            int len = (int)strlen(curLabel.text);
-            for(int i = 0; i < len; i++)
-                if(curLabel.text[i] == '&')
-                    curLabel.text[i] = ' ';
-            const uint key = ModHashFromName(curLabel.mod) + curLabel.addr;
-            labels.insert(std::make_pair(key, curLabel));
-        }
-    }
-    JSON jsonautolabels = json_object_get(root, "autolabels");
-    if(jsonautolabels)
-    {
-        size_t i;
-        JSON value;
-        json_array_foreach(jsonautolabels, i, value)
-        {
-            LABELSINFO curLabel;
-            const char* mod = json_string_value(json_object_get(value, "module"));
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(curLabel.mod, mod);
-            else
-                *curLabel.mod = '\0';
-            curLabel.addr = (uint)json_hex_value(json_object_get(value, "address"));
-            curLabel.manual = false;
-            const char* text = json_string_value(json_object_get(value, "text"));
-            if(text)
-                strcpy_s(curLabel.text, text);
-            else
-                continue; //skip
-            const uint key = ModHashFromName(curLabel.mod) + curLabel.addr;
-            labels.insert(std::make_pair(key, curLabel));
-        }
-    }
+	EXCLUSIVE_ACQUIRE(LockLabels);
+
+	// Inline lambda to parse each JSON entry
+	auto AddLabels = [](const JSON Object, bool Manual)
+	{
+		size_t i;
+		JSON value;
+
+		json_array_foreach(Object, i, value)
+		{
+			LABELSINFO labelInfo;
+			memset(&labelInfo, 0, sizeof(LABELSINFO));
+
+			// Module
+			const char* mod = json_string_value(json_object_get(value, "module"));
+
+			if (mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+				strcpy_s(labelInfo.mod, mod);
+			else
+				labelInfo.mod[0] = '\0';
+
+			// Address/Manual
+			labelInfo.addr		= (uint)json_hex_value(json_object_get(value, "address"));
+			labelInfo.manual	= Manual;
+
+			// Text string
+			const char* text = json_string_value(json_object_get(value, "text"));
+
+			if (text)
+				strcpy_s(labelInfo.text, text);
+			else
+			{
+				// Skip empty strings
+				continue;
+			}
+			
+			// Go through the string replacing '&' with spaces
+			for (char *ptr = labelInfo.text; ptr[0] != '\0'; ptr++)
+			{
+				if (ptr[0] == '&')
+					ptr[0] = ' ';
+			}
+
+			// Finally insert the data
+			const uint key = ModHashFromName(labelInfo.mod) + labelInfo.addr;
+
+			labels.insert(std::make_pair(key, labelInfo));
+		}
+	};
+
+	// Remove previous data
+	labels.clear();
+
+	const JSON jsonLabels		= json_object_get(Root, "labels");
+	const JSON jsonAutoLabels	= json_object_get(Root, "autolabels");
+
+	// Load user-set comments
+	if (jsonLabels)
+		AddLabels(jsonLabels, true);
+
+	// Load auto-set comments
+	if (jsonAutoLabels)
+		AddLabels(jsonAutoLabels, false);
 }
 
 bool LabelEnum(LABELSINFO* List, size_t* Size)
