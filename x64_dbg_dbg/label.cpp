@@ -235,11 +235,11 @@ void LabelCacheLoad(JSON Root)
 	const JSON jsonLabels		= json_object_get(Root, "labels");
 	const JSON jsonAutoLabels	= json_object_get(Root, "autolabels");
 
-	// Load user-set comments
+	// Load user-set labels
 	if (jsonLabels)
 		AddLabels(jsonLabels, true);
 
-	// Load auto-set comments
+	// Load auto-set labels
 	if (jsonAutoLabels)
 		AddLabels(jsonAutoLabels, false);
 }
