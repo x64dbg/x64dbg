@@ -4,16 +4,16 @@
 #include "console.h"
 #include "module.h"
 
-int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, const char* name)
+int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent, const char* Name)
 {
     uint regionSize = 0;
-    uint regionBase = MemFindBaseAddr(addr, &regionSize, true);
+    uint regionBase = MemFindBaseAddr(Address, &regionSize, true);
 
 	// If the memory page wasn't found, fail
     if(!regionBase || !regionSize)
     {
-        if(!silent)
-            dprintf("Invalid memory page 0x%p", addr);
+        if(!Silent)
+            dprintf("Invalid memory page 0x%p", Address);
 
         return 0;
     }
@@ -23,13 +23,13 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
 	uint scanSize	= regionSize;
 
 	// Otherwise use custom boundaries if size was supplied
-	if (size)
+	if (Size)
 	{
-        uint maxsize = size - (addr - regionBase);
+        uint maxsize = Size - (Address - regionBase);
 
 		// Make sure the size fits in one page
-		scanStart	= addr;
-		scanSize	= min(size, maxsize);
+		scanStart	= Address;
+		scanSize	= min(Size, maxsize);
     }
 
 	// Allocate and read a buffer from the remote process
@@ -37,7 +37,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
 
     if(!MemRead((PVOID)scanStart, data, scanSize, nullptr))
     {
-        if(!silent)
+        if(!Silent)
             dprintf("Error reading memory in reference search\n");
 
         return 0;
@@ -48,9 +48,9 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
 	char moduleName[MAX_MODULE_SIZE];
 
 	if (ModNameFromAddr(scanStart, moduleName, true))
-		sprintf_s(fullName, "%s (%s)", name, moduleName);
+		sprintf_s(fullName, "%s (%s)", Name, moduleName);
 	else
-		sprintf_s(fullName, "%s (%p)", name, scanStart);
+		sprintf_s(fullName, "%s (%p)", Name, scanStart);
 
 	// Initialize the disassembler
 	DISASM disasm;
@@ -65,10 +65,10 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
 	// Allow an "initialization" notice
 	REFINFO refInfo;
 	refInfo.refcount	= 0;
-	refInfo.userinfo	= userinfo;
+	refInfo.userinfo	= UserData;
 	refInfo.name		= fullName;
 
-    cbRef(0, 0, &refInfo);
+    Callback(0, 0, &refInfo);
 
 	//concurrency::parallel_for(uint(0), scanSize, [&](uint i)
 	for (uint i = 0; i < scanSize;)
@@ -76,8 +76,11 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
 		// Print the progress every 4096 bytes
         if((i % 0x1000) == 0)
         {
-            float percent = (float)i / (float)scanSize;
-            GuiReferenceSetProgress((int)(percent * 100.0f));
+			// Percent = (current / total) * 100
+			// Integer = floor(percent)
+            float percent = floor(((float)i / (float)scanSize) * 100.0f);
+
+            GuiReferenceSetProgress((int)percent);
         }
 
 		// Disassemble the instruction
@@ -89,7 +92,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
             fillbasicinfo(&disasm, &basicinfo);
             basicinfo.size = len;
 
-            if(cbRef(&disasm, &basicinfo, &refInfo))
+            if(Callback(&disasm, &basicinfo, &refInfo))
 				refInfo.refcount++;
         }
 		else

@@ -886,7 +886,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         if(!valfromstring(argv[4], &size))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefFind, &range, false, "Constant");
+    int found = RefFind(addr, size, cbRefFind, &range, false, "Constant");
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -951,7 +951,7 @@ CMDRESULT cbInstrRefStr(int argc, char* argv[])
         if(!valfromstring(argv[2], &size, true))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefStr, 0, false, "Strings");
+    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings");
     dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1255,7 +1255,7 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
         if(!valfromstring(argv[2], &size, true))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbModCallFind, 0, false, "Calls");
+    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls");
     dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1525,7 +1525,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     disasmfast(dest, addr + size / 2, &basicinfo);
 
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, "Command");
+    int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, "Command");
     dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
