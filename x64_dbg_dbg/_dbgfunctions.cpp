@@ -19,7 +19,7 @@ const DBGFUNCTIONS* dbgfunctionsget()
 
 static bool _assembleatex(duint addr, const char* instruction, char* error, bool fillnop)
 {
-    return assembleat(addr, instruction, 0, error, fillnop);
+    return assembleat(addr, instruction, nullptr, error, fillnop);
 }
 
 static bool _sectionfromaddr(duint addr, char* section)
@@ -61,15 +61,18 @@ static bool _patchinrange(duint start, duint end)
     if(start > end)
 		std::swap(start, end);
 
-    for(duint i = start; i < end + 1; i++)
-        if(_patchget(i))
-            return true;
+	for (duint i = start; i <= end; i++)
+	{
+		if (_patchget(i))
+			return true;
+	}
+
     return false;
 }
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    return MemPatch((void*)va, (void*)src, size, 0);
+    return MemPatch((void*)va, (void*)src, size, nullptr);
 }
 
 static void _patchrestorerange(duint start, duint end)
@@ -77,8 +80,9 @@ static void _patchrestorerange(duint start, duint end)
 	if (start > end)
 		std::swap(start, end);
 
-    for(duint i = start; i < end + 1; i++)
+    for(duint i = start; i <= end; i++)
         PatchDelete(i, true);
+
     GuiUpdatePatches();
 }
 
