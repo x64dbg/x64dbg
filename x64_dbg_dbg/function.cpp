@@ -47,22 +47,22 @@ bool FunctionGet(uint Address, uint* Start, uint* End)
     if(!DbgIsDebugging())
         return false;
 
-    const uint modbase = ModBaseFromAddr(Address);
+    const uint moduleBase = ModBaseFromAddr(Address);
 
     // Lookup by module hash, then function range
     SHARED_ACQUIRE(LockFunctions);
 
-    auto found = functions.find(ModuleRange(ModHashFromAddr(modbase), Range(Address - modbase, Address - modbase)));
+    auto found = functions.find(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase)));
 
     // Was this range found?
     if(found == functions.end())
         return false;
 
     if(Start)
-        *Start = found->second.start + modbase;
+        *Start = found->second.start + moduleBase;
 
     if(End)
-        *End = found->second.end + modbase;
+        *End = found->second.end + moduleBase;
 
     return true;
 }
