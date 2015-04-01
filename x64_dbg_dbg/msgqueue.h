@@ -22,7 +22,7 @@ struct MESSAGE_STACK
 
 MESSAGE_STACK* MsgAllocStack();
 void MsgFreeStack(MESSAGE_STACK* Stack);
-bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2);
+bool MsgSend(MESSAGE_STACK* Stack, int Msg, uint Param1, uint Param2);
 bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Message);
 void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Message);
 

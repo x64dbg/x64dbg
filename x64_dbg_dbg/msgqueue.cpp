@@ -24,15 +24,15 @@ void MsgFreeStack(MESSAGE_STACK* Stack)
 }
 
 // Add a message to the stack
-bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
+bool MsgSend(MESSAGE_STACK* Stack, int Msg, uint Param1, uint Param2)
 {
 	MESSAGE messageInfo;
-	messageInfo.msg		= msg;
-	messageInfo.param1	= param1;
-	messageInfo.param2	= param2;
+	messageInfo.msg		= Msg;
+	messageInfo.param1	= Param1;
+	messageInfo.param2	= Param2;
 
 	// Asynchronous send. Return value doesn't matter.
-	concurrency::asend(msgstack->FIFOStack, messageInfo);
+	concurrency::asend(Stack->FIFOStack, messageInfo);
     return true;
 }
 
