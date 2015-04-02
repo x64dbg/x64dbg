@@ -1329,7 +1329,11 @@ void CPUDump::selectionUpdatedSlot()
 {
     QString selStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     QString selEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    GuiAddStatusBarMessage(QString("Dump: " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+    QString info = "Dump";
+    char mod[MAX_MODULE_SIZE] = "";
+    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+        info = QString(mod) + "";
+    GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
 }
 
 void CPUDump::yaraSlot()
