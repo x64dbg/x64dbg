@@ -106,7 +106,10 @@ void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isRef
         menu->removeAction(list.at(i));
 
     //most basic follow action
-    addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
+    if(isReferences)
+        menu->addAction(mReferenceSelectedAddress);
+    else
+        addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
 
     //add follow actions
     DISASM_INSTR instr;
@@ -500,7 +503,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     mReferencesMenu = new QMenu("Find &references to", this);
 
     // Selected address
-    mReferenceSelectedAddress = new QAction("&Selected address", this);
+    mReferenceSelectedAddress = new QAction("&Selected Address(es)", this);
+    mReferenceSelectedAddress->setFont(QFont("Courier New", 8));
     mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mReferenceSelectedAddress);
     connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
@@ -980,8 +984,10 @@ void CPUDisassembly::gotoNext()
 
 void CPUDisassembly::findReferences()
 {
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }
 

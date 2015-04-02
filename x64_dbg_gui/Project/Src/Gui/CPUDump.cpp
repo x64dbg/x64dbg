@@ -477,6 +477,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
+    wMenu->addAction(mFindReferencesAction);
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mDataCopyAction);
     wMenu->addMenu(mGotoMenu);
