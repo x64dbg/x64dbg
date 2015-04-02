@@ -98,7 +98,6 @@ bool ModUnload(uint Base)
 
 	// Remove it from the list
     modinfo.erase(found);
-
     EXCLUSIVE_RELEASE();
 
     // Update symbols
