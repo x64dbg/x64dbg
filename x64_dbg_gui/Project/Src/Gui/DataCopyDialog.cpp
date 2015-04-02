@@ -24,7 +24,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
 
 QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const char* hexFormat)
 {
-    QString data="";
+    QString data = "";
     switch(ch) //escaping
     {
     case '\t':
@@ -56,7 +56,7 @@ QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const cha
         bPrevWasHex = false;
         break;
     default:
-        if(ch>=' ' && ch<='~')
+        if(ch >= ' ' && ch <= '~')
         {
             if(bPrevWasHex && isxdigit(ch))
                 data = QString().sprintf("\"\"%c", ch);
@@ -66,7 +66,7 @@ QString DataCopyDialog::printEscapedString(bool & bPrevWasHex, int ch, const cha
         }
         else
         {
-            bPrevWasHex=true;
+            bPrevWasHex = true;
             data = QString().sprintf(hexFormat, ch);
         }
         break;
@@ -124,7 +124,7 @@ void DataCopyDialog::printData(DataType type)
     case DataCString:
     {
         data += "\"";
-        bool bPrevWasHex=false;
+        bool bPrevWasHex = false;
         for(int i = 0; i < mData->size(); i++)
         {
             byte_t ch = mData->at(i);
@@ -148,7 +148,7 @@ void DataCopyDialog::printData(DataType type)
             }
             else //full unicode character
             {
-                bPrevWasHex=true;
+                bPrevWasHex = true;
                 data += QString().sprintf("\\x%04X", ch);
             }
         }
