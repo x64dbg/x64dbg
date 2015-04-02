@@ -10,7 +10,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
     uint start_size;
     uint base;
     uint base_size;
-    base = MemFindBaseAddr(addr, &base_size, true);
+    base = memfindbaseaddr(addr, &base_size, true);
     if(!base or !base_size)
     {
         if(!silent)
@@ -33,7 +33,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
             start_size = maxsize;
     }
     Memory<unsigned char*> data(start_size, "reffind:data");
-    if(!MemRead((void*)start_addr, data, start_size, 0))
+    if(!memread(fdProcessInfo->hProcess, (const void*)start_addr, data, start_size, 0))
     {
         if(!silent)
             dputs("error reading memory");
@@ -53,7 +53,7 @@ int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, cons
     refinfo.userinfo = userinfo;
     char fullName[deflen] = "";
     char modname[MAX_MODULE_SIZE] = "";
-    if(ModNameFromAddr(start_addr, modname, true))
+    if(modnamefromaddr(start_addr, modname, true))
         sprintf_s(fullName, "%s (%s)", name, modname);
     else
         sprintf_s(fullName, "%s (%p)", name, start_addr);

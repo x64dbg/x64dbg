@@ -35,7 +35,4 @@
     </None>
     <None Include="manifest.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="app.manifest" />
-  </ItemGroup>
 </Project>

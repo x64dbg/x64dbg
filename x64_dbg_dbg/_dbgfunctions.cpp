@@ -24,7 +24,7 @@ static bool _assembleatex(duint addr, const char* instruction, char* error, bool
 
 static bool _sectionfromaddr(duint addr, char* section)
 {
-    HMODULE hMod = (HMODULE)ModBaseFromAddr(addr);
+    HMODULE hMod = (HMODULE)modbasefromaddr(addr);
     if(!hMod)
         return false;
     wchar_t curModPath[MAX_PATH] = L"";
@@ -72,7 +72,7 @@ static bool _patchinrange(duint start, duint end)
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    return MemPatch((void*)va, (void*)src, size, 0);
+    return mempatch(fdProcessInfo->hProcess, (void*)va, src, size, 0);
 }
 
 static void _patchrestorerange(duint start, duint end)
@@ -162,17 +162,17 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 
 static void _memupdatemap()
 {
-    MemUpdateMap(fdProcessInfo->hProcess);
+    memupdatemap(fdProcessInfo->hProcess);
 }
 
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
     _dbgfunctions.SectionFromAddr = _sectionfromaddr;
-    _dbgfunctions.ModNameFromAddr = ModNameFromAddr;
-    _dbgfunctions.ModBaseFromAddr = ModBaseFromAddr;
-    _dbgfunctions.ModBaseFromName = ModBaseFromName;
-    _dbgfunctions.ModSizeFromAddr = ModSizeFromAddr;
+    _dbgfunctions.ModNameFromAddr = modnamefromaddr;
+    _dbgfunctions.ModBaseFromAddr = modbasefromaddr;
+    _dbgfunctions.ModBaseFromName = modbasefromname;
+    _dbgfunctions.ModSizeFromAddr = modsizefromaddr;
     _dbgfunctions.Assemble = assemble;
     _dbgfunctions.PatchGet = _patchget;
     _dbgfunctions.PatchInRange = _patchinrange;
@@ -181,12 +181,12 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchEnum = (PATCHENUM)patchenum;
     _dbgfunctions.PatchRestore = _patchrestore;
     _dbgfunctions.PatchFile = (PATCHFILE)patchfile;
-    _dbgfunctions.ModPathFromAddr = ModPathFromAddr;
-    _dbgfunctions.ModPathFromName = ModPathFromName;
+    _dbgfunctions.ModPathFromAddr = modpathfromaddr;
+    _dbgfunctions.ModPathFromName = modpathfromname;
     _dbgfunctions.DisasmFast = disasmfast;
     _dbgfunctions.MemUpdateMap = _memupdatemap;
     _dbgfunctions.GetCallStack = _getcallstack;
-    _dbgfunctions.SymbolDownloadAllSymbols = SymDownloadAllSymbols;
+    _dbgfunctions.SymbolDownloadAllSymbols = symdownloadallsymbols;
     _dbgfunctions.GetJit = _getjit;
     _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;

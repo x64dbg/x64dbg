@@ -28,7 +28,6 @@ public slots:
     void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
     void contextMenuSlot(const QPoint & pos);
-    void doubleClickedSlot();
     void switchView();
     void pageMemoryRights();
     void refreshMap();

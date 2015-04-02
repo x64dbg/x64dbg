@@ -1,73 +1,64 @@
-#pragma once
+#ifndef _DYNAMICMEM_H
+#define _DYNAMICMEM_H
 
 template<typename T>
 class Memory
 {
 public:
-	//
-	// This class guarantees that the returned allocated memory
-	// will always be zeroed
-	//
-    Memory(const char* Reason = "Memory:???")
+    Memory(const char* reason = "Memory:???")
     {
-        m_Ptr		= nullptr;
-        m_Size		= 0;
-        m_Reason	= Reason;
+        mPtr = 0;
+        mSize = 0;
+        mReason = reason;
     }
 
-    Memory(size_t Size, const char* Reason = "Memory:???")
+    Memory(size_t size, const char* reason = "Memory:???")
     {
-        m_Ptr		= reinterpret_cast<T>(emalloc(Size));
-        m_Size		= Size;
-        m_Reason	= Reason;
-
-        memset(m_Ptr, 0, Size);
+        mPtr = reinterpret_cast<T>(emalloc(size));
+        mSize = size;
+        mReason = reason;
+        memset(mPtr, 0, size);
     }
 
     ~Memory()
     {
-		if (m_Ptr)
-			efree(m_Ptr);
+        efree(mPtr);
     }
 
-    T realloc(size_t Size, const char* Reason = "Memory:???")
+    T realloc(size_t size, const char* reason = "Memory:???")
     {
-        m_Ptr		= reinterpret_cast<T>(erealloc(m_Ptr, Size));
-        m_Size		= Size;
-        m_Reason	= Reason;
-
-        return (T)memset(m_Ptr, 0, m_Size);
+        mPtr = reinterpret_cast<T>(erealloc(mPtr, size));
+        mSize = size;
+        mReason = reason;
+        memset(mPtr, 0, size);
+        return mPtr;
     }
-
-	size_t size()
-	{
-		return m_Size;
-	}
 
     template<typename U>
     operator U()
     {
-        return (U)m_Ptr;
+        return (U)mPtr;
     }
 
     operator T()
     {
-        return m_Ptr;
+        return mPtr;
     }
 
     T operator()()
     {
-        return m_Ptr;
+        return mPtr;
     }
 
-	template<typename U>
-	T operator+(const U& Other)
-	{
-		return m_Ptr + Other;
-	}
+    size_t size()
+    {
+        return mSize;
+    }
 
 private:
-    T			m_Ptr;
-    size_t		m_Size;
-    const char* m_Reason;
+    T mPtr;
+    size_t mSize;
+    const char* mReason;
 };
+
+#endif //_DYNAMICMEM_H

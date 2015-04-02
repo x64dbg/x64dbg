@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COMMENT_H
+#define _COMMENT_H
 
 #include "_global.h"
 
@@ -10,11 +11,13 @@ struct COMMENTSINFO
     bool manual;
 };
 
-bool CommentSet(uint Address, const char* Text, bool Manual);
-bool CommentGet(uint Address, char* Text);
-bool CommentDelete(uint Address);
-void CommentDelRange(uint Start, uint End);
-void CommentCacheSave(JSON Root);
-void CommentCacheLoad(JSON Root);
-bool CommentEnum(COMMENTSINFO* List, size_t* Size);
-void CommentClear();
+bool commentset(uint addr, const char* text, bool manual);
+bool commentget(uint addr, char* text);
+bool commentdel(uint addr);
+void commentdelrange(uint start, uint end);
+void commentcachesave(JSON root);
+void commentcacheload(JSON root);
+bool commentenum(COMMENTSINFO* commentlist, size_t* cbsize);
+void commentclear();
+
+#endif //_COMMENT_H

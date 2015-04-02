@@ -1,18 +1,18 @@
 #include "console.h"
+#include "threading.h"
 
-void dputs(const char* Text)
+static char msg[66000] = "";
+
+void dputs(const char* text)
 {
-    dprintf("%s\n", Text);
+    dprintf("%s\n", text);
 }
 
-void dprintf(const char* Format, ...)
+void dprintf(const char* format, ...)
 {
+    CriticalSectionLocker locker(LockDprintf);
     va_list args;
-    char buffer[16384];
-
-    va_start(args, Format);
-    vsnprintf_s(buffer, _TRUNCATE, Format, args);
-    va_end(args);
-
-    GuiAddLogMessage(buffer);
+    va_start(args, format);
+    vsnprintf(msg, sizeof(msg), format, args);
+    GuiAddLogMessage(msg);
 }

@@ -6,262 +6,194 @@
 
 static ModulesInfo modinfo;
 
-bool ModLoad(uint Base, uint Size, const char* FullPath)
+///module functions
+bool modload(uint base, uint size, const char* fullpath)
 {
-    //
-    // Handle a new module being loaded
-    //
-    // TODO: Do loaded modules always require a path?
-    if(!Base || !Size || !FullPath)
+    if(!base or !size or !fullpath)
         return false;
+    char name[deflen] = "";
 
+    int len = (int)strlen(fullpath);
+    while(fullpath[len] != '\\' and len)
+        len--;
+    if(len)
+        len++;
+    strcpy_s(name, fullpath + len);
+    _strlwr(name);
+    len = (int)strlen(name);
+    name[MAX_MODULE_SIZE - 1] = 0; //ignore later characters
+    while(name[len] != '.' and len)
+        len--;
     MODINFO info;
-
-    // Break the module path into a directory and file name
-    char dir[deflen];
-    char* file;
-
-    if(GetFullPathNameA(FullPath, ARRAYSIZE(dir), dir, &file) == 0)
-        return false;
-
-    // Make everything lowercase
-    _strlwr(dir);
-
-    // Copy the extension into the module struct
-    {
-        char* extensionPos = strrchr(file, '.');
-
-        if(extensionPos)
-        {
-            strcpy_s(info.extension, extensionPos);
-            extensionPos[0] = '\0';
-        }
-    }
-
-    // Copy the name to the module struct
-    strcpy_s(info.name, file);
-
-    // Module base address/size/hash index
-    info.hash = ModHashFromName(info.name);
-    info.base = Base;
-    info.size = Size;
-
-    // Process module sections
+    memset(&info, 0, sizeof(MODINFO));
     info.sections.clear();
-
-    WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
-    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.Handle, &info.FileMapSize, &info.MapHandle, &info.FileMapVA))
+    info.hash = modhashfromname(name);
+    if(len)
     {
-        // Get the entry point
-        info.entry = GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_OEP) + info.base;
+        strcpy_s(info.extension, name + len);
+        name[len] = 0; //remove extension
+    }
+    info.base = base;
+    info.size = size;
+    strcpy_s(info.name, name);
 
-        // Enumerate all PE sections
-        int sectionCount = (int)GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_SECTIONNUMBER);
-
-        for(int i = 0; i < sectionCount; i++)
+    //process module sections
+    HANDLE FileHandle;
+    DWORD LoadedSize;
+    HANDLE FileMap;
+    ULONG_PTR FileMapVA;
+    WString wszFullPath = StringUtils::Utf8ToUtf16(fullpath);
+    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    {
+        info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base; //get entry point
+        int SectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
+        if(SectionCount > 0)
         {
-            MODSECTIONINFO curSection;
-
-            curSection.addr             = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
-            curSection.size             = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALSIZE);
-            const char* sectionName     = (const char*)GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONNAME);
-
-            // Escape section name when needed
-            strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
-
-            // Add entry to the vector
-            info.sections.push_back(curSection);
+            for(int i = 0; i < SectionCount; i++)
+            {
+                MODSECTIONINFO curSection;
+                curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + base;
+                curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
+                const char* SectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
+                //escape section name when needed
+                int len = (int)strlen(SectionName);
+                int escape_count = 0;
+                for(int k = 0; k < len; k++)
+                    if(SectionName[k] == '\\' or SectionName[k] == '\"' or !isprint(SectionName[k]))
+                        escape_count++;
+                strcpy_s(curSection.name, StringUtils::Escape(SectionName).c_str());
+                info.sections.push_back(curSection);
+            }
         }
+        StaticFileUnloadW(wszFullPath.c_str(), false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
 
-    // Add module to list
-    EXCLUSIVE_ACQUIRE(LockModules);
-    modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), info));
-    EXCLUSIVE_RELEASE();
-
-    SymUpdateModuleList();
+    //add module to list
+    CriticalSectionLocker locker(LockModules);
+    modinfo.insert(std::make_pair(Range(base, base + size - 1), info));
+    symupdatemodulelist();
     return true;
 }
 
-bool ModUnload(uint Base)
+bool modunload(uint base)
 {
-    EXCLUSIVE_ACQUIRE(LockModules);
-
-    // Find the iterator index
-    const auto found = modinfo.find(Range(Base, Base));
-
-    if(found == modinfo.end())
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(base, base));
+    if(found == modinfo.end()) //not found
         return false;
-
-    // Remove it from the list
     modinfo.erase(found);
-
-    // Unload everything from TitanEngine
-    StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
-    EXCLUSIVE_RELEASE();
-
-    // Update symbols
-    SymUpdateModuleList();
+    symupdatemodulelist();
     return true;
 }
 
-void ModClear()
+void modclear()
 {
-    EXCLUSIVE_ACQUIRE(LockModules);
-    modinfo.clear();
-    EXCLUSIVE_RELEASE();
-
-    // Tell the symbol updater
-    SymUpdateModuleList();
+    CriticalSectionLocker locker(LockModules);
+    ModulesInfo().swap(modinfo);
+    symupdatemodulelist();
 }
 
-MODINFO* ModInfoFromAddr(uint Address)
+bool modnamefromaddr(uint addr, char* modname, bool extension)
 {
-    //
-    // NOTE: THIS DOES _NOT_ USE LOCKS
-    //
-    auto found = modinfo.find(Range(Address, Address));
-
-    // Was the module found with this address?
-    if(found == modinfo.end())
-        return nullptr;
-
-    return &found->second;
-}
-
-bool ModNameFromAddr(uint Address, char* Name, bool Extension)
-{
-    if(!Name)
+    if(!modname)
         return false;
-
-    SHARED_ACQUIRE(LockModules);
-
-    // Get a pointer to module information
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    *modname = '\0';
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
         return false;
-
-    // Copy initial module name
-    strcpy_s(Name, MAX_MODULE_SIZE, module->name);
-
-    if(Extension)
-        strcat_s(Name, MAX_MODULE_SIZE, module->extension);
-
+    String mod = found->second.name;
+    if(extension)
+        mod += found->second.extension;
+    strcpy_s(modname, MAX_MODULE_SIZE, mod.c_str());
     return true;
 }
 
-uint ModBaseFromAddr(uint Address)
+uint modbasefromaddr(uint addr)
 {
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
         return 0;
-
-    return module->base;
+    return found->second.base;
 }
 
-uint ModHashFromAddr(uint Address)
+uint modhashfromva(uint va) //return a unique hash from a VA
 {
-    //
-    // Returns a unique hash from a virtual address
-    //
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
-        return Address;
-
-    return module->hash + (Address - module->base);
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(va, va));
+    if(found == modinfo.end()) //not found
+        return va;
+    return found->second.hash + (va - found->second.base);
 }
 
-uint ModHashFromName(const char* Module)
+uint modhashfromname(const char* mod) //return MODINFO.hash
 {
-    //
-    // return MODINFO.hash (based on the name)
-    //
-    if(!Module || Module[0] == '\0')
+    if(!mod or !*mod)
         return 0;
-
-    return murmurhash(Module, (int)strlen(Module));
+    int len = (int)strlen(mod);
+    return murmurhash(mod, len);
 }
 
-uint ModBaseFromName(const char* Module)
+uint modbasefromname(const char* modname)
 {
-    if(!Module || strlen(Module) >= MAX_MODULE_SIZE)
+    if(!modname or strlen(modname) >= MAX_MODULE_SIZE)
         return 0;
-
-    SHARED_ACQUIRE(LockModules);
-
-    for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
+    CriticalSectionLocker locker(LockModules);
+    for(ModulesInfo::iterator i = modinfo.begin(); i != modinfo.end(); ++i)
     {
-        char currentModule[MAX_MODULE_SIZE];
-		strcpy_s(currentModule, itr->second.name);
-		strcat_s(currentModule, itr->second.extension);
-
-        // Test with and without extension
-        if(!_stricmp(currentModule, Module) || !_stricmp(itr->second.name, Module))
-            return itr->second.base;
+        MODINFO* curMod = &i->second;
+        char curmodname[MAX_MODULE_SIZE] = "";
+        sprintf(curmodname, "%s%s", curMod->name, curMod->extension);
+        if(!_stricmp(curmodname, modname)) //with extension
+            return curMod->base;
+        if(!_stricmp(curMod->name, modname)) //without extension
+            return curMod->base;
     }
-
     return 0;
 }
 
-uint ModSizeFromAddr(uint Address)
+uint modsizefromaddr(uint addr)
 {
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
         return 0;
-
-    return module->size;
+    return found->second.size;
 }
 
-bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections)
+bool modsectionsfromaddr(uint addr, std::vector<MODSECTIONINFO>* sections)
 {
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
         return false;
-
-    // Copy vector <-> vector
-    *Sections = module->sections;
+    *sections = found->second.sections;
     return true;
 }
 
-uint ModEntryFromAddr(uint Address)
+uint modentryfromaddr(uint addr)
 {
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    CriticalSectionLocker locker(LockModules);
+    const ModulesInfo::iterator found = modinfo.find(Range(addr, addr));
+    if(found == modinfo.end()) //not found
         return 0;
-
-    return module->entry;
+    return found->second.entry;
 }
 
-int ModPathFromAddr(duint Address, char* Path, int Size)
+int modpathfromaddr(duint addr, char* path, int size)
 {
-    SHARED_ACQUIRE(LockModules);
-
-    auto module = ModInfoFromAddr(Address);
-
-    if(!module)
+    Memory<wchar_t*> wszModPath(size * sizeof(wchar_t), "modpathfromaddr:wszModPath");
+    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbasefromaddr(addr), wszModPath, size))
+    {
+        *path = '\0';
         return 0;
-
-    strcpy_s(Path, Size, module->path);
-    return (int)strlen(Path);
+    }
+    strcpy_s(path, size, StringUtils::Utf16ToUtf8(wszModPath()).c_str());
+    return (int)strlen(path);
 }
 
-int ModPathFromName(const char* Module, char* Path, int Size)
+int modpathfromname(const char* modname, char* path, int size)
 {
-    return ModPathFromAddr(ModBaseFromName(Module), Path, Size);
+    return modpathfromaddr(modbasefromname(modname), path, size);
 }

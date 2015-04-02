@@ -1,7 +1,7 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
-#define _WIN32_WINNT 0x0600
+#define _WIN32_WINNT 0x0501
 #define WINVER 0x0501
 #define _WIN32_IE 0x0500
 
@@ -16,7 +16,6 @@
 #include <stdarg.h>
 #include <vector>
 #include <map>
-#include <unordered_map>
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"
@@ -51,6 +50,42 @@ typedef long long sint;
 typedef unsigned long uint;
 typedef long sint;
 #endif // _WIN64
+
+enum BITMASK
+{
+    BIT1 = 0x1,
+    BIT2 = 0x2,
+    BIT3 = 0x4,
+    BIT4 = 0x8,
+    BIT5 = 0x10,
+    BIT6 = 0x20,
+    BIT7 = 0x40,
+    BIT8 = 0x80,
+    BIT9 = 0x100,
+    BIT10 = 0x200,
+    BIT11 = 0x400,
+    BIT12 = 0x800,
+    BIT13 = 0x1000,
+    BIT14 = 0x2000,
+    BIT15 = 0x4000,
+    BIT16 = 0x8000,
+    BIT17 = 0x10000,
+    BIT18 = 0x20000,
+    BIT19 = 0x40000,
+    BIT20 = 0x80000,
+    BIT21 = 0x100000,
+    BIT22 = 0x200000,
+    BIT23 = 0x400000,
+    BIT24 = 0x800000,
+    BIT25 = 0x1000000,
+    BIT26 = 0x2000000,
+    BIT27 = 0x4000000,
+    BIT28 = 0x8000000,
+    BIT29 = 0x10000000,
+    BIT30 = 0x20000000,
+    BIT31 = 0x40000000,
+    BIT32 = 0x80000000
+};
 
 enum arch
 {

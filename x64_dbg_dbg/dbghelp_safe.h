@@ -72,12 +72,6 @@ BOOL
     __in_opt PVOID UserContext
     );
 BOOL
-	SafeSymEnumerateModules64(
-	__in HANDLE hProcess,
-	__in PSYM_ENUMMODULES_CALLBACK64 EnumModulesCallback,
-	__in_opt PVOID UserContext
-	);
-BOOL
     SafeSymEnumerateModules(
     __in HANDLE hProcess,
     __in PSYM_ENUMMODULES_CALLBACK EnumModulesCallback,

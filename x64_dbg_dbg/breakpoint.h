@@ -1,8 +1,10 @@
-#pragma once
+#ifndef _BREAKPOINT_H
+#define _BREAKPOINT_H
 
 #include "_global.h"
 #include "TitanEngine\TitanEngine.h"
 
+//macros
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
 #define TITANGETDRX(titantype) (titantype >> 8) & 0xF
 #define TITANSETTYPE(titantype, type) titantype &= 0xF0F; titantype |= (type<<4)
@@ -10,6 +12,7 @@
 #define TITANSETSIZE(titantype, size) titantype &= 0xFF0; titantype |= size;
 #define TITANGETSIZE(titantype) titantype & 0xF
 
+//enums
 enum BP_TYPE
 {
     BPNORMAL = 0,
@@ -17,6 +20,7 @@ enum BP_TYPE
     BPMEMORY = 2
 };
 
+//structs
 struct BREAKPOINT
 {
     uint addr;
@@ -30,21 +34,23 @@ struct BREAKPOINT
     char mod[MAX_MODULE_SIZE];
 };
 
-// Breakpoint enumeration callback
+//typedefs
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
 
-BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address);
-int BpGetList(std::vector<BREAKPOINT>* List);
-bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name);
-bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
-bool BpDelete(uint Address, BP_TYPE Type);
-bool BpEnable(uint Address, BP_TYPE Type, bool Enable);
-bool BpSetName(uint Address, BP_TYPE Type, const char* Name);
-bool BpSetTitanType(uint Address, BP_TYPE Type, int TitanType);
-bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module);
-bool BpEnumAll(BPENUMCALLBACK EnumCallback);
-int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
-void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
-void BpCacheSave(JSON Root);
-void BpCacheLoad(JSON Root);
-void BpClear();
+//functions
+int bpgetlist(std::vector<BREAKPOINT>* list);
+bool bpnew(uint addr, bool enabled, bool singleshoot, short oldbytes, BP_TYPE type, DWORD titantype, const char* name);
+bool bpget(uint addr, BP_TYPE type, const char* name, BREAKPOINT* bp);
+bool bpdel(uint addr, BP_TYPE type);
+bool bpenable(uint addr, BP_TYPE type, bool enable);
+bool bpsetname(uint addr, BP_TYPE type, const char* name);
+bool bpsettitantype(uint addr, BP_TYPE type, int titantype);
+bool bpenumall(BPENUMCALLBACK cbEnum);
+bool bpenumall(BPENUMCALLBACK cbEnum, const char* module);
+int bpgetcount(BP_TYPE type, bool enabledonly = false);
+void bptobridge(const BREAKPOINT* bp, BRIDGEBP* bridge);
+void bpcachesave(JSON root);
+void bpcacheload(JSON root);
+void bpclear();
+
+#endif // _BREAKPOINT_H

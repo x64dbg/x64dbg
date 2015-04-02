@@ -158,7 +158,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         }
         //Check the destination
         uint dest;
-        if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
+        if(!valfromstring(argv[1], &dest) || !memisvalidreadptr(fdProcessInfo->hProcess, dest))
         {
             dprintf("invalid destination \"%s\"\n", argv[1]);
             return STATUS_ERROR;
@@ -175,7 +175,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             data[j] = res;
         }
         //Move data to destination
-        if(!MemWrite((void*)dest, data, data.size(), 0))
+        if(!memwrite(fdProcessInfo->hProcess, (void*)dest, data, data.size(), 0))
         {
             dprintf("failed to write to "fhex"\n", dest);
             return STATUS_ERROR;
@@ -294,7 +294,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!CommentSet(addr, argv[2], true))
+    if(!commentset(addr, argv[2], true))
     {
         dputs("error setting comment");
         return STATUS_ERROR;
@@ -312,7 +312,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!CommentDelete(addr))
+    if(!commentdel(addr))
     {
         dputs("error deleting comment");
         return STATUS_ERROR;
@@ -368,7 +368,7 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!BookmarkSet(addr, true))
+    if(!bookmarkset(addr, true))
     {
         dputs("failed to set bookmark!");
         return STATUS_ERROR;
@@ -387,7 +387,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!BookmarkDelete(addr))
+    if(!bookmarkdel(addr))
     {
         dputs("failed to delete bookmark!");
         return STATUS_ERROR;
@@ -454,7 +454,7 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
     uint end = 0;
     if(!valfromstring(argv[1], &start, false) or !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
-    if(!FunctionAdd(start, end, true))
+    if(!functionadd(start, end, true))
     {
         dputs("failed to add function");
         return STATUS_ERROR;
@@ -474,7 +474,7 @@ CMDRESULT cbFunctionDel(int argc, char* argv[])
     uint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
-    if(!FunctionDelete(addr))
+    if(!functiondel(addr))
     {
         dputs("failed to delete function");
         return STATUS_ERROR;
@@ -1053,7 +1053,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!MemPatch((void*)addr, string, strlen(string), 0))
+    if(!mempatch(fdProcessInfo->hProcess, (void*)addr, string, strlen(string), 0))
     {
         dputs("memwrite failed!");
         return STATUS_ERROR;
@@ -1084,14 +1084,14 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     uint size = 0;
-    uint base = MemFindBaseAddr(addr, &size, true);
+    uint base = memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
-    if(!MemRead((void*)base, data, size, 0))
+    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1136,14 +1136,14 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
     uint size = 0;
-    uint base = MemFindBaseAddr(addr, &size, true);
+    uint base = memfindbaseaddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address "fhex"!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
-    if(!MemRead((void*)base, data, size, 0))
+    if(!memread(fdProcessInfo->hProcess, (const void*)base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1192,7 +1192,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         if(findData)
         {
             Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
-            MemRead((void*)result, printData, patternsize, 0);
+            memread(fdProcessInfo->hProcess, (const void*)result, printData, patternsize, 0);
             for(int j = 0, k = 0; j < patternsize; j++)
             {
                 if(j)
@@ -1270,14 +1270,14 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
     size_t cbsize;
-    CommentEnum(0, &cbsize);
+    commentenum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no comments");
         return STATUS_CONTINUE;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
-    CommentEnum(comments, 0);
+    commentenum(comments, 0);
     int count = (int)(cbsize / sizeof(COMMENTSINFO));
     for(int i = 0; i < count; i++)
     {
@@ -1339,14 +1339,14 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
     size_t cbsize;
-    BookmarkEnum(0, &cbsize);
+    bookmarkenum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no bookmarks");
         return STATUS_CONTINUE;
     }
     Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
-    BookmarkEnum(bookmarks, 0);
+    bookmarkenum(bookmarks, 0);
     int count = (int)(cbsize / sizeof(BOOKMARKSINFO));
     for(int i = 0; i < count; i++)
     {
@@ -1374,14 +1374,14 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
     size_t cbsize;
-    FunctionEnum(0, &cbsize);
+    functionenum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no functions");
         return STATUS_CONTINUE;
     }
     Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
-    FunctionEnum(functions, 0);
+    functionenum(functions, 0);
     int count = (int)(cbsize / sizeof(FUNCTIONSINFO));
     for(int i = 0; i < count; i++)
     {
@@ -1400,7 +1400,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(functions[i].start, comment))
+            if(commentget(functions[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
@@ -1446,7 +1446,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(loops[i].start, comment))
+            if(commentget(loops[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }

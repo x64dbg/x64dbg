@@ -540,8 +540,8 @@ typedef struct
 typedef struct
 {
     int ThreadNumber;
-    HANDLE Handle;
-    DWORD ThreadId;
+    HANDLE hThread;
+    DWORD dwThreadId;
     duint ThreadStartAddress;
     duint ThreadLocalBase;
     char threadName[MAX_THREAD_NAME_SIZE];

@@ -1,6 +1,10 @@
-#pragma once
+#ifndef _CONSOLE_H
+#define _CONSOLE_H
 
 #include "_global.h"
 
-void dputs(const char* Text);
-void dprintf(const char* Format, ...);
+//functions
+void dputs(const char* text);
+void dprintf(const char* format, ...);
+
+#endif // _CONSOLE_H

@@ -4,13 +4,13 @@
 #include "memory.h"
 #include "debugger.h"
 
-typedef std::unordered_map<uint, LABELSINFO> LabelsInfo;
+typedef std::map<uint, LABELSINFO> LabelsInfo;
 
 static LabelsInfo labels;
 
 bool labelset(uint addr, const char* text, bool manual)
 {
-    if(!DbgIsDebugging() or !MemIsValidReadPtr(addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
+    if(!DbgIsDebugging() or !memisvalidreadptr(fdProcessInfo->hProcess, addr) or !text or strlen(text) >= MAX_LABEL_SIZE - 1 or strstr(text, "&"))
         return false;
     if(!*text) //NOTE: delete when there is no text
     {
@@ -20,11 +20,11 @@ bool labelset(uint addr, const char* text, bool manual)
     LABELSINFO label;
     label.manual = manual;
     strcpy_s(label.text, text);
-    ModNameFromAddr(addr, label.mod, true);
-    label.addr = addr - ModBaseFromAddr(addr);
-    uint key = ModHashFromAddr(addr);
+    modnamefromaddr(addr, label.mod, true);
+    label.addr = addr - modbasefromaddr(addr);
+    uint key = modhashfromva(addr);
     CriticalSectionLocker locker(LockLabels);
-    if(!labels.insert(std::make_pair(ModHashFromAddr(key), label)).second) //already present
+    if(!labels.insert(std::make_pair(modhashfromva(key), label)).second) //already present
         labels[key] = label;
     return true;
 }
@@ -39,7 +39,7 @@ bool labelfromstring(const char* text, uint* addr)
         if(!strcmp(i->second.text, text))
         {
             if(addr)
-                *addr = i->second.addr + ModBaseFromName(i->second.mod);
+                *addr = i->second.addr + modbasefromname(i->second.mod);
             return true;
         }
     }
@@ -51,7 +51,7 @@ bool labelget(uint addr, char* text)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockLabels);
-    const LabelsInfo::iterator found = labels.find(ModHashFromAddr(addr));
+    const LabelsInfo::iterator found = labels.find(modhashfromva(addr));
     if(found == labels.end()) //not found
         return false;
     if(text)
@@ -64,7 +64,7 @@ bool labeldel(uint addr)
     if(!DbgIsDebugging())
         return false;
     CriticalSectionLocker locker(LockLabels);
-    return (labels.erase(ModHashFromAddr(addr)) > 0);
+    return (labels.erase(modhashfromva(addr)) > 0);
 }
 
 void labeldelrange(uint start, uint end)
@@ -72,8 +72,8 @@ void labeldelrange(uint start, uint end)
     if(!DbgIsDebugging())
         return;
     bool bDelAll = (start == 0 && end == ~0); //0x00000000-0xFFFFFFFF
-    uint modbase = ModBaseFromAddr(start);
-    if(modbase != ModBaseFromAddr(end))
+    uint modbase = modbasefromaddr(start);
+    if(modbase != modbasefromaddr(end))
         return;
     start -= modbase;
     end -= modbase;
@@ -146,7 +146,7 @@ void labelcacheload(JSON root)
             for(int i = 0; i < len; i++)
                 if(curLabel.text[i] == '&')
                     curLabel.text[i] = ' ';
-            const uint key = ModHashFromName(curLabel.mod) + curLabel.addr;
+            const uint key = modhashfromname(curLabel.mod) + curLabel.addr;
             labels.insert(std::make_pair(key, curLabel));
         }
     }
@@ -170,7 +170,7 @@ void labelcacheload(JSON root)
                 strcpy_s(curLabel.text, text);
             else
                 continue; //skip
-            const uint key = ModHashFromName(curLabel.mod) + curLabel.addr;
+            const uint key = modhashfromname(curLabel.mod) + curLabel.addr;
             labels.insert(std::make_pair(key, curLabel));
         }
     }
@@ -192,7 +192,7 @@ bool labelenum(LABELSINFO* labellist, size_t* cbsize)
     for(LabelsInfo::iterator i = labels.begin(); i != labels.end(); ++i, j++)
     {
         labellist[j] = i->second;
-        labellist[j].addr += ModBaseFromName(labellist[j].mod);
+        labellist[j].addr += modbasefromname(labellist[j].mod);
     }
     return true;
 }

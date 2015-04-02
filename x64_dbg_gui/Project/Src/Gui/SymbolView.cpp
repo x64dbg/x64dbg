@@ -199,10 +199,6 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->reloadData();
-
-    // This BridgeFree call must remain here because of how arguments
-    // are passed; they are thread-thread delayed so passing a stack
-    // variable can not work.
     if(modules)
         BridgeFree(modules);
 }
