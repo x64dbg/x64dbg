@@ -93,11 +93,12 @@ bool ModUnload(uint Base)
     if(found == modinfo.end())
         return false;
 
-    // Remove it from the list
+	// Unload everything from TitanEngine
+	StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
+
+	// Remove it from the list
     modinfo.erase(found);
 
-    // Unload everything from TitanEngine
-    StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
     EXCLUSIVE_RELEASE();
 
     // Update symbols
