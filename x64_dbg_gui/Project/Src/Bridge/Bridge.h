@@ -1,6 +1,7 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
+#include <agents.h>
 #include <QObject>
 #include <QMutex>
 #include "Imports.h"
@@ -82,6 +83,9 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
+
+    static DWORD WINAPI GuiDisptacherThread(LPVOID Argument);
+    static void* GuiDispatchMessage(GUIMSG type, void* param1, void* param2);
 
     //Public variables
     void* winId;
