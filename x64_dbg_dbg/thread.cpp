@@ -1,3 +1,9 @@
+/**
+ @file thread.cpp
+
+ @brief Implements the thread class.
+ */
+
 #include "thread.h"
 #include "console.h"
 #include "undocumented.h"
@@ -5,7 +11,9 @@
 #include "threading.h"
 
 static std::vector<THREADINFO> threadList;
+
 static int threadNum;
+
 static int currentThread;
 
 void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread)

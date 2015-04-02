@@ -1,10 +1,23 @@
+/**
+ @file variable.cpp
+
+ @brief Implements the variable class.
+ */
+
 #include "variable.h"
 #include "threading.h"
 
+/**
+\brief The container that stores the variables.
+*/
 static VariableMap variables;
-static VAR* vars;
 
-static void varsetvalue(VAR* var, VAR_VALUE* value)
+/**
+\brief Sets a variable with a value.
+\param [in,out] var The variable to set the value of. The previous value will be freed. Cannot be null.
+\param [in] value The new value. Cannot be null.
+*/
+static void varsetvalue(VAR* var, const VAR_VALUE* value)
 {
     switch(var->value.type)
     {
@@ -18,7 +31,14 @@ static void varsetvalue(VAR* var, VAR_VALUE* value)
     memcpy(&var->value, value, sizeof(VAR_VALUE));
 }
 
-static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
+/**
+\brief Sets a variable by name.
+\param name The name of the variable. Cannot be null.
+\param value The new value. Cannot be null.
+\param setreadonly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set correctly, false otherwise.
+*/
+static bool varset(const char* name, const VAR_VALUE* value, bool setreadonly)
 {
     CriticalSectionLocker locker(LockVariables);
     String name_;
@@ -36,6 +56,9 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
     return true;
 }
 
+/**
+\brief Initializes various default variables.
+*/
 void varinit()
 {
     varfree();
@@ -56,17 +79,23 @@ void varinit()
     varnew("$_BS_FLAG", 0, VAR_READONLY); //bigger/smaller flag for internal use (1=bigger, 0=smaller)
 }
 
+/**
+\brief Clears all variables.
+*/
 void varfree()
 {
+    //TODO: correctly free variable data.
     CriticalSectionLocker locker(LockVariables);
     variables.clear();
 }
 
-VAR* vargetptr()
-{
-    return 0;
-}
-
+/**
+\brief Creates a new variable.
+\param name The name of the variable. You can specify alias names by separating the names by '\1'. Cannot be null.
+\param value The new variable value.
+\param type The variable type.
+\return true if the new variables was created and set successfully, false otherwise.
+*/
 bool varnew(const char* name, uint value, VAR_TYPE type)
 {
     CriticalSectionLocker locker(LockVariables);
@@ -98,6 +127,14 @@ bool varnew(const char* name, uint value, VAR_TYPE type)
     return true;
 }
 
+/**
+\brief Gets a variable value.
+\param name The name of the variable.
+\param [out] value This function can get the variable value. If this value is null, it is ignored.
+\param [out] size This function can get the variable size. If this value is null, it is ignored.
+\param [out] type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
 static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
 {
     CriticalSectionLocker locker(LockVariables);
@@ -119,6 +156,14 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
     return true;
 }
 
+/**
+\brief Gets a variable value.
+\param name The name of the variable.
+\param [out] value This function can get the variable value. If this value is null, it is ignored.
+\param [out] size This function can get the variable size. If this value is null, it is ignored.
+\param [out] type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
 bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
 {
     VAR_VALUE varvalue;
@@ -137,6 +182,14 @@ bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
     return true;
 }
 
+/**
+\brief Gets a variable value.
+\param name The name of the variable.
+\param [out] string This function can get the variable value. If this value is null, it is ignored.
+\param [out] size This function can get the variable size. If this value is null, it is ignored.
+\param [out] type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
 bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
 {
     VAR_VALUE varvalue;
@@ -155,6 +208,13 @@ bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
     return true;
 }
 
+/**
+\brief Sets a variable by name.
+\param name The name of the variable. Cannot be null.
+\param value The new value.
+\param setreadonly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set successfully, false otherwise.
+*/
 bool varset(const char* name, uint value, bool setreadonly)
 {
     VAR_VALUE varvalue;
@@ -164,6 +224,13 @@ bool varset(const char* name, uint value, bool setreadonly)
     return varset(name, &varvalue, setreadonly);
 }
 
+/**
+\brief Sets a variable by name.
+\param name The name of the variable. Cannot be null.
+\param string The new value. Cannot be null.
+\param setreadonly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set successfully, false otherwise.
+*/
 bool varset(const char* name, const char* string, bool setreadonly)
 {
     VAR_VALUE varvalue;
@@ -182,6 +249,12 @@ bool varset(const char* name, const char* string, bool setreadonly)
     return true;
 }
 
+/**
+\brief Deletes a variable.
+\param name The name of the variable to delete. Cannot be null.
+\param delsystem true to allow deleting system variables.
+\return true if the variable was deleted successfully, false otherwise.
+*/
 bool vardel(const char* name, bool delsystem)
 {
     CriticalSectionLocker locker(LockVariables);
@@ -207,6 +280,13 @@ bool vardel(const char* name, bool delsystem)
     return true;
 }
 
+/**
+\brief Gets a variable type.
+\param name The name of the variable. Cannot be null.
+\param [out] type This function can retrieve the variable type. If null it is ignored.
+\param [out] valtype This function can retrieve the variable value type. If null it is ignored.
+\return true if getting the type was successful, false otherwise.
+*/
 bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
 {
     CriticalSectionLocker locker(LockVariables);
@@ -226,6 +306,12 @@ bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
     return true;
 }
 
+/**
+\brief Enumerates all variables.
+\param [in,out] entries A pointer to place the variables in. If null, \p cbsize will be filled to the number of bytes required.
+\param [in,out] cbsize This function retrieves the number of bytes required to store all variables. Can be null if \p entries is not null.
+\return true if it succeeds, false if it fails.
+*/
 bool varenum(VAR* entries, size_t* cbsize)
 {
     CriticalSectionLocker locker(LockVariables);

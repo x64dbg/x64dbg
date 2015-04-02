@@ -1,3 +1,9 @@
+/**
+ @file x64_dbg.cpp
+
+ @brief Implements the 64 debug class.
+ */
+
 #include "_global.h"
 #include "argument.h"
 #include "command.h"
@@ -17,8 +23,11 @@
 #include "debugger_commands.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
+
 static COMMAND* command_list = 0;
+
 static HANDLE hCommandLoopThread = 0;
+
 static char alloctrace[MAX_PATH] = "";
 
 static CMDRESULT cbStrLen(int argc, char* argv[])

@@ -1,3 +1,9 @@
+/**
+ @file _plugins.cpp
+
+ @brief Implements the plugins class.
+ */
+
 #include "_plugins.h"
 #include "plugin_loader.h"
 #include "console.h"
@@ -6,7 +12,6 @@
 
 static char msg[66000];
 
-///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 {
     pluginregistercallback(pluginHandle, cbType, cbPlugin);

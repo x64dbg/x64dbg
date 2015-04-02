@@ -1,28 +1,57 @@
+/**
+ @file threading.cpp
+
+ @brief Implements various functions for syncing threads.
+ */
+
 #include "threading.h"
 
+/**
+\brief The lock values.
+*/
 static volatile bool waitarray[WAITID_LAST];
 
+/**
+\brief Sets all lock values to 0.
+*/
 void waitclear()
 {
     memset((void*)waitarray, 0, sizeof(waitarray));
 }
 
+/**
+\brief Waits while a lock is 1.
+\param id The lock to wait for.
+*/
 void wait(WAIT_ID id)
 {
     while(waitarray[id]) //1=locked, 0=unlocked
         Sleep(1);
 }
 
+/**
+\brief Sets a lock to 1.
+\param id The lock to set.
+*/
 void lock(WAIT_ID id)
 {
     waitarray[id] = true;
 }
 
+/**
+\brief Sets a lock to 0.
+\param id The lock to set.
+*/
 void unlock(WAIT_ID id)
 {
     waitarray[id] = false;
 }
 
+/**
+\brief Returns the lock value.
+\param id The lock to check.
+\return true if locked, false otherwise.
+*/
 bool waitislocked(WAIT_ID id)
 {
     return waitarray[id];

@@ -1,3 +1,9 @@
+/**
+ @file simplescript.cpp
+
+ @brief Implements the simplescript class.
+ */
+
 #include "simplescript.h"
 #include "value.h"
 #include "console.h"
@@ -8,10 +14,15 @@
 #include "debugger.h"
 
 static std::vector<LINEMAPENTRY> linemap;
+
 static std::vector<SCRIPTBP> scriptbplist;
+
 static std::vector<int> scriptstack;
+
 static int scriptIp = 0;
+
 static bool volatile bAbort = false;
+
 static bool volatile bIsRunning = false;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)

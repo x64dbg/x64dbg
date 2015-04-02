@@ -27,7 +27,7 @@ typedef bool (*DBGADDRINFOGET)(duint addr, SEGMENTREG segment, ADDRINFO* addrinf
 typedef bool (*DBGADDRINFOSET)(duint addr, ADDRINFO* addrinfo);
 typedef BPXTYPE (*DBGBPGETTYPEAT)(duint addr);
 typedef bool (*DBGGETREGDUMP)(REGDUMP* regdump);
-typedef bool (*DBGVALTOSTRING)(const char* string, duint* value);
+typedef bool (*DBGVALTOSTRING)(const char* string, duint value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
 typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);

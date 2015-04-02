@@ -1,3 +1,9 @@
+/**
+ @file disasm_fast.cpp
+
+ @brief Implements the disasm fast class.
+ */
+
 #include "disasm_fast.h"
 #include "debugger.h"
 #include "memory.h"

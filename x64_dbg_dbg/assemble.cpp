@@ -1,3 +1,9 @@
+/**
+ @file assemble.cpp
+
+ @brief Implements the assemble class.
+ */
+
 #include "assemble.h"
 #include "memory.h"
 #include "debugger.h"

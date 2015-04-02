@@ -1,33 +1,73 @@
+/**
+ @file math.cpp
+
+ @brief Implements various functionalities that have to do with handling expression text.
+ */
+
 #include "math.h"
 #include "value.h"
 
+/**
+\brief A bracket pair. This structure describes a piece of brackets '(' and ')'
+*/
 struct BRACKET_PAIR
 {
+    /**
+    \brief The position in the string of the opening bracket '('.
+    */
     int openpos;
+
+    /**
+    \brief The position in the string of the closing bracket ')'.
+    */
     int closepos;
+
+    /**
+    \brief The depth of the pair (for example when you have "((1+4)*4)" the second '(' has layer 2).
+    */
     int layer;
-    int isset; //0=free, 1=open, 2=close
+
+    /**
+    \brief 0 when there is nothing set, 1 when the openpos is set, 2 when everything is set (aka pair is complete).
+    */
+    int isset;
 };
 
+/**
+\brief An expression. This structure describes an expression in form of bracket pairs.
+*/
 struct EXPRESSION
 {
+    /**
+    \brief The bracket pairs.
+    */
     BRACKET_PAIR* pairs;
+
+    /**
+    \brief The total number of bracket pairs.
+    */
     int total_pairs;
+
+    /**
+    \brief The expression text everything is derived from.
+    */
     char* expression;
 };
 
-/*
-operator precedence
-1 ( )
-2 ~     (NOT)
-3 * / % (MUL DIV)
-4 + -   (ADD SUB)
-5 < >   (SHL SHR)
-6 &     (AND)
-7 ^     (XOR)
-8 |     (OR)
-*/
+/**
+\brief Determines if a characters is an operator.
+\param ch The character to check.
+\return The number of the operator. 0 when the character is no operator. Otherwise it returns one of the following numbers:
 
+- 1 ( )
+- 2 ~     (NOT)
+- 3 * / % (MUL DIV)
+- 4 + -   (ADD SUB)
+- 5 < >   (SHL SHR)
+- 6 &     (AND)
+- 7 ^     (XOR)
+- 8 |     (OR)
+*/
 int mathisoperator(char ch)
 {
     if(ch == '(' or ch == ')')
@@ -49,9 +89,9 @@ int mathisoperator(char ch)
     return 0;
 }
 
-/*
-mathformat:
-- remove doubles
+/**
+\brief Formats the given text. It removes double operators like "**" and "||"
+\param [in,out] text The text to format.
 */
 void mathformat(char* text)
 {
@@ -64,8 +104,10 @@ void mathformat(char* text)
     strcpy(text, temp);
 }
 
-/*
-- check for math operators
+/**
+\brief Checks if the given text contains operators.
+\param text The text to check.
+\return true if the text contains operator, false if not.
 */
 bool mathcontains(const char* text)
 {
@@ -115,6 +157,14 @@ static inline int mulhi(int x, int y)
 }
 #endif //__MINGW64__
 
+/**
+\brief Do an operation on two unsigned numbers.
+\param op The operation to do (this must be a valid operator).
+\param left The number left of the operator.
+\param right The number right of the operator.
+\param [out] result The result of the operator. Cannot be null.
+\return true if the operation succeeded. It could fail on zero devision or an invalid operator.
+*/
 bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
 {
     switch(op)
@@ -164,6 +214,14 @@ bool mathdounsignedoperation(char op, uint left, uint right, uint* result)
     return false;
 }
 
+/**
+\brief Do an operation on two signed numbers.
+\param op The operation to do (this must be a valid operator).
+\param left The number left of the operator.
+\param right The number right of the operator.
+\param [out] result The result of the operator. Cannot be null.
+\return true if the operation succeeded. It could fail on zero devision or an invalid operator.
+*/
 bool mathdosignedoperation(char op, sint left, sint right, sint* result)
 {
     switch(op)
@@ -213,6 +271,12 @@ bool mathdosignedoperation(char op, sint left, sint right, sint* result)
     return false;
 }
 
+/**
+\brief Fills a BRACKET_PAIR structure.
+\param [in,out] expstruct The expression structure. Cannot be null.
+\param pos The position to fill, position of '(' or ')'.
+\param layer The layer this bracket is in.
+*/
 static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 {
     for(int i = 0; i < expstruct->total_pairs; i++)
@@ -233,8 +297,14 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
     }
 }
 
-
-static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
+/**
+\brief This function recursively matches bracket pair in an EXPRESSION.
+\param [in,out] expstruct The expression structure. Cannot be null.
+\param [in,out] expression The expression text to parse. Cannot be null.
+\param endlayer The layer to stop on. This variable is used for the recursion termination condition.
+\return The position in the \p expression mathpairs ended in.
+*/
+static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer = 0)
 {
     int layer = endlayer;
     int len = (int)strlen(expression);
@@ -262,6 +332,11 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer)
     return 0;
 }
 
+/**
+\brief Formats a given expression. This function checks if the number of brackets is even and adds brackets to the end if needed.
+\param [in,out] exp The expression to format.
+\return The number of bracket pairs in the expression or -1 on error.
+*/
 static int expressionformat(char* exp)
 {
     int len = (int)strlen(exp);
@@ -285,6 +360,14 @@ static int expressionformat(char* exp)
     return open;
 }
 
+/**
+\brief Adjusts bracket pair positions to insert a new string in the expression.
+\param [in,out] exps The expression structure.
+\param cur_open The current opening bracket '(' position.
+\param cur_close The current closing bracket ')' position.
+\param cur_len The current string length in between the brackets.
+\param new_len Length of the new string.
+*/
 static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_len, int new_len)
 {
     for(int i = 0; i < exps->total_pairs; i++)
@@ -296,6 +379,15 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
     }
 }
 
+/**
+\brief Prints value of expressions in between brackets on a certain bracket layer (expression is resolved using mathfromstring(), which means the whole thing can work recursively).
+\param [in,out] exp The expression to print. Cannot be null.
+\param [in,out] exps The expression structure. Cannot be null.
+\param layer The layer to print.
+\param silent Value to pass on to mathfromstring().
+\param baseonly Value to pass on to mathfromstring().
+\return true if printing the layer was succesful, false otherwise.
+*/
 static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
 {
     for(int i = 0; i < exps->total_pairs; i++)
@@ -326,6 +418,13 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool
     return true;
 }
 
+/**
+\brief Handle brackets in an expression (calculate the values of expressions in between brackets).
+\param [in,out] expression Expression to handle. Cannot be null.
+\param silent Value to pass on to printlayer().
+\param baseonly Value to pass on to printlayer().
+\return true if the brackets are correctly expanded, false otherwise.
+*/
 bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
 {
     EXPRESSION expstruct;
@@ -340,7 +439,7 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
     Memory<BRACKET_PAIR*> pairs(expstruct.total_pairs * sizeof(BRACKET_PAIR), "mathhandlebrackets:expstruct.pairs");
     expstruct.pairs = pairs;
     memset(expstruct.pairs, 0, expstruct.total_pairs * sizeof(BRACKET_PAIR));
-    matchpairs(&expstruct, expression, 0);
+    matchpairs(&expstruct, expression);
     int deepest = 0;
     for(int i = 0; i < expstruct.total_pairs; i++)
         if(expstruct.pairs[i].layer > deepest)
@@ -352,8 +451,15 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
     return true;
 }
 
-/*
-- handle math
+/**
+\brief Calculate the value of an expression string.
+\param string The string to calculate the value of. Cannot be null.
+\param [in,out] value The resulting value. Cannot be null.
+\param silent Value to pass on to valfromstring().
+\param baseonly Value to pass on to valfromstring().
+\param [in,out] value_size Value to pass on to valfromstring(). Can be null.
+\param [in,out] isvar Value to pass on to valfromstring(). Can be null.
+\return true if the string was successfully parsed and the value was calculated.
 */
 bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar)
 {
@@ -410,4 +516,3 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
         math_ok = mathdounsignedoperation(string[highestop_pos], left, right, value);
     return math_ok;
 }
-

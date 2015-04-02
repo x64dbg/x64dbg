@@ -1,3 +1,9 @@
+/**
+ @file breakpoint.cpp
+
+ @brief Implements the breakpoint class.
+ */
+
 #include "breakpoint.h"
 #include "debugger.h"
 #include "addrinfo.h"
@@ -247,6 +253,7 @@ void bpcacheload(JSON root)
     {
         size_t i;
         JSON value;
+
         json_array_foreach(jsonbreakpoints, i, value)
         {
             BREAKPOINT curBreakpoint;

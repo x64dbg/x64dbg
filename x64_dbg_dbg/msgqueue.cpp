@@ -1,19 +1,22 @@
+/**
+ @file msgqueue.cpp
+
+ @brief Implements the msgqueue class.
+ */
+
 #include "msgqueue.h"
 #include <stdio.h>
 
-//allocate a message (internal)
 static MESSAGE* msgalloc()
 {
     return (MESSAGE*)emalloc(sizeof(MESSAGE), "msgalloc:msg");
 }
 
-//free a message (internal)
 static void msgfree(MESSAGE* msg)
 {
     efree(msg, "msgfree:msg");
 }
 
-//allocate a message stack
 MESSAGE_STACK* msgallocstack()
 {
     MESSAGE_STACK* msgstack = (MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
@@ -24,7 +27,6 @@ MESSAGE_STACK* msgallocstack()
     return msgstack;
 }
 
-//free a message stack
 void msgfreestack(MESSAGE_STACK* msgstack)
 {
     DeleteCriticalSection(&msgstack->cr);
@@ -34,7 +36,6 @@ void msgfreestack(MESSAGE_STACK* msgstack)
     efree(msgstack, "msgfreestack:msgstack");
 }
 
-//add a message to the stack
 bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
@@ -60,7 +61,6 @@ bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
     return true;
 }
 
-//get a message from the stack (will return false when there are no messages)
 bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
@@ -81,7 +81,6 @@ bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
     return true;
 }
 
-//wait for a message on the specified stack
 void msgwait(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
     while(!msgget(msgstack, msg))

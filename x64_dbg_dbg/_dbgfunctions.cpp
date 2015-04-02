@@ -1,3 +1,9 @@
+/**
+ @file _dbgfunctions.cpp
+
+ @brief Implements the dbgfunctions class.
+ */
+
 #include "_global.h"
 #include "_dbgfunctions.h"
 #include "assemble.h"
@@ -92,6 +98,8 @@ static bool _patchrestore(duint addr)
 {
     return patchdel(addr, true);
 }
+
+
 
 static void _getcallstack(DBGCALLSTACK* callstack)
 {

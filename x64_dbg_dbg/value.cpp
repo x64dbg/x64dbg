@@ -1,3 +1,9 @@
+/**
+ @file value.cpp
+
+ @brief Implements the value class.
+ */
+
 #include "value.h"
 #include "variable.h"
 #include "debugger.h"
@@ -11,16 +17,29 @@
 
 static bool dosignedcalc = false;
 
+/**
+\brief Returns whether we do signed or unsigned calculations.
+\return true if we do signed calculations, false for unsigned calculationss.
+*/
 bool valuesignedcalc()
 {
     return dosignedcalc;
 }
 
+/**
+\brief Set whether we do signed or unsigned calculations.
+\param a true for signed calculations, false for unsigned calculations.
+*/
 void valuesetsignedcalc(bool a)
 {
     dosignedcalc = a;
 }
 
+/**
+\brief Check if a string is a flag.
+\param string The string to check.
+\return true if the string is a flag, false otherwise.
+*/
 static bool isflag(const char* string)
 {
     if(scmp(string, "cf"))
@@ -56,6 +75,11 @@ static bool isflag(const char* string)
     return false;
 }
 
+/**
+\brief Check if a string is a register.
+\param string The string to check.
+\return true if the string is a register, false otherwise.
+*/
 static bool isregister(const char* string)
 {
     if(scmp(string, "eax"))
@@ -282,7 +306,12 @@ typedef struct
 
 #define MXCSR_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, MXCSRFLAG_##flag_name }
 
-unsigned int getmxcsrflagfromstring(const char* string)
+/**
+\brief Gets the MXCSR flag AND value from a string.
+\param string The flag name.
+\return The value to AND the MXCSR value with to get the flag. 0 when not found.
+*/
+static unsigned int getmxcsrflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t mxcsrnameflagtable[] =
     {
@@ -301,9 +330,8 @@ unsigned int getmxcsrflagfromstring(const char* string)
         MXCSR_NAME_FLAG_TABLE_ENTRY(PM),
         MXCSR_NAME_FLAG_TABLE_ENTRY(FZ)
     };
-    int i;
 
-    for(i = 0; i < (sizeof(mxcsrnameflagtable) / sizeof(*mxcsrnameflagtable)); i++)
+    for(int i = 0; i < (sizeof(mxcsrnameflagtable) / sizeof(*mxcsrnameflagtable)); i++)
     {
         if(scmp(string, mxcsrnameflagtable[i].name))
             return mxcsrnameflagtable[i].flag;
@@ -312,6 +340,12 @@ unsigned int getmxcsrflagfromstring(const char* string)
     return 0;
 }
 
+/**
+\brief Gets the MXCSR flag from a string and a flags value.
+\param mxcsrflags The flags value to get the flag from.
+\param string The string with the flag name.
+\return true if the flag is 1, false if the flag is 0.
+*/
 bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
 {
     unsigned int flag = getmxcsrflagfromstring(string);
@@ -337,7 +371,12 @@ bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
 
 #define X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87STATUSWORD_FLAG_##flag_name }
 
-unsigned int getx87statuswordflagfromstring(const char* string)
+/**
+\brief Gets the x87 status word AND value from a string.
+\param string The status word name.
+\return The value to AND the status word with to get the flag. 0 when not found.
+*/
+static unsigned int getx87statuswordflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t statuswordflagtable[] =
     {
@@ -355,9 +394,8 @@ unsigned int getx87statuswordflagfromstring(const char* string)
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(C3),
         X87STATUSWORD_NAME_FLAG_TABLE_ENTRY(B)
     };
-    int i;
 
-    for(i = 0; i < (sizeof(statuswordflagtable) / sizeof(*statuswordflagtable)); i++)
+    for(int i = 0; i < (sizeof(statuswordflagtable) / sizeof(*statuswordflagtable)); i++)
     {
         if(scmp(string, statuswordflagtable[i].name))
             return statuswordflagtable[i].flag;
@@ -366,6 +404,12 @@ unsigned int getx87statuswordflagfromstring(const char* string)
     return 0;
 }
 
+/**
+\brief Gets an x87 status flag from a string.
+\param statusword The status word value.
+\param string The flag name.
+\return true if the flag is 1, false if the flag is 0.
+*/
 bool valx87statuswordflagfromstring(uint statusword, const char* string)
 {
     unsigned int flag = getx87statuswordflagfromstring(string);
@@ -386,7 +430,12 @@ bool valx87statuswordflagfromstring(uint statusword, const char* string)
 
 #define X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(flag_name) { #flag_name, x87CONTROLWORD_FLAG_##flag_name }
 
-unsigned int getx87controlwordflagfromstring(const char* string)
+/**
+\brief Gets the x87 control word flag AND value from a string.
+\param string The name of the control word.
+\return The value to AND the control word with to get the flag. 0 when not found.
+*/
+static unsigned int getx87controlwordflagfromstring(const char* string)
 {
     static FLAG_NAME_VALUE_TABLE_t controlwordflagtable[] =
     {
@@ -399,9 +448,8 @@ unsigned int getx87controlwordflagfromstring(const char* string)
         X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IEM),
         X87CONTROLWORD_NAME_FLAG_TABLE_ENTRY(IC)
     };
-    int i;
 
-    for(i = 0; i < (sizeof(controlwordflagtable) / sizeof(*controlwordflagtable)); i++)
+    for(int i = 0; i < (sizeof(controlwordflagtable) / sizeof(*controlwordflagtable)); i++)
     {
         if(scmp(string, controlwordflagtable[i].name))
             return controlwordflagtable[i].flag;
@@ -410,6 +458,12 @@ unsigned int getx87controlwordflagfromstring(const char* string)
     return 0;
 }
 
+/**
+\brief Get an x87 control word flag from a string.
+\param controlword The control word to get the flag from.
+\param string The flag name.
+\return true if the flag is 1, false when the flag is 0.
+*/
 bool valx87controlwordflagfromstring(uint controlword, const char* string)
 {
     unsigned int flag = getx87controlwordflagfromstring(string);
@@ -420,6 +474,12 @@ bool valx87controlwordflagfromstring(uint controlword, const char* string)
     return (bool)((int)(controlword & flag) != 0);
 }
 
+/**
+\brief Gets the MXCSR field from a string.
+\param mxcsrflags The mxcsrflags to get the field from.
+\param string The name of the field (should be "RC").
+\return The MXCSR field word.
+*/
 unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
 {
     if(scmp(string, "RC"))
@@ -428,6 +488,12 @@ unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
     return 0;
 }
 
+/**
+\brief Gets the x87 status word field from a string.
+\param statusword The status word to get the field from.
+\param string The name of the field (should be "TOP").
+\return The x87 status word field.
+*/
 unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string)
 {
     if(scmp(string, "TOP"))
@@ -436,6 +502,12 @@ unsigned short valx87statuswordfieldfromstring(uint statusword, const char* stri
     return 0;
 }
 
+/**
+\brief Gets the x87 control word field from a string.
+\param controlword The control word to get the field from.
+\param string The name of the field.
+\return The x87 control word field.
+*/
 unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string)
 {
     if(scmp(string, "PC"))
@@ -446,6 +518,12 @@ unsigned short valx87controlwordfieldfromstring(uint controlword, const char* st
     return 0;
 }
 
+/**
+\brief Gets a flag from a string.
+\param eflags The eflags value to get the flag from.
+\param string The name of the flag.
+\return true if the flag equals to 1, false if the flag is 0 or not found.
+*/
 bool valflagfromstring(uint eflags, const char* string)
 {
     if(scmp(string, "cf"))
@@ -481,6 +559,12 @@ bool valflagfromstring(uint eflags, const char* string)
     return false;
 }
 
+/**
+\brief Sets a flag value.
+\param string The name of the flag.
+\param set The value of the flag.
+\return true if the flag was successfully set, false otherwise.
+*/
 static bool setflag(const char* string, bool set)
 {
     uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
@@ -523,6 +607,12 @@ static bool setflag(const char* string, bool set)
     return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags ^ xorval);
 }
 
+/**
+\brief Gets a register from a string.
+\param [out] size This function can store the register size in bytes in this parameter. Can be null, in that case it will be ignored.
+\param string The name of the register to get.
+\return The register value.
+*/
 static uint getregister(int* size, const char* string)
 {
     if(size)
@@ -961,6 +1051,12 @@ static uint getregister(int* size, const char* string)
     return 0;
 }
 
+/**
+\brief Sets a register value based on the register name.
+\param string The name of the register to set.
+\param value The new register value.
+\return true if the register was set, false otherwise.
+*/
 static bool setregister(const char* string, uint value)
 {
     if(scmp(string, "eax"))
@@ -1165,6 +1261,16 @@ static bool setregister(const char* string, uint value)
     return false;
 }
 
+/**
+\brief Gets the address of an API from a name.
+\param name The name of the API, see the command help for more information about valid constructions.
+\param [out] value The address of the retrieved API. Cannot be null.
+\param [out] value_size This function sets this value to the size of the address, sizeof(uint).
+\param printall true to print all possible API values to the console.
+\param silent true to have no console output. If true, the \p printall parameter is ignored.
+\param [out] hexonly If set to true, the values should be printed in hex only. Usually this function sets it to true.
+\return true if the API was found and a value retrieved, false otherwise.
+*/
 bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
 {
     if(!value or !DbgIsDebugging())
@@ -1338,8 +1444,10 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     return true;
 }
 
-/*
-check whether a string is a valid dec number
+/**
+\brief Check if a string is a valid decimal number. This function also accepts "-" or "." as prefix.
+\param string The string to check.
+\return true if the string is a valid decimal number.
 */
 static bool isdecnumber(const char* string)
 {
@@ -1359,8 +1467,10 @@ static bool isdecnumber(const char* string)
     return true;
 }
 
-/*
-check whether a string is a valid hex number
+/**
+\brief Check if a string is a valid hexadecimal number. This function also accepts "0x" or "x" as prefix.
+\param string The string to check.
+\return true if the string is a valid hexadecimal number.
 */
 static bool ishexnumber(const char* string)
 {
@@ -1378,6 +1488,17 @@ static bool ishexnumber(const char* string)
     return true;
 }
 
+/**
+\brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
+\param string The string to parse.
+\param [out] value The value of the expression. This value cannot be null.
+\param silent true to not output anything to the console.
+\param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
+\param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
+\param [out] isvar This function can output if the expression is variable (for example memory locations, registers or variables are variable). Can be null.
+\param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
+\return true if the expression was parsed successfull, false otherwise.
+*/
 bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     if(!value or !string)
@@ -1572,6 +1693,12 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     return false; //nothing was OK
 }
 
+/**
+\brief Checks if a string is long enough.
+\param str The string to check.
+\param min_length The minimum length of \p str.
+\return true if the string is long enough, false otherwise.
+*/
 static bool longEnough(const char* str, size_t min_length)
 {
     size_t length = 0;
@@ -1582,6 +1709,12 @@ static bool longEnough(const char* str, size_t min_length)
     return false;
 }
 
+/**
+\brief Checks if a string starts with another string.
+\param pre The desired prefix of the string.
+\param str The complete string.
+\return true if \p str starts with \p pre.
+*/
 static bool startsWith(const char* pre, const char* str)
 {
     size_t lenpre = strlen(pre);
@@ -1598,7 +1731,12 @@ static bool startsWith(const char* pre, const char* str)
 #define x8780BITFPU_PRE_FIELD_STRING "x87r"
 #define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
 
-static void fpustuff(const char* string, uint value)
+/**
+\brief Sets an FPU value (MXCSR fields, MMX fields, etc.) by name.
+\param string The name of the FPU value to set.
+\param value The value to set.
+*/
+static void setfpuvalue(const char* string, uint value)
 {
     uint xorval = 0;
     uint flags = 0;
@@ -1978,9 +2116,16 @@ static void fpustuff(const char* string, uint value)
     }
 }
 
-bool valtostring(const char* string, uint* value, bool silent)
+/**
+\brief Sets a register, variable, flag, memory location or FPU value by name.
+\param string The name of the thing to set.
+\param value The value to set.
+\param silent true to not have output to the console.
+\return true if the value was set successfully, false otherwise.
+*/
+bool valtostring(const char* string, uint value, bool silent)
 {
-    if(!*string or !value)
+    if(!*string)
         return false;
     else if(*string == '@' or strstr(string, "[")) //memory location
     {
@@ -2025,7 +2170,8 @@ bool valtostring(const char* string, uint* value, bool silent)
         {
             return false;
         }
-        if(!mempatch(fdProcessInfo->hProcess, (void*)temp, value, read_size, 0))
+        uint value_ = value;
+        if(!mempatch(fdProcessInfo->hProcess, (void*)temp, &value_, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");
@@ -2043,7 +2189,7 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging!");
             return false;
         }
-        bool ok = setregister(string, *value);
+        bool ok = setregister(string, value);
         int len = (int)strlen(string);
         Memory<char*> regName(len + 1, "valtostring:regname");
         strcpy_s(regName, len + 1, string);
@@ -2060,7 +2206,7 @@ bool valtostring(const char* string, uint* value, bool silent)
             GuiUpdateAllViews(); //repaint gui
         return ok;
     }
-    else if((*string == '_'))
+    else if((*string == '_')) //FPU values
     {
         if(!DbgIsDebugging())
         {
@@ -2068,9 +2214,8 @@ bool valtostring(const char* string, uint* value, bool silent)
                 dputs("not debugging!");
             return false;
         }
-        fpustuff(string + 1, * value);
+        setfpuvalue(string + 1, value);
         GuiUpdateAllViews(); //repaint gui
-
         return true;
     }
     else if(*string == '!' and isflag(string + 1)) //flag
@@ -2082,15 +2227,21 @@ bool valtostring(const char* string, uint* value, bool silent)
             return false;
         }
         bool set = false;
-        if(*value)
+        if(value)
             set = true;
         setflag(string + 1, set);
         GuiUpdateAllViews(); //repaint gui
         return true;
     }
-    return varset(string, *value, false); //variable
+    return varset(string, value, false); //variable
 }
 
+/**
+\brief Converts a file offset to a virtual address.
+\param modname The name (not the path) of the module the file offset is in.
+\param offset The file offset.
+\return The VA of the file offset, 0 when there was a problem with the conversion.
+*/
 uint valfileoffsettova(const char* modname, uint offset)
 {
     char modpath[MAX_PATH] = "";
@@ -2112,6 +2263,11 @@ uint valfileoffsettova(const char* modname, uint offset)
     return 0;
 }
 
+/**
+\brief Converts a virtual address to a file offset.
+\param va The virtual address (must be inside a module).
+\return The file offset. 0 when there was a problem with the conversion.
+*/
 uint valvatofileoffset(uint va)
 {
     char modpath[MAX_PATH] = "";

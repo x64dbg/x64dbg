@@ -1,3 +1,9 @@
+/**
+ @file stackinfo.cpp
+
+ @brief Implements the stackinfo class.
+ */
+
 #include "stackinfo.h"
 #include "debugger.h"
 #include "memory.h"
@@ -113,6 +119,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     return false;
 }
 #include "console.h"
+
 void stackgetcallstack(uint csp, CALLSTACK* callstack)
 {
     callstack->total = 0;

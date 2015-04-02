@@ -1,3 +1,9 @@
+/**
+ @file addrinfo.cpp
+
+ @brief Implements the addrinfo class.
+ */
+
 #include "addrinfo.h"
 #include "debugger.h"
 #include "console.h"
@@ -15,7 +21,9 @@
 #include "function.h"
 #include "loop.h"
 
-//database functions
+
+
+
 void dbsave()
 {
     dprintf("saving database...");
@@ -104,7 +112,6 @@ void dbclose()
     patchclear();
 }
 
-///api functions
 bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
@@ -175,3 +182,17 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     }
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

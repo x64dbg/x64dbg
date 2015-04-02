@@ -1,3 +1,9 @@
+/**
+ @file patches.cpp
+
+ @brief Implements the patches class.
+ */
+
 #include "patches.h"
 #include "addrinfo.h"
 #include "memory.h"
@@ -7,6 +13,7 @@
 #include "module.h"
 
 static PatchesInfo patches;
+
 
 bool patchset(uint addr, unsigned char oldbyte, unsigned char newbyte)
 {

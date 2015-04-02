@@ -1,3 +1,9 @@
+/**
+ @file symbolinfo.cpp
+
+ @brief Implements the symbolinfo class.
+ */
+
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "addrinfo.h"
@@ -7,7 +13,9 @@
 
 struct SYMBOLCBDATA
 {
+
     CBSYMBOLENUM cbSymbolEnum;
+
     void* user;
 };
 
@@ -51,8 +59,10 @@ void symenum(uint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 }
 
 #ifdef _WIN64
+
 static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
 #else
+
 static BOOL CALLBACK EnumModules(LPCTSTR ModuleName, ULONG BaseOfDll, PVOID UserContext)
 #endif //_WIN64
 {

@@ -1,3 +1,9 @@
+/**
+ @file debugger.cpp
+
+ @brief Implements the debugger class.
+ */
+
 #include "debugger.h"
 #include "console.h"
 #include "memory.h"
@@ -30,8 +36,6 @@ static std::vector<ExceptionRange> ignoredExceptionRange;
 static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
 static String lastDebugText;
-
-//Superglobal variables
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -589,7 +593,6 @@ void cbRtrStep()
         StepOver((void*)cbRtrStep);
 }
 
-///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     void* base = CreateProcessInfo->lpBaseOfImage;
@@ -1753,7 +1756,6 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-//update the pointer in the GetCommandLine function
 static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
