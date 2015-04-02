@@ -52,5 +52,6 @@
         <file>images/close-all-tabs.png</file>
         <file>images/bug-report.png</file>
         <file>images/yara.png</file>
+        <file>images/data-copy.png</file>
     </qresource>
 </RCC>

@@ -87,7 +87,8 @@ SOURCES += \
     Src/Gui/SelectFields.cpp \
     Src/Gui/ReferenceManager.cpp \
     Src/Bridge/BridgeResult.cpp \
-    Src/Gui/YaraRuleSelectionDialog.cpp
+    Src/Gui/YaraRuleSelectionDialog.cpp \
+    Src/Gui/DataCopyDialog.cpp
 
 
 HEADERS += \
@@ -153,7 +154,8 @@ HEADERS += \
     Src/Gui/SelectFields.h \
     Src/Gui/ReferenceManager.h \
     Src/Bridge/BridgeResult.h \
-    Src/Gui/YaraRuleSelectionDialog.h
+    Src/Gui/YaraRuleSelectionDialog.h \
+    Src/Gui/DataCopyDialog.h
 
 
 INCLUDEPATH += \
@@ -189,7 +191,8 @@ FORMS += \
     Src/Gui/AttachDialog.ui \
     Src/Gui/PageMemoryRights.ui \
     Src/Gui/SelectFields.ui \
-    Src/Gui/YaraRuleSelectionDialog.ui
+    Src/Gui/YaraRuleSelectionDialog.ui \
+    Src/Gui/DataCopyDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

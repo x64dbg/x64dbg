@@ -6,6 +6,7 @@
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
+#include "DataCopyDialog.h"
 
 CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {
@@ -238,6 +239,10 @@ void CPUDump::setupContextMenu()
     mYaraAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mYaraAction);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
+    //Data copy
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), "Data copy...", this);
+    connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
 
     //Find References
     mFindReferencesAction = new QAction("Find &References", this);
@@ -473,6 +478,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
     wMenu->addAction(mYaraAction);
+    wMenu->addAction(mDataCopyAction);
     wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
@@ -1345,4 +1351,15 @@ void CPUDump::yaraSlot()
         DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
         emit displayReferencesWidget();
     }
+}
+
+void CPUDump::dataCopySlot()
+{
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QVector<byte_t> data;
+    data.resize(selSize);
+    mMemPage->read(data.data(), selStart, selSize);
+    DataCopyDialog dataDialog(&data, this);
+    dataDialog.exec();
 }
