@@ -73,7 +73,7 @@ QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
         else if(DbgScriptBpGet(line)) //breakpoint
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor")));
-            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //black address //ScripViewMainBpTextColor
+            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor"))); //black address //ScripViewMainBpTextColor
         }
         else
         {
@@ -434,7 +434,7 @@ void ScriptView::add(int count, const char** lines)
         setCellContent(i, 1, QString(lines[i]));
     BridgeFree(lines);
     reloadData(); //repaint
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void ScriptView::clear()
@@ -490,6 +490,7 @@ void ScriptView::error(int line, QString message)
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
+    Bridge::getBridge()->setResult();
 }
 
 void ScriptView::setTitle(QString title)
@@ -582,6 +583,7 @@ void ScriptView::message(QString message)
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
+    Bridge::getBridge()->setResult();
 }
 
 void ScriptView::newIp()
@@ -600,9 +602,9 @@ void ScriptView::question(QString message)
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     if(msg.exec() == QMessageBox::Yes)
-        Bridge::getBridge()->BridgeSetResult(1);
+        Bridge::getBridge()->setResult(1);
     else
-        Bridge::getBridge()->BridgeSetResult(0);
+        Bridge::getBridge()->setResult(0);
 }
 
 void ScriptView::enableHighlighting(bool enable)

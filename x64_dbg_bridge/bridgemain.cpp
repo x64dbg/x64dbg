@@ -12,6 +12,7 @@
 static HINSTANCE hInst;
 
 static wchar_t szIniFile[MAX_PATH] = L"";
+static CRITICAL_SECTION csIni;
 
 #ifdef _WIN64
 #define dbg_lib "x64_dbg.dll"
@@ -37,6 +38,9 @@ static wchar_t szIniFile[MAX_PATH] = L"";
 
 BRIDGE_IMPEXP const char* BridgeInit()
 {
+    //Initialize critial section
+    InitializeCriticalSection(&csIni);
+
     //Settings load
     if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
         return "Error getting module path!";
@@ -87,6 +91,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     _gui_guiinit(0, 0); //remove arguments
+    DeleteCriticalSection(&csIni);
     return 0;
 }
 
@@ -111,14 +116,20 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
 {
     if(!section || !key || !value)
         return false;
+    EnterCriticalSection(&csIni);
     CSimpleIniA inifile(true, false, false);
-    if(inifile.LoadFile(szIniFile) < 0)
-        return false;
-    const char* szValue = inifile.GetValue(section, key);
-    if(!szValue)
-        return false;
-    strcpy_s(value, MAX_SETTING_SIZE, szValue);
-    return true;
+    bool success = false;
+    if(inifile.LoadFile(szIniFile) >= 0)
+    {
+        const char* szValue = inifile.GetValue(section, key);
+        if(szValue)
+        {
+            strcpy_s(value, MAX_SETTING_SIZE, szValue);
+            success = true;
+        }
+    }
+    LeaveCriticalSection(&csIni);
+    return success;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
@@ -140,15 +151,20 @@ BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, du
 
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value)
 {
-    if(!section)
-        return false;
-    CSimpleIniA inifile(true, false, false);
-    inifile.LoadFile(szIniFile);
-    if(!key || !value) //delete value/key when 0
-        inifile.Delete(section, key, true);
-    else
-        inifile.SetValue(section, key, value);
-    return inifile.SaveFile(szIniFile, false) >= 0;
+    bool success = false;
+    if(section)
+    {
+        EnterCriticalSection(&csIni);
+        CSimpleIniA inifile(true, false, false);
+        inifile.LoadFile(szIniFile);
+        if(!key || !value) //delete value/key when 0
+            inifile.Delete(section, key, true);
+        else
+            inifile.SetValue(section, key, value);
+        success = inifile.SaveFile(szIniFile, false) >= 0;
+        LeaveCriticalSection(&csIni);
+    }
+    return success;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value)
@@ -251,7 +267,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
             return false;
         sprintf_s(info.label, "&%s", ptrinfo.label);
     }
-    strcpy(text, info.label);
+    strcpy_s(text, MAX_LABEL_SIZE, info.label);
     return true;
 }
 
@@ -262,7 +278,7 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flaglabel;
-    strcpy(info.label, text);
+    strcpy_s(info.label, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
@@ -278,7 +294,7 @@ BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
     info.flags = flagcomment;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
-    strcpy(text, info.comment);
+    strcpy_s(text, MAX_COMMENT_SIZE, info.comment);
     return true;
 }
 
@@ -289,7 +305,7 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
     ADDRINFO info;
     memset(&info, 0, sizeof(info));
     info.flags = flagcomment;
-    strcpy(info.comment, text);
+    strcpy_s(info.comment, MAX_COMMENT_SIZE, text);
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
@@ -305,7 +321,7 @@ BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
     info.flags = flagmodule;
     if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
         return false;
-    strcpy(text, info.module);
+    strcpy_s(text, MAX_MODULE_SIZE, info.module);
     return true;
 }
 
@@ -1092,4 +1108,3 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     hInst = hinstDLL;
     return TRUE;
 }
-

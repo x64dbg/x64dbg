@@ -2,20 +2,33 @@
 #include <QMessageBox>
 #include "Configuration.h"
 #include "Bridge.h"
+#include <QLabel>
 
 ReferenceView::ReferenceView()
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
+    mFollowDumpDefault = false;
+
+    QHBoxLayout* layout = new QHBoxLayout();
 
     // Create search progress bar
     mSearchProgress = new QProgressBar();
     mSearchProgress->setRange(0, 100);
     mSearchProgress->setTextVisible(false);
     mSearchProgress->setMaximumHeight(15);
+    layout->addWidget(mSearchProgress);
 
-    // Add the progress bar to the main layout
-    mMainLayout->addWidget(mSearchProgress);
+    // Label for the number of references
+    mCountLabel = new QLabel("tst");
+    mCountLabel->setAlignment(Qt::AlignCenter);
+    mCountLabel->setMaximumHeight(16);
+    mCountLabel->setMinimumWidth(40);
+    mCountLabel->setContentsMargins(2, 0, 5, 0);
+    layout->addWidget(mCountLabel);
+
+    // Add the progress bar and label to the main layout
+    mMainLayout->addLayout(layout);
 
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
@@ -93,6 +106,7 @@ void ReferenceView::addColumnAt(int width, QString title)
 
 void ReferenceView::setRowCount(int_t count)
 {
+    emit mCountLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
     mList->setRowCount(count);
 }
@@ -187,7 +201,6 @@ void ReferenceView::toggleBreakpoint()
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
-    this->mSearchList->selectNext();
 }
 
 void ReferenceView::toggleBookmark()

@@ -21,6 +21,12 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
+#include "module.h"
+#include "comment.h"
+#include "label.h"
+#include "bookmark.h"
+#include "function.h"
+#include "loop.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -107,10 +113,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-            if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+            if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
             {
                 pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -123,10 +129,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     uint val = 0;
                     if(memread(fdProcessInfo->hProcess, (const void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
-                        if(SymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
+                        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
                         {
                             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                            if(!bUndecorateSymbolNames or !UnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
@@ -160,10 +166,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
+            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
             {
                 char filename[deflen] = "";
-                strcpy(filename, line.FileName);
+                strcpy_s(filename, line.FileName);
                 int len = (int)strlen(filename);
                 while(filename[len] != '\\' and len != 0)
                     len--;
@@ -568,8 +574,8 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         //TODO: fix this
         if(memisvalidreadptr(fdProcessInfo->hProcess, curBp.addr))
             curBp.active = true;
-        strcpy(curBp.mod, list[i].mod);
-        strcpy(curBp.name, list[i].name);
+        strcpy_s(curBp.mod, list[i].mod);
+        strcpy_s(curBp.name, list[i].name);
         curBp.singleshoot = list[i].singleshoot;
         curBp.slot = slot;
         if(curBp.active)

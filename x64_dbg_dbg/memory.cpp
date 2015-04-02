@@ -9,6 +9,7 @@
 #include "patches.h"
 #include "console.h"
 #include "threading.h"
+#include "module.h"
 
 MemoryMap memoryPages;
 bool bListAllPages = false;
@@ -226,104 +227,4 @@ void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
 void memfree(HANDLE hProcess, uint addr)
 {
     VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
-}
-
-static int formathexpattern(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formathexpattern:new_string");
-    memset(new_string, 0, len + 1);
-    for(int i = 0, j = 0; i < len; i++)
-        if(string[i] == '?' or isxdigit(string[i]))
-            j += sprintf(new_string + j, "%c", string[i]);
-    strcpy(string, new_string);
-    return (int)strlen(string);
-}
-
-static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
-{
-    if(!text or !pattern)
-        return false;
-    pattern->clear();
-    int len = (int)strlen(text);
-    if(!len)
-        return false;
-    Memory<char*> newtext(len + 2, "transformpattern:newtext");
-    strcpy(newtext, text);
-    len = formathexpattern(newtext);
-    if(len % 2) //not a multiple of 2
-    {
-        newtext[len] = '?';
-        newtext[len + 1] = '\0';
-        len++;
-    }
-    PATTERNBYTE newByte;
-    for(int i = 0, j = 0; i < len; i++)
-    {
-        if(newtext[i] == '?') //wildcard
-        {
-            newByte.n[j].all = true; //match anything
-            newByte.n[j].n = 0;
-            j++;
-        }
-        else //hex
-        {
-            char x[2] = "";
-            *x = newtext[i];
-            unsigned int val = 0;
-            sscanf(x, "%x", &val);
-            newByte.n[j].all = false;
-            newByte.n[j].n = val & 0xF;
-            j++;
-        }
-
-        if(j == 2) //two nibbles = one byte
-        {
-            j = 0;
-            pattern->push_back(newByte);
-        }
-    }
-    return true;
-}
-
-static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
-{
-    unsigned char n1 = (byte >> 4) & 0xF;
-    unsigned char n2 = byte & 0xF;
-    int matched = 0;
-    if(pbyte->n[0].all)
-        matched++;
-    else if(pbyte->n[0].n == n1)
-        matched++;
-    if(pbyte->n[1].all)
-        matched++;
-    else if(pbyte->n[1].n == n2)
-        matched++;
-    return (matched == 2);
-}
-
-uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
-{
-    std::vector<PATTERNBYTE> searchpattern;
-    if(!patterntransform(pattern, &searchpattern))
-        return -1;
-    int searchpatternsize = (int)searchpattern.size();
-    if(patternsize)
-        *patternsize = searchpatternsize;
-    for(uint i = 0, pos = 0; i < size; i++) //search for the pattern
-    {
-        if(patternmatchbyte(data[i], &searchpattern.at(pos))) //check if our pattern matches the current byte
-        {
-            pos++;
-            if(pos == searchpatternsize) //everything matched
-                return i - searchpatternsize + 1;
-        }
-        else if(pos > 0) //fix by Computer_Angel
-        {
-            i -= pos; // return to previous byte
-            pos = 0; //reset current pattern position
-        }
-    }
-    return -1;
 }

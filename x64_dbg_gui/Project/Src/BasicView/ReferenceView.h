@@ -2,6 +2,7 @@
 #define REFERENCEVIEW_H
 
 #include <QProgressBar>
+#include <QLabel>
 #include "SearchListView.h"
 
 class ReferenceView : public SearchListView
@@ -38,6 +39,7 @@ private:
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     bool mFollowDumpDefault;
+    QLabel* mCountLabel;
 };
 
 #endif // REFERENCEVIEW_H

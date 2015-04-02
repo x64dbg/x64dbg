@@ -128,6 +128,7 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
                         {
                             expandSelectionUpTo(wStartingAddress);
                             mSelection.toIndex += dataSize;
+                            emit selectionUpdated();
                         }
                         else
                             expandSelectionUpTo(wEndingAddress);
@@ -197,7 +198,10 @@ void HexDump::mousePressEvent(QMouseEvent* event)
                         }
                         expandSelectionUpTo(wEndingAddress);
                         if(bUpdateTo)
+                        {
                             mSelection.toIndex += dataSize;
+                            emit selectionUpdated();
+                        }
 
                         mGuiState = HexDump::MultiRowsSelectionState;
 
@@ -238,7 +242,7 @@ QString HexDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
-        printDumpAt(mMemPage->getBase(), false);
+        printDumpAt(mMemPage->getBase(), false, false);
 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
@@ -304,11 +308,13 @@ void HexDump::expandSelectionUpTo(int_t rva)
     {
         mSelection.fromIndex = rva;
         mSelection.toIndex = mSelection.firstSelectedIndex;
+        emit selectionUpdated();
     }
     else if(rva > mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = rva;
+        emit selectionUpdated();
     }
     else if(rva == mSelection.firstSelectedIndex)
     {
@@ -321,6 +327,7 @@ void HexDump::setSingleSelection(int_t rva)
     mSelection.firstSelectedIndex = rva;
     mSelection.fromIndex = rva;
     mSelection.toIndex = rva;
+    emit selectionUpdated();
 }
 
 int_t HexDump::getInitialSelection()

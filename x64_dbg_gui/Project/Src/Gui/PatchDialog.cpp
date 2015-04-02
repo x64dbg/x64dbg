@@ -180,7 +180,11 @@ void PatchDialog::groupToggle()
             continue;
         ui->listPatches->item(i)->setCheckState(checkState);
         curPatchList[i].second.checked = enabled;
+        //change the byte to reflect the change for the user (cypherpunk reported this)
+        unsigned char writebyte = curPatchList[i].second.checked ? curPatchList[i].first.newbyte : curPatchList[i].first.oldbyte;
+        DbgMemWrite(curPatchList[i].first.addr, &writebyte, sizeof(writebyte));
     }
+    GuiUpdateAllViews();
     mIsWorking = false;
     int_t groupStart = getGroupAddress(curPatchList, group);
     if(!groupStart)
@@ -280,6 +284,9 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
     if(patch.second.checked == checked) //check state did not change
         return;
     patch.second.checked = checked;
+    //change the byte to reflect the change for the user (cypherpunk reported this)
+    unsigned char writebyte = patch.second.checked ? patch.first.newbyte : patch.first.oldbyte;
+    DbgMemWrite(patch.first.addr, &writebyte, sizeof(writebyte));
     //check state changed
     if((QApplication::keyboardModifiers() & Qt::ControlModifier) != Qt::ControlModifier)
     {
@@ -288,11 +295,16 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
         for(int i = 0; i < curPatchList.size(); i++)
             if(curPatchList.at(i).second.group == patch.second.group)
             {
-                curPatchList[i].second.checked = checked;
+                //change the patch state
+                curPatchList[i].second.checked = checked;                
                 ui->listPatches->item(i)->setCheckState(item->checkState());
+                //change the byte to reflect the change for the user (cypherpunk reported this)
+                unsigned char writebyte = curPatchList[i].second.checked ? curPatchList[i].first.newbyte : curPatchList[i].first.oldbyte;
+                DbgMemWrite(curPatchList[i].first.addr, &writebyte, sizeof(writebyte));
             }
         mIsWorking = false;
     }
+    GuiUpdateAllViews();
     int group = mGroupSelector->group();
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
     QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
@@ -316,7 +328,10 @@ void PatchDialog::on_btnSelectAll_clicked()
     {
         ui->listPatches->item(i)->setCheckState(Qt::Checked);
         curPatchList[i].second.checked = true;
+        //change the byte to reflect the change for the user (cypherpunk reported this)
+        DbgMemWrite(curPatchList[i].first.addr, &curPatchList[i].first.newbyte, sizeof(unsigned char));
     }
+    GuiUpdateAllViews();
     mIsWorking = false;
 }
 
@@ -334,7 +349,10 @@ void PatchDialog::on_btnDeselectAll_clicked()
     {
         ui->listPatches->item(i)->setCheckState(Qt::Unchecked);
         curPatchList[i].second.checked = false;
+        //change the byte to reflect the change for the user (cypherpunk reported this)
+        DbgMemWrite(curPatchList[i].first.addr, &curPatchList[i].first.oldbyte, sizeof(unsigned char));
     }
+    GuiUpdateAllViews();
     mIsWorking = false;
 }
 
@@ -507,8 +525,8 @@ void PatchDialog::on_btnImport_clicked()
 
     typedef struct _IMPORTSTATUS
     {
-        bool nomatchoriginal;
-        bool matchold;
+        bool badoriginal;
+        bool alreadypatched;
     } IMPORTSTATUS;
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
@@ -545,13 +563,13 @@ void PatchDialog::on_btnImport_clicked()
             continue;
         unsigned char checkbyte = 0;
         DbgMemRead(curPatch.addr, &checkbyte, sizeof(checkbyte));
-        if(checkbyte == newbyte)
+        IMPORTSTATUS status;
+        if(status.alreadypatched = checkbyte == newbyte)
             bAlreadyDone = true;
-        else if(checkbyte != oldbyte)
+        else if(status.badoriginal = checkbyte != oldbyte)
             bBadOriginal = true;
         curPatch.oldbyte = oldbyte;
         curPatch.newbyte = newbyte;
-        IMPORTSTATUS status = {checkbyte != oldbyte && !checkbyte == newbyte, checkbyte == newbyte};
         patchList.push_back(QPair<DBGPATCHINFO, IMPORTSTATUS>(curPatch, status));
     }
 
@@ -590,12 +608,11 @@ void PatchDialog::on_btnImport_clicked()
     int patched = 0;
     for(int i = 0; i < patchList.size(); i++)
     {
-        if(!bPatchBadOriginals && patchList.at(i).second.nomatchoriginal)
+        if(!bPatchBadOriginals && patchList.at(i).second.badoriginal)
             continue;
         curPatch = patchList.at(i).first;
-        if(bUndoPatched && patchList.at(i).second.matchold)
+        if(bUndoPatched && patchList.at(i).second.alreadypatched)
         {
-            GuiAddStatusBarMessage("undo!");
             if(DbgFunctions()->MemPatch(curPatch.addr, &curPatch.oldbyte, 1))
                 patched++;
         }

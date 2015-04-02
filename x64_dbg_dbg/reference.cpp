@@ -8,6 +8,7 @@
 #include "debugger.h"
 #include "memory.h"
 #include "console.h"
+#include "module.h"
 
 int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, const char* name)
 {

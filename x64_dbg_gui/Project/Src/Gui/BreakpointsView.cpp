@@ -59,10 +59,13 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(reloadData()));
     connect(mHardBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(hardwareBPContextMenuSlot(const QPoint &)));
     connect(mHardBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickHardwareSlot()));
+    connect(mHardBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickHardwareSlot()));
     connect(mSoftBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(softwareBPContextMenuSlot(const QPoint &)));
     connect(mSoftBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickSoftwareSlot()));
+    connect(mSoftBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickSoftwareSlot()));
     connect(mMemBPTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(memoryBPContextMenuSlot(const QPoint &)));
     connect(mMemBPTable, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickMemorySlot()));
+    connect(mMemBPTable, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickMemorySlot()));
 }
 
 
@@ -292,9 +295,7 @@ void BreakpointsView::enableDisableHardBPActionSlot()
 {
     StdTable* table = mHardBPTable;
     Breakpoints::toggleBPByDisabling(bp_hardware, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
-    int_t sel = table->getInitialSelection();
-    if(sel + 1 < table->getRowCount())
-        table->setSingleSelection(sel + 1);
+    table->selectNext();
 }
 
 void BreakpointsView::doubleClickHardwareSlot()
@@ -402,9 +403,7 @@ void BreakpointsView::enableDisableSoftBPActionSlot()
 {
     StdTable* table = mSoftBPTable;
     Breakpoints::toggleBPByDisabling(bp_normal, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
-    int_t sel = table->getInitialSelection();
-    if(sel + 1 < table->getRowCount())
-        table->setSingleSelection(sel + 1);
+    table->selectNext();
 }
 
 void BreakpointsView::doubleClickSoftwareSlot()
@@ -512,9 +511,7 @@ void BreakpointsView::enableDisableMemBPActionSlot()
 {
     StdTable* table = mMemBPTable;
     Breakpoints::toggleBPByDisabling(bp_memory, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
-    int_t sel = table->getInitialSelection();
-    if(sel + 1 < table->getRowCount())
-        table->setSingleSelection(sel + 1);
+    table->selectNext();
 }
 
 void BreakpointsView::doubleClickMemorySlot()

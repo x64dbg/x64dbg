@@ -13,12 +13,14 @@ public:
 
 signals:
     void showCpu();
+    void showReferences();
 
 public slots:
     void refreshShortcutsSlot();
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
     void followDisassemblerSlot();
+    void yaraSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
     void memoryWriteSingleshootSlot();
@@ -37,6 +39,7 @@ private:
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
+    QAction* mYara;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
 

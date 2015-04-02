@@ -14,21 +14,31 @@
     <ClCompile Include="addrinfo.cpp" />
     <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
+    <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="command.cpp" />
+    <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
     <ClCompile Include="disasm_fast.cpp" />
     <ClCompile Include="disasm_helper.cpp" />
+    <ClCompile Include="error.cpp" />
+    <ClCompile Include="exception.cpp" />
+    <ClCompile Include="function.cpp" />
     <ClCompile Include="instruction.cpp" />
+    <ClCompile Include="label.cpp" />
     <ClCompile Include="log.cpp" />
+    <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="module.cpp" />
     <ClCompile Include="msgqueue.cpp" />
     <ClCompile Include="murmurhash.cpp" />
     <ClCompile Include="patches.cpp" />
+    <ClCompile Include="patternfind.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
@@ -53,29 +63,39 @@
     <ClInclude Include="BeaEngine\BeaEngine.h" />
     <ClInclude Include="BeaEngine\export.h" />
     <ClInclude Include="BeaEngine\macros.h" />
+    <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="command.h" />
+    <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
+    <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="debugger_commands.h" />
     <ClInclude Include="DeviceNameResolver\DeviceNameResolver.h" />
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="dynamicmem.h" />
+    <ClInclude Include="error.h" />
+    <ClInclude Include="exception.h" />
+    <ClInclude Include="function.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
+    <ClInclude Include="label.h" />
     <ClInclude Include="log.h" />
+    <ClInclude Include="loop.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
     <ClInclude Include="lz4\lz4hc.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="module.h" />
     <ClInclude Include="msgqueue.h" />
     <ClInclude Include="murmurhash.h" />
     <ClInclude Include="patches.h" />
+    <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />
@@ -90,6 +110,36 @@
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64_dbg.h" />
     <ClInclude Include="XEDParse\XEDParse.h" />
+    <ClInclude Include="yara\yara.h" />
+    <ClInclude Include="yara\yara\ahocorasick.h" />
+    <ClInclude Include="yara\yara\arena.h" />
+    <ClInclude Include="yara\yara\atoms.h" />
+    <ClInclude Include="yara\yara\compiler.h" />
+    <ClInclude Include="yara\yara\elf.h" />
+    <ClInclude Include="yara\yara\error.h" />
+    <ClInclude Include="yara\yara\exec.h" />
+    <ClInclude Include="yara\yara\exefiles.h" />
+    <ClInclude Include="yara\yara\filemap.h" />
+    <ClInclude Include="yara\yara\globals.h" />
+    <ClInclude Include="yara\yara\hash.h" />
+    <ClInclude Include="yara\yara\hex_lexer.h" />
+    <ClInclude Include="yara\yara\lexer.h" />
+    <ClInclude Include="yara\yara\libyara.h" />
+    <ClInclude Include="yara\yara\limits.h" />
+    <ClInclude Include="yara\yara\mem.h" />
+    <ClInclude Include="yara\yara\modules.h" />
+    <ClInclude Include="yara\yara\object.h" />
+    <ClInclude Include="yara\yara\parser.h" />
+    <ClInclude Include="yara\yara\pe.h" />
+    <ClInclude Include="yara\yara\proc.h" />
+    <ClInclude Include="yara\yara\re.h" />
+    <ClInclude Include="yara\yara\re_lexer.h" />
+    <ClInclude Include="yara\yara\rules.h" />
+    <ClInclude Include="yara\yara\scan.h" />
+    <ClInclude Include="yara\yara\sizedstr.h" />
+    <ClInclude Include="yara\yara\strutils.h" />
+    <ClInclude Include="yara\yara\types.h" />
+    <ClInclude Include="yara\yara\utils.h" />
     <ClInclude Include="_exports.h" />
     <ClInclude Include="_dbgfunctions.h" />
     <ClInclude Include="_global.h" />
@@ -143,7 +193,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32_bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;BeaEngine\BeaEngine.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32_bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;BeaEngine\BeaEngine.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -158,7 +208,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64_bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;BeaEngine\BeaEngine_64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64_bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;BeaEngine\BeaEngine_64.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

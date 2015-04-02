@@ -39,7 +39,7 @@ void argformat(char* cmd)
 
     char command_[deflen] = "";
     char* command = command_;
-    strcpy(command, cmd);
+    strcpy_s(command, deflen, cmd);
     while(*command == ' ')
         command++;
 
@@ -122,7 +122,7 @@ void argformat(char* cmd)
                 j += sprintf(temp + j, "%c", arguments[i]);
         }
         arguments = arguments_;
-        strcpy(arguments, temp);
+        strcpy_s(arguments, deflen, temp);
     }
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
@@ -138,7 +138,7 @@ void argformat(char* cmd)
             i += 2;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
-    strcpy(arguments, temp);
+    strcpy_s(arguments, deflen, temp);
 
     len = (int)strlen(arguments);
     for(int i = 0, j = 0; i < len; i++)
@@ -147,7 +147,7 @@ void argformat(char* cmd)
             i++;
         j += sprintf(temp + j, "%c", arguments[i]);
     }
-    strcpy(arguments, temp);
+    strcpy_s(arguments, deflen, temp);
 
     len = (int)strlen(arguments);
     for(int i = 0; i < len; i++)
@@ -160,7 +160,7 @@ void argformat(char* cmd)
     if(strlen(arguments))
         sprintf(cmd, "%s %s", command, arguments);
     else
-        strcpy(cmd, command);
+        strcpy_s(cmd, deflen, command);
 }
 
 /*
@@ -189,7 +189,7 @@ int arggetcount(const char* cmd)
     arg_count = 1;
     char temp_[deflen] = "";
     char* temp = temp_ + 1;
-    strcpy(temp, cmd);
+    strcpy_s(temp, deflen - 1, cmd);
     for(int i = start; i < len; i++)
         if(temp[i] == '\\' and (i < len - 1 and temp[i + 1] == '\\'))
         {
@@ -239,7 +239,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
         start++;
     char temp_[deflen] = "";
     char* temp = temp_ + 1;
-    strcpy(temp, cmd + start);
+    strcpy_s(temp, deflen - 1, cmd + start);
 
     int len = (int)strlen(temp);
     for(int i = 0; i < len; i++)
@@ -279,7 +279,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
     memcpy(temp, new_temp, len + 1);
     if(arg_num == 0) //first argument
     {
-        strcpy(arg, temp);
+        strcpy_s(arg, deflen, temp);
         return true;
     }
     for(int i = 0, j = 0; i < len; i++)
@@ -288,7 +288,7 @@ bool argget(const char* cmd, char* arg, int arg_num, bool optional)
             j++;
         if(j == arg_num)
         {
-            strcpy(arg, temp + i + 1);
+            strcpy_s(arg, deflen, temp + i + 1);
             return true;
         }
     }

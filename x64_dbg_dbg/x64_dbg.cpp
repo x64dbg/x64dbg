@@ -198,6 +198,8 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
+    dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -210,7 +212,7 @@ static bool cbCommandProvider(char* cmd, int maxlen)
         dprintf("command cut at ~%d characters\n", deflen);
         newcmd[deflen - 2] = 0;
     }
-    strcpy(cmd, newcmd);
+    strcpy_s(cmd, deflen, newcmd);
     efree(newcmd, "cbCommandProvider:newcmd"); //free allocated command
     return true;
 }
@@ -219,7 +221,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 {
     int len = (int)strlen(cmd);
     char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
-    strcpy(newcmd, cmd);
+    strcpy_s(newcmd, len + 1, cmd);
     return msgsend(gMsgStack, 0, (uint)newcmd, 0);
 }
 
@@ -243,9 +245,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
+    if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
+        return "Invalid REGISTERCONTEXT alignment!";
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
+    if(yr_initialize() != ERROR_SUCCESS)
+        return "Failed to initialize Yara!";
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
@@ -255,14 +261,14 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(dir[len] != '\\')
         len--;
     dir[len] = 0;
-    strcpy(alloctrace, dir);
+    strcpy_s(alloctrace, dir);
     PathAppendA(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
-    strcpy(dbbasepath, dir); //debug directory
+    strcpy_s(dbbasepath, dir); //debug directory
     PathAppendA(dbbasepath, "db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
-    strcpy(szSymbolCachePath, dir);
+    strcpy_s(szSymbolCachePath, dir);
     PathAppendA(szSymbolCachePath, "symbols");
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());;
     gMsgStack = msgallocstack();
@@ -272,7 +278,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     registercommands();
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
-    strcpy(plugindir, dir);
+    strcpy_s(plugindir, dir);
     PathAppendA(plugindir, "plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
@@ -313,6 +319,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cmdfree(command_list);
     varfree();
     msgfreestack(gMsgStack);
+    yr_finalize();
     if(memleaks())
     {
         char msg[256] = "";

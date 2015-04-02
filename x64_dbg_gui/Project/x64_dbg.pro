@@ -85,7 +85,9 @@ SOURCES += \
     Src/Gui/AttachDialog.cpp \
     Src/Gui/PageMemoryRights.cpp \
     Src/Gui/SelectFields.cpp \
-    Src/Gui/ReferenceManager.cpp
+    Src/Gui/ReferenceManager.cpp \
+    Src/Bridge/BridgeResult.cpp \
+    Src/Gui/YaraRuleSelectionDialog.cpp
 
 
 HEADERS += \
@@ -149,7 +151,9 @@ HEADERS += \
     Src/Gui/AttachDialog.h \
     Src/Gui/PageMemoryRights.h \
     Src/Gui/SelectFields.h \
-    Src/Gui/ReferenceManager.h
+    Src/Gui/ReferenceManager.h \
+    Src/Bridge/BridgeResult.h \
+    Src/Gui/YaraRuleSelectionDialog.h
 
 
 INCLUDEPATH += \
@@ -184,7 +188,8 @@ FORMS += \
     Src/Gui/CalculatorDialog.ui \
     Src/Gui/AttachDialog.ui \
     Src/Gui/PageMemoryRights.ui \
-    Src/Gui/SelectFields.ui
+    Src/Gui/SelectFields.ui \
+    Src/Gui/YaraRuleSelectionDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 

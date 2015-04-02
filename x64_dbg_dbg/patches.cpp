@@ -10,6 +10,7 @@
 #include "debugger.h"
 #include "console.h"
 #include "threading.h"
+#include "module.h"
 
 static PatchesInfo patches;
 
@@ -129,7 +130,7 @@ bool patchenum(PATCHINFO* patcheslist, size_t* cbsize)
     CriticalSectionLocker locker(LockPatches);
     if(!patcheslist && cbsize)
     {
-        *cbsize = patches.size() * sizeof(LOOPSINFO);
+        *cbsize = patches.size() * sizeof(PATCHINFO);
         return true;
     }
     int j = 0;
@@ -147,11 +148,11 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
     if(!count)
     {
         if(error)
-            strcpy(error, "no patches to apply");
+            strcpy_s(error, MAX_ERROR_SIZE, "no patches to apply");
         return -1;
     }
     char modname[MAX_MODULE_SIZE] = "";
-    strcpy(modname, patchlist[0].mod);
+    strcpy_s(modname, patchlist[0].mod);
     //check if all patches are in the same module
     for(int i = 0; i < count; i++)
         if(_stricmp(patchlist[i].mod, modname))
@@ -177,7 +178,7 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
     if(!CopyFileW(szOriginalName, StringUtils::Utf8ToUtf16(szFileName).c_str(), false))
     {
         if(error)
-            strcpy(error, "failed to make a copy of the original file (patch target is in use?)");
+            strcpy_s(error, MAX_ERROR_SIZE, "failed to make a copy of the original file (patch target is in use?)");
         return -1;
     }
     HANDLE FileHandle;
@@ -199,11 +200,11 @@ int patchfile(const PATCHINFO* patchlist, int count, const char* szFileName, cha
         if(!StaticFileUnloadW(StringUtils::Utf8ToUtf16(szFileName).c_str(), true, FileHandle, LoadedSize, FileMap, FileMapVA))
         {
             if(error)
-                strcpy(error, "StaticFileUnload failed");
+                strcpy_s(error, MAX_ERROR_SIZE, "StaticFileUnload failed");
             return -1;
         }
         return patched;
     }
-    strcpy(error, "StaticFileLoad failed");
+    strcpy_s(error, MAX_ERROR_SIZE, "StaticFileLoad failed");
     return -1;
 }

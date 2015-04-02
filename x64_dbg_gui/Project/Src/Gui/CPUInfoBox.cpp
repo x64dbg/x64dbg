@@ -181,7 +181,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
         else
             info = QString(mod) + " | ";
     }
-    char section[10] = "";
+    char section[MAX_SECTION_SIZE] = "";
     if(DbgFunctions()->SectionFromAddr(parVA, section))
         info += "\"" + QString(section) + "\":";
     info += QString("%1").arg(parVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();

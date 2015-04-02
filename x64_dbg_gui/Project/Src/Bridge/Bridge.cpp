@@ -33,7 +33,7 @@ void Bridge::CopyToClipboard(const QString & text)
     clipboard->setText(text);
 }
 
-void Bridge::BridgeSetResult(int_t result)
+void Bridge::setResult(int_t result)
 {
     bridgeResult = result;
     hasBridgeResult = true;
@@ -89,12 +89,9 @@ void Bridge::emitDumpAt(int_t va)
 
 void Bridge::emitScriptAdd(int count, const char** lines)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit scriptAdd(count, lines);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
+    result.Wait();
 }
 
 void Bridge::emitScriptClear()
@@ -109,7 +106,9 @@ void Bridge::emitScriptSetIp(int line)
 
 void Bridge::emitScriptError(int line, QString message)
 {
+    BridgeResult result;
     emit scriptError(line, message);
+    result.Wait();
 }
 
 void Bridge::emitScriptSetTitle(QString title)
@@ -124,18 +123,16 @@ void Bridge::emitScriptSetInfoLine(int line, QString info)
 
 void Bridge::emitScriptMessage(QString message)
 {
+    BridgeResult result;
     emit scriptMessage(message);
+    result.Wait();
 }
 
 int Bridge::emitScriptQuestion(QString message)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit scriptQuestion(message);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
-    return bridgeResult;
+    return result.Wait();
 }
 
 void Bridge::emitScriptEnableHighlighting(bool enable)
@@ -200,12 +197,9 @@ void Bridge::emitReferenceSetSearchStartCol(int col)
 
 void Bridge::emitReferenceInitialize(QString name)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit referenceInitialize(name);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
+    result.Wait();
 }
 
 void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
@@ -238,36 +232,39 @@ void Bridge::emitSetLastException(unsigned int exceptionCode)
     emit setLastException(exceptionCode);
 }
 
+void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
+{
+    BridgeResult result;
+    emit menuAddMenuToList(parent, menu, hMenu, hParentMenu);
+    result.Wait();
+}
+
 int Bridge::emitMenuAddMenu(int hMenu, QString title)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit menuAddMenu(hMenu, title);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
-    return bridgeResult;
+    return result.Wait();
 }
 
 int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit menuAddMenuEntry(hMenu, title);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
-    return bridgeResult;
+    return result.Wait();
 }
 
 void Bridge::emitMenuAddSeparator(int hMenu)
 {
+    BridgeResult result;
     emit menuAddSeparator(hMenu);
+    result.Wait();
 }
 
 void Bridge::emitMenuClearMenu(int hMenu)
 {
+    BridgeResult result;
     emit menuClearMenu(hMenu);
+    result.Wait();
 }
 
 void Bridge::emitAddMsgToStatusBar(QString msg)
@@ -279,8 +276,7 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
 {
     if(!DbgIsDebugging())
         return false;
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -293,12 +289,9 @@ bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
         emit selectionStackGet(selection);
         break;
     default:
-        mBridgeMutex->unlock();
         return false;
     }
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
+    result.Wait();
     if(selection->start > selection->end) //swap start and end
     {
         int_t temp = selection->end;
@@ -312,8 +305,7 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
 {
     if(!DbgIsDebugging())
         return false;
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     switch(hWindow)
     {
     case GUI_DISASSEMBLY:
@@ -326,24 +318,16 @@ bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
         emit selectionStackSet(selection);
         break;
     default:
-        mBridgeMutex->unlock();
         return false;
     }
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
-    return bridgeResult;
+    return result.Wait();
 }
 
 bool Bridge::emitGetStrWindow(const QString title, QString* text)
 {
-    mBridgeMutex->lock();
-    hasBridgeResult = false;
+    BridgeResult result;
     emit getStrWindow(title, text);
-    while(!hasBridgeResult) //wait for thread completion
-        Sleep(100);
-    mBridgeMutex->unlock();
-    return bridgeResult;
+    return result.Wait();
 }
 
 void Bridge::emitAutoCompleteAddCmd(const QString cmd)

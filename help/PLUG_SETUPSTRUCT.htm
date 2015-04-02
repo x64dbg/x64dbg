@@ -14,6 +14,8 @@ html,body {
 
 </head>
 
+
+
 <body>
 <P><STRONG>plugsetup</STRONG><BR>This structure is used by the function that allows the 
 creation of plugin menu entries:</P>
@@ -23,7 +25,11 @@ creation of plugin menu entries:</P>
 the plugin.</EM>     
    <BR>&nbsp;&nbsp;&nbsp; [IN] <STRONG>HWND</STRONG>   hwndDlg; //GUI window 
 handle<BR>&nbsp;&nbsp;&nbsp; [IN] 
-<STRONG>int</STRONG>   hMenu; //plugin menu 
+<STRONG>int</STRONG> hMenu; //plugin menu 
+handle<BR>&nbsp;&nbsp;&nbsp; [IN] <STRONG>int</STRONG> hMenuDisasm; 
+//plugin disasm menu handle<BR>&nbsp;&nbsp;&nbsp; [IN] <STRONG>int</STRONG> 
+hMenuDump; //plugin dump menu handle<BR>&nbsp;&nbsp;&nbsp; [IN] 
+<STRONG>int</STRONG> hMenuStack;   //plugin stack menu 
 handle<BR>          
 };</P></body>
 </html>

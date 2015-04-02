@@ -37,7 +37,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 23
+#define DBG_VERSION 24
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
@@ -60,6 +60,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
+#define MAX_SECTION_SIZE 10
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -423,6 +424,18 @@ typedef struct
 
 } X87CONTROLWORDFIELDS;
 
+typedef struct DECLSPEC_ALIGN(16) _XMMREGISTER
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} XMMREGISTER;
+
+typedef struct
+{
+    XMMREGISTER Low; //XMM/SSE part
+    XMMREGISTER High; //AVX part
+} YMMREGISTER;
+
 typedef struct
 {
     BYTE    data[10];
@@ -480,11 +493,11 @@ typedef struct
     X87FPU x87fpu;
     DWORD MxCsr;
 #ifdef _WIN64
-    M128A XmmRegisters[16];
-    BYTE YmmRegisters[32 * 16];
+    XMMREGISTER XmmRegisters[16];
+    YMMREGISTER YmmRegisters[16];
 #else // x86
-    M128A XmmRegisters[8];
-    BYTE YmmRegisters[32 * 8];
+    XMMREGISTER XmmRegisters[8];
+    YMMREGISTER YmmRegisters[8];
 #endif
 } REGISTERCONTEXT;
 
@@ -666,6 +679,9 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
+#define GUI_DISASM_MENU 1
+#define GUI_DUMP_MENU 2
+#define GUI_STACK_MENU 3
 
 #define GUI_DISASSEMBLY 0
 #define GUI_DUMP 1

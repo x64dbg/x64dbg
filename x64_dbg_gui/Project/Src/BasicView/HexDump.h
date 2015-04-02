@@ -131,6 +131,9 @@ public:
     void printDumpAt(int_t parVA, bool select, bool repaint = true);
     uint_t rvaToVa(int_t rva);
 
+signals:
+    void selectionUpdated();
+
 public slots:
     void printDumpAt(int_t parVA);
     void debugStateChanged(DBGSTATE state);

@@ -11,23 +11,19 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <windows.h>
+#include <psapi.h>
 #include <shlwapi.h>
 #include <stdarg.h>
-#include <psapi.h>
 #include <vector>
 #include <map>
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"
+#include "yara\yara.h"
 #include "DeviceNameResolver\DeviceNameResolver.h"
 #include "handle.h"
 #include "stringutils.h"
-
-#ifdef __GNUC__
-#include "dbghelp\dbghelp.h"
-#else
-#include <dbghelp.h>
-#endif //__GNUC__
+#include "dbghelp_safe.h"
 
 #ifndef __GNUC__
 #define and &&
