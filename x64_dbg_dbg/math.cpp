@@ -302,7 +302,6 @@ bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseon
 
             if(*backup)
                 strcat(exp, backup);
-
         }
     }
 

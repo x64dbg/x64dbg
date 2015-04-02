@@ -7,10 +7,12 @@
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
 typedef void* (*GUISENDMESSAGE)(GUIMSG type, void* param1, void* param2);
+typedef void (*GUISENDMESSAGEASYNC)(GUIMSG type, void* param1, void* param2);
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;
 extern GUISENDMESSAGE _gui_sendmessage;
+extern GUISENDMESSAGEASYNC _gui_sendmessageasync;
 
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();

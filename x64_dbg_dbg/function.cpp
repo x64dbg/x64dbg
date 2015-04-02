@@ -214,9 +214,11 @@ void FunctionCacheLoad(JSON Root)
     const JSON jsonFunctions        = json_object_get(Root, "functions");
     const JSON jsonAutoFunctions    = json_object_get(Root, "autofunctions");
 
+	// Manual
     if(jsonFunctions)
         InsertFunctions(jsonFunctions, true);
 
+	// Auto
     if(jsonAutoFunctions)
         InsertFunctions(jsonAutoFunctions, false);
 }

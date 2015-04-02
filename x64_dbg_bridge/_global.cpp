@@ -3,6 +3,7 @@
 //GUI functions
 GUIGUIINIT _gui_guiinit;
 GUISENDMESSAGE _gui_sendmessage;
+GUISENDMESSAGEASYNC _gui_sendmessageasync;
 
 //DBG functions
 DBGDBGINIT _dbg_dbginit;
