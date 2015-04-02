@@ -37,7 +37,6 @@
     <ClCompile Include="function.cpp" />
     <ClCompile Include="instruction.cpp" />
     <ClCompile Include="label.cpp" />
-    <ClCompile Include="log.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="math.cpp" />
@@ -92,7 +91,6 @@
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="label.h" />
-    <ClInclude Include="log.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
@@ -132,22 +130,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -271,9 +269,10 @@
       <OptimizeForWindowsApplication>false</OptimizeForWindowsApplication>
       <UseIntelOptimizedHeaders>false</UseIntelOptimizedHeaders>
       <Optimization>Disabled</Optimization>
-      <CheckPointers>Rw</CheckPointers>
+      <CheckPointers>None</CheckPointers>
       <CheckDanglingPointers>None</CheckDanglingPointers>
-      <CheckUndimensionedArrays>true</CheckUndimensionedArrays>
+      <CheckUndimensionedArrays>false</CheckUndimensionedArrays>
+      <EnableExpandedLineNumberInfo>true</EnableExpandedLineNumberInfo>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
