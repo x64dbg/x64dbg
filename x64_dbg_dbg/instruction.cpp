@@ -1650,7 +1650,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
 
 CMDRESULT cbInstrYara(int argc, char* argv[])
 {
-    if(argc < 2) //yara rulesFile, addr_of_mempage
+    if(argc < 2) //yara rulesFile, addr_of_mempage, size_of_scan
     {
         dputs("not enough arguments!");
         return STATUS_ERROR;
@@ -1659,7 +1659,13 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(argc < 3 || !valfromstring(argv[2], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
-    uint base = memfindbaseaddr(addr, &size);
+    if(argc >= 4)
+        if(!valfromstring(argv[3], &size))
+            size = 0;
+    if(!size)
+        addr = memfindbaseaddr(addr, &size);
+    uint base=addr;
+    dprintf("%p[%p]\n",base,size);
     Memory<uint8_t*> data(size);
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data(), size, 0))
     {
@@ -1738,82 +1744,6 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
-struct ScanResult
-{
-    int64_t addr;
-    String ruleId;
-    String patternId;
-    String data;
-
-    ScanResult(int64_t addr, const char* ruleId, const char* patternId, String data) //no c++11
-    {
-        this->addr = addr;
-        this->ruleId = String(ruleId);
-        this->patternId = String(patternId);
-        this->data = data;
-    }
-};
-
-class ScanVector
-{
-public:
-    ScanVector()
-    {
-        InitializeCriticalSection(&cr);
-    }
-
-    ~ScanVector()
-    {
-        DeleteCriticalSection(&cr);
-    }
-
-    void add(const ScanResult & r)
-    {
-        EnterCriticalSection(&cr);
-        v.push_back(r);
-        LeaveCriticalSection(&cr);
-    }
-
-    void clear()
-    {
-        EnterCriticalSection(&cr);
-        v.clear();
-        LeaveCriticalSection(&cr);
-    }
-
-    const std::vector<ScanResult> & getVector()
-    {
-        return v;
-    }
-
-private:
-    CRITICAL_SECTION cr;
-    std::vector<ScanResult> v;
-};
-
-static int yaraScanCallbackVector(int message, void* message_data, void* user_data)
-{
-    if(message == CALLBACK_MSG_RULE_MATCHING)
-    {
-        YR_RULE* rule = (YR_RULE*)message_data;
-        YR_STRING* string;
-        yr_rule_strings_foreach(rule, string)
-        {
-            YR_MATCH* match;
-            yr_string_matches_foreach(string, match)
-            {
-                String pattern;
-                if(STRING_IS_HEX(string))
-                    pattern = yara_print_hex_string(match->data, match->length);
-                else
-                    pattern = yara_print_string(match->data, match->length);
-                ((ScanVector*)user_data)->add(ScanResult(match->base + match->offset, rule->identifier, string->identifier, pattern));
-            }
-        }
-    }
-    return ERROR_SUCCESS;
-}
-
 CMDRESULT cbInstrYaramod(int argc, char* argv[])
 {
     if(argc < 3)
@@ -1827,105 +1757,8 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         dprintf("invalid module \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    std::vector<MODSECTIONINFO> sections;
-    if(!modsectionsfromaddr(base, &sections))
-    {
-        dprintf("could not get sections for module \"%s\"!\n", argv[2]);
-    }
-
-    FILE* rulesFile = 0;
-    if(_wfopen_s(&rulesFile, StringUtils::Utf8ToUtf16(argv[1]).c_str(), L"rb"))
-    {
-        dputs("failed to open yara rules file!");
-        return STATUS_ERROR;
-    }
-
-    bool bSuccess = false;
-    YR_COMPILER* yrCompiler;
-    if(yr_compiler_create(&yrCompiler) == ERROR_SUCCESS)
-    {
-        yr_compiler_set_callback(yrCompiler, yaraCompilerCallback, 0);
-        if(yr_compiler_add_file(yrCompiler, rulesFile, NULL, argv[1]) == 0) //no errors found
-        {
-            fclose(rulesFile);
-            YR_RULES* yrRules;
-            if(yr_compiler_get_rules(yrCompiler, &yrRules) == ERROR_SUCCESS)
-            {
-                //initialize new reference tab
-                char modname[MAX_MODULE_SIZE] = "";
-                if(!modnamefromaddr(base, modname, true))
-                    sprintf_s(modname, "%p", base);
-                String fullName;
-                const char* fileName = strrchr(argv[1], '\\');
-                if(fileName)
-                    fullName = fileName + 1;
-                else
-                    fullName = argv[1];
-                fullName += " (";
-                fullName += modname;
-                fullName += ")"; //nanana, very ugly code (long live open source)
-                GuiReferenceInitialize(fullName.c_str());
-                GuiReferenceAddColumn(sizeof(uint) * 2, "Address");
-                GuiReferenceAddColumn(48, "Rule");
-                GuiReferenceAddColumn(0, "Data");
-                GuiReferenceSetRowCount(0);
-                GuiReferenceReloadData();
-                int refindex=0;
-                YaraScanInfo scanInfo;
-                scanInfo.index = 0;
-                uint ticks = GetTickCount();
-                int len=sections.size();
-                bSuccess=true;
-                ScanVector scanResults;
-                for(int i=0; i<len; i++)
-                {
-                    uint addr=scanInfo.base=sections.at(i).addr;
-                    uint size=sections.at(i).size;
-                    Memory<uint8_t*> data(size);
-                    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data(), size, 0))
-                    {
-                        dprintf("failed to read memory for section \"%s\"!\n", sections.at(i).name);
-                        continue;
-                    }
-                    if(yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallbackVector, &scanResults, 0) != ERROR_SUCCESS)
-                        bSuccess=false;
-                    else //dump current results and clear vector
-                    {
-                        for(std::vector<ScanResult>::const_iterator j=scanResults.getVector().begin();
-                            j!=scanResults.getVector().end(); ++j)
-                        {
-                            int index = refindex;
-                            GuiReferenceSetRowCount(index + 1);
-                            refindex++;
-                            char addr_text[deflen] = "";
-                            sprintf(addr_text, fhex, j->addr+addr);
-                            GuiReferenceSetCellContent(index, 0, addr_text); //Address
-                            String ruleFullName = "";
-                            ruleFullName += j->ruleId;
-                            ruleFullName += ".";
-                            ruleFullName += j->patternId;
-                            GuiReferenceSetCellContent(index, 1, ruleFullName.c_str()); //Rule
-                            GuiReferenceSetCellContent(index, 2, j->data.c_str()); //Data
-                        }
-                        GuiReferenceReloadData();
-                        double percent = (double)i / (double)len;
-                        GuiReferenceSetProgress((int)(percent * 100));
-                        scanResults.clear();
-                    }
-                }
-                GuiReferenceSetProgress(100);
-                if(bSuccess)
-                    dprintf("%u scan results in %ums...\n", refindex, GetTickCount() - ticks);
-                yr_rules_destroy(yrRules);
-            }
-            else
-                dputs("error while getting the rules!");
-        }
-        else
-            dputs("errors in the rules file!");
-        yr_compiler_destroy(yrCompiler);
-    }
-    else
-        dputs("yr_compiler_create failed!");
-    return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
+    uint size = modsizefromaddr(base);
+    char newcmd[deflen]="";
+    sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
+    return cmddirectexec(dbggetcommandlist(), newcmd);
 }
