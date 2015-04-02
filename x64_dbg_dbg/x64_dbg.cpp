@@ -190,6 +190,7 @@ static void registercommands()
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
