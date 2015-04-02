@@ -34,12 +34,14 @@ private slots:
     void moduleDownloadSymbols();
     void moduleDownloadAllSymbols();
     void moduleCopyPath();
+    void moduleYara();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
 
 signals:
     void showCpu();
+    void showReferences();
 
 private:
     Ui::SymbolView* ui;
@@ -58,6 +60,7 @@ private:
     QAction* mDownloadSymbolsAction;
     QAction* mDownloadAllSymbolsAction;
     QAction* mCopyPathAction;
+    QAction* mYaraAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

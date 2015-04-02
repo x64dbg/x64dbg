@@ -51,5 +51,6 @@
         <file>images/topmost.png</file>
         <file>images/close-all-tabs.png</file>
         <file>images/bug-report.png</file>
+        <file>images/yara.png</file>
     </qresource>
 </RCC>

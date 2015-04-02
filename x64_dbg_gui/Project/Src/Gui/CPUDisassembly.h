@@ -63,6 +63,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
     void showPatchesSlot();
+    void yaraSlot();
     void copySelection();
     void copySelectionNoBytes();
     void copyAddress();
@@ -115,6 +116,7 @@ private:
     QAction* mSearchPattern;
     QAction* mEnableHighlightingMode;
     QAction* mPatchesAction;
+    QAction* mYaraAction;
     QAction* mCopySelection;
     QAction* mCopySelectionNoBytes;
     QAction* mCopyAddress;

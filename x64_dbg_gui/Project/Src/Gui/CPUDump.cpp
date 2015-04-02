@@ -5,6 +5,7 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
+#include "YaraRuleSelectionDialog.h"
 
 CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {
@@ -232,6 +233,12 @@ void CPUDump::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Yara
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYaraAction);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
     //Find References
     mFindReferencesAction = new QAction("Find &References", this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
@@ -362,6 +369,7 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -464,6 +472,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
+    wMenu->addAction(mYaraAction);
     wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
@@ -1321,4 +1330,15 @@ void CPUDump::selectionUpdatedSlot()
     QString selStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     QString selEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     GuiAddStatusBarMessage(QString("Dump: " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+}
+
+void CPUDump::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
 }

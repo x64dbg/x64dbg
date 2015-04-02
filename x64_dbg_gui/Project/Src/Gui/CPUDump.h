@@ -78,6 +78,7 @@ public slots:
     void findReferencesSlot();
 
     void selectionUpdatedSlot();
+    void yaraSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -158,6 +159,7 @@ private:
     QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mFindPatternAction;
     QAction* mFindReferencesAction;
+    QAction* mYaraAction;
     QAction* mUndoSelection;
 
     QMenu* mSpecialMenu;

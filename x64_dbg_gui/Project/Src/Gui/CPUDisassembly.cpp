@@ -6,6 +6,7 @@
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "HexEditDialog.h"
+#include "YaraRuleSelectionDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
 {
@@ -248,6 +249,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mAssemble);
 
         wMenu->addAction(mPatchesAction);
+        wMenu->addAction(mYaraAction);
 
         wMenu->addSeparator();
 
@@ -404,6 +406,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     mPatchesAction->setShortcutContext(Qt::WidgetShortcut);
     connect(mPatchesAction, SIGNAL(triggered()), this, SLOT(showPatchesSlot()));
 
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYaraAction);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
     //--------------------------------------------------------------------
 
     //---------------------- New origin here -----------------------------
@@ -545,6 +552,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mAssemble->setShortcut(ConfigShortcut("ActionAssemble"));
     mToggleInt3BpAction->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mPatchesAction->setShortcut(ConfigShortcut("ViewPatches"));
+    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
     mSetNewOriginHere->setShortcut(ConfigShortcut("ActionSetNewOriginHere"));
     mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
@@ -1141,6 +1149,17 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 void CPUDisassembly::showPatchesSlot()
 {
     emit showPatches();
+}
+
+void CPUDisassembly::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
 }
 
 void CPUDisassembly::copySelection(bool copyBytes)
