@@ -34,6 +34,7 @@ private slots:
     void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
+    void on_checkBoxRegex_toggled(bool checked);
 
 signals:
     void enterPressedSignal();

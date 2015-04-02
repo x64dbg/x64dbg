@@ -61,6 +61,13 @@
      <item>
       <widget class="QLineEdit" name="searchBox"/>
      </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxRegex">
+       <property name="text">
+        <string>Re&amp;gEx</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
