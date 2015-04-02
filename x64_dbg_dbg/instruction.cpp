@@ -1530,3 +1530,8 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     varset("$result", found, false);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrYara(int argc, char* argv[])
+{
+    return STATUS_CONTINUE;
+}
