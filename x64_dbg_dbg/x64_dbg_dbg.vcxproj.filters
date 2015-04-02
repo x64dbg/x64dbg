@@ -143,9 +143,6 @@
     <ClCompile Include="debugger.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
-    <ClCompile Include="log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stringutils.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
@@ -317,9 +314,6 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="handle.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="log.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="undocumented.h">

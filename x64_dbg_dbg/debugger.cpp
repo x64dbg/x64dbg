@@ -140,7 +140,7 @@ void dbgsetisdetachedbyuser(bool b)
 
 void dbgclearignoredexceptions()
 {
-    std::vector<ExceptionRange>().swap(ignoredExceptionRange);
+    ignoredExceptionRange.clear();
 }
 
 void dbgaddignoredexception(ExceptionRange range)
