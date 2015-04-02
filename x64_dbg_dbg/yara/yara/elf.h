@@ -87,112 +87,112 @@ typedef uint64_t elf64_xword_t;
 
 typedef struct
 {
-  uint32_t magic;
-  uint8_t _class;
-  uint8_t data;
-  uint8_t version;
-  uint8_t pad[8];
-  uint8_t nident;
+    uint32_t magic;
+    uint8_t _class;
+    uint8_t data;
+    uint8_t version;
+    uint8_t pad[8];
+    uint8_t nident;
 
 } elf_ident_t;
 
 
 typedef struct
 {
-  elf_ident_t     ident;
-  elf32_half_t    type;
-  elf32_half_t    machine;
-  elf32_word_t    version;
-  elf32_addr_t    entry;
-  elf32_off_t     ph_offset;
-  elf32_off_t     sh_offset;
-  elf32_word_t    flags;
-  elf32_half_t    header_size;
-  elf32_half_t    ph_entry_size;
-  elf32_half_t    ph_entry_count;
-  elf32_half_t    sh_entry_size;
-  elf32_half_t    sh_entry_count;
-  elf32_half_t    sh_str_table_index;
+    elf_ident_t     ident;
+    elf32_half_t    type;
+    elf32_half_t    machine;
+    elf32_word_t    version;
+    elf32_addr_t    entry;
+    elf32_off_t     ph_offset;
+    elf32_off_t     sh_offset;
+    elf32_word_t    flags;
+    elf32_half_t    header_size;
+    elf32_half_t    ph_entry_size;
+    elf32_half_t    ph_entry_count;
+    elf32_half_t    sh_entry_size;
+    elf32_half_t    sh_entry_count;
+    elf32_half_t    sh_str_table_index;
 
 } elf32_header_t;
 
 
 typedef struct
 {
-  elf_ident_t     ident;
-  elf64_half_t    type;
-  elf64_half_t    machine;
-  elf64_word_t    version;
-  elf64_addr_t    entry;
-  elf64_off_t     ph_offset;
-  elf64_off_t     sh_offset;
-  elf64_word_t    flags;
-  elf64_half_t    header_size;
-  elf64_half_t    ph_entry_size;
-  elf64_half_t    ph_entry_count;
-  elf64_half_t    sh_entry_size;
-  elf64_half_t    sh_entry_count;
-  elf64_half_t    sh_str_table_index;
+    elf_ident_t     ident;
+    elf64_half_t    type;
+    elf64_half_t    machine;
+    elf64_word_t    version;
+    elf64_addr_t    entry;
+    elf64_off_t     ph_offset;
+    elf64_off_t     sh_offset;
+    elf64_word_t    flags;
+    elf64_half_t    header_size;
+    elf64_half_t    ph_entry_size;
+    elf64_half_t    ph_entry_count;
+    elf64_half_t    sh_entry_size;
+    elf64_half_t    sh_entry_count;
+    elf64_half_t    sh_str_table_index;
 
 } elf64_header_t;
 
 
 typedef struct
 {
-  elf32_word_t    type;
-  elf32_off_t     offset;
-  elf32_addr_t    virt_addr;
-  elf32_addr_t    phys_addr;
-  elf32_word_t    file_size;
-  elf32_word_t    mem_size;
-  elf32_word_t    flags;
-  elf32_word_t    alignment;
+    elf32_word_t    type;
+    elf32_off_t     offset;
+    elf32_addr_t    virt_addr;
+    elf32_addr_t    phys_addr;
+    elf32_word_t    file_size;
+    elf32_word_t    mem_size;
+    elf32_word_t    flags;
+    elf32_word_t    alignment;
 
 } elf32_program_header_t;
 
 
 typedef struct
 {
-  elf64_word_t    type;
-  elf64_word_t    flags;
-  elf64_off_t     offset;
-  elf64_addr_t    virt_addr;
-  elf64_addr_t    phys_addr;
-  elf64_xword_t   file_size;
-  elf64_xword_t   mem_size;
-  elf64_xword_t   alignment;
+    elf64_word_t    type;
+    elf64_word_t    flags;
+    elf64_off_t     offset;
+    elf64_addr_t    virt_addr;
+    elf64_addr_t    phys_addr;
+    elf64_xword_t   file_size;
+    elf64_xword_t   mem_size;
+    elf64_xword_t   alignment;
 
 } elf64_program_header_t;
 
 
 typedef struct
 {
-  elf32_word_t    name;
-  elf32_word_t    type;
-  elf32_word_t    flags;
-  elf32_addr_t    addr;
-  elf32_off_t     offset;
-  elf32_word_t    size;
-  elf32_word_t    link;
-  elf32_word_t    info;
-  elf32_word_t    align;
-  elf32_word_t    entry_size;
+    elf32_word_t    name;
+    elf32_word_t    type;
+    elf32_word_t    flags;
+    elf32_addr_t    addr;
+    elf32_off_t     offset;
+    elf32_word_t    size;
+    elf32_word_t    link;
+    elf32_word_t    info;
+    elf32_word_t    align;
+    elf32_word_t    entry_size;
 
 } elf32_section_header_t;
 
 
 typedef struct
 {
-  elf64_word_t    name;
-  elf64_word_t    type;
-  elf64_xword_t   flags;
-  elf64_addr_t    addr;
-  elf64_off_t     offset;
-  elf64_xword_t   size;
-  elf64_word_t    link;
-  elf64_word_t    info;
-  elf64_xword_t   align;
-  elf64_xword_t   entry_size;
+    elf64_word_t    name;
+    elf64_word_t    type;
+    elf64_xword_t   flags;
+    elf64_addr_t    addr;
+    elf64_off_t     offset;
+    elf64_xword_t   size;
+    elf64_word_t    link;
+    elf64_word_t    info;
+    elf64_xword_t   align;
+    elf64_xword_t   entry_size;
 
 } elf64_section_header_t;
 

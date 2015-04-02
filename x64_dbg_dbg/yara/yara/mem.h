@@ -46,13 +46,13 @@ void* yr_realloc(
     size_t size);
 
 void yr_free(
-    void *ptr);
+    void* ptr);
 
 char* yr_strdup(
-    const char *str);
+    const char* str);
 
 char* yr_strndup(
-	const char *str, size_t n);
+    const char* str, size_t n);
 
 #endif
 

@@ -52,10 +52,10 @@ typedef void* yyscan_t;
 
 typedef struct _HEX_LEX_ENVIRONMENT
 {
-  int token_count;
-  int inside_or;
-  int last_error_code;
-  char last_error_message[256];
+    int token_count;
+    int inside_or;
+    int last_error_code;
+    char last_error_message[256];
 
 } HEX_LEX_ENVIRONMENT;
 
@@ -79,20 +79,20 @@ int yylex(
     HEX_LEX_ENVIRONMENT* lex_env);
 
 int yyparse(
-    void *yyscanner,
-    HEX_LEX_ENVIRONMENT *lex_env);
+    void* yyscanner,
+    HEX_LEX_ENVIRONMENT* lex_env);
 
 void yyerror(
     yyscan_t yyscanner,
     HEX_LEX_ENVIRONMENT* lex_env,
-    const char *error_message);
+    const char* error_message);
 
 void yyfatal(
     yyscan_t yyscanner,
-    const char *error_message);
+    const char* error_message);
 
 int yr_parse_hex_string(
-  const char* hex_string,
-  int flags,
-  RE** re,
-  RE_ERROR* error);
+    const char* hex_string,
+    int flags,
+    RE** re,
+    RE_ERROR* error);

@@ -20,20 +20,20 @@ limitations under the License.
 
 typedef struct _YR_HASH_TABLE_ENTRY
 {
-  char* key;
-  char* ns;
-  void* value;
+    char* key;
+    char* ns;
+    void* value;
 
-  struct _YR_HASH_TABLE_ENTRY* next;
+    struct _YR_HASH_TABLE_ENTRY* next;
 
 } YR_HASH_TABLE_ENTRY;
 
 
 typedef struct _YR_HASH_TABLE
 {
-  int size;
+    int size;
 
-  YR_HASH_TABLE_ENTRY* buckets[1];
+    YR_HASH_TABLE_ENTRY* buckets[1];
 
 } YR_HASH_TABLE;
 

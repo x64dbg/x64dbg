@@ -27,41 +27,41 @@ limitations under the License.
 
 typedef struct _ATOM_TREE_NODE
 {
-  uint8_t type;
-  uint8_t atom_length;
-  uint8_t atom[MAX_ATOM_LENGTH];
+    uint8_t type;
+    uint8_t atom_length;
+    uint8_t atom[MAX_ATOM_LENGTH];
 
-  uint8_t* forward_code;
-  uint8_t* backward_code;
+    uint8_t* forward_code;
+    uint8_t* backward_code;
 
-  RE_NODE* recent_nodes[MAX_ATOM_LENGTH];
+    RE_NODE* recent_nodes[MAX_ATOM_LENGTH];
 
-  struct _ATOM_TREE_NODE* children_head;
-  struct _ATOM_TREE_NODE* children_tail;
-  struct _ATOM_TREE_NODE* next_sibling;
+    struct _ATOM_TREE_NODE* children_head;
+    struct _ATOM_TREE_NODE* children_tail;
+    struct _ATOM_TREE_NODE* next_sibling;
 
 } ATOM_TREE_NODE;
 
 
 typedef struct _ATOM_TREE
 {
-  ATOM_TREE_NODE* current_leaf;
-  ATOM_TREE_NODE* root_node;
+    ATOM_TREE_NODE* current_leaf;
+    ATOM_TREE_NODE* root_node;
 
 } ATOM_TREE;
 
 
 typedef struct _YR_ATOM_LIST_ITEM
 {
-  uint8_t atom_length;
-  uint8_t atom[MAX_ATOM_LENGTH];
+    uint8_t atom_length;
+    uint8_t atom[MAX_ATOM_LENGTH];
 
-  uint16_t backtrack;
+    uint16_t backtrack;
 
-  uint8_t* forward_code;
-  uint8_t* backward_code;
+    uint8_t* forward_code;
+    uint8_t* backward_code;
 
-  struct _YR_ATOM_LIST_ITEM* next;
+    struct _YR_ATOM_LIST_ITEM* next;
 
 } YR_ATOM_LIST_ITEM;
 

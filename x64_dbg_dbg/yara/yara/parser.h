@@ -55,8 +55,8 @@ int yr_parser_check_types(
 
 
 YR_STRING* yr_parser_lookup_string(
-  yyscan_t yyscanner,
-  const char* identifier);
+    yyscan_t yyscanner,
+    const char* identifier);
 
 
 int yr_parser_lookup_loop_variable(

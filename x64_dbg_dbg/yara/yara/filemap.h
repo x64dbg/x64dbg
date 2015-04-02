@@ -34,12 +34,12 @@ limitations under the License.
 
 typedef struct _YR_MAPPED_FILE
 {
-  FILE_DESCRIPTOR     file;
-  size_t              size;
-  uint8_t*            data;
-  #ifdef _WIN32
-  HANDLE              mapping;
-  #endif
+    FILE_DESCRIPTOR     file;
+    size_t              size;
+    uint8_t*            data;
+#ifdef _WIN32
+    HANDLE              mapping;
+#endif
 
 } YR_MAPPED_FILE;
 

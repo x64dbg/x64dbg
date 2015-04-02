@@ -283,7 +283,7 @@ limitations under the License.
   for (block = (context)->mem_block; \
        block != NULL; \
        block = block->next) \
-
+ 
 
 #define first_memory_block(context) \
       (context)->mem_block
@@ -392,24 +392,24 @@ typedef int (*YR_EXT_UNLOAD_FUNC)(
 
 typedef struct _YR_MODULE
 {
-  tidx_mask_t is_loaded;
+    tidx_mask_t is_loaded;
 
-  char* name;
+    char* name;
 
-  YR_EXT_DECLARATIONS_FUNC declarations;
-  YR_EXT_LOAD_FUNC load;
-  YR_EXT_UNLOAD_FUNC unload;
-  YR_EXT_INITIALIZE_FUNC initialize;
-  YR_EXT_FINALIZE_FUNC finalize;
+    YR_EXT_DECLARATIONS_FUNC declarations;
+    YR_EXT_LOAD_FUNC load;
+    YR_EXT_UNLOAD_FUNC unload;
+    YR_EXT_INITIALIZE_FUNC initialize;
+    YR_EXT_FINALIZE_FUNC finalize;
 
 } YR_MODULE;
 
 
 typedef struct _YR_MODULE_IMPORT
 {
-  const char* module_name;
-  void* module_data;
-  size_t module_data_size;
+    const char* module_name;
+    void* module_data;
+    size_t module_data_size;
 
 } YR_MODULE_IMPORT;
 

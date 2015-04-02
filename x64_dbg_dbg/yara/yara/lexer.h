@@ -67,14 +67,15 @@ typedef void* yyscan_t;
 
 typedef struct _EXPRESSION
 {
-  int type;
+    int type;
 
-  union {
-    int64_t integer;
-    YR_OBJECT* object;
-  } value;
+    union
+    {
+        int64_t integer;
+        YR_OBJECT* object;
+    } value;
 
-  const char* identifier;
+    const char* identifier;
 
 } EXPRESSION;
 
@@ -102,21 +103,21 @@ int yylex(
     YR_COMPILER* compiler);
 
 int yyparse(
-    void *yyscanner,
+    void* yyscanner,
     YR_COMPILER* compiler);
 
 void yyerror(
     yyscan_t yyscanner,
     YR_COMPILER* compiler,
-    const char *error_message);
+    const char* error_message);
 
 void yywarning(
     yyscan_t yyscanner,
-    const char *warning_message);
+    const char* warning_message);
 
 void yyfatal(
     yyscan_t yyscanner,
-    const char *error_message);
+    const char* error_message);
 
 YY_EXTRA_TYPE yyget_extra(
     yyscan_t yyscanner);

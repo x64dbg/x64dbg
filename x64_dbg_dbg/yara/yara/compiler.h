@@ -40,57 +40,57 @@ typedef void (*YR_COMPILER_CALLBACK_FUNC)(
 
 typedef struct _YR_COMPILER
 {
-  int               errors;
-  int               error_line;
-  int               last_error;
-  int               last_error_line;
-  int               last_result;
+    int               errors;
+    int               error_line;
+    int               last_error;
+    int               last_error_line;
+    int               last_result;
 
-  jmp_buf           error_recovery;
+    jmp_buf           error_recovery;
 
-  YR_ARENA*         sz_arena;
-  YR_ARENA*         rules_arena;
-  YR_ARENA*         strings_arena;
-  YR_ARENA*         code_arena;
-  YR_ARENA*         re_code_arena;
-  YR_ARENA*         automaton_arena;
-  YR_ARENA*         compiled_rules_arena;
-  YR_ARENA*         externals_arena;
-  YR_ARENA*         namespaces_arena;
-  YR_ARENA*         metas_arena;
+    YR_ARENA*         sz_arena;
+    YR_ARENA*         rules_arena;
+    YR_ARENA*         strings_arena;
+    YR_ARENA*         code_arena;
+    YR_ARENA*         re_code_arena;
+    YR_ARENA*         automaton_arena;
+    YR_ARENA*         compiled_rules_arena;
+    YR_ARENA*         externals_arena;
+    YR_ARENA*         namespaces_arena;
+    YR_ARENA*         metas_arena;
 
-  YR_AC_AUTOMATON*  automaton;
-  YR_HASH_TABLE*    rules_table;
-  YR_HASH_TABLE*    objects_table;
-  YR_NAMESPACE*     current_namespace;
-  YR_STRING*        current_rule_strings;
+    YR_AC_AUTOMATON*  automaton;
+    YR_HASH_TABLE*    rules_table;
+    YR_HASH_TABLE*    objects_table;
+    YR_NAMESPACE*     current_namespace;
+    YR_STRING*        current_rule_strings;
 
-  int               current_rule_flags;
-  int               namespaces_count;
+    int               current_rule_flags;
+    int               namespaces_count;
 
-  int8_t*           loop_address[MAX_LOOP_NESTING];
-  char*             loop_identifier[MAX_LOOP_NESTING];
-  int               loop_depth;
-  int               loop_for_of_mem_offset;
+    int8_t*           loop_address[MAX_LOOP_NESTING];
+    char*             loop_identifier[MAX_LOOP_NESTING];
+    int               loop_depth;
+    int               loop_for_of_mem_offset;
 
-  int               allow_includes;
+    int               allow_includes;
 
-  char*             file_name_stack[MAX_INCLUDE_DEPTH];
-  int               file_name_stack_ptr;
+    char*             file_name_stack[MAX_INCLUDE_DEPTH];
+    int               file_name_stack_ptr;
 
-  FILE*             file_stack[MAX_INCLUDE_DEPTH];
-  int               file_stack_ptr;
+    FILE*             file_stack[MAX_INCLUDE_DEPTH];
+    int               file_stack_ptr;
 
-  char              last_error_extra_info[MAX_COMPILER_ERROR_EXTRA_INFO];
+    char              last_error_extra_info[MAX_COMPILER_ERROR_EXTRA_INFO];
 
-  char              lex_buf[LEX_BUF_SIZE];
-  char*             lex_buf_ptr;
-  unsigned short    lex_buf_len;
+    char              lex_buf[LEX_BUF_SIZE];
+    char*             lex_buf_ptr;
+    unsigned short    lex_buf_len;
 
-  char              include_base_dir[MAX_PATH];
-  void*             user_data;
+    char              include_base_dir[MAX_PATH];
+    void*             user_data;
 
-  YR_COMPILER_CALLBACK_FUNC  callback;
+    YR_COMPILER_CALLBACK_FUNC  callback;
 
 } YR_COMPILER;
 
@@ -100,14 +100,14 @@ typedef struct _YR_COMPILER
         compiler->last_error_extra_info, \
         info, \
         sizeof(compiler->last_error_extra_info)); \
-
+ 
 
 #define yr_compiler_set_error_extra_info_fmt(compiler, fmt, ...) \
     snprintf( \
         compiler->last_error_extra_info, \
         sizeof(compiler->last_error_extra_info), \
         fmt, __VA_ARGS__);
-        
+
 
 int _yr_compiler_push_file(
     YR_COMPILER* compiler,

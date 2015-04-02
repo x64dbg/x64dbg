@@ -1,11 +1,11 @@
-  /*
+/*
 Copyright (c) 2013. The YARA Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+ http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,10 +51,10 @@ typedef void* yyscan_t;
 
 typedef struct _RE_LEX_ENVIRONMENT
 {
-  int negated_class;
-  uint8_t class_vector[32];
-  int last_error_code;
-  char last_error_message[256];
+    int negated_class;
+    uint8_t class_vector[32];
+    int last_error_code;
+    char last_error_message[256];
 
 } RE_LEX_ENVIRONMENT;
 
@@ -78,20 +78,20 @@ int yylex(
     RE_LEX_ENVIRONMENT* lex_env);
 
 int yyparse(
-    void *yyscanner,
-    RE_LEX_ENVIRONMENT *lex_env);
+    void* yyscanner,
+    RE_LEX_ENVIRONMENT* lex_env);
 
 void yyerror(
     yyscan_t yyscanner,
     RE_LEX_ENVIRONMENT* lex_env,
-    const char *error_message);
+    const char* error_message);
 
 void yyfatal(
     yyscan_t yyscanner,
-    const char *error_message);
+    const char* error_message);
 
 int yr_parse_re_string(
-  const char* re_string,
-  int flags,
-  RE** re,
-  RE_ERROR* error);
+    const char* re_string,
+    int flags,
+    RE** re,
+    RE_ERROR* error);

@@ -63,7 +63,8 @@ typedef uint64_t  ULONGLONG;
 
 #pragma pack(push, 2)
 
-typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
+typedef struct _IMAGE_DOS_HEADER        // DOS .EXE header
+{
     WORD   e_magic;                     // Magic number
     WORD   e_cblp;                      // Bytes on last page of file
     WORD   e_cp;                        // Pages in file
@@ -83,7 +84,7 @@ typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
     WORD   e_oeminfo;                   // OEM information; e_oemid specific
     WORD   e_res2[10];                  // Reserved words
     LONG   e_lfanew;                    // File address of new exe header
-  } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
+} IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
 
 #pragma pack(pop)
 
@@ -93,7 +94,8 @@ typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
 
 #pragma pack(push,4)
 
-typedef struct _IMAGE_FILE_HEADER {
+typedef struct _IMAGE_FILE_HEADER
+{
     WORD    Machine;
     WORD    NumberOfSections;
     DWORD   TimeDateStamp;
@@ -167,7 +169,8 @@ typedef struct _IMAGE_FILE_HEADER {
 // Directory format.
 //
 
-typedef struct _IMAGE_DATA_DIRECTORY {
+typedef struct _IMAGE_DATA_DIRECTORY
+{
     DWORD   VirtualAddress;
     DWORD   Size;
 } IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
@@ -197,7 +200,8 @@ typedef struct _IMAGE_DATA_DIRECTORY {
 // Optional header format.
 //
 
-typedef struct _IMAGE_OPTIONAL_HEADER32 {
+typedef struct _IMAGE_OPTIONAL_HEADER32
+{
     WORD Magic;
     BYTE MajorLinkerVersion;
     BYTE MinorLinkerVersion;
@@ -233,7 +237,8 @@ typedef struct _IMAGE_OPTIONAL_HEADER32 {
 } IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
 
 
-typedef struct _IMAGE_OPTIONAL_HEADER64 {
+typedef struct _IMAGE_OPTIONAL_HEADER64
+{
     WORD Magic;
     BYTE MajorLinkerVersion;
     BYTE MinorLinkerVersion;
@@ -272,7 +277,8 @@ typedef struct _IMAGE_OPTIONAL_HEADER64 {
 #define IMAGE_NT_OPTIONAL_HDR64_MAGIC      0x20b
 
 
-typedef struct _IMAGE_NT_HEADERS32 {
+typedef struct _IMAGE_NT_HEADERS32
+{
     DWORD Signature;
     IMAGE_FILE_HEADER FileHeader;
     IMAGE_OPTIONAL_HEADER32 OptionalHeader;
@@ -280,7 +286,8 @@ typedef struct _IMAGE_NT_HEADERS32 {
 } IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
 
 
-typedef struct _IMAGE_NT_HEADERS64 {
+typedef struct _IMAGE_NT_HEADERS64
+{
     DWORD Signature;
     IMAGE_FILE_HEADER FileHeader;
     IMAGE_OPTIONAL_HEADER64 OptionalHeader;
@@ -313,11 +320,13 @@ typedef struct _IMAGE_NT_HEADERS64 {
 
 #define IMAGE_SIZEOF_SHORT_NAME              8
 
-typedef struct _IMAGE_SECTION_HEADER {
+typedef struct _IMAGE_SECTION_HEADER
+{
     BYTE    Name[IMAGE_SIZEOF_SHORT_NAME];
-    union {
-            DWORD   PhysicalAddress;
-            DWORD   VirtualSize;
+    union
+    {
+        DWORD   PhysicalAddress;
+        DWORD   VirtualSize;
     } Misc;
     DWORD   VirtualAddress;
     DWORD   SizeOfRawData;
@@ -333,7 +342,8 @@ typedef struct _IMAGE_SECTION_HEADER {
 #define IMAGE_SIZEOF_SECTION_HEADER          40
 
 
-typedef struct _IMAGE_EXPORT_DIRECTORY {
+typedef struct _IMAGE_EXPORT_DIRECTORY
+{
     DWORD Characteristics;
     DWORD TimeDateStamp;
     WORD  MajorVersion;
@@ -348,8 +358,10 @@ typedef struct _IMAGE_EXPORT_DIRECTORY {
 } IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY;
 
 
-typedef struct _IMAGE_IMPORT_DESCRIPTOR {
-    union {
+typedef struct _IMAGE_IMPORT_DESCRIPTOR
+{
+    union
+    {
         DWORD Characteristics;
         DWORD OriginalFirstThunk;
     } ;
@@ -361,19 +373,22 @@ typedef struct _IMAGE_IMPORT_DESCRIPTOR {
 } IMAGE_IMPORT_DESCRIPTOR, *PIMAGE_IMPORT_DESCRIPTOR;
 
 
-typedef struct _IMAGE_IMPORT_BY_NAME {
-  WORD Hint;
-  BYTE Name[1];
+typedef struct _IMAGE_IMPORT_BY_NAME
+{
+    WORD Hint;
+    BYTE Name[1];
 
 } IMAGE_IMPORT_BY_NAME, *PIMAGE_IMPORT_BY_NAME;
 
-typedef struct _IMAGE_THUNK_DATA32 {
-  union {
-    DWORD ForwarderString;
-    DWORD Function;
-    DWORD Ordinal;
-    DWORD AddressOfData;
-  } u1;
+typedef struct _IMAGE_THUNK_DATA32
+{
+    union
+    {
+        DWORD ForwarderString;
+        DWORD Function;
+        DWORD Ordinal;
+        DWORD AddressOfData;
+    } u1;
 
 } IMAGE_THUNK_DATA32, *PIMAGE_THUNK_DATA32;
 
@@ -381,32 +396,37 @@ typedef struct _IMAGE_THUNK_DATA32 {
 #define IMAGE_ORDINAL_FLAG32  0x80000000
 #define IMAGE_ORDINAL_FLAG64  0x8000000000000000L
 
-typedef struct _IMAGE_THUNK_DATA64 {
-  union {
-    ULONGLONG ForwarderString;
-    ULONGLONG Function;
-    ULONGLONG Ordinal;
-    ULONGLONG AddressOfData;
-  } u1;
+typedef struct _IMAGE_THUNK_DATA64
+{
+    union
+    {
+        ULONGLONG ForwarderString;
+        ULONGLONG Function;
+        ULONGLONG Ordinal;
+        ULONGLONG AddressOfData;
+    } u1;
 
 } IMAGE_THUNK_DATA64, *PIMAGE_THUNK_DATA64;
 
 
-typedef struct _IMAGE_RESOURCE_DIRECTORY_ENTRY {
+typedef struct _IMAGE_RESOURCE_DIRECTORY_ENTRY
+{
     DWORD Name;
     DWORD OffsetToData;
 } IMAGE_RESOURCE_DIRECTORY_ENTRY, *PIMAGE_RESOURCE_DIRECTORY_ENTRY;
 
 
- typedef struct _IMAGE_RESOURCE_DATA_ENTRY {
+typedef struct _IMAGE_RESOURCE_DATA_ENTRY
+{
     DWORD OffsetToData;
     DWORD Size;
     DWORD CodePage;
     DWORD Reserved;
- } IMAGE_RESOURCE_DATA_ENTRY,*PIMAGE_RESOURCE_DATA_ENTRY;
+} IMAGE_RESOURCE_DATA_ENTRY, *PIMAGE_RESOURCE_DATA_ENTRY;
 
 
-typedef struct _IMAGE_RESOURCE_DIRECTORY {
+typedef struct _IMAGE_RESOURCE_DIRECTORY
+{
     DWORD Characteristics;
     DWORD TimeDateStamp;
     WORD  MajorVersion;
@@ -419,7 +439,8 @@ typedef struct _IMAGE_RESOURCE_DIRECTORY {
 
 #endif  // _WIN32
 
-typedef struct _VERSION_INFO {
+typedef struct _VERSION_INFO
+{
     WORD   Length;
     WORD   ValueLength;
     WORD   Type;
@@ -435,7 +456,8 @@ typedef struct _VERSION_INFO {
 #define WIN_CERT_TYPE_RESERVED_1       0x0003
 #define WIN_CERT_TYPE_TS_STACK_SIGNED  0x0004
 
-typedef struct _WIN_CERTIFICATE {
+typedef struct _WIN_CERTIFICATE
+{
     DWORD Length;
     WORD  Revision;
     WORD  CertificateType;
@@ -448,7 +470,8 @@ typedef struct _WIN_CERTIFICATE {
 // http://www.ntcore.com/files/richsign.htm
 //
 
-typedef struct _RICH_SIGNATURE {
+typedef struct _RICH_SIGNATURE
+{
     DWORD dans;
     DWORD key1;
     DWORD key2;
@@ -458,7 +481,8 @@ typedef struct _RICH_SIGNATURE {
 #define RICH_DANS 0x536e6144 // "DanS"
 #define RICH_RICH 0x68636952 // "Rich"
 
-typedef struct _RICH_DATA {
+typedef struct _RICH_DATA
+{
     size_t len;
     BYTE* raw_data;
     BYTE* clear_data;

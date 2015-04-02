@@ -98,43 +98,47 @@ typedef uint8_t* RE_CODE;
 
 struct RE_NODE
 {
-  int type;
+    int type;
 
-  union {
-    int value;
-    int count;
-    int start;
-  };
+    union
+    {
+        int value;
+        int count;
+        int start;
+    };
 
-  union {
-    int mask;
-    int end;
-  };
+    union
+    {
+        int mask;
+        int end;
+    };
 
-  int greedy;
+    int greedy;
 
-  uint8_t* class_vector;
+    uint8_t* class_vector;
 
-  RE_NODE* left;
-  RE_NODE* right;
+    RE_NODE* left;
+    RE_NODE* right;
 
-  RE_CODE forward_code;
-  RE_CODE backward_code;
+    RE_CODE forward_code;
+    RE_CODE backward_code;
 };
 
 
-struct RE {
+struct RE
+{
 
-  uint32_t flags;
-  RE_NODE* root_node;
-  YR_ARENA* code_arena;
-  RE_CODE code;
+    uint32_t flags;
+    RE_NODE* root_node;
+    YR_ARENA* code_arena;
+    RE_CODE code;
 };
 
 
-struct RE_ERROR {
+struct RE_ERROR
+{
 
-  char message[512];
+    char message[512];
 
 };
 
@@ -187,7 +191,7 @@ RE_NODE* yr_re_node_create(
 
 
 void yr_re_node_destroy(
-  RE_NODE* node);
+    RE_NODE* node);
 
 
 SIZED_STRING* yr_re_extract_literal(

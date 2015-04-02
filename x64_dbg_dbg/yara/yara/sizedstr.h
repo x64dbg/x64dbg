@@ -28,15 +28,15 @@ limitations under the License.
 
 typedef struct _SIZED_STRING
 {
-  int length;
-  int flags;
-  char c_string[1];
+    int length;
+    int flags;
+    char c_string[1];
 
 } SIZED_STRING;
 
 
 int sized_string_cmp(
-  SIZED_STRING* s1,
-  SIZED_STRING* s2);
+    SIZED_STRING* s1,
+    SIZED_STRING* s2);
 
 #endif

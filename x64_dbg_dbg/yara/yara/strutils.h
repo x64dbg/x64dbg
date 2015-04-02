@@ -36,25 +36,25 @@ uint64_t xtoi(
 
 #if !HAVE_STRLCPY
 size_t strlcpy(
-    char *dst,
-    const char *src,
+    char* dst,
+    const char* src,
     size_t size);
 #endif
 
 
 #if !HAVE_STRLCAT
 size_t strlcat(
-    char *dst,
-    const char *src,
+    char* dst,
+    const char* src,
     size_t size);
 #endif
 
 
 #if !HAVE_MEMMEM
 void* memmem(
-    const void *haystack,
+    const void* haystack,
     size_t haystack_size,
-    const void *needle,
+    const void* needle,
     size_t needle_size);
 #endif
 

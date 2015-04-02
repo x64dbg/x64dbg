@@ -30,8 +30,8 @@ limitations under the License.
 
 typedef struct _YR_RELOC
 {
-  int32_t offset;
-  struct _YR_RELOC* next;
+    int32_t offset;
+    struct _YR_RELOC* next;
 
 } YR_RELOC;
 
@@ -39,27 +39,27 @@ typedef struct _YR_RELOC
 typedef struct _YR_ARENA_PAGE
 {
 
-  uint8_t* new_address;
-  uint8_t* address;
+    uint8_t* new_address;
+    uint8_t* address;
 
-  size_t size;
-  size_t used;
+    size_t size;
+    size_t used;
 
-  YR_RELOC* reloc_list_head;
-  YR_RELOC* reloc_list_tail;
+    YR_RELOC* reloc_list_head;
+    YR_RELOC* reloc_list_tail;
 
-  struct _YR_ARENA_PAGE* next;
-  struct _YR_ARENA_PAGE* prev;
+    struct _YR_ARENA_PAGE* next;
+    struct _YR_ARENA_PAGE* prev;
 
 } YR_ARENA_PAGE;
 
 
 typedef struct _YR_ARENA
 {
-  int flags;
+    int flags;
 
-  YR_ARENA_PAGE* page_list_head;
-  YR_ARENA_PAGE* current_page;
+    YR_ARENA_PAGE* page_list_head;
+    YR_ARENA_PAGE* current_page;
 
 } YR_ARENA;
 
