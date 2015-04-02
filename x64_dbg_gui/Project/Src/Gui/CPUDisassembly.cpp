@@ -86,7 +86,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUDisassembly::addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, QString objectNamePrefix)
+void CPUDisassembly::addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, bool isReferences)
 {
     foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
@@ -94,11 +94,11 @@ void CPUDisassembly::addFollowReferenceMenuItem(QString name, int_t value, QMenu
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
-    newAction->setObjectName(objectNamePrefix + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
 
-void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, QString objectNamePrefix)
+void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isReferences)
 {
     //remove previous actions
     QList<QAction*> list = menu->actions();
@@ -106,32 +106,48 @@ void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, QString ob
         menu->removeAction(list.at(i));
 
     //most basic follow action
-    addFollowReferenceMenuItem("&Selected Address", wVA, menu, objectNamePrefix);
+    addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
 
     //add follow actions
     DISASM_INSTR instr;
     DbgDisasmAt(wVA, &instr);
 
-    for(int i = 0; i < instr.argcount; i++)
+    if(!isReferences) //follow in dump
     {
-        const DISASM_ARG arg = instr.arg[i];
-        if(arg.type == arg_memory)
+        for(int i = 0; i < instr.argcount; i++)
         {
-            if(DbgMemIsValidReadPtr(arg.value))
-                addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, objectNamePrefix);
-            if(arg.value != arg.constant)
+            const DISASM_ARG arg = instr.arg[i];
+            if(arg.type == arg_memory)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
-                if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, objectNamePrefix);
+                if(DbgMemIsValidReadPtr(arg.value))
+                    addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+                if(arg.value != arg.constant)
+                {
+                    QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                    if(DbgMemIsValidReadPtr(arg.constant))
+                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences);
+                }
+                if(DbgMemIsValidReadPtr(arg.memvalue))
+                    addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences);
+
             }
-            if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, objectNamePrefix);
+            else //arg_normal
+            {
+                if(DbgMemIsValidReadPtr(arg.value))
+                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+            }
         }
-        else
+    }
+    else //find references
+    {
+        for(int i = 0; i < instr.argcount; i++)
         {
-            if(DbgMemIsValidReadPtr(arg.value))
-                addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, objectNamePrefix);
+            const DISASM_ARG arg = instr.arg[i];
+            QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+            if(DbgMemIsValidReadPtr(arg.constant))
+                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences);
+            else if(arg.constant)
+                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences);
         }
     }
 }
@@ -225,7 +241,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         }
         wMenu->addMenu(mBPMenu);
         wMenu->addMenu(mFollowMenu);
-        setupFollowReferenceMenu(wVA, mFollowMenu, "DUMP|");
+        setupFollowReferenceMenu(wVA, mFollowMenu, false);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -272,7 +288,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mSearchMenu);
 
         wMenu->addMenu(mReferencesMenu);
-        setupFollowReferenceMenu(wVA, mReferencesMenu, "REF|");
+        setupFollowReferenceMenu(wVA, mReferencesMenu, true);
 
         wMenu->addSeparator();
         wMenu->addActions(mPluginMenu->actions());
