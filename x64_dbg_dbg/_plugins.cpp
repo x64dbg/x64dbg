@@ -4,8 +4,6 @@
 #include "debugger.h"
 #include "threading.h"
 
-static char msg[66000];
-
 ///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 {
