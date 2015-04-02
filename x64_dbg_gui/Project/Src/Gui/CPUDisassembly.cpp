@@ -86,27 +86,27 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUDisassembly::addFollowMenuItem(QString name, int_t value)
+void CPUDisassembly::addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, QString objectNamePrefix)
 {
-    foreach(QAction * action, mFollowMenu->actions()) //check for duplicate action
+    foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
         return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
-    mFollowMenu->addAction(newAction);
-    newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    menu->addAction(newAction);
+    newAction->setObjectName(objectNamePrefix + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
 
-void CPUDisassembly::setupFollowMenu(int_t wVA)
+void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, QString objectNamePrefix)
 {
     //remove previous actions
-    QList<QAction*> list = mFollowMenu->actions();
+    QList<QAction*> list = menu->actions();
     for(int i = 0; i < list.length(); i++)
-        mFollowMenu->removeAction(list.at(i));
+        menu->removeAction(list.at(i));
 
     //most basic follow action
-    addFollowMenuItem("&Selection", wVA);
+    addFollowReferenceMenuItem("&Selected Address", wVA, menu, objectNamePrefix);
 
     //add follow actions
     DISASM_INSTR instr;
@@ -118,20 +118,20 @@ void CPUDisassembly::setupFollowMenu(int_t wVA)
         if(arg.type == arg_memory)
         {
             if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+                addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, objectNamePrefix);
             if(arg.value != arg.constant)
             {
                 QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem("&Constant: " + constant, arg.constant);
+                    addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, objectNamePrefix);
             }
             if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
+                addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, objectNamePrefix);
         }
         else
         {
             if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+                addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, objectNamePrefix);
         }
     }
 }
@@ -225,7 +225,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         }
         wMenu->addMenu(mBPMenu);
         wMenu->addMenu(mFollowMenu);
-        setupFollowMenu(wVA);
+        setupFollowReferenceMenu(wVA, mFollowMenu, "DUMP|");
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -271,8 +271,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         wMenu->addMenu(mSearchMenu);
 
-        mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
+        setupFollowReferenceMenu(wVA, mReferencesMenu, "REF|");
 
         wMenu->addSeparator();
         wMenu->addActions(mPluginMenu->actions());
@@ -939,8 +939,17 @@ void CPUDisassembly::gotoFileOffset()
 void CPUDisassembly::followActionSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
-    if(action && action->objectName().startsWith("DUMP|"))
+    if(!action)
+        return;
+    if(action->objectName().startsWith("DUMP|"))
         DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
+    else if(action->objectName().startsWith("REF|"))
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString value = action->objectName().mid(4);
+        DbgCmdExec(QString("findref \"" + value +  "\", " + addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
 }
 
 void CPUDisassembly::gotoPrevious()

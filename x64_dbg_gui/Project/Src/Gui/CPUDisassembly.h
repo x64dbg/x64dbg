@@ -17,8 +17,8 @@ public:
 
     // Context Menu Management
     void setupRightClickContextMenu();
-    void addFollowMenuItem(QString name, int_t value);
-    void setupFollowMenu(int_t wVA);
+    void addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, QString objectNamePrefix);
+    void setupFollowReferenceMenu(int_t wVA, QMenu* menu, QString objectNamePrefix);
     void setHwBpAt(uint_t va, int slot);
 
     void copySelection(bool copyBytes);
