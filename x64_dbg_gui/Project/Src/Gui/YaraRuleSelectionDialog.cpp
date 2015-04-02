@@ -6,7 +6,7 @@
 #include <QDirIterator>
 #include "Imports.h"
 
-YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget *parent) :
+YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::YaraRuleSelectionDialog)
 {
@@ -16,7 +16,7 @@ YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget *parent) :
 #endif
     setFixedSize(this->size()); //fixed size
 
-    char setting[MAX_SETTING_SIZE]="";
+    char setting[MAX_SETTING_SIZE] = "";
     if(BridgeSettingGet("Misc", "YaraRulesDirectory", setting))
     {
         rulesDirectory = QString(setting);
@@ -55,7 +55,7 @@ void YaraRuleSelectionDialog::on_buttonFile_clicked()
 
 void YaraRuleSelectionDialog::on_buttonSelect_clicked()
 {
-    int selectedIndex=ui->listRules->row(ui->listRules->selectedItems().at(0));
+    int selectedIndex = ui->listRules->row(ui->listRules->selectedItems().at(0));
     selectedFile = ruleFiles.at(selectedIndex).first;
     this->accept();
 }
@@ -68,7 +68,7 @@ void YaraRuleSelectionDialog::enumRulesDirectory()
     while(it.hasNext())
     {
         it.next();
-        ruleFiles.append(QPair<QString,QString>(QDir::toNativeSeparators(it.filePath()), it.fileName()));
+        ruleFiles.append(QPair<QString, QString>(QDir::toNativeSeparators(it.filePath()), it.fileName()));
         ui->listRules->addItem(it.fileName());
     }
     ui->listRules->setCurrentRow(0);

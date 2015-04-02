@@ -3,7 +3,8 @@
 
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
 class YaraRuleSelectionDialog;
 }
 
@@ -12,7 +13,7 @@ class YaraRuleSelectionDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit YaraRuleSelectionDialog(QWidget *parent = 0);
+    explicit YaraRuleSelectionDialog(QWidget* parent = 0);
     ~YaraRuleSelectionDialog();
     QString getSelectedFile();
 
@@ -22,7 +23,7 @@ private slots:
     void on_buttonSelect_clicked();
 
 private:
-    Ui::YaraRuleSelectionDialog *ui;
+    Ui::YaraRuleSelectionDialog* ui;
     QList<QPair<QString, QString>> ruleFiles;
     QString rulesDirectory;
     QString selectedFile;

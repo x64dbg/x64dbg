@@ -1666,8 +1666,8 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
             size = 0;
     if(!size)
         addr = memfindbaseaddr(addr, &size);
-    uint base=addr;
-    dprintf("%p[%p]\n",base,size);
+    uint base = addr;
+    dprintf("%p[%p]\n", base, size);
     Memory<uint8_t*> data(size);
     if(!memread(fdProcessInfo->hProcess, (const void*)base, data(), size, 0))
     {
@@ -1760,7 +1760,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint size = modsizefromaddr(base);
-    char newcmd[deflen]="";
+    char newcmd[deflen] = "";
     sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }

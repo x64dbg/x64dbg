@@ -296,7 +296,7 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
             if(curPatchList.at(i).second.group == patch.second.group)
             {
                 //change the patch state
-                curPatchList[i].second.checked = checked;                
+                curPatchList[i].second.checked = checked;
                 ui->listPatches->item(i)->setCheckState(item->checkState());
                 //change the byte to reflect the change for the user (cypherpunk reported this)
                 unsigned char writebyte = curPatchList[i].second.checked ? curPatchList[i].first.newbyte : curPatchList[i].first.oldbyte;
