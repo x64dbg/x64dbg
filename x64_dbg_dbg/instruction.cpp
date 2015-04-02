@@ -892,7 +892,12 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         if(!valfromstring(argv[4], &size))
             size = 0;
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbRefFind, &range, false, "Constant");
+    char title[256] = "";
+    if(range.start == range.end)
+        sprintf_s(title, "Constant: %"fext"X", range.start);
+    else
+        sprintf_s(title, "Range: %"fext"X-%"fext"X", range.start, range.end);
+    int found = reffind(addr, size, cbRefFind, &range, false, title);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1171,7 +1176,13 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     else
         find_size = size - start;
     //setup reference view
-    GuiReferenceInitialize("Occurrences");
+    char patternshort[256] = "";
+    strncpy_s(patternshort, pattern, min(16, len));
+    if(len > 16)
+        strcat_s(patternshort, "...");
+    char patterntitle[256] = "";
+    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    GuiReferenceInitialize(patterntitle);
     GuiReferenceAddColumn(2 * sizeof(uint), "Address");
     if(findData)
         GuiReferenceAddColumn(0, "&Data&");
@@ -1528,7 +1539,9 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     disasmfast(dest, addr + size / 2, &basicinfo);
 
     uint ticks = GetTickCount();
-    int found = reffind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, "Command");
+    char title[256] = "";
+    sprintf_s(title, "Command: \"%s\"", basicinfo.instruction);
+    int found = reffind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title);
     dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
