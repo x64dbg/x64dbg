@@ -1,3 +1,9 @@
+/**
+ @file symbolinfo.cpp
+
+ @brief Implements the symbolinfo class.
+ */
+
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "addrinfo.h"

@@ -77,6 +77,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Memory Map View
     mMemMapView = new MemoryMapView();
     connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle("Memory Map");
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
@@ -168,6 +169,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));

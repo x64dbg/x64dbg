@@ -1,3 +1,9 @@
+/**
+ @file stackinfo.cpp
+
+ @brief Implements the stackinfo class.
+ */
+
 #include "stackinfo.h"
 #include "debugger.h"
 #include "memory.h"

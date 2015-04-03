@@ -1,3 +1,9 @@
+/**
+ @file memory.cpp
+
+ @brief Implements the memory class.
+ */
+
 #include "memory.h"
 #include "debugger.h"
 #include "patches.h"

@@ -1,3 +1,9 @@
+/**
+ @file patches.cpp
+
+ @brief Implements the patches class.
+ */
+
 #include "patches.h"
 #include "addrinfo.h"
 #include "memory.h"

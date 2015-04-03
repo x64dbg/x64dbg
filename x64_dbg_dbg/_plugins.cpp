@@ -1,3 +1,9 @@
+/**
+ @file _plugins.cpp
+
+ @brief Implements the plugins class.
+ */
+
 #include "_plugins.h"
 #include "plugin_loader.h"
 #include "console.h"

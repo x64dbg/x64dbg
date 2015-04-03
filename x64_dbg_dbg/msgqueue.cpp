@@ -1,16 +1,22 @@
+/**
+ @file msgqueue.cpp
+
+ @brief Implements the msgqueue class.
+ */
+
 #include "msgqueue.h"
 
 // Allocate a message stack
 MESSAGE_STACK* MsgAllocStack()
 {
-	// Use placement new to ensure all constructors are called correctly
-	PVOID memoryBuffer			= emalloc(sizeof(MESSAGE_STACK), "MsgAllocStack:memoryBuffer");
-    MESSAGE_STACK* messageStack	= new(memoryBuffer) MESSAGE_STACK;
-    
-	if(!messageStack)
-        return nullptr;
+	// Allocate memory for the structure
+	PVOID memoryBuffer = emalloc(sizeof(MESSAGE_STACK), "MsgAllocStack:memoryBuffer");
 
-    return messageStack;
+	if (!memoryBuffer)
+		return nullptr;
+
+	// Use placement new to ensure all constructors are called correctly
+    return new(memoryBuffer) MESSAGE_STACK;
 }
 
 // Free a message stack and all messages in the queue

@@ -241,6 +241,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionSetComment", Shortcut(tr("Actions -> Set Comment"), ";"));
     defaultShortcuts.insert("ActionToggleFunction", Shortcut(tr("Actions -> Toggle Function"), "Shift+F"));
     defaultShortcuts.insert("ActionAssemble", Shortcut(tr("Actions -> Assemble"), "Space"));
+    defaultShortcuts.insert("ActionYara", Shortcut(tr("Actions -> Yara"), "Ctrl+Y"));
     defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut(tr("Actions -> Set New Origin Here"), "Ctrl+*"));
     defaultShortcuts.insert("ActionGotoOrigin", Shortcut(tr("Actions -> Goto Origin"), "*"));
     defaultShortcuts.insert("ActionGotoPrevious", Shortcut(tr("Actions -> Goto Previous"), "-"));

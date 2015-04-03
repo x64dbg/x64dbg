@@ -1,3 +1,9 @@
+/**
+ @file command.cpp
+
+ @brief Implements the command class.
+ */
+
 #include "command.h"
 #include "argument.h"
 #include "value.h"
@@ -5,6 +11,13 @@
 #include "debugger.h"
 #include "math.h"
 
+/**
+\brief Finds a ::COMMAND in a command list.
+\param [in] command list.
+\param name The name of the command to find.
+\param [out] Link to the command.
+\return null if it fails, else a ::COMMAND*.
+*/
 COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
 {
     COMMAND* cur = command_list;
@@ -25,6 +38,10 @@ COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
     return 0;
 }
 
+/**
+\brief Initialize a command list.
+\return a ::COMMAND*
+*/
 COMMAND* cmdinit()
 {
     COMMAND* cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdinit:cmd");
@@ -32,6 +49,10 @@ COMMAND* cmdinit()
     return cmd;
 }
 
+/**
+\brief Clear a command list.
+\param [in] cmd_list Command list to clear.
+*/
 void cmdfree(COMMAND* cmd_list)
 {
     COMMAND* cur = cmd_list;
@@ -44,6 +65,14 @@ void cmdfree(COMMAND* cmd_list)
     }
 }
 
+/**
+\brief Creates a new command and adds it to the list.
+\param [in,out] command_list Command list. Cannot be null.
+\param name The command name.
+\param cbCommand The command callback.
+\param debugonly true if the command can only be executed in a debugging context.
+\return true if the command was successfully added to the list.
+*/
 bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
     if(!command_list or !cbCommand or !name or !*name or cmdfind(command_list, name, 0))
@@ -72,6 +101,12 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
     return true;
 }
 
+/**
+\brief Gets a ::COMMAND from the command list.
+\param [in] command_list Command list.
+\param cmd The command to get from the list.
+\return null if the command was not found. Otherwise a ::COMMAND*.
+*/
 COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 {
     char new_cmd[deflen] = "";
@@ -87,6 +122,14 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
     return found;
 }
 
+/**
+\brief Sets a new command callback and debugonly property in a command list.
+\param [in] command_list Command list.
+\param name The name of the command to change.
+\param cbCommand The new command callback.
+\param debugonly The new debugonly value.
+\return The old command callback.
+*/
 CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
     if(!cbCommand)
@@ -100,6 +143,12 @@ CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, b
     return old;
 }
 
+/**
+\brief Deletes a command from a command list.
+\param [in] command_list Command list.
+\param name The name of the command to delete.
+\return true if the command was deleted.
+*/
 bool cmddel(COMMAND* command_list, const char* name)
 {
     COMMAND* prev = 0;
@@ -133,6 +182,16 @@ cbUnknownCommand:     function to execute when an unknown command was found
 cbCommandProvider:    function that provides commands (fgets for example), does not return until a command was found
 cbCommandFinder:      non-default command finder
 error_is_fatal:       error return of a command callback stops the command processing
+*/
+
+/**
+\brief Initiates a command loop. This function will not return until a command returns ::STATUS_EXIT.
+\param [in] command_list Command list to use for the command lookups.
+\param cbUnknownCommand The unknown command callback.
+\param cbCommandProvider The command provider callback.
+\param cbCommandFinder The command finder callback.
+\param error_is_fatal true if commands that return ::STATUS_ERROR terminate the command loop.
+\return A CMDRESULT, will always be ::STATUS_EXIT.
 */
 CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
 {
@@ -197,12 +256,21 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 - custom command formatting rules
 */
 
+/**
+\brief Query if a string is a valid expression.
+\param expression The expression to check.
+\return true if the string is a valid expression.
+*/
 static bool isvalidexpression(const char* expression)
 {
     uint value;
     return valfromstring(expression, &value);
 }
 
+/**
+\brief Special formats a given command. Used as a little hack to support stuff like 'x++' and 'x=y'
+\param [in,out] string String to format.
+*/
 static void specialformat(char* string)
 {
     int len = (int)strlen(string);
@@ -266,6 +334,13 @@ static void specialformat(char* string)
 /*
 - 'default' command finder, with some custom rules
 */
+
+/**
+\brief Default command finder. It uses specialformat() and mathformat() to make sure the command is optimally checked.
+\param [in] cmd_list Command list.
+\param [in] command Command name.
+\return null if it fails, else a COMMAND*.
+*/
 COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
 {
     COMMAND* cmd = cmdfind(cmd_list, command, 0);
@@ -279,6 +354,12 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
     return cmd;
 }
 
+/**
+\brief Directly execute a command.
+\param [in,out] cmd_list Command list.
+\param cmd The command to execute.
+\return A CMDRESULT.
+*/
 CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
 {
     if(!cmd or !strlen(cmd))

@@ -9,6 +9,10 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
     <Filter Include="Source Files\Interfaces/Exports">
       <UniqueIdentifier>{44fd9eb7-2017-49b8-8d9a-dec680632343}</UniqueIdentifier>
     </Filter>
@@ -62,6 +66,12 @@
     </Filter>
     <Filter Include="Header Files\Information">
       <UniqueIdentifier>{b006b04c-d7ea-49cb-b097-0cac1388f98e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\yara">
+      <UniqueIdentifier>{efe5d058-e77c-49e9-a25b-75b90346dbf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\yara\yara">
+      <UniqueIdentifier>{f79c5166-e315-44ca-9e93-dabc9f00fa78}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -366,6 +376,96 @@
     </ClInclude>
     <ClInclude Include="dbghelp_safe.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara.h">
+      <Filter>Header Files\Third Party\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\ahocorasick.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\arena.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\atoms.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\compiler.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\elf.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\error.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\exec.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\exefiles.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\filemap.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\globals.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\hash.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\hex_lexer.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\lexer.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\libyara.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\limits.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\mem.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\modules.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\object.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\parser.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\pe.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\proc.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\re.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\re_lexer.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\rules.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\scan.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\sizedstr.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\strutils.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\types.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="yara\yara\utils.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

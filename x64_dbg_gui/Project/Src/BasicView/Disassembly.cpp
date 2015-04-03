@@ -1480,7 +1480,7 @@ QString Disassembly::getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE])
 #endif //_WIN64
         }
     }
-    addrText += AddressToString(cur_addr);
+    addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     char label_[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {

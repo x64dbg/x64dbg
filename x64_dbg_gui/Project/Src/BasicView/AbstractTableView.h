@@ -8,7 +8,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include "NewTypes.h"
-#include "StringUtil.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar

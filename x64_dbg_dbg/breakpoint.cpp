@@ -1,3 +1,9 @@
+/**
+ @file breakpoint.cpp
+
+ @brief Implements the breakpoint class.
+ */
+
 #include "breakpoint.h"
 #include "debugger.h"
 #include "addrinfo.h"

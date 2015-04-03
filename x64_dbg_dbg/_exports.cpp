@@ -1,3 +1,9 @@
+/**
+ @file _exports.cpp
+
+ @brief Implements the exports class.
+ */
+
 #include "_exports.h"
 #include "memory.h"
 #include "debugger.h"
@@ -494,9 +500,9 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     return true;
 }
 
-extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
+extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint value)
 {
-    return valtostring(string, value, true);
+	return valtostring(string, value, true);
 }
 
 extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)

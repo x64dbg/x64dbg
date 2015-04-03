@@ -1,3 +1,9 @@
+/**
+ @file debugger.cpp
+
+ @brief Implements the debugger class.
+ */
+
 #include "debugger.h"
 #include "console.h"
 #include "memory.h"
@@ -30,8 +36,6 @@ static std::vector<ExceptionRange> ignoredExceptionRange;
 static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
 static String lastDebugText;
-
-//Superglobal variables
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -589,7 +593,6 @@ void cbRtrStep()
         StepOver((void*)cbRtrStep);
 }
 
-///custom handlers
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     void* base = CreateProcessInfo->lpBaseOfImage;
@@ -933,6 +936,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
+
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
@@ -1021,7 +1025,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-            if(MemRead((void*)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+            if(MemRead((void *)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName);
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
@@ -1752,7 +1756,6 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-//update the pointer in the GetCommandLine function
 static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
@@ -1878,7 +1881,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    if(!MemWrite((void*)(mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1, &size))
+    if(!MemWrite((void*)(mem + new_command_line.Length), (void *)cmd_line, strlen(cmd_line) + 1, &size))
     {
         cmd_line_error->addr = mem + new_command_line.Length;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;

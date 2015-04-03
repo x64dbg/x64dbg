@@ -1,3 +1,9 @@
+/**
+ @file addrinfo.cpp
+
+ @brief Implements the addrinfo class.
+ */
+
 #include "addrinfo.h"
 #include "debugger.h"
 #include "console.h"

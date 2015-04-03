@@ -1,3 +1,8 @@
+/**
+\file argument.cpp
+\brief Implements the argument class.
+*/
+
 #include "argument.h"
 #include "console.h"
 
@@ -21,6 +26,11 @@ formatarg:
 11) remove unescaped spaces (from arguments)
 12) restore double backslash
 13) combine formatted arguments and command
+*/
+
+/**
+\brief Formats a command string (see source code for more information).
+\param [in,out] Command to format.
 */
 void argformat(char* cmd)
 {
@@ -157,6 +167,12 @@ void argformat(char* cmd)
 1) remove double backslash
 2) count unescaped commas
 */
+
+/**
+\brief Gets the argument count from a command formatted by argformat().
+\param cmd The command to get the argument count from.
+\return The argument count.
+*/
 int arggetcount(const char* cmd)
 {
     int len = (int)strlen(cmd);
@@ -188,12 +204,22 @@ int arggetcount(const char* cmd)
     }
     return arg_count;
 }
+
 /*
 1) get arg count
 2) remove double backslash
 3) zero non-escaped commas
 4) restore double backslash
 5) handle escape characters
+*/
+
+/**
+\brief Gets an argument from a command.
+\param cmd The command to get the argument from.
+\param [out] Buffer of size #deflen.
+\param arg_num The zero-based argument number to retrieve.
+\param optional true if the argument is optional. When false there will be error messages on the console. Used to skip writing error messages yourself.
+\return true if the argument was found in the command.
 */
 bool argget(const char* cmd, char* arg, int arg_num, bool optional)
 {

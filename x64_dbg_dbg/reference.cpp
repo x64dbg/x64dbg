@@ -1,3 +1,9 @@
+/**
+ @file reference.cpp
+
+ @brief Implements the reference class.
+ */
+
 #include "reference.h"
 #include "debugger.h"
 #include "memory.h"

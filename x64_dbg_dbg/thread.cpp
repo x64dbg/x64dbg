@@ -1,3 +1,9 @@
+/**
+ @file thread.cpp
+
+ @brief Implements the thread class.
+ */
+
 #include "thread.h"
 #include "console.h"
 #include "undocumented.h"

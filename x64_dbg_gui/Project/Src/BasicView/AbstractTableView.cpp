@@ -32,7 +32,6 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     memset(&mScrollBarAttributes, 0, sizeof(mScrollBarAttributes));
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     horizontalScrollBar()->setRange(0, 0);
     horizontalScrollBar()->setPageStep(650);
     mMouseWheelScrollDelta = 4;

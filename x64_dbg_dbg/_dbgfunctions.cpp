@@ -1,3 +1,9 @@
+/**
+ @file _dbgfunctions.cpp
+
+ @brief Implements the dbgfunctions class.
+ */
+
 #include "_global.h"
 #include "_dbgfunctions.h"
 #include "assemble.h"

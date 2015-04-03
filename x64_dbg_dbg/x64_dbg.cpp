@@ -1,3 +1,9 @@
+/**
+ @file x64_dbg.cpp
+
+ @brief Implements the 64 debug class.
+ */
+
 #include "_global.h"
 #include "argument.h"
 #include "command.h"
@@ -17,8 +23,11 @@
 #include "debugger_commands.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
+
 static COMMAND* command_list = 0;
+
 static HANDLE hCommandLoopThread = 0;
+
 static char alloctrace[MAX_PATH] = "";
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
@@ -189,6 +198,8 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
+    dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true);
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -236,10 +247,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
     if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
         return "Invalid REGISTERCONTEXT alignment!";
-    SectionLockerGlobal::Initialize();
+	SectionLockerGlobal::Initialize();
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);
+    if(yr_initialize() != ERROR_SUCCESS)
+        return "Failed to initialize Yara!";
     wchar_t wszDir[deflen] = L"";
     if(!GetModuleFileNameW(hInst, wszDir, deflen))
         return "GetModuleFileNameW failed!";
@@ -307,6 +320,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     cmdfree(command_list);
     varfree();
     MsgFreeStack(gMsgStack);
+    yr_finalize();
     if(memleaks())
     {
         char msg[256] = "";

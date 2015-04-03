@@ -1,3 +1,9 @@
+/**
+ @file debugger_commands.cpp
+
+ @brief Implements the debugger commands class.
+ */
+
 #include "debugger_commands.h"
 #include "console.h"
 #include "value.h"
