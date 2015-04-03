@@ -3,6 +3,8 @@
 
 #include <QTabWidget>
 #include <QPushButton>
+#include <QMap>
+#include "SourceView.h"
 
 class SourceViewerManager : public QTabWidget
 {
@@ -10,9 +12,9 @@ class SourceViewerManager : public QTabWidget
 public:
     explicit SourceViewerManager(QWidget* parent = 0);
 
-signals:
-
 public slots:
+    void loadSourceFile(QString path, int line);
+    void closeTab(int index);
     void closeAllTabs();
 
 private:
