@@ -118,16 +118,6 @@ BOOL
 	return SymEnumerateModules64(hProcess, EnumModulesCallback, UserContext);
 }
 BOOL
-    SafeSymEnumerateModules(
-    __in HANDLE hProcess,
-    __in PSYM_ENUMMODULES_CALLBACK EnumModulesCallback,
-    __in_opt PVOID UserContext
-    )
-{
-    EXCLUSIVE_ACQUIRE(LockSym);
-    return SymEnumerateModules(hProcess, EnumModulesCallback, UserContext);
-}
-BOOL
     SafeSymGetLineFromAddr64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
