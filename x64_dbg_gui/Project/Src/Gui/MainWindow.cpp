@@ -67,6 +67,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
 
+    // Source View
+    mSourceViewManager = new SourceViewerManager();
+    mSourceViewManager->setWindowTitle("Source");
+    mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
+    mSourceViewManager->hide();
+
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle("Breakpoints");
@@ -122,6 +128,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mCallStackView, mCallStackView->windowIcon(), mCallStackView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
+    mTabWidget->addTab(mSourceViewManager, mSourceViewManager->windowIcon(), mSourceViewManager->windowTitle());
     mTabWidget->addTab(mReferenceManager, mReferenceManager->windowIcon(), mReferenceManager->windowTitle());
     mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
 
@@ -168,6 +175,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
+    connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
     connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
@@ -270,6 +278,7 @@ void MainWindow::refreshShortcuts()
     ui->actionCallStack->setShortcut(ConfigShortcut("ViewCallStack"));
     ui->actionScript->setShortcut(ConfigShortcut("ViewScript"));
     ui->actionSymbolInfo->setShortcut(ConfigShortcut("ViewSymbolInfo"));
+    ui->actionSource->setShortcut(ConfigShortcut("ViewSource"));
     ui->actionReferences->setShortcut(ConfigShortcut("ViewReferences"));
     ui->actionThreads->setShortcut(ConfigShortcut("ViewThreads"));
     ui->actionPatches->setShortcut(ConfigShortcut("ViewPatches"));
@@ -651,6 +660,13 @@ void MainWindow::displaySymbolWidget()
     mSymbolView->show();
     mSymbolView->setFocus();
     setTab(mSymbolView);
+}
+
+void MainWindow::displaySourceViewWidget()
+{
+    mSourceViewManager->show();
+    mSourceViewManager->setFocus();
+    setTab(mSourceViewManager);
 }
 
 void MainWindow::displayReferencesWidget()

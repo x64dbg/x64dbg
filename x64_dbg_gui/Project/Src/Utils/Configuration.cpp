@@ -187,6 +187,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ViewCallStack", Shortcut(tr("View -> Call Stack"), "Alt+K", true));
     defaultShortcuts.insert("ViewScript", Shortcut(tr("View -> Script"), "Alt+S", true));
     defaultShortcuts.insert("ViewSymbolInfo", Shortcut(tr("View -> Symbol Info"), "Ctrl+Alt+S", true));
+    defaultShortcuts.insert("ViewSource", Shortcut(tr("View -> Source"), "Ctrl+Alt+C", true));
     defaultShortcuts.insert("ViewReferences", Shortcut(tr("View -> References"), "Alt+R", true));
     defaultShortcuts.insert("ViewThreads", Shortcut(tr("View -> Threads"), "Alt+T", true));
     defaultShortcuts.insert("ViewPatches", Shortcut(tr("View -> Patches"), "Ctrl+P", true));
