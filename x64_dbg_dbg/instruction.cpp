@@ -25,6 +25,7 @@
 #include "loop.h"
 #include "patternfind.h"
 #include "module.h"
+#include "stringformat.h"
 
 static bool bRefinit = false;
 
@@ -1776,4 +1777,20 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
     char newcmd[deflen] = "";
     sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
     return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrLog(int argc, char* argv[])
+{
+    //log "format {0} string",arg1, arg2, argN
+    if(argc == 1) //just log newline
+    {
+        dputs("");
+        return STATUS_CONTINUE;
+    }
+    FormatValueVector formatArgs;
+    for(int i = 2; i < argc; i++)
+        formatArgs.push_back(argv[i]);
+    String logString = stringformat(argv[1], formatArgs);
+    dputs(logString.c_str());
+    return STATUS_CONTINUE;
 }

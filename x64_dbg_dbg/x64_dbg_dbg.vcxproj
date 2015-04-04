@@ -43,6 +43,7 @@
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="stackinfo.cpp" />
+    <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="thread.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="reference.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="stackinfo.h" />
+    <ClInclude Include="stringformat.h" />
     <ClInclude Include="stringutils.h" />
     <ClInclude Include="symbolinfo.h" />
     <ClInclude Include="thread.h" />

@@ -123,3 +123,24 @@ WString StringUtils::Utf8ToUtf16(const char* str)
 {
     return Utf8ToUtf16(str ? String(str) : String());
 }
+
+//Taken from: http://stackoverflow.com/a/24315631
+void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
+{
+    size_t start_pos = 0;
+    while((start_pos = s.find(from, start_pos)) != std::string::npos)
+    {
+        s.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+}
+
+void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & to)
+{
+    size_t start_pos = 0;
+    while((start_pos = s.find(from, start_pos)) != std::string::npos)
+    {
+        s.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+}

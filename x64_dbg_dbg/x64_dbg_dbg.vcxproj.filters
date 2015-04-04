@@ -204,6 +204,9 @@
     <ClCompile Include="dbghelp_safe.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="stringformat.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -472,6 +475,9 @@
     </ClInclude>
     <ClInclude Include="yara\yara\utils.h">
       <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="stringformat.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
