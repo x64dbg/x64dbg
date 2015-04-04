@@ -31,7 +31,22 @@ Command::Command(const String & command)
             }
             break;
         case Escaped:
-            dataAppend(ch);
+            switch(ch)
+            {
+            case ' ':
+                dataAppend(ch);
+                break;
+            case ',':
+                dataAppend(ch);
+                break;
+            case '\"':
+                dataAppend(ch);
+                break;
+            default:
+                dataAppend('\\');
+                dataAppend(ch);
+                break;
+            }
             state = Default;
             break;
         case Text:
@@ -50,11 +65,22 @@ Command::Command(const String & command)
             }
             break;
         case TextEscaped:
-            dataAppend(ch);
+            switch(ch)
+            {
+            case '\"':
+                dataAppend(ch);
+                break;
+            default:
+                dataAppend('\\');
+                dataAppend(ch);
+                break;
+            }
             state = Text;
             break;
         }
     }
+    if(state == Escaped || state == TextEscaped)
+        dataAppend('\\');
     dataFinish();
 }
 
