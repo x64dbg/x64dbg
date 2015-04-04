@@ -16,5 +16,6 @@ DWORD threadgetid(HANDLE hThread);
 int threadgetcount();
 int threadsuspendall();
 int threadresumeall();
+DWORD threadgetlasterror(DWORD dwThreadId);
 
 #endif //_THREAD_H

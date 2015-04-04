@@ -161,3 +161,12 @@ int threadresumeall()
             count++;
     return count;
 }
+
+DWORD threadgetlasterror(DWORD dwThreadId)
+{
+    CriticalSectionLocker locker(LockThreads);
+    for(unsigned int i = 0; i < threadList.size(); i++)
+        if(threadList.at(i).dwThreadId == dwThreadId)
+            return GetThreadLastError(threadList.at(i).ThreadLocalBase);
+    return 0;
+}

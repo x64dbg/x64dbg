@@ -503,6 +503,12 @@ typedef struct
 
 typedef struct
 {
+    DWORD code;
+    const char* name;
+} LASTERROR;
+
+typedef struct
+{
     REGISTERCONTEXT regcontext;
     FLAGS flags;
     X87FPUREGISTER x87FPURegisters[8];
@@ -510,6 +516,7 @@ typedef struct
     MXCSRFIELDS MxCsrFields;
     X87STATUSWORDFIELDS x87StatusWordFields;
     X87CONTROLWORDFIELDS x87ControlWordFields;
+    LASTERROR lastError;
 } REGDUMP;
 
 typedef struct
