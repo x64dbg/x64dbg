@@ -89,6 +89,7 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
+    void setGlobalShortcut(QAction* action, const QKeySequence & key);
     void refreshShortcuts();
     void openShortcuts();
     void changeTopmost(bool checked);
