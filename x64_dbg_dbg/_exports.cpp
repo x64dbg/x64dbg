@@ -736,6 +736,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments");
         bListAllPages = settingboolget("Engine", "ListAllPages");
         bUndecorateSymbolNames = settingboolget("Engine", "UndecorateSymbolNames");
+        bEnableSourceDebugging = settingboolget("Engine", "EnableSourceDebugging");
 
         uint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))

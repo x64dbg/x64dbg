@@ -749,7 +749,8 @@ typedef enum
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
     GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
     GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
-    GUI_REF_INITIALIZE              // param1=const char* name      param2=unused
+    GUI_REF_INITIALIZE,             // param1=const char* name,     param2=unused
+    GUI_LOAD_SOURCE_FILE            // param1=const char* path,     param2=line
 } GUIMSG;
 
 //GUI structures
@@ -826,6 +827,7 @@ BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
 BRIDGE_IMPEXP void GuiUpdateMemoryView();
+BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line);
 
 #ifdef __cplusplus
 }

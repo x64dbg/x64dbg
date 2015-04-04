@@ -42,6 +42,7 @@ char sqlitedb[deflen] = "";
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
 bool bUndecorateSymbolNames = true;
+bool bEnableSourceDebugging = true;
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
@@ -190,7 +191,16 @@ void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
     if(memisvalidreadptr(fdProcessInfo->hProcess, disasm_addr))
+    {
+        if(bEnableSourceDebugging)
+        {
+            char szSourceFile[MAX_STRING_SIZE] = "";
+            int line = 0;
+            if(symgetsourceline(cip, szSourceFile, &line))
+                GuiLoadSourceFile(szSourceFile, line);
+        }
         GuiDisasmAt(disasm_addr, cip);
+    }
     uint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         GuiStackDumpAt(csp, csp);

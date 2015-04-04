@@ -55,6 +55,7 @@ void SettingsDialog::LoadSettings()
     settings.engineCalcType = calc_unsigned;
     settings.engineBreakpointType = break_int3short;
     settings.engineUndecorateSymbolNames = true;
+    settings.engineEnableSourceDebugging = true;
     settings.exceptionRanges = &realExceptionRanges;
     settings.disasmArgumentSpaces = false;
     settings.disasmMemorySpaces = false;
@@ -110,6 +111,7 @@ void SettingsDialog::LoadSettings()
     }
     GetSettingBool("Engine", "UndecorateSymbolNames", &settings.engineUndecorateSymbolNames);
     GetSettingBool("Engine", "EnableDebugPrivilege", &settings.engineEnableDebugPrivilege);
+    GetSettingBool("Engine", "EnableSourceDebugging", &settings.engineEnableSourceDebugging);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -133,6 +135,7 @@ void SettingsDialog::LoadSettings()
     }
     ui->chkUndecorateSymbolNames->setChecked(settings.engineUndecorateSymbolNames);
     ui->chkEnableDebugPrivilege->setChecked(settings.engineEnableDebugPrivilege);
+    ui->chkEnableSourceDebugging->setChecked(settings.engineEnableSourceDebugging);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -229,6 +232,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "BreakpointType", settings.engineBreakpointType);
     BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
     BridgeSettingSetUint("Engine", "EnableDebugPrivilege", settings.engineEnableDebugPrivilege);
+    BridgeSettingSetUint("Engine", "EnableSourceDebugging", settings.engineEnableSourceDebugging);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -485,10 +489,15 @@ void SettingsDialog::on_chkUndecorateSymbolNames_stateChanged(int arg1)
 
 void SettingsDialog::on_chkEnableDebugPrivilege_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
+    if(arg1 == Qt::Unchecked) //wtf stupid shit
         settings.engineEnableDebugPrivilege = false;
     else
         settings.engineEnableDebugPrivilege = true;
+}
+
+void SettingsDialog::on_chkEnableSourceDebugging_stateChanged(int arg1)
+{
+    settings.engineEnableSourceDebugging = arg1 == Qt::Checked;
 }
 
 void SettingsDialog::on_btnAddRange_clicked()

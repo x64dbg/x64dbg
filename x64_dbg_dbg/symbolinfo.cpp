@@ -184,3 +184,17 @@ const char* symgetsymbolicname(uint addr)
     }
     return 0;
 }
+
+bool symgetsourceline(uint cip, char* szFileName, int* nLine)
+{
+    DWORD dwDisplacement;
+    IMAGEHLP_LINE64 line;
+    line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+    if(!SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, cip, &dwDisplacement, &line))
+        return false;
+    if(nLine)
+        *nLine = line.LineNumber;
+    if(szFileName)
+        strcpy_s(szFileName, MAX_STRING_SIZE, line.FileName); //nanana, ugly
+    return true;
+}

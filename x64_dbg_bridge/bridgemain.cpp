@@ -1102,6 +1102,10 @@ BRIDGE_IMPEXP void GuiUpdateCallStack()
     _gui_sendmessage(GUI_UPDATE_CALLSTACK, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line)
+{
+    _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)line);
+}
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
