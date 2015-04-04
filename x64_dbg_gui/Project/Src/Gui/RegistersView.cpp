@@ -122,7 +122,7 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(LastError, "LastError");
-    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 11, 20));
+    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 10, 20));
 
     offset++;
 
