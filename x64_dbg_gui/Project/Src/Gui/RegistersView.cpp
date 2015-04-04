@@ -121,6 +121,11 @@ void RegistersView::InitMappings()
 
     offset++;
 
+    mRegisterMapping.insert(LastError, "LastError");
+    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 11, 20));
+
+    offset++;
+
     mRegisterMapping.insert(GS, "GS");
     mRegisterPlaces.insert(GS, Register_Position(offset, 0, 3, 4));
     mRegisterMapping.insert(FS, "FS");
@@ -1025,6 +1030,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPU.insert(YMM15);
 #endif
     //registers that should not be changed
+    mNoChange.insert(LastError);
+
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
 
@@ -1452,6 +1459,15 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
             valueText += QString(")");
         }
     }
+    else if(reg == LastError)
+    {
+        LASTERROR* data = (LASTERROR*)value;
+        if(data->name)
+            valueText = QString().sprintf("%08X (%s)", data->code, data->name);
+        else
+            valueText = QString().sprintf("%08X", data->code);
+        mRegisterPlaces[LastError].valuesize = valueText.length();
+    }
     else
     {
         SIZE_T size = GetSizeRegister(reg);
@@ -1705,6 +1721,9 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         else
             p->setPen(ConfigColor("RegistersColor"));
 
+        //get register value
+        QString valueText = GetRegStringValueFromValue(reg, value);
+
         //selection
         if(mSelected == reg)
         {
@@ -1712,9 +1731,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
-        QString valueText;
         // draw value
-        valueText = GetRegStringValueFromValue(reg, value);
         width = mCharWidth * valueText.length();
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
@@ -2211,6 +2228,8 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
         size = 16;
     else if(mFPUYMM.contains(reg_name))
         size = 32;
+    else if(reg_name == LastError)
+        return sizeof(LASTERROR);
     else
         size = 0;
 
@@ -2273,6 +2292,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == DS) return (char*) & (regd->regcontext.ds);
     if(reg == CS) return (char*) & (regd->regcontext.cs);
     if(reg == SS) return (char*) & (regd->regcontext.ss);
+
+    if(reg == LastError) return (char*) & (regd->lastError);
 
     if(reg == DR0) return (char*) & (regd->regcontext.dr0);
     if(reg == DR1) return (char*) & (regd->regcontext.dr1);
