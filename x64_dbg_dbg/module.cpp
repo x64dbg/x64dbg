@@ -4,7 +4,7 @@
 #include "symbolinfo.h"
 #include "murmurhash.h"
 
-static ModulesInfo modinfo;
+std::map<Range, MODINFO, RangeCompare> modinfo;
 
 bool ModLoad(uint Base, uint Size, const char* FullPath)
 {

@@ -12,9 +12,7 @@
 #include "threading.h"
 #include "module.h"
 
-typedef std::unordered_map<uint, PATCHINFO> PatchesInfo;
-
-static PatchesInfo patches;
+std::unordered_map<uint, PATCHINFO> patches;
 
 bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
 {

@@ -13,9 +13,7 @@
 #include "module.h"
 
 typedef std::pair<BP_TYPE, uint> BreakpointKey;
-typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
-
-static BreakpointsInfo breakpoints;
+std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address)
 {

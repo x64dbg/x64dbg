@@ -4,9 +4,7 @@
 #include "memory.h"
 #include "debugger.h"
 
-typedef std::unordered_map<uint, LABELSINFO> LabelsInfo;
-
-static LabelsInfo labels;
+std::unordered_map<uint, LABELSINFO> labels;
 
 bool LabelSet(uint Address, const char* Text, bool Manual)
 {

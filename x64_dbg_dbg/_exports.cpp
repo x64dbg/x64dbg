@@ -54,11 +54,17 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     memmap->count = pagecount;
     if(!pagecount)
         return true;
+
+	// Allocate memory that is already zeroed
     memmap->page = (MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE) * pagecount);
-    memset(memmap->page, 0, sizeof(MEMPAGE)*pagecount);
-    int j = 0;
-    for(MemoryMap::iterator i = memoryPages.begin(); i != memoryPages.end(); ++i, j++)
-        memcpy(&memmap->page[j], &i->second, sizeof(MEMPAGE));
+
+	// Copy all elements over
+    int i = 0;
+
+	for (auto& itr : memoryPages)
+		memcpy(&memmap->page[i++], &itr.second, sizeof(MEMPAGE));
+
+	// Done
     return true;
 }
 

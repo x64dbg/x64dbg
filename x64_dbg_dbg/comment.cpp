@@ -4,9 +4,7 @@
 #include "debugger.h"
 #include "memory.h"
 
-typedef std::unordered_map<uint, COMMENTSINFO> CommentsInfo;
-
-static CommentsInfo comments;
+std::unordered_map<uint, COMMENTSINFO> comments;
 
 bool CommentSet(uint Address, const char* Text, bool Manual)
 {

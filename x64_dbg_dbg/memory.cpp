@@ -17,7 +17,7 @@
 #define BYTES_TO_PAGES(Size)	(((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
 #define ROUND_TO_PAGES(Size)	(((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
 
-MemoryMap memoryPages;
+std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 
 void MemUpdateMap(HANDLE hProcess)
@@ -135,16 +135,16 @@ void MemUpdateMap(HANDLE hProcess)
     }
 }
 
-uint MemFindBaseAddr(uint addr, uint* Size, bool refresh)
+uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 {
     // Update the memory map if needed
-    if(refresh)
+    if(Refresh)
         MemUpdateMap(fdProcessInfo->hProcess);
 
     SHARED_ACQUIRE(LockMemoryPages);
 
     // Search for the memory page address
-    auto found = memoryPages.find(std::make_pair(addr, addr));
+    auto found = memoryPages.find(std::make_pair(Address, Address));
 
     if(found == memoryPages.end())
         return 0;

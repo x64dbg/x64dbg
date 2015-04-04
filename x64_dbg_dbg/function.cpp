@@ -4,9 +4,7 @@
 #include "memory.h"
 #include "threading.h"
 
-typedef std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> FunctionsInfo;
-
-static FunctionsInfo functions;
+std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
 bool FunctionAdd(uint Start, uint End, bool Manual)
 {

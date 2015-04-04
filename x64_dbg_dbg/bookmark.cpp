@@ -4,9 +4,7 @@
 #include "debugger.h"
 #include "memory.h"
 
-typedef std::unordered_map<uint, BOOKMARKSINFO> BookmarksInfo;
-
-static BookmarksInfo bookmarks;
+std::unordered_map<uint, BOOKMARKSINFO> bookmarks;
 
 bool BookmarkSet(uint Address, bool Manual)
 {
