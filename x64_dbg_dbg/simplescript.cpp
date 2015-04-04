@@ -7,11 +7,11 @@
 #include "simplescript.h"
 #include "value.h"
 #include "console.h"
-#include "argument.h"
 #include "variable.h"
 #include "threading.h"
 #include "x64_dbg.h"
 #include "debugger.h"
+#include "commandparser.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 
@@ -28,8 +28,7 @@ static bool volatile bIsRunning = false;
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
     char newtext[MAX_SCRIPT_LINE_SIZE] = "";
-    strcpy_s(newtext, text);
-    argformat(newtext); //format jump commands
+    strcpy_s(newtext, StringUtils::Trim(text).c_str());
     if(!strstr(newtext, " "))
         strcat(newtext, " ");
     if(!strncmp(newtext, "jmp ", 4) or !strncmp(newtext, "goto ", 5))
@@ -187,7 +186,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             cur.type = linelabel;
             sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
-            argformat(cur.u.label); //format labels
+            strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
             char temp[256] = "";
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
@@ -214,8 +213,7 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linebranch;
             cur.u.branch.type = scriptgetbranchtype(cur.raw);
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
-            strcpy_s(newraw, cur.raw);
-            argformat(newraw);
+            strcpy_s(newraw, StringUtils::Trim(cur.raw).c_str());
             int len = (int)strlen(newraw);
             for(int i = 0; i < len; i++)
                 if(newraw[i] == ' ')
@@ -354,8 +352,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
     char command[deflen] = "";
-    strcpy_s(command, cmd);
-    argformat(command);
+    strcpy_s(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(dbggetcommandlist(), command);
     if(!found) //invalid command
         return STATUS_ERROR;

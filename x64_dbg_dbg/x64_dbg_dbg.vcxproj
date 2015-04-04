@@ -12,11 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
-    <ClCompile Include="argument.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="command.cpp" />
+    <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
@@ -58,7 +58,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
-    <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="BeaEngine\basic_types.h" />
     <ClInclude Include="BeaEngine\BeaEngine.h" />
@@ -67,6 +66,7 @@
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="command.h" />
+    <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />

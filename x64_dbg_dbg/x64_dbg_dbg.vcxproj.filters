@@ -93,9 +93,6 @@
     <ClCompile Include="_global.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="argument.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="command.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -207,6 +204,9 @@
     <ClCompile Include="stringformat.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="commandparser.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -252,9 +252,6 @@
       <Filter>Header Files\Third Party\lz4</Filter>
     </ClInclude>
     <ClInclude Include="_global.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="argument.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="console.h">
@@ -478,6 +475,9 @@
     </ClInclude>
     <ClInclude Include="stringformat.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="commandparser.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
