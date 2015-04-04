@@ -5,7 +5,6 @@
  */
 
 #include "instruction.h"
-#include "argument.h"
 #include "variable.h"
 #include "console.h"
 #include "value.h"
@@ -25,6 +24,7 @@
 #include "loop.h"
 #include "patternfind.h"
 #include "module.h"
+#include "stringformat.h"
 
 static bool bRefinit = false;
 
@@ -91,8 +91,9 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char arg2[deflen] = "";
-    argget(*argv, arg2, 1, true); //var value (optional)
+    char arg2[deflen] = ""; //var value (optional)
+    if(argc > 2)
+        strcpy_s(arg2, argv[2]);
     uint value = 0;
     int add = 0;
     if(*argv[1] == '$')
@@ -219,15 +220,16 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
 
 CMDRESULT cbInstrVarList(int argc, char* argv[])
 {
-    char arg1[deflen] = "";
-    argget(*argv, arg1, 0, true);
     int filter = 0;
-    if(!_stricmp(arg1, "USER"))
-        filter = VAR_USER;
-    else if(!_stricmp(arg1, "READONLY"))
-        filter = VAR_READONLY;
-    else if(!_stricmp(arg1, "SYSTEM"))
-        filter = VAR_SYSTEM;
+    if(argc > 1)
+    {
+        if(!_stricmp(argv[1], "USER"))
+            filter = VAR_USER;
+        else if(!_stricmp(argv[1], "READONLY"))
+            filter = VAR_READONLY;
+        else if(!_stricmp(argv[1], "SYSTEM"))
+            filter = VAR_SYSTEM;
+    }
 
     size_t cbsize = 0;
     if(!varenum(0, &cbsize))
@@ -1776,4 +1778,20 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
     char newcmd[deflen] = "";
     sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
     return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrLog(int argc, char* argv[])
+{
+    //log "format {0} string",arg1, arg2, argN
+    if(argc == 1) //just log newline
+    {
+        dputs("");
+        return STATUS_CONTINUE;
+    }
+    FormatValueVector formatArgs;
+    for(int i = 2; i < argc; i++)
+        formatArgs.push_back(argv[i]);
+    String logString = stringformat(argv[1], formatArgs);
+    dputs(logString.c_str());
+    return STATUS_CONTINUE;
 }

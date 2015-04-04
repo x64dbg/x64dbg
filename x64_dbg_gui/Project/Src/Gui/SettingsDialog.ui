@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>220</height>
+    <width>350</width>
+    <height>250</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -242,6 +242,13 @@
         <widget class="QCheckBox" name="chkEnableDebugPrivilege">
          <property name="text">
           <string>Enable Debug &amp;Privilege</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkEnableSourceDebugging">
+         <property name="text">
+          <string>Enable Source Debugging</string>
          </property>
         </widget>
        </item>

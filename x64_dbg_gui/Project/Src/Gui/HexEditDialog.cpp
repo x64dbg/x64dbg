@@ -125,10 +125,12 @@ void HexEditDialog::dataChangedSlot()
 
 void HexEditDialog::on_lineEditAscii_textEdited(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     on_btnAscii2Hex_clicked();
 }
 
 void HexEditDialog::on_lineEditUnicode_textEdited(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     on_btnUnicode2Hex_clicked();
 }

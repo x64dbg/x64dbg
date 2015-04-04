@@ -27,6 +27,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
+#include "error.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -496,6 +497,10 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
     Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
     Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
+    LASTERROR lastError;
+    lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
+    lastError.name = ErrorCodeToName(lastError.code);
+    regdump->lastError = lastError;
 
     return true;
 }
@@ -737,6 +742,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments");
         bListAllPages = settingboolget("Engine", "ListAllPages");
         bUndecorateSymbolNames = settingboolget("Engine", "UndecorateSymbolNames");
+        bEnableSourceDebugging = settingboolget("Engine", "EnableSourceDebugging");
 
         uint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))

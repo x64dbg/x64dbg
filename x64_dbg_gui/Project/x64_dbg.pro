@@ -88,7 +88,9 @@ SOURCES += \
     Src/Gui/ReferenceManager.cpp \
     Src/Bridge/BridgeResult.cpp \
     Src/Gui/YaraRuleSelectionDialog.cpp \
-    Src/Gui/DataCopyDialog.cpp
+    Src/Gui/DataCopyDialog.cpp \
+    Src/Gui/SourceViewerManager.cpp \
+    Src/Gui/SourceView.cpp
 
 
 HEADERS += \
@@ -155,7 +157,9 @@ HEADERS += \
     Src/Gui/ReferenceManager.h \
     Src/Bridge/BridgeResult.h \
     Src/Gui/YaraRuleSelectionDialog.h \
-    Src/Gui/DataCopyDialog.h
+    Src/Gui/DataCopyDialog.h \
+    Src/Gui/SourceViewerManager.h \
+    Src/Gui/SourceView.h
 
 
 INCLUDEPATH += \

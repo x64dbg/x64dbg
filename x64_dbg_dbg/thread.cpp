@@ -36,14 +36,14 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     GuiUpdateThreadView();
 }
 
-void ThreadExit(DWORD dwThreadId)
+void ThreadExit(DWORD ThreadId)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
     // Don't use a foreach loop here because of the erase() call
     for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
     {
-        if(itr->ThreadId == dwThreadId)
+        if(itr->ThreadId == ThreadId)
         {
             threadList.erase(itr);
             break;
@@ -71,7 +71,7 @@ int ThreadGetCount()
     return (int)threadList.size();
 }
 
-void ThreadGetList(THREADLIST* list)
+void ThreadGetList(THREADLIST* List)
 {
     SHARED_ACQUIRE(LockThreads);
 
@@ -84,8 +84,8 @@ void ThreadGetList(THREADLIST* list)
     if(count <= 0)
         return;
 
-    list->count = (int)count;
-    list->list  = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
+    List->count = (int)count;
+    List->list  = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
 
     // Fill out the list data
     for(size_t i = 0; i < count; i++)
@@ -94,25 +94,25 @@ void ThreadGetList(THREADLIST* list)
 
         // Get the debugger's current thread index
         if(threadHandle == hActiveThread)
-            list->CurrentThread = (int)i;
+            List->CurrentThread = (int)i;
 
-        memcpy(&list->list[i].BasicInfo, &threadList[i], sizeof(THREADINFO));
+        memcpy(&List->list[i].BasicInfo, &threadList[i], sizeof(THREADINFO));
 
-        list->list[i].ThreadCip     = GetContextDataEx(threadHandle, UE_CIP);
-        list->list[i].SuspendCount  = ThreadGetSuspendCount(threadHandle);
-        list->list[i].Priority      = ThreadGetPriority(threadHandle);
-        list->list[i].WaitReason    = ThreadGetWaitReason(threadHandle);
-        list->list[i].LastError     = ThreadGetLastError(list->list[i].BasicInfo.ThreadLocalBase);
+        List->list[i].ThreadCip     = GetContextDataEx(threadHandle, UE_CIP);
+        List->list[i].SuspendCount  = ThreadGetSuspendCount(threadHandle);
+        List->list[i].Priority      = ThreadGetPriority(threadHandle);
+        List->list[i].WaitReason    = ThreadGetWaitReason(threadHandle);
+        List->list[i].LastError     = ThreadGetLastError(List->list[i].BasicInfo.ThreadLocalBase);
     }
 }
 
-bool ThreadIsValid(DWORD dwThreadId)
+bool ThreadIsValid(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
     for(auto & entry : threadList)
     {
-        if(entry.ThreadId == dwThreadId)
+        if(entry.ThreadId == ThreadId)
             return true;
     }
 
@@ -159,31 +159,39 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
     return _Executive;
 }
 
-DWORD ThreadGetLastError(uint tebAddress)
+DWORD ThreadGetLastError(DWORD ThreadId)
 {
-    TEB teb;
-    if(!ThreadGetTeb(tebAddress, &teb))
-    {
-        // TODO: Assert (Why would the TEB fail?)
-        return 0;
-    }
+	SHARED_ACQUIRE(LockThreads);
+
+	TEB teb;
+	for (auto & entry : threadList)
+	{
+		if (entry.ThreadId != ThreadId)
+			continue;
+
+		if (!ThreadGetTeb(entry.ThreadLocalBase, &teb))
+		{
+			// TODO: Assert (Why would the TEB fail?)
+			return 0;
+		}
+	}
 
     return teb.LastErrorValue;
 }
 
-bool ThreadSetName(DWORD dwThreadId, const char* name)
+bool ThreadSetName(DWORD ThreadId, const char* Name)
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
 
     // Modifies a variable (name), so an exclusive lock is required
     for(auto & entry : threadList)
     {
-        if(entry.ThreadId == dwThreadId)
+        if(entry.ThreadId == ThreadId)
         {
-            if(!name)
-                name = "";
+            if(!Name)
+                Name = "";
 
-            strcpy_s(entry.threadName, name);
+            strcpy_s(entry.threadName, Name);
             return true;
         }
     }
@@ -191,13 +199,13 @@ bool ThreadSetName(DWORD dwThreadId, const char* name)
     return false;
 }
 
-HANDLE ThreadGetHandle(DWORD dwThreadId)
+HANDLE ThreadGetHandle(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
     for(auto & entry : threadList)
     {
-        if(entry.ThreadId == dwThreadId)
+        if(entry.ThreadId == ThreadId)
             return entry.Handle;
     }
 
@@ -206,20 +214,20 @@ HANDLE ThreadGetHandle(DWORD dwThreadId)
     return 0;
 }
 
-DWORD ThreadGetId(HANDLE hThread)
+DWORD ThreadGetId(HANDLE Thread)
 {
     SHARED_ACQUIRE(LockThreads);
 
     // Search for the ID in the local list
     for(auto & entry : threadList)
     {
-        if(entry.Handle == hThread)
+        if(entry.Handle == Thread)
             return entry.ThreadId;
     }
 
     // Wasn't found, check with Windows
 	// NOTE: Requires VISTA+
-    DWORD id = GetThreadId(hThread);
+    DWORD id = GetThreadId(Thread);
 
     // Returns 0 on error;
     // TODO: Same problem with ThreadGetHandle()

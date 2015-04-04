@@ -54,6 +54,7 @@
     <addaction name="actionCallStack"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
+    <addaction name="actionSource"/>
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
     <addaction name="actionPatches"/>
@@ -152,6 +153,7 @@
    <addaction name="actionCallStack"/>
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
+   <addaction name="actionSource"/>
    <addaction name="actionReferences"/>
    <addaction name="actionThreads"/>
    <addaction name="separator"/>
@@ -647,6 +649,18 @@
    </property>
    <property name="toolTip">
     <string>Report Bug</string>
+   </property>
+  </action>
+  <action name="actionSource">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/source.png</normaloff>:/icons/images/source.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Source</string>
+   </property>
+   <property name="toolTip">
+    <string>Source</string>
    </property>
   </action>
  </widget>

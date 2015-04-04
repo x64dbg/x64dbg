@@ -370,6 +370,11 @@ void Bridge::emitSymbolRefreshCurrent()
     emit symbolRefreshCurrent();
 }
 
+void Bridge::emitLoadSourceFile(const QString path, int line)
+{
+    emit loadSourceFile(path, line);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -825,6 +830,12 @@ void* Bridge::GuiDispatchMessage(GUIMSG type, void* param1, void* param2)
     case GUI_SYMBOL_REFRESH_CURRENT:
     {
         Bridge::getBridge()->emitSymbolRefreshCurrent();
+    }
+    break;
+
+    case GUI_LOAD_SOURCE_FILE:
+    {
+        Bridge::getBridge()->emitLoadSourceFile(QString((const char*)param1), (int)param2);
     }
     break;
 

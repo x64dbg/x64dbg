@@ -83,6 +83,7 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
+    void emitLoadSourceFile(const QString path, int line = 0);
 
     static DWORD WINAPI GuiDisptacherThread(LPVOID Argument);
     static void* GuiDispatchMessage(GUIMSG type, void* param1, void* param2);
@@ -151,6 +152,7 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
+    void loadSourceFile(const QString path, int line);
 
 private:
     QMutex* mBridgeMutex;

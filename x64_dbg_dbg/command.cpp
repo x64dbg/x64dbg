@@ -5,11 +5,11 @@
  */
 
 #include "command.h"
-#include "argument.h"
 #include "value.h"
 #include "console.h"
 #include "debugger.h"
 #include "math.h"
+#include "commandparser.h"
 
 /**
 \brief Finds a ::COMMAND in a command list.
@@ -205,7 +205,7 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
             break;
         if(strlen(command))
         {
-            argformat(command); //default formatting
+            strcpy_s(command, StringUtils::Trim(command).c_str());
             COMMAND* cmd;
             if(!cbCommandFinder) //'clean' command processing
                 cmd = cmdget(command_list, command);
@@ -230,14 +230,15 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
                 }
                 else
                 {
-                    int argcount = arggetcount(command);
+                    Command commandParsed(command);
+                    int argcount = commandParsed.GetArgCount();
                     char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmdloop:argv");
                     argv[0] = command;
                     for(int i = 0; i < argcount; i++)
                     {
                         argv[i + 1] = (char*)emalloc(deflen, "cmdloop:argv[i+1]");
                         *argv[i + 1] = 0;
-                        argget(command, argv[i + 1], i, true);
+                        strcpy_s(argv[i + 1], deflen, commandParsed.GetArg(i).c_str());
                     }
                     CMDRESULT res = cmd->cbCommand(argcount + 1, argv);
                     for(int i = 0; i < argcount; i++)
@@ -365,21 +366,21 @@ CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
     if(!cmd or !strlen(cmd))
         return STATUS_ERROR;
     char command[deflen] = "";
-    strcpy(command, cmd);
-    argformat(command);
+    strcpy(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(cmd_list, command);
     if(!found or !found->cbCommand)
         return STATUS_ERROR;
     if(found->debugonly and !DbgIsDebugging())
         return STATUS_ERROR;
-    int argcount = arggetcount(command);
+    Command cmdParsed(command);
+    int argcount = cmdParsed.GetArgCount();
     char** argv = (char**)emalloc((argcount + 1) * sizeof(char*), "cmddirectexec:argv");
     argv[0] = command;
     for(int i = 0; i < argcount; i++)
     {
         argv[i + 1] = (char*)emalloc(deflen, "cmddirectexec:argv[i+1]");
         *argv[i + 1] = 0;
-        argget(command, argv[i + 1], i, true);
+        strcpy_s(argv[i + 1], deflen, cmdParsed.GetArg(i).c_str());
     }
     CMDRESULT res = found->cbCommand(argcount + 1, argv);
     for(int i = 0; i < argcount; i++)

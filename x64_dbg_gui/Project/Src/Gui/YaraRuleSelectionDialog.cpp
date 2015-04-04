@@ -55,6 +55,8 @@ void YaraRuleSelectionDialog::on_buttonFile_clicked()
 
 void YaraRuleSelectionDialog::on_buttonSelect_clicked()
 {
+    if(!ui->listRules->selectedItems().size()) //no selection
+        return;
     int selectedIndex = ui->listRules->row(ui->listRules->selectedItems().at(0));
     selectedFile = ruleFiles.at(selectedIndex).first;
     this->accept();
