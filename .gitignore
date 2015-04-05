@@ -29,7 +29,6 @@ doc/
 *.exe
 *.pro.user.*
 *.orig
-coverity*
 cov-int*
 COV/
 *.pdb
