@@ -46,18 +46,19 @@ struct CaseInsensitiveCompare
     }
 };
 
-typedef std::map<String, VAR, CaseInsensitiveCompare> VariableMap;
-
 //functions
+void varsetvalue(VAR* Var, VAR_VALUE* Value);
+bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly);
 void varinit();
 void varfree();
-bool varnew(const char* name, uint value, VAR_TYPE type);
-bool varget(const char* name, uint* value, int* size, VAR_TYPE* type);
-bool varget(const char* name, char* string, int* size, VAR_TYPE* type);
-bool varset(const char* name, uint value, bool setreadonly);
-bool varset(const char* name, const char* string, bool setreadonly);
-bool vardel(const char* name, bool delsystem);
-bool vargettype(const char* name, VAR_TYPE* type = 0, VAR_VALUE_TYPE* valtype = 0);
-bool varenum(VAR* entries, size_t* cbsize);
+bool varnew(const char* Name, uint Value, VAR_TYPE Type);
+bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type);
+bool varget(const char* Name, uint* Value, int* Size, VAR_TYPE* Type);
+bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type);
+bool varset(const char* Name, uint Value, bool ReadOnly);
+bool varset(const char* Name, const char* Value, bool ReadOnly);
+bool vardel(const char* Name, bool DelSystem);
+bool vargettype(const char* Name, VAR_TYPE* Type = nullptr, VAR_VALUE_TYPE* ValueType = nullptr);
+bool varenum(VAR* List, size_t* Size);
 
 #endif // _VARIABLE_H
