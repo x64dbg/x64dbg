@@ -12,7 +12,7 @@ MESSAGE_STACK* MsgAllocStack()
     // Allocate memory for the structure
     PVOID memoryBuffer = emalloc(sizeof(MESSAGE_STACK), "MsgAllocStack:memoryBuffer");
 
-    if (!memoryBuffer)
+    if(!memoryBuffer)
         return nullptr;
 
     // Use placement new to ensure all constructors are called correctly

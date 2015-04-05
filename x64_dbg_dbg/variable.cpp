@@ -100,7 +100,7 @@ void varfree()
     // because there are sub-allocations
     VAR_VALUE emptyValue;
 
-    for (auto& itr : variables)
+    for(auto & itr : variables)
         varsetvalue(&itr.second, &emptyValue);
 
     // Now clear all vector elements

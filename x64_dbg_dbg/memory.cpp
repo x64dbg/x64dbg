@@ -12,7 +12,7 @@
 #include "module.h"
 
 #define PAGE_SHIFT              (12)
-#define PAGE_SIZE               (4096)
+//#define PAGE_SIZE               (4096)
 #define PAGE_ALIGN(Va)          ((ULONG_PTR)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
 #define BYTES_TO_PAGES(Size)    (((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
 #define ROUND_TO_PAGES(Size)    (((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
@@ -159,30 +159,30 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
     // Fast fail if address is invalid
-    if (!MemIsCanonicalAddress((uint)BaseAddress))
+    if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
 
     // Buffer must be supplied and size must be greater than 0
-    if (!Buffer || Size <= 0)
+    if(!Buffer || Size <= 0)
         return false;
 
     // If the 'bytes read' parameter is null, use a temp
     SIZE_T bytesReadTemp = 0;
 
-    if (!NumberOfBytesRead)
+    if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
 
     // Normal single-call read
     bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
 
-    if (ret && *NumberOfBytesRead == Size)
+    if(ret && *NumberOfBytesRead == Size)
         return true;
 
     // Read page-by-page (Skip if only 1 page exists)
     // If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
     SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-    if (pageCount > 1)
+    if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
         uint offset     = 0;
@@ -192,11 +192,11 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
         // Reset the bytes read count
         *NumberOfBytesRead = 0;
 
-        for (SIZE_T i = 0; i < pageCount; i++)
+        for(SIZE_T i = 0; i < pageCount; i++)
         {
             SIZE_T bytesRead = 0;
 
-            if (MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
+            if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
                 *NumberOfBytesRead += bytesRead;
 
             offset      += readSize;
@@ -214,7 +214,7 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
 bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
     // Fast fail if address is invalid
-    if (!MemIsCanonicalAddress((uint)BaseAddress))
+    if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
 
     // Buffer must be supplied and size must be greater than 0
@@ -237,7 +237,7 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     // See: MemRead
     SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-    if (pageCount > 1)
+    if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
         uint offset     = 0;
@@ -247,11 +247,11 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
         // Reset the bytes read count
         *NumberOfBytesWritten = 0;
 
-        for (SIZE_T i = 0; i < pageCount; i++)
+        for(SIZE_T i = 0; i < pageCount; i++)
         {
             SIZE_T bytesWritten = 0;
 
-            if (MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
+            if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
                 *NumberOfBytesWritten += bytesWritten;
 
             offset      += writeSize;

@@ -13,11 +13,11 @@ bool LoopAdd(uint Start, uint End, bool Manual)
         return false;
 
     // Loop must begin before it ends
-    if (Start > End)
+    if(Start > End)
         return false;
 
     // Memory addresses must be valid
-    if (!MemIsValidReadPtr(Start) || !MemIsValidReadPtr(End))
+    if(!MemIsValidReadPtr(Start) || !MemIsValidReadPtr(End))
         return false;
 
     // Check if loop boundaries are in the same module range
@@ -102,14 +102,14 @@ bool LoopOverlaps(int Depth, uint Start, uint End, int* FinalDepth)
     SHARED_ACQUIRE(LockLoops);
 
     // Check if the new loop fits in the old loop
-    for(auto& itr : loops)
+    for(auto & itr : loops)
     {
         // Only look in the current module
         if(itr.first.second.first != key)
             continue;
 
         // Loop must be at this recursive depth
-        if (itr.second.depth != Depth)
+        if(itr.second.depth != Depth)
             continue;
 
         if(itr.second.start < curStart && itr.second.end > curEnd)
@@ -121,14 +121,14 @@ bool LoopOverlaps(int Depth, uint Start, uint End, int* FinalDepth)
         *FinalDepth = Depth;
 
     // Check for loop overlaps
-    for (auto& itr : loops)
+    for(auto & itr : loops)
     {
         // Only look in the current module
-        if (itr.first.second.first != key)
+        if(itr.first.second.first != key)
             continue;
 
         // Loop must be at this recursive depth
-        if (itr.second.depth != Depth)
+        if(itr.second.depth != Depth)
             continue;
 
         if(itr.second.start <= curEnd && itr.second.end >= curStart)
@@ -153,9 +153,9 @@ void LoopCacheSave(JSON Root)
     const JSON jsonAutoLoops    = json_array();
 
     // Write all entries
-    for(auto& itr : loops)
+    for(auto & itr : loops)
     {
-        const LOOPSINFO& currentLoop    = itr.second;
+        const LOOPSINFO & currentLoop    = itr.second;
         JSON currentJson                = json_object();
 
         json_object_set_new(currentJson, "module", json_string(currentLoop.mod));
@@ -200,7 +200,7 @@ void LoopCacheLoad(JSON Root)
             // Module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
-            if (mod && strlen(mod) < MAX_MODULE_SIZE)
+            if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(loopInfo.mod, mod);
             else
                 loopInfo.mod[0] = '\0';
@@ -213,7 +213,7 @@ void LoopCacheLoad(JSON Root)
             loopInfo.manual = Manual;
 
             // Sanity check: Make sure the loop starts before it ends
-            if (loopInfo.end < loopInfo.start)
+            if(loopInfo.end < loopInfo.start)
                 continue;
 
             // Insert into global list
@@ -228,11 +228,11 @@ void LoopCacheLoad(JSON Root)
     const JSON jsonAutoLoops    = json_object_get(Root, "autoloops");
 
     // Load user-set loops
-    if (jsonLoops)
+    if(jsonLoops)
         AddLoops(jsonLoops, true);
 
     // Load auto-set loops
-    if (jsonAutoLoops)
+    if(jsonAutoLoops)
         AddLoops(jsonAutoLoops, false);
 }
 
@@ -253,7 +253,7 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
             return true;
     }
 
-    for (auto& itr : loops)
+    for(auto & itr : loops)
     {
         *List = itr.second;
 

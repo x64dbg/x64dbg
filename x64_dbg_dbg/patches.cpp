@@ -17,7 +17,7 @@ std::unordered_map<uint, PATCHINFO> patches;
 bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
 {
     // CHECK: Exported function
-    if (!DbgIsDebugging())
+    if(!DbgIsDebugging())
         return false;
 
     // Address must be valid
@@ -117,12 +117,12 @@ bool PatchDelete(uint Address, bool Restore)
 void PatchDelRange(uint Start, uint End, bool Restore)
 {
     // CHECK: Export call
-    if (!DbgIsDebugging())
+    if(!DbgIsDebugging())
         return;
 
     // Are all bookmarks going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
-    if (Start == 0 && End == ~0)
+    if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockPatches);
         patches.clear();
@@ -132,7 +132,7 @@ void PatchDelRange(uint Start, uint End, bool Restore)
         // Make sure 'Start' and 'End' reference the same module
         uint moduleBase = ModBaseFromAddr(Start);
 
-        if (moduleBase != ModBaseFromAddr(End))
+        if(moduleBase != ModBaseFromAddr(End))
             return;
 
         // VA to RVA in module
@@ -140,13 +140,13 @@ void PatchDelRange(uint Start, uint End, bool Restore)
         End     -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockPatches);
-        for (auto itr = patches.begin(); itr != patches.end();)
+        for(auto itr = patches.begin(); itr != patches.end();)
         {
             // [Start, End)
-            if (itr->second.addr >= Start && itr->second.addr < End)
+            if(itr->second.addr >= Start && itr->second.addr < End)
             {
                 // Restore the original byte if necessary
-                if (Restore)
+                if(Restore)
                     MemWrite((void*)(itr->second.addr + moduleBase), &itr->second.oldbyte, sizeof(char), nullptr);
 
                 itr = patches.erase(itr);
@@ -174,12 +174,12 @@ bool PatchEnum(PATCHINFO* List, size_t* Size)
     {
         *Size = patches.size() * sizeof(PATCHINFO);
 
-        if (!List)
+        if(!List)
             return true;
     }
 
     // Copy each vector entry to a C-style array
-    for(auto& itr : patches)
+    for(auto & itr : patches)
     {
         *List       = itr.second;
         List->addr  += ModBaseFromName(itr.second.mod);;
@@ -209,11 +209,11 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     strcpy_s(moduleName, List[0].mod);
 
     // Check if all patches are in the same module
-    for (int i = 0; i < Count; i++)
+    for(int i = 0; i < Count; i++)
     {
-        if (_stricmp(List[i].mod, moduleName))
+        if(_stricmp(List[i].mod, moduleName))
         {
-            if (Error)
+            if(Error)
                 sprintf_s(Error, MAX_ERROR_SIZE, "not all patches are in module %s", moduleName);
 
             return -1;
@@ -255,7 +255,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     DWORD loadedSize;
     HANDLE fileMap;
     ULONG_PTR fileMapVa;
-    if (!StaticFileLoadW(StringUtils::Utf8ToUtf16(FileName).c_str(), UE_ACCESS_ALL, false, &fileHandle, &loadedSize, &fileMap, &fileMapVa))
+    if(!StaticFileLoadW(StringUtils::Utf8ToUtf16(FileName).c_str(), UE_ACCESS_ALL, false, &fileHandle, &loadedSize, &fileMap, &fileMapVa))
     {
         strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileLoad failed");
         return -1;
@@ -288,7 +288,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     }
 
     // Zero the error message and return count
-    if (Error)
+    if(Error)
         memset(Error, 0, MAX_ERROR_SIZE * sizeof(char));
 
     return patchCount;
@@ -299,7 +299,7 @@ void PatchClear(const char* Module)
     EXCLUSIVE_ACQUIRE(LockPatches);
 
     // Was a module specified?
-    if (!Module || Module[0] == '\0')
+    if(!Module || Module[0] == '\0')
     {
         // No specific entries to delete, so remove all of them
         patches.clear();
@@ -308,9 +308,9 @@ void PatchClear(const char* Module)
     {
         // Otherwise iterate over each patch and check the owner
         // module for the address
-        for (auto itr = patches.begin(); itr != patches.end();)
+        for(auto itr = patches.begin(); itr != patches.end();)
         {
-            if (!_stricmp(itr->second.mod, Module))
+            if(!_stricmp(itr->second.mod, Module))
                 itr = patches.erase(itr);
             else
                 itr++;

@@ -190,13 +190,13 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    if (MemIsValidReadPtr(disasm_addr))
+    if(MemIsValidReadPtr(disasm_addr))
     {
-        if (bEnableSourceDebugging)
+        if(bEnableSourceDebugging)
         {
             char szSourceFile[MAX_STRING_SIZE] = "";
             int line = 0;
-            if (SymGetSourceLine(cip, szSourceFile, &line))
+            if(SymGetSourceLine(cip, szSourceFile, &line))
                 GuiLoadSourceFile(szSourceFile, line);
         }
         GuiDisasmAt(disasm_addr, cip);
@@ -1035,7 +1035,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-            if(MemRead((void *)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+            if(MemRead((void*)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName);
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
@@ -1891,7 +1891,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
-    if(!MemWrite((void*)(mem + new_command_line.Length), (void *)cmd_line, strlen(cmd_line) + 1, &size))
+    if(!MemWrite((void*)(mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1, &size))
     {
         cmd_line_error->addr = mem + new_command_line.Length;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;

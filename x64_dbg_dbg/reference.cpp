@@ -29,7 +29,7 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     uint scanSize   = regionSize;
 
     // Otherwise use custom boundaries if size was supplied
-    if (Size)
+    if(Size)
     {
         uint maxsize = Size - (Address - regionBase);
 
@@ -53,7 +53,7 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     char fullName[deflen];
     char moduleName[MAX_MODULE_SIZE];
 
-    if (ModNameFromAddr(scanStart, moduleName, true))
+    if(ModNameFromAddr(scanStart, moduleName, true))
         sprintf_s(fullName, "%s (%s)", Name, moduleName);
     else
         sprintf_s(fullName, "%s (%p)", Name, scanStart);
@@ -77,7 +77,7 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     Callback(0, 0, &refInfo);
 
     //concurrency::parallel_for(uint(0), scanSize, [&](uint i)
-    for (uint i = 0; i < scanSize;)
+    for(uint i = 0; i < scanSize;)
     {
         // Print the progress every 4096 bytes
         if((i % 0x1000) == 0)

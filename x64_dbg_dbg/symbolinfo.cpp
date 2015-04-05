@@ -101,7 +101,7 @@ void SymUpdateModuleList()
 
     // Create a new array to be sent to the GUI thread
     size_t moduleCount      = modList.size();
-    SYMBOLMODULEINFO *data  = (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+    SYMBOLMODULEINFO* data  = (SYMBOLMODULEINFO*)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
 
     // Direct copy from std::vector data
     memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
@@ -267,10 +267,10 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
         *Line = lineInfo.LineNumber;
 
     // Copy file name if requested
-    if (FileName)
+    if(FileName)
     {
         // Check if it was a full path
-        if (lineInfo.FileName[1] == ':' && lineInfo.FileName[2] == '\\')
+        if(lineInfo.FileName[1] == ':' && lineInfo.FileName[2] == '\\')
         {
             // Success: no more parsing
             strcpy_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
@@ -282,13 +282,13 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
         memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
         modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
 
-        if (!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, Cip, &modInfo))
+        if(!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, Cip, &modInfo))
             return false;
 
         // Strip the full path, leaving only the file name
         char* fileName = strrchr(modInfo.LoadedPdbName, '\\');
 
-        if (fileName)
+        if(fileName)
             fileName[1] = '\0';
 
         // Copy back to the caller's buffer

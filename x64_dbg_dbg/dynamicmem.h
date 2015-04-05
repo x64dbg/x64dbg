@@ -26,7 +26,7 @@ public:
 
     ~Memory()
     {
-        if (m_Ptr)
+        if(m_Ptr)
             efree(m_Ptr);
     }
 
@@ -61,7 +61,7 @@ public:
     }
 
     template<typename U>
-    T operator+(const U& Other)
+    T operator+(const U & Other)
     {
         return m_Ptr + Other;
     }

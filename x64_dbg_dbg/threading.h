@@ -86,7 +86,7 @@ public:
 
 #ifdef _DEBUG
         // TODO: Assert that the lock count is zero on destructor
-        if (m_LockCount > 0)
+        if(m_LockCount > 0)
             __debugbreak();
 #endif
     }

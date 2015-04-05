@@ -164,12 +164,12 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     SHARED_ACQUIRE(LockThreads);
 
     TEB teb;
-    for (auto & entry : threadList)
+    for(auto & entry : threadList)
     {
-        if (entry.ThreadId != ThreadId)
+        if(entry.ThreadId != ThreadId)
             continue;
 
-        if (!ThreadGetTeb(entry.ThreadLocalBase, &teb))
+        if(!ThreadGetTeb(entry.ThreadLocalBase, &teb))
         {
             // TODO: Assert (Why would the TEB fail?)
             return 0;

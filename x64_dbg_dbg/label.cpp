@@ -9,19 +9,19 @@ std::unordered_map<uint, LABELSINFO> labels;
 bool LabelSet(uint Address, const char* Text, bool Manual)
 {
     // CHECK: Exported/Command function
-    if (!DbgIsDebugging())
+    if(!DbgIsDebugging())
         return false;
 
     // A valid memory address must be supplied
-    if (!MemIsValidReadPtr(Address))
+    if(!MemIsValidReadPtr(Address))
         return false;
 
     // Make sure the string is supplied, within bounds, and not a special delimiter
-    if (!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1)
+    if(!Text || Text[0] == '\1' || strlen(Text) >= MAX_LABEL_SIZE - 1)
         return false;
 
     // Labels cannot be "address" of actual variables
-    if (strstr(Text, "&"))
+    if(strstr(Text, "&"))
         return false;
 
     // Delete the label if no text was supplied
@@ -54,13 +54,13 @@ bool LabelFromString(const char* Text, uint* Address)
 
     SHARED_ACQUIRE(LockLabels);
 
-    for (auto& itr : labels)
+    for(auto & itr : labels)
     {
         // Check if the actual label name matches
-        if (strcmp(itr.second.text, Text))
+        if(strcmp(itr.second.text, Text))
             continue;
 
-        if (Address)
+        if(Address)
             *Address = itr.second.addr + ModBaseFromName(itr.second.mod);
 
         // Set status to indicate if label was ever found
@@ -104,12 +104,12 @@ bool LabelDelete(uint Address)
 void LabelDelRange(uint Start, uint End)
 {
     // CHECK: Export function
-    if (!DbgIsDebugging())
+    if(!DbgIsDebugging())
         return;
 
     // Are all comments going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
-    if (Start == 0 && End == ~0)
+    if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockLabels);
         labels.clear();
@@ -119,21 +119,21 @@ void LabelDelRange(uint Start, uint End)
         // Make sure 'Start' and 'End' reference the same module
         uint moduleBase = ModBaseFromAddr(Start);
 
-        if (moduleBase != ModBaseFromAddr(End))
+        if(moduleBase != ModBaseFromAddr(End))
             return;
 
         EXCLUSIVE_ACQUIRE(LockLabels);
-        for (auto itr = labels.begin(); itr != labels.end();)
+        for(auto itr = labels.begin(); itr != labels.end();)
         {
             // Ignore manually set entries
-            if (itr->second.manual)
+            if(itr->second.manual)
             {
                 itr++;
                 continue;
             }
 
             // [Start, End)
-            if (itr->second.addr >= Start && itr->second.addr < End)
+            if(itr->second.addr >= Start && itr->second.addr < End)
                 itr = labels.erase(itr);
             else
                 itr++;
@@ -150,7 +150,7 @@ void LabelCacheSave(JSON Root)
     const JSON jsonAutoLabels   = json_array();
 
     // Iterator each label
-    for(auto& itr : labels)
+    for(auto & itr : labels)
     {
         JSON jsonLabel = json_object();
         json_object_set_new(jsonLabel, "module", json_string(itr.second.mod));
@@ -193,7 +193,7 @@ void LabelCacheLoad(JSON Root)
             // Module
             const char* mod = json_string_value(json_object_get(value, "module"));
 
-            if (mod && strlen(mod) < MAX_MODULE_SIZE)
+            if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(labelInfo.mod, mod);
             else
                 labelInfo.mod[0] = '\0';
@@ -205,7 +205,7 @@ void LabelCacheLoad(JSON Root)
             // Text string
             const char* text = json_string_value(json_object_get(value, "text"));
 
-            if (text)
+            if(text)
                 strcpy_s(labelInfo.text, text);
             else
             {
@@ -214,9 +214,9 @@ void LabelCacheLoad(JSON Root)
             }
 
             // Go through the string replacing '&' with spaces
-            for (char *ptr = labelInfo.text; ptr[0] != '\0'; ptr++)
+            for(char* ptr = labelInfo.text; ptr[0] != '\0'; ptr++)
             {
-                if (ptr[0] == '&')
+                if(ptr[0] == '&')
                     ptr[0] = ' ';
             }
 
@@ -234,11 +234,11 @@ void LabelCacheLoad(JSON Root)
     const JSON jsonAutoLabels   = json_object_get(Root, "autolabels");
 
     // Load user-set labels
-    if (jsonLabels)
+    if(jsonLabels)
         AddLabels(jsonLabels, true);
 
     // Load auto-set labels
-    if (jsonAutoLabels)
+    if(jsonAutoLabels)
         AddLabels(jsonAutoLabels, false);
 }
 
@@ -259,13 +259,13 @@ bool LabelEnum(LABELSINFO* List, size_t* Size)
     {
         *Size = labels.size() * sizeof(LABELSINFO);
 
-        if (!List)
+        if(!List)
             return true;
     }
 
     // Fill out the return list while converting the offset
     // to a virtual address
-    for (auto& itr : labels)
+    for(auto & itr : labels)
     {
         *List       = itr.second;
         List->addr  += ModBaseFromName(itr.second.mod);

@@ -306,7 +306,7 @@ void MemoryMapView::followDisassemblerSlot()
 
     // If there was no address loaded, the length
     // will only be the command length
-    if (commandText.length() <= 8)
+    if(commandText.length() <= 8)
         return;
 
     DbgCmdExecDirect(commandText.toUtf8().constData());

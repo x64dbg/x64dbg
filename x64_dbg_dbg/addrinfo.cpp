@@ -78,7 +78,7 @@ void dbload()
         lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
         // Check return code
-        if (useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
+        if(useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
         {
             dputs("\nInvalid database file!");
             return;
@@ -104,7 +104,7 @@ void dbload()
     // This corrects a bug when a file exists, but there is no data inside.
     JSON root = nullptr;
 
-    if (jsonFileSize > 0)
+    if(jsonFileSize > 0)
         root = json_loadf(jsonFile, 0, 0);
 
     // Release the file handle and re-compress

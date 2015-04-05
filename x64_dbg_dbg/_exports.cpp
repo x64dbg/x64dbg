@@ -61,7 +61,7 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     // Copy all elements over
     int i = 0;
 
-    for (auto& itr : memoryPages)
+    for(auto & itr : memoryPages)
         memcpy(&memmap->page[i++], &itr.second, sizeof(MEMPAGE));
 
     // Done
