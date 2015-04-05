@@ -5,6 +5,8 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
+#include "YaraRuleSelectionDialog.h"
+#include "DataCopyDialog.h"
 
 CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
 {
@@ -232,6 +234,16 @@ void CPUDump::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Yara
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYaraAction);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
+    //Data copy
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), "Data copy...", this);
+    connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
+
     //Find References
     mFindReferencesAction = new QAction("Find &References", this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
@@ -362,6 +374,7 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -404,7 +417,7 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
 #endif //_WIN64
             }
         }
-        addrText += AddressToString(cur_addr);
+        addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
@@ -464,6 +477,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
+    wMenu->addAction(mFindReferencesAction);
+    wMenu->addAction(mYaraAction);
+    wMenu->addAction(mDataCopyAction);
     wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
@@ -1320,5 +1336,31 @@ void CPUDump::selectionUpdatedSlot()
 {
     QString selStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     QString selEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    GuiAddStatusBarMessage(QString("Dump: " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+    QString info = "Dump";
+    char mod[MAX_MODULE_SIZE] = "";
+    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+        info = QString(mod) + "";
+    GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+}
+
+void CPUDump::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
+}
+
+void CPUDump::dataCopySlot()
+{
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QVector<byte_t> data;
+    data.resize(selSize);
+    mMemPage->read(data.data(), selStart, selSize);
+    DataCopyDialog dataDialog(&data, this);
+    dataDialog.exec();
 }

@@ -99,8 +99,18 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
     else
     {
         for(int i = startcol; i < count; i++)
-            if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
-                return true;
+        {
+            if(ui->checkBoxRegex->checkState() == Qt::Checked)
+            {
+                if(list->getCellContent(row, i).contains(QRegExp(text)))
+                    return true;
+            }
+            else
+            {
+                if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
+                    return true;
+            }
+        }
     }
     return false;
 }
@@ -117,7 +127,8 @@ void SearchListView::searchTextChanged(const QString & arg1)
     {
         mSearchList->hide();
         mList->show();
-        mList->setFocus();
+        if(ui->checkBoxRegex->checkState() != Qt::Checked)
+            mList->setFocus();
         mCurList = mList;
     }
     mSearchList->setRowCount(0);
@@ -150,9 +161,11 @@ void SearchListView::searchTextChanged(const QString & arg1)
             break;
         }
     }
-    mSearchList->highlightText = arg1;
+    if(ui->checkBoxRegex->checkState() != Qt::Checked) //do not highlight with regex
+        mSearchList->highlightText = arg1;
     mSearchList->reloadData();
-    mSearchList->setFocus();
+    if(ui->checkBoxRegex->checkState() != Qt::Checked)
+        mSearchList->setFocus();
 }
 
 void SearchListView::listContextMenu(const QPoint & pos)
@@ -174,4 +187,10 @@ void SearchListView::listContextMenu(const QPoint & pos)
 void SearchListView::doubleClickedSlot()
 {
     emit enterPressedSignal();
+}
+
+void SearchListView::on_checkBoxRegex_toggled(bool checked)
+{
+    Q_UNUSED(checked);
+    searchTextChanged(ui->searchBox->text());
 }

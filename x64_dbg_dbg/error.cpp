@@ -5,7 +5,7 @@ std::unordered_map<unsigned int, const char*> ErrorNames;
 
 void ErrorCodeInit()
 {
-	ErrorNames.clear();
+    ErrorNames.clear();
     ErrorNames.insert(std::make_pair(0, "ERROR_SUCCESS"));
     ErrorNames.insert(std::make_pair(1, "ERROR_INVALID_FUNCTION"));
     ErrorNames.insert(std::make_pair(2, "ERROR_FILE_NOT_FOUND"));

@@ -1,10 +1,8 @@
-#ifndef _REFERENCE_H
-#define _REFERENCE_H
+#pragma once
 
 #include "_global.h"
 #include "disasm_fast.h"
 
-//structs
 struct REFINFO
 {
     int refcount;
@@ -12,10 +10,7 @@ struct REFINFO
     const char* name;
 };
 
-//typedefs
+// Reference callback typedef
 typedef bool (*CBREF)(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo);
 
-//functions
-int reffind(uint page, uint size, CBREF cbRef, void* userinfo, bool silent, const char* name);
-
-#endif //_REFERENCE_H
+int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent, const char* Name);

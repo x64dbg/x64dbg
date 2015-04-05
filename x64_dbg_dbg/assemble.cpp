@@ -1,3 +1,9 @@
+/**
+ @file assemble.cpp
+
+ @brief Implements the assemble class.
+ */
+
 #include "assemble.h"
 #include "memory.h"
 #include "debugger.h"
@@ -30,11 +36,7 @@ bool assemble(uint addr, unsigned char* dest, int* size, const char* instruction
 #endif
     parse.cbUnknown = cbUnknown;
     parse.cip = addr;
-    String instr = instruction;
-    size_t pos = instr.find(" short ");
-    if(pos != String::npos)
-        instr.erase(pos, 6);
-    strcpy_s(parse.instr, instr.c_str());
+    strcpy_s(parse.instr, instruction);
     if(XEDParseAssemble(&parse) == XEDPARSE_ERROR)
     {
         if(error)

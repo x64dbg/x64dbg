@@ -67,6 +67,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
 
+    // Source View
+    mSourceViewManager = new SourceViewerManager();
+    mSourceViewManager->setWindowTitle("Source");
+    mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
+    mSourceViewManager->hide();
+
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle("Breakpoints");
@@ -77,6 +83,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Memory Map View
     mMemMapView = new MemoryMapView();
     connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle("Memory Map");
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
@@ -121,6 +128,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mCallStackView, mCallStackView->windowIcon(), mCallStackView->windowTitle());
     mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
     mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
+    mTabWidget->addTab(mSourceViewManager, mSourceViewManager->windowIcon(), mSourceViewManager->windowTitle());
     mTabWidget->addTab(mReferenceManager, mReferenceManager->windowIcon(), mReferenceManager->windowTitle());
     mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
 
@@ -167,7 +175,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
     connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
+    connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
     connect(mSymbolView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(mSymbolView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(mReferenceManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(ui->actionReferences, SIGNAL(triggered()), this, SLOT(displayReferencesWidget()));
     connect(ui->actionThreads, SIGNAL(triggered()), this, SLOT(displayThreadsWidget()));
@@ -254,60 +264,65 @@ void MainWindow::setTab(QWidget* widget)
         }
 }
 
+void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
+{
+    action->setShortcut(key);
+    action->setShortcutContext(Qt::ApplicationShortcut);
+}
+
 void MainWindow::refreshShortcuts()
 {
-    ui->actionOpen->setShortcut(ConfigShortcut("FileOpen"));
-    ui->actionAttach->setShortcut(ConfigShortcut("FileAttach"));
-    ui->actionDetach->setShortcut(ConfigShortcut("FileDetach"));
-    ui->actionExit->setShortcut(ConfigShortcut("FileExit"));
+    setGlobalShortcut(ui->actionOpen, ConfigShortcut("FileOpen"));
+    setGlobalShortcut(ui->actionAttach, ConfigShortcut("FileAttach"));
+    setGlobalShortcut(ui->actionDetach, ConfigShortcut("FileDetach"));
+    setGlobalShortcut(ui->actionExit, ConfigShortcut("FileExit"));
 
-    ui->actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
-    ui->actionLog->setShortcut(ConfigShortcut("ViewLog"));
-    ui->actionBreakpoints->setShortcut(ConfigShortcut("ViewBreakpoints"));
-    ui->actionMemoryMap->setShortcut(ConfigShortcut("ViewMemoryMap"));
-    ui->actionCallStack->setShortcut(ConfigShortcut("ViewCallStack"));
-    ui->actionScript->setShortcut(ConfigShortcut("ViewScript"));
-    ui->actionSymbolInfo->setShortcut(ConfigShortcut("ViewSymbolInfo"));
-    ui->actionReferences->setShortcut(ConfigShortcut("ViewReferences"));
-    ui->actionThreads->setShortcut(ConfigShortcut("ViewThreads"));
-    ui->actionPatches->setShortcut(ConfigShortcut("ViewPatches"));
-    ui->actionComments->setShortcut(ConfigShortcut("ViewComments"));
-    ui->actionLabels->setShortcut(ConfigShortcut("ViewLabels"));
-    ui->actionBookmarks->setShortcut(ConfigShortcut("ViewBookmarks"));
-    ui->actionFunctions->setShortcut(ConfigShortcut("ViewFunctions"));
+    setGlobalShortcut(ui->actionCpu, ConfigShortcut("ViewCpu"));
+    setGlobalShortcut(ui->actionLog, ConfigShortcut("ViewLog"));
+    setGlobalShortcut(ui->actionBreakpoints, ConfigShortcut("ViewBreakpoints"));
+    setGlobalShortcut(ui->actionMemoryMap, ConfigShortcut("ViewMemoryMap"));
+    setGlobalShortcut(ui->actionCallStack, ConfigShortcut("ViewCallStack"));
+    setGlobalShortcut(ui->actionScript, ConfigShortcut("ViewScript"));
+    setGlobalShortcut(ui->actionSymbolInfo, ConfigShortcut("ViewSymbolInfo"));
+    setGlobalShortcut(ui->actionSource, ConfigShortcut("ViewSource"));
+    setGlobalShortcut(ui->actionReferences, ConfigShortcut("ViewReferences"));
+    setGlobalShortcut(ui->actionThreads, ConfigShortcut("ViewThreads"));
+    setGlobalShortcut(ui->actionPatches, ConfigShortcut("ViewPatches"));
+    setGlobalShortcut(ui->actionComments, ConfigShortcut("ViewComments"));
+    setGlobalShortcut(ui->actionLabels, ConfigShortcut("ViewLabels"));
+    setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
+    setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
 
-    ui->actionRun->setShortcut(ConfigShortcut("DebugRun"));
-    ui->actioneRun->setShortcut(ConfigShortcut("DebugeRun"));
-    ui->actionRunSelection->setShortcut(ConfigShortcut("DebugRunSelection"));
-    ui->actionPause->setShortcut(ConfigShortcut("DebugPause"));
-    ui->actionRestart->setShortcut(ConfigShortcut("DebugRestart"));
-    ui->actionClose->setShortcut(ConfigShortcut("DebugClose"));
-    ui->actionStepInto->setShortcut(ConfigShortcut("DebugStepInto"));
-    ui->actioneStepInto->setShortcut(ConfigShortcut("DebugeStepInfo"));
-    ui->actionStepOver->setShortcut(ConfigShortcut("DebugStepOver"));
-    ui->actioneStepOver->setShortcut(ConfigShortcut("DebugeStepOver"));
-    ui->actionRtr->setShortcut(ConfigShortcut("DebugRtr"));
-    ui->actioneRtr->setShortcut(ConfigShortcut("DebugeRtr"));
-    ui->actionCommand->setShortcut(ConfigShortcut("DebugCommand"));
-    ui->actionSkipNextInstruction->setShortcut(ConfigShortcut("DebugSkipNextInstruction"));
+    setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
+    setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
+    setGlobalShortcut(ui->actionRunSelection, ConfigShortcut("DebugRunSelection"));
+    setGlobalShortcut(ui->actionPause, ConfigShortcut("DebugPause"));
+    setGlobalShortcut(ui->actionRestart, ConfigShortcut("DebugRestart"));
+    setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
+    setGlobalShortcut(ui->actionStepInto, ConfigShortcut("DebugStepInto"));
+    setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInfo"));
+    setGlobalShortcut(ui->actionStepOver, ConfigShortcut("DebugStepOver"));
+    setGlobalShortcut(ui->actioneStepOver, ConfigShortcut("DebugeStepOver"));
+    setGlobalShortcut(ui->actionRtr, ConfigShortcut("DebugRtr"));
+    setGlobalShortcut(ui->actioneRtr, ConfigShortcut("DebugeRtr"));
+    setGlobalShortcut(ui->actionCommand, ConfigShortcut("DebugCommand"));
+    setGlobalShortcut(ui->actionSkipNextInstruction, ConfigShortcut("DebugSkipNextInstruction"));
 
-    ui->actionScylla->setShortcut(ConfigShortcut("PluginsScylla"));
+    setGlobalShortcut(ui->actionScylla, ConfigShortcut("PluginsScylla"));
 
-    ui->actionSettings->setShortcut(ConfigShortcut("OptionsPreferences"));
-    ui->actionAppearance->setShortcut(ConfigShortcut("OptionsAppearance"));
-    ui->actionShortcuts->setShortcut(ConfigShortcut("OptionsShortcuts"));
-    ui->actionTopmost->setShortcut(ConfigShortcut("OptionsTopmost"));
+    setGlobalShortcut(ui->actionSettings, ConfigShortcut("OptionsPreferences"));
+    setGlobalShortcut(ui->actionAppearance, ConfigShortcut("OptionsAppearance"));
+    setGlobalShortcut(ui->actionShortcuts, ConfigShortcut("OptionsShortcuts"));
+    setGlobalShortcut(ui->actionTopmost, ConfigShortcut("OptionsTopmost"));
 
-    ui->actionAbout->setShortcut(ConfigShortcut("HelpAbout"));
-    ui->actionDonate->setShortcut(ConfigShortcut("HelpDonate"));
-    ui->actionCheckUpdates->setShortcut(ConfigShortcut("HelpCheckForUpdates"));
-    ui->actionCalculator->setShortcut(ConfigShortcut("HelpCalculator"));
-    ui->actionReportBug->setShortcut(ConfigShortcut("HelpReportBug"));
+    setGlobalShortcut(ui->actionAbout, ConfigShortcut("HelpAbout"));
+    setGlobalShortcut(ui->actionDonate, ConfigShortcut("HelpDonate"));
+    setGlobalShortcut(ui->actionCheckUpdates, ConfigShortcut("HelpCheckForUpdates"));
+    setGlobalShortcut(ui->actionCalculator, ConfigShortcut("HelpCalculator"));
+    setGlobalShortcut(ui->actionReportBug, ConfigShortcut("HelpReportBug"));
 
-    ui->actionStrings->setShortcut(ConfigShortcut("ActionFindStrings"));
-    ui->actionCalls->setShortcut(ConfigShortcut("ActionFindIntermodularCalls"));
-
-
+    setGlobalShortcut(ui->actionStrings, ConfigShortcut("ActionFindStrings"));
+    setGlobalShortcut(ui->actionCalls, ConfigShortcut("ActionFindIntermodularCalls"));
 }
 
 //Reads recent files list from settings
@@ -649,6 +664,13 @@ void MainWindow::displaySymbolWidget()
     mSymbolView->show();
     mSymbolView->setFocus();
     setTab(mSymbolView);
+}
+
+void MainWindow::displaySourceViewWidget()
+{
+    mSourceViewManager->show();
+    mSourceViewManager->setFocus();
+    setTab(mSourceViewManager);
 }
 
 void MainWindow::displayReferencesWidget()

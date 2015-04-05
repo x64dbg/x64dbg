@@ -1,3 +1,9 @@
+/**
+ @file x64_dbg_launcher.cpp
+
+ @brief Implements the 64 debug launcher class.
+ */
+
 #include <stdio.h>
 #include <windows.h>
 #include <string>
@@ -5,19 +11,76 @@
 #include <objbase.h>
 #include <shlobj.h>
 
+/**
+ @enum arch
+
+ @brief Values that represent arch.
+ */
+
 enum arch
 {
+    /**
+     @property notfound, invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     notfound,
+
+    /**
+     @property invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     invalid,
+
+    /**
+     @property x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     x32,
+
+    /**
+     @brief .
+     */
+
     x64
 };
+
+/**
+ @fn static bool FileExists(const wchar_t* file)
+
+ @brief Queries if a given file exists.
+
+ @param file The file.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool FileExists(const wchar_t* file)
 {
     DWORD attrib = GetFileAttributesW(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+/**
+ @fn static arch GetFileArchitecture(const wchar_t* szFileName)
+
+ @brief Gets file architecture.
+
+ @param szFileName Filename of the file.
+
+ @return The file architecture.
+ */
 
 static arch GetFileArchitecture(const wchar_t* szFileName)
 {
@@ -52,6 +115,21 @@ static arch GetFileArchitecture(const wchar_t* szFileName)
     return retval;
 }
 
+/**
+ @fn static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
+
+ @brief Queries if a given browse file open.
+
+ @param owner             Handle of the owner.
+ @param filter            Specifies the filter.
+ @param defext            The defext.
+ @param [in,out] filename If non-null, filename of the file.
+ @param filename_size     Size of the filename.
+ @param init_dir          The initialise dir.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
 {
     OPENFILENAMEW ofstruct;
@@ -68,8 +146,30 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
     return !!GetOpenFileNameW(&ofstruct);
 }
 
+/**
+ @def SHELLEXT_EXE_KEY
+
+ @brief A macro that defines shellext executable key.
+ */
+
 #define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64_dbg\\Command"
+
+/**
+ @def SHELLEXT_DLL_KEY
+
+ @brief A macro that defines shellext DLL key.
+ */
+
 #define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64_dbg\\Command"
+
+/**
+ @fn static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
+
+ @brief Registers the shell extension.
+
+ @param key     The key.
+ @param command The command.
+ */
 
 static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
 {
@@ -99,6 +199,19 @@ static void CreateUnicodeFile(const wchar_t* file)
     WriteFile(hFile, &wBOM, sizeof(WORD), &written, NULL);
     CloseHandle(hFile);
 }
+
+/**
+ @fn int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+
+ @brief Window main.
+
+ @param hInstance     The instance.
+ @param hPrevInstance The previous instance.
+ @param lpCmdLine     The command line.
+ @param nShowCmd      The show command.
+
+ @return An APIENTRY.
+ */
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
 static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)

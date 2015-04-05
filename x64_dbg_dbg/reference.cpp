@@ -1,86 +1,118 @@
+/**
+ @file reference.cpp
+
+ @brief Implements the reference class.
+ */
+
 #include "reference.h"
 #include "debugger.h"
 #include "memory.h"
 #include "console.h"
 #include "module.h"
 
-int reffind(uint addr, uint size, CBREF cbRef, void* userinfo, bool silent, const char* name)
+int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent, const char* Name)
 {
-    uint start_addr;
-    uint start_size;
-    uint base;
-    uint base_size;
-    base = MemFindBaseAddr(addr, &base_size, true);
-    if(!base or !base_size)
+    uint regionSize = 0;
+    uint regionBase = MemFindBaseAddr(Address, &regionSize, true);
+
+    // If the memory page wasn't found, fail
+    if(!regionBase || !regionSize)
     {
-        if(!silent)
-            dputs("invalid memory page");
+        if(!Silent)
+            dprintf("Invalid memory page 0x%p", Address);
+
         return 0;
     }
 
-    if(!size) //assume the whole page
+    // Assume the entire range is used
+    uint scanStart  = regionBase;
+    uint scanSize   = regionSize;
+
+    // Otherwise use custom boundaries if size was supplied
+    if (Size)
     {
-        start_addr = base;
-        start_size = base_size;
+        uint maxsize = Size - (Address - regionBase);
+
+        // Make sure the size fits in one page
+        scanStart   = Address;
+        scanSize    = min(Size, maxsize);
     }
-    else //custom boundaries
+
+    // Allocate and read a buffer from the remote process
+    Memory<unsigned char*> data(scanSize, "reffind:data");
+
+    if(!MemRead((PVOID)scanStart, data, scanSize, nullptr))
     {
-        start_addr = addr;
-        uint maxsize = size - (start_addr - base);
-        if(size < maxsize) //check if the size fits in the page
-            start_size = size;
-        else
-            start_size = maxsize;
-    }
-    Memory<unsigned char*> data(start_size, "reffind:data");
-    if(!MemRead((void*)start_addr, data, start_size, 0))
-    {
-        if(!silent)
-            dputs("error reading memory");
+        if(!Silent)
+            dprintf("Error reading memory in reference search\n");
+
         return 0;
     }
+
+    // Determine the full module name
+    char fullName[deflen];
+    char moduleName[MAX_MODULE_SIZE];
+
+    if (ModNameFromAddr(scanStart, moduleName, true))
+        sprintf_s(fullName, "%s (%s)", Name, moduleName);
+    else
+        sprintf_s(fullName, "%s (%p)", Name, scanStart);
+
+    // Initialize the disassembler
     DISASM disasm;
     memset(&disasm, 0, sizeof(disasm));
+
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64
-    disasm.EIP = (UIntPtr)data;
-    disasm.VirtualAddr = (UInt64)start_addr;
-    uint i = 0;
-    BASIC_INSTRUCTION_INFO basicinfo;
-    REFINFO refinfo;
-    memset(&refinfo, 0, sizeof(REFINFO));
-    refinfo.userinfo = userinfo;
-    char fullName[deflen] = "";
-    char modname[MAX_MODULE_SIZE] = "";
-    if(ModNameFromAddr(start_addr, modname, true))
-        sprintf_s(fullName, "%s (%s)", name, modname);
-    else
-        sprintf_s(fullName, "%s (%p)", name, start_addr);
-    refinfo.name = fullName;
-    cbRef(0, 0, &refinfo); //allow initializing
-    while(i < start_size)
+    disasm.EIP          = (UIntPtr)data;
+    disasm.VirtualAddr  = (UInt64)scanStart;
+
+    // Allow an "initialization" notice
+    REFINFO refInfo;
+    refInfo.refcount    = 0;
+    refInfo.userinfo    = UserData;
+    refInfo.name        = fullName;
+
+    Callback(0, 0, &refInfo);
+
+    //concurrency::parallel_for(uint(0), scanSize, [&](uint i)
+    for (uint i = 0; i < scanSize;)
     {
-        if(!(i % 0x1000))
+        // Print the progress every 4096 bytes
+        if((i % 0x1000) == 0)
         {
-            double percent = (double)i / (double)start_size;
-            GuiReferenceSetProgress((int)(percent * 100));
+            // Percent = (current / total) * 100
+            // Integer = floor(percent)
+            float percent = floor(((float)i / (float)scanSize) * 100.0f);
+
+            GuiReferenceSetProgress((int)percent);
         }
+
+        // Disassemble the instruction
         int len = Disasm(&disasm);
+
         if(len != UNKNOWN_OPCODE)
         {
+            BASIC_INSTRUCTION_INFO basicinfo;
             fillbasicinfo(&disasm, &basicinfo);
             basicinfo.size = len;
-            if(cbRef(&disasm, &basicinfo, &refinfo))
-                refinfo.refcount++;
+
+            if(Callback(&disasm, &basicinfo, &refInfo))
+                refInfo.refcount++;
         }
         else
+        {
+            // Invalid instruction detected, so just skip the byte
             len = 1;
-        disasm.EIP += len;
-        disasm.VirtualAddr += len;
-        i += len;
+        }
+
+        disasm.EIP          += len;
+        disasm.VirtualAddr  += len;
+        i                   += len;
     }
+
     GuiReferenceSetProgress(100);
     GuiReferenceReloadData();
-    return refinfo.refcount;
+    return refInfo.refcount;
 }

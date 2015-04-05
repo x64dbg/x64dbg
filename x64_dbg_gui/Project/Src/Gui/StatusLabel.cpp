@@ -52,6 +52,11 @@ void StatusLabel::logUpdate(QString message)
     if(labelText.contains(QChar('\n'))) //newline
         labelText = "";
     labelText += message;
-    setText(labelText);
+    //only show the last line in the status label
+    QStringList lineList = labelText.split(QChar('\n'), QString::SkipEmptyParts);
+    if(lineList.size())
+        setText(lineList[lineList.length() - 1]);
+    else
+        setText(labelText);
     this->repaint();
 }

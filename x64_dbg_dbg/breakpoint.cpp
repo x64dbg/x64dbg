@@ -1,3 +1,9 @@
+/**
+ @file breakpoint.cpp
+
+ @brief Implements the breakpoint class.
+ */
+
 #include "breakpoint.h"
 #include "debugger.h"
 #include "addrinfo.h"
@@ -7,9 +13,7 @@
 #include "module.h"
 
 typedef std::pair<BP_TYPE, uint> BreakpointKey;
-typedef std::map<BreakpointKey, BREAKPOINT> BreakpointsInfo;
-
-static BreakpointsInfo breakpoints;
+std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address)
 {
@@ -48,7 +52,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         }
     }
 
-    return (int)breakpoints.size();
+    return breakpoints.size();
 }
 
 bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)

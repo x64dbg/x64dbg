@@ -1,3 +1,9 @@
+/**
+ @file disasm_helper.cpp
+
+ @brief Implements the disasm helper class.
+ */
+
 #include "disasm_helper.h"
 #include "BeaEngine\BeaEngine.h"
 #include "value.h"

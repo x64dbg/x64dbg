@@ -29,8 +29,6 @@ struct MODINFO
     std::vector<MODSECTIONINFO> sections;
 };
 
-typedef std::map<Range, MODINFO, RangeCompare> ModulesInfo;
-
 bool ModLoad(uint Base, uint Size, const char* FullPath);
 bool ModUnload(uint Base);
 void ModClear();

@@ -1,31 +1,51 @@
+/**
+ @file variable.cpp
+
+ @brief Implements the variable class.
+ */
+
 #include "variable.h"
 #include "threading.h"
 
-static VariableMap variables;
-static VAR* vars;
+/**
+\brief The container that stores all variables.
+*/
+std::map<String, VAR, CaseInsensitiveCompare> variables;
 
-static void varsetvalue(VAR* var, VAR_VALUE* value)
+/**
+\brief Sets a variable with a value.
+\param [in,out] Var The variable to set the value of. The previous value will be freed. Cannot be null.
+\param [in] Value The new value. Cannot be null.
+*/
+void varsetvalue(VAR* Var, VAR_VALUE* Value)
 {
     // VAR_STRING needs to be freed before destroying it
-    if(var->value.type == VAR_STRING)
+    if(Var->value.type == VAR_STRING)
     {
-        var->value.u.data->clear();
-        delete var->value.u.data;
+        Var->value.u.data->clear();
+        delete Var->value.u.data;
     }
 
     // Replace all information in the struct
-    memcpy(&var->value, value, sizeof(VAR_VALUE));
+    memcpy(&Var->value, Value, sizeof(VAR_VALUE));
 }
 
-static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
+/**
+\brief Sets a variable by name.
+\param Name The name of the variable. Cannot be null.
+\param Value The new value. Cannot be null.
+\param ReadOnly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set correctly, false otherwise.
+*/
+bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly)
 {
     EXCLUSIVE_ACQUIRE(LockVariables);
 
     String name_;
-    if(*name != '$')
+    if(*Name != '$')
         name_ = "$";
-    name_ += name;
-    VariableMap::iterator found = variables.find(name_);
+    name_ += Name;
+    auto found = variables.find(name_);
     if(found == variables.end())  //not found
         return false;
     if(found->second.alias.length())
@@ -33,15 +53,18 @@ static bool varset(const char* name, VAR_VALUE* value, bool setreadonly)
         // Release the lock (potential deadlock here)
         EXCLUSIVE_RELEASE();
 
-        return varset(found->second.alias.c_str(), value, setreadonly);
+        return varset(found->second.alias.c_str(), Value, ReadOnly);
     }
 
-    if(!setreadonly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
+    if(!ReadOnly && (found->second.type == VAR_READONLY || found->second.type == VAR_HIDDEN))
         return false;
-    varsetvalue(&found->second, value);
+    varsetvalue(&found->second, Value);
     return true;
 }
 
+/**
+\brief Initializes various default variables.
+*/
 void varinit()
 {
     varfree();
@@ -66,69 +89,81 @@ void varinit()
     varnew("$_BS_FLAG", 0, VAR_READONLY);   // Bigger/smaller flag for internal use (1=bigger, 0=smaller)
 }
 
+/**
+\brief Clears all variables.
+*/
 void varfree()
 {
-	EXCLUSIVE_ACQUIRE(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
 
-	// Each variable must be deleted manually; strings especially
-	// because there are sub-allocations
-	VAR_VALUE emptyValue;
+    // Each variable must be deleted manually; strings especially
+    // because there are sub-allocations
+    VAR_VALUE emptyValue;
 
-	for (auto& itr : variables)
-		varsetvalue(&itr.second, &emptyValue);
+    for (auto& itr : variables)
+        varsetvalue(&itr.second, &emptyValue);
 
-	// Now clear all vector elements
+    // Now clear all vector elements
     variables.clear();
 }
 
-VAR* vargetptr()
+/**
+\brief Creates a new variable.
+\param Name The name of the variable. You can specify alias names by separating the names by '\1'. Cannot be null.
+\param Value The new variable value.
+\param Type The variable type.
+\return true if the new variables was created and set successfully, false otherwise.
+*/
+bool varnew(const char* Name, uint Value, VAR_TYPE Type)
 {
-    // TODO: Implement this? Or remove it
-    return nullptr;
-}
-
-bool varnew(const char* name, uint value, VAR_TYPE type)
-{
-    if(!name)
+    if(!Name)
         return false;
 
-    CriticalSectionLocker locker(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
 
-    std::vector<String> names = StringUtils::Split(name, '\1');
+    std::vector<String> names = StringUtils::Split(Name, '\1');
     String firstName;
     for(int i = 0; i < (int)names.size(); i++)
     {
         String name_;
-        name = names.at(i).c_str();
-        if(*name != '$')
+        Name = names.at(i).c_str();
+        if(*Name != '$')
             name_ = "$";
-        name_ += name;
+        name_ += Name;
         if(!i)
-            firstName = name;
+            firstName = Name;
         if(variables.find(name_) != variables.end()) //found
             return false;
         VAR var;
         var.name = name_;
         if(i)
             var.alias = firstName;
-        var.type = type;
+        var.type = Type;
         var.value.size = sizeof(uint);
         var.value.type = VAR_UINT;
-        var.value.u.value = value;
+        var.value.u.value = Value;
         variables.insert(std::make_pair(name_, var));
     }
     return true;
 }
 
-static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type)
+/**
+\brief Gets a variable value.
+\param Name The name of the variable.
+\param [out] Value This function can get the variable value. If this value is null, it is ignored.
+\param [out] Size This function can get the variable size. If this value is null, it is ignored.
+\param [out] Type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
+bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type)
 {
     SHARED_ACQUIRE(LockVariables);
 
     String name_;
-    if(*name != '$')
+    if(*Name != '$')
         name_ = "$";
-    name_ += name;
-    VariableMap::iterator found = variables.find(name_);
+    name_ += Name;
+    auto found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
@@ -136,89 +171,130 @@ static bool varget(const char* name, VAR_VALUE* value, int* size, VAR_TYPE* type
         // Release the lock (potential deadlock here)
         SHARED_RELEASE();
 
-        return varget(found->second.alias.c_str(), value, size, type);
+        return varget(found->second.alias.c_str(), Value, Size, Type);
     }
-    if(type)
-        *type = found->second.type;
-    if(size)
-        *size = found->second.value.size;
-    if(value)
-        *value = found->second.value;
+    if(Type)
+        *Type = found->second.type;
+    if(Size)
+        *Size = found->second.value.size;
+    if(Value)
+        *Value = found->second.value;
     return true;
 }
 
-bool varget(const char* name, uint* value, int* size, VAR_TYPE* type)
+/**
+\brief Gets a variable value.
+\param Name The name of the variable.
+\param [out] Value This function can get the variable value. If this value is null, it is ignored.
+\param [out] Size This function can get the variable size. If this value is null, it is ignored.
+\param [out] Type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
+bool varget(const char* Name, uint* Value, int* Size, VAR_TYPE* Type)
 {
     VAR_VALUE varvalue;
     int varsize;
     VAR_TYPE vartype;
-    if(!varget(name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_UINT)
+    if(!varget(Name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_UINT)
         return false;
-    if(size)
-        *size = varsize;
-    if(!value && size)
-        return true; //variable was valid, just get the size
-    if(type)
-        *type = vartype;
-    if(value)
-        *value = varvalue.u.value;
+    if(Size)
+        *Size = varsize;
+    if(Type)
+        *Type = vartype;
+    if(Value)
+        *Value = varvalue.u.value;
     return true;
 }
 
-bool varget(const char* name, char* string, int* size, VAR_TYPE* type)
+/**
+\brief Gets a variable value.
+\param Name The name of the variable.
+\param [out] String This function can get the variable value. If this value is null, it is ignored.
+\param [out] Size This function can get the variable size. If this value is null, it is ignored.
+\param [out] Type This function can get the variable type. If this value is null, it is ignored.
+\return true if the variable was found and the optional values were retrieved successfully, false otherwise.
+*/
+bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type)
 {
     VAR_VALUE varvalue;
     int varsize;
     VAR_TYPE vartype;
-    if(!varget(name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_STRING)
+    if(!varget(Name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_STRING)
         return false;
-    if(size)
-        *size = varsize;
-    if(!string && size)
-        return true; //variable was valid, just get the size
-    if(type)
-        *type = vartype;
-    if(string)
-        memcpy(string, &varvalue.u.data->front(), varsize);
+    if(Size)
+        *Size = varsize;
+    if(Type)
+        *Type = vartype;
+    if(String)
+        memcpy(String, varvalue.u.data->data(), varsize);
     return true;
 }
 
-bool varset(const char* name, uint value, bool setreadonly)
+/**
+\brief Sets a variable by name.
+\param Name The name of the variable. Cannot be null.
+\param Value The new value.
+\param ReadOnly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set successfully, false otherwise.
+*/
+bool varset(const char* Name, uint Value, bool ReadOnly)
 {
-    VAR_VALUE varvalue;
-    varvalue.size = sizeof(uint);
-    varvalue.type = VAR_UINT;
-    varvalue.u.value = value;
-    return varset(name, &varvalue, setreadonly);
+    // Insert variable as an unsigned integer
+    VAR_VALUE varValue;
+    varValue.size       = sizeof(uint);
+    varValue.type       = VAR_UINT;
+    varValue.u.value    = Value;
+
+    return varset(Name, &varValue, ReadOnly);
 }
 
-bool varset(const char* name, const char* string, bool setreadonly)
+/**
+\brief Sets a variable by name.
+\param Name The name of the variable. Cannot be null.
+\param Value The new value. Cannot be null.
+\param ReadOnly true to set read-only variables (like $hProcess etc.).
+\return true if the variable was set successfully, false otherwise.
+*/
+bool varset(const char* Name, const char* Value, bool ReadOnly)
 {
-    VAR_VALUE varvalue;
-    int size = (int)strlen(string);
-    varvalue.size = size;
-    varvalue.type = VAR_STRING;
-    varvalue.u.data = new std::vector<unsigned char>;
-    varvalue.u.data->resize(size);
-    memcpy(&varvalue.u.data->front(), string, size);
-    if(!varset(name, &varvalue, setreadonly))
+    VAR_VALUE varValue;
+    int stringLen   = (int)strlen(Value);
+    varValue.size   = stringLen;
+    varValue.type   = VAR_STRING;
+    varValue.u.data = new std::vector<unsigned char>;
+
+    // Allocate space for the string
+    varValue.u.data->resize(stringLen);
+
+    // Copy directly to vector array
+    memcpy(varValue.u.data->data(), Value, stringLen);
+
+    // Try to register variable
+    if(!varset(Name, &varValue, ReadOnly))
     {
-        varvalue.u.data->clear();
-        delete varvalue.u.data;
+        varValue.u.data->clear();
+        delete varValue.u.data;
         return false;
     }
+
     return true;
 }
 
-bool vardel(const char* name, bool delsystem)
+/**
+\brief Deletes a variable.
+\param Name The name of the variable to delete. Cannot be null.
+\param DelSystem true to allow deleting system variables.
+\return true if the variable was deleted successfully, false otherwise.
+*/
+bool vardel(const char* Name, bool DelSystem)
 {
     EXCLUSIVE_ACQUIRE(LockVariables);
 
     String name_;
-    if(*name != '$')
+    if(*Name != '$')
         name_ = "$";
-    name_ += name;
-    VariableMap::iterator found = variables.find(name_);
+    name_ += Name;
+    auto found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
@@ -226,42 +302,55 @@ bool vardel(const char* name, bool delsystem)
         // Release the lock (potential deadlock here)
         EXCLUSIVE_RELEASE();
 
-        return vardel(found->second.alias.c_str(), delsystem);
+        return vardel(found->second.alias.c_str(), DelSystem);
     }
 
-    if(!delsystem && found->second.type != VAR_USER)
+    if(!DelSystem && found->second.type != VAR_USER)
         return false;
     found = variables.begin();
     while(found != variables.end())
     {
-        VariableMap::iterator del = found;
+        auto del = found;
         found++;
-        if(found->second.name == String(name))
+        if(found->second.name == String(Name))
             variables.erase(del);
     }
     return true;
 }
 
-bool vargettype(const char* name, VAR_TYPE* type, VAR_VALUE_TYPE* valtype)
+/**
+\brief Gets a variable type.
+\param Name The name of the variable. Cannot be null.
+\param [out] Type This function can retrieve the variable type. If null it is ignored.
+\param [out] ValueType This function can retrieve the variable value type. If null it is ignored.
+\return true if getting the type was successful, false otherwise.
+*/
+bool vargettype(const char* Name, VAR_TYPE* Type, VAR_VALUE_TYPE* ValueType)
 {
     SHARED_ACQUIRE(LockVariables);
 
     String name_;
-    if(*name != '$')
+    if(*Name != '$')
         name_ = "$";
-    name_ += name;
-    VariableMap::iterator found = variables.find(name_);
+    name_ += Name;
+    auto found = variables.find(name_);
     if(found == variables.end()) //not found
         return false;
     if(found->second.alias.length())
-        return vargettype(found->second.alias.c_str(), type, valtype);
-    if(valtype)
-        *valtype = found->second.value.type;
-    if(type)
-        *type = found->second.type;
+        return vargettype(found->second.alias.c_str(), Type, ValueType);
+    if(ValueType)
+        *ValueType = found->second.value.type;
+    if(Type)
+        *Type = found->second.type;
     return true;
 }
 
+/**
+\brief Enumerates all variables.
+\param [in,out] List A pointer to place the variables in. If null, \p cbsize will be filled to the number of bytes required.
+\param [in,out] Size This function retrieves the number of bytes required to store all variables. Can be null if \p entries is not null.
+\return true if it succeeds, false if it fails.
+*/
 bool varenum(VAR* List, size_t* Size)
 {
     // A list or size must be requested

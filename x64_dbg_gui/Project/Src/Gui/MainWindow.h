@@ -19,6 +19,7 @@
 #include "CalculatorDialog.h"
 #include "StatusLabel.h"
 #include "UpdateChecker.h"
+#include "SourceViewerManager.h"
 
 namespace Ui
 {
@@ -62,6 +63,7 @@ public slots:
     void execSkip();
     void displayCpuWidget();
     void displaySymbolWidget();
+    void displaySourceViewWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
     void openSettings();
@@ -87,6 +89,7 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
+    void setGlobalShortcut(QAction* action, const QKeySequence & key);
     void refreshShortcuts();
     void openShortcuts();
     void changeTopmost(bool checked);
@@ -106,6 +109,7 @@ private:
     CallStackView* mCallStackView;
     LogView* mLogView;
     SymbolView* mSymbolView;
+    SourceViewerManager* mSourceViewManager;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
     ReferenceManager* mReferenceManager;

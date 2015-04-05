@@ -1,3 +1,9 @@
+/**
+ @file _exports.cpp
+
+ @brief Implements the exports class.
+ */
+
 #include "_exports.h"
 #include "memory.h"
 #include "debugger.h"
@@ -21,6 +27,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
+#include "error.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -47,11 +54,17 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     memmap->count = pagecount;
     if(!pagecount)
         return true;
+
+    // Allocate memory that is already zeroed
     memmap->page = (MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE) * pagecount);
-    memset(memmap->page, 0, sizeof(MEMPAGE)*pagecount);
-    int j = 0;
-    for(MemoryMap::iterator i = memoryPages.begin(); i != memoryPages.end(); ++i, j++)
-        memcpy(&memmap->page[j], &i->second, sizeof(MEMPAGE));
+
+    // Copy all elements over
+    int i = 0;
+
+    for (auto& itr : memoryPages)
+        memcpy(&memmap->page[i++], &itr.second, sizeof(MEMPAGE));
+
+    // Done
     return true;
 }
 
@@ -99,7 +112,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flaglabel)
     {
-        if(labelget(addr, addrinfo->label))
+        if(LabelGet(addr, addrinfo->label))
             retval = true;
         else //no user labels
         {
@@ -148,7 +161,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagloop)
     {
-        if(loopget(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
             retval = true;
     }
     if(addrinfo->flags & flagcomment)
@@ -295,7 +308,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoset(duint addr, ADDRINFO* addrinfo)
     bool retval = false;
     if(addrinfo->flags & flaglabel) //set label
     {
-        if(labelset(addr, addrinfo->label, true))
+        if(LabelSet(addr, addrinfo->label, true))
             retval = true;
     }
     if(addrinfo->flags & flagcomment) //set comment
@@ -490,11 +503,15 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
     Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
     Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
+    LASTERROR lastError;
+    lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
+    lastError.name = ErrorCodeToName(lastError.code);
+    regdump->lastError = lastError;
 
     return true;
 }
 
-extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint* value)
+extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint value)
 {
     return valtostring(string, value, true);
 }
@@ -731,6 +748,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments");
         bListAllPages = settingboolget("Engine", "ListAllPages");
         bUndecorateSymbolNames = settingboolget("Engine", "UndecorateSymbolNames");
+        bEnableSourceDebugging = settingboolget("Engine", "EnableSourceDebugging");
 
         uint setting;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
@@ -833,28 +851,28 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_LOOP_GET:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopget(info->depth, info->addr, &info->start, &info->end);
+        return (uint)LoopGet(info->depth, info->addr, &info->start, &info->end);
     }
     break;
 
     case DBG_LOOP_OVERLAPS:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopoverlaps(info->depth, info->start, info->end, 0);
+        return (uint)LoopOverlaps(info->depth, info->start, info->end, 0);
     }
     break;
 
     case DBG_LOOP_ADD:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopadd(info->start, info->end, info->manual);
+        return (uint)LoopAdd(info->start, info->end, info->manual);
     }
     break;
 
     case DBG_LOOP_DEL:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopdel(info->depth, info->addr);
+        return (uint)LoopDelete(info->depth, info->addr);
     }
     break;
 
@@ -887,13 +905,13 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_SET_AUTO_LABEL_AT:
     {
-        return (uint)labelset((uint)param1, (const char*)param2, false);
+        return (uint)LabelSet((uint)param1, (const char*)param2, false);
     }
     break;
 
     case DBG_DELETE_AUTO_LABEL_RANGE:
     {
-        labeldelrange((uint)param1, (uint)param2);
+        LabelDelRange((uint)param1, (uint)param2);
     }
     break;
 

@@ -1,6 +1,7 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
+#include <agents.h>
 #include <QObject>
 #include <QMutex>
 #include "Imports.h"
@@ -82,6 +83,7 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
+    void emitLoadSourceFile(const QString path, int line = 0);
 
     //Public variables
     void* winId;
@@ -147,6 +149,7 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
+    void loadSourceFile(const QString path, int line);
 
 private:
     QMutex* mBridgeMutex;

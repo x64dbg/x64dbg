@@ -16,7 +16,7 @@ struct PatternByte
 static string formathexpattern(string patterntext)
 {
     string result;
-    int len = patterntext.length();
+    int len = (int)patterntext.length();
     for(int i = 0; i < len; i++)
         if(patterntext[i] == '?' || isxdigit(patterntext[i]))
             result += toupper(patterntext[i]);
@@ -38,7 +38,7 @@ static bool patterntransform(string patterntext, vector<PatternByte> & pattern)
 {
     pattern.clear();
     patterntext = formathexpattern(patterntext);
-    int len = patterntext.length();
+    int len = (int)patterntext.length();
     if(!len)
         return false;
 

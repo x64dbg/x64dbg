@@ -13,12 +13,14 @@ public:
 
 signals:
     void showCpu();
+    void showReferences();
 
 public slots:
     void refreshShortcutsSlot();
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
     void followDisassemblerSlot();
+    void yaraSlot();
     void memoryAccessSingleshootSlot();
     void memoryAccessRestoreSlot();
     void memoryWriteSingleshootSlot();
@@ -28,7 +30,6 @@ public slots:
     void memoryRemoveSlot();
     void memoryExecuteSingleshootToggleSlot();
     void contextMenuSlot(const QPoint & pos);
-    void doubleClickedSlot();
     void switchView();
     void pageMemoryRights();
     void refreshMap();
@@ -38,6 +39,7 @@ private:
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
+    QAction* mYara;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
 

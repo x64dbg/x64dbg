@@ -1,3 +1,9 @@
+/**
+ @file _dbgfunctions.cpp
+
+ @brief Implements the dbgfunctions class.
+ */
+
 #include "_global.h"
 #include "_dbgfunctions.h"
 #include "assemble.h"
@@ -19,7 +25,7 @@ const DBGFUNCTIONS* dbgfunctionsget()
 
 static bool _assembleatex(duint addr, const char* instruction, char* error, bool fillnop)
 {
-    return assembleat(addr, instruction, 0, error, fillnop);
+    return assembleat(addr, instruction, nullptr, error, fillnop);
 }
 
 static bool _sectionfromaddr(duint addr, char* section)
@@ -53,44 +59,42 @@ static bool _sectionfromaddr(duint addr, char* section)
 
 static bool _patchget(duint addr)
 {
-    return patchget(addr, 0);
+    return PatchGet(addr, nullptr);
 }
 
 static bool _patchinrange(duint start, duint end)
 {
     if(start > end)
+        std::swap(start, end);
+
+    for (duint i = start; i <= end; i++)
     {
-        duint a = start;
-        start = end;
-        end = a;
-    }
-    for(duint i = start; i < end + 1; i++)
-        if(_patchget(i))
+        if (_patchget(i))
             return true;
+    }
+
     return false;
 }
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    return MemPatch((void*)va, (void*)src, size, 0);
+    return MemPatch((void*)va, (void*)src, size, nullptr);
 }
 
 static void _patchrestorerange(duint start, duint end)
 {
-    if(start > end)
-    {
-        duint a = start;
-        start = end;
-        end = a;
-    }
-    for(duint i = start; i < end + 1; i++)
-        patchdel(i, true);
+    if (start > end)
+        std::swap(start, end);
+
+    for(duint i = start; i <= end; i++)
+        PatchDelete(i, true);
+
     GuiUpdatePatches();
 }
 
 static bool _patchrestore(duint addr)
 {
-    return patchdel(addr, true);
+    return PatchDelete(addr, true);
 }
 
 static void _getcallstack(DBGCALLSTACK* callstack)
@@ -120,7 +124,7 @@ static bool _getcmdline(char* cmd_line, size_t* cbsize)
 
 static bool _setcmdline(const char* cmd_line)
 {
-    return dbgsetcmdline(cmd_line, NULL);
+    return dbgsetcmdline(cmd_line, nullptr);
 }
 
 static bool _getjit(char* jit, bool jit64)
@@ -178,9 +182,9 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchInRange = _patchinrange;
     _dbgfunctions.MemPatch = _mempatch;
     _dbgfunctions.PatchRestoreRange = _patchrestorerange;
-    _dbgfunctions.PatchEnum = (PATCHENUM)patchenum;
+    _dbgfunctions.PatchEnum = (PATCHENUM)PatchEnum;
     _dbgfunctions.PatchRestore = _patchrestore;
-    _dbgfunctions.PatchFile = (PATCHFILE)patchfile;
+    _dbgfunctions.PatchFile = (PATCHFILE)PatchFile;
     _dbgfunctions.ModPathFromAddr = ModPathFromAddr;
     _dbgfunctions.ModPathFromName = ModPathFromName;
     _dbgfunctions.DisasmFast = disasmfast;

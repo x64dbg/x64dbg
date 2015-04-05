@@ -4,7 +4,7 @@
 #include "symbolinfo.h"
 #include "murmurhash.h"
 
-static ModulesInfo modinfo;
+std::map<Range, MODINFO, RangeCompare> modinfo;
 
 bool ModLoad(uint Base, uint Size, const char* FullPath)
 {
@@ -93,11 +93,11 @@ bool ModUnload(uint Base)
     if(found == modinfo.end())
         return false;
 
-    // Remove it from the list
-    modinfo.erase(found);
-
     // Unload everything from TitanEngine
     StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
+
+    // Remove it from the list
+    modinfo.erase(found);
     EXCLUSIVE_RELEASE();
 
     // Update symbols
@@ -199,8 +199,8 @@ uint ModBaseFromName(const char* Module)
     for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
     {
         char currentModule[MAX_MODULE_SIZE];
-		strcpy_s(currentModule, itr->second.name);
-		strcat_s(currentModule, itr->second.extension);
+        strcpy_s(currentModule, itr->second.name);
+        strcat_s(currentModule, itr->second.extension);
 
         // Test with and without extension
         if(!_stricmp(currentModule, Module) || !_stricmp(itr->second.name, Module))

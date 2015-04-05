@@ -1,10 +1,14 @@
+/**
+ @file _plugins.cpp
+
+ @brief Implements the plugins class.
+ */
+
 #include "_plugins.h"
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
 #include "threading.h"
-
-static char msg[66000];
 
 ///debugger plugin exports (wrappers)
 PLUG_IMPEXP void _plugin_registercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
@@ -30,9 +34,10 @@ PLUG_IMPEXP bool _plugin_unregistercommand(int pluginHandle, const char* command
 PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
 {
     va_list args;
+
     va_start(args, format);
-    vsprintf(msg, format, args);
-    GuiAddLogMessage(msg);
+    dprintf_args(format, args);
+    va_end(args);
 }
 
 PLUG_IMPEXP void _plugin_logputs(const char* text)

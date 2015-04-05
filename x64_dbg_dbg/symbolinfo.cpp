@@ -1,3 +1,9 @@
+/**
+ @file symbolinfo.cpp
+
+ @brief Implements the symbolinfo class.
+ */
+
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "addrinfo.h"
@@ -93,12 +99,12 @@ void SymUpdateModuleList()
     if(!SymGetModuleList(&modList))
         return;
 
-	// Create a new array to be sent to the GUI thread
-	size_t moduleCount		= modList.size();
-	SYMBOLMODULEINFO *data	= (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+    // Create a new array to be sent to the GUI thread
+    size_t moduleCount      = modList.size();
+    SYMBOLMODULEINFO *data  = (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
 
-	// Direct copy from std::vector data
-	memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
+    // Direct copy from std::vector data
+    memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
 
     // Send the module data to the GUI for updating
     GuiSymbolUpdateModuleList((int)moduleCount, data);
@@ -206,7 +212,7 @@ const char* SymGetSymbolicName(uint Address)
 
     // User labels have priority, but if one wasn't found,
     // default to a symbol lookup
-    if(!labelget(Address, label))
+    if(!LabelGet(Address, label))
     {
         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 
@@ -241,4 +247,54 @@ const char* SymGetSymbolicName(uint Address)
         sprintf_s(symbolicname, "<%s>", label);
 
     return symbolicname;
+}
+
+bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
+{
+    IMAGEHLP_LINE64 lineInfo;
+    memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));
+
+    lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+    // Perform a symbol lookup from a specific address
+    DWORD displacement;
+
+    if(!SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, Cip, &displacement, &lineInfo))
+        return false;
+
+    // Copy line number if requested
+    if(Line)
+        *Line = lineInfo.LineNumber;
+
+    // Copy file name if requested
+    if (FileName)
+    {
+        // Check if it was a full path
+        if (lineInfo.FileName[1] == ':' && lineInfo.FileName[2] == '\\')
+        {
+            // Success: no more parsing
+            strcpy_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
+            return true;
+        }
+
+        // Construct full path from .pdb path
+        IMAGEHLP_MODULE64 modInfo;
+        memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
+        modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+
+        if (!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, Cip, &modInfo))
+            return false;
+
+        // Strip the full path, leaving only the file name
+        char* fileName = strrchr(modInfo.LoadedPdbName, '\\');
+
+        if (fileName)
+            fileName[1] = '\0';
+
+        // Copy back to the caller's buffer
+        strcpy_s(FileName, MAX_STRING_SIZE, modInfo.LoadedPdbName);
+        strcat_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
+    }
+
+    return true;
 }

@@ -4,9 +4,7 @@
 #include "memory.h"
 #include "threading.h"
 
-typedef std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> FunctionsInfo;
-
-static FunctionsInfo functions;
+std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
 bool FunctionAdd(uint Start, uint End, bool Manual)
 {
@@ -47,22 +45,22 @@ bool FunctionGet(uint Address, uint* Start, uint* End)
     if(!DbgIsDebugging())
         return false;
 
-    const uint modbase = ModBaseFromAddr(Address);
+    const uint moduleBase = ModBaseFromAddr(Address);
 
     // Lookup by module hash, then function range
     SHARED_ACQUIRE(LockFunctions);
 
-    auto found = functions.find(ModuleRange(ModHashFromAddr(modbase), Range(Address - modbase, Address - modbase)));
+    auto found = functions.find(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase)));
 
     // Was this range found?
     if(found == functions.end())
         return false;
 
     if(Start)
-        *Start = found->second.start + modbase;
+        *Start = found->second.start + moduleBase;
 
     if(End)
-        *End = found->second.end + modbase;
+        *End = found->second.end + moduleBase;
 
     return true;
 }
@@ -102,7 +100,7 @@ void FunctionDelRange(uint Start, uint End)
         return;
 
     // Should all functions be deleted?
-	// 0x00000000 - 0xFFFFFFFF
+    // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockFunctions);
@@ -186,36 +184,39 @@ void FunctionCacheLoad(JSON Root)
         JSON value;
         json_array_foreach(Object, i, value)
         {
-            FUNCTIONSINFO function;
+            FUNCTIONSINFO functionInfo;
+            memset(&functionInfo, 0, sizeof(FUNCTIONSINFO));
 
             // Copy module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
-                strcpy_s(function.mod, mod);
+                strcpy_s(functionInfo.mod, mod);
             else
-                function.mod[0] = '\0';
+                functionInfo.mod[0] = '\0';
 
             // Function address
-            function.start  = (uint)json_hex_value(json_object_get(value, "start"));
-            function.end    = (uint)json_hex_value(json_object_get(value, "end"));
-            function.manual = Manual;
+            functionInfo.start  = (uint)json_hex_value(json_object_get(value, "start"));
+            functionInfo.end    = (uint)json_hex_value(json_object_get(value, "end"));
+            functionInfo.manual = Manual;
 
             // Sanity check
-            if(function.end < function.start)
+            if(functionInfo.end < functionInfo.start)
                 continue;
 
-            const uint key = ModHashFromName(function.mod);
-            functions.insert(std::make_pair(ModuleRange(ModHashFromName(function.mod), Range(function.start, function.end)), function));
+            const uint key = ModHashFromName(functionInfo.mod);
+            functions.insert(std::make_pair(ModuleRange(key, Range(functionInfo.start, functionInfo.end)), functionInfo));
         }
     };
 
     const JSON jsonFunctions        = json_object_get(Root, "functions");
     const JSON jsonAutoFunctions    = json_object_get(Root, "autofunctions");
 
+    // Manual
     if(jsonFunctions)
         InsertFunctions(jsonFunctions, true);
 
+    // Auto
     if(jsonAutoFunctions)
         InsertFunctions(jsonAutoFunctions, false);
 }

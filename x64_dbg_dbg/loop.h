@@ -13,13 +13,13 @@ struct LOOPSINFO
     bool manual;
 };
 
-bool loopadd(uint start, uint end, bool manual);
-bool loopget(int depth, uint addr, uint* start, uint* end);
-bool loopoverlaps(int depth, uint start, uint end, int* finaldepth);
-bool loopdel(int depth, uint addr);
-void loopcachesave(JSON root);
-void loopcacheload(JSON root);
-bool loopenum(LOOPSINFO* looplist, size_t* cbsize);
-void loopclear();
+bool LoopAdd(uint Start, uint End, bool Manual);
+bool LoopGet(int Depth, uint Address, uint* Start, uint* End);
+bool LoopOverlaps(int Depth, uint Start, uint End, int* FinalDepth);
+bool LoopDelete(int Depth, uint Address);
+void LoopCacheSave(JSON Root);
+void LoopCacheLoad(JSON Root);
+bool LoopEnum(LOOPSINFO* List, size_t* Size);
+void LoopClear();
 
 #endif //_LOOP_H
