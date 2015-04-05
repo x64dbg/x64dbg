@@ -1437,14 +1437,14 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
     size_t cbsize;
-    loopenum(0, &cbsize);
+    LoopEnum(0, &cbsize);
     if(!cbsize)
     {
         dputs("no loops");
         return STATUS_CONTINUE;
     }
     Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
-    loopenum(loops, 0);
+    LoopEnum(loops, 0);
     int count = (int)(cbsize / sizeof(LOOPSINFO));
     for(int i = 0; i < count; i++)
     {

@@ -161,7 +161,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagloop)
     {
-        if(loopget(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
+        if(LoopGet(addrinfo->loop.depth, addr, &addrinfo->loop.start, &addrinfo->loop.end))
             retval = true;
     }
     if(addrinfo->flags & flagcomment)
@@ -851,28 +851,28 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_LOOP_GET:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopget(info->depth, info->addr, &info->start, &info->end);
+        return (uint)LoopGet(info->depth, info->addr, &info->start, &info->end);
     }
     break;
 
     case DBG_LOOP_OVERLAPS:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopoverlaps(info->depth, info->start, info->end, 0);
+        return (uint)LoopOverlaps(info->depth, info->start, info->end, 0);
     }
     break;
 
     case DBG_LOOP_ADD:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopadd(info->start, info->end, info->manual);
+        return (uint)LoopAdd(info->start, info->end, info->manual);
     }
     break;
 
     case DBG_LOOP_DEL:
     {
         FUNCTION_LOOP_INFO* info = (FUNCTION_LOOP_INFO*)param1;
-        return (uint)loopdel(info->depth, info->addr);
+        return (uint)LoopDelete(info->depth, info->addr);
     }
     break;
 
