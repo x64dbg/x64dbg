@@ -45,7 +45,7 @@ enum SectionLock
     LockPatches,
     LockThreads,
     LockDprintf,
-	LockSym,
+    LockSym,
 
     // This is defined because of a bug in the Windows 8.1 kernel;
     // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
@@ -85,8 +85,8 @@ public:
             Unlock();
 
 #ifdef _DEBUG
-		// TODO: Assert that the lock count is zero on destructor
-		if (m_LockCount > 0)
+        // TODO: Assert that the lock count is zero on destructor
+        if (m_LockCount > 0)
             __debugbreak();
 #endif
     }

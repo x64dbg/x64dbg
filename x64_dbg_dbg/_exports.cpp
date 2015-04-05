@@ -55,16 +55,16 @@ extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
     if(!pagecount)
         return true;
 
-	// Allocate memory that is already zeroed
+    // Allocate memory that is already zeroed
     memmap->page = (MEMPAGE*)BridgeAlloc(sizeof(MEMPAGE) * pagecount);
 
-	// Copy all elements over
+    // Copy all elements over
     int i = 0;
 
-	for (auto& itr : memoryPages)
-		memcpy(&memmap->page[i++], &itr.second, sizeof(MEMPAGE));
+    for (auto& itr : memoryPages)
+        memcpy(&memmap->page[i++], &itr.second, sizeof(MEMPAGE));
 
-	// Done
+    // Done
     return true;
 }
 
@@ -513,7 +513,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
 
 extern "C" DLL_EXPORT bool _dbg_valtostring(const char* string, duint value)
 {
-	return valtostring(string, value, true);
+    return valtostring(string, value, true);
 }
 
 extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)

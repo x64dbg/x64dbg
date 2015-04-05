@@ -93,10 +93,10 @@ bool ModUnload(uint Base)
     if(found == modinfo.end())
         return false;
 
-	// Unload everything from TitanEngine
-	StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
+    // Unload everything from TitanEngine
+    StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
 
-	// Remove it from the list
+    // Remove it from the list
     modinfo.erase(found);
     EXCLUSIVE_RELEASE();
 
@@ -199,8 +199,8 @@ uint ModBaseFromName(const char* Module)
     for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
     {
         char currentModule[MAX_MODULE_SIZE];
-		strcpy_s(currentModule, itr->second.name);
-		strcat_s(currentModule, itr->second.extension);
+        strcpy_s(currentModule, itr->second.name);
+        strcat_s(currentModule, itr->second.extension);
 
         // Test with and without extension
         if(!_stricmp(currentModule, Module) || !_stricmp(itr->second.name, Module))

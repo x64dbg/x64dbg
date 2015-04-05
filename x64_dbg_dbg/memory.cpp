@@ -11,11 +11,11 @@
 #include "threading.h"
 #include "module.h"
 
-#define PAGE_SHIFT				(12)
-#define PAGE_SIZE				(4096)
-#define PAGE_ALIGN(Va)			((ULONG_PTR)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
-#define BYTES_TO_PAGES(Size)	(((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
-#define ROUND_TO_PAGES(Size)	(((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+#define PAGE_SHIFT              (12)
+#define PAGE_SIZE               (4096)
+#define PAGE_ALIGN(Va)          ((ULONG_PTR)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
+#define BYTES_TO_PAGES(Size)    (((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
+#define ROUND_TO_PAGES(Size)    (((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
 
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
@@ -158,64 +158,64 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 
 bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
-	// Fast fail if address is invalid
-	if (!MemIsCanonicalAddress((uint)BaseAddress))
-		return false;
+    // Fast fail if address is invalid
+    if (!MemIsCanonicalAddress((uint)BaseAddress))
+        return false;
 
-	// Buffer must be supplied and size must be greater than 0
-	if (!Buffer || Size <= 0)
-		return false;
+    // Buffer must be supplied and size must be greater than 0
+    if (!Buffer || Size <= 0)
+        return false;
 
-	// If the 'bytes read' parameter is null, use a temp
-	SIZE_T bytesReadTemp = 0;
+    // If the 'bytes read' parameter is null, use a temp
+    SIZE_T bytesReadTemp = 0;
 
-	if (!NumberOfBytesRead)
-		NumberOfBytesRead = &bytesReadTemp;
+    if (!NumberOfBytesRead)
+        NumberOfBytesRead = &bytesReadTemp;
 
-	// Normal single-call read
-	bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
+    // Normal single-call read
+    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
 
-	if (ret && *NumberOfBytesRead == Size)
-		return true;
+    if (ret && *NumberOfBytesRead == Size)
+        return true;
 
-	// Read page-by-page (Skip if only 1 page exists)
-	// If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
-	SIZE_T pageCount = BYTES_TO_PAGES(Size);
+    // Read page-by-page (Skip if only 1 page exists)
+    // If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
+    SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-	if (pageCount > 1)
-	{
-		// Determine the number of bytes between ADDRESS and the next page
-		uint offset		= 0;
-		uint readBase	= (uint)BaseAddress;
-		uint readSize	= ROUND_TO_PAGES(readBase) - readBase;
+    if (pageCount > 1)
+    {
+        // Determine the number of bytes between ADDRESS and the next page
+        uint offset     = 0;
+        uint readBase   = (uint)BaseAddress;
+        uint readSize   = ROUND_TO_PAGES(readBase) - readBase;
 
-		// Reset the bytes read count
-		*NumberOfBytesRead = 0;
+        // Reset the bytes read count
+        *NumberOfBytesRead = 0;
 
-		for (SIZE_T i = 0; i < pageCount; i++)
-		{
-			SIZE_T bytesRead = 0;
+        for (SIZE_T i = 0; i < pageCount; i++)
+        {
+            SIZE_T bytesRead = 0;
 
-			if (MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
-				*NumberOfBytesRead += bytesRead;
+            if (MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
+                *NumberOfBytesRead += bytesRead;
 
-			offset		+= readSize;
-			readBase	+= readSize;
+            offset      += readSize;
+            readBase    += readSize;
 
-			Size		-= readSize;
-			readSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
-		}
-	}
+            Size        -= readSize;
+            readSize    = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+        }
+    }
 
-	SetLastError(ERROR_PARTIAL_COPY);
+    SetLastError(ERROR_PARTIAL_COPY);
     return (*NumberOfBytesRead > 0);
 }
 
 bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-	// Fast fail if address is invalid
-	if (!MemIsCanonicalAddress((uint)BaseAddress))
-		return false;
+    // Fast fail if address is invalid
+    if (!MemIsCanonicalAddress((uint)BaseAddress))
+        return false;
 
     // Buffer must be supplied and size must be greater than 0
     if(!Buffer || Size <= 0)
@@ -233,37 +233,37 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     if(ret && *NumberOfBytesWritten == Size)
         return true;
 
-	// Write page-by-page (Skip if only 1 page exists)
-	// See: MemRead
-	SIZE_T pageCount = BYTES_TO_PAGES(Size);
+    // Write page-by-page (Skip if only 1 page exists)
+    // See: MemRead
+    SIZE_T pageCount = BYTES_TO_PAGES(Size);
 
-	if (pageCount > 1)
-	{
-		// Determine the number of bytes between ADDRESS and the next page
-		uint offset		= 0;
-		uint writeBase	= (uint)BaseAddress;
-		uint writeSize	= ROUND_TO_PAGES(writeBase) - writeBase;
+    if (pageCount > 1)
+    {
+        // Determine the number of bytes between ADDRESS and the next page
+        uint offset     = 0;
+        uint writeBase  = (uint)BaseAddress;
+        uint writeSize  = ROUND_TO_PAGES(writeBase) - writeBase;
 
-		// Reset the bytes read count
-		*NumberOfBytesWritten = 0;
+        // Reset the bytes read count
+        *NumberOfBytesWritten = 0;
 
-		for (SIZE_T i = 0; i < pageCount; i++)
-		{
-			SIZE_T bytesWritten = 0;
+        for (SIZE_T i = 0; i < pageCount; i++)
+        {
+            SIZE_T bytesWritten = 0;
 
-			if (MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
-				*NumberOfBytesWritten += bytesWritten;
+            if (MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
+                *NumberOfBytesWritten += bytesWritten;
 
-			offset		+= writeSize;
-			writeBase	+= writeSize;
+            offset      += writeSize;
+            writeBase   += writeSize;
 
-			Size		-= writeSize;
-			writeSize	= (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
-		}
-	}
+            Size        -= writeSize;
+            writeSize   = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+        }
+    }
 
-	SetLastError(ERROR_PARTIAL_COPY);
-	return (*NumberOfBytesWritten > 0);
+    SetLastError(ERROR_PARTIAL_COPY);
+    return (*NumberOfBytesWritten > 0);
 }
 
 bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
@@ -297,16 +297,16 @@ bool MemIsValidReadPtr(uint Address)
 bool MemIsCanonicalAddress(uint Address)
 {
 #ifndef _WIN64
-	// 32-bit mode only supports 4GB max, so limits are
-	// not an issue
-	return true;
+    // 32-bit mode only supports 4GB max, so limits are
+    // not an issue
+    return true;
 #else
-	// The most-significant 16 bits must be all 1 or all 0.
-	// (64 - 16) = 48bit linear address range.
-	//
-	// 0xFFFF800000000000 = Significant 16 bits set
-	// 0x0000800000000000 = 48th bit set
-	return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
+    // The most-significant 16 bits must be all 1 or all 0.
+    // (64 - 16) = 48bit linear address range.
+    //
+    // 0xFFFF800000000000 = Significant 16 bits set
+    // 0x0000800000000000 = 48th bit set
+    return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
 #endif // _WIN64
 }
 

@@ -100,7 +100,7 @@ void FunctionDelRange(uint Start, uint End)
         return;
 
     // Should all functions be deleted?
-	// 0x00000000 - 0xFFFFFFFF
+    // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockFunctions);
@@ -185,7 +185,7 @@ void FunctionCacheLoad(JSON Root)
         json_array_foreach(Object, i, value)
         {
             FUNCTIONSINFO functionInfo;
-			memset(&functionInfo, 0, sizeof(FUNCTIONSINFO));
+            memset(&functionInfo, 0, sizeof(FUNCTIONSINFO));
 
             // Copy module name
             const char* mod = json_string_value(json_object_get(value, "module"));
@@ -212,11 +212,11 @@ void FunctionCacheLoad(JSON Root)
     const JSON jsonFunctions        = json_object_get(Root, "functions");
     const JSON jsonAutoFunctions    = json_object_get(Root, "autofunctions");
 
-	// Manual
+    // Manual
     if(jsonFunctions)
         InsertFunctions(jsonFunctions, true);
 
-	// Auto
+    // Auto
     if(jsonAutoFunctions)
         InsertFunctions(jsonAutoFunctions, false);
 }

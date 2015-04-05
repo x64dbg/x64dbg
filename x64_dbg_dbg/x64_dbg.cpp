@@ -247,7 +247,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
     if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
         return "Invalid REGISTERCONTEXT alignment!";
-	SectionLockerGlobal::Initialize();
+    SectionLockerGlobal::Initialize();
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(emalloc_json, efree_json);

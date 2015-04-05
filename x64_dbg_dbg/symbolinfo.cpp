@@ -99,12 +99,12 @@ void SymUpdateModuleList()
     if(!SymGetModuleList(&modList))
         return;
 
-	// Create a new array to be sent to the GUI thread
-	size_t moduleCount		= modList.size();
-	SYMBOLMODULEINFO *data	= (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+    // Create a new array to be sent to the GUI thread
+    size_t moduleCount      = modList.size();
+    SYMBOLMODULEINFO *data  = (SYMBOLMODULEINFO *)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
 
-	// Direct copy from std::vector data
-	memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
+    // Direct copy from std::vector data
+    memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
 
     // Send the module data to the GUI for updating
     GuiSymbolUpdateModuleList((int)moduleCount, data);
@@ -252,21 +252,21 @@ const char* SymGetSymbolicName(uint Address)
 bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
 {
     IMAGEHLP_LINE64 lineInfo;
-	memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));
+    memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));
 
     lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 
-	// Perform a symbol lookup from a specific address
-	DWORD displacement;
+    // Perform a symbol lookup from a specific address
+    DWORD displacement;
 
     if(!SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, Cip, &displacement, &lineInfo))
         return false;
 
-	// Copy line number if requested
+    // Copy line number if requested
     if(Line)
         *Line = lineInfo.LineNumber;
 
-	// Copy file name if requested
+    // Copy file name if requested
     if(FileName)
         strcpy_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
 

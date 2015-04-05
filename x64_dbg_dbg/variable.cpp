@@ -94,16 +94,16 @@ void varinit()
 */
 void varfree()
 {
-	EXCLUSIVE_ACQUIRE(LockVariables);
+    EXCLUSIVE_ACQUIRE(LockVariables);
 
-	// Each variable must be deleted manually; strings especially
-	// because there are sub-allocations
-	VAR_VALUE emptyValue;
+    // Each variable must be deleted manually; strings especially
+    // because there are sub-allocations
+    VAR_VALUE emptyValue;
 
-	for (auto& itr : variables)
-		varsetvalue(&itr.second, &emptyValue);
+    for (auto& itr : variables)
+        varsetvalue(&itr.second, &emptyValue);
 
-	// Now clear all vector elements
+    // Now clear all vector elements
     variables.clear();
 }
 

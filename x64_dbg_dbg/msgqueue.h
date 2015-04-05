@@ -17,7 +17,7 @@ struct MESSAGE
 // Supports an unlimited number of messages.
 struct MESSAGE_STACK
 {
-	concurrency::unbounded_buffer<MESSAGE> FIFOStack;
+    concurrency::unbounded_buffer<MESSAGE> FIFOStack;
 };
 
 MESSAGE_STACK* MsgAllocStack();

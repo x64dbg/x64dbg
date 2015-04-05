@@ -189,18 +189,18 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 
 void DebugUpdateGui(uint disasm_addr, bool stack)
 {
-	uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-	if (MemIsValidReadPtr(disasm_addr))
-	{
-		if (bEnableSourceDebugging)
-		{
-			char szSourceFile[MAX_STRING_SIZE] = "";
-			int line = 0;
-			if (SymGetSourceLine(cip, szSourceFile, &line))
-				GuiLoadSourceFile(szSourceFile, line);
-		}
-		GuiDisasmAt(disasm_addr, cip);
-	}
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    if (MemIsValidReadPtr(disasm_addr))
+    {
+        if (bEnableSourceDebugging)
+        {
+            char szSourceFile[MAX_STRING_SIZE] = "";
+            int line = 0;
+            if (SymGetSourceLine(cip, szSourceFile, &line))
+                GuiLoadSourceFile(szSourceFile, line);
+        }
+        GuiDisasmAt(disasm_addr, cip);
+    }
     uint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         GuiStackDumpAt(csp, csp);

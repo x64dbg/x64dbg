@@ -161,20 +161,20 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
 
 DWORD ThreadGetLastError(DWORD ThreadId)
 {
-	SHARED_ACQUIRE(LockThreads);
+    SHARED_ACQUIRE(LockThreads);
 
-	TEB teb;
-	for (auto & entry : threadList)
-	{
-		if (entry.ThreadId != ThreadId)
-			continue;
+    TEB teb;
+    for (auto & entry : threadList)
+    {
+        if (entry.ThreadId != ThreadId)
+            continue;
 
-		if (!ThreadGetTeb(entry.ThreadLocalBase, &teb))
-		{
-			// TODO: Assert (Why would the TEB fail?)
-			return 0;
-		}
-	}
+        if (!ThreadGetTeb(entry.ThreadLocalBase, &teb))
+        {
+            // TODO: Assert (Why would the TEB fail?)
+            return 0;
+        }
+    }
 
     return teb.LastErrorValue;
 }
@@ -226,7 +226,7 @@ DWORD ThreadGetId(HANDLE Thread)
     }
 
     // Wasn't found, check with Windows
-	// NOTE: Requires VISTA+
+    // NOTE: Requires VISTA+
     DWORD id = GetThreadId(Thread);
 
     // Returns 0 on error;

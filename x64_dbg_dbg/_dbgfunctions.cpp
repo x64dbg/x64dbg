@@ -65,13 +65,13 @@ static bool _patchget(duint addr)
 static bool _patchinrange(duint start, duint end)
 {
     if(start > end)
-		std::swap(start, end);
+        std::swap(start, end);
 
-	for (duint i = start; i <= end; i++)
-	{
-		if (_patchget(i))
-			return true;
-	}
+    for (duint i = start; i <= end; i++)
+    {
+        if (_patchget(i))
+            return true;
+    }
 
     return false;
 }
@@ -83,8 +83,8 @@ static bool _mempatch(duint va, const unsigned char* src, duint size)
 
 static void _patchrestorerange(duint start, duint end)
 {
-	if (start > end)
-		std::swap(start, end);
+    if (start > end)
+        std::swap(start, end);
 
     for(duint i = start; i <= end; i++)
         PatchDelete(i, true);

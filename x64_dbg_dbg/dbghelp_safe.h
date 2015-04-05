@@ -73,9 +73,9 @@ SafeSymEnumSymbols(
 );
 BOOL
 SafeSymEnumerateModules64(
-	__in HANDLE hProcess,
-	__in PSYM_ENUMMODULES_CALLBACK64 EnumModulesCallback,
-	__in_opt PVOID UserContext
+    __in HANDLE hProcess,
+    __in PSYM_ENUMMODULES_CALLBACK64 EnumModulesCallback,
+    __in_opt PVOID UserContext
 );
 BOOL
 SafeSymGetLineFromAddr64(
