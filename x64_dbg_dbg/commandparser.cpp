@@ -3,7 +3,7 @@
 Command::Command(const String & command)
 {
     ParseState state = Default;
-    int len = command.length();
+    int len = (int)command.length();
     for(int i = 0; i < len; i++)
     {
         char ch = command[i];
@@ -91,7 +91,7 @@ const String Command::GetText()
 
 const int Command::GetArgCount()
 {
-    return _tokens.size() ? _tokens.size() - 1 : 0;
+    return _tokens.size() ? (int)_tokens.size() - 1 : 0;
 }
 
 const String Command::GetArg(int argnum)

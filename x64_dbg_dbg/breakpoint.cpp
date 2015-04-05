@@ -52,7 +52,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         }
     }
 
-    return breakpoints.size();
+    return (int)breakpoints.size();
 }
 
 bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)

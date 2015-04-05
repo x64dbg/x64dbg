@@ -102,7 +102,7 @@ void ThreadGetList(THREADLIST* List)
         List->list[i].SuspendCount  = ThreadGetSuspendCount(threadHandle);
         List->list[i].Priority      = ThreadGetPriority(threadHandle);
         List->list[i].WaitReason    = ThreadGetWaitReason(threadHandle);
-        List->list[i].LastError     = ThreadGetLastError(List->list[i].BasicInfo.ThreadLocalBase);
+        List->list[i].LastError     = ThreadGetLastError(List->list[i].BasicInfo.ThreadId);
     }
 }
 
@@ -164,6 +164,7 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     SHARED_ACQUIRE(LockThreads);
 
     TEB teb;
+	memset(&teb, 0, sizeof(TEB));
     for(auto & entry : threadList)
     {
         if(entry.ThreadId != ThreadId)

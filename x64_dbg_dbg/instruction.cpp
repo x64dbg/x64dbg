@@ -814,7 +814,7 @@ struct VALUERANGE
 
 static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm && !basicinfo) //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
@@ -907,7 +907,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
 
 bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm && !basicinfo) //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
@@ -1218,8 +1218,11 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
                 k += sprintf(msg + k, "%.2X", printData[j]);
             }
         }
-        else
-            GuiGetDisassembly(result, msg);
+		else
+		{
+			if (!GuiGetDisassembly(result, msg))
+				strcpy_s(msg, "[Error disassembling]");
+		}
         GuiReferenceSetCellContent(refCount, 1, msg);
         result++;
         refCount++;
@@ -1232,7 +1235,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
 
 static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm && !basicinfo) //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
@@ -1487,7 +1490,7 @@ CMDRESULT cbInstrSleep(int argc, char* argv[])
 
 static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm && !basicinfo) //initialize
+    if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
@@ -1752,12 +1755,18 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
             else
                 dputs("error while getting the rules!");
         }
-        else
-            dputs("errors in the rules file!");
+		else
+		{
+			fclose(rulesFile);
+			dputs("errors in the rules file!");
+		}
         yr_compiler_destroy(yrCompiler);
     }
-    else
-        dputs("yr_compiler_create failed!");
+	else
+	{
+		fclose(rulesFile);
+		dputs("yr_compiler_create failed!");
+	}
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 

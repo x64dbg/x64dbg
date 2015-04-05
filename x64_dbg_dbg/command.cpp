@@ -366,7 +366,7 @@ CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
     if(!cmd or !strlen(cmd))
         return STATUS_ERROR;
     char command[deflen] = "";
-    strcpy(command, StringUtils::Trim(cmd).c_str());
+    strcpy_s(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(cmd_list, command);
     if(!found or !found->cbCommand)
         return STATUS_ERROR;
