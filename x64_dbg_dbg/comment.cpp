@@ -80,7 +80,7 @@ void CommentDelRange(uint Start, uint End)
         return;
 
     // Are all comments going to be deleted?
-	// 0x00000000 - 0xFFFFFFFF
+    // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockComments);
@@ -163,12 +163,12 @@ void CommentCacheLoad(JSON Root)
         json_array_foreach(Object, i, value)
         {
             COMMENTSINFO commentInfo;
-			memset(&commentInfo, 0, sizeof(COMMENTSINFO));
+            memset(&commentInfo, 0, sizeof(COMMENTSINFO));
 
             // Module
             const char* mod = json_string_value(json_object_get(value, "module"));
 
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+            if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(commentInfo.mod, mod);
             else
                 commentInfo.mod[0] = '\0';

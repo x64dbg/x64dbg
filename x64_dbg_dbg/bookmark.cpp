@@ -57,7 +57,7 @@ void BookmarkDelRange(uint Start, uint End)
         return;
 
     // Are all bookmarks going to be deleted?
-	// 0x00000000 - 0xFFFFFFFF
+    // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
         EXCLUSIVE_ACQUIRE(LockBookmarks);
@@ -143,8 +143,10 @@ void BookmarkCacheLoad(JSON Root)
             // Load the module name
             const char* mod = json_string_value(json_object_get(value, "module"));
 
-            if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
+            if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(bookmarkInfo.mod, mod);
+            else
+                bookmarkInfo.mod[0] = '\0';
 
             // Load address and set auto-generated flag
             bookmarkInfo.addr   = (uint)json_hex_value(json_object_get(value, "address"));
