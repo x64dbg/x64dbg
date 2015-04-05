@@ -1218,11 +1218,11 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
                 k += sprintf(msg + k, "%.2X", printData[j]);
             }
         }
-		else
-		{
-			if (!GuiGetDisassembly(result, msg))
-				strcpy_s(msg, "[Error disassembling]");
-		}
+        else
+        {
+            if(!GuiGetDisassembly(result, msg))
+                strcpy_s(msg, "[Error disassembling]");
+        }
         GuiReferenceSetCellContent(refCount, 1, msg);
         result++;
         refCount++;
@@ -1755,18 +1755,18 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
             else
                 dputs("error while getting the rules!");
         }
-		else
-		{
-			fclose(rulesFile);
-			dputs("errors in the rules file!");
-		}
+        else
+        {
+            fclose(rulesFile);
+            dputs("errors in the rules file!");
+        }
         yr_compiler_destroy(yrCompiler);
     }
-	else
-	{
-		fclose(rulesFile);
-		dputs("yr_compiler_create failed!");
-	}
+    else
+    {
+        fclose(rulesFile);
+        dputs("yr_compiler_create failed!");
+    }
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 

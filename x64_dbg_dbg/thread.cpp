@@ -164,7 +164,7 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     SHARED_ACQUIRE(LockThreads);
 
     TEB teb;
-	memset(&teb, 0, sizeof(TEB));
+    memset(&teb, 0, sizeof(TEB));
     for(auto & entry : threadList)
     {
         if(entry.ThreadId != ThreadId)

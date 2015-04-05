@@ -409,11 +409,11 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
 
 CMDRESULT cbDebugBplist(int argc, char* argv[])
 {
-	if (!BpEnumAll(cbBreakpointList))
-	{
-		dputs("Something went wrong...");
-		return STATUS_ERROR;
-	}
+    if(!BpEnumAll(cbBreakpointList))
+    {
+        dputs("Something went wrong...");
+        return STATUS_ERROR;
+    }
     return STATUS_CONTINUE;
 }
 
@@ -472,11 +472,11 @@ CMDRESULT cbDebugHide(int argc, char* argv[])
 CMDRESULT cbDebugDisasm(int argc, char* argv[])
 {
     uint addr = 0;
-	if (argc > 1)
-	{
-		if (!valfromstring(argv[1], &addr))
-			addr = GetContextDataEx(hActiveThread, UE_CIP);
-	}
+    if(argc > 1)
+    {
+        if(!valfromstring(argv[1], &addr))
+            addr = GetContextDataEx(hActiveThread, UE_CIP);
+    }
     if(!MemIsValidReadPtr(addr))
         return STATUS_CONTINUE;
     DebugUpdateGui(addr, false);
@@ -1847,11 +1847,11 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     GetFullContextDataEx(LoadLibThread, &backupctx);
 
-	if (!valfromstring("kernel32:LoadLibraryA", &LoadLibraryA, false))
-	{
-		dprintf("Error: couldn't get kernel32:LoadLibraryA");
-		return STATUS_ERROR;
-	}
+    if(!valfromstring("kernel32:LoadLibraryA", &LoadLibraryA, false))
+    {
+        dprintf("Error: couldn't get kernel32:LoadLibraryA");
+        return STATUS_ERROR;
+    }
 
     // Arch specific asm code
 #ifdef _WIN64
