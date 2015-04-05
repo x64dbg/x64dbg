@@ -85,9 +85,6 @@ public:
     void emitSymbolRefreshCurrent();
     void emitLoadSourceFile(const QString path, int line = 0);
 
-    static DWORD WINAPI GuiDisptacherThread(LPVOID Argument);
-    static void* GuiDispatchMessage(GUIMSG type, void* param1, void* param2);
-
     //Public variables
     void* winId;
     QWidget* scriptView;

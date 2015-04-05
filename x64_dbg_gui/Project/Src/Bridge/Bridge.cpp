@@ -385,11 +385,6 @@ Bridge* Bridge::getBridge()
 
 void Bridge::initBridge()
 {
-    // The main queue handler thread should also
-    // be initialized. Just placing it here.
-    HANDLE threadHandle = CreateThread(nullptr, 0, GuiDisptacherThread, nullptr, 0, nullptr);
-    CloseHandle(threadHandle);
-
     mBridge = new Bridge();
 }
 
@@ -401,70 +396,7 @@ __declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
     return main(argc, argv);
 }
 
-struct GUI_MESSAGE
-{
-    GUIMSG Type;
-    void *Param1;
-    void *Param2;
-    concurrency::single_assignment<void *> *Trigger;
-};
-
-concurrency::unbounded_buffer<GUI_MESSAGE> FIFOCommandStack;
-
 __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* param2)
-{
-    GUI_MESSAGE msg;
-    msg.Type    = type;
-    msg.Param1  = param1;
-    msg.Param2  = param2;
-    msg.Trigger = new concurrency::single_assignment<void *>();
-
-    // Synchronous send
-    concurrency::send(FIFOCommandStack, msg);
-
-    // Wait for the message to be completed and this is notified
-    void *returnValue = concurrency::receive(msg.Trigger);
-
-    // Free memory
-    delete msg.Trigger;
-
-    // Done
-    return returnValue;
-}
-
-__declspec(dllexport) void _gui_sendmessageasync(GUIMSG type, void* param1, void* param2)
-{
-    GUI_MESSAGE msg;
-    msg.Type    = type;
-    msg.Param1  = param1;
-    msg.Param2  = param2;
-    msg.Trigger = nullptr;
-
-    // Asynchronous send. Return value doesn't matter.
-    concurrency::asend(FIFOCommandStack, msg);
-}
-
-DWORD WINAPI Bridge::GuiDisptacherThread(LPVOID Argument)
-{
-    UNREFERENCED_PARAMETER(Argument);
-
-    while(true)
-    {
-        // Only returns when there's commands queued
-        GUI_MESSAGE message = concurrency::receive(FIFOCommandStack);
-
-        // Execute the GUI function
-        void *ret = GuiDispatchMessage(message.Type, message.Param1, message.Param2);
-
-        // See if a return value was requested (DO NOT WAIT - ASYNC)
-        if (message.Trigger)
-            concurrency::asend(message.Trigger, ret);
-    }
-
-    return 0;
-}
-
-void* Bridge::GuiDispatchMessage(GUIMSG type, void* param1, void* param2)
 {
     switch(type)
     {

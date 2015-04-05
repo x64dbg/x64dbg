@@ -159,7 +159,8 @@ HEADERS += \
     Src/Gui/YaraRuleSelectionDialog.h \
     Src/Gui/DataCopyDialog.h \
     Src/Gui/SourceViewerManager.h \
-    Src/Gui/SourceView.h
+    Src/Gui/SourceView.h \
+    Src/Utils/StringUtil.h
 
 
 INCLUDEPATH += \
