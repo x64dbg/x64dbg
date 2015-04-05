@@ -195,6 +195,22 @@ bool symgetsourceline(uint cip, char* szFileName, int* nLine)
     if(nLine)
         *nLine = line.LineNumber;
     if(szFileName)
-        strcpy_s(szFileName, MAX_STRING_SIZE, line.FileName); //nanana, ugly
+    {
+        if(line.FileName[1] == ':' && line.FileName[2] == '\\') //full path
+            strcpy_s(szFileName, MAX_STRING_SIZE, line.FileName); //nanana, ugly
+        else //construct full path from .pdb path
+        {
+            IMAGEHLP_MODULE64 modInfo;
+            memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
+            modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+            if(!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, cip, &modInfo))
+                return false;
+            char* fileName = strrchr(modInfo.LoadedPdbName, '\\');
+            if(fileName++)
+                *fileName = '\0';
+            strcpy_s(szFileName, MAX_STRING_SIZE, modInfo.LoadedPdbName);
+            strcat_s(szFileName, MAX_STRING_SIZE, line.FileName);
+        }
+    }
     return true;
 }
