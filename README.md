@@ -1,9 +1,7 @@
 # x64_dbg
 
 ## Note
-**This is a new version of this repository. The old version can be found [here](https://bitbucket.org/mrexodia/x64_dbg_old).**
-
-Also please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64_dbg* [standards](https://bitbucket.org/mrexodia/x64_dbg/wiki/x64_dbg_coding_guidelines).
+Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64_dbg* [standards](https://bitbucket.org/mrexodia/x64_dbg/wiki/x64_dbg_coding_guidelines).
 
 ## Compiling
 For a complete guide on compiling *x64_dbg* read [this](https://bitbucket.org/mrexodia/x64_dbg/wiki/Compiling%20the%20whole%20project).
