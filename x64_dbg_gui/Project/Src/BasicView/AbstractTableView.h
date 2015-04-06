@@ -187,6 +187,7 @@ protected:
     QColor separatorColor;
     QColor headerTextColor;
     QColor selectionColor;
+    bool mAllowPainting;
 };
 
 #endif // ABSTRACTTABLEVIEW_H

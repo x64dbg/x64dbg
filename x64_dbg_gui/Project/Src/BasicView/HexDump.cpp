@@ -975,6 +975,7 @@ void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnD
 //Clears the descriptors, append a new descriptor and fix the tableOffset (use this instead of clearDescriptors()
 void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
 {
+    mAllowPainting = false;
     if(mDescriptor.size())
     {
         int_t wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
@@ -984,6 +985,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
     }
     else
         appendDescriptor(width, title, clickable, descriptor);
+    mAllowPainting = true;
 }
 
 void HexDump::clearDescriptors()
