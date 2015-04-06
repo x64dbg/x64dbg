@@ -25,8 +25,8 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     }
 
     // Assume the entire range is used
-    uint scanStart  = regionBase;
-    uint scanSize   = regionSize;
+    uint scanStart = regionBase;
+    uint scanSize = regionSize;
 
     // Otherwise use custom boundaries if size was supplied
     if(Size)
@@ -34,8 +34,8 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
         uint maxsize = Size - (Address - regionBase);
 
         // Make sure the size fits in one page
-        scanStart   = Address;
-        scanSize    = min(Size, maxsize);
+        scanStart = Address;
+        scanSize = min(Size, maxsize);
     }
 
     // Allocate and read a buffer from the remote process
@@ -65,14 +65,14 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
 #ifdef _WIN64
     disasm.Archi = 64;
 #endif // _WIN64
-    disasm.EIP          = (UIntPtr)data;
-    disasm.VirtualAddr  = (UInt64)scanStart;
+    disasm.EIP = (UIntPtr)data;
+    disasm.VirtualAddr = (UInt64)scanStart;
 
     // Allow an "initialization" notice
     REFINFO refInfo;
-    refInfo.refcount    = 0;
-    refInfo.userinfo    = UserData;
-    refInfo.name        = fullName;
+    refInfo.refcount = 0;
+    refInfo.userinfo = UserData;
+    refInfo.name = fullName;
 
     Callback(0, 0, &refInfo);
 
@@ -107,9 +107,9 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
             len = 1;
         }
 
-        disasm.EIP          += len;
-        disasm.VirtualAddr  += len;
-        i                   += len;
+        disasm.EIP += len;
+        disasm.VirtualAddr += len;
+        i += len;
     }
 
     GuiReferenceSetProgress(100);

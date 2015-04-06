@@ -44,9 +44,9 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         // offset to a virtual address
         for(auto & i : breakpoints)
         {
-            BREAKPOINT currentBp    = i.second;
-            currentBp.addr          += ModBaseFromName(currentBp.mod);
-            currentBp.active        = MemIsValidReadPtr(currentBp.addr);
+            BREAKPOINT currentBp = i.second;
+            currentBp.addr += ModBaseFromName(currentBp.mod);
+            currentBp.active = MemIsValidReadPtr(currentBp.addr);
 
             List->push_back(currentBp);
         }
@@ -79,13 +79,13 @@ bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE T
     ModNameFromAddr(Address, bp.mod, true);
     strcpy_s(bp.name, Name);
 
-    bp.active       = true;
-    bp.addr         = Address - ModBaseFromAddr(Address);
-    bp.enabled      = Enable;
-    bp.oldbytes     = OldBytes;
-    bp.singleshoot  = Singleshot;
-    bp.titantype    = TitanType;
-    bp.type         = Type;
+    bp.active = true;
+    bp.addr = Address - ModBaseFromAddr(Address);
+    bp.enabled = Enable;
+    bp.oldbytes = OldBytes;
+    bp.singleshoot = Singleshot;
+    bp.titantype = TitanType;
+    bp.type = Type;
 
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
@@ -115,9 +115,9 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(!Bp)
             return true;
 
-        *Bp         = *bpInfo;
-        Bp->addr    += ModBaseFromAddr(Address);
-        Bp->active  = MemIsValidReadPtr(Bp->addr);
+        *Bp = *bpInfo;
+        Bp->addr += ModBaseFromAddr(Address);
+        Bp->active = MemIsValidReadPtr(Bp->addr);
         return true;
     }
 
@@ -131,9 +131,9 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         // Fill out the optional user buffer
         if(Bp)
         {
-            *Bp         = i.second;
-            Bp->addr    += ModBaseFromAddr(Address);
-            Bp->active  = MemIsValidReadPtr(Bp->addr);
+            *Bp = i.second;
+            Bp->addr += ModBaseFromAddr(Address);
+            Bp->active = MemIsValidReadPtr(Bp->addr);
         }
 
         // Return true if the name was found at all
@@ -232,9 +232,9 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
                 continue;
         }
 
-        BREAKPOINT bpInfo   = i.second;
-        bpInfo.addr         += ModBaseFromName(bpInfo.mod);
-        bpInfo.active       = MemIsValidReadPtr(bpInfo.addr);
+        BREAKPOINT bpInfo = i.second;
+        bpInfo.addr += ModBaseFromName(bpInfo.mod);
+        bpInfo.active = MemIsValidReadPtr(bpInfo.addr);
 
         // Execute the callback
         if(!EnumCallback(&bpInfo))
@@ -286,10 +286,10 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     strcpy_s(BridgeBp->mod, Bp->mod);
     strcpy_s(BridgeBp->name, Bp->name);
 
-    BridgeBp->active        = Bp->active;
-    BridgeBp->addr          = Bp->addr;
-    BridgeBp->enabled       = Bp->enabled;
-    BridgeBp->singleshoot   = Bp->singleshoot;
+    BridgeBp->active = Bp->active;
+    BridgeBp->addr = Bp->addr;
+    BridgeBp->enabled = Bp->enabled;
+    BridgeBp->singleshoot = Bp->singleshoot;
 
     switch(Bp->type)
     {
@@ -369,10 +369,10 @@ void BpCacheLoad(JSON Root)
 
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (short)json_hex_value(json_object_get(value, "oldbytes"));
-        breakpoint.type         = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
-        breakpoint.addr         = (uint)json_hex_value(json_object_get(value, "address"));
-        breakpoint.enabled      = json_boolean_value(json_object_get(value, "enabled"));
-        breakpoint.titantype    = (DWORD)json_hex_value(json_object_get(value, "titantype"));
+        breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
+        breakpoint.addr = (uint)json_hex_value(json_object_get(value, "address"));
+        breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
+        breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
 
         // Name
         const char* name = json_string_value(json_object_get(value, "name"));

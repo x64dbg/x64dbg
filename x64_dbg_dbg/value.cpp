@@ -1755,7 +1755,7 @@ static void setfpuvalue(const char* string, uint value)
             i <<= 13;
             flags &= ~i;
             value <<= 13;
-            flags |=  value;
+            flags |= value;
             SetContextDataEx(hActiveThread, UE_MXCSR, flags);
         }
         else
@@ -1803,7 +1803,7 @@ static void setfpuvalue(const char* string, uint value)
             i <<= 11;
             flags &= ~i;
             value <<= 11;
-            flags |=  value;
+            flags |= value;
             SetContextDataEx(hActiveThread, UE_X87_STATUSWORD, flags);
         }
         else
@@ -1826,7 +1826,7 @@ static void setfpuvalue(const char* string, uint value)
             i <<= 10;
             flags &= ~i;
             value <<= 10;
-            flags |=  value;
+            flags |= value;
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
         }
         else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int) strlen("PC")) == 0)
@@ -1836,7 +1836,7 @@ static void setfpuvalue(const char* string, uint value)
             i <<= 8;
             flags &= ~i;
             value <<= 8;
-            flags |=  value;
+            flags |= value;
             SetContextDataEx(hActiveThread, UE_X87_CONTROLWORD, flags);
         }
         else

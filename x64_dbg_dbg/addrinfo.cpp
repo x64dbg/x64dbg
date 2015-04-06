@@ -72,8 +72,8 @@ void dbload()
     WString databasePathW = StringUtils::Utf8ToUtf16(dbpath);
 
     // Decompress the file if compression was enabled
-    bool useCompression     = !settingboolget("Engine", "DisableCompression");
-    LZ4_STATUS lzmaStatus   = LZ4_INVALID_ARCHIVE;
+    bool useCompression = !settingboolget("Engine", "DisableCompression");
+    LZ4_STATUS lzmaStatus = LZ4_INVALID_ARCHIVE;
     {
         lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
@@ -86,8 +86,8 @@ void dbload()
     }
 
     // Open the file for reading by the JSON parser
-    FILE* jsonFile      = nullptr;
-    long jsonFileSize   = 0;
+    FILE* jsonFile = nullptr;
+    long jsonFileSize = 0;
 
     if(_wfopen_s(&jsonFile, databasePathW.c_str(), L"rb"))
     {

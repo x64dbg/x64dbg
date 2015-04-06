@@ -306,7 +306,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         uint32_t k4 = getblock32(blocks, i * 4 + 3);
 
         k1 *= c1;
-        k1  = ROTL32(k1, 15);
+        k1 = ROTL32(k1, 15);
         k1 *= c2;
         h1 ^= k1;
 
@@ -315,7 +315,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h1 = h1 * 5 + 0x561ccd1b;
 
         k2 *= c2;
-        k2  = ROTL32(k2, 16);
+        k2 = ROTL32(k2, 16);
         k2 *= c3;
         h2 ^= k2;
 
@@ -324,7 +324,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h2 = h2 * 5 + 0x0bcaa747;
 
         k3 *= c3;
-        k3  = ROTL32(k3, 17);
+        k3 = ROTL32(k3, 17);
         k3 *= c4;
         h3 ^= k3;
 
@@ -333,7 +333,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h3 = h3 * 5 + 0x96cd1c35;
 
         k4 *= c4;
-        k4  = ROTL32(k4, 18);
+        k4 = ROTL32(k4, 18);
         k4 *= c1;
         h4 ^= k4;
 
@@ -361,7 +361,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case 13:
         k4 ^= tail[12] << 0;
         k4 *= c4;
-        k4  = ROTL32(k4, 18);
+        k4 = ROTL32(k4, 18);
         k4 *= c1;
         h4 ^= k4;
 
@@ -374,7 +374,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  9:
         k3 ^= tail[ 8] << 0;
         k3 *= c3;
-        k3  = ROTL32(k3, 17);
+        k3 = ROTL32(k3, 17);
         k3 *= c4;
         h3 ^= k3;
 
@@ -387,7 +387,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  5:
         k2 ^= tail[ 4] << 0;
         k2 *= c2;
-        k2  = ROTL32(k2, 16);
+        k2 = ROTL32(k2, 16);
         k2 *= c3;
         h2 ^= k2;
 
@@ -400,7 +400,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  1:
         k1 ^= tail[ 0] << 0;
         k1 *= c1;
-        k1  = ROTL32(k1, 15);
+        k1 = ROTL32(k1, 15);
         k1 *= c2;
         h1 ^= k1;
     };
@@ -474,7 +474,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
         uint64_t k2 = getblock64(blocks, i * 2 + 1);
 
         k1 *= c1;
-        k1  = ROTL64(k1, 31);
+        k1 = ROTL64(k1, 31);
         k1 *= c2;
         h1 ^= k1;
 
@@ -483,7 +483,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
         h1 = h1 * 5 + 0x52dce729;
 
         k2 *= c2;
-        k2  = ROTL64(k2, 33);
+        k2 = ROTL64(k2, 33);
         k2 *= c1;
         h2 ^= k2;
 
@@ -517,7 +517,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
     case  9:
         k2 ^= ((uint64_t)tail[ 8]) << 0;
         k2 *= c2;
-        k2  = ROTL64(k2, 33);
+        k2 = ROTL64(k2, 33);
         k2 *= c1;
         h2 ^= k2;
 
@@ -538,7 +538,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
     case  1:
         k1 ^= ((uint64_t)tail[ 0]) << 0;
         k1 *= c1;
-        k1  = ROTL64(k1, 31);
+        k1 = ROTL64(k1, 31);
         k1 *= c2;
         h1 ^= k1;
     };

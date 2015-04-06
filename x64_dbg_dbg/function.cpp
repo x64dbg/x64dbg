@@ -28,8 +28,8 @@ bool FunctionAdd(uint Start, uint End, bool Manual)
 
     FUNCTIONSINFO function;
     ModNameFromAddr(Start, function.mod, true);
-    function.start  = Start - moduleBase;
-    function.end    = End - moduleBase;
+    function.start = Start - moduleBase;
+    function.end = End - moduleBase;
     function.manual = Manual;
 
     // Insert to global table
@@ -115,8 +115,8 @@ void FunctionDelRange(uint Start, uint End)
             return;
 
         // Convert these to a relative offset
-        Start   -= moduleBase;
-        End     -= moduleBase;
+        Start -= moduleBase;
+        End -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockFunctions);
         for(auto itr = functions.begin(); itr != functions.end();)
@@ -142,8 +142,8 @@ void FunctionCacheSave(JSON Root)
     EXCLUSIVE_ACQUIRE(LockFunctions);
 
     // Allocate JSON object array
-    const JSON jsonFunctions        = json_array();
-    const JSON jsonAutoFunctions    = json_array();
+    const JSON jsonFunctions = json_array();
+    const JSON jsonAutoFunctions = json_array();
 
     for(auto & i : functions)
     {
@@ -196,8 +196,8 @@ void FunctionCacheLoad(JSON Root)
                 functionInfo.mod[0] = '\0';
 
             // Function address
-            functionInfo.start  = (uint)json_hex_value(json_object_get(value, "start"));
-            functionInfo.end    = (uint)json_hex_value(json_object_get(value, "end"));
+            functionInfo.start = (uint)json_hex_value(json_object_get(value, "start"));
+            functionInfo.end = (uint)json_hex_value(json_object_get(value, "end"));
             functionInfo.manual = Manual;
 
             // Sanity check
@@ -209,8 +209,8 @@ void FunctionCacheLoad(JSON Root)
         }
     };
 
-    const JSON jsonFunctions        = json_object_get(Root, "functions");
-    const JSON jsonAutoFunctions    = json_object_get(Root, "autofunctions");
+    const JSON jsonFunctions = json_object_get(Root, "functions");
+    const JSON jsonAutoFunctions = json_object_get(Root, "autofunctions");
 
     // Manual
     if(jsonFunctions)
@@ -248,9 +248,9 @@ bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
         // Adjust for relative to virtual addresses
         uint moduleBase = ModBaseFromName(itr.second.mod);
 
-        *List           = itr.second;
-        List->start     += moduleBase;
-        List->end       += moduleBase;
+        *List = itr.second;
+        List->start += moduleBase;
+        List->end += moduleBase;
 
         List++;
     }

@@ -33,9 +33,9 @@ void MsgFreeStack(MESSAGE_STACK* Stack)
 bool MsgSend(MESSAGE_STACK* Stack, int Msg, uint Param1, uint Param2)
 {
     MESSAGE messageInfo;
-    messageInfo.msg     = Msg;
-    messageInfo.param1  = Param1;
-    messageInfo.param2  = Param2;
+    messageInfo.msg = Msg;
+    messageInfo.param1 = Param1;
+    messageInfo.param2 = Param2;
 
     // Asynchronous send. Return value doesn't matter.
     concurrency::asend(Stack->FIFOStack, messageInfo);

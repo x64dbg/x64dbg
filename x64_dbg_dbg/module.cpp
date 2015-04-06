@@ -62,9 +62,9 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
         {
             MODSECTIONINFO curSection;
 
-            curSection.addr             = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
-            curSection.size             = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALSIZE);
-            const char* sectionName     = (const char*)GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONNAME);
+            curSection.addr = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
+            curSection.size = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALSIZE);
+            const char* sectionName = (const char*)GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONNAME);
 
             // Escape section name when needed
             strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());

@@ -22,8 +22,8 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID U
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
 
-    curSymbol.addr              = (duint)SymInfo->Address;
-    curSymbol.decoratedSymbol   = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
+    curSymbol.addr = (duint)SymInfo->Address;
+    curSymbol.decoratedSymbol = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
     curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
     strcpy_s(curSymbol.decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
 
@@ -55,8 +55,8 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID U
 void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
     SYMBOLCBDATA symbolCbData;
-    symbolCbData.cbSymbolEnum   = EnumCallback;
-    symbolCbData.user           = UserData;
+    symbolCbData.cbSymbolEnum = EnumCallback;
+    symbolCbData.user = UserData;
 
     // Enumerate every single symbol for the module in 'base'
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
@@ -100,8 +100,8 @@ void SymUpdateModuleList()
         return;
 
     // Create a new array to be sent to the GUI thread
-    size_t moduleCount      = modList.size();
-    SYMBOLMODULEINFO* data  = (SYMBOLMODULEINFO*)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
+    size_t moduleCount = modList.size();
+    SYMBOLMODULEINFO* data = (SYMBOLMODULEINFO*)BridgeAlloc(moduleCount * sizeof(SYMBOLMODULEINFO));
 
     // Direct copy from std::vector data
     memcpy(data, modList.data(), moduleCount * sizeof(SYMBOLMODULEINFO));
@@ -191,9 +191,9 @@ bool SymAddrFromName(const char* Name, uint* Address)
     // Note that the total size of the data is the SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
     char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 
-    PSYMBOL_INFO symbol     = (PSYMBOL_INFO)&buffer;
-    symbol->SizeOfStruct    = sizeof(SYMBOL_INFO);
-    symbol->MaxNameLen      = MAX_LABEL_SIZE;
+    PSYMBOL_INFO symbol = (PSYMBOL_INFO)&buffer;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen = MAX_LABEL_SIZE;
 
     if(!SafeSymFromName(fdProcessInfo->hProcess, Name, symbol))
         return false;
@@ -216,9 +216,9 @@ const char* SymGetSymbolicName(uint Address)
     {
         char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
 
-        PSYMBOL_INFO symbol     = (PSYMBOL_INFO)buffer;
-        symbol->SizeOfStruct    = sizeof(SYMBOL_INFO);
-        symbol->MaxNameLen      = MAX_LABEL_SIZE;
+        PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+        symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        symbol->MaxNameLen = MAX_LABEL_SIZE;
 
         // Perform a symbol lookup
         DWORD64 displacement = 0;

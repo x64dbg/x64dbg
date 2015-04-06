@@ -29,9 +29,9 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
         return true;
 
     PATCHINFO newPatch;
-    newPatch.addr       = Address - ModBaseFromAddr(Address);
-    newPatch.oldbyte    = OldByte;
-    newPatch.newbyte    = NewByte;
+    newPatch.addr = Address - ModBaseFromAddr(Address);
+    newPatch.oldbyte = OldByte;
+    newPatch.newbyte = NewByte;
     ModNameFromAddr(Address, newPatch.mod, true);
 
     // Generate a key for this address
@@ -53,8 +53,8 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
         else
         {
             // Keep the original byte from the previous patch
-            newPatch.oldbyte    = found->second.oldbyte;
-            found->second       = newPatch;
+            newPatch.oldbyte = found->second.oldbyte;
+            found->second = newPatch;
         }
     }
     else
@@ -83,7 +83,7 @@ bool PatchGet(uint Address, PATCHINFO* Patch)
     // Did the user request an output buffer?
     if(Patch)
     {
-        *Patch      = found->second;
+        *Patch = found->second;
         Patch->addr += ModBaseFromAddr(Address);
     }
 
@@ -136,8 +136,8 @@ void PatchDelRange(uint Start, uint End, bool Restore)
             return;
 
         // VA to RVA in module
-        Start   -= moduleBase;
-        End     -= moduleBase;
+        Start -= moduleBase;
+        End -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockPatches);
         for(auto itr = patches.begin(); itr != patches.end();)
@@ -181,8 +181,8 @@ bool PatchEnum(PATCHINFO* List, size_t* Size)
     // Copy each vector entry to a C-style array
     for(auto & itr : patches)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(itr.second.mod);;
+        *List = itr.second;
+        List->addr += ModBaseFromName(itr.second.mod);;
         List++;
     }
 

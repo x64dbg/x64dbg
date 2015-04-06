@@ -29,8 +29,8 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
     strcpy_s(comment.text, Text);
     ModNameFromAddr(Address, comment.mod, true);
 
-    comment.manual  = Manual;
-    comment.addr    = Address - ModBaseFromAddr(Address);
+    comment.manual = Manual;
+    comment.addr = Address - ModBaseFromAddr(Address);
 
     // Insert into list
     const uint key = ModHashFromAddr(Address);
@@ -95,8 +95,8 @@ void CommentDelRange(uint Start, uint End)
             return;
 
         // Virtual -> relative offset
-        Start   -= moduleBase;
-        End     -= moduleBase;
+        Start -= moduleBase;
+        End -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockComments);
         for(auto itr = comments.begin(); itr != comments.end();)
@@ -121,7 +121,7 @@ void CommentCacheSave(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockComments);
 
-    const JSON jsonComments     = json_array();
+    const JSON jsonComments = json_array();
     const JSON jsonAutoComments = json_array();
 
     // Build the JSON array
@@ -174,8 +174,8 @@ void CommentCacheLoad(JSON Root)
                 commentInfo.mod[0] = '\0';
 
             // Address/Manual
-            commentInfo.addr    = (uint)json_hex_value(json_object_get(value, "address"));
-            commentInfo.manual  = Manual;
+            commentInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
+            commentInfo.manual = Manual;
 
             // String value
             const char* text = json_string_value(json_object_get(value, "text"));
@@ -196,7 +196,7 @@ void CommentCacheLoad(JSON Root)
     // Remove existing entries
     comments.clear();
 
-    const JSON jsonComments     = json_object_get(Root, "comments");
+    const JSON jsonComments = json_object_get(Root, "comments");
     const JSON jsonAutoComments = json_object_get(Root, "autocomments");
 
     // Load user-set comments
@@ -232,8 +232,8 @@ bool CommentEnum(COMMENTSINFO* List, size_t* Size)
     // Populate the returned array
     for(auto & itr : comments)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(List->mod);
+        *List = itr.second;
+        List->addr += ModBaseFromName(List->mod);
 
         List++;
     }

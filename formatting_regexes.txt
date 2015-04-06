@@ -1,0 +1,2 @@
+# this file is only for the people who have serious mental issues
+/\s*([+-])?\s*=\s*/ -> / \1= /

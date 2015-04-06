@@ -18,7 +18,7 @@ bool BookmarkSet(uint Address, bool Manual)
 
     BOOKMARKSINFO bookmark;
     ModNameFromAddr(Address, bookmark.mod, true);
-    bookmark.addr   = Address - ModBaseFromAddr(Address);
+    bookmark.addr = Address - ModBaseFromAddr(Address);
     bookmark.manual = Manual;
 
     // Exclusive lock to insert new data
@@ -72,8 +72,8 @@ void BookmarkDelRange(uint Start, uint End)
             return;
 
         // Virtual -> relative offset
-        Start   -= moduleBase;
-        End     -= moduleBase;
+        Start -= moduleBase;
+        End -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
@@ -98,8 +98,8 @@ void BookmarkCacheSave(JSON Root)
 {
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
-    const JSON jsonBookmarks        = json_array();
-    const JSON jsonAutoBookmarks    = json_array();
+    const JSON jsonBookmarks = json_array();
+    const JSON jsonAutoBookmarks = json_array();
 
     // Save to the JSON root
     for(auto & itr : bookmarks)
@@ -149,7 +149,7 @@ void BookmarkCacheLoad(JSON Root)
                 bookmarkInfo.mod[0] = '\0';
 
             // Load address and set auto-generated flag
-            bookmarkInfo.addr   = (uint)json_hex_value(json_object_get(value, "address"));
+            bookmarkInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
             bookmarkInfo.manual = Manual;
 
             const uint key = ModHashFromName(bookmarkInfo.mod) + bookmarkInfo.addr;
@@ -160,8 +160,8 @@ void BookmarkCacheLoad(JSON Root)
     // Remove existing entries
     bookmarks.clear();
 
-    const JSON jsonBookmarks        = json_object_get(Root, "bookmarks");
-    const JSON jsonAutoBookmarks    = json_object_get(Root, "autobookmarks");
+    const JSON jsonBookmarks = json_object_get(Root, "bookmarks");
+    const JSON jsonAutoBookmarks = json_object_get(Root, "autobookmarks");
 
     // Load user-set bookmarks
     if(jsonBookmarks)
@@ -192,8 +192,8 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
     // Copy struct and adjust the relative offset to a virtual address
     for(auto & itr : bookmarks)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(List->mod);
+        *List = itr.second;
+        List->addr += ModBaseFromName(List->mod);
     }
 
     return true;

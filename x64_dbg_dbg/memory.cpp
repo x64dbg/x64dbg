@@ -185,9 +185,9 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
     if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
-        uint offset     = 0;
-        uint readBase   = (uint)BaseAddress;
-        uint readSize   = ROUND_TO_PAGES(readBase) - readBase;
+        uint offset = 0;
+        uint readBase = (uint)BaseAddress;
+        uint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
         // Reset the bytes read count
         *NumberOfBytesRead = 0;
@@ -199,11 +199,11 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
             if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
                 *NumberOfBytesRead += bytesRead;
 
-            offset      += readSize;
-            readBase    += readSize;
+            offset += readSize;
+            readBase += readSize;
 
-            Size        -= readSize;
-            readSize    = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+            Size -= readSize;
+            readSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
         }
     }
 
@@ -240,9 +240,9 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
-        uint offset     = 0;
-        uint writeBase  = (uint)BaseAddress;
-        uint writeSize  = ROUND_TO_PAGES(writeBase) - writeBase;
+        uint offset = 0;
+        uint writeBase = (uint)BaseAddress;
+        uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
 
         // Reset the bytes read count
         *NumberOfBytesWritten = 0;
@@ -254,11 +254,11 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
             if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
                 *NumberOfBytesWritten += bytesWritten;
 
-            offset      += writeSize;
-            writeBase   += writeSize;
+            offset += writeSize;
+            writeBase += writeSize;
 
-            Size        -= writeSize;
-            writeSize   = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+            Size -= writeSize;
+            writeSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
         }
     }
 

@@ -10,16 +10,16 @@ public:
     //
     Memory(const char* Reason = "Memory:???")
     {
-        m_Ptr       = nullptr;
-        m_Size      = 0;
-        m_Reason    = Reason;
+        m_Ptr = nullptr;
+        m_Size = 0;
+        m_Reason = Reason;
     }
 
     Memory(size_t Size, const char* Reason = "Memory:???")
     {
-        m_Ptr       = reinterpret_cast<T>(emalloc(Size));
-        m_Size      = Size;
-        m_Reason    = Reason;
+        m_Ptr = reinterpret_cast<T>(emalloc(Size));
+        m_Size = Size;
+        m_Reason = Reason;
 
         memset(m_Ptr, 0, Size);
     }
@@ -32,9 +32,9 @@ public:
 
     T realloc(size_t Size, const char* Reason = "Memory:???")
     {
-        m_Ptr       = reinterpret_cast<T>(erealloc(m_Ptr, Size));
-        m_Size      = Size;
-        m_Reason    = Reason;
+        m_Ptr = reinterpret_cast<T>(erealloc(m_Ptr, Size));
+        m_Size = Size;
+        m_Reason = Reason;
 
         return (T)memset(m_Ptr, 0, m_Size);
     }

@@ -34,9 +34,9 @@ bool LoopAdd(uint Start, uint End, bool Manual)
 
     // Fill out loop information structure
     LOOPSINFO loopInfo;
-    loopInfo.start  = Start - moduleBase;
-    loopInfo.end    = End - moduleBase;
-    loopInfo.depth  = finalDepth;
+    loopInfo.start = Start - moduleBase;
+    loopInfo.end = End - moduleBase;
+    loopInfo.depth = finalDepth;
     loopInfo.manual = Manual;
     ModNameFromAddr(Start, loopInfo.mod, true);
 
@@ -93,11 +93,11 @@ bool LoopOverlaps(int Depth, uint Start, uint End, int* FinalDepth)
         return false;
 
     // Determine module addresses and lookup keys
-    const uint moduleBase   = ModBaseFromAddr(Start);
-    const uint key          = ModHashFromAddr(moduleBase);
+    const uint moduleBase = ModBaseFromAddr(Start);
+    const uint key = ModHashFromAddr(moduleBase);
 
-    uint curStart   = Start - moduleBase;
-    uint curEnd     = End - moduleBase;
+    uint curStart = Start - moduleBase;
+    uint curEnd = End - moduleBase;
 
     SHARED_ACQUIRE(LockLoops);
 
@@ -149,14 +149,14 @@ void LoopCacheSave(JSON Root)
     EXCLUSIVE_ACQUIRE(LockLoops);
 
     // Create the root JSON objects
-    const JSON jsonLoops        = json_array();
-    const JSON jsonAutoLoops    = json_array();
+    const JSON jsonLoops = json_array();
+    const JSON jsonAutoLoops = json_array();
 
     // Write all entries
     for(auto & itr : loops)
     {
-        const LOOPSINFO & currentLoop    = itr.second;
-        JSON currentJson                = json_object();
+        const LOOPSINFO & currentLoop = itr.second;
+        JSON currentJson = json_object();
 
         json_object_set_new(currentJson, "module", json_string(currentLoop.mod));
         json_object_set_new(currentJson, "start", json_hex(currentLoop.start));
@@ -206,9 +206,9 @@ void LoopCacheLoad(JSON Root)
                 loopInfo.mod[0] = '\0';
 
             // All other variables
-            loopInfo.start  = (uint)json_hex_value(json_object_get(value, "start"));
-            loopInfo.end    = (uint)json_hex_value(json_object_get(value, "end"));
-            loopInfo.depth  = (int)json_integer_value(json_object_get(value, "depth"));
+            loopInfo.start = (uint)json_hex_value(json_object_get(value, "start"));
+            loopInfo.end = (uint)json_hex_value(json_object_get(value, "end"));
+            loopInfo.depth = (int)json_integer_value(json_object_get(value, "depth"));
             loopInfo.parent = (uint)json_hex_value(json_object_get(value, "parent"));
             loopInfo.manual = Manual;
 
@@ -224,8 +224,8 @@ void LoopCacheLoad(JSON Root)
     // Remove existing entries
     loops.clear();
 
-    const JSON jsonLoops        = json_object_get(Root, "loops");
-    const JSON jsonAutoLoops    = json_object_get(Root, "autoloops");
+    const JSON jsonLoops = json_object_get(Root, "loops");
+    const JSON jsonAutoLoops = json_object_get(Root, "autoloops");
 
     // Load user-set loops
     if(jsonLoops)
@@ -258,9 +258,9 @@ bool LoopEnum(LOOPSINFO* List, size_t* Size)
         *List = itr.second;
 
         // Adjust the offset to a real virtual address
-        uint modbase    = ModBaseFromName(List->mod);
-        List->start     += modbase;
-        List->end       += modbase;
+        uint modbase = ModBaseFromName(List->mod);
+        List->start += modbase;
+        List->end += modbase;
 
         List++;
     }

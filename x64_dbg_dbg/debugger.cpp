@@ -1549,7 +1549,7 @@ bool dbgpagerightstostring(DWORD protect, char* rights)
 static uint dbggetpageligned(uint addr)
 {
 #ifdef _WIN64
-    addr &=  0xFFFFFFFFFFFFF000;
+    addr &= 0xFFFFFFFFFFFFF000;
 #else // _WIN32
     addr &= 0xFFFFF000;
 #endif // _WIN64
@@ -1862,7 +1862,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     command_line_addr = cmd_line_error->addr;
 
-    SIZE_T cmd_line_size =  strlen(cmd_line);
+    SIZE_T cmd_line_size = strlen(cmd_line);
     new_command_line.Length = (USHORT)(strlen(cmd_line) + 1) * sizeof(WCHAR);
     new_command_line.MaximumLength = new_command_line.Length;
 

@@ -30,8 +30,8 @@ bool LabelSet(uint Address, const char* Text, bool Manual)
 
     // Fill out the structure data
     LABELSINFO labelInfo;
-    labelInfo.manual    = Manual;
-    labelInfo.addr      = Address - ModBaseFromAddr(Address);
+    labelInfo.manual = Manual;
+    labelInfo.addr = Address - ModBaseFromAddr(Address);
     strcpy_s(labelInfo.text, Text);
     ModNameFromAddr(Address, labelInfo.mod, true);
 
@@ -146,8 +146,8 @@ void LabelCacheSave(JSON Root)
     EXCLUSIVE_ACQUIRE(LockLabels);
 
     // Create the sub-root structures in memory
-    const JSON jsonLabels       = json_array();
-    const JSON jsonAutoLabels   = json_array();
+    const JSON jsonLabels = json_array();
+    const JSON jsonAutoLabels = json_array();
 
     // Iterator each label
     for(auto & itr : labels)
@@ -199,8 +199,8 @@ void LabelCacheLoad(JSON Root)
                 labelInfo.mod[0] = '\0';
 
             // Address/Manual
-            labelInfo.addr      = (uint)json_hex_value(json_object_get(value, "address"));
-            labelInfo.manual    = Manual;
+            labelInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
+            labelInfo.manual = Manual;
 
             // Text string
             const char* text = json_string_value(json_object_get(value, "text"));
@@ -230,8 +230,8 @@ void LabelCacheLoad(JSON Root)
     // Remove previous data
     labels.clear();
 
-    const JSON jsonLabels       = json_object_get(Root, "labels");
-    const JSON jsonAutoLabels   = json_object_get(Root, "autolabels");
+    const JSON jsonLabels = json_object_get(Root, "labels");
+    const JSON jsonAutoLabels = json_object_get(Root, "autolabels");
 
     // Load user-set labels
     if(jsonLabels)
@@ -267,8 +267,8 @@ bool LabelEnum(LABELSINFO* List, size_t* Size)
     // to a virtual address
     for(auto & itr : labels)
     {
-        *List       = itr.second;
-        List->addr  += ModBaseFromName(itr.second.mod);
+        *List = itr.second;
+        List->addr += ModBaseFromName(itr.second.mod);
         List++;
     }
 

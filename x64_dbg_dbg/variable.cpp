@@ -85,8 +85,8 @@ void varinit()
 
     // Read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation
-    varnew("$_EZ_FLAG", 0, VAR_READONLY);   // Equal/zero flag for internal use (1=equal, 0=unequal)
-    varnew("$_BS_FLAG", 0, VAR_READONLY);   // Bigger/smaller flag for internal use (1=bigger, 0=smaller)
+    varnew("$_EZ_FLAG", 0, VAR_READONLY);   // Equal/zero flag for internal use (1 = equal, 0 = unequal)
+    varnew("$_BS_FLAG", 0, VAR_READONLY);   // Bigger/smaller flag for internal use (1 = bigger, 0 = smaller)
 }
 
 /**
@@ -241,9 +241,9 @@ bool varset(const char* Name, uint Value, bool ReadOnly)
 {
     // Insert variable as an unsigned integer
     VAR_VALUE varValue;
-    varValue.size       = sizeof(uint);
-    varValue.type       = VAR_UINT;
-    varValue.u.value    = Value;
+    varValue.size = sizeof(uint);
+    varValue.type = VAR_UINT;
+    varValue.u.value = Value;
 
     return varset(Name, &varValue, ReadOnly);
 }
@@ -258,9 +258,9 @@ bool varset(const char* Name, uint Value, bool ReadOnly)
 bool varset(const char* Name, const char* Value, bool ReadOnly)
 {
     VAR_VALUE varValue;
-    int stringLen   = (int)strlen(Value);
-    varValue.size   = stringLen;
-    varValue.type   = VAR_STRING;
+    int stringLen = (int)strlen(Value);
+    varValue.size = stringLen;
+    varValue.type = VAR_STRING;
     varValue.u.data = new std::vector<unsigned char>;
 
     // Allocate space for the string
