@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
@@ -21,7 +21,7 @@ if "%1"=="x32" (
 ) else if "%1"=="chm" (
     goto chm
 ) else (
-    echo "usage: setenv x32/x64/coverity/doxygen"
+    echo "usage: setenv x32/x64/coverity/doxygen/chm"
     goto :eof
 )
 
