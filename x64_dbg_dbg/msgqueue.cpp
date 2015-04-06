@@ -1,55 +1,89 @@
-/**
- @file msgqueue.cpp
-
- @brief Implements the msgqueue class.
- */
-
 #include "msgqueue.h"
+#include <stdio.h>
 
-// Allocate a message stack
+//allocate a message (internal)
+static MESSAGE* msgalloc()
+{
+    return (MESSAGE*)emalloc(sizeof(MESSAGE), "msgalloc:msg");
+}
+
+//free a message (internal)
+static void msgfree(MESSAGE* msg)
+{
+    efree(msg, "msgfree:msg");
+}
+
+//allocate a message stack
 MESSAGE_STACK* MsgAllocStack()
 {
-    // Allocate memory for the structure
-    PVOID memoryBuffer = emalloc(sizeof(MESSAGE_STACK), "MsgAllocStack:memoryBuffer");
-
-    if(!memoryBuffer)
-        return nullptr;
-
-    // Use placement new to ensure all constructors are called correctly
-    return new(memoryBuffer) MESSAGE_STACK;
+    MESSAGE_STACK* msgstack = (MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
+    if(!msgstack)
+        return 0;
+    memset(msgstack, 0, sizeof(MESSAGE_STACK));
+    InitializeCriticalSection(&msgstack->cr);
+    return msgstack;
 }
 
-// Free a message stack and all messages in the queue
-void MsgFreeStack(MESSAGE_STACK* Stack)
+//free a message stack
+void MsgFreeStack(MESSAGE_STACK* msgstack)
 {
-    // Destructor must be called manually due to placement new
-    Stack->FIFOStack.~unbounded_buffer();
-
-    // Free memory
-    efree(Stack, "MsgFreeStack:Stack");
+    DeleteCriticalSection(&msgstack->cr);
+    int stackpos = msgstack->stackpos;
+    for(int i = 0; i < stackpos; i++) //free all messages left in stack
+        msgfree(msgstack->msg[i]);
+    efree(msgstack, "msgfreestack:msgstack");
 }
 
-// Add a message to the stack
-bool MsgSend(MESSAGE_STACK* Stack, int Msg, uint Param1, uint Param2)
+//add a message to the stack
+bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 {
-    MESSAGE messageInfo;
-    messageInfo.msg = Msg;
-    messageInfo.param1 = Param1;
-    messageInfo.param2 = Param2;
-
-    // Asynchronous send. Return value doesn't matter.
-    concurrency::asend(Stack->FIFOStack, messageInfo);
+    CRITICAL_SECTION* cr = &msgstack->cr;
+    EnterCriticalSection(cr);
+    int stackpos = msgstack->stackpos;
+    if(stackpos >= MAX_MESSAGES)
+    {
+        LeaveCriticalSection(cr);
+        return false;
+    }
+    MESSAGE* newmsg = msgalloc();
+    if(!newmsg)
+    {
+        LeaveCriticalSection(cr);
+        return false;
+    }
+    newmsg->msg = msg;
+    newmsg->param1 = param1;
+    newmsg->param2 = param2;
+    msgstack->msg[stackpos] = newmsg;
+    msgstack->stackpos++; //increase stack pointer
+    LeaveCriticalSection(cr);
     return true;
 }
 
-// Get a message from the stack (will return false when there are no messages)
-bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Message)
+//get a message from the stack (will return false when there are no messages)
+bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
-    return concurrency::try_receive(Stack->FIFOStack, *Message);
+    CRITICAL_SECTION* cr = &msgstack->cr;
+    EnterCriticalSection(cr);
+    int stackpos = msgstack->stackpos;
+    if(!msgstack->stackpos) //no messages to process
+    {
+        LeaveCriticalSection(cr);
+        return false;
+    }
+    msgstack->stackpos--; //current message is at stackpos-1
+    stackpos--;
+    MESSAGE* stackmsg = msgstack->msg[stackpos];
+    memcpy(msg, stackmsg, sizeof(MESSAGE));
+    msgfree(stackmsg);
+    msgstack->msg[stackpos] = 0;
+    LeaveCriticalSection(cr);
+    return true;
 }
 
-// Wait for a message on the specified stack
-void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Message)
+//wait for a message on the specified stack
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
-    *Message = concurrency::receive(Stack->FIFOStack);
+    while(!MsgGet(msgstack, msg))
+        Sleep(1);
 }

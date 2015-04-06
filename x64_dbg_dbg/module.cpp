@@ -17,15 +17,20 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
 
     MODINFO info;
 
+    // Copy the module path in the struct
+    strcpy_s(info.path, FullPath);
+
     // Break the module path into a directory and file name
-    char dir[deflen];
-    char* file;
-
-    if(GetFullPathNameA(FullPath, ARRAYSIZE(dir), dir, &file) == 0)
-        return false;
-
-    // Make everything lowercase
+    char dir[MAX_PATH] = "";
+    char file[MAX_MODULE_SIZE] = "";
+    strcpy_s(dir, FullPath);
     _strlwr(dir);
+    char* fileStart = strrchr(dir, '\\');
+    if(fileStart)
+    {
+        strcpy_s(file, fileStart + 1);
+        *fileStart = '\0';
+    }
 
     // Copy the extension into the module struct
     {
