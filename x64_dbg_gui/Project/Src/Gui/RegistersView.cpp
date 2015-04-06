@@ -2232,7 +2232,6 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
         return sizeof(DWORD);
     else
         size = 0;
-
     return size;
 }
 
