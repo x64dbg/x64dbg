@@ -1,20 +1,20 @@
 @echo off
 
 echo Saving PATH
-set OLDPATH=%PATH%
+if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
 if "%1%"=="x32" (
-    call setenv_x32.bat
+    call setenv.bat x32
     set type="Win32"
 ) else if "%1%"=="x64" (
-    call setenv_x64.bat
+    call setenv.bat x64
     set type="x64"
 ) else if "%1%"=="coverity" (
     if "%2"=="" (
         echo "usage: build.bat coverity x32/x64"
         goto :eof
     )
-    call setenv_coverity.bat
+    call setenv.bat coverity
     echo Building with Coverity
     cov-configure --msvc
     cov-build --dir cov-int --instrument build.bat %2%
@@ -49,3 +49,4 @@ cd ..
 
 echo Resetting PATH
 set PATH=%OLDPATH%
+set OLDPATH=
