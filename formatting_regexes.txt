@@ -1,2 +1,2 @@
-# this file is only for the people who have serious mental issues
-/\s*([+-])?\s*=\s*/ -> / \1= /
+# this file is only for the people who have serious mental issues (USE WITH CAUTION, THIS DOESN'T WORK)
+/\s*([\^+\-*=&|<>\/%!]|<<|>>)?\s*=\s*/ -> / \1= /
