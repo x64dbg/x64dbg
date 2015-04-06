@@ -2229,7 +2229,7 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     else if(mFPUYMM.contains(reg_name))
         size = 32;
     else if(reg_name == LastError)
-        return sizeof(LASTERROR);
+        return sizeof(DWORD);
     else
         size = 0;
 
