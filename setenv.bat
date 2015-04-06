@@ -1,15 +1,25 @@
-@echo off
+rem @echo off
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%1%"=="x32" (
+if "%QT32PATH%"=="" set QT32PATH=c:\Qt\qt-4.8.6-x86-msvc2013\qt-4.8.6-x86-msvc2013\bin
+if "%QT64PATH%"=="" set QT64PATH=c:\Qt\qt-4.8.6-x64-msvc2013\qt-4.8.6-x64-msvc2013\bin
+if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-3.1.1\bin
+if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
+if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
+if "%DOXYGENPATH%"=="" set DOXYGENPATH=C:\Program Files\doxygen\bin
+if "%CHMPATH%"=="" set CHMPATH=c:\Program Files (x86)\Softany\WinCHM
+
+if "%1"=="x32" (
     goto x32
-) else if "%1%"=="x64" (
+) else if "%1"=="x64" (
     goto x64
-) else if "%1%"=="coverity" (
+) else if "%1"=="coverity" (
     goto coverity
-) else if "%1%"=="doxygen" (
+) else if "%1"=="doxygen" (
     goto doxygen
+) else if "%1"=="chm" (
+    goto chm
 ) else (
     echo "usage: setenv x32/x64/coverity/doxygen"
     goto :eof
@@ -17,26 +27,31 @@ if "%1%"=="x32" (
 
 :x32
 echo Setting Qt in PATH
-set PATH=%PATH%;"c:\Qt\qt-4.8.6-x86-msvc2013\qt-4.8.6-x86-msvc2013\bin"
-set PATH=%PATH%;"c:\Qt\qtcreator-3.1.1\bin"
+set PATH=%PATH%;%QT32PATH%
+set PATH=%PATH%;%QTCREATORPATH%
 echo Setting VS in PATH
-call "c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
+call "%VSVARSALLPATH%"
 goto :eof
 
 :x64
 echo Setting Qt in PATH
-set PATH=%PATH%;"c:\Qt\qt-4.8.6-x64-msvc2013\qt-4.8.6-x64-msvc2013\bin"
-set PATH=%PATH%;"c:\Qt\qtcreator-3.1.1\bin"
+set PATH=%PATH%;%QT64PATH%
+set PATH=%PATH%;%QTCREATORPATH%
 echo Setting VS in PATH
-call "c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
+call "%VSVARSALLPATH%" amd64
 goto :eof
 
 :coverity
 echo Setting Coverity in PATH
-set PATH=%PATH%;"c:\coverity\bin"
+set PATH=%PATH%;%COVERITYPATH%
 goto :eof
 
 :doxygen
 echo Setting Doxygen in PATH
-set PATH=%PATH%;"C:\Program Files\doxygen\bin"
+set PATH=%PATH%;%DOXYGENPATH%
+goto :eof
+
+:chm
+echo Setting CHM in PATH
+set PATH=%PATH%;%CHMPATH%
 goto :eof
