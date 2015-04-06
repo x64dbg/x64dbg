@@ -1,9 +1,4 @@
 @echo off
-echo Setting Qt in PATH
-set PATH=%PATH%;c:\Qt\qt-4.8.6-x86-msvc2013\qt-4.8.6-x86-msvc2013\bin
-set PATH=%PATH%;c:\Qt\qtcreator-3.1.1\bin
-CALL "c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat"
-
 echo Building DBG...
 devenv /Rebuild "Release|Win32" x64_dbg.sln
 
