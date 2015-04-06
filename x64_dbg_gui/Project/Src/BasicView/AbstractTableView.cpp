@@ -79,6 +79,8 @@ void AbstractTableView::fontsUpdated()
  */
 void AbstractTableView::paintEvent(QPaintEvent* event)
 {
+    int lastColumn = getColumnCount() - 1;
+    int lastColumnWidth = 0;
     if(getColumnCount()) //make sure the last column is never smaller than the window
     {
         int totalWidth = 0;
@@ -89,11 +91,10 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             lastWidth += getColumnWidth(i);
         int width = this->viewport()->width();
         lastWidth = width > lastWidth ? width - lastWidth : 0;
-        int last = getColumnCount() - 1;
         if(totalWidth < width)
-            setColumnWidth(last, lastWidth);
+            lastColumnWidth = lastWidth;
         else
-            setColumnWidth(last, getColumnWidth(last));
+            lastColumnWidth = getColumnWidth(lastColumn);
     }
 
     Q_UNUSED(event);
@@ -121,20 +122,23 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     {
         for(int i = 0; i < getColumnCount(); i++)
         {
+            int columnWidth = getColumnWidth(i);
+            if(i == lastColumn)
+                columnWidth = lastColumnWidth;
             QStyleOptionButton wOpt;
             if((mColumnList[i].header.isPressed == true) && (mColumnList[i].header.isMouseOver == true))
                 wOpt.state = QStyle::State_Sunken;
             else
                 wOpt.state = QStyle::State_Enabled;
 
-            wOpt.rect = QRect(x, y, getColumnWidth(i), getHeaderHeight());
+            wOpt.rect = QRect(x, y, columnWidth, getHeaderHeight());
 
             mHeaderButtonSytle.style()->drawControl(QStyle::CE_PushButton, &wOpt, &wPainter, &mHeaderButtonSytle);
 
             wPainter.setPen(headerTextColor);
-            wPainter.drawText(QRect(x + 4, y, getColumnWidth(i) - 8, getHeaderHeight()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
+            wPainter.drawText(QRect(x + 4, y, columnWidth - 8, getHeaderHeight()), Qt::AlignVCenter | Qt::AlignLeft, mColumnList[i].title);
 
-            x += getColumnWidth(i);
+            x += columnWidth;
         }
     }
 
@@ -144,29 +148,32 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     // Iterate over all columns and cells
     for(int j = 0; j < getColumnCount(); j++)
     {
+        int columnWidth = getColumnWidth(j);
+        if(j == lastColumn)
+            columnWidth = lastColumnWidth;
         for(int i = 0; i < wViewableRowsCount; i++)
         {
             //  Paints cell contents
             if(i < mNbrOfLineToPrint)
             {
-                QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
+                QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, columnWidth, getRowHeight());
                 if(wStr.length())
                 {
                     wPainter.setPen(textColor);
-                    wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                    wPainter.drawText(QRect(x + 4, y, columnWidth - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
                 }
             }
 
             // Paints cell right borders
             wPainter.setPen(separatorColor);
-            wPainter.drawLine(x + getColumnWidth(j) - 1, y, x + getColumnWidth(j) - 1, y + getRowHeight() - 1);
+            wPainter.drawLine(x + columnWidth - 1, y, x + columnWidth - 1, y + getRowHeight() - 1);
 
             // Update y for the next iteration
             y += getRowHeight();
         }
 
         y = getHeaderHeight();
-        x += getColumnWidth(j);
+        x += columnWidth;
     }
     emit repainted();
 }
