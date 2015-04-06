@@ -8,8 +8,9 @@
 #include "YaraRuleSelectionDialog.h"
 #include "DataCopyDialog.h"
 
-CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
+CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
 {
+    mDisas = disas;
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
     case ViewHexAscii:
@@ -1205,11 +1206,9 @@ void CPUDump::hardwareRemoveSlot()
 
 void CPUDump::findReferencesSlot()
 {
-    SELECTIONDATA selection;
-    GuiSelectionGet(GUI_DISASSEMBLY, &selection);
     QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    QString addrDisasm = QString("%1").arg(selection.start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(mDisas->rvaToVa(mDisas->getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }

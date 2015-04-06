@@ -17,11 +17,11 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     THREADINFO curInfo;
     memset(&curInfo, 0, sizeof(THREADINFO));
 
-    curInfo.ThreadNumber        = ThreadGetCount();
-    curInfo.Handle              = CreateThread->hThread;
-    curInfo.ThreadId            = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    curInfo.ThreadStartAddress  = (uint)CreateThread->lpStartAddress;
-    curInfo.ThreadLocalBase     = (uint)CreateThread->lpThreadLocalBase;
+    curInfo.ThreadNumber = ThreadGetCount();
+    curInfo.Handle = CreateThread->hThread;
+    curInfo.ThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    curInfo.ThreadStartAddress = (uint)CreateThread->lpStartAddress;
+    curInfo.ThreadLocalBase = (uint)CreateThread->lpThreadLocalBase;
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
@@ -71,6 +71,14 @@ int ThreadGetCount()
     return (int)threadList.size();
 }
 
+static DWORD getLastErrorFromTeb(ULONG_PTR ThreadLocalBase)
+{
+    TEB teb;
+    if(!ThreadGetTeb(ThreadLocalBase, &teb))
+        return 0;
+    return teb.LastErrorValue;
+}
+
 void ThreadGetList(THREADLIST* List)
 {
     SHARED_ACQUIRE(LockThreads);
@@ -85,7 +93,7 @@ void ThreadGetList(THREADLIST* List)
         return;
 
     List->count = (int)count;
-    List->list  = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
+    List->list = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
 
     // Fill out the list data
     for(size_t i = 0; i < count; i++)
@@ -98,11 +106,11 @@ void ThreadGetList(THREADLIST* List)
 
         memcpy(&List->list[i].BasicInfo, &threadList[i], sizeof(THREADINFO));
 
-        List->list[i].ThreadCip     = GetContextDataEx(threadHandle, UE_CIP);
-        List->list[i].SuspendCount  = ThreadGetSuspendCount(threadHandle);
-        List->list[i].Priority      = ThreadGetPriority(threadHandle);
-        List->list[i].WaitReason    = ThreadGetWaitReason(threadHandle);
-        List->list[i].LastError     = ThreadGetLastError(List->list[i].BasicInfo.ThreadId);
+        List->list[i].ThreadCip = GetContextDataEx(threadHandle, UE_CIP);
+        List->list[i].SuspendCount = ThreadGetSuspendCount(threadHandle);
+        List->list[i].Priority = ThreadGetPriority(threadHandle);
+        List->list[i].WaitReason = ThreadGetWaitReason(threadHandle);
+        List->list[i].LastError = getLastErrorFromTeb(threadList[i].ThreadLocalBase);
     }
 }
 
@@ -163,21 +171,13 @@ DWORD ThreadGetLastError(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
-    TEB teb;
-    memset(&teb, 0, sizeof(TEB));
     for(auto & entry : threadList)
     {
-        if(entry.ThreadId != ThreadId)
-            continue;
-
-        if(!ThreadGetTeb(entry.ThreadLocalBase, &teb))
-        {
-            // TODO: Assert (Why would the TEB fail?)
-            return 0;
-        }
+        if(entry.ThreadId == ThreadId)
+            return getLastErrorFromTeb(entry.ThreadLocalBase);
     }
 
-    return teb.LastErrorValue;
+    return 0;
 }
 
 bool ThreadSetName(DWORD ThreadId, const char* Name)
