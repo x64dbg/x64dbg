@@ -5,11 +5,11 @@ if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
 if "%1"=="x32" (
     call setenv.bat x32
-    set type="Win32"
+    set type=Win32
 	goto build
 ) else if "%1"=="x64" (
     call setenv.bat x64
-    set type="x64"
+    set type=x64
 	goto build
 ) else if "%1"=="coverity" (
     if "%2"=="" (
