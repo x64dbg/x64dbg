@@ -65,6 +65,7 @@ void ExceptionCodeInit()
     ExceptionNames.insert(std::make_pair(0xC00002C9, "STATUS_REG_NAT_CONSUMPTION"));
     ExceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
     ExceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
+    ExceptionNames.insert(std::make_pair(0xC000041D, "STATUS_USER_CALLBACK"));
     ExceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
     ExceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     ExceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));

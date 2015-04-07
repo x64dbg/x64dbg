@@ -3,9 +3,10 @@
 
 #include "_global.h"
 #include <windows.h>
-#include <agents.h>
 
-// Message structure
+#define MAX_MESSAGES 256
+
+//message structure
 struct MESSAGE
 {
     int msg;
@@ -13,17 +14,19 @@ struct MESSAGE
     uint param2;
 };
 
-// Message stack structure.
-// Supports an unlimited number of messages.
+//message stack structure
 struct MESSAGE_STACK
 {
-    concurrency::unbounded_buffer<MESSAGE> FIFOStack;
+    CRITICAL_SECTION cr;
+    int stackpos;
+    MESSAGE* msg[MAX_MESSAGES];
 };
 
+//function definitions
 MESSAGE_STACK* MsgAllocStack();
-void MsgFreeStack(MESSAGE_STACK* Stack);
-bool MsgSend(MESSAGE_STACK* Stack, int Msg, uint Param1, uint Param2);
-bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Message);
-void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Message);
+void MsgFreeStack(MESSAGE_STACK* msgstack);
+bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2);
+bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg);
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg);
 
 #endif // _MSGQUEUE_H
