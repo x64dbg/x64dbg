@@ -152,7 +152,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
  @brief A macro that defines shellext executable key.
  */
 
-#define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64_dbg\\Command"
+#define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64dbg\\Command"
 
 /**
  @def SHELLEXT_DLL_KEY
@@ -160,7 +160,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
  @brief A macro that defines shellext DLL key.
  */
 
-#define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64_dbg\\Command"
+#define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64dbg\\Command"
 
 /**
  @fn static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
@@ -297,13 +297,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //Load settings
     bool bDoneSomething = false;
     wchar_t sz32Path[MAX_PATH] = L"";
-    if(!GetPrivateProfileStringW(L"Launcher", L"x32_dbg", L"", sz32Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileStringW(L"Launcher", L"x32dbg", L"", sz32Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz32Path, szCurrentDir);
         PathAppendW(sz32Path, L"x32\\x32_dbg.exe");
         if(FileExists(sz32Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32_dbg", sz32Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
             bDoneSomething = true;
         }
     }
@@ -315,13 +315,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(len)
         sz32Dir[len] = L'\0';
     wchar_t sz64Path[MAX_PATH] = L"";
-    if(!GetPrivateProfileStringW(L"Launcher", L"x64_dbg", L"", sz64Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileStringW(L"Launcher", L"x64dbg", L"", sz64Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz64Path, szCurrentDir);
         PathAppendW(sz64Path, L"x64\\x64_dbg.exe");
         if(FileExists(sz64Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64_dbg", sz64Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
             bDoneSomething = true;
         }
     }
@@ -340,12 +340,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(0, L"x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32_dbg", sz32Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
             bDoneSomething = true;
         }
         if(!FileExists(sz64Path) && BrowseFileOpen(0, L"x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64_dbg", sz64Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
             bDoneSomething = true;
         }
         if(MessageBoxW(0, L"Do you want to register a shell extension?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
@@ -374,14 +374,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             if(sz32Path[0])
                 ShellExecuteW(0, L"open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x32_dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBoxW(0, L"Path to x32dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
             break;
 
         case x64:
             if(sz64Path[0])
                 ShellExecuteW(0, L"open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x64_dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBoxW(0, L"Path to x64dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
             break;
 
         case invalid:

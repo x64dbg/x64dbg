@@ -60,7 +60,7 @@ CommandHelpView::CommandHelpView(QWidget* parent) : QWidget(parent), ui(new Ui::
 
     //fill with example data
     mModuleList->setRowCount(2);
-    mModuleList->setCellContent(0, 0, "x64_dbg");
+    mModuleList->setCellContent(0, 0, "x64dbg");
     mModuleList->setCellContent(1, 0, "testplugin");
 
     mModuleList->setSingleSelection(0);
@@ -75,7 +75,7 @@ void CommandHelpView::moduleSelectionChanged(int index)
 {
     mSearchListView->mList->setRowCount(0);
 
-    if(index == 0) //x64_dbg
+    if(index == 0) //x64dbg
     {
         mCurrentMode = 0;
         mSearchListView->mList->setRowCount(3);
@@ -101,7 +101,7 @@ void CommandHelpView::moduleSelectionChanged(int index)
 void CommandHelpView::symbolSelectionChanged(int index)
 {
     QString info = "";
-    if(mCurrentMode == 0) //x64_dbg
+    if(mCurrentMode == 0) //x64dbg
     {
         switch(index)
         {

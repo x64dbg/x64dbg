@@ -36,9 +36,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->showMaximized();
 
 #ifdef _WIN64
-    mWindowMainTitle = "x64_dbg";
+    mWindowMainTitle = "x64dbg";
 #else
-    mWindowMainTitle = "x32_dbg";
+    mWindowMainTitle = "x32dbg";
 #endif
 
     //Set window title
@@ -498,9 +498,9 @@ void MainWindow::displayScriptWidget()
 void MainWindow::displayAboutWidget()
 {
 #ifdef _WIN64
-    QString title = "About x64_dbg";
+    QString title = "About x64dbg";
 #else
-    QString title = "About x32_dbg";
+    QString title = "About x32dbg";
 #endif
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
     QMessageBox msg(QMessageBox::Information, title, "Website:\nhttp://x64dbg.com\n\nAttribution:\nIcons8 (http://icons8.com)\nYusuke Kamiyamane (http://p.yusukekamiyamane.com)\n\nCompiled on:\n"__DATE__", "__TIME__);
@@ -985,7 +985,7 @@ void MainWindow::displayCallstack()
 
 void MainWindow::donate()
 {
-    QMessageBox msg(QMessageBox::Information, "Donate", "All the money will go to x64_dbg development.");
+    QMessageBox msg(QMessageBox::Information, "Donate", "All the money will go to x64dbg development.");
     msg.setWindowIcon(QIcon(":/icons/images/donate.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

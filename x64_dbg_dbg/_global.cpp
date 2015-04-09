@@ -9,7 +9,7 @@
 #include <new>
 
 /**
-\brief x64_dbg library instance.
+\brief x64dbg library instance.
 */
 HINSTANCE hInst;
 
@@ -24,7 +24,7 @@ char dbbasepath[deflen] = "";
 char dbpath[3 * deflen] = "";
 
 /**
-\brief Number of allocated buffers by emalloc(). This should be 0 when x64_dbg ends.
+\brief Number of allocated buffers by emalloc(). This should be 0 when x64dbg ends.
 */
 static int emalloc_count = 0;
 
@@ -287,13 +287,13 @@ arch GetFileArchitecture(const char* szFileName)
 }
 
 /**
-\brief Query if x64_dbg is running in Wow64 mode.
+\brief Query if x64dbg is running in Wow64 mode.
 \return true if running in Wow64, false otherwise.
 */
 bool IsWow64()
 {
     BOOL bIsWow64Process = FALSE;
-    //x64_dbg supports WinXP SP3 and later only, so ignore the GetProcAddress crap :D
+    //x64dbg supports WinXP SP3 and later only, so ignore the GetProcAddress crap :D
     IsWow64Process(GetCurrentProcess(), &bIsWow64Process);
     return !!bIsWow64Process;
 }

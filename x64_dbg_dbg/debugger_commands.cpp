@@ -68,10 +68,10 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         return STATUS_ERROR;
 #ifdef _WIN64
     case x32:
-        dputs("Use x32_dbg to debug this file!");
+        dputs("Use x32dbg to debug this file!");
 #else //x86
     case x64:
-        dputs("Use x64_dbg to debug this file!");
+        dputs("Use x64dbg to debug this file!");
 #endif //_WIN64
         return STATUS_ERROR;
     default:
@@ -924,9 +924,9 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     if((mewow64 and !wow64) or (!mewow64 and wow64))
     {
 #ifdef _WIN64
-        dputs("Use x32_dbg to debug this process!");
+        dputs("Use x32dbg to debug this process!");
 #else
-        dputs("Use x64_dbg to debug this process!");
+        dputs("Use x64dbg to debug this process!");
 #endif // _WIN64
         return STATUS_ERROR;
     }

@@ -1116,9 +1116,9 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     if((mewow64 and !wow64) or (!mewow64 and wow64))
     {
 #ifdef _WIN64
-        dputs("Use x32_dbg to debug this process!");
+        dputs("Use x32dbg to debug this process!");
 #else
-        dputs("Use x64_dbg to debug this process!");
+        dputs("Use x64dbg to debug this process!");
 #endif // _WIN64
         unlock(WAITID_STOP);
         return 0;

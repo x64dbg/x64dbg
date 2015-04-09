@@ -409,7 +409,7 @@
        <item>
         <widget class="QCheckBox" name="chkSetJIT">
          <property name="text">
-          <string>Set x64_dbg as Just In Time Debugger</string>
+          <string>Set x64dbg as Just In Time Debugger</string>
          </property>
         </widget>
        </item>
