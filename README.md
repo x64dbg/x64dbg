@@ -1,10 +1,10 @@
 # x64dbg
 
 ## Note
-Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64dbg* [standards](https://bitbucket.org/mrexodia/x64dbg/wiki/x64dbg_coding_guidelines).
+Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64dbg* [standards](https://github.com/x64dbg/x64dbg/wiki/x64_dbg_coding_guidelines).
 
 ## Compiling
-For a complete guide on compiling *x64dbg* read [this](https://bitbucket.org/mrexodia/x64dbg/wiki/Compiling%20the%20whole%20project).
+For a complete guide on compiling *x64dbg* read [this](https://github.com/x64dbg/x64dbg/wiki/Compiling the whole project).
 
 ## Downloads
 Releases of *x64dbg* can be found [here](http://download.x64dbg.com).
