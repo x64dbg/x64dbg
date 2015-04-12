@@ -24,6 +24,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Memory map
 - Symbol view
 - Thread view
+- Source code view
 - Content-sensitive register view
 - Fully customizable color scheme
 - Dynamically recognize modules and strings
@@ -36,6 +37,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Basic debug symbol (PDB) support
 - Dynamic stack view
 - Built-in assembler (XEDParse)
+- Executable patching
 
 ## Known bugs
 - Memory breakpoints sometimes fail (TitanEngine bug)
@@ -63,7 +65,6 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - TEAM DVT
 - DMichael
 - Artic
-- Nukem
 - ahmadmansoor
 
 ## Developers (in order of joining)
