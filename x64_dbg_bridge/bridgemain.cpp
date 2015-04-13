@@ -15,11 +15,11 @@ static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
 
 #ifdef _WIN64
-#define dbg_lib "x64_dbg.dll"
-#define gui_lib "x64_gui.dll"
+#define dbg_lib "x64dbg.dll"
+#define gui_lib "x64gui.dll"
 #else
-#define dbg_lib "x32_dbg.dll"
-#define gui_lib "x32_gui.dll"
+#define dbg_lib "x32dbg.dll"
+#define gui_lib "x32gui.dll"
 #endif // _WIN64
 
 #define LOADLIBRARY(name) \

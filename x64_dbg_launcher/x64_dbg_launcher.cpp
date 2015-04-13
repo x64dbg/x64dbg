@@ -300,7 +300,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(!GetPrivateProfileStringW(L"Launcher", L"x32dbg", L"", sz32Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz32Path, szCurrentDir);
-        PathAppendW(sz32Path, L"x32\\x32_dbg.exe");
+        PathAppendW(sz32Path, L"x32\\x32dbg.exe");
         if(FileExists(sz32Path))
         {
             WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
@@ -318,7 +318,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(!GetPrivateProfileStringW(L"Launcher", L"x64dbg", L"", sz64Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz64Path, szCurrentDir);
-        PathAppendW(sz64Path, L"x64\\x64_dbg.exe");
+        PathAppendW(sz64Path, L"x64\\x64dbg.exe");
         if(FileExists(sz64Path))
         {
             WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
@@ -338,12 +338,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if(argc <= 1) //no arguments -> set configuration
     {
-        if(!FileExists(sz32Path) && BrowseFileOpen(0, L"x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz32Path) && BrowseFileOpen(0, L"x32dbg.exe\0x32dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if(!FileExists(sz64Path) && BrowseFileOpen(0, L"x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz64Path) && BrowseFileOpen(0, L"x64dbg.exe\0x64dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
         {
             WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
             bDoneSomething = true;
