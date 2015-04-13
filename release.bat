@@ -123,3 +123,5 @@ copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\x64gui.dll
 xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
 xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y
 xcopy %RELEASEDIR%\help %RELEASEDIR%\release /S /Y
+
+exit 0
