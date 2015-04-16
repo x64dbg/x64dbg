@@ -6,6 +6,7 @@
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "HexEditDialog.h"
+#include "YaraRuleSelectionDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
 {
@@ -85,52 +86,71 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUDisassembly::addFollowMenuItem(QString name, int_t value)
+void CPUDisassembly::addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, bool isReferences)
 {
-    foreach(QAction * action, mFollowMenu->actions()) //check for duplicate action
+    foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
         return;
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
-    mFollowMenu->addAction(newAction);
-    newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    menu->addAction(newAction);
+    newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
 
-void CPUDisassembly::setupFollowMenu(int_t wVA)
+void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isReferences)
 {
     //remove previous actions
-    QList<QAction*> list = mFollowMenu->actions();
+    QList<QAction*> list = menu->actions();
     for(int i = 0; i < list.length(); i++)
-        mFollowMenu->removeAction(list.at(i));
+        menu->removeAction(list.at(i));
 
     //most basic follow action
-    addFollowMenuItem("&Selection", wVA);
+    if(isReferences)
+        menu->addAction(mReferenceSelectedAddress);
+    else
+        addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
 
     //add follow actions
     DISASM_INSTR instr;
     DbgDisasmAt(wVA, &instr);
 
-    for(int i = 0; i < instr.argcount; i++)
+    if(!isReferences) //follow in dump
     {
-        const DISASM_ARG arg = instr.arg[i];
-        if(arg.type == arg_memory)
+        for(int i = 0; i < instr.argcount; i++)
         {
-            if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value);
-            if(arg.value != arg.constant)
+            const DISASM_ARG arg = instr.arg[i];
+            if(arg.type == arg_memory)
             {
-                QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
-                if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowMenuItem("&Constant: " + constant, arg.constant);
+                if(DbgMemIsValidReadPtr(arg.value))
+                    addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+                if(arg.value != arg.constant)
+                {
+                    QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+                    if(DbgMemIsValidReadPtr(arg.constant))
+                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences);
+                }
+                if(DbgMemIsValidReadPtr(arg.memvalue))
+                    addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences);
+
             }
-            if(DbgMemIsValidReadPtr(arg.memvalue))
-                addFollowMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue);
+            else //arg_normal
+            {
+                if(DbgMemIsValidReadPtr(arg.value))
+                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+            }
         }
-        else
+    }
+    else //find references
+    {
+        for(int i = 0; i < instr.argcount; i++)
         {
-            if(DbgMemIsValidReadPtr(arg.value))
-                addFollowMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value);
+            const DISASM_ARG arg = instr.arg[i];
+            QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
+            if(DbgMemIsValidReadPtr(arg.constant))
+                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences);
+            else if(arg.constant)
+                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences);
         }
     }
 }
@@ -224,10 +244,9 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         }
         wMenu->addMenu(mBPMenu);
         wMenu->addMenu(mFollowMenu);
-        setupFollowMenu(wVA);
+        setupFollowReferenceMenu(wVA, mFollowMenu, false);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
-
 
         wMenu->addAction(mSetLabel);
         wMenu->addAction(mSetComment);
@@ -249,6 +268,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mAssemble);
 
         wMenu->addAction(mPatchesAction);
+        wMenu->addAction(mYaraAction);
 
         wMenu->addSeparator();
 
@@ -270,8 +290,11 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         wMenu->addMenu(mSearchMenu);
 
-        mReferencesMenu->addAction(mReferenceSelectedAddress);
         wMenu->addMenu(mReferencesMenu);
+        setupFollowReferenceMenu(wVA, mReferencesMenu, true);
+
+        wMenu->addSeparator();
+        wMenu->addActions(mPluginMenu->actions());
 
         wMenu->exec(event->globalPos());
     }
@@ -402,6 +425,11 @@ void CPUDisassembly::setupRightClickContextMenu()
     mPatchesAction->setShortcutContext(Qt::WidgetShortcut);
     connect(mPatchesAction, SIGNAL(triggered()), this, SLOT(showPatchesSlot()));
 
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYaraAction);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
     //--------------------------------------------------------------------
 
     //---------------------- New origin here -----------------------------
@@ -475,7 +503,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     mReferencesMenu = new QMenu("Find &references to", this);
 
     // Selected address
-    mReferenceSelectedAddress = new QAction("&Selected address", this);
+    mReferenceSelectedAddress = new QAction("&Selected Address(es)", this);
+    mReferenceSelectedAddress->setFont(QFont("Courier New", 8));
     mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mReferenceSelectedAddress);
     connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
@@ -519,6 +548,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     this->addAction(mEnableHighlightingMode);
     connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
 
+    // Plugins
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -539,6 +572,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mAssemble->setShortcut(ConfigShortcut("ActionAssemble"));
     mToggleInt3BpAction->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mPatchesAction->setShortcut(ConfigShortcut("ViewPatches"));
+    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
     mSetNewOriginHere->setShortcut(ConfigShortcut("ActionSetNewOriginHere"));
     mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
@@ -925,8 +959,17 @@ void CPUDisassembly::gotoFileOffset()
 void CPUDisassembly::followActionSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
-    if(action && action->objectName().startsWith("DUMP|"))
+    if(!action)
+        return;
+    if(action->objectName().startsWith("DUMP|"))
         DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
+    else if(action->objectName().startsWith("REF|"))
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString value = action->objectName().mid(4);
+        DbgCmdExec(QString("findref \"" + value +  "\", " + addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
 }
 
 void CPUDisassembly::gotoPrevious()
@@ -941,8 +984,10 @@ void CPUDisassembly::gotoNext()
 
 void CPUDisassembly::findReferences()
 {
-    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + addrText + ", " + addrText).toUtf8().constData());
+    QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -992,7 +1037,7 @@ void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
@@ -1003,13 +1048,13 @@ void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
     int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
-        Bridge::getBridge()->BridgeSetResult(0);
+        Bridge::getBridge()->setResult(0);
         return;
     }
     setSingleSelection(start - selMin);
     expandSelectionUpTo(end - selMin);
     reloadData();
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDisassembly::enableHighlightingMode()
@@ -1135,6 +1180,17 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 void CPUDisassembly::showPatchesSlot()
 {
     emit showPatches();
+}
+
+void CPUDisassembly::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
 }
 
 void CPUDisassembly::copySelection(bool copyBytes)

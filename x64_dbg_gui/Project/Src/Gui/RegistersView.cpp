@@ -121,6 +121,11 @@ void RegistersView::InitMappings()
 
     offset++;
 
+    mRegisterMapping.insert(LastError, "LastError");
+    mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 10, 20));
+
+    offset++;
+
     mRegisterMapping.insert(GS, "GS");
     mRegisterPlaces.insert(GS, Register_Position(offset, 0, 3, 4));
     mRegisterMapping.insert(FS, "FS");
@@ -1025,6 +1030,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mFPU.insert(YMM15);
 #endif
     //registers that should not be changed
+    mNoChange.insert(LastError);
+
     mNoChange.insert(GS);
     mUSHORTDISPLAY.insert(GS);
 
@@ -1452,6 +1459,15 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
             valueText += QString(")");
         }
     }
+    else if(reg == LastError)
+    {
+        LASTERROR* data = (LASTERROR*)value;
+        if(data->name)
+            valueText = QString().sprintf("%08X (%s)", data->code, data->name);
+        else
+            valueText = QString().sprintf("%08X", data->code);
+        mRegisterPlaces[LastError].valuesize = valueText.length();
+    }
     else
     {
         SIZE_T size = GetSizeRegister(reg);
@@ -1705,6 +1721,9 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         else
             p->setPen(ConfigColor("RegistersColor"));
 
+        //get register value
+        QString valueText = GetRegStringValueFromValue(reg, value);
+
         //selection
         if(mSelected == reg)
         {
@@ -1712,9 +1731,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             //p->fillRect(QRect(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line)+2, mRegisterPlaces[reg].valuesize*mCharWidth, mRowHeight), QBrush(ConfigColor("RegistersSelectionColor")));
         }
 
-        QString valueText;
         // draw value
-        valueText = GetRegStringValueFromValue(reg, value);
         width = mCharWidth * valueText.length();
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, valueText);
         //p->drawText(x + (mRegisterPlaces[reg].labelwidth)*mCharWidth ,mRowHeight*(mRegisterPlaces[reg].line+1),QString("%1").arg(value, mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper());
@@ -2211,6 +2228,8 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
         size = 16;
     else if(mFPUYMM.contains(reg_name))
         size = 32;
+    else if(reg_name == LastError)
+        return sizeof(DWORD);
     else
         size = 0;
 
@@ -2273,6 +2292,8 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == DS) return (char*) & (regd->regcontext.ds);
     if(reg == CS) return (char*) & (regd->regcontext.cs);
     if(reg == SS) return (char*) & (regd->regcontext.ss);
+
+    if(reg == LastError) return (char*) & (regd->lastError);
 
     if(reg == DR0) return (char*) & (regd->regcontext.dr0);
     if(reg == DR1) return (char*) & (regd->regcontext.dr1);
@@ -2375,22 +2396,22 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
     if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
 
-    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[32 * 0]);
-    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[32 * 1]);
-    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[32 * 2]);
-    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[32 * 3]);
-    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[32 * 4]);
-    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[32 * 5]);
-    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[32 * 6]);
-    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[32 * 7]);
-    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[32 * 8]);
-    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[32 * 9]);
-    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[32 * 10]);
-    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[32 * 11]);
-    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[32 * 12]);
-    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[32 * 13]);
-    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[32 * 14]);
-    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[32 * 15]);
+    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[0]);
+    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[1]);
+    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[2]);
+    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[3]);
+    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[4]);
+    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[5]);
+    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[6]);
+    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[7]);
+    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[8]);
+    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[9]);
+    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[10]);
+    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[11]);
+    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[12]);
+    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[13]);
+    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[14]);
+    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[15]);
 
     return (char*) & null_value;
 }

@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "PageMemoryRights.h"
+#include "YaraRuleSelectionDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
@@ -9,12 +10,12 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "ADDR", false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "SIZE", false, "Size"); //size
-    addColumnAt(8 + charwidth * 32, "INFO", false, "Page Information"); //page information
-    addColumnAt(8 + charwidth * 3, "TYP", false, "Allocation Type"); //allocation type
-    addColumnAt(8 + charwidth * 5, "CPROT", false, "Current Protection"); //current protection
-    addColumnAt(8 + charwidth * 5, "APROT", false, "Allocation Protection"); //allocation protection
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Address", false, "Address"); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Size", false, "Size"); //size
+    addColumnAt(8 + charwidth * 32, "Info", false, "Page Information"); //page information
+    addColumnAt(8 + charwidth * 5, "Type", false, "Allocation Type"); //allocation type
+    addColumnAt(8 + charwidth * 11, "Protection", false, "Current Protection"); //current protection
+    addColumnAt(8 + charwidth * 8, "Initial", false, "Allocation Protection"); //allocation protection
     addColumnAt(100, "", false);
 
     connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
@@ -36,6 +37,10 @@ void MemoryMapView::setupContextMenu()
     mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+
+    //Yara
+    mYara = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
     mPageMemoryRights = new QAction("Set Page Memory Rights", this);
@@ -109,6 +114,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
+    wMenu->addAction(mYara);
     wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
     wMenu->addAction(mPageMemoryRights);
@@ -296,9 +302,27 @@ void MemoryMapView::followDumpSlot()
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 0);
-    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
+    QString commandText = QString("disasm %1").arg(getCellContent(getInitialSelection(), 0));
+
+    // If there was no address loaded, the length
+    // will only be the command length
+    if(commandText.length() <= 8)
+        return;
+
+    DbgCmdExecDirect(commandText.toUtf8().constData());
     emit showCpu();
+}
+
+void MemoryMapView::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addr_text = getCellContent(getInitialSelection(), 0);
+        QString size_text = getCellContent(getInitialSelection(), 1);
+        DbgCmdExec(QString("yara \"%0\",%1,%2").arg(yaraDialog.getSelectedFile()).arg(addr_text).arg(size_text).toUtf8().constData());
+        emit showReferences();
+    }
 }
 
 void MemoryMapView::memoryAccessSingleshootSlot()

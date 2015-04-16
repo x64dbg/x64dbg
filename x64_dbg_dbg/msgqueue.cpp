@@ -14,7 +14,7 @@ static void msgfree(MESSAGE* msg)
 }
 
 //allocate a message stack
-MESSAGE_STACK* msgallocstack()
+MESSAGE_STACK* MsgAllocStack()
 {
     MESSAGE_STACK* msgstack = (MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
     if(!msgstack)
@@ -25,7 +25,7 @@ MESSAGE_STACK* msgallocstack()
 }
 
 //free a message stack
-void msgfreestack(MESSAGE_STACK* msgstack)
+void MsgFreeStack(MESSAGE_STACK* msgstack)
 {
     DeleteCriticalSection(&msgstack->cr);
     int stackpos = msgstack->stackpos;
@@ -35,7 +35,7 @@ void msgfreestack(MESSAGE_STACK* msgstack)
 }
 
 //add a message to the stack
-bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
+bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
     EnterCriticalSection(cr);
@@ -61,7 +61,7 @@ bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
 }
 
 //get a message from the stack (will return false when there are no messages)
-bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
+bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
     EnterCriticalSection(cr);
@@ -82,8 +82,8 @@ bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg)
 }
 
 //wait for a message on the specified stack
-void msgwait(MESSAGE_STACK* msgstack, MESSAGE* msg)
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg)
 {
-    while(!msgget(msgstack, msg))
+    while(!MsgGet(msgstack, msg))
         Sleep(1);
 }

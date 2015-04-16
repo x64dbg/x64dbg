@@ -18,9 +18,9 @@ QMAKE_CFLAGS_RELEASE += -Zi
 QMAKE_LFLAGS_RELEASE += /DEBUG
 
 !contains(QMAKE_HOST.arch, x86_64) {
-    TARGET = x32_gui
+    TARGET = x32gui
 } else {
-    TARGET = x64_gui
+    TARGET = x64gui
 }
 
 DEFINES += BUILD_LIB
@@ -85,7 +85,12 @@ SOURCES += \
     Src/Gui/AttachDialog.cpp \
     Src/Gui/PageMemoryRights.cpp \
     Src/Gui/SelectFields.cpp \
-    Src/Gui/ReferenceManager.cpp
+    Src/Gui/ReferenceManager.cpp \
+    Src/Bridge/BridgeResult.cpp \
+    Src/Gui/YaraRuleSelectionDialog.cpp \
+    Src/Gui/DataCopyDialog.cpp \
+    Src/Gui/SourceViewerManager.cpp \
+    Src/Gui/SourceView.cpp
 
 
 HEADERS += \
@@ -149,7 +154,13 @@ HEADERS += \
     Src/Gui/AttachDialog.h \
     Src/Gui/PageMemoryRights.h \
     Src/Gui/SelectFields.h \
-    Src/Gui/ReferenceManager.h
+    Src/Gui/ReferenceManager.h \
+    Src/Bridge/BridgeResult.h \
+    Src/Gui/YaraRuleSelectionDialog.h \
+    Src/Gui/DataCopyDialog.h \
+    Src/Gui/SourceViewerManager.h \
+    Src/Gui/SourceView.h \
+    Src/Utils/StringUtil.h
 
 
 INCLUDEPATH += \
@@ -184,7 +195,9 @@ FORMS += \
     Src/Gui/CalculatorDialog.ui \
     Src/Gui/AttachDialog.ui \
     Src/Gui/PageMemoryRights.ui \
-    Src/Gui/SelectFields.ui
+    Src/Gui/SelectFields.ui \
+    Src/Gui/YaraRuleSelectionDialog.ui \
+    Src/Gui/DataCopyDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 
@@ -195,12 +208,12 @@ LIBS += -luser32
 !contains(QMAKE_HOST.arch, x86_64) {
     #message("x86 build")
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
-    LIBS += -L"$$PWD/Src/Bridge/" -lx32_bridge
+    LIBS += -L"$$PWD/Src/Bridge/" -lx32bridge
     ## Windows x86 (32bit) specific build here
 } else {
     #message("x86_64 build")
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
-    LIBS += -L"$$PWD/Src/Bridge/" -lx64_bridge
+    LIBS += -L"$$PWD/Src/Bridge/" -lx64bridge
     ## Windows x64 (64bit) specific build here
 }
 

@@ -1,20 +1,22 @@
-#ifndef _THREAD_H
-#define _THREAD_H
+#pragma once
 
 #include "_global.h"
 #include "debugger.h"
 
-//functions
-void threadcreate(CREATE_THREAD_DEBUG_INFO* CreateThread);
-void threadexit(DWORD dwThreadId);
-void threadclear();
-void threadgetlist(THREADLIST* list);
-bool threadisvalid(DWORD dwThreadId);
-bool threadsetname(DWORD dwTHreadId, const char* name);
-HANDLE threadgethandle(DWORD dwThreadId);
-DWORD threadgetid(HANDLE hThread);
-int threadgetcount();
-int threadsuspendall();
-int threadresumeall();
-
-#endif //_THREAD_H
+void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread);
+void ThreadExit(DWORD ThreadId);
+void ThreadClear();
+int ThreadGetCount();
+void ThreadGetList(THREADLIST* list);
+bool ThreadIsValid(DWORD ThreadId);
+bool ThreadSetName(DWORD ThreadId, const char* name);
+bool ThreadGetTeb(uint TEBAddress, TEB* Teb);
+int ThreadGetSuspendCount(HANDLE Thread);
+THREADPRIORITY ThreadGetPriority(HANDLE Thread);
+THREADWAITREASON ThreadGetWaitReason(HANDLE Thread);
+DWORD ThreadGetLastError(DWORD ThreadId);
+bool ThreadSetName(DWORD dwThreadId, const char* name);
+HANDLE ThreadGetHandle(DWORD ThreadId);
+DWORD ThreadGetId(HANDLE Thread);
+int ThreadSuspendAll();
+int ThreadResumeAll();

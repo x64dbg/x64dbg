@@ -37,7 +37,7 @@ extern "C"
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
-#define DBG_VERSION 23
+#define DBG_VERSION 25
 
 //Bridge functions
 BRIDGE_IMPEXP const char* BridgeInit();
@@ -60,6 +60,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_STRING_SIZE 512
 #define MAX_ERROR_SIZE 512
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
+#define MAX_SECTION_SIZE 10
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -423,6 +424,18 @@ typedef struct
 
 } X87CONTROLWORDFIELDS;
 
+typedef struct DECLSPEC_ALIGN(16) _XMMREGISTER
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} XMMREGISTER;
+
+typedef struct
+{
+    XMMREGISTER Low; //XMM/SSE part
+    XMMREGISTER High; //AVX part
+} YMMREGISTER;
+
 typedef struct
 {
     BYTE    data[10];
@@ -480,13 +493,19 @@ typedef struct
     X87FPU x87fpu;
     DWORD MxCsr;
 #ifdef _WIN64
-    M128A XmmRegisters[16];
-    BYTE YmmRegisters[32 * 16];
+    XMMREGISTER XmmRegisters[16];
+    YMMREGISTER YmmRegisters[16];
 #else // x86
-    M128A XmmRegisters[8];
-    BYTE YmmRegisters[32 * 8];
+    XMMREGISTER XmmRegisters[8];
+    YMMREGISTER YmmRegisters[8];
 #endif
 } REGISTERCONTEXT;
+
+typedef struct
+{
+    DWORD code;
+    const char* name;
+} LASTERROR;
 
 typedef struct
 {
@@ -497,6 +516,7 @@ typedef struct
     MXCSRFIELDS MxCsrFields;
     X87STATUSWORDFIELDS x87StatusWordFields;
     X87CONTROLWORDFIELDS x87ControlWordFields;
+    LASTERROR lastError;
 } REGDUMP;
 
 typedef struct
@@ -527,8 +547,8 @@ typedef struct
 typedef struct
 {
     int ThreadNumber;
-    HANDLE hThread;
-    DWORD dwThreadId;
+    HANDLE Handle;
+    DWORD ThreadId;
     duint ThreadStartAddress;
     duint ThreadLocalBase;
     char threadName[MAX_THREAD_NAME_SIZE];
@@ -666,6 +686,9 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
+#define GUI_DISASM_MENU 1
+#define GUI_DUMP_MENU 2
+#define GUI_STACK_MENU 3
 
 #define GUI_DISASSEMBLY 0
 #define GUI_DUMP 1
@@ -733,7 +756,8 @@ typedef enum
     GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
     GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
     GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
-    GUI_REF_INITIALIZE              // param1=const char* name      param2=unused
+    GUI_REF_INITIALIZE,             // param1=const char* name,     param2=unused
+    GUI_LOAD_SOURCE_FILE            // param1=const char* path,     param2=line
 } GUIMSG;
 
 //GUI structures
@@ -810,6 +834,7 @@ BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
 BRIDGE_IMPEXP void GuiUpdateMemoryView();
+BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line);
 
 #ifdef __cplusplus
 }

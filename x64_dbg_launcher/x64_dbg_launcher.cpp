@@ -1,3 +1,9 @@
+/**
+ @file x64_dbg_launcher.cpp
+
+ @brief Implements the 64 debug launcher class.
+ */
+
 #include <stdio.h>
 #include <windows.h>
 #include <string>
@@ -5,19 +11,76 @@
 #include <objbase.h>
 #include <shlobj.h>
 
+/**
+ @enum arch
+
+ @brief Values that represent arch.
+ */
+
 enum arch
 {
+    /**
+     @property notfound, invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     notfound,
+
+    /**
+     @property invalid, x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     invalid,
+
+    /**
+     @property x32, x64 }
+
+     @brief Gets the.
+
+     @return The.
+     */
+
     x32,
+
+    /**
+     @brief .
+     */
+
     x64
 };
+
+/**
+ @fn static bool FileExists(const wchar_t* file)
+
+ @brief Queries if a given file exists.
+
+ @param file The file.
+
+ @return true if it succeeds, false if it fails.
+ */
 
 static bool FileExists(const wchar_t* file)
 {
     DWORD attrib = GetFileAttributesW(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
+
+/**
+ @fn static arch GetFileArchitecture(const wchar_t* szFileName)
+
+ @brief Gets file architecture.
+
+ @param szFileName Filename of the file.
+
+ @return The file architecture.
+ */
 
 static arch GetFileArchitecture(const wchar_t* szFileName)
 {
@@ -52,6 +115,21 @@ static arch GetFileArchitecture(const wchar_t* szFileName)
     return retval;
 }
 
+/**
+ @fn static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
+
+ @brief Queries if a given browse file open.
+
+ @param owner             Handle of the owner.
+ @param filter            Specifies the filter.
+ @param defext            The defext.
+ @param [in,out] filename If non-null, filename of the file.
+ @param filename_size     Size of the filename.
+ @param init_dir          The initialise dir.
+
+ @return true if it succeeds, false if it fails.
+ */
+
 static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
 {
     OPENFILENAMEW ofstruct;
@@ -68,8 +146,30 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
     return !!GetOpenFileNameW(&ofstruct);
 }
 
-#define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64_dbg\\Command"
-#define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64_dbg\\Command"
+/**
+ @def SHELLEXT_EXE_KEY
+
+ @brief A macro that defines shellext executable key.
+ */
+
+#define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64dbg\\Command"
+
+/**
+ @def SHELLEXT_DLL_KEY
+
+ @brief A macro that defines shellext DLL key.
+ */
+
+#define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64dbg\\Command"
+
+/**
+ @fn static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
+
+ @brief Registers the shell extension.
+
+ @param key     The key.
+ @param command The command.
+ */
 
 static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
 {
@@ -99,6 +199,19 @@ static void CreateUnicodeFile(const wchar_t* file)
     WriteFile(hFile, &wBOM, sizeof(WORD), &written, NULL);
     CloseHandle(hFile);
 }
+
+/**
+ @fn int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+
+ @brief Window main.
+
+ @param hInstance     The instance.
+ @param hPrevInstance The previous instance.
+ @param lpCmdLine     The command line.
+ @param nShowCmd      The show command.
+
+ @return An APIENTRY.
+ */
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
 static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
@@ -184,13 +297,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     //Load settings
     bool bDoneSomething = false;
     wchar_t sz32Path[MAX_PATH] = L"";
-    if(!GetPrivateProfileStringW(L"Launcher", L"x32_dbg", L"", sz32Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileStringW(L"Launcher", L"x32dbg", L"", sz32Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz32Path, szCurrentDir);
-        PathAppendW(sz32Path, L"x32\\x32_dbg.exe");
+        PathAppendW(sz32Path, L"x32\\x32dbg.exe");
         if(FileExists(sz32Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32_dbg", sz32Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
             bDoneSomething = true;
         }
     }
@@ -202,13 +315,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if(len)
         sz32Dir[len] = L'\0';
     wchar_t sz64Path[MAX_PATH] = L"";
-    if(!GetPrivateProfileStringW(L"Launcher", L"x64_dbg", L"", sz64Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileStringW(L"Launcher", L"x64dbg", L"", sz64Path, MAX_PATH, szIniPath))
     {
         wcscpy_s(sz64Path, szCurrentDir);
-        PathAppendW(sz64Path, L"x64\\x64_dbg.exe");
+        PathAppendW(sz64Path, L"x64\\x64dbg.exe");
         if(FileExists(sz64Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64_dbg", sz64Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
             bDoneSomething = true;
         }
     }
@@ -225,14 +338,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if(argc <= 1) //no arguments -> set configuration
     {
-        if(!FileExists(sz32Path) && BrowseFileOpen(0, L"x32_dbg.exe\0x32_dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz32Path) && BrowseFileOpen(0, L"x32dbg.exe\0x32dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32_dbg", sz32Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if(!FileExists(sz64Path) && BrowseFileOpen(0, L"x64_dbg.exe\0x64_dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz64Path) && BrowseFileOpen(0, L"x64dbg.exe\0x64dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64_dbg", sz64Path, szIniPath);
+            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
             bDoneSomething = true;
         }
         if(MessageBoxW(0, L"Do you want to register a shell extension?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
@@ -261,14 +374,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             if(sz32Path[0])
                 ShellExecuteW(0, L"open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x32_dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBoxW(0, L"Path to x32dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
             break;
 
         case x64:
             if(sz64Path[0])
                 ShellExecuteW(0, L"open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x64_dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBoxW(0, L"Path to x64dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
             break;
 
         case invalid:

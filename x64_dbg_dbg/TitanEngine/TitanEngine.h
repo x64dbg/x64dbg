@@ -10,14 +10,6 @@
 #include <windows.h>
 #include <stdint.h>
 
-#ifdef __GNUC__
-typedef struct DECLSPEC_ALIGN(16) _M128A
-{
-    ULONGLONG Low;
-    LONGLONG High;
-} M128A, *PM128A;
-#endif //__GNUC__
-
 #pragma pack(push, 1)
 
 // Global.Constant.Structure.Declaration:
@@ -594,10 +586,16 @@ typedef struct
     DWORD OriginalCOMTableSize;
 } FILE_FIX_INFO, *PFILE_FIX_INFO;
 
+typedef struct DECLSPEC_ALIGN(16) _XmmRegister_t
+{
+    ULONGLONG Low;
+    LONGLONG High;
+} XmmRegister_t;
+
 typedef struct
 {
-    M128A Low; //XMM/SSE part
-    M128A High; //AVX part
+    XmmRegister_t Low; //XMM/SSE part
+    XmmRegister_t High; //AVX part
 } YmmRegister_t;
 
 typedef struct
@@ -657,10 +655,10 @@ typedef struct
     x87FPU_t x87fpu;
     DWORD MxCsr;
 #ifdef _WIN64
-    M128A XmmRegisters[16];
+    XmmRegister_t XmmRegisters[16];
     YmmRegister_t YmmRegisters[16];
 #else // x86
-    M128A XmmRegisters[8];
+    XmmRegister_t XmmRegisters[8];
     YmmRegister_t YmmRegisters[8];
 #endif
 } TITAN_ENGINE_CONTEXT_t;

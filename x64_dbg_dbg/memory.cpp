@@ -1,13 +1,26 @@
+/**
+ @file memory.cpp
+
+ @brief Implements the memory class.
+ */
+
 #include "memory.h"
 #include "debugger.h"
 #include "patches.h"
 #include "console.h"
 #include "threading.h"
+#include "module.h"
 
-MemoryMap memoryPages;
+#define PAGE_SHIFT              (12)
+//#define PAGE_SIZE               (4096)
+#define PAGE_ALIGN(Va)          ((ULONG_PTR)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
+#define BYTES_TO_PAGES(Size)    (((Size) >> PAGE_SHIFT) + (((Size) & (PAGE_SIZE - 1)) != 0))
+#define ROUND_TO_PAGES(Size)    (((ULONG_PTR)(Size) + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1))
+
+std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 
-void memupdatemap(HANDLE hProcess)
+void MemUpdateMap(HANDLE hProcess)
 {
     CriticalSectionLocker locker(LockMemoryPages);
     MEMORY_BASIC_INFORMATION mbi;
@@ -26,7 +39,7 @@ void memupdatemap(HANDLE hProcess)
                 curAllocationBase = (uint)mbi.AllocationBase;
                 MEMPAGE curPage;
                 *curPage.info = 0;
-                modnamefromaddr(MyAddress, curPage.info, true);
+                ModNameFromAddr(MyAddress, curPage.info, true);
                 memcpy(&curPage.mbi, &mbi, sizeof(mbi));
                 pageVector.push_back(curPage);
             }
@@ -49,11 +62,11 @@ void memupdatemap(HANDLE hProcess)
         if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        uint base = modbasefromname(pageVector.at(i).info);
+        uint base = ModBaseFromName(pageVector.at(i).info);
         if(!base)
             continue;
         std::vector<MODSECTIONINFO> sections;
-        if(!modsectionsfromaddr(base, &sections))
+        if(!ModSectionsFromAddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
         if(!SectionNumber) //no sections = skip
@@ -122,202 +135,187 @@ void memupdatemap(HANDLE hProcess)
     }
 }
 
-uint memfindbaseaddr(uint addr, uint* size, bool refresh)
+uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 {
-    if(refresh)
-        memupdatemap(fdProcessInfo->hProcess); //update memory map
-    CriticalSectionLocker locker(LockMemoryPages);
-    MemoryMap::iterator found = memoryPages.find(std::make_pair(addr, addr));
+    // Update the memory map if needed
+    if(Refresh)
+        MemUpdateMap(fdProcessInfo->hProcess);
+
+    SHARED_ACQUIRE(LockMemoryPages);
+
+    // Search for the memory page address
+    auto found = memoryPages.find(std::make_pair(Address, Address));
+
     if(found == memoryPages.end())
         return 0;
-    if(size)
-        *size = found->second.mbi.RegionSize;
+
+    // Return the allocation region size when requested
+    if(Size)
+        *Size = found->second.mbi.RegionSize;
+
     return found->first.first;
 }
 
-bool memread(HANDLE hProcess, const void* lpBaseAddress, void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
+bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Fast fail if address is invalid
+    if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
-    SIZE_T read = 0;
-    DWORD oldprotect = 0;
-    bool ret = MemoryReadSafe(hProcess, (void*)lpBaseAddress, lpBuffer, nSize, &read); //try 'normal' RPM
-    if(ret and read == nSize) //'normal' RPM worked!
-    {
-        if(lpNumberOfBytesRead)
-            *lpNumberOfBytesRead = read;
+
+    // Buffer must be supplied and size must be greater than 0
+    if(!Buffer || Size <= 0)
+        return false;
+
+    // If the 'bytes read' parameter is null, use a temp
+    SIZE_T bytesReadTemp = 0;
+
+    if(!NumberOfBytesRead)
+        NumberOfBytesRead = &bytesReadTemp;
+
+    // Normal single-call read
+    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
+
+    if(ret && *NumberOfBytesRead == Size)
         return true;
-    }
-    for(uint i = 0; i < nSize; i++) //read byte-per-byte
+
+    // Read page-by-page (Skip if only 1 page exists)
+    // If (SIZE > PAGE_SIZE) or (ADDRESS exceeds boundary), multiple reads will be needed
+    SIZE_T pageCount = BYTES_TO_PAGES(Size);
+
+    if(pageCount > 1)
     {
-        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
-        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
-        ret = MemoryReadSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' RPM
-        if(!ret) //we failed
+        // Determine the number of bytes between ADDRESS and the next page
+        uint offset = 0;
+        uint readBase = (uint)BaseAddress;
+        uint readSize = ROUND_TO_PAGES(readBase) - readBase;
+
+        // Reset the bytes read count
+        *NumberOfBytesRead = 0;
+
+        for(SIZE_T i = 0; i < pageCount; i++)
         {
-            if(lpNumberOfBytesRead)
-                *lpNumberOfBytesRead = i;
-            SetLastError(ERROR_PARTIAL_COPY);
-            return false;
+            SIZE_T bytesRead = 0;
+
+            if(MemoryReadSafe(fdProcessInfo->hProcess, (PVOID)readBase, ((PBYTE)Buffer + offset), readSize, &bytesRead))
+                *NumberOfBytesRead += bytesRead;
+
+            offset += readSize;
+            readBase += readSize;
+
+            Size -= readSize;
+            readSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
         }
     }
-    return true;
+
+    SetLastError(ERROR_PARTIAL_COPY);
+    return (*NumberOfBytesRead > 0);
 }
 
-bool memwrite(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Fast fail if address is invalid
+    if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
-    SIZE_T written = 0;
-    DWORD oldprotect = 0;
-    bool ret = MemoryWriteSafe(hProcess, lpBaseAddress, lpBuffer, nSize, &written);
-    if(ret and written == nSize) //'normal' WPM worked!
-    {
-        if(lpNumberOfBytesWritten)
-            *lpNumberOfBytesWritten = written;
+
+    // Buffer must be supplied and size must be greater than 0
+    if(!Buffer || Size <= 0)
+        return false;
+
+    // If the 'bytes written' parameter is null, use a temp
+    SIZE_T bytesWrittenTemp = 0;
+
+    if(!NumberOfBytesWritten)
+        NumberOfBytesWritten = &bytesWrittenTemp;
+
+    // Try a regular WriteProcessMemory call
+    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesWritten);
+
+    if(ret && *NumberOfBytesWritten == Size)
         return true;
-    }
-    for(uint i = 0; i < nSize; i++) //write byte-per-byte
+
+    // Write page-by-page (Skip if only 1 page exists)
+    // See: MemRead
+    SIZE_T pageCount = BYTES_TO_PAGES(Size);
+
+    if(pageCount > 1)
     {
-        unsigned char* curaddr = (unsigned char*)lpBaseAddress + i;
-        unsigned char* curbuf = (unsigned char*)lpBuffer + i;
-        ret = MemoryWriteSafe(hProcess, curaddr, curbuf, 1, 0); //try 'normal' WPM
-        if(!ret) //we failed
+        // Determine the number of bytes between ADDRESS and the next page
+        uint offset = 0;
+        uint writeBase = (uint)BaseAddress;
+        uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
+
+        // Reset the bytes read count
+        *NumberOfBytesWritten = 0;
+
+        for(SIZE_T i = 0; i < pageCount; i++)
         {
-            if(lpNumberOfBytesWritten)
-                *lpNumberOfBytesWritten = i;
-            SetLastError(ERROR_PARTIAL_COPY);
-            return false;
+            SIZE_T bytesWritten = 0;
+
+            if(MemoryWriteSafe(fdProcessInfo->hProcess, (PVOID)writeBase, ((PBYTE)Buffer + offset), writeSize, &bytesWritten))
+                *NumberOfBytesWritten += bytesWritten;
+
+            offset += writeSize;
+            writeBase += writeSize;
+
+            Size -= writeSize;
+            writeSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
         }
     }
-    return true;
+
+    SetLastError(ERROR_PARTIAL_COPY);
+    return (*NumberOfBytesWritten > 0);
 }
 
-bool mempatch(HANDLE hProcess, void* lpBaseAddress, const void* lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten)
+bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-    if(!hProcess or !lpBaseAddress or !lpBuffer or !nSize) //generic failures
+    // Buffer and size must be valid
+    if(!Buffer || Size <= 0)
         return false;
-    Memory<unsigned char*> olddata(nSize, "mempatch:olddata");
-    if(!memread(hProcess, lpBaseAddress, olddata, nSize, 0))
-        return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
-    unsigned char* newdata = (unsigned char*)lpBuffer;
-    for(uint i = 0; i < nSize; i++)
-        patchset((uint)lpBaseAddress + i, olddata[i], newdata[i]);
-    return memwrite(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+
+    // Allocate the memory
+    Memory<unsigned char*> oldData(Size, "mempatch:oldData");
+
+    if(!MemRead(BaseAddress, oldData, Size, nullptr))
+    {
+        // If no memory can be read, no memory can be written. Fail out
+        // of this function.
+        return false;
+    }
+
+    for(SIZE_T i = 0; i < Size; i++)
+        PatchSet((uint)BaseAddress + i, oldData[i], ((unsigned char*)Buffer)[i]);
+
+    return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }
 
-bool memisvalidreadptr(HANDLE hProcess, uint addr)
+bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return memread(hProcess, (void*)addr, &a, 1, 0);
+    return MemRead((void*)Address, &a, sizeof(unsigned char), nullptr);
 }
 
-void* memalloc(HANDLE hProcess, uint addr, SIZE_T size, DWORD fdProtect)
+bool MemIsCanonicalAddress(uint Address)
 {
-    return VirtualAllocEx(hProcess, (void*)addr, size, MEM_RESERVE | MEM_COMMIT, fdProtect);
-}
-
-void memfree(HANDLE hProcess, uint addr)
-{
-    VirtualFreeEx(hProcess, (void*)addr, 0, MEM_RELEASE);
-}
-
-static int formathexpattern(char* string)
-{
-    int len = (int)strlen(string);
-    _strupr(string);
-    Memory<char*> new_string(len + 1, "formathexpattern:new_string");
-    memset(new_string, 0, len + 1);
-    for(int i = 0, j = 0; i < len; i++)
-        if(string[i] == '?' or isxdigit(string[i]))
-            j += sprintf(new_string + j, "%c", string[i]);
-    strcpy(string, new_string);
-    return (int)strlen(string);
-}
-
-static bool patterntransform(const char* text, std::vector<PATTERNBYTE>* pattern)
-{
-    if(!text or !pattern)
-        return false;
-    pattern->clear();
-    int len = (int)strlen(text);
-    if(!len)
-        return false;
-    Memory<char*> newtext(len + 2, "transformpattern:newtext");
-    strcpy(newtext, text);
-    len = formathexpattern(newtext);
-    if(len % 2) //not a multiple of 2
-    {
-        newtext[len] = '?';
-        newtext[len + 1] = '\0';
-        len++;
-    }
-    PATTERNBYTE newByte;
-    for(int i = 0, j = 0; i < len; i++)
-    {
-        if(newtext[i] == '?') //wildcard
-        {
-            newByte.n[j].all = true; //match anything
-            newByte.n[j].n = 0;
-            j++;
-        }
-        else //hex
-        {
-            char x[2] = "";
-            *x = newtext[i];
-            unsigned int val = 0;
-            sscanf(x, "%x", &val);
-            newByte.n[j].all = false;
-            newByte.n[j].n = val & 0xF;
-            j++;
-        }
-
-        if(j == 2) //two nibbles = one byte
-        {
-            j = 0;
-            pattern->push_back(newByte);
-        }
-    }
+#ifndef _WIN64
+    // 32-bit mode only supports 4GB max, so limits are
+    // not an issue
     return true;
+#else
+    // The most-significant 16 bits must be all 1 or all 0.
+    // (64 - 16) = 48bit linear address range.
+    //
+    // 0xFFFF800000000000 = Significant 16 bits set
+    // 0x0000800000000000 = 48th bit set
+    return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
+#endif // _WIN64
 }
 
-static bool patternmatchbyte(unsigned char byte, PATTERNBYTE* pbyte)
+void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect)
 {
-    unsigned char n1 = (byte >> 4) & 0xF;
-    unsigned char n2 = byte & 0xF;
-    int matched = 0;
-    if(pbyte->n[0].all)
-        matched++;
-    else if(pbyte->n[0].n == n1)
-        matched++;
-    if(pbyte->n[1].all)
-        matched++;
-    else if(pbyte->n[1].n == n2)
-        matched++;
-    return (matched == 2);
+    return VirtualAllocEx(fdProcessInfo->hProcess, (void*)Address, Size, MEM_RESERVE | MEM_COMMIT, Protect);
 }
 
-uint memfindpattern(unsigned char* data, uint size, const char* pattern, int* patternsize)
+void MemFreeRemote(uint Address)
 {
-    std::vector<PATTERNBYTE> searchpattern;
-    if(!patterntransform(pattern, &searchpattern))
-        return -1;
-    int searchpatternsize = (int)searchpattern.size();
-    if(patternsize)
-        *patternsize = searchpatternsize;
-    for(uint i = 0, pos = 0; i < size; i++) //search for the pattern
-    {
-        if(patternmatchbyte(data[i], &searchpattern.at(pos))) //check if our pattern matches the current byte
-        {
-            pos++;
-            if(pos == searchpatternsize) //everything matched
-                return i - searchpatternsize + 1;
-        }
-        else if(pos > 0) //fix by Computer_Angel
-        {
-            i -= pos; // return to previous byte
-            pos = 0; //reset current pattern position
-        }
-    }
-    return -1;
+    VirtualFreeEx(fdProcessInfo->hProcess, (void*)Address, 0, MEM_RELEASE);
 }

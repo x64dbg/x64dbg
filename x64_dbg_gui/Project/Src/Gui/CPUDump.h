@@ -3,12 +3,13 @@
 
 #include "HexDump.h"
 #include "GotoDialog.h"
+#include "CPUDisassembly.h"
 
 class CPUDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUDump(QWidget* parent = 0);
+    explicit CPUDump(CPUDisassembly* disas, QWidget* parent = 0);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
@@ -76,6 +77,10 @@ public slots:
     void undoSelectionSlot();
     void followStackSlot();
     void findReferencesSlot();
+
+    void selectionUpdatedSlot();
+    void yaraSlot();
+    void dataCopySlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -156,12 +161,16 @@ private:
     QAction* mBinaryPasteIgnoreSizeAction;
     QAction* mFindPatternAction;
     QAction* mFindReferencesAction;
+    QAction* mYaraAction;
+    QAction* mDataCopyAction;
     QAction* mUndoSelection;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
+    QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
+    CPUDisassembly* mDisas;
 
     enum ViewEnum_t
     {

@@ -122,3 +122,15 @@ void HexEditDialog::dataChangedSlot()
     ui->lineEditAscii->setText(ascii);
     ui->lineEditUnicode->setText(unicode);
 }
+
+void HexEditDialog::on_lineEditAscii_textEdited(const QString & arg1)
+{
+    Q_UNUSED(arg1);
+    on_btnAscii2Hex_clicked();
+}
+
+void HexEditDialog::on_lineEditUnicode_textEdited(const QString & arg1)
+{
+    Q_UNUSED(arg1);
+    on_btnUnicode2Hex_clicked();
+}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>220</height>
+    <width>383</width>
+    <height>307</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,553 +26,479 @@
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
-   <property name="geometry">
-    <rect>
-     <x>2</x>
-     <y>2</y>
-     <width>301</width>
-     <height>181</height>
-    </rect>
-   </property>
-   <property name="autoFillBackground">
-    <bool>true</bool>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <widget class="QWidget" name="tabEvents">
-    <attribute name="title">
-     <string>Events</string>
-    </attribute>
-    <widget class="QLabel" name="lblBreakOn">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>241</width>
-       <height>16</height>
-      </rect>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="autoFillBackground">
+      <bool>true</bool>
      </property>
-     <property name="text">
-      <string>Break on:</string>
+     <property name="currentIndex">
+      <number>1</number>
      </property>
+     <widget class="QWidget" name="tabEvents">
+      <attribute name="title">
+       <string>Events</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lblBreakOn">
+         <property name="text">
+          <string>Break on:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="chkSystemBreakpoint">
+         <property name="text">
+          <string>System Breakpoint*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="chkDllLoad">
+         <property name="text">
+          <string>DLL Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="chkDllUnload">
+         <property name="text">
+          <string>DLL Unload</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="chkTlsCallbacks">
+         <property name="text">
+          <string>TLS Callbacks*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="8" column="0">
+        <widget class="QCheckBox" name="chkDllEntry">
+         <property name="text">
+          <string>DLL Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QCheckBox" name="chkAttachBreakpoint">
+         <property name="text">
+          <string>Attach Breakpoint</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="chkEntryBreakpoint">
+         <property name="text">
+          <string>Entry Breakpoint*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QCheckBox" name="chkThreadEntry">
+         <property name="text">
+          <string>Thread Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="chkThreadStart">
+         <property name="text">
+          <string>Thread Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QCheckBox" name="chkThreadEnd">
+         <property name="text">
+          <string>Thread End</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QCheckBox" name="chkDebugStrings">
+         <property name="text">
+          <string>Debug Strings</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabEngine">
+      <attribute name="title">
+       <string>Engine</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Calculation Type</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <layout class="QHBoxLayout" name="layoutCalulationType">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetNoConstraint</enum>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="radioSigned">
+              <property name="text">
+               <string>&amp;Signed</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioUnsigned">
+              <property name="text">
+               <string>&amp;Unsigned</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Default Breakpoint Type</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <layout class="QHBoxLayout" name="layoutBreakpointType">
+            <item>
+             <widget class="QRadioButton" name="radioInt3Short">
+              <property name="text">
+               <string>INT3</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioInt3Long">
+              <property name="text">
+               <string>Long INT3</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioUd2">
+              <property name="text">
+               <string>UD2</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkUndecorateSymbolNames">
+         <property name="text">
+          <string>Undecorate Symbol Names</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkEnableDebugPrivilege">
+         <property name="text">
+          <string>Enable Debug &amp;Privilege</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkEnableSourceDebugging">
+         <property name="text">
+          <string>Enable Source Debugging</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabExceptions">
+      <attribute name="title">
+       <string>Exceptions</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLabel" name="lblIgnoredExceptions">
+         <property name="text">
+          <string>Ignored Exceptions:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QListWidget" name="listExceptions">
+           <property name="font">
+            <font>
+             <family>Courier New</family>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="verticalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOn</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="layoutExceptionButtons">
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnAddRange">
+             <property name="text">
+              <string>Add &amp;Range</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnDeleteRange">
+             <property name="text">
+              <string>&amp;Delete Range</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnAddLast">
+             <property name="text">
+              <string>Add &amp;Last</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabDisasm">
+      <attribute name="title">
+       <string>Disasm</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QCheckBox" name="chkArgumentSpaces">
+         <property name="text">
+          <string>Argument Spaces</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkMemorySpaces">
+         <property name="text">
+          <string>Memory Spaces</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkUppercase">
+         <property name="text">
+          <string>Uppercase</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkOnlyCipAutoComments">
+         <property name="text">
+          <string>Autocomments only on CIP</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabMisc">
+      <attribute name="title">
+       <string>Misc</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QCheckBox" name="chkSetJIT">
+         <property name="text">
+          <string>Set x64dbg as Just In Time Debugger</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>JIT:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="editJIT">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkConfirmBeforeAtt">
+         <property name="text">
+          <string>Confirm before attaching</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="lbladminwarning">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
-    <widget class="QCheckBox" name="chkSystemBreakpoint">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>30</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>System Breakpoint*</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkTlsCallbacks">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>50</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TLS Callbacks*</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkEntryBreakpoint">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>70</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Entry Breakpoint*</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkDllLoad">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>30</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>DLL Load</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkDllUnload">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>50</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>DLL Unload</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkThreadStart">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>70</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Thread Start</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkThreadEnd">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>90</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Thread End</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkDebugStrings">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>110</y>
-       <width>101</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Debug Strings</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkDllEntry">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>90</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>DLL Entry</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkThreadEntry">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>110</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Thread Entry</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkAttachBreakpoint">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>130</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Attach Breakpoint</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tabEngine">
-    <attribute name="title">
-     <string>Engine</string>
-    </attribute>
-    <widget class="QLabel" name="lblCalculationType">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>241</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Calculation Type:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblBreakpointType">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>241</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Default Breakpoint Type:</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="layoutSettingsWidget">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>30</y>
-       <width>231</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="layoutCalulationType">
-      <item>
-       <widget class="QRadioButton" name="radioSigned">
-        <property name="text">
-         <string>&amp;Signed</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioUnsigned">
-        <property name="text">
-         <string>&amp;Unsigned</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QWidget" name="layoutBreakpoingWidget">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>80</y>
-       <width>231</width>
-       <height>19</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="layoutBreakpointType">
-      <item>
-       <widget class="QRadioButton" name="radioInt3Short">
-        <property name="text">
-         <string>INT3</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioInt3Long">
-        <property name="text">
-         <string>Long INT3</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioUd2">
-        <property name="text">
-         <string>UD2</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QCheckBox" name="chkUndecorateSymbolNames">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>110</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Undecorate Symbol Names</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkEnableDebugPrivilege">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>130</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Enable Debug &amp;Privilege</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tabExceptions">
-    <attribute name="title">
-     <string>Exceptions</string>
-    </attribute>
-    <widget class="QListWidget" name="listExceptions">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>151</width>
-       <height>111</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Courier New</family>
-       <pointsize>8</pointsize>
-      </font>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOn</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lblIgnoredExceptions">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>241</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Ignored Exceptions:</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="layoutExceptionsWidget">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>30</y>
-       <width>77</width>
-       <height>83</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="layoutExceptionButtons">
-      <item>
-       <widget class="QPushButton" name="btnAddRange">
-        <property name="text">
-         <string>Add &amp;Range</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnDeleteRange">
-        <property name="text">
-         <string>&amp;Delete Range</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnAddLast">
-        <property name="text">
-         <string>Add &amp;Last</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tabDisasm">
-    <attribute name="title">
-     <string>Disasm</string>
-    </attribute>
-    <widget class="QCheckBox" name="chkArgumentSpaces">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Argument Spaces</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkMemorySpaces">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Memory Spaces</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkUppercase">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Uppercase</string>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="chkOnlyCipAutoComments">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>241</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Autocomments only on CIP</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="tabMisc">
-    <attribute name="title">
-     <string>Misc</string>
-    </attribute>
-    <widget class="QCheckBox" name="chkSetJIT">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>281</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Set x64_dbg as Just In Time Debugger</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="layoutSettingsPadWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>281</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>JIT:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="editJIT">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-    <widget class="QCheckBox" name="chkConfirmBeforeAtt">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>60</y>
-       <width>141</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Confirm before attaching</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="lbladminwarning">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>271</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="btnSave">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>190</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save</string>
-   </property>
-   <property name="default">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnCancel">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>190</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Cancel</string>
-   </property>
-  </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSave">
+       <property name="text">
+        <string>Save</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>chkSystemBreakpoint</tabstop>
-  <tabstop>chkTlsCallbacks</tabstop>
-  <tabstop>chkEntryBreakpoint</tabstop>
-  <tabstop>chkDllEntry</tabstop>
-  <tabstop>chkThreadEntry</tabstop>
-  <tabstop>chkDllLoad</tabstop>
-  <tabstop>chkDllUnload</tabstop>
-  <tabstop>chkThreadStart</tabstop>
-  <tabstop>chkThreadEnd</tabstop>
-  <tabstop>chkDebugStrings</tabstop>
   <tabstop>radioSigned</tabstop>
   <tabstop>radioUnsigned</tabstop>
   <tabstop>radioInt3Short</tabstop>
@@ -584,8 +510,6 @@
   <tabstop>btnAddRange</tabstop>
   <tabstop>btnDeleteRange</tabstop>
   <tabstop>btnAddLast</tabstop>
-  <tabstop>btnSave</tabstop>
-  <tabstop>btnCancel</tabstop>
  </tabstops>
  <resources>
   <include location="../../resource.qrc"/>

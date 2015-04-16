@@ -43,6 +43,7 @@ private slots:
     void on_radioUd2_clicked();
     void on_chkUndecorateSymbolNames_stateChanged(int arg1);
     void on_chkEnableDebugPrivilege_stateChanged(int arg1);
+    void on_chkEnableSourceDebugging_stateChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -55,7 +56,6 @@ private slots:
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
-
 
 private:
     //enums
@@ -106,6 +106,7 @@ private:
         BreakpointType engineBreakpointType;
         bool engineUndecorateSymbolNames;
         bool engineEnableDebugPrivilege;
+        bool engineEnableSourceDebugging;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab

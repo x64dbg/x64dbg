@@ -45,9 +45,9 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     if(version > dbgVersion)
         info = QString().sprintf("New version v%d available!\nDownload at http://x64dbg.com\n\nYou are now on version v%d", version, dbgVersion);
     else if(version < dbgVersion)
-        info = QString().sprintf("You have a development version (v%d) of x64_dbg!", dbgVersion);
+        info = QString().sprintf("You have a development version (v%d) of x64dbg!", dbgVersion);
     else
-        info = QString().sprintf("You have the latest version (%d) of x64_dbg!", version);
+        info = QString().sprintf("You have the latest version (%d) of x64dbg!", version);
     QMessageBox msg(QMessageBox::Information, "Information", info);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(mParent, Qt::Dialog);

@@ -7,10 +7,12 @@
 //GUI typedefs
 typedef int (*GUIGUIINIT)(int, char**);
 typedef void* (*GUISENDMESSAGE)(GUIMSG type, void* param1, void* param2);
+typedef void (*GUISENDMESSAGEASYNC)(GUIMSG type, void* param1, void* param2);
 
 //GUI functions
 extern GUIGUIINIT _gui_guiinit;
 extern GUISENDMESSAGE _gui_sendmessage;
+extern GUISENDMESSAGEASYNC _gui_sendmessageasync;
 
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();
@@ -27,7 +29,7 @@ typedef bool (*DBGADDRINFOGET)(duint addr, SEGMENTREG segment, ADDRINFO* addrinf
 typedef bool (*DBGADDRINFOSET)(duint addr, ADDRINFO* addrinfo);
 typedef BPXTYPE (*DBGBPGETTYPEAT)(duint addr);
 typedef bool (*DBGGETREGDUMP)(REGDUMP* regdump);
-typedef bool (*DBGVALTOSTRING)(const char* string, duint* value);
+typedef bool (*DBGVALTOSTRING)(const char* string, duint value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
 typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);

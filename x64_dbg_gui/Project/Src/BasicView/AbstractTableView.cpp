@@ -27,6 +27,7 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     mGuiState = AbstractTableView::NoState;
 
     mShouldReload = true;
+    mAllowPainting = true;
 
     // ScrollBar Init
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
@@ -79,6 +80,8 @@ void AbstractTableView::fontsUpdated()
  */
 void AbstractTableView::paintEvent(QPaintEvent* event)
 {
+    if(!mAllowPainting)
+        return;
     if(getColumnCount()) //make sure the last column is never smaller than the window
     {
         int totalWidth = 0;

@@ -19,6 +19,7 @@
 #include "CalculatorDialog.h"
 #include "StatusLabel.h"
 #include "UpdateChecker.h"
+#include "SourceViewerManager.h"
 
 namespace Ui
 {
@@ -62,6 +63,7 @@ public slots:
     void execSkip();
     void displayCpuWidget();
     void displaySymbolWidget();
+    void displaySourceViewWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
     void openSettings();
@@ -71,11 +73,13 @@ public slots:
     void setLastException(unsigned int exceptionCode);
     void findStrings();
     void findModularCalls();
+    void addMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
     void addMenu(int hMenu, QString title);
     void addMenuEntry(int hMenu, QString title);
     void addSeparator(int hMenu);
     void clearMenu(int hMenu);
     void menuEntrySlot();
+    void removeMenuEntry(int hEntry);
     void runSelection();
     void getStrWindow(const QString title, QString* text);
     void patchWindow();
@@ -85,9 +89,12 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
+    void setGlobalShortcut(QAction* action, const QKeySequence & key);
     void refreshShortcuts();
     void openShortcuts();
+    void changeTopmost(bool checked);
     void donate();
+    void reportBug();
     void displayAttach();
     void detach();
     void changeCommandLine();
@@ -102,6 +109,7 @@ private:
     CallStackView* mCallStackView;
     LogView* mLogView;
     SymbolView* mSymbolView;
+    SourceViewerManager* mSourceViewManager;
     BreakpointsView* mBreakpointsView;
     ScriptView* mScriptView;
     ReferenceManager* mReferenceManager;
@@ -137,6 +145,16 @@ private:
 
     struct MenuInfo
     {
+    public:
+        MenuInfo(QWidget* parent, QMenu* mMenu, int hMenu, int hParentMenu)
+        {
+            this->parent = parent;
+            this->mMenu = mMenu;
+            this->hMenu = hMenu;
+            this->hParentMenu = hParentMenu;
+        }
+
+        QWidget* parent;
         QMenu* mMenu;
         int hMenu;
         int hParentMenu;
@@ -148,6 +166,7 @@ private:
     int hMenuNext;
 
     void initMenuApi();
+    const MenuInfo* findMenu(int hMenu);
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

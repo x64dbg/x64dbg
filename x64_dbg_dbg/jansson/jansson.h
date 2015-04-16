@@ -15,18 +15,17 @@
 #include "jansson_config.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* version */
 
 #define JANSSON_MAJOR_VERSION  2
-#define JANSSON_MINOR_VERSION  6
+#define JANSSON_MINOR_VERSION  7
 #define JANSSON_MICRO_VERSION  0
 
 /* Micro version is omitted if it's 0 */
-#define JANSSON_VERSION  "2.6"
+#define JANSSON_VERSION  "2.7"
 
 /* Version as a 3-byte hex number, e.g. 0x010201 == 1.2.1. Use this
    for numeric comparisons, e.g. #if JANSSON_VERSION_HEX >= ... */
@@ -54,8 +53,6 @@ typedef struct json_t
     json_type type;
     size_t refcount;
 } json_t;
-
-typedef json_t* JSON;
 
 #ifndef JANSSON_USING_CMAKE /* disabled if using cmake */
 #if JSON_INTEGER_IS_LONG_LONG
@@ -93,17 +90,6 @@ __declspec(dllimport) json_t* json_stringn(const char* value, size_t len);
 __declspec(dllimport) json_t* json_string_nocheck(const char* value);
 __declspec(dllimport) json_t* json_stringn_nocheck(const char* value, size_t len);
 __declspec(dllimport) json_t* json_integer(json_int_t value);
-static JSON_INLINE
-json_t* json_hex(json_int_t value)
-{
-    char hexvalue[20];
-#ifdef _WIN64
-    sprintf(hexvalue, "0x%llX", value);
-#else //x64
-    sprintf(hexvalue, "0x%X", value);
-#endif //_WIN64
-    return json_string(hexvalue);
-}
 __declspec(dllimport) json_t* json_real(double value);
 __declspec(dllimport) json_t* json_true(void);
 __declspec(dllimport) json_t* json_false(void);
@@ -222,21 +208,6 @@ int json_array_insert(json_t* array, size_t ind, json_t* value)
 __declspec(dllimport) const char* json_string_value(const json_t* string);
 __declspec(dllimport) size_t json_string_length(const json_t* string);
 __declspec(dllimport) json_int_t json_integer_value(const json_t* integer);
-static JSON_INLINE
-json_int_t json_hex_value(const json_t* hex)
-{
-    json_int_t ret;
-    const char* hexvalue;
-    hexvalue = json_string_value(hex);
-    if(!hexvalue)
-        return 0;
-#ifdef _WIN64
-    sscanf(hexvalue, "0x%llX", &ret);
-#else //x64
-    sscanf(hexvalue, "0x%X", &ret);
-#endif //_WIN64
-    return ret;
-}
 __declspec(dllimport) double json_real_value(const json_t* real);
 __declspec(dllimport) double json_number_value(const json_t* json);
 
@@ -291,7 +262,8 @@ __declspec(dllimport) json_t* json_load_callback(json_load_callback_t callback, 
 
 /* encoding */
 
-#define JSON_INDENT(n)          ((n) & 0x1F)
+#define JSON_MAX_INDENT         0x1F
+#define JSON_INDENT(n)          ((n) & JSON_MAX_INDENT)
 #define JSON_COMPACT            0x20
 #define JSON_ENSURE_ASCII       0x40
 #define JSON_SORT_KEYS          0x80

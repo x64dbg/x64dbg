@@ -16,18 +16,55 @@
 
 #if defined(_MSC_VER)
 
+/**
+ @def FORCE_INLINE
+
+ @brief A macro that defines force inline.
+ */
+
 #define FORCE_INLINE    __forceinline
 
 #include <stdlib.h>
 
+/**
+ @def ROTL32(x,y) _rotl(x,y)
+
+ @brief A macro that defines rotl 32.
+
+ @param x The void to process.
+ @param y The void to process.
+ */
+
 #define ROTL32(x,y)    _rotl(x,y)
+
+/**
+ @def ROTL64(x,y) _rotl64(x,y)
+
+ @brief A macro that defines rotl 64.
+
+ @param x The void to process.
+ @param y The void to process.
+ */
+
 #define ROTL64(x,y)    _rotl64(x,y)
+
+/**
+ @def BIG_CONSTANT(x) (x)
+
+ @brief A macro that defines big constant.
+
+ @param x The void to process.
+ */
 
 #define BIG_CONSTANT(x) (x)
 
 // Other compilers
 
 #else    // defined(_MSC_VER)
+
+/**
+ @brief The force inline.
+ */
 
 #define    FORCE_INLINE inline __attribute__((always_inline))
 
@@ -41,29 +78,84 @@ inline uint64_t rotl64(uint64_t x, int8_t r)
     return (x << r) | (x >> (64 - r));
 }
 
+/**
+ @def ROTL32(x,y) rotl32(x,y)
+
+ @brief A macro that defines rotl 32.
+
+ @param x The void to process.
+ @param y The void to process.
+ */
+
 #define    ROTL32(x,y)    rotl32(x,y)
+
+/**
+ @def ROTL64(x,y) rotl64(x,y)
+
+ @brief A macro that defines rotl 64.
+
+ @param x The void to process.
+ @param y The void to process.
+ */
+
 #define ROTL64(x,y)    rotl64(x,y)
+
+/**
+ @def BIG_CONSTANT(x) (x##LLU)
+
+ @brief A macro that defines big constant.
+
+ @param x The void to process.
+ */
 
 #define BIG_CONSTANT(x) (x##LLU)
 
 #endif // !defined(_MSC_VER)
 
-//-----------------------------------------------------------------------------
-// Block read - if your platform needs to do endian-swapping or can only
-// handle aligned reads, do the conversion here
+/**
+ @fn FORCE_INLINE uint32_t getblock32(const uint32_t* p, int i)
+
+ @brief -----------------------------------------------------------------------------
+  Block read - if your platform needs to do endian-swapping or can only handle aligned reads, do
+  the conversion here.
+
+ @param p The const uint32_t* to process.
+ @param i Zero-based index of the.
+
+ @return An uint32_t.
+ */
 
 FORCE_INLINE uint32_t getblock32(const uint32_t* p, int i)
 {
     return p[i];
 }
 
+/**
+ @fn FORCE_INLINE uint64_t getblock64(const uint64_t* p, int i)
+
+ @brief Getblock 64.
+
+ @param p The const uint64_t* to process.
+ @param i Zero-based index of the.
+
+ @return An uint64_t.
+ */
+
 FORCE_INLINE uint64_t getblock64(const uint64_t* p, int i)
 {
     return p[i];
 }
 
-//-----------------------------------------------------------------------------
-// Finalization mix - force all bits of a hash block to avalanche
+/**
+ @fn FORCE_INLINE uint32_t fmix32(uint32_t h)
+
+ @brief -----------------------------------------------------------------------------
+  Finalization mix - force all bits of a hash block to avalanche.
+
+ @param h The uint32_t to process.
+
+ @return An uint32_t.
+ */
 
 FORCE_INLINE uint32_t fmix32(uint32_t h)
 {
@@ -78,6 +170,16 @@ FORCE_INLINE uint32_t fmix32(uint32_t h)
 
 //----------
 
+/**
+ @fn FORCE_INLINE uint64_t fmix64(uint64_t k)
+
+ @brief Fmix 64.
+
+ @param k The uint64_t to process.
+
+ @return An uint64_t.
+ */
+
 FORCE_INLINE uint64_t fmix64(uint64_t k)
 {
     k ^= k >> 33;
@@ -90,6 +192,17 @@ FORCE_INLINE uint64_t fmix64(uint64_t k)
 }
 
 //-----------------------------------------------------------------------------
+
+/**
+ @fn void MurmurHash3_x86_32(const void* key, int len, uint32_t seed, void* out)
+
+ @brief Murmur hash 3 x coordinate 86 32.
+
+ @param key          The key.
+ @param len          The length.
+ @param seed         The seed.
+ @param [in,out] out If non-null, the out.
+ */
 
 void MurmurHash3_x86_32(const void* key, int len,
                         uint32_t seed, void* out)
@@ -153,6 +266,17 @@ void MurmurHash3_x86_32(const void* key, int len,
 
 //-----------------------------------------------------------------------------
 
+/**
+ @fn void MurmurHash3_x86_128(const void* key, const int len, uint32_t seed, void* out)
+
+ @brief Murmur hash 3 x coordinate 86 128.
+
+ @param key          The key.
+ @param len          The length.
+ @param seed         The seed.
+ @param [in,out] out If non-null, the out.
+ */
+
 void MurmurHash3_x86_128(const void* key, const int len,
                          uint32_t seed, void* out)
 {
@@ -182,7 +306,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         uint32_t k4 = getblock32(blocks, i * 4 + 3);
 
         k1 *= c1;
-        k1  = ROTL32(k1, 15);
+        k1 = ROTL32(k1, 15);
         k1 *= c2;
         h1 ^= k1;
 
@@ -191,7 +315,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h1 = h1 * 5 + 0x561ccd1b;
 
         k2 *= c2;
-        k2  = ROTL32(k2, 16);
+        k2 = ROTL32(k2, 16);
         k2 *= c3;
         h2 ^= k2;
 
@@ -200,7 +324,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h2 = h2 * 5 + 0x0bcaa747;
 
         k3 *= c3;
-        k3  = ROTL32(k3, 17);
+        k3 = ROTL32(k3, 17);
         k3 *= c4;
         h3 ^= k3;
 
@@ -209,7 +333,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
         h3 = h3 * 5 + 0x96cd1c35;
 
         k4 *= c4;
-        k4  = ROTL32(k4, 18);
+        k4 = ROTL32(k4, 18);
         k4 *= c1;
         h4 ^= k4;
 
@@ -237,7 +361,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case 13:
         k4 ^= tail[12] << 0;
         k4 *= c4;
-        k4  = ROTL32(k4, 18);
+        k4 = ROTL32(k4, 18);
         k4 *= c1;
         h4 ^= k4;
 
@@ -250,7 +374,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  9:
         k3 ^= tail[ 8] << 0;
         k3 *= c3;
-        k3  = ROTL32(k3, 17);
+        k3 = ROTL32(k3, 17);
         k3 *= c4;
         h3 ^= k3;
 
@@ -263,7 +387,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  5:
         k2 ^= tail[ 4] << 0;
         k2 *= c2;
-        k2  = ROTL32(k2, 16);
+        k2 = ROTL32(k2, 16);
         k2 *= c3;
         h2 ^= k2;
 
@@ -276,7 +400,7 @@ void MurmurHash3_x86_128(const void* key, const int len,
     case  1:
         k1 ^= tail[ 0] << 0;
         k1 *= c1;
-        k1  = ROTL32(k1, 15);
+        k1 = ROTL32(k1, 15);
         k1 *= c2;
         h1 ^= k1;
     };
@@ -316,6 +440,17 @@ void MurmurHash3_x86_128(const void* key, const int len,
 
 //-----------------------------------------------------------------------------
 
+/**
+ @fn void MurmurHash3_x64_128(const void* key, const int len, const uint32_t seed, void* out)
+
+ @brief Murmur hash 3 x coordinate 64 128.
+
+ @param key          The key.
+ @param len          The length.
+ @param seed         The seed.
+ @param [in,out] out If non-null, the out.
+ */
+
 void MurmurHash3_x64_128(const void* key, const int len,
                          const uint32_t seed, void* out)
 {
@@ -339,7 +474,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
         uint64_t k2 = getblock64(blocks, i * 2 + 1);
 
         k1 *= c1;
-        k1  = ROTL64(k1, 31);
+        k1 = ROTL64(k1, 31);
         k1 *= c2;
         h1 ^= k1;
 
@@ -348,7 +483,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
         h1 = h1 * 5 + 0x52dce729;
 
         k2 *= c2;
-        k2  = ROTL64(k2, 33);
+        k2 = ROTL64(k2, 33);
         k2 *= c1;
         h2 ^= k2;
 
@@ -382,7 +517,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
     case  9:
         k2 ^= ((uint64_t)tail[ 8]) << 0;
         k2 *= c2;
-        k2  = ROTL64(k2, 33);
+        k2 = ROTL64(k2, 33);
         k2 *= c1;
         h2 ^= k2;
 
@@ -403,7 +538,7 @@ void MurmurHash3_x64_128(const void* key, const int len,
     case  1:
         k1 ^= ((uint64_t)tail[ 0]) << 0;
         k1 *= c1;
-        k1  = ROTL64(k1, 31);
+        k1 = ROTL64(k1, 31);
         k1 *= c2;
         h1 ^= k1;
     };

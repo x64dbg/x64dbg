@@ -57,6 +57,7 @@ private:
     QAction* mFollowDisasm;
     QAction* mFollowDump;
     QAction* mFollowStack;
+    QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
 };

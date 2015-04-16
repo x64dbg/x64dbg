@@ -198,8 +198,8 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 #endif //_WIN64
     addColumnAt(8 + charwidth * 14, "Suspend Count", false);
     addColumnAt(8 + charwidth * 12, "Priority", false);
-    addColumnAt(8 + charwidth * 16, "WaitReason", false);
-    addColumnAt(8 + charwidth * 10, "LastError", false);
+    addColumnAt(8 + charwidth * 12, "Wait Reason", false);
+    addColumnAt(8 + charwidth * 11, "Last Error", false);
     addColumnAt(0, "Name", false);
 
     //setCopyMenuOnly(true);
@@ -223,7 +223,7 @@ void ThreadView::updateThreadList()
             setCellContent(i, 0, "Main");
         else
             setCellContent(i, 0, QString("%1").arg(threadList.list[i].BasicInfo.ThreadNumber, 0, 10));
-        setCellContent(i, 1, QString("%1").arg(threadList.list[i].BasicInfo.dwThreadId, 0, 16).toUpper());
+        setCellContent(i, 1, QString("%1").arg(threadList.list[i].BasicInfo.ThreadId, 0, 16).toUpper());
         setCellContent(i, 2, QString("%1").arg(threadList.list[i].BasicInfo.ThreadStartAddress, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 3, QString("%1").arg(threadList.list[i].BasicInfo.ThreadLocalBase, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 4, QString("%1").arg(threadList.list[i].ThreadCip, sizeof(int_t) * 2, 16, QChar('0')).toUpper());

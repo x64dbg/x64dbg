@@ -1,24 +1,34 @@
+/**
+ @file simplescript.cpp
+
+ @brief Implements the simplescript class.
+ */
+
 #include "simplescript.h"
 #include "value.h"
 #include "console.h"
-#include "argument.h"
 #include "variable.h"
 #include "threading.h"
 #include "x64_dbg.h"
 #include "debugger.h"
+#include "commandparser.h"
 
 static std::vector<LINEMAPENTRY> linemap;
+
 static std::vector<SCRIPTBP> scriptbplist;
+
 static std::vector<int> scriptstack;
+
 static int scriptIp = 0;
+
 static bool volatile bAbort = false;
+
 static bool volatile bIsRunning = false;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
     char newtext[MAX_SCRIPT_LINE_SIZE] = "";
-    strcpy_s(newtext, text);
-    argformat(newtext); //format jump commands
+    strcpy_s(newtext, StringUtils::Trim(text).c_str());
     if(!strstr(newtext, " "))
         strcat(newtext, " ");
     if(!strncmp(newtext, "jmp ", 4) or !strncmp(newtext, "goto ", 5))
@@ -62,7 +72,7 @@ static int scriptinternalstep(int fromIp) //internal step routine
 
 static bool scriptcreatelinemap(const char* filename)
 {
-    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         GuiScriptError(0, "CreateFile failed...");
@@ -71,7 +81,6 @@ static bool scriptcreatelinemap(const char* filename)
     unsigned int filesize = GetFileSize(hFile, 0);
     if(!filesize)
     {
-        CloseHandle(hFile);
         GuiScriptError(0, "Empty script...");
         return false;
     }
@@ -80,11 +89,10 @@ static bool scriptcreatelinemap(const char* filename)
     DWORD read = 0;
     if(!ReadFile(hFile, filedata, filesize, &read, 0))
     {
-        CloseHandle(hFile);
         GuiScriptError(0, "ReadFile failed...");
         return false;
     }
-    CloseHandle(hFile);
+    hFile.Close();
     int len = (int)strlen(filedata);
     char temp[256] = "";
     LINEMAPENTRY entry;
@@ -98,7 +106,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             i++;
@@ -110,7 +118,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             linemap.push_back(entry);
@@ -121,7 +129,7 @@ static bool scriptcreatelinemap(const char* filename)
             int add = 0;
             while(temp[add] == ' ')
                 add++;
-            strcpy(entry.raw, temp + add);
+            strcpy_s(entry.raw, temp + add);
             *temp = 0;
             j = 0;
             linemap.push_back(entry);
@@ -132,7 +140,7 @@ static bool scriptcreatelinemap(const char* filename)
     if(*temp)
     {
         memset(&entry, 0, sizeof(entry));
-        strcpy(entry.raw, temp);
+        strcpy_s(entry.raw, temp);
         linemap.push_back(entry);
     }
     unsigned int linemapsize = (unsigned int)linemap.size();
@@ -152,7 +160,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             if(*(comment - 1) == ' ') //space before comment
             {
-                strcpy(line_comment, comment);
+                strcpy_s(line_comment, comment);
                 *(comment - 1) = '\0';
             }
             else //no space before comment
@@ -170,13 +178,13 @@ static bool scriptcreatelinemap(const char* filename)
         else if(!strncmp(cur.raw, "//", 2)) //comment
         {
             cur.type = linecomment;
-            strcpy(cur.u.comment, cur.raw);
+            strcpy_s(cur.u.comment, cur.raw);
         }
         else if(cur.raw[rawlen - 1] == ':') //label
         {
             cur.type = linelabel;
             sprintf(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
-            argformat(cur.u.label); //format labels
+            strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
             char temp[256] = "";
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
@@ -203,20 +211,19 @@ static bool scriptcreatelinemap(const char* filename)
             cur.type = linebranch;
             cur.u.branch.type = scriptgetbranchtype(cur.raw);
             char newraw[MAX_SCRIPT_LINE_SIZE] = "";
-            strcpy(newraw, cur.raw);
-            argformat(newraw);
+            strcpy_s(newraw, StringUtils::Trim(cur.raw).c_str());
             int len = (int)strlen(newraw);
             for(int i = 0; i < len; i++)
                 if(newraw[i] == ' ')
                 {
-                    strcpy(cur.u.branch.branchlabel, newraw + i + 1);
+                    strcpy_s(cur.u.branch.branchlabel, newraw + i + 1);
                     break;
                 }
         }
         else
         {
             cur.type = linecommand;
-            strcpy(cur.u.command, cur.raw);
+            strcpy_s(cur.u.command, cur.raw);
         }
 
         //append the comment to the raw line again
@@ -246,8 +253,8 @@ static bool scriptcreatelinemap(const char* filename)
     {
         memset(&entry, 0, sizeof(entry));
         entry.type = linecommand;
-        strcpy(entry.raw, "ret");
-        strcpy(entry.u.command, "ret");
+        strcpy_s(entry.raw, "ret");
+        strcpy_s(entry.u.command, "ret");
         linemap.push_back(entry);
     }
     return true;
@@ -343,8 +350,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     else if(scriptisinternalcommand(cmd, "nop")) //do nothing
         return STATUS_CONTINUE;
     char command[deflen] = "";
-    strcpy_s(command, cmd);
-    argformat(command);
+    strcpy_s(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(dbggetcommandlist(), command);
     if(!found) //invalid command
         return STATUS_ERROR;

@@ -17,8 +17,8 @@ public:
 
     // Context Menu Management
     void setupRightClickContextMenu();
-    void addFollowMenuItem(QString name, int_t value);
-    void setupFollowMenu(int_t wVA);
+    void addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, bool isReferences);
+    void setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isReferences);
     void setHwBpAt(uint_t va, int slot);
 
     void copySelection(bool copyBytes);
@@ -63,6 +63,7 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
     void showPatchesSlot();
+    void yaraSlot();
     void copySelection();
     void copySelectionNoBytes();
     void copyAddress();
@@ -80,6 +81,7 @@ private:
     QMenu* mReferencesMenu;
     QMenu* mSearchMenu;
     QMenu* mCopyMenu;
+    QMenu* mPluginMenu;
 
     QAction* mBinaryEditAction;
     QAction* mBinaryFillAction;
@@ -114,6 +116,7 @@ private:
     QAction* mSearchPattern;
     QAction* mEnableHighlightingMode;
     QAction* mPatchesAction;
+    QAction* mYaraAction;
     QAction* mCopySelection;
     QAction* mCopySelectionNoBytes;
     QAction* mCopyAddress;

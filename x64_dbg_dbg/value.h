@@ -9,7 +9,7 @@ void valuesetsignedcalc(bool a);
 bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly);
 bool valfromstring(const char* string, uint* value, bool silent = true, bool baseonly = false, int* value_size = 0, bool* isvar = 0, bool* hexonly = 0);
 bool valflagfromstring(uint eflags, const char* string);
-bool valtostring(const char* string, uint* value, bool silent);
+bool valtostring(const char* string, uint value, bool silent);
 bool valmxcsrflagfromstring(uint mxcsrflags, const char* string);
 bool valx87statuswordflagfromstring(uint statusword, const char* string);
 bool valx87controlwordflagfromstring(uint controlword, const char* string);

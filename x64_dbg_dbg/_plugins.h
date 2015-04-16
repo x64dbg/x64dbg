@@ -41,6 +41,9 @@ typedef struct
     //provided by the debugger
     HWND hwndDlg; //gui window handle
     int hMenu; //plugin menu handle
+    int hMenuDisasm; //plugin disasm menu handle
+    int hMenuDump; //plugin dump menu handle
+    int hMenuStack; //plugin stack menu handle
 } PLUG_SETUPSTRUCT;
 
 //callback structures

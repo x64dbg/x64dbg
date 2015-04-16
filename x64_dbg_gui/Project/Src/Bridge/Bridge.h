@@ -1,15 +1,20 @@
 #ifndef BRIDGE_H
 #define BRIDGE_H
 
+#include <agents.h>
 #include <QObject>
 #include <QMutex>
 #include "Imports.h"
 #include "NewTypes.h"
 #include "ReferenceManager.h"
+#include "BridgeResult.h"
 
 class Bridge : public QObject
 {
     Q_OBJECT
+
+    friend class BridgeResult;
+
 public:
     explicit Bridge(QObject* parent = 0);
     ~Bridge();
@@ -21,7 +26,7 @@ public:
     static void CopyToClipboard(const QString & text);
 
     //result function
-    void BridgeSetResult(int_t result);
+    void setResult(int_t result = 0);
 
     // Exports Binding
     void emitDisassembleAtSignal(int_t va, int_t eip);
@@ -60,10 +65,12 @@ public:
     void emitUpdateMemory();
     void emitAddRecentFile(QString file);
     void emitSetLastException(unsigned int exceptionCode);
+    void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
     int emitMenuAddMenu(int hMenu, QString title);
     int emitMenuAddMenuEntry(int hMenu, QString title);
     void emitMenuAddSeparator(int hMenu);
     void emitMenuClearMenu(int hMenu);
+    void emitMenuRemoveEntry(int hEntry);
     bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
     bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
     bool emitGetStrWindow(const QString title, QString* text);
@@ -76,6 +83,7 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
+    void emitLoadSourceFile(const QString path, int line = 0);
 
     //Public variables
     void* winId;
@@ -119,10 +127,12 @@ signals:
     void updateMemory();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
+    void menuAddMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu);
     void menuAddMenu(int hMenu, QString title);
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
     void menuClearMenu(int hMenu);
+    void menuRemoveMenuEntry(int hEntry);
     void selectionDisasmGet(SELECTIONDATA* selection);
     void selectionDisasmSet(const SELECTIONDATA* selection);
     void selectionDumpGet(SELECTIONDATA* selection);
@@ -139,11 +149,12 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
+    void loadSourceFile(const QString path, int line);
 
 private:
     QMutex* mBridgeMutex;
     int_t bridgeResult;
-    bool hasBridgeResult;
+    volatile bool hasBridgeResult;
 
 public:
 

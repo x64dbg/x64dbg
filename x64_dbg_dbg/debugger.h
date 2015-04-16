@@ -131,5 +131,6 @@ extern HANDLE hActiveThread;
 extern char szFileName[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;
+extern bool bEnableSourceDebugging;
 
 #endif // _DEBUGGER_H

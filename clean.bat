@@ -40,10 +40,10 @@ rmdir /S /Q Project\release
 rmdir /S /Q Project\debug
 rmdir /S /Q Project\Win32
 rmdir /S /Q Project\x64
-del /Q Project\Src\Bridge\libx32_bridge.a
-del /Q Project\Src\Bridge\libx64_bridge.a
-del /Q Project\Src\Bridge\x32_bridge.lib
-del /Q Project\Src\Bridge\x64_bridge.lib
+del /Q Project\Src\Bridge\libx32bridge.a
+del /Q Project\Src\Bridge\libx64bridge.a
+del /Q Project\Src\Bridge\x32bridge.lib
+del /Q Project\Src\Bridge\x64bridge.lib
 cd ..
 echo cleaning bin\
 del /Q bin\*.pdb
@@ -59,10 +59,10 @@ del /Q bin\x32\*.exp
 del /Q bin\x32\*.a
 del /Q bin\x32\*.lib
 del /Q bin\x32\*.def
-del /Q bin\x32\x32_dbg.exe
-del /Q bin\x32\x32_dbg.dll
-del /Q bin\x32\x32_gui.dll
-del /Q bin\x32\x32_bridge.dll
+del /Q bin\x32\x32dbg.exe
+del /Q bin\x32\x32dbg.dll
+del /Q bin\x32\x32gui.dll
+del /Q bin\x32\x32bridge.dll
 echo cleaning bin\x64...
 rmdir /S /Q bin\x64\db
 del /Q bin\x64\*.pdb
@@ -70,10 +70,10 @@ del /Q bin\x64\*.exp
 del /Q bin\x64\*.a
 del /Q bin\x64\*.lib
 del /Q bin\x64\*.def
-del /Q bin\x64\x64_dbg.exe
-del /Q bin\x64\x64_dbg.dll
-del /Q bin\x64\x64_gui.dll
-del /Q bin\x64\x64_bridge.dll
+del /Q bin\x64\x64dbg.exe
+del /Q bin\x64\x64dbg.dll
+del /Q bin\x64\x64gui.dll
+del /Q bin\x64\x64bridge.dll
 echo cleaning help...
 cd help
 del /Q *.chm

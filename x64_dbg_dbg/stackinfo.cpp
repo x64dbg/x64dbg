@@ -1,3 +1,9 @@
+/**
+ @file stackinfo.cpp
+
+ @brief Implements the stackinfo class.
+ */
+
 #include "stackinfo.h"
 #include "debugger.h"
 #include "memory.h"
@@ -6,22 +12,23 @@
 #include "BeaEngine\BeaEngine.h"
 #include "addrinfo.h"
 #include "_exports.h"
+#include "module.h"
 
 bool stackcommentget(uint addr, STACK_COMMENT* comment)
 {
     uint data = 0;
     memset(comment, 0, sizeof(STACK_COMMENT));
-    memread(fdProcessInfo->hProcess, (const void*)addr, &data, sizeof(uint), 0);
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, data)) //the stack value is no pointer
+    MemRead((void*)addr, &data, sizeof(uint), 0);
+    if(!MemIsValidReadPtr(data)) //the stack value is no pointer
         return false;
 
     uint size = 0;
-    uint base = memfindbaseaddr(data, &size);
+    uint base = MemFindBaseAddr(data, &size);
     uint readStart = data - 16 * 4;
     if(readStart < base)
         readStart = base;
     unsigned char disasmData[256];
-    memread(fdProcessInfo->hProcess, (const void*)readStart, disasmData, sizeof(disasmData), 0);
+    MemRead((void*)readStart, disasmData, sizeof(disasmData), 0);
     uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
     uint previousInstr = readStart + prev;
 
@@ -41,9 +48,9 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         ADDRINFO addrinfo;
         addrinfo.flags = flaglabel;
         if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-            strcpy(label, addrinfo.label);
+            strcpy_s(label, addrinfo.label);
         char module[MAX_MODULE_SIZE] = "";
-        modnamefromaddr(data, module, false);
+        ModNameFromAddr(data, module, false);
         char returnToAddr[MAX_COMMENT_SIZE] = "";
         if(*module)
             sprintf(returnToAddr, "%s.", module);
@@ -57,9 +64,9 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
             *label = 0;
             addrinfo.flags = flaglabel;
             if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                strcpy(label, addrinfo.label);
+                strcpy_s(label, addrinfo.label);
             *module = 0;
-            modnamefromaddr(data, module, false);
+            ModNameFromAddr(data, module, false);
             char returnFromAddr[MAX_COMMENT_SIZE] = "";
             if(*module)
                 sprintf(returnFromAddr, "%s.", module);
@@ -70,7 +77,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         }
         else
             sprintf_s(comment->comment, "return to %s from ???", returnToAddr);
-        strcpy(comment->color, "#ff0000");
+        strcpy_s(comment->color, "#ff0000");
         return true;
     }
 
@@ -91,9 +98,9 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     ADDRINFO addrinfo;
     addrinfo.flags = flaglabel;
     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-        strcpy(label, addrinfo.label);
+        strcpy_s(label, addrinfo.label);
     char module[MAX_MODULE_SIZE] = "";
-    modnamefromaddr(data, module, false);
+    ModNameFromAddr(data, module, false);
     char addrInfo[MAX_COMMENT_SIZE] = "";
     if(*module) //module
     {
@@ -117,12 +124,12 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
     callstack->total = 0;
     if(!DbgIsDebugging() or csp % sizeof(uint)) //alignment problem
         return;
-    if(!memisvalidreadptr(fdProcessInfo->hProcess, csp))
+    if(!MemIsValidReadPtr(csp))
         return;
     std::vector<CALLSTACKENTRY> callstackVector;
     DWORD ticks = GetTickCount();
     uint stacksize = 0;
-    uint stackbase = memfindbaseaddr(csp, &stacksize, false);
+    uint stackbase = MemFindBaseAddr(csp, &stacksize, false);
     if(!stackbase) //super-fail (invalid stack address)
         return;
     //walk up the stack
@@ -130,16 +137,16 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
     while(i != stackbase + stacksize)
     {
         uint data = 0;
-        memread(fdProcessInfo->hProcess, (const void*)i, &data, sizeof(uint), 0);
-        if(memisvalidreadptr(fdProcessInfo->hProcess, data)) //the stack value is a pointer
+        MemRead((void*)i, &data, sizeof(uint), 0);
+        if(MemIsValidReadPtr(data)) //the stack value is a pointer
         {
             uint size = 0;
-            uint base = memfindbaseaddr(data, &size);
+            uint base = MemFindBaseAddr(data, &size);
             uint readStart = data - 16 * 4;
             if(readStart < base)
                 readStart = base;
             unsigned char disasmData[256];
-            memread(fdProcessInfo->hProcess, (const void*)readStart, disasmData, sizeof(disasmData), 0);
+            MemRead((void*)readStart, disasmData, sizeof(disasmData), 0);
             uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
             uint previousInstr = readStart + prev;
             BASIC_INSTRUCTION_INFO basicinfo;
@@ -150,9 +157,9 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                 ADDRINFO addrinfo;
                 addrinfo.flags = flaglabel;
                 if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                    strcpy(label, addrinfo.label);
+                    strcpy_s(label, addrinfo.label);
                 char module[MAX_MODULE_SIZE] = "";
-                modnamefromaddr(data, module, false);
+                ModNameFromAddr(data, module, false);
                 char returnToAddr[MAX_COMMENT_SIZE] = "";
                 if(*module)
                     sprintf(returnToAddr, "%s.", module);
@@ -173,9 +180,9 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     *label = 0;
                     addrinfo.flags = flaglabel;
                     if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                        strcpy(label, addrinfo.label);
+                        strcpy_s(label, addrinfo.label);
                     *module = 0;
-                    modnamefromaddr(data, module, false);
+                    ModNameFromAddr(data, module, false);
                     char returnFromAddr[MAX_COMMENT_SIZE] = "";
                     if(*module)
                         sprintf(returnFromAddr, "%s.", module);

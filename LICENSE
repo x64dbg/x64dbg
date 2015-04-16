@@ -156,8 +156,8 @@ same work.
   2. Treatment of plugins
   
   This license does not affect plugins, i.e., dynamically linked
-libraries, that use the provided plugin interface mechanism of x64_dbg
-for contibuting additional features to the x64_dbg project and can only
+libraries, that use the provided plugin interface mechanism of x64dbg
+for contibuting additional features to the x64dbg project and can only
 be run from x64dbg. In fact you are allowed to create and share
 (non-)commercial, non-standalone closed-source plugins for x64dbg under
 your own license.

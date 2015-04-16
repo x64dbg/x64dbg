@@ -1,3 +1,9 @@
+/**
+ @file disasm_helper.cpp
+
+ @brief Implements the disasm helper class.
+ */
+
 #include "disasm_helper.h"
 #include "BeaEngine\BeaEngine.h"
 #include "value.h"
@@ -127,9 +133,9 @@ const char* disasmtext(uint addr)
     int len = Disasm(&disasm);
     static char instruction[INSTRUCT_LENGTH] = "";
     if(len == UNKNOWN_OPCODE)
-        strcpy(instruction, "???");
+        strcpy_s(instruction, "???");
     else
-        strcpy(instruction, disasm.CompleteInstr);
+        strcpy_s(instruction, disasm.CompleteInstr);
     return instruction;
 }
 
@@ -166,7 +172,7 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     if(!*argmnemonic)
         return false;
     arg->memvalue = 0;
-    strcpy(arg->mnemonic, argmnemonic);
+    strcpy_s(arg->mnemonic, argmnemonic);
     if((argtype & MEMORY_TYPE) == MEMORY_TYPE)
     {
         arg->type = arg_memory;
@@ -233,7 +239,7 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
     disasm.VirtualAddr = addr;
     disasm.EIP = (UIntPtr)buffer;
     int len = Disasm(&disasm);
-    strcpy(instr->instruction, disasm.CompleteInstr);
+    strcpy_s(instr->instruction, disasm.CompleteInstr);
     if(len == UNKNOWN_OPCODE)
     {
         instr->instr_size = 1;
@@ -321,11 +327,11 @@ bool disasmispossiblestring(uint addr)
 {
     unsigned char data[11];
     memset(data, 0, sizeof(data));
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data) - 3, 0))
+    if(!MemRead((void*)addr, data, sizeof(data) - 3, 0))
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(memisvalidreadptr(fdProcessInfo->hProcess, test)) //imports/pointers
+    if(MemIsValidReadPtr(test)) //imports/pointers
         return false;
     if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
         return true;
@@ -340,11 +346,11 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         return false;
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
     memset(data, 0, (maxlen + 1) * 2);
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, (maxlen + 1) * 2, 0))
+    if(!MemRead((void*)addr, data, (maxlen + 1) * 2, 0))
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(memisvalidreadptr(fdProcessInfo->hProcess, test))
+    if(MemIsValidReadPtr(test))
         return false;
     if(isasciistring(data, maxlen))
     {
@@ -442,7 +448,7 @@ int disasmgetsize(uint addr, unsigned char* data)
 int disasmgetsize(uint addr)
 {
     char data[16];
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
         return 1;
     return disasmgetsize(addr, (unsigned char*)data);
 }

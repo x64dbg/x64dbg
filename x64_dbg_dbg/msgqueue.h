@@ -23,10 +23,10 @@ struct MESSAGE_STACK
 };
 
 //function definitions
-MESSAGE_STACK* msgallocstack();
-void msgfreestack(MESSAGE_STACK* msgstack);
-bool msgsend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2);
-bool msgget(MESSAGE_STACK* msgstack, MESSAGE* msg);
-void msgwait(MESSAGE_STACK* msgstack, MESSAGE* msg);
+MESSAGE_STACK* MsgAllocStack();
+void MsgFreeStack(MESSAGE_STACK* msgstack);
+bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2);
+bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg);
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg);
 
 #endif // _MSGQUEUE_H

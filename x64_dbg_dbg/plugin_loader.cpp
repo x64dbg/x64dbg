@@ -1,16 +1,44 @@
+/**
+ @file plugin_loader.cpp
+
+ @brief Implements the plugin loader.
+ */
+
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
 #include "memory.h"
 #include "x64_dbg.h"
 
+/**
+\brief List of plugins.
+*/
 static std::vector<PLUG_DATA> pluginList;
+
+/**
+\brief The current plugin handle.
+*/
 static int curPluginHandle = 0;
+
+/**
+\brief List of plugin callbacks.
+*/
 static std::vector<PLUG_CALLBACK> pluginCallbackList;
+
+/**
+\brief List of plugin commands.
+*/
 static std::vector<PLUG_COMMAND> pluginCommandList;
+
+/**
+\brief List of plugin menus.
+*/
 static std::vector<PLUG_MENU> pluginMenuList;
 
-///internal plugin functions
+/**
+\brief Loads plugins from a specified directory.
+\param pluginDir The directory to load plugins from.
+*/
 void pluginload(const char* pluginDir)
 {
     //load new plugins
@@ -162,7 +190,7 @@ void pluginload(const char* pluginDir)
         int hNewMenu = GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
         {
-            dprintf("[PLUGIN] GuiMenuAdd failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_PLUGIN_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
             pluginData.hMenu = -1;
         }
         else
@@ -172,7 +200,55 @@ void pluginload(const char* pluginDir)
             newMenu.hEntryPlugin = -1;
             newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
             pluginMenuList.push_back(newMenu);
-            pluginData.hMenu = hNewMenu;
+            pluginData.hMenu = newMenu.hEntryMenu;
+        }
+        //add disasm plugin menu
+        hNewMenu = GuiMenuAdd(GUI_DISASM_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_DISASM_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuDisasm = newMenu.hEntryMenu;
+        }
+        //add dump plugin menu
+        hNewMenu = GuiMenuAdd(GUI_DUMP_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_DUMP_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuDump = newMenu.hEntryMenu;
+        }
+        //add stack plugin menu
+        hNewMenu = GuiMenuAdd(GUI_STACK_MENU, pluginData.initStruct.pluginName);
+        if(hNewMenu == -1)
+        {
+            dprintf("[PLUGIN] GuiMenuAdd(GUI_STACK_MENU) failed for plugin: %s\n", pluginData.initStruct.pluginName);
+            pluginData.hMenu = -1;
+        }
+        else
+        {
+            PLUG_MENU newMenu;
+            newMenu.hEntryMenu = hNewMenu;
+            newMenu.hEntryPlugin = -1;
+            newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+            pluginMenuList.push_back(newMenu);
+            pluginData.hMenuStack = newMenu.hEntryMenu;
         }
         pluginList.push_back(pluginData);
         //setup plugin
@@ -180,7 +256,10 @@ void pluginload(const char* pluginDir)
         {
             PLUG_SETUPSTRUCT setupStruct;
             setupStruct.hwndDlg = GuiGetWindowHandle();
-            setupStruct.hMenu = hNewMenu;
+            setupStruct.hMenu = pluginData.hMenu;
+            setupStruct.hMenuDisasm = pluginData.hMenuDisasm;
+            setupStruct.hMenuDump = pluginData.hMenuDump;
+            setupStruct.hMenuStack = pluginData.hMenuStack;
             pluginData.plugsetup(&setupStruct);
         }
         curPluginHandle++;
@@ -189,6 +268,10 @@ void pluginload(const char* pluginDir)
     SetCurrentDirectoryW(currentDir);
 }
 
+/**
+\brief Unregister all plugin commands.
+\param pluginHandle Handle of the plugin to remove the commands from.
+*/
 static void plugincmdunregisterall(int pluginHandle)
 {
     int listsize = (int)pluginCommandList.size();
@@ -202,6 +285,9 @@ static void plugincmdunregisterall(int pluginHandle)
     }
 }
 
+/**
+\brief Unloads all plugins.
+*/
 void pluginunload()
 {
     int pluginCount = (int)pluginList.size();
@@ -219,7 +305,12 @@ void pluginunload()
     GuiMenuClear(GUI_PLUGIN_MENU); //clear the plugin menu
 }
 
-///debugging plugin exports
+/**
+\brief Register a plugin callback.
+\param pluginHandle Handle of the plugin to register a callback for.
+\param cbType The type of the callback to register.
+\param cbPlugin The actual callback function.
+*/
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 {
     pluginunregistercallback(pluginHandle, cbType); //remove previous callback
@@ -230,6 +321,11 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
     pluginCallbackList.push_back(cbStruct);
 }
 
+/**
+\brief Unregister all plugin callbacks of a certain type.
+\param pluginHandle Handle of the plugin to unregister a callback from.
+\param cbType The type of the callback to unregister.
+*/
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 {
     int pluginCallbackCount = (int)pluginCallbackList.size();
@@ -244,6 +340,11 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
     return false;
 }
 
+/**
+\brief Call all registered callbacks of a certain type.
+\param cbType The type of callbacks to call.
+\param [in,out] callbackInfo Information describing the callback. See plugin documentation for more information on this.
+*/
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
     int pluginCallbackCount = (int)pluginCallbackList.size();
@@ -252,19 +353,27 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
         if(pluginCallbackList.at(i).cbType == cbType)
         {
             CBPLUGIN cbPlugin = pluginCallbackList.at(i).cbPlugin;
-            if(memisvalidreadptr(GetCurrentProcess(), (uint)cbPlugin))
+            if(!IsBadReadPtr((const void*)cbPlugin, sizeof(uint)))
                 cbPlugin(cbType, callbackInfo);
         }
     }
 }
 
+/**
+\brief Register a plugin command.
+\param pluginHandle Handle of the plugin to register a command for.
+\param command The command text to register. This text cannot contain the '\1' character. This text is not case sensitive.
+\param cbCommand The command callback.
+\param debugonly true if the command can only be called during debugging.
+\return true if it the registration succeeded, false otherwise.
+*/
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
 {
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
         return false;
     PLUG_COMMAND plugCmd;
     plugCmd.pluginHandle = pluginHandle;
-    strcpy(plugCmd.command, command);
+    strcpy_s(plugCmd.command, command);
     if(!dbgcmdnew(command, (CBCOMMAND)cbCommand, debugonly))
         return false;
     pluginCommandList.push_back(plugCmd);
@@ -272,6 +381,12 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     return true;
 }
 
+/**
+\brief Unregister a plugin command.
+\param pluginHandle Handle of the plugin to unregister the command from.
+\param command The command text to unregister. This text is not case sensitive.
+\return true if the command was found and removed, false otherwise.
+*/
 bool plugincmdunregister(int pluginHandle, const char* command)
 {
     if(!command or strlen(command) >= deflen or strstr(command, "\1"))
@@ -291,6 +406,12 @@ bool plugincmdunregister(int pluginHandle, const char* command)
     return false;
 }
 
+/**
+\brief Add a new plugin (sub)menu.
+\param hMenu The menu handle to add the (sub)menu to.
+\param title The title of the (sub)menu.
+\return The handle of the new (sub)menu.
+*/
 int pluginmenuadd(int hMenu, const char* title)
 {
     if(!title or !strlen(title))
@@ -315,6 +436,13 @@ int pluginmenuadd(int hMenu, const char* title)
     return hMenuNew;
 }
 
+/**
+\brief Add a plugin menu entry to a menu.
+\param hMenu The menu to add the entry to.
+\param hEntry The handle you like to have the entry. This should be a unique value in the scope of the plugin that registered the \p hMenu.
+\param title The menu entry title.
+\return true if the \p hEntry was unique and the entry was successfully added, false otherwise.
+*/
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
     if(!title or !strlen(title) or hEntry == -1)
@@ -346,6 +474,11 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     return true;
 }
 
+/**
+\brief Add a menu separator to a menu.
+\param hMenu The menu to add the separator to.
+\return true if it succeeds, false otherwise.
+*/
 bool pluginmenuaddseparator(int hMenu)
 {
     bool bFound = false;
@@ -363,6 +496,11 @@ bool pluginmenuaddseparator(int hMenu)
     return true;
 }
 
+/**
+\brief Clears a plugin menu.
+\param hMenu The menu to clear.
+\return true if it succeeds, false otherwise.
+*/
 bool pluginmenuclear(int hMenu)
 {
     bool bFound = false;
@@ -380,6 +518,10 @@ bool pluginmenuclear(int hMenu)
     return false;
 }
 
+/**
+\brief Call the registered CB_MENUENTRY callbacks for a menu entry.
+\param hEntry The menu entry that triggered the event.
+*/
 void pluginmenucall(int hEntry)
 {
     if(hEntry == -1)
@@ -405,6 +547,12 @@ void pluginmenucall(int hEntry)
     }
 }
 
+/**
+\brief Calls the registered CB_WINEVENT callbacks.
+\param [in,out] message the message that triggered the event. Cannot be null.
+\param [out] result The result value. Cannot be null.
+\return The value the plugin told it to return. See plugin documentation for more information.
+*/
 bool pluginwinevent(MSG* message, long* result)
 {
     PLUG_CB_WINEVENT winevent;
@@ -415,6 +563,11 @@ bool pluginwinevent(MSG* message, long* result)
     return winevent.retval;
 }
 
+/**
+\brief Calls the registered CB_WINEVENTGLOBAL callbacks.
+\param [in,out] message the message that triggered the event. Cannot be null.
+\return The value the plugin told it to return. See plugin documentation for more information.
+*/
 bool pluginwineventglobal(MSG* message)
 {
     PLUG_CB_WINEVENTGLOBAL winevent;

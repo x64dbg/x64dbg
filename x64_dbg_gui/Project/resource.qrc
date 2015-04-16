@@ -48,5 +48,11 @@
         <file>images/trace.png</file>
         <file>images/changeargs.png</file>
         <file>images/arrow-skip.png</file>
+        <file>images/topmost.png</file>
+        <file>images/close-all-tabs.png</file>
+        <file>images/bug-report.png</file>
+        <file>images/yara.png</file>
+        <file>images/data-copy.png</file>
+        <file>images/source.png</file>
     </qresource>
 </RCC>

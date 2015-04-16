@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include "Configuration.h"
 #include "Bridge.h"
+#include "YaraRuleSelectionDialog.h"
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -122,6 +123,9 @@ void SymbolView::setupContextMenu()
 
     mCopyPathAction = new QAction("Copy File &Path", this);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
+
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
 
     //Shortcuts
     refreshShortcutsSlot();
@@ -244,6 +248,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
+    wMenu->addAction(mYaraAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -272,6 +277,17 @@ void SymbolView::moduleCopyPath()
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         Bridge::CopyToClipboard(szModPath);
+}
+
+void SymbolView::moduleYara()
+{
+    QString modname = mModuleList->getCellContent(mModuleList->getInitialSelection(), 1);
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        DbgCmdExec(QString("yara \"%0\",\"%1\"").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
+        emit showReferences();
+    }
 }
 
 void SymbolView::moduleDownloadSymbols()

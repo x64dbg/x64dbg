@@ -150,6 +150,9 @@ void CPUStack::setupContextMenu()
     mFollowStack = new QAction("Follow in &Stack", this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -169,6 +172,10 @@ void CPUStack::refreshShortcutsSlot()
 
 QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    // Reset byte offset when base address is reached
+    if(rowBase == 0 && mByteOffset != 0)
+        printDumpAt(mMemPage->getBase(), false, false);
+
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
     int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
@@ -217,7 +224,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
 #endif //_WIN64
             }
         }
-        addrText += QString("%1").arg(cur_addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        addrText += AddressToString(cur_addr);
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
@@ -329,6 +336,9 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             wMenu->addAction(mFollowDump);
         }
 
+    wMenu->addSeparator();
+    wMenu->addActions(mPluginMenu->actions());
+
     wMenu->exec(event->globalPos());
 }
 
@@ -409,7 +419,7 @@ void CPUStack::selectionGet(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUStack::selectionSet(const SELECTIONDATA* selection)
@@ -420,13 +430,13 @@ void CPUStack::selectionSet(const SELECTIONDATA* selection)
     int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
-        Bridge::getBridge()->BridgeSetResult(0);
+        Bridge::getBridge()->setResult(0);
         return;
     }
     setSingleSelection(start - selMin);
     expandSelectionUpTo(end - selMin);
     reloadData();
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUStack::followDisasmSlot()

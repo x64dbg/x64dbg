@@ -5,9 +5,12 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
+#include "YaraRuleSelectionDialog.h"
+#include "DataCopyDialog.h"
 
-CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
+CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
 {
+    mDisas = disas;
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
     case ViewHexAscii:
@@ -75,6 +78,7 @@ CPUDump::CPUDump(QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(dumpAt(int_t)), this, SLOT(printDumpAt(int_t)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     setupContextMenu();
 
@@ -231,6 +235,16 @@ void CPUDump::setupContextMenu()
     this->addAction(mFindPatternAction);
     connect(mFindPatternAction, SIGNAL(triggered()), this, SLOT(findPattern()));
 
+    //Yara
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mYaraAction);
+    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
+
+    //Data copy
+    mDataCopyAction = new QAction(QIcon(":/icons/images/data-copy.png"), "Data copy...", this);
+    connect(mDataCopyAction, SIGNAL(triggered()), this, SLOT(dataCopySlot()));
+
     //Find References
     mFindReferencesAction = new QAction("Find &References", this);
     mFindReferencesAction->setShortcutContext(Qt::WidgetShortcut);
@@ -341,6 +355,10 @@ void CPUDump::setupContextMenu()
     mDisassemblyAction = new QAction("&Disassembly", this);
     connect(mDisassemblyAction, SIGNAL(triggered()), this, SLOT(disassemblySlot()));
 
+    //Plugins
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -357,10 +375,15 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    // Reset byte offset when base address is reached
+    if(rowBase == 0 && mByteOffset != 0)
+        printDumpAt(mMemPage->getBase(), false, false);
+
     QString wStr = "";
     if(!col) //address
     {
@@ -455,6 +478,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
+    wMenu->addAction(mFindReferencesAction);
+    wMenu->addAction(mYaraAction);
+    wMenu->addAction(mDataCopyAction);
     wMenu->addMenu(mGotoMenu);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
@@ -493,6 +519,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mMemoryExecuteMenu->menuAction()->setVisible(true);
         mMemoryRemove->setVisible(false);
     }
+
+    wMenu->addSeparator();
+    wMenu->addActions(mPluginMenu->actions());
 
     wMenu->exec(event->globalPos()); //execute context menu
 }
@@ -1053,7 +1082,7 @@ void CPUDump::selectionGet(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDump::selectionSet(const SELECTIONDATA* selection)
@@ -1064,13 +1093,13 @@ void CPUDump::selectionSet(const SELECTIONDATA* selection)
     int_t end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
-        Bridge::getBridge()->BridgeSetResult(0);
+        Bridge::getBridge()->setResult(0);
         return;
     }
     setSingleSelection(start - selMin);
     expandSelectionUpTo(end - selMin);
     reloadData();
-    Bridge::getBridge()->BridgeSetResult(1);
+    Bridge::getBridge()->setResult(1);
 }
 
 void CPUDump::memoryAccessSingleshootSlot()
@@ -1177,11 +1206,9 @@ void CPUDump::hardwareRemoveSlot()
 
 void CPUDump::findReferencesSlot()
 {
-    SELECTIONDATA selection;
-    GuiSelectionGet(GUI_DISASSEMBLY, &selection);
     QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
-    QString addrDisasm = QString("%1").arg(selection.start, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrDisasm = QString("%1").arg(mDisas->rvaToVa(mDisas->getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm).toUtf8().constData());
     emit displayReferencesWidget();
 }
@@ -1302,4 +1329,37 @@ void CPUDump::followStackSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
+}
+
+void CPUDump::selectionUpdatedSlot()
+{
+    QString selStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString selEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString info = "Dump";
+    char mod[MAX_MODULE_SIZE] = "";
+    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+        info = QString(mod) + "";
+    GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
+}
+
+void CPUDump::yaraSlot()
+{
+    YaraRuleSelectionDialog yaraDialog(this);
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
+        emit displayReferencesWidget();
+    }
+}
+
+void CPUDump::dataCopySlot()
+{
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QVector<byte_t> data;
+    data.resize(selSize);
+    mMemPage->read(data.data(), selStart, selSize);
+    DataCopyDialog dataDialog(&data, this);
+    dataDialog.exec();
 }

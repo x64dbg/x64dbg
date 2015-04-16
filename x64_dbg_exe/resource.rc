@@ -67,8 +67,8 @@ IDI_ICON1               ICON                    "..\\bug.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,0,2,3
- PRODUCTVERSION 0,0,2,3
+ FILEVERSION 0,0,2,5
+ PRODUCTVERSION 0,0,2,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -83,11 +83,11 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "x64_dbg"
-            VALUE "FileVersion", "0.0.2.3"
+            VALUE "FileDescription", "x64dbg"
+            VALUE "FileVersion", "0.0.2.5"
             VALUE "LegalCopyright", "x64dbg.com"
-            VALUE "ProductName", "x64_dbg"
-            VALUE "ProductVersion", "V2.2ALPHA"
+            VALUE "ProductName", "x64dbg"
+            VALUE "ProductVersion", "0.0.2.5"
         END
     END
     BLOCK "VarFileInfo"
