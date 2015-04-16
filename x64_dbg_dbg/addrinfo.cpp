@@ -36,20 +36,22 @@ void dbsave()
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
-        FILE* jsonFile = 0;
-        if(_wfopen_s(&jsonFile, wdbpath.c_str(), L"wb"))
+        Handle hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+        if(!hFile)
         {
-            dputs("failed to open database file for editing!");
-            json_decref(root); //free root
+            dputs("\nFailed to open database for writing!");
             return;
         }
-        if(json_dumpf(root, jsonFile, JSON_INDENT(4)) == -1)
+        SetEndOfFile(hFile);
+        char* jsonText = json_dumps(root, JSON_INDENT(4));
+        DWORD written = 0;
+        if(!WriteFile(hFile, jsonText, strlen(jsonText), &written, 0))
         {
-            dputs("couldn't write JSON to database file...");
-            json_decref(root); //free root
+            json_free(jsonText);
+            dputs("\nFailed to write database file!");
             return;
         }
-        fclose(jsonFile);
+        json_free(jsonText);
         if(!settingboolget("Engine", "DisableCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
@@ -85,30 +87,32 @@ void dbload()
         }
     }
 
-    // Open the file for reading by the JSON parser
-    FILE* jsonFile = nullptr;
-    long jsonFileSize = 0;
-
-    if(_wfopen_s(&jsonFile, databasePathW.c_str(), L"rb"))
+    // Read the database file
+    Handle hFile = CreateFileW(databasePathW.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    if(!hFile)
     {
         dputs("\nFailed to open database file!");
         return;
     }
 
-    // Get the current file size
-    fseek(jsonFile, 0, SEEK_END);
-    jsonFileSize = ftell(jsonFile);
-    fseek(jsonFile, 0, SEEK_SET);
+    unsigned int jsonFileSize = GetFileSize(hFile, 0);
+    if(!jsonFileSize)
+    {
+        dputs("\nEmpty database file!");
+        return;
+    }
 
-    // Verify that the file size is greater than 0.
-    // This corrects a bug when a file exists, but there is no data inside.
-    JSON root = nullptr;
+    Memory<char*> jsonText(jsonFileSize + 1);
+    DWORD read = 0;
+    if(!ReadFile(hFile, jsonText, jsonFileSize, &read, 0))
+    {
+        dputs("\nFailed to read database file!");
+        return;
+    }
+    hFile.Close();
 
-    if(jsonFileSize > 0)
-        root = json_loadf(jsonFile, 0, 0);
-
-    // Release the file handle and re-compress
-    fclose(jsonFile);
+    // Deserialize JSON
+    JSON root = json_loads(jsonText, 0, 0);
 
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());

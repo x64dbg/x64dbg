@@ -72,7 +72,7 @@ static int scriptinternalstep(int fromIp) //internal step routine
 
 static bool scriptcreatelinemap(const char* filename)
 {
-    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         GuiScriptError(0, "CreateFile failed...");
@@ -81,7 +81,6 @@ static bool scriptcreatelinemap(const char* filename)
     unsigned int filesize = GetFileSize(hFile, 0);
     if(!filesize)
     {
-        CloseHandle(hFile);
         GuiScriptError(0, "Empty script...");
         return false;
     }
@@ -90,11 +89,10 @@ static bool scriptcreatelinemap(const char* filename)
     DWORD read = 0;
     if(!ReadFile(hFile, filedata, filesize, &read, 0))
     {
-        CloseHandle(hFile);
         GuiScriptError(0, "ReadFile failed...");
         return false;
     }
-    CloseHandle(hFile);
+    hFile.Close();
     int len = (int)strlen(filedata);
     char temp[256] = "";
     LINEMAPENTRY entry;

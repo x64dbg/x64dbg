@@ -231,16 +231,6 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
     return 0;
 }
 
-static void* emalloc_json(size_t size)
-{
-    return emalloc(size, "json:ptr");
-}
-
-static void efree_json(void* ptr)
-{
-    efree(ptr, "json:ptr");
-}
-
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
@@ -250,7 +240,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     SectionLockerGlobal::Initialize();
     dbginit();
     dbgfunctionsinit();
-    json_set_alloc_funcs(emalloc_json, efree_json);
+    json_set_alloc_funcs(json_malloc, json_free);
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
     wchar_t wszDir[deflen] = L"";

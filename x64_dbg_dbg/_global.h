@@ -72,6 +72,8 @@ extern char dbpath[3 * deflen];
 void* emalloc(size_t size, const char* reason = "emalloc:???");
 void* erealloc(void* ptr, size_t size, const char* reason = "erealloc:???");
 void efree(void* ptr, const char* reason = "efree:???");
+void* json_malloc(size_t size);
+void json_free(void* ptr);
 int memleaks();
 void setalloctrace(const char* file);
 bool arraycontains(const char* cmd_list, const char* cmd);

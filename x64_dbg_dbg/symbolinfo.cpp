@@ -97,7 +97,10 @@ void SymUpdateModuleList()
     std::vector<SYMBOLMODULEINFO> modList;
 
     if(!SymGetModuleList(&modList))
+    {
+        GuiSymbolUpdateModuleList(0, nullptr);
         return;
+    }
 
     // Create a new array to be sent to the GUI thread
     size_t moduleCount = modList.size();

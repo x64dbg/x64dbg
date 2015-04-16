@@ -99,6 +99,16 @@ void efree(void* ptr, const char* reason)
     GlobalFree(ptr);
 }
 
+void* json_malloc(size_t size)
+{
+    return emalloc(size, "json:ptr");
+}
+
+void json_free(void* ptr)
+{
+    efree(ptr, "json:ptr");
+}
+
 /**
 \brief Gets the number of memory leaks. This number is only valid in _dbg_dbgexitsignal().
 \return The number of memory leaks.
@@ -256,7 +266,7 @@ bool settingboolget(const char* section, const char* name)
 arch GetFileArchitecture(const char* szFileName)
 {
     arch retval = notfound;
-    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(szFileName).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         unsigned char data[0x1000];
@@ -281,7 +291,6 @@ arch GetFileArchitecture(const char* szFileName)
                 }
             }
         }
-        CloseHandle(hFile);
     }
     return retval;
 }
