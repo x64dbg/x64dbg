@@ -32,6 +32,9 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
         *fileStart = '\0';
     }
 
+    //calculate module hash from full file name
+    info.hash = ModHashFromName(file);
+
     // Copy the extension into the module struct
     {
         char* extensionPos = strrchr(file, '.');
@@ -46,8 +49,7 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     // Copy the name to the module struct
     strcpy_s(info.name, file);
 
-    // Module base address/size/hash index
-    info.hash = ModHashFromName(info.name);
+    // Module base address/size
     info.base = Base;
     info.size = Size;
 

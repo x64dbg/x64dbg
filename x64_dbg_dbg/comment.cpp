@@ -152,10 +152,10 @@ void CommentCacheSave(JSON Root)
 
 void CommentCacheLoad(JSON Root)
 {
-    EXCLUSIVE_ACQUIRE(LockBookmarks);
+    EXCLUSIVE_ACQUIRE(LockComments);
 
     // Inline lambda to parse each JSON entry
-    auto AddBookmarks = [](const JSON Object, bool Manual)
+    auto AddComments = [](const JSON Object, bool Manual)
     {
         size_t i;
         JSON value;
@@ -201,11 +201,11 @@ void CommentCacheLoad(JSON Root)
 
     // Load user-set comments
     if(jsonComments)
-        AddBookmarks(jsonComments, true);
+        AddComments(jsonComments, true);
 
     // Load auto-set comments
     if(jsonAutoComments)
-        AddBookmarks(jsonAutoComments, false);
+        AddComments(jsonAutoComments, false);
 }
 
 bool CommentEnum(COMMENTSINFO* List, size_t* Size)

@@ -20,6 +20,7 @@
 #include <tlhelp32.h>
 #include "..\x64_dbg_bridge\bridgemain.h"
 #include "jansson\jansson.h"
+#include "jansson\jansson_x64dbg.h"
 #include "yara\yara.h"
 #include "DeviceNameResolver\DeviceNameResolver.h"
 #include "handle.h"

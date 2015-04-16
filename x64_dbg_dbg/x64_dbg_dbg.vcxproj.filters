@@ -473,5 +473,8 @@
     <ClInclude Include="commandparser.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="jansson\jansson_x64dbg.h">
+      <Filter>Header Files\Third Party\jansson</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -91,6 +91,7 @@
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
+    <ClInclude Include="jansson\jansson_x64dbg.h" />
     <ClInclude Include="label.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="lz4\lz4.h" />
