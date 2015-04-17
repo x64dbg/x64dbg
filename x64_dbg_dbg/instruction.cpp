@@ -1850,11 +1850,11 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
-        dprintf("operand %d, ", i + 1);
+        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
         switch(op.type)
         {
         case X86_OP_REG:
-            dprintf("register: %s\n", cp.RegName(op.reg));
+            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
             break;
         case X86_OP_IMM:
             dprintf("immediate: 0x%p\n", op.imm);
@@ -1864,9 +1864,9 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
             //[base + index * scale +/- disp]
             const x86_op_mem & mem = op.mem;
             dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
-                    cp.RegName(mem.segment),
-                    cp.RegName(mem.base),
-                    cp.RegName(mem.index),
+                    cp.RegName((x86_reg)mem.segment),
+                    cp.RegName((x86_reg)mem.base),
+                    cp.RegName((x86_reg)mem.index),
                     mem.scale,
                     mem.disp);
         }

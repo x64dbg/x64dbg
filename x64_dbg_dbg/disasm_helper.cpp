@@ -12,6 +12,7 @@
 #include "memory.h"
 #include <cwctype>
 #include <cwchar>
+#include "capstone_wrapper.h"
 
 uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
 {
@@ -221,6 +222,16 @@ static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG
     return true;
 }
 
+static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
+{
+    const cs_x86 & x86 = cp.GetInstr()->detail->x86;
+    const cs_x86_op & op = x86.operands[opindex];
+    switch(op.type)
+    {
+
+    }
+}
+
 void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
 {
     if(!DbgIsDebugging())
@@ -230,6 +241,27 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
         return;
     }
     memset(instr, 0, sizeof(DISASM_INSTR));
+    Capstone cp;
+    unsigned char buf[MAX_DISASM_BUFFER];
+    memcpy(buf, buffer, sizeof(buf));
+    if(!cp.Disassemble(addr, buf))
+    {
+        instr->instr_size = 1;
+        instr->type = instr_normal;
+        instr->argcount = 0;
+        return;
+    }
+    const cs_x86 & x86 = cp.GetInstr()->detail->x86;
+    instr->instr_size = cp.GetInstr()->size;
+    if(cp.InGroup(CS_GRP_JUMP))
+        instr->type = instr_branch;
+    else if(strstr(cp.GetInstr()->op_str, "sp") || strstr(cp.GetInstr()->op_str, "bp"))
+        instr->type = instr_stack;
+    else
+        instr->type = instr_normal;
+
+
+    //old code under here
     DISASM disasm;
     memset(&disasm, 0, sizeof(DISASM));
     disasm.Options = NoformatNumeral | ShowSegmentRegs;
