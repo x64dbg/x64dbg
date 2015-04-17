@@ -13,6 +13,7 @@ public:
     bool Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER]);
     const cs_insn* GetInstr();
     const cs_err GetError();
+    const char* RegName(unsigned int reg);
 
 private:
     csh mHandle;

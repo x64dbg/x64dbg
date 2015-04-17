@@ -72,10 +72,10 @@ typedef enum sparc_hint
 //> Operand type for instruction's operands
 typedef enum sparc_op_type
 {
-    SPARC_OP_INVALID = 0,   // Uninitialized.
-    SPARC_OP_REG,   // Register operand.
-    SPARC_OP_IMM,   // Immediate operand.
-    SPARC_OP_MEM,   // Memory operand
+    SPARC_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    SPARC_OP_REG, // = CS_OP_REG (Register operand).
+    SPARC_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    SPARC_OP_MEM, // = CS_OP_MEM (Memory operand).
 } sparc_op_type;
 
 // Instruction's operand referring to memory
@@ -504,17 +504,20 @@ typedef enum sparc_insn
 //> Group of SPARC instructions
 typedef enum sparc_insn_group
 {
-    SPARC_GRP_INVALID = 0,
+    SPARC_GRP_INVALID = 0, // = CS_GRP_INVALID
 
-    SPARC_GRP_HARDQUAD,
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    SPARC_GRP_JUMP, // = CS_GRP_JUMP
+
+    //> Architecture-specific groups
+    SPARC_GRP_HARDQUAD = 128,
     SPARC_GRP_V9,
     SPARC_GRP_VIS,
     SPARC_GRP_VIS2,
     SPARC_GRP_VIS3,
     SPARC_GRP_32BIT,
     SPARC_GRP_64BIT,
-
-    SPARC_GRP_JUMP, // all jump instructions (conditional+direct+indirect jumps)
 
     SPARC_GRP_ENDING,   // <-- mark the end of the list of groups
 } sparc_insn_group;

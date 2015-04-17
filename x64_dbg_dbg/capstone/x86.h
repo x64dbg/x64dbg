@@ -71,11 +71,11 @@ typedef enum x86_reg
 //> Operand type for instruction's operands
 typedef enum x86_op_type
 {
-    X86_OP_INVALID = 0, // Uninitialized.
-    X86_OP_REG, // Register operand.
-    X86_OP_IMM, // Immediate operand.
-    X86_OP_FP,  // Floating-Point immediate operand.
-    X86_OP_MEM, // Memory operand
+    X86_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    X86_OP_REG, // = CS_OP_REG (Register operand).
+    X86_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    X86_OP_MEM, // = CS_OP_MEM (Memory operand).
+    X86_OP_FP,  //  = CS_OP_FP  (Floating-Point operand).
 } x86_op_type;
 
 //> AVX broadcast type
@@ -158,6 +158,24 @@ typedef enum x86_avx_rm
     X86_AVX_RM_RZ,  // Round toward zero
 } x86_avx_rm;
 
+//> Instruction prefixes - to be used in cs_x86.prefix[]
+typedef enum x86_prefix
+{
+    X86_PREFIX_LOCK     =   0xf0,   // lock (cs_x86.prefix[0]
+    X86_PREFIX_REP      =   0xf3,   // rep (cs_x86.prefix[0]
+    X86_PREFIX_REPNE    =   0xf2,   // repne (cs_x86.prefix[0]
+
+    X86_PREFIX_CS       =   0x2e,   // segment override CS (cs_x86.prefix[1]
+    X86_PREFIX_SS       =   0x36,   // segment override SS (cs_x86.prefix[1]
+    X86_PREFIX_DS       =   0x3e,   // segment override DS (cs_x86.prefix[1]
+    X86_PREFIX_ES       =   0x26,   // segment override ES (cs_x86.prefix[1]
+    X86_PREFIX_FS       =   0x64,   // segment override FS (cs_x86.prefix[1]
+    X86_PREFIX_GS       =   0x65,   // segment override GS (cs_x86.prefix[1]
+
+    X86_PREFIX_OPSIZE   =   0x66,   // operand-size override (cs_x86.prefix[2]
+    X86_PREFIX_ADDRSIZE =   0x67,   // address-size override (cs_x86.prefix[3]
+} x86_prefix;
+
 // Instruction's operand referring to memory
 // This is associated with X86_OP_MEM operand type above
 typedef struct x86_op_mem
@@ -196,11 +214,11 @@ typedef struct cs_x86
 {
     // Instruction prefix, which can be up to 4 bytes.
     // A prefix byte gets value 0 when irrelevant.
-    // prefix[0] indicates REP/REPNE/LOCK prefix (0xf3/0xf2/0xf0 respectively)
+    // prefix[0] indicates REP/REPNE/LOCK prefix (See X86_PREFIX_REP/REPNE/LOCK above)
     // prefix[1] indicates segment override (irrelevant for x86_64):
-    //  0x2e = CS, 0x36 = SS, 0x3e = DS, 0x26 = ES, 0x64 = FS, 0x65 = GS
-    // prefix[2] indicates operand-size override (0x66)
-    // prefix[3] indicates address-size override (0x67)
+    // See X86_PREFIX_CS/SS/DS/ES/FS/GS above.
+    // prefix[2] indicates operand-size override (X86_PREFIX_OPSIZE)
+    // prefix[3] indicates address-size override (X86_PREFIX_ADDRSIZE)
     uint8_t prefix[4];
 
     // Instruction opcode, wich can be from 1 to 4 bytes in size.
@@ -580,7 +598,6 @@ typedef enum x86_insn
     X86_INS_LLDT,
     X86_INS_LMSW,
     X86_INS_OR,
-    X86_INS_LOCK,
     X86_INS_SUB,
     X86_INS_XOR,
     X86_INS_LODSB,
@@ -853,8 +870,6 @@ typedef enum x86_insn
     X86_INS_RDSEED,
     X86_INS_RDTSC,
     X86_INS_RDTSCP,
-    X86_INS_REPNE,
-    X86_INS_REP,
     X86_INS_ROL,
     X86_INS_ROR,
     X86_INS_RORX,
@@ -1559,8 +1574,22 @@ typedef enum x86_insn
 //> Group of X86 instructions
 typedef enum  x86_insn_group
 {
-    X86_GRP_INVALID = 0,
+    X86_GRP_INVALID = 0, // = CS_GRP_INVALID
 
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    X86_GRP_JUMP,   // = CS_GRP_JUMP
+    // all call instructions
+    X86_GRP_CALL,   // = CS_GRP_CALL
+    // all return instructions
+    X86_GRP_RET,    // = CS_GRP_RET
+    // all interrupt instructions (int+syscall)
+    X86_GRP_INT,    // = CS_GRP_INT
+    // all interrupt return instructions
+    X86_GRP_IRET,   // = CS_GRP_IRET
+
+    //> Architecture-specific groups
+    X86_GRP_VM = 128,   // all virtualization instructions (VT-x + AMD-V)
     X86_GRP_3DNOW,
     X86_GRP_AES,
     X86_GRP_ADX,
@@ -1601,13 +1630,6 @@ typedef enum  x86_insn_group
     X86_GRP_VLX,
     X86_GRP_SMAP,
     X86_GRP_NOVLX,
-
-    X86_GRP_JUMP,   // all jump instructions (conditional+direct+indirect jumps)
-    X86_GRP_VM, // all virtualization instructions (VT-x + AMD-V)
-    X86_GRP_INT,    // all interrupt instructions (int+syscall)
-    X86_GRP_IRET,   // all interrupt return instructions
-    X86_GRP_CALL,   // all call instructions
-    X86_GRP_RET,    // all call return instructions
 
     X86_GRP_ENDING
 } x86_insn_group;

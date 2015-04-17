@@ -242,12 +242,12 @@ typedef enum arm64_barrier_op
 //> Operand type for instruction's operands
 typedef enum arm64_op_type
 {
-    ARM64_OP_INVALID = 0,   // Uninitialized.
-    ARM64_OP_REG,   // Register operand.
-    ARM64_OP_CIMM, // C-Immediate
-    ARM64_OP_IMM,   // Immediate operand.
-    ARM64_OP_FP,    // Floating-Point immediate operand.
-    ARM64_OP_MEM,   // Memory operand
+    ARM64_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    ARM64_OP_REG, // = CS_OP_REG (Register operand).
+    ARM64_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    ARM64_OP_MEM, // = CS_OP_MEM (Memory operand).
+    ARM64_OP_FP,  // = CS_OP_FP (Floating-Point operand).
+    ARM64_OP_CIMM = 64, // C-Immediate
     ARM64_OP_REG_MRS, // MRS register operand.
     ARM64_OP_REG_MSR, // MSR register operand.
     ARM64_OP_PSTATE, // PState operand.
@@ -383,7 +383,7 @@ typedef struct cs_arm64_op
     union
     {
         unsigned int reg;   // register value for REG operand
-        int32_t imm;        // immediate value, or index for C-IMM or IMM operand
+        int64_t imm;        // immediate value, or index for C-IMM or IMM operand
         double fp;          // floating point value for FP operand
         arm64_op_mem mem;       // base/index/scale/disp value for MEM operand
         arm64_pstate pstate;        // PState field of MSR instruction.
@@ -1152,14 +1152,17 @@ typedef enum arm64_insn
 //> Group of ARM64 instructions
 typedef enum arm64_insn_group
 {
-    ARM64_GRP_INVALID = 0,
+    ARM64_GRP_INVALID = 0, // = CS_GRP_INVALID
 
-    ARM64_GRP_CRYPTO,
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    ARM64_GRP_JUMP, // = CS_GRP_JUMP
+
+    //> Architecture-specific groups
+    ARM64_GRP_CRYPTO = 128,
     ARM64_GRP_FPARMV8,
     ARM64_GRP_NEON,
     ARM64_GRP_CRC,
-
-    ARM64_GRP_JUMP, // all jump instructions (conditional+direct+indirect jumps)
 
     ARM64_GRP_ENDING,  // <-- mark the end of the list of groups
 } arm64_insn_group;

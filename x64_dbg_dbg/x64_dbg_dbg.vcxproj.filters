@@ -67,14 +67,14 @@
     <Filter Include="Header Files\Information">
       <UniqueIdentifier>{b006b04c-d7ea-49cb-b097-0cac1388f98e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Third Party\capstone">
-      <UniqueIdentifier>{95129527-1983-40fd-9844-1ca3481fde26}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Third Party\yara">
       <UniqueIdentifier>{efe5d058-e77c-49e9-a25b-75b90346dbf2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Third Party\yara\yara">
       <UniqueIdentifier>{f79c5166-e315-44ca-9e93-dabc9f00fa78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Third Party\capstone">
+      <UniqueIdentifier>{1c3bf89b-90a5-4de7-a96f-e73e4250c274}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -153,11 +153,6 @@
     <ClCompile Include="debugger.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
-    <ClCompile Include="log.cpp">
-      <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="capstone_wrapper.cpp">
-      <Filter>Source Files\Utilities</Filter>
     <ClCompile Include="stringutils.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
@@ -211,6 +206,9 @@
     </ClCompile>
     <ClCompile Include="commandparser.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="capstone_wrapper.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -344,30 +342,6 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="msgqueue.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\mips.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\platform.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\ppc.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\sparc.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\systemz.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\x86.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone\xcore.h">
-      <Filter>Header Files\Third Party\capstone</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone_wrapper.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="module.h">
@@ -507,6 +481,39 @@
     </ClInclude>
     <ClInclude Include="jansson\jansson_x64dbg.h">
       <Filter>Header Files\Third Party\jansson</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone_wrapper.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\arm.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\arm64.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\capstone.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\mips.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\platform.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\ppc.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\sparc.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\systemz.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\x86.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="capstone\xcore.h">
+      <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

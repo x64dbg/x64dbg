@@ -16,6 +16,14 @@ Capstone::Capstone()
         cs_option(mHandle, CS_OPT_DETAIL, CS_OPT_ON);
 }
 
+Capstone::~Capstone()
+{
+    if(mInstr)  //free last disassembled instruction
+        cs_free(mInstr, 1);
+    if(mHandle)  //close handle
+        cs_close(&mHandle);
+}
+
 bool Capstone::Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER])
 {
     if(mInstr) //free last disassembled instruction
@@ -36,10 +44,7 @@ const cs_err Capstone::GetError()
     return mError;
 }
 
-Capstone::~Capstone()
+const char* Capstone::RegName(unsigned int reg)
 {
-    if(mInstr) //free last disassembled instruction
-        cs_free(mInstr, 1);
-    if(mHandle) //close handle
-        cs_close(&mHandle);
+    return cs_reg_name(mHandle, reg);
 }

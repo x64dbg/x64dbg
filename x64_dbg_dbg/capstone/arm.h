@@ -100,16 +100,39 @@ typedef enum arm_sysreg
     ARM_SYSREG_CONTROL,
 } arm_sysreg;
 
+//> The memory barrier constants map directly to the 4-bit encoding of
+//> the option field for Memory Barrier operations.
+typedef enum arm_mem_barrier
+{
+    ARM_MB_INVALID = 0,
+    ARM_MB_RESERVED_0,
+    ARM_MB_OSHLD,
+    ARM_MB_OSHST,
+    ARM_MB_OSH,
+    ARM_MB_RESERVED_4,
+    ARM_MB_NSHLD,
+    ARM_MB_NSHST,
+    ARM_MB_NSH,
+    ARM_MB_RESERVED_8,
+    ARM_MB_ISHLD,
+    ARM_MB_ISHST,
+    ARM_MB_ISH,
+    ARM_MB_RESERVED_12,
+    ARM_MB_LD,
+    ARM_MB_ST,
+    ARM_MB_SY,
+} arm_mem_barrier;
+
 //> Operand type for instruction's operands
 typedef enum arm_op_type
 {
-    ARM_OP_INVALID = 0, // Uninitialized.
-    ARM_OP_REG, // Register operand.
-    ARM_OP_CIMM, // C-Immediate (coprocessor registers)
+    ARM_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    ARM_OP_REG, // = CS_OP_REG (Register operand).
+    ARM_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    ARM_OP_MEM, // = CS_OP_MEM (Memory operand).
+    ARM_OP_FP,  // = CS_OP_FP (Floating-Point operand).
+    ARM_OP_CIMM = 64, // C-Immediate (coprocessor registers)
     ARM_OP_PIMM, // P-Immediate (coprocessor registers)
-    ARM_OP_IMM, // Immediate operand.
-    ARM_OP_FP,  // Floating-Point immediate operand.
-    ARM_OP_MEM, // Memory operand
     ARM_OP_SETEND,  // operand for SETEND instruction
     ARM_OP_SYSREG,  // MSR/MSR special register operand
 } arm_op_type;
@@ -240,6 +263,7 @@ typedef struct cs_arm
     arm_cc cc;          // conditional code for this insn
     bool update_flags;  // does this insn update flags?
     bool writeback;     // does this insn write-back?
+    arm_mem_barrier mem_barrier;    // Option for some memory barrier instructions
 
     // Number of operands of this instruction,
     // or 0 when instruction has no operand.
@@ -824,8 +848,14 @@ typedef enum arm_insn
 //> Group of ARM instructions
 typedef enum arm_insn_group
 {
-    ARM_GRP_INVALID = 0,
-    ARM_GRP_CRYPTO,
+    ARM_GRP_INVALID = 0, // = CS_GRP_INVALID
+
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    ARM_GRP_JUMP,   // = CS_GRP_JUMP
+
+    //> Architecture-specific groups
+    ARM_GRP_CRYPTO = 128,
     ARM_GRP_DATABARRIER,
     ARM_GRP_DIVIDE,
     ARM_GRP_FPARMV8,
@@ -856,8 +886,6 @@ typedef enum arm_insn_group
     ARM_GRP_CRC,
     ARM_GRP_DPVFP,
     ARM_GRP_V6M,
-
-    ARM_GRP_JUMP,   // all jump instructions (conditional+direct+indirect jumps)
 
     ARM_GRP_ENDING,
 } arm_insn_group;

@@ -1817,21 +1817,21 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     }
 
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) || !memisvalidreadptr(fdProcessInfo->hProcess, addr))
+    if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
         dprintf("invalid address \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
 
     unsigned char data[16];
-    if(!memread(fdProcessInfo->hProcess, (const void*)addr, data, sizeof(data), 0))
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
     {
         dprintf("could not read memory at %p\n", addr);
         return STATUS_ERROR;
     }
 
     Capstone cp;
-    if(cp.GetError()) //there was an error opening the handle
+    if(cp.GetError())   //there was an error opening the handle
     {
         dprintf("cs_open() failed, error code %u\n", cp.GetError());
         return STATUS_ERROR;
@@ -1839,12 +1839,43 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
 
     if(!cp.Disassemble(addr, data))
     {
-        dputs("failed to disassemble!");
+        dprintf("failed to disassemble, error code %u!", cp.GetError());
         return STATUS_ERROR;
     }
 
     const cs_insn* instr = cp.GetInstr();
-    dprintf("%p: %s %s\n", instr->address, instr->mnemonic, instr->op_str);
+    const cs_x86 & x86 = instr->detail->x86;
+    int argcount = x86.op_count;
+    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    for(int i = 0; i < argcount; i++)
+    {
+        const cs_x86_op & op = x86.operands[i];
+        dprintf("operand %d, ", i + 1);
+        switch(op.type)
+        {
+        case X86_OP_REG:
+            dprintf("register: %s\n", cp.RegName(op.reg));
+            break;
+        case X86_OP_IMM:
+            dprintf("immediate: 0x%p\n", op.imm);
+            break;
+        case X86_OP_MEM:
+        {
+            //[base + index * scale +/- disp]
+            const x86_op_mem & mem = op.mem;
+            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
+                    cp.RegName(mem.segment),
+                    cp.RegName(mem.base),
+                    cp.RegName(mem.index),
+                    mem.scale,
+                    mem.disp);
+        }
+        break;
+        case X86_OP_FP:
+            dprintf("float: %f\n", op.fp);
+            break;
+        }
+    }
 
     return STATUS_CONTINUE;
 }

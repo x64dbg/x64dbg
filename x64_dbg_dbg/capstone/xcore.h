@@ -18,10 +18,10 @@ extern "C" {
 //> Operand type for instruction's operands
 typedef enum xcore_op_type
 {
-    XCORE_OP_INVALID = 0,   // Uninitialized.
-    XCORE_OP_REG,   // Register operand.
-    XCORE_OP_IMM,   // Immediate operand.
-    XCORE_OP_MEM,   // Memory operand
+    XCORE_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    XCORE_OP_REG, // = CS_OP_REG (Register operand).
+    XCORE_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    XCORE_OP_MEM, // = CS_OP_MEM (Memory operand).
 } xcore_op_type;
 
 // Instruction's operand referring to memory
@@ -226,9 +226,11 @@ typedef enum xcore_insn
 //> Group of XCore instructions
 typedef enum xcore_insn_group
 {
-    XCORE_GRP_INVALID = 0,
+    XCORE_GRP_INVALID = 0, // = CS_GRP_INVALID
 
-    XCORE_GRP_JUMP, // all jump instructions (conditional+direct+indirect jumps)
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    XCORE_GRP_JUMP, // = CS_GRP_JUMP
 
     XCORE_GRP_ENDING,   // <-- mark the end of the list of groups
 } xcore_insn_group;

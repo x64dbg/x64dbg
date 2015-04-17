@@ -39,11 +39,11 @@ typedef enum sysz_cc
 //> Operand type for instruction's operands
 typedef enum sysz_op_type
 {
-    SYSZ_OP_INVALID = 0,    // Uninitialized.
-    SYSZ_OP_REG,    // Register operand.
-    SYSZ_OP_ACREG,  // Access register operand.
-    SYSZ_OP_IMM,    // Immediate operand.
-    SYSZ_OP_MEM,    // Memory operand
+    SYSZ_OP_INVALID = 0, // = CS_OP_INVALID (Uninitialized).
+    SYSZ_OP_REG, // = CS_OP_REG (Register operand).
+    SYSZ_OP_IMM, // = CS_OP_IMM (Immediate operand).
+    SYSZ_OP_MEM, // = CS_OP_MEM (Memory operand).
+    SYSZ_OP_ACREG = 64, // Access register operand.
 } sysz_op_type;
 
 // Instruction's operand referring to memory
@@ -815,14 +815,18 @@ typedef enum sysz_insn
 //> Group of SystemZ instructions
 typedef enum sysz_insn_group
 {
-    SYSZ_GRP_INVALID = 0,
-    SYSZ_GRP_DISTINCTOPS,
+    SYSZ_GRP_INVALID = 0, // = CS_GRP_INVALID
+
+    //> Generic groups
+    // all jump instructions (conditional+direct+indirect jumps)
+    SYSZ_GRP_JUMP,  // = CS_GRP_JUMP
+
+    //> Architecture-specific groups
+    SYSZ_GRP_DISTINCTOPS = 128,
     SYSZ_GRP_FPEXTENSION,
     SYSZ_GRP_HIGHWORD,
     SYSZ_GRP_INTERLOCKEDACCESS1,
     SYSZ_GRP_LOADSTOREONCOND,
-
-    SYSZ_GRP_JUMP,  // all jump instructions (conditional+direct+indirect jumps)
 
     SYSZ_GRP_ENDING,   // <-- mark the end of the list of groups
 } sysz_insn_group;
