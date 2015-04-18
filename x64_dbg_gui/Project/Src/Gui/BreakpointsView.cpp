@@ -106,6 +106,8 @@ void BreakpointsView::reloadData()
             else
                 mHardBPTable->setCellContent(wI, 4, comment);
         }
+        else
+            mHardBPTable->setCellContent(wI, 4, "");
     }
     mHardBPTable->reloadData();
     if(wBPList.count)
@@ -143,6 +145,8 @@ void BreakpointsView::reloadData()
             else
                 mSoftBPTable->setCellContent(wI, 4, comment);
         }
+        else
+            mSoftBPTable->setCellContent(wI, 4, "");
     }
     mSoftBPTable->reloadData();
     if(wBPList.count)
@@ -180,6 +184,8 @@ void BreakpointsView::reloadData()
             else
                 mMemBPTable->setCellContent(wI, 4, comment);
         }
+        else
+            mMemBPTable->setCellContent(wI, 4, "");
     }
     mMemBPTable->reloadData();
     if(wBPList.count)
