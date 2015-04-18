@@ -112,13 +112,21 @@ mkdir %RELEASEDIR%\release\x64
 
 copy bin\x96dbg.exe %RELEASEDIR%\release\x96dbg.exe
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\x32bridge.dll
+copy bin\x32\x32bridge.pdb %RELEASEDIR%\release\x32\x32bridge.pdb
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\x32dbg.dll
+copy bin\x32\x32dbg.pdb %RELEASEDIR%\release\x32\x32dbg.pdb
 copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\x32dbg.exe
+copy bin\x32\x32dbg_exe.pdb %RELEASEDIR%\release\x32\x32dbg_exe.pdb
 copy bin\x32\x32gui.dll %RELEASEDIR%\release\x32\x32gui.dll
+copy bin\x32\x32gui.pdb %RELEASEDIR%\release\x32\x32gui.pdb
 copy bin\x64\x64bridge.dll %RELEASEDIR%\release\x64\x64bridge.dll
+copy bin\x64\x64bridge.pdb %RELEASEDIR%\release\x64\x64bridge.pdb
 copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\x64dbg.dll
+copy bin\x64\x64dbg.pdb %RELEASEDIR%\release\x64\x64dbg.pdb
 copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\x64dbg.exe
+copy bin\x64\x64dbg_exe.pdb %RELEASEDIR%\release\x64\x64dbg_exe.pdb
 copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\x64gui.dll
+copy bin\x64\x64gui.pdb %RELEASEDIR%\release\x64\x64gui.pdb
 
 xcopy %RELEASEDIR%\qt_base %RELEASEDIR%\release /S /Y
 xcopy %RELEASEDIR%\bin_base %RELEASEDIR%\release /S /Y
