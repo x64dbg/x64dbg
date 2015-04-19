@@ -1879,3 +1879,18 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
 
     return STATUS_CONTINUE;
 }
+
+#include "functionanalysis.h"
+
+CMDRESULT cbInstrAnalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    FunctionAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}

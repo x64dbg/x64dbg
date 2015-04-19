@@ -201,6 +201,7 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
+    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

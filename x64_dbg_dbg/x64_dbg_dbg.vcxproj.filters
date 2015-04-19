@@ -76,6 +76,12 @@
     <Filter Include="Header Files\Third Party\capstone">
       <UniqueIdentifier>{1c3bf89b-90a5-4de7-a96f-e73e4250c274}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Analysis">
+      <UniqueIdentifier>{3aba2399-cfdf-40be-9265-2062f983bbfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Analysis">
+      <UniqueIdentifier>{a2a92bf5-753d-4a01-be80-66cc61434fbf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -209,6 +215,9 @@
     </ClCompile>
     <ClCompile Include="capstone_wrapper.cpp">
       <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="functionanalysis.cpp">
+      <Filter>Header Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -514,6 +523,9 @@
     </ClInclude>
     <ClInclude Include="capstone\xcore.h">
       <Filter>Header Files\Third Party\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="functionanalysis.h">
+      <Filter>Source Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

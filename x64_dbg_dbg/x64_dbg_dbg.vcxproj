@@ -36,6 +36,7 @@
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="function.cpp" />
+    <ClCompile Include="functionanalysis.cpp" />
     <ClCompile Include="instruction.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="loop.cpp" />
@@ -99,6 +100,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="function.h" />
+    <ClInclude Include="functionanalysis.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
     <ClInclude Include="jansson\jansson.h" />
