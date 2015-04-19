@@ -27,12 +27,19 @@ Capstone::~Capstone()
 
 bool Capstone::Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER])
 {
-    if(mInstr) //free last disassembled instruction
+    return Disassemble(addr, data, MAX_DISASM_BUFFER);
+}
+
+bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
+{
+    if(!data)
+        return false;
+    if(mInstr)  //free last disassembled instruction
     {
         cs_free(mInstr, 1);
         mInstr = 0;
     }
-    return !!cs_disasm(mHandle, (const uint8_t*)data, MAX_DISASM_BUFFER, addr, 1, &mInstr);
+    return !!cs_disasm(mHandle, (const uint8_t*)data, size, addr, 1, &mInstr);
 }
 
 const cs_insn* Capstone::GetInstr()
@@ -120,4 +127,25 @@ String Capstone::OperandText(int opindex)
     break;
     }
     return result;
+}
+
+const int Capstone::Size()
+{
+    return GetInstr()->size;
+}
+
+const uint Capstone::Address()
+{
+    return (uint)GetInstr()->address;
+}
+
+const cs_x86 & Capstone::x86()
+{
+    return GetInstr()->detail->x86;
+}
+
+bool Capstone::IsFilling()
+{
+    uint8_t opcode = x86().opcode[0];
+    return opcode == 0x90 || opcode == 0xCC;
 }

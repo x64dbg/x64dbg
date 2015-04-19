@@ -12,11 +12,16 @@ public:
     Capstone();
     ~Capstone();
     bool Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER]);
+    bool Disassemble(uint addr, const unsigned char* data, int size);
     const cs_insn* GetInstr();
     const cs_err GetError();
     const char* RegName(x86_reg reg);
     bool InGroup(cs_group_type group);
     String OperandText(int opindex);
+    const int Size();
+    const uint Address();
+    const cs_x86 & x86();
+    bool IsFilling();
 
 private:
     csh mHandle;
