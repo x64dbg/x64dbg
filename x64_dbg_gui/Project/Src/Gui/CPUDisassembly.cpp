@@ -582,6 +582,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
+    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
     mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
 }
 
