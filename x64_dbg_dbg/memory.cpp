@@ -22,7 +22,7 @@ bool bListAllPages = false;
 
 void MemUpdateMap(HANDLE hProcess)
 {
-    CriticalSectionLocker locker(LockMemoryPages);
+    EXCLUSIVE_ACQUIRE(LockMemoryPages);
     MEMORY_BASIC_INFORMATION mbi;
     SIZE_T numBytes;
     uint MyAddress = 0, newAddress = 0;

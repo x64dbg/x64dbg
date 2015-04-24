@@ -29,6 +29,7 @@ bool waitislocked(WAIT_ID id);
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
 #define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock;
+#define SHARED_REACQUIRE(Index)     __SThreadLock.Lock();
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum SectionLock

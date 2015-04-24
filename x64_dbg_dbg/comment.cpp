@@ -32,7 +32,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
     comment.manual = Manual;
     comment.addr = Address - ModBaseFromAddr(Address);
 
-    // Insert into list
+    // Key generated from module hash
     const uint key = ModHashFromAddr(Address);
 
     EXCLUSIVE_ACQUIRE(LockComments);
