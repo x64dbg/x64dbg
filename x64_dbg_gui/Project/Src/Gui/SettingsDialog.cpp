@@ -112,6 +112,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "UndecorateSymbolNames", &settings.engineUndecorateSymbolNames);
     GetSettingBool("Engine", "EnableDebugPrivilege", &settings.engineEnableDebugPrivilege);
     GetSettingBool("Engine", "EnableSourceDebugging", &settings.engineEnableSourceDebugging);
+    GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
+    GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -136,6 +138,8 @@ void SettingsDialog::LoadSettings()
     ui->chkUndecorateSymbolNames->setChecked(settings.engineUndecorateSymbolNames);
     ui->chkEnableDebugPrivilege->setChecked(settings.engineEnableDebugPrivilege);
     ui->chkEnableSourceDebugging->setChecked(settings.engineEnableSourceDebugging);
+    ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
+    ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -233,6 +237,8 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
     BridgeSettingSetUint("Engine", "EnableDebugPrivilege", settings.engineEnableDebugPrivilege);
     BridgeSettingSetUint("Engine", "EnableSourceDebugging", settings.engineEnableSourceDebugging);
+    BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
+    BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -498,6 +504,16 @@ void SettingsDialog::on_chkEnableDebugPrivilege_stateChanged(int arg1)
 void SettingsDialog::on_chkEnableSourceDebugging_stateChanged(int arg1)
 {
     settings.engineEnableSourceDebugging = arg1 == Qt::Checked;
+}
+
+void SettingsDialog::on_chkDisableDatabaseCompression_stateChanged(int arg1)
+{
+    settings.engineDisableDatabaseCompression = arg1 == Qt::Checked;
+}
+
+void SettingsDialog::on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1)
+{
+    settings.engineSaveDatabaseInProgramDirectory = arg1 == Qt::Checked;
 }
 
 void SettingsDialog::on_btnAddRange_clicked()

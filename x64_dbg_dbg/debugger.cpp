@@ -632,7 +632,17 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 #else
     strcat_s(sqlitedb, ".dd32");
 #endif // _WIN64
-    sprintf(dbpath, "%s\\%s", dbbasepath, sqlitedb);
+    if(settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
+    {
+        char szFileDir[MAX_PATH] = "";
+        strcpy_s(szFileDir, szFileName);
+        char* pathEnd = strrchr(szFileDir, '\\');
+        if(pathEnd)
+            *pathEnd = '\0';
+        sprintf_s(dbpath, "%s\\%s", szFileDir, sqlitedb);
+    }
+    else
+        sprintf_s(dbpath, "%s\\%s", dbbasepath, sqlitedb);
     dprintf("Database file: %s\n", dbpath);
     dbload();
     SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);

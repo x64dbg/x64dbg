@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -253,6 +253,20 @@
         <widget class="QCheckBox" name="chkEnableSourceDebugging">
          <property name="text">
           <string>Enable Source Debugging</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkDisableDatabaseCompression">
+         <property name="text">
+          <string>Disable Database Compression</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkSaveDatabaseInProgramDirectory">
+         <property name="text">
+          <string>Save Database in Program Directory</string>
          </property>
         </widget>
        </item>

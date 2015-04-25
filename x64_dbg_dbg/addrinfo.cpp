@@ -51,8 +51,9 @@ void dbsave()
             dputs("\nFailed to write database file!");
             return;
         }
+        hFile.Close();
         json_free(jsonText);
-        if(!settingboolget("Engine", "DisableCompression"))
+        if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
@@ -74,7 +75,7 @@ void dbload()
     WString databasePathW = StringUtils::Utf8ToUtf16(dbpath);
 
     // Decompress the file if compression was enabled
-    bool useCompression = !settingboolget("Engine", "DisableCompression");
+    bool useCompression = !settingboolget("Engine", "DisableDatabaseCompression");
     LZ4_STATUS lzmaStatus = LZ4_INVALID_ARCHIVE;
     {
         lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());
