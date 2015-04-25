@@ -22,13 +22,11 @@ bool waitislocked(WAIT_ID id);
 // Better, but requires VISTA+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
 //
-#define CriticalSectionLocker
-#define locker(x) EXCLUSIVE_ACQUIRE(x)
-
 #define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock;
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
 #define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock;
+#define SHARED_REACQUIRE(Index)     __SThreadLock.Lock();
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum SectionLock

@@ -280,7 +280,7 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
             return true;
         }
 
-        // Construct full path from .pdb path
+        // Construct full path from pdb path
         IMAGEHLP_MODULE64 modInfo;
         memset(&modInfo, 0, sizeof(IMAGEHLP_MODULE64));
         modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
@@ -288,11 +288,11 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
         if(!SafeSymGetModuleInfo64(fdProcessInfo->hProcess, Cip, &modInfo))
             return false;
 
-        // Strip the full path, leaving only the file name
-        char* fileName = strrchr(modInfo.LoadedPdbName, '\\');
+        // Strip the name, leaving only the file directory
+        char* pdbFileName = strrchr(modInfo.LoadedPdbName, '\\');
 
-        if(fileName)
-            fileName[1] = '\0';
+        if(pdbFileName)
+            pdbFileName[1] = '\0';
 
         // Copy back to the caller's buffer
         strcpy_s(FileName, MAX_STRING_SIZE, modInfo.LoadedPdbName);

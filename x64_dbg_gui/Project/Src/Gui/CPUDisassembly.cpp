@@ -487,6 +487,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     connect(mCopySelectionNoBytes, SIGNAL(triggered()), this, SLOT(copySelectionNoBytes()));
 
     mCopyAddress = new QAction("&Address", this);
+    mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mCopyAddress);
     connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddress()));
 
     mCopyDisassembly = new QAction("Disassembly", this);
@@ -582,6 +584,7 @@ void CPUDisassembly::refreshShortcutsSlot()
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
+    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
     mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
 }
 

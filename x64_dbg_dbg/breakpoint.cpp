@@ -236,9 +236,15 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
         bpInfo.addr += ModBaseFromName(bpInfo.mod);
         bpInfo.active = MemIsValidReadPtr(bpInfo.addr);
 
+        // Lock must be released due to callback sub-locks
+        SHARED_RELEASE()
+
         // Execute the callback
         if(!EnumCallback(&bpInfo))
             callbackStatus = false;
+
+        // Restore the breakpoint map lock
+        SHARED_REACQUIRE(LockBreakpoints);
     }
 
     return callbackStatus;
