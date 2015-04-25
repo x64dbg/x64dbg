@@ -197,9 +197,11 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
+    dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
+    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

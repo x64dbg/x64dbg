@@ -1804,3 +1804,93 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
     dputs(logString.c_str());
     return STATUS_CONTINUE;
 }
+
+#include "capstone\capstone.h"
+#include "capstone_wrapper.h"
+
+CMDRESULT cbInstrCapstone(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments...");
+        return STATUS_ERROR;
+    }
+
+    uint addr = 0;
+    if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
+    {
+        dprintf("invalid address \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    unsigned char data[16];
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
+    {
+        dprintf("could not read memory at %p\n", addr);
+        return STATUS_ERROR;
+    }
+
+    Capstone cp;
+    if(cp.GetError())   //there was an error opening the handle
+    {
+        dprintf("cs_open() failed, error code %u\n", cp.GetError());
+        return STATUS_ERROR;
+    }
+
+    if(!cp.Disassemble(addr, data))
+    {
+        dprintf("failed to disassemble, error code %u!", cp.GetError());
+        return STATUS_ERROR;
+    }
+
+    const cs_insn* instr = cp.GetInstr();
+    const cs_x86 & x86 = instr->detail->x86;
+    int argcount = x86.op_count;
+    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    for(int i = 0; i < argcount; i++)
+    {
+        const cs_x86_op & op = x86.operands[i];
+        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
+        switch(op.type)
+        {
+        case X86_OP_REG:
+            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
+            break;
+        case X86_OP_IMM:
+            dprintf("immediate: 0x%p\n", op.imm);
+            break;
+        case X86_OP_MEM:
+        {
+            //[base + index * scale +/- disp]
+            const x86_op_mem & mem = op.mem;
+            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
+                    cp.RegName((x86_reg)mem.segment),
+                    cp.RegName((x86_reg)mem.base),
+                    cp.RegName((x86_reg)mem.index),
+                    mem.scale,
+                    mem.disp);
+        }
+        break;
+        case X86_OP_FP:
+            dprintf("float: %f\n", op.fp);
+            break;
+        }
+    }
+
+    return STATUS_CONTINUE;
+}
+
+#include "functionanalysis.h"
+
+CMDRESULT cbInstrAnalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    FunctionAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
