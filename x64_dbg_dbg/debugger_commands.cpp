@@ -844,24 +844,16 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
         dputs("Program is not running");
         return STATUS_ERROR;
     }
-    void* remoteCode = MemAllocRemote(0, PAGE_SIZE, PAGE_EXECUTE_READWRITE);
-    if(!remoteCode)
+    uint debugBreakAddr;
+    if(!valfromstring("DebugBreak", &debugBreakAddr))
     {
-        dputs("Failed to allocate memory in debuggee");
-        return STATUS_ERROR;
-    }
-    unsigned char code[] = { 0xCC, 0xC3 };
-    if(!MemWrite(remoteCode, code, sizeof(code), 0))
-    {
-        MemFreeRemote((uint)remoteCode);
-        dputs("Failed to write memory in debuggee");
+        dputs("Could not find DebugBreak!");
         return STATUS_ERROR;
     }
     DWORD dwThreadId = 0;
-    HANDLE hThread = CreateRemoteThread(fdProcessInfo->hProcess, 0, 0, (LPTHREAD_START_ROUTINE)remoteCode, 0, CREATE_SUSPENDED, &dwThreadId);
+    HANDLE hThread = CreateRemoteThread(fdProcessInfo->hProcess, 0, 0, (LPTHREAD_START_ROUTINE)debugBreakAddr, 0, CREATE_SUSPENDED, &dwThreadId);
     if(!hThread)
     {
-        MemFreeRemote((uint)remoteCode);
         dputs("Failed to create thread in debuggee");
         return STATUS_ERROR;
     }
@@ -966,34 +958,10 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
 
 CMDRESULT cbDebugDetach(int argc, char* argv[])
 {
-    void* remoteCode = MemAllocRemote(0, PAGE_SIZE, PAGE_EXECUTE_READWRITE);
-    if(!remoteCode)
-    {
-        dputs("Failed to allocate memory in debuggee");
-        return STATUS_ERROR;
-    }
-    MemUpdateMap(fdProcessInfo->hProcess);
-    unsigned char code[] = { 0xCC, 0xC3 };
-    if(!MemWrite(remoteCode, code, sizeof(code), 0))
-    {
-        MemFreeRemote((uint)remoteCode);
-        dputs("Failed to write memory in debuggee");
-        return STATUS_ERROR;
-    }
-    DWORD dwThreadId = 0;
-    HANDLE hThread = CreateRemoteThread(fdProcessInfo->hProcess, 0, 0, (LPTHREAD_START_ROUTINE)remoteCode, 0, CREATE_SUSPENDED, &dwThreadId);
-    if(!hThread)
-    {
-        MemFreeRemote((uint)remoteCode);
-        dputs("Failed to create thread in debuggee");
-        return STATUS_ERROR;
-    }
-    dprintf("Created thread with ThreadId %X\n", dwThreadId);
-    dbgsetisdetachedbyuser(true); //detach when paused
-    ResumeThread(hThread);
-    CloseHandle(hThread);
     unlock(WAITID_RUN); //run
+    dbgsetisdetachedbyuser(true); //detach when paused
     StepInto((void*)cbDetach);
+    DebugBreakProcess(fdProcessInfo->hProcess);
     return STATUS_CONTINUE;
 }
 
