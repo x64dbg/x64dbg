@@ -1012,6 +1012,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
             GuiSetDebugState(paused);
+            MemUpdateMap(fdProcessInfo->hProcess);
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock
             lock(WAITID_RUN);

@@ -253,14 +253,14 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         len--;
     dir[len] = 0;
     strcpy_s(alloctrace, dir);
-    PathAppendA(alloctrace, "\\alloctrace.txt");
+    strcat_s(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
     strcpy_s(dbbasepath, dir); //debug directory
-    PathAppendA(dbbasepath, "db");
+    strcat_s(dbbasepath, "\\db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
     strcpy_s(szSymbolCachePath, dir);
-    PathAppendA(szSymbolCachePath, "symbols");
+    strcat_s(szSymbolCachePath, "\\symbols");
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());;
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
@@ -270,7 +270,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
     strcpy_s(plugindir, dir);
-    PathAppendA(plugindir, "plugins");
+    strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
     //handle command line
