@@ -77,6 +77,7 @@ public slots:
     void undoSelectionSlot();
     void followStackSlot();
     void findReferencesSlot();
+    void followInDisasmSlot();
 
     void selectionUpdatedSlot();
     void yaraSlot();
@@ -117,6 +118,8 @@ private:
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
     QAction* mGotoFileOffset;
+
+    QAction* mFollowInDisasm;
 
     QMenu* mHexMenu;
     QAction* mHexAsciiAction;

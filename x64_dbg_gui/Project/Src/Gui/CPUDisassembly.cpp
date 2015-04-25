@@ -132,7 +132,6 @@ void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isRef
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
                     addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences);
-
             }
             else //arg_normal
             {

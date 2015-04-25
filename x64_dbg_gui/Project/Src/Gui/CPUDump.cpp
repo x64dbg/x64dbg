@@ -138,6 +138,10 @@ void CPUDump::setupContextMenu()
     mFollowStack = new QAction("Follow in Stack", this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
+    // Follow in Disasm
+    mFollowInDisasm = new QAction("Follow in Disassembler", this);
+    connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -253,6 +257,7 @@ void CPUDump::setupContextMenu()
 
     //Goto menu
     mGotoMenu = new QMenu("&Goto", this);
+
     //Goto->Expression
     mGotoExpression = new QAction("&Expression", this);
     mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
@@ -475,6 +480,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mUndoSelection);
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
         wMenu->addAction(mFollowStack);
+    wMenu->addAction(mFollowInDisasm);
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
@@ -1329,6 +1335,12 @@ void CPUDump::followStackSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
+}
+
+void CPUDump::followInDisasmSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
