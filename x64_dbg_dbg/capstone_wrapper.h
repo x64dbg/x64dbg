@@ -22,6 +22,7 @@ public:
     const uint Address();
     const cs_x86 & x86();
     bool IsFilling();
+    x86_insn GetId();
 
 private:
     csh mHandle;

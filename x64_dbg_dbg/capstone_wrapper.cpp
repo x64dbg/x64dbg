@@ -111,9 +111,16 @@ String Capstone::OperandText(int opindex)
             }
             if(mem.disp)
             {
+                char operatorText = '+';
+                if(mem.disp < 0)
+                {
+                    operatorText = '-';
+                    sprintf_s(temp, "%"fext"X", mem.disp * -1);
+                }
+                else
+                    sprintf_s(temp, "%"fext"X", mem.disp);
                 if(prependPlus)
-                    result += "+";
-                sprintf_s(temp, "%"fext"X", mem.disp);
+                    result += operatorText;
                 result += temp;
             }
         }
@@ -148,4 +155,9 @@ bool Capstone::IsFilling()
 {
     uint8_t opcode = x86().opcode[0];
     return opcode == 0x90 || opcode == 0xCC;
+}
+
+x86_insn Capstone::GetId()
+{
+    return (x86_insn)mInstr->id;
 }

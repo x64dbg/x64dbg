@@ -1844,7 +1844,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     }
 
     const cs_insn* instr = cp.GetInstr();
-    const cs_x86 & x86 = instr->detail->x86;
+    const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
     for(int i = 0; i < argcount; i++)

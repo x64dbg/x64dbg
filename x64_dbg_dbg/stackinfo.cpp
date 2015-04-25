@@ -9,7 +9,6 @@
 #include "memory.h"
 #include "disasm_helper.h"
 #include "disasm_fast.h"
-#include "BeaEngine\BeaEngine.h"
 #include "addrinfo.h"
 #include "_exports.h"
 #include "module.h"
