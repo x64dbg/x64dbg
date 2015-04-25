@@ -31,14 +31,6 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
     uint previousInstr = readStart + prev;
 
-    DISASM disasm;
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.VirtualAddr = previousInstr;
-    disasm.EIP = (UIntPtr)(disasmData + prev);
-    int len = Disasm(&disasm);
     BASIC_INSTRUCTION_INFO basicinfo;
     bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
     if(valid && basicinfo.call) //call

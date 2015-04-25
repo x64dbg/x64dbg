@@ -23,6 +23,7 @@ public:
     const cs_x86 & x86();
     bool IsFilling();
     x86_insn GetId();
+    String InstructionText();
 
 private:
     csh mHandle;

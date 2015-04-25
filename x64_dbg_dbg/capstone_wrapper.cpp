@@ -79,7 +79,10 @@ String Capstone::OperandText(int opindex)
 
     case X86_OP_IMM:
     {
-        sprintf_s(temp, "%"fext"X", op.imm);
+        if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL))
+            sprintf_s(temp, "%"fext"X", op.imm + mInstr->size);
+        else
+            sprintf_s(temp, "%"fext"X", op.imm);
         result = temp;
     }
     break;
@@ -160,4 +163,12 @@ bool Capstone::IsFilling()
 x86_insn Capstone::GetId()
 {
     return (x86_insn)mInstr->id;
+}
+
+String Capstone::InstructionText()
+{
+    String result = mInstr->mnemonic;
+    result += " ";
+    result += mInstr->op_str;
+    return result;
 }

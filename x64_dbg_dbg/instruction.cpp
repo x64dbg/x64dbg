@@ -812,7 +812,7 @@ struct VALUERANGE
     uint end;
 };
 
-static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -847,14 +847,14 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }
@@ -905,7 +905,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -935,14 +935,14 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
         char dispString[1024] = "";
         if(strtype == str_ascii)
             sprintf(dispString, "\"%s\"", string);
@@ -1233,7 +1233,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -1253,14 +1253,14 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }
@@ -1488,7 +1488,7 @@ CMDRESULT cbInstrSleep(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -1503,14 +1503,14 @@ static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }

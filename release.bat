@@ -58,7 +58,6 @@ copy help\x64dbg.chm %RELEASEDIR%\help
 echo pluginsdk
 
 mkdir %RELEASEDIR%\pluginsdk
-mkdir %RELEASEDIR%\pluginsdk\BeaEngine
 mkdir %RELEASEDIR%\pluginsdk\capstone
 mkdir %RELEASEDIR%\pluginsdk\dbghelp
 mkdir %RELEASEDIR%\pluginsdk\DeviceNameResolver
@@ -69,7 +68,6 @@ mkdir %RELEASEDIR%\pluginsdk\XEDParse
 mkdir %RELEASEDIR%\pluginsdk\yara
 mkdir %RELEASEDIR%\pluginsdk\yara\yara
 
-xcopy x64_dbg_dbg\BeaEngine %RELEASEDIR%\pluginsdk\BeaEngine /S /Y
 xcopy x64_dbg_dbg\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
 xcopy x64_dbg_dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
 xcopy x64_dbg_dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y

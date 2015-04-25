@@ -24,79 +24,64 @@ static MEMORY_SIZE argsize2memsize(int argsize)
     return size_byte;
 }
 
-void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo)
+void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     //zero basicinfo
     memset(basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     //copy instruction text
-    strcpy_s(basicinfo->instruction, disasm->CompleteInstr);
-    //find immidiat
-    if(disasm->Instruction.BranchType == 0) //no branch
-    {
-        if((disasm->Argument1.ArgType & CONSTANT_TYPE) == CONSTANT_TYPE)
-        {
-            basicinfo->type |= TYPE_VALUE;
-            basicinfo->value.value = (ULONG_PTR)disasm->Instruction.Immediat;
-            basicinfo->value.size = argsize2memsize(disasm->Argument1.ArgSize);
-        }
-        else if((disasm->Argument2.ArgType & CONSTANT_TYPE) == CONSTANT_TYPE)
-        {
-            basicinfo->type |= TYPE_VALUE;
-            basicinfo->value.value = (ULONG_PTR)disasm->Instruction.Immediat;
-            basicinfo->value.size = argsize2memsize(disasm->Argument2.ArgSize);
-        }
-    }
-    else //branch
+    strcpy_s(basicinfo->instruction, cp->InstructionText().c_str());
+    //instruction size
+    basicinfo->size = cp->Size();
+    //branch/call info
+    if(cp->InGroup(CS_GRP_CALL))
     {
         basicinfo->branch = true;
-        if(disasm->Instruction.BranchType == CallType)
-            basicinfo->call = true;
-        if(disasm->Instruction.BranchType == RetType)
-            basicinfo->branch = false;
+        basicinfo->call = true;
     }
-    //find memory displacement
-    if((disasm->Argument1.ArgType & MEMORY_TYPE) == MEMORY_TYPE)
+    else if(cp->InGroup(CS_GRP_JUMP))
     {
-        if(disasm->Argument1.Memory.Displacement)
+        basicinfo->branch = true;
+    }
+    //handle operands
+    for(int i = 0; i < cp->x86().op_count; i++)
+    {
+        const cs_x86_op & op = cp->x86().operands[i];
+        switch(op.type)
         {
-            basicinfo->type |= TYPE_MEMORY;
-            basicinfo->memory.value = (ULONG_PTR)disasm->Argument1.Memory.Displacement;
-            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
+        case CS_OP_IMM:
+        {
+            if(basicinfo->branch)
+            {
+                basicinfo->type |= TYPE_ADDR;
+                basicinfo->addr = (duint)op.imm;
+                basicinfo->value.value = (duint)op.imm + basicinfo->size;
+            }
+            else
+            {
+                basicinfo->type |= TYPE_VALUE;
+                basicinfo->value.size = (VALUE_SIZE)op.size;
+                basicinfo->value.value = (duint)op.imm;
+            }
         }
-        basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
-    }
-    if((disasm->Argument2.ArgType & MEMORY_TYPE) == MEMORY_TYPE)
-    {
-        if(disasm->Argument2.Memory.Displacement)
+        break;
+
+        case CS_OP_MEM:
         {
-            basicinfo->type |= TYPE_MEMORY;
-            basicinfo->memory.value = (ULONG_PTR)disasm->Argument2.Memory.Displacement;
-            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
+            const x86_op_mem & mem = op.mem;
+            strcpy_s(basicinfo->memory.mnemonic, cp->InstructionText().c_str());
+            basicinfo->memory.size = (MEMORY_SIZE)op.size;
+            if(op.mem.base == X86_REG_RIP)  //rip-relative
+            {
+                basicinfo->memory.value = (ULONG_PTR)(cp->GetInstr()->address + op.mem.disp + basicinfo->size);
+                basicinfo->type |= TYPE_MEMORY;
+            }
+            else if(mem.disp)
+            {
+                basicinfo->type |= TYPE_MEMORY;
+                basicinfo->memory.value = (ULONG_PTR)mem.disp;
+            }
         }
-        basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
-    }
-    //find address value
-    if(disasm->Instruction.BranchType && disasm->Instruction.AddrValue)
-    {
-        basicinfo->type |= TYPE_ADDR;
-        basicinfo->addr = (ULONG_PTR)disasm->Instruction.AddrValue;
-    }
-    //rip-relative (non-branch)
-    if(disasm->Instruction.BranchType == 0)
-    {
-        if((disasm->Argument1.ArgType & RELATIVE_) == RELATIVE_)
-        {
-            basicinfo->type |= TYPE_MEMORY;
-            basicinfo->memory.value = (ULONG_PTR)disasm->Instruction.AddrValue;
-            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument1.ArgMnemonic);
-            basicinfo->memory.size = argsize2memsize(disasm->Argument1.ArgSize);
-        }
-        else if((disasm->Argument2.ArgType & RELATIVE_) == RELATIVE_)
-        {
-            basicinfo->type |= TYPE_MEMORY;
-            basicinfo->memory.value = (ULONG_PTR)disasm->Instruction.AddrValue;
-            strcpy_s(basicinfo->memory.mnemonic, disasm->Argument2.ArgMnemonic);
-            basicinfo->memory.size = argsize2memsize(disasm->Argument2.ArgSize);
+        break;
         }
     }
 }
@@ -105,18 +90,14 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
 {
     if(!data or !basicinfo)
         return false;
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(disasm));
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.EIP = (UIntPtr)data;
-    disasm.VirtualAddr = (UInt64)addr;
-    int len = Disasm(&disasm);
-    if(len == UNKNOWN_OPCODE)
+    Capstone cp;
+    if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
+    {
+        strcpy_s(basicinfo->instruction, "???");
+        basicinfo->size = 1;
         return false;
-    fillbasicinfo(&disasm, basicinfo);
-    basicinfo->size = len;
+    }
+    fillbasicinfo(&cp, basicinfo);
     return true;
 }
 

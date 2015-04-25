@@ -11,6 +11,6 @@ struct REFINFO
 };
 
 // Reference callback typedef
-typedef bool (*CBREF)(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo);
+typedef bool (*CBREF)(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo);
 
 int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent, const char* Name);

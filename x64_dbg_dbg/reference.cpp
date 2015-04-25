@@ -59,14 +59,8 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
         sprintf_s(fullName, "%s (%p)", Name, scanStart);
 
     // Initialize the disassembler
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(disasm));
-
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.EIP = (UIntPtr)data;
-    disasm.VirtualAddr = (UInt64)scanStart;
+    Capstone cp;
+    unsigned char* dataptr = data();
 
     // Allow an "initialization" notice
     REFINFO refInfo;
@@ -90,16 +84,15 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
         }
 
         // Disassemble the instruction
-        int len = Disasm(&disasm);
-
-        if(len != UNKNOWN_OPCODE)
+        int len;
+        if(cp.Disassemble(scanStart, dataptr, MAX_DISASM_BUFFER))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
-            fillbasicinfo(&disasm, &basicinfo);
-            basicinfo.size = len;
+            fillbasicinfo(&cp, &basicinfo);
 
-            if(Callback(&disasm, &basicinfo, &refInfo))
+            if(Callback(&cp, &basicinfo, &refInfo))
                 refInfo.refcount++;
+            len = cp.Size();
         }
         else
         {
@@ -107,8 +100,8 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
             len = 1;
         }
 
-        disasm.EIP += len;
-        disasm.VirtualAddr += len;
+        dataptr += len;
+        scanStart += len;
         i += len;
     }
 

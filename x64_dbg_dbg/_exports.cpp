@@ -794,23 +794,10 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     {
         if(!param1 or !param2)
             return 0;
-        unsigned char data[16];
-        if(!MemRead(param1, data, sizeof(data), 0))
-            return 0;
-        DISASM disasm;
-        memset(&disasm, 0, sizeof(disasm));
-#ifdef _WIN64
-        disasm.Archi = 64;
-#endif // _WIN64
-        disasm.EIP = (UIntPtr)data;
-        disasm.VirtualAddr = (UInt64)param1;
-        int len = Disasm(&disasm);
-        if(len == UNKNOWN_OPCODE)
-            len = 1;
-        uint i = 0;
         BASIC_INSTRUCTION_INFO* basicinfo = (BASIC_INSTRUCTION_INFO*)param2;
-        fillbasicinfo(&disasm, basicinfo);
-        basicinfo->size = len;
+        if(!disasmfast((uint)param1, basicinfo))
+            basicinfo->size = 1;
+        return 0;
     }
     break;
 

@@ -40,9 +40,6 @@
     <Filter Include="Header Files\Third Party\XEDParse">
       <UniqueIdentifier>{6b85ff77-8866-4618-9d46-006d8c349f8f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Third Party\BeaEngine">
-      <UniqueIdentifier>{6028af23-e8de-4db7-b1c7-bee2b5a4402b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Third Party\dbghelp">
       <UniqueIdentifier>{5623fb24-3b6d-49a6-a0d3-1cfcc46f87bd}</UniqueIdentifier>
     </Filter>
@@ -223,18 +220,6 @@
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BeaEngine\basic_types.h">
-      <Filter>Header Files\Third Party\BeaEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="BeaEngine\BeaEngine.h">
-      <Filter>Header Files\Third Party\BeaEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="BeaEngine\export.h">
-      <Filter>Header Files\Third Party\BeaEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="BeaEngine\macros.h">
-      <Filter>Header Files\Third Party\BeaEngine</Filter>
     </ClInclude>
     <ClInclude Include="dbghelp\dbghelp.h">
       <Filter>Header Files\Third Party\dbghelp</Filter>
