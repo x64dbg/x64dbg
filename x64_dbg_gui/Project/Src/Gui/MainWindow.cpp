@@ -72,6 +72,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSourceViewManager->setWindowTitle("Source");
     mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
     mSourceViewManager->hide();
+    connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();

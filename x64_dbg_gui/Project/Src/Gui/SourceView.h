@@ -2,6 +2,8 @@
 #define SOURCEVIEW_H
 
 #include <QWidget>
+#include <QMenu>
+#include <QAction>
 #include "StdTable.h"
 
 class SourceView : public StdTable
@@ -12,8 +14,18 @@ public:
     QString getSourcePath();
     void setInstructionPointer(int line);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void setupContextMenu();
+
+signals:
+    void showCpu();
+
+public slots:
+    void contextMenuSlot(const QPoint & pos);
+    void followInDisasmSlot();
 
 private:
+    QAction* mFollowInDisasm;
+
     QString mSourcePath;
     int mIpLine;
     void loadFile();
