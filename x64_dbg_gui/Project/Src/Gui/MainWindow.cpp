@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
     connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
+    connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
 
     //setup menu api
     initMenuApi();
@@ -902,6 +904,33 @@ void MainWindow::removeMenuEntry(int hEntry)
             delete entry.mAction;
             mEntryList.erase(mEntryList.begin() + i);
             break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setIcon(icon);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setIconMenu(int hMenu, QIcon icon)
+{
+    for(int i = 0; i < mMenuList.size(); i++)
+    {
+        if(mMenuList.at(i).hMenu == hMenu)
+        {
+            const MenuInfo & menu = mMenuList.at(i);
+            menu.mMenu->setIcon(icon);
         }
     }
     Bridge::getBridge()->setResult();
