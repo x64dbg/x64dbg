@@ -54,5 +54,12 @@
         <file>images/yara.png</file>
         <file>images/data-copy.png</file>
         <file>images/source.png</file>
+        <file>images/bookmark.png</file>
+        <file>images/comment.png</file>
+        <file>images/binary.png</file>
+        <file>images/copy.png</file>
+        <file>images/search-for.png</file>
+        <file>images/highlight.png</file>
+        <file>images/label.png</file>
     </qresource>
 </RCC>

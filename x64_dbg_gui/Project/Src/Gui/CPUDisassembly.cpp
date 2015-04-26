@@ -307,6 +307,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 {
     //Binary
     mBinaryMenu = new QMenu("&Binary", this);
+    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
@@ -360,25 +361,25 @@ void CPUDisassembly::setupRightClickContextMenu()
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Labels
-    mSetLabel = new QAction("Label", this);
+    mSetLabel = new QAction(QIcon(":/icons/images/label.png"), "Label", this);
     mSetLabel->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabel);
     connect(mSetLabel, SIGNAL(triggered()), this, SLOT(setLabel()));
 
     // Comments
-    mSetComment = new QAction("Comment", this);
+    mSetComment = new QAction(QIcon(":/icons/images/comment.png"), "Comment", this);
     mSetComment->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetComment);
     connect(mSetComment, SIGNAL(triggered()), this, SLOT(setComment()));
 
     // Bookmarks
-    mSetBookmark = new QAction("Bookmark", this);
+    mSetBookmark = new QAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", this);
     mSetBookmark->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetBookmark);
     connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
 
     // Functions
-    mToggleFunction = new QAction("Function", this);
+    mToggleFunction = new QAction(QIcon(":/icons/images/functions.png"), "Function", this);
     mToggleFunction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mToggleFunction);
     connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
@@ -392,6 +393,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- Breakpoints -----------------------------
     // Menu
     mBPMenu = new QMenu("Breakpoint", this);
+    mBPMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     // Standard breakpoint (option set using SetBPXOption)
     mToggleInt3BpAction = new QAction("Toggle", this);
@@ -476,6 +478,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     //-------------------- Copy -------------------------------------
     mCopyMenu = new QMenu("&Copy", this);
+    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
 
     mCopySelection = new QAction("&Selection", this);
     mCopySelection->setShortcutContext(Qt::WidgetShortcut);
@@ -513,6 +516,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- Search for -----------------------------
     // Menu
     mSearchMenu = new QMenu("&Search for", this);
+    mSearchMenu->setIcon(QIcon(":/icons/images/search-for.png"));
 
     // Command
     mSearchCommand = new QAction("C&ommand", this);
@@ -544,7 +548,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchMenu->addAction(mSearchPattern);
 
     // Highlighting mode
-    mEnableHighlightingMode = new QAction("&Highlighting mode", this);
+    mEnableHighlightingMode = new QAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", this);
     mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mEnableHighlightingMode);
     connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
