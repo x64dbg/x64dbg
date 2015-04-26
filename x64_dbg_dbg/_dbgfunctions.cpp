@@ -169,6 +169,17 @@ static void _memupdatemap()
     MemUpdateMap(fdProcessInfo->hProcess);
 }
 
+static duint _getaddrfromline(const char* szSourceFile, int line)
+{
+    LONG displacement = 0;
+    IMAGEHLP_LINE64 lineData;
+    memset(&lineData, 0, sizeof(lineData));
+    lineData.SizeOfStruct = sizeof(lineData);
+    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData))
+        return 0;
+    return (duint)lineData.Address;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -203,4 +214,5 @@ void dbgfunctionsinit()
     _dbgfunctions.SetCmdline = _setcmdline;
     _dbgfunctions.FileOffsetToVa = valfileoffsettova;
     _dbgfunctions.VaToFileOffset = valvatofileoffset;
+    _dbgfunctions.GetAddrFromLine = _getaddrfromline;
 }
