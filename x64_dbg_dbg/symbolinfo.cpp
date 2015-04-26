@@ -254,7 +254,7 @@ const char* SymGetSymbolicName(uint Address)
 
 bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
 {
-    IMAGEHLP_LINE64 lineInfo;
+    IMAGEHLP_LINEW64 lineInfo;
     memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));
 
     lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
@@ -262,8 +262,10 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
     // Perform a symbol lookup from a specific address
     DWORD displacement;
 
-    if(!SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, Cip, &displacement, &lineInfo))
+    if(!SymGetLineFromAddrW64(fdProcessInfo->hProcess, Cip, &displacement, &lineInfo))
         return false;
+
+    String NewFile = StringUtils::Utf16ToUtf8(lineInfo.FileName);
 
     // Copy line number if requested
     if(Line)
@@ -273,10 +275,10 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
     if(FileName)
     {
         // Check if it was a full path
-        if(lineInfo.FileName[1] == ':' && lineInfo.FileName[2] == '\\')
+        if(NewFile[1] == ':' && NewFile[2] == '\\')
         {
             // Success: no more parsing
-            strcpy_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
+            strcpy_s(FileName, MAX_STRING_SIZE, NewFile.c_str());
             return true;
         }
 
@@ -296,7 +298,7 @@ bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
 
         // Copy back to the caller's buffer
         strcpy_s(FileName, MAX_STRING_SIZE, modInfo.LoadedPdbName);
-        strcat_s(FileName, MAX_STRING_SIZE, lineInfo.FileName);
+        strcat_s(FileName, MAX_STRING_SIZE, NewFile.c_str());
     }
 
     return true;

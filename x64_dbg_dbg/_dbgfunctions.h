@@ -66,6 +66,7 @@ typedef bool (*SETCMDLINE)(const char* cmdline);
 typedef duint (*FILEOFFSETTOVA)(const char* modname, duint offset);
 typedef duint (*VATOFILEOFFSET)(duint va);
 typedef duint (*GETADDRFROMLINE)(const char* szSourceFile, int line);
+typedef bool(*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 
 typedef struct DBGFUNCTIONS_
 {
@@ -102,6 +103,7 @@ typedef struct DBGFUNCTIONS_
     FILEOFFSETTOVA FileOffsetToVa;
     VATOFILEOFFSET VaToFileOffset;
     GETADDRFROMLINE GetAddrFromLine;
+    GETSOURCEFROMADDR GetSourceFromAddr;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG
