@@ -13,7 +13,7 @@ public:
     explicit SourceViewerManager(QWidget* parent = 0);
 
 public slots:
-    void loadSourceFile(QString path, int line);
+    void loadSourceFile(QString path, int line, int selection = 0);
     void closeTab(int index);
     void closeAllTabs();
 

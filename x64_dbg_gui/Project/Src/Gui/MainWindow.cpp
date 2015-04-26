@@ -203,6 +203,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
 
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));

@@ -15,6 +15,7 @@ public:
     void setInstructionPointer(int line);
     QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
+    void setSelection(int line);
 
 signals:
     void showCpu();

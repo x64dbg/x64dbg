@@ -36,6 +36,14 @@ void SourceView::setupContextMenu()
     connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
 }
 
+void SourceView::setSelection(int line)
+{
+    int offset = line - 1;
+    if(isValidIndex(offset, 0))
+        setSingleSelection(offset);
+    reloadData(); //repaint
+}
+
 void SourceView::setInstructionPointer(int line)
 {
     int offset = line - 1;

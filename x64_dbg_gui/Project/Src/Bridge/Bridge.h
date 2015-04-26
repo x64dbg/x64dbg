@@ -83,7 +83,7 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
-    void emitLoadSourceFile(const QString path, int line = 0);
+    void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
 
     //Public variables
     void* winId;
@@ -149,7 +149,7 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
-    void loadSourceFile(const QString path, int line);
+    void loadSourceFile(const QString path, int line, int selection);
 
 private:
     QMutex* mBridgeMutex;

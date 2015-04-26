@@ -244,6 +244,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mBPMenu);
         wMenu->addMenu(mFollowMenu);
         setupFollowReferenceMenu(wVA, mFollowMenu, false);
+        if(DbgFunctions()->GetSourceFromAddr(wVA, 0, 0))
+            wMenu->addAction(mOpenSource);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -500,6 +502,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mCopyMenu->addAction(mCopySelectionNoBytes);
     mCopyMenu->addAction(mCopyAddress);
     mCopyMenu->addAction(mCopyDisassembly);
+
+    // Open Source file
+    mOpenSource = new QAction(QIcon(":/icons/images/source.png"), "Open Source File", this);
+    connect(mOpenSource, SIGNAL(triggered()), this, SLOT(openSource()));
 
 
     //-------------------- Find references to -----------------------
@@ -1313,4 +1319,14 @@ void CPUDisassembly::findCommand()
         DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
 
     emit displayReferencesWidget();
+}
+
+void CPUDisassembly::openSource()
+{
+    char szSourceFile[MAX_STRING_SIZE] = "";
+    int line = 0;
+    if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
+        return;
+    Bridge::getBridge()->emitLoadSourceFile(szSourceFile, 0, line);
+    emit displaySourceManagerWidget();
 }

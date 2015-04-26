@@ -370,9 +370,9 @@ void Bridge::emitSymbolRefreshCurrent()
     emit symbolRefreshCurrent();
 }
 
-void Bridge::emitLoadSourceFile(const QString path, int line)
+void Bridge::emitLoadSourceFile(const QString path, int line, int selection)
 {
-    emit loadSourceFile(path, line);
+    emit loadSourceFile(path, line, selection);
 }
 
 /************************************************************************************
