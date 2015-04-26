@@ -180,6 +180,7 @@ static void registercommands()
     dbgcmdnew("scriptload", cbScriptLoad, false);
     dbgcmdnew("msg", cbScriptMsg, false);
     dbgcmdnew("msgyn", cbScriptMsgyn, false);
+    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
 
     //data
     dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
@@ -189,6 +190,9 @@ static void registercommands()
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
     dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
     dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
+    dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
+    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
@@ -198,10 +202,6 @@ static void registercommands()
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
-    dbgcmdnew("yara", cbInstrYara, true); //yara test command
-    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
-    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
-    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

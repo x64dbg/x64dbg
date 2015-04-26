@@ -1677,7 +1677,11 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     }
     uint addr = 0;
     if(argc < 3 || !valfromstring(argv[2], &addr))
-        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    {
+        SELECTIONDATA sel;
+        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+        addr = sel.start;
+    }
     uint size = 0;
     if(argc >= 4)
         if(!valfromstring(argv[3], &size))
@@ -1685,7 +1689,6 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(!size)
         addr = MemFindBaseAddr(addr, &size);
     uint base = addr;
-    dprintf("%p[%p]\n", base, size);
     Memory<uint8_t*> data(size);
     if(!MemRead((void*)base, data(), size, 0))
     {
