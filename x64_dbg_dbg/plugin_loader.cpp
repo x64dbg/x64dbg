@@ -68,13 +68,13 @@ void pluginload(const char* pluginDir)
         pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
-            dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
+            dprintf("[PLUGIN] Failed to load plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             continue;
         }
         pluginData.pluginit = (PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
         if(!pluginData.pluginit)
         {
-            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", foundData.cFileName);
+            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
