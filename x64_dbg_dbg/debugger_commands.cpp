@@ -547,7 +547,6 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 
 CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
 {
-    char arg1[deflen] = "";
     if(argc < 2) //delete all breakpoints
     {
         if(!BpGetCount(BPMEMORY))
@@ -562,7 +561,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    if(BpGet(0, BPMEMORY, arg1, &found)) //found a breakpoint with name
+    if(BpGet(0, BPMEMORY, argv[1], &found)) //found a breakpoint with name
     {
         uint size;
         MemFindBaseAddr(found.addr, &size);
@@ -574,9 +573,9 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(arg1, &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
     {
-        dprintf("No such memory breakpoint \"%s\"\n", arg1);
+        dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
     uint size;
