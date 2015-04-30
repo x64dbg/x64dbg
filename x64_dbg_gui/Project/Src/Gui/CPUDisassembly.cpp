@@ -763,7 +763,7 @@ void CPUDisassembly::setComment()
     mLineEdit.setWindowTitle("Add comment at " + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetCommentAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
