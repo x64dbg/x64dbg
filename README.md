@@ -43,7 +43,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Memory breakpoints sometimes fail (TitanEngine bug)
 
 ## License
-*x64dbg* is licensed under GLPv3, which means you can freely distribute and/or modify the source of *x64dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the GLPv3 license. They do not have to be open-source and they can be commercial and/or private. The only exception to this is when your plugin uses code copied from *x64dbg*. In that case you would still have to share the changes to *x64dbg* with us.
+*x64dbg* is licensed under GPLv3, which means you can freely distribute and/or modify the source of *x64dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the GPLv3 license. They do not have to be open-source and they can be commercial and/or private. The only exception to this is when your plugin uses code copied from *x64dbg*. In that case you would still have to share the changes to *x64dbg* with us.
 
 ## Credits
 - Debugger core by [TitanEngine Community Edition](https://bitbucket.org/mrexodia/titanengine-update)
