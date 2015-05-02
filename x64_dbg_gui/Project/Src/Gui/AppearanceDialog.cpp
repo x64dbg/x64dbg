@@ -435,6 +435,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Conditional Jump Lines (jump)", "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend("Conditional Jump Lines (no jump)", "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend("Unconditional Jump Lines", "DisassemblyUnconditionalJumpLineColor", "");
+    colorInfoListAppend("Function Lines", "DisassemblyFunctionColor", "");
+    colorInfoListAppend("Loop Lines", "DisassemblyLoopColor", "");
 
     colorInfoListAppend("SideBar:", "", "");
 #ifdef _WIN64

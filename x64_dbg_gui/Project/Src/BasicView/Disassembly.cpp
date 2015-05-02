@@ -801,7 +801,10 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
 {
     if(loop && funcType == Function_none)
         return 0;
-    painter->setPen(QPen(Qt::black, 2)); //thick black line
+    if(loop)
+        painter->setPen(QPen(ConfigColor("DisassemblyLoopColor"), 2)); //thick black line
+    else
+        painter->setPen(QPen(ConfigColor("DisassemblyFunctionColor"), 2)); //thick black line
     int height = getRowHeight();
     int x_add = 5;
     int y_add = 4;
