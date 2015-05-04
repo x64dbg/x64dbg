@@ -2,27 +2,34 @@
 #include "capstone_wrapper.h"
 #include "TitanEngine\TitanEngine.h"
 
+csh Capstone::mHandle = 0;
+
+void Capstone::GlobalInitialize()
+{
+#ifdef _WIN64
+    cs_open(CS_ARCH_X86, CS_MODE_64, &mHandle);
+#else //x86
+    cs_open(CS_ARCH_X86, CS_MODE_32, &mHandle);
+#endif //_WIN64
+    cs_option(mHandle, CS_OPT_DETAIL, CS_OPT_ON);
+}
+
+void Capstone::GlobalFinalize()
+{
+    if(mHandle)   //close handle
+        cs_close(&mHandle);
+}
+
 Capstone::Capstone()
 {
-    mHandle = 0;
     mInstr = 0;
-#ifdef _WIN64
-    mError = cs_open(CS_ARCH_X86, CS_MODE_64, &mHandle);
-#else //x86
-    mError = cs_open(CS_ARCH_X86, CS_MODE_32, &mHandle);
-#endif //_WIN64
-    if(mError)
-        mHandle = 0;
-    else
-        cs_option(mHandle, CS_OPT_DETAIL, CS_OPT_ON);
+    mError = CS_ERR_OK;
 }
 
 Capstone::~Capstone()
 {
     if(mInstr)  //free last disassembled instruction
         cs_free(mInstr, 1);
-    if(mHandle)  //close handle
-        cs_close(&mHandle);
 }
 
 bool Capstone::Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER])

@@ -9,6 +9,8 @@
 class Capstone
 {
 public:
+    static void GlobalInitialize();
+    static void GlobalFinalize();
     Capstone();
     ~Capstone();
     bool Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER]);
@@ -26,7 +28,7 @@ public:
     String InstructionText();
 
 private:
-    csh mHandle;
+    static csh mHandle;
     cs_insn* mInstr;
     cs_err mError;
 };

@@ -20,6 +20,7 @@
 #include "assemble.h"
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
+#include "capstone_wrapper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 
@@ -243,6 +244,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(json_malloc, json_free);
+    Capstone::GlobalInitialize();
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
     wchar_t wszDir[deflen] = L"";
@@ -313,6 +315,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     varfree();
     MsgFreeStack(gMsgStack);
     yr_finalize();
+    Capstone::GlobalFinalize();
     if(memleaks())
     {
         char msg[256] = "";
