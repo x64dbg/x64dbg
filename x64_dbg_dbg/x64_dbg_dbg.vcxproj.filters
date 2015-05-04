@@ -214,7 +214,10 @@
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="functionanalysis.cpp">
-      <Filter>Header Files\Analysis</Filter>
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="filereader.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -510,7 +513,10 @@
       <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
     <ClInclude Include="functionanalysis.h">
-      <Filter>Source Files\Analysis</Filter>
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="filereader.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

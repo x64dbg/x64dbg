@@ -25,6 +25,7 @@
 #include "patternfind.h"
 #include "module.h"
 #include "stringformat.h"
+#include "filereader.h"
 
 static bool bRefinit = false;
 
@@ -1696,10 +1697,10 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    FILE* rulesFile = 0;
-    if(_wfopen_s(&rulesFile, StringUtils::Utf8ToUtf16(argv[1]).c_str(), L"rb"))
+    String rulesContent;
+    if(!FileReader::ReadAllText(argv[1], rulesContent))
     {
-        dputs("failed to open yara rules file!");
+        dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
 
@@ -1708,9 +1709,8 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(yr_compiler_create(&yrCompiler) == ERROR_SUCCESS)
     {
         yr_compiler_set_callback(yrCompiler, yaraCompilerCallback, 0);
-        if(yr_compiler_add_file(yrCompiler, rulesFile, NULL, argv[1]) == 0) //no errors found
+        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0)  //no errors found
         {
-            fclose(rulesFile);
             YR_RULES* yrRules;
             if(yr_compiler_get_rules(yrCompiler, &yrRules) == ERROR_SUCCESS)
             {
@@ -1759,17 +1759,11 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 dputs("error while getting the rules!");
         }
         else
-        {
-            fclose(rulesFile);
             dputs("errors in the rules file!");
-        }
         yr_compiler_destroy(yrCompiler);
     }
     else
-    {
-        fclose(rulesFile);
         dputs("yr_compiler_create failed!");
-    }
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 

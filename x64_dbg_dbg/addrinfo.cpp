@@ -45,7 +45,7 @@ void dbsave()
         SetEndOfFile(hFile);
         char* jsonText = json_dumps(root, JSON_INDENT(4));
         DWORD written = 0;
-        if(!WriteFile(hFile, jsonText, strlen(jsonText), &written, 0))
+        if(!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
         {
             json_free(jsonText);
             dputs("\nFailed to write database file!");

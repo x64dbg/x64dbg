@@ -268,8 +268,11 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
             dputs("No breakpoints to delete!");
             return STATUS_CONTINUE;
         }
-        if(!BpEnumAll(cbDeleteAllBreakpoints)) //at least one deletion failed
+        if(!BpEnumAll(cbDeleteAllBreakpoints))  //at least one deletion failed
+        {
+            GuiUpdateAllViews();
             return STATUS_ERROR;
+        }
         dputs("All breakpoints deleted!");
         GuiUpdateAllViews();
         return STATUS_CONTINUE;

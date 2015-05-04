@@ -35,6 +35,7 @@
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
+    <ClCompile Include="filereader.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="functionanalysis.cpp" />
     <ClCompile Include="instruction.cpp" />
@@ -95,6 +96,7 @@
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
+    <ClInclude Include="filereader.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="functionanalysis.h" />
     <ClInclude Include="handle.h" />

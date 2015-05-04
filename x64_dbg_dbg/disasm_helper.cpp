@@ -56,7 +56,7 @@ uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
     {
         abuf[i % 128] = addr;
 
-        if(!cp.Disassemble(0, pdata, size))
+        if(!cp.Disassemble(0, pdata, (int)size))
             cmdsize = 1;
         else
             cmdsize = cp.Size();
@@ -96,7 +96,7 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 
     for(i = 0; i < n && size > 0; i++)
     {
-        if(!cp.Disassemble(0, pdata, size))
+        if(!cp.Disassemble(0, pdata, (int)size))
             cmdsize = 1;
         else
             cmdsize = cp.Size();
