@@ -127,7 +127,7 @@ static void registercommands()
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
-    dbgcmdnew("asm", cbAssemble, true); //assemble instruction
+    dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
 
     //user database
@@ -137,10 +137,10 @@ static void registercommands()
     dbgcmdnew("lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
     dbgcmdnew("bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
     dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
-    dbgcmdnew("savedb\1dbsave", cbSavedb, true); //save program database
-    dbgcmdnew("loaddb\1dbload", cbLoaddb, true); //load program database
-    dbgcmdnew("functionadd\1func", cbFunctionAdd, true); //function
-    dbgcmdnew("functiondel\1funcc", cbFunctionDel, true); //function
+    dbgcmdnew("savedb\1dbsave", cbInstrSavedb, true); //save program database
+    dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
+    dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
+    dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
     dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
     dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
     dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
