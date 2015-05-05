@@ -55,6 +55,7 @@ private slots:
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
+    void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
@@ -118,6 +119,7 @@ private:
         bool disasmMemorySpaces;
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
+        bool disasmTabBetweenMnemonicAndArguments;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

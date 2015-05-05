@@ -159,6 +159,7 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("Uppercase", false);
     disassemblyBool.insert("FindCommandEntireBlock", false);
     disassemblyBool.insert("OnlyCipAutoComments", false);
+    disassemblyBool.insert("TabbedMnemonic", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     //uint settings

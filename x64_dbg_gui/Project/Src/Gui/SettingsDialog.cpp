@@ -61,6 +61,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmMemorySpaces = false;
     settings.disasmUppercase = false;
     settings.disasmOnlyCipAutoComments = false;
+    settings.disasmTabBetweenMnemonicAndArguments = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -165,10 +166,12 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
+    GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
+    ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -255,6 +258,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
+    BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -584,4 +588,9 @@ void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
         settings.disasmOnlyCipAutoComments = false;
     else
         settings.disasmOnlyCipAutoComments = true;
+}
+
+void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
+{
+    settings.disasmTabBetweenMnemonicAndArguments = arg1 == Qt::Checked;
 }

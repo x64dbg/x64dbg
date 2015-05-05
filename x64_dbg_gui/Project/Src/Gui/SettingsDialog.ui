@@ -380,6 +380,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkTabBetweenMnemonicAndArguments">
+         <property name="text">
+          <string>Tab between mnemonic and arguments</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="chkMemorySpaces">
          <property name="text">
           <string>Memory Spaces</string>
