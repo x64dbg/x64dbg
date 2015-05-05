@@ -651,7 +651,7 @@ bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b,
 {
     if(!a || !b)
         return false;
-    if(a->value.size != 0) //we have a value
+    if(a->value.size != 0 && b->value.size != 0) //we have a value
     {
         if(!ignoreSize && a->value.size != b->value.size)
             return false;
