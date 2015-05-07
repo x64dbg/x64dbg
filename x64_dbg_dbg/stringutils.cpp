@@ -56,7 +56,7 @@ String StringUtils::Escape(const String & s)
             if(!isprint(ch)) //unknown unprintable character
             {
                 char buf[16] = "";
-                sprintf_s(buf, "\\%.2X", ch);
+                sprintf_s(buf, "\\x%.2X", (unsigned char)ch);
                 escaped += buf;
             }
             else
