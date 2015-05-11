@@ -98,47 +98,39 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
         if(_cp.InGroup(CS_GRP_JUMP) && _cp.x86().operands[0].type == X86_OP_MEM)
             return 0;
     }
+
     //linear search with some trickery
     uint end = 0;
     uint jumpback = 0;
-    for(uint addr = start, newaddr = 0; addr < maxaddr;)
+    for(uint addr = start, fardest = 0; addr < maxaddr;)
     {
         if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
         {
             if(addr + _cp.Size() > maxaddr)  //we went past the maximum allowed address
                 break;
 
-            //dprintf("    %p: %s %s\n", addr, _cp.GetInstr()->mnemonic, _cp.GetInstr()->op_str);
             const cs_x86_op & operand = _cp.x86().operands[0];
-            if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)  //jump
+            if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)   //jump
             {
                 uint dest = (uint)operand.imm;
 
-                if(dest >= maxaddr)  //jump across function boundaries (TODO: something with conditional jumps)
+                if(dest >= maxaddr)   //jump across function boundaries
                 {
-                    //add destination to function buffer?
-                    //end = addr;
-                    //break;
+                    //currently unused
                 }
-                else if(dest > addr && dest > newaddr)  //save the farthest jump
+                else if(dest > addr && dest > fardest)   //save the farthest JXX destination forward
                 {
-                    newaddr = dest;
+                    fardest = dest;
                 }
-                else if(end && dest < end)  //jump back to ret
+                else if(end && dest < end && _cp.GetId() == X86_INS_JMP)   //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET))  //function end
+            else if(_cp.InGroup(CS_GRP_RET))   //possible function end?
             {
                 end = addr;
-                if(newaddr >= addr)
-                {
-                    addr = newaddr;
-                    newaddr = 0;
-                    continue;
-                }
-                else
+                if(fardest < addr)  //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
