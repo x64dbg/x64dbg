@@ -1907,6 +1907,13 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         return STATUS_ERROR;
     }
     //actual algorithm
+    //make sure to set these options in the INI (rest the default theme of x64dbg):
+    //DisassemblyBookmarkBackgroundColor = #00FFFF
+    //DisassemblyBookmarkColor = #000000
+    //DisassemblyHardwareBreakpointBackgroundColor = #00FF00
+    //DisassemblyHardwareBreakpointColor = #000000
+    //DisassemblyBreakpointBackgroundColor = #FF0000
+    //DisassemblyBreakpointColor = #000000
     {
         Capstone _cp;
         uint _base = start;
