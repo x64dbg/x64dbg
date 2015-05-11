@@ -68,5 +68,6 @@ CMDRESULT cbInstrLog(int argc, char* argv[]);
 
 CMDRESULT cbInstrCapstone(int argc, char* argv[]);
 CMDRESULT cbInstrAnalyse(int argc, char* argv[]);
+CMDRESULT cbInstrVisualize(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

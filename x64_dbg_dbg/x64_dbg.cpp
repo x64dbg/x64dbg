@@ -203,6 +203,7 @@ static void registercommands()
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
+    dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
