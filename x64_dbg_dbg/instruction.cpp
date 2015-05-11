@@ -1915,16 +1915,20 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
     //DisassemblyBreakpointBackgroundColor = #FF0000
     //DisassemblyBreakpointColor = #000000
     {
+        //initialize
         Capstone _cp;
         uint _base = start;
         uint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
         MemRead((void*)_base, _data(), _size, nullptr);
+        FunctionClear();
+
         //linear search with some trickery
         uint end = 0;
         uint jumpback = 0;
-        for(uint addr = start, newaddr = 0; addr < maxaddr;)
+        for(uint addr = start, fardest = 0; addr < maxaddr;)
         {
+            //update GUI
             BpClear();
             BookmarkClear();
             LabelClear();
@@ -1933,19 +1937,18 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
                 BpNew(end, true, false, 0, BPNORMAL, 0, nullptr);
             if(jumpback)
                 BookmarkSet(jumpback, false);
-            if(newaddr)
-                BpNew(newaddr, true, false, 0, BPHARDWARE, 0, nullptr);
+            if(fardest)
+                BpNew(fardest, true, false, 0, BPHARDWARE, 0, nullptr);
             DebugUpdateGui(addr, false);
             Sleep(300);
-            //dprintf("    addr: %p\n newaddr: %p\n     end: %p\njumpback: %p\n", addr, newaddr, end, jumpback);
+
+            //continue algorithm
             const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data + (addr - _base) : nullptr;
             if(_cp.Disassemble(addr, curData, MAX_DISASM_BUFFER))
             {
-                //dprintf("  disasm: %s\n------------------------\n", _cp.InstructionText().c_str());
                 if(addr + _cp.Size() > maxaddr)    //we went past the maximum allowed address
                     break;
 
-                //dprintf("    %p: %s %s\n", addr, _cp.GetInstr()->mnemonic, _cp.GetInstr()->op_str);
                 const cs_x86_op & operand = _cp.x86().operands[0];
                 if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)    //jump
                 {
@@ -1953,23 +1956,21 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
 
                     if(dest >= maxaddr)    //jump across function boundaries
                     {
-                        //add destination to function buffer?
-                        //end = addr;
-                        //break;
+                        //currently unused
                     }
-                    else if(dest > addr && dest > newaddr)    //save the farthest jump forward
+                    else if(dest > addr && dest > fardest)    //save the farthest JXX destination forward
                     {
-                        newaddr = dest;
+                        fardest = dest;
                     }
-                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP)    //save the last jump upwards
+                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP)    //save the last JMP backwards
                     {
                         jumpback = addr;
                     }
                 }
-                else if(_cp.InGroup(CS_GRP_RET))    //function end
+                else if(_cp.InGroup(CS_GRP_RET))    //possible function end?
                 {
                     end = addr;
-                    if(newaddr < addr)
+                    if(fardest < addr)   //we stop if the farthest JXX destination forward is before this RET
                         break;
                 }
 
@@ -1979,7 +1980,8 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
                 addr++;
         }
         end = end < jumpback ? jumpback : end;
-        FunctionClear();
+
+        //update GUI
         FunctionAdd(start, end, false);
         BpClear();
         BookmarkClear();
