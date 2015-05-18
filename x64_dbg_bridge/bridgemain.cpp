@@ -1107,6 +1107,16 @@ BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line)
     _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)line);
 }
 
+BRIDGE_IMPEXP void GuiMenuSetIcon(int hMenu, const ICONDATA* icon)
+{
+    _gui_sendmessage(GUI_MENU_SET_ICON, (void*)hMenu, (void*)icon);
+}
+
+BRIDGE_IMPEXP void GuiMenuSetEntryIcon(int hEntry, const ICONDATA* icon)
+{
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_ICON, (void*)hEntry, (void*)icon);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

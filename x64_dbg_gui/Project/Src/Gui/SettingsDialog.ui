@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -257,6 +257,20 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkDisableDatabaseCompression">
+         <property name="text">
+          <string>Disable Database Compression</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkSaveDatabaseInProgramDirectory">
+         <property name="text">
+          <string>Save Database in Program Directory</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -362,6 +376,13 @@
         <widget class="QCheckBox" name="chkArgumentSpaces">
          <property name="text">
           <string>Argument Spaces</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkTabBetweenMnemonicAndArguments">
+         <property name="text">
+          <string>Tab between mnemonic and arguments</string>
          </property>
         </widget>
        </item>

@@ -20,6 +20,7 @@
 #include "assemble.h"
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
+#include "capstone_wrapper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 
@@ -127,7 +128,7 @@ static void registercommands()
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address
     dbgcmdnew("refinit", cbInstrRefinit, false);
     dbgcmdnew("refadd", cbInstrRefadd, false);
-    dbgcmdnew("asm", cbAssemble, true); //assemble instruction
+    dbgcmdnew("asm", cbInstrAssemble, true); //assemble instruction
     dbgcmdnew("sleep", cbInstrSleep, false); //Sleep
 
     //user database
@@ -137,10 +138,10 @@ static void registercommands()
     dbgcmdnew("lblc\1lbldel\1labeldel", cbInstrLbldel, true); //delete label
     dbgcmdnew("bookmark\1bookmarkset", cbInstrBookmarkSet, true); //set bookmark
     dbgcmdnew("bookmarkc\1bookmarkdel", cbInstrBookmarkDel, true); //delete bookmark
-    dbgcmdnew("savedb\1dbsave", cbSavedb, true); //save program database
-    dbgcmdnew("loaddb\1dbload", cbLoaddb, true); //load program database
-    dbgcmdnew("functionadd\1func", cbFunctionAdd, true); //function
-    dbgcmdnew("functiondel\1funcc", cbFunctionDel, true); //function
+    dbgcmdnew("savedb\1dbsave", cbInstrSavedb, true); //save program database
+    dbgcmdnew("loaddb\1dbload", cbInstrLoaddb, true); //load program database
+    dbgcmdnew("functionadd\1func", cbInstrFunctionAdd, true); //function
+    dbgcmdnew("functiondel\1funcc", cbInstrFunctionDel, true); //function
     dbgcmdnew("commentlist", cbInstrCommentList, true); //list comments
     dbgcmdnew("labellist", cbInstrLabelList, true); //list labels
     dbgcmdnew("bookmarklist", cbInstrBookmarkList, true); //list bookmarks
@@ -180,6 +181,7 @@ static void registercommands()
     dbgcmdnew("scriptload", cbScriptLoad, false);
     dbgcmdnew("msg", cbScriptMsg, false);
     dbgcmdnew("msgyn", cbScriptMsgyn, false);
+    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
 
     //data
     dbgcmdnew("reffind\1findref\1ref", cbInstrRefFind, true); //find references to a value
@@ -189,6 +191,9 @@ static void registercommands()
     dbgcmdnew("modcallfind", cbInstrModCallFind, true); //find intermodular calls
     dbgcmdnew("findasm\1asmfind", cbInstrFindAsm, true); //find instruction
     dbgcmdnew("reffindrange\1findrefrange\1refrange", cbInstrRefFindRange, true);
+    dbgcmdnew("yara", cbInstrYara, true); //yara test command
+    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
+    dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
@@ -197,9 +202,8 @@ static void registercommands()
     dbgcmdnew("getstr\1strget", cbInstrGetstr, false); //get a string variable
     dbgcmdnew("copystr\1strcpy", cbInstrCopystr, true); //write a string variable to memory
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
-    dbgcmdnew("yara", cbInstrYara, true); //yara test command
-    dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
-    dbgcmdnew("log", cbInstrLog, false); //log command with superawesome hax
+    dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
+    dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -241,6 +245,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dbginit();
     dbgfunctionsinit();
     json_set_alloc_funcs(json_malloc, json_free);
+    Capstone::GlobalInitialize();
     if(yr_initialize() != ERROR_SUCCESS)
         return "Failed to initialize Yara!";
     wchar_t wszDir[deflen] = L"";
@@ -253,14 +258,14 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         len--;
     dir[len] = 0;
     strcpy_s(alloctrace, dir);
-    PathAppendA(alloctrace, "\\alloctrace.txt");
+    strcat_s(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
     strcpy_s(dbbasepath, dir); //debug directory
-    PathAppendA(dbbasepath, "db");
+    strcat_s(dbbasepath, "\\db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
     strcpy_s(szSymbolCachePath, dir);
-    PathAppendA(szSymbolCachePath, "symbols");
+    strcat_s(szSymbolCachePath, "\\symbols");
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());;
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
@@ -270,7 +275,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";
     strcpy_s(plugindir, dir);
-    PathAppendA(plugindir, "plugins");
+    strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), 0);
     pluginload(plugindir);
     //handle command line
@@ -311,6 +316,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     varfree();
     MsgFreeStack(gMsgStack);
     yr_finalize();
+    Capstone::GlobalFinalize();
     if(memleaks())
     {
         char msg[256] = "";

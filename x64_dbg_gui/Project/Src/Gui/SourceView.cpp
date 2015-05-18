@@ -13,6 +13,35 @@ SourceView::SourceView(QString path, int line, StdTable* parent) : StdTable(pare
 
     loadFile();
     setInstructionPointer(line);
+
+    connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    setupContextMenu();
+}
+
+void SourceView::contextMenuSlot(const QPoint & pos)
+{
+    QMenu* wMenu = new QMenu(this);
+
+    int line = getInitialSelection() + 1;
+    int_t addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
+    if(addr)
+        wMenu->addAction(mFollowInDisasm);
+
+    wMenu->exec(mapToGlobal(pos));
+}
+
+void SourceView::setupContextMenu()
+{
+    mFollowInDisasm = new QAction("Follow in &Disassembler", this);
+    connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
+}
+
+void SourceView::setSelection(int line)
+{
+    int offset = line - 1;
+    if(isValidIndex(offset, 0))
+        setSingleSelection(offset);
+    reloadData(); //repaint
 }
 
 void SourceView::setInstructionPointer(int line)
@@ -92,4 +121,12 @@ QString SourceView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
     }
     painter->restore();
     return returnString;
+}
+
+void SourceView::followInDisasmSlot()
+{
+    int line = getInitialSelection() + 1;
+    int_t addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
+    DbgCmdExecDirect(QString().sprintf("disasm %p", addr).toUtf8().constData());
+    emit showCpu();
 }

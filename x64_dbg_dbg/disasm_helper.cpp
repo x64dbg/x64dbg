@@ -5,28 +5,22 @@
  */
 
 #include "disasm_helper.h"
-#include "BeaEngine\BeaEngine.h"
 #include "value.h"
 #include "console.h"
 #include "debugger.h"
 #include "memory.h"
 #include <cwctype>
 #include <cwchar>
+#include "capstone_wrapper.h"
 
 uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
 {
     int i;
     uint abuf[131], addr, back, cmdsize;
     unsigned char* pdata;
-    int len;
 
     // Reset Disasm Structure
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(DISASM));
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
+    Capstone cp;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -49,7 +43,7 @@ uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
     if(ip < (uint)n)
         return ip;
 
-    back = 16 * (n + 3); // Instruction length limited to 16
+    back = MAX_DISASM_BUFFER * (n + 3); // Instruction length limited to 16
 
     if(ip < back)
         back = ip;
@@ -62,13 +56,15 @@ uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)
     {
         abuf[i % 128] = addr;
 
-        disasm.EIP = (UIntPtr)pdata;
-        len = Disasm(&disasm);
-        cmdsize = (len < 1) ? 1 : len ;
+        if(!cp.Disassemble(0, pdata, (int)size))
+            cmdsize = 1;
+        else
+            cmdsize = cp.Size();
 
         pdata += cmdsize;
         addr += cmdsize;
         back -= cmdsize;
+        size -= cmdsize;
     }
 
     if(i < n)
@@ -82,15 +78,9 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
     int i;
     uint cmdsize;
     unsigned char* pdata;
-    int len;
 
     // Reset Disasm Structure
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(DISASM));
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
+    Capstone cp;
 
     if(data == NULL)
         return 0;
@@ -106,10 +96,10 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 
     for(i = 0; i < n && size > 0; i++)
     {
-        disasm.EIP = (UIntPtr)pdata;
-        disasm.SecurityBlock = (UInt32)size;
-        len = Disasm(&disasm);
-        cmdsize = (len < 1) ? 1 : len;
+        if(!cp.Disassemble(0, pdata, (int)size))
+            cmdsize = 1;
+        else
+            cmdsize = cp.Size();
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -121,104 +111,76 @@ uint disasmnext(unsigned char* data, uint base, uint size, uint ip, int n)
 
 const char* disasmtext(uint addr)
 {
-    unsigned char buffer[16] = "";
-    DbgMemRead(addr, buffer, 16);
-    DISASM disasm;
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.VirtualAddr = addr;
-    disasm.EIP = (UIntPtr)buffer;
-    int len = Disasm(&disasm);
-    static char instruction[INSTRUCT_LENGTH] = "";
-    if(len == UNKNOWN_OPCODE)
+    unsigned char buffer[MAX_DISASM_BUFFER] = "";
+    DbgMemRead(addr, buffer, sizeof(buffer));
+    Capstone cp;
+    static char instruction[64] = "";
+    if(!cp.Disassemble(addr, buffer))
         strcpy_s(instruction, "???");
     else
-        strcpy_s(instruction, disasm.CompleteInstr);
+        sprintf_s(instruction, "%s %s", cp.GetInstr()->mnemonic, cp.GetInstr()->op_str);
     return instruction;
 }
 
-static SEGMENTREG ConvertBeaSeg(int beaSeg)
+static void HandleCapstoneOperand(Capstone & cp, int opindex, DISASM_ARG* arg)
 {
-    switch(beaSeg)
+    const cs_x86 & x86 = cp.x86();
+    const cs_x86_op & op = x86.operands[opindex];
+    arg->segment = SEG_DEFAULT;
+    strcpy_s(arg->mnemonic, cp.OperandText(opindex).c_str());
+    switch(op.type)
     {
-    case ESReg:
-        return SEG_ES;
-        break;
-    case DSReg:
-        return SEG_DS;
-        break;
-    case FSReg:
-        return SEG_FS;
-        break;
-    case GSReg:
-        return SEG_GS;
-        break;
-    case CSReg:
-        return SEG_CS;
-        break;
-    case SSReg:
-        return SEG_SS;
-        break;
+    case X86_OP_REG:
+    {
+        const char* regname = cp.RegName((x86_reg)op.reg);
+        arg->type = arg_normal;
+        uint value;
+        if(!valfromstring(regname, &value, true, true))
+            value = 0;
+        arg->constant = arg->value = value;
     }
-    return SEG_DEFAULT;
-}
+    break;
 
-static bool HandleArgument(ARGTYPE* Argument, INSTRTYPE* Instruction, DISASM_ARG* arg, uint addr)
-{
-    int argtype = Argument->ArgType;
-    const char* argmnemonic = Argument->ArgMnemonic;
-    if(!*argmnemonic)
-        return false;
-    arg->memvalue = 0;
-    strcpy_s(arg->mnemonic, argmnemonic);
-    if((argtype & MEMORY_TYPE) == MEMORY_TYPE)
+    case X86_OP_IMM:
+    {
+        arg->type = arg_normal;
+        arg->constant = arg->value = (duint)op.imm;
+    }
+    break;
+
+    case X86_OP_MEM:
     {
         arg->type = arg_memory;
-        arg->segment = ConvertBeaSeg(Argument->SegmentReg);
-        uint value = (uint)Argument->Memory.Displacement;
-        if((Argument->ArgType & RELATIVE_) == RELATIVE_)
-            value = (uint)Instruction->AddrValue;
-        arg->constant = value;
-        arg->value = 0;
-        if(!valfromstring(argmnemonic, &value, true, true))
-            return false;
+        const x86_op_mem & mem = op.mem;
+        if(mem.base == X86_REG_RIP)  //rip-relative
+            arg->constant = cp.Address() + (duint)mem.disp + cp.Size();
+        else
+            arg->constant = (duint)mem.disp;
+        uint value;
+        if(!valfromstring(arg->mnemonic, &value, true, true))
+            return;
+        arg->value = value;
         if(DbgMemIsValidReadPtr(value))
         {
-            arg->value = value;
-            switch(Argument->ArgSize) //TODO: segments
+            switch(op.size)
             {
-            case 8:
+            case 1:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 1);
                 break;
-            case 16:
+            case 2:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 2);
                 break;
-            case 32:
+            case 4:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 4);
                 break;
-            case 64:
+            case 8:
                 DbgMemRead(value, (unsigned char*)&arg->memvalue, 8);
                 break;
             }
         }
     }
-    else
-    {
-        arg->segment = SEG_DEFAULT;
-        arg->type = arg_normal;
-        uint value = 0;
-        if(!valfromstring(argmnemonic, &value, true, true))
-            return false;
-        arg->value = value;
-        char sValue[64] = "";
-        sprintf(sValue, "%"fext"X", value);
-        if(_stricmp(argmnemonic, sValue))
-            value = 0;
-        arg->constant = value;
+    break;
     }
-    return true;
 }
 
 void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
@@ -230,36 +192,27 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
         return;
     }
     memset(instr, 0, sizeof(DISASM_INSTR));
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(DISASM));
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.VirtualAddr = addr;
-    disasm.EIP = (UIntPtr)buffer;
-    int len = Disasm(&disasm);
-    strcpy_s(instr->instruction, disasm.CompleteInstr);
-    if(len == UNKNOWN_OPCODE)
+    Capstone cp;
+    if(!cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER))
     {
+        strcpy_s(instr->instruction, "???");
         instr->instr_size = 1;
         instr->type = instr_normal;
         instr->argcount = 0;
         return;
     }
-    instr->instr_size = len;
-    if(disasm.Instruction.BranchType)
+    sprintf_s(instr->instruction, "%s %s", cp.GetInstr()->mnemonic, cp.GetInstr()->op_str);
+    const cs_x86 & x86 = cp.GetInstr()->detail->x86;
+    instr->instr_size = cp.GetInstr()->size;
+    if(cp.InGroup(CS_GRP_JUMP) || cp.InGroup(CS_GRP_RET) || cp.InGroup(CS_GRP_CALL))
         instr->type = instr_branch;
-    else if(strstr(disasm.CompleteInstr, "sp") or strstr(disasm.CompleteInstr, "bp"))
+    else if(strstr(cp.GetInstr()->op_str, "sp") || strstr(cp.GetInstr()->op_str, "bp"))
         instr->type = instr_stack;
     else
         instr->type = instr_normal;
-    if(HandleArgument(&disasm.Argument1, &disasm.Instruction, &instr->arg[instr->argcount], addr))
-        instr->argcount++;
-    if(HandleArgument(&disasm.Argument2, &disasm.Instruction, &instr->arg[instr->argcount], addr))
-        instr->argcount++;
-    if(HandleArgument(&disasm.Argument3, &disasm.Instruction, &instr->arg[instr->argcount], addr))
-        instr->argcount++;
+    instr->argcount = cp.x86().op_count <= 3 ? cp.x86().op_count : 3;
+    for(int i = 0; i < instr->argcount; i++)
+        HandleCapstoneOperand(cp, i, &instr->arg[i]);
 }
 
 void disasmget(uint addr, DISASM_INSTR* instr)
@@ -270,8 +223,8 @@ void disasmget(uint addr, DISASM_INSTR* instr)
             instr->argcount = 0;
         return;
     }
-    unsigned char buffer[16] = "";
-    DbgMemRead(addr, buffer, 16);
+    unsigned char buffer[MAX_DISASM_BUFFER] = "";
+    DbgMemRead(addr, buffer, sizeof(buffer));
     disasmget(buffer, addr, instr);
 }
 
@@ -431,23 +384,15 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
 
 int disasmgetsize(uint addr, unsigned char* data)
 {
-    DISASM disasm;
-    memset(&disasm, 0, sizeof(DISASM));
-    disasm.Options = NoformatNumeral | ShowSegmentRegs;
-#ifdef _WIN64
-    disasm.Archi = 64;
-#endif // _WIN64
-    disasm.VirtualAddr = addr;
-    disasm.EIP = (UIntPtr)data;
-    int len = Disasm(&disasm);
-    if(len == UNKNOWN_OPCODE)
-        len = 1;
-    return len;
+    Capstone cp;
+    if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
+        return 1;
+    return cp.Size();
 }
 
 int disasmgetsize(uint addr)
 {
-    char data[16];
+    char data[MAX_DISASM_BUFFER];
     if(!MemRead((void*)addr, data, sizeof(data), 0))
         return 1;
     return disasmgetsize(addr, (unsigned char*)data);

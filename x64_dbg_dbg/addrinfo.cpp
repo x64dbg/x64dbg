@@ -45,14 +45,15 @@ void dbsave()
         SetEndOfFile(hFile);
         char* jsonText = json_dumps(root, JSON_INDENT(4));
         DWORD written = 0;
-        if(!WriteFile(hFile, jsonText, strlen(jsonText), &written, 0))
+        if(!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
         {
             json_free(jsonText);
             dputs("\nFailed to write database file!");
             return;
         }
+        hFile.Close();
         json_free(jsonText);
-        if(!settingboolget("Engine", "DisableCompression"))
+        if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
@@ -74,7 +75,7 @@ void dbload()
     WString databasePathW = StringUtils::Utf8ToUtf16(dbpath);
 
     // Decompress the file if compression was enabled
-    bool useCompression = !settingboolget("Engine", "DisableCompression");
+    bool useCompression = !settingboolget("Engine", "DisableDatabaseCompression");
     LZ4_STATUS lzmaStatus = LZ4_INVALID_ARCHIVE;
     {
         lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());

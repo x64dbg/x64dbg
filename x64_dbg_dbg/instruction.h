@@ -17,11 +17,11 @@ CMDRESULT cbInstrLbl(int argc, char* argv[]);
 CMDRESULT cbInstrLbldel(int argc, char* argv[]);
 CMDRESULT cbInstrBookmarkSet(int argc, char* argv[]);
 CMDRESULT cbInstrBookmarkDel(int argc, char* argv[]);
-CMDRESULT cbLoaddb(int argc, char* argv[]);
-CMDRESULT cbSavedb(int argc, char* argv[]);
-CMDRESULT cbAssemble(int argc, char* argv[]);
-CMDRESULT cbFunctionAdd(int argc, char* argv[]);
-CMDRESULT cbFunctionDel(int argc, char* argv[]);
+CMDRESULT cbInstrLoaddb(int argc, char* argv[]);
+CMDRESULT cbInstrSavedb(int argc, char* argv[]);
+CMDRESULT cbInstrAssemble(int argc, char* argv[]);
+CMDRESULT cbInstrFunctionAdd(int argc, char* argv[]);
+CMDRESULT cbInstrFunctionDel(int argc, char* argv[]);
 
 CMDRESULT cbInstrCmp(int argc, char* argv[]);
 CMDRESULT cbInstrGpa(int argc, char* argv[]);
@@ -65,5 +65,9 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[]);
 CMDRESULT cbInstrYara(int argc, char* argv[]);
 CMDRESULT cbInstrYaramod(int argc, char* argv[]);
 CMDRESULT cbInstrLog(int argc, char* argv[]);
+
+CMDRESULT cbInstrCapstone(int argc, char* argv[]);
+CMDRESULT cbInstrAnalyse(int argc, char* argv[]);
+CMDRESULT cbInstrVisualize(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

@@ -68,13 +68,13 @@ void pluginload(const char* pluginDir)
         pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(szPluginPath).c_str()); //load the plugin library
         if(!pluginData.hPlugin)
         {
-            dprintf("[PLUGIN] Failed to load plugin: %s\n", foundData.cFileName);
+            dprintf("[PLUGIN] Failed to load plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             continue;
         }
         pluginData.pluginit = (PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
         if(!pluginData.pluginit)
         {
-            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", foundData.cFileName);
+            dprintf("[PLUGIN] Export \"pluginit\" not found in plugin: %s\n", StringUtils::Utf16ToUtf8(foundData.cFileName).c_str());
             FreeLibrary(pluginData.hPlugin);
             continue;
         }
@@ -575,4 +575,43 @@ bool pluginwineventglobal(MSG* message)
     winevent.retval = false;
     plugincbcall(CB_WINEVENTGLOBAL, &winevent);
     return winevent.retval;
+}
+
+/**
+\brief Sets an icon for a menu.
+\param hMenu The menu handle.
+\param icon The icon (can be all kinds of formats).
+*/
+void pluginmenuseticon(int hMenu, const ICONDATA* icon)
+{
+    bool bFound = false;
+    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        {
+            GuiMenuSetIcon(hMenu, icon);
+            break;
+        }
+    }
+}
+
+/**
+\brief Sets an icon for a menu entry.
+\param pluginHandle Plugin handle.
+\param hEntry The menu entry handle (unique per plugin).
+\param icon The icon (can be all kinds of formats).
+*/
+void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
+{
+    if(hEntry == -1)
+        return;
+    bool bFound = false;
+    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    {
+        if(pluginMenuList.at(i).pluginHandle == pluginHandle && pluginMenuList.at(i).hEntryPlugin == hEntry)
+        {
+            GuiMenuSetEntryIcon(pluginMenuList.at(i).hEntryMenu, icon);
+            break;
+        }
+    }
 }

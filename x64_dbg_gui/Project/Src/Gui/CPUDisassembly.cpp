@@ -132,7 +132,6 @@ void CPUDisassembly::setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isRef
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
                     addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences);
-
             }
             else //arg_normal
             {
@@ -245,6 +244,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mBPMenu);
         wMenu->addMenu(mFollowMenu);
         setupFollowReferenceMenu(wVA, mFollowMenu, false);
+        if(DbgFunctions()->GetSourceFromAddr(wVA, 0, 0))
+            wMenu->addAction(mOpenSource);
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -308,6 +309,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 {
     //Binary
     mBinaryMenu = new QMenu("&Binary", this);
+    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
@@ -361,25 +363,25 @@ void CPUDisassembly::setupRightClickContextMenu()
     connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
 
     // Labels
-    mSetLabel = new QAction("Label", this);
+    mSetLabel = new QAction(QIcon(":/icons/images/label.png"), "Label", this);
     mSetLabel->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetLabel);
     connect(mSetLabel, SIGNAL(triggered()), this, SLOT(setLabel()));
 
     // Comments
-    mSetComment = new QAction("Comment", this);
+    mSetComment = new QAction(QIcon(":/icons/images/comment.png"), "Comment", this);
     mSetComment->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetComment);
     connect(mSetComment, SIGNAL(triggered()), this, SLOT(setComment()));
 
     // Bookmarks
-    mSetBookmark = new QAction("Bookmark", this);
+    mSetBookmark = new QAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", this);
     mSetBookmark->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mSetBookmark);
     connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
 
     // Functions
-    mToggleFunction = new QAction("Function", this);
+    mToggleFunction = new QAction(QIcon(":/icons/images/functions.png"), "Function", this);
     mToggleFunction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mToggleFunction);
     connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
@@ -393,6 +395,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- Breakpoints -----------------------------
     // Menu
     mBPMenu = new QMenu("Breakpoint", this);
+    mBPMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
 
     // Standard breakpoint (option set using SetBPXOption)
     mToggleInt3BpAction = new QAction("Toggle", this);
@@ -477,6 +480,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     //-------------------- Copy -------------------------------------
     mCopyMenu = new QMenu("&Copy", this);
+    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
 
     mCopySelection = new QAction("&Selection", this);
     mCopySelection->setShortcutContext(Qt::WidgetShortcut);
@@ -499,6 +503,10 @@ void CPUDisassembly::setupRightClickContextMenu()
     mCopyMenu->addAction(mCopyAddress);
     mCopyMenu->addAction(mCopyDisassembly);
 
+    // Open Source file
+    mOpenSource = new QAction(QIcon(":/icons/images/source.png"), "Open Source File", this);
+    connect(mOpenSource, SIGNAL(triggered()), this, SLOT(openSource()));
+
 
     //-------------------- Find references to -----------------------
     // Menu
@@ -514,6 +522,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     //---------------------- Search for -----------------------------
     // Menu
     mSearchMenu = new QMenu("&Search for", this);
+    mSearchMenu->setIcon(QIcon(":/icons/images/search-for.png"));
 
     // Command
     mSearchCommand = new QAction("C&ommand", this);
@@ -545,7 +554,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchMenu->addAction(mSearchPattern);
 
     // Highlighting mode
-    mEnableHighlightingMode = new QAction("&Highlighting mode", this);
+    mEnableHighlightingMode = new QAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", this);
     mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mEnableHighlightingMode);
     connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
@@ -754,7 +763,7 @@ void CPUDisassembly::setComment()
     mLineEdit.setWindowTitle("Add comment at " + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetCommentAt failed!");
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
@@ -1310,4 +1319,14 @@ void CPUDisassembly::findCommand()
         DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
 
     emit displayReferencesWidget();
+}
+
+void CPUDisassembly::openSource()
+{
+    char szSourceFile[MAX_STRING_SIZE] = "";
+    int line = 0;
+    if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
+        return;
+    Bridge::getBridge()->emitLoadSourceFile(szSourceFile, 0, line);
+    emit displaySourceManagerWidget();
 }

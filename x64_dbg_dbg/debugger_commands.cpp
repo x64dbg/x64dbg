@@ -268,8 +268,11 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
             dputs("No breakpoints to delete!");
             return STATUS_CONTINUE;
         }
-        if(!BpEnumAll(cbDeleteAllBreakpoints)) //at least one deletion failed
+        if(!BpEnumAll(cbDeleteAllBreakpoints))  //at least one deletion failed
+        {
+            GuiUpdateAllViews();
             return STATUS_ERROR;
+        }
         dputs("All breakpoints deleted!");
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
@@ -547,7 +550,6 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 
 CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
 {
-    char arg1[deflen] = "";
     if(argc < 2) //delete all breakpoints
     {
         if(!BpGetCount(BPMEMORY))
@@ -562,7 +564,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    if(BpGet(0, BPMEMORY, arg1, &found)) //found a breakpoint with name
+    if(BpGet(0, BPMEMORY, argv[1], &found)) //found a breakpoint with name
     {
         uint size;
         MemFindBaseAddr(found.addr, &size);
@@ -574,9 +576,9 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(arg1, &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
     {
-        dprintf("No such memory breakpoint \"%s\"\n", arg1);
+        dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
     uint size;
@@ -844,8 +846,23 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
         dputs("Program is not running");
         return STATUS_ERROR;
     }
+    uint debugBreakAddr;
+    if(!valfromstring("DebugBreak", &debugBreakAddr))
+    {
+        dputs("Could not find DebugBreak!");
+        return STATUS_ERROR;
+    }
+    DWORD dwThreadId = 0;
+    HANDLE hThread = CreateRemoteThread(fdProcessInfo->hProcess, 0, 0, (LPTHREAD_START_ROUTINE)debugBreakAddr, 0, CREATE_SUSPENDED, &dwThreadId);
+    if(!hThread)
+    {
+        dputs("Failed to create thread in debuggee");
+        return STATUS_ERROR;
+    }
+    dprintf("Created thread with ThreadId %X\n", dwThreadId);
     dbgsetispausedbyuser(true);
-    DebugBreakProcess(fdProcessInfo->hProcess);
+    ResumeThread(hThread);
+    CloseHandle(hThread);
     return STATUS_CONTINUE;
 }
 

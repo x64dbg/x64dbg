@@ -61,6 +61,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmMemorySpaces = false;
     settings.disasmUppercase = false;
     settings.disasmOnlyCipAutoComments = false;
+    settings.disasmTabBetweenMnemonicAndArguments = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -112,6 +113,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "UndecorateSymbolNames", &settings.engineUndecorateSymbolNames);
     GetSettingBool("Engine", "EnableDebugPrivilege", &settings.engineEnableDebugPrivilege);
     GetSettingBool("Engine", "EnableSourceDebugging", &settings.engineEnableSourceDebugging);
+    GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
+    GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -136,6 +139,8 @@ void SettingsDialog::LoadSettings()
     ui->chkUndecorateSymbolNames->setChecked(settings.engineUndecorateSymbolNames);
     ui->chkEnableDebugPrivilege->setChecked(settings.engineEnableDebugPrivilege);
     ui->chkEnableSourceDebugging->setChecked(settings.engineEnableSourceDebugging);
+    ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
+    ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -161,10 +166,12 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "MemorySpaces", &settings.disasmMemorySpaces);
     GetSettingBool("Disassembler", "Uppercase", &settings.disasmUppercase);
     GetSettingBool("Disassembler", "OnlyCipAutoComments", &settings.disasmOnlyCipAutoComments);
+    GetSettingBool("Disassembler", "TabbedMnemonic", &settings.disasmTabBetweenMnemonicAndArguments);
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkMemorySpaces->setChecked(settings.disasmMemorySpaces);
     ui->chkUppercase->setChecked(settings.disasmUppercase);
     ui->chkOnlyCipAutoComments->setChecked(settings.disasmOnlyCipAutoComments);
+    ui->chkTabBetweenMnemonicAndArguments->setChecked(settings.disasmTabBetweenMnemonicAndArguments);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -233,6 +240,8 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
     BridgeSettingSetUint("Engine", "EnableDebugPrivilege", settings.engineEnableDebugPrivilege);
     BridgeSettingSetUint("Engine", "EnableSourceDebugging", settings.engineEnableSourceDebugging);
+    BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
+    BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -249,6 +258,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "MemorySpaces", settings.disasmMemorySpaces);
     BridgeSettingSetUint("Disassembler", "Uppercase", settings.disasmUppercase);
     BridgeSettingSetUint("Disassembler", "OnlyCipAutoComments", settings.disasmOnlyCipAutoComments);
+    BridgeSettingSetUint("Disassembler", "TabbedMnemonic", settings.disasmTabBetweenMnemonicAndArguments);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -500,6 +510,16 @@ void SettingsDialog::on_chkEnableSourceDebugging_stateChanged(int arg1)
     settings.engineEnableSourceDebugging = arg1 == Qt::Checked;
 }
 
+void SettingsDialog::on_chkDisableDatabaseCompression_stateChanged(int arg1)
+{
+    settings.engineDisableDatabaseCompression = arg1 == Qt::Checked;
+}
+
+void SettingsDialog::on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1)
+{
+    settings.engineSaveDatabaseInProgramDirectory = arg1 == Qt::Checked;
+}
+
 void SettingsDialog::on_btnAddRange_clicked()
 {
     ExceptionRangeDialog exceptionRange(this);
@@ -568,4 +588,9 @@ void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
         settings.disasmOnlyCipAutoComments = false;
     else
         settings.disasmOnlyCipAutoComments = true;
+}
+
+void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
+{
+    settings.disasmTabBetweenMnemonicAndArguments = arg1 == Qt::Checked;
 }

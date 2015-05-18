@@ -79,3 +79,13 @@ PLUG_IMPEXP bool _plugin_menuclear(int hMenu)
 {
     return pluginmenuclear(hMenu);
 }
+
+PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon)
+{
+    pluginmenuseticon(hMenu, icon);
+}
+
+PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
+{
+    pluginmenuentryseticon(pluginHandle, hEntry, icon);
+}

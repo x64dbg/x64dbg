@@ -221,18 +221,22 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
     SHARED_ACQUIRE(LockBreakpoints);
 
     // Loop each entry, executing the user's callback
-    bool callbackStatus = false;
+    bool callbackStatus = true;
 
-    for(auto & i : breakpoints)
+    auto i = breakpoints.begin();
+    while(i != breakpoints.end())
     {
+        auto j = i;
+        ++i; //increment here, because the callback might remove the current entry
+
         // If a module name was sent, check it
         if(Module && Module[0] != '\0')
         {
-            if(strcmp(i.second.mod, Module) != 0)
+            if(strcmp(j->second.mod, Module) != 0)
                 continue;
         }
 
-        BREAKPOINT bpInfo = i.second;
+        BREAKPOINT bpInfo = j->second;
         bpInfo.addr += ModBaseFromName(bpInfo.mod);
         bpInfo.active = MemIsValidReadPtr(bpInfo.addr);
 

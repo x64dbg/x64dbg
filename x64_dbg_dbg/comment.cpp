@@ -59,7 +59,11 @@ bool CommentGet(uint Address, char* Text)
     if(found == comments.end())
         return false;
 
-    strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
+    if(found->second.manual)  //autocomment
+        strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
+    else
+        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", found->second.text);
+
     return true;
 }
 

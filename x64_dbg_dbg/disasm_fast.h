@@ -2,9 +2,9 @@
 #define _DISASM_FAST_H
 
 #include "_global.h"
-#include "BeaEngine\BeaEngine.h"
+#include "capstone_wrapper.h"
 
-void fillbasicinfo(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo);
+void fillbasicinfo(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo);
 bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 

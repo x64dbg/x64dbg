@@ -3,6 +3,7 @@
 
 #include "Disassembly.h"
 #include "GotoDialog.h"
+#include "SourceViewerManager.h"
 
 class CPUDisassembly : public Disassembly
 {
@@ -25,6 +26,7 @@ public:
 
 signals:
     void displayReferencesWidget();
+    void displaySourceManagerWidget();
     void showPatches();
 
 public slots:
@@ -69,9 +71,9 @@ public slots:
     void copyAddress();
     void copyDisassembly();
     void findCommand();
+    void openSource();
 
 private:
-
     // Menus
     QMenu* mBinaryMenu;
     QMenu* mGotoMenu;
@@ -121,6 +123,7 @@ private:
     QAction* mCopySelectionNoBytes;
     QAction* mCopyAddress;
     QAction* mCopyDisassembly;
+    QAction* mOpenSource;
 
     GotoDialog* mGoto;
 };

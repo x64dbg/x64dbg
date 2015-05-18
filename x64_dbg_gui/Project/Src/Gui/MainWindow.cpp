@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int)), this, SLOT(clearMenu(int)));
     connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
+    connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
 
     //setup menu api
     initMenuApi();
@@ -72,6 +74,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSourceViewManager->setWindowTitle("Source");
     mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
     mSourceViewManager->hide();
+    connect(mSourceViewManager, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
@@ -202,6 +205,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
 
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -503,8 +507,9 @@ void MainWindow::displayAboutWidget()
     QString title = "About x32dbg";
 #endif
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:\nhttp://x64dbg.com\n\nAttribution:\nIcons8 (http://icons8.com)\nYusuke Kamiyamane (http://p.yusukekamiyamane.com)\n\nCompiled on:\n"__DATE__", "__TIME__);
+    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>"__DATE__", "__TIME__);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
+    msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -899,6 +904,33 @@ void MainWindow::removeMenuEntry(int hEntry)
             delete entry.mAction;
             mEntryList.erase(mEntryList.begin() + i);
             break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
+{
+    for(int i = 0; i < mEntryList.size(); i++)
+    {
+        if(mEntryList.at(i).hEntry == hEntry)
+        {
+            const MenuEntryInfo & entry = mEntryList.at(i);
+            entry.mAction->setIcon(icon);
+            break;
+        }
+    }
+    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::setIconMenu(int hMenu, QIcon icon)
+{
+    for(int i = 0; i < mMenuList.size(); i++)
+    {
+        if(mMenuList.at(i).hMenu == hMenu)
+        {
+            const MenuInfo & menu = mMenuList.at(i);
+            menu.mMenu->setIcon(icon);
         }
     }
     Bridge::getBridge()->setResult();

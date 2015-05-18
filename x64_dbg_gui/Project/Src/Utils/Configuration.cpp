@@ -41,6 +41,8 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#808080"));
     defaultColors.insert("DisassemblyAutoCommentBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyFunctionColor", QColor("#000000"));
+    defaultColors.insert("DisassemblyLoopColor", QColor("#000000"));
 
     defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
@@ -157,6 +159,7 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("Uppercase", false);
     disassemblyBool.insert("FindCommandEntireBlock", false);
     disassemblyBool.insert("OnlyCipAutoComments", false);
+    disassemblyBool.insert("TabbedMnemonic", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     //uint settings

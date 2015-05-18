@@ -370,9 +370,39 @@ void Bridge::emitSymbolRefreshCurrent()
     emit symbolRefreshCurrent();
 }
 
-void Bridge::emitLoadSourceFile(const QString path, int line)
+void Bridge::emitLoadSourceFile(const QString path, int line, int selection)
 {
-    emit loadSourceFile(path, line);
+    emit loadSourceFile(path, line, selection);
+}
+
+void Bridge::emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon)
+{
+    BridgeResult result;
+    if(!icon)
+        emit setIconMenuEntry(hEntry, QIcon());
+    else
+    {
+        QImage img;
+        img.loadFromData((uchar*)icon->data, icon->size);
+        QIcon qIcon(QPixmap::fromImage(img));
+        emit setIconMenuEntry(hEntry, qIcon);
+    }
+    result.Wait();
+}
+
+void Bridge::emitSetMenuIcon(int hMenu, const ICONDATA* icon)
+{
+    BridgeResult result;
+    if(!icon)
+        emit setIconMenu(hMenu, QIcon());
+    else
+    {
+        QImage img;
+        img.loadFromData((uchar*)icon->data, icon->size);
+        QIcon qIcon(QPixmap::fromImage(img));
+        emit setIconMenu(hMenu, qIcon);
+    }
+    result.Wait();
 }
 
 /************************************************************************************
@@ -768,6 +798,18 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_LOAD_SOURCE_FILE:
     {
         Bridge::getBridge()->emitLoadSourceFile(QString((const char*)param1), (int)param2);
+    }
+    break;
+
+    case GUI_MENU_SET_ICON:
+    {
+        Bridge::getBridge()->emitSetMenuIcon((int)param1, (const ICONDATA*)param2);
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_ICON:
+    {
+        Bridge::getBridge()->emitSetMenuEntryIcon((int)param1, (const ICONDATA*)param2);
     }
     break;
 

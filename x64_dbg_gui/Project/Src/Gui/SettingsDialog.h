@@ -44,6 +44,8 @@ private slots:
     void on_chkUndecorateSymbolNames_stateChanged(int arg1);
     void on_chkEnableDebugPrivilege_stateChanged(int arg1);
     void on_chkEnableSourceDebugging_stateChanged(int arg1);
+    void on_chkDisableDatabaseCompression_stateChanged(int arg1);
+    void on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1);
     //Exception tab
     void on_btnAddRange_clicked();
     void on_btnDeleteRange_clicked();
@@ -53,6 +55,7 @@ private slots:
     void on_chkMemorySpaces_stateChanged(int arg1);
     void on_chkUppercase_stateChanged(int arg1);
     void on_chkOnlyCipAutoComments_stateChanged(int arg1);
+    void on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
@@ -107,6 +110,8 @@ private:
         bool engineUndecorateSymbolNames;
         bool engineEnableDebugPrivilege;
         bool engineEnableSourceDebugging;
+        bool engineSaveDatabaseInProgramDirectory;
+        bool engineDisableDatabaseCompression;
         //Exception Tab
         QList<RangeStruct>* exceptionRanges;
         //Disasm Tab
@@ -114,6 +119,7 @@ private:
         bool disasmMemorySpaces;
         bool disasmUppercase;
         bool disasmOnlyCipAutoComments;
+        bool disasmTabBetweenMnemonicAndArguments;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

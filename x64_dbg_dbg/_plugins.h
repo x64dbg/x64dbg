@@ -210,6 +210,8 @@ PLUG_IMPEXP int _plugin_menuadd(int hMenu, const char* title);
 PLUG_IMPEXP bool _plugin_menuaddentry(int hMenu, int hEntry, const char* title);
 PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu);
 PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
+PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon);
+PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
 
 #ifdef __cplusplus
 }

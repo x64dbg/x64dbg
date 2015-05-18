@@ -37,6 +37,7 @@ void MemoryMapView::setupContextMenu()
     mFollowDisassembly->setShortcut(QKeySequence("enter"));
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
 
     //Yara
     mYara = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);

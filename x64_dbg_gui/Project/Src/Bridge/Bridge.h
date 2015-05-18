@@ -83,7 +83,9 @@ public:
     void emitUpdatePatches();
     void emitUpdateCallStack();
     void emitSymbolRefreshCurrent();
-    void emitLoadSourceFile(const QString path, int line = 0);
+    void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
+    void emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon);
+    void emitSetMenuIcon(int hMenu, const ICONDATA* icon);
 
     //Public variables
     void* winId;
@@ -149,7 +151,9 @@ signals:
     void updatePatches();
     void updateCallStack();
     void symbolRefreshCurrent();
-    void loadSourceFile(const QString path, int line);
+    void loadSourceFile(const QString path, int line, int selection);
+    void setIconMenuEntry(int hEntry, QIcon icon);
+    void setIconMenu(int hMenu, QIcon icon);
 
 private:
     QMutex* mBridgeMutex;

@@ -161,6 +161,15 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
         AddToken(instr, TokenSpace, " ", 0);
         AddToken(instr, TokenMnemonicFar, "far", 0);
     }
+    if(ConfigBool("Disassembler", "TabbedMnemonic"))
+    {
+        int spaceCount = 7 - mnemonic.length();
+        if(spaceCount > 0)
+        {
+            for(int i = 0; i < spaceCount; i++)
+                AddToken(instr, TokenSpace, " ", 0);
+        }
+    }
 }
 
 QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module)
@@ -205,7 +214,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         AddToken(instr, TokenComma, ",", 0);
         AddToken(instr, TokenArgumentSpace, " ", 0);
     }
-    else //no arg yet (only prefix/mnemonic
+    else //no arg yet (only prefix/mnemonic)
         AddToken(instr, TokenSpace, " ", 0);
 
     //print argument
@@ -642,7 +651,7 @@ bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b,
 {
     if(!a || !b)
         return false;
-    if(a->value.size != 0) //we have a value
+    if(a->value.size != 0 && b->value.size != 0) //we have a value
     {
         if(!ignoreSize && a->value.size != b->value.size)
             return false;

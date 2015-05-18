@@ -25,6 +25,7 @@
 #include "patternfind.h"
 #include "module.h"
 #include "stringformat.h"
+#include "filereader.h"
 
 static bool bRefinit = false;
 
@@ -405,20 +406,20 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbLoaddb(int argc, char* argv[])
+CMDRESULT cbInstrLoaddb(int argc, char* argv[])
 {
     dbload();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbSavedb(int argc, char* argv[])
+CMDRESULT cbInstrSavedb(int argc, char* argv[])
 {
     dbsave();
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbAssemble(int argc, char* argv[])
+CMDRESULT cbInstrAssemble(int argc, char* argv[])
 {
     if(argc < 3)
     {
@@ -452,7 +453,7 @@ CMDRESULT cbAssemble(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbFunctionAdd(int argc, char* argv[])
+CMDRESULT cbInstrFunctionAdd(int argc, char* argv[])
 {
     if(argc < 3)
     {
@@ -473,7 +474,7 @@ CMDRESULT cbFunctionAdd(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbFunctionDel(int argc, char* argv[])
+CMDRESULT cbInstrFunctionDel(int argc, char* argv[])
 {
     if(argc < 2)
     {
@@ -812,7 +813,7 @@ struct VALUERANGE
     uint end;
 };
 
-static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -847,14 +848,14 @@ static bool cbRefFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }
@@ -905,7 +906,7 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -935,14 +936,14 @@ bool cbRefStr(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinf
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
         char dispString[1024] = "";
         if(strtype == str_ascii)
             sprintf(dispString, "\"%s\"", string);
@@ -1233,7 +1234,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -1253,14 +1254,14 @@ static bool cbModCallFind(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REF
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }
@@ -1488,7 +1489,7 @@ CMDRESULT cbInstrSleep(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
     if(!disasm || !basicinfo) //initialize
     {
@@ -1503,14 +1504,14 @@ static bool cbFindAsm(DISASM* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->VirtualAddr);
+        sprintf(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly((duint)disasm->VirtualAddr, disassembly))
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->CompleteInstr);
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
     }
     return found;
 }
@@ -1677,7 +1678,11 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     }
     uint addr = 0;
     if(argc < 3 || !valfromstring(argv[2], &addr))
-        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    {
+        SELECTIONDATA sel;
+        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+        addr = sel.start;
+    }
     uint size = 0;
     if(argc >= 4)
         if(!valfromstring(argv[3], &size))
@@ -1685,7 +1690,6 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(!size)
         addr = MemFindBaseAddr(addr, &size);
     uint base = addr;
-    dprintf("%p[%p]\n", base, size);
     Memory<uint8_t*> data(size);
     if(!MemRead((void*)base, data(), size, 0))
     {
@@ -1693,10 +1697,10 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    FILE* rulesFile = 0;
-    if(_wfopen_s(&rulesFile, StringUtils::Utf8ToUtf16(argv[1]).c_str(), L"rb"))
+    String rulesContent;
+    if(!FileReader::ReadAllText(argv[1], rulesContent))
     {
-        dputs("failed to open yara rules file!");
+        dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
 
@@ -1705,9 +1709,8 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     if(yr_compiler_create(&yrCompiler) == ERROR_SUCCESS)
     {
         yr_compiler_set_callback(yrCompiler, yaraCompilerCallback, 0);
-        if(yr_compiler_add_file(yrCompiler, rulesFile, NULL, argv[1]) == 0) //no errors found
+        if(yr_compiler_add_string(yrCompiler, rulesContent.c_str(), nullptr) == 0)  //no errors found
         {
-            fclose(rulesFile);
             YR_RULES* yrRules;
             if(yr_compiler_get_rules(yrCompiler, &yrRules) == ERROR_SUCCESS)
             {
@@ -1756,17 +1759,11 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 dputs("error while getting the rules!");
         }
         else
-        {
-            fclose(rulesFile);
             dputs("errors in the rules file!");
-        }
         yr_compiler_destroy(yrCompiler);
     }
     else
-    {
-        fclose(rulesFile);
         dputs("yr_compiler_create failed!");
-    }
     return bSuccess ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
@@ -1802,5 +1799,194 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
         formatArgs.push_back(argv[i]);
     String logString = stringformat(argv[1], formatArgs);
     dputs(logString.c_str());
+    return STATUS_CONTINUE;
+}
+
+#include "capstone\capstone.h"
+#include "capstone_wrapper.h"
+
+CMDRESULT cbInstrCapstone(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments...");
+        return STATUS_ERROR;
+    }
+
+    uint addr = 0;
+    if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
+    {
+        dprintf("invalid address \"%s\"\n", argv[1]);
+        return STATUS_ERROR;
+    }
+
+    unsigned char data[16];
+    if(!MemRead((void*)addr, data, sizeof(data), 0))
+    {
+        dprintf("could not read memory at %p\n", addr);
+        return STATUS_ERROR;
+    }
+
+    Capstone cp;
+    if(cp.GetError())   //there was an error opening the handle
+    {
+        dprintf("cs_open() failed, error code %u\n", cp.GetError());
+        return STATUS_ERROR;
+    }
+
+    if(!cp.Disassemble(addr, data))
+    {
+        dprintf("failed to disassemble, error code %u!", cp.GetError());
+        return STATUS_ERROR;
+    }
+
+    const cs_insn* instr = cp.GetInstr();
+    const cs_x86 & x86 = cp.x86();
+    int argcount = x86.op_count;
+    dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    for(int i = 0; i < argcount; i++)
+    {
+        const cs_x86_op & op = x86.operands[i];
+        dprintf("operand \"%s\" %d, ", cp.OperandText(i).c_str(), i + 1);
+        switch(op.type)
+        {
+        case X86_OP_REG:
+            dprintf("register: %s\n", cp.RegName((x86_reg)op.reg));
+            break;
+        case X86_OP_IMM:
+            dprintf("immediate: 0x%p\n", op.imm);
+            break;
+        case X86_OP_MEM:
+        {
+            //[base + index * scale +/- disp]
+            const x86_op_mem & mem = op.mem;
+            dprintf("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
+                    cp.RegName((x86_reg)mem.segment),
+                    cp.RegName((x86_reg)mem.base),
+                    cp.RegName((x86_reg)mem.index),
+                    mem.scale,
+                    mem.disp);
+        }
+        break;
+        case X86_OP_FP:
+            dprintf("float: %f\n", op.fp);
+            break;
+        }
+    }
+
+    return STATUS_CONTINUE;
+}
+
+#include "functionanalysis.h"
+
+CMDRESULT cbInstrAnalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    FunctionAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrVisualize(int argc, char* argv[])
+{
+    if(argc < 3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint start;
+    uint maxaddr;
+    if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
+    {
+        dputs("invalid arguments!");
+        return STATUS_ERROR;
+    }
+    //actual algorithm
+    //make sure to set these options in the INI (rest the default theme of x64dbg):
+    //DisassemblyBookmarkBackgroundColor = #00FFFF
+    //DisassemblyBookmarkColor = #000000
+    //DisassemblyHardwareBreakpointBackgroundColor = #00FF00
+    //DisassemblyHardwareBreakpointColor = #000000
+    //DisassemblyBreakpointBackgroundColor = #FF0000
+    //DisassemblyBreakpointColor = #000000
+    {
+        //initialize
+        Capstone _cp;
+        uint _base = start;
+        uint _size = maxaddr - start;
+        Memory<unsigned char*> _data(_size);
+        MemRead((void*)_base, _data(), _size, nullptr);
+        FunctionClear();
+
+        //linear search with some trickery
+        uint end = 0;
+        uint jumpback = 0;
+        for(uint addr = start, fardest = 0; addr < maxaddr;)
+        {
+            //update GUI
+            BpClear();
+            BookmarkClear();
+            LabelClear();
+            SetContextDataEx(fdProcessInfo->hThread, UE_CIP, addr);
+            if(end)
+                BpNew(end, true, false, 0, BPNORMAL, 0, nullptr);
+            if(jumpback)
+                BookmarkSet(jumpback, false);
+            if(fardest)
+                BpNew(fardest, true, false, 0, BPHARDWARE, 0, nullptr);
+            DebugUpdateGui(addr, false);
+            Sleep(300);
+
+            //continue algorithm
+            const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data + (addr - _base) : nullptr;
+            if(_cp.Disassemble(addr, curData, MAX_DISASM_BUFFER))
+            {
+                if(addr + _cp.Size() > maxaddr)    //we went past the maximum allowed address
+                    break;
+
+                const cs_x86_op & operand = _cp.x86().operands[0];
+                if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)    //jump
+                {
+                    uint dest = (uint)operand.imm;
+
+                    if(dest >= maxaddr)    //jump across function boundaries
+                    {
+                        //currently unused
+                    }
+                    else if(dest > addr && dest > fardest)    //save the farthest JXX destination forward
+                    {
+                        fardest = dest;
+                    }
+                    else if(end && dest < end && _cp.GetId() == X86_INS_JMP)    //save the last JMP backwards
+                    {
+                        jumpback = addr;
+                    }
+                }
+                else if(_cp.InGroup(CS_GRP_RET))    //possible function end?
+                {
+                    end = addr;
+                    if(fardest < addr)   //we stop if the farthest JXX destination forward is before this RET
+                        break;
+                }
+
+                addr += _cp.Size();
+            }
+            else
+                addr++;
+        }
+        end = end < jumpback ? jumpback : end;
+
+        //update GUI
+        FunctionAdd(start, end, false);
+        BpClear();
+        BookmarkClear();
+        SetContextDataEx(fdProcessInfo->hThread, UE_CIP, start);
+        DebugUpdateGui(start, false);
+    }
     return STATUS_CONTINUE;
 }
