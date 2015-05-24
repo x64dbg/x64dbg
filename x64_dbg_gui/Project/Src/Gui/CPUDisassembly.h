@@ -46,6 +46,8 @@ public slots:
     void assembleAt();
     void gotoExpression();
     void gotoFileOffset();
+    void gotoStartSlot();
+    void gotoEndSlot();
     void followActionSlot();
     void gotoPrevious();
     void gotoNext();
@@ -110,6 +112,8 @@ private:
     QAction* mGotoFileOffset;
     QAction* mGotoPrevious;
     QAction* mGotoNext;
+    QAction* mGotoStart;
+    QAction* mGotoEnd;
     QAction* mReferenceSelectedAddress;
     QAction* mSearchCommand;
     QAction* mSearchConstant;

@@ -277,6 +277,7 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addAction(mSetNewOriginHere);
 
         // Goto Menu
+        mGotoMenu->clear();
         mGotoMenu->addAction(mGotoOrigin);
         if(historyHasPrevious())
             mGotoMenu->addAction(mGotoPrevious);
@@ -286,6 +287,8 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         char modname[MAX_MODULE_SIZE] = "";
         if(DbgGetModuleAt(wVA, modname))
             mGotoMenu->addAction(mGotoFileOffset);
+        mGotoMenu->addAction(mGotoStart);
+        mGotoMenu->addAction(mGotoEnd);
         wMenu->addMenu(mGotoMenu);
         wMenu->addSeparator();
 
@@ -472,7 +475,21 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // File offset action
     mGotoFileOffset = new QAction("File Offset", this);
+    mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffset()));
+
+    // Goto->Start of page
+    mGotoStart = new QAction("Start of Page", this);
+    mGotoStart->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoStart);
+    connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
+
+    // Goto->End of page
+    mGotoEnd = new QAction("End of Page", this);
+    mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoEnd);
+    connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
 
     //-------------------- Follow in Dump ----------------------------
     // Menu
@@ -589,6 +606,9 @@ void CPUDisassembly::refreshShortcutsSlot()
     mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
     mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoStart->setShortcut(ConfigShortcut("ActionGotoStart"));
+    mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
+    mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
     mReferenceSelectedAddress->setShortcut(ConfigShortcut("ActionFindReferencesToSelectedAddress"));
     mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
@@ -966,6 +986,18 @@ void CPUDisassembly::gotoFileOffset()
     uint_t value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoStartSlot()
+{
+    uint_t dest = mMemPage->getBase();
+    DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
+}
+
+void CPUDisassembly::gotoEndSlot()
+{
+    uint_t dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * 16);
+    DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
 }
 
 void CPUDisassembly::followActionSlot()

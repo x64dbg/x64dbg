@@ -41,6 +41,8 @@ public slots:
     void setLabelSlot();
     void gotoExpressionSlot();
     void gotoFileOffsetSlot();
+    void gotoStartSlot();
+    void gotoEndSlot();
 
     void hexAsciiSlot();
     void hexUnicodeSlot();
@@ -78,6 +80,7 @@ public slots:
     void followStackSlot();
     void findReferencesSlot();
     void followInDisasmSlot();
+    void followDataSlot();
 
     void selectionUpdatedSlot();
     void yaraSlot();
@@ -118,6 +121,8 @@ private:
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
     QAction* mGotoFileOffset;
+    QAction* mGotoStart;
+    QAction* mGotoEnd;
 
     QAction* mFollowInDisasm;
 
@@ -167,6 +172,7 @@ private:
     QAction* mYaraAction;
     QAction* mDataCopyAction;
     QAction* mUndoSelection;
+    QAction* mFollowData;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

@@ -142,6 +142,14 @@ void CPUDump::setupContextMenu()
     mFollowInDisasm = new QAction("Follow in Disassembler", this);
     connect(mFollowInDisasm, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
 
+    //Follow DWORD/QWORD
+#ifdef _WIN64
+    mFollowData = new QAction("&Follow QWORD in Disassembler", this);
+#else //x86
+    mFollowData = new QAction("&Follow DWORD in Disassembler", this);
+#endif //_WIN64
+    connect(mFollowData, SIGNAL(triggered()), this, SLOT(followDataSlot()));
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -267,8 +275,24 @@ void CPUDump::setupContextMenu()
 
     // Goto->File offset
     mGotoFileOffset = new QAction("File Offset", this);
+    mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
+
+    // Goto->Start of page
+    mGotoStart = new QAction("Start of Page", this);
+    mGotoStart->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoStart);
+    connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
+    mGotoMenu->addAction(mGotoStart);
+
+    // Goto->End of page
+    mGotoEnd = new QAction("End of Page", this);
+    mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoEnd);
+    connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
+    mGotoMenu->addAction(mGotoEnd);
 
     //Hex menu
     mHexMenu = new QMenu("&Hex", this);
@@ -380,6 +404,9 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoStart->setShortcut(ConfigShortcut("ActionGotoStart"));
+    mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
+    mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
     mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
 }
 
@@ -472,6 +499,9 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 {
     if(!DbgIsDebugging())
         return;
+
+    int_t selectedAddr = rvaToVa(getInitialSelection());
+
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addMenu(mBinaryMenu);
     int_t start = rvaToVa(getSelectionStart());
@@ -481,6 +511,12 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     if(DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0))
         wMenu->addAction(mFollowStack);
     wMenu->addAction(mFollowInDisasm);
+
+    uint_t ptr = 0;
+    DbgMemRead(selectedAddr, (unsigned char*)&ptr, sizeof(uint_t));
+    if(DbgMemIsValidReadPtr(ptr))
+        wMenu->addAction(mFollowData);
+
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
@@ -496,8 +532,8 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
 
-    int_t selectedAddr = rvaToVa(getInitialSelection());
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_hardware) == bp_hardware) //hardware breakpoint set
+
+    if((DbgGetBpxTypeAt(selectedAddr) & bp_hardware) == bp_hardware) //hardware breakpoint set
     {
         mHardwareAccessMenu->menuAction()->setVisible(false);
         mHardwareWriteMenu->menuAction()->setVisible(false);
@@ -511,7 +547,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         mHardwareExecute->setVisible(true);
         mHardwareRemove->setVisible(false);
     }
-    if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
+    if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
         mMemoryWriteMenu->menuAction()->setVisible(false);
@@ -623,6 +659,18 @@ void CPUDump::gotoFileOffsetSlot()
     uint_t value = DbgValFromString(mGotoDialog.expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     DbgCmdExec(QString().sprintf("dump \"%p\"", value).toUtf8().constData());
+}
+
+void CPUDump::gotoStartSlot()
+{
+    uint_t dest = mMemPage->getBase();
+    DbgCmdExec(QString().sprintf("dump \"%p\"", dest).toUtf8().constData());
+}
+
+void CPUDump::gotoEndSlot()
+{
+    uint_t dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
+    DbgCmdExec(QString().sprintf("dump \"%p\"", dest).toUtf8().constData());
 }
 
 void CPUDump::hexAsciiSlot()
@@ -1341,6 +1389,12 @@ void CPUDump::followInDisasmSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
+}
+
+void CPUDump::followDataSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("disasm [%1]").arg(addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
