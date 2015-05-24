@@ -259,6 +259,8 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("ActionFindReferences", Shortcut(tr("Actions -> Find References"), "Ctrl+R"));
     defaultShortcuts.insert("ActionHighlightingMode", Shortcut(tr("Actions -> Highlighting Mode"), "Ctrl+H"));
     defaultShortcuts.insert("ActionFind", Shortcut(tr("Actions -> Find"), "Ctrl+F"));
+    defaultShortcuts.insert("ActionDecompileFunction", Shortcut(tr("Actions -> Decompile Function"), "F5"));
+    defaultShortcuts.insert("ActionDecompileSelection", Shortcut(tr("Actions -> Decompile Selection"), "Shift+F5"));
 
     defaultShortcuts.insert("ActionIncreaseRegister", Shortcut(tr("Actions -> Increase Register"), "+"));
     defaultShortcuts.insert("ActionDecreaseRegister", Shortcut(tr("Actions -> Decrease Register"), "-"));

@@ -246,6 +246,13 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         setupFollowReferenceMenu(wVA, mFollowMenu, false);
         if(DbgFunctions()->GetSourceFromAddr(wVA, 0, 0))
             wMenu->addAction(mOpenSource);
+
+        mDecompileMenu->clear();
+        if(DbgFunctionGet(wVA, 0, 0))
+            mDecompileMenu->addAction(mDecompileFunction);
+        mDecompileMenu->addAction(mDecompileSelection);
+        wMenu->addMenu(mDecompileMenu);
+
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
@@ -524,6 +531,20 @@ void CPUDisassembly::setupRightClickContextMenu()
     mOpenSource = new QAction(QIcon(":/icons/images/source.png"), "Open Source File", this);
     connect(mOpenSource, SIGNAL(triggered()), this, SLOT(openSource()));
 
+    // Decompile menu
+    mDecompileMenu = new QMenu("Decompile");
+    mDecompileMenu->setIcon(QIcon(":/icons/images/snowman.png"));
+
+    // Decompile selection
+    mDecompileSelection = new QAction("Selection", this);
+    mDecompileSelection->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mDecompileSelection);
+    connect(mDecompileSelection, SIGNAL(triggered()), this, SLOT(decompileSelection()));
+
+    mDecompileFunction = new QAction("Function", this);
+    mDecompileFunction->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mDecompileFunction);
+    connect(mDecompileFunction, SIGNAL(triggered()), this, SLOT(decompileFunction()));
 
     //-------------------- Find references to -----------------------
     // Menu
@@ -615,6 +636,8 @@ void CPUDisassembly::refreshShortcutsSlot()
     mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
     mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
     mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
+    mDecompileFunction->setShortcut(ConfigShortcut("ActionDecompileFunction"));
+    mDecompileSelection->setShortcut(ConfigShortcut("ActionDecompileSelection"));
 }
 
 void CPUDisassembly::gotoOrigin()
@@ -1361,4 +1384,24 @@ void CPUDisassembly::openSource()
         return;
     Bridge::getBridge()->emitLoadSourceFile(szSourceFile, 0, line);
     emit displaySourceManagerWidget();
+}
+
+void CPUDisassembly::decompileSelection()
+{
+    int_t addr = rvaToVa(getSelectionStart());
+    int_t size = getSelectionSize();
+    emit displaySnowmanWidget();
+    emit decompileAt(addr, addr + size);
+}
+
+void CPUDisassembly::decompileFunction()
+{
+    int_t addr = rvaToVa(getInitialSelection());
+    duint start;
+    duint end;
+    if(DbgFunctionGet(addr, &start, &end))
+    {
+        emit displaySnowmanWidget();
+        emit decompileAt(start, end);
+    }
 }

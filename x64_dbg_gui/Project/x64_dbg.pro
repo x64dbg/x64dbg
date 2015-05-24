@@ -200,30 +200,25 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
+INCLUDEPATH += $$PWD/Src/ThirdPartyLibs/snowman
 
 LIBS += -luser32
 
- DEFINES += NOMINMAX
+DEFINES += NOMINMAX
 
 !contains(QMAKE_HOST.arch, x86_64) {
     #message("x86 build")
+    ## Windows x86 (32bit) specific build here
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
     LIBS += -L"$$PWD/Src/Bridge/" -lx32bridge
-    ## Windows x86 (32bit) specific build here
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
 } else {
     #message("x86_64 build")
+    ## Windows x64 (64bit) specific build here
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
     LIBS += -L"$$PWD/Src/Bridge/" -lx64bridge
-    ## Windows x64 (64bit) specific build here
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
 }
 
 RESOURCES += \
     resource.qrc
-
-
-
-
-
-
-
-

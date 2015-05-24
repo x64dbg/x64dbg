@@ -86,6 +86,7 @@ public:
     void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
     void emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon);
     void emitSetMenuIcon(int hMenu, const ICONDATA* icon);
+    void emitShowCpu();
 
     //Public variables
     void* winId;
@@ -154,6 +155,7 @@ signals:
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
+    void showCpu();
 
 private:
     QMutex* mBridgeMutex;

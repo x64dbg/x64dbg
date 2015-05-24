@@ -61,5 +61,6 @@
         <file>images/search-for.png</file>
         <file>images/highlight.png</file>
         <file>images/label.png</file>
+        <file>images/snowman.png</file>
     </qresource>
 </RCC>

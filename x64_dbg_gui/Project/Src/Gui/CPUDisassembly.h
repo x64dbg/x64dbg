@@ -28,6 +28,8 @@ signals:
     void displayReferencesWidget();
     void displaySourceManagerWidget();
     void showPatches();
+    void decompileAt(int_t start, int_t end);
+    void displaySnowmanWidget();
 
 public slots:
     void refreshShortcutsSlot();
@@ -74,6 +76,8 @@ public slots:
     void copyDisassembly();
     void findCommand();
     void openSource();
+    void decompileSelection();
+    void decompileFunction();
 
 private:
     // Menus
@@ -128,6 +132,10 @@ private:
     QAction* mCopyAddress;
     QAction* mCopyDisassembly;
     QAction* mOpenSource;
+
+    QMenu* mDecompileMenu;
+    QAction* mDecompileSelection;
+    QAction* mDecompileFunction;
 
     GotoDialog* mGoto;
 };

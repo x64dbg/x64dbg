@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
+    connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
     //setup menu api
     initMenuApi();
@@ -109,7 +110,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
     // Reference Manager
-    mReferenceManager = new ReferenceManager();
+    mReferenceManager = new ReferenceManager(this);
     Bridge::getBridge()->referenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle("References");
     mReferenceManager->setWindowIcon(QIcon(":/icons/images/search.png"));
@@ -119,6 +120,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle("Threads");
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
+
+    // Snowman View (decompiler)
+    mSnowmanView = CreateSnowman(this);
+    mSnowmanView->setWindowTitle("Snowman");
+    mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
 
     //Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
@@ -134,6 +140,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget->addTab(mSourceViewManager, mSourceViewManager->windowIcon(), mSourceViewManager->windowTitle());
     mTabWidget->addTab(mReferenceManager, mReferenceManager->windowIcon(), mReferenceManager->windowTitle());
     mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
+    mTabWidget->addTab(mSnowmanView, mSnowmanView->windowIcon(), mSnowmanView->windowTitle());
 
     setCentralWidget(mTabWidget);
 
@@ -206,7 +213,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
+    connect(mCpuWidget->mDisas, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
+    connect(mCpuWidget->mDisas, SIGNAL(decompileAt(int_t, int_t)), this, SLOT(decompileAt(int_t, int_t)));
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
@@ -244,6 +253,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
     static bool bExecuteThread = true;
     if(bExecuteThread)
     {
+        CloseSnowman(mSnowmanView);
+        Sleep(100);
         bExecuteThread = false;
         CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
     }
@@ -692,6 +703,13 @@ void MainWindow::displayThreadsWidget()
     setTab(mThreadView);
 }
 
+void MainWindow::displaySnowmanWidget()
+{
+    mSnowmanView->show();
+    mSnowmanView->setFocus();
+    setTab(mSnowmanView);
+}
+
 void MainWindow::openSettings()
 {
     SettingsDialog settings(this);
@@ -1095,4 +1113,9 @@ void MainWindow::changeCommandLine()
         GuiUpdateMemoryView();
         GuiAddStatusBarMessage(QString("New command line: " + mLineEdit.editText + "\n").toUtf8().constData());
     }
+}
+
+void MainWindow::decompileAt(int_t start, int_t end)
+{
+    DecompileAt(mSnowmanView, start, end);
 }

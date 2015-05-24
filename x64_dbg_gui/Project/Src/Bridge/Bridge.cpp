@@ -405,6 +405,11 @@ void Bridge::emitSetMenuIcon(int hMenu, const ICONDATA* icon)
     result.Wait();
 }
 
+void Bridge::emitShowCpu()
+{
+    emit showCpu();
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -810,6 +815,12 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_MENU_SET_ENTRY_ICON:
     {
         Bridge::getBridge()->emitSetMenuEntryIcon((int)param1, (const ICONDATA*)param2);
+    }
+    break;
+
+    case GUI_SHOW_CPU:
+    {
+        Bridge::getBridge()->emitShowCpu();
     }
     break;
 

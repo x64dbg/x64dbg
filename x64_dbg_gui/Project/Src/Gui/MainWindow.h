@@ -20,6 +20,7 @@
 #include "StatusLabel.h"
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
+#include "SnowmanView.h"
 
 namespace Ui
 {
@@ -66,6 +67,7 @@ public slots:
     void displaySourceViewWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
+    void displaySnowmanWidget();
     void openSettings();
     void openAppearance();
     void openCalculator();
@@ -100,6 +102,7 @@ public slots:
     void displayAttach();
     void detach();
     void changeCommandLine();
+    void decompileAt(int_t start, int_t end);
 
 private:
     Ui::MainWindow* ui;
@@ -118,6 +121,7 @@ private:
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
+    SnowmanView* mSnowmanView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
