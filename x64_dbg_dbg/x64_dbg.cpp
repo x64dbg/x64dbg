@@ -204,6 +204,7 @@ static void registercommands()
     dbgcmdnew("looplist", cbInstrLoopList, true); //list loops
     dbgcmdnew("capstone", cbInstrCapstone, true); //disassemble using capstone
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
+    dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

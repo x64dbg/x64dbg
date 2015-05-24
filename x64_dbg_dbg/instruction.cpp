@@ -1990,3 +1990,32 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
     }
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrMeminfo(int argc, char* argv[])
+{
+    if(argc < 3)
+    {
+        dputs("usage: meminfo a/r, addr");
+        return STATUS_ERROR;
+    }
+    uint addr;
+    if(!valfromstring(argv[2], &addr))
+    {
+        dputs("invalid argument");
+        return STATUS_ERROR;
+    }
+    if(argv[1][0] == 'a')
+    {
+        unsigned char buf = 0;
+        if(!ReadProcessMemory(fdProcessInfo->hProcess, (void*)addr, &buf, sizeof(buf), nullptr))
+            dputs("ReadProcessMemory failed!");
+        else
+            dprintf("data: %02X\n", buf);
+    }
+    else if(argv[1][0] == 'r')
+    {
+        MemUpdateMap(fdProcessInfo->hProcess);
+        dputs("memory map updated!");
+    }
+    return STATUS_CONTINUE;
+}
