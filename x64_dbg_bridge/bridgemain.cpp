@@ -563,8 +563,10 @@ BRIDGE_IMPEXP bool DbgFunctionGet(duint addr, duint* start, duint* end)
     info.addr = addr;
     if(!_dbg_sendmessage(DBG_FUNCTION_GET, &info, 0))
         return false;
-    *start = info.start;
-    *end = info.end;
+    if(start)
+        *start = info.start;
+    if(end)
+        *end = info.end;
     return true;
 }
 
@@ -1115,6 +1117,11 @@ BRIDGE_IMPEXP void GuiMenuSetIcon(int hMenu, const ICONDATA* icon)
 BRIDGE_IMPEXP void GuiMenuSetEntryIcon(int hEntry, const ICONDATA* icon)
 {
     _gui_sendmessage(GUI_MENU_SET_ENTRY_ICON, (void*)hEntry, (void*)icon);
+}
+
+BRIDGE_IMPEXP void GuiShowCpu()
+{
+    _gui_sendmessage(GUI_SHOW_CPU, 0, 0);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
