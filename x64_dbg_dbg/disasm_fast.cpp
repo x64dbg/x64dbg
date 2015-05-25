@@ -68,7 +68,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         case CS_OP_MEM:
         {
             const x86_op_mem & mem = op.mem;
-            strcpy_s(basicinfo->memory.mnemonic, cp->InstructionText().c_str());
+            strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
             basicinfo->memory.size = (MEMORY_SIZE)op.size;
             if(op.mem.base == X86_REG_RIP)  //rip-relative
             {
