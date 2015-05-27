@@ -85,7 +85,10 @@ void FunctionAnalysis::AnalyseFunctions()
         //dprintf("analysing function %p-??? maxaddr: %p\n", function.start, maxaddr);
         uint end = FindFunctionEnd(function.start, maxaddr);
         if(end)
-            function.end = end;
+        {
+            _cp.Disassemble(end, TranslateAddress(end), MAX_DISASM_BUFFER);
+            function.end = end + _cp.Size() - 1;
+        }
     }
 }
 
