@@ -284,8 +284,6 @@ bool disasmispossiblestring(uint addr)
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(MemIsValidReadPtr(test)) //imports/pointers
-        return false;
     if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
         return true;
     return false;
