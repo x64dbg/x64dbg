@@ -1511,7 +1511,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     else if(mathcontains(string)) //handle math
     {
         int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2 + 1, "valfromstring:newstring");
         if(strstr(string, "[")) //memory brackets: []
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1530,9 +1530,9 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             }
         }
         else
-            strcpy_s(newstring, len * 2, string);
-        Memory<char*> string_(len + 256, "valfromstring:string_");
-        strcpy_s(string_, len + 256, newstring);
+            strcpy_s(newstring, newstring.size(), string);
+        Memory<char*> string_(len + deflen, "valfromstring:string_");
+        strcpy_s(string_, string_.size(), newstring);
         int add = 0;
         bool negative = (*string_ == '-');
         while(mathisoperator(string_[add + negative]) > 2)
@@ -1565,7 +1565,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return true;
         }
         int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2, "valfromstring:newstring");
+        Memory<char*> newstring(len * 2 + 1, "valfromstring:newstring");
         if(strstr(string, "["))
         {
             for(int i = 0, j = 0; i < len; i++)
@@ -1584,7 +1584,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             }
         }
         else
-            strcpy_s(newstring, len * 2, string);
+            strcpy_s(newstring, newstring.size(), string);
         int read_size = sizeof(uint);
         int add = 1;
         if(newstring[2] == ':' and isdigit((newstring[1]))) //@n: (number of bytes to read)

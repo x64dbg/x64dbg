@@ -484,8 +484,6 @@ bool mathfromstring(const char* string, uint* value, bool silent, bool baseonly,
         return valfromstring(string, value, silent, baseonly, value_size, isvar, 0);
     Memory<char*> strleft(len + 1 + negative, "mathfromstring:strleft");
     Memory<char*> strright(len + 1, "mathfromstring:strright");
-    memset(strleft, 0, len + 1);
-    memset(strright, 0, len + 1);
     strncpy(strleft, string - negative, highestop_pos + negative);
     strcpy(strright, string + highestop_pos + 1);
     strcpy(strleft, StringUtils::Trim(strleft).c_str());
