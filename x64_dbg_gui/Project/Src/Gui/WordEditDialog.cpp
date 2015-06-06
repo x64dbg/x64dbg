@@ -9,7 +9,9 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
 #endif
     setModal(true);
 
-    mValidateThread = new WordEditDialogValidateThread(this);
+    mValidateThread = new ValidateExpressionThread();
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(ui->expressionLineEdit, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
 }
 
@@ -45,13 +47,10 @@ uint_t WordEditDialog::getVal()
     return mWord;
 }
 
-void WordEditDialog::validateExpression()
+void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
 {
-    QString expression = ui->expressionLineEdit->text();
-    if(expressionText == expression)
-        return;
-    expressionText = expression;
-    if(DbgIsValidExpression(expression.toUtf8().constData()))
+    Q_UNUSED(validPointer);
+    if(validExpression)
     {
         ui->expressionLineEdit->setStyleSheet("");
         ui->unsignedLineEdit->setStyleSheet("");
@@ -59,7 +58,7 @@ void WordEditDialog::validateExpression()
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
 
         //hex
-        mWord = DbgValFromString(expression.toUtf8().constData());
+        mWord = value;
         uint_t hexWord = 0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;

@@ -90,7 +90,9 @@ SOURCES += \
     Src/Gui/YaraRuleSelectionDialog.cpp \
     Src/Gui/DataCopyDialog.cpp \
     Src/Gui/SourceViewerManager.cpp \
-    Src/Gui/SourceView.cpp
+    Src/Gui/SourceView.cpp \
+    Src/Utils/ValidateExpressionThread.cpp \
+    Src/Utils/MainWindowCloseThread.cpp
 
 
 HEADERS += \
@@ -160,7 +162,9 @@ HEADERS += \
     Src/Gui/DataCopyDialog.h \
     Src/Gui/SourceViewerManager.h \
     Src/Gui/SourceView.h \
-    Src/Utils/StringUtil.h
+    Src/Utils/StringUtil.h \
+    Src/Utils/ValidateExpressionThread.h \
+    Src/Utils/MainWindowCloseThread.h
 
 
 INCLUDEPATH += \

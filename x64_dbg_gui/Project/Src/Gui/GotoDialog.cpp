@@ -20,7 +20,9 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     validRangeStart = 0;
     validRangeEnd = 0;
     fileOffset = false;
-    mValidateThread = new GotoDialogValidateThread(this);
+    mValidateThread = new ValidateExpressionThread();
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(ui->editExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
 
@@ -41,7 +43,7 @@ void GotoDialog::hideEvent(QHideEvent* event)
     mValidateThread->terminate();
 }
 
-void GotoDialog::validateExpression()
+void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
 {
     QString expression = ui->editExpression->text();
     if(expressionText == expression)
@@ -52,7 +54,7 @@ void GotoDialog::validateExpression()
         ui->buttonOk->setEnabled(false);
         expressionText.clear();
     }
-    else if(!DbgIsValidExpression(expression.toUtf8().constData())) //invalid expression
+    else if(!validExpression) //invalid expression
     {
         ui->labelError->setText("<font color='red'><b>Invalid expression...</b></font>");
         ui->buttonOk->setEnabled(false);
@@ -60,7 +62,7 @@ void GotoDialog::validateExpression()
     }
     else if(fileOffset)
     {
-        uint_t offset = DbgValFromString(expression.toUtf8().constData());
+        uint_t offset = value;
         uint_t va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
         if(va)
         {
@@ -78,8 +80,8 @@ void GotoDialog::validateExpression()
     }
     else
     {
-        uint_t addr = DbgValFromString(expression.toUtf8().constData());
-        if(!DbgMemIsValidReadPtr(addr))
+        uint_t addr = value;
+        if(!validPointer)
         {
             ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
             ui->buttonOk->setEnabled(false);

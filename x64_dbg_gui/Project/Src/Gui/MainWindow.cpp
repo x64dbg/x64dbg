@@ -230,19 +230,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     refreshShortcuts();
 
-    bClose = false;
+    //setup close thread and dialog
+    bCanClose = false;
+    mCloseThread = new MainWindowCloseThread();
+    connect(mCloseThread, SIGNAL(canClose()), this, SLOT(canClose()));
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->mDisas->setFocus();
-}
-
-DWORD WINAPI MainWindow::closeThread(void* ptr)
-{
-    DbgExit();
-    MainWindow* mainWindow = (MainWindow*)ptr;
-    mainWindow->bClose = true;
-    mainWindow->close();
-    return 0;
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -250,15 +244,15 @@ void MainWindow::closeEvent(QCloseEvent* event)
     hide(); //hide main window
     mCloseDialog->show();
     mCloseDialog->setFocus();
-    static bool bExecuteThread = true;
+    static volatile bool bExecuteThread = true;
     if(bExecuteThread)
     {
+        bExecuteThread = false;
         CloseSnowman(mSnowmanView);
         Sleep(100);
-        bExecuteThread = false;
-        CloseHandle(CreateThread(0, 0, closeThread, this, 0, 0));
+        mCloseThread->start();
     }
-    if(bClose)
+    if(bCanClose)
         event->accept();
     else
         event->ignore();
@@ -1118,4 +1112,10 @@ void MainWindow::changeCommandLine()
 void MainWindow::decompileAt(int_t start, int_t end)
 {
     DecompileAt(mSnowmanView, start, end);
+}
+
+void MainWindow::canClose()
+{
+    bCanClose = true;
+    close();
 }

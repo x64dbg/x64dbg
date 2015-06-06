@@ -14,7 +14,9 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     ui->txtExpression->setText("0");
     ui->txtExpression->selectAll();
     ui->txtExpression->setFocus();
-    mValidateThread = new CalculatorDialogValidateThread(this);
+    mValidateThread = new ValidateExpressionThread();
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(ui->txtExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
 }
 
 CalculatorDialog::~CalculatorDialog()
@@ -40,13 +42,9 @@ void CalculatorDialog::setExpressionFocus()
     ui->txtExpression->setFocus();
 }
 
-void CalculatorDialog::validateExpression()
+void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
 {
-    QString expression = ui->txtExpression->text();
-    if(expressionText == expression)
-        return;
-    expressionText = expression;
-    if(!DbgIsValidExpression(expression.toUtf8().constData()))
+    if(!validExpression)
     {
         ui->txtBin->setText("");
         ui->txtSignedDec->setText("");
@@ -61,17 +59,16 @@ void CalculatorDialog::validateExpression()
     else
     {
         ui->txtExpression->setStyleSheet("");
-        uint_t ans = DbgValFromString(expression.toUtf8().constData());
-        ui->txtHex->setText(inFormat(ans, N_HEX));
-        ui->txtSignedDec->setText(inFormat(ans, N_SDEC));
-        ui->txtUnsignedDec->setText(inFormat(ans, N_UDEC));
+        ui->txtHex->setText(inFormat(value, N_HEX));
+        ui->txtSignedDec->setText(inFormat(value, N_SDEC));
+        ui->txtUnsignedDec->setText(inFormat(value, N_UDEC));
         int cursorpos = ui->txtBin->cursorPosition();
-        ui->txtBin->setText(inFormat(ans, N_BIN));
+        ui->txtBin->setText(inFormat(value, N_BIN));
         ui->txtBin->setCursorPosition(cursorpos);
-        ui->txtOct->setText(inFormat(ans, N_OCT));
-        if((ans == (ans & 0xFF)))
+        ui->txtOct->setText(inFormat(value, N_OCT));
+        if((value == (value & 0xFF)))
         {
-            QChar c = QChar::fromLatin1((char)ans);
+            QChar c = QChar::fromLatin1((char)value);
             if(c.isPrint())
                 ui->txtAscii->setText("'" + QString(c) + "'");
             else
@@ -80,9 +77,9 @@ void CalculatorDialog::validateExpression()
         else
             ui->txtAscii->setText("???");
         ui->txtAscii->setCursorPosition(1);
-        if((ans == (ans & 0xFFF)))  //UNICODE?
+        if((value == (value & 0xFFF)))  //UNICODE?
         {
-            QChar c = QChar::fromLatin1((wchar_t)ans);
+            QChar c = QChar::fromLatin1((wchar_t)value);
             if(c.isPrint())
                 ui->txtUnicode->setText("L'" + QString(c) + "'");
             else
@@ -93,7 +90,7 @@ void CalculatorDialog::validateExpression()
             ui->txtUnicode->setText("????");
         }
         ui->txtUnicode->setCursorPosition(2);
-        emit validAddress(DbgMemIsValidReadPtr(ans));
+        emit validAddress(validPointer);
     }
 }
 

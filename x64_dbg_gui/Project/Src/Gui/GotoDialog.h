@@ -2,7 +2,7 @@
 #define GOTODIALOG_H
 
 #include <QDialog>
-#include <QThread>
+#include "ValidateExpressionThread.h"
 #include "NewTypes.h"
 
 namespace Ui
@@ -24,39 +24,17 @@ public:
     QString modName;
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
-    void validateExpression();
 
 private slots:
+    void expressionChanged(bool validExpression, bool validPointer, int_t value);
     void on_editExpression_textChanged(const QString & arg1);
     void on_buttonOk_clicked();
     void finishedSlot(int result);
 
 private:
     Ui::GotoDialog* ui;
-    QThread* mValidateThread;
+    ValidateExpressionThread* mValidateThread;
     bool IsValidMemoryRange(uint_t addr);
-};
-
-class GotoDialogValidateThread : public QThread
-{
-    Q_OBJECT
-public:
-    GotoDialogValidateThread(GotoDialog* gotoDialog)
-    {
-        mGotoDialog = gotoDialog;
-    }
-
-private:
-    GotoDialog* mGotoDialog;
-
-    void run()
-    {
-        while(true)
-        {
-            mGotoDialog->validateExpression();
-            Sleep(50);
-        }
-    }
 };
 
 #endif // GOTODIALOG_H

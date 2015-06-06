@@ -21,6 +21,7 @@
 #include "UpdateChecker.h"
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
+#include "MainWindowCloseThread.h"
 
 namespace Ui
 {
@@ -37,7 +38,6 @@ public:
     static DWORD WINAPI closeThread(void* ptr);
     void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
-    bool bClose;
 
 public slots:
     void executeCommand();
@@ -103,6 +103,7 @@ public slots:
     void detach();
     void changeCommandLine();
     void decompileAt(int_t start, int_t end);
+    void canClose();
 
 private:
     Ui::MainWindow* ui;
@@ -173,6 +174,9 @@ private:
 
     void initMenuApi();
     const MenuInfo* findMenu(int hMenu);
+
+    bool bCanClose;
+    MainWindowCloseThread* mCloseThread;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

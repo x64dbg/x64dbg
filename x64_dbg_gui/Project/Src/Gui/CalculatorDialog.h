@@ -2,7 +2,7 @@
 #define CALCULATORDIALOG_H
 
 #include <QDialog>
-#include <QThread>
+#include "ValidateExpressionThread.h"
 #include "NewTypes.h"
 
 namespace Ui
@@ -29,7 +29,6 @@ public:
     explicit CalculatorDialog(QWidget* parent = 0);
     ~CalculatorDialog();
     void setExpressionFocus();
-    void validateExpression();
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
 
@@ -38,6 +37,7 @@ signals:
     void showCpu();
 
 private slots:
+    void expressionChanged(bool validExpression, bool validPointer, int_t value);
     void on_btnGoto_clicked();
     void on_txtHex_textEdited(const QString & arg1);
     void on_txtSignedDec_textEdited(const QString & arg1);
@@ -49,32 +49,9 @@ private slots:
     void on_txtExpression_textChanged(const QString & arg1);
 
 private:
-    QString expressionText;
-    QThread* mValidateThread;
+    ValidateExpressionThread* mValidateThread;
     Ui::CalculatorDialog* ui;
     QString inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const;
-};
-
-class CalculatorDialogValidateThread : public QThread
-{
-    Q_OBJECT
-public:
-    CalculatorDialogValidateThread(CalculatorDialog* calculatorDialog)
-    {
-        mCalculatorDialog = calculatorDialog;
-    }
-
-private:
-    CalculatorDialog* mCalculatorDialog;
-
-    void run()
-    {
-        while(true)
-        {
-            mCalculatorDialog->validateExpression();
-            Sleep(50);
-        }
-    }
 };
 
 #endif // CALCULATORDIALOG_H
