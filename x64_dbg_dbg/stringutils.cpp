@@ -1,5 +1,5 @@
 #include "stringutils.h"
-#include <windows.h>
+#include "memory.h"
 #include <iostream>
 #include <sstream>
 
@@ -143,4 +143,46 @@ void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & 
         s.replace(start_pos, from.length(), to);
         start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
     }
+}
+
+String StringUtils::sprintf(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    Memory<char*> buffer(128 * sizeof(char), "StringUtils::sprintf");
+    int res = 0;
+    while(true)
+    {
+        res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        if(res == -1)
+        {
+            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            continue;
+        }
+        else
+            break;
+    }
+    va_end(args);
+    return String(buffer());
+}
+
+WString StringUtils::sprintf(const wchar_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    Memory<wchar_t*> buffer(128 * sizeof(wchar_t), "StringUtils::sprintf");
+    int res = 0;
+    while(true)
+    {
+        res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        if(res == -1)
+        {
+            buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
+            continue;
+        }
+        else
+            break;
+    }
+    va_end(args);
+    return WString(buffer());
 }

@@ -68,7 +68,7 @@ void* erealloc(void* ptr, size_t size, const char* reason)
 {
     if(!ptr)
         return emalloc(size, reason);
-    unsigned char* a = (unsigned char*)GlobalReAlloc(ptr, size, 0);
+    unsigned char* a = (unsigned char*)GlobalReAlloc(ptr, size, GMEM_ZEROINIT | GMEM_MOVEABLE);
     if(!a)
     {
         MessageBoxA(0, "Could not reallocate memory", "Error", MB_ICONERROR);

@@ -24,6 +24,8 @@ public:
     static WString Utf8ToUtf16(const char* str);
     static void ReplaceAll(String & s, const String & from, const String & to);
     static void ReplaceAll(WString & s, const WString & from, const WString & to);
+    static String sprintf(const char* format, ...);
+    static WString sprintf(const wchar_t* format, ...);
 
 private:
     static const String WHITESPACE;
