@@ -192,6 +192,11 @@ static bool _getsourcefromaddr(duint addr, char* szSourceFile, int* line)
     return true;
 }
 
+static bool _valfromstring(const char* string, duint* value)
+{
+    return valfromstring(string, value);
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = _assembleatex;
@@ -228,4 +233,5 @@ void dbgfunctionsinit()
     _dbgfunctions.VaToFileOffset = valvatofileoffset;
     _dbgfunctions.GetAddrFromLine = _getaddrfromline;
     _dbgfunctions.GetSourceFromAddr = _getsourcefromaddr;
+    _dbgfunctions.ValFromString = _valfromstring;
 }
