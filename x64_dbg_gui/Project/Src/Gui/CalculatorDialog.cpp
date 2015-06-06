@@ -33,7 +33,8 @@ void CalculatorDialog::showEvent(QShowEvent* event)
 void CalculatorDialog::hideEvent(QHideEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->terminate();
+    mValidateThread->stop();
+    mValidateThread->wait();
 }
 
 void CalculatorDialog::setExpressionFocus()

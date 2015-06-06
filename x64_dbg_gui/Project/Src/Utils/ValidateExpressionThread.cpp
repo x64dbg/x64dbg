@@ -3,6 +3,12 @@
 ValidateExpressionThread::ValidateExpressionThread()
 {
     mExpressionChanged = false;
+    mStopThread = false;
+}
+
+void ValidateExpressionThread::stop()
+{
+    mStopThread = true;
 }
 
 void ValidateExpressionThread::textChanged(QString text)
@@ -16,7 +22,7 @@ void ValidateExpressionThread::textChanged(QString text)
 
 void ValidateExpressionThread::run()
 {
-    while(true)
+    while(!mStopThread)
     {
         mExpressionMutex.lock();
         QString expression = mExpressionText;

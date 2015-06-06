@@ -40,7 +40,8 @@ void GotoDialog::showEvent(QShowEvent* event)
 void GotoDialog::hideEvent(QHideEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->terminate();
+    mValidateThread->stop();
+    mValidateThread->wait();
 }
 
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)

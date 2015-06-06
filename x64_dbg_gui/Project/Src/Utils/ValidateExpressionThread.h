@@ -10,6 +10,7 @@ class ValidateExpressionThread : public QThread
     Q_OBJECT
 public:
     ValidateExpressionThread();
+    void stop();
 
 signals:
     void expressionChanged(bool validExpression, bool validPointer, int_t value);
@@ -21,6 +22,7 @@ private:
     QMutex mExpressionMutex;
     QString mExpressionText;
     bool mExpressionChanged;
+    volatile bool mStopThread;
 
     void run();
 };

@@ -29,7 +29,8 @@ void WordEditDialog::showEvent(QShowEvent* event)
 void WordEditDialog::hideEvent(QHideEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->terminate();
+    mValidateThread->stop();
+    mValidateThread->wait();
 }
 
 void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
