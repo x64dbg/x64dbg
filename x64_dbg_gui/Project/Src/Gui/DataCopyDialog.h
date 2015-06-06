@@ -31,8 +31,13 @@ private:
         DataCByte = 0,
         DataCWord,
         DataCDword,
+        DataCQword,
         DataCString,
         DataCUnicodeString,
+        DataPascalByte,
+        DataPascalWord,
+        DataPascalDword,
+        DataPascalQword
     };
 
     void printData(DataType type);

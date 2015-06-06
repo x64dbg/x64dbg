@@ -14,8 +14,13 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->addItem("C-Style BYTE (Hex)");
     ui->comboType->addItem("C-Style WORD (Hex)");
     ui->comboType->addItem("C-Style DWORD (Hex)");
+    ui->comboType->addItem("C-Style QWORD (Hex)");
     ui->comboType->addItem("C-Style String");
     ui->comboType->addItem("C-Style Unicode String");
+    ui->comboType->addItem("Pascal BYTE (Hex)");
+    ui->comboType->addItem("Pascal WORD (Hex)");
+    ui->comboType->addItem("Pascal DWORD (Hex)");
+    ui->comboType->addItem("Pascal QWORD (Hex)");
 
     ui->comboType->setCurrentIndex(DataCByte);
 
@@ -82,12 +87,13 @@ void DataCopyDialog::printData(DataType type)
     {
     case DataCByte:
     {
+        int numbytes = mData->size() / sizeof(unsigned char);
         data += "{";
-        for(int i = 0; i < mData->size(); i++)
+        for(int i = 0; i < numbytes; i++)
         {
             if(i)
                 data += ", ";
-            data += QString().sprintf("0x%02X", mData->at(i));
+            data += QString().sprintf("0x%02X", ((unsigned char*)mData->constData())[i]);
         }
         data += "};";
     }
@@ -116,6 +122,20 @@ void DataCopyDialog::printData(DataType type)
             if(i)
                 data += ", ";
             data += QString().sprintf("0x%08X", ((unsigned int*)mData->constData())[i]);
+        }
+        data += "};";
+    }
+    break;
+
+    case DataCQword:
+    {
+        int numqwords = mData->size() / sizeof(unsigned long long);
+        data += "{";
+        for(int i = 0; i < numqwords; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString().sprintf("0x%016llX", ((unsigned long long*)mData->constData())[i]);
         }
         data += "};";
     }
@@ -153,6 +173,62 @@ void DataCopyDialog::printData(DataType type)
             }
         }
         data += "\"";
+    }
+    break;
+
+    case DataPascalByte:
+    {
+        int numbytes = mData->size() / sizeof(unsigned char);
+        data += QString().sprintf("Array [1..%u] of Byte = (", numbytes);
+        for(int i = 0; i < numbytes; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString().sprintf("$%02X", ((unsigned char*)mData->constData())[i]);
+        }
+        data += ");";
+    }
+    break;
+
+    case DataPascalWord:
+    {
+        int numwords = mData->size() / sizeof(unsigned short);
+        data += QString().sprintf("Array [1..%u] of Word = (", numwords);
+        for(int i = 0; i < numwords; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString().sprintf("$%04X", ((unsigned short*)mData->constData())[i]);
+        }
+        data += ");";
+    }
+    break;
+
+    case DataPascalDword:
+    {
+        int numdwords = mData->size() / sizeof(unsigned int);
+        data += QString().sprintf("Array [1..%u] of Dword = (", numdwords);
+        for(int i = 0; i < numdwords; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString().sprintf("$%08X", ((unsigned int*)mData->constData())[i]);
+        }
+        data += ");";
+    }
+    break;
+
+    case DataPascalQword:
+    {
+        int numqwords = mData->size() / sizeof(unsigned long long);
+        data += QString().sprintf("Array [1..%u] of Int64 = (", numqwords);
+        for(int i = 0; i < numqwords; i++)
+        {
+            if(i)
+                data += ", ";
+            data += QString().sprintf("$%016llX", ((unsigned long long*)mData->constData())[i]);
+        }
+        data += ");";
     }
     break;
     }
