@@ -1531,13 +1531,13 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         }
         else
             strcpy_s(newstring, newstring.size(), string);
-        Memory<char*> string_(len + deflen, "valfromstring:string_");
+        Memory<char*> string_(len * 16 + deflen, "valfromstring:string_");
         strcpy_s(string_, string_.size(), newstring);
         int add = 0;
         bool negative = (*string_ == '-');
         while(mathisoperator(string_[add + negative]) > 2)
             add++;
-        if(!mathhandlebrackets(string_ + add, silent, baseonly))
+        if(!mathhandlebrackets(string_ + add, string_.size() - add, silent, baseonly))
             return false;
         return mathfromstring(string_ + add, value, silent, baseonly, value_size, isvar);
     }

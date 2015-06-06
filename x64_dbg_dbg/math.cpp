@@ -51,7 +51,7 @@ struct EXPRESSION
     /**
     \brief The expression text everything is derived from.
     */
-    char* expression;
+    const char* expression;
 };
 
 /**
@@ -300,11 +300,11 @@ static void fillpair(EXPRESSION* expstruct, int pos, int layer)
 /**
 \brief This function recursively matches bracket pair in an EXPRESSION.
 \param [in,out] expstruct The expression structure. Cannot be null.
-\param [in,out] expression The expression text to parse. Cannot be null.
+\param expression The expression text to parse. Cannot be null.
 \param endlayer The layer to stop on. This variable is used for the recursion termination condition.
 \return The position in the \p expression mathpairs ended in.
 */
-static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer = 0)
+static int matchpairs(EXPRESSION* expstruct, const char* expression, int endlayer = 0)
 {
     int layer = endlayer;
     int len = (int)strlen(expression);
@@ -337,7 +337,7 @@ static int matchpairs(EXPRESSION* expstruct, char* expression, int endlayer = 0)
 \param [in,out] exp The expression to format.
 \return The number of bracket pairs in the expression or -1 on error.
 */
-static int expressionformat(char* exp)
+static int expressionformat(char* exp, size_t bufsize)
 {
     int len = (int)strlen(exp);
     int open = 0;
@@ -354,8 +354,10 @@ static int expressionformat(char* exp)
     int add = open - close;
     if(add)
     {
-        memset(exp + len, ')', add);
-        exp[len + add] = 0;
+        String closing;
+        for(int i = 0; i < add; i++)
+            closing += ')';
+        strcat_s(exp, bufsize, closing.c_str());
     }
     return open;
 }
@@ -382,36 +384,38 @@ static void adjustpairs(EXPRESSION* exps, int cur_open, int cur_close, int cur_l
 /**
 \brief Prints value of expressions in between brackets on a certain bracket layer (expression is resolved using mathfromstring(), which means the whole thing can work recursively).
 \param [in,out] exp The expression to print. Cannot be null.
+\param bufsize Buffer size of the expression parameter.
 \param [in,out] exps The expression structure. Cannot be null.
 \param layer The layer to print.
 \param silent Value to pass on to mathfromstring().
 \param baseonly Value to pass on to mathfromstring().
-\return true if printing the layer was succesful, false otherwise.
+\return true if printing the layer was successful, false otherwise.
 */
-static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool baseonly)
+static bool printlayer(char* exp, size_t bufsize, EXPRESSION* exps, int layer, bool silent, bool baseonly)
 {
     for(int i = 0; i < exps->total_pairs; i++)
     {
         if(exps->pairs[i].layer == layer)
         {
-            char temp[256] = "";
-            char backup[256] = "";
+            const size_t explen = strlen(exp);
+            Memory<char*> temp(explen + 1);
+            Memory<char*> backup(explen + 1);
 
             int open = exps->pairs[i].openpos;
             int close = exps->pairs[i].closepos;
             int len = close - open;
-            strncpy(temp, exp + open + 1, len - 1);
+            strncpy_s(temp, temp.size(), exp + open + 1, len - 1);
 
-            strcpy_s(backup, exp + open + len + 1);
+            strcpy_s(backup, backup.size(), exp + open + len + 1);
 
             uint value;
             if(!mathfromstring(temp, &value, silent, baseonly, 0, 0))
                 return false;
 
-            adjustpairs(exps, open, close, len + 1, sprintf(exp + open, "%"fext"X", value));
+            adjustpairs(exps, open, close, len + 1, sprintf_s(exp + open, bufsize - open, "%"fext"X", value));
 
             if(*backup)
-                strcat(exp, backup);
+                strcat_s(exp, bufsize, backup);
         }
     }
     return true;
@@ -419,16 +423,17 @@ static bool printlayer(char* exp, EXPRESSION* exps, int layer, bool silent, bool
 
 /**
 \brief Handle brackets in an expression (calculate the values of expressions in between brackets).
-\param [in,out] expression Expression to handle. Cannot be null.
+\param [in,out] expression Expression to handle. Cannot be null. You need at most 16 times the input size for this.
+\param bufsize Buffer size of the expression parameter.
 \param silent Value to pass on to printlayer().
 \param baseonly Value to pass on to printlayer().
 \return true if the brackets are correctly expanded, false otherwise.
 */
-bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
+bool mathhandlebrackets(char* expression, size_t bufsize, bool silent, bool baseonly)
 {
     EXPRESSION expstruct;
     expstruct.expression = expression;
-    int total_pairs = expressionformat(expression);
+    int total_pairs = expressionformat(expression, bufsize);
     if(total_pairs == -1)
         return false;
     else if(!total_pairs)
@@ -445,7 +450,7 @@ bool mathhandlebrackets(char* expression, bool silent, bool baseonly)
             deepest = expstruct.pairs[i].layer;
 
     for(int i = deepest; i > 0; i--)
-        if(!printlayer(expression, &expstruct, i, silent, baseonly))
+        if(!printlayer(expression, bufsize, &expstruct, i, silent, baseonly))
             return false;
     return true;
 }
