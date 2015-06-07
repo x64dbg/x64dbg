@@ -105,9 +105,6 @@
     <ClCompile Include="console.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="math.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="threading.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -219,6 +216,9 @@
     <ClCompile Include="filereader.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="expressionparser.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -258,9 +258,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="command.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="math.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="threading.h">
@@ -517,6 +514,9 @@
     </ClInclude>
     <ClInclude Include="filereader.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="expressionparser.h">
+      <Filter>Header Files\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -269,6 +269,32 @@ static bool isvalidexpression(const char* expression)
 }
 
 /**
+\brief Check if a character is a mathematical operator. Used to determine stuff like "a *= b"
+\param ch The character to check.
+\return true if the character is an operator, false otherwise.
+*/
+static bool mathisoperator(const char ch)
+{
+    switch(ch)
+    {
+    case '*':
+    case '`':
+    case '/':
+    case '%':
+    case '+':
+    case '-':
+    case '<':
+    case '>':
+    case '&':
+    case '^':
+    case '|':
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
 \brief Special formats a given command. Used as a little hack to support stuff like 'x++' and 'x=y'
 \param [in,out] string String to format.
 */
@@ -300,7 +326,7 @@ static void specialformat(char* string)
             sprintf(str, "%s%c1", found, op);
             strcpy(found, str);
         }
-        if(mathisoperator(*a) > 2) //x*=3 -> x=x*3
+        if(mathisoperator(*a)) //x*=3 -> x=x*3
         {
             char op = *a;
             *a = 0;
@@ -350,8 +376,6 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
         specialformat(command);
         cmd = cmdget(cmd_list, command);
     }
-    if(!cmd or !cmd->cbCommand)
-        mathformat(command);
     return cmd;
 }
 

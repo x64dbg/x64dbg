@@ -35,6 +35,7 @@
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
+    <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filereader.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="functionanalysis.cpp" />
@@ -42,7 +43,6 @@
     <ClCompile Include="label.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="math.cpp" />
     <ClCompile Include="memory.cpp" />
     <ClCompile Include="module.cpp" />
     <ClCompile Include="msgqueue.cpp" />
@@ -96,6 +96,7 @@
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
+    <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filereader.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="functionanalysis.h" />
@@ -109,7 +110,6 @@
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
     <ClInclude Include="lz4\lz4hc.h" />
-    <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="module.h" />
     <ClInclude Include="msgqueue.h" />

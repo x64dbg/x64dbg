@@ -14,6 +14,7 @@
 #include "symbolinfo.h"
 #include "module.h"
 #include "label.h"
+#include "expressionparser.h"
 
 static bool dosignedcalc = false;
 
@@ -1497,9 +1498,9 @@ static bool ishexnumber(const char* string)
 \param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
 \param [out] isvar This function can output if the expression is variable (for example memory locations, registers or variables are variable). Can be null.
 \param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
-\return true if the expression was parsed successfull, false otherwise.
+\return true if the expression was parsed successful, false otherwise.
 */
-bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     if(!value or !string)
         return false;
@@ -1508,50 +1509,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         *value = 0;
         return true;
     }
-    else if(mathcontains(string)) //handle math
-    {
-        int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2 + 1, "valfromstring:newstring");
-        if(strstr(string, "[")) //memory brackets: []
-        {
-            for(int i = 0, j = 0; i < len; i++)
-            {
-                if(string[i] == ']')
-                    j += sprintf(newstring + j, ")");
-                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
-                {
-                    j += sprintf(newstring + j, "@%c:(", string[i]);
-                    i += 2;
-                }
-                else if(string[i] == '[')
-                    j += sprintf(newstring + j, "@(");
-                else
-                    j += sprintf(newstring + j, "%c", string[i]);
-            }
-        }
-        else
-            strcpy_s(newstring, newstring.size(), string);
-        Memory<char*> string_(len * 16 + deflen, "valfromstring:string_");
-        strcpy_s(string_, string_.size(), newstring);
-        int add = 0;
-        bool negative = (*string_ == '-');
-        while(mathisoperator(string_[add + negative]) > 2)
-            add++;
-        if(!mathhandlebrackets(string_ + add, string_.size() - add, silent, baseonly))
-            return false;
-        return mathfromstring(string_ + add, value, silent, baseonly, value_size, isvar);
-    }
-    else if(*string == '-') //negative value
-    {
-        uint val;
-        if(!valfromstring(string + 1, &val, silent, baseonly, value_size, isvar, hexonly))
-            return false;
-        val *= ~0;
-        if(value)
-            *value = val;
-        return true;
-    }
-    else if(*string == '@' or strstr(string, "[")) //memory location
+    else if(string[0] == '[' || (isdigit(string[0]) && string[1] == ':' && string[2] == '[')) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -1565,37 +1523,33 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             return true;
         }
         int len = (int)strlen(string);
-        Memory<char*> newstring(len * 2 + 1, "valfromstring:newstring");
-        if(strstr(string, "["))
+
+        String newstring;
+        bool foundStart = false;
+        for(int i = 0; i < len; i++)
         {
-            for(int i = 0, j = 0; i < len; i++)
-            {
-                if(string[i] == ']')
-                    j += sprintf(newstring + j, ")");
-                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
-                {
-                    j += sprintf(newstring + j, "@%c:(", string[i]);
-                    i += 2;
-                }
-                else if(string[i] == '[')
-                    j += sprintf(newstring + j, "@(");
-                else
-                    j += sprintf(newstring + j, "%c", string[i]);
-            }
+            if(string[i] == '[')
+                foundStart = true;
+            else if(string[i] == ']')
+                break;
+            else if(foundStart)
+                newstring += string[i];
         }
-        else
-            strcpy_s(newstring, newstring.size(), string);
+
         int read_size = sizeof(uint);
         int add = 1;
-        if(newstring[2] == ':' and isdigit((newstring[1]))) //@n: (number of bytes to read)
+        if(string[1] == ':')  //n:[ (number of bytes to read)
         {
             add += 2;
-            int new_size = newstring[1] - 0x30;
+            int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
-        if(!valfromstring(newstring + add, value, silent, baseonly))
+        if(!valfromstring(newstring.c_str(), value, silent, baseonly))
+        {
+            dprintf("noexpr failed on %s\n", newstring.c_str());
             return false;
+        }
         uint addr = *value;
         *value = 0;
         if(!MemRead((void*)addr, value, read_size, 0))
@@ -1610,7 +1564,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *isvar = true;
         return true;
     }
-    else if(isregister(string)) //register
+    else if(isregister(string))  //register
     {
         if(!DbgIsDebugging())
         {
@@ -1628,7 +1582,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *isvar = true;
         return true;
     }
-    else if(*string == '!' and isflag(string + 1)) //flag
+    else if(*string == '!' and isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1652,7 +1606,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
             *isvar = true;
         return true;
     }
-    else if(isdecnumber(string)) //decimal numbers come 'first'
+    else if(isdecnumber(string))  //decimal numbers come 'first'
     {
         if(value_size)
             *value_size = 0;
@@ -1661,7 +1615,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         sscanf(string + 1, "%"fext"u", value);
         return true;
     }
-    else if(ishexnumber(string)) //then hex numbers
+    else if(ishexnumber(string))  //then hex numbers
     {
         if(value_size)
             *value_size = 0;
@@ -1676,13 +1630,13 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     }
     if(baseonly)
         return false;
-    else if(valapifromstring(string, value, value_size, true, silent, hexonly)) //then come APIs
+    else if(valapifromstring(string, value, value_size, true, silent, hexonly))  //then come APIs
         return true;
-    else if(LabelFromString(string, value)) //then come labels
+    else if(LabelFromString(string, value))  //then come labels
         return true;
-    else if(SymAddrFromName(string, value)) //then come symbols
+    else if(SymAddrFromName(string, value))  //then come symbols
         return true;
-    else if(varget(string, value, value_size, 0)) //finally variables
+    else if(varget(string, value, value_size, 0))  //finally variables
     {
         if(isvar)
             *isvar = true;
@@ -1691,6 +1645,34 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
     if(!silent)
         dprintf("invalid value: \"%s\"!\n", string);
     return false; //nothing was OK
+}
+
+/**
+\brief Gets a value from a string. This function can parse expressions, memory locations, registers, flags, API names, labels, symbols and variables.
+\param string The string to parse.
+\param [out] value The value of the expression. This value cannot be null.
+\param silent true to not output anything to the console.
+\param baseonly true to skip parsing API names, labels, symbols and variables (basic expressions only).
+\param [out] value_size This function can output the value size parsed (for example memory location size or register size). Can be null.
+\param [out] isvar This function can output if the expression is variable (for example memory locations, registers or variables are variable). Can be null.
+\param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
+\return true if the expression was parsed successful, false otherwise.
+*/
+bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+{
+    if(!value or !string)
+        return false;
+    if(!*string)
+    {
+        *value = 0;
+        return true;
+    }
+    ExpressionParser parser(string);
+    uint result;
+    if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
+        return false;
+    *value = result;
+    return true;
 }
 
 /**

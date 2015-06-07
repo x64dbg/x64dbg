@@ -15,6 +15,7 @@
 #include <shlwapi.h>
 #include <stdarg.h>
 #include <vector>
+#include <stack>
 #include <map>
 #include <algorithm>
 #include <unordered_map>

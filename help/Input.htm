@@ -27,19 +27,15 @@ x64).</P>
 registers (of all sizes) can be used as variables.</P>
 <P class=rvps3><U>memory locations</U>: You can read from a memory location by using one of the 
 following expressions:<BR>[addr]&nbsp;&nbsp;&nbsp; - read a 
-DWORD/QWORD, depending on the architecture.<BR>@addr&nbsp;&nbsp;&nbsp;&nbsp; - same as 
-above.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM> bytes.<BR>         
-       @<EM>n</EM>:addr&nbsp;&nbsp; - same as 
-above.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to 
-read, this can be anything smaller than 4 on x32 and smaller than 8 on x64 when 
-specified, otherwise there will be an error.<BR>- addr is directly interpreted 
-as a value, when you want to read [addr+1] you should use 
-brackets:<BR>         
+DWORD/QWORD, depending on the 
+architecture.<BR><EM>n</EM>:[addr]&nbsp;&nbsp;- read <EM>n</EM>   bytes 
+from.<BR><STRONG>REMARKS</STRONG>:<BR>- <EM>n</EM> is the amount of bytes to read, this can be anything 
+smaller than 4 on x32 and smaller than 8 on x64 when specified, otherwise         
                  
             
                
             
- @(addr+1), @addr+1 will read: [addr]+1.</P>
+ there will be an error.</P>
 <P class=rvps3><U>flags</U>: Debug 
 flags (interpreted as integer) can be used as input. Flags are prefixed with a 
 '!' following the flag name. Valid flags are: !cf, !pf, !af, !zf, !sf, !tf, !if, 
@@ -75,7 +71,7 @@ used.</DIV><U> </U>
   "oep" or "ep" the address of these will be returned 
   instead.<BR><BR><STRONG>Notice</STRONG>: Instead of the ':' delimiter you can 
   also use a '.' If you need to query module information such as 
-  "[module]:imagebase" or "[module]":entry" you are adviced to 
+  "[module]:imagebase" or "[module]":entry" you are advised to 
   use a '?' as delimiter instead ("[module]?entry"). The '?'&nbsp;does 
   checking for named exports later, so it will still work when there is an 
   export called "entry" in the module.</LI></OL>
