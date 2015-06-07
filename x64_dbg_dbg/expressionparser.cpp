@@ -306,7 +306,7 @@ static inline int mulhi(int x, int y)
 #endif //__MINGW64__
 
 template<typename T>
-static bool operation(const ExpressionParser::Token::Type type, const T op1, const T op2, T & result)
+static bool operation(const ExpressionParser::Token::Type type, const T op1, const T op2, T & result, const bool signedcalc)
 {
     result = 0;
     switch(type)
@@ -321,7 +321,10 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
         result = op1 * op2;
         return true;
     case ExpressionParser::Token::Type::OperatorHiMul:
-        result = umulhi(op1, op2);
+        if(signedcalc)
+            result = mulhi(op1, op2);
+        else
+            result = umulhi(op1, op2);
         return true;
     case ExpressionParser::Token::Type::OperatorDiv:
         if(op2 != 0)
@@ -365,35 +368,16 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
 
 bool ExpressionParser::unsignedoperation(const Token::Type type, const uint op1, const uint op2, uint & result)
 {
-    if(type == Token::Type::OperatorHiMul)
-    {
-        result = umulhi(op1, op2);
-        return true;
-    }
-    else
-        return operation<uint>(type, op1, op2, result);
+    return operation<uint>(type, op1, op2, result, false);
 }
 
 bool ExpressionParser::signedoperation(const Token::Type type, const sint op1, const sint op2, uint & result)
 {
-    if(type == Token::Type::OperatorHiMul)
-    {
-        result = mulhi(op1, op2);
-        return true;
-    }
-    else
-    {
-        sint signedResult;
-        if(!operation<sint>(type, op1, op2, signedResult))
-            return false;
-        result = (uint)signedResult;
-        return true;
-    }
-}
-
-bool ExpressionParser::valFromString(const String & data, uint & value)
-{
-    return sscanf_s(data.c_str(), "%u", &value) == 1;
+    sint signedResult;
+    if(!operation<sint>(type, op1, op2, signedResult, true))
+        return false;
+    result = (uint)signedResult;
+    return true;
 }
 
 bool ExpressionParser::calculate(uint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)

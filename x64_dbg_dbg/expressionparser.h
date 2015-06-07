@@ -59,7 +59,6 @@ private:
     void addOperatorToken(const char ch, const Token::Type type);
     bool unsignedoperation(const Token::Type type, const uint op1, const uint op2, uint & result);
     bool signedoperation(const Token::Type type, const sint op1, const sint op2, uint & result);
-    bool valFromString(const String & data, uint & value);
 
     std::vector<Token> _tokens;
     std::vector<Token> _prefixTokens;
