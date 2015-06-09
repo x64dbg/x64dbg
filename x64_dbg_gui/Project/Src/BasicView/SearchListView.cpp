@@ -172,8 +172,6 @@ void SearchListView::listContextMenu(const QPoint & pos)
 {
     QMenu* wMenu = new QMenu(this);
     emit listContextMenuSignal(wMenu);
-    if(!wMenu->actions().length())
-        return;
     QMenu wCopyMenu("&Copy", this);
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())

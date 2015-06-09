@@ -141,10 +141,10 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
 {
     if(!this->mCurList->getRowCount())
         return;
-    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    QString text = mCurList->getCellContent(mCurList->getInitialSelection(), 0);
+    duint addr;
+    if(!DbgFunctions()->ValFromString(text.toUtf8().constData(), &addr))
         return;
-    uint_t addr = DbgValFromString(addrText);
     if(!DbgMemIsValidReadPtr(addr))
         return;
     wMenu->addAction(mFollowAddress);
