@@ -147,7 +147,7 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
     DWORD type = 0;
@@ -186,7 +186,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
     char argaddr[deflen] = "";
@@ -490,7 +490,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
     uint addr;
@@ -630,7 +630,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         case 'x':
             break;
         default:
-            dputs("invalid type, assuming 'x'");
+            dputs("Invalid type, assuming 'x'");
             break;
         }
     }
@@ -685,12 +685,12 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     }
     if(!BpNew(addr, true, false, 0, BPHARDWARE, titantype, 0))
     {
-        dputs("error setting hardware breakpoint (bpnew)!");
+        dputs("Error setting hardware breakpoint (bpnew)!");
         return STATUS_ERROR;
     }
     if(!SetHardwareBreakPoint(addr, drx, type, titsize, (void*)cbHardwareBreakpoint))
     {
-        dputs("error setting hardware breakpoint (TitanEngine)!");
+        dputs("Error setting hardware breakpoint (TitanEngine)!");
         return STATUS_ERROR;
     }
     dprintf("Hardware breakpoint at "fhex" set!\n", addr);
@@ -808,7 +808,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
         uint base = MemFindBaseAddr(addr, &size, true);
         if(!base)
         {
-            dputs("invalid address specified");
+            dputs("Invalid address specified");
             return STATUS_ERROR;
         }
         uint diff = addr - base;
@@ -971,7 +971,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
     duint addr = 0;
@@ -1023,7 +1023,7 @@ CMDRESULT cbDebugBpDll(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        dputs("not enough arguments!");
+        dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
     DWORD type = UE_ON_LIB_ALL;

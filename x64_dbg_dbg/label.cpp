@@ -111,8 +111,7 @@ void LabelDelRange(uint Start, uint End)
     // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
-        EXCLUSIVE_ACQUIRE(LockLabels);
-        labels.clear();
+        LabelClear();
     }
     else
     {

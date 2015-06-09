@@ -60,8 +60,7 @@ void BookmarkDelRange(uint Start, uint End)
     // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
-        EXCLUSIVE_ACQUIRE(LockBookmarks);
-        bookmarks.clear();
+        BookmarkClear();
     }
     else
     {

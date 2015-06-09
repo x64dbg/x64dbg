@@ -8,31 +8,31 @@ std::map<Range, MODINFO, RangeCompare> modinfo;
 
 bool ModLoad(uint Base, uint Size, const char* FullPath)
 {
-    //
     // Handle a new module being loaded
-    //
-    // TODO: Do loaded modules always require a path?
     if(!Base || !Size || !FullPath)
         return false;
 
-    MODINFO info;
-
     // Copy the module path in the struct
+    MODINFO info;
     strcpy_s(info.path, FullPath);
 
     // Break the module path into a directory and file name
-    char dir[MAX_PATH] = "";
-    char file[MAX_MODULE_SIZE] = "";
+    char dir[MAX_PATH];
+    char file[MAX_MODULE_SIZE];
+
     strcpy_s(dir, FullPath);
     _strlwr(dir);
-    char* fileStart = strrchr(dir, '\\');
-    if(fileStart)
     {
-        strcpy_s(file, fileStart + 1);
-        *fileStart = '\0';
+        char* fileStart = strrchr(dir, '\\');
+
+        if(fileStart)
+        {
+            strcpy_s(file, fileStart + 1);
+            fileStart[0] = '\0';
+        }
     }
 
-    //calculate module hash from full file name
+    // Calculate module hash from full file name
     info.hash = ModHashFromName(file);
 
     // Copy the extension into the module struct
@@ -46,10 +46,8 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
         }
     }
 
-    // Copy the name to the module struct
+    // Copy information to struct
     strcpy_s(info.name, file);
-
-    // Module base address/size
     info.base = Base;
     info.size = Size;
 
@@ -172,9 +170,7 @@ uint ModBaseFromAddr(uint Address)
 
 uint ModHashFromAddr(uint Address)
 {
-    //
     // Returns a unique hash from a virtual address
-    //
     SHARED_ACQUIRE(LockModules);
 
     auto module = ModInfoFromAddr(Address);
@@ -187,9 +183,7 @@ uint ModHashFromAddr(uint Address)
 
 uint ModHashFromName(const char* Module)
 {
-    //
     // return MODINFO.hash (based on the name)
-    //
     if(!Module || Module[0] == '\0')
         return 0;
 

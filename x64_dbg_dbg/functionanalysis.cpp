@@ -23,14 +23,14 @@ const unsigned char* FunctionAnalysis::TranslateAddress(uint addr)
 
 void FunctionAnalysis::Analyse()
 {
-    dputs("analysis started...");
+    dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
     PopulateReferences();
     dprintf("%u called functions populated\n", _functions.size());
     AnalyseFunctions();
 
-    dprintf("analysis finished in %ums!\n", GetTickCount() - ticks);
+    dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 
 void FunctionAnalysis::SetMarkers()
@@ -82,7 +82,6 @@ void FunctionAnalysis::AnalyseFunctions()
         if(i < _functions.size() - 1)
             maxaddr = _functions[i + 1].start;
 
-        //dprintf("analysing function %p-??? maxaddr: %p\n", function.start, maxaddr);
         uint end = FindFunctionEnd(function.start, maxaddr);
         if(end)
         {

@@ -1398,7 +1398,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
     FunctionEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("no functions");
+        dputs("No functions");
         return STATUS_CONTINUE;
     }
     Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");

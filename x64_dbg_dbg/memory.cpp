@@ -203,7 +203,7 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
             readBase += readSize;
 
             Size -= readSize;
-            readSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+            readSize = min(PAGE_SIZE, Size);
         }
     }
 
@@ -258,7 +258,7 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
             writeBase += writeSize;
 
             Size -= writeSize;
-            writeSize = (Size > PAGE_SIZE) ? PAGE_SIZE : Size;
+            writeSize = min(PAGE_SIZE, Size);
         }
     }
 

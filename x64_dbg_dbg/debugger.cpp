@@ -1178,7 +1178,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     ModClear();
     ThreadClear();
     GuiSetDebugState(stopped);
-    dputs("debugging stopped!");
+    dputs("Debugging stopped!");
     varset("$hp", (uint)0, true);
     varset("$pid", (uint)0, true);
     unlock(WAITID_STOP); //we are done
@@ -1235,7 +1235,7 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     BpSetTitanType(bp->addr, BPHARDWARE, titantype);
     if(!BpEnable(bp->addr, BPHARDWARE, true) or !SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
     {
-        dprintf("could not enable hardware breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable hardware breakpoint "fhex"\n", bp->addr);
         return false;
     }
     return true;
