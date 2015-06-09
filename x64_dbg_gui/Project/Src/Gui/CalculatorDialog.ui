@@ -224,6 +224,7 @@
  <tabstops>
   <tabstop>txtExpression</tabstop>
   <tabstop>txtHex</tabstop>
+  <tabstop>txtSignedDec</tabstop>
   <tabstop>txtUnsignedDec</tabstop>
   <tabstop>txtOct</tabstop>
   <tabstop>txtBin</tabstop>
