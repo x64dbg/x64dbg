@@ -134,6 +134,7 @@ void GotoDialog::on_buttonOk_clicked()
     ui->editExpression->addLineToHistory(expression);
     ui->editExpression->setText("");
     expressionText = expression;
+    expressionChanged(false, false, 0);
 }
 
 void GotoDialog::finishedSlot(int result)

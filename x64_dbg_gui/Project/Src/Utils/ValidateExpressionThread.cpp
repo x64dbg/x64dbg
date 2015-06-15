@@ -38,4 +38,5 @@ void ValidateExpressionThread::run()
         }
         Sleep(50);
     }
+    mStopThread = false;
 }
