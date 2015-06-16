@@ -1,9 +1,15 @@
 #include "ValidateExpressionThread.h"
 
-ValidateExpressionThread::ValidateExpressionThread()
+ValidateExpressionThread::ValidateExpressionThread(QObject* parent) : QThread(parent)
 {
     mExpressionChanged = false;
     mStopThread = false;
+}
+
+void ValidateExpressionThread::start()
+{
+    mStopThread = false;
+    QThread::start();
 }
 
 void ValidateExpressionThread::stop()
@@ -38,5 +44,4 @@ void ValidateExpressionThread::run()
         }
         Sleep(50);
     }
-    mStopThread = false;
 }

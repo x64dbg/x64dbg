@@ -20,7 +20,7 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     validRangeStart = 0;
     validRangeEnd = 0;
     fileOffset = false;
-    mValidateThread = new ValidateExpressionThread();
+    mValidateThread = new ValidateExpressionThread(this);
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
     connect(ui->editExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
@@ -134,7 +134,6 @@ void GotoDialog::on_buttonOk_clicked()
     ui->editExpression->addLineToHistory(expression);
     ui->editExpression->setText("");
     expressionText = expression;
-    expressionChanged(false, false, 0);
 }
 
 void GotoDialog::finishedSlot(int result)

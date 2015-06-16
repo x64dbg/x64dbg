@@ -9,7 +9,8 @@ class ValidateExpressionThread : public QThread
 {
     Q_OBJECT
 public:
-    ValidateExpressionThread();
+    ValidateExpressionThread(QObject* parent = 0);
+    void start();
     void stop();
 
 signals:
