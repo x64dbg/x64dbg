@@ -64,7 +64,6 @@ enum arch
     x64
 };
 
-
 //superglobal variables
 extern HINSTANCE hInst;
 extern char dbbasepath[deflen];
@@ -89,6 +88,7 @@ bool settingboolget(const char* section, const char* name);
 arch GetFileArchitecture(const char* szFileName);
 bool IsWow64();
 bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize);
+void WaitForThreadTermination(HANDLE hThread);
 
 #include "dynamicmem.h"
 

@@ -10,6 +10,7 @@ CloseDialog::CloseDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CloseDia
 #endif
     setFixedSize(this->size()); //fixed size
     //setWindowFlags(((windowFlags() | Qt::CustomizeWindowHint) & ~Qt::WindowCloseButtonHint));
+    bCanClose = false;
 }
 
 CloseDialog::~CloseDialog()
@@ -17,7 +18,15 @@ CloseDialog::~CloseDialog()
     delete ui;
 }
 
+void CloseDialog::allowClose()
+{
+    bCanClose = true;
+}
+
 void CloseDialog::closeEvent(QCloseEvent* event)
 {
-    event->ignore();
+    if(bCanClose)
+        event->accept();
+    else
+        event->ignore();
 }

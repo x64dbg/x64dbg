@@ -17,9 +17,11 @@ public:
     explicit CloseDialog(QWidget* parent = 0);
     ~CloseDialog();
     void closeEvent(QCloseEvent* event);
+    void allowClose();
 
 private:
     Ui::CloseDialog* ui;
+    bool bCanClose;
 };
 
 #endif // CLOSEDIALOG_H

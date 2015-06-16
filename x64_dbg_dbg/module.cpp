@@ -88,6 +88,12 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     return true;
 }
 
+static void modCleanup(const MODINFO & mod)
+{
+    // Unload everything from TitanEngine
+    StaticFileUnloadW(nullptr, false, mod.Handle, mod.FileMapSize, mod.MapHandle, mod.FileMapVA);
+}
+
 bool ModUnload(uint Base)
 {
     EXCLUSIVE_ACQUIRE(LockModules);
@@ -98,8 +104,7 @@ bool ModUnload(uint Base)
     if(found == modinfo.end())
         return false;
 
-    // Unload everything from TitanEngine
-    StaticFileUnloadW(nullptr, false, found->second.Handle, found->second.FileMapSize, found->second.MapHandle, found->second.FileMapVA);
+    modCleanup(found->second);
 
     // Remove it from the list
     modinfo.erase(found);
@@ -112,12 +117,15 @@ bool ModUnload(uint Base)
 
 void ModClear()
 {
+    // Clean up all the modules
     EXCLUSIVE_ACQUIRE(LockModules);
+    for(auto mod : modinfo)
+        modCleanup(mod.second);
     modinfo.clear();
     EXCLUSIVE_RELEASE();
 
     // Tell the symbol updater
-    SymUpdateModuleList();
+    GuiSymbolUpdateModuleList(0, nullptr);
 }
 
 MODINFO* ModInfoFromAddr(uint Address)

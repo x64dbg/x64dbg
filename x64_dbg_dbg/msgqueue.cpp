@@ -82,8 +82,8 @@ bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg)
 }
 
 //wait for a message on the specified stack
-void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg)
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg, bool* bStop)
 {
-    while(!MsgGet(msgstack, msg))
+    while(!MsgGet(msgstack, msg) && (bStop == nullptr || !*bStop))
         Sleep(1);
 }

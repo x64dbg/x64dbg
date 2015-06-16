@@ -23,11 +23,9 @@
 #include "capstone_wrapper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
-
 static COMMAND* command_list = 0;
-
 static HANDLE hCommandLoopThread = 0;
-
+static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
@@ -210,7 +208,9 @@ static void registercommands()
 static bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
-    MsgWait(gMsgStack, &msg);
+    MsgWait(gMsgStack, &msg, &bStopCommandLoopThread);
+    if(bStopCommandLoopThread)
+        return false;
     char* newcmd = (char*)msg.param1;
     if(strlen(newcmd) >= deflen)
     {
@@ -307,27 +307,31 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
+    dputs("Stopping running debuggee...");
     cbStopDebug(0, 0);
+    dputs("Aborting scripts...");
     scriptabort();
+    dputs("Waiting for the debuggee to be stopped...");
     wait(WAITID_STOP); //after this, debugging stopped
+    dputs("Unloading plugins...");
     pluginunload();
-    TerminateThread(hCommandLoopThread, 0);
-    CloseHandle(hCommandLoopThread);
+    dputs("Stopping command thread...");
+    bStopCommandLoopThread = true;
+    WaitForThreadTermination(hCommandLoopThread);
+    dputs("Cleaning up allocated data...");
     cmdfree(command_list);
     varfree();
     MsgFreeStack(gMsgStack);
     yr_finalize();
     Capstone::GlobalFinalize();
+    dputs("Checking for mem leaks...");
     if(memleaks())
-    {
-        char msg[256] = "";
-        sprintf(msg, "%d memory leak(s) found!\n\nPlease send contact the authors of x64dbg.", memleaks());
-        MessageBoxA(0, msg, "error", MB_ICONERROR | MB_SYSTEMMODAL);
-    }
+        dprintf("%d memory leak(s) found!\n", memleaks());
     else
         DeleteFileA(alloctrace);
-
+    dputs("Cleaning up locks...");
     SectionLockerGlobal::Deinitialize();
+    dputs("Exit signal processed successfully!");
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)

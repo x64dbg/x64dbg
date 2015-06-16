@@ -359,3 +359,9 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedP
     CoUninitialize();
     return SUCCEEDED(hres);
 }
+
+void WaitForThreadTermination(HANDLE hThread)
+{
+    WaitForSingleObject(hThread, INFINITE);
+    CloseHandle(hThread);
+}

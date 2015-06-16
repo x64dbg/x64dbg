@@ -27,6 +27,6 @@ MESSAGE_STACK* MsgAllocStack();
 void MsgFreeStack(MESSAGE_STACK* msgstack);
 bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2);
 bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg);
-void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg);
+void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg, bool* bStop);
 
 #endif // _MSGQUEUE_H

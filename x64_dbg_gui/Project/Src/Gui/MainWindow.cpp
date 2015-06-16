@@ -241,7 +241,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    hide(); //hide main window
     mCloseDialog->show();
     mCloseDialog->setFocus();
     static volatile bool bExecuteThread = true;
@@ -253,7 +252,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
         mCloseThread->start();
     }
     if(bCanClose)
+    {
+        mCloseDialog->allowClose();
+        mCloseDialog->close();
         event->accept();
+    }
     else
         event->ignore();
 }
