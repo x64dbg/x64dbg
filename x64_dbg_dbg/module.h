@@ -21,11 +21,6 @@ struct MODINFO
     char extension[MAX_MODULE_SIZE];    // File extension
     char path[MAX_PATH];                // File path (in UTF8)
 
-    HANDLE Handle;          // Handle to the file opened by TitanEngine
-    HANDLE MapHandle;       // Handle to the memory map
-    ULONG_PTR FileMapVA;    // File map virtual address (Debugger local)
-    DWORD FileMapSize;      // File map virtual size
-
     std::vector<MODSECTIONINFO> sections;
 };
 

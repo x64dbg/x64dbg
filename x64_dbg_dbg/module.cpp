@@ -54,22 +54,26 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     // Process module sections
     info.sections.clear();
 
+    HANDLE FileHandle;
+    DWORD LoadedSize;
+    HANDLE FileMap;
+    ULONG_PTR FileMapVA;
     WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
-    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.Handle, &info.FileMapSize, &info.MapHandle, &info.FileMapVA))
+    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
         // Get the entry point
-        info.entry = GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_OEP) + info.base;
+        info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base;
 
         // Enumerate all PE sections
-        int sectionCount = (int)GetPE32DataFromMappedFile(info.FileMapVA, 0, UE_SECTIONNUMBER);
+        int sectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
 
         for(int i = 0; i < sectionCount; i++)
         {
             MODSECTIONINFO curSection;
 
-            curSection.addr = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
-            curSection.size = GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONVIRTUALSIZE);
-            const char* sectionName = (const char*)GetPE32DataFromMappedFile(info.FileMapVA, i, UE_SECTIONNAME);
+            curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
+            curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
+            const char* sectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
 
             // Escape section name when needed
             strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
@@ -77,6 +81,7 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
             // Add entry to the vector
             info.sections.push_back(curSection);
         }
+        StaticFileUnloadW(wszFullPath.c_str(), false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
 
     // Add module to list
@@ -88,12 +93,6 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     return true;
 }
 
-static void modCleanup(const MODINFO & mod)
-{
-    // Unload everything from TitanEngine
-    StaticFileUnloadW(nullptr, false, mod.Handle, mod.FileMapSize, mod.MapHandle, mod.FileMapVA);
-}
-
 bool ModUnload(uint Base)
 {
     EXCLUSIVE_ACQUIRE(LockModules);
@@ -103,8 +102,6 @@ bool ModUnload(uint Base)
 
     if(found == modinfo.end())
         return false;
-
-    modCleanup(found->second);
 
     // Remove it from the list
     modinfo.erase(found);
@@ -119,8 +116,6 @@ void ModClear()
 {
     // Clean up all the modules
     EXCLUSIVE_ACQUIRE(LockModules);
-    for(auto mod : modinfo)
-        modCleanup(mod.second);
     modinfo.clear();
     EXCLUSIVE_RELEASE();
 

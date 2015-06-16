@@ -109,7 +109,7 @@ void cbSystemBreakpoint(void* ExceptionData);
 void cbMemoryBreakpoint(void* ExceptionAddress);
 void cbHardwareBreakpoint(void* ExceptionAddress);
 void cbUserBreakpoint();
-void cbLoadLibBPX();
+void cbDebugLoadLibBPX();
 void cbLibrarianBreakpoint(void* lpData);
 DWORD WINAPI threadDebugLoop(void* lpParameter);
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp);

@@ -6,7 +6,7 @@
 
 //command callbacks
 CMDRESULT cbDebugInit(int argc, char* argv[]);
-CMDRESULT cbStopDebug(int argc, char* argv[]);
+CMDRESULT cbDebugStop(int argc, char* argv[]);
 CMDRESULT cbDebugRun(int argc, char* argv[]);
 CMDRESULT cbDebugErun(int argc, char* argv[]);
 CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[]);

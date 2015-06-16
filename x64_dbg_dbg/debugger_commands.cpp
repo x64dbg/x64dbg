@@ -30,8 +30,7 @@ TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
 {
-    if(DbgIsDebugging())
-        DbgCmdExecDirect("stop");
+    cbDebugStop(argc, argv);
 
     static char arg1[deflen] = "";
     if(argc < 2)
@@ -98,9 +97,6 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 
     if(DirExists(arg3))
         strcpy_s(currentfolder, arg3);
-    //initialize
-    wait(WAITID_STOP); //wait for the debugger to stop
-    waitclear(); //clear waiting flags NOTE: thread-unsafe
 
     static INIT_STRUCT init;
     memset(&init, 0, sizeof(INIT_STRUCT));
@@ -112,12 +108,15 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-CMDRESULT cbStopDebug(int argc, char* argv[])
+CMDRESULT cbDebugStop(int argc, char* argv[])
 {
     scriptreset(); //reset the currently-loaded script
     StopDebug();
-    unlock(WAITID_RUN);
-    wait(WAITID_STOP);
+    while(waitislocked(WAITID_STOP))  //custom waiting
+    {
+        unlock(WAITID_RUN);
+        Sleep(1);
+    }
     return STATUS_CONTINUE;
 }
 
@@ -1893,7 +1892,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     counter += size;
 
     SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
-    SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbLoadLibBPX);
+    SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
 
     ThreadSuspendAll();
     ResumeThread(LoadLibThread);
@@ -1903,7 +1902,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-void cbLoadLibBPX()
+void cbDebugLoadLibBPX()
 {
     uint LibAddr = 0;
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);

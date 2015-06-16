@@ -60,7 +60,7 @@ static void registercommands()
 
     //debug control
     dbgcmdnew("InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
-    dbgcmdnew("StopDebug\1stop\1dbgstop", cbStopDebug, true); //stop debugger
+    dbgcmdnew("StopDebug\1stop\1dbgstop", cbDebugStop, true); //stop debugger
     dbgcmdnew("AttachDebugger\1attach", cbDebugAttach, false); //attach
     dbgcmdnew("DetachDebugger\1detach", cbDebugDetach, true); //detach
     dbgcmdnew("run\1go\1r\1g", cbDebugRun, true); //unlock WAITID_RUN
@@ -308,7 +308,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
     dputs("Stopping running debuggee...");
-    cbStopDebug(0, 0);
+    cbDebugStop(0, 0);
     dputs("Aborting scripts...");
     scriptabort();
     dputs("Waiting for the debuggee to be stopped...");
