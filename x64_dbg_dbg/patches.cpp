@@ -214,7 +214,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         if(_stricmp(List[i].mod, moduleName))
         {
             if(Error)
-                sprintf_s(Error, MAX_ERROR_SIZE, "not all patches are in module %s", moduleName);
+                sprintf_s(Error, MAX_ERROR_SIZE, "Not all patches are in module %s", moduleName);
 
             return -1;
         }
@@ -226,7 +226,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     if(!moduleBase)
     {
         if(Error)
-            sprintf_s(Error, MAX_ERROR_SIZE, "failed to get base of module %s", moduleName);
+            sprintf_s(Error, MAX_ERROR_SIZE, "Failed to get base of module %s", moduleName);
 
         return -1;
     }

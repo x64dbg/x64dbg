@@ -24,7 +24,7 @@
 //database functions
 void dbsave()
 {
-    dprintf("saving database...");
+    dprintf("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
     CommentCacheSave(root);

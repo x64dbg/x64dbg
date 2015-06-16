@@ -78,9 +78,9 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
         {
             // Percent = (current / total) * 100
             // Integer = floor(percent)
-            float percent = floor(((float)i / (float)scanSize) * 100.0f);
+            int percent = (int)floor(((float)i / (float)scanSize) * 100.0f);
 
-            GuiReferenceSetProgress((int)percent);
+            GuiReferenceSetProgress(percent);
         }
 
         // Disassemble the instruction
