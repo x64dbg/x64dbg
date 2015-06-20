@@ -307,10 +307,11 @@ void SymbolView::toggleBreakpoint()
 
     if(!mSearchListView->mCurList->getRowCount())
         return;
-    const char* addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    QString addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
-    uint_t wVA = DbgValFromString(addrText);
+
     if(!DbgMemIsValidReadPtr(wVA))
         return;
 
@@ -336,10 +337,10 @@ void SymbolView::toggleBookmark()
 
     if(!mSearchListView->mCurList->getRowCount())
         return;
-    const char* addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    QString addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
-    uint_t wVA = DbgValFromString(addrText);
     if(!DbgMemIsValidReadPtr(wVA))
         return;
 

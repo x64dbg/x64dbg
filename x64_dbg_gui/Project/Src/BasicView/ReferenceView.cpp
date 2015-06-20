@@ -181,10 +181,10 @@ void ReferenceView::toggleBreakpoint()
 
     if(!this->mCurList->getRowCount())
         return;
-    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    QString addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
-    uint_t wVA = DbgValFromString(addrText);
     if(!DbgMemIsValidReadPtr(wVA))
         return;
 
@@ -210,10 +210,10 @@ void ReferenceView::toggleBookmark()
 
     if(!this->mCurList->getRowCount())
         return;
-    const char* addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
-    if(!DbgIsValidExpression(addrText))
+    QString addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0);
+    duint wVA;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
-    uint_t wVA = DbgValFromString(addrText);
     if(!DbgMemIsValidReadPtr(wVA))
         return;
 
