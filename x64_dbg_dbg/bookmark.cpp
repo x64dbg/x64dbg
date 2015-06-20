@@ -25,7 +25,10 @@ bool BookmarkSet(uint Address, bool Manual)
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
     if(!bookmarks.insert(std::make_pair(ModHashFromAddr(Address), bookmark)).second)
+    {
+        EXCLUSIVE_RELEASE();
         return BookmarkDelete(Address);
+    }
 
     return true;
 }
