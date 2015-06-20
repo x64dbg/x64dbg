@@ -24,6 +24,7 @@ static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
 static bool bFileIsDll = false;
 static uint pDebuggedBase = 0;
+static uint pCreateProcessBase = 0;
 static uint pDebuggedEntry = 0;
 static bool isStepping = false;
 static bool isPausedByUser = false;
@@ -663,9 +664,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     if(ModNameFromAddr((uint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
+    pCreateProcessBase = (uint)CreateProcessInfo->lpBaseOfImage;
     if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
     {
-        pDebuggedBase = (uint)CreateProcessInfo->lpBaseOfImage; //debugged base = executable
+        pDebuggedBase = pCreateProcessBase; //debugged base = executable
         char command[256] = "";
 
         if(settingboolget("Events", "TlsCallbacks"))
@@ -719,6 +721,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
     //Cleanup
     SafeSymCleanup(fdProcessInfo->hProcess);
 }
