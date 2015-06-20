@@ -7,13 +7,13 @@ SearchListView::SearchListView(QWidget* parent) :
 {
     ui->setupUi(this);
 
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
     // Create the reference list
     mList = new SearchListViewTable();
-    mList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     // Create the search list
     mSearchList = new SearchListViewTable();
-    mSearchList->setContextMenuPolicy(Qt::CustomContextMenu);
     mSearchList->hide();
 
     // Set global variables

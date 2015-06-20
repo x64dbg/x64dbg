@@ -13,6 +13,7 @@ ReferenceManager::ReferenceManager(QWidget* parent) : QTabWidget(parent)
     mCloseAllTabs->setToolTip("Close All Tabs");
     connect(mCloseAllTabs, SIGNAL(clicked()), this, SLOT(closeAllTabs()));
     setCornerWidget(mCloseAllTabs, Qt::TopLeftCorner);
+    setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(Bridge::getBridge(), SIGNAL(referenceInitialize(QString)), this, SLOT(newReferenceView(QString)));
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));

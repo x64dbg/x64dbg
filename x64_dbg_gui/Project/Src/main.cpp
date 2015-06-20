@@ -26,10 +26,10 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
     }
     catch(const std::exception & ex)
     {
-        const char* message = QString().sprintf("Fatal GUI Exception: %s!\n", ex.what()).toUtf8().constData();
-        GuiAddLogMessage(message);
-        puts(message);
-        OutputDebugStringA(message);
+        QString message = QString().sprintf("Fatal GUI Exception: %s!\n", ex.what());
+        GuiAddLogMessage(message.toUtf8().constData());
+        puts(message.toUtf8().constData());
+        OutputDebugStringA(message.toUtf8().constData());
     }
     catch(...)
     {
