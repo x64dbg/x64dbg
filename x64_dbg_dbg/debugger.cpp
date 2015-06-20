@@ -718,12 +718,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
+    dprintf("Process stopped with exit code 0x%X\n", ExitProcess->dwExitCode);
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
-    //Cleanup
-    SafeSymCleanup(fdProcessInfo->hProcess);
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
@@ -1174,6 +1174,8 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
+    //cleanup dbghelp
+    SafeSymCleanup(fdProcessInfo->hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
@@ -1390,6 +1392,8 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
+    //cleanup dbghelp
+    SafeSymCleanup(fdProcessInfo->hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
