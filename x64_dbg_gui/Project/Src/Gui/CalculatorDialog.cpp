@@ -14,7 +14,7 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     ui->txtExpression->setText("0");
     ui->txtExpression->selectAll();
     ui->txtExpression->setFocus();
-    mValidateThread = new ValidateExpressionThread();
+    mValidateThread = new ValidateExpressionThread(this);
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
     connect(ui->txtExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
 }

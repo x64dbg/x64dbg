@@ -9,7 +9,7 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
 #endif
     setModal(true);
 
-    mValidateThread = new ValidateExpressionThread();
+    mValidateThread = new ValidateExpressionThread(this);
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
     connect(ui->expressionLineEdit, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
