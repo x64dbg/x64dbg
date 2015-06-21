@@ -31,10 +31,11 @@ void MemUpdateMap(HANDLE hProcess)
     std::vector<MEMPAGE> pageVector;
     do
     {
+        memset(&mbi, 0, sizeof(mbi));
         numBytes = VirtualQueryEx(hProcess, (LPCVOID)MyAddress, &mbi, sizeof(mbi));
         if(mbi.State == MEM_COMMIT)
         {
-            if(bListAllPages || curAllocationBase != (uint)mbi.AllocationBase) //only list allocation bases
+            if(bListAllPages || curAllocationBase != (uint)mbi.AllocationBase)  //only list allocation bases
             {
                 curAllocationBase = (uint)mbi.AllocationBase;
                 MEMPAGE curPage;
@@ -59,7 +60,7 @@ void MemUpdateMap(HANDLE hProcess)
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {
-        if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages)) //there is a module
+        if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages))  //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
         uint base = ModBaseFromName(pageVector.at(i).info);
@@ -69,9 +70,9 @@ void MemUpdateMap(HANDLE hProcess)
         if(!ModSectionsFromAddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
-        if(!SectionNumber) //no sections = skip
+        if(!SectionNumber)  //no sections = skip
             continue;
-        if(!bListAllPages) //normal view
+        if(!bListAllPages)  //normal view
         {
             MEMPAGE newPage;
             //remove the current module page (page = size of module at this point) and insert the module sections
@@ -81,43 +82,41 @@ void MemUpdateMap(HANDLE hProcess)
                 memset(&newPage, 0, sizeof(MEMPAGE));
                 VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 uint SectionSize = sections.at(j).size;
-                if(SectionSize % PAGE_SIZE) //unaligned page size
+                if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 if(SectionSize)
                     newPage.mbi.RegionSize = SectionSize;
-                sprintf(newPage.info, " \"%s\"", sections.at(j).name);
+                sprintf_s(newPage.info, " \"%s\"", sections.at(j).name);
                 pageVector.insert(pageVector.begin() + i, newPage);
             }
             //insert the module itself (the module header)
             memset(&newPage, 0, sizeof(MEMPAGE));
             VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-            strcpy(newPage.info, curMod);
+            strcpy_s(newPage.info, curMod);
             pageVector.insert(pageVector.begin() + i, newPage);
         }
         else //list all pages
         {
             uint start = (uint)pageVector.at(i).mbi.BaseAddress;
             uint end = start + pageVector.at(i).mbi.RegionSize;
-            char section[50] = "";
             for(int j = 0, k = 0; j < SectionNumber; j++)
             {
                 uint secStart = sections.at(j).addr;
                 uint SectionSize = sections.at(j).size;
-                if(SectionSize % PAGE_SIZE) //unaligned page size
+                if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 uint secEnd = secStart + SectionSize;
-
-                if(secStart >= start && secEnd <= end) //section is inside the memory page
+                if(secStart >= start && secEnd <= end)  //section is inside the memory page
                 {
                     if(k)
-                        k += sprintf(pageVector.at(i).info + k, ",");
-                    k += sprintf(pageVector.at(i).info + k, " \"%s\"", sections.at(j).name);
+                        k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, ",");
+                    k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, " \"%s\"", sections.at(j).name);
                 }
-                else if(start >= secStart && end <= secEnd) //memory page is inside the section
+                else if(start >= secStart && end <= secEnd)  //memory page is inside the section
                 {
                     if(k)
-                        k += sprintf(pageVector.at(i).info + k, ",");
-                    k += sprintf(pageVector.at(i).info + k, " \"%s\"", sections.at(j).name);
+                        k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, ",");
+                    k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, " \"%s\"", sections.at(j).name);
                 }
             }
         }
