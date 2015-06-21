@@ -683,6 +683,7 @@ BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text);
 BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
+BRIDGE_IMPEXP bool DbgIsRunning();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0

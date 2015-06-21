@@ -61,4 +61,5 @@ bool pluginwineventglobal(MSG* message);
 void pluginmenuseticon(int hMenu, const ICONDATA* icon);
 void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
 
+
 #endif // _PLUGIN_LOADER_H

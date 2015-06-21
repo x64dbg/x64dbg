@@ -109,9 +109,7 @@ void dbgenablebpx()
 
 bool dbgisrunning()
 {
-    if(!waitislocked(WAITID_RUN))
-        return true;
-    return false;
+    return !waitislocked(WAITID_RUN);
 }
 
 bool dbgisdll()
@@ -1970,4 +1968,16 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
     return true;
+}
+
+static DWORD WINAPI scriptThread(void* data)
+{
+    CBPLUGINSCRIPT cbScript = (CBPLUGINSCRIPT)data;
+    cbScript();
+    return 0;
+}
+
+void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
+{
+    CloseHandle(CreateThread(0, 0, scriptThread, cbScript, 0, 0));
 }

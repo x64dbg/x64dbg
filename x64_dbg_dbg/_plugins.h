@@ -46,6 +46,11 @@ typedef struct
     int hMenuStack; //plugin stack menu handle
 } PLUG_SETUPSTRUCT;
 
+typedef struct
+{
+    void* data; //user data
+} PLUG_SCRIPTSTRUCT;
+
 //callback structures
 typedef struct
 {
@@ -191,6 +196,7 @@ typedef enum
 //typedefs
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
 typedef bool (*CBPLUGINCOMMAND)(int, char**);
+typedef void (*CBPLUGINSCRIPT)();
 
 //exports
 #ifdef __cplusplus
@@ -212,6 +218,8 @@ PLUG_IMPEXP bool _plugin_menuaddseparator(int hMenu);
 PLUG_IMPEXP bool _plugin_menuclear(int hMenu);
 PLUG_IMPEXP void _plugin_menuseticon(int hMenu, const ICONDATA* icon);
 PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon);
+PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
+PLUG_IMPEXP bool _plugin_waituntilpaused();
 
 #ifdef __cplusplus
 }

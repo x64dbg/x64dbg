@@ -7,6 +7,7 @@
 #include "breakpoint.h"
 #include "undocumented.h"
 #include "value.h"
+#include "_plugins.h"
 
 #define ATTACH_CMD_LINE "\" -a %ld -e %ld"
 #define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
@@ -102,6 +103,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetpagerights(uint addr, char* rights);
 bool dbgsetpagerights(uint addr, const char* rights_string);
 bool dbgpagerightstostring(DWORD protect, char* rights);
+void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 
 void cbStep();
 void cbRtrStep();

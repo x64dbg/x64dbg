@@ -89,3 +89,15 @@ PLUG_IMPEXP void _plugin_menuentryseticon(int pluginHandle, int hEntry, const IC
 {
     pluginmenuentryseticon(pluginHandle, hEntry, icon);
 }
+
+PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript)
+{
+    dbgstartscriptthread(cbScript);
+}
+
+PLUG_IMPEXP bool _plugin_waituntilpaused()
+{
+    while(DbgIsDebugging() && dbgisrunning())  //wait until the debugger paused
+        Sleep(1);
+    return DbgIsDebugging();
+}

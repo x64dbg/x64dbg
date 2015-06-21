@@ -294,29 +294,6 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
     return true;
 }
 
-static bool scriptisruncommand(const char* cmdlist)
-{
-    if(arraycontains(cmdlist, "run"))
-        return true;
-    else if(arraycontains(cmdlist, "erun"))
-        return true;
-    else if(arraycontains(cmdlist, "sti"))
-        return true;
-    else if(arraycontains(cmdlist, "esti"))
-        return true;
-    else if(arraycontains(cmdlist, "step"))
-        return true;
-    else if(arraycontains(cmdlist, "estep"))
-        return true;
-    else if(arraycontains(cmdlist, "sstep"))
-        return true;
-    else if(arraycontains(cmdlist, "rtr"))
-        return true;
-    else if(arraycontains(cmdlist, "ertr"))
-        return true;
-    return false;
-}
-
 static bool scriptisinternalcommand(const char* text, const char* cmd)
 {
     int len = (int)strlen(text);
@@ -360,7 +337,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     }
     CMDRESULT res = cmddirectexec(dbggetcommandlist(), command);
-    while(DbgIsDebugging() && !waitislocked(WAITID_RUN)) //while not locked (NOTE: possible deadlock)
+    while(DbgIsDebugging() && dbgisrunning()) //while not locked (NOTE: possible deadlock)
         Sleep(10);
     return res;
 }
@@ -517,7 +494,7 @@ void scriptunload()
 
 void scriptrun(int destline)
 {
-    if(DbgIsDebugging() && !waitislocked(WAITID_RUN))
+    if(DbgIsDebugging() && dbgisrunning())
     {
         GuiScriptError(0, "Debugger must be paused to run a script!");
         return;

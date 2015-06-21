@@ -122,7 +122,7 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
 
 CMDRESULT cbDebugRun(int argc, char* argv[])
 {
-    if(!waitislocked(WAITID_RUN))
+    if(dbgisrunning())
     {
         dputs("Program is already running");
         return STATUS_ERROR;
@@ -137,7 +137,7 @@ CMDRESULT cbDebugRun(int argc, char* argv[])
 
 CMDRESULT cbDebugErun(int argc, char* argv[])
 {
-    if(waitislocked(WAITID_RUN))
+    if(!dbgisrunning())
         dbgsetskipexceptions(true);
     return cbDebugRun(argc, argv);
 }
@@ -840,7 +840,7 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 
 CMDRESULT cbDebugPause(int argc, char* argv[])
 {
-    if(waitislocked(WAITID_RUN))
+    if(!dbgisrunning())
     {
         dputs("Program is not running");
         return STATUS_ERROR;

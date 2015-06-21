@@ -726,12 +726,10 @@ BRIDGE_IMPEXP bool DbgGetStringAt(duint addr, char* text)
     return false;
 }
 
-
 BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions()
 {
     return (const DBGFUNCTIONS*)_dbg_sendmessage(DBG_GET_FUNCTIONS, 0, 0);
 }
-
 
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
 {
@@ -740,7 +738,6 @@ BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result)
     return false;
 }
 
-
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
 {
     if(_dbg_sendmessage(DBG_WIN_EVENT_GLOBAL, message, 0))
@@ -748,12 +745,15 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
     return false;
 }
 
+BRIDGE_IMPEXP bool DbgIsRunning()
+{
+    return !DbgIsRunLocked();
+}
 
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
 }
-
 
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state)
 {
@@ -766,12 +766,10 @@ BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
-
 BRIDGE_IMPEXP void GuiLogClear()
 {
     _gui_sendmessage(GUI_CLEAR_LOG, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateAllViews()
 {
@@ -784,12 +782,10 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiRepaintTableView();
 }
 
-
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
 {
     _gui_sendmessage(GUI_UPDATE_REGISTER_VIEW, 0, 0);
 }
-
 
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView()
 {
