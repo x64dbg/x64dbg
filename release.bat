@@ -81,6 +81,7 @@ xcopy x64_dbg_dbg\XEDParse %RELEASEDIR%\pluginsdk\XEDParse /S /Y
 xcopy x64_dbg_dbg\yara %RELEASEDIR%\pluginsdk\yara /S /Y
 copy x64_dbg_dbg\_plugin_types.h %RELEASEDIR%\pluginsdk\_plugin_types.h
 copy x64_dbg_dbg\_plugins.h %RELEASEDIR%\pluginsdk\_plugins.h
+copy x64_dbg_dbg\_scriptapi.h %RELEASEDIR%\pluginsdk\_scriptapi.h
 copy x64_dbg_dbg\_dbgfunctions.h %RELEASEDIR%\pluginsdk\_dbgfunctions.h
 copy x64_dbg_bridge\bridgemain.h %RELEASEDIR%\pluginsdk\bridgemain.h
 

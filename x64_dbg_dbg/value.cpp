@@ -1058,7 +1058,7 @@ static uint getregister(int* size, const char* string)
 \param value The new register value.
 \return true if the register was set, false otherwise.
 */
-static bool setregister(const char* string, uint value)
+bool setregister(const char* string, uint value)
 {
     if(scmp(string, "eax"))
         return SetContextDataEx(hActiveThread, UE_EAX, value & 0xFFFFFFFF);

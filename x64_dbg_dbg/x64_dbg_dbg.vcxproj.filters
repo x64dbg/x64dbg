@@ -219,6 +219,9 @@
     <ClCompile Include="expressionparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="_scriptapi.cpp">
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -517,6 +520,9 @@
     </ClInclude>
     <ClInclude Include="expressionparser.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -51,6 +51,7 @@
     <ClCompile Include="patternfind.cpp" />
     <ClCompile Include="plugin_loader.cpp" />
     <ClCompile Include="reference.cpp" />
+    <ClCompile Include="_scriptapi.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="stackinfo.cpp" />
     <ClCompile Include="stringformat.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="patternfind.h" />
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
+    <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="stackinfo.h" />
     <ClInclude Include="stringformat.h" />
