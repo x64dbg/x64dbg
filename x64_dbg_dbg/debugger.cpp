@@ -52,10 +52,11 @@ static DWORD WINAPI memMapThread(void* ptr)
         while(!DbgIsDebugging())
             Sleep(1);
         const SIZE_T PrivateUsage = dbggetprivateusage(fdProcessInfo->hProcess);
-        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when
+        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when the memory usage changed
         {
             cachePrivateUsage = PrivateUsage;
             MemUpdateMap(fdProcessInfo->hProcess);
+            GuiUpdateMemoryView();
         }
         Sleep(1000);
     }
