@@ -751,9 +751,11 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         dprintf(fhex"\n", mem);
     if(mem)
         varset("$lastalloc", mem, true);
+    //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
+
     varset("$res", mem, false);
     return STATUS_CONTINUE;
 }
@@ -778,9 +780,11 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
     bool ok = !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs("VirtualFreeEx failed");
+    //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap(fdProcessInfo->hProcess);
     GuiUpdateMemoryView();
+
     varset("$res", ok, false);
     return STATUS_CONTINUE;
 }

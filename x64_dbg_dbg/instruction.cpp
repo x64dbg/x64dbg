@@ -2014,7 +2014,9 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
     }
     else if(argv[1][0] == 'r')
     {
+        dbggetprivateusage(fdProcessInfo->hProcess, true);
         MemUpdateMap(fdProcessInfo->hProcess);
+        GuiUpdateMemoryView();
         dputs("memory map updated!");
     }
     return STATUS_CONTINUE;

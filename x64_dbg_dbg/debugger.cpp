@@ -85,28 +85,6 @@ uint dbgdebuggedbase()
     return pDebuggedBase;
 }
 
-void dbgdisablebpx()
-{
-    std::vector<BREAKPOINT> list;
-    int bpcount = BpGetList(&list);
-    for(int i = 0; i < bpcount; i++)
-    {
-        if(list[i].type == BPNORMAL and IsBPXEnabled(list[i].addr))
-            DeleteBPX(list[i].addr);
-    }
-}
-
-void dbgenablebpx()
-{
-    std::vector<BREAKPOINT> list;
-    int bpcount = BpGetList(&list);
-    for(int i = 0; i < bpcount; i++)
-    {
-        if(list[i].type == BPNORMAL and !IsBPXEnabled(list[i].addr) and list[i].enabled)
-            SetBPX(list[i].addr, list[i].titantype, (void*)cbUserBreakpoint);
-    }
-}
-
 bool dbgisrunning()
 {
     return !waitislocked(WAITID_RUN);
@@ -493,7 +471,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     case BPNORMAL:
     {
         if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
-            dprintf("Could not set breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set breakpoint "fhex"! (SetBPX)\n", bp->addr);
     }
     break;
 
@@ -502,7 +480,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         uint size = 0;
         MemFindBaseAddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
-            dprintf("Could not set memory breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set memory breakpoint "fhex"! (SetMemoryBPXEx)\n", bp->addr);
     }
     break;
 
@@ -518,7 +496,7 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         TITANSETDRX(titantype, drx);
         BpSetTitanType(bp->addr, BPHARDWARE, titantype);
         if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
-            dprintf("Could not set hardware breakpoint "fhex"!\n", bp->addr);
+            dprintf("Could not set hardware breakpoint "fhex"! (SetHardwareBreakPoint)\n", bp->addr);
     }
     break;
 
@@ -530,20 +508,21 @@ static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 
 static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
-    //TODO: more breakpoint types
+    if(!bp->enabled)
+        return true;
     switch(bp->type)
     {
     case BPNORMAL:
-        if(IsBPXEnabled(bp->addr))
-            DeleteBPX(bp->addr);
+        if(!DeleteBPX(bp->addr))
+            dprintf("Could not delete breakpoint "fhex"! (DeleteBPX)\n", bp->addr);
         break;
     case BPMEMORY:
-        if(bp->enabled)
-            RemoveMemoryBPX(bp->addr, 0);
+        if(!RemoveMemoryBPX(bp->addr, 0))
+            dprintf("Could not delete memory breakpoint "fhex"! (RemoveMemoryBPX)\n", bp->addr);
         break;
     case BPHARDWARE:
-        if(bp->enabled)
-            DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype));
+        if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+            dprintf("Could not delete hardware breakpoint "fhex"! (DeleteHardwareBreakPoint)\n", bp->addr);
         break;
     default:
         break;
@@ -605,6 +584,7 @@ void cbRtrStep()
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     void* base = CreateProcessInfo->lpBaseOfImage;
+
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
     {
@@ -616,7 +596,11 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     }
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
+    //update memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
     GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     //init program database
@@ -651,13 +635,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     SafeSymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
     SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
+
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(modInfo);
     if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
-    dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess); //update memory map
+
     char modname[256] = "";
     if(ModNameFromAddr((uint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
@@ -746,8 +730,9 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     if(settingboolget("Events", "ThreadStart"))
     {
+        //update memory map
         dbggetprivateusage(fdProcessInfo->hProcess, true);
-        MemUpdateMap(fdProcessInfo->hProcess); //update memory map
+        MemUpdateMap(fdProcessInfo->hProcess);
         //update GUI
         GuiSetDebugState(paused);
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
@@ -823,6 +808,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     void* base = LoadDll->lpBaseOfDll;
+
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
     {
@@ -832,14 +818,19 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         else
             strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     }
+
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
     memset(&modInfo, 0, sizeof(modInfo));
     modInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
     if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         ModLoad((uint)base, modInfo.ImageSize, modInfo.ImageName);
+
+    //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess); //update memory map
+    MemUpdateMap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
+
     char modname[256] = "";
     if(ModNameFromAddr((uint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
@@ -953,6 +944,11 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     }
 
     ModUnload((uint)base);
+
+    //update memory map
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
+    MemUpdateMap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
 }
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
@@ -1023,6 +1019,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
             GuiSetDebugState(paused);
+            dbggetprivateusage(fdProcessInfo->hProcess, true);
             MemUpdateMap(fdProcessInfo->hProcess);
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock

@@ -76,8 +76,6 @@ typedef struct _THREADNAME_INFO
 SIZE_T dbggetprivateusage(HANDLE hProcess, bool update = false);
 void dbginit();
 uint dbgdebuggedbase();
-void dbgdisablebpx();
-void dbgenablebpx();
 bool dbgisrunning();
 bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);

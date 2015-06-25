@@ -166,7 +166,9 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 
 static void _memupdatemap()
 {
+    dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap(fdProcessInfo->hProcess);
+    GuiUpdateMemoryView();
 }
 
 static duint _getaddrfromline(const char* szSourceFile, int line)
