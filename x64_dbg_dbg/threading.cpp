@@ -1,31 +1,46 @@
 #include "threading.h"
 
-static volatile bool waitarray[WAITID_LAST];
+static HANDLE waitArray[WAITID_LAST];
 
 void waitclear()
 {
-    memset((void*)waitarray, 0, sizeof(waitarray));
+    for(int i = 0; i < WAITID_LAST; i++)
+        unlock((WAIT_ID)i);
 }
 
 void wait(WAIT_ID id)
 {
-    while(waitarray[id]) //1=locked, 0=unlocked
-        Sleep(1);
+    WaitForSingleObject(waitArray[id], INFINITE);
 }
 
 void lock(WAIT_ID id)
 {
-    waitarray[id] = true;
+    ResetEvent(waitArray[id]);
 }
 
 void unlock(WAIT_ID id)
 {
-    waitarray[id] = false;
+    SetEvent(waitArray[id]);
 }
 
 bool waitislocked(WAIT_ID id)
 {
-    return waitarray[id];
+    return !WaitForSingleObject(waitArray[id], 0) == WAIT_OBJECT_0;
+}
+
+void waitinitialize()
+{
+    for(int i = 0; i < WAITID_LAST; i++)
+        waitArray[i] = CreateEventA(NULL, TRUE, TRUE, NULL);
+}
+
+void waitdeinitialize()
+{
+    for(int i = 0; i < WAITID_LAST; i++)
+    {
+        wait((WAIT_ID)i);
+        CloseHandle(waitArray[i]);
+    }
 }
 
 bool SectionLockerGlobal::m_Initialized = false;

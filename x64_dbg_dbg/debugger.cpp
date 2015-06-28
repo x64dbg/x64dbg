@@ -1404,7 +1404,6 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     varset("$hp", (uint)0, true);
     varset("$pid", (uint)0, true);
     unlock(WAITID_STOP);
-    waitclear();
     return 0;
 }
 
