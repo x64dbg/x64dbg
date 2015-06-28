@@ -7,7 +7,7 @@ struct MODSECTIONINFO
 {
     uint addr;      // Virtual address
     uint size;      // Virtual size
-    char name[50];  // Escaped section name
+    char name[MAX_SECTION_SIZE * 5];  // Escaped section name
 };
 
 struct MODINFO

@@ -102,6 +102,7 @@ bool dbggetpagerights(uint addr, char* rights);
 bool dbgsetpagerights(uint addr, const char* rights_string);
 bool dbgpagerightstostring(DWORD protect, char* rights);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
+uint dbggetdebuggedbase();
 
 void cbStep();
 void cbRtrStep();

@@ -1183,6 +1183,9 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     varset("$hp", (uint)0, true);
     varset("$pid", (uint)0, true);
     unlock(WAITID_STOP); //we are done
+    pDebuggedEntry = 0;
+    pDebuggedBase = 0;
+    pCreateProcessBase = 0;
     return 0;
 }
 
@@ -1978,4 +1981,9 @@ static DWORD WINAPI scriptThread(void* data)
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 {
     CloseHandle(CreateThread(0, 0, scriptThread, cbScript, 0, 0));
+}
+
+uint dbggetdebuggedbase()
+{
+    return pDebuggedBase;
 }
