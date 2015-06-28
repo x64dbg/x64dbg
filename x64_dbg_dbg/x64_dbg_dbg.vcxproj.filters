@@ -79,6 +79,12 @@
     <Filter Include="Source Files\Analysis">
       <UniqueIdentifier>{a2a92bf5-753d-4a01-be80-66cc61434fbf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Interfaces/Exports\_scriptapi">
+      <UniqueIdentifier>{4d81f6f8-bb8a-457b-b372-932857e99035}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Interfaces/Exports\_scriptapi">
+      <UniqueIdentifier>{eb7d9981-6079-4b4b-af18-e44e63451d10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -219,8 +225,23 @@
     <ClCompile Include="expressionparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="_scriptapi.cpp">
-      <Filter>Source Files\Interfaces/Exports</Filter>
+    <ClCompile Include="_scriptapi_module.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_register.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_memory.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_debug.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_pattern.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_gui.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -521,8 +542,26 @@
     <ClInclude Include="expressionparser.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="_scriptapi_debug.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_memory.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_module.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_register.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
     <ClInclude Include="_scriptapi.h">
-      <Filter>Header Files\Interfaces/Exports</Filter>
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_pattern.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_gui.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
