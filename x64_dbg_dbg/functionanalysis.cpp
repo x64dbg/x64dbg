@@ -3,6 +3,9 @@
 #include "memory.h"
 #include "function.h"
 
+#include "module.h"
+#include "LinearPass.h"
+
 FunctionAnalysis::FunctionAnalysis(uint base, uint size)
 {
     _base = base;
@@ -26,10 +29,17 @@ void FunctionAnalysis::Analyse()
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
+    uint modBase = ModBaseFromAddr(_base);
+    uint modSize = ModSizeFromAddr(_base);
+
+    LinearPass* pass = new LinearPass(modBase, modBase + modSize);
+    pass->Analyse();
+    /*
+
     PopulateReferences();
     dprintf("%u called functions populated\n", _functions.size());
     AnalyseFunctions();
-
+    */
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 

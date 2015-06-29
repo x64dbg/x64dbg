@@ -20,10 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
+    <ClCompile Include="Analysis.cpp" />
+    <ClCompile Include="AnalysisPass.cpp" />
     <ClCompile Include="assemble.cpp" />
+    <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="capstone_wrapper.cpp" />
+    <ClCompile Include="CodeFollowPass.cpp" />
     <ClCompile Include="command.cpp" />
     <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
@@ -39,8 +43,11 @@
     <ClCompile Include="filereader.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="functionanalysis.cpp" />
+    <ClCompile Include="FunctionPass.cpp" />
     <ClCompile Include="instruction.cpp" />
+    <ClCompile Include="Int3CoagulatorPass.cpp" />
     <ClCompile Include="label.cpp" />
+    <ClCompile Include="LinearPass.cpp" />
     <ClCompile Include="loop.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -69,7 +76,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
+    <ClInclude Include="Analysis.h" />
+    <ClInclude Include="AnalysisPass.h" />
     <ClInclude Include="assemble.h" />
+    <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
     <ClInclude Include="capstone\arm.h" />
@@ -83,6 +93,7 @@
     <ClInclude Include="capstone\x86.h" />
     <ClInclude Include="capstone\xcore.h" />
     <ClInclude Include="capstone_wrapper.h" />
+    <ClInclude Include="CodeFollowPass.h" />
     <ClInclude Include="command.h" />
     <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
@@ -101,12 +112,15 @@
     <ClInclude Include="filereader.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="functionanalysis.h" />
+    <ClInclude Include="FunctionPass.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
+    <ClInclude Include="Int3CoagulatorPass.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="jansson\jansson_x64dbg.h" />
     <ClInclude Include="label.h" />
+    <ClInclude Include="LinearPass.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="lz4\lz4.h" />
     <ClInclude Include="lz4\lz4file.h" />
