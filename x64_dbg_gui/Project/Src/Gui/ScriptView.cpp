@@ -10,6 +10,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 {
     mEnableSyntaxHighlighting = false;
     enableMultiSelection(false);
+    enableColumnSorting(false);
 
     int charwidth = getCharWidth();
 

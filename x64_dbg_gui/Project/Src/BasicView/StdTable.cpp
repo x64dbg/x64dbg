@@ -157,6 +157,11 @@ void StdTable::enableMultiSelection(bool enabled)
     mIsMultiSelctionAllowed = enabled;
 }
 
+void StdTable::enableColumnSorting(bool enabled)
+{
+    mIsColumnSortingAllowed = enabled;
+}
+
 /************************************************************************************
                                 Selection Management
 ************************************************************************************/
@@ -424,6 +429,8 @@ void StdTable::contextMenuRequestedSlot(const QPoint & pos)
 
 void StdTable::headerButtonPressedSlot(int col)
 {
+    if(!mIsColumnSortingAllowed)
+        return;
     if(mSort.first != col) //first = column to sort
     {
         mSort.first = col;
