@@ -332,9 +332,14 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPNORMAL, argv[1], &found)) //found a breakpoint with name
     {
-        if(!BpEnable(found.addr, BPNORMAL, true) or !SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
+        if(!BpEnable(found.addr, BPNORMAL, true))
         {
-            dprintf("Could not enable breakpoint "fhex"\n", found.addr);
+            dprintf("Could not enable breakpoint "fhex" (BpEnable)\n", found.addr);
+            return STATUS_ERROR;
+        }
+        if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
+        {
+            dprintf("Could not enable breakpoint "fhex" (SetBPX)\n", found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -352,9 +357,14 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    if(!BpEnable(found.addr, BPNORMAL, true) or !SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
+    if(!BpEnable(found.addr, BPNORMAL, true))
     {
-        dprintf("Could not enable breakpoint "fhex"\n", found.addr);
+        dprintf("Could not enable breakpoint "fhex" (BpEnable)\n", found.addr);
+        return STATUS_ERROR;
+    }
+    if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
+    {
+        dprintf("Could not enable breakpoint "fhex" (SetBPX)\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Breakpoint enabled!");
@@ -380,9 +390,14 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPNORMAL, argv[1], &found)) //found a breakpoint with name
     {
-        if(!BpEnable(found.addr, BPNORMAL, false) or !DeleteBPX(found.addr))
+        if(!BpEnable(found.addr, BPNORMAL, false))
         {
-            dprintf("Could not disable breakpoint "fhex"\n", found.addr);
+            dprintf("Could not disable breakpoint "fhex" (BpEnable)\n", found.addr);
+            return STATUS_ERROR;
+        }
+        if(!DeleteBPX(found.addr))
+        {
+            dprintf("Could not disable breakpoint "fhex" (DeleteBPX)\n", found.addr);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews();
@@ -399,9 +414,14 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         dputs("Breakpoint already disabled!");
         return STATUS_CONTINUE;
     }
-    if(!BpEnable(found.addr, BPNORMAL, false) or !DeleteBPX(found.addr))
+    if(!BpEnable(found.addr, BPNORMAL, false))
     {
-        dprintf("Could not disable breakpoint "fhex"\n", found.addr);
+        dprintf("Could not disable breakpoint "fhex" (BpEnable)\n", found.addr);
+        return STATUS_ERROR;
+    }
+    if(!DeleteBPX(found.addr))
+    {
+        dprintf("Could not disable breakpoint "fhex" (DeleteBPX)\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Breakpoint disabled!");
@@ -537,9 +557,14 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs("Hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
-    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0) or !SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint))
+    if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0))
     {
-        dputs("Error setting memory breakpoint!");
+        dputs("Error setting memory breakpoint! (BpNew)");
+        return STATUS_ERROR;
+    }
+    if(!SetMemoryBPXEx(base, size, type, restore, (void*)cbMemoryBreakpoint))
+    {
+        dputs("Error setting memory breakpoint! (SetMemoryBPXEx)");
         return STATUS_ERROR;
     }
     dprintf("Memory breakpoint at "fhex" set!\n", addr);
@@ -567,9 +592,14 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     {
         uint size;
         MemFindBaseAddr(found.addr, &size);
-        if(!BpDelete(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
+        if(!BpDelete(found.addr, BPMEMORY))
         {
-            dprintf("Delete memory breakpoint failed: "fhex"\n", found.addr);
+            dprintf("Delete memory breakpoint failed: "fhex" (BpDelete)\n", found.addr);
+            return STATUS_ERROR;
+        }
+        if(!RemoveMemoryBPX(found.addr, size))
+        {
+            dprintf("Delete memory breakpoint failed: "fhex" (RemoveMemoryBPX)\n", found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -582,9 +612,14 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     }
     uint size;
     MemFindBaseAddr(found.addr, &size);
-    if(!BpDelete(found.addr, BPMEMORY) or !RemoveMemoryBPX(found.addr, size))
+    if(!BpDelete(found.addr, BPMEMORY))
     {
-        dprintf("Delete memory breakpoint failed: "fhex"\n", found.addr);
+        dprintf("Delete memory breakpoint failed: "fhex" (BpDelete)\n", found.addr);
+        return STATUS_ERROR;
+    }
+    if(!RemoveMemoryBPX(found.addr, size))
+    {
+        dprintf("Delete memory breakpoint failed: "fhex" (RemoveMemoryBPX)\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Memory breakpoint deleted!");
@@ -715,9 +750,14 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPHARDWARE, argv[1], &found)) //found a breakpoint with name
     {
-        if(!BpDelete(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+        if(!BpDelete(found.addr, BPHARDWARE))
         {
-            dprintf("Delete hardware breakpoint failed: "fhex"\n", found.addr);
+            dprintf("Delete hardware breakpoint failed: "fhex" (BpDelete)\n", found.addr);
+            return STATUS_ERROR;
+        }
+        if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+        {
+            dprintf("Delete hardware breakpoint failed: "fhex" (DeleteHardwareBreakPoint)\n", found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -728,9 +768,14 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!BpDelete(found.addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    if(!BpDelete(found.addr, BPHARDWARE))
     {
-        dprintf("Delete hardware breakpoint failed: "fhex"\n", found.addr);
+        dprintf("Delete hardware breakpoint failed: "fhex" (BpDelete)\n", found.addr);
+        return STATUS_ERROR;
+    }
+    if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    {
+        dprintf("Delete hardware breakpoint failed: "fhex" (DeleteHardwareBreakPoint)\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Hardware breakpoint deleted!");

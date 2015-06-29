@@ -1191,10 +1191,14 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
 
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(BpDelete(bp->addr, BPNORMAL) and (!bp->enabled or DeleteBPX(bp->addr)))
+    if(!BpDelete(bp->addr, BPNORMAL))
+    {
+        dprintf("Delete breakpoint failed (BpDelete): "fhex"\n", bp->addr);
+        return false;
+    }
+    if(!bp->enabled or DeleteBPX(bp->addr))
         return true;
-
-    dprintf("Delete breakpoint failed: "fhex"\n", bp->addr);
+    dprintf("Delete breakpoint failed (DeleteBPX): "fhex"\n", bp->addr);
     return false;
 }
 
@@ -1203,9 +1207,14 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPNORMAL or bp->enabled)
         return true;
 
-    if(!BpEnable(bp->addr, BPNORMAL, true) or !SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+    if(!BpEnable(bp->addr, BPNORMAL, true))
     {
-        dprintf("Could not enable breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+    {
+        dprintf("Could not enable breakpoint "fhex" (SetBPX)\n", bp->addr);
         return false;
     }
     return true;
@@ -1216,9 +1225,14 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPNORMAL or !bp->enabled)
         return true;
 
-    if(!BpEnable(bp->addr, BPNORMAL, false) or !DeleteBPX(bp->addr))
+    if(!BpEnable(bp->addr, BPNORMAL, false))
     {
-        dprintf("Could not disable breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!DeleteBPX(bp->addr))
+    {
+        dprintf("Could not disable breakpoint "fhex" (DeleteBPX)\n", bp->addr);
         return false;
     }
     return true;
@@ -1237,9 +1251,14 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     int titantype = bp->titantype;
     TITANSETDRX(titantype, drx);
     BpSetTitanType(bp->addr, BPHARDWARE, titantype);
-    if(!BpEnable(bp->addr, BPHARDWARE, true) or !SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
+    if(!BpEnable(bp->addr, BPHARDWARE, true))
     {
-        dprintf("Could not enable hardware breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable hardware breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
+    {
+        dprintf("Could not enable hardware breakpoint "fhex" (SetHardwareBreakPoint)\n", bp->addr);
         return false;
     }
     return true;
@@ -1249,9 +1268,14 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPHARDWARE or !bp->enabled)
         return true;
-    if(!BpEnable(bp->addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(!BpEnable(bp->addr, BPHARDWARE, false))
     {
-        dprintf("Could not disable hardware breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable hardware breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    {
+        dprintf("Could not disable hardware breakpoint "fhex" (DeleteHardwareBreakPoint)\n", bp->addr);
         return false;
     }
     return true;
@@ -1263,9 +1287,14 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
         return true;
     uint size = 0;
     MemFindBaseAddr(bp->addr, &size);
-    if(!BpEnable(bp->addr, BPMEMORY, true) or !SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
+    if(!BpEnable(bp->addr, BPMEMORY, true))
     {
-        dprintf("Could not enable memory breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not enable memory breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
+    {
+        dprintf("Could not enable memory breakpoint "fhex" (SetMemoryBPXEx)\n", bp->addr);
         return false;
     }
     return true;
@@ -1275,9 +1304,14 @@ bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPMEMORY or !bp->enabled)
         return true;
-    if(!BpEnable(bp->addr, BPMEMORY, false) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(!BpEnable(bp->addr, BPMEMORY, false))
     {
-        dprintf("Could not disable memory breakpoint "fhex"\n", bp->addr);
+        dprintf("Could not disable memory breakpoint "fhex" (BpEnable)\n", bp->addr);
+        return false;
+    }
+    if(!RemoveMemoryBPX(bp->addr, 0))
+    {
+        dprintf("Could not disable memory breakpoint "fhex" (RemoveMemoryBPX)\n", bp->addr);
         return false;
     }
     return true;
@@ -1311,10 +1345,15 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
         return true;
     uint size;
     MemFindBaseAddr(bp->addr, &size);
-    if(!BpDelete(bp->addr, BPMEMORY) or !RemoveMemoryBPX(bp->addr, size))
+    if(!BpDelete(bp->addr, BPMEMORY))
     {
-        dprintf("Delete memory breakpoint failed: "fhex"\n", bp->addr);
-        return STATUS_ERROR;
+        dprintf("Delete memory breakpoint failed (BpDelete): "fhex"\n", bp->addr);
+        return false;
+    }
+    if(!RemoveMemoryBPX(bp->addr, size))
+    {
+        dprintf("Delete memory breakpoint failed (RemoveMemoryBPX): "fhex"\n", bp->addr);
+        return false;
     }
     return true;
 }
@@ -1323,10 +1362,15 @@ bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
         return true;
-    if(!BpDelete(bp->addr, BPHARDWARE) or !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(!BpDelete(bp->addr, BPHARDWARE))
     {
-        dprintf("Delete hardware breakpoint failed: "fhex"\n", bp->addr);
-        return STATUS_ERROR;
+        dprintf("Delete hardware breakpoint failed (BpDelete): "fhex"\n", bp->addr);
+        return false;
+    }
+    if(!DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    {
+        dprintf("Delete hardware breakpoint failed (DeleteHardwareBreakPoint): "fhex"\n", bp->addr);
+        return false;
     }
     return true;
 }
