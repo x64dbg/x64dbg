@@ -2,17 +2,20 @@
 #include "console.h"
 #include "module.h"
 
-void Derp()
+void Derp(uint _base)
 {
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
-    uint _base = 0;
     uint modBase = ModBaseFromAddr(_base);
     uint modSize = ModSizeFromAddr(_base);
 
-    LinearPass* pass = new LinearPass(modBase, modBase + modSize);
+    BBlockArray array;
+    LinearPass* pass = new LinearPass(modBase, modBase + modSize, array);
     pass->Analyse();
+
+    //Int3CoagulatorPass *pass2 = new Int3CoagulatorPass(modBase, modBase + modSize, array);
+    //pass2->Analyse();
     /*
 
     PopulateReferences();

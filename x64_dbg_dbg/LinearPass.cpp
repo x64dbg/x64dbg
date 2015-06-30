@@ -2,8 +2,8 @@
 #include "LinearPass.h"
 #include "console.h"
 
-LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd)
-    : AnalysisPass(VirtualStart, VirtualEnd)
+LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+    : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
     // Determine the maximum hardware thread count at once
     m_MaximumThreads = max(std::thread::hardware_concurrency(), 1);
@@ -15,6 +15,11 @@ LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd)
 
 LinearPass::~LinearPass()
 {
+}
+
+const char* LinearPass::GetName()
+{
+    return "Linear Scandown";
 }
 
 bool LinearPass::Analyse()
@@ -50,18 +55,20 @@ bool LinearPass::Analyse()
     }
 
     // Wait for all threads to finish and combine vectors
+    m_MainBlocks.clear();
+
     for(uint i = 0; i < m_MaximumThreads; i++)
     {
         localThreads[i].join();
-        m_InitialBlocks.insert(m_InitialBlocks.end(), threadBlocks[i].begin(), threadBlocks[i].end());
+        m_MainBlocks.insert(m_MainBlocks.end(), threadBlocks[i].begin(), threadBlocks[i].end());
     }
 
     // Sort and remove duplicates
-    std::sort(m_InitialBlocks.begin(), m_InitialBlocks.end());
-    m_InitialBlocks.erase(std::unique(m_InitialBlocks.begin(), m_InitialBlocks.end()), m_InitialBlocks.end());
+    std::sort(m_MainBlocks.begin(), m_MainBlocks.end());
+    m_MainBlocks.erase(std::unique(m_MainBlocks.begin(), m_MainBlocks.end()), m_MainBlocks.end());
 
     // Logging
-    dprintf("Total basic blocks: %d\n", m_InitialBlocks.size());
+    dprintf("Total basic blocks: %d\n", m_MainBlocks.size());
 
     /*
     FILE *f = fopen("C:\\test.txt", "w");
@@ -83,16 +90,13 @@ bool LinearPass::Analyse()
     return true;
 }
 
-std::vector<BasicBlock> & LinearPass::GetModifiedBlocks()
-{
-    return m_InitialBlocks;
-}
-
 void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks)
 {
     Capstone disasm;
-    uint blockBegin = Start;
-    uint blockEnd = End;
+
+    uint blockBegin = Start;    // BBlock starting virtual address
+    uint blockEnd = End;        // BBlock ending virtual address
+    bool blockPrevInt = false;  // Indicator if the last instruction was INT
 
     for(uint i = Start; i < End;)
     {
@@ -122,7 +126,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
             if((realBlockEnd - blockBegin) > 0)
             {
                 // The next line terminates the BBlock before the INT instruction.
-                // (Early termination, faked as an indirect JMP)
+                // Early termination, faked as an indirect JMP. Rare case.
                 CreateBlockWorker(Blocks, blockBegin, realBlockEnd, false, false, false, false)->SetFlag(BASIC_BLOCK_FLAG_PREINT3);
 
                 blockBegin = realBlockEnd;
@@ -131,21 +135,32 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
 
         if(call || jmp || ret || intr)
         {
-            BasicBlock* block = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
+            // Was this an INT3?
+            if(intr && blockPrevInt)
+            {
+                // Append it to the previous block. Do not create a new BBlock for it.
+                Blocks->back().VirtualEnd = blockEnd;
+            }
+            else
+            {
+                // Otherwise use the default route: create a new entry
+                auto block = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
 
-            // Check for indirects
-            auto operand = disasm.x86().operands[0];
+                // Check for indirects
+                auto operand = disasm.x86().operands[0];
 
-            if(operand.mem.base != X86_REG_INVALID ||
-                    operand.mem.index != X86_REG_INVALID ||
-                    operand.mem.scale != 0)
-                block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
+                if(operand.mem.base != X86_REG_INVALID ||
+                        operand.mem.index != X86_REG_INVALID ||
+                        operand.mem.scale != 0)
+                    block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-            // Determine the target
-            block->Target = operand.imm;
+                // Determine the target
+                block->Target = operand.imm;
+            }
 
             // Reset the loop variables
             blockBegin = i;
+            blockPrevInt = intr;
         }
     }
 }
@@ -155,6 +170,8 @@ BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint 
     BasicBlock block;
     block.VirtualStart = Start;
     block.VirtualEnd = End;
+    block.Flags = 0;
+    block.Target = 0;
 
     // Check for calls
     if(Call)
