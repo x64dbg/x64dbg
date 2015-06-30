@@ -9,6 +9,11 @@ FunctionPass::~FunctionPass()
 {
 }
 
+const char* FunctionPass::GetName()
+{
+    return "Function Analysis";
+}
+
 bool FunctionPass::Analyse()
 {
     return false;

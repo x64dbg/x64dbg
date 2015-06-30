@@ -10,6 +10,7 @@ public:
     CodeFollowPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~CodeFollowPass();
 
+    virtual const char* GetName() override;
     virtual bool Analyse() override;
 
 private:

@@ -13,7 +13,7 @@ Int3CoagulatorPass::~Int3CoagulatorPass()
 
 const char* Int3CoagulatorPass::GetName()
 {
-    return "INT3 Group Combiner";
+    return "INT3 Group Combiner - DEPRECATED";
 }
 
 bool Int3CoagulatorPass::Analyse()

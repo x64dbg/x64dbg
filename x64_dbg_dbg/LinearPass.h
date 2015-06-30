@@ -13,9 +13,8 @@ public:
     LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~LinearPass();
 
-    virtual bool Analyse() override;
-
     virtual const char* GetName() override;
+    virtual bool Analyse() override;
 
 private:
     uint m_MaximumThreads;

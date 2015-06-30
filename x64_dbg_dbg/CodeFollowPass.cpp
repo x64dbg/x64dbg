@@ -11,15 +11,23 @@ CodeFollowPass::~CodeFollowPass()
 {
 }
 
+const char* CodeFollowPass::GetName()
+{
+    return "Code Follower";
+}
+
 bool CodeFollowPass::Analyse()
 {
-    // First gather all possible function references with a linear scan-down
+    // First gather all possible function references with certain tables
     //
     // This includes:
-    // call <addr>
-    // jmp <addr>
-    // push <addr>
-    // mov XXX, <addr>
+    // Main entry
+    // Module exports
+    // Module import references (?)
+    // Control flow guard
+    // RUNTIME_FUNCTION
+    // TLS callbacks
+    // FLS callbacks
     return false;
 }
 

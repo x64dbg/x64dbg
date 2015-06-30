@@ -70,10 +70,9 @@ bool LinearPass::Analyse()
     // Logging
     dprintf("Total basic blocks: %d\n", m_MainBlocks.size());
 
-    /*
-    FILE *f = fopen("C:\\test.txt", "w");
+    FILE* f = fopen("C:\\test.txt", "w");
 
-    for (auto& block : m_InitialBlocks)
+    for(auto & block : m_MainBlocks)
     {
         char buf[256];
         size_t size = sprintf_s(buf, "Start: 0x%p End: 0x%p\n", block.VirtualStart, block.VirtualEnd);
@@ -82,7 +81,6 @@ bool LinearPass::Analyse()
     }
 
     fclose(f);
-    */
 
     // Cleanup
     delete[] threadBlocks;
@@ -138,7 +136,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
             // Was this an INT3?
             if(intr && blockPrevInt)
             {
-                // Append it to the previous block. Do not create a new BBlock for it.
+                // Append it to the previous block
                 Blocks->back().VirtualEnd = blockEnd;
             }
             else
@@ -146,7 +144,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
                 // Otherwise use the default route: create a new entry
                 auto block = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
 
-                // Check for indirects
+                // Indirect branching
                 auto operand = disasm.x86().operands[0];
 
                 if(operand.mem.base != X86_REG_INVALID ||
@@ -154,7 +152,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
                         operand.mem.scale != 0)
                     block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-                // Determine the target
+                // Branch target
                 block->Target = operand.imm;
             }
 

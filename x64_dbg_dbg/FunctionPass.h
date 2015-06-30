@@ -9,6 +9,7 @@ public:
     FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~FunctionPass();
 
+    virtual const char* GetName() override;
     virtual bool Analyse() override;
 
 private:
