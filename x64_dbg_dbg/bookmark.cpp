@@ -196,6 +196,8 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
     {
         *List = itr.second;
         List->addr += ModBaseFromName(List->mod);
+
+        List++;
     }
 
     return true;

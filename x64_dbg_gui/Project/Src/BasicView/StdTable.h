@@ -18,6 +18,7 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
     void enableMultiSelection(bool enabled);
+    void enableColumnSorting(bool enabled);
 
     // Selection Management
     void expandSelectionUpTo(int to);
@@ -90,6 +91,7 @@ private:
     bool mIsMultiSelctionAllowed;
     bool mCopyMenuOnly;
     bool mCopyMenuDebugOnly;
+    bool mIsColumnSortingAllowed;
 
     QList<QList<QString>> mData;
     QList<QString> mCopyTitles;

@@ -15,6 +15,8 @@ void wait(WAIT_ID id);
 void lock(WAIT_ID id);
 void unlock(WAIT_ID id);
 bool waitislocked(WAIT_ID id);
+void waitinitialize();
+void waitdeinitialize();
 
 //
 // THREAD SYNCHRONIZATION
