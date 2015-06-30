@@ -63,19 +63,36 @@ bool LinearPass::Analyse()
     // Logging
     dprintf("Total basic blocks: %d\n", m_InitialBlocks.size());
 
+    /*
+    FILE *f = fopen("C:\\test.txt", "w");
+
+    for (auto& block : m_InitialBlocks)
+    {
+        char buf[256];
+        size_t size = sprintf_s(buf, "Start: 0x%p End: 0x%p\n", block.VirtualStart, block.VirtualEnd);
+
+        fwrite(buf, size, 1, f);
+    }
+
+    fclose(f);
+    */
+
     // Cleanup
     delete[] threadBlocks;
 
     return true;
 }
 
+std::vector<BasicBlock> & LinearPass::GetModifiedBlocks()
+{
+    return m_InitialBlocks;
+}
+
 void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks)
 {
     Capstone disasm;
     uint blockBegin = Start;
-
-    int intSeriesSize = 0;
-    int intSeriesCount = 0;
+    uint blockEnd = End;
 
     for(uint i = Start; i < End;)
     {
@@ -88,6 +105,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
 
         // Increment counter
         i += disasm.Size();
+        blockEnd = i;
 
         // The basic block ends here if it is a branch
         bool call = disasm.InGroup(CS_GRP_CALL);    // CALL
@@ -95,23 +113,25 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
         bool ret = disasm.InGroup(CS_GRP_RET);      // RETURN
         bool intr = disasm.InGroup(CS_GRP_INT);     // INTERRUPT
 
+        if(intr)
+        {
+            // INT3s are treated differently. They are all created as their
+            // own separate block for more analysis later.
+            uint realBlockEnd = blockEnd - disasm.Size();
+
+            if((realBlockEnd - blockBegin) > 0)
+            {
+                // The next line terminates the BBlock before the INT instruction.
+                // (Early termination, faked as an indirect JMP)
+                CreateBlockWorker(Blocks, blockBegin, realBlockEnd, false, false, false, false)->SetFlag(BASIC_BLOCK_FLAG_PREINT3);
+
+                blockBegin = realBlockEnd;
+            }
+        }
+
         if(call || jmp || ret || intr)
         {
-            BasicBlock block;
-            block.VirtualStart = blockBegin;
-            block.VirtualEnd = i - 1;
-
-            // Check for calls
-            if(call)
-                block.SetFlag(BASIC_BLOCK_FLAG_CALL);
-
-            // Check for returns
-            if(ret)
-                block.SetFlag(BASIC_BLOCK_FLAG_RET);
-
-            // Check for interrupts
-            if(intr)
-                block.SetFlag(BASIC_BLOCK_FLAG_INT3);
+            BasicBlock* block = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
 
             // Check for indirects
             auto operand = disasm.x86().operands[0];
@@ -119,14 +139,35 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
             if(operand.mem.base != X86_REG_INVALID ||
                     operand.mem.index != X86_REG_INVALID ||
                     operand.mem.scale != 0)
-            {
-                block.SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
-            }
+                block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-            Blocks->push_back(block);
+            // Determine the target
+            block->Target = operand.imm;
 
             // Reset the loop variables
             blockBegin = i;
         }
     }
+}
+
+BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr)
+{
+    BasicBlock block;
+    block.VirtualStart = Start;
+    block.VirtualEnd = End;
+
+    // Check for calls
+    if(Call)
+        block.SetFlag(BASIC_BLOCK_FLAG_CALL);
+
+    // Check for returns
+    if(Ret)
+        block.SetFlag(BASIC_BLOCK_FLAG_RET);
+
+    // Check for interrupts
+    if(Intr)
+        block.SetFlag(BASIC_BLOCK_FLAG_INT3);
+
+    Blocks->push_back(block);
+    return &Blocks->back();
 }

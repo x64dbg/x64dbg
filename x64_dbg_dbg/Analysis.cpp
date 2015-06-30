@@ -7,6 +7,7 @@ void Derp()
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
+    uint _base = 0;
     uint modBase = ModBaseFromAddr(_base);
     uint modSize = ModSizeFromAddr(_base);
 

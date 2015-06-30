@@ -10,15 +10,16 @@ enum BasicBlockFlags : uint
     BASIC_BLOCK_FLAG_CALL = (1 << 3),       // The block ends with a call
     BASIC_BLOCK_FLAG_RET = (1 << 4),        // The block ends with a retn
     BASIC_BLOCK_FLAG_INDIRECT = (1 << 5),   // This block ends with an indirect branch
-    BASIC_BLOCK_FLAG_INT3 = (1 << 6),       // Block is only a series of INT3
+    BASIC_BLOCK_FLAG_PREINT3 = (1 << 6),    // Block ends because there was an INT3 afterwards
+    BASIC_BLOCK_FLAG_INT3 = (1 << 7),       // Block is only a series of INT3
 };
 
 struct BasicBlock
 {
-    uint VirtualStart;
-    uint VirtualEnd;
+    uint VirtualStart;  // Inclusive byte
+    uint VirtualEnd;    // Exclusive byte
     uint Flags;
-    //std::vector<uint> Targets;
+    uint Target;
 
     inline bool GetFlag(uint Flag)
     {
