@@ -10,15 +10,15 @@
 class LinearPass : public AnalysisPass
 {
 public:
-    LinearPass(uint VirtualStart, uint VirtualEnd);
+    LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~LinearPass();
 
     virtual bool Analyse() override;
-    virtual std::vector<BasicBlock> & GetModifiedBlocks() override;
+
+    virtual const char* GetName() override;
 
 private:
     uint m_MaximumThreads;
-    std::vector<BasicBlock> m_InitialBlocks;
 
     void AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks);
     BasicBlock* CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr);

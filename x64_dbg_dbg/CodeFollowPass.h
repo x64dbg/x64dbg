@@ -7,7 +7,7 @@
 class CodeFollowPass : public AnalysisPass
 {
 public:
-    CodeFollowPass(uint VirtualStart, uint VirtualEnd);
+    CodeFollowPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~CodeFollowPass();
 
     virtual bool Analyse() override;

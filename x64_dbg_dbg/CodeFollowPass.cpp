@@ -1,8 +1,8 @@
 #include "AnalysisPass.h"
 #include "CodeFollowPass.h"
 
-CodeFollowPass::CodeFollowPass(uint VirtualStart, uint VirtualEnd)
-    : AnalysisPass(VirtualStart, VirtualEnd)
+CodeFollowPass::CodeFollowPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+    : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
 
 }

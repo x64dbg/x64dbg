@@ -16,8 +16,8 @@ enum BasicBlockFlags : uint
 
 struct BasicBlock
 {
-    uint VirtualStart;  // Inclusive byte
-    uint VirtualEnd;    // Exclusive byte
+    uint VirtualStart;  // Inclusive
+    uint VirtualEnd;    // Exclusive
     uint Flags;
     uint Target;
 
@@ -41,3 +41,5 @@ struct BasicBlock
         return VirtualStart == b.VirtualStart;
     }
 };
+
+typedef std::vector<BasicBlock> BBlockArray;

@@ -6,7 +6,7 @@
 class FunctionPass : public AnalysisPass
 {
 public:
-    FunctionPass(uint VirtualStart, uint VirtualEnd);
+    FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~FunctionPass();
 
     virtual bool Analyse() override;

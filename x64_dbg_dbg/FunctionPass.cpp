@@ -1,7 +1,7 @@
 #include "FunctionPass.h"
 
-FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd)
-    : AnalysisPass(VirtualStart, VirtualEnd)
+FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+    : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
 }
 
