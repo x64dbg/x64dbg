@@ -3,9 +3,12 @@
 #include "capstone_wrapper.h"
 #include "memory.h"
 
-AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd)
+AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks) : m_MainBlocks(MainBlocks)
 {
     assert(VirtualEnd > VirtualStart);
+
+    // Shared lock init
+    InitializeSRWLock(&m_InternalLock);
 
     // Internal class data
     m_VirtualStart = VirtualStart;
@@ -26,4 +29,24 @@ AnalysisPass::~AnalysisPass()
 {
     if(m_Data)
         BridgeFree(m_Data);
+}
+
+void AnalysisPass::AcquireReadLock()
+{
+    AcquireSRWLockShared(&m_InternalLock);
+}
+
+void AnalysisPass::ReleaseReadLock()
+{
+    ReleaseSRWLockShared(&m_InternalLock);
+}
+
+void AnalysisPass::AcquireExclusiveLock()
+{
+    AcquireSRWLockExclusive(&m_InternalLock);
+}
+
+void AnalysisPass::ReleaseExclusiveLock()
+{
+    ReleaseSRWLockExclusive(&m_InternalLock);
 }
