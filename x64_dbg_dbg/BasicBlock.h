@@ -10,8 +10,9 @@ enum BasicBlockFlags : uint
     BASIC_BLOCK_FLAG_CALL = (1 << 3),       // The block ends with a call
     BASIC_BLOCK_FLAG_RET = (1 << 4),        // The block ends with a retn
     BASIC_BLOCK_FLAG_INDIRECT = (1 << 5),   // This block ends with an indirect branch
-    BASIC_BLOCK_FLAG_PREINT3 = (1 << 6),    // Block ends because there was an INT3 afterwards
-    BASIC_BLOCK_FLAG_INT3 = (1 << 7),       // Block is only a series of INT3
+    BASIC_BLOCK_FLAG_INDIRPTR = (1 << 6),   // This block ends with an indirect branch; pointer known
+    BASIC_BLOCK_FLAG_PREINT3 = (1 << 7),    // Block ends because there was an INT3 afterwards
+    BASIC_BLOCK_FLAG_INT3 = (1 << 8),       // Block is only a series of INT3
 };
 
 struct BasicBlock
@@ -42,4 +43,21 @@ struct BasicBlock
     }
 };
 
+struct FunctionDef
+{
+    uint VirtualStart;  // Inclusive
+    uint VirtualEnd;    // Exclusive
+
+    bool operator< (const FunctionDef & b) const
+    {
+        return VirtualStart < b.VirtualStart;
+    }
+
+    bool operator== (const FunctionDef & b) const
+    {
+        return VirtualStart == b.VirtualStart;
+    }
+};
+
 typedef std::vector<BasicBlock> BBlockArray;
+typedef std::vector<FunctionDef> FuncDefArray;

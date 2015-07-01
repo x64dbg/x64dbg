@@ -157,7 +157,6 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 
 bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
-    // Fast fail if address is invalid
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
 
@@ -212,7 +211,6 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
 
 bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
-    // Fast fail if address is invalid
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
 
