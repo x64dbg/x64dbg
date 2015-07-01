@@ -57,7 +57,12 @@ bool LinearPass::Analyse()
     m_MainBlocks.clear();
 
     for(uint i = 0; i < m_MaximumThreads; i++)
-        m_MainBlocks.insert(m_MainBlocks.end(), threadBlocks[i].begin(), threadBlocks[i].end());
+    {
+        std::move(threadBlocks[i].begin(), threadBlocks[i].end(), std::back_inserter(m_MainBlocks));
+
+        // Free vector elements to conserve memory further
+        BBlockArray().swap(threadBlocks[i]);
+    }
 
     // Sort and remove duplicates
     std::sort(m_MainBlocks.begin(), m_MainBlocks.end());
