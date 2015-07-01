@@ -2,16 +2,11 @@
 #include "LinearPass.h"
 #include <thread>
 #include <ppl.h>
+#include "console.h"
 
 LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
-    // Determine the maximum hardware thread count at once
-    m_MaximumThreads = max(std::thread::hardware_concurrency(), 1);
-
-    // Don't consume 100% of the CPU, so adjust accordingly
-    if(m_MaximumThreads > 1)
-        m_MaximumThreads -= 1;
 }
 
 LinearPass::~LinearPass()
@@ -27,12 +22,12 @@ bool LinearPass::Analyse()
 {
     // Divide the work up between each thread
     // THREAD_WORK = (TOTAL / # THREADS)
-    uint workAmount = m_DataSize / m_MaximumThreads;
+    uint workAmount = m_DataSize / IdealThreadCount();
 
     // Initialize thread vector
-    std::vector<BasicBlock>* threadBlocks = new std::vector<BasicBlock>[m_MaximumThreads];
+    auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(uint(0), m_MaximumThreads, [&](uint i)
+    concurrency::parallel_for(uint(0), IdealThreadCount(), [&](uint i)
     {
         uint threadWorkStart = m_VirtualStart + (workAmount * i);
         uint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
@@ -56,11 +51,11 @@ bool LinearPass::Analyse()
     // Clear old data and combine vectors
     m_MainBlocks.clear();
 
-    for(uint i = 0; i < m_MaximumThreads; i++)
+    for(uint i = 0; i < IdealThreadCount(); i++)
     {
         std::move(threadBlocks[i].begin(), threadBlocks[i].end(), std::back_inserter(m_MainBlocks));
 
-        // Free vector elements to conserve memory further
+        // Free old elements to conserve memory further
         BBlockArray().swap(threadBlocks[i]);
     }
 
@@ -69,25 +64,9 @@ bool LinearPass::Analyse()
     m_MainBlocks.erase(std::unique(m_MainBlocks.begin(), m_MainBlocks.end()), m_MainBlocks.end());
 
     // Logging
-    /*
     dprintf("Total basic blocks: %d\n", m_MainBlocks.size());
 
-    FILE* f = fopen("C:\\test.txt", "w");
-
-    for(auto & block : m_MainBlocks)
-    {
-        char buf[256];
-        size_t size = sprintf_s(buf, "Start: 0x%p End: 0x%p\n", block.VirtualStart, block.VirtualEnd);
-
-        fwrite(buf, size, 1, f);
-    }
-
-    fclose(f);
-    */
-
-    // Cleanup
     delete[] threadBlocks;
-
     return true;
 }
 
@@ -147,16 +126,28 @@ void LinearPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* B
                 // Otherwise use the default route: create a new entry
                 auto block = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
 
-                // Indirect branching
+                // Figure out the operand type
                 auto operand = disasm.x86().operands[0];
 
-                if(operand.mem.base != X86_REG_INVALID ||
-                        operand.mem.index != X86_REG_INVALID ||
-                        operand.mem.scale != 0)
+                if(operand.type == X86_OP_IMM)
+                {
+                    // Branch target immediate
+                    block->Target = operand.imm;
+                }
+                else
+                {
+                    // Indirects
                     block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-                // Branch target
-                block->Target = operand.imm;
+                    if(operand.type == X86_OP_MEM &&
+                            operand.mem.base == X86_REG_INVALID &&
+                            operand.mem.index == X86_REG_INVALID &&
+                            operand.mem.scale == 0)
+                    {
+                        block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
+                        block->Target = operand.mem.disp;
+                    }
+                }
             }
 
             // Reset the loop variables
