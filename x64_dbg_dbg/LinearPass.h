@@ -1,8 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <thread>
-
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
 #include "capstone_wrapper.h"

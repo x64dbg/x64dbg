@@ -1,6 +1,7 @@
 #include "AnalysisPass.h"
 #include "LinearPass.h"
-#include "console.h"
+#include <thread>
+#include <ppl.h>
 
 LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -26,48 +27,44 @@ bool LinearPass::Analyse()
 {
     // Divide the work up between each thread
     // THREAD_WORK = (TOTAL / # THREADS)
-    uint workCurrent = 0;
     uint workAmount = m_DataSize / m_MaximumThreads;
 
     // Initialize thread vector
-    std::vector<std::thread> localThreads(m_MaximumThreads);
     std::vector<BasicBlock>* threadBlocks = new std::vector<BasicBlock>[m_MaximumThreads];
 
-    for(uint i = 0; i < m_MaximumThreads; i++)
+    concurrency::parallel_for(uint(0), m_MaximumThreads, [&](uint i)
     {
-        uint threadWorkStart = m_VirtualStart + workCurrent;
+        uint threadWorkStart = m_VirtualStart + (workAmount * i);
         uint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
 
         // Allow a 16-byte variance of scanning because of
         // integer rounding errors
-        if(workCurrent >= 16)
+        if(threadWorkStart > m_VirtualStart)
+        {
             threadWorkStart -= 16;
+            threadWorkStop += 16;
+        }
 
         // Memory allocation optimization
         // TODO: Option to conserve memory
         threadBlocks[i].reserve(100000);
 
         // Execute
-        localThreads[i] = std::thread(&LinearPass::AnalysisWorker, this, threadWorkStart, threadWorkStop, &threadBlocks[i]);
+        AnalysisWorker(threadWorkStart, threadWorkStop, &threadBlocks[i]);
+    });
 
-        // Increment the work counter
-        workCurrent += workAmount;
-    }
-
-    // Wait for all threads to finish and combine vectors
+    // Clear old data and combine vectors
     m_MainBlocks.clear();
 
     for(uint i = 0; i < m_MaximumThreads; i++)
-    {
-        localThreads[i].join();
         m_MainBlocks.insert(m_MainBlocks.end(), threadBlocks[i].begin(), threadBlocks[i].end());
-    }
 
     // Sort and remove duplicates
     std::sort(m_MainBlocks.begin(), m_MainBlocks.end());
     m_MainBlocks.erase(std::unique(m_MainBlocks.begin(), m_MainBlocks.end()), m_MainBlocks.end());
 
     // Logging
+    /*
     dprintf("Total basic blocks: %d\n", m_MainBlocks.size());
 
     FILE* f = fopen("C:\\test.txt", "w");
@@ -81,6 +78,7 @@ bool LinearPass::Analyse()
     }
 
     fclose(f);
+    */
 
     // Cleanup
     delete[] threadBlocks;
