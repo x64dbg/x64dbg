@@ -13,4 +13,5 @@ public:
     virtual bool Analyse() override;
 
 private:
+    void AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks);
 };

@@ -14,6 +14,9 @@ void Derp(uint _base)
     LinearPass* pass = new LinearPass(modBase, modBase + modSize, array);
     pass->Analyse();
 
+    FunctionPass* pass3 = new FunctionPass(modBase, modBase + modSize, array);
+    pass3->Analyse();
+
     //Int3CoagulatorPass *pass2 = new Int3CoagulatorPass(modBase, modBase + modSize, array);
     //pass2->Analyse();
     /*
