@@ -37,7 +37,7 @@ bool LinearPass::Analyse()
         if(threadWorkStart > m_VirtualStart)
         {
             threadWorkStart -= 16;
-            threadWorkStop += 16;
+            threadWorkStop = min((threadWorkStop + 16), m_VirtualEnd);
         }
 
         // Memory allocation optimization
