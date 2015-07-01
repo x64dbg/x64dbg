@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <thread>
 #include "AnalysisPass.h"
 #include "capstone_wrapper.h"
 #include "memory.h"
@@ -49,4 +50,16 @@ void AnalysisPass::AcquireExclusiveLock()
 void AnalysisPass::ReleaseExclusiveLock()
 {
     ReleaseSRWLockExclusive(&m_InternalLock);
+}
+
+uint AnalysisPass::IdealThreadCount()
+{
+    // Determine the maximum hardware thread count at once
+    uint maximumThreads = max(std::thread::hardware_concurrency(), 1);
+
+    // Don't consume 100% of the CPU, adjust accordingly
+    if(maximumThreads > 1)
+        maximumThreads -= 1;
+
+    return maximumThreads;
 }
