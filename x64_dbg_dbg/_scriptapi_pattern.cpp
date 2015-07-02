@@ -2,12 +2,12 @@
 #include "patternfind.h"
 #include "memory.h"
 
-duint Script::Pattern::Find(unsigned char* data, duint datasize, const char* pattern)
+SCRIPT_EXPORT duint Script::Pattern::Find(unsigned char* data, duint datasize, const char* pattern)
 {
     return patternfind(data, datasize, pattern);
 }
 
-duint Script::Pattern::FindMem(duint start, duint size, const char* pattern)
+SCRIPT_EXPORT duint Script::Pattern::FindMem(duint start, duint size, const char* pattern)
 {
     Memory<unsigned char*> data(size, "Script::Pattern::FindMem::data");
     if(!MemRead((void*)start, data(), size, nullptr))
@@ -15,12 +15,12 @@ duint Script::Pattern::FindMem(duint start, duint size, const char* pattern)
     return Pattern::Find(data(), data.size(), pattern) + start;
 }
 
-void Script::Pattern::Write(unsigned char* data, duint datasize, const char* pattern)
+SCRIPT_EXPORT void Script::Pattern::Write(unsigned char* data, duint datasize, const char* pattern)
 {
     patternwrite(data, datasize, pattern);
 }
 
-void Script::Pattern::WriteMem(duint start, duint size, const char* pattern)
+SCRIPT_EXPORT void Script::Pattern::WriteMem(duint start, duint size, const char* pattern)
 {
     Memory<unsigned char*> data(size, "Script::Pattern::WriteMem::data");
     if(!MemRead((void*)start, data(), data.size(), nullptr))
@@ -29,12 +29,12 @@ void Script::Pattern::WriteMem(duint start, duint size, const char* pattern)
     MemWrite((void*)start, data(), data.size(), nullptr);
 }
 
-bool Script::Pattern::SearchAndReplace(unsigned char* data, duint datasize, const char* searchpattern, const char* replacepattern)
+SCRIPT_EXPORT bool Script::Pattern::SearchAndReplace(unsigned char* data, duint datasize, const char* searchpattern, const char* replacepattern)
 {
     return patternsnr(data, datasize, searchpattern, replacepattern);
 }
 
-bool Script::Pattern::SearchAndReplaceMem(duint start, duint size, const char* searchpattern, const char* replacepattern)
+SCRIPT_EXPORT bool Script::Pattern::SearchAndReplaceMem(duint start, duint size, const char* searchpattern, const char* replacepattern)
 {
     Memory<unsigned char*> data(size, "Script::Pattern::SearchAndReplaceMem::data");
     if(!MemRead((void*)start, data(), size, nullptr))

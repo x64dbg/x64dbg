@@ -7,12 +7,12 @@ namespace Script
 {
 namespace Pattern
 {
-duint Find(unsigned char* data, duint datasize, const char* pattern);
-duint FindMem(duint start, duint size, const char* pattern);
-void Write(unsigned char* data, duint datasize, const char* pattern);
-void WriteMem(duint start, duint size, const char* pattern);
-bool SearchAndReplace(unsigned char* data, duint datasize, const char* searchpattern, const char* replacepattern);
-bool SearchAndReplaceMem(duint start, duint size, const char* searchpattern, const char* replacepattern);
+SCRIPT_EXPORT duint Find(unsigned char* data, duint datasize, const char* pattern);
+SCRIPT_EXPORT duint FindMem(duint start, duint size, const char* pattern);
+SCRIPT_EXPORT void Write(unsigned char* data, duint datasize, const char* pattern);
+SCRIPT_EXPORT void WriteMem(duint start, duint size, const char* pattern);
+SCRIPT_EXPORT bool SearchAndReplace(unsigned char* data, duint datasize, const char* searchpattern, const char* replacepattern);
+SCRIPT_EXPORT bool SearchAndReplaceMem(duint start, duint size, const char* searchpattern, const char* replacepattern);
 };
 };
 
