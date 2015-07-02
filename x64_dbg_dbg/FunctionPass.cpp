@@ -141,13 +141,17 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
         }
     }
 
-    // Step 2: Sort and remove duplicates
+    // Step 3: Sort and remove duplicates
     std::sort(Blocks->begin(), Blocks->end());
     Blocks->erase(std::unique(Blocks->begin(), Blocks->end()), Blocks->end());
 
-    // Step 3: Find the end of functions
-    dprintf("Total call instructions: %d\n", Blocks->size());
+    // Step 4: Find the end of functions
     FindFunctionWorker(Blocks);
+
+    dprintf("Total detected functions: %d\n", Blocks->size());
+
+    // Step 5: Find all orphaned blocks and repeat analysis process
+    // TODO
 }
 
 void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
