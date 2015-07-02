@@ -4,8 +4,8 @@
 
 enum BasicBlockFlags : uint
 {
-    BASIC_BLOCK_FLAG_NONE,                  // No flag
-    BASIC_BLOCK_FLAG_SCANNED = (1 << 1),    // The block was scanned at least once
+    BASIC_BLOCK_FLAG_NONE = 0,              // No flag
+    BASIC_BLOCK_FLAG_FUNCTION = (1 << 1),   // Scanned; also part of a known function
     BASIC_BLOCK_FLAG_ORPHANED = (1 << 2),   // No targets ever reach this block
     BASIC_BLOCK_FLAG_CALL = (1 << 3),       // The block ends with a call
     BASIC_BLOCK_FLAG_RET = (1 << 4),        // The block ends with a retn
@@ -48,8 +48,14 @@ struct FunctionDef
     uint VirtualStart;  // Inclusive
     uint VirtualEnd;    // Exclusive
 
+    uint BBlockStart;   // Index of first basic block
+    uint BBlockEnd;     // Index of last basic block
+
     bool operator< (const FunctionDef & b) const
     {
+        if(VirtualStart == b.VirtualStart)
+            return VirtualEnd > b.VirtualEnd;
+
         return VirtualStart < b.VirtualStart;
     }
 

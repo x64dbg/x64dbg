@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
 
@@ -13,5 +14,14 @@ public:
     virtual bool Analyse() override;
 
 private:
+    uint m_ModuleStart;
+
+    PVOID m_FunctionInfo;
+    ULONG m_FunctionInfoSize;
+
     void AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks);
+    void FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks);
+    void FindFunctionWorker(std::vector<FunctionDef>* Blocks);
+
+    void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
 };
