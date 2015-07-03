@@ -40,4 +40,5 @@ protected:
 
 private:
     SRWLOCK m_InternalLock;
+    BYTE m_InternalMaxThreads;
 };

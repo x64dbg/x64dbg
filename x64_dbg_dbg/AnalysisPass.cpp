@@ -54,12 +54,17 @@ void AnalysisPass::ReleaseExclusiveLock()
 
 uint AnalysisPass::IdealThreadCount()
 {
-    // Determine the maximum hardware thread count at once
-    uint maximumThreads = max(std::thread::hardware_concurrency(), 1);
+    if(m_InternalMaxThreads == 0)
+    {
+        // Determine the maximum hardware thread count at once
+        uint maximumThreads = max(std::thread::hardware_concurrency(), 1);
 
-    // Don't consume 100% of the CPU, adjust accordingly
-    if(maximumThreads > 1)
-        maximumThreads -= 1;
+        // Don't consume 100% of the CPU, adjust accordingly
+        if(maximumThreads > 1)
+            maximumThreads -= 1;
 
-    return maximumThreads;
+        m_InternalMaxThreads = (BYTE)min(maximumThreads, 255);
+    }
+
+    return m_InternalMaxThreads;
 }

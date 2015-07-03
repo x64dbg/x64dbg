@@ -43,8 +43,6 @@ FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
             // Unload the file
             StaticFileUnloadW(nullptr, false, fileHandle, fileSize, fileMapHandle, fileMapVa);
 
-            dprintf("VA - 0x%p\n", virtualOffset);
-
             // Get a copy of the function table
             if(virtualOffset)
             {
@@ -156,8 +154,8 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
 
 void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
-    uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
-    uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
+    const uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
+    const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
