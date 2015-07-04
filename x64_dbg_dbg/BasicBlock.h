@@ -13,6 +13,8 @@ enum BasicBlockFlags : uint
     BASIC_BLOCK_FLAG_INDIRPTR = (1 << 6),   // This block ends with an indirect branch; pointer known
     BASIC_BLOCK_FLAG_PREINT3 = (1 << 7),    // Block ends because there was an INT3 afterwards
     BASIC_BLOCK_FLAG_INT3 = (1 << 8),       // Block is only a series of INT3
+    BASIC_BLOCK_FLAG_CUTOFF = (1 << 9),     // Ends prematurely because of another JMP to location
+    BASIC_BLOCK_FLAG_DELETE = (1 << 10),    // Delete element at the next possible time
 };
 
 struct BasicBlock
@@ -30,6 +32,11 @@ struct BasicBlock
     inline void SetFlag(uint Flag)
     {
         Flags |= Flag;
+    }
+
+    inline uint Size()
+    {
+        return VirtualEnd - VirtualStart;
     }
 
     bool operator< (const BasicBlock & b) const

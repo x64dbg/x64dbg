@@ -14,6 +14,7 @@ AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
     // Internal class data
     m_VirtualStart = VirtualStart;
     m_VirtualEnd = VirtualEnd;
+    m_InternalMaxThreads = 0;
 
     // Read remote instruction data to local memory
     m_DataSize = VirtualEnd - VirtualStart;

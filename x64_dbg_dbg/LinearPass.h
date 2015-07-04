@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
 #include "capstone_wrapper.h"
@@ -13,8 +12,11 @@ public:
 
     virtual const char* GetName() override;
     virtual bool Analyse() override;
+    void AnalyseOverlaps();
 
 private:
-    void AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks);
-    BasicBlock* CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr);
+    void AnalysisWorker(uint Start, uint End, BBlockArray* Blocks);
+    void AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insertions);
+    BasicBlock* CreateBlockWorker(BBlockArray* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr);
+    BasicBlock* FindBBlockInRange(uint Address);
 };
