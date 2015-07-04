@@ -24,17 +24,17 @@ struct BasicBlock
     uint Flags;
     uint Target;
 
-    inline bool GetFlag(uint Flag)
+    __forceinline bool GetFlag(uint Flag)
     {
         return (Flags & Flag) == Flag;
     }
 
-    inline void SetFlag(uint Flag)
+    __forceinline void SetFlag(uint Flag)
     {
         Flags |= Flag;
     }
 
-    inline uint Size()
+    __forceinline uint Size()
     {
         return VirtualEnd - VirtualStart;
     }
