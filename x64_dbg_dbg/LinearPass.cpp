@@ -82,10 +82,6 @@ bool LinearPass::Analyse()
 
 void LinearPass::AnalyseOverlaps()
 {
-    // We don't care if only one thread was used
-    if(IdealThreadCount() <= 1)
-        return;
-
     // Goal of this function:
     //
     // Remove all overlapping
