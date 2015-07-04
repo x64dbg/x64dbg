@@ -71,9 +71,8 @@ const char* FunctionPass::GetName()
 
 bool FunctionPass::Analyse()
 {
-    // THREAD_WORK = (TOTAL / # THREADS)
-    float workDivision = (float)m_MainBlocks.size() / (float)IdealThreadCount();
-    uint workAmount = (int)ceil(workDivision);
+    // THREAD_WORK = ceil(TOTAL / # THREADS)
+    uint workAmount = (m_MainBlocks.size() + (IdealThreadCount() - 1)) / IdealThreadCount();
 
     // Initialize thread vector
     auto threadFunctions = new std::vector<FunctionDef>[IdealThreadCount()];
