@@ -54,8 +54,6 @@ FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
             }
         }
     }
-
-    dprintf("Function info: 0x%p - 0x%p\n", m_FunctionInfo, m_FunctionInfoSize);
 }
 
 FunctionPass::~FunctionPass()

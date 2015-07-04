@@ -255,7 +255,7 @@ void LinearPass::AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insert
     // Get a pointer to pure data
     const auto blocks = m_MainBlocks.data();
 
-    for(uint i = Start; i < End - 1; i++)
+    for(uint i = Start; i < End; i++)
     {
         const auto curr = &blocks[i];
         const auto next = &blocks[i + 1];
