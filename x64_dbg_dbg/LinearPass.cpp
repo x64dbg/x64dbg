@@ -8,6 +8,12 @@
 LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
+    // This is a fix for when the total data analysis size is less
+    // than what parallelization can support. The minimum size requirement
+    // is ((# THREADS) * (512)) bytes. If the requirement isn't met,
+    // scale to use a single thread.
+    if((512 * IdealThreadCount()) >= m_DataSize)
+        SetIdealThreadCount(1);
 }
 
 LinearPass::~LinearPass()
@@ -25,12 +31,6 @@ bool LinearPass::Analyse()
     // THREAD_WORK = (TOTAL / # THREADS)
     uint workAmount = m_DataSize / IdealThreadCount();
 
-    if(workAmount <= 0)
-    {
-        dprintf("Error: Total instruction data size is too small to analyse.\n");
-        return false;
-    }
-
     // Initialize thread vector
     auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
@@ -46,8 +46,6 @@ bool LinearPass::Analyse()
             threadWorkStart = max((threadWorkStart - 256), m_VirtualStart);
             threadWorkStop = min((threadWorkStop + 256), m_VirtualEnd);
         }
-
-        dprintf("Boundaries: 0x%p 0x%p\n", threadWorkStart, threadWorkStop);
 
         // Memory allocation optimization
         // TODO: Option to conserve memory

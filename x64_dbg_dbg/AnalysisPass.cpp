@@ -69,3 +69,8 @@ uint AnalysisPass::IdealThreadCount()
 
     return m_InternalMaxThreads;
 }
+
+void AnalysisPass::SetIdealThreadCount(uint Count)
+{
+    m_InternalMaxThreads = (BYTE)min(Count, 255);
+}

@@ -304,7 +304,7 @@ bool MemIsCanonicalAddress(uint Address)
     // 0xFFFF800000000000 = Significant 16 bits set
     // 0x0000800000000000 = 48th bit set
     return (((Address & 0xFFFF800000000000) + 0x800000000000) & ~0x800000000000) == 0;
-#endif // _WIN64
+#endif // ndef _WIN64
 }
 
 void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect)

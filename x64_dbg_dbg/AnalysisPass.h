@@ -37,6 +37,7 @@ protected:
     void AcquireExclusiveLock();
     void ReleaseExclusiveLock();
     uint IdealThreadCount();
+    void SetIdealThreadCount(uint Count);
 
 private:
     SRWLOCK m_InternalLock;
