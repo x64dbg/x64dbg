@@ -107,7 +107,7 @@ void LinearPass::AnalyseOverlaps()
         if(threadWorkStart > 0)
         {
             threadWorkStart = max((threadWorkStart - 1), 0);
-            threadWorkStop = min((threadWorkStop + 1), workAmount);
+            threadWorkStop = min((threadWorkStop + 1), workTotal);
         }
 
         // Execute
