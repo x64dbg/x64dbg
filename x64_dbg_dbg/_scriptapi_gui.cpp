@@ -1,52 +1,5 @@
 #include "_scriptapi_gui.h"
 
-static inline int windowToBridge(Script::Gui::Window window)
-{
-    switch(window)
-    {
-    case Script::Gui::DisassemblyWindow:
-        return GUI_DISASSEMBLY;
-    case Script::Gui::DumpWindow:
-        return GUI_DUMP;
-    case Script::Gui::StackWindow:
-        return GUI_STACK;
-    default:
-        return GUI_DISASSEMBLY;
-    }
-}
-
-SCRIPT_EXPORT bool Script::Gui::SelectionGet(Script::Gui::Window window, duint* start, duint* end)
-{
-    SELECTIONDATA selection;
-    if(!GuiSelectionGet(windowToBridge(window), &selection))
-        return false;
-    if(start)
-        *start = selection.start;
-    if(end)
-        *end = selection.end;
-    return true;
-}
-
-SCRIPT_EXPORT bool Script::Gui::SelectionSet(Script::Gui::Window window, duint start, duint end)
-{
-    SELECTIONDATA selection;
-    selection.start = start;
-    selection.end = end;
-    return GuiSelectionSet(windowToBridge(window), &selection);
-}
-
-SCRIPT_EXPORT duint Script::Gui::SelectionGetStart(Script::Gui::Window window)
-{
-    duint start;
-    return Gui::SelectionGet(window, &start, nullptr) ? start : 0;
-}
-
-SCRIPT_EXPORT duint Script::Gui::SelectionGetEnd(Script::Gui::Window window)
-{
-    duint end;
-    return Gui::SelectionGet(window, nullptr, &end) ? end : 0;
-}
-
 SCRIPT_EXPORT bool Script::Gui::Disassembly::SelectionGet(duint* start, duint* end)
 {
     return Gui::SelectionGet(DisassemblyWindow, start, end);
@@ -105,4 +58,61 @@ SCRIPT_EXPORT duint Script::Gui::Stack::SelectionGetStart()
 SCRIPT_EXPORT duint Script::Gui::Stack::SelectionGetEnd()
 {
     return Gui::SelectionGetEnd(StackWindow);
+}
+
+static inline int windowToBridge(Script::Gui::Window window)
+{
+    switch(window)
+    {
+    case Script::Gui::DisassemblyWindow:
+        return GUI_DISASSEMBLY;
+    case Script::Gui::DumpWindow:
+        return GUI_DUMP;
+    case Script::Gui::StackWindow:
+        return GUI_STACK;
+    default:
+        return GUI_DISASSEMBLY;
+    }
+}
+
+SCRIPT_EXPORT bool Script::Gui::SelectionGet(Script::Gui::Window window, duint* start, duint* end)
+{
+    SELECTIONDATA selection;
+    if(!GuiSelectionGet(windowToBridge(window), &selection))
+        return false;
+    if(start)
+        *start = selection.start;
+    if(end)
+        *end = selection.end;
+    return true;
+}
+
+SCRIPT_EXPORT bool Script::Gui::SelectionSet(Script::Gui::Window window, duint start, duint end)
+{
+    SELECTIONDATA selection;
+    selection.start = start;
+    selection.end = end;
+    return GuiSelectionSet(windowToBridge(window), &selection);
+}
+
+SCRIPT_EXPORT duint Script::Gui::SelectionGetStart(Script::Gui::Window window)
+{
+    duint start;
+    return Gui::SelectionGet(window, &start, nullptr) ? start : 0;
+}
+
+SCRIPT_EXPORT duint Script::Gui::SelectionGetEnd(Script::Gui::Window window)
+{
+    duint end;
+    return Gui::SelectionGet(window, nullptr, &end) ? end : 0;
+}
+
+SCRIPT_EXPORT void Script::Gui::Message(const char* message)
+{
+    GuiScriptMessage(message);
+}
+
+SCRIPT_EXPORT bool Script::Gui::MessageYesNo(const char* message)
+{
+    return !!GuiScriptMsgyn(message);
 }
