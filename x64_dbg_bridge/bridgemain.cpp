@@ -1120,6 +1120,21 @@ BRIDGE_IMPEXP void GuiShowCpu()
     _gui_sendmessage(GUI_SHOW_CPU, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiAddQWidgetTab(void* qWidget)
+{
+    _gui_sendmessage(GUI_ADD_QWIDGET_TAB, qWidget, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget)
+{
+    _gui_sendmessage(GUI_SHOW_QWIDGET_TAB, qWidget, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget)
+{
+    _gui_sendmessage(GUI_CLOSE_QWIDGET_TAB, qWidget, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;
