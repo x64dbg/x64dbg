@@ -14,4 +14,4 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
 bool MemIsValidReadPtr(uint Address);
 bool MemIsCanonicalAddress(uint Address);
 void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect);
-void MemFreeRemote(uint Address);
+bool MemFreeRemote(uint Address);

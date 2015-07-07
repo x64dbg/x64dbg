@@ -11,6 +11,21 @@ SCRIPT_EXPORT bool Script::Memory::Write(duint addr, const void* data, duint siz
     return MemWrite((void*)addr, (void*)data, size, sizeWritten);
 }
 
+SCRIPT_EXPORT bool Script::Memory::IsValidPtr(duint addr)
+{
+    return MemIsValidReadPtr(addr);
+}
+
+SCRIPT_EXPORT duint Script::Memory::RemoteAlloc(duint addr, duint size)
+{
+    return (duint)MemAllocRemote(addr, size, PAGE_EXECUTE_READWRITE);
+}
+
+SCRIPT_EXPORT bool Script::Memory::RemoteFree(duint addr)
+{
+    return MemFreeRemote(addr);
+}
+
 SCRIPT_EXPORT unsigned char Script::Memory::ReadByte(duint addr)
 {
     unsigned char data;

@@ -252,6 +252,9 @@
     <ClCompile Include="_scriptapi_assembler.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
+    <ClCompile Include="_scriptapi_misc.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -579,6 +582,9 @@
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="_scriptapi_assembler.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_misc.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,6 +9,9 @@ namespace Memory
 {
 SCRIPT_EXPORT bool Read(duint addr, void* data, duint size, duint* sizeRead);
 SCRIPT_EXPORT bool Write(duint addr, const void* data, duint size, duint* sizeWritten);
+SCRIPT_EXPORT bool IsValidPtr(duint addr);
+SCRIPT_EXPORT duint RemoteAlloc(duint addr, duint size);
+SCRIPT_EXPORT bool RemoteFree(duint addr);
 
 SCRIPT_EXPORT unsigned char ReadByte(duint addr);
 SCRIPT_EXPORT bool WriteByte(duint addr, unsigned char data);

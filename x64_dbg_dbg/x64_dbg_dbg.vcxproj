@@ -70,6 +70,7 @@
     <ClCompile Include="_scriptapi_assembler.cpp" />
     <ClCompile Include="_scriptapi_debug.cpp" />
     <ClCompile Include="_scriptapi_gui.cpp" />
+    <ClCompile Include="_scriptapi_misc.cpp" />
     <ClCompile Include="_scriptapi_pattern.cpp" />
     <ClCompile Include="_scriptapi_memory.cpp" />
     <ClCompile Include="_scriptapi_module.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="_scriptapi_assembler.h" />
     <ClInclude Include="_scriptapi_debug.h" />
     <ClInclude Include="_scriptapi_gui.h" />
+    <ClInclude Include="_scriptapi_misc.h" />
     <ClInclude Include="_scriptapi_pattern.h" />
     <ClInclude Include="_scriptapi_memory.h" />
     <ClInclude Include="_scriptapi_module.h" />
