@@ -38,7 +38,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         basicinfo->branch = true;
         basicinfo->call = true;
     }
-    else if(cp->InGroup(CS_GRP_JUMP))
+    else if(cp->InGroup(CS_GRP_JUMP) || cp->IsLoop())
     {
         basicinfo->branch = true;
     }

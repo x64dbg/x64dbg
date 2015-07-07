@@ -112,7 +112,7 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
                 break;
 
             const cs_x86_op & operand = _cp.x86().operands[0];
-            if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)   //jump
+            if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)   //jump
             {
                 uint dest = (uint)operand.imm;
 
@@ -124,7 +124,7 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && _cp.GetId() == X86_INS_JMP)   //save the last JMP backwards
+                else if(end && dest < end && (_cp.GetId() == X86_INS_JMP || _cp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
@@ -149,7 +149,7 @@ uint FunctionAnalysis::GetReferenceOperand()
     for(int i = 0; i < _cp.x86().op_count; i++)
     {
         const cs_x86_op & operand = _cp.x86().operands[i];
-        if(_cp.InGroup(CS_GRP_JUMP))  //skip jumps
+        if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())  //skip jumps/loops
             continue;
         if(operand.type == X86_OP_IMM)  //we are looking for immediate references
         {
