@@ -67,6 +67,7 @@
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
     <ClCompile Include="_plugins.cpp" />
+    <ClCompile Include="_scriptapi_assembler.cpp" />
     <ClCompile Include="_scriptapi_debug.cpp" />
     <ClCompile Include="_scriptapi_gui.cpp" />
     <ClCompile Include="_scriptapi_pattern.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="_global.h" />
     <ClInclude Include="_plugins.h" />
     <ClInclude Include="_plugin_types.h" />
+    <ClInclude Include="_scriptapi_assembler.h" />
     <ClInclude Include="_scriptapi_debug.h" />
     <ClInclude Include="_scriptapi_gui.h" />
     <ClInclude Include="_scriptapi_pattern.h" />
