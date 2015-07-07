@@ -21,3 +21,13 @@ SCRIPT_EXPORT duint Script::Misc::ResolveLabel(const char* label)
         return 0;
     return value;
 }
+
+SCRIPT_EXPORT void* Script::Misc::Alloc(duint size)
+{
+    return emalloc(size, "Script::Misc::Alloc");
+}
+
+SCRIPT_EXPORT void Script::Misc::Free(void* ptr)
+{
+    return efree(ptr, "Script::Misc::Free");
+}
