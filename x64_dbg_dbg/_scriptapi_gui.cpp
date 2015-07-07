@@ -135,3 +135,18 @@ SCRIPT_EXPORT void Script::Gui::Refresh()
 {
     GuiUpdateAllViews();
 }
+
+SCRIPT_EXPORT void Script::Gui::AddQWidgetTab(void* qWidget)
+{
+    GuiAddQWidgetTab(qWidget);
+}
+
+SCRIPT_EXPORT void Script::Gui::ShowQWidgetTab(void* qWidget)
+{
+    GuiShowQWidgetTab(qWidget);
+}
+
+SCRIPT_EXPORT void Script::Gui::CloseQWidgetTab(void* qWidget)
+{
+    GuiCloseQWidgetTab(qWidget);
+}
