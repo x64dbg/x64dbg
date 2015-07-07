@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="addrinfo.cpp" />
+    <ClCompile Include="analysis.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
+    <ClInclude Include="analysis.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />

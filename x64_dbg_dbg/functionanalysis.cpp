@@ -3,22 +3,8 @@
 #include "memory.h"
 #include "function.h"
 
-FunctionAnalysis::FunctionAnalysis(uint base, uint size)
+FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
 {
-    _base = base;
-    _size = size;
-    _data = new unsigned char[_size + MAX_DISASM_BUFFER];
-    MemRead((void*)_base, _data, _size, 0);
-}
-
-FunctionAnalysis::~FunctionAnalysis()
-{
-    delete[] _data;
-}
-
-const unsigned char* FunctionAnalysis::TranslateAddress(uint addr)
-{
-    return (addr >= _base && addr < _base + _size) ? _data + (addr - _base) : nullptr;
 }
 
 void FunctionAnalysis::Analyse()

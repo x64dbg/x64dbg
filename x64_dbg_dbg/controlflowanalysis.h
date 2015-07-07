@@ -3,34 +3,16 @@
 
 #include "_global.h"
 #include "capstone_wrapper.h"
+#include "analysis.h"
 
-class ControlFlowAnalysis
+class ControlFlowAnalysis : public Analysis
 {
 public:
     explicit ControlFlowAnalysis(uint base, uint size);
-    ControlFlowAnalysis(const ControlFlowAnalysis & that) = delete;
-    ~ControlFlowAnalysis();
-    bool IsValidAddress(uint addr);
-    const unsigned char* TranslateAddress(uint addr);
     void Analyse();
     void SetMarkers();
 
-    struct FunctionInfo
-    {
-        uint start;
-        uint end;
-
-        bool operator<(const FunctionInfo & b) const
-        {
-            return start < b.start;
-        }
-
-        bool operator==(const FunctionInfo & b) const
-        {
-            return start == b.start;
-        }
-    };
-
+private:
     struct BasicBlock
     {
         uint start;
@@ -55,13 +37,8 @@ public:
         }
     };
 
-private:
-    uint _base;
-    uint _size;
-    unsigned char* _data;
     std::set<uint> _blockStarts;
     std::vector<BasicBlock> _blocks;
-    Capstone _cp;
 
     void BasicBlockStarts();
     void BasicBlocks();

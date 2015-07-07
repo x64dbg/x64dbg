@@ -2,27 +2,8 @@
 #include "memory.h"
 #include "console.h"
 
-ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size)
+ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size) : Analysis(base, size)
 {
-    _base = base;
-    _size = size;
-    _data = new unsigned char[_size + MAX_DISASM_BUFFER];
-    MemRead((void*)_base, _data, _size, 0);
-}
-
-ControlFlowAnalysis::~ControlFlowAnalysis()
-{
-    delete[] _data;
-}
-
-bool ControlFlowAnalysis::IsValidAddress(uint addr)
-{
-    return addr >= _base && addr < _base + _size;
-}
-
-const unsigned char* ControlFlowAnalysis::TranslateAddress(uint addr)
-{
-    return IsValidAddress(addr) ? _data + (addr - _base) : nullptr;
 }
 
 void ControlFlowAnalysis::Analyse()
@@ -78,6 +59,7 @@ void ControlFlowAnalysis::SetMarkers()
 
 void ControlFlowAnalysis::BasicBlockStarts()
 {
+    _blockStarts.insert(_base);
     bool bSkipFilling = false;
     for(uint i = 0; i < _size;)
     {
@@ -92,7 +74,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
                     _blockStarts.insert(addr);
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET))
+            else if(_cp.InGroup(CS_GRP_RET) || _cp.InGroup(CS_GRP_INT)) //RET/INT break control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
@@ -103,7 +85,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
                 if(_cp.GetId() != X86_INS_JMP)   //unconditional jump
                     dest2 = addr + _cp.Size();
 
-                if(!dest1 && !dest2)
+                if(!dest1 && !dest2) //TODO: better code for this (make sure absolutely no filling is inserted)
                     bSkipFilling = true;
                 if(dest1)
                     _blockStarts.insert(dest1);

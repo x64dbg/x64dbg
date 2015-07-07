@@ -246,6 +246,9 @@
     <ClCompile Include="controlflowanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
+    <ClCompile Include="analysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -567,6 +570,9 @@
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
     <ClInclude Include="controlflowanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
