@@ -1,4 +1,5 @@
 #include "_scriptapi_gui.h"
+#include "value.h"
 
 SCRIPT_EXPORT bool Script::Gui::Disassembly::SelectionGet(duint* start, duint* end)
 {
@@ -115,4 +116,17 @@ SCRIPT_EXPORT void Script::Gui::Message(const char* message)
 SCRIPT_EXPORT bool Script::Gui::MessageYesNo(const char* message)
 {
     return !!GuiScriptMsgyn(message);
+}
+
+SCRIPT_EXPORT bool Script::Gui::InputLine(const char* title, char* text)
+{
+    return GuiGetLineWindow(title, text);
+}
+
+SCRIPT_EXPORT bool Script::Gui::InputValue(const char* title, duint* value)
+{
+    Memory<char*> line(GUI_MAX_LINE_SIZE);
+    if(!GuiGetLineWindow(title, line()))
+        return false;
+    return valfromstring(line(), value);
 }
