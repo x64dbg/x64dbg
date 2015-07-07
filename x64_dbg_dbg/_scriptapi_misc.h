@@ -8,6 +8,8 @@ namespace Script
 namespace Misc
 {
 SCRIPT_EXPORT bool ParseExpression(const char* expression, duint* value);
+SCRIPT_EXPORT duint RemoteGetProcAddress(const char* module, const char* api);
+SCRIPT_EXPORT duint ResolveLabel(const char* label);
 }; //Misc
 }; //Script
 
