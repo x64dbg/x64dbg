@@ -28,6 +28,7 @@
     <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="controlflowanalysis.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
+    <ClInclude Include="controlflowanalysis.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />

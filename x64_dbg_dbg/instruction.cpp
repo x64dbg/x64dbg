@@ -26,6 +26,8 @@
 #include "module.h"
 #include "stringformat.h"
 #include "filereader.h"
+#include "functionanalysis.h"
+#include "controlflowanalysis.h"
 
 static bool bRefinit = false;
 
@@ -1877,8 +1879,6 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-#include "functionanalysis.h"
-
 CMDRESULT cbInstrAnalyse(int argc, char* argv[])
 {
     SELECTIONDATA sel;
@@ -1886,6 +1886,19 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
     uint size = 0;
     uint base = MemFindBaseAddr(sel.start, &size);
     FunctionAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    ControlFlowAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
@@ -1950,7 +1963,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
                     break;
 
                 const cs_x86_op & operand = _cp.x86().operands[0];
-                if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)    //jump
+                if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)    //jump
                 {
                     uint dest = (uint)operand.imm;
 

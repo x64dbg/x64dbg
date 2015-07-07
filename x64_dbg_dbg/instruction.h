@@ -70,5 +70,6 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[]);
 CMDRESULT cbInstrAnalyse(int argc, char* argv[]);
 CMDRESULT cbInstrVisualize(int argc, char* argv[]);
 CMDRESULT cbInstrMeminfo(int argc, char* argv[]);
+CMDRESULT cbInstrCfanalyse(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H
