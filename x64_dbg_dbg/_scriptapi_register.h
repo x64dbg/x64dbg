@@ -15,6 +15,7 @@ enum RegisterEnum
     DR3,
     DR6,
     DR7,
+
     EAX,
     AX,
     AH,
@@ -40,7 +41,7 @@ enum RegisterEnum
     ESP,
     SP,
     EIP,
-    CIP,
+
 #ifdef _WIN64
     RAX,
     RBX,
@@ -86,12 +87,16 @@ enum RegisterEnum
     R15,
     R15D,
     R15W,
-    R15B
+    R15B,
 #endif //_WIN64
+
+    CIP,
+    CSP,
 }; //RegisterEnum
 
 SCRIPT_EXPORT duint Get(RegisterEnum reg);
 SCRIPT_EXPORT bool Set(RegisterEnum reg, duint value);
+SCRIPT_EXPORT int Size(); //gets architecture register size in bytes
 
 SCRIPT_EXPORT duint GetDR0();
 SCRIPT_EXPORT bool SetDR0(duint value);
@@ -105,6 +110,7 @@ SCRIPT_EXPORT duint GetDR6();
 SCRIPT_EXPORT bool SetDR6(duint value);
 SCRIPT_EXPORT duint GetDR7();
 SCRIPT_EXPORT bool SetDR7(duint value);
+
 SCRIPT_EXPORT unsigned int GetEAX();
 SCRIPT_EXPORT bool SetEAX(unsigned int value);
 SCRIPT_EXPORT unsigned short GetAX();
@@ -155,8 +161,7 @@ SCRIPT_EXPORT unsigned short GetSP();
 SCRIPT_EXPORT bool SetSP(unsigned short value);
 SCRIPT_EXPORT unsigned int GetEIP();
 SCRIPT_EXPORT bool SetEIP(unsigned int value);
-SCRIPT_EXPORT duint GetCIP();
-SCRIPT_EXPORT bool SetCIP(duint value);
+
 #ifdef _WIN64
 SCRIPT_EXPORT unsigned long long GetRAX();
 SCRIPT_EXPORT bool SetRAX(unsigned long long value);
@@ -249,6 +254,11 @@ SCRIPT_EXPORT bool SetR15W(unsigned short value);
 SCRIPT_EXPORT unsigned char GetR15B();
 SCRIPT_EXPORT bool SetR15B(unsigned char value);
 #endif //_WIN64
+
+SCRIPT_EXPORT duint GetCIP();
+SCRIPT_EXPORT bool SetCIP(duint value);
+SCRIPT_EXPORT duint GetCSP();
+SCRIPT_EXPORT bool SetCSP(duint value);
 }; //Register
 }; //Script
 

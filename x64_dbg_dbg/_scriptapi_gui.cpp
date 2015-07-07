@@ -130,3 +130,8 @@ SCRIPT_EXPORT bool Script::Gui::InputValue(const char* title, duint* value)
         return false;
     return Misc::ParseExpression(line(), value);
 }
+
+SCRIPT_EXPORT void Script::Gui::Refresh()
+{
+    GuiUpdateAllViews();
+}

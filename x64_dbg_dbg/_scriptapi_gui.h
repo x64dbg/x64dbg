@@ -49,6 +49,7 @@ SCRIPT_EXPORT void Message(const char* message);
 SCRIPT_EXPORT bool MessageYesNo(const char* message);
 SCRIPT_EXPORT bool InputLine(const char* title, char* text); //text[GUI_MAX_LINE_SIZE]
 SCRIPT_EXPORT bool InputValue(const char* title, duint* value);
+SCRIPT_EXPORT void Refresh();
 
 }; //Gui
 }; //Script
