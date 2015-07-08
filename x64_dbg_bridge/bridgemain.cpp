@@ -1135,6 +1135,11 @@ BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget)
     _gui_sendmessage(GUI_CLOSE_QWIDGET_TAB, qWidget, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread)
+{
+    _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, cbGuiThread, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

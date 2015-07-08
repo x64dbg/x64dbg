@@ -107,6 +107,7 @@ public slots:
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
+    void executeOnGuiThread(void* cbGuiThread);
 
 private:
     Ui::MainWindow* ui;

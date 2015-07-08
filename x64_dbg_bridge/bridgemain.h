@@ -764,8 +764,12 @@ typedef enum
     GUI_SHOW_CPU,                   // param1=unused,               param2=unused
     GUI_ADD_QWIDGET_TAB,            // param1=QWidget*,             param2=unused
     GUI_SHOW_QWIDGET_TAB,           // param1=QWidget*,             param2=unused
-    GUI_CLOSE_QWIDGET_TAB           // param1=QWidget*,             param2=unused
+    GUI_CLOSE_QWIDGET_TAB,          // param1=QWidget*,             param2=unused
+    GUI_EXECUTE_ON_GUI_THREAD       // param1=GUICALLBACK,          param2=unused
 } GUIMSG;
+
+//GUI Typedefs
+typedef void (*GUICALLBACK)();
 
 //GUI structures
 typedef struct
@@ -854,6 +858,7 @@ BRIDGE_IMPEXP void GuiShowCpu();
 BRIDGE_IMPEXP void GuiAddQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget);
+BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread);
 
 #ifdef __cplusplus
 }

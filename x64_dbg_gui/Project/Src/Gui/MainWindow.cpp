@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
 
     //setup menu api
     initMenuApi();
@@ -239,6 +241,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->mDisas->setFocus();
+
+    GuiAddLogMessage(QString().sprintf("thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -345,7 +349,7 @@ void MainWindow::loadMRUList(int maxItems)
     mMaxMRU = maxItems;
     for(int i = 0; i < mMaxMRU; i++)
     {
-        char currentFile[MAX_PATH] = "";
+        char currentFile[MAX_SETTING_SIZE] = "";
         if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i + 1).toUtf8().constData(), currentFile))
             break;
         if(QString(currentFile).size() && QFile(currentFile).exists())
@@ -1123,4 +1127,9 @@ void MainWindow::closeQWidgetTab(QWidget* qWidget)
             mTabWidget->DeleteTab(i);
             break;
         }
+}
+
+void MainWindow::executeOnGuiThread(void* cbGuiThread)
+{
+    ((GUICALLBACK)cbGuiThread)();
 }

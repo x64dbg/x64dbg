@@ -91,6 +91,7 @@ public:
     void emitAddQWidgetTab(QWidget* qWidget);
     void emitShowQWidgetTab(QWidget* qWidget);
     void emitCloseQWidgetTab(QWidget* qWidget);
+    void emitExecuteOnGuiThread(void* cbGuiThread);
 
     //Public variables
     void* winId;
@@ -163,6 +164,7 @@ signals:
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
+    void executeOnGuiThread(void* cbGuiThread);
 
 private:
     QMutex* mBridgeMutex;
