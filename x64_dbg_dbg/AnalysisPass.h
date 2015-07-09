@@ -32,6 +32,7 @@ protected:
         return (Address >= m_VirtualStart && Address < m_VirtualEnd);
     }
 
+    BasicBlock* FindBBlockInRange(uint Address);
     void AcquireReadLock();
     void ReleaseReadLock();
     void AcquireExclusiveLock();

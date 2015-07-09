@@ -33,6 +33,43 @@ AnalysisPass::~AnalysisPass()
         BridgeFree(m_Data);
 }
 
+BasicBlock* AnalysisPass::FindBBlockInRange(uint Address)
+{
+    // NOTE: __MUST__ BE A SORTED VECTOR
+    //
+    // Use a binary search
+    uint indexLo = 0;
+    uint indexHi = m_MainBlocks.size();
+
+    // Get a pointer to pure data
+    const auto blocks = m_MainBlocks.data();
+
+    while(indexHi > indexLo)
+    {
+        uint indexMid = (indexLo + indexHi) / 2;
+        auto entry = &blocks[indexMid];
+
+        if(Address < entry->VirtualStart)
+        {
+            // Continue search in lower half
+            indexHi = indexMid;
+        }
+        else if(Address >= entry->VirtualEnd)
+        {
+            // Continue search in upper half
+            indexLo = indexMid + 1;
+        }
+        else
+        {
+            // Address is within limits, return entry
+            return entry;
+        }
+    }
+
+    // Not found
+    return nullptr;
+}
+
 void AnalysisPass::AcquireReadLock()
 {
     AcquireSRWLockShared(&m_InternalLock);
@@ -64,7 +101,7 @@ uint AnalysisPass::IdealThreadCount()
         if(maximumThreads > 1)
             maximumThreads -= 1;
 
-        m_InternalMaxThreads = (BYTE)min(maximumThreads, 255);
+        SetIdealThreadCount(maximumThreads);
     }
 
     return m_InternalMaxThreads;

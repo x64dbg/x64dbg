@@ -18,5 +18,4 @@ private:
     void AnalysisWorker(uint Start, uint End, BBlockArray* Blocks);
     void AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insertions);
     BasicBlock* CreateBlockWorker(BBlockArray* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr);
-    BasicBlock* FindBBlockInRange(uint Address);
 };

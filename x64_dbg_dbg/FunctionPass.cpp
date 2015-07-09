@@ -5,6 +5,7 @@
 #include "console.h"
 #include "debugger.h"
 #include "module.h"
+#include "function.h"
 
 FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -87,6 +88,23 @@ bool FunctionPass::Analyse()
         // Execute
         AnalysisWorker(threadWorkStart, threadWorkStop, &threadFunctions[i]);
     });
+
+    std::vector<FunctionDef> funcs;
+
+    // Merge thread vectors into single local
+    for(uint i = 0; i < IdealThreadCount(); i++)
+        std::move(threadFunctions[i].begin(), threadFunctions[i].end(), std::back_inserter(funcs));
+
+    // Sort and remove duplicates
+    std::sort(funcs.begin(), funcs.end());
+    funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
+
+    FunctionClear();
+    for(auto & func : funcs)
+    {
+        FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true);
+    }
+    GuiUpdateAllViews();
 
     delete[] threadFunctions;
     return true;
@@ -177,6 +195,44 @@ void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<F
 
 void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
 {
+    // Helper to link final blocks to function
+    auto ResolveKnownFunctionEnd = [this](FunctionDef * Function)
+    {
+        auto startBlock = FindBBlockInRange(Function->VirtualStart);
+        auto endBlock = FindBBlockInRange(Function->VirtualEnd);
+
+        if(!startBlock || !endBlock)
+            return false;
+
+        // Debug
+        //assert(startBlock->VirtualStart == Function->VirtualStart);
+        //assert(endBlock->VirtualEnd == Function->VirtualEnd);
+
+        // Calculate indexes from pointer arithmetic
+        Function->BBlockStart = ((uint)startBlock - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
+        Function->BBlockEnd = ((uint)endBlock - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
+
+        // Set the flag for blocks that have been scanned
+        for(uint i = Function->BBlockStart; i < Function->BBlockEnd; i++)
+            m_MainBlocks[i].SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+        return true;
+    };
+
+    // Enumerate all function entries for this thread
+    for(auto & block : *Blocks)
+    {
+        // Sometimes the ending address is already supplied, so
+        // check first
+        if(block.VirtualEnd != 0)
+        {
+            if(ResolveKnownFunctionEnd(&block))
+                continue;
+        }
+
+        // else
+        // ...
+    }
 }
 
 void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIME_FUNCTION)> Callback)
@@ -184,12 +240,11 @@ void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIM
     if(!m_FunctionInfo)
         return;
 
-    // Get the table pointer
-    PRUNTIME_FUNCTION functionTable = (PRUNTIME_FUNCTION)m_FunctionInfo;
-
-    // Enumerate each entry
+    // Get the table pointer and size
+    auto functionTable = (PRUNTIME_FUNCTION)m_FunctionInfo;
     ULONG totalCount = (m_FunctionInfoSize / sizeof(RUNTIME_FUNCTION));
 
+    // Enumerate each entry
     for(ULONG i = 0; i < totalCount; i++)
     {
         if(!Callback(&functionTable[i]))
