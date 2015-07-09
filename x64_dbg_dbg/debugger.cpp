@@ -776,14 +776,16 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
 static void cbSystemBreakpoint(void* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+
+    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
+
     //log message
     if(bIsAttached)
         dputs("Attach breakpoint reached!");
     else
         dputs("System breakpoint reached!");
     bSkipExceptions = false; //we are not skipping first-chance exceptions
-    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
 
     //plugin callbacks
     PLUG_CB_SYSTEMBREAKPOINT callbackInfo;

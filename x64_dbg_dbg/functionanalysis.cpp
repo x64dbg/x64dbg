@@ -3,31 +3,20 @@
 #include "memory.h"
 #include "function.h"
 
-#include "module.h"
-#include "LinearPass.h"
-
-FunctionAnalysis::FunctionAnalysis(uint base, uint size)
+FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
 {
-    _base = base;
-    _size = size;
-    _data = new unsigned char[_size + MAX_DISASM_BUFFER];
-    MemRead((void*)_base, _data, _size, 0);
 }
 
-FunctionAnalysis::~FunctionAnalysis()
-{
-    delete[] _data;
-}
-
-const unsigned char* FunctionAnalysis::TranslateAddress(uint addr)
-{
-    return (addr >= _base && addr < _base + _size) ? _data + (addr - _base) : nullptr;
-}
-
-void Derp(uint _base);
 void FunctionAnalysis::Analyse()
 {
-    Derp(_base);
+    dputs("Starting analysis...");
+    DWORD ticks = GetTickCount();
+
+    PopulateReferences();
+    dprintf("%u called functions populated\n", _functions.size());
+    AnalyseFunctions();
+
+    dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 
 void FunctionAnalysis::SetMarkers()
@@ -109,7 +98,7 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
                 break;
 
             const cs_x86_op & operand = _cp.x86().operands[0];
-            if(_cp.InGroup(CS_GRP_JUMP) && operand.type == X86_OP_IMM)   //jump
+            if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)   //jump
             {
                 uint dest = (uint)operand.imm;
 
@@ -121,7 +110,7 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && _cp.GetId() == X86_INS_JMP)   //save the last JMP backwards
+                else if(end && dest < end && (_cp.GetId() == X86_INS_JMP || _cp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
@@ -146,7 +135,7 @@ uint FunctionAnalysis::GetReferenceOperand()
     for(int i = 0; i < _cp.x86().op_count; i++)
     {
         const cs_x86_op & operand = _cp.x86().operands[i];
-        if(_cp.InGroup(CS_GRP_JUMP))  //skip jumps
+        if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())  //skip jumps/loops
             continue;
         if(operand.type == X86_OP_IMM)  //we are looking for immediate references
         {

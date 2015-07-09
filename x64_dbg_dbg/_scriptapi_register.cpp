@@ -9,6 +9,7 @@ static const char* regTable[] =
     "DR3",
     "DR6",
     "DR7",
+
     "EAX",
     "AX",
     "AH",
@@ -34,7 +35,7 @@ static const char* regTable[] =
     "ESP",
     "SP",
     "EIP",
-    "CIP",
+
 #ifdef _WIN64
     "RAX",
     "RBX",
@@ -80,7 +81,15 @@ static const char* regTable[] =
     "R15",
     "R15D",
     "R15W",
-    "R15"
+    "R15",
+#endif //_WIN64
+
+#ifdef _WIN64
+    "RIP",
+    "RSP"
+#else //x32
+    "EIP",
+    "ESP"
 #endif //_WIN64
 };
 
@@ -94,6 +103,11 @@ SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
 SCRIPT_EXPORT bool Script::Register::Set(Script::Register::RegisterEnum reg, duint value)
 {
     return setregister(regTable[reg], value);
+}
+
+SCRIPT_EXPORT int Script::Register::Size()
+{
+    return (int)sizeof(duint);
 }
 
 SCRIPT_EXPORT duint Script::Register::GetDR0()
@@ -404,16 +418,6 @@ SCRIPT_EXPORT unsigned int Script::Register::GetEIP()
 SCRIPT_EXPORT bool Script::Register::SetEIP(unsigned int value)
 {
     return Set(EIP, value);
-}
-
-SCRIPT_EXPORT duint Script::Register::GetCIP()
-{
-    return Get(CIP);
-}
-
-SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
-{
-    return Set(CIP, value);
 }
 
 #ifdef _WIN64
@@ -867,3 +871,23 @@ SCRIPT_EXPORT bool Script::Register::SetR15B(unsigned char value)
     return Set(R15B, value);
 }
 #endif //_WIN64
+
+SCRIPT_EXPORT duint Script::Register::GetCIP()
+{
+    return Get(CIP);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCIP(duint value)
+{
+    return Set(CIP, value);
+}
+
+SCRIPT_EXPORT duint Script::Register::GetCSP()
+{
+    return Get(CSP);
+}
+
+SCRIPT_EXPORT bool Script::Register::SetCSP(duint value)
+{
+    return Set(CSP, value);
+}

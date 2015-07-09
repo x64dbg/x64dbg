@@ -104,6 +104,10 @@ public slots:
     void changeCommandLine();
     void decompileAt(int_t start, int_t end);
     void canClose();
+    void addQWidgetTab(QWidget* qWidget);
+    void showQWidgetTab(QWidget* qWidget);
+    void closeQWidgetTab(QWidget* qWidget);
+    void executeOnGuiThread(void* cbGuiThread);
 
 private:
     Ui::MainWindow* ui;

@@ -410,6 +410,27 @@ void Bridge::emitShowCpu()
     emit showCpu();
 }
 
+void Bridge::emitAddQWidgetTab(QWidget* qWidget)
+{
+    emit addQWidgetTab(qWidget);
+}
+
+void Bridge::emitShowQWidgetTab(QWidget* qWidget)
+{
+    emit showQWidgetTab(qWidget);
+}
+
+void Bridge::emitCloseQWidgetTab(QWidget* qWidget)
+{
+    emit closeQWidgetTab(qWidget);
+}
+
+void Bridge::emitExecuteOnGuiThread(void* cbGuiThread)
+{
+    GuiAddLogMessage(QString().sprintf("thread id (bridge) %X\n", GetCurrentThreadId()).toUtf8().constData());
+    emit executeOnGuiThread(cbGuiThread);
+}
+
 /************************************************************************************
                             Static Functions
 ************************************************************************************/
@@ -821,6 +842,30 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
     case GUI_SHOW_CPU:
     {
         Bridge::getBridge()->emitShowCpu();
+    }
+    break;
+
+    case GUI_ADD_QWIDGET_TAB:
+    {
+        Bridge::getBridge()->emitAddQWidgetTab((QWidget*)param1);
+    }
+    break;
+
+    case GUI_SHOW_QWIDGET_TAB:
+    {
+        Bridge::getBridge()->emitShowQWidgetTab((QWidget*)param1);
+    }
+    break;
+
+    case GUI_CLOSE_QWIDGET_TAB:
+    {
+        Bridge::getBridge()->emitCloseQWidgetTab((QWidget*)param1);
+    }
+    break;
+
+    case GUI_EXECUTE_ON_GUI_THREAD:
+    {
+        Bridge::getBridge()->emitExecuteOnGuiThread(param1);
     }
     break;
 

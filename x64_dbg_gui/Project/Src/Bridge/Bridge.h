@@ -3,6 +3,7 @@
 
 #include <agents.h>
 #include <QObject>
+#include <QWidget>
 #include <QMutex>
 #include "Imports.h"
 #include "NewTypes.h"
@@ -87,6 +88,10 @@ public:
     void emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon);
     void emitSetMenuIcon(int hMenu, const ICONDATA* icon);
     void emitShowCpu();
+    void emitAddQWidgetTab(QWidget* qWidget);
+    void emitShowQWidgetTab(QWidget* qWidget);
+    void emitCloseQWidgetTab(QWidget* qWidget);
+    void emitExecuteOnGuiThread(void* cbGuiThread);
 
     //Public variables
     void* winId;
@@ -156,6 +161,10 @@ signals:
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void showCpu();
+    void addQWidgetTab(QWidget* qWidget);
+    void showQWidgetTab(QWidget* qWidget);
+    void closeQWidgetTab(QWidget* qWidget);
+    void executeOnGuiThread(void* cbGuiThread);
 
 private:
     QMutex* mBridgeMutex;

@@ -579,7 +579,7 @@ void ScriptView::cmdExec()
 
 void ScriptView::message(QString message)
 {
-    QMessageBox msg(QMessageBox::Information, "Information", message);
+    QMessageBox msg(QMessageBox::Information, "Message", message);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));

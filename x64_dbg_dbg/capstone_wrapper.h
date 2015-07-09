@@ -24,6 +24,7 @@ public:
     const uint Address();
     const cs_x86 & x86();
     bool IsFilling();
+    bool IsLoop();
     x86_insn GetId();
     String InstructionText();
 

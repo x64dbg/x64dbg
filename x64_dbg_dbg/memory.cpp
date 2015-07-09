@@ -312,7 +312,7 @@ void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect)
     return VirtualAllocEx(fdProcessInfo->hProcess, (void*)Address, Size, MEM_RESERVE | MEM_COMMIT, Protect);
 }
 
-void MemFreeRemote(uint Address)
+bool MemFreeRemote(uint Address)
 {
-    VirtualFreeEx(fdProcessInfo->hProcess, (void*)Address, 0, MEM_RELEASE);
+    return !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)Address, 0, MEM_RELEASE);
 }

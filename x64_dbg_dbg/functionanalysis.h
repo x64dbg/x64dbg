@@ -3,17 +3,16 @@
 
 #include "_global.h"
 #include "capstone_wrapper.h"
+#include "analysis.h"
 
-class FunctionAnalysis
+class FunctionAnalysis : public Analysis
 {
 public:
     explicit FunctionAnalysis(uint base, uint size);
-    FunctionAnalysis(const FunctionAnalysis & that) = delete;
-    ~FunctionAnalysis();
-    const unsigned char* TranslateAddress(uint addr);
     void Analyse();
     void SetMarkers();
 
+private:
     struct FunctionInfo
     {
         uint start;
@@ -30,12 +29,7 @@ public:
         }
     };
 
-private:
-    uint _base;
-    uint _size;
-    unsigned char* _data;
     std::vector<FunctionInfo> _functions;
-    Capstone _cp;
 
     void SortCleanup();
     void PopulateReferences();

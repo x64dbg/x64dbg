@@ -31,6 +31,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+    connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
+    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
 
     //setup menu api
     initMenuApi();
@@ -130,17 +134,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mTabWidget = new MHTabWidget(NULL);
 
     //Setup tabs
-    mTabWidget->addTab(mCpuWidget, mCpuWidget->windowIcon(), mCpuWidget->windowTitle());
-    mTabWidget->addTab(mLogView, mLogView->windowIcon(), mLogView->windowTitle());
-    mTabWidget->addTab(mBreakpointsView, mBreakpointsView->windowIcon(), mBreakpointsView->windowTitle());
-    mTabWidget->addTab(mMemMapView, mMemMapView->windowIcon(), mMemMapView->windowTitle());
-    mTabWidget->addTab(mCallStackView, mCallStackView->windowIcon(), mCallStackView->windowTitle());
-    mTabWidget->addTab(mScriptView, mScriptView->windowIcon(), mScriptView->windowTitle());
-    mTabWidget->addTab(mSymbolView, mSymbolView->windowIcon(), mSymbolView->windowTitle());
-    mTabWidget->addTab(mSourceViewManager, mSourceViewManager->windowIcon(), mSourceViewManager->windowTitle());
-    mTabWidget->addTab(mReferenceManager, mReferenceManager->windowIcon(), mReferenceManager->windowTitle());
-    mTabWidget->addTab(mThreadView, mThreadView->windowIcon(), mThreadView->windowTitle());
-    mTabWidget->addTab(mSnowmanView, mSnowmanView->windowIcon(), mSnowmanView->windowTitle());
+    addQWidgetTab(mCpuWidget);
+    addQWidgetTab(mLogView);
+    addQWidgetTab(mBreakpointsView);
+    addQWidgetTab(mMemMapView);
+    addQWidgetTab(mCallStackView);
+    addQWidgetTab(mScriptView);
+    addQWidgetTab(mSymbolView);
+    addQWidgetTab(mSourceViewManager);
+    addQWidgetTab(mReferenceManager);
+    addQWidgetTab(mThreadView);
+    addQWidgetTab(mSnowmanView);
 
     setCentralWidget(mTabWidget);
 
@@ -237,6 +241,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->mDisas->setFocus();
+
+    GuiAddLogMessage(QString().sprintf("thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -343,7 +349,7 @@ void MainWindow::loadMRUList(int maxItems)
     mMaxMRU = maxItems;
     for(int i = 0; i < mMaxMRU; i++)
     {
-        char currentFile[MAX_PATH] = "";
+        char currentFile[MAX_SETTING_SIZE] = "";
         if(!BridgeSettingGet("Recent Files", QString().sprintf("%.2d", i + 1).toUtf8().constData(), currentFile))
             break;
         if(QString(currentFile).size() && QFile(currentFile).exists())
@@ -488,23 +494,17 @@ void MainWindow::execRtr()
 
 void MainWindow::displayMemMapWidget()
 {
-    mMemMapView->show();
-    mMemMapView->setFocus();
-    setTab(mMemMapView);
+    showQWidgetTab(mMemMapView);
 }
 
 void MainWindow::displayLogWidget()
 {
-    mLogView->show();
-    mLogView->setFocus();
-    setTab(mLogView);
+    showQWidgetTab(mLogView);
 }
 
 void MainWindow::displayScriptWidget()
 {
-    mScriptView->show();
-    mScriptView->setFocus();
-    setTab(mScriptView);
+    showQWidgetTab(mScriptView);
 }
 
 void MainWindow::displayAboutWidget()
@@ -607,9 +607,7 @@ void MainWindow::restartDebugging()
 
 void MainWindow::displayBreakpointWidget()
 {
-    mBreakpointsView->show();
-    mBreakpointsView->setFocus();
-    setTab(mBreakpointsView);
+    showQWidgetTab(mBreakpointsView);
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)
@@ -667,44 +665,32 @@ void MainWindow::execSkip()
 
 void MainWindow::displayCpuWidget()
 {
-    mCpuWidget->show();
-    mCpuWidget->setFocus();
-    setTab(mCpuWidget);
+    showQWidgetTab(mCpuWidget);
 }
 
 void MainWindow::displaySymbolWidget()
 {
-    mSymbolView->show();
-    mSymbolView->setFocus();
-    setTab(mSymbolView);
+    showQWidgetTab(mSymbolView);
 }
 
 void MainWindow::displaySourceViewWidget()
 {
-    mSourceViewManager->show();
-    mSourceViewManager->setFocus();
-    setTab(mSourceViewManager);
+    showQWidgetTab(mSourceViewManager);
 }
 
 void MainWindow::displayReferencesWidget()
 {
-    mReferenceManager->show();
-    mReferenceManager->setFocus();
-    setTab(mReferenceManager);
+    showQWidgetTab(mReferenceManager);
 }
 
 void MainWindow::displayThreadsWidget()
 {
-    mThreadView->show();
-    mThreadView->setFocus();
-    setTab(mThreadView);
+    showQWidgetTab(mThreadView);
 }
 
 void MainWindow::displaySnowmanWidget()
 {
-    mSnowmanView->show();
-    mSnowmanView->setFocus();
-    setTab(mSnowmanView);
+    showQWidgetTab(mSnowmanView);
 }
 
 void MainWindow::openSettings()
@@ -1025,9 +1011,7 @@ void MainWindow::checkUpdates()
 
 void MainWindow::displayCallstack()
 {
-    mCallStackView->show();
-    mCallStackView->setFocus();
-    setTab(mCallStackView);
+    showQWidgetTab(mCallStackView);
 }
 
 void MainWindow::donate()
@@ -1121,4 +1105,31 @@ void MainWindow::canClose()
 {
     bCanClose = true;
     close();
+}
+
+void MainWindow::addQWidgetTab(QWidget* qWidget)
+{
+    mTabWidget->addTab(qWidget, qWidget->windowIcon(), qWidget->windowTitle());
+}
+
+void MainWindow::showQWidgetTab(QWidget* qWidget)
+{
+    qWidget->show();
+    qWidget->setFocus();
+    setTab(qWidget);
+}
+
+void MainWindow::closeQWidgetTab(QWidget* qWidget)
+{
+    for(int i = 0; i < mTabWidget->count(); i++)
+        if(mTabWidget->widget(i) == qWidget)
+        {
+            mTabWidget->DeleteTab(i);
+            break;
+        }
+}
+
+void MainWindow::executeOnGuiThread(void* cbGuiThread)
+{
+    ((GUICALLBACK)cbGuiThread)();
 }

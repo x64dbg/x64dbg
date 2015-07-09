@@ -32,6 +32,7 @@
     <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="controlflowanalysis.cpp" />
     <ClCompile Include="dbghelp_safe.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="debugger_commands.cpp" />
@@ -72,12 +73,15 @@
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
     <ClCompile Include="_plugins.cpp" />
+    <ClCompile Include="_scriptapi_assembler.cpp" />
     <ClCompile Include="_scriptapi_debug.cpp" />
     <ClCompile Include="_scriptapi_gui.cpp" />
+    <ClCompile Include="_scriptapi_misc.cpp" />
     <ClCompile Include="_scriptapi_pattern.cpp" />
     <ClCompile Include="_scriptapi_memory.cpp" />
     <ClCompile Include="_scriptapi_module.cpp" />
     <ClCompile Include="_scriptapi_register.cpp" />
+    <ClCompile Include="_scriptapi_stack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
@@ -103,6 +107,7 @@
     <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />
+    <ClInclude Include="controlflowanalysis.h" />
     <ClInclude Include="dbghelp\dbghelp.h" />
     <ClInclude Include="dbghelp_safe.h" />
     <ClInclude Include="debugger.h" />
@@ -187,12 +192,15 @@
     <ClInclude Include="_global.h" />
     <ClInclude Include="_plugins.h" />
     <ClInclude Include="_plugin_types.h" />
+    <ClInclude Include="_scriptapi_assembler.h" />
     <ClInclude Include="_scriptapi_debug.h" />
     <ClInclude Include="_scriptapi_gui.h" />
+    <ClInclude Include="_scriptapi_misc.h" />
     <ClInclude Include="_scriptapi_pattern.h" />
     <ClInclude Include="_scriptapi_memory.h" />
     <ClInclude Include="_scriptapi_module.h" />
     <ClInclude Include="_scriptapi_register.h" />
+    <ClInclude Include="_scriptapi_stack.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6548308-401E-3A8A-5819-905DB90522A6}</ProjectGuid>

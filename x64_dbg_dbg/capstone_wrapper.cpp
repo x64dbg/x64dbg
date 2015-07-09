@@ -86,7 +86,7 @@ String Capstone::OperandText(int opindex)
 
     case X86_OP_IMM:
     {
-        if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL))
+        if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL) || IsLoop())
             sprintf_s(temp, "%"fext"X", op.imm + mInstr->size);
         else
             sprintf_s(temp, "%"fext"X", op.imm);
@@ -163,8 +163,27 @@ const cs_x86 & Capstone::x86()
 
 bool Capstone::IsFilling()
 {
-    uint8_t opcode = x86().opcode[0];
-    return opcode == 0x90 || opcode == 0xCC;
+    switch(GetId())
+    {
+    case X86_INS_NOP:
+    case X86_INS_INT3:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool Capstone::IsLoop()
+{
+    switch(GetId())
+    {
+    case X86_INS_LOOP:
+    case X86_INS_LOOPE:
+    case X86_INS_LOOPNE:
+        return true;
+    default:
+        return false;
+    }
 }
 
 x86_insn Capstone::GetId()
