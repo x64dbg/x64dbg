@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <thread>
 #include "AnalysisPass.h"
-#include "capstone_wrapper.h"
 #include "memory.h"
 
 AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks) : m_MainBlocks(MainBlocks)
@@ -68,6 +67,12 @@ BasicBlock* AnalysisPass::FindBBlockInRange(uint Address)
 
     // Not found
     return nullptr;
+}
+
+uint AnalysisPass::FindBBlockIndex(BasicBlock* Block)
+{
+    // Fast pointer arithmetic to find index
+    return ((uint)Block - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
 }
 
 void AnalysisPass::AcquireReadLock()
