@@ -22,37 +22,55 @@ bool bListAllPages = false;
 void MemUpdateMap(HANDLE hProcess)
 {
     EXCLUSIVE_ACQUIRE(LockMemoryPages);
-    MEMORY_BASIC_INFORMATION mbi;
-    SIZE_T numBytes;
-    uint MyAddress = 0, newAddress = 0;
-    uint curAllocationBase = 0;
 
+    // First gather all possible pages in the memory range
     std::vector<MEMPAGE> pageVector;
-    do
     {
-        memset(&mbi, 0, sizeof(mbi));
-        numBytes = VirtualQueryEx(hProcess, (LPCVOID)MyAddress, &mbi, sizeof(mbi));
-        if(mbi.State == MEM_COMMIT)
+        SIZE_T numBytes = 0;
+        uint pageStart = 0;
+        uint allocationBase = 0;
+
+        do
         {
-            if(bListAllPages || curAllocationBase != (uint)mbi.AllocationBase)  //only list allocation bases
+            // Query memory attributes
+            MEMORY_BASIC_INFORMATION mbi;
+            memset(&mbi, 0, sizeof(mbi));
+
+            numBytes = VirtualQueryEx(hProcess, (LPVOID)pageStart, &mbi, sizeof(mbi));
+
+            // Only allow pages that are committed to memory (exclude reserved/mapped)
+            if(mbi.State == MEM_COMMIT)
             {
-                curAllocationBase = (uint)mbi.AllocationBase;
-                MEMPAGE curPage;
-                *curPage.info = 0;
-                ModNameFromAddr(MyAddress, curPage.info, true);
-                memcpy(&curPage.mbi, &mbi, sizeof(mbi));
-                pageVector.push_back(curPage);
+                // Only list allocation bases, unless if forced to list all
+                if(bListAllPages || allocationBase != (uint)mbi.AllocationBase)
+                {
+                    // Set the new allocation base page
+                    allocationBase = (uint)mbi.AllocationBase;
+
+                    MEMPAGE curPage;
+                    memset(&curPage, 0, sizeof(MEMPAGE));
+                    memcpy(&curPage.mbi, &mbi, sizeof(mbi));
+
+                    ModNameFromAddr(pageStart, curPage.info, true);
+                    pageVector.push_back(curPage);
+                }
+                else
+                {
+                    // Otherwise append the page to the last created entry
+                    pageVector.back().mbi.RegionSize += mbi.RegionSize;
+                }
             }
-            else
-                pageVector.at(pageVector.size() - 1).mbi.RegionSize += mbi.RegionSize;
+
+            // Calculate the next page start
+            uint newAddress = (uint)mbi.BaseAddress + mbi.RegionSize;
+
+            if(newAddress <= pageStart)
+                break;
+
+            pageStart = newAddress;
         }
-        newAddress = (uint)mbi.BaseAddress + mbi.RegionSize;
-        if(newAddress <= MyAddress)
-            numBytes = 0;
-        else
-            MyAddress = newAddress;
+        while(numBytes);
     }
-    while(numBytes);
 
     //process file sections
     int pagecount = (int)pageVector.size();
@@ -121,15 +139,14 @@ void MemUpdateMap(HANDLE hProcess)
         }
     }
 
-    //convert to memoryPages map
-    pagecount = (int)pageVector.size();
+    // Convert the vector to a map
     memoryPages.clear();
-    for(int i = 0; i < pagecount; i++)
+
+    for(auto & page : pageVector)
     {
-        const MEMPAGE & curPage = pageVector.at(i);
-        uint start = (uint)curPage.mbi.BaseAddress;
-        uint size = curPage.mbi.RegionSize;
-        memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), curPage));
+        uint start = (uint)page.mbi.BaseAddress;
+        uint size = (uint)page.mbi.RegionSize;
+        memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), page));
     }
 }
 
