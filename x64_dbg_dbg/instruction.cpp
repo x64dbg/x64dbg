@@ -1198,10 +1198,15 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     int refCount = 0;
     uint i = 0;
     uint result = 0;
+    std::vector<PatternByte> searchpattern;
+    if(!patterntransform(pattern, searchpattern))
+    {
+        dputs("failed to transform pattern!");
+        return STATUS_ERROR;
+    }
     while(refCount < 5000)
     {
-        int patternsize = 0;
-        uint foundoffset = patternfind(data + start + i, find_size - i, pattern, &patternsize);
+        uint foundoffset = patternfind(data + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;
@@ -1212,9 +1217,9 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
         {
-            Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
-            MemRead((void*)result, printData, patternsize, 0);
-            for(int j = 0, k = 0; j < patternsize; j++)
+            Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+            MemRead((void*)result, printData(), printData.size(), 0);
+            for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
                     k += sprintf(msg + k, " ");

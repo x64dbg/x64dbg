@@ -4,26 +4,22 @@
 
 using namespace std;
 
-struct PatternByte
+static inline bool isHex(char ch)
 {
-    struct PatternNibble
-    {
-        unsigned char data;
-        bool wildcard;
-    } nibble[2];
-};
+    return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+}
 
-static string formathexpattern(string patterntext)
+static inline string formathexpattern(const string & patterntext)
 {
     string result;
     int len = (int)patterntext.length();
     for(int i = 0; i < len; i++)
-        if(patterntext[i] == '?' || isxdigit(patterntext[i]))
-            result += toupper(patterntext[i]);
+        if(patterntext[i] == '?' || isHex(patterntext[i]))
+            result += patterntext[i];
     return result;
 }
 
-static int hexchtoint(char ch)
+static inline int hexchtoint(char ch)
 {
     if(ch >= '0' && ch <= '9')
         return ch - '0';
@@ -31,34 +27,34 @@ static int hexchtoint(char ch)
         return ch - 'A' + 10;
     else if(ch >= 'a' && ch <= 'f')
         return ch - 'a' + 10;
-    return 0;
+    return -1;
 }
 
-static bool patterntransform(string patterntext, vector<PatternByte> & pattern)
+bool patterntransform(const string & patterntext, vector<PatternByte> & pattern)
 {
     pattern.clear();
-    patterntext = formathexpattern(patterntext);
-    int len = (int)patterntext.length();
+    string formattext = formathexpattern(patterntext);
+    int len = (int)formattext.length();
     if(!len)
         return false;
 
     if(len % 2) //not a multiple of 2
     {
-        patterntext += '?';
+        formattext += '?';
         len++;
     }
 
     PatternByte newByte;
     for(int i = 0, j = 0; i < len; i++)
     {
-        if(patterntext[i] == '?') //wildcard
+        if(formattext[i] == '?') //wildcard
         {
             newByte.nibble[j].wildcard = true; //match anything
         }
         else //hex
         {
             newByte.nibble[j].wildcard = false;
-            newByte.nibble[j].data = hexchtoint(patterntext[i]) & 0xF;
+            newByte.nibble[j].data = hexchtoint(formattext[i]) & 0xF;
         }
 
         j++;
@@ -71,7 +67,7 @@ static bool patterntransform(string patterntext, vector<PatternByte> & pattern)
     return true;
 }
 
-static bool patternmatchbyte(unsigned char byte, const PatternByte & pbyte)
+static inline bool patternmatchbyte(unsigned char byte, const PatternByte & pbyte)
 {
     int matched = 0;
 
@@ -90,32 +86,16 @@ static bool patternmatchbyte(unsigned char byte, const PatternByte & pbyte)
     return (matched == 2);
 }
 
-size_t patternfind(unsigned char* data, size_t datasize, const char* pattern, int* patternsize)
+size_t patternfind(const unsigned char* data, size_t datasize, const char* pattern, int* patternsize)
 {
+    string patterntext(pattern);
     vector<PatternByte> searchpattern;
-    if(!patterntransform(pattern, searchpattern))
+    if(!patterntransform(patterntext, searchpattern))
         return -1;
-    size_t searchpatternsize = searchpattern.size();
-    if(patternsize)
-        *patternsize = (int)searchpatternsize;
-    for(size_t i = 0, pos = 0; i < datasize; i++) //search for the pattern
-    {
-        if(patternmatchbyte(data[i], searchpattern.at(pos))) //check if our pattern matches the current byte
-        {
-            pos++;
-            if(pos == searchpatternsize) //everything matched
-                return i - searchpatternsize + 1;
-        }
-        else if(pos > 0) //fix by Computer_Angel
-        {
-            i -= pos;
-            pos = 0; //reset current pattern position
-        }
-    }
-    return -1;
+    return patternfind(data, datasize, searchpattern);
 }
 
-size_t patternfind(unsigned char* data, size_t datasize, unsigned char* pattern, size_t patternsize)
+size_t patternfind(const unsigned char* data, size_t datasize, unsigned char* pattern, size_t patternsize)
 {
     if(patternsize > datasize)
         patternsize = datasize;
@@ -136,7 +116,7 @@ size_t patternfind(unsigned char* data, size_t datasize, unsigned char* pattern,
     return -1;
 }
 
-static void patternwritebyte(unsigned char* byte, const PatternByte & pbyte)
+static inline void patternwritebyte(unsigned char* byte, const PatternByte & pbyte)
 {
     unsigned char n1 = (*byte >> 4) & 0xF;
     unsigned char n2 = *byte & 0xF;
@@ -150,7 +130,8 @@ static void patternwritebyte(unsigned char* byte, const PatternByte & pbyte)
 void patternwrite(unsigned char* data, size_t datasize, const char* pattern)
 {
     vector<PatternByte> writepattern;
-    if(!patterntransform(pattern, writepattern))
+    string patterntext(pattern);
+    if(!patterntransform(patterntext, writepattern))
         return;
     size_t writepatternsize = writepattern.size();
     if(writepatternsize > datasize)
@@ -166,4 +147,24 @@ bool patternsnr(unsigned char* data, size_t datasize, const char* searchpattern,
         return false;
     patternwrite(data + found, datasize - found, replacepattern);
     return true;
+}
+
+size_t patternfind(const unsigned char* data, size_t datasize, const std::vector<PatternByte> & pattern)
+{
+    size_t searchpatternsize = pattern.size();
+    for(size_t i = 0, pos = 0; i < datasize; i++)  //search for the pattern
+    {
+        if(patternmatchbyte(data[i], pattern.at(pos)))  //check if our pattern matches the current byte
+        {
+            pos++;
+            if(pos == searchpatternsize)  //everything matched
+                return i - searchpatternsize + 1;
+        }
+        else if(pos > 0)  //fix by Computer_Angel
+        {
+            i -= pos;
+            pos = 0; //reset current pattern position
+        }
+    }
+    return -1;
 }
