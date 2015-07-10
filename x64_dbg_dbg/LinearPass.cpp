@@ -172,7 +172,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
 
         if(padding)
         {
-            // INT3s are treated differently. They are all created as their
+            // PADDING is treated differently. They are all created as their
             // own separate block for more analysis later.
             uint realBlockEnd = blockEnd - disasm.Size();
 

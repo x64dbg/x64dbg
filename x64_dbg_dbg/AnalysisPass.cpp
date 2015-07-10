@@ -7,9 +7,6 @@ AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
 {
     assert(VirtualEnd > VirtualStart);
 
-    // Shared lock init
-    InitializeSRWLock(&m_InternalLock);
-
     // Internal class data
     m_VirtualStart = VirtualStart;
     m_VirtualEnd = VirtualEnd;
@@ -73,26 +70,6 @@ uint AnalysisPass::FindBBlockIndex(BasicBlock* Block)
 {
     // Fast pointer arithmetic to find index
     return ((uint)Block - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
-}
-
-void AnalysisPass::AcquireReadLock()
-{
-    AcquireSRWLockShared(&m_InternalLock);
-}
-
-void AnalysisPass::ReleaseReadLock()
-{
-    ReleaseSRWLockShared(&m_InternalLock);
-}
-
-void AnalysisPass::AcquireExclusiveLock()
-{
-    AcquireSRWLockExclusive(&m_InternalLock);
-}
-
-void AnalysisPass::ReleaseExclusiveLock()
-{
-    ReleaseSRWLockExclusive(&m_InternalLock);
 }
 
 uint AnalysisPass::IdealThreadCount()

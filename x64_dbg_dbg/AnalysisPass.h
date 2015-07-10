@@ -1,6 +1,5 @@
 #pragma once
 
-#include <assert.h>
 #include "_global.h"
 #include "BasicBlock.h"
 
@@ -34,14 +33,9 @@ protected:
 
     BasicBlock* FindBBlockInRange(uint Address);
     uint FindBBlockIndex(BasicBlock* Block);
-    void AcquireReadLock();
-    void ReleaseReadLock();
-    void AcquireExclusiveLock();
-    void ReleaseExclusiveLock();
     uint IdealThreadCount();
     void SetIdealThreadCount(uint Count);
 
 private:
-    SRWLOCK m_InternalLock;
     BYTE m_InternalMaxThreads;
 };
