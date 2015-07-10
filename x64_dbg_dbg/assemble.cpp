@@ -6,11 +6,9 @@
 
 #include "assemble.h"
 #include "memory.h"
-#include "debugger.h"
 #include "XEDParse\XEDParse.h"
 #include "value.h"
 #include "disasm_helper.h"
-#include "console.h"
 
 static bool cbUnknown(const char* text, ULONGLONG* value)
 {

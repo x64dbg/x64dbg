@@ -1,6 +1,5 @@
 #include "console.h"
 #include "capstone_wrapper.h"
-#include "TitanEngine\TitanEngine.h"
 
 csh Capstone::mHandle = 0;
 

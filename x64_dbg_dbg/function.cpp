@@ -1,6 +1,5 @@
 #include "function.h"
 #include "module.h"
-#include "debugger.h"
 #include "memory.h"
 #include "threading.h"
 

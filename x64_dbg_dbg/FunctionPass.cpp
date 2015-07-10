@@ -97,14 +97,14 @@ bool FunctionPass::Analyse()
     // Sort and remove duplicates
     std::sort(funcs.begin(), funcs.end());
     funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
-    /*
+
     FunctionClear();
     for(auto & func : funcs)
     {
         FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true);
     }
     GuiUpdateAllViews();
-    */
+
     delete[] threadFunctions;
     return true;
 }
@@ -248,7 +248,7 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
                 if(block->Target != 0)
                 {
                     // Here's a problem: Compilers add tail-call elimination with a jump.
-                    // Solve this by creating a maximum jump limit: +/- 128 bytes from the end.
+                    // Solve this by creating a maximum jump limit: +/- 512 bytes from the end.
                     if(abs((__int64)(block->VirtualEnd - block->Target)) <= 512)
                         maximumAddr = max(maximumAddr, block->Target);
                 }
@@ -291,7 +291,7 @@ __endfunc:
                     }
                 }
 
-                // 4. Just continue
+                // 4. Continue
             }
         }
 

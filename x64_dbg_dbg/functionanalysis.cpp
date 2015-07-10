@@ -7,6 +7,7 @@
 #include "BasicBlock.h"
 #include "FunctionPass.h"
 #include "LinearPass.h"
+#include "module.h"
 
 FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
 {
@@ -17,11 +18,14 @@ void FunctionAnalysis::Analyse()
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
+    uint start = ModBaseFromAddr(_base);
+    uint end = start + ModSizeFromAddr(_base);
+
     BBlockArray blocks;
-    LinearPass* pass1 = new LinearPass(_base, _base + _size, blocks);
+    LinearPass* pass1 = new LinearPass(start, end, blocks);
     pass1->Analyse();
 
-    FunctionPass* pass2 = new FunctionPass(_base, _base + _size, blocks);
+    FunctionPass* pass2 = new FunctionPass(start, end, blocks);
     pass2->Analyse();
     /*
     PopulateReferences();

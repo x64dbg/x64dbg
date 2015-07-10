@@ -243,9 +243,6 @@
     <ClCompile Include="_scriptapi_gui.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
-    <ClCompile Include="BasicBlock.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="AnalysisPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
@@ -263,6 +260,18 @@
     </ClCompile>
     <ClCompile Include="Int3CoagulatorPass.cpp">
       <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="controlflowanalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_misc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_stack.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -604,6 +613,18 @@
     </ClInclude>
     <ClInclude Include="Int3CoagulatorPass.h">
       <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="controlflowanalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_assembler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_stack.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

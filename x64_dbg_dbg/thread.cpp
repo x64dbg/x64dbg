@@ -5,8 +5,6 @@
  */
 
 #include "thread.h"
-#include "console.h"
-#include "undocumented.h"
 #include "memory.h"
 #include "threading.h"
 

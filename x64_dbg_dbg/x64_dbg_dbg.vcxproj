@@ -23,7 +23,6 @@
     <ClCompile Include="Analysis.cpp" />
     <ClCompile Include="AnalysisPass.cpp" />
     <ClCompile Include="assemble.cpp" />
-    <ClCompile Include="BasicBlock.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="capstone_wrapper.cpp" />

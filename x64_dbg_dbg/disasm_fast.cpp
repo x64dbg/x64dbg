@@ -5,7 +5,6 @@
  */
 
 #include "disasm_fast.h"
-#include "debugger.h"
 #include "memory.h"
 
 static MEMORY_SIZE argsize2memsize(int argsize)

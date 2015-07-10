@@ -5,13 +5,10 @@
  */
 
 #include "simplescript.h"
-#include "value.h"
 #include "console.h"
 #include "variable.h"
-#include "threading.h"
 #include "x64_dbg.h"
 #include "debugger.h"
-#include "commandparser.h"
 
 static std::vector<LINEMAPENTRY> linemap;
 

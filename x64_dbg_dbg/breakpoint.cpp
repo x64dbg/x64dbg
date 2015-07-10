@@ -5,9 +5,6 @@
  */
 
 #include "breakpoint.h"
-#include "debugger.h"
-#include "addrinfo.h"
-#include "console.h"
 #include "memory.h"
 #include "threading.h"
 #include "module.h"

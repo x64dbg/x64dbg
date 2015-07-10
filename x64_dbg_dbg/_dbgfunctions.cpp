@@ -8,7 +8,6 @@
 #include "_dbgfunctions.h"
 #include "assemble.h"
 #include "debugger.h"
-#include "addrinfo.h"
 #include "patches.h"
 #include "memory.h"
 #include "disasm_fast.h"

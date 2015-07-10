@@ -7,8 +7,6 @@
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
-#include "memory.h"
-#include "x64_dbg.h"
 
 /**
 \brief List of plugins.

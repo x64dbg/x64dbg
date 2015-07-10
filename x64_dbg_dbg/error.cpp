@@ -1,5 +1,5 @@
-#include "error.h"
 #include <unordered_map>
+#include "error.h"
 
 std::unordered_map<unsigned int, const char*> ErrorNames;
 
