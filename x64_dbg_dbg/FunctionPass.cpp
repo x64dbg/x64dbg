@@ -1,5 +1,4 @@
 #include "FunctionPass.h"
-#include "capstone_wrapper.h"
 #include <ppl.h>
 #include "memory.h"
 #include "console.h"
@@ -113,7 +112,7 @@ bool FunctionPass::Analyse()
 void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
     // Step 1: Use any defined functions in the PE function table
-    FindFunctionWorkerPrepass(Start, End, Blocks);
+    //FindFunctionWorkerPrepass(Start, End, Blocks);
 
     // Step 2: for each block that contains a CALL flag,
     // add it to a local function start array
@@ -147,7 +146,7 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
 
             FunctionDef def;
             def.VirtualStart = destination;
-            def.VirtualEnd = destination;
+            def.VirtualEnd = 0;
             def.BBlockStart = 0;
             def.BBlockEnd = 0;
             Blocks->push_back(def);
@@ -204,13 +203,9 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
         if(!startBlock || !endBlock)
             return false;
 
-        // Debug
-        //assert(startBlock->VirtualStart == Function->VirtualStart);
-        //assert(endBlock->VirtualEnd == Function->VirtualEnd);
-
-        // Calculate indexes from pointer arithmetic
-        Function->BBlockStart = ((uint)startBlock - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
-        Function->BBlockEnd = ((uint)endBlock - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
+        // Find block start/end indices
+        Function->BBlockStart = FindBBlockIndex(startBlock);
+        Function->BBlockEnd = FindBBlockIndex(endBlock);
 
         // Set the flag for blocks that have been scanned
         for(uint i = Function->BBlockStart; i < Function->BBlockEnd; i++)
@@ -218,6 +213,81 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
 
         return true;
     };
+
+    // Find the end manually
+    auto ResolveFunctionEnd = [this](FunctionDef * Function, BasicBlock * LastBlock)
+    {
+        assert(Function->VirtualStart != 0);
+        Function->VirtualStart = 0x00007FF83B4315D0;
+        // Find the first basic block of the function
+        BasicBlock* block = FindBBlockInRange(Function->VirtualStart);
+
+        if(!block)
+        {
+            assert(false);
+            return false;
+        }
+
+        // The maximum address is determined by any jump that extends past
+        // a RET or other terminating basic block. A function may have multiple
+        // return statements.
+        uint maximumAddr = 0;
+
+        // Loop forever until the end is found
+        for(; (uint)block <= (uint)LastBlock; block++)
+        {
+            // Calculate max from just linear instructions
+            maximumAddr = max(maximumAddr, block->VirtualEnd);
+
+            // Each block has the potential to increase the
+            // maximum function end address.
+            if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
+            {
+                // Here's a problem: Compilers add tail-call elimination with a jump.
+                // Solve this by creating a maximum jump limit: +/- 128 bytes from the end.
+                if(abs((__int64)(block->VirtualEnd - block->Target)) <= 128)
+                    maximumAddr = max(maximumAddr, block->Target);
+            }
+
+            // Does this node contain the maximum address?
+            if(block->VirtualStart > maximumAddr)
+                __debugbreak();
+
+            if(maximumAddr >= block->VirtualStart && maximumAddr <= block->VirtualEnd)
+            {
+                // It does! But does it end with a return statement?
+                if(block->GetFlag(BASIC_BLOCK_FLAG_RET))
+                {
+__test:
+                    Function->VirtualEnd = block->VirtualEnd;
+                    Function->BBlockEnd = FindBBlockIndex(block);
+                    break;
+                }
+                else
+                {
+                    // It doesn't end with a return. There's 2 possibilities:
+                    // tail-call elimination or an optimized loop.
+                    if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
+                    {
+                        dprintf("Test: 0x%p\n", block->VirtualEnd);
+                    }
+
+                    goto __test;
+                }
+            }
+        }
+
+        dprintf("test - 0x%p 0x%p\n", Function->VirtualStart, Function->VirtualEnd);
+
+        // Set the flag for blocks that have been scanned
+        for(uint i = Function->BBlockStart; i < Function->BBlockEnd; i++)
+            m_MainBlocks[i].SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+        return true;
+    };
+
+    // Cached final block
+    BasicBlock* finalBlock = &m_MainBlocks.back();
 
     // Enumerate all function entries for this thread
     for(auto & block : *Blocks)
@@ -230,8 +300,8 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
                 continue;
         }
 
-        // else
-        // ...
+        // Now the function end must be determined by heuristics
+        ResolveFunctionEnd(&block, finalBlock);
     }
 }
 
