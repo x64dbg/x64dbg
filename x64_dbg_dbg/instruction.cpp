@@ -1679,19 +1679,34 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint addr = 0;
-    if(argc < 3 || !valfromstring(argv[2], &addr))
-    {
-        SELECTIONDATA sel;
-        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-        addr = sel.start;
-    }
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    addr = sel.start;
+
+    uint base = 0;
     uint size = 0;
-    if(argc >= 4)
-        if(!valfromstring(argv[3], &size))
-            size = 0;
-    if(!size)
-        addr = MemFindBaseAddr(addr, &size);
-    uint base = addr;
+    uint mod = ModBaseFromName(argv[2]);
+    if(mod)
+    {
+        base = mod;
+        size = ModSizeFromAddr(base);
+    }
+    else
+    {
+        if(!valfromstring(argv[2], &addr))
+        {
+            dprintf("invalid value \"%s\"!\n", argv[2]);
+            return STATUS_ERROR;
+        }
+
+        size = 0;
+        if(argc >= 4)
+            if(!valfromstring(argv[3], &size))
+                size = 0;
+        if(!size)
+            addr = MemFindBaseAddr(addr, &size);
+        base = addr;
+    }
     Memory<uint8_t*> data(size);
     if(!MemRead((void*)base, data(), size, 0))
     {
