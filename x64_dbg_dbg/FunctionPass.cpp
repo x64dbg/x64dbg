@@ -82,7 +82,7 @@ bool FunctionPass::Analyse()
 
         // Memory allocation optimization
         // TODO: Option to conserve memory
-        threadFunctions[i].reserve(10000);
+        threadFunctions[i].reserve(30000);
 
         // Execute
         AnalysisWorker(threadWorkStart, threadWorkStop, &threadFunctions[i]);
@@ -97,14 +97,14 @@ bool FunctionPass::Analyse()
     // Sort and remove duplicates
     std::sort(funcs.begin(), funcs.end());
     funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
-
+    /*
     FunctionClear();
     for(auto & func : funcs)
     {
         FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true);
     }
     GuiUpdateAllViews();
-
+    */
     delete[] threadFunctions;
     return true;
 }
@@ -112,7 +112,7 @@ bool FunctionPass::Analyse()
 void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
     // Step 1: Use any defined functions in the PE function table
-    //FindFunctionWorkerPrepass(Start, End, Blocks);
+    FindFunctionWorkerPrepass(Start, End, Blocks);
 
     // Step 2: for each block that contains a CALL flag,
     // add it to a local function start array
@@ -218,7 +218,7 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
     auto ResolveFunctionEnd = [this](FunctionDef * Function, BasicBlock * LastBlock)
     {
         assert(Function->VirtualStart != 0);
-        Function->VirtualStart = 0x00007FF83B4315D0;
+
         // Find the first basic block of the function
         BasicBlock* block = FindBBlockInRange(Function->VirtualStart);
 
@@ -236,52 +236,64 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
         // Loop forever until the end is found
         for(; (uint)block <= (uint)LastBlock; block++)
         {
-            // Calculate max from just linear instructions
-            maximumAddr = max(maximumAddr, block->VirtualEnd);
+            // Block is now in use
+            block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
 
-            // Each block has the potential to increase the
-            // maximum function end address.
+            // Calculate max from just linear instructions
+            maximumAddr = max(maximumAddr, block->VirtualEnd - 1);
+
+            // Find maximum jump target
             if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
             {
-                // Here's a problem: Compilers add tail-call elimination with a jump.
-                // Solve this by creating a maximum jump limit: +/- 128 bytes from the end.
-                if(abs((__int64)(block->VirtualEnd - block->Target)) <= 128)
-                    maximumAddr = max(maximumAddr, block->Target);
+                if(block->Target != 0)
+                {
+                    // Here's a problem: Compilers add tail-call elimination with a jump.
+                    // Solve this by creating a maximum jump limit: +/- 128 bytes from the end.
+                    if(abs((__int64)(block->VirtualEnd - block->Target)) <= 512)
+                        maximumAddr = max(maximumAddr, block->Target);
+                }
             }
 
-            // Does this node contain the maximum address?
-            if(block->VirtualStart > maximumAddr)
-                __debugbreak();
+            // Sanity check
+            assert(maximumAddr >= block->VirtualStart);
 
-            if(maximumAddr >= block->VirtualStart && maximumAddr <= block->VirtualEnd)
+            // Does this node contain the maximum address?
+            if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)
             {
-                // It does! But does it end with a return statement?
+                // It does! There's 4 possibilities next:
+                //
+                // 1. Return
+                // 2. Tail-call elimination
+                // 3. Optimized loop
+                // 4. Function continues to next block
+                //
+                // 1.
                 if(block->GetFlag(BASIC_BLOCK_FLAG_RET))
                 {
-__test:
+__endfunc:
                     Function->VirtualEnd = block->VirtualEnd;
                     Function->BBlockEnd = FindBBlockIndex(block);
                     break;
                 }
-                else
-                {
-                    // It doesn't end with a return. There's 2 possibilities:
-                    // tail-call elimination or an optimized loop.
-                    if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
-                    {
-                        dprintf("Test: 0x%p\n", block->VirtualEnd);
-                    }
 
-                    goto __test;
+                if(block->Target != 0)
+                {
+                    // NOTE: Both must be an absolute jump
+                    if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
+                    {
+                        // 2.
+                        if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
+                            goto __endfunc;
+
+                        // 3.
+                        if(block->Target >= Function->VirtualStart && block->Target < block->VirtualEnd)
+                            goto __endfunc;
+                    }
                 }
+
+                // 4. Just continue
             }
         }
-
-        dprintf("test - 0x%p 0x%p\n", Function->VirtualStart, Function->VirtualEnd);
-
-        // Set the flag for blocks that have been scanned
-        for(uint i = Function->BBlockStart; i < Function->BBlockEnd; i++)
-            m_MainBlocks[i].SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
 
         return true;
     };
