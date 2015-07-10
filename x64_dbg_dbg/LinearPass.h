@@ -2,7 +2,6 @@
 
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
-#include "capstone_wrapper.h"
 
 class LinearPass : public AnalysisPass
 {

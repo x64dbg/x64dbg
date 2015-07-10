@@ -1,9 +1,8 @@
-#include "AnalysisPass.h"
-#include "LinearPass.h"
 #include <thread>
 #include <ppl.h>
-#include "console.h"
-#include "function.h"
+#include "AnalysisPass.h"
+#include "LinearPass.h"
+#include "capstone_wrapper.h"
 
 LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)

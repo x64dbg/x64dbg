@@ -1,3 +1,4 @@
+#include <thread>
 #include "AnalysisPass.h"
 #include "Int3CoagulatorPass.h"
 #include "console.h"

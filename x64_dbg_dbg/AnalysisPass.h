@@ -33,6 +33,7 @@ protected:
     }
 
     BasicBlock* FindBBlockInRange(uint Address);
+    uint FindBBlockIndex(BasicBlock* Block);
     void AcquireReadLock();
     void ReleaseReadLock();
     void AcquireExclusiveLock();

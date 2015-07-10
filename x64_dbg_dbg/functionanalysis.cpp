@@ -3,6 +3,11 @@
 #include "memory.h"
 #include "function.h"
 
+#include "AnalysisPass.h"
+#include "BasicBlock.h"
+#include "FunctionPass.h"
+#include "LinearPass.h"
+
 FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
 {
 }
@@ -12,10 +17,17 @@ void FunctionAnalysis::Analyse()
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
+    BBlockArray blocks;
+    LinearPass* pass1 = new LinearPass(_base, _base + _size, blocks);
+    pass1->Analyse();
+
+    FunctionPass* pass2 = new FunctionPass(_base, _base + _size, blocks);
+    pass2->Analyse();
+    /*
     PopulateReferences();
     dprintf("%u called functions populated\n", _functions.size());
     AnalyseFunctions();
-
+    */
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 

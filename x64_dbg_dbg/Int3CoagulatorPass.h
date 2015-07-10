@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <thread>
-
 #include "AnalysisPass.h"
 #include "BasicBlock.h"
 
@@ -16,5 +13,5 @@ public:
     virtual bool Analyse() override;
 
 private:
-    void AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks);
+    void AnalysisWorker(uint Start, uint End, BBlockArray* Blocks);
 };
