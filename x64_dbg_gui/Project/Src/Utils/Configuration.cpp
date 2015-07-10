@@ -162,6 +162,10 @@ Configuration::Configuration() : QObject()
     disassemblyBool.insert("TabbedMnemonic", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
+    QMap<QString, bool> engineBool;
+    engineBool.insert("ListAllPages", false);
+    defaultBools.insert("Engine", engineBool);
+
     //uint settings
     QMap<QString, uint_t> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
@@ -372,7 +376,7 @@ void Configuration::readUints()
 {
     Uints = defaultUints;
     //read config
-    for(int i = 0; i < Bools.size(); i++)
+    for(int i = 0; i < Uints.size(); i++)
     {
         QString category = Uints.keys().at(i);
         QMap<QString, uint_t>* currentUint = &Uints[category];
@@ -387,7 +391,7 @@ void Configuration::readUints()
 void Configuration::writeUints()
 {
     //write config
-    for(int i = 0; i < Bools.size(); i++)
+    for(int i = 0; i < Uints.size(); i++)
     {
         QString category = Uints.keys().at(i);
         QMap<QString, uint_t>* currentUint = &Uints[category];
