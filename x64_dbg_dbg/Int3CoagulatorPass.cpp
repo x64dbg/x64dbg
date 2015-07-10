@@ -39,7 +39,7 @@ void Int3CoagulatorPass::AnalysisWorker(uint Start, uint End, std::vector<BasicB
 
     for(auto itr = Blocks->begin(); counterIndex < End; itr++, counterIndex++)
     {
-        if(!itr->GetFlag(BASIC_BLOCK_FLAG_INT3))
+        if(!itr->GetFlag(BASIC_BLOCK_FLAG_PAD))
         {
             // Synchronize the vector if more than 1 instruction
             // is present. (Combine)
@@ -52,7 +52,7 @@ void Int3CoagulatorPass::AnalysisWorker(uint Start, uint End, std::vector<BasicB
                 BasicBlock block;
                 block.VirtualStart = intSeriesStart;
                 block.VirtualEnd = intSeriesStart + intSeriesSize;
-                block.SetFlag(BASIC_BLOCK_FLAG_INT3);
+                block.SetFlag(BASIC_BLOCK_FLAG_PAD);
 
                 itr = Blocks->insert(itr, block);
 

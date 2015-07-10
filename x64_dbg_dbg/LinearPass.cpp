@@ -148,7 +148,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
 
     uint blockBegin = Start;        // BBlock starting virtual address
     uint blockEnd = End;            // BBlock ending virtual address
-    bool blockPrevInt = false;      // Indicator if the last instruction was INT
+    bool blockPrevPad = false;      // Indicator if the last instruction was padding
     BasicBlock* lastBlock = nullptr;// Avoid an expensive call to std::vector::back()
 
     for(uint i = Start; i < End;)
@@ -168,9 +168,9 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
         bool call = disasm.InGroup(CS_GRP_CALL);    // CALL
         bool jmp = disasm.InGroup(CS_GRP_JUMP);     // JUMP
         bool ret = disasm.InGroup(CS_GRP_RET);      // RETURN
-        bool intr = disasm.InGroup(CS_GRP_INT);     // INTERRUPT
+        bool padding = disasm.IsFilling();          // INSTRUCTION PADDING
 
-        if(intr)
+        if(padding)
         {
             // INT3s are treated differently. They are all created as their
             // own separate block for more analysis later.
@@ -181,16 +181,16 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                 // The next line terminates the BBlock before the INT instruction.
                 // Early termination, faked as an indirect JMP. Rare case.
                 lastBlock = CreateBlockWorker(Blocks, blockBegin, realBlockEnd, false, false, false, false);
-                lastBlock->SetFlag(BASIC_BLOCK_FLAG_PREINT3);
+                lastBlock->SetFlag(BASIC_BLOCK_FLAG_PREPAD);
 
                 blockBegin = realBlockEnd;
             }
         }
 
-        if(call || jmp || ret || intr)
+        if(call || jmp || ret || padding)
         {
-            // Was this an INT3?
-            if(intr && blockPrevInt)
+            // Was this a padding instruction?
+            if(padding && blockPrevPad)
             {
                 // Append it to the previous block
                 lastBlock->VirtualEnd = blockEnd;
@@ -198,7 +198,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
             else
             {
                 // Otherwise use the default route: create a new entry
-                auto block = lastBlock = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, intr);
+                auto block = lastBlock = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, padding);
 
                 // Figure out the operand type
                 auto operand = disasm.x86().operands[0];
@@ -226,7 +226,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
 
             // Reset the loop variables
             blockBegin = i;
-            blockPrevInt = intr;
+            blockPrevPad = padding;
         }
     }
 }
@@ -298,7 +298,7 @@ void LinearPass::AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insert
     }
 }
 
-BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Intr)
+BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Pad)
 {
     BasicBlock block;
     block.VirtualStart = Start;
@@ -315,8 +315,8 @@ BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint 
         block.SetFlag(BASIC_BLOCK_FLAG_RET);
 
     // Check for interrupts
-    if(Intr)
-        block.SetFlag(BASIC_BLOCK_FLAG_INT3);
+    if(Pad)
+        block.SetFlag(BASIC_BLOCK_FLAG_PAD);
 
     Blocks->push_back(block);
     return &Blocks->back();

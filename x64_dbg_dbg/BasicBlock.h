@@ -11,8 +11,8 @@ enum BasicBlockFlags : uint
     BASIC_BLOCK_FLAG_RET = (1 << 4),        // The block ends with a retn
     BASIC_BLOCK_FLAG_INDIRECT = (1 << 5),   // This block ends with an indirect branch
     BASIC_BLOCK_FLAG_INDIRPTR = (1 << 6),   // This block ends with an indirect branch; pointer known
-    BASIC_BLOCK_FLAG_PREINT3 = (1 << 7),    // Block ends because there was an INT3 afterwards
-    BASIC_BLOCK_FLAG_INT3 = (1 << 8),       // Block is only a series of INT3
+    BASIC_BLOCK_FLAG_PREPAD = (1 << 7),     // Block ends because there was padding afterwards
+    BASIC_BLOCK_FLAG_PAD = (1 << 8),        // Block is only a series of padding instructions
     BASIC_BLOCK_FLAG_CUTOFF = (1 << 9),     // Ends prematurely because of another JMP to location
     BASIC_BLOCK_FLAG_DELETE = (1 << 10),    // Delete element at the next possible time
 };
