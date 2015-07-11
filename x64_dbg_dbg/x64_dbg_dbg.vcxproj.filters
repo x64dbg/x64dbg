@@ -246,9 +246,6 @@
     <ClCompile Include="AnalysisPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="Analysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="LinearPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
@@ -272,6 +269,9 @@
     </ClCompile>
     <ClCompile Include="_scriptapi_stack.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -599,9 +599,6 @@
     <ClInclude Include="AnalysisPass.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="Analysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="LinearPass.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
@@ -625,6 +622,9 @@
     </ClInclude>
     <ClInclude Include="_scriptapi_stack.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="analysis.h">
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
