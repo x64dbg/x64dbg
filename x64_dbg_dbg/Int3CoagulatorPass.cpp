@@ -31,7 +31,7 @@ bool Int3CoagulatorPass::Analyse()
 
 void Int3CoagulatorPass::AnalysisWorker(uint Start, uint End, std::vector<BasicBlock>* Blocks)
 {
-    int counterIndex = 0;       // Loop counter
+    uint counterIndex = 0;      // Loop counter
 
     uint intSeriesStart = 0;    // Block starting address
     uint intSeriesCount = 0;    // Number of blocks

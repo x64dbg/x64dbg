@@ -206,7 +206,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                 if(operand.type == X86_OP_IMM)
                 {
                     // Branch target immediate
-                    block->Target = operand.imm;
+                    block->Target = (uint)operand.imm;
 
                     // Check if absolute jump
                     if(disasm.GetId() == X86_INS_JMP)
@@ -223,7 +223,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                             operand.mem.scale == 1)
                     {
                         block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
-                        block->Target = operand.mem.disp;
+                        block->Target = (uint)operand.mem.disp;
                     }
                 }
             }
