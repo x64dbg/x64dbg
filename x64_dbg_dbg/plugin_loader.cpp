@@ -7,8 +7,7 @@
 #include "plugin_loader.h"
 #include "console.h"
 #include "debugger.h"
-#include "memory.h"
-#include "x64_dbg.h"
+#include "threading.h"
 
 /**
 \brief List of plugins.
@@ -80,6 +79,7 @@ void pluginload(const char* pluginDir)
         }
         pluginData.plugstop = (PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
         pluginData.plugsetup = (PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
+
         //auto-register callbacks for certain export names
         CBPLUGIN cbPlugin;
         cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBALLEVENTS");
@@ -170,8 +170,8 @@ void pluginload(const char* pluginDir)
         cbPlugin = (CBPLUGIN)GetProcAddress(pluginData.hPlugin, "CBWINEVENTGLOBAL");
         if(cbPlugin)
             pluginregistercallback(curPluginHandle, CB_WINEVENTGLOBAL, cbPlugin);
+
         //init plugin
-        //TODO: handle exceptions
         if(!pluginData.pluginit(&pluginData.initStruct))
         {
             dprintf("[PLUGIN] pluginit failed for plugin: %s\n", foundData.cFileName);
@@ -186,6 +186,9 @@ void pluginload(const char* pluginDir)
         }
         else
             dprintf("[PLUGIN] %s v%d Loaded!\n", pluginData.initStruct.pluginName, pluginData.initStruct.pluginVersion);
+
+        SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
+
         //add plugin menu
         int hNewMenu = GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
@@ -202,6 +205,7 @@ void pluginload(const char* pluginDir)
             pluginMenuList.push_back(newMenu);
             pluginData.hMenu = newMenu.hEntryMenu;
         }
+
         //add disasm plugin menu
         hNewMenu = GuiMenuAdd(GUI_DISASM_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
@@ -218,6 +222,7 @@ void pluginload(const char* pluginDir)
             pluginMenuList.push_back(newMenu);
             pluginData.hMenuDisasm = newMenu.hEntryMenu;
         }
+
         //add dump plugin menu
         hNewMenu = GuiMenuAdd(GUI_DUMP_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
@@ -234,6 +239,7 @@ void pluginload(const char* pluginDir)
             pluginMenuList.push_back(newMenu);
             pluginData.hMenuDump = newMenu.hEntryMenu;
         }
+
         //add stack plugin menu
         hNewMenu = GuiMenuAdd(GUI_STACK_MENU, pluginData.initStruct.pluginName);
         if(hNewMenu == -1)
@@ -250,7 +256,13 @@ void pluginload(const char* pluginDir)
             pluginMenuList.push_back(newMenu);
             pluginData.hMenuStack = newMenu.hEntryMenu;
         }
+        menuLock.Unlock();
+
+        //add the plugin to the list
+        SectionLocker<LockPluginList, false> pluginLock; //exclusive lock
         pluginList.push_back(pluginData);
+        pluginLock.Unlock();
+
         //setup plugin
         if(pluginData.plugsetup)
         {
@@ -274,14 +286,20 @@ void pluginload(const char* pluginDir)
 */
 static void plugincmdunregisterall(int pluginHandle)
 {
-    int listsize = (int)pluginCommandList.size();
-    for(int i = listsize - 1; i >= 0; i--)
+    EXCLUSIVE_ACQUIRE(LockPluginCommandList);
+    auto i = pluginCommandList.begin();
+    while(i != pluginCommandList.end())
     {
-        if(pluginCommandList.at(i).pluginHandle == pluginHandle)
+        auto currentCommand = *i;
+        if(currentCommand.pluginHandle == pluginHandle)
         {
-            dbgcmddel(pluginCommandList.at(i).command);
-            pluginCommandList.erase(pluginCommandList.begin() + i);
+            i = pluginCommandList.erase(i);
+            EXCLUSIVE_RELEASE();
+            dbgcmddel(currentCommand.command);
+            EXCLUSIVE_REACQUIRE();
         }
+        else
+            ++i;
     }
 }
 
@@ -290,19 +308,28 @@ static void plugincmdunregisterall(int pluginHandle)
 */
 void pluginunload()
 {
-    int pluginCount = (int)pluginList.size();
-    for(int i = pluginCount - 1; i > -1; i--)
     {
-        const auto & currentPlugin = pluginList.at(i);
-        PLUGSTOP stop = currentPlugin.plugstop;
-        if(stop)
-            stop();
-        plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
-        FreeLibrary(currentPlugin.hPlugin);
-        pluginList.erase(pluginList.begin() + i);
+        EXCLUSIVE_ACQUIRE(LockPluginList);
+        int pluginCount = (int)pluginList.size();
+        for(int i = pluginCount - 1; i > -1; i--)
+        {
+            const auto & currentPlugin = pluginList.at(i);
+            PLUGSTOP stop = currentPlugin.plugstop;
+            if(stop)
+                stop();
+            plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
+            FreeLibrary(currentPlugin.hPlugin);
+            pluginList.erase(pluginList.begin() + i);
+        }
     }
-    pluginCallbackList.clear(); //remove all callbacks
-    pluginMenuList.clear(); //clear menu list
+    {
+        EXCLUSIVE_ACQUIRE(LockPluginCallbackList);
+        pluginCallbackList.clear(); //remove all callbacks
+    }
+    {
+        EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+        pluginMenuList.clear(); //clear menu list
+    }
     GuiMenuClear(GUI_PLUGIN_MENU); //clear the plugin menu
 }
 
@@ -319,6 +346,7 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
     cbStruct.pluginHandle = pluginHandle;
     cbStruct.cbType = cbType;
     cbStruct.cbPlugin = cbPlugin;
+    EXCLUSIVE_ACQUIRE(LockPluginCallbackList);
     pluginCallbackList.push_back(cbStruct);
 }
 
@@ -329,6 +357,7 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 */
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 {
+    EXCLUSIVE_ACQUIRE(LockPluginCallbackList);
     int pluginCallbackCount = (int)pluginCallbackList.size();
     for(int i = 0; i < pluginCallbackCount; i++)
     {
@@ -348,14 +377,21 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 */
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
-    int pluginCallbackCount = (int)pluginCallbackList.size();
-    for(int i = 0; i < pluginCallbackCount; i++)
+    SHARED_ACQUIRE(LockPluginCallbackList);
+    auto i = pluginCallbackList.begin();
+    while(i != pluginCallbackList.end())
     {
-        if(pluginCallbackList.at(i).cbType == cbType)
+        auto currentCallback = *i;
+        ++i;
+        if(currentCallback.cbType == cbType)
         {
-            CBPLUGIN cbPlugin = pluginCallbackList.at(i).cbPlugin;
+            CBPLUGIN cbPlugin = currentCallback.cbPlugin;
             if(!IsBadReadPtr((const void*)cbPlugin, sizeof(uint)))
+            {
+                SHARED_RELEASE();
                 cbPlugin(cbType, callbackInfo);
+                SHARED_REACQUIRE();
+            }
         }
     }
 }
@@ -377,7 +413,9 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
     strcpy_s(plugCmd.command, command);
     if(!dbgcmdnew(command, (CBCOMMAND)cbCommand, debugonly))
         return false;
+    EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     pluginCommandList.push_back(plugCmd);
+    EXCLUSIVE_RELEASE();
     dprintf("[PLUGIN] command \"%s\" registered!\n", command);
     return true;
 }
@@ -392,14 +430,16 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 {
     if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
+    EXCLUSIVE_ACQUIRE(LockPluginCommandList);
     int listsize = (int)pluginCommandList.size();
     for(int i = 0; i < listsize; i++)
     {
         if(pluginCommandList.at(i).pluginHandle == pluginHandle && !strcmp(pluginCommandList.at(i).command, command))
         {
+            pluginCommandList.erase(pluginCommandList.begin() + i);
+            EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
                 return false;
-            pluginCommandList.erase(pluginCommandList.begin() + i);
             dprintf("[PLUGIN] command \"%s\" unregistered!\n", command);
             return true;
         }
@@ -417,6 +457,7 @@ int pluginmenuadd(int hMenu, const char* title)
 {
     if(!title || !strlen(title))
         return -1;
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
     int nFound = -1;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
@@ -448,6 +489,7 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
     if(!title || !strlen(title) || hEntry == -1)
         return false;
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
     int pluginHandle = -1;
     //find plugin handle
     for(const auto & currentMenu : pluginMenuList)
@@ -461,8 +503,8 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
     if(pluginHandle == -1) //not found
         return false;
     //search if hEntry was previously used
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
-        if(pluginMenuList.at(i).pluginHandle == pluginHandle && pluginMenuList.at(i).hEntryPlugin == hEntry)
+    for(const auto & currentMenu : pluginMenuList)
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
             return false;
     int hNewEntry = GuiMenuAddEntry(hMenu, title);
     if(hNewEntry == -1)
@@ -482,19 +524,16 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 */
 bool pluginmenuaddseparator(int hMenu)
 {
-    bool bFound = false;
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
         {
-            bFound = true;
-            break;
+            GuiMenuAddSeparator(hMenu);
+            return true;
         }
     }
-    if(!bFound)
-        return false;
-    GuiMenuAddSeparator(hMenu);
-    return true;
+    return false;
 }
 
 /**
@@ -504,19 +543,22 @@ bool pluginmenuaddseparator(int hMenu)
 */
 bool pluginmenuclear(int hMenu)
 {
+    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
     bool bFound = false;
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    int listsize = (int)pluginMenuList.size();
+    for(int i = listsize - 1; i >= 0; i--)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
+        const auto & currentMenu = pluginMenuList.at(i);
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
         {
+            pluginMenuList.erase(pluginMenuList.begin() + i);
             bFound = true;
-            break;
         }
     }
     if(!bFound)
         return false;
     GuiMenuClear(hMenu);
-    return false;
+    return true;
 }
 
 /**
@@ -527,16 +569,27 @@ void pluginmenucall(int hEntry)
 {
     if(hEntry == -1)
         return;
-    for(const auto & currentMenu : pluginMenuList)
+
+    SectionLocker<LockPluginMenuList, true> menuLock; //shared lock
+    auto i = pluginMenuList.begin();
+    while(i != pluginMenuList.end())
     {
+        const auto currentMenu = *i;
+        ++i;
         if(currentMenu.hEntryMenu == hEntry && currentMenu.hEntryPlugin != -1)
         {
             PLUG_CB_MENUENTRY menuEntryInfo;
             menuEntryInfo.hEntry = currentMenu.hEntryPlugin;
-            for(const auto & currentCallback : pluginCallbackList)
+            SectionLocker<LockPluginCallbackList, true> callbackLock; //shared lock
+            auto j = pluginCallbackList.begin();
+            while(j != pluginCallbackList.end())
             {
+                const auto currentCallback = *j;
+                ++j;
                 if(currentCallback.pluginHandle == currentMenu.pluginHandle && currentCallback.cbType == CB_MENUENTRY)
                 {
+                    menuLock.Unlock();
+                    callbackLock.Unlock();
                     currentCallback.cbPlugin(CB_MENUENTRY, &menuEntryInfo);
                     return;
                 }
@@ -582,10 +635,10 @@ bool pluginwineventglobal(MSG* message)
 */
 void pluginmenuseticon(int hMenu, const ICONDATA* icon)
 {
-    bool bFound = false;
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    SHARED_ACQUIRE(LockPluginMenuList);
+    for(const auto & currentMenu : pluginMenuList)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
         {
             GuiMenuSetIcon(hMenu, icon);
             break;
@@ -603,6 +656,7 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
 {
     if(hEntry == -1)
         return;
+    SHARED_ACQUIRE(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)

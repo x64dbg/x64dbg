@@ -25,10 +25,11 @@ void waitdeinitialize();
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
 //
 #define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock;
+#define EXCLUSIVE_REACQUIRE()       __ThreadLock.Lock();
 #define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
 
 #define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock;
-#define SHARED_REACQUIRE(Index)     __SThreadLock.Lock();
+#define SHARED_REACQUIRE()          __SThreadLock.Lock();
 #define SHARED_RELEASE()            __SThreadLock.Unlock();
 
 enum SectionLock
@@ -52,6 +53,10 @@ enum SectionLock
     // a deadlock.
     // https://bitbucket.org/mrexodia/x64_dbg/issue/247/x64-dbg-bug-string-references-function
     LockWin8Workaround,
+    LockPluginList,
+    LockPluginCallbackList,
+    LockPluginCommandList,
+    LockPluginMenuList,
 
     LockLast,
 };

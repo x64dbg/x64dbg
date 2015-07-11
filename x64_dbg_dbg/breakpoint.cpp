@@ -248,7 +248,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
             callbackStatus = false;
 
         // Restore the breakpoint map lock
-        SHARED_REACQUIRE(LockBreakpoints);
+        SHARED_REACQUIRE();
     }
 
     return callbackStatus;
