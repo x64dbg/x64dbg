@@ -208,7 +208,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                     // Branch target immediate
                     block->Target = operand.imm;
 
-                    // Check if abs jump
+                    // Check if absolute jump
                     if(disasm.GetId() == X86_INS_JMP)
                         block->SetFlag(BASIC_BLOCK_FLAG_ABSJMP);
                 }
