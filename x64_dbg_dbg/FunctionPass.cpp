@@ -168,10 +168,10 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
 
 void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
-#ifdef _WIN64
     const uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
     const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 
+#ifdef _WIN64
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
         const uint funcAddr = m_ModuleStart + Function->BeginAddress;
@@ -289,12 +289,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
             //
             // 1.
             if(block->GetFlag(BASIC_BLOCK_FLAG_RET))
-            {
-__endfunc:
-                Function->VirtualEnd = block->VirtualEnd;
-                Function->BBlockEnd = FindBBlockIndex(block);
                 break;
-            }
 
             if(block->Target != 0)
             {
@@ -303,11 +298,11 @@ __endfunc:
                 {
                     // 2.
                     if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
-                        goto __endfunc;
+                        break;
 
                     // 3.
                     if(block->Target >= Function->VirtualStart && block->Target < block->VirtualEnd)
-                        goto __endfunc;
+                        break;
                 }
             }
 
@@ -315,6 +310,9 @@ __endfunc:
         }
     }
 
+    // Loop is done. Set the information in the function structure.
+    Function->VirtualEnd = block->VirtualEnd;
+    Function->BBlockEnd = FindBBlockIndex(block);
     return true;
 }
 
