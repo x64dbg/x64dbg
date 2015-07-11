@@ -23,5 +23,8 @@ private:
     void FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks);
     void FindFunctionWorker(std::vector<FunctionDef>* Blocks);
 
+    bool ResolveKnownFunctionEnd(FunctionDef* Function);
+    bool ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock);
+
     void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
 };

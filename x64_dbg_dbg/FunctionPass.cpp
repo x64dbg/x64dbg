@@ -120,7 +120,7 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
     // NOTE: *Some* indirect calls are included
     auto blockItr = std::next(m_MainBlocks.begin(), Start);
 
-    for(uint i = Start; i < End; i++, blockItr++)
+    for(uint i = Start; i < End; i++, ++blockItr)
     {
         if(blockItr->GetFlag(BASIC_BLOCK_FLAG_CALL))
         {
@@ -194,110 +194,6 @@ void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<F
 
 void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
 {
-    // Helper to link final blocks to function
-    auto ResolveKnownFunctionEnd = [this](FunctionDef * Function)
-    {
-        auto startBlock = FindBBlockInRange(Function->VirtualStart);
-        auto endBlock = FindBBlockInRange(Function->VirtualEnd);
-
-        if(!startBlock || !endBlock)
-            return false;
-
-        // Find block start/end indices
-        Function->BBlockStart = FindBBlockIndex(startBlock);
-        Function->BBlockEnd = FindBBlockIndex(endBlock);
-
-        // Set the flag for blocks that have been scanned
-        for(uint i = Function->BBlockStart; i < Function->BBlockEnd; i++)
-            m_MainBlocks[i].SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
-
-        return true;
-    };
-
-    // Find the end manually
-    auto ResolveFunctionEnd = [this](FunctionDef * Function, BasicBlock * LastBlock)
-    {
-        assert(Function->VirtualStart != 0);
-
-        // Find the first basic block of the function
-        BasicBlock* block = FindBBlockInRange(Function->VirtualStart);
-
-        if(!block)
-        {
-            assert(false);
-            return false;
-        }
-
-        // The maximum address is determined by any jump that extends past
-        // a RET or other terminating basic block. A function may have multiple
-        // return statements.
-        uint maximumAddr = 0;
-
-        // Loop forever until the end is found
-        for(; (uint)block <= (uint)LastBlock; block++)
-        {
-            // Block is now in use
-            block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
-
-            // Calculate max from just linear instructions
-            maximumAddr = max(maximumAddr, block->VirtualEnd - 1);
-
-            // Find maximum jump target
-            if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
-            {
-                if(block->Target != 0)
-                {
-                    // Here's a problem: Compilers add tail-call elimination with a jump.
-                    // Solve this by creating a maximum jump limit: +/- 512 bytes from the end.
-                    if(abs((__int64)(block->VirtualEnd - block->Target)) <= 512)
-                        maximumAddr = max(maximumAddr, block->Target);
-                }
-            }
-
-            // Sanity check
-            assert(maximumAddr >= block->VirtualStart);
-
-            // Does this node contain the maximum address?
-            if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)
-            {
-                // It does! There's 4 possibilities next:
-                //
-                // 1. Return
-                // 2. Tail-call elimination
-                // 3. Optimized loop
-                // 4. Function continues to next block
-                //
-                // 1.
-                if(block->GetFlag(BASIC_BLOCK_FLAG_RET))
-                {
-__endfunc:
-                    Function->VirtualEnd = block->VirtualEnd;
-                    Function->BBlockEnd = FindBBlockIndex(block);
-                    break;
-                }
-
-                if(block->Target != 0)
-                {
-                    // NOTE: Both must be an absolute jump
-                    if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
-                    {
-                        // 2.
-                        if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
-                            goto __endfunc;
-
-                        // 3.
-                        if(block->Target >= Function->VirtualStart && block->Target < block->VirtualEnd)
-                            goto __endfunc;
-                    }
-                }
-
-                // 4. Continue
-            }
-        }
-
-        return true;
-    };
-
     // Cached final block
     BasicBlock* finalBlock = &m_MainBlocks.back();
 
@@ -312,9 +208,112 @@ __endfunc:
                 continue;
         }
 
-        // Now the function end must be determined by heuristics
+        // Now the function end must be determined by heuristics (find manually)
         ResolveFunctionEnd(&block, finalBlock);
     }
+}
+
+bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
+{
+    // Helper to link final blocks to function
+    auto startBlock = FindBBlockInRange(Function->VirtualStart);
+    auto endBlock = FindBBlockInRange(Function->VirtualEnd);
+
+    if(!startBlock || !endBlock)
+        return false;
+
+    // Find block start/end indices
+    Function->BBlockStart = FindBBlockIndex(startBlock);
+    Function->BBlockEnd = FindBBlockIndex(endBlock);
+
+    // Set the flag for blocks that have been scanned
+    for(BasicBlock* block = startBlock; (uint)block <= (uint)endBlock; block++)
+        block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+    return true;
+}
+
+bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock)
+{
+    assert(Function->VirtualStart != 0);
+
+    // Find the first basic block of the function
+    BasicBlock* block = FindBBlockInRange(Function->VirtualStart);
+
+    if(!block)
+    {
+        assert(false);
+        return false;
+    }
+
+    // The maximum address is determined by any jump that extends past
+    // a RET or other terminating basic block. A function may have multiple
+    // return statements.
+    uint maximumAddr = 0;
+
+    // Loop forever until the end is found
+    for(; (uint)block <= (uint)LastBlock; block++)
+    {
+        // Block is now in use
+        block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+        // Calculate max from just linear instructions
+        maximumAddr = max(maximumAddr, block->VirtualEnd - 1);
+
+        // Find maximum jump target
+        if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
+        {
+            if(block->Target != 0)
+            {
+                // Here's a problem: Compilers add tail-call elimination with a jump.
+                // Solve this by creating a maximum jump limit: +/- 512 bytes from the end.
+                if(abs((__int64)(block->VirtualEnd - block->Target)) <= 512)
+                    maximumAddr = max(maximumAddr, block->Target);
+            }
+        }
+
+        // Sanity check
+        assert(maximumAddr >= block->VirtualStart);
+
+        // Does this node contain the maximum address?
+        if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)
+        {
+            // It does! There's 4 possibilities next:
+            //
+            // 1. Return
+            // 2. Tail-call elimination
+            // 3. Optimized loop
+            // 4. Function continues to next block
+            //
+            // 1.
+            if(block->GetFlag(BASIC_BLOCK_FLAG_RET))
+            {
+__endfunc:
+                Function->VirtualEnd = block->VirtualEnd;
+                Function->BBlockEnd = FindBBlockIndex(block);
+                break;
+            }
+
+            if(block->Target != 0)
+            {
+                // NOTE: Both must be an absolute jump
+                if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
+                {
+                    // 2.
+                    if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
+                        goto __endfunc;
+
+                    // 3.
+                    if(block->Target >= Function->VirtualStart && block->Target < block->VirtualEnd)
+                        goto __endfunc;
+                }
+            }
+
+            // 4. Continue
+        }
+    }
+
+    return true;
 }
 
 void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIME_FUNCTION)> Callback)
