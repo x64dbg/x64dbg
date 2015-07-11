@@ -102,7 +102,7 @@ void dbload()
 
     Memory<char*> jsonText(jsonFileSize + 1);
     DWORD read = 0;
-    if(!ReadFile(hFile, jsonText, jsonFileSize, &read, 0))
+    if(!ReadFile(hFile, jsonText(), jsonFileSize, &read, 0))
     {
         dputs("\nFailed to read database file!");
         return;
@@ -110,7 +110,7 @@ void dbload()
     hFile.Close();
 
     // Deserialize JSON
-    JSON root = json_loads(jsonText, 0, 0);
+    JSON root = json_loads(jsonText(), 0, 0);
 
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
@@ -154,9 +154,9 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
     uint size = mbi.RegionSize;
     Memory<void*> buffer(size, "apienumexports:buffer");
-    if(!MemRead(base, buffer, size, 0))
+    if(!MemRead(base, buffer(), size, 0))
         return false;
-    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((uint)buffer + GetPE32DataFromMappedFile((ULONG_PTR)buffer, 0, UE_PE_OFFSET));
+    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((uint)buffer() + GetPE32DataFromMappedFile((ULONG_PTR)buffer(), 0, UE_PE_OFFSET));
     uint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
     uint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
     IMAGE_EXPORT_DIRECTORY export_dir;

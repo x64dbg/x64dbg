@@ -13,7 +13,7 @@ bool FileReader::ReadAllText(const String & fileName, String & content)
     }
     Memory<char*> filedata(filesize + 1, "FileReader::ReadAllText:filedata");
     DWORD read = 0;
-    if(!ReadFile(hFile, filedata, filesize, &read, 0))
+    if(!ReadFile(hFile, filedata(), filesize, &read, 0))
         return false;
     content = String(filedata());
     return true;

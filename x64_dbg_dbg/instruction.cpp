@@ -184,10 +184,10 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             b[1] = dataText[i + 1];
             int res = 0;
             sscanf_s(b, "%X", &res);
-            data[j] = res;
+            data()[j] = res;
         }
         //Move data to destination
-        if(!MemWrite(dest, data, data.size(), 0))
+        if(!MemWrite(dest, data(), data.size(), 0))
         {
             dprintf("failed to write to "fhex"\n", dest);
             return STATUS_ERROR;
@@ -242,7 +242,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<VAR*> variables(cbsize, "cbInstrVarList:variables");
-    if(!varenum(variables, 0))
+    if(!varenum(variables(), 0))
     {
         dputs("error listing variables!");
         return STATUS_ERROR;
@@ -251,16 +251,16 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
     int varcount = (int)cbsize / sizeof(VAR);
     for(int i = 0; i < varcount; i++)
     {
-        if(variables[i].alias.length())
+        if(variables()[i].alias.length())
             continue;
         char name[deflen] = "";
-        strcpy_s(name, variables[i].name.c_str());
-        uint value = (uint)variables[i].value.u.value;
-        if(variables[i].type != VAR_HIDDEN)
+        strcpy_s(name, variables()[i].name.c_str());
+        uint value = (uint)variables()[i].value.u.value;
+        if(variables()[i].type != VAR_HIDDEN)
         {
             if(filter)
             {
-                if(variables[i].type == filter)
+                if(variables()[i].type == filter)
                 {
                     if(value > 15)
                         dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
@@ -1022,8 +1022,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
-    memset(string, 0, size + 1);
-    if(!varget(argv[1], (char*)string, &size, 0))
+    if(!varget(argv[1], string(), &size, 0))
     {
         dprintf("failed to get variable data \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
@@ -1057,8 +1056,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<char*> string(size + 1, "cbInstrGetstr:string");
-    memset(string, 0, size + 1);
-    if(!varget(argv[2], (char*)string, &size, 0))
+    if(!varget(argv[2], string(), &size, 0))
     {
         dprintf("failed to get variable data \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
@@ -1069,7 +1067,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!MemPatch(addr, string, strlen(string), 0))
+    if(!MemPatch(addr, string(), strlen(string()), 0))
     {
         dputs("memwrite failed!");
         return STATUS_ERROR;
@@ -1107,7 +1105,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
-    if(!MemRead(base, data, size, 0))
+    if(!MemRead(base, data(), size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1123,7 +1121,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     }
     else
         find_size = size - start;
-    uint foundoffset = patternfind(data + start, find_size, pattern);
+    uint foundoffset = patternfind(data() + start, find_size, pattern);
     uint result = 0;
     if(foundoffset != -1)
         result = addr + foundoffset;
@@ -1159,7 +1157,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
-    if(!MemRead(base, data, size, 0))
+    if(!MemRead(base, data(), size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1207,7 +1205,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     }
     while(refCount < 5000)
     {
-        uint foundoffset = patternfind(data + start + i, find_size - i, searchpattern);
+        uint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;
@@ -1224,7 +1222,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
             {
                 if(j)
                     k += sprintf(msg + k, " ");
-                k += sprintf(msg + k, "%.2X", printData[j]);
+                k += sprintf(msg + k, "%.2X", printData()[j]);
             }
         }
         else
@@ -1306,18 +1304,18 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<COMMENTSINFO*> comments(cbsize, "cbInstrCommentList:comments");
-    CommentEnum(comments, 0);
+    CommentEnum(comments(), 0);
     int count = (int)(cbsize / sizeof(COMMENTSINFO));
     for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", comments[i].addr);
+        sprintf(addrText, "%p", comments()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(comments[i].addr, disassembly))
+        if(GuiGetDisassembly(comments()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
-        GuiReferenceSetCellContent(i, 2, comments[i].text);
+        GuiReferenceSetCellContent(i, 2, comments()[i].text);
     }
     varset("$result", count, false);
     dprintf("%d comment(s) listed in Reference View\n", count);
@@ -1341,18 +1339,18 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<LABELSINFO*> labels(cbsize, "cbInstrLabelList:labels");
-    LabelEnum(labels, 0);
+    LabelEnum(labels(), 0);
     int count = (int)(cbsize / sizeof(LABELSINFO));
     for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", labels[i].addr);
+        sprintf(addrText, "%p", labels()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(labels[i].addr, disassembly))
+        if(GuiGetDisassembly(labels()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
-        GuiReferenceSetCellContent(i, 2, labels[i].text);
+        GuiReferenceSetCellContent(i, 2, labels()[i].text);
     }
     varset("$result", count, false);
     dprintf("%d label(s) listed in Reference View\n", count);
@@ -1375,16 +1373,16 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
-    BookmarkEnum(bookmarks, 0);
+    BookmarkEnum(bookmarks(), 0);
     int count = (int)(cbsize / sizeof(BOOKMARKSINFO));
     for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", bookmarks[i].addr);
+        sprintf(addrText, "%p", bookmarks()[i].addr);
         GuiReferenceSetCellContent(i, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(bookmarks[i].addr, disassembly))
+        if(GuiGetDisassembly(bookmarks()[i].addr, disassembly))
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
     varset("$result", count, false);
@@ -1410,26 +1408,26 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<FUNCTIONSINFO*> functions(cbsize, "cbInstrFunctionList:functions");
-    FunctionEnum(functions, 0);
+    FunctionEnum(functions(), 0);
     int count = (int)(cbsize / sizeof(FUNCTIONSINFO));
     for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", functions[i].start);
+        sprintf(addrText, "%p", functions()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", functions[i].end);
+        sprintf(addrText, "%p", functions()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(functions[i].start, disassembly))
+        if(GuiGetDisassembly(functions()[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
-        if(LabelGet(functions[i].start, label))
+        if(LabelGet(functions()[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(functions[i].start, comment))
+            if(CommentGet(functions()[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
@@ -1456,26 +1454,26 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     Memory<LOOPSINFO*> loops(cbsize, "cbInstrLoopList:loops");
-    LoopEnum(loops, 0);
+    LoopEnum(loops(), 0);
     int count = (int)(cbsize / sizeof(LOOPSINFO));
     for(int i = 0; i < count; i++)
     {
         GuiReferenceSetRowCount(i + 1);
         char addrText[20] = "";
-        sprintf(addrText, "%p", loops[i].start);
+        sprintf(addrText, "%p", loops()[i].start);
         GuiReferenceSetCellContent(i, 0, addrText);
-        sprintf(addrText, "%p", loops[i].end);
+        sprintf(addrText, "%p", loops()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
-        if(GuiGetDisassembly(loops[i].start, disassembly))
+        if(GuiGetDisassembly(loops()[i].start, disassembly))
             GuiReferenceSetCellContent(i, 2, disassembly);
         char label[MAX_LABEL_SIZE] = "";
-        if(LabelGet(loops[i].start, label))
+        if(LabelGet(loops()[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
         else
         {
             char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(loops[i].start, comment))
+            if(CommentGet(loops()[i].start, comment))
                 GuiReferenceSetCellContent(i, 3, comment);
         }
     }
@@ -1988,7 +1986,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
             Sleep(300);
 
             //continue algorithm
-            const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data + (addr - _base) : nullptr;
+            const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data() + (addr - _base) : nullptr;
             if(_cp.Disassemble(addr, curData, MAX_DISASM_BUFFER))
             {
                 if(addr + _cp.Size() > maxaddr)    //we went past the maximum allowed address

@@ -181,11 +181,10 @@ void formathex(char* string)
     int len = (int)strlen(string);
     _strupr(string);
     Memory<char*> new_string(len + 1, "formathex:new_string");
-    memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(isxdigit(string[i]))
-            j += sprintf(new_string + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string);
+            j += sprintf(new_string() + j, "%c", string[i]);
+    strcpy_s(string, len + 1, new_string());
 }
 
 /**
@@ -197,11 +196,10 @@ void formatdec(char* string)
     int len = (int)strlen(string);
     _strupr(string);
     Memory<char*> new_string(len + 1, "formatdec:new_string");
-    memset(new_string, 0, len + 1);
     for(int i = 0, j = 0; i < len; i++)
         if(isdigit(string[i]))
-            j += sprintf(new_string + j, "%c", string[i]);
-    strcpy_s(string, len + 1, new_string);
+            j += sprintf(new_string() + j, "%c", string[i]);
+    strcpy_s(string, len + 1, new_string());
 }
 
 /**

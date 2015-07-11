@@ -294,21 +294,20 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     if(!disasmispossiblestring(addr))
         return false;
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
-    memset(data, 0, (maxlen + 1) * 2);
-    if(!MemRead(addr, data, (maxlen + 1) * 2, 0))
+    if(!MemRead(addr, data(), (maxlen + 1) * 2, 0))
         return false;
     uint test = 0;
-    memcpy(&test, data, sizeof(uint));
+    memcpy(&test, data(), sizeof(uint));
     if(MemIsValidReadPtr(test))
         return false;
-    if(isasciistring(data, maxlen))
+    if(isasciistring(data(), maxlen))
     {
         if(type)
             *type = str_ascii;
-        int len = (int)strlen((const char*)data);
+        int len = (int)strlen((const char*)data());
         for(int i = 0, j = 0; i < len; i++)
         {
-            switch(data[i])
+            switch(data()[i])
             {
             case '\t':
                 j += sprintf(ascii + j, "\\t");
@@ -332,20 +331,20 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
                 j += sprintf(ascii + j, "\\\"");
                 break;
             default:
-                j += sprintf(ascii + j, "%c", data[i]);
+                j += sprintf(ascii + j, "%c", data()[i]);
                 break;
             }
         }
         return true;
     }
-    else if(isunicodestring(data, maxlen))
+    else if(isunicodestring(data(), maxlen))
     {
         if(type)
             *type = str_unicode;
-        int len = (int)wcslen((const wchar_t*)data);
+        int len = (int)wcslen((const wchar_t*)data());
         for(int i = 0, j = 0; i < len * 2; i += 2)
         {
-            switch(data[i])
+            switch(data()[i])
             {
             case '\t':
                 j += sprintf(unicode + j, "\\t");
@@ -369,7 +368,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
                 j += sprintf(unicode + j, "\\\"");
                 break;
             default:
-                j += sprintf(unicode + j, "%c", data[i]);
+                j += sprintf(unicode + j, "%c", data()[i]);
                 break;
             }
         }

@@ -426,9 +426,9 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
         if(strstr(text, " bytes -  "))
         {
             Memory<char*> newtext(len + 1, "SymRegisterCallbackProc64:newtext");
-            strcpy_s(newtext, len + 1, text);
-            strstr(newtext, " bytes -  ")[8] = 0;
-            GuiSymbolLogAdd(newtext);
+            strcpy_s(newtext(), len + 1, text);
+            strstr(newtext(), " bytes -  ")[8] = 0;
+            GuiSymbolLogAdd(newtext());
             suspress = true;
         }
         else if(strstr(text, " copied         "))
@@ -661,14 +661,14 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             {
                 dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
                 Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbCreateProcess:TLSCallBacks");
-                if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
+                if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
                     dputs("Failed to get TLS callback addresses!");
                 else
                 {
                     uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + pDebuggedBase, i + 1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks()[i] - ImageBase + pDebuggedBase, i + 1);
                         cmddirectexec(dbggetcommandlist(), command);
                     }
                 }
@@ -863,7 +863,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         {
             dprintf("TLS Callbacks: %d\n", NumberOfCallBacks);
             Memory<uint*> TLSCallBacks(NumberOfCallBacks * sizeof(uint), "cbLoadDll:TLSCallBacks");
-            if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks, &NumberOfCallBacks))
+            if(!TLSGrabCallBackDataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), TLSCallBacks(), &NumberOfCallBacks))
                 dputs("Failed to get TLS callback addresses!");
             else
             {
@@ -871,9 +871,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                 for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                 {
                     if(bIsDebuggingThis)
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks()[i] - ImageBase + (uint)base, i + 1);
                     else
-                        sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", TLSCallBacks[i] - ImageBase + (uint)base, i + 1, modname);
+                        sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", TLSCallBacks()[i] - ImageBase + (uint)base, i + 1, modname);
                     cmddirectexec(dbggetcommandlist(), command);
                 }
             }
@@ -1047,9 +1047,9 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         if(nameInfo.dwType == 0x1000 && nameInfo.dwFlags == 0 && ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-            if(MemRead((uint)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
+            if(MemRead((uint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1, 0))
             {
-                String ThreadNameEscaped = StringUtils::Escape(ThreadName);
+                String ThreadNameEscaped = StringUtils::Escape(ThreadName());
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
             }
@@ -1931,13 +1931,13 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> command_linewstr(new_command_line.Length);
 
     // Covert to Unicode.
-    if(!MultiByteToWideChar(CP_UTF8, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr, (int)cmd_line_size + 1))
+    if(!MultiByteToWideChar(CP_UTF8, 0, cmd_line, (int)cmd_line_size + 1, command_linewstr(), (int)cmd_line_size + 1))
     {
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
     }
 
-    new_command_line.Buffer = command_linewstr;
+    new_command_line.Buffer = command_linewstr();
 
     uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2, PAGE_READWRITE);
     if(!mem)
@@ -1995,19 +1995,19 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
 
     cmd_line_error->addr = (uint) CommandLine.Buffer;
-    if(!MemRead(cmd_line_error->addr, wstr_cmd, CommandLine.Length, &size))
+    if(!MemRead(cmd_line_error->addr, wstr_cmd(), CommandLine.Length, &size))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
         return false;
     }
 
-    SIZE_T wstr_cmd_size = wcslen(wstr_cmd) + 1;
+    SIZE_T wstr_cmd_size = wcslen(wstr_cmd()) + 1;
     SIZE_T cmd_line_size = wstr_cmd_size * 2;
 
     *cmd_line = (char*)emalloc(cmd_line_size, "dbggetcmdline:cmd_line");
 
     //Convert TO UTF-8
-    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd, (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
+    if(!WideCharToMultiByte(CP_UTF8, 0, wstr_cmd(), (int)wstr_cmd_size, * cmd_line, (int)cmd_line_size, NULL, NULL))
     {
         efree(*cmd_line);
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;

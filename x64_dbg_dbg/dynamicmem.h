@@ -8,14 +8,14 @@ public:
     // This class guarantees that the returned allocated memory
     // will always be zeroed
     //
-    Memory(const char* Reason = "Memory:???")
+    explicit Memory(const char* Reason = "Memory:???")
     {
         m_Ptr = nullptr;
         m_Size = 0;
         m_Reason = Reason;
     }
 
-    Memory(size_t Size, const char* Reason = "Memory:???")
+    explicit Memory(size_t Size, const char* Reason = "Memory:???")
     {
         m_Ptr = reinterpret_cast<T>(emalloc(Size));
         m_Size = Size;
@@ -44,26 +44,9 @@ public:
         return m_Size;
     }
 
-    template<typename U>
-    operator U()
-    {
-        return (U)m_Ptr;
-    }
-
-    operator T()
-    {
-        return m_Ptr;
-    }
-
     T operator()()
     {
         return m_Ptr;
-    }
-
-    template<typename U>
-    T operator+(const U & Other)
-    {
-        return m_Ptr + Other;
     }
 
 private:
