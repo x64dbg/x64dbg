@@ -199,7 +199,7 @@ void ExpressionParser::addOperatorToken(const char ch, const Token::Type type)
     if(_curToken.length())  //add a new data token when there is data in the buffer
     {
         _tokens.push_back(Token(_curToken, Token::Type::Data));
-        _curToken = "";
+        _curToken.clear();
     }
     String data;
     data += ch;

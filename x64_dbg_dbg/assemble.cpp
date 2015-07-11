@@ -12,7 +12,7 @@
 
 static bool cbUnknown(const char* text, ULONGLONG* value)
 {
-    if(!text or !value)
+    if(!text || !value)
         return false;
     uint val;
     if(!valfromstring(text, &val))

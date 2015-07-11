@@ -199,9 +199,8 @@ QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOff
     }
     else if(col == 4) //CPROT
     {
-        duint setting = 0;
         QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
-        if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && !setting)
+        if(!ConfigBool("Engine", "ListAllPages"))
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
@@ -393,11 +392,8 @@ void MemoryMapView::pageMemoryRights()
 
 void MemoryMapView::switchView()
 {
-    duint setting = 0;
-    if(BridgeSettingGetUint("Engine", "ListAllPages", &setting) && setting)
-        BridgeSettingSetUint("Engine", "ListAllPages", 0);
-    else
-        BridgeSettingSetUint("Engine", "ListAllPages", 1);
+    Config()->setBool("Engine", "ListAllPages", !ConfigBool("Engine", "ListAllPages"));
+    Config()->writeBools();
     DbgSettingsUpdated();
     DbgFunctions()->MemUpdateMap();
     setSingleSelection(0);

@@ -73,7 +73,7 @@ void cmdfree(COMMAND* cmd_list)
 */
 bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
-    if(!command_list or !cbCommand or !name or !*name or cmdfind(command_list, name, 0))
+    if(!command_list || !cbCommand || !name || !*name || cmdfind(command_list, name, 0))
         return false;
     COMMAND* cmd;
     bool nonext = false;
@@ -111,7 +111,7 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
     strcpy_s(new_cmd, deflen, cmd);
     int len = (int)strlen(new_cmd);
     int start = 0;
-    while(new_cmd[start] != ' ' and start < len)
+    while(new_cmd[start] != ' ' && start < len)
         start++;
     new_cmd[start] = 0;
     COMMAND* found = cmdfind(command_list, new_cmd, 0);
@@ -193,7 +193,7 @@ error_is_fatal:       error return of a command callback stops the command proce
 */
 CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
 {
-    if(!cbUnknownCommand or !cbCommandProvider)
+    if(!cbUnknownCommand || !cbCommandProvider)
         return STATUS_ERROR;
     char command[deflen] = "";
     bool bLoop = true;
@@ -210,17 +210,17 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
             else //'dirty' command processing
                 cmd = cbCommandFinder(command_list, command);
 
-            if(!cmd or !cmd->cbCommand) //unknown command
+            if(!cmd || !cmd->cbCommand) //unknown command
             {
                 char* argv[1];
                 *argv = command;
                 CMDRESULT res = cbUnknownCommand(1, argv);
-                if((error_is_fatal and res == STATUS_ERROR) or res == STATUS_EXIT)
+                if((error_is_fatal && res == STATUS_ERROR) || res == STATUS_EXIT)
                     bLoop = false;
             }
             else
             {
-                if(cmd->debugonly and !DbgIsDebugging())
+                if(cmd->debugonly && !DbgIsDebugging())
                 {
                     dputs("this command is debug-only");
                     if(error_is_fatal)
@@ -242,7 +242,7 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
                     for(int i = 0; i < argcount; i++)
                         efree(argv[i + 1], "cmdloop:argv[i+1]");
                     efree(argv, "cmdloop:argv");
-                    if((error_is_fatal and res == STATUS_ERROR) or res == STATUS_EXIT)
+                    if((error_is_fatal && res == STATUS_ERROR) || res == STATUS_EXIT)
                         bLoop = false;
                 }
             }
@@ -317,7 +317,7 @@ static void specialformat(char* string)
             return;
         }
         int flen = (int)strlen(found); //n(+)=n++
-        if((found[flen - 1] == '+' and found[flen - 2] == '+') or (found[flen - 1] == '-' and found[flen - 2] == '-')) //eax++/eax--
+        if((found[flen - 1] == '+' && found[flen - 2] == '+') || (found[flen - 1] == '-' && found[flen - 2] == '-')) //eax++/eax--
         {
             found[flen - 2] = 0;
             char op = found[flen - 1];
@@ -342,7 +342,7 @@ static void specialformat(char* string)
         }
         strcpy(string, str);
     }
-    else if((string[len - 1] == '+' and string[len - 2] == '+') or (string[len - 1] == '-' and string[len - 2] == '-')) //eax++/eax--
+    else if((string[len - 1] == '+' && string[len - 2] == '+') || (string[len - 1] == '-' && string[len - 2] == '-')) //eax++/eax--
     {
         string[len - 2] = 0;
         char op = string[len - 1];
@@ -385,14 +385,14 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
 */
 CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
 {
-    if(!cmd or !strlen(cmd))
+    if(!cmd || !strlen(cmd))
         return STATUS_ERROR;
     char command[deflen] = "";
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(cmd_list, command);
-    if(!found or !found->cbCommand)
+    if(!found || !found->cbCommand)
         return STATUS_ERROR;
-    if(found->debugonly and !DbgIsDebugging())
+    if(found->debugonly && !DbgIsDebugging())
         return STATUS_ERROR;
     Command cmdParsed(command);
     int argcount = cmdParsed.GetArgCount();

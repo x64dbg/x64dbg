@@ -109,6 +109,6 @@ void Command::dataFinish()
     if(_data.length())
     {
         _tokens.push_back(_data);
-        _data = "";
+        _data.clear();
     }
 }

@@ -135,7 +135,7 @@ void setalloctrace(const char* file)
 bool arraycontains(const char* cmd_list, const char* cmd)
 {
     //TODO: fix this function a little
-    if(!cmd_list or !cmd)
+    if(!cmd_list || !cmd)
         return false;
     char temp[deflen] = "";
     strcpy_s(temp, cmd_list);

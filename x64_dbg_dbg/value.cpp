@@ -166,9 +166,9 @@ static bool isregister(const char* string)
         return true;
     if(scmp(string, "dr3"))
         return true;
-    if(scmp(string, "dr6") or scmp(string, "dr4"))
+    if(scmp(string, "dr6") || scmp(string, "dr4"))
         return true;
-    if(scmp(string, "dr7") or scmp(string, "dr5"))
+    if(scmp(string, "dr7") || scmp(string, "dr5"))
         return true;
 
     if(scmp(string, "cip"))
@@ -599,7 +599,7 @@ static bool setflag(const char* string, bool set)
         flag = 0x100000;
     else if(scmp(string, "id"))
         flag = 0x200000;
-    if(eflags & flag and !set)
+    if(eflags & flag && !set)
         xorval = flag;
     else if(set)
         xorval = flag;
@@ -841,11 +841,11 @@ static uint getregister(int* size, const char* string)
     {
         return GetContextDataEx(hActiveThread, UE_DR3);
     }
-    if(scmp(string, "dr6") or scmp(string, "dr4"))
+    if(scmp(string, "dr6") || scmp(string, "dr4"))
     {
         return GetContextDataEx(hActiveThread, UE_DR6);
     }
-    if(scmp(string, "dr7") or scmp(string, "dr5"))
+    if(scmp(string, "dr7") || scmp(string, "dr5"))
     {
         return GetContextDataEx(hActiveThread, UE_DR7);
     }
@@ -1156,9 +1156,9 @@ bool setregister(const char* string, uint value)
         return SetContextDataEx(hActiveThread, UE_DR2, value);
     if(scmp(string, "dr3"))
         return SetContextDataEx(hActiveThread, UE_DR3, value);
-    if(scmp(string, "dr6") or scmp(string, "dr4"))
+    if(scmp(string, "dr6") || scmp(string, "dr4"))
         return SetContextDataEx(hActiveThread, UE_DR6, value);
-    if(scmp(string, "dr7") or scmp(string, "dr5"))
+    if(scmp(string, "dr7") || scmp(string, "dr5"))
         return SetContextDataEx(hActiveThread, UE_DR7, value);
 
     if(scmp(string, "cip"))
@@ -1272,7 +1272,7 @@ bool setregister(const char* string, uint value)
 */
 bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
 {
-    if(!value or !DbgIsDebugging())
+    if(!value || !DbgIsDebugging())
         return false;
     //explicit API handling
     const char* apiname = strchr(name, ':'); //the ':' character cannot be in a path: http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#naming_conventions
@@ -1327,9 +1327,9 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     addr = modbase + (addr - (uint)mod); //correct for loaded base
                 else //not found
                 {
-                    if(scmp(apiname, "base") or scmp(apiname, "imagebase") or scmp(apiname, "header")) //get loaded base
+                    if(scmp(apiname, "base") || scmp(apiname, "imagebase") || scmp(apiname, "header")) //get loaded base
                         addr = modbase;
-                    else if(scmp(apiname, "entry") or scmp(apiname, "oep") or scmp(apiname, "ep")) //get entry point
+                    else if(scmp(apiname, "entry") || scmp(apiname, "oep") || scmp(apiname, "ep")) //get entry point
                         addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
                     else if(*apiname == '$') //RVA
                     {
@@ -1426,7 +1426,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(kernel32 != -1) //prioritize kernel32 exports
     {
         *value = addrfound[kernel32];
-        if(!printall or silent)
+        if(!printall || silent)
             return true;
         for(int i = 0; i < found; i++)
             if(i != kernel32)
@@ -1435,7 +1435,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     else
     {
         *value = *addrfound;
-        if(!printall or silent)
+        if(!printall || silent)
             return true;
         for(int i = 1; i < found; i++)
             dprintf(fhex"\n", addrfound[i]);
@@ -1450,7 +1450,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
 */
 static bool isdecnumber(const char* string)
 {
-    if(*string != '.' or !string[1]) //dec indicator/no number
+    if(*string != '.' || !string[1]) //dec indicator/no number
         return false;
     int decAdd = 1;
     if(string[1] == '-') //minus
@@ -1474,7 +1474,7 @@ static bool isdecnumber(const char* string)
 static bool ishexnumber(const char* string)
 {
     int add = 0;
-    if(*string == '0' and string[1] == 'x') //0x prefix
+    if(*string == '0' && string[1] == 'x') //0x prefix
         add = 2;
     else if(*string == 'x') //hex indicator
         add = 1;
@@ -1500,7 +1500,7 @@ static bool ishexnumber(const char* string)
 */
 bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
-    if(!value or !string)
+    if(!value || !string)
         return false;
     if(!*string)
     {
@@ -1580,7 +1580,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
             *isvar = true;
         return true;
     }
-    else if(*string == '!' and isflag(string + 1))  //flag
+    else if(*string == '!' && isflag(string + 1))  //flag
     {
         if(!DbgIsDebugging())
         {
@@ -1658,7 +1658,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
 */
 bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
-    if(!value or !string)
+    if(!value || !string)
         return false;
     if(!*string)
     {
@@ -1742,7 +1742,7 @@ static void setfpuvalue(const char* string, uint value)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
-            if(flags & flag and !set)
+            if(flags & flag && !set)
                 xorval = flag;
             else if(set)
                 xorval = flag;
@@ -1790,7 +1790,7 @@ static void setfpuvalue(const char* string, uint value)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             flag = getx87statuswordflagfromstring(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING));
-            if(flags & flag and !set)
+            if(flags & flag && !set)
                 xorval = flag;
             else if(set)
                 xorval = flag;
@@ -1823,7 +1823,7 @@ static void setfpuvalue(const char* string, uint value)
         {
             uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
-            if(flags & flag and !set)
+            if(flags & flag && !set)
                 xorval = flag;
             else if(set)
                 xorval = flag;
@@ -2107,7 +2107,7 @@ bool valtostring(const char* string, uint value, bool silent)
 {
     if(!*string)
         return false;
-    else if(*string == '@' or strstr(string, "[")) //memory location
+    else if(*string == '@' || strstr(string, "[")) //memory location
     {
         if(!DbgIsDebugging())
         {
@@ -2123,7 +2123,7 @@ bool valtostring(const char* string, uint value, bool silent)
             {
                 if(string[i] == ']')
                     j += sprintf(newstring + j, ")");
-                else if(isdigit(string[i]) and string[i + 1] == ':' and string[i + 2] == '[') //n:[
+                else if(isdigit(string[i]) && string[i + 1] == ':' && string[i + 2] == '[') //n:[
                 {
                     j += sprintf(newstring + j, "@%c:(", string[i]);
                     i += 2;
@@ -2138,7 +2138,7 @@ bool valtostring(const char* string, uint value, bool silent)
             strcpy_s(newstring, len * 2, string);
         int read_size = sizeof(uint);
         int add = 1;
-        if(newstring[2] == ':' and isdigit((newstring[1])))
+        if(newstring[2] == ':' && isdigit((newstring[1])))
         {
             add += 2;
             int new_size = newstring[1] - 0x30;
@@ -2198,7 +2198,7 @@ bool valtostring(const char* string, uint value, bool silent)
         GuiUpdateAllViews(); //repaint gui
         return true;
     }
-    else if(*string == '!' and isflag(string + 1)) //flag
+    else if(*string == '!' && isflag(string + 1)) //flag
     {
         if(!DbgIsDebugging())
         {

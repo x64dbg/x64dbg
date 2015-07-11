@@ -8,7 +8,7 @@ bool FileReader::ReadAllText(const String & fileName, String & content)
     unsigned int filesize = GetFileSize(hFile, 0);
     if(!filesize)
     {
-        content = "";
+        content.clear();
         return true;
     }
     Memory<char*> filedata(filesize + 1, "FileReader::ReadAllText:filedata");

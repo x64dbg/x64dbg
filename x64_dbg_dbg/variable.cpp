@@ -195,7 +195,7 @@ bool varget(const char* Name, uint* Value, int* Size, VAR_TYPE* Type)
     VAR_VALUE varvalue;
     int varsize;
     VAR_TYPE vartype;
-    if(!varget(Name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_UINT)
+    if(!varget(Name, &varvalue, &varsize, &vartype) || varvalue.type != VAR_UINT)
         return false;
     if(Size)
         *Size = varsize;
@@ -219,7 +219,7 @@ bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type)
     VAR_VALUE varvalue;
     int varsize;
     VAR_TYPE vartype;
-    if(!varget(Name, &varvalue, &varsize, &vartype) or varvalue.type != VAR_STRING)
+    if(!varget(Name, &varvalue, &varsize, &vartype) || varvalue.type != VAR_STRING)
         return false;
     if(Size)
         *Size = varsize;

@@ -103,18 +103,19 @@ void CommentDelRange(uint Start, uint End)
         EXCLUSIVE_ACQUIRE(LockComments);
         for(auto itr = comments.begin(); itr != comments.end();)
         {
+            const auto & currentComment = itr->second;
             // Ignore manually set entries
-            if(itr->second.manual)
+            if(currentComment.manual)
             {
-                itr++;
+                ++itr;
                 continue;
             }
 
             // [Start, End)
-            if(itr->second.addr >= Start && itr->second.addr < End)
+            if(currentComment.addr >= Start && currentComment.addr < End)
                 itr = comments.erase(itr);
             else
-                itr++;
+                ++itr;
         }
     }
 }

@@ -79,18 +79,19 @@ void BookmarkDelRange(uint Start, uint End)
         EXCLUSIVE_ACQUIRE(LockBookmarks);
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
         {
+            const auto & currentBookmark = itr->second;
             // Ignore manually set entries
-            if(itr->second.manual)
+            if(currentBookmark.manual)
             {
-                itr++;
+                ++itr;
                 continue;
             }
 
             // [Start, End)
-            if(itr->second.addr >= Start && itr->second.addr < End)
+            if(currentBookmark.addr >= Start && currentBookmark.addr < End)
                 itr = bookmarks.erase(itr);
             else
-                itr++;
+                ++itr;
         }
     }
 }

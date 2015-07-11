@@ -91,7 +91,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
     static char currentfolder[deflen] = "";
     strcpy_s(currentfolder, arg1);
     int len = (int)strlen(currentfolder);
-    while(currentfolder[len] != '\\' and len != 0)
+    while(currentfolder[len] != '\\' && len != 0)
         len--;
     currentfolder[len] = 0;
 
@@ -197,7 +197,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     bool has_arg2 = argc > 3;
     if(has_arg2)
         strcpy_s(argtype, argv[3]);
-    if(!has_arg2 and (scmp(argname, "ss") or scmp(argname, "long") or scmp(argname, "ud2")))
+    if(!has_arg2 && (scmp(argname, "ss") || scmp(argname, "long") || scmp(argname, "ud2")))
     {
         strcpy_s(argtype, argname);
         *argname = 0;
@@ -293,7 +293,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -346,7 +346,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -404,7 +404,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -605,7 +605,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -763,7 +763,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -844,7 +844,7 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
         dputs("Not enough arguments");
         return STATUS_ERROR;
     }
-    if(!valfromstring(argv[1], &addr, false) or !valfromstring(argv[2], &value, false))
+    if(!valfromstring(argv[1], &addr, false) || !valfromstring(argv[2], &value, false))
         return STATUS_ERROR;
     if(argc > 3)
     {
@@ -875,7 +875,6 @@ CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 {
     uint addr = MemFindBaseAddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
     DWORD ticks = GetTickCount();
-    char comment[MAX_COMMENT_SIZE] = "";
     for(uint i = addr; i < addr + 100000; i++)
     {
         CommentSet(i, "test", false);
@@ -981,12 +980,12 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         return STATUS_ERROR;
     }
     BOOL wow64 = false, mewow64 = false;
-    if(!IsWow64Process(hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+    if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
     {
         dputs("IsWow64Process failed!");
         return STATUS_ERROR;
     }
-    if((mewow64 and !wow64) or (!mewow64 and wow64))
+    if((mewow64 && !wow64) || (!mewow64 && wow64))
     {
 #ifdef _WIN64
         dputs("Use x32dbg to debug this process!");
@@ -1304,7 +1303,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     }
     BREAKPOINT found;
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1317,7 +1316,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
     }
     TITANSETDRX(found.titantype, drx);
     BpSetTitanType(found.addr, BPHARDWARE, found.titantype);
-    if(!BpEnable(found.addr, BPHARDWARE, true) or !SetHardwareBreakPoint(found.addr, drx, TITANGETTYPE(found.titantype), TITANGETSIZE(found.titantype), (void*)cbHardwareBreakpoint))
+    if(!BpEnable(found.addr, BPHARDWARE, true) || !SetHardwareBreakPoint(found.addr, drx, TITANGETTYPE(found.titantype), TITANGETSIZE(found.titantype), (void*)cbHardwareBreakpoint))
     {
         dprintf("Could not enable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1344,7 +1343,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     }
     BREAKPOINT found;
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1354,7 +1353,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
         dputs("Hardware breakpoint already disabled!");
         return STATUS_CONTINUE;
     }
-    if(!BpEnable(found.addr, BPHARDWARE, false) or !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    if(!BpEnable(found.addr, BPHARDWARE, false) || !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
         dprintf("Could not disable hardware breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1381,7 +1380,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     }
     BREAKPOINT found;
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1394,7 +1393,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
     }
     uint size = 0;
     MemFindBaseAddr(found.addr, &size);
-    if(!BpEnable(found.addr, BPMEMORY, true) or !SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
+    if(!BpEnable(found.addr, BPMEMORY, true) || !SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
     {
         dprintf("Could not enable memory breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;
@@ -1421,7 +1420,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     }
     BREAKPOINT found;
     uint addr = 0;
-    if(!valfromstring(argv[1], &addr) or !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
+    if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1433,7 +1432,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     }
     uint size = 0;
     MemFindBaseAddr(found.addr, &size);
-    if(!BpEnable(found.addr, BPMEMORY, false) or !RemoveMemoryBPX(found.addr, size))
+    if(!BpEnable(found.addr, BPMEMORY, false) || !RemoveMemoryBPX(found.addr, size))
     {
         dprintf("Could not disable memory breakpoint "fhex"\n", found.addr);
         return STATUS_ERROR;

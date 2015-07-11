@@ -47,7 +47,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         char format_str[deflen] = "";
         if(isvar)// and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff
         {
-            if(value > 15 and !hexonly)
+            if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
@@ -63,7 +63,7 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
         }
         else
         {
-            if(value > 15 and !hexonly)
+            if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
                     sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
@@ -207,7 +207,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
         if(!isvar)
             isvar = vargettype(argv[1], 0);
-        if(!isvar or !valtostring(argv[1], set_value, true))
+        if(!isvar || !valtostring(argv[1], set_value, true))
         {
             uint value;
             if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
@@ -464,7 +464,7 @@ CMDRESULT cbInstrFunctionAdd(int argc, char* argv[])
     }
     uint start = 0;
     uint end = 0;
-    if(!valfromstring(argv[1], &start, false) or !valfromstring(argv[2], &end, false))
+    if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!FunctionAdd(start, end, true))
     {
@@ -887,10 +887,10 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     VALUERANGE range;
     if(!valfromstring(argv[1], &range.start, false))
         return STATUS_ERROR;
-    if(argc < 3 or !valfromstring(argv[2], &range.end, false))
+    if(argc < 3 || !valfromstring(argv[2], &range.end, false))
         range.end = range.start;
     uint addr = 0;
-    if(argc < 4 or !valfromstring(argv[3], &addr))
+    if(argc < 4 || !valfromstring(argv[3], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
     if(argc >= 5)
@@ -932,7 +932,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        if(!found and disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
+        if(!found && disasmgetstringat(basicinfo->memory.value, &strtype, string, string, 500))
             found = true;
     }
     if(found)
@@ -959,7 +959,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
     uint addr;
-    if(argc < 2 or !valfromstring(argv[1], &addr, true))
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
     if(argc >= 3)
@@ -1015,7 +1015,7 @@ CMDRESULT cbInstrGetstr(int argc, char* argv[])
         return STATUS_ERROR;
     }
     int size;
-    if(!varget(argv[1], (char*)0, &size, 0) or !size)
+    if(!varget(argv[1], (char*)0, &size, 0) || !size)
     {
         dprintf("failed to get variable size \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
@@ -1050,7 +1050,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         return STATUS_ERROR;
     }
     int size;
-    if(!varget(argv[2], (char*)0, &size, 0) or !size)
+    if(!varget(argv[2], (char*)0, &size, 0) || !size)
     {
         dprintf("failed to get variable size \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
@@ -1198,10 +1198,15 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     int refCount = 0;
     uint i = 0;
     uint result = 0;
+    std::vector<PatternByte> searchpattern;
+    if(!patterntransform(pattern, searchpattern))
+    {
+        dputs("failed to transform pattern!");
+        return STATUS_ERROR;
+    }
     while(refCount < 5000)
     {
-        int patternsize = 0;
-        uint foundoffset = patternfind(data + start + i, find_size - i, pattern, &patternsize);
+        uint foundoffset = patternfind(data + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;
@@ -1212,9 +1217,9 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
         {
-            Memory<unsigned char*> printData(patternsize, "cbInstrFindAll:printData");
-            MemRead((void*)result, printData, patternsize, 0);
-            for(int j = 0, k = 0; j < patternsize; j++)
+            Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+            MemRead((void*)result, printData(), printData.size(), 0);
+            for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
                     k += sprintf(msg + k, " ");
@@ -1271,7 +1276,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
 CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 {
     uint addr;
-    if(argc < 2 or !valfromstring(argv[1], &addr, true))
+    if(argc < 2 || !valfromstring(argv[1], &addr, true))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
     if(argc >= 3)
@@ -1506,7 +1511,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf(addrText, fhex, disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -1527,7 +1532,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     }
 
     uint addr = 0;
-    if(argc < 3 or !valfromstring(argv[2], &addr))
+    if(argc < 3 || !valfromstring(argv[2], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
     uint size = 0;
     if(argc >= 4)
@@ -1679,19 +1684,34 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         return STATUS_ERROR;
     }
     uint addr = 0;
-    if(argc < 3 || !valfromstring(argv[2], &addr))
-    {
-        SELECTIONDATA sel;
-        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-        addr = sel.start;
-    }
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    addr = sel.start;
+
+    uint base = 0;
     uint size = 0;
-    if(argc >= 4)
-        if(!valfromstring(argv[3], &size))
-            size = 0;
-    if(!size)
-        addr = MemFindBaseAddr(addr, &size);
-    uint base = addr;
+    uint mod = ModBaseFromName(argv[2]);
+    if(mod)
+    {
+        base = mod;
+        size = ModSizeFromAddr(base);
+    }
+    else
+    {
+        if(!valfromstring(argv[2], &addr))
+        {
+            dprintf("invalid value \"%s\"!\n", argv[2]);
+            return STATUS_ERROR;
+        }
+
+        size = 0;
+        if(argc >= 4)
+            if(!valfromstring(argv[3], &size))
+                size = 0;
+        if(!size)
+            addr = MemFindBaseAddr(addr, &size);
+        base = addr;
+    }
     Memory<uint8_t*> data(size);
     if(!MemRead((void*)base, data(), size, 0))
     {

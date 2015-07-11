@@ -198,12 +198,13 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
         instr->argcount = 0;
         return;
     }
-    sprintf_s(instr->instruction, "%s %s", cp.GetInstr()->mnemonic, cp.GetInstr()->op_str);
-    const cs_x86 & x86 = cp.GetInstr()->detail->x86;
-    instr->instr_size = cp.GetInstr()->size;
+    const cs_insn* cpInstr = cp.GetInstr();
+    sprintf_s(instr->instruction, "%s %s", cpInstr->mnemonic, cpInstr->op_str);
+    const cs_x86 & x86 = cpInstr->detail->x86;
+    instr->instr_size = cpInstr->size;
     if(cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_RET) || cp.InGroup(CS_GRP_CALL))
         instr->type = instr_branch;
-    else if(strstr(cp.GetInstr()->op_str, "sp") || strstr(cp.GetInstr()->op_str, "bp"))
+    else if(strstr(cpInstr->op_str, "sp") || strstr(cpInstr->op_str, "bp"))
         instr->type = instr_stack;
     else
         instr->type = instr_normal;
@@ -244,10 +245,10 @@ static bool isasciistring(const unsigned char* data, int maxlen)
             break;
     }
 
-    if(len < 2 or len + 1 >= maxlen)
+    if(len < 2 || len + 1 >= maxlen)
         return false;
     for(int i = 0; i < len; i++)
-        if(!isprint(data[i]) and !isspace(data[i]))
+        if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     return true;
 }
@@ -261,13 +262,13 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
             break;
     }
 
-    if(len < 2 or len + 1 >= maxlen)
+    if(len < 2 || len + 1 >= maxlen)
         return false;
     for(int i = 0; i < len * 2; i += 2)
     {
         if(data[i + 1]) //Extended ASCII only
             return false;
-        if(!isprint(data[i]) and !isspace(data[i]))
+        if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     }
     return true;
@@ -281,7 +282,7 @@ bool disasmispossiblestring(uint addr)
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
+    if(isasciistring(data, sizeof(data)) || isunicodestring(data, _countof(data)))
         return true;
     return false;
 }

@@ -112,7 +112,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
 
 void ControlFlowAnalysis::BasicBlocks()
 {
-    for(auto i = _blockStarts.begin(); i != _blockStarts.end(); i++)
+    for(auto i = _blockStarts.begin(); i != _blockStarts.end(); ++i)
     {
         uint start = *i;
         if(!IsValidAddress(start))

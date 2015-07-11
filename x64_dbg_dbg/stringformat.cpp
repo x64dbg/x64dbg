@@ -85,7 +85,6 @@ static unsigned int getArgNumType(const String & formatString, ValueType::ValueT
 
 static String handleFormatString(const String & formatString, const FormatValueVector & values)
 {
-    String result;
     ValueType::ValueType type = ValueType::Unknown;
     unsigned int argnum = getArgNumType(formatString, type);
     if(argnum < values.size())
