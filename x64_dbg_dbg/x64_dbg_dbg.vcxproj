@@ -22,6 +22,7 @@
     <ClCompile Include="addrinfo.cpp" />
     <ClCompile Include="analysis.cpp" />
     <ClCompile Include="AnalysisPass.cpp" />
+    <ClCompile Include="analysis_nukem.cpp" />
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="addrinfo.h" />
     <ClInclude Include="analysis.h" />
     <ClInclude Include="AnalysisPass.h" />
+    <ClInclude Include="analysis_nukem.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="BasicBlock.h" />
     <ClInclude Include="bookmark.h" />
