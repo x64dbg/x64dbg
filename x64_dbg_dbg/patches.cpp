@@ -106,7 +106,7 @@ bool PatchDelete(uint Address, bool Restore)
 
     // Restore the original byte at this address
     if(Restore)
-        MemWrite((void*)(found->second.addr + ModBaseFromAddr(Address)), &found->second.oldbyte, sizeof(char), nullptr);
+        MemWrite((found->second.addr + ModBaseFromAddr(Address)), &found->second.oldbyte, sizeof(char), nullptr);
 
     // Finally remove it from the list
     patches.erase(found);
@@ -147,7 +147,7 @@ void PatchDelRange(uint Start, uint End, bool Restore)
             {
                 // Restore the original byte if necessary
                 if(Restore)
-                    MemWrite((void*)(currentPatch.addr + moduleBase), &currentPatch.oldbyte, sizeof(char), nullptr);
+                    MemWrite((currentPatch.addr + moduleBase), &currentPatch.oldbyte, sizeof(char), nullptr);
 
                 itr = patches.erase(itr);
             }

@@ -15,7 +15,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
 {
     uint data = 0;
     memset(comment, 0, sizeof(STACK_COMMENT));
-    MemRead((void*)addr, &data, sizeof(uint), 0);
+    MemRead(addr, &data, sizeof(uint), 0);
     if(!MemIsValidReadPtr(data)) //the stack value is no pointer
         return false;
 
@@ -25,7 +25,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
     if(readStart < base)
         readStart = base;
     unsigned char disasmData[256];
-    MemRead((void*)readStart, disasmData, sizeof(disasmData), 0);
+    MemRead(readStart, disasmData, sizeof(disasmData), 0);
     uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
     uint previousInstr = readStart + prev;
 
@@ -126,7 +126,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
     while(i != stackbase + stacksize)
     {
         uint data = 0;
-        MemRead((void*)i, &data, sizeof(uint), 0);
+        MemRead(i, &data, sizeof(uint), 0);
         if(MemIsValidReadPtr(data)) //the stack value is a pointer
         {
             uint size = 0;
@@ -135,7 +135,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             if(readStart < base)
                 readStart = base;
             unsigned char disasmData[256];
-            MemRead((void*)readStart, disasmData, sizeof(disasmData), 0);
+            MemRead(readStart, disasmData, sizeof(disasmData), 0);
             uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
             uint previousInstr = readStart + prev;
             BASIC_INSTRUCTION_INFO basicinfo;

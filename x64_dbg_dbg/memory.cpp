@@ -174,7 +174,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
     return found->first.first;
 }
 
-bool MemRead(const void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
+bool MemRead(uint BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
@@ -228,7 +228,7 @@ bool MemRead(const void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberO
     return (*NumberOfBytesRead > 0);
 }
 
-bool MemWrite(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemWrite(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
@@ -244,7 +244,7 @@ bool MemWrite(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* Number
         NumberOfBytesWritten = &bytesWrittenTemp;
 
     // Try a regular WriteProcessMemory call
-    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesWritten);
+    bool ret = MemoryWriteSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesWritten);
 
     if(ret && *NumberOfBytesWritten == Size)
         return true;
@@ -282,7 +282,7 @@ bool MemWrite(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* Number
     return (*NumberOfBytesWritten > 0);
 }
 
-bool MemPatch(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemPatch(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
     // Buffer and size must be valid
     if(!Buffer || Size <= 0)
@@ -307,7 +307,7 @@ bool MemPatch(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* Number
 bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return MemRead((const void*)Address, &a, sizeof(unsigned char), nullptr);
+    return MemRead(Address, &a, sizeof(unsigned char), nullptr);
 }
 
 bool MemIsCanonicalAddress(uint Address)

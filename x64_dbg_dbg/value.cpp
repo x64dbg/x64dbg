@@ -1550,7 +1550,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
         }
         uint addr = *value;
         *value = 0;
-        if(!MemRead((void*)addr, value, read_size, 0))
+        if(!MemRead(addr, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to read memory");
@@ -2151,7 +2151,7 @@ bool valtostring(const char* string, uint value, bool silent)
             return false;
         }
         uint value_ = value;
-        if(!MemPatch((void*)temp, &value_, read_size, 0))
+        if(!MemPatch(temp, &value_, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");

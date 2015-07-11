@@ -40,7 +40,7 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
 
-    if(!MemRead((PVOID)scanStart, data, scanSize, nullptr))
+    if(!MemRead(scanStart, data, scanSize, nullptr))
     {
         if(!Silent)
             dprintf("Error reading memory in reference search\n");

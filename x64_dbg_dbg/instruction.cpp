@@ -187,7 +187,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             data[j] = res;
         }
         //Move data to destination
-        if(!MemWrite((void*)dest, data, data.size(), 0))
+        if(!MemWrite(dest, data, data.size(), 0))
         {
             dprintf("failed to write to "fhex"\n", dest);
             return STATUS_ERROR;
@@ -1069,7 +1069,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!MemPatch((void*)addr, string, strlen(string), 0))
+    if(!MemPatch(addr, string, strlen(string), 0))
     {
         dputs("memwrite failed!");
         return STATUS_ERROR;
@@ -1107,7 +1107,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
-    if(!MemRead((void*)base, data, size, 0))
+    if(!MemRead(base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1159,7 +1159,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
-    if(!MemRead((void*)base, data, size, 0))
+    if(!MemRead(base, data, size, 0))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1219,7 +1219,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         if(findData)
         {
             Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
-            MemRead((void*)result, printData(), printData.size(), 0);
+            MemRead(result, printData(), printData.size(), 0);
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
@@ -1714,7 +1714,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         base = addr;
     }
     Memory<uint8_t*> data(size);
-    if(!MemRead((void*)base, data(), size, 0))
+    if(!MemRead(base, data(), size, 0))
     {
         dprintf("failed to read memory page %p[%X]!\n", base, size);
         return STATUS_ERROR;
@@ -1844,7 +1844,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     }
 
     unsigned char data[16];
-    if(!MemRead((void*)addr, data, sizeof(data), 0))
+    if(!MemRead(addr, data, sizeof(data), 0))
     {
         dprintf("could not read memory at %p\n", addr);
         return STATUS_ERROR;
@@ -1965,7 +1965,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         uint _base = start;
         uint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
-        MemRead((void*)_base, _data(), _size, nullptr);
+        MemRead(_base, _data(), _size, nullptr);
         FunctionClear();
 
         //linear search with some trickery
