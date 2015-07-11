@@ -293,11 +293,12 @@ void pluginunload()
     int pluginCount = (int)pluginList.size();
     for(int i = pluginCount - 1; i > -1; i--)
     {
-        PLUGSTOP stop = pluginList.at(i).plugstop;
+        const auto & currentPlugin = pluginList.at(i);
+        PLUGSTOP stop = currentPlugin.plugstop;
         if(stop)
             stop();
-        plugincmdunregisterall(pluginList.at(i).initStruct.pluginHandle);
-        FreeLibrary(pluginList.at(i).hPlugin);
+        plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
+        FreeLibrary(currentPlugin.hPlugin);
         pluginList.erase(pluginList.begin() + i);
     }
     pluginCallbackList.clear(); //remove all callbacks
@@ -445,15 +446,15 @@ int pluginmenuadd(int hMenu, const char* title)
 */
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
-    if(!title or !strlen(title) or hEntry == -1)
+    if(!title || !strlen(title) or hEntry == -1)
         return false;
     int pluginHandle = -1;
     //find plugin handle
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    for(const auto & currentMenu : pluginMenuList)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
         {
-            pluginHandle = pluginMenuList.at(i).pluginHandle;
+            pluginHandle = currentMenu.pluginHandle;
             break;
         }
     }
@@ -526,20 +527,17 @@ void pluginmenucall(int hEntry)
 {
     if(hEntry == -1)
         return;
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    for(const auto & currentMenu : pluginMenuList)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hEntry && pluginMenuList.at(i).hEntryPlugin != -1)
+        if(currentMenu.hEntryMenu == hEntry && currentMenu.hEntryPlugin != -1)
         {
             PLUG_CB_MENUENTRY menuEntryInfo;
-            menuEntryInfo.hEntry = pluginMenuList.at(i).hEntryPlugin;
-            int pluginCallbackCount = (int)pluginCallbackList.size();
-            int pluginHandle = pluginMenuList.at(i).pluginHandle;
-            for(int j = 0; j < pluginCallbackCount; j++)
+            menuEntryInfo.hEntry = currentMenu.hEntryPlugin;
+            for(const auto & currentCallback : pluginCallbackList)
             {
-                if(pluginCallbackList.at(j).pluginHandle == pluginHandle and pluginCallbackList.at(j).cbType == CB_MENUENTRY)
+                if(currentCallback.pluginHandle == currentMenu.pluginHandle && currentCallback.cbType == CB_MENUENTRY)
                 {
-                    //TODO: handle exceptions
-                    pluginCallbackList.at(j).cbPlugin(CB_MENUENTRY, &menuEntryInfo);
+                    currentCallback.cbPlugin(CB_MENUENTRY, &menuEntryInfo);
                     return;
                 }
             }
@@ -605,12 +603,11 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
 {
     if(hEntry == -1)
         return;
-    bool bFound = false;
-    for(unsigned int i = 0; i < pluginMenuList.size(); i++)
+    for(const auto & currentMenu : pluginMenuList)
     {
-        if(pluginMenuList.at(i).pluginHandle == pluginHandle && pluginMenuList.at(i).hEntryPlugin == hEntry)
+        if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
-            GuiMenuSetEntryIcon(pluginMenuList.at(i).hEntryMenu, icon);
+            GuiMenuSetEntryIcon(currentMenu.hEntryMenu, icon);
             break;
         }
     }

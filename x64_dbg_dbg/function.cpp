@@ -120,18 +120,19 @@ void FunctionDelRange(uint Start, uint End)
         EXCLUSIVE_ACQUIRE(LockFunctions);
         for(auto itr = functions.begin(); itr != functions.end();)
         {
+            const auto & currentFunction = itr->second;
             // Ignore manually set entries
-            if(itr->second.manual)
+            if(currentFunction.manual)
             {
-                itr++;
+                ++itr;
                 continue;
             }
 
             // [Start, End]
-            if(itr->second.end >= Start && itr->second.start <= End)
+            if(currentFunction.end >= Start && currentFunction.start <= End)
                 itr = functions.erase(itr);
             else
-                itr++;
+                ++itr;
         }
     }
 }

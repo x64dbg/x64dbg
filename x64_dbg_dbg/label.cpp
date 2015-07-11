@@ -124,18 +124,19 @@ void LabelDelRange(uint Start, uint End)
         EXCLUSIVE_ACQUIRE(LockLabels);
         for(auto itr = labels.begin(); itr != labels.end();)
         {
+            const auto & currentLabel = itr->second;
             // Ignore manually set entries
-            if(itr->second.manual)
+            if(currentLabel.manual)
             {
-                itr++;
+                ++itr;
                 continue;
             }
 
             // [Start, End)
-            if(itr->second.addr >= Start && itr->second.addr < End)
+            if(currentLabel.addr >= Start && currentLabel.addr < End)
                 itr = labels.erase(itr);
             else
-                itr++;
+                ++itr;
         }
     }
 }

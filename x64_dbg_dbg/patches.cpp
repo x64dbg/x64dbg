@@ -142,17 +142,18 @@ void PatchDelRange(uint Start, uint End, bool Restore)
         EXCLUSIVE_ACQUIRE(LockPatches);
         for(auto itr = patches.begin(); itr != patches.end();)
         {
+            const auto & currentPatch = itr->second;
             // [Start, End)
-            if(itr->second.addr >= Start && itr->second.addr < End)
+            if(currentPatch.addr >= Start && currentPatch.addr < End)
             {
                 // Restore the original byte if necessary
                 if(Restore)
-                    MemWrite((void*)(itr->second.addr + moduleBase), &itr->second.oldbyte, sizeof(char), nullptr);
+                    MemWrite((void*)(currentPatch.addr + moduleBase), &currentPatch.oldbyte, sizeof(char), nullptr);
 
                 itr = patches.erase(itr);
             }
             else
-                itr++;
+                ++itr;
         }
     }
 }
@@ -313,7 +314,7 @@ void PatchClear(const char* Module)
             if(!_stricmp(itr->second.mod, Module))
                 itr = patches.erase(itr);
             else
-                itr++;
+                ++itr;
         }
     }
 }

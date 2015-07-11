@@ -59,12 +59,17 @@ static int scriptlabelfind(const char* labelname)
     return 0;
 }
 
+static inline bool isEmptyLine(SCRIPTLINETYPE type)
+{
+    return type == lineempty || type == linecomment || type == linelabel;
+}
+
 static int scriptinternalstep(int fromIp) //internal step routine
 {
     int maxIp = (int)linemap.size(); //maximum ip
     if(fromIp >= maxIp) //script end
         return fromIp;
-    while((linemap.at(fromIp).type == lineempty or linemap.at(fromIp).type == linecomment or linemap.at(fromIp).type == linelabel) and fromIp < maxIp) //skip empty lines
+    while(isEmptyLine(linemap.at(fromIp).type) && fromIp < maxIp) //skip empty lines
         fromIp++;
     fromIp++;
     return fromIp;
@@ -143,13 +148,13 @@ static bool scriptcreatelinemap(const char* filename)
         strcpy_s(entry.raw, temp);
         linemap.push_back(entry);
     }
-    unsigned int linemapsize = (unsigned int)linemap.size();
+    int linemapsize = (int)linemap.size();
     while(!*linemap.at(linemapsize - 1).raw) //remove empty lines from the end
     {
         linemapsize--;
         linemap.pop_back();
     }
-    for(unsigned int i = 0; i < linemapsize; i++)
+    for(int i = 0; i < linemapsize; i++)
     {
         LINEMAPENTRY cur = linemap.at(i);
 
@@ -232,21 +237,22 @@ static bool scriptcreatelinemap(const char* filename)
         linemap.at(i) = cur;
     }
     linemapsize = (int)linemap.size();
-    for(unsigned int i = 0; i < linemapsize; i++)
+    for(int i = 0; i < linemapsize; i++)
     {
-        if(linemap.at(i).type == linebranch) //invalid branch label
+        auto & currentLine = linemap.at(i);
+        if(currentLine.type == linebranch)  //invalid branch label
         {
-            int labelline = scriptlabelfind(linemap.at(i).u.branch.branchlabel);
+            int labelline = scriptlabelfind(currentLine.u.branch.branchlabel);
             if(!labelline) //invalid branch label
             {
                 char message[256] = "";
-                sprintf(message, "Invalid branch label \"%s\" detected on line %d!", linemap.at(i).u.branch.branchlabel, i + 1);
+                sprintf(message, "Invalid branch label \"%s\" detected on line %d!", currentLine.u.branch.branchlabel, i + 1);
                 GuiScriptError(0, message);
                 std::vector<LINEMAPENTRY>().swap(linemap);
                 return false;
             }
             else //set the branch destination line
-                linemap.at(i).u.branch.dest = scriptinternalstep(labelline);
+                currentLine.u.branch.dest = scriptinternalstep(labelline);
         }
     }
     if(linemap.at(linemapsize - 1).type == linecomment or linemap.at(linemapsize - 1).type == linelabel) //label/comment on the end

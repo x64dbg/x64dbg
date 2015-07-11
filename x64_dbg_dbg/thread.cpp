@@ -41,7 +41,7 @@ void ThreadExit(DWORD ThreadId)
     EXCLUSIVE_ACQUIRE(LockThreads);
 
     // Don't use a foreach loop here because of the erase() call
-    for(auto itr = threadList.begin(); itr != threadList.end(); itr++)
+    for(auto itr = threadList.begin(); itr != threadList.end(); ++itr)
     {
         if(itr->ThreadId == ThreadId)
         {

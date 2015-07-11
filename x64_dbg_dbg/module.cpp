@@ -200,15 +200,16 @@ uint ModBaseFromName(const char* Module)
 
     SHARED_ACQUIRE(LockModules);
 
-    for(auto itr = modinfo.begin(); itr != modinfo.end(); itr++)
+    for(const auto & i : modinfo)
     {
-        char currentModule[MAX_MODULE_SIZE];
-        strcpy_s(currentModule, itr->second.name);
-        strcat_s(currentModule, itr->second.extension);
+        const auto & currentModule = i.second;
+        char currentModuleName[MAX_MODULE_SIZE];
+        strcpy_s(currentModuleName, currentModule.name);
+        strcat_s(currentModuleName, currentModule.extension);
 
         // Test with and without extension
-        if(!_stricmp(currentModule, Module) || !_stricmp(itr->second.name, Module))
-            return itr->second.base;
+        if(!_stricmp(currentModuleName, Module) || !_stricmp(currentModule.name, Module))
+            return currentModule.base;
     }
 
     return 0;

@@ -968,14 +968,14 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         if(MemRead(DebugString->lpDebugStringData, DebugText, DebugString->nDebugStringLength, 0))
         {
             String str = String(DebugText);
-            if(str != lastDebugText) //fix for every string being printed twice
+            if(str != lastDebugText)  //fix for every string being printed twice
             {
                 if(str != "\n")
                     dprintf("DebugString: \"%s\"\n", StringUtils::Escape(str).c_str());
                 lastDebugText = str;
             }
             else
-                lastDebugText = "";
+                lastDebugText.clear();
         }
     }
 

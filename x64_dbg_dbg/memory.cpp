@@ -60,10 +60,11 @@ void MemUpdateMap(HANDLE hProcess)
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {
-        if(!pageVector.at(i).info[0] || (scmp(curMod, pageVector.at(i).info) && !bListAllPages))  //there is a module
+        auto & currentPage = pageVector.at(i);
+        if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))   //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        uint base = ModBaseFromName(pageVector.at(i).info);
+        uint base = ModBaseFromName(currentPage.info);
         if(!base)
             continue;
         std::vector<MODSECTIONINFO> sections;
@@ -79,14 +80,15 @@ void MemUpdateMap(HANDLE hProcess)
             pageVector.erase(pageVector.begin() + i); //remove the SizeOfImage page
             for(int j = SectionNumber - 1; j > -1; j--)
             {
+                const auto & currentSection = sections.at(j);
                 memset(&newPage, 0, sizeof(MEMPAGE));
-                VirtualQueryEx(hProcess, (LPCVOID)sections.at(j).addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                uint SectionSize = sections.at(j).size;
+                VirtualQueryEx(hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                uint SectionSize = currentSection.size;
                 if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 if(SectionSize)
                     newPage.mbi.RegionSize = SectionSize;
-                sprintf_s(newPage.info, " \"%s\"", sections.at(j).name);
+                sprintf_s(newPage.info, " \"%s\"", currentSection.name);
                 pageVector.insert(pageVector.begin() + i, newPage);
             }
             //insert the module itself (the module header)
@@ -97,26 +99,27 @@ void MemUpdateMap(HANDLE hProcess)
         }
         else //list all pages
         {
-            uint start = (uint)pageVector.at(i).mbi.BaseAddress;
-            uint end = start + pageVector.at(i).mbi.RegionSize;
+            uint start = (uint)currentPage.mbi.BaseAddress;
+            uint end = start + currentPage.mbi.RegionSize;
             for(int j = 0, k = 0; j < SectionNumber; j++)
             {
-                uint secStart = sections.at(j).addr;
-                uint SectionSize = sections.at(j).size;
+                const auto & currentSection = sections.at(j);
+                uint secStart = currentSection.addr;
+                uint SectionSize = currentSection.size;
                 if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 uint secEnd = secStart + SectionSize;
                 if(secStart >= start && secEnd <= end)  //section is inside the memory page
                 {
                     if(k)
-                        k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, ",");
-                    k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, " \"%s\"", sections.at(j).name);
+                        k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
+                    k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, " \"%s\"", currentSection.name);
                 }
                 else if(start >= secStart && end <= secEnd)  //memory page is inside the section
                 {
                     if(k)
-                        k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, ",");
-                    k += sprintf_s(pageVector.at(i).info + k, MAX_MODULE_SIZE - k, " \"%s\"", sections.at(j).name);
+                        k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
+                    k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, " \"%s\"", currentSection.name);
                 }
             }
         }
@@ -155,7 +158,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
     return found->first.first;
 }
 
-bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
+bool MemRead(const void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
 {
     // Fast fail if address is invalid
     if(!MemIsCanonicalAddress((uint)BaseAddress))
@@ -172,7 +175,7 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
         NumberOfBytesRead = &bytesReadTemp;
 
     // Normal single-call read
-    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, BaseAddress, Buffer, Size, NumberOfBytesRead);
+    bool ret = MemoryReadSafe(fdProcessInfo->hProcess, (LPVOID)BaseAddress, Buffer, Size, NumberOfBytesRead);
 
     if(ret && *NumberOfBytesRead == Size)
         return true;
@@ -210,7 +213,7 @@ bool MemRead(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytes
     return (*NumberOfBytesRead > 0);
 }
 
-bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemWrite(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
     // Fast fail if address is invalid
     if(!MemIsCanonicalAddress((uint)BaseAddress))
@@ -265,7 +268,7 @@ bool MemWrite(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     return (*NumberOfBytesWritten > 0);
 }
 
-bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemPatch(void* BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
 {
     // Buffer and size must be valid
     if(!Buffer || Size <= 0)
@@ -274,7 +277,7 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     // Allocate the memory
     Memory<unsigned char*> oldData(Size, "mempatch:oldData");
 
-    if(!MemRead(BaseAddress, oldData, Size, nullptr))
+    if(!MemRead(BaseAddress, oldData(), Size, nullptr))
     {
         // If no memory can be read, no memory can be written. Fail out
         // of this function.
@@ -282,7 +285,7 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
     }
 
     for(SIZE_T i = 0; i < Size; i++)
-        PatchSet((uint)BaseAddress + i, oldData[i], ((unsigned char*)Buffer)[i]);
+        PatchSet((uint)BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
 
     return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }
@@ -290,7 +293,7 @@ bool MemPatch(void* BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfByte
 bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return MemRead((void*)Address, &a, sizeof(unsigned char), nullptr);
+    return MemRead((const void*)Address, &a, sizeof(unsigned char), nullptr);
 }
 
 bool MemIsCanonicalAddress(uint Address)

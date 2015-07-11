@@ -92,7 +92,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         strcpy_s(label, addrinfo.label);
     char module[MAX_MODULE_SIZE] = "";
     ModNameFromAddr(data, module, false);
-    char addrInfo[MAX_COMMENT_SIZE] = "";
+
     if(*module) //module
     {
         if(*label) //+label
