@@ -483,7 +483,8 @@ QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, i
         int_t wRva = (rowBase + rowOffset) * getBytePerRowCount() - mByteOffset;
         mMemPage->read((byte_t*)&data, wRva, sizeof(uint_t));
         char modname[MAX_MODULE_SIZE] = "";
-        DbgGetModuleAt(data, modname);
+        if(!DbgGetModuleAt(data, modname))
+            modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             wStr = QString(modname) + "." + QString(label_text);

@@ -96,8 +96,7 @@ static const char* regTable[] =
 SCRIPT_EXPORT duint Script::Register::Get(Script::Register::RegisterEnum reg)
 {
     duint value;
-    valfromstring(regTable[reg], &value);
-    return value;
+    return valfromstring(regTable[reg], &value) ? value : 0;
 }
 
 SCRIPT_EXPORT bool Script::Register::Set(Script::Register::RegisterEnum reg, duint value)

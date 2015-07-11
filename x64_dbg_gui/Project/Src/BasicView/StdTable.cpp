@@ -8,6 +8,7 @@ StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
     mSelection = data;
 
     mIsMultiSelctionAllowed = false;
+    mIsColumnSortingAllowed = true;
 
     mData.clear();
     mSort.first = -1;

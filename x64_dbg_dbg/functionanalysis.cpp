@@ -71,8 +71,10 @@ void FunctionAnalysis::AnalyseFunctions()
         uint end = FindFunctionEnd(function.start, maxaddr);
         if(end)
         {
-            _cp.Disassemble(end, TranslateAddress(end), MAX_DISASM_BUFFER);
-            function.end = end + _cp.Size() - 1;
+            if(_cp.Disassemble(end, TranslateAddress(end), MAX_DISASM_BUFFER))
+                function.end = end + _cp.Size() - 1;
+            else
+                function.end = end;
         }
     }
 }

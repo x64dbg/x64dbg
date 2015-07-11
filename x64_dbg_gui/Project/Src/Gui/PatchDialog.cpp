@@ -559,9 +559,11 @@ void PatchDialog::on_btnImport_clicked()
         unsigned char checkbyte = 0;
         DbgMemRead(curPatch.addr, &checkbyte, sizeof(checkbyte));
         IMPORTSTATUS status;
-        if(status.alreadypatched = checkbyte == newbyte)
+        status.alreadypatched = (checkbyte == newbyte);
+        status.badoriginal = (checkbyte != oldbyte);
+        if(status.alreadypatched)
             bAlreadyDone = true;
-        else if(status.badoriginal = checkbyte != oldbyte)
+        else if(status.badoriginal)
             bBadOriginal = true;
         curPatch.oldbyte = oldbyte;
         curPatch.newbyte = newbyte;

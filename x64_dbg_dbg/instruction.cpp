@@ -1511,7 +1511,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(found)
     {
         char addrText[20] = "";
-        sprintf(addrText, "%p", disasm->Address());
+        sprintf(addrText, fhex, disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
