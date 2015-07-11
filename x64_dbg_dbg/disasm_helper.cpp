@@ -248,10 +248,10 @@ static bool isasciistring(const unsigned char* data, int maxlen)
             break;
     }
 
-    if(len < 2 or len + 1 >= maxlen)
+    if(len < 2 || len + 1 >= maxlen)
         return false;
     for(int i = 0; i < len; i++)
-        if(!isprint(data[i]) and !isspace(data[i]))
+        if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     return true;
 }
@@ -265,13 +265,13 @@ static bool isunicodestring(const unsigned char* data, int maxlen)
             break;
     }
 
-    if(len < 2 or len + 1 >= maxlen)
+    if(len < 2 || len + 1 >= maxlen)
         return false;
     for(int i = 0; i < len * 2; i += 2)
     {
         if(data[i + 1]) //Extended ASCII only
             return false;
-        if(!isprint(data[i]) and !isspace(data[i]))
+        if(!isprint(data[i]) && !isspace(data[i]))
             return false;
     }
     return true;
@@ -285,7 +285,7 @@ bool disasmispossiblestring(uint addr)
         return false;
     uint test = 0;
     memcpy(&test, data, sizeof(uint));
-    if(isasciistring(data, sizeof(data)) or isunicodestring(data, _countof(data)))
+    if(isasciistring(data, sizeof(data)) || isunicodestring(data, _countof(data)))
         return true;
     return false;
 }

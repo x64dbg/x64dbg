@@ -92,7 +92,7 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     static uint cacheFlags;
     static uint cacheAddr;
     static bool cacheResult;
-    if(cacheAddr != addr or cacheFlags != GetContextDataEx(hActiveThread, UE_EFLAGS))
+    if(cacheAddr != addr || cacheFlags != GetContextDataEx(hActiveThread, UE_EFLAGS))
     {
         cacheFlags = GetContextDataEx(hActiveThread, UE_EFLAGS);
         cacheAddr = addr;
@@ -122,10 +122,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
             pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
             pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-            if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) and !displacement)
+            if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && !displacement)
             {
                 pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                     strcpy_s(addrinfo->label, pSymbol->Name);
                 retval = true;
             }
@@ -138,10 +138,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     uint val = 0;
                     if(MemRead((void*)basicinfo.memory.value, &val, sizeof(val), 0))
                     {
-                        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) and !displacement)
+                        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
                         {
                             pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                            if(!bUndecorateSymbolNames or !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
                                 sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
                             retval = true;
                         }
@@ -175,12 +175,12 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
             DWORD dwDisplacement;
             IMAGEHLP_LINE64 line;
             line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) and !dwDisplacement)
+            if(SafeSymGetLineFromAddr64(fdProcessInfo->hProcess, (DWORD64)addr, &dwDisplacement, &line) && !dwDisplacement)
             {
                 char filename[deflen] = "";
                 strcpy_s(filename, line.FileName);
                 int len = (int)strlen(filename);
-                while(filename[len] != '\\' and len != 0)
+                while(filename[len] != '\\' && len != 0)
                     len--;
                 if(len)
                     len++;
@@ -208,7 +208,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
 
                     if(instr.arg[i].constant == instr.arg[i].value) //avoid: call <module.label> ; addr:label
                     {
-                        if(instr.type == instr_branch or !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) or strtype == str_none)
+                        if(instr.type == instr_branch || !disasmgetstringat(instr.arg[i].constant, &strtype, ascii, unicode, len_left) || strtype == str_none)
                             continue;
                         switch(strtype)
                         {
@@ -228,7 +228,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             break;
                         }
                     }
-                    else if(instr.arg[i].memvalue and (disasmgetstringat(instr.arg[i].memvalue, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].memvalue && (disasmgetstringat(instr.arg[i].memvalue, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].memvalue, instr.arg[i].segment, &newinfo)))
                     {
                         switch(strtype)
                         {
@@ -255,7 +255,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                             break;
                         }
                     }
-                    else if(instr.arg[i].value and (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) or _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
+                    else if(instr.arg[i].value && (disasmgetstringat(instr.arg[i].value, &strtype, ascii, unicode, len_left) || _dbg_addrinfoget(instr.arg[i].value, instr.arg[i].segment, &newinfo)))
                     {
                         if(instr.type != instr_normal) //stack/jumps (eg add esp,4 or jmp 401110) cannot directly point to strings
                             strtype = str_none;
@@ -333,7 +333,7 @@ extern "C" DLL_EXPORT int _dbg_bpgettypeat(duint addr)
     static int cacheBpCount;
     static int cacheResult;
     int bpcount = BpGetList(nullptr);
-    if(cacheAddr != addr or cacheBpCount != bpcount)
+    if(cacheAddr != addr || cacheBpCount != bpcount)
     {
         BREAKPOINT bp;
         cacheAddr = addr;
@@ -792,7 +792,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
 
     case DBG_DISASM_FAST_AT:
     {
-        if(!param1 or !param2)
+        if(!param1 || !param2)
             return 0;
         BASIC_INSTRUCTION_INFO* basicinfo = (BASIC_INSTRUCTION_INFO*)param2;
         if(!disasmfast((uint)param1, basicinfo))

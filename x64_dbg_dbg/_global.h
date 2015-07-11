@@ -30,11 +30,6 @@
 #include "stringutils.h"
 #include "dbghelp_safe.h"
 
-#ifndef __GNUC__
-#define and &&
-#define or ||
-#endif
-
 #ifndef DLL_EXPORT
 #define DLL_EXPORT __declspec(dllexport)
 #endif //DLL_IMPORT

@@ -166,7 +166,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     memset(&export_dir, 0, sizeof(export_dir));
     MemRead((void*)(export_dir_rva + base), &export_dir, sizeof(export_dir), 0);
     unsigned int NumberOfNames = export_dir.NumberOfNames;
-    if(!export_dir.NumberOfFunctions or !NumberOfNames) //no named exports
+    if(!export_dir.NumberOfFunctions || !NumberOfNames) //no named exports
         return false;
     char modname[MAX_MODULE_SIZE] = "";
     ModNameFromAddr(base, modname, true);
@@ -190,14 +190,14 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
         DWORD curFunctionRva = 0;
         MemRead(AddrOfFunctions_va + sizeof(DWORD)*curAddrOfNameOrdinals, &curFunctionRva, sizeof(DWORD), 0);
 
-        if(curFunctionRva >= export_dir_rva and curFunctionRva < export_dir_rva + export_dir_size)
+        if(curFunctionRva >= export_dir_rva && curFunctionRva < export_dir_rva + export_dir_size)
         {
             char forwarded_api[deflen] = "";
             memset(forwarded_api, 0, deflen);
             MemRead((void*)(curFunctionRva + base), forwarded_api, deflen, 0);
             int len = (int)strlen(forwarded_api);
             int j = 0;
-            while(forwarded_api[j] != '.' and j < len)
+            while(forwarded_api[j] != '.' && j < len)
                 j++;
             if(forwarded_api[j] == '.')
             {

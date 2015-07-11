@@ -207,7 +207,7 @@ void cbUserBreakpoint()
     BRIDGEBP pluginBp;
     PLUG_CB_BREAKPOINT bpInfo;
     bpInfo.breakpoint = 0;
-    if(!BpGet(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) and bp.enabled)
+    if(!BpGet(GetContextDataEx(hActiveThread, UE_CIP), BPNORMAL, 0, &bp) && bp.enabled)
         dputs("Breakpoint reached not in list!");
     else
     {
@@ -438,7 +438,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
             suspress = true;
             zerobar = true;
         }
-        else if(sscanf(text, "%*s %d percent", &percent) == 1 or sscanf(text, "%d percent", &percent) == 1)
+        else if(sscanf(text, "%*s %d percent", &percent) == 1 || sscanf(text, "%d percent", &percent) == 1)
         {
             GuiSymbolSetProgress(percent);
             suspress = true;
@@ -576,7 +576,7 @@ static unsigned char getCIPch()
 void cbRtrStep()
 {
     unsigned int cipch = getCIPch();
-    if(cipch == 0xC3 or cipch == 0xC2)
+    if(cipch == 0xC3 || cipch == 0xC2)
         cbRtrFinalStep();
     else
         StepOver((void*)cbRtrStep);
@@ -648,7 +648,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         BpEnumAll(cbSetModuleBreakpoints, modname);
     GuiUpdateBreakpointsView();
     pCreateProcessBase = (uint)CreateProcessInfo->lpBaseOfImage;
-    if(!bFileIsDll and !bIsAttached) //Set entry breakpoint
+    if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
     {
         pDebuggedBase = pCreateProcessBase; //debugged base = executable
         char command[256] = "";
@@ -842,7 +842,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char command[256] = "";
     bool bIsDebuggingThis = false;
-    if(bFileIsDll and !_stricmp(DLLDebugFileName, szFileName) and !bIsAttached) //Set entry breakpoint
+    if(bFileIsDll && !_stricmp(DLLDebugFileName, szFileName) && !bIsAttached) //Set entry breakpoint
     {
         bIsDebuggingThis = true;
         pDebuggedBase = (uint)base;
@@ -1044,7 +1044,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
         if(nameInfo.dwThreadID == -1) //current thread
             nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-        if(nameInfo.dwType == 0x1000 and nameInfo.dwFlags == 0 and ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
+        if(nameInfo.dwType == 0x1000 && nameInfo.dwFlags == 0 && ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
             if(MemRead((void*)nameInfo.szName, ThreadName, MAX_THREAD_NAME_SIZE - 1, 0))
@@ -1118,14 +1118,14 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
         return 0;
     }
     BOOL wow64 = false, mewow64 = false;
-    if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+    if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
     {
         dputs("IsWow64Process failed!");
         StopDebug();
         unlock(WAITID_STOP);
         return 0;
     }
-    if((mewow64 and !wow64) or (!mewow64 and wow64))
+    if((mewow64 && !wow64) || (!mewow64 && wow64))
     {
 #ifdef _WIN64
         dputs("Use x32dbg to debug this process!");
@@ -1156,7 +1156,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     //set GUI title
     strcpy_s(szBaseFileName, szFileName);
     int len = (int)strlen(szBaseFileName);
-    while(szBaseFileName[len] != '\\' and len)
+    while(szBaseFileName[len] != '\\' && len)
         len--;
     if(len)
         strcpy_s(szBaseFileName, szBaseFileName + len + 1);
@@ -1198,7 +1198,7 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
         dprintf("Delete breakpoint failed (BpDelete): "fhex"\n", bp->addr);
         return false;
     }
-    if(!bp->enabled or DeleteBPX(bp->addr))
+    if(!bp->enabled || DeleteBPX(bp->addr))
         return true;
     dprintf("Delete breakpoint failed (DeleteBPX): "fhex"\n", bp->addr);
     return false;
@@ -1206,7 +1206,7 @@ bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPNORMAL or bp->enabled)
+    if(bp->type != BPNORMAL || bp->enabled)
         return true;
 
     if(!BpEnable(bp->addr, BPNORMAL, true))
@@ -1224,7 +1224,7 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPNORMAL or !bp->enabled)
+    if(bp->type != BPNORMAL || !bp->enabled)
         return true;
 
     if(!BpEnable(bp->addr, BPNORMAL, false))
@@ -1242,7 +1242,7 @@ bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPHARDWARE or bp->enabled)
+    if(bp->type != BPHARDWARE || bp->enabled)
         return true;
     DWORD drx = 0;
     if(!GetUnusedHardwareBreakPointRegister(&drx))
@@ -1268,7 +1268,7 @@ bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPHARDWARE or !bp->enabled)
+    if(bp->type != BPHARDWARE || !bp->enabled)
         return true;
     if(!BpEnable(bp->addr, BPHARDWARE, false))
     {
@@ -1285,7 +1285,7 @@ bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 
 bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPMEMORY or bp->enabled)
+    if(bp->type != BPMEMORY || bp->enabled)
         return true;
     uint size = 0;
     MemFindBaseAddr(bp->addr, &size);
@@ -1304,7 +1304,7 @@ bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
 
 bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPMEMORY or !bp->enabled)
+    if(bp->type != BPMEMORY || !bp->enabled)
         return true;
     if(!BpEnable(bp->addr, BPMEMORY, false))
     {
@@ -1417,7 +1417,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     //set GUI title
     strcpy_s(szBaseFileName, szFileName);
     int len = (int)strlen(szBaseFileName);
-    while(szBaseFileName[len] != '\\' and len)
+    while(szBaseFileName[len] != '\\' && len)
         len--;
     if(len)
         strcpy_s(szBaseFileName, szBaseFileName + len + 1);
@@ -1790,9 +1790,9 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
         if(!hProcess)
             continue;
         BOOL wow64 = false, mewow64 = false;
-        if(!IsWow64Process(hProcess, &wow64) or !IsWow64Process(GetCurrentProcess(), &mewow64))
+        if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
             continue;
-        if((mewow64 and !wow64) or (!mewow64 and wow64))
+        if((mewow64 && !wow64) || (!mewow64 && wow64))
             continue;
         wchar_t szExePath[MAX_PATH] = L"";
         if(GetModuleFileNameExW(hProcess, 0, szExePath, MAX_PATH))

@@ -88,7 +88,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
 
 bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
-    if(!data or !basicinfo)
+    if(!data || !basicinfo)
         return false;
     Capstone cp;
     if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))

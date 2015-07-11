@@ -113,7 +113,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
 void stackgetcallstack(uint csp, CALLSTACK* callstack)
 {
     callstack->total = 0;
-    if(!DbgIsDebugging() or csp % sizeof(uint)) //alignment problem
+    if(!DbgIsDebugging() || csp % sizeof(uint)) //alignment problem
         return;
     if(!MemIsValidReadPtr(csp))
         return;

@@ -31,19 +31,19 @@ static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
     strcpy_s(newtext, StringUtils::Trim(text).c_str());
     if(!strstr(newtext, " "))
         strcat(newtext, " ");
-    if(!strncmp(newtext, "jmp ", 4) or !strncmp(newtext, "goto ", 5))
+    if(!strncmp(newtext, "jmp ", 4) || !strncmp(newtext, "goto ", 5))
         return scriptjmp;
-    else if(!strncmp(newtext, "jbe ", 4) or !strncmp(newtext, "ifbe ", 5) or !strncmp(newtext, "ifbeq ", 6) or !strncmp(newtext, "jle ", 4) or !strncmp(newtext, "ifle ", 5) or !strncmp(newtext, "ifleq ", 6))
+    else if(!strncmp(newtext, "jbe ", 4) || !strncmp(newtext, "ifbe ", 5) || !strncmp(newtext, "ifbeq ", 6) || !strncmp(newtext, "jle ", 4) || !strncmp(newtext, "ifle ", 5) || !strncmp(newtext, "ifleq ", 6))
         return scriptjbejle;
-    else if(!strncmp(newtext, "jae ", 4) or !strncmp(newtext, "ifae ", 5) or !strncmp(newtext, "ifaeq ", 6) or !strncmp(newtext, "jge ", 4) or !strncmp(newtext, "ifge ", 5) or !strncmp(newtext, "ifgeq ", 6))
+    else if(!strncmp(newtext, "jae ", 4) || !strncmp(newtext, "ifae ", 5) || !strncmp(newtext, "ifaeq ", 6) || !strncmp(newtext, "jge ", 4) || !strncmp(newtext, "ifge ", 5) || !strncmp(newtext, "ifgeq ", 6))
         return scriptjaejge;
-    else if(!strncmp(newtext, "jne ", 4) or !strncmp(newtext, "ifne ", 5) or !strncmp(newtext, "ifneq ", 6) or !strncmp(newtext, "jnz ", 4) or !strncmp(newtext, "ifnz ", 5))
+    else if(!strncmp(newtext, "jne ", 4) || !strncmp(newtext, "ifne ", 5) || !strncmp(newtext, "ifneq ", 6) || !strncmp(newtext, "jnz ", 4) || !strncmp(newtext, "ifnz ", 5))
         return scriptjnejnz;
-    else if(!strncmp(newtext, "je ", 3)  or !strncmp(newtext, "ife ", 4) or !strncmp(newtext, "ifeq ", 5) or !strncmp(newtext, "jz ", 3) or !strncmp(newtext, "ifz ", 4))
+    else if(!strncmp(newtext, "je ", 3)  || !strncmp(newtext, "ife ", 4) || !strncmp(newtext, "ifeq ", 5) || !strncmp(newtext, "jz ", 3) || !strncmp(newtext, "ifz ", 4))
         return scriptjejz;
-    else if(!strncmp(newtext, "jb ", 3) or !strncmp(newtext, "ifb ", 4) or !strncmp(newtext, "jl ", 3) or !strncmp(newtext, "ifl ", 4))
+    else if(!strncmp(newtext, "jb ", 3) || !strncmp(newtext, "ifb ", 4) || !strncmp(newtext, "jl ", 3) || !strncmp(newtext, "ifl ", 4))
         return scriptjbjl;
-    else if(!strncmp(newtext, "ja ", 3) or !strncmp(newtext, "ifa ", 4) or !strncmp(newtext, "jg ", 3) or !strncmp(newtext, "ifg ", 4))
+    else if(!strncmp(newtext, "ja ", 3) || !strncmp(newtext, "ifa ", 4) || !strncmp(newtext, "jg ", 3) || !strncmp(newtext, "ifg ", 4))
         return scriptjajg;
     else if(!strncmp(newtext, "call ", 5))
         return scriptcall;
@@ -105,7 +105,7 @@ static bool scriptcreatelinemap(const char* filename)
     std::vector<LINEMAPENTRY>().swap(linemap);
     for(int i = 0, j = 0; i < len; i++) //make raw line map
     {
-        if(filedata[i] == '\r' and filedata[i + 1] == '\n') //windows file
+        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
@@ -193,7 +193,7 @@ static bool scriptcreatelinemap(const char* filename)
             char temp[256] = "";
             strcpy_s(temp, cur.u.label + 2);
             strcpy_s(cur.u.label, temp); //remove fake command
-            if(!*cur.u.label or !strcmp(cur.u.label, "\"\"")) //no label text
+            if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
             {
                 char message[256] = "";
                 sprintf(message, "Empty label detected on line %d!", i + 1);
@@ -255,7 +255,7 @@ static bool scriptcreatelinemap(const char* filename)
                 currentLine.u.branch.dest = scriptinternalstep(labelline);
         }
     }
-    if(linemap.at(linemapsize - 1).type == linecomment or linemap.at(linemapsize - 1).type == linelabel) //label/comment on the end
+    if(linemap.at(linemapsize - 1).type == linecomment || linemap.at(linemapsize - 1).type == linelabel) //label/comment on the end
     {
         memset(&entry, 0, sizeof(entry));
         entry.type = linecommand;
@@ -277,7 +277,7 @@ static bool scriptinternalbpget(int line) //internal bpget routine
 
 static bool scriptinternalbptoggle(int line) //internal breakpoint
 {
-    if(!line or line > (int)linemap.size()) //invalid line
+    if(!line || line > (int)linemap.size()) //invalid line
         return false;
     line = scriptinternalstep(line - 1); //no breakpoints on non-executable locations
     if(scriptinternalbpget(line)) //remove breakpoint
@@ -370,19 +370,19 @@ static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should
             bJump = true;
         break;
     case scriptjbjl: //$_BS_FLAG=0 and $_EZ_FLAG=0 //below, not equal
-        if(!bsflag and !ezflag)
+        if(!bsflag && !ezflag)
             bJump = true;
         break;
     case scriptjajg: //$_BS_FLAG=1 and $_EZ_FLAG=0 //above, not equal
-        if(bsflag and !ezflag)
+        if(bsflag && !ezflag)
             bJump = true;
         break;
     case scriptjbejle: //$_BS_FLAG=0 or $_EZ_FLAG=1
-        if(!bsflag or ezflag)
+        if(!bsflag || ezflag)
             bJump = true;
         break;
     case scriptjaejge: //$_BS_FLAG=1 or $_EZ_FLAG=1
-        if(bsflag or ezflag)
+        if(bsflag || ezflag)
             bJump = true;
         break;
     default:
@@ -431,7 +431,7 @@ static bool scriptinternalcmd()
 static DWORD WINAPI scriptRunThread(void* arg)
 {
     int destline = (int)(uint)arg;
-    if(!destline or destline > (int)linemap.size()) //invalid line
+    if(!destline || destline > (int)linemap.size()) //invalid line
         destline = 0;
     if(destline)
     {
@@ -532,7 +532,7 @@ void scriptstep()
 
 bool scriptbptoggle(int line)
 {
-    if(!line or line > (int)linemap.size()) //invalid line
+    if(!line || line > (int)linemap.size()) //invalid line
         return false;
     line = scriptinternalstep(line - 1); //no breakpoints on non-executable locations
     if(scriptbpget(line)) //remove breakpoint
@@ -622,7 +622,7 @@ void scriptreset()
 
 bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info)
 {
-    if(!info or !line or line > (int)linemap.size()) //invalid line
+    if(!info || !line || line > (int)linemap.size()) //invalid line
         return false;
     if(linemap.at(line - 1).type != linebranch) //no branch
         return false;

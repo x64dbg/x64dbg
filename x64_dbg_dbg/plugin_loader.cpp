@@ -332,7 +332,7 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
     int pluginCallbackCount = (int)pluginCallbackList.size();
     for(int i = 0; i < pluginCallbackCount; i++)
     {
-        if(pluginCallbackList.at(i).pluginHandle == pluginHandle and pluginCallbackList.at(i).cbType == cbType)
+        if(pluginCallbackList.at(i).pluginHandle == pluginHandle && pluginCallbackList.at(i).cbType == cbType)
         {
             pluginCallbackList.erase(pluginCallbackList.begin() + i);
             return true;
@@ -370,7 +370,7 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
 */
 bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cbCommand, bool debugonly)
 {
-    if(!command or strlen(command) >= deflen or strstr(command, "\1"))
+    if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
     PLUG_COMMAND plugCmd;
     plugCmd.pluginHandle = pluginHandle;
@@ -390,12 +390,12 @@ bool plugincmdregister(int pluginHandle, const char* command, CBPLUGINCOMMAND cb
 */
 bool plugincmdunregister(int pluginHandle, const char* command)
 {
-    if(!command or strlen(command) >= deflen or strstr(command, "\1"))
+    if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
     int listsize = (int)pluginCommandList.size();
     for(int i = 0; i < listsize; i++)
     {
-        if(pluginCommandList.at(i).pluginHandle == pluginHandle and !strcmp(pluginCommandList.at(i).command, command))
+        if(pluginCommandList.at(i).pluginHandle == pluginHandle && !strcmp(pluginCommandList.at(i).command, command))
         {
             if(!dbgcmddel(command))
                 return false;
@@ -415,12 +415,12 @@ bool plugincmdunregister(int pluginHandle, const char* command)
 */
 int pluginmenuadd(int hMenu, const char* title)
 {
-    if(!title or !strlen(title))
+    if(!title || !strlen(title))
         return -1;
     int nFound = -1;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
         {
             nFound = i;
             break;
@@ -446,7 +446,7 @@ int pluginmenuadd(int hMenu, const char* title)
 */
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
-    if(!title || !strlen(title) or hEntry == -1)
+    if(!title || !strlen(title) || hEntry == -1)
         return false;
     int pluginHandle = -1;
     //find plugin handle
@@ -485,7 +485,7 @@ bool pluginmenuaddseparator(int hMenu)
     bool bFound = false;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
         {
             bFound = true;
             break;
@@ -507,7 +507,7 @@ bool pluginmenuclear(int hMenu)
     bool bFound = false;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
         {
             bFound = true;
             break;
@@ -585,7 +585,7 @@ void pluginmenuseticon(int hMenu, const ICONDATA* icon)
     bool bFound = false;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
-        if(pluginMenuList.at(i).hEntryMenu == hMenu and pluginMenuList.at(i).hEntryPlugin == -1)
+        if(pluginMenuList.at(i).hEntryMenu == hMenu && pluginMenuList.at(i).hEntryPlugin == -1)
         {
             GuiMenuSetIcon(hMenu, icon);
             break;
