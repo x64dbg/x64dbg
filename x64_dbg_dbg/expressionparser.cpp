@@ -7,17 +7,17 @@ ExpressionParser::Token::Token(const String & data, const Type type)
     _type = type;
 }
 
-const String ExpressionParser::Token::data() const
+const String & ExpressionParser::Token::data() const
 {
     return _data;
 }
 
-const ExpressionParser::Token::Type ExpressionParser::Token::type() const
+ExpressionParser::Token::Type ExpressionParser::Token::type() const
 {
     return _type;
 }
 
-const ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
+ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
     switch(_type)
     {
@@ -41,7 +41,7 @@ const ExpressionParser::Token::Associativity ExpressionParser::Token::associativ
     }
 }
 
-const int ExpressionParser::Token::precedence() const
+int ExpressionParser::Token::precedence() const
 {
     switch(_type)
     {
@@ -70,13 +70,15 @@ const int ExpressionParser::Token::precedence() const
     }
 }
 
-const bool ExpressionParser::Token::isOperator() const
+bool ExpressionParser::Token::isOperator() const
 {
     return _type != Type::Data && _type != Type::OpenBracket && _type != Type::CloseBracket;
 }
 
 ExpressionParser::ExpressionParser(const String & expression)
 {
+    _tokens.clear();
+    _prefixTokens.clear();
     tokenize(fixClosingBrackets(expression));
     shuntingYard();
 }
@@ -386,11 +388,9 @@ bool ExpressionParser::calculate(uint & value, bool signedcalc, bool silent, boo
     if(!_prefixTokens.size())
         return false;
     std::stack<uint> stack;
-    size_t len = _prefixTokens.size();
     //calculate the result from the RPN queue
-    for(size_t i = 0; i < len; i++)
+    for(const auto & token : _prefixTokens)
     {
-        Token & token = _prefixTokens[i];
         if(token.isOperator())
         {
             uint op1 = 0;

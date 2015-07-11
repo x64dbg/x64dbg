@@ -40,11 +40,11 @@ public:
         };
 
         Token(const String & data, const Type type);
-        const String data() const;
-        const Type type() const;
-        const Associativity associativity() const;
-        const int precedence() const;
-        const bool isOperator() const;
+        const String & data() const;
+        Type type() const;
+        Associativity associativity() const;
+        int precedence() const;
+        bool isOperator() const;
 
     private:
         String _data;

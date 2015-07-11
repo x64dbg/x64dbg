@@ -302,10 +302,9 @@ static void specialformat(char* string)
 {
     int len = (int)strlen(string);
     char* found = strstr(string, "=");
-    char* str = (char*)emalloc(len * 2, "specialformat:str");
-    char* backup = (char*)emalloc(len + 1, "specialformat:backup");
-    strcpy(backup, string); //create a backup of the string
-    memset(str, 0, len * 2);
+    char str[deflen] = "";
+    char backup[deflen] = "";
+    strcpy_s(backup, string); //create a backup of the string
     if(found) //contains =
     {
         char* a = (found - 1);
@@ -314,48 +313,37 @@ static void specialformat(char* string)
         if(!*found)
         {
             *found = '=';
-            efree(str, "specialformat:str");
-            efree(backup, "specialformat:backup");
             return;
         }
-        int flen = (int)strlen(found); //n(+)=n++
-        if((found[flen - 1] == '+' && found[flen - 2] == '+') || (found[flen - 1] == '-' && found[flen - 2] == '-')) //eax++/eax--
-        {
-            found[flen - 2] = 0;
-            char op = found[flen - 1];
-            sprintf(str, "%s%c1", found, op);
-            strcpy(found, str);
-        }
+
         if(mathisoperator(*a)) //x*=3 -> x=x*3
         {
             char op = *a;
             *a = 0;
             if(isvalidexpression(string))
-                sprintf(str, "mov %s,%s%c%s", string, string, op, found);
+                sprintf_s(str, "mov %s,%s%c%s", string, string, op, found);
             else
-                strcpy(str, backup);
+                strcpy_s(str, backup);
         }
-        else
+        else //x=y
         {
             if(isvalidexpression(found))
-                sprintf(str, "mov %s,%s", string, found);
+                sprintf_s(str, "mov %s,%s", string, found);
             else
-                strcpy(str, backup);
+                strcpy_s(str, backup);
         }
-        strcpy(string, str);
+        strcpy_s(string, deflen, str);
     }
     else if((string[len - 1] == '+' && string[len - 2] == '+') || (string[len - 1] == '-' && string[len - 2] == '-')) //eax++/eax--
     {
         string[len - 2] = 0;
         char op = string[len - 1];
         if(isvalidexpression(string))
-            sprintf(str, "mov %s,%s%c1", string, string, op);
+            sprintf_s(str, "mov %s,%s%c1", string, string, op);
         else
-            strcpy(str, backup);
-        strcpy(string, str);
+            strcpy_s(str, backup);
+        strcpy_s(string, deflen, str);
     }
-    efree(str, "specialformat:str");
-    efree(backup, "specialformat:backup");
 }
 
 /*
