@@ -5,11 +5,9 @@
  */
 
 #include "stackinfo.h"
-#include "debugger.h"
 #include "memory.h"
 #include "disasm_helper.h"
 #include "disasm_fast.h"
-#include "addrinfo.h"
 #include "_exports.h"
 #include "module.h"
 

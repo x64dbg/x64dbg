@@ -11,13 +11,10 @@
 #include "debugger.h"
 #include "simplescript.h"
 #include "console.h"
-#include "math.h"
 #include "x64_dbg.h"
 #include "msgqueue.h"
-#include "addrinfo.h"
 #include "threading.h"
 #include "plugin_loader.h"
-#include "assemble.h"
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
 #include "capstone_wrapper.h"
@@ -192,6 +189,7 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
+    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)

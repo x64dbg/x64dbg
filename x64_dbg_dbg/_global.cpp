@@ -6,7 +6,6 @@
 #include "_global.h"
 #include <objbase.h>
 #include <shlobj.h>
-#include <new>
 
 /**
 \brief x64dbg library instance.

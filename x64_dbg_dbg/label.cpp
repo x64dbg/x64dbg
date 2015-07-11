@@ -2,7 +2,6 @@
 #include "threading.h"
 #include "module.h"
 #include "memory.h"
-#include "debugger.h"
 
 std::unordered_map<uint, LABELSINFO> labels;
 

@@ -1,5 +1,4 @@
 #include "controlflowanalysis.h"
-#include "memory.h"
 #include "console.h"
 
 ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size) : Analysis(base, size)

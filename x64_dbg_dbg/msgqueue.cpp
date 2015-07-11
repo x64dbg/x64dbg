@@ -1,5 +1,4 @@
 #include "msgqueue.h"
-#include <stdio.h>
 
 //allocate a message (internal)
 static MESSAGE* msgalloc()

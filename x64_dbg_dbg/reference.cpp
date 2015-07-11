@@ -5,7 +5,6 @@
  */
 
 #include "reference.h"
-#include "debugger.h"
 #include "memory.h"
 #include "console.h"
 #include "module.h"

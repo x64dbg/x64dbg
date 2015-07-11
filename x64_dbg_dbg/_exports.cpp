@@ -8,8 +8,6 @@
 #include "memory.h"
 #include "debugger.h"
 #include "value.h"
-#include "addrinfo.h"
-#include "console.h"
 #include "threading.h"
 #include "breakpoint.h"
 #include "disasm_helper.h"

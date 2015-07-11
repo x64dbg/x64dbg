@@ -6,7 +6,6 @@
 
 #include "symbolinfo.h"
 #include "debugger.h"
-#include "addrinfo.h"
 #include "console.h"
 #include "module.h"
 #include "label.h"

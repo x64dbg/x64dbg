@@ -7,10 +7,7 @@
 #include "disasm_helper.h"
 #include "value.h"
 #include "console.h"
-#include "debugger.h"
 #include "memory.h"
-#include <cwctype>
-#include <cwchar>
 #include "capstone_wrapper.h"
 
 uint disasmback(unsigned char* data, uint base, uint size, uint ip, int n)

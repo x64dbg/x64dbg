@@ -1,7 +1,6 @@
 #include "bookmark.h"
 #include "threading.h"
 #include "module.h"
-#include "debugger.h"
 #include "memory.h"
 
 std::unordered_map<uint, BOOKMARKSINFO> bookmarks;

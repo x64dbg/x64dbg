@@ -1,5 +1,5 @@
-#include "exception.h"
 #include <unordered_map>
+#include "exception.h"
 
 std::unordered_map<unsigned int, const char*> ExceptionNames;
 

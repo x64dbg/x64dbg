@@ -7,8 +7,6 @@
 #include "command.h"
 #include "value.h"
 #include "console.h"
-#include "debugger.h"
-#include "math.h"
 #include "commandparser.h"
 
 /**

@@ -28,6 +28,7 @@
 #include "filereader.h"
 #include "functionanalysis.h"
 #include "controlflowanalysis.h"
+#include "analysis_nukem.h"
 
 static bool bRefinit = false;
 
@@ -1896,6 +1897,17 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         }
     }
 
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrAnalyseNukem(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    Analyse_nukem(base, size);
+    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 

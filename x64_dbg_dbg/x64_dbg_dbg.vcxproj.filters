@@ -243,20 +243,38 @@
     <ClCompile Include="_scriptapi_gui.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
-    <ClCompile Include="controlflowanalysis.cpp">
+    <ClCompile Include="AnalysisPass.cpp">
       <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="CodeFollowPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="Int3CoagulatorPass.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="controlflowanalysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_assembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_misc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_stack.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="analysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="_scriptapi_assembler.cpp">
-      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_misc.cpp">
-      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_stack.cpp">
-      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    <ClCompile Include="analysis_nukem.cpp">
+      <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -578,20 +596,41 @@
     <ClInclude Include="_scriptapi_gui.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
-    <ClInclude Include="controlflowanalysis.h">
+    <ClInclude Include="BasicBlock.h">
       <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalysisPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="CodeFollowPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="Int3CoagulatorPass.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="controlflowanalysis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_assembler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_stack.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="analysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="_scriptapi_assembler.h">
-      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_misc.h">
-      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_stack.h">
-      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    <ClInclude Include="analysis_nukem.h">
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 #include "loop.h"
-#include "debugger.h"
 #include "memory.h"
 #include "threading.h"
 #include "module.h"

@@ -5,7 +5,6 @@
  */
 
 #include "patches.h"
-#include "addrinfo.h"
 #include "memory.h"
 #include "debugger.h"
 #include "console.h"

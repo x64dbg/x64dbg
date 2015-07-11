@@ -1,5 +1,4 @@
 #include "stringformat.h"
-#include "console.h"
 #include "value.h"
 #include "disasm_helper.h"
 
