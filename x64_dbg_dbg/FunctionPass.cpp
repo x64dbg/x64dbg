@@ -269,7 +269,9 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
             {
                 // Here's a problem: Compilers add tail-call elimination with a jump.
                 // Solve this by creating a maximum jump limit: +/- 512 bytes from the end.
-                if(abs((__int64)(block->VirtualEnd - block->Target)) <= 512)
+                //
+                // abs(block->VirtualEnd - block->Target) -- unsigned
+                if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) <= 512)
                     maximumAddr = max(maximumAddr, block->Target);
             }
         }
@@ -297,7 +299,9 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
                 if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
                 {
                     // 2.
-                    if(abs((__int64)(block->VirtualEnd - block->Target)) > 128)
+                    //
+                    // abs(block->VirtualEnd - block->Target) -- unsigned
+                    if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) > 128)
                         break;
 
                     // 3.
