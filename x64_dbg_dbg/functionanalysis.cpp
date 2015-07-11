@@ -1,13 +1,6 @@
 #include "functionanalysis.h"
 #include "console.h"
-#include "memory.h"
 #include "function.h"
-
-#include "AnalysisPass.h"
-#include "BasicBlock.h"
-#include "FunctionPass.h"
-#include "LinearPass.h"
-#include "module.h"
 
 FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
 {
@@ -18,20 +11,10 @@ void FunctionAnalysis::Analyse()
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
 
-    uint start = ModBaseFromAddr(_base);
-    uint end = start + ModSizeFromAddr(_base);
-
-    BBlockArray blocks;
-    LinearPass* pass1 = new LinearPass(start, end, blocks);
-    pass1->Analyse();
-
-    FunctionPass* pass2 = new FunctionPass(start, end, blocks);
-    pass2->Analyse();
-    /*
     PopulateReferences();
     dprintf("%u called functions populated\n", _functions.size());
     AnalyseFunctions();
-    */
+
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 
@@ -78,7 +61,7 @@ void FunctionAnalysis::AnalyseFunctions()
     for(size_t i = 0; i < _functions.size(); i++)
     {
         FunctionInfo & function = _functions[i];
-        if(function.end)  //skip already-analysed functions
+        if(function.end)   //skip already-analysed functions
             continue;
         uint maxaddr = _base + _size;
         if(i < _functions.size() - 1)
@@ -112,31 +95,31 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
     {
         if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
         {
-            if(addr + _cp.Size() > maxaddr)  //we went past the maximum allowed address
+            if(addr + _cp.Size() > maxaddr)   //we went past the maximum allowed address
                 break;
 
             const cs_x86_op & operand = _cp.x86().operands[0];
-            if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)   //jump
+            if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)    //jump
             {
                 uint dest = (uint)operand.imm;
 
-                if(dest >= maxaddr)   //jump across function boundaries
+                if(dest >= maxaddr)    //jump across function boundaries
                 {
                     //currently unused
                 }
-                else if(dest > addr && dest > fardest)   //save the farthest JXX destination forward
+                else if(dest > addr && dest > fardest)    //save the farthest JXX destination forward
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && (_cp.GetId() == X86_INS_JMP || _cp.GetId() == X86_INS_LOOP)) //save the last JMP backwards
+                else if(end && dest < end && (_cp.GetId() == X86_INS_JMP || _cp.GetId() == X86_INS_LOOP))  //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET))   //possible function end?
+            else if(_cp.InGroup(CS_GRP_RET))    //possible function end?
             {
                 end = addr;
-                if(fardest < addr)  //we stop if the farthest JXX destination forward is before this RET
+                if(fardest < addr)   //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
@@ -153,9 +136,9 @@ uint FunctionAnalysis::GetReferenceOperand()
     for(int i = 0; i < _cp.x86().op_count; i++)
     {
         const cs_x86_op & operand = _cp.x86().operands[i];
-        if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())  //skip jumps/loops
+        if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())   //skip jumps/loops
             continue;
-        if(operand.type == X86_OP_IMM)  //we are looking for immediate references
+        if(operand.type == X86_OP_IMM)   //we are looking for immediate references
         {
             uint dest = (uint)operand.imm;
             if(dest >= _base && dest < _base + _size)
