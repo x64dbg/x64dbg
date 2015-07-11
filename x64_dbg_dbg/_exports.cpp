@@ -36,12 +36,12 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return MemRead((void*)addr, dest, size, read);
+    return MemRead(addr, dest, size, read);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
 {
-    return MemWrite((void*)addr, (void*)src, size, written);
+    return MemWrite(addr, (void*)src, size, written);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
@@ -134,7 +134,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
                 {
                     uint val = 0;
-                    if(MemRead((void*)basicinfo.memory.value, &val, sizeof(val), 0))
+                    if(MemRead(basicinfo.memory.value, &val, sizeof(val), 0))
                     {
                         if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
                         {

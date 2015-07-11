@@ -3,12 +3,12 @@
 
 SCRIPT_EXPORT bool Script::Memory::Read(duint addr, void* data, duint size, duint* sizeRead)
 {
-    return MemRead((void*)addr, data, size, sizeRead);
+    return MemRead(addr, data, size, sizeRead);
 }
 
 SCRIPT_EXPORT bool Script::Memory::Write(duint addr, const void* data, duint size, duint* sizeWritten)
 {
-    return MemWrite((void*)addr, (void*)data, size, sizeWritten);
+    return MemWrite(addr, (void*)data, size, sizeWritten);
 }
 
 SCRIPT_EXPORT bool Script::Memory::IsValidPtr(duint addr)

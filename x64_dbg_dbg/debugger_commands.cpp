@@ -24,8 +24,8 @@
 
 static bool bScyllaLoaded = false;
 uint LoadLibThreadID;
-LPVOID DLLNameMem;
-LPVOID ASMAddr;
+uint DLLNameMem;
+uint ASMAddr;
 TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
@@ -238,7 +238,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf("Error setting breakpoint at "fhex"! (IsBPXEnabled)\n", addr);
         return STATUS_ERROR;
     }
-    else if(!MemRead((void*)addr, &oldbytes, sizeof(short), 0))
+    else if(!MemRead(addr, &oldbytes, sizeof(short), 0))
     {
         dprintf("Error setting breakpoint at "fhex"! (memread)\n", addr);
         return STATUS_ERROR;
@@ -1888,8 +1888,8 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     LoadLibThreadID = fdProcessInfo->dwThreadId;
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 
-    DLLNameMem = VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    ASMAddr = VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    DLLNameMem = (uint)VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    ASMAddr = (uint)VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     if(!DLLNameMem || !ASMAddr)
     {
@@ -1962,8 +1962,8 @@ void cbDebugLoadLibBPX()
     varset("$result", LibAddr, false);
     backupctx.eflags &= ~0x100;
     SetFullContextDataEx(LoadLibThread, &backupctx);
-    VirtualFreeEx(fdProcessInfo->hProcess, DLLNameMem, 0, MEM_RELEASE);
-    VirtualFreeEx(fdProcessInfo->hProcess, ASMAddr, 0, MEM_RELEASE);
+    VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)DLLNameMem, 0, MEM_RELEASE);
+    VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)ASMAddr, 0, MEM_RELEASE);
     ThreadResumeAll();
     //update GUI
     GuiSetDebugState(paused);

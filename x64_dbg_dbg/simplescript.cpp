@@ -87,22 +87,21 @@ static bool scriptcreatelinemap(const char* filename)
         return false;
     }
     Memory<char*> filedata(filesize + 1, "createlinemap:filedata");
-    memset(filedata, 0, filesize + 1);
     DWORD read = 0;
-    if(!ReadFile(hFile, filedata, filesize, &read, 0))
+    if(!ReadFile(hFile, filedata(), filesize, &read, 0))
     {
         GuiScriptError(0, "ReadFile failed...");
         return false;
     }
     hFile.Close();
-    int len = (int)strlen(filedata);
+    int len = (int)strlen(filedata());
     char temp[256] = "";
     LINEMAPENTRY entry;
     memset(&entry, 0, sizeof(entry));
     std::vector<LINEMAPENTRY>().swap(linemap);
     for(int i = 0, j = 0; i < len; i++) //make raw line map
     {
-        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
+        if(filedata()[i] == '\r' && filedata()[i + 1] == '\n') //windows file
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
@@ -114,7 +113,7 @@ static bool scriptcreatelinemap(const char* filename)
             i++;
             linemap.push_back(entry);
         }
-        else if(filedata[i] == '\n') //other file
+        else if(filedata()[i] == '\n') //other file
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
@@ -137,7 +136,7 @@ static bool scriptcreatelinemap(const char* filename)
             linemap.push_back(entry);
         }
         else
-            j += sprintf(temp + j, "%c", filedata[i]);
+            j += sprintf(temp + j, "%c", filedata()[i]);
     }
     if(*temp)
     {

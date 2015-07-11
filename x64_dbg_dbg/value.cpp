@@ -1387,12 +1387,12 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     {
         addrfound.realloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
         Memory<HMODULE*> hMods(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
-        if(EnumProcessModules(fdProcessInfo->hProcess, hMods, cbNeeded, &cbNeeded))
+        if(EnumProcessModules(fdProcessInfo->hProcess, hMods(), cbNeeded, &cbNeeded))
         {
             for(unsigned int i = 0; i < cbNeeded / sizeof(HMODULE); i++)
             {
                 wchar_t szModuleName[MAX_PATH] = L"";
-                if(GetModuleFileNameExW(fdProcessInfo->hProcess, hMods[i], szModuleName, MAX_PATH))
+                if(GetModuleFileNameExW(fdProcessInfo->hProcess, hMods()[i], szModuleName, MAX_PATH))
                 {
                     wchar_t* szBaseName = wcsrchr(szModuleName, L'\\');
                     if(szBaseName)
@@ -1407,7 +1407,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                                 if(!_wcsicmp(szBaseName, L"kernel32.dll"))
                                     kernel32 = found;
                                 uint rva = funcAddress - (uint)hModule;
-                                addrfound[found] = (uint)hMods[i] + rva;
+                                addrfound()[found] = (uint)hMods()[i] + rva;
                                 found++;
                             }
                             FreeLibrary(hModule);
@@ -1425,20 +1425,20 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         *hexonly = true;
     if(kernel32 != -1) //prioritize kernel32 exports
     {
-        *value = addrfound[kernel32];
+        *value = addrfound()[kernel32];
         if(!printall || silent)
             return true;
         for(int i = 0; i < found; i++)
             if(i != kernel32)
-                dprintf(fhex"\n", addrfound[i]);
+                dprintf(fhex"\n", addrfound()[i]);
     }
     else
     {
-        *value = *addrfound;
+        *value = *addrfound();
         if(!printall || silent)
             return true;
         for(int i = 1; i < found; i++)
-            dprintf(fhex"\n", addrfound[i]);
+            dprintf(fhex"\n", addrfound()[i]);
     }
     return true;
 }
@@ -1550,7 +1550,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
         }
         uint addr = *value;
         *value = 0;
-        if(!MemRead((void*)addr, value, read_size, 0))
+        if(!MemRead(addr, value, read_size, 0))
         {
             if(!silent)
                 dputs("failed to read memory");
@@ -2122,36 +2122,36 @@ bool valtostring(const char* string, uint value, bool silent)
             for(int i = 0, j = 0; i < len; i++)
             {
                 if(string[i] == ']')
-                    j += sprintf(newstring + j, ")");
+                    j += sprintf(newstring() + j, ")");
                 else if(isdigit(string[i]) && string[i + 1] == ':' && string[i + 2] == '[') //n:[
                 {
-                    j += sprintf(newstring + j, "@%c:(", string[i]);
+                    j += sprintf(newstring() + j, "@%c:(", string[i]);
                     i += 2;
                 }
                 else if(string[i] == '[')
-                    j += sprintf(newstring + j, "@(");
+                    j += sprintf(newstring() + j, "@(");
                 else
-                    j += sprintf(newstring + j, "%c", string[i]);
+                    j += sprintf(newstring() + j, "%c", string[i]);
             }
         }
         else
-            strcpy_s(newstring, len * 2, string);
+            strcpy_s(newstring(), len * 2, string);
         int read_size = sizeof(uint);
         int add = 1;
-        if(newstring[2] == ':' && isdigit((newstring[1])))
+        if(newstring()[2] == ':' && isdigit((newstring()[1])))
         {
             add += 2;
-            int new_size = newstring[1] - 0x30;
+            int new_size = newstring()[1] - 0x30;
             if(new_size < read_size)
                 read_size = new_size;
         }
         uint temp;
-        if(!valfromstring(newstring + add, &temp, silent, false))
+        if(!valfromstring(newstring() + add, &temp, silent, false))
         {
             return false;
         }
         uint value_ = value;
-        if(!MemPatch((void*)temp, &value_, read_size, 0))
+        if(!MemPatch(temp, &value_, read_size, 0))
         {
             if(!silent)
                 dputs("failed to write memory");
@@ -2172,11 +2172,11 @@ bool valtostring(const char* string, uint value, bool silent)
         bool ok = setregister(string, value);
         int len = (int)strlen(string);
         Memory<char*> regName(len + 1, "valtostring:regname");
-        strcpy_s(regName, len + 1, string);
-        _strlwr(regName);
-        if(strstr(regName, "ip"))
+        strcpy_s(regName(), len + 1, string);
+        _strlwr(regName());
+        if(strstr(regName(), "ip"))
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
-        else if(strstr(regName, "sp")) //update stack
+        else if(strstr(regName(), "sp")) //update stack
         {
             uint csp = GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);

@@ -50,7 +50,7 @@ FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
                 m_FunctionInfo = BridgeAlloc(m_FunctionInfoSize);
 
                 if(m_FunctionInfo)
-                    MemRead((PVOID)(virtualOffset + m_ModuleStart), m_FunctionInfo, m_FunctionInfoSize, nullptr);
+                    MemRead((virtualOffset + m_ModuleStart), m_FunctionInfo, m_FunctionInfoSize, nullptr);
             }
         }
     }
@@ -130,7 +130,7 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
             if(blockItr->GetFlag(BASIC_BLOCK_FLAG_INDIRPTR))
             {
                 // Read it from memory
-                if(!MemRead((PVOID)destination, &destination, sizeof(uint), nullptr))
+                if(!MemRead(destination, &destination, sizeof(uint), nullptr))
                     continue;
 
                 // Validity check

@@ -6,7 +6,7 @@ Analysis::Analysis(uint base, uint size)
     _base = base;
     _size = size;
     _data = new unsigned char[_size + MAX_DISASM_BUFFER];
-    MemRead((void*)_base, _data, _size, 0);
+    MemRead(_base, _data, _size, 0);
 }
 
 Analysis::~Analysis()

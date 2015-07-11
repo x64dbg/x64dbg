@@ -77,7 +77,7 @@ static bool _patchinrange(duint start, duint end)
 
 static bool _mempatch(duint va, const unsigned char* src, duint size)
 {
-    return MemPatch((void*)va, (void*)src, size, nullptr);
+    return MemPatch(va, src, size, nullptr);
 }
 
 static void _patchrestorerange(duint start, duint end)
