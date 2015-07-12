@@ -23,75 +23,18 @@ public:
     static Bridge* getBridge();
     static void initBridge();
 
+    // Message processing function
+    void* processMessage(GUIMSG type, void* param1, void* param2);
+
     // Misc functions
     static void CopyToClipboard(const QString & text);
 
     //result function
     void setResult(int_t result = 0);
 
-    // Exports Binding
-    void emitDisassembleAtSignal(int_t va, int_t eip);
-    void emitUpdateDisassembly();
-    void emitDbgStateChanged(DBGSTATE state);
-    void emitAddMsgToLog(QString msg);
-    void emitClearLog();
-    void emitUpdateRegisters();
-    void emitUpdateBreakpoints();
-    void emitUpdateWindowTitle(QString filename);
-    void emitDumpAt(int_t va);
-    void emitScriptAdd(int count, const char** lines);
-    void emitScriptClear();
-    void emitScriptSetIp(int line);
-    void emitScriptError(int line, QString message);
-    void emitScriptSetTitle(QString title);
-    void emitScriptSetInfoLine(int line, QString info);
-    void emitScriptMessage(QString message);
-    int emitScriptQuestion(QString message);
-    void emitScriptEnableHighlighting(bool enable);
-    void emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
-    void emitAddMsgToSymbolLog(QString msg);
-    void emitClearSymbolLog();
-    void emitSetSymbolProgress(int progress);
-    void emitReferenceAddColumnAt(int width, QString title);
-    void emitReferenceSetRowCount(int_t count);
-    void emitReferenceSetCellContent(int r, int c, QString s);
-    void emitReferenceReloadData();
-    void emitReferenceSetSingleSelection(int index, bool scroll);
-    void emitReferenceSetProgress(int progress);
-    void emitReferenceSetSearchStartCol(int col);
-    void emitReferenceInitialize(QString name);
-    void emitStackDumpAt(uint_t va, uint_t csp);
-    void emitUpdateDump();
-    void emitUpdateThreads();
-    void emitUpdateMemory();
-    void emitAddRecentFile(QString file);
-    void emitSetLastException(unsigned int exceptionCode);
-    void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
-    int emitMenuAddMenu(int hMenu, QString title);
-    int emitMenuAddMenuEntry(int hMenu, QString title);
-    void emitMenuAddSeparator(int hMenu);
-    void emitMenuClearMenu(int hMenu);
-    void emitMenuRemoveEntry(int hEntry);
-    bool emitSelectionGet(int hWindow, SELECTIONDATA* selection);
-    bool emitSelectionSet(int hWindow, const SELECTIONDATA* selection);
-    bool emitGetStrWindow(const QString title, QString* text);
-    void emitAutoCompleteAddCmd(const QString cmd);
-    void emitAutoCompleteDelCmd(const QString cmd);
-    void emitAutoCompleteClearAll();
-    void emitAddMsgToStatusBar(QString msg);
-    void emitUpdateSideBar();
-    void emitRepaintTableView();
-    void emitUpdatePatches();
-    void emitUpdateCallStack();
-    void emitSymbolRefreshCurrent();
+    //helper functions
     void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
-    void emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon);
-    void emitSetMenuIcon(int hMenu, const ICONDATA* icon);
-    void emitShowCpu();
-    void emitAddQWidgetTab(QWidget* qWidget);
-    void emitShowQWidgetTab(QWidget* qWidget);
-    void emitCloseQWidgetTab(QWidget* qWidget);
-    void emitExecuteOnGuiThread(void* cbGuiThread);
+    void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
 
     //Public variables
     void* winId;
@@ -170,9 +113,6 @@ private:
     QMutex* mBridgeMutex;
     int_t bridgeResult;
     volatile bool hasBridgeResult;
-
-public:
-
 };
 
 #endif // BRIDGE_H
