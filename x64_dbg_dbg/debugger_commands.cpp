@@ -789,7 +789,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     if(argc > 1)
         if(!valfromstring(argv[1], &size, false))
             return STATUS_ERROR;
-    uint mem = (uint)MemAllocRemote(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, size);
     if(!mem)
         dputs("VirtualAllocEx failed");
     else
@@ -1888,8 +1888,8 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     LoadLibThreadID = fdProcessInfo->dwThreadId;
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 
-    DLLNameMem = MemAllocRemote(0, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    ASMAddr = MemAllocRemote(0, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    DLLNameMem = MemAllocRemote(0, strlen(argv[1]) + 1);
+    ASMAddr = MemAllocRemote(0, 0x1000);
 
     if(!DLLNameMem || !ASMAddr)
     {

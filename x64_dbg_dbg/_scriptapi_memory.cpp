@@ -18,7 +18,7 @@ SCRIPT_EXPORT bool Script::Memory::IsValidPtr(duint addr)
 
 SCRIPT_EXPORT duint Script::Memory::RemoteAlloc(duint addr, duint size)
 {
-    return (duint)MemAllocRemote(addr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    return (duint)MemAllocRemote(addr, size);
 }
 
 SCRIPT_EXPORT bool Script::Memory::RemoteFree(duint addr)
