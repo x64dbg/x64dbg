@@ -1930,7 +1930,7 @@ CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
     uint base = MemFindBaseAddr(sel.start, &size);
     ControlFlowAnalysis anal(base, size);
     anal.Analyse();
-    anal.SetMarkers();
+    //anal.SetMarkers();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

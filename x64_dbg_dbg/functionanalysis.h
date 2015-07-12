@@ -2,15 +2,14 @@
 #define _FUNCTIONANALYSIS_H
 
 #include "_global.h"
-#include "capstone_wrapper.h"
 #include "analysis.h"
 
 class FunctionAnalysis : public Analysis
 {
 public:
     explicit FunctionAnalysis(uint base, uint size);
-    void Analyse();
-    void SetMarkers();
+    void Analyse() override;
+    void SetMarkers() override;
 
 private:
     struct FunctionInfo
