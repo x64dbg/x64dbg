@@ -80,7 +80,7 @@ void ThreadGetList(THREADLIST* List)
     SHARED_ACQUIRE(LockThreads);
 
     //
-    // This function converts a C++ std::vector to a C-style THREADLIST[].
+    // This function converts a C++ std::unordered_map to a C-style THREADLIST[].
     // Also assume BridgeAlloc zeros the returned buffer.
     //
     int count = (int)threadList.size();
@@ -92,21 +92,24 @@ void ThreadGetList(THREADLIST* List)
     List->list = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
 
     // Fill out the list data
-    for(int i = 0; i < count; i++)
+    int index = 0;
+
+    for(auto & itr : threadList)
     {
-        HANDLE threadHandle = threadList[i].Handle;
+        HANDLE threadHandle = itr.second.Handle;
 
-        // Get the debugger's current thread index
+        // Get the debugger's active thread index
         if(threadHandle == hActiveThread)
-            List->CurrentThread = i;
+            List->CurrentThread = index;
 
-        memcpy(&List->list[i].BasicInfo, &threadList[i], sizeof(THREADINFO));
+        memcpy(&List->list[index].BasicInfo, &itr.second, sizeof(THREADINFO));
 
-        List->list[i].ThreadCip = GetContextDataEx(threadHandle, UE_CIP);
-        List->list[i].SuspendCount = ThreadGetSuspendCount(threadHandle);
-        List->list[i].Priority = ThreadGetPriority(threadHandle);
-        List->list[i].WaitReason = ThreadGetWaitReason(threadHandle);
-        List->list[i].LastError = getLastErrorFromTeb(threadList[i].ThreadLocalBase);
+        List->list[index].ThreadCip = GetContextDataEx(threadHandle, UE_CIP);
+        List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
+        List->list[index].Priority = ThreadGetPriority(threadHandle);
+        List->list[index].WaitReason = ThreadGetWaitReason(threadHandle);
+        List->list[index].LastError = getLastErrorFromTeb(itr.second.ThreadLocalBase);
+        index++;
     }
 }
 
