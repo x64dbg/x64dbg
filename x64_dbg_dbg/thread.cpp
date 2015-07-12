@@ -126,7 +126,7 @@ bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
     //
     memset(Teb, 0, sizeof(TEB));
 
-    return MemRead(TEBAddress, Teb, sizeof(TEB), nullptr);
+    return MemRead(TEBAddress, Teb, sizeof(TEB));
 }
 
 int ThreadGetSuspendCount(HANDLE Thread)

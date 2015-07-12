@@ -290,7 +290,7 @@ bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
     // Allocate the memory
     Memory<unsigned char*> oldData(Size, "mempatch:oldData");
 
-    if(!MemRead(BaseAddress, oldData(), Size, nullptr))
+    if(!MemRead(BaseAddress, oldData(), Size))
     {
         // If no memory can be read, no memory can be written. Fail out
         // of this function.
@@ -306,7 +306,7 @@ bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
 bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return MemRead(Address, &a, sizeof(unsigned char), nullptr);
+    return MemRead(Address, &a, sizeof(unsigned char));
 }
 
 bool MemIsCanonicalAddress(uint Address)

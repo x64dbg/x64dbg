@@ -16,7 +16,7 @@ AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
     m_DataSize = VirtualEnd - VirtualStart;
     m_Data = (unsigned char*)BridgeAlloc(m_DataSize);
 
-    if(!MemRead(VirtualStart, m_Data, m_DataSize, nullptr))
+    if(!MemRead(VirtualStart, m_Data, m_DataSize))
     {
         BridgeFree(m_Data);
         assert(false);

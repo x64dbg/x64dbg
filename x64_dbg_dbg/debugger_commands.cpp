@@ -238,7 +238,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf("Error setting breakpoint at "fhex"! (IsBPXEnabled)\n", addr);
         return STATUS_ERROR;
     }
-    else if(!MemRead(addr, &oldbytes, sizeof(short), 0))
+    else if(!MemRead(addr, &oldbytes, sizeof(short)))
     {
         dprintf("Error setting breakpoint at "fhex"! (memread)\n", addr);
         return STATUS_ERROR;
@@ -1897,7 +1897,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!MemWrite(DLLNameMem, argv[1],  strlen(argv[1]), NULL))
+    if(!MemWrite(DLLNameMem, argv[1],  strlen(argv[1])))
     {
         dprintf("Error: couldn't write process memory");
         return STATUS_ERROR;
