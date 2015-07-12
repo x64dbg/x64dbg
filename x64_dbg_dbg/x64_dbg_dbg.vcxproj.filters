@@ -258,22 +258,22 @@
     <ClCompile Include="Int3CoagulatorPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="controlflowanalysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_assembler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_misc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_stack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="analysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="analysis_nukem.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_assembler.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_misc.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_stack.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="controlflowanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
@@ -614,23 +614,23 @@
     <ClInclude Include="Int3CoagulatorPass.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="controlflowanalysis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_assembler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_stack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="analysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="analysis_nukem.h">
       <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="controlflowanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_stack.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_assembler.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_misc.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
