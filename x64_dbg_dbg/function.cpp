@@ -191,8 +191,6 @@ void FunctionCacheLoad(JSON Root)
 
             if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(functionInfo.mod, mod);
-            else
-                functionInfo.mod[0] = '\0';
 
             // Function address
             functionInfo.start = (uint)json_hex_value(json_object_get(value, "start"));

@@ -50,7 +50,7 @@ FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
                 m_FunctionInfo = BridgeAlloc(m_FunctionInfoSize);
 
                 if(m_FunctionInfo)
-                    MemRead((virtualOffset + m_ModuleStart), m_FunctionInfo, m_FunctionInfoSize, nullptr);
+                    MemRead(virtualOffset + m_ModuleStart, m_FunctionInfo, m_FunctionInfoSize, nullptr);
             }
         }
     }
