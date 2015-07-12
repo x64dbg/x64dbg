@@ -73,7 +73,7 @@ void ExceptionCodeInit()
 
 const char* ExceptionCodeToName(unsigned int ExceptionCode)
 {
-    if(!ExceptionNames.count(ExceptionCode))
+    if(ExceptionNames.find(ExceptionCode) == ExceptionNames.end())
         return nullptr;
 
     return ExceptionNames[ExceptionCode];

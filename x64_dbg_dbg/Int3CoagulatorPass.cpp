@@ -37,7 +37,7 @@ void Int3CoagulatorPass::AnalysisWorker(uint Start, uint End, std::vector<BasicB
     uint intSeriesCount = 0;    // Number of blocks
     uint intSeriesSize = 0;     // Size of instructions
 
-    for(auto itr = Blocks->begin(); counterIndex < End; itr++, counterIndex++)
+    for(auto itr = Blocks->begin(); counterIndex < End; ++itr, counterIndex++)
     {
         if(!itr->GetFlag(BASIC_BLOCK_FLAG_PAD))
         {

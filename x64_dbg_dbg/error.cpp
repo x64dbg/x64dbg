@@ -2197,7 +2197,7 @@ void ErrorCodeInit()
 
 const char* ErrorCodeToName(unsigned int ErrorCode)
 {
-    if(!ErrorNames.count(ErrorCode))
+    if(ErrorNames.find(ErrorCode) == ErrorNames.end())
         return nullptr;
 
     return ErrorNames[ErrorCode];
