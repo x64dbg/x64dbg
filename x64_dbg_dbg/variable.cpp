@@ -99,6 +99,7 @@ void varfree()
     // Each variable must be deleted manually; strings especially
     // because there are sub-allocations
     VAR_VALUE emptyValue;
+    memset(&emptyValue, 0, sizeof(VAR_VALUE));
 
     for(auto & itr : variables)
         varsetvalue(&itr.second, &emptyValue);
