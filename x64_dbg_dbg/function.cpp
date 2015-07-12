@@ -120,6 +120,7 @@ void FunctionDelRange(uint Start, uint End)
         for(auto itr = functions.begin(); itr != functions.end();)
         {
             const auto & currentFunction = itr->second;
+
             // Ignore manually set entries
             if(currentFunction.manual)
             {

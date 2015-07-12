@@ -19,10 +19,8 @@
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 
-void MemUpdateMap(HANDLE hProcess)
+void MemUpdateMap()
 {
-    EXCLUSIVE_ACQUIRE(LockMemoryPages);
-
     // First gather all possible pages in the memory range
     std::vector<MEMPAGE> pageVector;
     {
@@ -36,7 +34,7 @@ void MemUpdateMap(HANDLE hProcess)
             MEMORY_BASIC_INFORMATION mbi;
             memset(&mbi, 0, sizeof(mbi));
 
-            numBytes = VirtualQueryEx(hProcess, (LPVOID)pageStart, &mbi, sizeof(mbi));
+            numBytes = VirtualQueryEx(fdProcessInfo->hProcess, (LPVOID)pageStart, &mbi, sizeof(mbi));
 
             // Only allow pages that are committed to memory (exclude reserved/mapped)
             if(mbi.State == MEM_COMMIT)
@@ -99,7 +97,7 @@ void MemUpdateMap(HANDLE hProcess)
             {
                 const auto & currentSection = sections.at(j);
                 memset(&newPage, 0, sizeof(MEMPAGE));
-                VirtualQueryEx(hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 uint SectionSize = currentSection.size;
                 if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
@@ -110,7 +108,7 @@ void MemUpdateMap(HANDLE hProcess)
             }
             //insert the module itself (the module header)
             memset(&newPage, 0, sizeof(MEMPAGE));
-            VirtualQueryEx(hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+            VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
             strcpy_s(newPage.info, curMod);
             pageVector.insert(pageVector.begin() + i, newPage);
         }
@@ -143,6 +141,7 @@ void MemUpdateMap(HANDLE hProcess)
     }
 
     // Convert the vector to a map
+    EXCLUSIVE_ACQUIRE(LockMemoryPages);
     memoryPages.clear();
 
     for(auto & page : pageVector)
@@ -157,7 +156,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 {
     // Update the memory map if needed
     if(Refresh)
-        MemUpdateMap(fdProcessInfo->hProcess);
+        MemUpdateMap();
 
     SHARED_ACQUIRE(LockMemoryPages);
 
@@ -326,12 +325,12 @@ bool MemIsCanonicalAddress(uint Address)
 #endif // ndef _WIN64
 }
 
-void* MemAllocRemote(uint Address, SIZE_T Size, DWORD Protect)
+uint MemAllocRemote(uint Address, uint Size, DWORD Type, DWORD Protect)
 {
-    return VirtualAllocEx(fdProcessInfo->hProcess, (void*)Address, Size, MEM_RESERVE | MEM_COMMIT, Protect);
+    return (uint)VirtualAllocEx(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
 }
 
 bool MemFreeRemote(uint Address)
 {
-    return !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)Address, 0, MEM_RELEASE);
+    return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
 }

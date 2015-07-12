@@ -55,7 +55,7 @@ static DWORD WINAPI memMapThread(void* ptr)
         if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when the memory usage changed
         {
             cachePrivateUsage = PrivateUsage;
-            MemUpdateMap(fdProcessInfo->hProcess);
+            MemUpdateMap();
             GuiUpdateMemoryView();
         }
         Sleep(1000);
@@ -599,7 +599,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
@@ -733,7 +733,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     {
         //update memory map
         dbggetprivateusage(fdProcessInfo->hProcess, true);
-        MemUpdateMap(fdProcessInfo->hProcess);
+        MemUpdateMap();
         //update GUI
         GuiSetDebugState(paused);
         DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
@@ -831,7 +831,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     char modname[256] = "";
@@ -950,7 +950,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
     //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 }
 
@@ -1023,7 +1023,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             SetNextDbgContinueStatus(DBG_CONTINUE);
             GuiSetDebugState(paused);
             dbggetprivateusage(fdProcessInfo->hProcess, true);
-            MemUpdateMap(fdProcessInfo->hProcess);
+            MemUpdateMap();
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock
             lock(WAITID_RUN);
@@ -1939,7 +1939,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     new_command_line.Buffer = command_linewstr();
 
-    uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2, PAGE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     if(!mem)
     {
         cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
@@ -1980,7 +1980,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     UNICODE_STRING CommandLine;
     cmdline_error_t cmd_line_error_aux;
 
-    if(cmd_line_error == NULL)
+    if(!cmd_line_error)
         cmd_line_error = &cmd_line_error_aux;
 
     if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))

@@ -166,7 +166,7 @@ bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 static void _memupdatemap()
 {
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 }
 

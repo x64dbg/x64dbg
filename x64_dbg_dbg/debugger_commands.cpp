@@ -789,7 +789,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
     if(argc > 1)
         if(!valfromstring(argv[1], &size, false))
             return STATUS_ERROR;
-    uint mem = (uint)MemAllocRemote(0, size, PAGE_EXECUTE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
     if(!mem)
         dputs("VirtualAllocEx failed");
     else
@@ -798,7 +798,7 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
         varset("$lastalloc", mem, true);
     //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     varset("$res", mem, false);
@@ -827,7 +827,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         dputs("VirtualFreeEx failed");
     //update memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     varset("$res", ok, false);
@@ -1851,7 +1851,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     if(argc < 3 || !valfromstring(argv[1], &addr))
     {
-        dprintf("Error: using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
+        dprintf("Error: Using an address as arg1 and as arg2: Execute, ExecuteRead, ExecuteReadWrite, ExecuteWriteCopy, NoAccess, ReadOnly, ReadWrite, WriteCopy. You can add a G at first for add PAGE GUARD, example: GReadOnly\n");
         return STATUS_ERROR;
     }
 
@@ -1869,7 +1869,7 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 
     //update the memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     dprintf("New rights of "fhex": %s\n", addr, rights);
@@ -1888,8 +1888,8 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
     LoadLibThreadID = fdProcessInfo->dwThreadId;
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 
-    DLLNameMem = (uint)VirtualAllocEx(fdProcessInfo->hProcess, NULL, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    ASMAddr = (uint)VirtualAllocEx(fdProcessInfo->hProcess, NULL, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    DLLNameMem = MemAllocRemote(0, strlen(argv[1]) + 1,  MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    ASMAddr = MemAllocRemote(0, 0x1000,  MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     if(!DLLNameMem || !ASMAddr)
     {
@@ -1962,8 +1962,8 @@ void cbDebugLoadLibBPX()
     varset("$result", LibAddr, false);
     backupctx.eflags &= ~0x100;
     SetFullContextDataEx(LoadLibThread, &backupctx);
-    VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)DLLNameMem, 0, MEM_RELEASE);
-    VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)ASMAddr, 0, MEM_RELEASE);
+    MemFreeRemote(DLLNameMem);
+    MemFreeRemote(ASMAddr);
     ThreadResumeAll();
     //update GUI
     GuiSetDebugState(paused);
@@ -2075,7 +2075,7 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 
     //update the memory map
     dbggetprivateusage(fdProcessInfo->hProcess, true);
-    MemUpdateMap(fdProcessInfo->hProcess);
+    MemUpdateMap();
     GuiUpdateMemoryView();
 
     dprintf("New command line: %s\n", argv[1]);

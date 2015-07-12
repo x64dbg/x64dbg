@@ -80,6 +80,7 @@ void BookmarkDelRange(uint Start, uint End)
         for(auto itr = bookmarks.begin(); itr != bookmarks.end();)
         {
             const auto & currentBookmark = itr->second;
+
             // Ignore manually set entries
             if(currentBookmark.manual)
             {
