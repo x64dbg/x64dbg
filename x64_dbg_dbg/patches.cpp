@@ -106,7 +106,7 @@ bool PatchDelete(uint Address, bool Restore)
 
     // Restore the original byte at this address
     if(Restore)
-        MemWrite((found->second.addr + ModBaseFromAddr(Address)), &found->second.oldbyte, sizeof(char), nullptr);
+        MemWrite((found->second.addr + ModBaseFromAddr(Address)), &found->second.oldbyte, sizeof(char));
 
     // Finally remove it from the list
     patches.erase(found);
@@ -147,7 +147,7 @@ void PatchDelRange(uint Start, uint End, bool Restore)
             {
                 // Restore the original byte if necessary
                 if(Restore)
-                    MemWrite((currentPatch.addr + moduleBase), &currentPatch.oldbyte, sizeof(char), nullptr);
+                    MemWrite((currentPatch.addr + moduleBase), &currentPatch.oldbyte, sizeof(char));
 
                 itr = patches.erase(itr);
             }
@@ -273,7 +273,6 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         if(!ptr)
             continue;
 
-        dprintf("patch%.4d|%s[%.8X]:%.2X/%.2X->%.2X\n", i + 1, moduleName, ptr - fileMapVa, *ptr, List[i].oldbyte, List[i].newbyte);
         *ptr = List[i].newbyte;
         patchCount++;
     }

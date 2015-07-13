@@ -1,7 +1,8 @@
 #include "QBeaEngine.h"
 
-QBeaEngine::QBeaEngine()
+QBeaEngine::QBeaEngine(int maxModuleSize)
 {
+    mMaxModuleSize = maxModuleSize;
     // Reset the Disasm structure
     memset(&mDisasmStruct, 0, sizeof(DISASM));
     BeaTokenizer::Init();
@@ -182,7 +183,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     wInst.disasm = mDisasmStruct;
 
     //tokenize
-    BeaTokenizer::TokenizeInstruction(&wInst.tokens, &mDisasmStruct);
+    BeaTokenizer::TokenizeInstruction(&wInst.tokens, &mDisasmStruct, mMaxModuleSize);
 
     return wInst;
 }

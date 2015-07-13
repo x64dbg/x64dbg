@@ -21,7 +21,10 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     mHighlightToken.text = "";
     mHighlightingMode = false;
 
-    mDisasm = new QBeaEngine();
+    int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
+    Config()->writeUints();
+
+    mDisasm = new QBeaEngine(maxModuleSize);
 
     mIsLastInstDisplayed = false;
 

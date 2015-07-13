@@ -1,16 +1,15 @@
-#ifndef _FUNCTIONANALYSIS_H
-#define _FUNCTIONANALYSIS_H
+#ifndef _LINEARANALYSIS_H
+#define _LINEARANALYSIS_H
 
 #include "_global.h"
-#include "capstone_wrapper.h"
 #include "analysis.h"
 
-class FunctionAnalysis : public Analysis
+class LinearAnalysis : public Analysis
 {
 public:
-    explicit FunctionAnalysis(uint base, uint size);
-    void Analyse();
-    void SetMarkers();
+    explicit LinearAnalysis(uint base, uint size);
+    void Analyse() override;
+    void SetMarkers() override;
 
 private:
     struct FunctionInfo
@@ -38,4 +37,4 @@ private:
     uint GetReferenceOperand();
 };
 
-#endif //_FUNCTIONANALYSIS_H
+#endif //_LINEARANALYSIS_H

@@ -50,7 +50,7 @@ FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & Mai
                 m_FunctionInfo = BridgeAlloc(m_FunctionInfoSize);
 
                 if(m_FunctionInfo)
-                    MemRead(virtualOffset + m_ModuleStart, m_FunctionInfo, m_FunctionInfoSize, nullptr);
+                    MemRead(virtualOffset + m_ModuleStart, m_FunctionInfo, m_FunctionInfoSize);
             }
         }
     }
@@ -98,6 +98,8 @@ bool FunctionPass::Analyse()
     std::sort(funcs.begin(), funcs.end());
     funcs.erase(std::unique(funcs.begin(), funcs.end()), funcs.end());
 
+    dprintf("%u functions\n", funcs.size());
+
     FunctionClear();
     for(auto & func : funcs)
     {
@@ -130,7 +132,7 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
             if(blockItr->GetFlag(BASIC_BLOCK_FLAG_INDIRPTR))
             {
                 // Read it from memory
-                if(!MemRead(destination, &destination, sizeof(uint), nullptr))
+                if(!MemRead(destination, &destination, sizeof(uint)))
                     continue;
 
                 // Validity check
@@ -168,6 +170,7 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
 
 void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
+    return;
     const uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
     const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 

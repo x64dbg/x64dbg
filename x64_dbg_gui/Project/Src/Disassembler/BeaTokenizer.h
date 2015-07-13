@@ -78,7 +78,7 @@ public:
 
     static void Init();
     static unsigned long HashInstruction(const DISASM* disasm);
-    static void TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm);
+    static void TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm, int maxModuleSize);
     static void TokenToRichText(const BeaInstructionToken* instr, QList<RichTextPainter::CustomRichText_t>* richTextList, const BeaSingleToken* highlightToken);
     static bool TokenFromX(const BeaInstructionToken* instr, BeaSingleToken* token, int x, int charwidth);
     static bool IsHighlightableToken(const BeaSingleToken* token);
@@ -99,9 +99,9 @@ private:
     static void StringInstructionMemory(BeaInstructionToken* instr, int size, QString segment, ARGUMENTS_TYPE reg);
     static void StringInstruction(QString mnemonic, BeaInstructionToken* instr, const DISASM* disasm);
     static void Mnemonic(BeaInstructionToken* instr, const DISASM* disasm);
-    static QString PrintValue(const BeaTokenValue* value, bool module);
+    static QString PrintValue(const BeaTokenValue* value, bool module, int maxModuleSize);
     static QString RegisterToString(int size, int reg);
-    static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg);
+    static void Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg, int maxModuleSize);
     static void AddColorName(BeaTokenType type, QString color, QString backgroundColor);
 };
 

@@ -59,6 +59,8 @@ private slots:
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
+    void on_editSymbolStore_textEdited(const QString & arg1);
+    void on_editSymbolCache_textEdited(const QString & arg1);
 
 private:
     //enums
@@ -123,6 +125,8 @@ private:
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;
+        bool miscSymbolStore;
+        bool miscSymbolCache;
     };
 
     //variables

@@ -41,7 +41,7 @@ extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint s
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
 {
-    return MemWrite(addr, (void*)src, size, written);
+    return MemWrite(addr, src, size, written);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memmap(MEMMAP* memmap)
@@ -134,7 +134,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                 if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
                 {
                     uint val = 0;
-                    if(MemRead(basicinfo.memory.value, &val, sizeof(val), 0))
+                    if(MemRead(basicinfo.memory.value, &val, sizeof(val)))
                     {
                         if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
                         {
@@ -785,6 +785,8 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 entry = strtok(0, ",");
             }
         }
+
+        BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath);
     }
     break;
 

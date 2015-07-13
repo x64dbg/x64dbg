@@ -9,7 +9,7 @@ class Analysis
 public:
     explicit Analysis(uint base, uint size);
     Analysis(const Analysis & that) = delete;
-    ~Analysis();
+    virtual ~Analysis();
     virtual void Analyse() = 0;
     virtual void SetMarkers() = 0;
 

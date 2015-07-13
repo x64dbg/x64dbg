@@ -173,7 +173,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
     return found->first.first;
 }
 
-bool MemRead(uint BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesRead)
+bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
 {
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
@@ -227,7 +227,7 @@ bool MemRead(uint BaseAddress, void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesR
     return (*NumberOfBytesRead > 0);
 }
 
-bool MemWrite(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten)
 {
     if(!MemIsCanonicalAddress((uint)BaseAddress))
         return false;
@@ -281,7 +281,7 @@ bool MemWrite(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberO
     return (*NumberOfBytesWritten > 0);
 }
 
-bool MemPatch(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberOfBytesWritten)
+bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten)
 {
     // Buffer and size must be valid
     if(!Buffer || Size <= 0)
@@ -290,7 +290,7 @@ bool MemPatch(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberO
     // Allocate the memory
     Memory<unsigned char*> oldData(Size, "mempatch:oldData");
 
-    if(!MemRead(BaseAddress, oldData(), Size, nullptr))
+    if(!MemRead(BaseAddress, oldData(), Size))
     {
         // If no memory can be read, no memory can be written. Fail out
         // of this function.
@@ -306,7 +306,7 @@ bool MemPatch(uint BaseAddress, const void* Buffer, SIZE_T Size, SIZE_T* NumberO
 bool MemIsValidReadPtr(uint Address)
 {
     unsigned char a = 0;
-    return MemRead(Address, &a, sizeof(unsigned char), nullptr);
+    return MemRead(Address, &a, sizeof(unsigned char));
 }
 
 bool MemIsCanonicalAddress(uint Address)

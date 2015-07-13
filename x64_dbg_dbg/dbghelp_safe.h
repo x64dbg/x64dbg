@@ -20,18 +20,18 @@ SafeSymUnloadModule64(
     __in DWORD64 BaseOfDll
 );
 BOOL
-SafeSymSetSearchPath(
+SafeSymSetSearchPathW(
     __in HANDLE hProcess,
-    __in_opt PCSTR SearchPath
+    __in_opt PCWSTR SearchPath
 );
 DWORD
 SafeSymSetOptions(
     __in DWORD   SymOptions
 );
 BOOL
-SafeSymInitialize(
+SafeSymInitializeW(
     __in HANDLE hProcess,
-    __in_opt PCSTR UserSearchPath,
+    __in_opt PCWSTR UserSearchPath,
     __in BOOL fInvadeProcess
 );
 BOOL
@@ -58,9 +58,9 @@ SafeSymGetModuleInfo64(
     __out PIMAGEHLP_MODULE64 ModuleInfo
 );
 BOOL
-SafeSymGetSearchPath(
+SafeSymGetSearchPathW(
     __in HANDLE hProcess,
-    __out_ecount(SearchPathLength) PSTR SearchPath,
+    __out_ecount(SearchPathLength) PWSTR SearchPath,
     __in DWORD SearchPathLength
 );
 BOOL

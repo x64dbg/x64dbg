@@ -26,9 +26,10 @@
 #include "module.h"
 #include "stringformat.h"
 #include "filereader.h"
-#include "functionanalysis.h"
+#include "linearanalysis.h"
 #include "controlflowanalysis.h"
 #include "analysis_nukem.h"
+#include "exceptiondirectoryanalysis.h"
 
 static bool bRefinit = false;
 
@@ -187,7 +188,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             data()[j] = res;
         }
         //Move data to destination
-        if(!MemWrite(dest, data(), data.size(), 0))
+        if(!MemWrite(dest, data(), data.size()))
         {
             dprintf("failed to write to "fhex"\n", dest);
             return STATUS_ERROR;
@@ -1067,7 +1068,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if(!MemPatch(addr, string(), strlen(string()), 0))
+    if(!MemPatch(addr, string(), strlen(string())))
     {
         dputs("memwrite failed!");
         return STATUS_ERROR;
@@ -1105,7 +1106,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
-    if(!MemRead(base, data(), size, 0))
+    if(!MemRead(base, data(), size))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1157,7 +1158,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
-    if(!MemRead(base, data(), size, 0))
+    if(!MemRead(base, data(), size))
     {
         dputs("failed to read memory!");
         return STATUS_ERROR;
@@ -1217,7 +1218,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         if(findData)
         {
             Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
-            MemRead(result, printData(), printData.size(), 0);
+            MemRead(result, printData(), printData.size());
             for(size_t j = 0, k = 0; j < printData.size(); j++)
             {
                 if(j)
@@ -1712,7 +1713,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         base = addr;
     }
     Memory<uint8_t*> data(size);
-    if(!MemRead(base, data(), size, 0))
+    if(!MemRead(base, data(), size))
     {
         dprintf("failed to read memory page %p[%X]!\n", base, size);
         return STATUS_ERROR;
@@ -1842,7 +1843,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     }
 
     unsigned char data[16];
-    if(!MemRead(addr, data, sizeof(data), 0))
+    if(!MemRead(addr, data, sizeof(data)))
     {
         dprintf("could not read memory at %p\n", addr);
         return STATUS_ERROR;
@@ -1865,6 +1866,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    dprintf("%d, NOP=%d\n", cp.GetId(), X86_INS_NOP);
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
@@ -1915,7 +1917,7 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     uint size = 0;
     uint base = MemFindBaseAddr(sel.start, &size);
-    FunctionAnalysis anal(base, size);
+    LinearAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
@@ -1924,11 +1926,27 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
 
 CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
 {
+    bool exceptionDirectory = false;
+    if(argc > 1)
+        exceptionDirectory = true;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     uint size = 0;
     uint base = MemFindBaseAddr(sel.start, &size);
-    ControlFlowAnalysis anal(base, size);
+    ControlFlowAnalysis anal(base, size, exceptionDirectory);
+    anal.Analyse();
+    //anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrExanalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    ExceptionDirectoryAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
@@ -1963,7 +1981,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         uint _base = start;
         uint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
-        MemRead(_base, _data(), _size, nullptr);
+        MemRead(_base, _data(), _size);
         FunctionClear();
 
         //linear search with some trickery

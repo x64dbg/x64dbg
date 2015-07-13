@@ -216,9 +216,6 @@
     <ClCompile Include="capstone_wrapper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="functionanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="filereader.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
@@ -258,22 +255,28 @@
     <ClCompile Include="Int3CoagulatorPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="controlflowanalysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_assembler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_misc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="_scriptapi_stack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="analysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
     <ClCompile Include="analysis_nukem.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_assembler.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_misc.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_stack.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="controlflowanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="exceptiondirectoryanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="linearanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
@@ -566,9 +569,6 @@
     <ClInclude Include="capstone\xcore.h">
       <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
-    <ClInclude Include="functionanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="filereader.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
@@ -614,22 +614,28 @@
     <ClInclude Include="Int3CoagulatorPass.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="controlflowanalysis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_assembler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_scriptapi_stack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="analysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="analysis_nukem.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="controlflowanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_stack.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_assembler.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_misc.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptiondirectoryanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="linearanalysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>

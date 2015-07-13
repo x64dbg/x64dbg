@@ -18,6 +18,7 @@
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
 #include "capstone_wrapper.h"
+#include "_scriptapi_gui.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static COMMAND* command_list = 0;
@@ -189,7 +190,6 @@ static void registercommands()
     dbgcmdnew("yara", cbInstrYara, true); //yara test command
     dbgcmdnew("yaramod", cbInstrYaramod, true); //yara rule on module
     dbgcmdnew("analyse\1analyze\1anal", cbInstrAnalyse, true); //secret analysis command
-    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
 
     //undocumented
     dbgcmdnew("bench", cbDebugBenchmark, true); //benchmark test (readmem etc)
@@ -202,6 +202,8 @@ static void registercommands()
     dbgcmdnew("visualize", cbInstrVisualize, true); //visualize analysis
     dbgcmdnew("meminfo", cbInstrMeminfo, true); //command to debug memory map bugs
     dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
+    dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
+    dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -273,8 +275,25 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(dbbasepath, dir); //debug directory
     strcat_s(dbbasepath, "\\db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
-    strcpy_s(szSymbolCachePath, dir);
-    strcat_s(szSymbolCachePath, "\\symbols");
+    char szLocalSymbolPath[MAX_PATH] = "";
+    strcpy_s(szLocalSymbolPath, dir);
+    strcat_s(szLocalSymbolPath, "\\symbols");
+    if(!BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath) || !*szSymbolCachePath)
+    {
+        strcpy_s(szSymbolCachePath, szLocalSymbolPath);
+        BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+    }
+    else
+    {
+        if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
+        {
+            if(Script::Gui::MessageYesNo("It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))
+            {
+                strcpy_s(szSymbolCachePath, szLocalSymbolPath);
+                BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+            }
+        }
+    }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
     gMsgStack = MsgAllocStack();

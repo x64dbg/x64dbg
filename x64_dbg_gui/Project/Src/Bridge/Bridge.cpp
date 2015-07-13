@@ -40,398 +40,6 @@ void Bridge::setResult(int_t result)
 }
 
 /************************************************************************************
-                            Exports Binding
-************************************************************************************/
-void Bridge::emitDisassembleAtSignal(int_t va, int_t eip)
-{
-    emit disassembleAt(va, eip);
-}
-
-void Bridge::emitUpdateDisassembly()
-{
-    emit repaintGui();
-}
-
-void Bridge::emitDbgStateChanged(DBGSTATE state)
-{
-    emit dbgStateChanged(state);
-}
-
-void Bridge::emitAddMsgToLog(QString msg)
-{
-    emit addMsgToLog(msg);
-}
-
-void Bridge::emitClearLog()
-{
-    emit clearLog();
-}
-
-void Bridge::emitUpdateRegisters()
-{
-    emit updateRegisters();
-}
-
-void Bridge::emitUpdateBreakpoints()
-{
-    emit updateBreakpoints();
-}
-
-void Bridge::emitUpdateWindowTitle(QString filename)
-{
-    emit updateWindowTitle(filename);
-}
-
-void Bridge::emitDumpAt(int_t va)
-{
-    emit dumpAt(va);
-}
-
-void Bridge::emitScriptAdd(int count, const char** lines)
-{
-    BridgeResult result;
-    emit scriptAdd(count, lines);
-    result.Wait();
-}
-
-void Bridge::emitScriptClear()
-{
-    emit scriptClear();
-}
-
-void Bridge::emitScriptSetIp(int line)
-{
-    emit scriptSetIp(line);
-}
-
-void Bridge::emitScriptError(int line, QString message)
-{
-    BridgeResult result;
-    emit scriptError(line, message);
-    result.Wait();
-}
-
-void Bridge::emitScriptSetTitle(QString title)
-{
-    emit scriptSetTitle(title);
-}
-
-void Bridge::emitScriptSetInfoLine(int line, QString info)
-{
-    emit scriptSetInfoLine(line, info);
-}
-
-void Bridge::emitScriptMessage(QString message)
-{
-    BridgeResult result;
-    emit scriptMessage(message);
-    result.Wait();
-}
-
-int Bridge::emitScriptQuestion(QString message)
-{
-    BridgeResult result;
-    emit scriptQuestion(message);
-    return result.Wait();
-}
-
-void Bridge::emitScriptEnableHighlighting(bool enable)
-{
-    emit scriptEnableHighlighting(enable);
-}
-
-void Bridge::emitUpdateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
-{
-    emit updateSymbolList(module_count, modules);
-}
-
-void Bridge::emitAddMsgToSymbolLog(QString msg)
-{
-    emit addMsgToSymbolLog(msg);
-}
-
-void Bridge::emitClearSymbolLog()
-{
-    emit clearSymbolLog();
-}
-
-void Bridge::emitSetSymbolProgress(int progress)
-{
-    emit setSymbolProgress(progress);
-}
-
-void Bridge::emitReferenceAddColumnAt(int width, QString title)
-{
-    emit referenceAddColumnAt(width, title);
-}
-
-void Bridge::emitReferenceSetRowCount(int_t count)
-{
-    emit referenceSetRowCount(count);
-}
-
-void Bridge::emitReferenceSetCellContent(int r, int c, QString s)
-{
-    emit referenceSetCellContent(r, c, s);
-}
-
-void Bridge::emitReferenceReloadData()
-{
-    emit referenceReloadData();
-}
-
-void Bridge::emitReferenceSetSingleSelection(int index, bool scroll)
-{
-    emit referenceSetSingleSelection(index, scroll);
-}
-
-void Bridge::emitReferenceSetProgress(int progress)
-{
-    emit referenceSetProgress(progress);
-}
-
-void Bridge::emitReferenceSetSearchStartCol(int col)
-{
-    emit referenceSetSearchStartCol(col);
-}
-
-void Bridge::emitReferenceInitialize(QString name)
-{
-    BridgeResult result;
-    emit referenceInitialize(name);
-    result.Wait();
-}
-
-void Bridge::emitStackDumpAt(uint_t va, uint_t csp)
-{
-    emit stackDumpAt(va, csp);
-}
-
-void Bridge::emitUpdateDump()
-{
-    emit updateDump();
-}
-
-void Bridge::emitUpdateThreads()
-{
-    emit updateThreads();
-}
-
-void Bridge::emitUpdateMemory()
-{
-    emit updateMemory();
-}
-
-void Bridge::emitAddRecentFile(QString file)
-{
-    emit addRecentFile(file);
-}
-
-void Bridge::emitSetLastException(unsigned int exceptionCode)
-{
-    emit setLastException(exceptionCode);
-}
-
-void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
-{
-    BridgeResult result;
-    emit menuAddMenuToList(parent, menu, hMenu, hParentMenu);
-    result.Wait();
-}
-
-int Bridge::emitMenuAddMenu(int hMenu, QString title)
-{
-    BridgeResult result;
-    emit menuAddMenu(hMenu, title);
-    return result.Wait();
-}
-
-int Bridge::emitMenuAddMenuEntry(int hMenu, QString title)
-{
-    BridgeResult result;
-    emit menuAddMenuEntry(hMenu, title);
-    return result.Wait();
-}
-
-void Bridge::emitMenuAddSeparator(int hMenu)
-{
-    BridgeResult result;
-    emit menuAddSeparator(hMenu);
-    result.Wait();
-}
-
-void Bridge::emitMenuClearMenu(int hMenu)
-{
-    BridgeResult result;
-    emit menuClearMenu(hMenu);
-    result.Wait();
-}
-
-void Bridge::emitAddMsgToStatusBar(QString msg)
-{
-    emit addMsgToStatusBar(msg);
-}
-
-bool Bridge::emitSelectionGet(int hWindow, SELECTIONDATA* selection)
-{
-    if(!DbgIsDebugging())
-        return false;
-    BridgeResult result;
-    switch(hWindow)
-    {
-    case GUI_DISASSEMBLY:
-        emit selectionDisasmGet(selection);
-        break;
-    case GUI_DUMP:
-        emit selectionDumpGet(selection);
-        break;
-    case GUI_STACK:
-        emit selectionStackGet(selection);
-        break;
-    default:
-        return false;
-    }
-    result.Wait();
-    if(selection->start > selection->end) //swap start and end
-    {
-        int_t temp = selection->end;
-        selection->end = selection->start;
-        selection->start = temp;
-    }
-    return true;
-}
-
-bool Bridge::emitSelectionSet(int hWindow, const SELECTIONDATA* selection)
-{
-    if(!DbgIsDebugging())
-        return false;
-    BridgeResult result;
-    switch(hWindow)
-    {
-    case GUI_DISASSEMBLY:
-        emit selectionDisasmSet(selection);
-        break;
-    case GUI_DUMP:
-        emit selectionDumpSet(selection);
-        break;
-    case GUI_STACK:
-        emit selectionStackSet(selection);
-        break;
-    default:
-        return false;
-    }
-    return result.Wait();
-}
-
-bool Bridge::emitGetStrWindow(const QString title, QString* text)
-{
-    BridgeResult result;
-    emit getStrWindow(title, text);
-    return result.Wait();
-}
-
-void Bridge::emitAutoCompleteAddCmd(const QString cmd)
-{
-    emit autoCompleteAddCmd(cmd);
-}
-
-void Bridge::emitAutoCompleteDelCmd(const QString cmd)
-{
-    emit autoCompleteDelCmd(cmd);
-}
-
-void Bridge::emitAutoCompleteClearAll()
-{
-    emit autoCompleteClearAll();
-}
-
-void Bridge::emitUpdateSideBar()
-{
-    emit updateSideBar();
-}
-
-void Bridge::emitRepaintTableView()
-{
-    emit repaintTableView();
-}
-
-void Bridge::emitUpdatePatches()
-{
-    emit updatePatches();
-}
-
-void Bridge::emitUpdateCallStack()
-{
-    emit updateCallStack();
-}
-
-void Bridge::emitSymbolRefreshCurrent()
-{
-    emit symbolRefreshCurrent();
-}
-
-void Bridge::emitLoadSourceFile(const QString path, int line, int selection)
-{
-    emit loadSourceFile(path, line, selection);
-}
-
-void Bridge::emitSetMenuEntryIcon(int hEntry, const ICONDATA* icon)
-{
-    BridgeResult result;
-    if(!icon)
-        emit setIconMenuEntry(hEntry, QIcon());
-    else
-    {
-        QImage img;
-        img.loadFromData((uchar*)icon->data, icon->size);
-        QIcon qIcon(QPixmap::fromImage(img));
-        emit setIconMenuEntry(hEntry, qIcon);
-    }
-    result.Wait();
-}
-
-void Bridge::emitSetMenuIcon(int hMenu, const ICONDATA* icon)
-{
-    BridgeResult result;
-    if(!icon)
-        emit setIconMenu(hMenu, QIcon());
-    else
-    {
-        QImage img;
-        img.loadFromData((uchar*)icon->data, icon->size);
-        QIcon qIcon(QPixmap::fromImage(img));
-        emit setIconMenu(hMenu, qIcon);
-    }
-    result.Wait();
-}
-
-void Bridge::emitShowCpu()
-{
-    emit showCpu();
-}
-
-void Bridge::emitAddQWidgetTab(QWidget* qWidget)
-{
-    emit addQWidgetTab(qWidget);
-}
-
-void Bridge::emitShowQWidgetTab(QWidget* qWidget)
-{
-    emit showQWidgetTab(qWidget);
-}
-
-void Bridge::emitCloseQWidgetTab(QWidget* qWidget)
-{
-    emit closeQWidgetTab(qWidget);
-}
-
-void Bridge::emitExecuteOnGuiThread(void* cbGuiThread)
-{
-    GuiAddLogMessage(QString().sprintf("thread id (bridge) %X\n", GetCurrentThreadId()).toUtf8().constData());
-    emit executeOnGuiThread(cbGuiThread);
-}
-
-/************************************************************************************
                             Static Functions
 ************************************************************************************/
 Bridge* Bridge::getBridge()
@@ -445,257 +53,208 @@ void Bridge::initBridge()
 }
 
 /************************************************************************************
-                            Exported Functions
+                            Helper Functions
 ************************************************************************************/
-__declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
+
+void Bridge::emitLoadSourceFile(const QString path, int line, int selection)
 {
-    return main(argc, argv);
+    emit loadSourceFile(path, line, selection);
 }
 
-__declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* param2)
+void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
+{
+    BridgeResult result;
+    emit menuAddMenuToList(parent, menu, hMenu, hParentMenu);
+    result.Wait();
+}
+
+/************************************************************************************
+                            Message processing
+************************************************************************************/
+
+void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 {
     switch(type)
     {
     case GUI_DISASSEMBLE_AT:
-    {
-        Bridge::getBridge()->emitDisassembleAtSignal((int_t)param1, (int_t)param2);
-    }
-    break;
+        emit disassembleAt((int_t)param1, (int_t)param2);
+        break;
 
     case GUI_SET_DEBUG_STATE:
-    {
-        Bridge::getBridge()->emitDbgStateChanged(reinterpret_cast<DBGSTATE &>(param1));
-    }
-    break;
+        emit dbgStateChanged((DBGSTATE)(int_t)param1);
+        break;
 
     case GUI_ADD_MSG_TO_LOG:
-    {
-        Bridge::getBridge()->emitAddMsgToLog(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
+        emit addMsgToLog(QString((const char*)param1));
+        break;
 
     case GUI_CLEAR_LOG:
-    {
-        Bridge::getBridge()->emitClearLog();
-    }
-    break;
+        emit clearLog();
+        break;
 
     case GUI_UPDATE_REGISTER_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateRegisters();
-    }
-    break;
+        emit updateRegisters();
+        break;
 
     case GUI_UPDATE_DISASSEMBLY_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateDisassembly();
-    }
-    break;
+        emit repaintGui();
+        break;
 
     case GUI_UPDATE_BREAKPOINTS_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateBreakpoints();
-    }
-    break;
+        emit updateBreakpoints();
+        break;
 
     case GUI_UPDATE_WINDOW_TITLE:
-    {
-        Bridge::getBridge()->emitUpdateWindowTitle(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
+        emit updateWindowTitle(QString((const char*)param1));
+        break;
 
     case GUI_GET_WINDOW_HANDLE:
-    {
-        return Bridge::getBridge()->winId;
-    }
-    break;
+        return winId;
 
     case GUI_DUMP_AT:
-    {
-        Bridge::getBridge()->emitDumpAt((int_t)param1);
-    }
-    break;
+        emit dumpAt((int_t)param1);
+        break;
 
     case GUI_SCRIPT_ADD:
     {
-        Bridge::getBridge()->emitScriptAdd((int)(int_t)param1, reinterpret_cast<const char**>(param2));
+        BridgeResult result;
+        emit scriptAdd((int)param1, (const char**)param2);
+        result.Wait();
     }
     break;
 
     case GUI_SCRIPT_CLEAR:
-    {
-        Bridge::getBridge()->emitScriptClear();
-    }
-    break;
+        emit scriptClear();
+        break;
 
     case GUI_SCRIPT_SETIP:
-    {
-        Bridge::getBridge()->emitScriptSetIp((int)(int_t)param1);
-    }
-    break;
+        emit scriptSetIp((int)param1);
+        break;
 
     case GUI_SCRIPT_ERROR:
     {
-        Bridge::getBridge()->emitScriptError((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
+        BridgeResult result;
+        emit scriptError((int)param1, QString((const char*)param2));
+        result.Wait();
     }
     break;
 
     case GUI_SCRIPT_SETTITLE:
-    {
-        Bridge::getBridge()->emitScriptSetTitle(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
+        emit scriptSetTitle(QString((const char*)param1));
+        break;
 
     case GUI_SCRIPT_SETINFOLINE:
-    {
-        Bridge::getBridge()->emitScriptSetInfoLine((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
-    }
-    break;
+        emit scriptSetInfoLine((int)param1, QString((const char*)param2));
+        break;
 
     case GUI_SCRIPT_MESSAGE:
     {
-        Bridge::getBridge()->emitScriptMessage(QString(reinterpret_cast<const char*>(param1)));
+        BridgeResult result;
+        emit scriptMessage(QString((const char*)param1));
+        result.Wait();
     }
     break;
 
     case GUI_SCRIPT_MSGYN:
     {
-        return (void*)Bridge::getBridge()->emitScriptQuestion(QString(reinterpret_cast<const char*>(param1)));
+        BridgeResult result;
+        emit scriptQuestion(QString((const char*)param1));
+        return (void*)result.Wait();
     }
     break;
 
     case GUI_SCRIPT_ENABLEHIGHLIGHTING:
-    {
-        Bridge::getBridge()->emitScriptEnableHighlighting((bool)(int_t)param1);
-    }
-    break;
+        emit scriptEnableHighlighting((bool)param1);
+        break;
 
     case GUI_SYMBOL_UPDATE_MODULE_LIST:
-    {
-        Bridge::getBridge()->emitUpdateSymbolList((int)(int_t)param1, (SYMBOLMODULEINFO*)param2);
-    }
-    break;
+        emit updateSymbolList((int)param1, (SYMBOLMODULEINFO*)param2);
+        break;
 
     case GUI_SYMBOL_LOG_ADD:
-    {
-        Bridge::getBridge()->emitAddMsgToSymbolLog(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
+        emit addMsgToSymbolLog(QString((const char*)param1));
+        break;
 
     case GUI_SYMBOL_LOG_CLEAR:
-    {
-        Bridge::getBridge()->emitClearSymbolLog();
-    }
-    break;
+        emit clearSymbolLog();
+        break;
 
     case GUI_SYMBOL_SET_PROGRESS:
-    {
-        Bridge::getBridge()->emitSetSymbolProgress((int)(int_t)param1);
-    }
-    break;
+        emit setSymbolProgress((int)param1);
+        break;
 
     case GUI_REF_ADDCOLUMN:
-    {
-        Bridge::getBridge()->emitReferenceAddColumnAt((int)(int_t)param1, QString(reinterpret_cast<const char*>(param2)));
-    }
-    break;
+        emit referenceAddColumnAt((int)param1, QString((const char*)param2));
+        break;
 
     case GUI_REF_SETROWCOUNT:
-    {
-        Bridge::getBridge()->emitReferenceSetRowCount((int)(int_t)param1);
-    }
-    break;
+        emit referenceSetRowCount((int_t)param1);
+        break;
 
     case GUI_REF_GETROWCOUNT:
-    {
-        return (void*)(void*)Bridge::getBridge()->referenceManager->currentReferenceView()->mList->getRowCount();
-    }
-    break;
+        return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
 
     case GUI_REF_DELETEALLCOLUMNS:
-    {
         GuiReferenceInitialize("References");
-    }
-    break;
+        break;
 
     case GUI_REF_SETCELLCONTENT:
     {
         CELLINFO* info = (CELLINFO*)param1;
-        Bridge::getBridge()->emitReferenceSetCellContent(info->row, info->col, QString(info->str));
+        emit referenceSetCellContent(info->row, info->col, QString(info->str));
     }
     break;
 
     case GUI_REF_GETCELLCONTENT:
-    {
-        return (void*)Bridge::getBridge()->referenceManager->currentReferenceView()->mList->getCellContent((int)(int_t)param1, (int)(int_t)param2).toUtf8().constData();
-    }
-    break;
+        return (void*)referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2).toUtf8().constData();
 
     case GUI_REF_RELOADDATA:
-    {
-        Bridge::getBridge()->emitReferenceReloadData();
-    }
-    break;
+        emit referenceReloadData();
+        break;
 
     case GUI_REF_SETSINGLESELECTION:
-    {
-        Bridge::getBridge()->emitReferenceSetSingleSelection((int)(int_t)param1, (bool)(int_t)param2);
-    }
-    break;
+        emit referenceSetSingleSelection((int)param1, (bool)param2);
+        break;
 
     case GUI_REF_SETPROGRESS:
-    {
-        Bridge::getBridge()->emitReferenceSetProgress((int)(int_t)param1);
-    }
-    break;
+        emit referenceSetProgress((int)param1);
+        break;
 
     case GUI_REF_SETSEARCHSTARTCOL:
-    {
-        Bridge::getBridge()->emitReferenceSetSearchStartCol((int)(int_t)param1);
-    }
-    break;
+        emit referenceSetSearchStartCol((int)param1);
+        break;
 
     case GUI_REF_INITIALIZE:
     {
-        Bridge::getBridge()->emitReferenceInitialize(QString(reinterpret_cast<const char*>(param1)));
+        BridgeResult result;
+        emit referenceInitialize(QString((const char*)param1));
+        result.Wait();
     }
     break;
 
     case GUI_STACK_DUMP_AT:
-    {
-        Bridge::getBridge()->emitStackDumpAt((uint_t)param1, (uint_t)param2);
-    }
-    break;
+        emit stackDumpAt((uint_t)param1, (uint_t)param2);
+        break;
 
     case GUI_UPDATE_DUMP_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateDump();
-    }
-    break;
+        emit updateDump();
+        break;
 
     case GUI_UPDATE_THREAD_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateThreads();
-    }
-    break;
+        emit updateThreads();
+        break;
 
     case GUI_UPDATE_MEMORY_VIEW:
-    {
-        Bridge::getBridge()->emitUpdateMemory();
-    }
-    break;
+        emit updateMemory();
+        break;
 
     case GUI_ADD_RECENT_FILE:
-    {
-        Bridge::getBridge()->emitAddRecentFile(QString(reinterpret_cast<const char*>(param1)));
-    }
-    break;
+        emit addRecentFile(QString((const char*)param1));
+        break;
 
     case GUI_SET_LAST_EXCEPTION:
-    {
-        Bridge::getBridge()->emitSetLastException((unsigned int)(uint_t)param1);
-    }
-    break;
+        emit setLastException((unsigned int)param1);
+        break;
 
     case GUI_GET_DISASSEMBLY:
     {
@@ -706,9 +265,9 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine disasm;
+        QBeaEngine disasm(-1);
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
-        BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm);
+        BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm, -1);
         QList<RichTextPainter::CustomRichText_t> richText;
         BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
         QString finalInstruction = "";
@@ -721,162 +280,216 @@ __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* pa
 
     case GUI_MENU_ADD:
     {
-        return (void*)(uint_t)Bridge::getBridge()->emitMenuAddMenu((int)(uint_t)param1, QString(reinterpret_cast<const char*>(param2)));
+        BridgeResult result;
+        emit menuAddMenu((int)param1, QString((const char*)param2));
+        return (void*)result.Wait();
     }
     break;
 
     case GUI_MENU_ADD_ENTRY:
     {
-        return (void*)(uint_t)Bridge::getBridge()->emitMenuAddMenuEntry((int)(uint_t)param1, QString(reinterpret_cast<const char*>(param2)));
+        BridgeResult result;
+        emit menuAddMenuEntry((int)param1, QString((const char*)param2));
+        return (void*)result.Wait();
     }
     break;
 
     case GUI_MENU_ADD_SEPARATOR:
     {
-        Bridge::getBridge()->emitMenuAddSeparator((int)(uint_t)param1);
+        BridgeResult result;
+        emit menuAddSeparator((int)param1);
+        result.Wait();
     }
     break;
 
     case GUI_MENU_CLEAR:
     {
-        Bridge::getBridge()->emitMenuClearMenu((int)(uint_t)param1);
+        BridgeResult result;
+        emit menuClearMenu((int)param1);
+        result.Wait();
     }
     break;
 
     case GUI_SELECTION_GET:
     {
-        return (void*)(int_t)Bridge::getBridge()->emitSelectionGet((int)(uint_t)param1, (SELECTIONDATA*)param2);
+        int hWindow = (int)param1;
+        SELECTIONDATA* selection = (SELECTIONDATA*)param2;
+        if(!DbgIsDebugging())
+            return (void*)false;
+        BridgeResult result;
+        switch(hWindow)
+        {
+        case GUI_DISASSEMBLY:
+            emit selectionDisasmGet(selection);
+            break;
+        case GUI_DUMP:
+            emit selectionDumpGet(selection);
+            break;
+        case GUI_STACK:
+            emit selectionStackGet(selection);
+            break;
+        default:
+            return (void*)false;
+        }
+        result.Wait();
+        if(selection->start > selection->end) //swap start and end
+        {
+            int_t temp = selection->end;
+            selection->end = selection->start;
+            selection->start = temp;
+        }
+        return (void*)true;
     }
     break;
 
     case GUI_SELECTION_SET:
     {
-        return (void*)(int_t)Bridge::getBridge()->emitSelectionSet((int)(uint_t)param1, (const SELECTIONDATA*)param2);
+        int hWindow = (int)param1;
+        const SELECTIONDATA* selection = (const SELECTIONDATA*)param2;
+        if(!DbgIsDebugging())
+            return (void*)false;
+        BridgeResult result;
+        switch(hWindow)
+        {
+        case GUI_DISASSEMBLY:
+            emit selectionDisasmSet(selection);
+            break;
+        case GUI_DUMP:
+            emit selectionDumpSet(selection);
+            break;
+        case GUI_STACK:
+            emit selectionStackSet(selection);
+            break;
+        default:
+            return (void*)false;
+        }
+        return (void*)result.Wait();
     }
     break;
 
     case GUI_GETLINE_WINDOW:
     {
         QString text = "";
-        if(Bridge::getBridge()->emitGetStrWindow(QString(reinterpret_cast<const char*>(param1)), &text))
+        BridgeResult result;
+        emit getStrWindow(QString((const char*)param1), &text);
+        if(result.Wait())
         {
             strcpy_s((char*)param2, GUI_MAX_LINE_SIZE, text.toUtf8().constData());
-            return (void*)(uint_t)true;
+            return (void*)true;
         }
-        return (void*)(uint_t)false; //cancel/escape
+        return (void*)false; //cancel/escape
     }
     break;
 
     case GUI_AUTOCOMPLETE_ADDCMD:
-    {
-        Bridge::getBridge()->emitAutoCompleteAddCmd(QString((const char*)param1));
-    }
-    break;
+        emit autoCompleteAddCmd(QString((const char*)param1));
+        break;
 
     case GUI_AUTOCOMPLETE_DELCMD:
-    {
-        Bridge::getBridge()->emitAutoCompleteDelCmd(QString((const char*)param1));
-    }
-    break;
+        emit autoCompleteDelCmd(QString((const char*)param1));
+        break;
 
     case GUI_AUTOCOMPLETE_CLEARALL:
-    {
-        Bridge::getBridge()->emitAutoCompleteClearAll();
-    }
-    break;
+        emit autoCompleteClearAll();
+        break;
 
     case GUI_ADD_MSG_TO_STATUSBAR:
-    {
-        Bridge::getBridge()->emitAddMsgToStatusBar(QString((const char*)param1));
-    }
-    break;
+        emit addMsgToStatusBar(QString((const char*)param1));
+        break;
 
     case GUI_UPDATE_SIDEBAR:
-    {
-        Bridge::getBridge()->emitUpdateSideBar();
-    }
-    break;
+        emit updateSideBar();
+        break;
 
     case GUI_REPAINT_TABLE_VIEW:
-    {
-        Bridge::getBridge()->emitRepaintTableView();
-    }
-    break;
+        emit repaintTableView();
+        break;
 
     case GUI_UPDATE_PATCHES:
-    {
-        Bridge::getBridge()->emitUpdatePatches();
-    }
-    break;
+        emit updatePatches();
+        break;
 
     case GUI_UPDATE_CALLSTACK:
-    {
-        Bridge::getBridge()->emitUpdateCallStack();
-    }
-    break;
+        emit updateCallStack();
+        break;
 
     case GUI_SYMBOL_REFRESH_CURRENT:
-    {
-        Bridge::getBridge()->emitSymbolRefreshCurrent();
-    }
-    break;
+        emit symbolRefreshCurrent();
+        break;
 
     case GUI_LOAD_SOURCE_FILE:
-    {
-        Bridge::getBridge()->emitLoadSourceFile(QString((const char*)param1), (int)param2);
-    }
-    break;
+        emitLoadSourceFile(QString((const char*)param1), (int)param2);
+        break;
 
     case GUI_MENU_SET_ICON:
     {
-        Bridge::getBridge()->emitSetMenuIcon((int)param1, (const ICONDATA*)param2);
+        int hMenu = (int)param1;
+        const ICONDATA* icon = (const ICONDATA*)param2;
+        BridgeResult result;
+        if(!icon)
+            emit setIconMenu(hMenu, QIcon());
+        else
+        {
+            QImage img;
+            img.loadFromData((uchar*)icon->data, icon->size);
+            QIcon qIcon(QPixmap::fromImage(img));
+            emit setIconMenu(hMenu, qIcon);
+        }
+        result.Wait();
     }
     break;
 
     case GUI_MENU_SET_ENTRY_ICON:
     {
-        Bridge::getBridge()->emitSetMenuEntryIcon((int)param1, (const ICONDATA*)param2);
+        int hEntry = (int)param1;
+        const ICONDATA* icon = (const ICONDATA*)param2;
+        BridgeResult result;
+        if(!icon)
+            emit setIconMenuEntry(hEntry, QIcon());
+        else
+        {
+            QImage img;
+            img.loadFromData((uchar*)icon->data, icon->size);
+            QIcon qIcon(QPixmap::fromImage(img));
+            emit setIconMenuEntry(hEntry, qIcon);
+        }
+        result.Wait();
     }
     break;
 
     case GUI_SHOW_CPU:
-    {
-        Bridge::getBridge()->emitShowCpu();
-    }
-    break;
+        emit showCpu();
+        break;
 
     case GUI_ADD_QWIDGET_TAB:
-    {
-        Bridge::getBridge()->emitAddQWidgetTab((QWidget*)param1);
-    }
-    break;
+        emit addQWidgetTab((QWidget*)param1);
+        break;
 
     case GUI_SHOW_QWIDGET_TAB:
-    {
-        Bridge::getBridge()->emitShowQWidgetTab((QWidget*)param1);
-    }
-    break;
+        emit showQWidgetTab((QWidget*)param1);
+        break;
 
     case GUI_CLOSE_QWIDGET_TAB:
-    {
-        Bridge::getBridge()->emitCloseQWidgetTab((QWidget*)param1);
-    }
-    break;
+        emit closeQWidgetTab((QWidget*)param1);
+        break;
 
     case GUI_EXECUTE_ON_GUI_THREAD:
-    {
-        Bridge::getBridge()->emitExecuteOnGuiThread(param1);
+        GuiAddLogMessage(QString().sprintf("thread id (bridge) %X\n", GetCurrentThreadId()).toUtf8().constData());
+        emit executeOnGuiThread(param1);
+        break;
     }
-    break;
-
-    default:
-    {
-
-    }
-    break;
-    }
-    return 0;
+    return nullptr;
 }
 
+/************************************************************************************
+                            Exported Functions
+************************************************************************************/
+__declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
+{
+    return main(argc, argv);
+}
 
-
+__declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param1, void* param2)
+{
+    return Bridge::getBridge()->processMessage(type, param1, param2);
+}

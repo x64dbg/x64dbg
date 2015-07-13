@@ -172,20 +172,26 @@ void BeaTokenizer::Mnemonic(BeaInstructionToken* instr, const DISASM* disasm)
     }
 }
 
-QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module)
+QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module, int maxModuleSize)
 {
     char labelText[MAX_LABEL_SIZE] = "";
-    char moduleText[MAX_MODULE_SIZE] = "";
+    char module_[MAX_MODULE_SIZE] = "";
+    QString moduleText;
     int_t addr = value->value;
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
-    bool bHasModule = (module && DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
+    bool bHasModule = (module && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
+    moduleText = QString(module_);
+    if(maxModuleSize != -1)
+        moduleText.truncate(maxModuleSize);
+    if(moduleText.length())
+        moduleText += ".";
     QString addrText;
     addrText = QString("%1").arg(addr & (uint_t) - 1, 0, 16, QChar('0')).toUpper();
     QString finalText;
     if(bHasLabel && bHasModule) //<module.label>
-        finalText = QString("<%1.%2>").arg(moduleText).arg(labelText);
+        finalText = QString("<%1%2>").arg(moduleText).arg(labelText);
     else if(bHasModule) //module.addr
-        finalText = QString("%1.%2").arg(moduleText).arg(addrText);
+        finalText = QString("%1%2").arg(moduleText).arg(addrText);
     else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
     else
@@ -204,7 +210,7 @@ QString BeaTokenizer::RegisterToString(int size, int reg)
     return currentMap->find(regValue).value();
 }
 
-void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg)
+void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, const ARGTYPE* arg, bool* hadarg, int maxModuleSize)
 {
     if(arg->ArgType == NO_ARGUMENT || !arg->ArgMnemonic[0]) //empty/implicit argument
         return;
@@ -287,7 +293,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
             BeaTokenType type = TokenValue;
             if(DbgMemIsValidReadPtr(displacement.value)) //pointer
                 type = TokenAddress;
-            AddToken(instr, type, PrintValue(&printDisplacement, false), &displacement);
+            AddToken(instr, type, PrintValue(&printDisplacement, false, maxModuleSize), &displacement);
         }
         AddToken(instr, bracketsType, "]", 0);
     }
@@ -296,7 +302,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         BeaTokenValue value;
         value.size = arg->ArgSize / 8;
         value.value = disasm->Instruction.AddrValue;
-        AddToken(instr, TokenAddress, PrintValue(&value, true), &value);
+        AddToken(instr, TokenAddress, PrintValue(&value, true, maxModuleSize), &value);
     }
     else if((arg->ArgType & CONSTANT_TYPE) == CONSTANT_TYPE) //immediat
     {
@@ -326,7 +332,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         BeaTokenType type = TokenValue;
         if(DbgMemIsValidReadPtr(value.value)) //pointer
             type = TokenAddress;
-        AddToken(instr, type, PrintValue(&value, true), &value);
+        AddToken(instr, type, PrintValue(&value, true, maxModuleSize), &value);
     }
     else if((arg->ArgType & REGISTER_TYPE) == REGISTER_TYPE) //registers
     {
@@ -527,7 +533,7 @@ unsigned long BeaTokenizer::HashInstruction(const DISASM* disasm)
     return hash;
 }
 
-void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm)
+void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM* disasm, int maxModuleSize)
 {
     //initialization
     instr->hash = HashInstruction(disasm); //hash instruction
@@ -548,18 +554,18 @@ void BeaTokenizer::TokenizeInstruction(BeaInstructionToken* instr, const DISASM*
         BeaTokenValue val;
         val.size = 2;
         val.value = segment;
-        AddToken(instr, TokenValue, PrintValue(&val, true), &val);
+        AddToken(instr, TokenValue, PrintValue(&val, true, maxModuleSize), &val);
         AddToken(instr, TokenUncategorized, ":", 0);
         val.size = 4;
         val.value = address;
-        AddToken(instr, TokenAddress, PrintValue(&val, true), &val);
+        AddToken(instr, TokenAddress, PrintValue(&val, true, maxModuleSize), &val);
     }
     else
     {
         bool hadarg = false;
-        Argument(instr, disasm, &disasm->Argument1, &hadarg);
-        Argument(instr, disasm, &disasm->Argument2, &hadarg);
-        Argument(instr, disasm, &disasm->Argument3, &hadarg);
+        Argument(instr, disasm, &disasm->Argument1, &hadarg, maxModuleSize);
+        Argument(instr, disasm, &disasm->Argument2, &hadarg, maxModuleSize);
+        Argument(instr, disasm, &disasm->Argument3, &hadarg, maxModuleSize);
     }
 
     //remove spaces when needed

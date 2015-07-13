@@ -24,13 +24,13 @@ SafeSymUnloadModule64(
     return SymUnloadModule64(hProcess, BaseOfDll);
 }
 BOOL
-SafeSymSetSearchPath(
+SafeSymSetSearchPathW(
     __in HANDLE hProcess,
-    __in_opt PCSTR SearchPath
+    __in_opt PCWSTR SearchPath
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymSetSearchPath(hProcess, SearchPath);
+    return SymSetSearchPathW(hProcess, SearchPath);
 }
 DWORD
 SafeSymSetOptions(
@@ -41,14 +41,14 @@ SafeSymSetOptions(
     return SymSetOptions(SymOptions);
 }
 BOOL
-SafeSymInitialize(
+SafeSymInitializeW(
     __in HANDLE hProcess,
-    __in_opt PCSTR UserSearchPath,
+    __in_opt PCWSTR UserSearchPath,
     __in BOOL fInvadeProcess
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymInitialize(hProcess, UserSearchPath, fInvadeProcess);
+    return SymInitializeW(hProcess, UserSearchPath, fInvadeProcess);
 }
 BOOL
 SafeSymRegisterCallback64(
@@ -86,14 +86,14 @@ SafeSymGetModuleInfo64(
     return SymGetModuleInfo64(hProcess, qwAddr, ModuleInfo);
 }
 BOOL
-SafeSymGetSearchPath(
+SafeSymGetSearchPathW(
     __in HANDLE hProcess,
-    __out_ecount(SearchPathLength) PSTR SearchPath,
+    __out_ecount(SearchPathLength) PWSTR SearchPath,
     __in DWORD SearchPathLength
 )
 {
     EXCLUSIVE_ACQUIRE(LockSym);
-    return SymGetSearchPath(hProcess, SearchPath, SearchPathLength);
+    return SymGetSearchPathW(hProcess, SearchPath, SearchPathLength);
 }
 BOOL
 SafeSymEnumSymbols(

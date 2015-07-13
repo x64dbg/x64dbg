@@ -569,7 +569,7 @@ static unsigned char getCIPch()
 {
     unsigned char ch = 0x90;
     uint cip = GetContextDataEx(hActiveThread, UE_CIP);
-    MemRead(cip, &ch, 1, 0);
+    MemRead(cip, &ch, 1);
     return ch;
 }
 
@@ -633,7 +633,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     GuiSymbolLogClear();
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
-    SafeSymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
+    SafeSymInitializeW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str(), false); //initialize symbols
     SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
 
@@ -965,7 +965,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     if(!DebugString->fUnicode) //ASCII
     {
         Memory<char*> DebugText(DebugString->nDebugStringLength + 1, "cbOutputDebugString:DebugText");
-        if(MemRead((uint)DebugString->lpDebugStringData, DebugText(), DebugString->nDebugStringLength, 0))
+        if(MemRead((uint)DebugString->lpDebugStringData, DebugText(), DebugString->nDebugStringLength))
         {
             String str = String(DebugText());
             if(str != lastDebugText)  //fix for every string being printed twice
@@ -1047,7 +1047,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         if(nameInfo.dwType == 0x1000 && nameInfo.dwFlags == 0 && ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
-            if(MemRead((uint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1, 0))
+            if(MemRead((uint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName());
                 dprintf("SetThreadName(%X, \"%s\")\n", nameInfo.dwThreadID, ThreadNameEscaped.c_str());
@@ -1805,7 +1805,6 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* list)
 
 static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 {
-    SIZE_T size;
     uint pprocess_parameters;
 
     cmd_line_error->addr = (uint)GetPEBLocation(fdProcessInfo->hProcess);
@@ -1818,7 +1817,7 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 
     //cast-trick to calculate the address of the remote peb field ProcessParameters
     cmd_line_error->addr = (uint) & (((PPEB) cmd_line_error->addr)->ProcessParameters);
-    if(!MemRead(cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters), &size))
+    if(!MemRead(cmd_line_error->addr, &pprocess_parameters, sizeof(pprocess_parameters)))
     {
         cmd_line_error->type = CMDL_ERR_READ_PEBBASE;
         return false;
@@ -1832,11 +1831,10 @@ static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_err
 {
     uint command_line_stored = 0;
     uint aux = 0;
-    SIZE_T size;
     unsigned char data[100];
 
     cmd_line_error->addr = getcommandline;
-    if(!MemRead(cmd_line_error->addr, & data, sizeof(data), & size))
+    if(!MemRead(cmd_line_error->addr, & data, sizeof(data)))
     {
         cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
         return false;
@@ -1870,7 +1868,7 @@ static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_err
 #endif
 
     //update the pointer in the debuggee
-    if(!MemWrite(command_line_stored, &new_command_line, sizeof(new_command_line), &size))
+    if(!MemWrite(command_line_stored, &new_command_line, sizeof(new_command_line)))
     {
         cmd_line_error->addr = command_line_stored;
         cmd_line_error->type = CMDL_ERR_WRITE_GETCOMMANDLINESTORED;
@@ -1913,7 +1911,6 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 {
     cmdline_error_t cmd_line_error_aux;
     UNICODE_STRING new_command_line;
-    SIZE_T size;
     uint command_line_addr;
 
     if(cmd_line_error == NULL)
@@ -1939,21 +1936,21 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
     new_command_line.Buffer = command_linewstr();
 
-    uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    uint mem = (uint)MemAllocRemote(0, new_command_line.Length * 2);
     if(!mem)
     {
         cmd_line_error->type = CMDL_ERR_ALLOC_UNICODEANSI_COMMANDLINE;
         return false;
     }
 
-    if(!MemWrite(mem, new_command_line.Buffer, new_command_line.Length, &size))
+    if(!MemWrite(mem, new_command_line.Buffer, new_command_line.Length))
     {
         cmd_line_error->addr = mem;
         cmd_line_error->type = CMDL_ERR_WRITE_UNICODE_COMMANDLINE;
         return false;
     }
 
-    if(!MemWrite((mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1, &size))
+    if(!MemWrite((mem + new_command_line.Length), (void*)cmd_line, strlen(cmd_line) + 1))
     {
         cmd_line_error->addr = mem + new_command_line.Length;
         cmd_line_error->type = CMDL_ERR_WRITE_ANSI_COMMANDLINE;
@@ -1964,7 +1961,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
 
     new_command_line.Buffer = (PWSTR) mem;
-    if(!MemWrite(command_line_addr, &new_command_line, sizeof(new_command_line), &size))
+    if(!MemWrite(command_line_addr, &new_command_line, sizeof(new_command_line)))
     {
         cmd_line_error->addr = command_line_addr;
         cmd_line_error->type = CMDL_ERR_WRITE_PEBUNICODE_COMMANDLINE;
@@ -1976,7 +1973,6 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
 
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
 {
-    SIZE_T size;
     UNICODE_STRING CommandLine;
     cmdline_error_t cmd_line_error_aux;
 
@@ -1986,7 +1982,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
         return false;
 
-    if(!MemRead(cmd_line_error->addr, &CommandLine, sizeof(CommandLine), &size))
+    if(!MemRead(cmd_line_error->addr, &CommandLine, sizeof(CommandLine)))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
         return false;
@@ -1995,7 +1991,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
     Memory<wchar_t*> wstr_cmd(CommandLine.Length + sizeof(wchar_t));
 
     cmd_line_error->addr = (uint) CommandLine.Buffer;
-    if(!MemRead(cmd_line_error->addr, wstr_cmd(), CommandLine.Length, &size))
+    if(!MemRead(cmd_line_error->addr, wstr_cmd(), CommandLine.Length))
     {
         cmd_line_error->type = CMDL_ERR_READ_PROCPARM_CMDLINE;
         return false;

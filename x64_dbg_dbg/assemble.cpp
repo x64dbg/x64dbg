@@ -67,12 +67,12 @@ bool assembleat(uint addr, const char* instruction, int* size, char* error, bool
     if(size)
         *size = destSize;
 
-    bool ret = MemPatch(addr, dest, destSize, 0);
+    bool ret = MemPatch(addr, dest, destSize);
     if(ret && fillnop && nopsize)
     {
         if(size)
             *size += nopsize;
-        if(!MemPatch((addr + destSize), nops, nopsize, 0))
+        if(!MemPatch((addr + destSize), nops, nopsize))
             ret = false;
     }
     GuiUpdatePatches();

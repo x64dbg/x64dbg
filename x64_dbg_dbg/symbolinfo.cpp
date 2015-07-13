@@ -129,11 +129,11 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         return;
 
     // Backup the current symbol search path
-    char oldSearchPath[MAX_PATH];
+    wchar_t oldSearchPath[MAX_PATH];
 
-    if(!SafeSymGetSearchPath(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
+    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, oldSearchPath, MAX_PATH))
     {
-        dputs("SymGetSearchPath failed!");
+        dputs("SymGetSearchPathW failed!");
         return;
     }
 
@@ -141,9 +141,9 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     char customSearchPath[MAX_PATH * 2];
     sprintf_s(customSearchPath, "SRV*%s*%s", szSymbolCachePath, SymbolStore);
 
-    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, customSearchPath))
+    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(customSearchPath).c_str()))
     {
-        dputs("SymSetSearchPath (1) failed!");
+        dputs("SymSetSearchPathW (1) failed!");
         return;
     }
 
@@ -173,8 +173,8 @@ void SymDownloadAllSymbols(const char* SymbolStore)
     }
 
     // Restore the old search path
-    if(!SafeSymSetSearchPath(fdProcessInfo->hProcess, oldSearchPath))
-        dputs("SymSetSearchPath (2) failed!");
+    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, oldSearchPath))
+        dputs("SymSetSearchPathW (2) failed!");
 }
 
 bool SymAddrFromName(const char* Name, uint* Address)
