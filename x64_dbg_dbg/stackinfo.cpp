@@ -10,6 +10,7 @@
 #include "disasm_fast.h"
 #include "_exports.h"
 #include "module.h"
+#include "thread.h"
 
 bool stackcommentget(uint addr, STACK_COMMENT* comment)
 {
@@ -107,9 +108,84 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
 
     return false;
 }
-#include "console.h"
+
+BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
+{
+    if(hProcess != fdProcessInfo->hProcess)
+        __debugbreak();
+
+    // Fix for 64-bit sizes
+    SIZE_T bytesRead = 0;
+
+    if(MemRead(lpBaseAddress, lpBuffer, nSize, &bytesRead))
+    {
+        if(lpNumberOfBytesRead)
+            *lpNumberOfBytesRead = (DWORD)bytesRead;
+
+        return true;
+    }
+
+    return false;
+}
+
+DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
+{
+    if(hProcess != fdProcessInfo->hProcess)
+        __debugbreak();
+
+    return ModBaseFromAddr(Address);
+}
+
+DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
+{
+    __debugbreak();
+    return 0;
+}
+
+void StackEntryFromFrame(CALLSTACKENTRY* Entry, STACKFRAME64* Frame)
+{
+    Entry->addr = (uint)Frame->AddrFrame.Offset;
+    Entry->from = (uint)Frame->AddrReturn.Offset;
+    Entry->to = (uint)Frame->AddrPC.Offset;
+
+    char label[MAX_LABEL_SIZE] = "";
+    ADDRINFO addrinfo;
+    addrinfo.flags = flaglabel;
+    if(_dbg_addrinfoget(Entry->to, SEG_DEFAULT, &addrinfo))
+        strcpy_s(label, addrinfo.label);
+    char module[MAX_MODULE_SIZE] = "";
+    ModNameFromAddr(Entry->to, module, false);
+    char returnToAddr[MAX_COMMENT_SIZE] = "";
+    if(*module)
+        sprintf(returnToAddr, "%s.", module);
+    if(!*label)
+        sprintf(label, fhex, Entry->to);
+    strcat(returnToAddr, label);
+
+    if(Entry->from)
+    {
+        *label = 0;
+        addrinfo.flags = flaglabel;
+        if(_dbg_addrinfoget(Entry->from, SEG_DEFAULT, &addrinfo))
+            strcpy_s(label, addrinfo.label);
+        *module = 0;
+        ModNameFromAddr(Entry->from, module, false);
+        char returnFromAddr[MAX_COMMENT_SIZE] = "";
+        if(*module)
+            sprintf(returnFromAddr, "%s.", module);
+        if(!*label)
+            sprintf(label, fhex, Entry->from);
+        strcat(returnFromAddr, label);
+
+        sprintf_s(Entry->comment, "return to %s from %s", returnToAddr, returnFromAddr);
+    }
+    else
+        sprintf_s(Entry->comment, "return to %s from ???", returnToAddr);
+}
+
 void stackgetcallstack(uint csp, CALLSTACK* callstack)
 {
+#if 1
     callstack->total = 0;
     if(!DbgIsDebugging() || csp % sizeof(uint)) //alignment problem
         return;
@@ -200,4 +276,90 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             memcpy(&callstack->entries[i], &callstackVector.at(i), sizeof(CALLSTACKENTRY));
         }
     }
+#else
+    // Gather context data
+    CONTEXT context;
+    memset(&context, 0, sizeof(CONTEXT));
+
+    context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+
+    if(SuspendThread(hActiveThread) == -1)
+        return;
+
+    if(!GetThreadContext(hActiveThread, &context))
+        return;
+
+    if(ResumeThread(hActiveThread) == -1)
+        return;
+
+    // Set up all frame data
+    STACKFRAME64 frame;
+    ZeroMemory(&frame, sizeof(STACKFRAME64));
+
+#ifdef _M_IX86
+    DWORD machineType = IMAGE_FILE_MACHINE_I386;
+    frame.AddrPC.Offset = context.Eip;
+    frame.AddrPC.Mode = AddrModeFlat;
+    frame.AddrFrame.Offset = context.Ebp;
+    frame.AddrFrame.Mode = AddrModeFlat;
+    frame.AddrStack.Offset = csp;
+    frame.AddrStack.Mode = AddrModeFlat;
+#elif _M_X64
+    DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
+    frame.AddrPC.Offset = context.Rip;
+    frame.AddrPC.Mode = AddrModeFlat;
+    frame.AddrFrame.Offset = context.Rsp;
+    frame.AddrFrame.Mode = AddrModeFlat;
+    frame.AddrStack.Offset = csp;
+    frame.AddrStack.Mode = AddrModeFlat;
+#endif
+
+    // Container for each callstack entry
+    std::vector<CALLSTACKENTRY> callstackVector;
+
+    while(true)
+    {
+        if(!StackWalk64(
+                    machineType,
+                    fdProcessInfo->hProcess,
+                    hActiveThread,
+                    &frame,
+                    machineType == IMAGE_FILE_MACHINE_I386 ? nullptr : &context,
+                    StackReadProcessMemoryProc64,
+                    SymFunctionTableAccess64,
+                    StackGetModuleBaseProc64,
+                    StackTranslateAddressProc64))
+        {
+            // Maybe it failed, maybe we have finished walking the stack
+            break;
+        }
+
+        if(frame.AddrPC.Offset != 0)
+        {
+            // Valid frame
+            CALLSTACKENTRY entry;
+            memset(&entry, 0, sizeof(CALLSTACKENTRY));
+
+            StackEntryFromFrame(&entry, &frame);
+
+            callstackVector.push_back(entry);
+        }
+        else
+        {
+            // Base reached
+            break;
+        }
+    }
+
+    // Convert to a C data structure
+    callstack->total = (int)callstackVector.size();
+
+    if(callstack->total > 0)
+    {
+        callstack->entries = (CALLSTACKENTRY*)BridgeAlloc(callstack->total * sizeof(CALLSTACKENTRY));
+
+        // Copy data directly from the vector
+        memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
+    }
+#endif
 }
