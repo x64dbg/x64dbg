@@ -273,7 +273,6 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         if(!ptr)
             continue;
 
-        dprintf("patch%.4d|%s[%.8X]:%.2X/%.2X->%.2X\n", i + 1, moduleName, ptr - fileMapVa, *ptr, List[i].oldbyte, List[i].newbyte);
         *ptr = List[i].newbyte;
         patchCount++;
     }
