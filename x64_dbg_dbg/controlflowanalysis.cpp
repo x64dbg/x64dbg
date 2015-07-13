@@ -1,8 +1,61 @@
 #include "controlflowanalysis.h"
 #include "console.h"
+#include "module.h"
+#include "TitanEngine/TitanEngine.h"
+#include "memory.h"
 
-ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size) : Analysis(base, size)
+ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size, bool exceptionDirectory) : Analysis(base, size)
 {
+    _functionInfoData = nullptr;
+#ifdef _WIN64
+    // This will only be valid if the address range is within a loaded module
+    _moduleBase = ModBaseFromAddr(base);
+
+    if(exceptionDirectory && _moduleBase != 0)
+    {
+        char modulePath[MAX_PATH];
+        memset(modulePath, 0, sizeof(modulePath));
+
+        ModPathFromAddr(_moduleBase, modulePath, ARRAYSIZE(modulePath));
+
+        HANDLE fileHandle;
+        DWORD fileSize;
+        HANDLE fileMapHandle;
+        ULONG_PTR fileMapVa;
+        if(StaticFileLoadW(
+                    StringUtils::Utf8ToUtf16(modulePath).c_str(),
+                    UE_ACCESS_READ,
+                    false,
+                    &fileHandle,
+                    &fileSize,
+                    &fileMapHandle,
+                    &fileMapVa))
+        {
+            // Find a pointer to IMAGE_DIRECTORY_ENTRY_EXCEPTION for later use
+            ULONG_PTR virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
+            _functionInfoSize = (uint)GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE);
+
+            // Unload the file
+            StaticFileUnloadW(nullptr, false, fileHandle, fileSize, fileMapHandle, fileMapVa);
+
+            // Get a copy of the function table
+            if(virtualOffset)
+            {
+                // Read the table into a buffer
+                _functionInfoData = emalloc(_functionInfoSize);
+
+                if(_functionInfoData)
+                    MemRead(virtualOffset + _moduleBase, _functionInfoData, _functionInfoSize);
+            }
+        }
+    }
+#endif //_WIN64
+}
+
+ControlFlowAnalysis::~ControlFlowAnalysis()
+{
+    if(_functionInfoData)
+        efree(_functionInfoData);
 }
 
 void ControlFlowAnalysis::Analyse()
@@ -15,7 +68,7 @@ void ControlFlowAnalysis::Analyse()
     ticks = GetTickCount();
 
     BasicBlocks();
-    dprintf("Basick blocks in %ums!\n", GetTickCount() - ticks);
+    dprintf("Basic blocks in %ums!\n", GetTickCount() - ticks);
     ticks = GetTickCount();
 
     Functions();
@@ -83,7 +136,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
                     _blockStarts.insert(addr);
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET) || _cp.InGroup(CS_GRP_INT))  //RET/INT break control flow
+            else if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3)  //RET/INT3 break control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
@@ -139,7 +192,7 @@ void ControlFlowAnalysis::BasicBlocks()
             prevaddr = addr;
             if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
             {
-                if(_cp.InGroup(CS_GRP_RET))
+                if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3)
                 {
                     insertBlock(BasicBlock(start, addr, 0, 0)); //leaf block
                     break;
@@ -166,6 +219,23 @@ void ControlFlowAnalysis::BasicBlocks()
         }
     }
     _blockStarts.clear();
+
+#ifdef _WIN64
+    int count = 0;
+    EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
+    {
+        const uint funcAddr = _moduleBase + Function->BeginAddress;
+        const uint funcEnd = _moduleBase + Function->EndAddress;
+
+        // If within limits...
+        if(funcAddr >= _base && funcAddr < _base + _size)
+            _functionStarts.insert(funcAddr);
+        count++;
+        return true;
+    });
+    dprintf("%u functions from the exception directory...\n", count);
+#endif // _WIN64
+
     dprintf("%u basic blocks, %u function starts detected...\n", _blocks.size(), _functionStarts.size());
 }
 
@@ -310,3 +380,22 @@ uint ControlFlowAnalysis::GetReferenceOperand()
     }
     return 0;
 }
+
+#ifdef _WIN64
+void ControlFlowAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback)
+{
+    if(!_functionInfoData)
+        return;
+
+    // Get the table pointer and size
+    auto functionTable = (PRUNTIME_FUNCTION)_functionInfoData;
+    uint totalCount = (_functionInfoSize / sizeof(RUNTIME_FUNCTION));
+
+    // Enumerate each entry
+    for(ULONG i = 0; i < totalCount; i++)
+    {
+        if(!Callback(&functionTable[i]))
+            break;
+    }
+}
+#endif // _WIN64

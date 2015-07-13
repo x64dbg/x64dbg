@@ -216,9 +216,6 @@
     <ClCompile Include="capstone_wrapper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="functionanalysis.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="filereader.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
@@ -274,6 +271,12 @@
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
     <ClCompile Include="controlflowanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="exceptiondirectoryanalysis.cpp">
+      <Filter>Source Files\Analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="linearanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
   </ItemGroup>
@@ -566,9 +569,6 @@
     <ClInclude Include="capstone\xcore.h">
       <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
-    <ClInclude Include="functionanalysis.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
     <ClInclude Include="filereader.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
@@ -631,6 +631,12 @@
     </ClInclude>
     <ClInclude Include="_scriptapi_misc.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptiondirectoryanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="linearanalysis.h">
+      <Filter>Header Files\Analysis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

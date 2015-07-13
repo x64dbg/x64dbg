@@ -1,13 +1,13 @@
-#include "functionanalysis.h"
+#include "linearanalysis.h"
 #include "console.h"
 #include "memory.h"
 #include "function.h"
 
-FunctionAnalysis::FunctionAnalysis(uint base, uint size) : Analysis(base, size)
+LinearAnalysis::LinearAnalysis(uint base, uint size) : Analysis(base, size)
 {
 }
 
-void FunctionAnalysis::Analyse()
+void LinearAnalysis::Analyse()
 {
     dputs("Starting analysis...");
     DWORD ticks = GetTickCount();
@@ -19,7 +19,7 @@ void FunctionAnalysis::Analyse()
     dprintf("Analysis finished in %ums!\n", GetTickCount() - ticks);
 }
 
-void FunctionAnalysis::SetMarkers()
+void LinearAnalysis::SetMarkers()
 {
     FunctionDelRange(_base, _base + _size);
     for(auto & function : _functions)
@@ -30,7 +30,7 @@ void FunctionAnalysis::SetMarkers()
     }
 }
 
-void FunctionAnalysis::SortCleanup()
+void LinearAnalysis::SortCleanup()
 {
     //sort & remove duplicates
     std::sort(_functions.begin(), _functions.end());
@@ -38,7 +38,7 @@ void FunctionAnalysis::SortCleanup()
     _functions.erase(last, _functions.end());
 }
 
-void FunctionAnalysis::PopulateReferences()
+void LinearAnalysis::PopulateReferences()
 {
     //linear immediate reference scan (call <addr>, push <addr>, mov [somewhere], <addr>)
     for(uint i = 0; i < _size;)
@@ -57,7 +57,7 @@ void FunctionAnalysis::PopulateReferences()
     SortCleanup();
 }
 
-void FunctionAnalysis::AnalyseFunctions()
+void LinearAnalysis::AnalyseFunctions()
 {
     for(size_t i = 0; i < _functions.size(); i++)
     {
@@ -79,7 +79,7 @@ void FunctionAnalysis::AnalyseFunctions()
     }
 }
 
-uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
+uint LinearAnalysis::FindFunctionEnd(uint start, uint maxaddr)
 {
     //disassemble first instruction for some heuristics
     if(_cp.Disassemble(start, TranslateAddress(start), MAX_DISASM_BUFFER))
@@ -132,7 +132,7 @@ uint FunctionAnalysis::FindFunctionEnd(uint start, uint maxaddr)
     return end < jumpback ? jumpback : end;
 }
 
-uint FunctionAnalysis::GetReferenceOperand()
+uint LinearAnalysis::GetReferenceOperand()
 {
     for(int i = 0; i < _cp.x86().op_count; i++)
     {

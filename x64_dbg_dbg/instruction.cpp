@@ -26,9 +26,10 @@
 #include "module.h"
 #include "stringformat.h"
 #include "filereader.h"
-#include "functionanalysis.h"
+#include "linearanalysis.h"
 #include "controlflowanalysis.h"
 #include "analysis_nukem.h"
+#include "exceptiondirectoryanalysis.h"
 
 static bool bRefinit = false;
 
@@ -1865,6 +1866,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
+    dprintf("%d, NOP=%d\n", cp.GetId(), X86_INS_NOP);
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];
@@ -1915,7 +1917,7 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     uint size = 0;
     uint base = MemFindBaseAddr(sel.start, &size);
-    FunctionAnalysis anal(base, size);
+    LinearAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
@@ -1924,13 +1926,29 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
 
 CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
 {
+    bool exceptionDirectory = false;
+    if(argc > 1)
+        exceptionDirectory = true;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     uint size = 0;
     uint base = MemFindBaseAddr(sel.start, &size);
-    ControlFlowAnalysis anal(base, size);
+    ControlFlowAnalysis anal(base, size, exceptionDirectory);
     anal.Analyse();
     //anal.SetMarkers();
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrExanalyse(int argc, char* argv[])
+{
+    SELECTIONDATA sel;
+    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    uint size = 0;
+    uint base = MemFindBaseAddr(sel.start, &size);
+    ExceptionDirectoryAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }

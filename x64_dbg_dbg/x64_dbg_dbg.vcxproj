@@ -40,10 +40,11 @@
     <ClCompile Include="disasm_helper.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
+    <ClCompile Include="exceptiondirectoryanalysis.cpp" />
     <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filereader.cpp" />
     <ClCompile Include="function.cpp" />
-    <ClCompile Include="functionanalysis.cpp" />
+    <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
     <ClCompile Include="instruction.cpp" />
     <ClCompile Include="Int3CoagulatorPass.cpp" />
@@ -119,10 +120,11 @@
     <ClInclude Include="dynamicmem.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
+    <ClInclude Include="exceptiondirectoryanalysis.h" />
     <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filereader.h" />
     <ClInclude Include="function.h" />
-    <ClInclude Include="functionanalysis.h" />
+    <ClInclude Include="linearanalysis.h" />
     <ClInclude Include="FunctionPass.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
