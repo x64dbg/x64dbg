@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <windows.h>
+#include "crashdump.h"
 #include "..\x64_dbg_bridge\bridgemain.h"
 
 /**
@@ -23,6 +24,8 @@
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    CrashDumpInitialize();
+
     const char* errormsg = BridgeInit();
     if(errormsg)
     {

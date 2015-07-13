@@ -19,9 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="crashdump.cpp" />
     <ClCompile Include="x64_dbg_exe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="crashdump.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
