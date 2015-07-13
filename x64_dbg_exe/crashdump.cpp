@@ -42,24 +42,34 @@ void CrashDumpFatal(const char* Format, ...)
 void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
 {
     // Generate a crash dump file in the root directory
+    wchar_t dumpFile[MAX_PATH];
     wchar_t dumpDir[MAX_PATH];
-    wchar_t currentDir[MAX_PATH];
 
-    if(!GetCurrentDirectoryW(ARRAYSIZE(currentDir), currentDir))
+    if(!GetCurrentDirectoryW(ARRAYSIZE(dumpDir), dumpDir))
     {
         CrashDumpFatal("Unable to obtain current directory during crash dump\n");
         return;
     }
+    wcscat_s(dumpDir, L"\\minidump");
+    CreateDirectoryW(dumpDir, nullptr);
 
     // Append the name
-    swprintf_s(dumpDir, L"%ws\\minidump-%p.dmp", currentDir, ExceptionPointers->ContextRecord->Rip);
+    SYSTEMTIME st = {0};
+    GetLocalTime(&st);
+    swprintf_s(dumpFile, L"%ws\\dump-%02d%02d%04d_%02d%02d%02d.dmp", dumpDir,
+               st.wDay,
+               st.wMonth,
+               st.wYear,
+               st.wHour,
+               st.wMinute,
+               st.wSecond);
 
     // Open the file
-    HANDLE fileHandle = CreateFileW(dumpDir, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    HANDLE fileHandle = CreateFileW(dumpFile, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
     if(fileHandle == INVALID_HANDLE_VALUE)
     {
-        CrashDumpFatal("Failed to open file path '%ws' while generating crash dump\n", dumpDir);
+        CrashDumpFatal("Failed to open file path '%ws' while generating crash dump\n", dumpFile);
         return;
     }
 
