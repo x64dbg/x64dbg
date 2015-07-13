@@ -52,16 +52,19 @@ void ReferenceView::setupContextMenu()
     mFollowDumpAddress = new QAction("Follow in &Dump", this);
     connect(mFollowDumpAddress, SIGNAL(triggered()), this, SLOT(followDumpAddress()));
 
+    mFollowApiAddress = new QAction("Follow &API Address", this);
+    connect(mFollowApiAddress, SIGNAL(triggered()), this, SLOT(followApiAddress()));
+
     mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mToggleBreakpoint);
+    addAction(mToggleBreakpoint);
     mList->addAction(mToggleBreakpoint);
     mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
     mToggleBookmark = new QAction("Toggle Bookmark", this);
     mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mToggleBookmark);
+    addAction(mToggleBookmark);
     mList->addAction(mToggleBookmark);
     mSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
@@ -134,12 +137,12 @@ void ReferenceView::setSingleSelection(int index, bool scroll)
 void ReferenceView::setSearchStartCol(int col)
 {
     if(col < mList->getColumnCount())
-        this->mSearchStartCol = col;
+        mSearchStartCol = col;
 }
 
 void ReferenceView::referenceContextMenu(QMenu* wMenu)
 {
-    if(!this->mCurList->getRowCount())
+    if(!mCurList->getRowCount())
         return;
     QString text = mCurList->getCellContent(mCurList->getInitialSelection(), 0);
     duint addr;
@@ -149,6 +152,8 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
         return;
     wMenu->addAction(mFollowAddress);
     wMenu->addAction(mFollowDumpAddress);
+    if(apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1)))
+        wMenu->addAction(mFollowApiAddress);
     wMenu->addSeparator();
     wMenu->addAction(mToggleBreakpoint);
     wMenu->addAction(mToggleBookmark);
@@ -156,13 +161,20 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
 
 void ReferenceView::followAddress()
 {
-    DbgCmdExecDirect(QString("disasm " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)).toUtf8().constData());
     emit showCpu();
 }
 
 void ReferenceView::followDumpAddress()
 {
-    DbgCmdExecDirect(QString("dump " + this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    emit showCpu();
+}
+
+void ReferenceView::followApiAddress()
+{
+    int_t apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
+    DbgCmdExecDirect(QString("disasm " + QString().sprintf("%p", apiValue)).toUtf8().constData());
     emit showCpu();
 }
 
@@ -179,9 +191,9 @@ void ReferenceView::toggleBreakpoint()
     if(!DbgIsDebugging())
         return;
 
-    if(!this->mCurList->getRowCount())
+    if(!mCurList->getRowCount())
         return;
-    QString addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0).toUtf8().constData();
+    QString addrText = mCurList->getCellContent(mCurList->getInitialSelection(), 0).toUtf8().constData();
     duint wVA;
     if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
@@ -208,9 +220,9 @@ void ReferenceView::toggleBookmark()
     if(!DbgIsDebugging())
         return;
 
-    if(!this->mCurList->getRowCount())
+    if(!mCurList->getRowCount())
         return;
-    QString addrText = this->mCurList->getCellContent(this->mCurList->getInitialSelection(), 0);
+    QString addrText = mCurList->getCellContent(mCurList->getInitialSelection(), 0);
     duint wVA;
     if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
@@ -231,4 +243,18 @@ void ReferenceView::toggleBookmark()
         msg.exec();
     }
     GuiUpdateAllViews();
+}
+
+int_t ReferenceView::apiAddressFromString(const QString & s)
+{
+    QRegExp regEx("call.+<(.+)>");
+    regEx.indexIn(s);
+    QStringList list = regEx.capturedTexts();
+    if(list.length() < 2)
+        return 0;
+    QString match = list[1];
+    if(match[0] == QChar('&'))
+        match.remove(0, 1);
+    duint value;
+    return DbgFunctions()->ValFromString(match.toUtf8().constData(), &value) && DbgMemIsValidReadPtr(value) ? value : 0;
 }

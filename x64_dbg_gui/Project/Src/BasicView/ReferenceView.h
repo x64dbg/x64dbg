@@ -24,6 +24,7 @@ private slots:
     void referenceContextMenu(QMenu* wMenu);
     void followAddress();
     void followDumpAddress();
+    void followApiAddress();
     void followGenericAddress();
     void toggleBreakpoint();
     void toggleBookmark();
@@ -36,10 +37,13 @@ private:
     QProgressBar* mSearchProgress;
     QAction* mFollowAddress;
     QAction* mFollowDumpAddress;
+    QAction* mFollowApiAddress;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     bool mFollowDumpDefault;
     QLabel* mCountLabel;
+
+    int_t apiAddressFromString(const QString & s);
 };
 
 #endif // REFERENCEVIEW_H
