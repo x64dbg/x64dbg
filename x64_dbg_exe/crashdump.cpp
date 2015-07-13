@@ -91,7 +91,13 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
 LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
 {
     if(ExceptionInfo)
+    {
+        // Skip DBG_PRINTEXCEPTION_C
+        if(ExceptionInfo->ExceptionRecord->ExceptionCode != DBG_PRINTEXCEPTION_C)
+            return EXCEPTION_CONTINUE_SEARCH;
+
         CrashDumpCreate(ExceptionInfo);
+    }
 
     return EXCEPTION_CONTINUE_SEARCH;
 }
