@@ -1173,6 +1173,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //cleanup dbghelp
+    SafeSymRegisterCallback64(fdProcessInfo->hProcess, nullptr, 0);
     SafeSymCleanup(fdProcessInfo->hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
@@ -1438,6 +1439,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //cleanup dbghelp
+    SafeSymRegisterCallback64(fdProcessInfo->hProcess, nullptr, 0);
     SafeSymCleanup(fdProcessInfo->hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
