@@ -265,9 +265,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         byte_t wBuffer[16];
         if(!DbgMemRead(parVA, wBuffer, 16))
             return 0;
-        QBeaEngine disasm;
+        QBeaEngine disasm(-1);
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
-        BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm);
+        BeaTokenizer::TokenizeInstruction(&instr.tokens, &instr.disasm, -1);
         QList<RichTextPainter::CustomRichText_t> richText;
         BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
         QString finalInstruction = "";

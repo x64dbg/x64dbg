@@ -917,7 +917,7 @@ void CPUDisassembly::assembleAt()
 
         mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
 
-        QBeaEngine disasm;
+        QBeaEngine disasm(-1);
         Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
 
         QString actual_inst = instr.instStr;

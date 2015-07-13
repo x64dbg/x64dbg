@@ -170,6 +170,9 @@ Configuration::Configuration() : QObject()
     QMap<QString, uint_t> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
     defaultUints.insert("HexDump", hexdumpUint);
+    QMap<QString, uint_t> disasmUint;
+    disasmUint.insert("MaxModuleSize", -1);
+    defaultUints.insert("Disassembler", disasmUint);
 
     //font settings
     QFont font("Lucida Console", 8, QFont::Normal, false);
@@ -294,7 +297,6 @@ Configuration* Config()
 {
     return mPtr;
 }
-
 
 void Configuration::load()
 {
