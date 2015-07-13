@@ -1,4 +1,5 @@
 #include "StatusLabel.h"
+#include <QTextDocument>
 
 StatusLabel::StatusLabel(QStatusBar* parent) : QLabel(parent)
 {
@@ -55,8 +56,8 @@ void StatusLabel::logUpdate(QString message)
     //only show the last line in the status label
     QStringList lineList = labelText.split(QChar('\n'), QString::SkipEmptyParts);
     if(lineList.size())
-        setText(lineList[lineList.length() - 1]);
+        setText(Qt::convertFromPlainText(lineList[lineList.length() - 1]));
     else
-        setText(labelText);
+        setText(Qt::convertFromPlainText(labelText));
     this->repaint();
 }

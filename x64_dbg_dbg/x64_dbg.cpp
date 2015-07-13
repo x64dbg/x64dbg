@@ -274,8 +274,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(dbbasepath, dir); //debug directory
     strcat_s(dbbasepath, "\\db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
-    strcpy_s(szSymbolCachePath, dir);
-    strcat_s(szSymbolCachePath, "\\symbols");
+    if(!BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath))
+    {
+        strcpy_s(szSymbolCachePath, dir);
+        strcat_s(szSymbolCachePath, "\\symbols");
+        BridgeSettingSet("Symbols", "CachePath", szSymbolCachePath);
+    }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
     gMsgStack = MsgAllocStack();

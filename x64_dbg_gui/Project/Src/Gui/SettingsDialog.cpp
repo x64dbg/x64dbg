@@ -211,9 +211,22 @@ void SettingsDialog::LoadSettings()
         {
             ui->chkSetJIT->setDisabled(true);
             ui->chkConfirmBeforeAtt->setDisabled(true);
-            ui->lbladminwarning->setText(QString("Warning: Run the debugger as Admin to enable JIT."));
+            ui->lblAdminWarning->setText(QString("<font color=\"red\"><b>Warning</b></font>: Run the debugger as Admin to enable JIT."));
         }
+        else
+            ui->lblAdminWarning->setText("");
     }
+    char setting[MAX_SETTING_SIZE] = "";
+    if(BridgeSettingGet("Symbols", "DefaultStore", setting))
+        ui->editSymbolStore->setText(QString(setting));
+    else
+    {
+        QString defaultStore = "http://msdl.microsoft.com/download/symbols";
+        ui->editSymbolStore->setText(defaultStore);
+        BridgeSettingSet("Symbols", "DefaultStore", defaultStore.toUtf8().constData());
+    }
+    if(BridgeSettingGet("Symbols", "CachePath", setting))
+        ui->editSymbolCache->setText(QString(setting));
 
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
@@ -279,6 +292,10 @@ void SettingsDialog::SaveSettings()
                 DbgCmdExecDirect("setjitauto off");
         }
     }
+    if(settings.miscSymbolStore)
+        BridgeSettingSet("Symbols", "DefaultStore", ui->editSymbolStore->text().toUtf8().constData());
+    if(settings.miscSymbolCache)
+        BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
 
     Config()->load();
     DbgSettingsUpdated();
@@ -593,4 +610,14 @@ void SettingsDialog::on_chkOnlyCipAutoComments_stateChanged(int arg1)
 void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
 {
     settings.disasmTabBetweenMnemonicAndArguments = arg1 == Qt::Checked;
+}
+
+void SettingsDialog::on_editSymbolStore_textEdited(const QString & arg1)
+{
+    settings.miscSymbolStore = true;
+}
+
+void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
+{
+    settings.miscSymbolCache = true;
 }
