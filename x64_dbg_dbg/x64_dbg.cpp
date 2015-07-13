@@ -18,6 +18,7 @@
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
 #include "capstone_wrapper.h"
+#include "_scriptapi_gui.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static COMMAND* command_list = 0;
@@ -274,11 +275,24 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(dbbasepath, dir); //debug directory
     strcat_s(dbbasepath, "\\db");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
-    if(!BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath))
+    char szLocalSymbolPath[MAX_PATH] = "";
+    strcpy_s(szLocalSymbolPath, dir);
+    strcat_s(szLocalSymbolPath, "\\symbols");
+    if(!BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath) || !*szSymbolCachePath)
     {
-        strcpy_s(szSymbolCachePath, dir);
-        strcat_s(szSymbolCachePath, "\\symbols");
-        BridgeSettingSet("Symbols", "CachePath", szSymbolCachePath);
+        strcpy_s(szSymbolCachePath, szLocalSymbolPath);
+        BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+    }
+    else
+    {
+        if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
+        {
+            if(Script::Gui::MessageYesNo("It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))
+            {
+                strcpy_s(szSymbolCachePath, szLocalSymbolPath);
+                BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+            }
+        }
     }
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
