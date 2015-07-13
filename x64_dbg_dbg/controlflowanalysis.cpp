@@ -89,7 +89,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
             }
             else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())   //branches
             {
-                uint dest1 = GetBranchOperand();
+                uint dest1 = GetReferenceOperand();
                 uint dest2 = 0;
                 if(_cp.GetId() != X86_INS_JMP)    //unconditional jump
                     dest2 = addr + _cp.Size();
@@ -103,13 +103,16 @@ void ControlFlowAnalysis::BasicBlockStarts()
             }
             else if(_cp.InGroup(CS_GRP_CALL))
             {
-                uint dest1 = GetBranchOperand();
+                uint dest1 = GetReferenceOperand();
                 if(dest1)
+                {
                     _blockStarts.insert(dest1);
+                    _functionStarts.insert(dest1);
+                }
             }
             else
             {
-                uint dest1 = GetBranchOperand();
+                uint dest1 = GetReferenceOperand();
                 if(dest1)
                     _blockStarts.insert(dest1);
             }
@@ -143,7 +146,7 @@ void ControlFlowAnalysis::BasicBlocks()
                 }
                 else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
                 {
-                    uint dest1 = GetBranchOperand();
+                    uint dest1 = GetReferenceOperand();
                     uint dest2 = _cp.GetId() != X86_INS_JMP ? addr + _cp.Size() : 0;
                     insertBlock(BasicBlock(start, addr, dest1, dest2));
                     insertParent(dest1, start);
@@ -162,6 +165,8 @@ void ControlFlowAnalysis::BasicBlocks()
             }
         }
     }
+    _blockStarts.clear();
+    dprintf("%u basic blocks, %u function starts detected...\n", _blocks.size(), _functionStarts.size());
 }
 
 void ControlFlowAnalysis::Functions()
@@ -174,7 +179,7 @@ void ControlFlowAnalysis::Functions()
         UintSet* parents = findParents(block->start);
         if(!block->function)
         {
-            if(!parents)  //no parents = function start
+            if(!parents || _functionStarts.count(block->start))  //no parents = function start
             {
                 uint functionStart = block->start;
                 block->function = functionStart;
@@ -194,7 +199,9 @@ void ControlFlowAnalysis::Functions()
         else
             DebugBreak(); //this should not happen
     }
-    dprintf("%u/%u delayed blocks...\n", delayedBlocks.size(), _blocks.size());
+    int delayedCount = (int)delayedBlocks.size();
+    dprintf("%u/%u delayed blocks...\n", delayedCount, _blocks.size());
+    int resolved = 0;
     for(auto & delayedBlock : delayedBlocks)
     {
         BasicBlock* block = delayedBlock.first;
@@ -202,7 +209,8 @@ void ControlFlowAnalysis::Functions()
         uint function = findFunctionStart(block, parents);
         if(!function)
         {
-            dprintf("unresolved block %s\n", blockToString(block).c_str());
+            continue;
+            /*dprintf("unresolved block %s\n", blockToString(block).c_str());
             if(parents)
             {
                 dprintf("parents:\n");
@@ -213,10 +221,13 @@ void ControlFlowAnalysis::Functions()
                 dprintf("parents: null");
             dprintf("left: %s\n", blockToString(findBlock(block->left)).c_str());
             dprintf("right: %s\n", blockToString(findBlock(block->right)).c_str());
-            return;
+            return;*/
         }
         block->function = function;
+        resolved++;
     }
+    dprintf("%u/%u delayed blocks resolved (%u/%u still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, _blocks.size());
+    dprintf("%u functions found!\n", _functions.size());
 }
 
 void ControlFlowAnalysis::insertBlock(BasicBlock block)
@@ -285,7 +296,7 @@ String ControlFlowAnalysis::blockToString(BasicBlock* block)
     return block->toString();
 }
 
-uint ControlFlowAnalysis::GetBranchOperand()
+uint ControlFlowAnalysis::GetReferenceOperand()
 {
     for(int i = 0; i < _cp.x86().op_count; i++)
     {

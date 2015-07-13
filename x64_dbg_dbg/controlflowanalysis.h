@@ -48,6 +48,7 @@ private:
     typedef std::set<uint> UintSet;
 
     UintSet _blockStarts;
+    UintSet _functionStarts;
     std::map<uint, BasicBlock> _blocks; //start of block -> block
     std::map<uint, UintSet> _parentMap; //start child -> parents
     std::map<uint, UintSet> _functions; //function start -> function block starts
@@ -61,7 +62,7 @@ private:
     UintSet* findParents(uint child);
     uint findFunctionStart(BasicBlock* block, UintSet* parents);
     String blockToString(BasicBlock* block);
-    uint GetBranchOperand();
+    uint GetReferenceOperand();
 };
 
 #endif //_CONTROLFLOWANALYSIS_H
