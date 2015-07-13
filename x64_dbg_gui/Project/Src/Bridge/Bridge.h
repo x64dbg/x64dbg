@@ -35,6 +35,7 @@ public:
     //helper functions
     void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
     void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
+    void setDbgStopped();
 
     //Public variables
     void* winId;
@@ -113,6 +114,7 @@ private:
     QMutex* mBridgeMutex;
     int_t bridgeResult;
     volatile bool hasBridgeResult;
+    volatile bool dbgStopped;
 };
 
 #endif // BRIDGE_H

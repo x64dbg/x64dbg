@@ -20,6 +20,7 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
     referenceManager = 0;
     bridgeResult = 0;
     hasBridgeResult = false;
+    dbgStopped = false;
 }
 
 Bridge::~Bridge()
@@ -68,12 +69,19 @@ void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hPar
     result.Wait();
 }
 
+void Bridge::setDbgStopped()
+{
+    dbgStopped = true;
+}
+
 /************************************************************************************
                             Message processing
 ************************************************************************************/
 
 void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 {
+    if(dbgStopped) //there can be no more messages if the debugger stopped = BUG
+        __debugbreak();
     switch(type)
     {
     case GUI_DISASSEMBLE_AT:

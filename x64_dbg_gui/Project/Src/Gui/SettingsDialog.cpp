@@ -614,10 +614,12 @@ void SettingsDialog::on_chkTabBetweenMnemonicAndArguments_stateChanged(int arg1)
 
 void SettingsDialog::on_editSymbolStore_textEdited(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     settings.miscSymbolStore = true;
 }
 
 void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     settings.miscSymbolCache = true;
 }
