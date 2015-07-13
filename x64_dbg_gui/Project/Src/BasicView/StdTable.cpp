@@ -308,6 +308,7 @@ void StdTable::copyLineSlot()
             QString title = mCopyTitles.at(i);
             if(title.length())
                 finalText += title + "=";
+            while(cellContent.endsWith(" ")) cellContent.chop(1);
             finalText += cellContent;
             finalText += "\r\n";
         }
@@ -353,7 +354,7 @@ void StdTable::copyTableSlot()
                     finalRowText += " ";
                 QString cellContent = getCellContent(i, j);
                 int colWidth = getColumnWidth(j) / charwidth;
-                if(colWidth)
+                if(colWidth && j != colCount - 1)
                     finalRowText += cellContent.leftJustified(colWidth, QChar(' '), true);
                 else
                     finalRowText += cellContent;
@@ -370,7 +371,9 @@ void StdTable::copyEntrySlot()
     if(!action)
         return;
     int col = action->objectName().toInt();
-    Bridge::CopyToClipboard(getCellContent(getInitialSelection(), col));
+    QString finalText = getCellContent(getInitialSelection(), col);
+    while(finalText.endsWith(" ")) finalText.chop(1);
+    Bridge::CopyToClipboard(finalText);
 }
 
 void StdTable::setupCopyMenu(QMenu* copyMenu)
