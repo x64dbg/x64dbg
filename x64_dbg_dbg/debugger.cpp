@@ -633,7 +633,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     GuiSymbolLogClear();
     char szServerSearchPath[MAX_PATH * 2] = "";
     sprintf_s(szServerSearchPath, "SRV*%s", szSymbolCachePath);
-    SafeSymInitialize(fdProcessInfo->hProcess, szServerSearchPath, false); //initialize symbols
+    SafeSymInitializeW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str(), false); //initialize symbols
     SafeSymRegisterCallback64(fdProcessInfo->hProcess, SymRegisterCallbackProc64, 0);
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, CreateProcessInfo->hFile, DebugFileName, 0, (DWORD64)base, 0, 0, 0);
 

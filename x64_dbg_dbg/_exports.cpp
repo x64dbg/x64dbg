@@ -785,6 +785,8 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
                 entry = strtok(0, ",");
             }
         }
+
+        BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath);
     }
     break;
 
