@@ -188,7 +188,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_SETROWCOUNT:
-        \
         emit referenceSetRowCount((int_t)param1);
         break;
 
@@ -226,8 +225,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_INITIALIZE:
+    {
+        BridgeResult result;
         emit referenceInitialize(QString((const char*)param1));
-        break;
+        result.Wait();
+    }
+    break;
 
     case GUI_STACK_DUMP_AT:
         emit stackDumpAt((uint_t)param1, (uint_t)param2);
