@@ -111,9 +111,6 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
 
 BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead)
 {
-    if(hProcess != fdProcessInfo->hProcess)
-        __debugbreak();
-
     // Fix for 64-bit sizes
     SIZE_T bytesRead = 0;
 
@@ -130,9 +127,6 @@ BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddres
 
 DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 {
-    if(hProcess != fdProcessInfo->hProcess)
-        __debugbreak();
-
     return (DWORD64)ModBaseFromAddr((uint)Address);
 }
 
