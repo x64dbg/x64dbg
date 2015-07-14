@@ -36,6 +36,8 @@ static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
+static HANDLE hMemMapThread = 0;
+static bool bStopMemMapThread = false;
 static String lastDebugText;
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -47,10 +49,16 @@ bool bEnableSourceDebugging = true;
 
 static DWORD WINAPI memMapThread(void* ptr)
 {
-    while(true)
+    while(!bStopMemMapThread)
     {
         while(!DbgIsDebugging())
+        {
+            if(bStopMemMapThread)
+                break;
             Sleep(1);
+        }
+        if(bStopMemMapThread)
+            break;
         const SIZE_T PrivateUsage = dbggetprivateusage(fdProcessInfo->hProcess);
         if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when the memory usage changed
         {
@@ -67,7 +75,13 @@ void dbginit()
 {
     ExceptionCodeInit();
     ErrorCodeInit();
-    CloseHandle(CreateThread(0, 0, memMapThread, 0, 0, 0));
+    hMemMapThread = CreateThread(0, 0, memMapThread, 0, 0, 0);
+}
+
+void dbgstop()
+{
+    bStopMemMapThread = true;
+    WaitForThreadTermination(hMemMapThread);
 }
 
 SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
