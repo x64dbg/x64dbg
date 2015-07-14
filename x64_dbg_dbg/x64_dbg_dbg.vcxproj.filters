@@ -638,5 +638,8 @@
     <ClInclude Include="linearanalysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
+    <ClInclude Include="dynamicptr.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
