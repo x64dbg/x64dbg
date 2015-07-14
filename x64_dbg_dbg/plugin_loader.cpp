@@ -286,17 +286,17 @@ void pluginload(const char* pluginDir)
 */
 static void plugincmdunregisterall(int pluginHandle)
 {
-    EXCLUSIVE_ACQUIRE(LockPluginCommandList);
-    auto i = pluginCommandList.begin();
-    while(i != pluginCommandList.end())
+    SHARED_ACQUIRE(LockPluginCommandList);
+    auto commandList = pluginCommandList; //copy for thread-safety reasons
+    SHARED_RELEASE();
+    auto i = commandList.begin();
+    while(i != commandList.end())
     {
         auto currentCommand = *i;
         if(currentCommand.pluginHandle == pluginHandle)
         {
-            i = pluginCommandList.erase(i);
-            EXCLUSIVE_RELEASE();
+            i = commandList.erase(i);
             dbgcmddel(currentCommand.command);
-            EXCLUSIVE_REACQUIRE();
         }
         else
             ++i;
@@ -310,16 +310,12 @@ void pluginunload()
 {
     {
         EXCLUSIVE_ACQUIRE(LockPluginList);
-        int pluginCount = (int)pluginList.size();
-        for(int i = pluginCount - 1; i > -1; i--)
+        for(const auto & currentPlugin : pluginList)  //call plugin stop & unregister all plugin commands
         {
-            const auto & currentPlugin = pluginList.at(i);
             PLUGSTOP stop = currentPlugin.plugstop;
             if(stop)
                 stop();
             plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
-            FreeLibrary(currentPlugin.hPlugin);
-            pluginList.erase(pluginList.begin() + i);
         }
     }
     {
@@ -329,6 +325,11 @@ void pluginunload()
     {
         EXCLUSIVE_ACQUIRE(LockPluginMenuList);
         pluginMenuList.clear(); //clear menu list
+    }
+    {
+        EXCLUSIVE_ACQUIRE(LockPluginList);
+        for(const auto & currentPlugin : pluginList)  //free the libraries
+            FreeLibrary(currentPlugin.hPlugin);
     }
     GuiMenuClear(GUI_PLUGIN_MENU); //clear the plugin menu
 }
@@ -358,12 +359,12 @@ void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin)
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 {
     EXCLUSIVE_ACQUIRE(LockPluginCallbackList);
-    int pluginCallbackCount = (int)pluginCallbackList.size();
-    for(int i = 0; i < pluginCallbackCount; i++)
+    for(auto it = pluginCallbackList.begin(); it != pluginCallbackList.end(); ++it)
     {
-        if(pluginCallbackList.at(i).pluginHandle == pluginHandle && pluginCallbackList.at(i).cbType == cbType)
+        const auto & currentCallback = *it;
+        if(currentCallback.pluginHandle == pluginHandle && currentCallback.cbType == cbType)
         {
-            pluginCallbackList.erase(pluginCallbackList.begin() + i);
+            pluginCallbackList.erase(it);
             return true;
         }
     }
@@ -378,20 +379,15 @@ bool pluginunregistercallback(int pluginHandle, CBTYPE cbType)
 void plugincbcall(CBTYPE cbType, void* callbackInfo)
 {
     SHARED_ACQUIRE(LockPluginCallbackList);
-    auto i = pluginCallbackList.begin();
-    while(i != pluginCallbackList.end())
+    auto callbackList = pluginCallbackList; //copy for thread-safety reasons
+    SHARED_RELEASE();
+    for(const auto & currentCallback : callbackList)
     {
-        auto currentCallback = *i;
-        ++i;
         if(currentCallback.cbType == cbType)
         {
             CBPLUGIN cbPlugin = currentCallback.cbPlugin;
             if(!IsBadReadPtr((const void*)cbPlugin, sizeof(uint)))
-            {
-                SHARED_RELEASE();
                 cbPlugin(cbType, callbackInfo);
-                SHARED_REACQUIRE();
-            }
         }
     }
 }
@@ -431,12 +427,12 @@ bool plugincmdunregister(int pluginHandle, const char* command)
     if(!command || strlen(command) >= deflen || strstr(command, "\1"))
         return false;
     EXCLUSIVE_ACQUIRE(LockPluginCommandList);
-    int listsize = (int)pluginCommandList.size();
-    for(int i = 0; i < listsize; i++)
+    for(auto it = pluginCommandList.begin(); it != pluginCommandList.end(); ++it)
     {
-        if(pluginCommandList.at(i).pluginHandle == pluginHandle && !strcmp(pluginCommandList.at(i).command, command))
+        const auto & currentCommand = *it;
+        if(currentCommand.pluginHandle == pluginHandle && !strcmp(currentCommand.command, command))
         {
-            pluginCommandList.erase(pluginCommandList.begin() + i);
+            pluginCommandList.erase(it);
             EXCLUSIVE_RELEASE();
             if(!dbgcmddel(command))
                 return false;
@@ -545,13 +541,12 @@ bool pluginmenuclear(int hMenu)
 {
     EXCLUSIVE_ACQUIRE(LockPluginMenuList);
     bool bFound = false;
-    int listsize = (int)pluginMenuList.size();
-    for(int i = listsize - 1; i >= 0; i--)
+    for(auto it = pluginMenuList.begin(); it != pluginMenuList.end(); ++it)
     {
-        const auto & currentMenu = pluginMenuList.at(i);
+        const auto & currentMenu = *it;
         if(currentMenu.hEntryMenu == hMenu && currentMenu.hEntryPlugin == -1)
         {
-            pluginMenuList.erase(pluginMenuList.begin() + i);
+            it = pluginMenuList.erase(it);
             bFound = true;
         }
     }
