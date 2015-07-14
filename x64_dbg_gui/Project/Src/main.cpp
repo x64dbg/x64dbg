@@ -97,6 +97,8 @@ int main(int argc, char* argv[])
     mConfiguration->save(); //save config on exit
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->removeNativeEventFilter(filter);
+#else
+    QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
     return result;
 }

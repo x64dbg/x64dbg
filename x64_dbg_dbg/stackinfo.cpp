@@ -117,7 +117,7 @@ BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddres
     // Fix for 64-bit sizes
     SIZE_T bytesRead = 0;
 
-    if(MemRead(lpBaseAddress, lpBuffer, nSize, &bytesRead))
+    if(MemRead((uint)lpBaseAddress, lpBuffer, nSize, &bytesRead))
     {
         if(lpNumberOfBytesRead)
             *lpNumberOfBytesRead = (DWORD)bytesRead;
@@ -133,7 +133,7 @@ DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
     if(hProcess != fdProcessInfo->hProcess)
         __debugbreak();
 
-    return ModBaseFromAddr(Address);
+    return (DWORD64)ModBaseFromAddr((uint)Address);
 }
 
 DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)

@@ -25,6 +25,7 @@ static COMMAND* command_list = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
+static bool bIsStopped = false;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
@@ -366,7 +367,10 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     SectionLockerGlobal::Deinitialize();
     dputs("Cleaning up wait objects...");
     waitdeinitialize();
+    dputs("Cleaning up debugger threads...");
+    dbgstop();
     dputs("Exit signal processed successfully!");
+    bIsStopped = true;
 }
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
@@ -379,4 +383,9 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 COMMAND* dbggetcommandlist()
 {
     return command_list;
+}
+
+bool dbgisstopped()
+{
+    return bIsStopped;
 }
