@@ -36,6 +36,7 @@ static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
+static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static String lastDebugText;
@@ -1180,6 +1181,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     initInfo.szFileName = szFileName;
     plugincbcall(CB_INITDEBUG, &initInfo);
     //run debug loop (returns when process debugging is stopped)
+    hProcess = fdProcessInfo->hProcess;
     DebugLoop();
     isDetachedByUser = false;
     //call plugin callback
@@ -1187,8 +1189,8 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //cleanup dbghelp
-    SafeSymRegisterCallback64(fdProcessInfo->hProcess, nullptr, 0);
-    SafeSymCleanup(fdProcessInfo->hProcess);
+    SafeSymRegisterCallback64(hProcess, nullptr, 0);
+    SafeSymCleanup(hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
@@ -1399,6 +1401,7 @@ static void cbAttachDebugger()
         SetEvent(hEvent);
         hEvent = 0;
     }
+    hProcess = fdProcessInfo->hProcess;
     varset("$hp", (uint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
 }
@@ -1453,8 +1456,8 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     stopInfo.reserved = 0;
     plugincbcall(CB_STOPDEBUG, &stopInfo);
     //cleanup dbghelp
-    SafeSymRegisterCallback64(fdProcessInfo->hProcess, nullptr, 0);
-    SafeSymCleanup(fdProcessInfo->hProcess);
+    SafeSymRegisterCallback64(hProcess, nullptr, 0);
+    SafeSymCleanup(hProcess);
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
