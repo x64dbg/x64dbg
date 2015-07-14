@@ -173,8 +173,6 @@ void CommentCacheLoad(JSON Root)
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(commentInfo.mod, mod);
-            else
-                commentInfo.mod[0] = '\0';
 
             // Address/Manual
             commentInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));

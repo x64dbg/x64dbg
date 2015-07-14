@@ -148,8 +148,6 @@ void BookmarkCacheLoad(JSON Root)
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(bookmarkInfo.mod, mod);
-            else
-                bookmarkInfo.mod[0] = '\0';
 
             // Load address and set auto-generated flag
             bookmarkInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));

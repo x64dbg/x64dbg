@@ -201,8 +201,6 @@ void LoopCacheLoad(JSON Root)
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(loopInfo.mod, mod);
-            else
-                loopInfo.mod[0] = '\0';
 
             // All other variables
             loopInfo.start = (uint)json_hex_value(json_object_get(value, "start"));

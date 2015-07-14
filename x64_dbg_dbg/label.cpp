@@ -194,8 +194,6 @@ void LabelCacheLoad(JSON Root)
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 strcpy_s(labelInfo.mod, mod);
-            else
-                labelInfo.mod[0] = '\0';
 
             // Address/Manual
             labelInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
