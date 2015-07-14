@@ -73,5 +73,6 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[]);
 CMDRESULT cbInstrMeminfo(int argc, char* argv[]);
 CMDRESULT cbInstrCfanalyse(int argc, char* argv[]);
 CMDRESULT cbInstrExanalyse(int argc, char* argv[]);
+CMDRESULT cbInstrVirtualmod(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

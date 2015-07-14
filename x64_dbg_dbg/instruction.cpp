@@ -1953,6 +1953,48 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
+{
+    if(argc < 3)
+    {
+        dputs("Not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint base;
+    if(!valfromstring(argv[2], &base))
+    {
+        dputs("Invalid parameter [base]!");
+        return STATUS_ERROR;
+    }
+    if(!MemIsValidReadPtr(base))
+    {
+        dputs("Invalid memory address!");
+        return STATUS_ERROR;
+    }
+    uint size;
+    if(argc < 4)
+        base = MemFindBaseAddr(base, &size);
+    else if(!valfromstring(argv[3], &size))
+    {
+        dputs("Invalid parameter [size]");
+        return STATUS_ERROR;
+    }
+    auto name = String("virtual:\\") + (argv[1]);
+    if(!ModLoad(base, size, name.c_str()))
+    {
+        dputs("Failed to load module (ModLoad)...");
+        return STATUS_ERROR;
+    }
+
+    char modname[256] = "";
+    if(ModNameFromAddr(base, modname, true))
+        BpEnumAll(cbSetModuleBreakpoints, modname);
+
+    dprintf("Virtual module \"%s\" loaded on %p[%p]!\n", argv[1], base, size);
+    GuiUpdateAllViews();
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrVisualize(int argc, char* argv[])
 {
     if(argc < 3)

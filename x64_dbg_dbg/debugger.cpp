@@ -478,7 +478,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE hProcess, ULONG ActionCode
     return TRUE;
 }
 
-static bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
+bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
     if(!bp->enabled)
         return true;

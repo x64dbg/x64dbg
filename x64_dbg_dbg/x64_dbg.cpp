@@ -205,6 +205,7 @@ static void registercommands()
     dbgcmdnew("cfanal\1cfanalyse\1cfanalyze", cbInstrCfanalyse, true); //control flow analysis
     dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
     dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
+    dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

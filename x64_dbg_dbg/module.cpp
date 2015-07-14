@@ -3,8 +3,35 @@
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"
+#include "memory.h"
+#include "console.h"
+#include "label.h"
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
+
+static void getModuleInfo(MODINFO & info, ULONG_PTR FileMapVA)
+{
+    // Get the entry point
+    info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base;
+
+    // Enumerate all PE sections
+    int sectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
+
+    for(int i = 0; i < sectionCount; i++)
+    {
+        MODSECTIONINFO curSection;
+
+        curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
+        curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
+        const char* sectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
+
+        // Escape section name when needed
+        strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
+
+        // Add entry to the vector
+        info.sections.push_back(curSection);
+    }
+}
 
 bool ModLoad(uint Base, uint Size, const char* FullPath)
 {
@@ -30,6 +57,8 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
             strcpy_s(file, fileStart + 1);
             fileStart[0] = '\0';
         }
+        else
+            strcpy_s(file, FullPath);
     }
 
     // Calculate module hash from full file name
@@ -59,28 +88,17 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     HANDLE FileMap;
     ULONG_PTR FileMapVA;
     WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
-    if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+
+    bool bVirtual = strstr(FullPath, "virtual:\\") == FullPath;
+    Memory<unsigned char*> data(Size);
+    MemRead(Base, data(), data.size());
+    if(bVirtual)  //virtual module
     {
-        // Get the entry point
-        info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base;
-
-        // Enumerate all PE sections
-        int sectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
-
-        for(int i = 0; i < sectionCount; i++)
-        {
-            MODSECTIONINFO curSection;
-
-            curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
-            curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
-            const char* sectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
-
-            // Escape section name when needed
-            strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
-
-            // Add entry to the vector
-            info.sections.push_back(curSection);
-        }
+        getModuleInfo(info, (ULONG_PTR)data());
+    }
+    else if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA)) //physical module
+    {
+        getModuleInfo(info, FileMapVA);
         StaticFileUnloadW(wszFullPath.c_str(), false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
 
@@ -88,6 +106,17 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     EXCLUSIVE_ACQUIRE(LockModules);
     modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), info));
     EXCLUSIVE_RELEASE();
+
+    // Put labels for virtual module exports
+    if(bVirtual)
+    {
+        if(info.entry >= Base && info.entry < Base + Size)
+            LabelSet(info.entry, "EntryPoint", false);
+        apienumexports(Base, [](uint base, const char* mod, const char* name, uint addr)
+        {
+            LabelSet(addr, name, false);
+        });
+    }
 
     SymUpdateModuleList();
     return true;

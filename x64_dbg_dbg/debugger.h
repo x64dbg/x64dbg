@@ -126,6 +126,7 @@ bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp);
 bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
 void cbDetach();
+bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 
 //variables
 extern PROCESS_INFORMATION* fdProcessInfo;
