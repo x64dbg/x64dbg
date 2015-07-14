@@ -37,6 +37,7 @@ void dbsave()
         if(!hFile)
         {
             dputs("\nFailed to open database for writing!");
+            json_decref(root); //free root
             return;
         }
         SetEndOfFile(hFile);
@@ -46,6 +47,7 @@ void dbsave()
         {
             json_free(jsonText);
             dputs("\nFailed to write database file!");
+            json_decref(root); //free root
             return;
         }
         hFile.Close();
