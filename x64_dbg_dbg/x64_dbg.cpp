@@ -244,8 +244,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
     if(sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
         return "Invalid REGISTERCONTEXT alignment!";
-    dputs("Initializing locks...");
-    SectionLockerGlobal::Initialize();
     dputs("Initializing wait objects...");
     waitinitialize();
     dputs("Initializing debugger...");

@@ -208,7 +208,9 @@ DWORD ThreadGetId(HANDLE Thread)
     }
 
     // Wasn't found, check with Windows
-    return GetThreadId(Thread);
+    typedef DWORD (WINAPI * GETTHREADID)(HANDLE hThread);
+    static GETTHREADID _GetThreadId = (GETTHREADID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadId");
+    return _GetThreadId ? _GetThreadId(Thread) : 0;
 }
 
 int ThreadSuspendAll()

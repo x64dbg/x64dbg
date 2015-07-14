@@ -69,9 +69,45 @@ public:
     static void Initialize();
     static void Deinitialize();
 
+    static inline void AcquireLock(SectionLock LockIndex, bool Shared)
+    {
+        Initialize(); // Locks can be accessed before we know when to initialize
+        if(m_SRWLocks)
+        {
+            if(Shared)
+                m_AcquireSRWLockShared(&m_srwLocks[LockIndex]);
+            else
+                m_AcquireSRWLockExclusive(&m_srwLocks[LockIndex]);
+        }
+        else
+            EnterCriticalSection(&m_crLocks[LockIndex]);
+    }
+
+    static inline void ReleaseLock(SectionLock LockIndex, bool Shared)
+    {
+        if(m_SRWLocks)
+        {
+            if(Shared)
+                m_ReleaseSRWLockShared(&m_srwLocks[LockIndex]);
+            else
+                m_ReleaseSRWLockExclusive(&m_srwLocks[LockIndex]);
+        }
+        else
+            LeaveCriticalSection(&m_crLocks[LockIndex]);
+    }
+
 private:
-    static bool     m_Initialized;
-    static SRWLOCK  m_Locks[SectionLock::LockLast];
+    typedef void (WINAPI* SRWLOCKFUNCTION)(PSRWLOCK SWRLock);
+
+    static bool m_Initialized;
+    static bool m_SRWLocks;
+    static SRWLOCK m_srwLocks[SectionLock::LockLast];
+    static CRITICAL_SECTION m_crLocks[SectionLock::LockLast];
+    static SRWLOCKFUNCTION m_InitializeSRWLock;
+    static SRWLOCKFUNCTION m_AcquireSRWLockShared;
+    static SRWLOCKFUNCTION m_AcquireSRWLockExclusive;
+    static SRWLOCKFUNCTION m_ReleaseSRWLockShared;
+    static SRWLOCKFUNCTION m_ReleaseSRWLockExclusive;
 };
 
 template<SectionLock LockIndex, bool Shared>
@@ -98,10 +134,7 @@ public:
 
     inline void Lock()
     {
-        if(Shared)
-            AcquireSRWLockShared(&Internal::m_Locks[LockIndex]);
-        else
-            AcquireSRWLockExclusive(&Internal::m_Locks[LockIndex]);
+        Internal::AcquireLock(LockIndex, Shared);
 
         m_LockCount++;
     }
@@ -110,10 +143,7 @@ public:
     {
         m_LockCount--;
 
-        if(Shared)
-            ReleaseSRWLockShared(&Internal::m_Locks[LockIndex]);
-        else
-            ReleaseSRWLockExclusive(&Internal::m_Locks[LockIndex]);
+        Internal::ReleaseLock(LockIndex, Shared);
     }
 
 private:
