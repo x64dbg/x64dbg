@@ -326,6 +326,7 @@ void AppearanceDialog::on_buttonSave_clicked()
     Config()->writeColors();
     Config()->writeFonts();
     GuiUpdateAllViews();
+    BridgeSettingFlush();
     GuiAddStatusBarMessage("Settings saved!\n");
 }
 

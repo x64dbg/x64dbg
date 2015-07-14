@@ -48,6 +48,8 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value);
 BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const char* value);
 BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, duint value);
+BRIDGE_IMPEXP bool BridgeSettingFlush();
+BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine);
 BRIDGE_IMPEXP int BridgeGetDbgVersion();
 
 //Debugger defines

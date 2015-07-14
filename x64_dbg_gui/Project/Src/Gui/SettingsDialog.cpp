@@ -297,6 +297,7 @@ void SettingsDialog::SaveSettings()
     if(settings.miscSymbolCache)
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
 
+    BridgeSettingFlush();
     Config()->load();
     DbgSettingsUpdated();
     GuiUpdateAllViews();

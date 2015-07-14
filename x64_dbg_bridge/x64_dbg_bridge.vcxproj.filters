@@ -25,7 +25,7 @@
     <ClInclude Include="bridgemain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="simpleini.h">
+    <ClInclude Include="Utf8Ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

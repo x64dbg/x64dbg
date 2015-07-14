@@ -7,10 +7,10 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
-#include "simpleini.h"
+#include "Utf8Ini.h"
 
 static HINSTANCE hInst;
-
+static Utf8Ini settings;
 static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
 
@@ -90,7 +90,19 @@ BRIDGE_IMPEXP const char* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
+    int errorLine = 0;
+    if(!BridgeSettingRead(&errorLine))
+    {
+        static char error[256] = "";
+        if(!errorLine)
+            strcpy_s(error, "Failed to read settings file from disk...");
+        else
+            sprintf_s(error, "Error in settings file on line %d...", errorLine);
+        return error;
+    }
     _gui_guiinit(0, 0); //remove arguments
+    if(!BridgeSettingFlush())
+        return "Failed to save settings!";
     DeleteCriticalSection(&csIni);
     return 0;
 }
@@ -117,19 +129,11 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
     if(!section || !key || !value)
         return false;
     EnterCriticalSection(&csIni);
-    CSimpleIniA inifile(true, false, false);
-    bool success = false;
-    if(inifile.LoadFile(szIniFile) >= 0)
-    {
-        const char* szValue = inifile.GetValue(section, key);
-        if(szValue)
-        {
-            strcpy_s(value, MAX_SETTING_SIZE, szValue);
-            success = true;
-        }
-    }
+    auto foundValue = settings.GetValue(section, key);
+    strcpy_s(value, MAX_SETTING_SIZE, settings.GetValue(section, key).c_str());
+    bool result = foundValue.length() > 0;
     LeaveCriticalSection(&csIni);
-    return success;
+    return result;
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGetUint(const char* section, const char* key, duint* value)
@@ -155,13 +159,12 @@ BRIDGE_IMPEXP bool BridgeSettingSet(const char* section, const char* key, const 
     if(section)
     {
         EnterCriticalSection(&csIni);
-        CSimpleIniA inifile(true, false, false);
-        inifile.LoadFile(szIniFile);
-        if(!key || !value) //delete value/key when 0
-            inifile.Delete(section, key, true);
+        if(!key)
+            success = settings.ClearSection(section);
+        else if(!value)
+            success = settings.SetValue(section, key, "");
         else
-            inifile.SetValue(section, key, value);
-        success = inifile.SaveFile(szIniFile, false) >= 0;
+            success = settings.SetValue(section, key, value);
         LeaveCriticalSection(&csIni);
     }
     return success;
@@ -178,6 +181,63 @@ BRIDGE_IMPEXP bool BridgeSettingSetUint(const char* section, const char* key, du
     sprintf(newvalue, "%X", value);
 #endif //_WIN64
     return BridgeSettingSet(section, key, newvalue);
+}
+
+BRIDGE_IMPEXP bool BridgeSettingFlush()
+{
+    EnterCriticalSection(&csIni);
+    std::string iniData = settings.Serialize();
+    LeaveCriticalSection(&csIni);
+    bool success = false;
+    HANDLE hFile = CreateFileW(szIniFile, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        SetEndOfFile(hFile);
+        DWORD written = 0;
+        if(WriteFile(hFile, iniData.c_str(), (DWORD)iniData.length(), &written, nullptr))
+            success = true;
+        CloseHandle(hFile);
+    }
+    return success;
+}
+
+BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine)
+{
+    if(errorLine)
+        *errorLine = 0;
+    bool success = false;
+    std::string iniData;
+    HANDLE hFile = CreateFileW(szIniFile, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        DWORD fileSize = GetFileSize(hFile, nullptr);
+        if(fileSize)
+        {
+            unsigned char utf8bom[] = { 0xEF, 0xBB, 0xBF };
+            char* fileData = (char*)BridgeAlloc(sizeof(utf8bom) + fileSize + 1);
+            DWORD read = 0;
+            if(ReadFile(hFile, fileData, fileSize, &read, nullptr))
+            {
+                success = true;
+                if(!memcmp(fileData, utf8bom, sizeof(utf8bom)))
+                    iniData.assign(fileData + sizeof(utf8bom));
+                else
+                    iniData.assign(fileData);
+            }
+            BridgeFree(fileData);
+        }
+        CloseHandle(hFile);
+    }
+    if(success)  //if we failed to read the file, the current settings are better than none at all
+    {
+        EnterCriticalSection(&csIni);
+        int errline = 0;
+        success = settings.Deserialize(iniData, errline);
+        if(errorLine)
+            *errorLine = errline;
+        LeaveCriticalSection(&csIni);
+    }
+    return success;
 }
 
 BRIDGE_IMPEXP int BridgeGetDbgVersion()
