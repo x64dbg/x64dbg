@@ -147,6 +147,15 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
                     }
                 }
             }
+            if(!retval)  //search for module entry
+            {
+                uint entry = ModEntryFromAddr(addr);
+                if(entry && entry == addr)
+                {
+                    strcpy_s(addrinfo->label, "EntryPoint");
+                    retval = true;
+                }
+            }
         }
     }
     if(addrinfo->flags & flagbookmark)

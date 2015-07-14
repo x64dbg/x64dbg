@@ -1329,7 +1329,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 {
                     if(scmp(apiname, "base") || scmp(apiname, "imagebase") || scmp(apiname, "header")) //get loaded base
                         addr = modbase;
-                    else if(scmp(apiname, "entry") || scmp(apiname, "oep") || scmp(apiname, "ep")) //get entry point
+                    else if(scmp(apiname, "entrypoint") || scmp(apiname, "entry") || scmp(apiname, "oep") || scmp(apiname, "ep")) //get entry point
                         addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
                     else if(*apiname == '$') //RVA
                     {
