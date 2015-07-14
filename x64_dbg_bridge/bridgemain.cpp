@@ -91,15 +91,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     int errorLine = 0;
-    if(!BridgeSettingRead(&errorLine))
-    {
-        static char error[256] = "";
-        if(!errorLine)
-            strcpy_s(error, "Failed to read settings file from disk...");
-        else
-            sprintf_s(error, "Error in settings file on line %d...", errorLine);
-        return error;
-    }
+    BridgeSettingRead(&errorLine);
     _gui_guiinit(0, 0); //remove arguments
     if(!BridgeSettingFlush())
         return "Failed to save settings!";
