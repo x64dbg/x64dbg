@@ -53,16 +53,18 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
     wcscat_s(dumpDir, L"\\minidump");
     CreateDirectoryW(dumpDir, nullptr);
 
-    // Append the name
-    SYSTEMTIME st = {0};
+    // Append the name with generated timestamp
+    SYSTEMTIME st;
     GetLocalTime(&st);
-    swprintf_s(dumpFile, L"%ws\\dump-%02d%02d%04d_%02d%02d%02d.dmp", dumpDir,
+
+    swprintf_s(dumpFile, L"%ws\\dump-%02d%02d%04d_%02d%02d%02d%04d.dmp", dumpDir,
                st.wDay,
                st.wMonth,
                st.wYear,
                st.wHour,
                st.wMinute,
-               st.wSecond);
+               st.wSecond,
+               st.wMilliseconds);
 
     // Open the file
     HANDLE fileHandle = CreateFileW(dumpFile, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
