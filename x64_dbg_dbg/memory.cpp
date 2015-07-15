@@ -175,7 +175,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
 
 bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
 {
-    if(!MemIsCanonicalAddress((uint)BaseAddress))
+    if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
     // Buffer must be supplied and size must be greater than 0
@@ -202,7 +202,7 @@ bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
     {
         // Determine the number of bytes between ADDRESS and the next page
         uint offset = 0;
-        uint readBase = (uint)BaseAddress;
+        uint readBase = BaseAddress;
         uint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
         // Reset the bytes read count
@@ -229,7 +229,7 @@ bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
 
 bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten)
 {
-    if(!MemIsCanonicalAddress((uint)BaseAddress))
+    if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
     // Buffer must be supplied and size must be greater than 0
@@ -256,7 +256,7 @@ bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
     {
         // Determine the number of bytes between ADDRESS and the next page
         uint offset = 0;
-        uint writeBase = (uint)BaseAddress;
+        uint writeBase = BaseAddress;
         uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
 
         // Reset the bytes read count
@@ -297,8 +297,8 @@ bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
         return false;
     }
 
-    for(SIZE_T i = 0; i < Size; i++)
-        PatchSet((uint)BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
+    for(uint i = 0; i < Size; i++)
+        PatchSet(BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
 
     return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }
