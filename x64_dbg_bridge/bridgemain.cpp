@@ -92,6 +92,7 @@ BRIDGE_IMPEXP const char* BridgeStart()
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     int errorLine = 0;
     BridgeSettingRead(&errorLine);
+    DbgInitializeLocks();
     _gui_guiinit(0, 0); //remove arguments
     if(!BridgeSettingFlush())
         return "Failed to save settings!";
