@@ -814,7 +814,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
             }
         }
 
-        BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath);
+        char cachePath[MAX_SETTING_SIZE];
+        if(BridgeSettingGet("Symbols", "CachePath", cachePath))
+        {
+            // Trim the buffer to fit inside MAX_PATH
+            strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+        }
     }
     break;
 

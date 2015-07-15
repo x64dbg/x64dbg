@@ -278,13 +278,18 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     char szLocalSymbolPath[MAX_PATH] = "";
     strcpy_s(szLocalSymbolPath, dir);
     strcat_s(szLocalSymbolPath, "\\symbols");
-    if(!BridgeSettingGet("Symbols", "CachePath", szSymbolCachePath) || !*szSymbolCachePath)
+
+    char cachePath[MAX_SETTING_SIZE];
+    if(!BridgeSettingGet("Symbols", "CachePath", cachePath) || !*cachePath)
     {
         strcpy_s(szSymbolCachePath, szLocalSymbolPath);
         BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
     }
     else
     {
+        // Trim the buffer to fit inside MAX_PATH
+        strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
         {
             if(Script::Gui::MessageYesNo("It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))
