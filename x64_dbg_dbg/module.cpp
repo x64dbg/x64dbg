@@ -9,19 +9,28 @@
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
 
-static void getModuleInfo(MODINFO & info, ULONG_PTR FileMapVA)
+void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the entry point
-    info.entry = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP) + info.base;
+    uint moduleOEP = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP);
+
+    // Fix a problem where the OEP is set to zero (non-existent).
+    // OEP can't start at the PE header/offset 0.
+    if(moduleOEP)
+        Info.entry = moduleOEP + Info.base;
+    else
+        Info.entry = 0;
 
     // Enumerate all PE sections
+    Info.sections.clear();
     int sectionCount = (int)GetPE32DataFromMappedFile(FileMapVA, 0, UE_SECTIONNUMBER);
 
     for(int i = 0; i < sectionCount; i++)
     {
         MODSECTIONINFO curSection;
+        memset(&curSection, 0, sizeof(MODSECTIONINFO));
 
-        curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + info.base;
+        curSection.addr = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALOFFSET) + Info.base;
         curSection.size = GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONVIRTUALSIZE);
         const char* sectionName = (const char*)GetPE32DataFromMappedFile(FileMapVA, i, UE_SECTIONNAME);
 
@@ -29,7 +38,7 @@ static void getModuleInfo(MODINFO & info, ULONG_PTR FileMapVA)
         strcpy_s(curSection.name, StringUtils::Escape(sectionName).c_str());
 
         // Add entry to the vector
-        info.sections.push_back(curSection);
+        Info.sections.push_back(curSection);
     }
 }
 
@@ -44,12 +53,16 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     strcpy_s(info.path, FullPath);
 
     // Break the module path into a directory and file name
-    char dir[MAX_PATH];
     char file[MAX_MODULE_SIZE];
-
-    strcpy_s(dir, FullPath);
-    _strlwr(dir);
     {
+        char dir[MAX_PATH];
+        memset(dir, 0, sizeof(dir));
+
+        // Dir <- lowercase(file path)
+        strcpy_s(dir, FullPath);
+        _strlwr(dir);
+
+        // Find the last instance of a path delimiter (slash)
         char* fileStart = strrchr(dir, '\\');
 
         if(fileStart)
@@ -80,26 +93,32 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     info.base = Base;
     info.size = Size;
 
-    // Process module sections
-    info.sections.clear();
+    // Load module data
+    bool virtualModule = strstr(FullPath, "virtual:\\") == FullPath;
 
-    HANDLE FileHandle;
-    DWORD LoadedSize;
-    HANDLE FileMap;
-    ULONG_PTR FileMapVA;
-    WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
-
-    bool bVirtual = strstr(FullPath, "virtual:\\") == FullPath;
-    Memory<unsigned char*> data(Size);
-    MemRead(Base, data(), data.size());
-    if(bVirtual)  //virtual module
+    if(!virtualModule)
     {
-        getModuleInfo(info, (ULONG_PTR)data());
+        HANDLE fileHandle;
+        DWORD loadedSize;
+        HANDLE fileMap;
+        ULONG_PTR fileMapVA;
+        WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
+
+        // Load the physical module from disk
+        if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &fileHandle, &loadedSize, &fileMap, &fileMapVA))
+        {
+            GetModuleInfo(info, fileMapVA);
+            StaticFileUnloadW(wszFullPath.c_str(), false, fileHandle, loadedSize, fileMap, fileMapVA);
+        }
     }
-    else if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA)) //physical module
+    else
     {
-        getModuleInfo(info, FileMapVA);
-        StaticFileUnloadW(wszFullPath.c_str(), false, FileHandle, LoadedSize, FileMap, FileMapVA);
+        // This was a virtual module -> read it remotely
+        Memory<unsigned char*> data(Size);
+        MemRead(Base, data(), data.size());
+
+        // Get information from the local buffer
+        GetModuleInfo(info, (ULONG_PTR)data());
     }
 
     // Add module to list
@@ -108,10 +127,11 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     EXCLUSIVE_RELEASE();
 
     // Put labels for virtual module exports
-    if(bVirtual)
+    if(virtualModule)
     {
         if(info.entry >= Base && info.entry < Base + Size)
             LabelSet(info.entry, "EntryPoint", false);
+
         apienumexports(Base, [](uint base, const char* mod, const char* name, uint addr)
         {
             LabelSet(addr, name, false);
