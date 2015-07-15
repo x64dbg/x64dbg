@@ -55,9 +55,10 @@ SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_ReleaseSRWLockExclus
 
 void SectionLockerGlobal::Initialize()
 {
+    // This is supposed to only be called once, but
+    // create a flag anyway
     if(m_Initialized)
         return;
-    m_Initialized = true;
 
     // Attempt to read the SRWLock API
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
@@ -89,6 +90,8 @@ void SectionLockerGlobal::Initialize()
         for(int i = 0; i < ARRAYSIZE(m_crLocks); i++)
             InitializeCriticalSection(&m_crLocks[i]);
     }
+
+    m_Initialized = true;
 }
 
 void SectionLockerGlobal::Deinitialize()
@@ -116,7 +119,7 @@ void SectionLockerGlobal::Deinitialize()
             EnterCriticalSection(&m_crLocks[i]);
             LeaveCriticalSection(&m_crLocks[i]);
 
-            // Delete critial section
+            // Delete critical section
             DeleteCriticalSection(&m_crLocks[i]);
             memset(&m_crLocks[i], 0, sizeof(CRITICAL_SECTION));
         }

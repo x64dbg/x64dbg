@@ -21,8 +21,8 @@ void waitdeinitialize();
 //
 // THREAD SYNCHRONIZATION
 //
-// Better, but requires VISTA+
-// https://msdn.microsoft.com/en-us/library/windows/desktop/aa904937%28v=vs.85%29.aspx
+// Win Vista and newer: (Faster) SRW locks used
+// Win 2003 and older:  (Slower) Critical sections used
 //
 #define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock;
 #define EXCLUSIVE_REACQUIRE()       __ThreadLock.Lock();
@@ -47,16 +47,20 @@ enum SectionLock
     LockThreads,
     LockDprintf,
     LockSym,
-
-    // This is defined because of a bug in the Windows 8.1 kernel;
-    // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
-    // a deadlock.
-    // https://bitbucket.org/mrexodia/x64_dbg/issue/247/x64-dbg-bug-string-references-function
-    LockWin8Workaround,
     LockPluginList,
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
+
+    // This is defined because of a bug in the Windows 8.1 kernel;
+    // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
+    // a deadlock.
+    //
+    // There's also no real way to fix this with a lock. Any external program
+    // calling memory functions creates a deadlock too. (See: ETW Tracing)
+    //
+    // https://github.com/x64dbg/x64dbg/issues/247
+    LockWin8Workaround,
 
     LockLast,
 };
@@ -125,7 +129,7 @@ public:
             Unlock();
 
 #ifdef _DEBUG
-        // TODO: Assert that the lock count is zero on destructor
+        // Assert that the lock count is zero on destructor
         if(m_LockCount > 0)
             __debugbreak();
 #endif
