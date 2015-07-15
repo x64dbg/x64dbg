@@ -45,7 +45,6 @@ enum SectionLock
     LockBreakpoints,
     LockPatches,
     LockThreads,
-    LockDprintf,
     LockSym,
     LockPluginList,
     LockPluginCallbackList,
@@ -73,6 +72,7 @@ public:
     static void Initialize();
     static void Deinitialize();
 
+protected:
     static inline void AcquireLock(SectionLock LockIndex, bool Shared)
     {
         if(m_SRWLocks)
