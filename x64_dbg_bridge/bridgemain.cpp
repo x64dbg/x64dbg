@@ -92,10 +92,11 @@ BRIDGE_IMPEXP const char* BridgeStart()
         return "\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     int errorLine = 0;
     BridgeSettingRead(&errorLine);
-    DbgInitializeLocks();
+    _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr); //initialize locks before any other thread than the main thread are started
     _gui_guiinit(0, 0); //remove arguments
     if(!BridgeSettingFlush())
         return "Failed to save settings!";
+    _dbg_sendmessage(DBG_DEINITIALIZE_LOCKS, nullptr, nullptr); //deinitialize locks when only one thread is left (hopefully)
     DeleteCriticalSection(&csIni);
     return 0;
 }
@@ -801,11 +802,6 @@ BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message)
 BRIDGE_IMPEXP bool DbgIsRunning()
 {
     return !DbgIsRunLocked();
-}
-
-BRIDGE_IMPEXP void DbgInitializeLocks()
-{
-    _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr);
 }
 
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)

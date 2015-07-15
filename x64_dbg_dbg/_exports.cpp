@@ -651,6 +651,7 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         switch(type)  //ignore win events
         {
         //these functions are safe to call when we did not initialize yet
+        case DBG_DEINITIALIZE_LOCKS:
         case DBG_INITIALIZE_LOCKS:
         case DBG_GET_FUNCTIONS:
         case DBG_SETTINGS_UPDATED:
@@ -997,6 +998,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_INITIALIZE_LOCKS:
     {
         SectionLockerGlobal::Initialize();
+    }
+    break;
+
+    case DBG_DEINITIALIZE_LOCKS:
+    {
+        SectionLockerGlobal::Deinitialize();
     }
     break;
     }

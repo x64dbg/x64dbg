@@ -368,8 +368,6 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
         dprintf("%d memory leak(s) found!\n", memleaks());
     else
         DeleteFileA(alloctrace);
-    dputs("Cleaning up locks...");
-    SectionLockerGlobal::Deinitialize();
     dputs("Cleaning up wait objects...");
     waitdeinitialize();
     dputs("Cleaning up debugger threads...");
