@@ -26,7 +26,10 @@ MESSAGE_STACK* MsgAllocStack()
 //free a message stack
 void MsgFreeStack(MESSAGE_STACK* msgstack)
 {
+    EnterCriticalSection(&msgstack->cr);
+    LeaveCriticalSection(&msgstack->cr);
     DeleteCriticalSection(&msgstack->cr);
+
     int stackpos = msgstack->stackpos;
     for(int i = 0; i < stackpos; i++) //free all messages left in stack
         msgfree(msgstack->msg[i]);
