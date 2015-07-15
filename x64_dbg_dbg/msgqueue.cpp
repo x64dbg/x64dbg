@@ -87,5 +87,8 @@ bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg)
 void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg, bool* bStop)
 {
     while(!MsgGet(msgstack, msg) && (bStop == nullptr || !*bStop))
+    {
+        YieldProcessor();
         Sleep(1);
+    }
 }
