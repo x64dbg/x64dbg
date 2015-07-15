@@ -21,10 +21,7 @@ void varsetvalue(VAR* Var, VAR_VALUE* Value)
 {
     // VAR_STRING needs to be freed before destroying it
     if(Var->value.type == VAR_STRING)
-    {
-        Var->value.u.data->clear();
         delete Var->value.u.data;
-    }
 
     // Replace all information in the struct
     memcpy(&Var->value, Value, sizeof(VAR_VALUE));
@@ -273,7 +270,6 @@ bool varset(const char* Name, const char* Value, bool ReadOnly)
     // Try to register variable
     if(!varset(Name, &varValue, ReadOnly))
     {
-        varValue.u.data->clear();
         delete varValue.u.data;
         return false;
     }
