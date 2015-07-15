@@ -25,7 +25,7 @@ static COMMAND* command_list = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
-static bool bIsStopped = false;
+static bool bIsStopped = true;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
@@ -335,7 +335,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     }
     LocalFree(argv);
     dputs("Initialization successful!");
-    return 0;
+    bIsStopped = false;
+    return nullptr;
 }
 
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()

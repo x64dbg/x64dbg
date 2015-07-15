@@ -27,6 +27,7 @@
 #include "loop.h"
 #include "error.h"
 #include "x64_dbg.h"
+#include "threading.h"
 
 static bool bOnlyCipAutoComments = false;
 
@@ -649,9 +650,15 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     {
         switch(type)  //ignore win events
         {
+        //these functions are safe to call when we did not initialize yet
+        case DBG_INITIALIZE_LOCKS:
+        case DBG_GET_FUNCTIONS:
+        case DBG_SETTINGS_UPDATED:
+        case DBG_GET_THREAD_LIST:
         case DBG_WIN_EVENT:
         case DBG_WIN_EVENT_GLOBAL:
-            return 0;
+            break;
+        //the rest is unsafe -> throw an exception when people try to call them
         default:
             __debugbreak(); //we cannot process messages when the debugger is stopped, this must be a bug
         }
@@ -979,6 +986,12 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_WIN_EVENT_GLOBAL:
     {
         return (uint)pluginwineventglobal((MSG*)param1);
+    }
+    break;
+
+    case DBG_INITIALIZE_LOCKS:
+    {
+        SectionLockerGlobal::Initialize();
     }
     break;
     }

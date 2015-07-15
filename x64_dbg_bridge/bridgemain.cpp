@@ -802,6 +802,11 @@ BRIDGE_IMPEXP bool DbgIsRunning()
     return !DbgIsRunLocked();
 }
 
+BRIDGE_IMPEXP void DbgInitializeLocks()
+{
+    _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);

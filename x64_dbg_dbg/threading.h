@@ -71,7 +71,6 @@ public:
 
     static inline void AcquireLock(SectionLock LockIndex, bool Shared)
     {
-        Initialize(); // Locks can be accessed before we know when to initialize
         if(m_SRWLocks)
         {
             if(Shared)

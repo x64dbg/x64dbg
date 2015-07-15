@@ -45,6 +45,8 @@ static Configuration* mConfiguration;
 
 int main(int argc, char* argv[])
 {
+    DbgInitializeLocks();
+
     MyApplication application(argc, argv);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);

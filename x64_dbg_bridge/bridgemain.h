@@ -169,7 +169,8 @@ typedef enum
     DBG_GET_STRING_AT,              // param1=duint addr,                param2=unused
     DBG_GET_FUNCTIONS,              // param1=unused,                    param2=unused
     DBG_WIN_EVENT,                  // param1=MSG* message,              param2=long* result
-    DBG_WIN_EVENT_GLOBAL            // param1=MSG* message,              param2=unused
+    DBG_WIN_EVENT_GLOBAL,           // param1=MSG* message,              param2=unused
+    DBG_INITIALIZE_LOCKS            // paraam1=unused,                   param2=unused
 } DBGMSG;
 
 typedef enum
@@ -686,6 +687,7 @@ BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
+BRIDGE_IMPEXP void DbgInitializeLocks();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
