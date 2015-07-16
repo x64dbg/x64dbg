@@ -152,7 +152,7 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
 {
-    return RemotePtr<TEB, true>(ThreadLocalBase)->LastErrorValue;
+    return RemoteMemberPtr(ThreadLocalBase, &TEB::LastErrorValue).get();
 }
 
 DWORD ThreadGetLastError(DWORD ThreadId)
