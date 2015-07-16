@@ -1,7 +1,6 @@
 #pragma once
 
 #include "_global.h"
-#include "addrinfo.h"
 
 struct MODSECTIONINFO
 {

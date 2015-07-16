@@ -4,7 +4,6 @@
 #include "symbolinfo.h"
 #include "murmurhash.h"
 #include "memory.h"
-#include "console.h"
 #include "label.h"
 
 std::map<Range, MODINFO, RangeCompare> modinfo;
@@ -15,11 +14,17 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     uint moduleOEP = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP);
 
     // Fix a problem where the OEP is set to zero (non-existent).
-    // OEP can't start at the PE header/offset 0.
-    if(moduleOEP)
-        Info.entry = moduleOEP + Info.base;
-    else
-        Info.entry = 0;
+    // OEP can't start at the PE header/offset 0 -- except if module is an EXE.
+    Info.entry = moduleOEP + Info.base;
+
+    if(!moduleOEP)
+    {
+        WORD characteristics = (WORD)GetPE32DataFromMappedFile(FileMapVA, 0, UE_CHARACTERISTICS);
+
+        // If this wasn't an exe, invalidate the entry point
+        if((characteristics & IMAGE_FILE_DLL) == IMAGE_FILE_DLL)
+            Info.entry = 0;
+    }
 
     // Enumerate all PE sections
     Info.sections.clear();
