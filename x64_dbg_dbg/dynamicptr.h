@@ -2,7 +2,7 @@
 
 #include "memory.h"
 
-template<typename T, bool ReadOnly = false>
+template<typename T, bool ReadOnly = false, bool BreakOnFail = false>
 class RemotePtr
 {
 public:
@@ -19,7 +19,7 @@ public:
 
     ~RemotePtr()
     {
-        if(m_Modified)
+        if(m_Modified && !ReadOnly)
             Sync();
     }
 
@@ -59,7 +59,9 @@ public:
             return m_InternalData;
         }
 
-        __debugbreak();
+        if(BreakOnFail)
+            __debugbreak();
+
         return rhs;
     }
 
@@ -76,8 +78,14 @@ private:
 
     inline void Sync()
     {
-        if(!ReadOnly)
-            MemWrite(m_InternalAddr, &m_InternalData, sizeof(T));
+        if(BreakOnFail)
+        {
+            if(ReadOnly)
+                __debugbreak();
+
+            if(!MemWrite(m_InternalAddr, &m_InternalData, sizeof(T)))
+                __debugbreak();
+        }
 
         m_Modified = false;
     }

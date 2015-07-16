@@ -7,6 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
+#include "dynamicptr.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;
 
@@ -65,16 +66,6 @@ int ThreadGetCount()
     return (int)threadList.size();
 }
 
-DWORD getLastErrorFromTeb(ULONG_PTR ThreadLocalBase)
-{
-    TEB teb;
-
-    if(!ThreadGetTeb(ThreadLocalBase, &teb))
-        return 0;
-
-    return teb.LastErrorValue;
-}
-
 void ThreadGetList(THREADLIST* List)
 {
     SHARED_ACQUIRE(LockThreads);
@@ -108,7 +99,7 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
         List->list[index].Priority = ThreadGetPriority(threadHandle);
         List->list[index].WaitReason = ThreadGetWaitReason(threadHandle);
-        List->list[index].LastError = getLastErrorFromTeb(itr.second.ThreadLocalBase);
+        List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
         index++;
     }
 }
@@ -159,12 +150,17 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
     return _Executive;
 }
 
+DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
+{
+    return RemotePtr<TEB, true>(ThreadLocalBase)->LastErrorValue;
+}
+
 DWORD ThreadGetLastError(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
     if(threadList.find(ThreadId) != threadList.end())
-        return getLastErrorFromTeb(threadList[ThreadId].ThreadLocalBase);
+        return ThreadGetLastErrorTEB(threadList[ThreadId].ThreadLocalBase);
 
     return 0;
 }
