@@ -300,83 +300,39 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     memcpy(&test, data(), sizeof(uint));
     if(MemIsValidReadPtr(test))
         return false;
+
+    // Save a few pointer casts
+    auto asciiData = (char*)data();
+    auto unicodeData = (wchar_t*)data();
+
+    // First check if this was an ASCII only string
     if(isasciistring(data(), maxlen))
     {
         if(type)
             *type = str_ascii;
-        int len = (int)strlen((const char*)data());
-        for(int i = 0, j = 0; i < len; i++)
-        {
-            switch(data()[i])
-            {
-            case '\t':
-                j += sprintf(ascii + j, "\\t");
-                break;
-            case '\f':
-                j += sprintf(ascii + j, "\\f");
-                break;
-            case '\v':
-                j += sprintf(ascii + j, "\\v");
-                break;
-            case '\n':
-                j += sprintf(ascii + j, "\\n");
-                break;
-            case '\r':
-                j += sprintf(ascii + j, "\\r");
-                break;
-            case '\\':
-                j += sprintf(ascii + j, "\\\\");
-                break;
-            case '\"':
-                j += sprintf(ascii + j, "\\\"");
-                break;
-            default:
-                j += sprintf(ascii + j, "%c", data()[i]);
-                break;
-            }
-        }
+
+        // Copy data back to outgoing parameter
+        strncpy_s(ascii, maxlen, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
         return true;
     }
-    else if(isunicodestring(data(), maxlen))
+
+    if(isunicodestring(data(), maxlen))
     {
         if(type)
             *type = str_unicode;
-        int len = (int)wcslen((const wchar_t*)data());
 
-        // Read every other char from unicode string
-        // Write every char to the output string
-        for(int i = 0, j = 0; (i < len * 2) && (j < maxlen); i += 2)
-        {
-            switch(data()[i])
-            {
-            case '\t':
-                j += sprintf(unicode + j, "\\t");
-                break;
-            case '\f':
-                j += sprintf(unicode + j, "\\f");
-                break;
-            case '\v':
-                j += sprintf(unicode + j, "\\v");
-                break;
-            case '\n':
-                j += sprintf(unicode + j, "\\n");
-                break;
-            case '\r':
-                j += sprintf(unicode + j, "\\r");
-                break;
-            case '\\':
-                j += sprintf(unicode + j, "\\\\");
-                break;
-            case '\"':
-                j += sprintf(unicode + j, "\\\"");
-                break;
-            default:
-                j += sprintf(unicode + j, "%c", data()[i]);
-                break;
-            }
-        }
+        // Determine string length only once, limited to output buffer size
+        size_t unicodeLen = max(wcslen(unicodeData), maxlen);
+
+        // Truncate each wchar_t to char
+        for(size_t i = 0; i < unicodeLen; i++)
+            asciiData[i] = (char)(unicodeData[i] & 0xFF);
+
+        // Copy data back to outgoing parameter
+        strncpy_s(unicode, maxlen, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
         return true;
     }
+
     return false;
 }
 
