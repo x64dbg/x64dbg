@@ -342,7 +342,10 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         if(type)
             *type = str_unicode;
         int len = (int)wcslen((const wchar_t*)data());
-        for(int i = 0, j = 0; i < len * 2; i += 2)
+
+        // Read every other char from unicode string
+        // Write every char to the output string
+        for(int i = 0, j = 0; (i < len * 2) && (j < maxlen); i += 2)
         {
             switch(data()[i])
             {

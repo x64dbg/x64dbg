@@ -964,8 +964,8 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
     case DBG_GET_STRING_AT:
     {
         STRING_TYPE strtype;
-        char string[512] = "";
-        if(disasmgetstringat((uint)param1, &strtype, string, string, 500))
+        char string[MAX_STRING_SIZE];
+        if(disasmgetstringat((uint)param1, &strtype, string, string, MAX_STRING_SIZE))
         {
             if(strtype == str_ascii)
                 sprintf((char*)param2, "\"%s\"", string);
