@@ -6,6 +6,8 @@ std::unordered_map<unsigned int, const char*> ExceptionNames;
 void ExceptionCodeInit()
 {
     ExceptionNames.clear();
+    ExceptionNames.insert(std::make_pair(0x000006BA, "RPC_S_SERVER_UNAVAILABLE"));
+    ExceptionNames.insert(std::make_pair(0x0000071A, "RPC_S_CALL_CANCELLED"));
     ExceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     ExceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
     ExceptionNames.insert(std::make_pair(0x4000001C, "STATUS_WX86_UNSIMULATE"));

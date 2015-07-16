@@ -281,7 +281,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
                     fdProcessInfo->hProcess,
                     hActiveThread,
                     &frame,
-                    machineType == IMAGE_FILE_MACHINE_I386 ? nullptr : &context,
+                    &context,
                     StackReadProcessMemoryProc64,
                     SymFunctionTableAccess64,
                     StackGetModuleBaseProc64,
@@ -297,7 +297,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             CALLSTACKENTRY entry;
             memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, frame.AddrFrame.Offset, frame.AddrReturn.Offset, frame.AddrPC.Offset);
+            StackEntryFromFrame(&entry, (uint)frame.AddrFrame.Offset, (uint)frame.AddrReturn.Offset, (uint)frame.AddrPC.Offset);
             callstackVector.push_back(entry);
         }
         else
