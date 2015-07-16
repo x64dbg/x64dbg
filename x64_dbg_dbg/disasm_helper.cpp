@@ -323,7 +323,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
             *type = str_unicode;
 
         // Determine string length only once, limited to output buffer size
-        int unicodeLen = max((int)wcslen(unicodeData), maxlen);
+        int unicodeLen = min((int)wcslen(unicodeData), maxlen);
 
         // Truncate each wchar_t to char
         for(int i = 0; i < unicodeLen; i++)

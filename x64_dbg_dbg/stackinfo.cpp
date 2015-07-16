@@ -136,11 +136,11 @@ DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LP
     return 0;
 }
 
-void StackEntryFromFrame(CALLSTACKENTRY* Entry, STACKFRAME64* Frame)
+void StackEntryFromFrame(CALLSTACKENTRY* Entry, uint Address, uint From, uint To)
 {
-    Entry->addr = (uint)Frame->AddrFrame.Offset;
-    Entry->from = (uint)Frame->AddrReturn.Offset;
-    Entry->to = (uint)Frame->AddrPC.Offset;
+    Entry->addr = Address;
+    Entry->from = From;
+    Entry->to = To;
 
     char label[MAX_LABEL_SIZE] = "";
     ADDRINFO addrinfo;
@@ -212,47 +212,10 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
             if(valid && basicinfo.call) //call
             {
-                char label[MAX_LABEL_SIZE] = "";
-                ADDRINFO addrinfo;
-                addrinfo.flags = flaglabel;
-                if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                    strcpy_s(label, addrinfo.label);
-                char module[MAX_MODULE_SIZE] = "";
-                ModNameFromAddr(data, module, false);
-                char returnToAddr[MAX_COMMENT_SIZE] = "";
-                if(*module)
-                    sprintf(returnToAddr, "%s.", module);
-                if(!*label)
-                    sprintf(label, fhex, data);
-                strcat(returnToAddr, label);
-
                 CALLSTACKENTRY curEntry;
                 memset(&curEntry, 0, sizeof(CALLSTACKENTRY));
-                curEntry.addr = i;
-                curEntry.to = data;
-                curEntry.from = basicinfo.addr;
 
-                data = basicinfo.addr;
-
-                if(data)
-                {
-                    *label = 0;
-                    addrinfo.flags = flaglabel;
-                    if(_dbg_addrinfoget(data, SEG_DEFAULT, &addrinfo))
-                        strcpy_s(label, addrinfo.label);
-                    *module = 0;
-                    ModNameFromAddr(data, module, false);
-                    char returnFromAddr[MAX_COMMENT_SIZE] = "";
-                    if(*module)
-                        sprintf(returnFromAddr, "%s.", module);
-                    if(!*label)
-                        sprintf(label, fhex, data);
-                    strcat(returnFromAddr, label);
-
-                    sprintf_s(curEntry.comment, "return to %s from %s", returnToAddr, returnFromAddr);
-                }
-                else
-                    sprintf_s(curEntry.comment, "return to %s from ???", returnToAddr);
+                StackEntryFromFrame(&curEntry, i, basicinfo.addr, data);
                 callstackVector.push_back(curEntry);
             }
         }
@@ -334,8 +297,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             CALLSTACKENTRY entry;
             memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, &frame);
-
+            StackEntryFromFrame(&entry, frame.AddrFrame.Offset, frame.AddrReturn.Offset, frame.AddrPC.Offset);
             callstackVector.push_back(entry);
         }
         else
