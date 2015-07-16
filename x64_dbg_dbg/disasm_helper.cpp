@@ -296,6 +296,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
     if(!MemRead(addr, data(), (maxlen + 1) * 2))
         return false;
+
     uint test = 0;
     memcpy(&test, data(), sizeof(uint));
     if(MemIsValidReadPtr(test))
@@ -322,11 +323,14 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
             *type = str_unicode;
 
         // Determine string length only once, limited to output buffer size
-        size_t unicodeLen = max(wcslen(unicodeData), maxlen);
+        int unicodeLen = max((int)wcslen(unicodeData), maxlen);
 
         // Truncate each wchar_t to char
-        for(size_t i = 0; i < unicodeLen; i++)
+        for(int i = 0; i < unicodeLen; i++)
             asciiData[i] = (char)(unicodeData[i] & 0xFF);
+
+        // Fix the null terminator (data len = maxlen + 1)
+        asciiData[unicodeLen] = '\0';
 
         // Copy data back to outgoing parameter
         strncpy_s(unicode, maxlen, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
