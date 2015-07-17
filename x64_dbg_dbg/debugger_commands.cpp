@@ -57,6 +57,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         return STATUS_ERROR;
     }
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    hFile.Close();
 
     //do some basic checks
     switch(GetFileArchitecture(arg1))
