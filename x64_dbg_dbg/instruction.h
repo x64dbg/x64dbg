@@ -1,7 +1,6 @@
 #ifndef _INSTRUCTIONS_H
 #define _INSTRUCTIONS_H
 
-#include "_global.h"
 #include "command.h"
 
 //functions

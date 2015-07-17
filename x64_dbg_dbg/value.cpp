@@ -2088,6 +2088,7 @@ static void setfpuvalue(const char* string, uint value)
             break;
 
         default:
+            registerindex = 0;
             found = false;
             break;
         }

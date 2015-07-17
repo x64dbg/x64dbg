@@ -1849,7 +1849,6 @@ static bool getcommandlineaddr(uint* addr, cmdline_error_t* cmd_line_error)
 static bool patchcmdline(uint getcommandline, uint new_command_line, cmdline_error_t* cmd_line_error)
 {
     uint command_line_stored = 0;
-    uint aux = 0;
     unsigned char data[100];
 
     cmd_line_error->addr = getcommandline;

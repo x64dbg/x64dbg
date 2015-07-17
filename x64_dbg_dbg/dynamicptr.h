@@ -57,7 +57,7 @@ public:
         return m_InternalData;
     }
 
-    template<typename A, typename B, typename C = std::remove_pointer<A>::type>
+    template<typename A, typename B, typename C = typename std::remove_pointer<A>::type>
     enableIf<isPtrClass<A>::value, makePtrRemote<C>> next(A B::*Member)
     {
         // First the pointer is read
@@ -77,7 +77,7 @@ public:
     template<typename A, typename B = T>
     enableIf<isClass<T>::value, uint> memberOffset(A B::*Member)
     {
-        return (char*) & ((std::remove_pointer<T>::type*)nullptr->*Member) - (char*)nullptr;
+        return (char*) & ((typename std::remove_pointer<T>::type*)nullptr->*Member) - (char*)nullptr;
     }
 
     T* operator->()

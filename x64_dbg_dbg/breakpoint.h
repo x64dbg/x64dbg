@@ -1,7 +1,6 @@
 #pragma once
 
 #include "_global.h"
-#include "TitanEngine\TitanEngine.h"
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
 #define TITANGETDRX(titantype) (titantype >> 8) & 0xF

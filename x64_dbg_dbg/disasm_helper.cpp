@@ -200,7 +200,6 @@ void disasmget(unsigned char* buffer, uint addr, DISASM_INSTR* instr)
     }
     const cs_insn* cpInstr = cp.GetInstr();
     sprintf_s(instr->instruction, "%s %s", cpInstr->mnemonic, cpInstr->op_str);
-    const cs_x86 & x86 = cpInstr->detail->x86;
     instr->instr_size = cpInstr->size;
     if(cp.InGroup(CS_GRP_JUMP) || cp.IsLoop() || cp.InGroup(CS_GRP_RET) || cp.InGroup(CS_GRP_CALL))
         instr->type = instr_branch;

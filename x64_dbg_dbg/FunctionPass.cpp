@@ -170,7 +170,6 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
 
 void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
 {
-    return;
     const uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
     const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 

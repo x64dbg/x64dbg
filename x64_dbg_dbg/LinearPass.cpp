@@ -147,7 +147,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
     Capstone disasm;
 
     uint blockBegin = Start;        // BBlock starting virtual address
-    uint blockEnd = End;            // BBlock ending virtual address
+    uint blockEnd;                  // BBlock ending virtual address
     bool blockPrevPad = false;      // Indicator if the last instruction was padding
     BasicBlock* lastBlock = nullptr;// Avoid an expensive call to std::vector::back()
 

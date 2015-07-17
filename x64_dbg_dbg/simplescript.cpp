@@ -566,7 +566,6 @@ bool scriptcmdexec(const char* command)
     {
     case STATUS_ERROR:
         return false;
-        break;
     case STATUS_EXIT:
         scriptIp = scriptinternalstep(0);
         GuiScriptSetIp(scriptIp);

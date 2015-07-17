@@ -7,7 +7,6 @@
 #include "patches.h"
 #include "memory.h"
 #include "debugger.h"
-#include "console.h"
 #include "threading.h"
 #include "module.h"
 

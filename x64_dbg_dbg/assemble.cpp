@@ -72,8 +72,9 @@ bool assembleat(uint addr, const char* instruction, int* size, char* error, bool
     {
         if(size)
             *size += nopsize;
-        if(!MemPatch((addr + destSize), nops, nopsize))
-            ret = false;
+
+        // Ignored if the memory patch for NOPs fail (although it should not)
+        MemPatch(addr + destSize, nops, nopsize);
     }
     GuiUpdatePatches();
     return true;

@@ -149,10 +149,9 @@ String StringUtils::sprintf(const char* format, ...)
     va_list args;
     va_start(args, format);
     Memory<char*> buffer(128 * sizeof(char), "StringUtils::sprintf");
-    int res = 0;
     while(true)
     {
-        res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
             buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");
@@ -170,10 +169,9 @@ WString StringUtils::sprintf(const wchar_t* format, ...)
     va_list args;
     va_start(args, format);
     Memory<wchar_t*> buffer(128 * sizeof(wchar_t), "StringUtils::sprintf");
-    int res = 0;
     while(true)
     {
-        res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
+        int res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
         if(res == -1)
         {
             buffer.realloc(buffer.size() * 2, "StringUtils::sprintf");

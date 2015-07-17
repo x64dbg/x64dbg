@@ -186,7 +186,6 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
     if(!MemIsValidReadPtr(csp))
         return;
     std::vector<CALLSTACKENTRY> callstackVector;
-    DWORD ticks = GetTickCount();
     uint stacksize = 0;
     uint stackbase = MemFindBaseAddr(csp, &stacksize, false);
     if(!stackbase) //super-fail (invalid stack address)

@@ -149,24 +149,24 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
         return STATUS_ERROR;
     }
     DWORD type = 0;
-    const char* a = 0;
+    const char* strType = 0;
     uint setting_type;
     if(strstr(argv[1], "long"))
     {
         setting_type = 1; //break_int3long
-        a = "TYPE_LONG_INT3";
+        strType = "TYPE_LONG_INT3";
         type = UE_BREAKPOINT_LONG_INT3;
     }
     else if(strstr(argv[1], "ud2"))
     {
         setting_type = 2; //break_ud2
-        a = "TYPE_UD2";
+        strType = "TYPE_UD2";
         type = UE_BREAKPOINT_UD2;
     }
     else if(strstr(argv[1], "short"))
     {
         setting_type = 0; //break_int3short
-        a = "TYPE_INT3";
+        strType = "TYPE_INT3";
         type = UE_BREAKPOINT_INT3;
     }
     else
@@ -176,7 +176,7 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
     }
     SetBPXOptions(type);
     BridgeSettingSetUint("Engine", "BreakpointType", setting_type);
-    dprintf("Default breakpoint type set to: %s\n", a);
+    dprintf("Default breakpoint type set to: %s\n", strType);
     return STATUS_CONTINUE;
 }
 
@@ -1607,8 +1607,8 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
             set_jit_auto = false;
         else
         {
-            return STATUS_ERROR;
             dputs("Error unknown parameters. Use x86 or x64 and ON:1 or OFF:0\n");
+            return STATUS_ERROR;
         }
 
         if(!dbgsetjitauto(set_jit_auto, actual_arch, NULL, & rw_error))
@@ -1628,7 +1628,6 @@ CMDRESULT cbDebugSetJITAuto(int argc, char* argv[])
     }
 
     dprintf("New JIT auto %s: %s\n", (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF");
-
     return STATUS_CONTINUE;
 }
 
@@ -1951,12 +1950,11 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
 void cbDebugLoadLibBPX()
 {
-    uint LibAddr = 0;
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 #ifdef _WIN64
-    LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
+    uint LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
 #else
-    LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
+    uint LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
 #endif //_WIN64
     varset("$result", LibAddr, false);
     backupctx.eflags &= ~0x100;

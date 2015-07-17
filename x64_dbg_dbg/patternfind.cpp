@@ -1,5 +1,4 @@
 #include "patternfind.h"
-#include <cctype>
 #include <vector>
 
 using namespace std;
