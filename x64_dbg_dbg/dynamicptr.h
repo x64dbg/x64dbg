@@ -17,6 +17,22 @@ RemotePtr<U> RemoteMemberPtr(uint Address, U T::*Member)
 template<typename T, bool ReadOnly, bool BreakOnFail>
 class RemotePtr
 {
+    // Special template part of this class, everything here
+    // should not be touched
+    template<bool Condition, typename U>
+    using enableIf = typename std::enable_if<Condition, U>::type;
+
+    template<typename U>
+    using makePtrRemote = RemotePtr<U, ReadOnly, BreakOnFail>;
+
+    template<typename U>
+    struct isClass : std::integral_constant < bool, std::is_class<std::remove_pointer<U>>::value ||
+                    std::is_class<std::remove_reference<U>>::value > {};
+
+    template<typename U>
+    struct isPtrClass : std::integral_constant < bool, !std::is_arithmetic<U>::value &&
+            isClass<U>::value > {};
+
 public:
     explicit RemotePtr(uint Address)
     {
@@ -41,31 +57,27 @@ public:
         return m_InternalData;
     }
 
-    size_t size()
+    template<typename A, typename B, typename C = std::remove_pointer<A>::type>
+    enableIf<isPtrClass<A>::value, makePtrRemote<C>> next(A B::*Member)
     {
-        return sizeof(T);
-    }
-
-    template<typename A = std::remove_pointer<T>, typename B = std::remove_pointer<T>>
-    RemotePtr<A, ReadOnly, BreakOnFail> ptr(A * B::*Member)
-    {
-        // Calculate the offset from the member to the class base
-        uint offset = ((char*) & ((B*)nullptr->*Member) - (char*)nullptr);
-
         // First the pointer is read
-        auto ptr = RemotePtr<PVOID, ReadOnly, BreakOnFail>(m_InternalAddr + offset);
+        auto ptr = RemotePtr<PVOID, ReadOnly, BreakOnFail>(m_InternalAddr + memberOffset(Member));
 
         // Now return the real data structure
-        return RemotePtr<A, ReadOnly, BreakOnFail>(ptr.get());
+        return makePtrRemote<C>(ptr.get());
     }
 
-    template<typename A, typename B = std::remove_reference<T>>
-    RemotePtr<A, ReadOnly, BreakOnFail> next(A B::*Member)
+    template<typename A, typename B>
+    enableIf<std::is_arithmetic<A>::value, makePtrRemote<A>> next(A B::*Member)
     {
-        // Calculate the offset from the member to the class base
-        uint offset = ((char*) & ((B*)nullptr->*Member) - (char*)nullptr);
+        // Return direct value with adjusted offset
+        return makePtrRemote<A>(m_InternalAddr + memberOffset(Member));
+    }
 
-        return RemotePtr<A, ReadOnly, BreakOnFail>(m_InternalAddr + offset);
+    template<typename A, typename B = T>
+    enableIf<isClass<T>::value, uint> memberOffset(A B::*Member)
+    {
+        return (char*) & ((std::remove_pointer<T>::type*)nullptr->*Member) - (char*)nullptr;
     }
 
     T* operator->()
