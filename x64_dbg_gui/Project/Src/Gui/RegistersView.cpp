@@ -2387,6 +2387,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == XMM5) return (char*) & (regd->regcontext.XmmRegisters[5]);
     if(reg == XMM6) return (char*) & (regd->regcontext.XmmRegisters[6]);
     if(reg == XMM7) return (char*) & (regd->regcontext.XmmRegisters[7]);
+#ifdef _WIN64
     if(reg == XMM8) return (char*) & (regd->regcontext.XmmRegisters[8]);
     if(reg == XMM9) return (char*) & (regd->regcontext.XmmRegisters[9]);
     if(reg == XMM10) return (char*) & (regd->regcontext.XmmRegisters[10]);
@@ -2395,6 +2396,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == XMM13) return (char*) & (regd->regcontext.XmmRegisters[13]);
     if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
     if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
+#endif //_WIN64
 
     if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[0]);
     if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[1]);
@@ -2404,6 +2406,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[5]);
     if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[6]);
     if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[7]);
+#ifdef _WIN64
     if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[8]);
     if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[9]);
     if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[10]);
@@ -2412,6 +2415,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[13]);
     if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[14]);
     if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[15]);
+#endif //_WIN64
 
     return (char*) & null_value;
 }
