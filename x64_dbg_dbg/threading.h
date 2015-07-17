@@ -50,17 +50,6 @@ enum SectionLock
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
-
-    // This is defined because of a bug in the Windows 8.1 kernel;
-    // Calling VirtualQuery/VirtualProtect/ReadProcessMemory can and will cause
-    // a deadlock.
-    //
-    // There's also no real way to fix this with a lock. Any external program
-    // calling memory functions creates a deadlock too. (See: ETW Tracing)
-    //
-    // https://github.com/x64dbg/x64dbg/issues/247
-    LockWin8Workaround,
-
     LockLast,
 };
 
