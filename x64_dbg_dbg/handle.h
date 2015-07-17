@@ -6,7 +6,7 @@
 class Handle
 {
 public:
-    Handle(HANDLE h = 0)
+    Handle(HANDLE h = nullptr)
     {
         mHandle = h;
     }

@@ -50,14 +50,13 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
         dputs("File does not exist!");
         return STATUS_ERROR;
     }
-    HANDLE hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(arg1).c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
     {
         dputs("Could not open file!");
         return STATUS_ERROR;
     }
     GetFileNameFromHandle(hFile, arg1); //get full path of the file
-    CloseHandle(hFile);
 
     //do some basic checks
     switch(GetFileArchitecture(arg1))
