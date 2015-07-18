@@ -55,13 +55,14 @@ enum SectionLock
 
 class SectionLockerGlobal
 {
-    template<SectionLock LockIndex, bool Shared> friend class SectionLocker;
+    template<SectionLock LockIndex, bool Shared>
+    friend class SectionLocker;
 
 public:
     static void Initialize();
     static void Deinitialize();
 
-protected:
+private:
     static inline void AcquireLock(SectionLock LockIndex, bool Shared)
     {
         if(m_SRWLocks)
@@ -88,7 +89,6 @@ protected:
             LeaveCriticalSection(&m_crLocks[LockIndex]);
     }
 
-private:
     typedef void (WINAPI* SRWLOCKFUNCTION)(PSRWLOCK SWRLock);
 
     static bool m_Initialized;
@@ -138,9 +138,9 @@ public:
         Internal::ReleaseLock(LockIndex, Shared);
     }
 
-private:
-    using Internal = SectionLockerGlobal;
-
 protected:
     BYTE m_LockCount;
+
+private:
+    using Internal = SectionLockerGlobal;
 };

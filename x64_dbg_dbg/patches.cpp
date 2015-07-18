@@ -48,12 +48,10 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
             patches.erase(found);
             return true;
         }
-        else
-        {
-            // Keep the original byte from the previous patch
-            newPatch.oldbyte = found->second.oldbyte;
-            found->second = newPatch;
-        }
+
+        // Keep the original byte from the previous patch
+        newPatch.oldbyte = found->second.oldbyte;
+        found->second = newPatch;
     }
     else
     {

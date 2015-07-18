@@ -112,11 +112,7 @@ bool ThreadIsValid(DWORD ThreadId)
 
 bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
 {
-    //
-    // TODO: Keep a cached copy inside the vector
-    //
     memset(Teb, 0, sizeof(TEB));
-
     return MemRead(TEBAddress, Teb, sizeof(TEB));
 }
 
