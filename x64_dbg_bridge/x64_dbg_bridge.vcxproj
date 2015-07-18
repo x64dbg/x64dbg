@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bridgemain.h" />
+    <ClInclude Include="bridgelist.h" />
     <ClInclude Include="Utf8Ini.h" />
     <ClInclude Include="_global.h" />
   </ItemGroup>

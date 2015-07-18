@@ -103,19 +103,20 @@ BRIDGE_IMPEXP const char* BridgeStart()
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 {
-    unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
-    if(!a)
+    unsigned char* ptr = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
+    if(!ptr)
     {
         MessageBoxA(0, "Could not allocate memory", "Error", MB_ICONERROR);
         ExitProcess(1);
     }
-    memset(a, 0, size);
-    return a;
+    memset(ptr, 0, size);
+    return ptr;
 }
 
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
-    GlobalFree(ptr);
+    if(ptr)
+        GlobalFree(ptr);
 }
 
 BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* value)

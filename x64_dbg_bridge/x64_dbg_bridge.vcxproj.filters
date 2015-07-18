@@ -28,5 +28,8 @@
     <ClInclude Include="Utf8Ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bridgelist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
