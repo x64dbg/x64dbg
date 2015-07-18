@@ -824,6 +824,7 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(uint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
+        GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
     }
