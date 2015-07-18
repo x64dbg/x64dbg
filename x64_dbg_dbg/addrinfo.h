@@ -2,6 +2,7 @@
 #define _ADDRINFO_H
 
 #include "_global.h"
+#include <functional>
 
 //ranges
 typedef std::pair<uint, uint> Range;
@@ -53,7 +54,7 @@ struct DepthModuleRangeCompare
 };
 
 //typedefs
-typedef void (*EXPORTENUMCALLBACK)(uint base, const char* mod, const char* name, uint addr);
+typedef std::function<void (uint base, const char* mod, const char* name, uint addr)> EXPORTENUMCALLBACK;
 
 void dbsave();
 void dbload();

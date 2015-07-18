@@ -174,6 +174,7 @@ void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<F
     const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 
 #ifdef _WIN64
+    // RUNTIME_FUNCTION exception information
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
         const uint funcAddr = m_ModuleStart + Function->BeginAddress;
@@ -194,6 +195,22 @@ void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<F
         return true;
     });
 #endif // _WIN64
+
+    // Module exports (return value ignored)
+    apienumexports(m_ModuleStart, [&](uint Base, const char* Module, const char* Name, uint Address)
+    {
+        // If within limits...
+        if(Address >= minFunc && Address < maxFunc)
+        {
+            // Add the descriptor
+            FunctionDef def;
+            def.VirtualStart = Address;
+            def.VirtualEnd = 0;
+            def.BBlockStart = 0;
+            def.BBlockEnd = 0;
+            Blocks->push_back(def);
+        }
+    });
 }
 
 void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
