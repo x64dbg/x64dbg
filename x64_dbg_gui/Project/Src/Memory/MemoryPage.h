@@ -12,8 +12,8 @@ public:
 
     bool read(void* parDest, uint_t parRVA, uint_t parSize) const;
     bool read(byte_t* parDest, uint_t parRVA, uint_t parSize) const;
-    bool write(const void* parDest, uint_t parRVA, uint_t parSize) const;
-    bool write(const byte_t* parDest, uint_t parRVA, uint_t parSize) const;
+    bool write(const void* parDest, uint_t parRVA, uint_t parSize);
+    bool write(const byte_t* parDest, uint_t parRVA, uint_t parSize);
     uint_t getSize() const;
     uint_t getBase() const;
     uint_t va(int_t rva) const;
