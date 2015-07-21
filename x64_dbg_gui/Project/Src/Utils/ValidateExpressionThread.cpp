@@ -1,15 +1,17 @@
 #include "ValidateExpressionThread.h"
 
-ValidateExpressionThread::ValidateExpressionThread(QObject* parent) : QThread(parent)
-{
-    mExpressionChanged = false;
-    mStopThread = false;
-}
+ValidateExpressionThread::ValidateExpressionThread(QObject* parent) : QThread(parent), mExpressionChanged(false), mStopThread(false)
+{ }
 
-void ValidateExpressionThread::start()
+void ValidateExpressionThread::start(QString initialValue)
 {
     mStopThread = false;
     QThread::start();
+
+    if(!initialValue.isEmpty())
+    {
+        textChanged(initialValue);
+    }
 }
 
 void ValidateExpressionThread::stop()
@@ -21,8 +23,10 @@ void ValidateExpressionThread::textChanged(QString text)
 {
     mExpressionMutex.lock();
     if(mExpressionText != text)
+    {
         mExpressionChanged = true;
-    mExpressionText = text;
+        mExpressionText = text;
+    }
     mExpressionMutex.unlock();
 }
 

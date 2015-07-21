@@ -311,8 +311,10 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         if(type)
             *type = str_ascii;
 
+        int asciiLength = min(static_cast<int>(strlen(asciiData)), maxlen);
+
         // Copy data back to outgoing parameter
-        strncpy_s(ascii, maxlen, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
+        strncpy_s(ascii, asciiLength, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
         return true;
     }
 
@@ -322,17 +324,17 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
             *type = str_unicode;
 
         // Determine string length only once, limited to output buffer size
-        int unicodeLen = min((int)wcslen(unicodeData), maxlen);
+        int unicodeLength = min(static_cast<int>(wcslen(unicodeData)), maxlen);
 
         // Truncate each wchar_t to char
-        for(int i = 0; i < unicodeLen; i++)
+        for(int i = 0; i < unicodeLength; i++)
             asciiData[i] = (char)(unicodeData[i] & 0xFF);
 
         // Fix the null terminator (data len = maxlen + 1)
-        asciiData[unicodeLen] = '\0';
+        asciiData[unicodeLength] = '\0';
 
         // Copy data back to outgoing parameter
-        strncpy_s(unicode, maxlen, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
+        strncpy_s(unicode, unicodeLength, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
         return true;
     }
 

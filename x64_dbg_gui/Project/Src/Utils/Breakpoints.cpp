@@ -54,7 +54,7 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::enableBP(BRIDGEBP & bp)
+void Breakpoints::enableBP(const BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -87,14 +87,13 @@ void Breakpoints::enableBP(BRIDGEBP & bp)
  */
 void Breakpoints::enableBP(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
 
     // Get breakpoints list
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoint at address VA
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {
@@ -112,7 +111,7 @@ void Breakpoints::enableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::disableBP(BRIDGEBP & bp)
+void Breakpoints::disableBP(const BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -145,14 +144,13 @@ void Breakpoints::disableBP(BRIDGEBP & bp)
  */
 void Breakpoints::disableBP(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
 
     // Get breakpoints list
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoint at address VA
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {
@@ -170,7 +168,7 @@ void Breakpoints::disableBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::removeBP(BRIDGEBP & bp)
+void Breakpoints::removeBP(const BRIDGEBP & bp)
 {
     QString wCmd = "";
 
@@ -217,14 +215,13 @@ void Breakpoints::removeBP(BRIDGEBP & bp)
  */
 void Breakpoints::removeBP(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
 
     // Get breakpoints list
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoint at address VA
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {
@@ -244,7 +241,7 @@ void Breakpoints::removeBP(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toggleBPByDisabling(BRIDGEBP & bp)
+void Breakpoints::toggleBPByDisabling(const BRIDGEBP & bp)
 {
     if(bp.enabled == true)
         disableBP(bp);
@@ -265,14 +262,13 @@ void Breakpoints::toggleBPByDisabling(BRIDGEBP & bp)
  */
 void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
 
     // Get breakpoints list
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoint at address VA
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {
@@ -293,27 +289,33 @@ void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
  */
 BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
+    BPXSTATE result = bp_non_existent;
 
     // Get breakpoints list
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoint at address VA
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {
             if(wBPList.bp[wI].enabled)
-                return bp_enabled;
+            {
+                result = bp_enabled;
+                break;
+            }
             else
-                return bp_disabled;
+            {
+                result = bp_disabled;
+                break;
+            }
         }
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);
 
-    return bp_non_existent;
+    return result;
 }
 
 
@@ -330,7 +332,6 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
  */
 void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
 {
-    int wI = 0;
     BPMAP wBPList;
     bool wNormalWasRemoved = false;
     bool wMemoryWasRemoved = false;
@@ -340,7 +341,7 @@ void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
     DbgGetBpList(type, &wBPList);
 
     // Find breakpoints at address VA and remove them
-    for(wI = 0; wI < wBPList.count; wI++)
+    for(int wI = 0; wI < wBPList.count; wI++)
     {
         if(wBPList.bp[wI].addr == va)
         {

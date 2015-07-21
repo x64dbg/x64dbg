@@ -23,7 +23,7 @@ WordEditDialog::~WordEditDialog()
 void WordEditDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start();
+    mValidateThread->start(ui->expressionLineEdit->text());
 }
 
 void WordEditDialog::hideEvent(QHideEvent* event)
