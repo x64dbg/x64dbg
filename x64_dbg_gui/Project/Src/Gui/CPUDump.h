@@ -81,6 +81,7 @@ public slots:
     void findReferencesSlot();
     void followInDisasmSlot();
     void followDataSlot();
+    void followDataDumpSlot();
 
     void selectionUpdatedSlot();
     void yaraSlot();
@@ -173,6 +174,7 @@ private:
     QAction* mDataCopyAction;
     QAction* mUndoSelection;
     QAction* mFollowData;
+    QAction* mFollowDataDump;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

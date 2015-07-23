@@ -150,6 +150,14 @@ void CPUDump::setupContextMenu()
 #endif //_WIN64
     connect(mFollowData, SIGNAL(triggered()), this, SLOT(followDataSlot()));
 
+    //Follow DWORD/QWORD in Disasm
+#ifdef _WIN64
+    mFollowDataDump = new QAction("&Follow QWORD in Dump", this);
+#else //x86
+    mFollowDataDump = new QAction("&Follow DWORD in Dump", this);
+#endif //_WIN64
+    connect(mFollowDataDump, SIGNAL(triggered()), this, SLOT(followDataDumpSlot()));
+
     //Label
     mSetLabelAction = new QAction("Set Label", this);
     mSetLabelAction->setShortcutContext(Qt::WidgetShortcut);
@@ -516,7 +524,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     uint_t ptr = 0;
     DbgMemRead(selectedAddr, (unsigned char*)&ptr, sizeof(uint_t));
     if(DbgMemIsValidReadPtr(ptr))
+    {
         wMenu->addAction(mFollowData);
+        wMenu->addAction(mFollowDataDump);
+    }
 
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
@@ -1396,6 +1407,12 @@ void CPUDump::followDataSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("disasm [%1]").arg(addrText).toUtf8().constData());
+}
+
+void CPUDump::followDataDumpSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("dump [%1]").arg(addrText).toUtf8().constData());
 }
 
 void CPUDump::selectionUpdatedSlot()
