@@ -1,16 +1,18 @@
 #include "_scriptapi_module.h"
+#include "threading.h"
 #include "module.h"
 #include "debugger.h"
 
 SCRIPT_EXPORT bool Script::Module::InfoFromAddr(duint addr, Script::Module::ModuleInfo* info)
 {
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(addr);
     if(!info || !modInfo)
         return false;
     info->base = modInfo->base;
     info->size = modInfo->size;
     info->entry = modInfo->entry;
-    info->sectionCount = (int)modInfo->sections.size();
+    info->sectionCount = int(modInfo->sections.size());
     strcpy_s(info->name, modInfo->name);
     strcat_s(info->name, modInfo->extension);
     strcpy_s(info->path, modInfo->path);
@@ -69,8 +71,9 @@ SCRIPT_EXPORT duint Script::Module::EntryFromName(const char* name)
 
 SCRIPT_EXPORT int Script::Module::SectionCountFromAddr(duint addr)
 {
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(addr);
-    return modInfo ? (int)modInfo->sections.size() : 0;
+    return modInfo ? int(modInfo->sections.size()) : 0;
 }
 
 SCRIPT_EXPORT int Script::Module::SectionCountFromName(const char* name)
@@ -80,8 +83,9 @@ SCRIPT_EXPORT int Script::Module::SectionCountFromName(const char* name)
 
 SCRIPT_EXPORT bool Script::Module::SectionFromAddr(duint addr, int number, ModuleSectionInfo* section)
 {
+    SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(addr);
-    if(!section || !modInfo || number < 0 || number >= (int)modInfo->sections.size())
+    if(!section || !modInfo || number < 0 || number >= int(modInfo->sections.size()))
         return false;
     const MODSECTIONINFO & secInfo = modInfo->sections.at(number);
     section->addr = secInfo.addr;
@@ -93,6 +97,28 @@ SCRIPT_EXPORT bool Script::Module::SectionFromAddr(duint addr, int number, Modul
 SCRIPT_EXPORT bool Script::Module::SectionFromName(const char* name, int number, ModuleSectionInfo* section)
 {
     return Module::SectionFromAddr(Module::BaseFromName(name), number, section);
+}
+
+SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListInfo* listInfo)
+{
+    SHARED_ACQUIRE(LockModules);
+    MODINFO* modInfo = ModInfoFromAddr(addr);
+    if (!modInfo)
+        return false;
+    std::vector<ModuleSectionInfo> scriptSectionList(modInfo->sections.size());
+    for (const auto & section : modInfo->sections)
+    {
+        ModuleSectionInfo scriptSection;
+        scriptSection.addr = section.addr;
+        scriptSection.size = section.size;
+        strcpy_s(scriptSection.name, section.name);
+    }
+    return List<ModuleSectionInfo>::CopyData(listInfo, scriptSectionList);
+}
+
+SCRIPT_EXPORT bool Script::Module::SectionListFromName(const char* name, ListInfo* listInfo)
+{
+    return Module::SectionListFromAddr(Module::BaseFromName(name), listInfo);
 }
 
 SCRIPT_EXPORT bool Script::Module::GetMainModuleInfo(ModuleInfo* info)
@@ -128,4 +154,29 @@ SCRIPT_EXPORT bool Script::Module::GetMainModuleName(char* name)
 SCRIPT_EXPORT bool Script::Module::GetMainModulePath(char* path)
 {
     return Module::PathFromAddr(Module::GetMainModuleBase(), path);
+}
+
+SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListInfo* listInfo)
+{
+    return Module::SectionListFromAddr(Module::GetMainModuleBase(), listInfo);
+}
+
+SCRIPT_EXPORT bool Script::Module::GetList(ListInfo* listInfo)
+{
+    std::vector<MODINFO> modList;
+    ModGetList(modList);
+    std::vector<ModuleInfo> modScriptList(modList.size());
+    for (const auto & mod : modList)
+    {
+        ModuleInfo scriptMod;
+        scriptMod.base = mod.base;
+        scriptMod.size = mod.size;
+        scriptMod.entry = mod.entry;
+        scriptMod.sectionCount = int(mod.sections.size());
+        strcpy_s(scriptMod.name, mod.name);
+        strcat_s(scriptMod.name, mod.extension);
+        strcpy_s(scriptMod.path, mod.path);
+        modScriptList.push_back(scriptMod);
+    }
+    return List<ModuleInfo>::CopyData(listInfo, modScriptList);
 }

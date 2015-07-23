@@ -10,6 +10,8 @@ typedef struct
 
 #ifdef __cplusplus
 
+#include <vector>
+
 /**
 \brief A list object. This object is NOT thread safe.
 \tparam Type List contents type.
@@ -62,35 +64,16 @@ public:
     {
         if(_listInfo.data)
         {
-            Free(_listInfo.data);
+            BridgeFree(_listInfo.data);
             _listInfo.data = nullptr;
         }
-    }
-
-    /**
-    \brief Allocates memory with the given size.
-    \param size The size to allocate.
-    \return A pointer to the allocated data. Cannot return null.
-    */
-    static void* Alloc(size_t size)
-    {
-        return BridgeAlloc(size);
-    }
-
-    /**
-    \brief Frees data allocated by List::Alloc.
-    \param [in] The data to free.
-    */
-    static void Free(void* ptr)
-    {
-        BridgeFree(ptr);
     }
 
     /**
     \brief Reference operator.
     \return Pointer to the ListInfo.
     */
-    ListInfo* operator&()
+    inline ListInfo* operator&()
     {
         return &_listInfo;
     }
@@ -105,6 +88,33 @@ public:
         if(index >= count())  //make sure the out-of-bounds access is caught as soon as possible.
             __debugbreak();
         return data()[index];
+    }
+
+    /**
+    \brief Copies data to a ListInfo structure..
+    \param [out] listInfo If non-null, information describing the list.
+    \param listData Data to copy in the ListInfo structure.
+    \return true if it succeeds, false if it fails.
+    */
+    static inline bool CopyData(ListInfo* listInfo, const std::vector<Type> & listData)
+    {
+        if (!listInfo)
+            return false;
+        listInfo->count = listData.size();
+        listInfo->size = listInfo->count * sizeof(Type);
+        if (listInfo->count)
+        {
+            listInfo->data = BridgeAlloc(listInfo->size);
+            Type* curItem = reinterpret_cast<Type*>(listInfo->data);
+            for (const auto & item : listData)
+            {
+                *curItem = item;
+                ++curItem;
+            }
+        }
+        else
+            listInfo->data = nullptr;
+        return true;
     }
 
 private:

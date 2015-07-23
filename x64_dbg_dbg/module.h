@@ -37,3 +37,4 @@ bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections);
 uint ModEntryFromAddr(uint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
+void ModGetList(std::vector<MODINFO> & list);

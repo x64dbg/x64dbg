@@ -324,3 +324,11 @@ int ModPathFromName(const char* Module, char* Path, int Size)
 {
     return ModPathFromAddr(ModBaseFromName(Module), Path, Size);
 }
+
+void ModGetList(std::vector<MODINFO> & list)
+{
+    SHARED_ACQUIRE(LockModules);
+    list.clear();
+    for (const auto & mod : modinfo)
+        list.push_back(mod.second);
+}

@@ -24,10 +24,10 @@ SCRIPT_EXPORT duint Script::Misc::ResolveLabel(const char* label)
 
 SCRIPT_EXPORT void* Script::Misc::Alloc(duint size)
 {
-    return emalloc(size, "Script::Misc::Alloc");
+    return BridgeAlloc(size);
 }
 
 SCRIPT_EXPORT void Script::Misc::Free(void* ptr)
 {
-    return efree(ptr, "Script::Misc::Free");
+    return BridgeFree(ptr);
 }
