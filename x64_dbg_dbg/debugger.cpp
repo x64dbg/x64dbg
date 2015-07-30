@@ -603,13 +603,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName))
-    {
-        wchar_t wszFileName[MAX_PATH] = L"";
-        if(!DevicePathFromFileHandleW(CreateProcessInfo->hFile, wszFileName, sizeof(wszFileName)))
-            strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
-        else
-            strcpy_s(DebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
-    }
+        strcpy_s(DebugFileName, "??? (GetFileNameFromHandle failed!)");
     dprintf("Process Started: "fhex" %s\n", base, DebugFileName);
 
     //update memory map
@@ -829,13 +823,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
-    {
-        wchar_t wszFileName[MAX_PATH] = L"";
-        if(!DevicePathFromFileHandleW(LoadDll->hFile, wszFileName, sizeof(wszFileName)))
             strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
-        else
-            strcpy_s(DLLDebugFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
-    }
 
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
