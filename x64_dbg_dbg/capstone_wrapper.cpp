@@ -15,23 +15,23 @@ void Capstone::GlobalInitialize()
 
 void Capstone::GlobalFinalize()
 {
-    if(mHandle)   //close handle
+    if(mHandle) //close handle
         cs_close(&mHandle);
 }
 
 Capstone::Capstone()
 {
-    mInstr = 0;
+    mInstr = nullptr;
     mError = CS_ERR_OK;
 }
 
 Capstone::~Capstone()
 {
-    if(mInstr)  //free last disassembled instruction
+    if(mInstr) //free last disassembled instruction
         cs_free(mInstr, 1);
 }
 
-bool Capstone::Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER])
+bool Capstone::Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER])
 {
     return Disassemble(addr, data, MAX_DISASM_BUFFER);
 }
@@ -40,46 +40,46 @@ bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
 {
     if(!data)
         return false;
-    if(mInstr)  //free last disassembled instruction
+    if(mInstr) //free last disassembled instruction
     {
         cs_free(mInstr, 1);
-        mInstr = 0;
+        mInstr = nullptr;
     }
-    return !!cs_disasm(mHandle, (const uint8_t*)data, size, addr, 1, &mInstr);
+    return !!cs_disasm(mHandle, data, size, addr, 1, &mInstr);
 }
 
-const cs_insn* Capstone::GetInstr()
+const cs_insn* Capstone::GetInstr() const
 {
     return mInstr;
 }
 
-const cs_err Capstone::GetError()
+cs_err Capstone::GetError() const
 {
     return mError;
 }
 
-const char* Capstone::RegName(x86_reg reg)
+const char* Capstone::RegName(x86_reg reg) const
 {
     return cs_reg_name(mHandle, reg);
 }
 
-bool Capstone::InGroup(cs_group_type group)
+bool Capstone::InGroup(cs_group_type group) const
 {
     return cs_insn_group(mHandle, mInstr, group);
 }
 
-String Capstone::OperandText(int opindex)
+String Capstone::OperandText(int opindex) const
 {
     if(opindex >= mInstr->detail->x86.op_count)
         return "";
-    const cs_x86_op & op = mInstr->detail->x86.operands[opindex];
+    const auto & op = mInstr->detail->x86.operands[opindex];
     String result;
     char temp[32] = "";
     switch(op.type)
     {
     case X86_OP_REG:
     {
-        result = RegName((x86_reg)op.reg);
+        result = RegName(x86_reg(op.reg));
     }
     break;
 
@@ -95,7 +95,7 @@ String Capstone::OperandText(int opindex)
 
     case X86_OP_MEM:
     {
-        const x86_op_mem & mem = op.mem;
+        const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
             sprintf_s(temp, "%"fext"X", mInstr->address + op.mem.disp + mInstr->size);
@@ -106,14 +106,14 @@ String Capstone::OperandText(int opindex)
             bool prependPlus = false;
             if(mem.base)
             {
-                result += RegName((x86_reg)mem.base);
+                result += RegName(x86_reg(mem.base));
                 prependPlus = true;
             }
             if(mem.index)
             {
                 if(prependPlus)
                     result += "+";
-                result += RegName((x86_reg)mem.index);
+                result += RegName(x86_reg(mem.index));
                 sprintf_s(temp, "*%X", mem.scale);
                 result += temp;
                 prependPlus = true;
@@ -137,30 +137,30 @@ String Capstone::OperandText(int opindex)
     break;
 
     case X86_OP_FP:
+    case X86_OP_INVALID:
     {
-        dprintf("float: %f\n", op.fp);
     }
     break;
     }
     return result;
 }
 
-const int Capstone::Size()
+int Capstone::Size() const
 {
     return GetInstr()->size;
 }
 
-const uint Capstone::Address()
+uint Capstone::Address() const
 {
-    return (uint)GetInstr()->address;
+    return uint(GetInstr()->address);
 }
 
-const cs_x86 & Capstone::x86()
+const cs_x86 & Capstone::x86() const
 {
     return GetInstr()->detail->x86;
 }
 
-bool Capstone::IsFilling()
+bool Capstone::IsFilling() const
 {
     switch(GetId())
     {
@@ -172,7 +172,7 @@ bool Capstone::IsFilling()
     }
 }
 
-bool Capstone::IsLoop()
+bool Capstone::IsLoop() const
 {
     switch(GetId())
     {
@@ -185,12 +185,12 @@ bool Capstone::IsLoop()
     }
 }
 
-x86_insn Capstone::GetId()
+x86_insn Capstone::GetId() const
 {
-    return (x86_insn)mInstr->id;
+    return x86_insn(mInstr->id);
 }
 
-String Capstone::InstructionText()
+String Capstone::InstructionText() const
 {
     String result = mInstr->mnemonic;
     result += " ";

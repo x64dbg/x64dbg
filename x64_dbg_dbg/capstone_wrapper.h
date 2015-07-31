@@ -13,20 +13,20 @@ public:
     static void GlobalFinalize();
     Capstone();
     ~Capstone();
-    bool Disassemble(uint addr, unsigned char data[MAX_DISASM_BUFFER]);
+    bool Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER]);
     bool Disassemble(uint addr, const unsigned char* data, int size);
-    const cs_insn* GetInstr();
-    const cs_err GetError();
-    const char* RegName(x86_reg reg);
-    bool InGroup(cs_group_type group);
-    String OperandText(int opindex);
-    const int Size();
-    const uint Address();
-    const cs_x86 & x86();
-    bool IsFilling();
-    bool IsLoop();
-    x86_insn GetId();
-    String InstructionText();
+    const cs_insn* GetInstr() const;
+    cs_err GetError() const;
+    const char* RegName(x86_reg reg) const;
+    bool InGroup(cs_group_type group) const;
+    String OperandText(int opindex) const;
+    int Size() const;
+    uint Address() const;
+    const cs_x86 & x86() const;
+    bool IsFilling() const;
+    bool IsLoop() const;
+    x86_insn GetId() const;
+    String InstructionText() const;
 
 private:
     static csh mHandle;
