@@ -196,7 +196,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
     {
         uint data = 0;
         MemRead(i, &data, sizeof(uint));
-        if(MemIsValidReadPtr(data)) //the stack value is a pointer
+        if(MemIsValidReadPtr(data) && MemIsCodePage(data, false)) //the stack value is a pointer to an executable page
         {
             uint size = 0;
             uint base = MemFindBaseAddr(data, &size);

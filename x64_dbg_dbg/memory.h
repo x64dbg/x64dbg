@@ -15,3 +15,5 @@ bool MemIsValidReadPtr(uint Address);
 bool MemIsCanonicalAddress(uint Address);
 uint MemAllocRemote(uint Address, uint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);
 bool MemFreeRemote(uint Address);
+bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh = false);
+bool MemIsCodePage(uint Address, bool Refresh = false);

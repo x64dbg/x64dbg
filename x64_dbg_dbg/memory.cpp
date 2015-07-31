@@ -334,3 +334,32 @@ bool MemFreeRemote(uint Address)
 {
     return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
 }
+
+bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
+{
+    // Update the memory map if needed
+    if (Refresh)
+        MemUpdateMap();
+
+    SHARED_ACQUIRE(LockMemoryPages);
+
+    // Search for the memory page address
+    auto found = memoryPages.find(std::make_pair(Address, Address));
+
+    if (found == memoryPages.end())
+        return false;
+
+    // Return the data when possible
+    if (PageInfo)
+        *PageInfo = found->second;
+
+    return true;
+}
+
+bool MemIsCodePage(uint Address, bool Refresh)
+{
+    MEMPAGE PageInfo;
+    if (!MemGetPageInfo(Address, &PageInfo, Refresh))
+        return false;
+    return (PageInfo.mbi.Protect & PAGE_EXECUTE) == PAGE_EXECUTE;
+}
