@@ -283,22 +283,31 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     if(!BridgeSettingGet("Symbols", "CachePath", cachePath) || !*cachePath)
     {
         strcpy_s(szSymbolCachePath, szLocalSymbolPath);
-        BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+        BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
     }
     else
     {
-        // Trim the buffer to fit inside MAX_PATH
-        strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+        if (_strnicmp(cachePath, ".\\", 2) == 0)
+        {
+            strncpy_s(szSymbolCachePath, dir, _TRUNCATE);
+            strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
+        }
+        else
+        {
+            // Trim the buffer to fit inside MAX_PATH
+            strncpy_s(szSymbolCachePath, cachePath, _TRUNCATE);
+        }
 
         if(strstr(szSymbolCachePath, "http://") || strstr(szSymbolCachePath, "https://"))
         {
             if(Script::Gui::MessageYesNo("It is strongly discouraged to use symbol servers in your path directly (use the store option instead).\n\nDo you want me to fix this?"))
             {
                 strcpy_s(szSymbolCachePath, szLocalSymbolPath);
-                BridgeSettingSet("Symbols", "CachePath", szLocalSymbolPath);
+                BridgeSettingSet("Symbols", "CachePath", ".\\symbols");
             }
         }
     }
+    dputs(szSymbolCachePath);
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
     gMsgStack = MsgAllocStack();
