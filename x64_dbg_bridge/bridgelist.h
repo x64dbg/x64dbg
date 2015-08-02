@@ -88,7 +88,7 @@ public:
     */
     inline Type & operator[](size_t index) const
     {
-        if(index >= count())  //make sure the out-of-bounds access is caught as soon as possible.
+        if(index >= size_t(count()))  //make sure the out-of-bounds access is caught as soon as possible.
             __debugbreak();
         return data()[index];
     }
