@@ -113,6 +113,7 @@ SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(Module
         scriptSection.addr = section.addr;
         scriptSection.size = section.size;
         strcpy_s(scriptSection.name, section.name);
+        scriptSectionList.push_back(scriptSection);
     }
     return List<ModuleSectionInfo>::CopyData(listInfo, scriptSectionList);
 }
