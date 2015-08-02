@@ -311,10 +311,11 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         if(type)
             *type = str_ascii;
 
-        int asciiLength = min(static_cast<int>(strlen(asciiData)), maxlen);
+        // Escape the string
+        String escaped = StringUtils::Escape(asciiData);
 
         // Copy data back to outgoing parameter
-        strncpy_s(ascii, asciiLength, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
+        strncpy_s(ascii, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
         return true;
     }
 
@@ -324,17 +325,20 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
             *type = str_unicode;
 
         // Determine string length only once, limited to output buffer size
-        int unicodeLength = min(static_cast<int>(wcslen(unicodeData)), maxlen);
+        int unicodeLength = min(int(wcslen(unicodeData)), maxlen);
 
         // Truncate each wchar_t to char
         for(int i = 0; i < unicodeLength; i++)
-            asciiData[i] = (char)(unicodeData[i] & 0xFF);
+            asciiData[i] = char(unicodeData[i] & 0xFF);
 
         // Fix the null terminator (data len = maxlen + 1)
         asciiData[unicodeLength] = '\0';
 
+        // Escape the string
+        String escaped = StringUtils::Escape(asciiData);
+
         // Copy data back to outgoing parameter
-        strncpy_s(unicode, unicodeLength, StringUtils::Escape(asciiData).c_str(), _TRUNCATE);
+        strncpy_s(unicode, min(int(escaped.length()) +1, maxlen), escaped.c_str(), _TRUNCATE);
         return true;
     }
 
