@@ -99,13 +99,14 @@ SCRIPT_EXPORT bool Script::Module::SectionFromName(const char* name, int number,
     return Module::SectionFromAddr(Module::BaseFromName(name), number, section);
 }
 
-SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListInfo* listInfo)
+SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(ModuleSectionInfo) listInfo)
 {
     SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(addr);
     if (!modInfo)
         return false;
-    std::vector<ModuleSectionInfo> scriptSectionList(modInfo->sections.size());
+    std::vector<ModuleSectionInfo> scriptSectionList;
+    scriptSectionList.reserve(modInfo->sections.size());
     for (const auto & section : modInfo->sections)
     {
         ModuleSectionInfo scriptSection;
@@ -116,7 +117,7 @@ SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListInfo* lis
     return List<ModuleSectionInfo>::CopyData(listInfo, scriptSectionList);
 }
 
-SCRIPT_EXPORT bool Script::Module::SectionListFromName(const char* name, ListInfo* listInfo)
+SCRIPT_EXPORT bool Script::Module::SectionListFromName(const char* name, ListOf(ModuleSectionInfo) listInfo)
 {
     return Module::SectionListFromAddr(Module::BaseFromName(name), listInfo);
 }
@@ -156,16 +157,17 @@ SCRIPT_EXPORT bool Script::Module::GetMainModulePath(char* path)
     return Module::PathFromAddr(Module::GetMainModuleBase(), path);
 }
 
-SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListInfo* listInfo)
+SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListOf(ModuleSectionInfo) listInfo)
 {
     return Module::SectionListFromAddr(Module::GetMainModuleBase(), listInfo);
 }
 
-SCRIPT_EXPORT bool Script::Module::GetList(ListInfo* listInfo)
+SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) listInfo)
 {
     std::vector<MODINFO> modList;
     ModGetList(modList);
-    std::vector<ModuleInfo> modScriptList(modList.size());
+    std::vector<ModuleInfo> modScriptList;
+    modScriptList.reserve(modList.size());
     for (const auto & mod : modList)
     {
         ModuleInfo scriptMod;
