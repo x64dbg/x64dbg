@@ -39,7 +39,10 @@ static HANDLE hEvent = 0;
 static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
+static HANDLE hTimeWastedCounterThread = 0;
+static bool bStopTimeWastedCounterThread = false;
 static String lastDebugText;
+static uint timeWastedDebugging = 0;
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
 char sqlitedb[deflen] = "";
@@ -72,17 +75,43 @@ static DWORD WINAPI memMapThread(void* ptr)
     return 0;
 }
 
+static DWORD WINAPI timeWastedCounterThread(void* ptr)
+{
+    if (!BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging))
+        timeWastedDebugging = 0;
+    GuiUpdateTimeWastedCounter();
+    while (!bStopTimeWastedCounterThread)
+    {
+        while (!DbgIsDebugging())
+        {
+            if (bStopTimeWastedCounterThread)
+                break;
+            Sleep(1);
+        }
+        if (bStopTimeWastedCounterThread)
+            break;
+        timeWastedDebugging++;
+        GuiUpdateTimeWastedCounter();
+        Sleep(1000);
+    }
+    BridgeSettingSetUint("Engine", "TimeWastedDebugging", timeWastedDebugging);
+    return 0;
+}
+
 void dbginit()
 {
     ExceptionCodeInit();
     ErrorCodeInit();
-    hMemMapThread = CreateThread(0, 0, memMapThread, 0, 0, 0);
+    hMemMapThread = CreateThread(nullptr, 0, memMapThread, nullptr, 0, nullptr);
+    hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
 }
 
 void dbgstop()
 {
     bStopMemMapThread = true;
+    bStopTimeWastedCounterThread = true;
     WaitForThreadTermination(hMemMapThread);
+    WaitForThreadTermination(hTimeWastedCounterThread);
 }
 
 SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
@@ -99,6 +128,11 @@ SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
 uint dbgdebuggedbase()
 {
     return pDebuggedBase;
+}
+
+uint dbggettimewastedcounter()
+{
+    return timeWastedDebugging;
 }
 
 bool dbgisrunning()
@@ -675,11 +709,20 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                 else
                 {
                     uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DebugFileName).c_str(), 0, UE_IMAGEBASE);
+                    int invalidCount = 0;
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks()[i] - ImageBase + pDebuggedBase, i + 1);
-                        cmddirectexec(dbggetcommandlist(), command);
+                        uint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
+                        if (MemIsValidReadPtr(callbackVA))
+                        {
+                            sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", callbackVA, i + 1);
+                            cmddirectexec(dbggetcommandlist(), command);
+                        }
+                        else
+                            invalidCount++;
                     }
+                    if (invalidCount)
+                        dprintf("%d invalid TLS callback addresses...\n", invalidCount);
                 }
             }
         }
@@ -871,14 +914,23 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             else
             {
                 uint ImageBase = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_IMAGEBASE);
+                int invalidCount = 0;
                 for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                 {
-                    if(bIsDebuggingThis)
-                        sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", TLSCallBacks()[i] - ImageBase + (uint)base, i + 1);
+                    uint callbackVA = TLSCallBacks()[i] - ImageBase + (uint)base;
+                    if (MemIsValidReadPtr(callbackVA))
+                    {
+                        if (bIsDebuggingThis)
+                            sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", callbackVA, i + 1);
+                        else
+                            sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
+                        cmddirectexec(dbggetcommandlist(), command);
+                    }
                     else
-                        sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", TLSCallBacks()[i] - ImageBase + (uint)base, i + 1, modname);
-                    cmddirectexec(dbggetcommandlist(), command);
+                        invalidCount++;
                 }
+                if (invalidCount)
+                    dprintf("%s invalid TLS callback addresses...\n", invalidCount);
             }
         }
     }

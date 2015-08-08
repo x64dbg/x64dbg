@@ -174,7 +174,8 @@ typedef enum
     DBG_WIN_EVENT,                  // param1=MSG* message,              param2=long* result
     DBG_WIN_EVENT_GLOBAL,           // param1=MSG* message,              param2=unused
     DBG_INITIALIZE_LOCKS,           // param1=unused,                    param2=unused
-    DBG_DEINITIALIZE_LOCKS          // param1=unused,                    param2=unused
+    DBG_DEINITIALIZE_LOCKS,         // param1=unused,                    param2=unused
+    DBG_GET_TIME_WASTED_COUNTER     // param1=unused,                    param2=unused
 } DBGMSG;
 
 typedef enum
@@ -691,6 +692,7 @@ BRIDGE_IMPEXP const DBGFUNCTIONS* DbgFunctions();
 BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
+BRIDGE_IMPEXP duint DbgGetTimeWastedCounter();
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
@@ -772,7 +774,8 @@ typedef enum
     GUI_ADD_QWIDGET_TAB,            // param1=QWidget*,             param2=unused
     GUI_SHOW_QWIDGET_TAB,           // param1=QWidget*,             param2=unused
     GUI_CLOSE_QWIDGET_TAB,          // param1=QWidget*,             param2=unused
-    GUI_EXECUTE_ON_GUI_THREAD       // param1=GUICALLBACK,          param2=unused
+    GUI_EXECUTE_ON_GUI_THREAD,      // param1=GUICALLBACK,          param2=unused
+    GUI_UPDATE_TIME_WASTED_COUNTER  // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -866,6 +869,7 @@ BRIDGE_IMPEXP void GuiAddQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread);
+BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter();
 
 #ifdef __cplusplus
 }

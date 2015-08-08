@@ -109,6 +109,7 @@ signals:
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
+    void updateTimeWastedCounter();
 
 private:
     QMutex* mBridgeMutex;

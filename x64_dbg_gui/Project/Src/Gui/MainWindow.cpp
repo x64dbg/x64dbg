@@ -12,10 +12,22 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
+#include "TimeWastedCounter.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //build information
+    QString buildText = QString().sprintf("v%d, "__DATE__, BridgeGetDbgVersion());
+    QAction* buildInfo = new QAction(buildText, this);
+    buildInfo->setEnabled(false);
+    ui->menuBar->addAction(buildInfo);
+
+    //time wasted counter
+    QAction* timeWastedLabel = new QAction(this);
+    ui->menuBar->addAction(timeWastedLabel);
+    TimeWastedCounter* timeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 
     //setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));

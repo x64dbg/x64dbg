@@ -92,7 +92,8 @@ SOURCES += \
     Src/Gui/SourceViewerManager.cpp \
     Src/Gui/SourceView.cpp \
     Src/Utils/ValidateExpressionThread.cpp \
-    Src/Utils/MainWindowCloseThread.cpp
+    Src/Utils/MainWindowCloseThread.cpp \
+    Src/Gui/TimeWastedCounter.cpp
 
 
 HEADERS += \
@@ -164,7 +165,8 @@ HEADERS += \
     Src/Gui/SourceView.h \
     Src/Utils/StringUtil.h \
     Src/Utils/ValidateExpressionThread.h \
-    Src/Utils/MainWindowCloseThread.h
+    Src/Utils/MainWindowCloseThread.h \
+    Src/Gui/TimeWastedCounter.h
 
 
 INCLUDEPATH += \

@@ -77,6 +77,7 @@ SIZE_T dbggetprivateusage(HANDLE hProcess, bool update = false);
 void dbginit();
 void dbgstop();
 uint dbgdebuggedbase();
+uint dbggettimewastedcounter();
 bool dbgisrunning();
 bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);

@@ -1006,6 +1006,9 @@ extern "C" DLL_EXPORT uint _dbg_sendmessage(DBGMSG type, void* param1, void* par
         SectionLockerGlobal::Deinitialize();
     }
     break;
+
+    case DBG_GET_TIME_WASTED_COUNTER:
+        return dbggettimewastedcounter();
     }
     return 0;
 }

@@ -805,6 +805,11 @@ BRIDGE_IMPEXP bool DbgIsRunning()
     return !DbgIsRunLocked();
 }
 
+BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
+{
+    return _dbg_sendmessage(DBG_GET_TIME_WASTED_COUNTER, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);
@@ -1193,6 +1198,11 @@ BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget)
 BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread)
 {
     _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, cbGuiThread, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter()
+{
+    _gui_sendmessage(GUI_UPDATE_TIME_WASTED_COUNTER, nullptr, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

@@ -485,6 +485,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         GuiAddLogMessage(QString().sprintf("thread id (bridge) %X\n", GetCurrentThreadId()).toUtf8().constData());
         emit executeOnGuiThread(param1);
         break;
+
+    case GUI_UPDATE_TIME_WASTED_COUNTER:
+        emit updateTimeWastedCounter();
+        break;
     }
     return nullptr;
 }
