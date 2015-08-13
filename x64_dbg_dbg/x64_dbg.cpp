@@ -287,7 +287,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     }
     else
     {
-        if (_strnicmp(cachePath, ".\\", 2) == 0)
+        if(_strnicmp(cachePath, ".\\", 2) == 0)
         {
             strncpy_s(szSymbolCachePath, dir, _TRUNCATE);
             strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);

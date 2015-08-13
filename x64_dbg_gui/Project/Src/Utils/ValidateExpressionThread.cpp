@@ -1,7 +1,8 @@
 #include "ValidateExpressionThread.h"
 
 ValidateExpressionThread::ValidateExpressionThread(QObject* parent) : QThread(parent), mExpressionChanged(false), mStopThread(false)
-{ }
+{
+}
 
 void ValidateExpressionThread::start(QString initialValue)
 {

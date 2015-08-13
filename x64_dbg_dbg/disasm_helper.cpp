@@ -338,7 +338,7 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
         String escaped = StringUtils::Escape(asciiData);
 
         // Copy data back to outgoing parameter
-        strncpy_s(unicode, min(int(escaped.length()) +1, maxlen), escaped.c_str(), _TRUNCATE);
+        strncpy_s(unicode, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
         return true;
     }
 

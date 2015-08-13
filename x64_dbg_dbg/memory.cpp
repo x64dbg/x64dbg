@@ -338,7 +338,7 @@ bool MemFreeRemote(uint Address)
 bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
 {
     // Update the memory map if needed
-    if (Refresh)
+    if(Refresh)
         MemUpdateMap();
 
     SHARED_ACQUIRE(LockMemoryPages);
@@ -346,11 +346,11 @@ bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
     // Search for the memory page address
     auto found = memoryPages.find(std::make_pair(Address, Address));
 
-    if (found == memoryPages.end())
+    if(found == memoryPages.end())
         return false;
 
     // Return the data when possible
-    if (PageInfo)
+    if(PageInfo)
         *PageInfo = found->second;
 
     return true;
@@ -359,7 +359,7 @@ bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
 bool MemIsCodePage(uint Address, bool Refresh)
 {
     MEMPAGE PageInfo;
-    if (!MemGetPageInfo(Address, &PageInfo, Refresh))
+    if(!MemGetPageInfo(Address, &PageInfo, Refresh))
         return false;
     return (PageInfo.mbi.Protect & PAGE_EXECUTE) == PAGE_EXECUTE;
 }

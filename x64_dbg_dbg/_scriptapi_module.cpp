@@ -103,11 +103,11 @@ SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(Module
 {
     SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(addr);
-    if (!modInfo)
+    if(!modInfo)
         return false;
     std::vector<ModuleSectionInfo> scriptSectionList;
     scriptSectionList.reserve(modInfo->sections.size());
-    for (const auto & section : modInfo->sections)
+    for(const auto & section : modInfo->sections)
     {
         ModuleSectionInfo scriptSection;
         scriptSection.addr = section.addr;
@@ -169,7 +169,7 @@ SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) listInfo)
     ModGetList(modList);
     std::vector<ModuleInfo> modScriptList;
     modScriptList.reserve(modList.size());
-    for (const auto & mod : modList)
+    for(const auto & mod : modList)
     {
         ModuleInfo scriptMod;
         scriptMod.base = mod.base;

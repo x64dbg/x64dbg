@@ -77,18 +77,18 @@ static DWORD WINAPI memMapThread(void* ptr)
 
 static DWORD WINAPI timeWastedCounterThread(void* ptr)
 {
-    if (!BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging))
+    if(!BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging))
         timeWastedDebugging = 0;
     GuiUpdateTimeWastedCounter();
-    while (!bStopTimeWastedCounterThread)
+    while(!bStopTimeWastedCounterThread)
     {
-        while (!DbgIsDebugging())
+        while(!DbgIsDebugging())
         {
-            if (bStopTimeWastedCounterThread)
+            if(bStopTimeWastedCounterThread)
                 break;
             Sleep(1);
         }
-        if (bStopTimeWastedCounterThread)
+        if(bStopTimeWastedCounterThread)
             break;
         timeWastedDebugging++;
         GuiUpdateTimeWastedCounter();
@@ -713,7 +713,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                     for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                     {
                         uint callbackVA = TLSCallBacks()[i] - ImageBase + pDebuggedBase;
-                        if (MemIsValidReadPtr(callbackVA))
+                        if(MemIsValidReadPtr(callbackVA))
                         {
                             sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", callbackVA, i + 1);
                             cmddirectexec(dbggetcommandlist(), command);
@@ -721,7 +721,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         else
                             invalidCount++;
                     }
-                    if (invalidCount)
+                    if(invalidCount)
                         dprintf("%d invalid TLS callback addresses...\n", invalidCount);
                 }
             }
@@ -866,7 +866,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char DLLDebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName))
-            strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
+        strcpy_s(DLLDebugFileName, "??? (GetFileNameFromHandle failed!)");
 
     SafeSymLoadModuleEx(fdProcessInfo->hProcess, LoadDll->hFile, DLLDebugFileName, 0, (DWORD64)base, 0, 0, 0);
     IMAGEHLP_MODULE64 modInfo;
@@ -918,9 +918,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                 for(unsigned int i = 0; i < NumberOfCallBacks; i++)
                 {
                     uint callbackVA = TLSCallBacks()[i] - ImageBase + (uint)base;
-                    if (MemIsValidReadPtr(callbackVA))
+                    if(MemIsValidReadPtr(callbackVA))
                     {
-                        if (bIsDebuggingThis)
+                        if(bIsDebuggingThis)
                             sprintf(command, "bp "fhex",\"TLS Callback %d\",ss", callbackVA, i + 1);
                         else
                             sprintf(command, "bp "fhex",\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
@@ -929,7 +929,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                     else
                         invalidCount++;
                 }
-                if (invalidCount)
+                if(invalidCount)
                     dprintf("%s invalid TLS callback addresses...\n", invalidCount);
             }
         }
