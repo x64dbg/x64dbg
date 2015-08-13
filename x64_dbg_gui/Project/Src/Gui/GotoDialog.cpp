@@ -133,6 +133,7 @@ void GotoDialog::on_buttonOk_clicked()
     QString expression = ui->editExpression->text();
     ui->editExpression->addLineToHistory(expression);
     ui->editExpression->setText("");
+    expressionChanged(false, false, 0);
     expressionText = expression;
 }
 

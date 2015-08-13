@@ -8,11 +8,7 @@ void ValidateExpressionThread::start(QString initialValue)
 {
     mStopThread = false;
     QThread::start();
-
-    if(!initialValue.isEmpty())
-    {
-        textChanged(initialValue);
-    }
+    textChanged(initialValue);
 }
 
 void ValidateExpressionThread::stop()
