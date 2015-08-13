@@ -125,8 +125,9 @@ BRIDGE_IMPEXP bool BridgeSettingGet(const char* section, const char* key, char* 
         return false;
     EnterCriticalSection(&csIni);
     auto foundValue = settings.GetValue(section, key);
-    strcpy_s(value, MAX_SETTING_SIZE, settings.GetValue(section, key).c_str());
     bool result = foundValue.length() > 0;
+    if(result)
+        strcpy_s(value, MAX_SETTING_SIZE, foundValue.c_str());
     LeaveCriticalSection(&csIni);
     return result;
 }
