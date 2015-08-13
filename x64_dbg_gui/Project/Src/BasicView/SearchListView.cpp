@@ -1,5 +1,6 @@
 #include "SearchListView.h"
 #include "ui_SearchListView.h"
+#include "FlickerThread.h"
 
 SearchListView::SearchListView(QWidget* parent) :
     QWidget(parent),
@@ -48,6 +49,10 @@ SearchListView::SearchListView(QWidget* parent) :
     // Disable main splitter
     for(int i = 0; i < ui->mainSplitter->count(); i++)
         ui->mainSplitter->handle(i)->setEnabled(false);
+
+    // Setup search menu action
+    mSearchAction = new QAction("Search...", this);
+    connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // Setup signals
     connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
@@ -172,13 +177,12 @@ void SearchListView::listContextMenu(const QPoint & pos)
 {
     QMenu* wMenu = new QMenu(this);
     emit listContextMenuSignal(wMenu);
+    wMenu->addSeparator();
+    wMenu->addAction(mSearchAction);
     QMenu wCopyMenu("&Copy", this);
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
-    {
-        wMenu->addSeparator();
         wMenu->addMenu(&wCopyMenu);
-    }
     wMenu->exec(mCurList->mapToGlobal(pos));
 }
 
@@ -191,4 +195,11 @@ void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
     searchTextChanged(ui->searchBox->text());
+}
+
+void SearchListView::searchSlot()
+{
+    FlickerThread* thread = new FlickerThread(ui->searchBox, this);
+    connect(thread, SIGNAL(setStyleSheet(QString)), ui->searchBox, SLOT(setStyleSheet(QString)));
+    thread->start();
 }

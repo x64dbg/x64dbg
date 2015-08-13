@@ -34,6 +34,7 @@ private slots:
     void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
+    void searchSlot();
     void on_checkBoxRegex_toggled(bool checked);
 
 signals:
@@ -44,7 +45,7 @@ private:
     Ui::SearchListView* ui;
     QVBoxLayout* mListLayout;
     QWidget* mListPlaceHolder;
-
+    QAction* mSearchAction;
 };
 
 #endif // SEARCHLISTVIEW_H

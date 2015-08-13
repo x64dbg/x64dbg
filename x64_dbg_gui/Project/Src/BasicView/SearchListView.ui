@@ -59,7 +59,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="searchBox"/>
+      <widget class="QLineEdit" name="searchBox">
+       <property name="placeholderText">
+        <string>Type here to filter results...</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxRegex">
