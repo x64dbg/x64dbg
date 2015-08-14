@@ -86,6 +86,7 @@ public slots:
     void selectionUpdatedSlot();
     void yaraSlot();
     void dataCopySlot();
+    void entropySlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -175,6 +176,7 @@ private:
     QAction* mUndoSelection;
     QAction* mFollowData;
     QAction* mFollowDataDump;
+    QAction* mEntropy;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;

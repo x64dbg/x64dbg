@@ -94,7 +94,9 @@ SOURCES += \
     Src/Utils/ValidateExpressionThread.cpp \
     Src/Utils/MainWindowCloseThread.cpp \
     Src/Gui/TimeWastedCounter.cpp \
-    Src/Utils/FlickerThread.cpp
+    Src/Utils/FlickerThread.cpp \
+    Src/QEntropyView/QEntropyView.cpp \
+    Src/Gui/EntropyDialog.cpp
 
 
 HEADERS += \
@@ -168,7 +170,10 @@ HEADERS += \
     Src/Utils/ValidateExpressionThread.h \
     Src/Utils/MainWindowCloseThread.h \
     Src/Gui/TimeWastedCounter.h \
-    Src/Utils/FlickerThread.h
+    Src/Utils/FlickerThread.h \
+    Src/QEntropyView/Entropy.h \
+    Src/QEntropyView/QEntropyView.h \
+    Src/Gui/EntropyDialog.h
 
 
 INCLUDEPATH += \
@@ -205,7 +210,8 @@ FORMS += \
     Src/Gui/PageMemoryRights.ui \
     Src/Gui/SelectFields.ui \
     Src/Gui/YaraRuleSelectionDialog.ui \
-    Src/Gui/DataCopyDialog.ui
+    Src/Gui/DataCopyDialog.ui \
+    Src/Gui/EntropyDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 INCLUDEPATH += $$PWD/Src/ThirdPartyLibs/snowman

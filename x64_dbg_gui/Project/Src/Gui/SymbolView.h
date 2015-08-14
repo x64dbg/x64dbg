@@ -38,6 +38,7 @@ private slots:
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
+    void moduleEntropy();
 
 signals:
     void showCpu();
@@ -61,6 +62,7 @@ private:
     QAction* mDownloadAllSymbolsAction;
     QAction* mCopyPathAction;
     QAction* mYaraAction;
+    QAction* mEntropyAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };

@@ -3,6 +3,7 @@
 #include "Bridge.h"
 #include "PageMemoryRights.h"
 #include "YaraRuleSelectionDialog.h"
+#include "EntropyDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
@@ -97,6 +98,10 @@ void MemoryMapView::setupContextMenu()
     this->addAction(mMemoryExecuteSingleshootToggle);
     connect(mMemoryExecuteSingleshootToggle, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootToggleSlot()));
 
+    //Entropy
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -116,6 +121,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mYara);
+    wMenu->addAction(mEntropy);
     wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
     wMenu->addAction(mPageMemoryRights);
@@ -399,4 +405,20 @@ void MemoryMapView::switchView()
     setSingleSelection(0);
     setTableOffset(0);
     stateChangedSlot(paused);
+}
+
+void MemoryMapView::entropy()
+{
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+    unsigned char* data = new unsigned char[size];
+    DbgMemRead(addr, data, size);
+
+    EntropyDialog entropyDialog(this);
+    entropyDialog.setWindowTitle(QString().sprintf("Entropy (Address: %p, Size: %p)", addr, size));
+    entropyDialog.show();
+    entropyDialog.GraphMemory(data, size);
+    entropyDialog.exec();
+
+    delete[] data;
 }
