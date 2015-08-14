@@ -22,6 +22,7 @@
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
 #include "MainWindowCloseThread.h"
+#include "TimeWastedCounter.h"
 
 namespace Ui
 {
@@ -132,6 +133,7 @@ private:
     StatusLabel* mLastLogLabel;
 
     UpdateChecker* mUpdateChecker;
+    TimeWastedCounter* mTimeWastedCounter;
 
     const char* mWindowMainTitle;
 

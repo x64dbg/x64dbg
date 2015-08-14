@@ -12,7 +12,6 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
-#include "TimeWastedCounter.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -27,7 +26,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     //time wasted counter
     QAction* timeWastedLabel = new QAction(this);
     ui->menuBar->addAction(timeWastedLabel);
-    TimeWastedCounter* timeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 
     //setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
