@@ -30,6 +30,7 @@
 #include "controlflowanalysis.h"
 #include "analysis_nukem.h"
 #include "exceptiondirectoryanalysis.h"
+#include "_scriptapi_stack.h"
 
 static bool bRefinit = false;
 
@@ -776,6 +777,40 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s^%s", argv[1], argv[1], argv[2]);
     return cmddirectexec(dbggetcommandlist(), newcmd);
+}
+
+CMDRESULT cbInstrPush(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint value;
+    if(!valfromstring(argv[1], &value))
+    {
+        dprintf("invalid argument \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    Script::Stack::Push(value);
+    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    GuiStackDumpAt(csp, csp);
+    GuiUpdateRegisterView();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrPop(int argc, char* argv[])
+{
+    duint value = Script::Stack::Pop();
+    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    GuiStackDumpAt(csp, csp);
+    GuiUpdateRegisterView();
+    if(argc > 1)
+    {
+        if(!valtostring(argv[1], value, false))
+            return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[])

@@ -173,6 +173,8 @@ static void registercommands()
     dbgcmdnew("sub", cbInstrSub, false);
     dbgcmdnew("test", cbInstrTest, false);
     dbgcmdnew("xor", cbInstrXor, false);
+    dbgcmdnew("push", cbInstrPush, true);
+    dbgcmdnew("pop", cbInstrPop, true);
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);
