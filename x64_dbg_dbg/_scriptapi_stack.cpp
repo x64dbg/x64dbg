@@ -14,7 +14,7 @@ SCRIPT_EXPORT duint Script::Stack::Push(duint value)
 {
     duint csp = Register::GetCSP();
     Register::SetCSP(csp - sizeof(duint));
-    Memory::WritePtr(csp, value);
+    Memory::WritePtr(csp - sizeof(duint), value);
     return Memory::ReadPtr(csp);
 }
 
