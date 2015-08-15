@@ -279,6 +279,9 @@
     <ClCompile Include="linearanalysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
+    <ClCompile Include="_scriptapi_flag.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -640,6 +643,9 @@
     </ClInclude>
     <ClInclude Include="dynamicptr.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_flag.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

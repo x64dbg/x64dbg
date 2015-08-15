@@ -564,7 +564,7 @@ bool valflagfromstring(uint eflags, const char* string)
 \param set The value of the flag.
 \return true if the flag was successfully set, false otherwise.
 */
-static bool setflag(const char* string, bool set)
+bool setflag(const char* string, bool set)
 {
     uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
     uint xorval = 0;
