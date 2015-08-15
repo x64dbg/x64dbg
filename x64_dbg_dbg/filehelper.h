@@ -3,10 +3,11 @@
 
 #include "_global.h"
 
-class FileReader
+class FileHelper
 {
 public:
     static bool ReadAllText(const String & fileName, String & content);
+    static bool WriteAllText(const String & fileName, const String & content);
 };
 
 #endif //_FILEREADER_H

@@ -25,7 +25,7 @@
 #include "patternfind.h"
 #include "module.h"
 #include "stringformat.h"
-#include "filereader.h"
+#include "filehelper.h"
 #include "linearanalysis.h"
 #include "controlflowanalysis.h"
 #include "analysis_nukem.h"
@@ -1756,7 +1756,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     }
 
     String rulesContent;
-    if(!FileReader::ReadAllText(argv[1], rulesContent))
+    if(!FileHelper::ReadAllText(argv[1], rulesContent))
     {
         dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1971,7 +1971,7 @@ CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
     uint base = MemFindBaseAddr(sel.start, &size);
     ControlFlowAnalysis anal(base, size, exceptionDirectory);
     anal.Analyse();
-    //anal.SetMarkers();
+    anal.SetMarkers();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
