@@ -3,6 +3,7 @@
 #include "module.h"
 #include "TitanEngine/TitanEngine.h"
 #include "memory.h"
+#include "function.h"
 
 ControlFlowAnalysis::ControlFlowAnalysis(uint base, uint size, bool exceptionDirectory) : Analysis(base, size)
 {
@@ -73,13 +74,25 @@ void ControlFlowAnalysis::Analyse()
 
     Functions();
     dprintf("Functions in %ums!\n", GetTickCount() - ticks);
+    ticks = GetTickCount();
+
+    FunctionRanges();
+    dprintf("Function ranges in %ums!\n", GetTickCount() - ticks);
+    ticks = GetTickCount();
 
     dprintf("Analysis finished!\n");
 }
 
 void ControlFlowAnalysis::SetMarkers()
 {
-    dprintf("digraph ControlFlow {\n");
+    FunctionDelRange(_base, _base + _size);
+    auto size = _functionRanges.size();
+    for(size_t i = size - 1; i != -1; i--)
+    {
+        const auto & range = _functionRanges[i];
+        FunctionAdd(range.first, range.second, false);
+    }
+    /*dprintf("digraph ControlFlow {\n");
     int i = 0;
     std::map<uint, int> nodeMap;
     for(const auto & it : _blocks)
@@ -116,7 +129,7 @@ void ControlFlowAnalysis::SetMarkers()
             i++;
         }
     }
-    dprintf("}\n");
+    dprintf("}\n");*/
 }
 
 void ControlFlowAnalysis::BasicBlockStarts()
@@ -128,15 +141,15 @@ void ControlFlowAnalysis::BasicBlockStarts()
         uint addr = _base + i;
         if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
         {
-            if(bSkipFilling)   //handle filling skip mode
+            if(bSkipFilling) //handle filling skip mode
             {
-                if(!_cp.IsFilling())   //do nothing until the filling stopped
+                if(!_cp.IsFilling()) //do nothing until the filling stopped
                 {
                     bSkipFilling = false;
                     _blockStarts.insert(addr);
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3)  //RET/INT3 break control flow
+            else if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3) //RET/INT3 break control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
@@ -260,7 +273,7 @@ void ControlFlowAnalysis::Functions()
             else //in function
             {
                 uint function = findFunctionStart(block, parents);
-                if(!function)  //this happens with loops sometimes
+                if(!function)  //this happens with loops / unreferenced blocks sometimes
                     delayedBlocks.push_back(DelayedBlock(block, parents));
                 else
                     block->function = function;
@@ -297,7 +310,38 @@ void ControlFlowAnalysis::Functions()
         resolved++;
     }
     dprintf("%u/%u delayed blocks resolved (%u/%u still left, probably unreferenced functions)\n", resolved, delayedCount, delayedCount - resolved, _blocks.size());
+    int unreferencedCount = 0;
+    for(const auto & block : _blocks)
+    {
+        auto found = _functions.find(block.second.function);
+        if(found == _functions.end())  //unreferenced block
+        {
+            unreferencedCount++;
+            continue;
+        }
+        found->second.insert(block.second.start);
+    }
+    dprintf("%u/%u unreferenced blocks\n", unreferencedCount, _blocks.size());
     dprintf("%u functions found!\n", _functions.size());
+}
+
+void ControlFlowAnalysis::FunctionRanges()
+{
+    //iterate over the functions and then find the deepest block = function end
+    for(const auto & function : _functions)
+    {
+        uint start = function.first;
+        uint end = start;
+        for(auto blockstart : function.second)
+        {
+            BasicBlock* block = this->findBlock(blockstart);
+            if(!block)
+                DebugBreak(); //this shouldn't happen
+            if(block->end > end)
+                end = block->end;
+        }
+        _functionRanges.push_back({ start, end });
+    }
 }
 
 void ControlFlowAnalysis::insertBlock(BasicBlock block)
