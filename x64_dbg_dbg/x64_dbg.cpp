@@ -19,6 +19,7 @@
 #include "debugger_commands.h"
 #include "capstone_wrapper.h"
 #include "_scriptapi_gui.h"
+#include "filehelper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static COMMAND* command_list = 0;
@@ -26,6 +27,7 @@ static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
 static bool bIsStopped = true;
+static String notesFile;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
@@ -350,6 +352,11 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         }
     }
     LocalFree(argv);
+    dputs("Reading notes file...");
+    notesFile = String(dir) + "\\notes.txt";
+    String text;
+    FileHelper::ReadAllText(notesFile, text);
+    GuiSetGlobalNotes(text.c_str());
     dputs("Initialization successful!");
     bIsStopped = false;
     return nullptr;
@@ -383,6 +390,16 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     waitdeinitialize();
     dputs("Cleaning up debugger threads...");
     dbgstop();
+    dputs("Saving notes...");
+    char* text = nullptr;
+    GuiGetGlobalNotes(&text);
+    if(text)
+    {
+        FileHelper::WriteAllText(notesFile, String(text));
+        BridgeFree(text);
+    }
+    else
+        DeleteFileW(StringUtils::Utf8ToUtf16(notesFile).c_str());
     dputs("Exit signal processed successfully!");
     bIsStopped = true;
 }

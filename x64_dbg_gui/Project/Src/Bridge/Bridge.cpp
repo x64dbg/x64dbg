@@ -489,6 +489,36 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_UPDATE_TIME_WASTED_COUNTER:
         emit updateTimeWastedCounter();
         break;
+
+    case GUI_SET_GLOBAL_NOTES:
+    {
+        QString text = QString((const char*)param1);
+        emit setGlobalNotes(text);
+    }
+    break;
+
+    case GUI_GET_GLOBAL_NOTES:
+    {
+        BridgeResult result;
+        emit getGlobalNotes(param1);
+        result.Wait();
+    }
+    break;
+
+    case GUI_SET_DEBUGGEE_NOTES:
+    {
+        QString text = QString((const char*)param1);
+        emit setDebuggeeNotes(text);
+    }
+    break;
+
+    case GUI_GET_DEBUGGEE_NOTES:
+    {
+        BridgeResult result;
+        emit getDebuggeeNotes(param1);
+        result.Wait();
+    }
+    break;
     }
     return nullptr;
 }

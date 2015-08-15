@@ -42,7 +42,7 @@
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exceptiondirectoryanalysis.cpp" />
     <ClCompile Include="expressionparser.cpp" />
-    <ClCompile Include="filereader.cpp" />
+    <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
@@ -124,7 +124,7 @@
     <ClInclude Include="exception.h" />
     <ClInclude Include="exceptiondirectoryanalysis.h" />
     <ClInclude Include="expressionparser.h" />
-    <ClInclude Include="filereader.h" />
+    <ClInclude Include="filehelper.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="linearanalysis.h" />
     <ClInclude Include="FunctionPass.h" />

@@ -136,12 +136,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSnowmanView->setWindowTitle("Snowman");
     mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
 
+    // Notes manager
+    mNotesManager = new NotesManager(this);
+    mNotesManager->setWindowTitle("Notes");
+    mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
+
     //Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
     //Setup tabs
     addQWidgetTab(mCpuWidget);
     addQWidgetTab(mLogView);
+    addQWidgetTab(mNotesManager);
     addQWidgetTab(mBreakpointsView);
     addQWidgetTab(mMemMapView);
     addQWidgetTab(mCallStackView);

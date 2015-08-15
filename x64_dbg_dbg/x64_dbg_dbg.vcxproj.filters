@@ -216,9 +216,6 @@
     <ClCompile Include="capstone_wrapper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="filereader.cpp">
-      <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="expressionparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -281,6 +278,9 @@
     </ClCompile>
     <ClCompile Include="_scriptapi_flag.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="filehelper.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -572,9 +572,6 @@
     <ClInclude Include="capstone\xcore.h">
       <Filter>Header Files\Third Party\capstone</Filter>
     </ClInclude>
-    <ClInclude Include="filereader.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="expressionparser.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -646,6 +643,9 @@
     </ClInclude>
     <ClInclude Include="_scriptapi_flag.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="filehelper.h">
+      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

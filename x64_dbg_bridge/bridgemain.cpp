@@ -1206,6 +1206,26 @@ BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter()
     _gui_sendmessage(GUI_UPDATE_TIME_WASTED_COUNTER, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiSetGlobalNotes(const char* text)
+{
+    _gui_sendmessage(GUI_SET_GLOBAL_NOTES, (void*)text, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text)
+{
+    _gui_sendmessage(GUI_GET_GLOBAL_NOTES, text, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text)
+{
+    _gui_sendmessage(GUI_SET_DEBUGGEE_NOTES, (void*)text, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text)
+{
+    _gui_sendmessage(GUI_GET_DEBUGGEE_NOTES, text, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

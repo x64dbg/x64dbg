@@ -96,7 +96,9 @@ SOURCES += \
     Src/Gui/TimeWastedCounter.cpp \
     Src/Utils/FlickerThread.cpp \
     Src/QEntropyView/QEntropyView.cpp \
-    Src/Gui/EntropyDialog.cpp
+    Src/Gui/EntropyDialog.cpp \
+    Src/Gui/NotesManager.cpp \
+    Src/Gui/NotepadView.cpp
 
 
 HEADERS += \
@@ -173,7 +175,9 @@ HEADERS += \
     Src/Utils/FlickerThread.h \
     Src/QEntropyView/Entropy.h \
     Src/QEntropyView/QEntropyView.h \
-    Src/Gui/EntropyDialog.h
+    Src/Gui/EntropyDialog.h \
+    Src/Gui/NotesManager.h \
+    Src/Gui/NotepadView.h
 
 
 INCLUDEPATH += \
