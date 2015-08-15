@@ -23,11 +23,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     buildInfo->setEnabled(false);
     ui->menuBar->addAction(buildInfo);
 
-    //time wasted counter
-    QAction* timeWastedLabel = new QAction(this);
-    ui->menuBar->addAction(timeWastedLabel);
-    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
-
     //setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
@@ -170,6 +165,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->statusBar->addWidget(mStatusLabel);
     mLastLogLabel = new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
+
+    //time wasted counter
+    QLabel* timeWastedLabel = new QLabel(this);
+    ui->statusBar->addPermanentWidget(timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);

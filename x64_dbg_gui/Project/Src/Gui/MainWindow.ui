@@ -174,7 +174,11 @@
    <addaction name="actionReportBug"/>
    <addaction name="actionAbout"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="sizeGripEnabled">
+    <bool>false</bool>
+   </property>
+  </widget>
   <widget class="QToolBar" name="cmdBar">
    <property name="windowTitle">
     <string>toolBar</string>
