@@ -433,9 +433,9 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
         break;
     }
 
-    Rights[5] = ((Protect & PAGE_GUARD) == PAGE_GUARD) ? 'G' : '-';
-    //  Rights[6] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
-    //  Rights[7] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
+    Rights[4] = ((Protect & PAGE_GUARD) == PAGE_GUARD) ? 'G' : '-';
+    //  Rights[5] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
+    //  Rights[6] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
 
     return true;
 }
