@@ -25,6 +25,7 @@ void ExceptionCodeInit()
     ExceptionNames.insert(std::make_pair(0x40010007, "DBG_RIPEXCEPTION"));
     ExceptionNames.insert(std::make_pair(0x40010008, "DBG_CONTROL_BREAK"));
     ExceptionNames.insert(std::make_pair(0x40010009, "DBG_COMMAND_EXCEPTION"));
+    ExceptionNames.insert(std::make_pair(0x4001000A, "DBG_PRINTEXCEPTIONW_C"));
     ExceptionNames.insert(std::make_pair(0x406D1388, "MS_VC_EXCEPTION"));
     ExceptionNames.insert(std::make_pair(0x80000001, "EXCEPTION_GUARD_PAGE"));
     ExceptionNames.insert(std::make_pair(0x80000002, "EXCEPTION_DATATYPE_MISALIGNMENT"));
