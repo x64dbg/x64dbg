@@ -13,7 +13,12 @@ bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
 bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten = nullptr);
 bool MemIsValidReadPtr(uint Address);
 bool MemIsCanonicalAddress(uint Address);
+bool MemIsCodePage(uint Address, bool Refresh);
 uint MemAllocRemote(uint Address, uint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);
 bool MemFreeRemote(uint Address);
+uint MemGetPageAligned(uint Address);
 bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh = false);
-bool MemIsCodePage(uint Address, bool Refresh = false);
+bool MemSetPageRights(uint Address, const char* Rights);
+bool MemGetPageRights(uint Address, char* Rights);
+bool MemPageRightsToString(DWORD Protect, char* Rights);
+bool MemPageRightsFromString(DWORD* Protect, const char* Rights);

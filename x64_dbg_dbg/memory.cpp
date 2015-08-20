@@ -325,6 +325,15 @@ bool MemIsCanonicalAddress(uint Address)
 #endif // ndef _WIN64
 }
 
+bool MemIsCodePage(uint Address, bool Refresh)
+{
+    MEMPAGE pageInfo;
+    if(!MemGetPageInfo(Address, &pageInfo, Refresh))
+        return false;
+
+    return (pageInfo.mbi.Protect & PAGE_EXECUTE) == PAGE_EXECUTE;
+}
+
 uint MemAllocRemote(uint Address, uint Size, DWORD Type, DWORD Protect)
 {
     return (uint)VirtualAllocEx(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
@@ -333,6 +342,11 @@ uint MemAllocRemote(uint Address, uint Size, DWORD Type, DWORD Protect)
 bool MemFreeRemote(uint Address)
 {
     return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
+}
+
+uint MemGetPageAligned(uint Address)
+{
+    return PAGE_ALIGN(Address);
 }
 
 bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
@@ -356,10 +370,106 @@ bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
     return true;
 }
 
-bool MemIsCodePage(uint Address, bool Refresh)
+bool MemSetPageRights(uint Address, const char* Rights)
 {
-    MEMPAGE PageInfo;
-    if(!MemGetPageInfo(Address, &PageInfo, Refresh))
+    // Align address to page base
+    Address = MemGetPageAligned(Address);
+
+    // String -> bit mask
+    DWORD protect;
+    if(!MemPageRightsFromString(&protect, Rights))
         return false;
-    return (PageInfo.mbi.Protect & PAGE_EXECUTE) == PAGE_EXECUTE;
+
+    DWORD oldProtect;
+    if(!VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect))
+        return false;
+
+    return true;
+}
+
+bool MemGetPageRights(uint Address, char* Rights)
+{
+    // Align address to page base
+    Address = MemGetPageAligned(Address);
+
+    MEMORY_BASIC_INFORMATION mbi;
+    memset(&mbi, 0, sizeof(MEMORY_BASIC_INFORMATION));
+
+    if(!VirtualQueryEx(fdProcessInfo->hProcess, (void*)Address, &mbi, sizeof(mbi)))
+        return false;
+
+    return MemPageRightsToString(mbi.Protect, Rights);
+}
+
+bool MemPageRightsToString(DWORD Protect, char* Rights)
+{
+    memset(Rights, 0, RIGHTS_STRING_SIZE);
+
+    switch(Protect & 0xFF)
+    {
+    case PAGE_NOACCESS:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "----");
+        break;
+    case PAGE_READONLY:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "-R--");
+        break;
+    case PAGE_READWRITE:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "-RW-");
+        break;
+    case PAGE_WRITECOPY:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "-RWC");
+        break;
+    case PAGE_EXECUTE:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "E---");
+        break;
+    case PAGE_EXECUTE_READ:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "ER--");
+        break;
+    case PAGE_EXECUTE_READWRITE:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "ERW-");
+        break;
+    case PAGE_EXECUTE_WRITECOPY:
+        strcpy_s(Rights, RIGHTS_STRING_SIZE, "ERWC");
+        break;
+    }
+
+    Rights[5] = ((Protect & PAGE_GUARD) == PAGE_GUARD) ? 'G' : '-';
+    //  Rights[6] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
+    //  Rights[7] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
+
+    return true;
+}
+
+bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
+{
+    if(strlen(Rights) < 2)
+        return false;
+
+    *Protect = 0;
+
+    // Check for the PAGE_GUARD flag
+    if(Rights[0] == 'G' || Rights[0] == 'g')
+    {
+        *Protect |= PAGE_GUARD;
+        Rights++;
+    }
+
+    if(_strcmpi(Rights, "Execute") == 0)
+        *Protect |= PAGE_EXECUTE;
+    else if(_strcmpi(Rights, "ExecuteRead") == 0)
+        *Protect |= PAGE_EXECUTE_READ;
+    else if(_strcmpi(Rights, "ExecuteReadWrite") == 0)
+        *Protect |= PAGE_EXECUTE_READWRITE;
+    else if(_strcmpi(Rights, "ExecuteWriteCopy") == 0)
+        *Protect |= PAGE_EXECUTE_WRITECOPY;
+    else if(_strcmpi(Rights, "NoAccess") == 0)
+        *Protect |= PAGE_NOACCESS;
+    else if(_strcmpi(Rights, "ReadOnly") == 0)
+        *Protect |= PAGE_READONLY;
+    else if(_strcmpi(Rights, "ReadWrite") == 0)
+        *Protect |= PAGE_READWRITE;
+    else if(_strcmpi(Rights, "WriteCopy") == 0)
+        *Protect |= PAGE_WRITECOPY;
+
+    return (*Protect != 0);
 }

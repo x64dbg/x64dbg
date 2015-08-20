@@ -224,9 +224,9 @@ void dbgfunctionsinit()
     _dbgfunctions.GetJitAuto = _getjitauto;
     _dbgfunctions.GetDefJit = dbggetdefjit;
     _dbgfunctions.GetProcessList = _getprocesslist;
-    _dbgfunctions.GetPageRights = dbggetpagerights;
-    _dbgfunctions.SetPageRights = dbgsetpagerights;
-    _dbgfunctions.PageRightsToString = dbgpagerightstostring;
+    _dbgfunctions.GetPageRights = MemGetPageRights;
+    _dbgfunctions.SetPageRights = MemSetPageRights;
+    _dbgfunctions.PageRightsToString = MemPageRightsToString;
     _dbgfunctions.IsProcessElevated = IsProcessElevated;
     _dbgfunctions.GetCmdline = _getcmdline;
     _dbgfunctions.SetCmdline = _setcmdline;

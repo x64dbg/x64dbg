@@ -1832,7 +1832,7 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(addr, rights))
+    if(!MemGetPageRights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
@@ -1854,13 +1854,13 @@ CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    if(!dbgsetpagerights(addr, argv[2]))
+    if(!MemSetPageRights(addr, argv[2]))
     {
         dprintf("Error: Set rights of "fhex" with Rights: %s\n", addr, argv[2]);
         return STATUS_ERROR;
     }
 
-    if(!dbggetpagerights(addr, rights))
+    if(!MemGetPageRights(addr, rights))
     {
         dprintf("Error getting rights of page: %s\n", argv[1]);
         return STATUS_ERROR;
