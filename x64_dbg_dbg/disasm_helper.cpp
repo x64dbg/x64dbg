@@ -296,11 +296,6 @@ bool disasmgetstringat(uint addr, STRING_TYPE* type, char* ascii, char* unicode,
     if(!MemRead(addr, data(), (maxlen + 1) * 2))
         return false;
 
-    uint test = 0;
-    memcpy(&test, data(), sizeof(uint));
-    if(MemIsValidReadPtr(test))
-        return false;
-
     // Save a few pointer casts
     auto asciiData = (char*)data();
     auto unicodeData = (wchar_t*)data();
