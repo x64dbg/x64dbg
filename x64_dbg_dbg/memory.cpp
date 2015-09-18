@@ -331,7 +331,7 @@ bool MemIsCodePage(uint Address, bool Refresh)
     if(!MemGetPageInfo(Address, &pageInfo, Refresh))
         return false;
 
-    return (pageInfo.mbi.Protect & PAGE_EXECUTE) == PAGE_EXECUTE;
+    return (pageInfo.mbi.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) != 0;
 }
 
 uint MemAllocRemote(uint Address, uint Size, DWORD Type, DWORD Protect)
