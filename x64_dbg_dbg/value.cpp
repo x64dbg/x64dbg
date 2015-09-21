@@ -1310,7 +1310,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
             if(!silent)
-                dprintf("could not get filename of module "fhex"\n", modbase);
+                dprintf("could not get filename of module " fhex "\n", modbase);
         }
         else
         {
@@ -1610,7 +1610,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
             *value_size = 0;
         if(isvar)
             *isvar = false;
-        sscanf(string + 1, "%"fext"u", value);
+        sscanf(string + 1, "%" fext "u", value);
         return true;
     }
     else if(ishexnumber(string))  //then hex numbers
@@ -1623,7 +1623,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
         int inc = 0;
         if(*string == 'x')
             inc = 1;
-        sscanf(string + inc, "%"fext"x", value);
+        sscanf(string + inc, "%" fext "x", value);
         return true;
     }
     if(baseonly)
