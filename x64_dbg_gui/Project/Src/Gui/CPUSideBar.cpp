@@ -426,3 +426,13 @@ void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, in
 
 }
 
+void* CPUSideBar::operator new(size_t size)
+{
+    return _aligned_malloc(size, 16);
+}
+
+void CPUSideBar::operator delete(void* p)
+{
+    _aligned_free(p);
+}
+
