@@ -403,8 +403,6 @@ bool MemGetPageRights(uint Address, char* Rights)
 
 bool MemPageRightsToString(DWORD Protect, char* Rights)
 {
-    memset(Rights, 0, RIGHTS_STRING_SIZE);
-
     switch(Protect & 0xFF)
     {
     case PAGE_NOACCESS:
@@ -433,7 +431,7 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
         break;
     }
 
-    Rights[4] = ((Protect & PAGE_GUARD) == PAGE_GUARD) ? 'G' : '-';
+    strcpy_s(Rights + 4, RIGHTS_STRING_SIZE - 4, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");
     //  Rights[5] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
     //  Rights[6] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
 
