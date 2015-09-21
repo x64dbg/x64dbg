@@ -1289,6 +1289,16 @@ QSize RegistersView::sizeHint() const
     return QSize(32 * mCharWidth , this->viewport()->height());
 }
 
+void* RegistersView::operator new(size_t size)
+{
+    return _aligned_malloc(size, 16);
+}
+
+void RegistersView::operator delete(void* p)
+{
+    _aligned_free(p);
+}
+
 QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
 {
     char label_text[MAX_LABEL_SIZE] = "";
