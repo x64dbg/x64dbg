@@ -53,14 +53,14 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 else
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"d)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
                 dprintf(format_str, *argv, value, value);
             }
             else
             {
-                sprintf(format_str, "%%s=%%.%d"fext"X\n", valsize);
+                sprintf(format_str, "%%s=%%.%d" fext "X\n", valsize);
                 dprintf(format_str, *argv, value);
             }
         }
@@ -69,15 +69,15 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 else
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"d)\n", valsize);
-                sprintf(format_str, "%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
+                sprintf(format_str, "%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 dprintf(format_str, value, value);
             }
             else
             {
-                sprintf(format_str, "%%.%d"fext"X\n", valsize);
+                sprintf(format_str, "%%.%d" fext "X\n", valsize);
                 dprintf(format_str, value);
             }
         }
@@ -122,9 +122,9 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     else
     {
         if(value > 15)
-            dprintf("%s=%"fext"X (%"fext"ud)\n", argv[1], value, value);
+            dprintf("%s=%" fext "X (%" fext "ud)\n", argv[1], value, value);
         else
-            dprintf("%s=%"fext"X\n", argv[1], value);
+            dprintf("%s=%" fext "X\n", argv[1], value);
     }
     return STATUS_CONTINUE;
 }
@@ -191,7 +191,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         //Move data to destination
         if(!MemWrite(dest, data(), data.size()))
         {
-            dprintf("failed to write to "fhex"\n", dest);
+            dprintf("failed to write to " fhex "\n", dest);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
@@ -265,17 +265,17 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
                 if(variables()[i].type == filter)
                 {
                     if(value > 15)
-                        dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
+                        dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
                     else
-                        dprintf("%s=%"fext"X\n", name, value);
+                        dprintf("%s=%" fext "X\n", name, value);
                 }
             }
             else
             {
                 if(value > 15)
-                    dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
+                    dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
                 else
-                    dprintf("%s=%"fext"X\n", name, value);
+                    dprintf("%s=%" fext "X\n", name, value);
             }
         }
     }
@@ -439,7 +439,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     }
     if(!DbgMemIsValidReadPtr(addr))
     {
-        dprintf("invalid address: "fhex"!\n", addr);
+        dprintf("invalid address: " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     bool fillnop = false;
@@ -937,9 +937,9 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     uint ticks = GetTickCount();
     char title[256] = "";
     if(range.start == range.end)
-        sprintf_s(title, "Constant: %"fext"X", range.start);
+        sprintf_s(title, "Constant: %" fext "X", range.start);
     else
-        sprintf_s(title, "Range: %"fext"X-%"fext"X", range.start, range.end);
+        sprintf_s(title, "Range: %" fext "X-%" fext "X", range.start, range.end);
     int found = RefFind(addr, size, cbRefFind, &range, false, title);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
@@ -1138,7 +1138,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address "fhex"!\n", addr);
+        dprintf("invalid memory address " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
@@ -1190,7 +1190,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address "fhex"!\n", addr);
+        dprintf("invalid memory address " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
@@ -1669,7 +1669,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                 else
                     pattern = yara_print_string(match->data, match->length);
                 uint addr = (uint)(base + match->base + match->offset);
-                //dprintf("[YARA] String \"%s\" : %s on 0x%"fext"X\n", string->identifier, pattern.c_str(), addr);
+                //dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
 
                 //update references
                 int index = scanInfo->index;

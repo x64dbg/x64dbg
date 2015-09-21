@@ -86,9 +86,9 @@ String Capstone::OperandText(int opindex) const
     case X86_OP_IMM:
     {
         if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL) || IsLoop())
-            sprintf_s(temp, "%"fext"X", op.imm + mInstr->size);
+            sprintf_s(temp, "%" fext "X", op.imm + mInstr->size);
         else
-            sprintf_s(temp, "%"fext"X", op.imm);
+            sprintf_s(temp, "%" fext "X", op.imm);
         result = temp;
     }
     break;
@@ -98,7 +98,7 @@ String Capstone::OperandText(int opindex) const
         const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
-            sprintf_s(temp, "%"fext"X", mInstr->address + op.mem.disp + mInstr->size);
+            sprintf_s(temp, "%" fext "X", mInstr->address + op.mem.disp + mInstr->size);
             result += temp;
         }
         else //normal
@@ -124,10 +124,10 @@ String Capstone::OperandText(int opindex) const
                 if(mem.disp < 0)
                 {
                     operatorText = '-';
-                    sprintf_s(temp, "%"fext"X", mem.disp * -1);
+                    sprintf_s(temp, "%" fext "X", mem.disp * -1);
                 }
                 else
-                    sprintf_s(temp, "%"fext"X", mem.disp);
+                    sprintf_s(temp, "%" fext "X", mem.disp);
                 if(prependPlus)
                     result += operatorText;
                 result += temp;

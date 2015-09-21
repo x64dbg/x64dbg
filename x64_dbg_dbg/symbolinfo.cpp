@@ -155,19 +155,19 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         wchar_t modulePath[MAX_PATH];
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)module.base, modulePath, MAX_PATH))
         {
-            dprintf("GetModuleFileNameExW("fhex") failed!\n", module.base);
+            dprintf("GetModuleFileNameExW(" fhex ") failed!\n", module.base);
             continue;
         }
 
         if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)module.base))
         {
-            dprintf("SymUnloadModule64("fhex") failed!\n", module.base);
+            dprintf("SymUnloadModule64(" fhex ") failed!\n", module.base);
             continue;
         }
 
         if(!SafeSymLoadModuleEx(fdProcessInfo->hProcess, 0, StringUtils::Utf16ToUtf8(modulePath).c_str(), 0, (DWORD64)module.base, 0, 0, 0))
         {
-            dprintf("SymLoadModuleEx("fhex") failed!\n", module.base);
+            dprintf("SymLoadModuleEx(" fhex ") failed!\n", module.base);
             continue;
         }
     }
