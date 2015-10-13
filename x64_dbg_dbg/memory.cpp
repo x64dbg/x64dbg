@@ -471,3 +471,42 @@ bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
 
     return (*Protect != 0);
 }
+
+bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults)
+{
+    if(startoffset >= page.size || results.size() >= maxresults)
+        return false;
+
+    //TODO: memory read limit
+    Memory<unsigned char*> data(page.size);
+    if(!MemRead(page.address, data(), data.size()))
+        return false;
+
+    uint maxFind = maxresults;
+    uint foundCount = results.size();
+    uint i = 0;
+    uint findSize = data.size() - startoffset;
+    while(foundCount < maxFind)
+    {
+        uint foundoffset = patternfind(data() + startoffset + i, findSize - i, pattern);
+        if(foundoffset == -1)
+            break;
+        i += foundoffset + 1;
+        uint result = page.address + startoffset + i - 1;
+        results.push_back(result);
+        foundCount++;
+    }
+    return true;
+}
+
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults)
+{
+    for(const auto page : pages)
+    {
+        if(!MemFindInPage(page, 0, pattern, results, maxresults))
+            return false;
+        if(results.size() >= maxresults)
+            break;
+    }
+    return true;
+}

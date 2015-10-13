@@ -31,8 +31,10 @@
 #include "analysis_nukem.h"
 #include "exceptiondirectoryanalysis.h"
 #include "_scriptapi_stack.h"
+#include "threading.h"
 
 static bool bRefinit = false;
+static int maxFindResults = 5000;
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -1240,7 +1242,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dputs("failed to transform pattern!");
         return STATUS_ERROR;
     }
-    while(refCount < 5000)
+    while(refCount < maxFindResults)
     {
         uint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
@@ -1274,6 +1276,116 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     GuiReferenceReloadData();
     dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
+{
+    dprintf("argc: %d\n", argc);
+    for(int i = 0; i < argc; i++)
+    {
+        dprintf("%d:\"%s\"\n", i, argv[i]);
+    }
+    if(argc < 3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr = 0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+
+    char pattern[deflen] = "";
+    //remove # from the start and end of the pattern (ODBGScript support)
+    if(argv[2][0] == '#')
+        strcpy_s(pattern, argv[2] + 1);
+    else
+        strcpy_s(pattern, argv[2]);
+    int len = (int)strlen(pattern);
+    if(pattern[len - 1] == '#')
+        pattern[len - 1] = '\0';
+    std::vector<PatternByte> searchpattern;
+    if(!patterntransform(pattern, searchpattern))
+    {
+        dputs("failed to transform pattern!");
+        return STATUS_ERROR;
+    }
+
+    uint endAddr = -1;
+    bool findData = false;
+    if(argc >= 4)
+    {
+        if(!_stricmp(argv[3], "&data&"))
+            findData = true;
+        else if(!valfromstring(argv[3], &endAddr))
+            findData = false;
+    }
+
+    SHARED_ACQUIRE(LockMemoryPages);
+    std::vector<SimplePage> searchPages;
+    for(auto & itr : memoryPages)
+    {
+        SimplePage page(uint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+        if(page.address >= addr && page.address + page.size <= endAddr)
+            searchPages.push_back(page);
+    }
+    SHARED_RELEASE();
+
+    DWORD ticks = GetTickCount();
+
+    std::vector<uint> results;
+    if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
+    {
+        dputs("MemFindInMap failed!");
+        return STATUS_ERROR;
+    }
+
+    //setup reference view
+    char patternshort[256] = "";
+    strncpy_s(patternshort, pattern, min(16, len));
+    if(len > 16)
+        strcat_s(patternshort, "...");
+    char patterntitle[256] = "";
+    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    GuiReferenceInitialize(patterntitle);
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    if(findData)
+        GuiReferenceAddColumn(0, "&Data&");
+    else
+        GuiReferenceAddColumn(0, "Disassembly");
+    GuiReferenceReloadData();
+
+    int refCount = 0;
+    for(uint result : results)
+    {
+        char msg[deflen] = "";
+        sprintf(msg, fhex, result);
+        GuiReferenceSetRowCount(refCount + 1);
+        GuiReferenceSetCellContent(refCount, 0, msg);
+        if(findData)
+        {
+            Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+            MemRead(result, printData(), printData.size());
+            for(size_t j = 0, k = 0; j < printData.size(); j++)
+            {
+                if(j)
+                    k += sprintf(msg + k, " ");
+                k += sprintf(msg + k, "%.2X", printData()[j]);
+            }
+        }
+        else
+        {
+            if(!GuiGetDisassembly(result, msg))
+                strcpy_s(msg, "[Error disassembling]");
+        }
+        GuiReferenceSetCellContent(refCount, 1, msg);
+        refCount++;
+    }
+
+    GuiReferenceReloadData();
+    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
+    varset("$result", refCount, false);
+
     return STATUS_CONTINUE;
 }
 
@@ -2158,5 +2270,22 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
         GuiUpdateMemoryView();
         dputs("memory map updated!");
     }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint num;
+    if(!valfromstring(argv[1], &num))
+    {
+        dprintf("Invalid expression: \"%s\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    maxFindResults = num;
     return STATUS_CONTINUE;
 }

@@ -2,9 +2,22 @@
 
 #include "_global.h"
 #include "addrinfo.h"
+#include "patternfind.h"
 
 extern std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 extern bool bListAllPages;
+
+struct SimplePage
+{
+    uint address;
+    uint size;
+
+    SimplePage(uint address, uint size)
+    {
+        this->address = address;
+        this->size = size;
+    }
+};
 
 void MemUpdateMap();
 uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh = false);
@@ -22,3 +35,5 @@ bool MemSetPageRights(uint Address, const char* Rights);
 bool MemGetPageRights(uint Address, char* Rights);
 bool MemPageRightsToString(DWORD Protect, char* Rights);
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
+bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults);
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults);

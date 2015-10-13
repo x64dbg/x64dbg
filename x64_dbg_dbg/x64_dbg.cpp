@@ -210,6 +210,8 @@ static void registercommands()
     dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
     dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
+    dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
+    dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
