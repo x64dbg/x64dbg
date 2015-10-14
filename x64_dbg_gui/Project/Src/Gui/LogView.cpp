@@ -4,23 +4,19 @@
 
 LogView::LogView(QWidget* parent) : QTextEdit(parent)
 {
-    QFont wFont("Monospace", 8, QFont::Normal, false);
-    wFont.setStyleHint(QFont::Monospace);
-    wFont.setFixedPitch(true);
-
-    this->setFont(wFont);
-
     updateStyle();
     this->setUndoRedoEnabled(false);
     this->setReadOnly(true);
 
-    connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(updateStyle()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QString)), this, SLOT(addMsgToLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
 }
 
 void LogView::updateStyle()
 {
+    setFont(ConfigFont("Log"));
     setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
 }
 

@@ -2,19 +2,19 @@
 #define TIMEWASTEDCOUNTER_H
 
 #include <QObject>
-#include <QAction>
+#include <QLabel>
 
 class TimeWastedCounter : public QObject
 {
     Q_OBJECT
 public:
-    explicit TimeWastedCounter(QObject* parent, QAction* label);
+    explicit TimeWastedCounter(QObject* parent, QLabel* label);
 
 private slots:
     void updateTimeWastedCounter();
 
 private:
-    QAction* mLabel;
+    QLabel* mLabel;
 };
 
 #endif // TIMEWASTEDCOUNTER_H

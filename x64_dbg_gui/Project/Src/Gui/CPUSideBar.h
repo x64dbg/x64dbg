@@ -13,6 +13,9 @@ public:
     QSize sizeHint() const;
     void drawStraightArrow(QPainter* painter, int x1, int y1, int x2, int y2);
 
+    static void* operator new(size_t size);
+    static void operator delete(void* p);
+
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();

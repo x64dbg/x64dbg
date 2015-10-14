@@ -4,6 +4,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "YaraRuleSelectionDialog.h"
+#include "EntropyDialog.h"
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -127,6 +128,9 @@ void SymbolView::setupContextMenu()
     mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
 
+    mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
+
     //Shortcuts
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -249,6 +253,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
     wMenu->addAction(mYaraAction);
+    wMenu->addAction(mEntropyAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
@@ -358,4 +363,18 @@ void SymbolView::toggleBookmark()
         msg.exec();
     }
     GuiUpdateAllViews();
+}
+
+void SymbolView::moduleEntropy()
+{
+    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    char szModPath[MAX_PATH] = "";
+    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+    {
+        EntropyDialog entropyDialog(this);
+        entropyDialog.setWindowTitle(QString("Entropy (%1)").arg(mModuleList->getCellContent(mModuleList->getInitialSelection(), 1)));
+        entropyDialog.show();
+        entropyDialog.GraphFile(QString(szModPath));
+        entropyDialog.exec();
+    }
 }

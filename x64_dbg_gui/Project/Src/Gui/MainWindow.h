@@ -22,6 +22,8 @@
 #include "SourceViewerManager.h"
 #include "SnowmanView.h"
 #include "MainWindowCloseThread.h"
+#include "TimeWastedCounter.h"
+#include "NotesManager.h"
 
 namespace Ui
 {
@@ -127,11 +129,13 @@ private:
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
     SnowmanView* mSnowmanView;
+    NotesManager* mNotesManager;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
 
     UpdateChecker* mUpdateChecker;
+    TimeWastedCounter* mTimeWastedCounter;
 
     const char* mWindowMainTitle;
 

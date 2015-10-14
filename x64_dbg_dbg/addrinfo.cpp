@@ -30,6 +30,16 @@ void dbsave()
     FunctionCacheSave(root);
     LoopCacheSave(root);
     BpCacheSave(root);
+    //save notes
+    char* text = nullptr;
+    GuiGetDebuggeeNotes(&text);
+    if(text)
+    {
+        json_object_set_new(root, "notes", json_string(text));
+        BridgeFree(text);
+    }
+    GuiSetDebuggeeNotes("");
+
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
@@ -131,6 +141,10 @@ void dbload()
     FunctionCacheLoad(root);
     LoopCacheLoad(root);
     BpCacheLoad(root);
+
+    // Load notes
+    const char* text = json_string_value(json_object_get(root, "notes"));
+    GuiSetDebuggeeNotes(text);
 
     // Free root
     json_decref(root);

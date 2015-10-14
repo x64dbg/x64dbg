@@ -26,19 +26,19 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         break;
     case ValueType::SignedDecimal:
         if(validval)
-            sprintf_s(result, "%"fext"d", valuint);
+            sprintf_s(result, "%" fext "d", valuint);
         break;
     case ValueType::UnsignedDecimal:
         if(validval)
-            sprintf_s(result, "%"fext"u", valuint);
+            sprintf_s(result, "%" fext "u", valuint);
         break;
     case ValueType::Hex:
         if(validval)
-            sprintf_s(result, "%"fext"X", valuint);
+            sprintf_s(result, "%" fext "X", valuint);
         break;
     case ValueType::Pointer:
         if(validval)
-            sprintf_s(result, "0x%"fhex, valuint);
+            sprintf_s(result, "0x%" fhex, valuint);
         break;
     case ValueType::String:
         if(validval)

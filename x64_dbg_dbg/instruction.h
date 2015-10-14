@@ -40,6 +40,8 @@ CMDRESULT cbInstrShr(int argc, char* argv[]);
 CMDRESULT cbInstrSub(int argc, char* argv[]);
 CMDRESULT cbInstrTest(int argc, char* argv[]);
 CMDRESULT cbInstrXor(int argc, char* argv[]);
+CMDRESULT cbInstrPush(int argc, char* argv[]);
+CMDRESULT cbInstrPop(int argc, char* argv[]);
 
 CMDRESULT cbInstrRefinit(int argc, char* argv[]);
 CMDRESULT cbInstrRefadd(int argc, char* argv[]);
@@ -53,6 +55,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[]);
 
 CMDRESULT cbInstrFind(int argc, char* argv[]);
 CMDRESULT cbInstrFindAll(int argc, char* argv[]);
+CMDRESULT cbInstrFindMemAll(int argc, char* argv[]);
 CMDRESULT cbInstrModCallFind(int argc, char* argv[]);
 CMDRESULT cbInstrCommentList(int argc, char* argv[]);
 CMDRESULT cbInstrLabelList(int argc, char* argv[]);
@@ -73,5 +76,6 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[]);
 CMDRESULT cbInstrCfanalyse(int argc, char* argv[]);
 CMDRESULT cbInstrExanalyse(int argc, char* argv[]);
 CMDRESULT cbInstrVirtualmod(int argc, char* argv[]);
+CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);
 
 #endif // _INSTRUCTIONS_H

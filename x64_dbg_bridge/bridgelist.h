@@ -101,15 +101,15 @@ public:
     */
     static inline bool CopyData(ListInfo* listInfo, const std::vector<Type> & listData)
     {
-        if (!listInfo)
+        if(!listInfo)
             return false;
         listInfo->count = int(listData.size());
         listInfo->size = listInfo->count * sizeof(Type);
-        if (listInfo->count)
+        if(listInfo->count)
         {
             listInfo->data = BridgeAlloc(listInfo->size);
             Type* curItem = reinterpret_cast<Type*>(listInfo->data);
-            for (const auto & item : listData)
+            for(const auto & item : listData)
             {
                 *curItem = item;
                 ++curItem;

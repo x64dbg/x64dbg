@@ -12,7 +12,6 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
-#include "TimeWastedCounter.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -23,11 +22,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     QAction* buildInfo = new QAction(buildText, this);
     buildInfo->setEnabled(false);
     ui->menuBar->addAction(buildInfo);
-
-    //time wasted counter
-    QAction* timeWastedLabel = new QAction(this);
-    ui->menuBar->addAction(timeWastedLabel);
-    TimeWastedCounter* timeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 
     //setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
@@ -142,12 +136,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSnowmanView->setWindowTitle("Snowman");
     mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
 
+    // Notes manager
+    mNotesManager = new NotesManager(this);
+    mNotesManager->setWindowTitle("Notes");
+    mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
+
     //Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
     //Setup tabs
     addQWidgetTab(mCpuWidget);
     addQWidgetTab(mLogView);
+    addQWidgetTab(mNotesManager);
     addQWidgetTab(mBreakpointsView);
     addQWidgetTab(mMemMapView);
     addQWidgetTab(mCallStackView);
@@ -171,6 +171,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->statusBar->addWidget(mStatusLabel);
     mLastLogLabel = new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
+
+    //time wasted counter
+    QLabel* timeWastedLabel = new QLabel(this);
+    ui->statusBar->addPermanentWidget(timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);

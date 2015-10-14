@@ -62,5 +62,7 @@
         <file>images/highlight.png</file>
         <file>images/label.png</file>
         <file>images/snowman.png</file>
+        <file>images/entropy.png</file>
+        <file>images/notes.png</file>
     </qresource>
 </RCC>

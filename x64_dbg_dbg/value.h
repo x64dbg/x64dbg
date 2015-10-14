@@ -20,5 +20,6 @@ unsigned short valx87controlwordfieldfromstring(uint controlword, const char* st
 uint valfileoffsettova(const char* modname, uint offset);
 uint valvatofileoffset(uint va);
 bool setregister(const char* string, uint value);
+bool setflag(const char* string, bool set);
 
 #endif // _VALUE_H

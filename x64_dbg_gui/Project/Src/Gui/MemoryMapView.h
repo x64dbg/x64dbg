@@ -33,6 +33,7 @@ public slots:
     void switchView();
     void pageMemoryRights();
     void refreshMap();
+    void entropy();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -55,7 +56,7 @@ private:
     QAction* mMemoryExecuteRestore;
     QAction* mMemoryRemove;
     QAction* mMemoryExecuteSingleshootToggle;
-
+    QAction* mEntropy;
 };
 
 #endif // MEMORYMAPVIEW_H

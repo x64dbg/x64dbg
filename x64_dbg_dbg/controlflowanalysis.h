@@ -58,10 +58,12 @@ private:
     std::map<uint, BasicBlock> _blocks; //start of block -> block
     std::map<uint, UintSet> _parentMap; //start child -> parents
     std::map<uint, UintSet> _functions; //function start -> function block starts
+    std::vector<Range> _functionRanges; //function start -> function range TODO: smarter stuff with overlapping ranges
 
     void BasicBlockStarts();
     void BasicBlocks();
     void Functions();
+    void FunctionRanges();
     void insertBlock(BasicBlock block);
     BasicBlock* findBlock(uint start);
     void insertParent(uint child, uint parent);

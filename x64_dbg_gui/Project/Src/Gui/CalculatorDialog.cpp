@@ -27,7 +27,7 @@ CalculatorDialog::~CalculatorDialog()
 void CalculatorDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
-    mValidateThread->start();
+    mValidateThread->start(ui->txtExpression->text());
 }
 
 void CalculatorDialog::hideEvent(QHideEvent* event)

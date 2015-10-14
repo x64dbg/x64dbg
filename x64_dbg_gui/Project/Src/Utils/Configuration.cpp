@@ -183,6 +183,7 @@ Configuration::Configuration() : QObject()
     defaultFonts.insert("Registers", font);
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
+    defaultFonts.insert("Log", QFont("Courier", 8, QFont::Normal, false));
 
     // hotkeys settings
     defaultShortcuts.insert("FileOpen", Shortcut(tr("File -> Open"), "F3", true));

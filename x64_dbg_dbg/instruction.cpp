@@ -25,13 +25,16 @@
 #include "patternfind.h"
 #include "module.h"
 #include "stringformat.h"
-#include "filereader.h"
+#include "filehelper.h"
 #include "linearanalysis.h"
 #include "controlflowanalysis.h"
 #include "analysis_nukem.h"
 #include "exceptiondirectoryanalysis.h"
+#include "_scriptapi_stack.h"
+#include "threading.h"
 
 static bool bRefinit = false;
+static int maxFindResults = 5000;
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
@@ -52,14 +55,14 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 else
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"d)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
                 dprintf(format_str, *argv, value, value);
             }
             else
             {
-                sprintf(format_str, "%%s=%%.%d"fext"X\n", valsize);
+                sprintf(format_str, "%%s=%%.%d" fext "X\n", valsize);
                 dprintf(format_str, *argv, value);
             }
         }
@@ -68,15 +71,15 @@ CMDRESULT cbBadCmd(int argc, char* argv[])
             if(value > 15 && !hexonly)
             {
                 if(!valuesignedcalc()) //signed numbers
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 else
-                    sprintf(format_str, "%%s=%%.%d"fext"X (%%"fext"d)\n", valsize);
-                sprintf(format_str, "%%.%d"fext"X (%%"fext"ud)\n", valsize);
+                    sprintf(format_str, "%%s=%%.%d" fext "X (%%" fext "d)\n", valsize);
+                sprintf(format_str, "%%.%d" fext "X (%%" fext "ud)\n", valsize);
                 dprintf(format_str, value, value);
             }
             else
             {
-                sprintf(format_str, "%%.%d"fext"X\n", valsize);
+                sprintf(format_str, "%%.%d" fext "X\n", valsize);
                 dprintf(format_str, value);
             }
         }
@@ -121,9 +124,9 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     else
     {
         if(value > 15)
-            dprintf("%s=%"fext"X (%"fext"ud)\n", argv[1], value, value);
+            dprintf("%s=%" fext "X (%" fext "ud)\n", argv[1], value, value);
         else
-            dprintf("%s=%"fext"X\n", argv[1], value);
+            dprintf("%s=%" fext "X\n", argv[1], value);
     }
     return STATUS_CONTINUE;
 }
@@ -190,7 +193,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
         //Move data to destination
         if(!MemWrite(dest, data(), data.size()))
         {
-            dprintf("failed to write to "fhex"\n", dest);
+            dprintf("failed to write to " fhex "\n", dest);
             return STATUS_ERROR;
         }
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
@@ -264,17 +267,17 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
                 if(variables()[i].type == filter)
                 {
                     if(value > 15)
-                        dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
+                        dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
                     else
-                        dprintf("%s=%"fext"X\n", name, value);
+                        dprintf("%s=%" fext "X\n", name, value);
                 }
             }
             else
             {
                 if(value > 15)
-                    dprintf("%s=%"fext"X (%"fext"ud)\n", name, value, value);
+                    dprintf("%s=%" fext "X (%" fext "ud)\n", name, value, value);
                 else
-                    dprintf("%s=%"fext"X\n", name, value);
+                    dprintf("%s=%" fext "X\n", name, value);
             }
         }
     }
@@ -438,7 +441,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
     }
     if(!DbgMemIsValidReadPtr(addr))
     {
-        dprintf("invalid address: "fhex"!\n", addr);
+        dprintf("invalid address: " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     bool fillnop = false;
@@ -778,6 +781,40 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
     return cmddirectexec(dbggetcommandlist(), newcmd);
 }
 
+CMDRESULT cbInstrPush(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    duint value;
+    if(!valfromstring(argv[1], &value))
+    {
+        dprintf("invalid argument \"%s\"!\n", argv[1]);
+        return STATUS_ERROR;
+    }
+    Script::Stack::Push(value);
+    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    GuiStackDumpAt(csp, csp);
+    GuiUpdateRegisterView();
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrPop(int argc, char* argv[])
+{
+    duint value = Script::Stack::Pop();
+    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    GuiStackDumpAt(csp, csp);
+    GuiUpdateRegisterView();
+    if(argc > 1)
+    {
+        if(!valtostring(argv[1], value, false))
+            return STATUS_ERROR;
+    }
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     GuiReferenceInitialize("Script");
@@ -902,9 +939,9 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
     uint ticks = GetTickCount();
     char title[256] = "";
     if(range.start == range.end)
-        sprintf_s(title, "Constant: %"fext"X", range.start);
+        sprintf_s(title, "Constant: %" fext "X", range.start);
     else
-        sprintf_s(title, "Range: %"fext"X-%"fext"X", range.start, range.end);
+        sprintf_s(title, "Range: %" fext "X-%" fext "X", range.start, range.end);
     int found = RefFind(addr, size, cbRefFind, &range, false, title);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
@@ -1103,7 +1140,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address "fhex"!\n", addr);
+        dprintf("invalid memory address " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFind:data");
@@ -1155,7 +1192,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     uint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
-        dprintf("invalid memory address "fhex"!\n", addr);
+        dprintf("invalid memory address " fhex "!\n", addr);
         return STATUS_ERROR;
     }
     Memory<unsigned char*> data(size, "cbInstrFindAll:data");
@@ -1205,7 +1242,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dputs("failed to transform pattern!");
         return STATUS_ERROR;
     }
-    while(refCount < 5000)
+    while(refCount < maxFindResults)
     {
         uint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
@@ -1239,6 +1276,116 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     GuiReferenceReloadData();
     dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
     varset("$result", refCount, false);
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
+{
+    dprintf("argc: %d\n", argc);
+    for(int i = 0; i < argc; i++)
+    {
+        dprintf("%d:\"%s\"\n", i, argv[i]);
+    }
+    if(argc < 3)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint addr = 0;
+    if(!valfromstring(argv[1], &addr, false))
+        return STATUS_ERROR;
+
+    char pattern[deflen] = "";
+    //remove # from the start and end of the pattern (ODBGScript support)
+    if(argv[2][0] == '#')
+        strcpy_s(pattern, argv[2] + 1);
+    else
+        strcpy_s(pattern, argv[2]);
+    int len = (int)strlen(pattern);
+    if(pattern[len - 1] == '#')
+        pattern[len - 1] = '\0';
+    std::vector<PatternByte> searchpattern;
+    if(!patterntransform(pattern, searchpattern))
+    {
+        dputs("failed to transform pattern!");
+        return STATUS_ERROR;
+    }
+
+    uint endAddr = -1;
+    bool findData = false;
+    if(argc >= 4)
+    {
+        if(!_stricmp(argv[3], "&data&"))
+            findData = true;
+        else if(!valfromstring(argv[3], &endAddr))
+            findData = false;
+    }
+
+    SHARED_ACQUIRE(LockMemoryPages);
+    std::vector<SimplePage> searchPages;
+    for(auto & itr : memoryPages)
+    {
+        SimplePage page(uint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+        if(page.address >= addr && page.address + page.size <= endAddr)
+            searchPages.push_back(page);
+    }
+    SHARED_RELEASE();
+
+    DWORD ticks = GetTickCount();
+
+    std::vector<uint> results;
+    if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
+    {
+        dputs("MemFindInMap failed!");
+        return STATUS_ERROR;
+    }
+
+    //setup reference view
+    char patternshort[256] = "";
+    strncpy_s(patternshort, pattern, min(16, len));
+    if(len > 16)
+        strcat_s(patternshort, "...");
+    char patterntitle[256] = "";
+    sprintf_s(patterntitle, "Pattern: %s", patternshort);
+    GuiReferenceInitialize(patterntitle);
+    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    if(findData)
+        GuiReferenceAddColumn(0, "&Data&");
+    else
+        GuiReferenceAddColumn(0, "Disassembly");
+    GuiReferenceReloadData();
+
+    int refCount = 0;
+    for(uint result : results)
+    {
+        char msg[deflen] = "";
+        sprintf(msg, fhex, result);
+        GuiReferenceSetRowCount(refCount + 1);
+        GuiReferenceSetCellContent(refCount, 0, msg);
+        if(findData)
+        {
+            Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+            MemRead(result, printData(), printData.size());
+            for(size_t j = 0, k = 0; j < printData.size(); j++)
+            {
+                if(j)
+                    k += sprintf(msg + k, " ");
+                k += sprintf(msg + k, "%.2X", printData()[j]);
+            }
+        }
+        else
+        {
+            if(!GuiGetDisassembly(result, msg))
+                strcpy_s(msg, "[Error disassembling]");
+        }
+        GuiReferenceSetCellContent(refCount, 1, msg);
+        refCount++;
+    }
+
+    GuiReferenceReloadData();
+    dprintf("%d occurrences found in %ums\n", refCount, GetTickCount() - ticks);
+    varset("$result", refCount, false);
+
     return STATUS_CONTINUE;
 }
 
@@ -1634,7 +1781,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                 else
                     pattern = yara_print_string(match->data, match->length);
                 uint addr = (uint)(base + match->base + match->offset);
-                //dprintf("[YARA] String \"%s\" : %s on 0x%"fext"X\n", string->identifier, pattern.c_str(), addr);
+                //dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
 
                 //update references
                 int index = scanInfo->index;
@@ -1721,7 +1868,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     }
 
     String rulesContent;
-    if(!FileReader::ReadAllText(argv[1], rulesContent))
+    if(!FileHelper::ReadAllText(argv[1], rulesContent))
     {
         dprintf("Failed to read the rules file \"%s\"\n", argv[1]);
         return STATUS_ERROR;
@@ -1936,7 +2083,7 @@ CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
     uint base = MemFindBaseAddr(sel.start, &size);
     ControlFlowAnalysis anal(base, size, exceptionDirectory);
     anal.Analyse();
-    //anal.SetMarkers();
+    anal.SetMarkers();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
@@ -2123,5 +2270,22 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
         GuiUpdateMemoryView();
         dputs("memory map updated!");
     }
+    return STATUS_CONTINUE;
+}
+
+CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("Not enough arguments!");
+        return STATUS_ERROR;
+    }
+    uint num;
+    if(!valfromstring(argv[1], &num))
+    {
+        dprintf("Invalid expression: \"%s\"", argv[1]);
+        return STATUS_ERROR;
+    }
+    maxFindResults = num;
     return STATUS_CONTINUE;
 }

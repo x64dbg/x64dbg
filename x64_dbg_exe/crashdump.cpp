@@ -94,9 +94,13 @@ LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
 {
     if(ExceptionInfo)
     {
-        // Skip DBG_PRINTEXCEPTION_C
-        if(ExceptionInfo->ExceptionRecord->ExceptionCode == DBG_PRINTEXCEPTION_C)
+        // Skip DBG_PRINTEXCEPTION_C and DBG_PRINTEXCEPTIONW_C
+        switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
+        {
+        case DBG_PRINTEXCEPTION_C:
+        case 0x4001000A:
             return EXCEPTION_CONTINUE_SEARCH;
+        }
 
         CrashDumpCreate(ExceptionInfo);
     }

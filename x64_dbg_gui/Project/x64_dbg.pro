@@ -93,7 +93,12 @@ SOURCES += \
     Src/Gui/SourceView.cpp \
     Src/Utils/ValidateExpressionThread.cpp \
     Src/Utils/MainWindowCloseThread.cpp \
-    Src/Gui/TimeWastedCounter.cpp
+    Src/Gui/TimeWastedCounter.cpp \
+    Src/Utils/FlickerThread.cpp \
+    Src/QEntropyView/QEntropyView.cpp \
+    Src/Gui/EntropyDialog.cpp \
+    Src/Gui/NotesManager.cpp \
+    Src/Gui/NotepadView.cpp
 
 
 HEADERS += \
@@ -166,7 +171,13 @@ HEADERS += \
     Src/Utils/StringUtil.h \
     Src/Utils/ValidateExpressionThread.h \
     Src/Utils/MainWindowCloseThread.h \
-    Src/Gui/TimeWastedCounter.h
+    Src/Gui/TimeWastedCounter.h \
+    Src/Utils/FlickerThread.h \
+    Src/QEntropyView/Entropy.h \
+    Src/QEntropyView/QEntropyView.h \
+    Src/Gui/EntropyDialog.h \
+    Src/Gui/NotesManager.h \
+    Src/Gui/NotepadView.h
 
 
 INCLUDEPATH += \
@@ -203,7 +214,8 @@ FORMS += \
     Src/Gui/PageMemoryRights.ui \
     Src/Gui/SelectFields.ui \
     Src/Gui/YaraRuleSelectionDialog.ui \
-    Src/Gui/DataCopyDialog.ui
+    Src/Gui/DataCopyDialog.ui \
+    Src/Gui/EntropyDialog.ui
 
 INCLUDEPATH += $$PWD/Src/Bridge
 INCLUDEPATH += $$PWD/Src/ThirdPartyLibs/snowman

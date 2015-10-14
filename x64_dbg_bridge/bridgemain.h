@@ -775,7 +775,11 @@ typedef enum
     GUI_SHOW_QWIDGET_TAB,           // param1=QWidget*,             param2=unused
     GUI_CLOSE_QWIDGET_TAB,          // param1=QWidget*,             param2=unused
     GUI_EXECUTE_ON_GUI_THREAD,      // param1=GUICALLBACK,          param2=unused
-    GUI_UPDATE_TIME_WASTED_COUNTER  // param1=unused,               param2=unused
+    GUI_UPDATE_TIME_WASTED_COUNTER, // param1=unused,               param2=unused
+    GUI_SET_GLOBAL_NOTES,           // param1=const char* text,     param2=unused
+    GUI_GET_GLOBAL_NOTES,           // param1=char** text,          param2=unused
+    GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
+    GUI_GET_DEBUGGEE_NOTES          // param1=char** text,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -870,6 +874,10 @@ BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread);
 BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter();
+BRIDGE_IMPEXP void GuiSetGlobalNotes(const char* text);
+BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
+BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
+BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 
 #ifdef __cplusplus
 }

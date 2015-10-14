@@ -19,6 +19,7 @@
 #include "debugger_commands.h"
 #include "capstone_wrapper.h"
 #include "_scriptapi_gui.h"
+#include "filehelper.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static COMMAND* command_list = 0;
@@ -26,6 +27,7 @@ static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
 static bool bIsStopped = true;
+static String notesFile;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
 {
@@ -173,6 +175,8 @@ static void registercommands()
     dbgcmdnew("sub", cbInstrSub, false);
     dbgcmdnew("test", cbInstrTest, false);
     dbgcmdnew("xor", cbInstrXor, false);
+    dbgcmdnew("push", cbInstrPush, true);
+    dbgcmdnew("pop", cbInstrPop, true);
 
     //script
     dbgcmdnew("scriptload", cbScriptLoad, false);
@@ -206,6 +210,8 @@ static void registercommands()
     dbgcmdnew("analyse_nukem\1analyze_nukem\1anal_nukem", cbInstrAnalyseNukem, true); //secret analysis command #2
     dbgcmdnew("exanal\1exanalyse\1exanalyze", cbInstrExanalyse, true); //exception directory analysis
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
+    dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
+    dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
@@ -287,7 +293,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     }
     else
     {
-        if (_strnicmp(cachePath, ".\\", 2) == 0)
+        if(_strnicmp(cachePath, ".\\", 2) == 0)
         {
             strncpy_s(szSymbolCachePath, dir, _TRUNCATE);
             strncat_s(szSymbolCachePath, cachePath + 1, _TRUNCATE);
@@ -348,6 +354,11 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         }
     }
     LocalFree(argv);
+    dputs("Reading notes file...");
+    notesFile = String(dir) + "\\notes.txt";
+    String text;
+    FileHelper::ReadAllText(notesFile, text);
+    GuiSetGlobalNotes(text.c_str());
     dputs("Initialization successful!");
     bIsStopped = false;
     return nullptr;
@@ -381,6 +392,16 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     waitdeinitialize();
     dputs("Cleaning up debugger threads...");
     dbgstop();
+    dputs("Saving notes...");
+    char* text = nullptr;
+    GuiGetGlobalNotes(&text);
+    if(text)
+    {
+        FileHelper::WriteAllText(notesFile, String(text));
+        BridgeFree(text);
+    }
+    else
+        DeleteFileW(StringUtils::Utf8ToUtf16(notesFile).c_str());
     dputs("Exit signal processed successfully!");
     bIsStopped = true;
 }

@@ -329,6 +329,6 @@ void ModGetList(std::vector<MODINFO> & list)
 {
     SHARED_ACQUIRE(LockModules);
     list.clear();
-    for (const auto & mod : modinfo)
+    for(const auto & mod : modinfo)
         list.push_back(mod.second);
 }

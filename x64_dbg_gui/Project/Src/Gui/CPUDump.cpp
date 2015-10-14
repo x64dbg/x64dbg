@@ -7,6 +7,7 @@
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
 #include "DataCopyDialog.h"
+#include "EntropyDialog.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
 {
@@ -157,6 +158,10 @@ void CPUDump::setupContextMenu()
     mFollowDataDump = new QAction("&Follow DWORD in Dump", this);
 #endif //_WIN64
     connect(mFollowDataDump, SIGNAL(triggered()), this, SLOT(followDataDumpSlot()));
+
+    //Entropy
+    mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
+    connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropySlot()));
 
     //Label
     mSetLabelAction = new QAction("Set Label", this);
@@ -536,6 +541,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mYaraAction);
     wMenu->addAction(mDataCopyAction);
     wMenu->addMenu(mGotoMenu);
+    wMenu->addAction(mEntropy);
     wMenu->addSeparator();
     wMenu->addMenu(mHexMenu);
     wMenu->addMenu(mTextMenu);
@@ -1446,4 +1452,19 @@ void CPUDump::dataCopySlot()
     mMemPage->read(data.data(), selStart, selSize);
     DataCopyDialog dataDialog(&data, this);
     dataDialog.exec();
+}
+
+void CPUDump::entropySlot()
+{
+    int_t selStart = getSelectionStart();
+    int_t selSize = getSelectionEnd() - selStart + 1;
+    QVector<byte_t> data;
+    data.resize(selSize);
+    mMemPage->read(data.data(), selStart, selSize);
+
+    EntropyDialog entropyDialog(this);
+    entropyDialog.setWindowTitle(QString().sprintf("Entropy (Address: %p, Size: %p)", selStart, selSize));
+    entropyDialog.show();
+    entropyDialog.GraphMemory(data.constData(), data.size());
+    entropyDialog.exec();
 }

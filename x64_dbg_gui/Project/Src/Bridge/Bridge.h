@@ -110,6 +110,10 @@ signals:
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
     void updateTimeWastedCounter();
+    void setGlobalNotes(const QString text);
+    void getGlobalNotes(void* text);
+    void setDebuggeeNotes(const QString text);
+    void getDebuggeeNotes(void* text);
 
 private:
     QMutex* mBridgeMutex;

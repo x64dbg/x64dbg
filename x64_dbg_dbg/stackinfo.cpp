@@ -97,7 +97,7 @@ bool stackcommentget(uint addr, STACK_COMMENT* comment)
         if(*label) //+label
             sprintf(comment->comment, "%s.%s", module, label);
         else //module only
-            sprintf(comment->comment, "%s."fhex, module, data);
+            sprintf(comment->comment, "%s." fhex, module, data);
         return true;
     }
     else if(*label) //label only
@@ -228,7 +228,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
         {
             //CALLSTACKENTRY curEntry;
             //memcpy(&curEntry, &callstackVector.at(i), sizeof(CALLSTACKENTRY));
-            //dprintf(fhex":"fhex":"fhex":%s\n", curEntry.addr, curEntry.to, curEntry.from, curEntry.comment);
+            //dprintf(fhex":" fhex ":" fhex ":%s\n", curEntry.addr, curEntry.to, curEntry.from, curEntry.comment);
             memcpy(&callstack->entries[i], &callstackVector.at(i), sizeof(CALLSTACKENTRY));
         }
     }

@@ -42,7 +42,7 @@
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exceptiondirectoryanalysis.cpp" />
     <ClCompile Include="expressionparser.cpp" />
-    <ClCompile Include="filereader.cpp" />
+    <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
@@ -76,6 +76,7 @@
     <ClCompile Include="_plugins.cpp" />
     <ClCompile Include="_scriptapi_assembler.cpp" />
     <ClCompile Include="_scriptapi_debug.cpp" />
+    <ClCompile Include="_scriptapi_flag.cpp" />
     <ClCompile Include="_scriptapi_gui.cpp" />
     <ClCompile Include="_scriptapi_misc.cpp" />
     <ClCompile Include="_scriptapi_pattern.cpp" />
@@ -123,7 +124,7 @@
     <ClInclude Include="exception.h" />
     <ClInclude Include="exceptiondirectoryanalysis.h" />
     <ClInclude Include="expressionparser.h" />
-    <ClInclude Include="filereader.h" />
+    <ClInclude Include="filehelper.h" />
     <ClInclude Include="function.h" />
     <ClInclude Include="linearanalysis.h" />
     <ClInclude Include="FunctionPass.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="_plugin_types.h" />
     <ClInclude Include="_scriptapi_assembler.h" />
     <ClInclude Include="_scriptapi_debug.h" />
+    <ClInclude Include="_scriptapi_flag.h" />
     <ClInclude Include="_scriptapi_gui.h" />
     <ClInclude Include="_scriptapi_misc.h" />
     <ClInclude Include="_scriptapi_pattern.h" />

@@ -653,6 +653,20 @@ void AppearanceDialog::fontInit()
     index = ui->fontHexEditSize->findText(QString("%1").arg(font.pointSize()));
     if(index != -1)
         ui->fontHexEditSize->setCurrentIndex(index);
+    //Log
+    font = fontMap->find("Log").value();
+    ui->fontLog->setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        ui->fontLogStyle->setCurrentIndex(3);
+    else if(font.italic())
+        ui->fontLogStyle->setCurrentIndex(2);
+    else if(font.bold())
+        ui->fontLogStyle->setCurrentIndex(1);
+    else
+        ui->fontLogStyle->setCurrentIndex(0);
+    index = ui->fontLogSize->findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
+        ui->fontLogSize->setCurrentIndex(index);
     //Application
     ui->labelApplicationFont->setText(fontMap->find("Application").value().family());
     isInit = false;
@@ -895,6 +909,47 @@ void AppearanceDialog::on_fontHexEditStyle_currentIndexChanged(int index)
 void AppearanceDialog::on_fontHexEditSize_currentIndexChanged(const QString & arg1)
 {
     QString id = "HexEdit";
+    QFont font = fontMap->find(id).value();
+    font.setPointSize(arg1.toInt());
+    (*fontMap)[id] = font;
+    if(isInit)
+        return;
+    Config()->emitFontsUpdated();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontLog_currentFontChanged(const QFont & f)
+{
+    QString id = "Log";
+    QFont font = fontMap->find(id).value();
+    font.setFamily(f.family());
+    (*fontMap)[id] = font;
+    if(isInit)
+        return;
+    Config()->emitFontsUpdated();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontLogStyle_currentIndexChanged(int index)
+{
+    QString id = "Log";
+    QFont font = fontMap->find(id).value();
+    font.setBold(false);
+    font.setItalic(false);
+    if(index == 1 || index == 3)
+        font.setBold(true);
+    if(index == 2 || index == 3)
+        font.setItalic(true);
+    (*fontMap)[id] = font;
+    if(isInit)
+        return;
+    Config()->emitFontsUpdated();
+    GuiUpdateAllViews();
+}
+
+void AppearanceDialog::on_fontLogSize_currentIndexChanged(const QString & arg1)
+{
+    QString id = "Log";
     QFont font = fontMap->find(id).value();
     font.setPointSize(arg1.toInt());
     (*fontMap)[id] = font;

@@ -68,6 +68,9 @@ private slots:
     void on_fontHexEdit_currentFontChanged(const QFont & f);
     void on_fontHexEditStyle_currentIndexChanged(int index);
     void on_fontHexEditSize_currentIndexChanged(const QString & arg1);
+    void on_fontLog_currentFontChanged(const QFont & f);
+    void on_fontLogStyle_currentIndexChanged(int index);
+    void on_fontLogSize_currentIndexChanged(const QString & arg1);
     void on_buttonApplicationFont_clicked();
     void on_buttonFontDefaults_clicked();
     void rejectedSlot();
