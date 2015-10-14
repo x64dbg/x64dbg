@@ -25,5 +25,5 @@ bool FileHelper::WriteAllText(const String & fileName, const String & content)
     if(hFile == INVALID_HANDLE_VALUE)
         return false;
     DWORD written = 0;
-    return !!WriteFile(hFile, content.c_str(), content.length(), &written, nullptr);
+    return !!WriteFile(hFile, content.c_str(), DWORD(content.length()), &written, nullptr);
 }

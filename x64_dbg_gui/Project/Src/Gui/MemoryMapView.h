@@ -34,6 +34,7 @@ public slots:
     void pageMemoryRights();
     void refreshMap();
     void entropy();
+    void findPatternSlot();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -57,6 +58,7 @@ private:
     QAction* mMemoryRemove;
     QAction* mMemoryExecuteSingleshootToggle;
     QAction* mEntropy;
+    QAction* mFindPattern;
 };
 
 #endif // MEMORYMAPVIEW_H

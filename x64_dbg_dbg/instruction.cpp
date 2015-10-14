@@ -2286,6 +2286,6 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
         dprintf("Invalid expression: \"%s\"", argv[1]);
         return STATUS_ERROR;
     }
-    maxFindResults = num;
+    maxFindResults = int(num & 0x7FFFFFFF);
     return STATUS_CONTINUE;
 }

@@ -499,14 +499,24 @@ bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternB
     return true;
 }
 
-bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults)
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults, bool progress)
 {
+    uint count = 0;
+    uint total = pages.size();
     for(const auto page : pages)
     {
         if(!MemFindInPage(page, 0, pattern, results, maxresults))
             return false;
+        if (progress)
+            GuiReferenceSetProgress(int(floor((float(count) / float(total)) * 100.0f)));
         if(results.size() >= maxresults)
             break;
+        count++;
+    }
+    if (progress)
+    {
+        GuiReferenceSetProgress(100);
+        GuiReferenceReloadData();
     }
     return true;
 }

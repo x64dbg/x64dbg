@@ -4,6 +4,7 @@
 #include "PageMemoryRights.h"
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
+#include "HexEditDialog.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 {
@@ -102,6 +103,12 @@ void MemoryMapView::setupContextMenu()
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
     connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
 
+    //Find
+    mFindPattern = new QAction(QIcon(":/icons/images/search-for.png"), "&Find Pattern...", this);
+    this->addAction(mFindPattern);
+    mFindPattern->setShortcutContext(Qt::WidgetShortcut);
+    connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -111,6 +118,7 @@ void MemoryMapView::refreshShortcutsSlot()
     mMemoryExecuteSingleshoot->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mMemoryRemove->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mMemoryExecuteSingleshootToggle->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
+    mFindPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
 }
 
 void MemoryMapView::contextMenuSlot(const QPoint & pos)
@@ -122,6 +130,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mYara);
     wMenu->addAction(mEntropy);
+    wMenu->addAction(mFindPattern);
     wMenu->addAction(mSwitchView);
     wMenu->addSeparator();
     wMenu->addAction(mPageMemoryRights);
@@ -421,4 +430,20 @@ void MemoryMapView::entropy()
     entropyDialog.exec();
 
     delete[] data;
+}
+
+void MemoryMapView::findPatternSlot()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.showEntireBlock(true);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    hexEdit.setWindowTitle("Find Pattern...");
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    if(hexEdit.entireBlock())
+        addr = 0;
+    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
+    emit showReferences();
 }

@@ -36,4 +36,4 @@ bool MemGetPageRights(uint Address, char* Rights);
 bool MemPageRightsToString(DWORD Protect, char* Rights);
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
 bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults);
-bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults);
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults, bool progress = true);
