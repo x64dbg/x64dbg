@@ -87,6 +87,8 @@ public slots:
     void yaraSlot();
     void dataCopySlot();
     void entropySlot();
+    void copyAddressSlot();
+    void copyRvaSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -177,10 +179,13 @@ private:
     QAction* mFollowData;
     QAction* mFollowDataDump;
     QAction* mEntropy;
+    QAction* mCopyAddress;
+    QAction* mCopyRva;
 
     QMenu* mSpecialMenu;
     QMenu* mCustomMenu;
     QMenu* mPluginMenu;
+    QMenu* mCopyMenu;
 
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;

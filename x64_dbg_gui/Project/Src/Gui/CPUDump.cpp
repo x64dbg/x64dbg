@@ -90,6 +90,7 @@ void CPUDump::setupContextMenu()
 {
     //Binary menu
     mBinaryMenu = new QMenu("B&inary", this);
+    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
 
     //Binary->Edit
     mBinaryEditAction = new QAction("&Edit", this);
@@ -401,6 +402,22 @@ void CPUDump::setupContextMenu()
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DUMP_MENU);
 
+    //Copy
+    mCopyMenu = new QMenu("&Copy", this);
+    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
+
+    // Copy -> Address
+    mCopyAddress = new QAction("&Address", this);
+    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
+    mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mCopyAddress);
+    mCopyMenu->addAction(mCopyAddress);
+
+    // Copy -> RVA
+    mCopyRva = new QAction("&RVA", this);
+    connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
+    mCopyMenu->addAction(mCopyRva);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -421,6 +438,7 @@ void CPUDump::refreshShortcutsSlot()
     mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
     mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
     mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
+    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
 }
 
 QString CPUDump::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -518,6 +536,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addMenu(mBinaryMenu);
+    wMenu->addMenu(mCopyMenu);
     int_t start = rvaToVa(getSelectionStart());
     int_t end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
@@ -1467,4 +1486,23 @@ void CPUDump::entropySlot()
     entropyDialog.show();
     entropyDialog.GraphMemory(data.constData(), data.size());
     entropyDialog.exec();
+}
+
+void CPUDump::copyAddressSlot()
+{
+    QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    Bridge::CopyToClipboard(addrText);
+}
+
+void CPUDump::copyRvaSlot()
+{
+    uint_t addr = rvaToVa(getInitialSelection());
+    uint_t base = DbgFunctions()->ModBaseFromAddr(addr);
+    if(base)
+    {
+        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }

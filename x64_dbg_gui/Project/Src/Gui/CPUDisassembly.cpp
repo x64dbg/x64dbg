@@ -519,12 +519,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     this->addAction(mCopyAddress);
     connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddress()));
 
+    mCopyRva = new QAction("&RVA", this);
+    connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRva()));
+
     mCopyDisassembly = new QAction("Disassembly", this);
     connect(mCopyDisassembly, SIGNAL(triggered()), this, SLOT(copyDisassembly()));
 
     mCopyMenu->addAction(mCopySelection);
     mCopyMenu->addAction(mCopySelectionNoBytes);
     mCopyMenu->addAction(mCopyAddress);
+    mCopyMenu->addAction(mCopyRva);
     mCopyMenu->addAction(mCopyDisassembly);
 
     // Open Source file
@@ -1316,6 +1320,19 @@ void CPUDisassembly::copyAddress()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
     Bridge::CopyToClipboard(addrText);
+}
+
+void CPUDisassembly::copyRva()
+{
+    uint_t addr = rvaToVa(getInitialSelection());
+    uint_t base = DbgFunctions()->ModBaseFromAddr(addr);
+    if(base)
+    {
+        QString addrText = QString("%1").arg(addr - base, 0, 16, QChar('0')).toUpper();
+        Bridge::CopyToClipboard(addrText);
+    }
+    else
+        QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }
 
 void CPUDisassembly::copyDisassembly()

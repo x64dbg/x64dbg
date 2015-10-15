@@ -73,6 +73,7 @@ public slots:
     void copySelection();
     void copySelectionNoBytes();
     void copyAddress();
+    void copyRva();
     void copyDisassembly();
     void findCommand();
     void openSource();
@@ -130,6 +131,7 @@ private:
     QAction* mCopySelection;
     QAction* mCopySelectionNoBytes;
     QAction* mCopyAddress;
+    QAction* mCopyRva;
     QAction* mCopyDisassembly;
     QAction* mOpenSource;
 
