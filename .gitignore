@@ -36,8 +36,6 @@ ui_*
 *.aps
 *.pro.user
 .DS_Store
-
-# Intel performance guide
 *.ipgset
 
 # Project to ignore
@@ -46,18 +44,16 @@ help/output/
 
 # Debugger files to ignore
 CppCheckResults.xml
-x64_dbg_dbg/ODbgScript.chm
-x64_dbg_dbg/ODbgScript.chw
-x64_dbg_dbg/CppCheckResults.xml
-x64_dbg_dbg/.cccc/
-x64_dbg_dbg/suggestions.txt
+src/dbg/ODbgScript.chm
+src/dbg/ODbgScript.chw
 
-# For GUI
+# GUI files
 src/gui/build
 src/gui/Makefile*
 tools/
 RCa*
 
-#exceptions
-!/AStyleWhore.exe
-!/AStyle.dll
+# Exceptions
+!/hooks/AStyleWhore.exe
+!/hooks/AStyle.dll
+!/bin/x64dbg_shell_remove.reg

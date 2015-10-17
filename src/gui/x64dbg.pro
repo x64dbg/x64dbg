@@ -42,8 +42,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 #DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Generate debug symbols in release mode
-QMAKE_CFLAGS_RELEASE += -Zi #-O3        # C
-QMAKE_CXXFLAGS_RELEASE += #-O3          # C++
+QMAKE_CFLAGS_RELEASE += -Zi #-O3        # C?
+#QMAKE_CXXFLAGS_RELEASE += -O3          # C++?
 QMAKE_LFLAGS_RELEASE += /DEBUG          # Linker
 
 # Build as a library
