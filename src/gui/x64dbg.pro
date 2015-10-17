@@ -38,19 +38,20 @@ QT += core gui network
 # QT5 requires widgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-# Removes all debug output when defined
-#DEFINES += QT_NO_DEBUG_OUTPUT
-
+##
+## Build flags
+##
 # Generate debug symbols in release mode
-QMAKE_CFLAGS_RELEASE += -Zi #-O3        # C?
-#QMAKE_CXXFLAGS_RELEASE += -O3          # C++?
+QMAKE_CXXFLAGS_RELEASE += -Zi #-O3      # Compiler
 QMAKE_LFLAGS_RELEASE += /DEBUG          # Linker
 
 # Build as a library
 DEFINES += BUILD_LIB NOMINMAX
 TEMPLATE = lib
 
-# External include paths
+##
+## Includes
+##
 INCLUDEPATH += \
     $${X64_SRC_DIR} \
     Src \
@@ -250,16 +251,12 @@ FORMS += \
 LIBS += -luser32
 
 !contains(QMAKE_HOST.arch, x86_64) {
-    #
     # Windows x86 (32bit) specific build
-    #
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
-    #
     # Windows x64 (64bit) specific build
-    #
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
