@@ -373,10 +373,10 @@ bool ExpressionParser::unsignedoperation(const Token::Type type, const duint op1
     return operation<duint>(type, op1, op2, result, false);
 }
 
-bool ExpressionParser::signedoperation(const Token::Type type, const sint op1, const sint op2, duint & result)
+bool ExpressionParser::signedoperation(const Token::Type type, const dsint op1, const dsint op2, duint & result)
 {
-    sint signedResult;
-    if(!operation<sint>(type, op1, op2, signedResult, true))
+    dsint signedResult;
+    if(!operation<dsint>(type, op1, op2, signedResult, true))
         return false;
     result = (duint)signedResult;
     return true;

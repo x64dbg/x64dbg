@@ -522,7 +522,7 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
         ezflag = 0;
     if(valuesignedcalc()) //signed comparision
     {
-        if((sint)arg1 < (sint)arg2)
+        if((dsint)arg1 < (dsint)arg2)
             bsflag = 0;
         else
             bsflag = 1;
