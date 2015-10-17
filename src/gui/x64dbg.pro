@@ -4,28 +4,70 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+##
+## Pre-defined global variables
+##
+X64_SRC_DIR = $$PWD/../                 # Main /src/<PROJECT> directory relative to this project file.
+                                        # Contains dbg, exe, gui, bridge, and launcher.
 
+!contains(QMAKE_HOST.arch, x86_64) {
+    X64_BIN_DIR = $$PWD/../../bin/x32   # Relative BIN path, 32-bit
+    X64_GEN_DIR = $$PWD/build/out32     # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
+    TARGET = x32gui                     # Build x32gui
+} else {
+    X64_BIN_DIR = $$PWD/../../bin/x64   # Relative BIN path, 64-bit
+    X64_GEN_DIR = $$PWD/build/out64     # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
+    TARGET = x64gui                     # Build x64gui
+}
+
+##
+## QMake output directories
+##
+DESTDIR = $${X64_BIN_DIR}
+OBJECTS_DIR = $${X64_GEN_DIR}
+MOC_DIR = $${X64_GEN_DIR}
+RCC_DIR = $${X64_GEN_DIR}
+UI_DIR = $${X64_GEN_DIR}
+
+##
+## QT libraries
+##
+# TODO: Remove networking because no one wants a firewall notice for a debugger
+QT += core gui network
+
+# QT5 requires widgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 # Removes all debug output when defined
 #DEFINES += QT_NO_DEBUG_OUTPUT
 
-#QMAKE_CFLAGS_RELEASE += -O3
-#QMAKE_CXXFLAGS_RELEASE += -O3
-#generate debug symbols in release mode
-QMAKE_CFLAGS_RELEASE += -Zi
-QMAKE_LFLAGS_RELEASE += /DEBUG
+# Generate debug symbols in release mode
+QMAKE_CFLAGS_RELEASE += -Zi #-O3        # C
+QMAKE_CXXFLAGS_RELEASE += #-O3          # C++
+QMAKE_LFLAGS_RELEASE += /DEBUG          # Linker
 
-!contains(QMAKE_HOST.arch, x86_64) {
-    TARGET = x32gui
-} else {
-    TARGET = x64gui
-}
-
-DEFINES += BUILD_LIB
+# Build as a library
+DEFINES += BUILD_LIB NOMINMAX
 TEMPLATE = lib
-#TEMPLATE = app
+
+# External include paths
+INCLUDEPATH += \
+    $${X64_SRC_DIR} \
+    Src \
+    Src/Gui \
+    Src/BasicView \
+    Src/Disassembler \
+    Src/BeaEngine \
+    Src/ThirdPartyLibs/BeaEngine \
+    Src/ThirdPartyLibs/snowman \
+    Src/Memory \
+    Src/Bridge \
+    Src/Global \
+    Src/Utils
+
+# Resources, sources, headers, and forms
+RESOURCES += \
+    resource.qrc
 
 SOURCES += \
     Src/main.cpp \
@@ -179,19 +221,6 @@ HEADERS += \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h
 
-
-INCLUDEPATH += \
-    Src \
-    Src/Gui \
-    Src/BasicView \
-    Src/Disassembler \
-    Src/BeaEngine \
-    Src/ThirdPartyLibs/BeaEngine \
-    Src/Memory \
-    Src/Bridge \
-    Src/Global \
-    Src/Utils
-
 FORMS += \
     Src/Gui/MainWindow.ui \
     Src/Gui/CPUWidget.ui \
@@ -217,26 +246,21 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui
 
-INCLUDEPATH += $$PWD/Src/Bridge
-INCLUDEPATH += $$PWD/Src/ThirdPartyLibs/snowman
-
+# Libraries
 LIBS += -luser32
 
-DEFINES += NOMINMAX
-
 !contains(QMAKE_HOST.arch, x86_64) {
-    #message("x86 build")
-    ## Windows x86 (32bit) specific build here
+    #
+    # Windows x86 (32bit) specific build
+    #
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
-    LIBS += -L"$$PWD/Src/Bridge/" -lx32bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
+    LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
-    #message("x86_64 build")
-    ## Windows x64 (64bit) specific build here
+    #
+    # Windows x64 (64bit) specific build
+    #
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
-    LIBS += -L"$$PWD/Src/Bridge/" -lx64bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
+    LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }
-
-RESOURCES += \
-    resource.qrc

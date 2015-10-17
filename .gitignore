@@ -1,4 +1,4 @@
-#ignore directories
+# Ignored directories
 bin/
 obj/
 ipch/
@@ -10,8 +10,9 @@ debug/
 *XE Results*/
 doxygen*/
 doc/
+COV/
 
-#global filetypes to ignore
+# Global filetypes to ignore
 *.depend
 *.layout
 *.patch
@@ -30,16 +31,21 @@ doc/
 *.pro.user.*
 *.orig
 cov-int*
-COV/
 *.pdb
 ui_*
+*.aps
+*.pro.user
+.DS_Store
 
-#project to ignore
-todo_bridge.txt
+# Intel performance guide
+*.ipgset
+
+# Project to ignore
 help/x64*dbg.chm
 help/output/
 
-#debugger files to ignore
+# Debugger files to ignore
+CppCheckResults.xml
 x64_dbg_dbg/ODbgScript.chm
 x64_dbg_dbg/ODbgScript.chw
 x64_dbg_dbg/CppCheckResults.xml
@@ -47,32 +53,11 @@ x64_dbg_dbg/.cccc/
 x64_dbg_dbg/suggestions.txt
 
 # For GUI
-*.pro.user
-x64_dbg_gui/DebuggerX64-build-Debug
-x64_dbg_gui/DebuggerX64-build-Release
-x64_dbg_gui/bin
-x64_dbg_gui/Project/GeneratedFiles/
-x64_dbg_gui/Project/release/
-x64_dbg_gui/Project/Win32/
-x64_dbg_gui/Project/x64/
-x64_dbg_gui/Project/Makefile
-x64_dbg_gui/Project/Makefile.Debug
-x64_dbg_gui/Project/Makefile.Release
-x64_dbg_gui/Project/Src/Bridge/libx32*bridge.a
-x64_dbg_gui/Project/Src/Bridge/libx64*bridge.a
-x64_dbg_gui/Project/Src/Bridge/x32*bridge.lib
-x64_dbg_gui/Project/Src/Bridge/x64*bridge.lib
-x64_dbg_gui/*/Makefile
-x64_dbg_gui/*/Makefile.Debug
-x64_dbg_gui/*/Makefile.Release
+src/gui/build
+src/gui/Makefile*
 tools/
 RCa*
-*.aps
-
-# Intel performance guide
-*.ipgset
 
 #exceptions
 !/AStyleWhore.exe
 !/AStyle.dll
-.DS_Store
