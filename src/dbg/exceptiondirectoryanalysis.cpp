@@ -5,7 +5,7 @@
 #include "console.h"
 #include "function.h"
 
-ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(uint base, uint size) : Analysis(base, size)
+ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size) : Analysis(base, size)
 {
     _functionInfoData = nullptr;
 #ifdef _WIN64
@@ -34,7 +34,7 @@ ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(uint base, uint size) : A
         {
             // Find a pointer to IMAGE_DIRECTORY_ENTRY_EXCEPTION for later use
             ULONG_PTR virtualOffset = GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALOFFSET);
-            _functionInfoSize = (uint)GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE);
+            _functionInfoSize = (duint)GetPE32DataFromMappedFile(fileMapVa, IMAGE_DIRECTORY_ENTRY_EXCEPTION, UE_SECTIONVIRTUALSIZE);
 
             // Unload the file
             StaticFileUnloadW(nullptr, false, fileHandle, fileSize, fileMapHandle, fileMapVa);
@@ -64,8 +64,8 @@ void ExceptionDirectoryAnalysis::Analyse()
 #ifdef _WIN64
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
-        const uint funcAddr = _moduleBase + Function->BeginAddress;
-        const uint funcEnd = _moduleBase + Function->EndAddress;
+        const duint funcAddr = _moduleBase + Function->BeginAddress;
+        const duint funcEnd = _moduleBase + Function->EndAddress;
 
         // If within limits...
         if(funcAddr >= _base && funcAddr < _base + _size)
@@ -94,10 +94,10 @@ void ExceptionDirectoryAnalysis::EnumerateFunctionRuntimeEntries64(std::function
 
     // Get the table pointer and size
     auto functionTable = (PRUNTIME_FUNCTION)_functionInfoData;
-    uint totalCount = (_functionInfoSize / sizeof(RUNTIME_FUNCTION));
+    duint totalCount = (_functionInfoSize / sizeof(RUNTIME_FUNCTION));
 
     // Enumerate each entry
-    for(uint i = 0; i < totalCount; i++)
+    for(duint i = 0; i < totalCount; i++)
     {
         if(!Callback(&functionTable[i]))
             break;

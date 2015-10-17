@@ -6,7 +6,7 @@
 #include "module.h"
 #include "function.h"
 
-FunctionPass::FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+FunctionPass::FunctionPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
     // Zero values
@@ -70,15 +70,15 @@ const char* FunctionPass::GetName()
 bool FunctionPass::Analyse()
 {
     // THREAD_WORK = ceil(TOTAL / # THREADS)
-    uint workAmount = (m_MainBlocks.size() + (IdealThreadCount() - 1)) / IdealThreadCount();
+    duint workAmount = (m_MainBlocks.size() + (IdealThreadCount() - 1)) / IdealThreadCount();
 
     // Initialize thread vector
     auto threadFunctions = new std::vector<FunctionDef>[IdealThreadCount()];
 
-    concurrency::parallel_for(uint(0), IdealThreadCount(), [&](uint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
-        uint threadWorkStart = (workAmount * i);
-        uint threadWorkStop = min((threadWorkStart + workAmount), m_MainBlocks.size());
+        duint threadWorkStart = (workAmount * i);
+        duint threadWorkStop = min((threadWorkStart + workAmount), m_MainBlocks.size());
 
         // Memory allocation optimization
         // TODO: Option to conserve memory
@@ -91,7 +91,7 @@ bool FunctionPass::Analyse()
     std::vector<FunctionDef> funcs;
 
     // Merge thread vectors into single local
-    for(uint i = 0; i < IdealThreadCount(); i++)
+    for(duint i = 0; i < IdealThreadCount(); i++)
         std::move(threadFunctions[i].begin(), threadFunctions[i].end(), std::back_inserter(funcs));
 
     // Sort and remove duplicates
@@ -111,7 +111,7 @@ bool FunctionPass::Analyse()
     return true;
 }
 
-void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks)
+void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDef>* Blocks)
 {
     // Step 1: Use any defined functions in the PE function table
     FindFunctionWorkerPrepass(Start, End, Blocks);
@@ -122,17 +122,17 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
     // NOTE: *Some* indirect calls are included
     auto blockItr = std::next(m_MainBlocks.begin(), Start);
 
-    for(uint i = Start; i < End; i++, ++blockItr)
+    for(duint i = Start; i < End; i++, ++blockItr)
     {
         if(blockItr->GetFlag(BASIC_BLOCK_FLAG_CALL))
         {
-            uint destination = blockItr->Target;
+            duint destination = blockItr->Target;
 
             // Was it a pointer?
             if(blockItr->GetFlag(BASIC_BLOCK_FLAG_INDIRPTR))
             {
                 // Read it from memory
-                if(!MemRead(destination, &destination, sizeof(uint)))
+                if(!MemRead(destination, &destination, sizeof(duint)))
                     continue;
 
                 // Validity check
@@ -168,17 +168,17 @@ void FunctionPass::AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>
     // TODO
 }
 
-void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks)
+void FunctionPass::FindFunctionWorkerPrepass(duint Start, duint End, std::vector<FunctionDef>* Blocks)
 {
-    const uint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
-    const uint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
+    const duint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
+    const duint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 
 #ifdef _WIN64
     // RUNTIME_FUNCTION exception information
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
-        const uint funcAddr = m_ModuleStart + Function->BeginAddress;
-        const uint funcEnd = m_ModuleStart + Function->EndAddress;
+        const duint funcAddr = m_ModuleStart + Function->BeginAddress;
+        const duint funcEnd = m_ModuleStart + Function->EndAddress;
 
         // If within limits...
         if(funcAddr >= minFunc && funcAddr < maxFunc)
@@ -197,7 +197,7 @@ void FunctionPass::FindFunctionWorkerPrepass(uint Start, uint End, std::vector<F
 #endif // _WIN64
 
     // Module exports (return value ignored)
-    apienumexports(m_ModuleStart, [&](uint Base, const char* Module, const char* Name, uint Address)
+    apienumexports(m_ModuleStart, [&](duint Base, const char* Module, const char* Name, duint Address)
     {
         // If within limits...
         if(Address >= minFunc && Address < maxFunc)
@@ -248,7 +248,7 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
     Function->BBlockEnd = FindBBlockIndex(endBlock);
 
     // Set the flag for blocks that have been scanned
-    for(BasicBlock* block = startBlock; (uint)block <= (uint)endBlock; block++)
+    for(BasicBlock* block = startBlock; (duint)block <= (duint)endBlock; block++)
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
 
     return true;
@@ -270,10 +270,10 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
     // The maximum address is determined by any jump that extends past
     // a RET or other terminating basic block. A function may have multiple
     // return statements.
-    uint maximumAddr = 0;
+    duint maximumAddr = 0;
 
     // Loop forever until the end is found
-    for(; (uint)block <= (uint)LastBlock; block++)
+    for(; (duint)block <= (duint)LastBlock; block++)
     {
         // Block is now in use
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);

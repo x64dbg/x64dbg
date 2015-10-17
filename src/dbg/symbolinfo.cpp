@@ -51,7 +51,7 @@ static BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID U
     return TRUE;
 }
 
-void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData)
+void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
     SYMBOLCBDATA symbolCbData;
     symbolCbData.cbSymbolEnum = EnumCallback;
@@ -177,7 +177,7 @@ void SymDownloadAllSymbols(const char* SymbolStore)
         dputs("SymSetSearchPathW (2) failed!");
 }
 
-bool SymAddrFromName(const char* Name, uint* Address)
+bool SymAddrFromName(const char* Name, duint* Address)
 {
     if(!Name || Name[0] == '\0')
         return false;
@@ -200,11 +200,11 @@ bool SymAddrFromName(const char* Name, uint* Address)
     if(!SafeSymFromName(fdProcessInfo->hProcess, Name, symbol))
         return false;
 
-    *Address = (uint)symbol->Address;
+    *Address = (duint)symbol->Address;
     return true;
 }
 
-const char* SymGetSymbolicName(uint Address)
+const char* SymGetSymbolicName(duint Address)
 {
     //
     // This resolves an address to a module and symbol:
@@ -251,7 +251,7 @@ const char* SymGetSymbolicName(uint Address)
     return symbolicname;
 }
 
-bool SymGetSourceLine(uint Cip, char* FileName, int* Line)
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
 {
     IMAGEHLP_LINEW64 lineInfo;
     memset(&lineInfo, 0, sizeof(IMAGEHLP_LINE64));

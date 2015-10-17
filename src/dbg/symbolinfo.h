@@ -2,12 +2,12 @@
 
 #include "_global.h"
 
-void SymEnum(uint Base, CBSYMBOLENUM EnumCallback, void* UserData);
+void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);
 void SymUpdateModuleList();
 void SymDownloadAllSymbols(const char* SymbolStore);
-bool SymAddrFromName(const char* Name, uint* Address);
-const char* SymGetSymbolicName(uint Address);
+bool SymAddrFromName(const char* Name, duint* Address);
+const char* SymGetSymbolicName(duint Address);
 
 /**
 \brief Gets the source code file name and line from an address.
@@ -16,4 +16,4 @@ const char* SymGetSymbolicName(uint Address);
 \param [out] nLine Line number. Can be null.
 \return true if it succeeds, false if it fails.
 */
-bool SymGetSourceLine(uint Cip, char* FileName, int* Line);
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line);

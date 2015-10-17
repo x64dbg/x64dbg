@@ -164,17 +164,17 @@ void dbclose()
 }
 
 ///api functions
-bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
+bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum)
 {
     MEMORY_BASIC_INFORMATION mbi;
     VirtualQueryEx(fdProcessInfo->hProcess, (const void*)base, &mbi, sizeof(mbi));
-    uint size = mbi.RegionSize;
+    duint size = mbi.RegionSize;
     Memory<void*> buffer(size, "apienumexports:buffer");
     if(!MemRead(base, buffer(), size))
         return false;
-    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((uint)buffer() + GetPE32DataFromMappedFile((ULONG_PTR)buffer(), 0, UE_PE_OFFSET));
-    uint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
-    uint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
+    IMAGE_NT_HEADERS* pnth = (IMAGE_NT_HEADERS*)((duint)buffer() + GetPE32DataFromMappedFile((ULONG_PTR)buffer(), 0, UE_PE_OFFSET));
+    duint export_dir_rva = pnth->OptionalHeader.DataDirectory[0].VirtualAddress;
+    duint export_dir_size = pnth->OptionalHeader.DataDirectory[0].Size;
     IMAGE_EXPORT_DIRECTORY export_dir;
     memset(&export_dir, 0, sizeof(export_dir));
     MemRead((export_dir_rva + base), &export_dir, sizeof(export_dir));
@@ -183,7 +183,7 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
         return false;
     char modname[MAX_MODULE_SIZE] = "";
     ModNameFromAddr(base, modname, true);
-    uint original_name_va = export_dir.Name + base;
+    duint original_name_va = export_dir.Name + base;
     char original_name[deflen] = "";
     memset(original_name, 0, sizeof(original_name));
     MemRead(original_name_va, original_name, deflen);
@@ -193,15 +193,15 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
     for(DWORD i = 0; i < NumberOfNames; i++)
     {
         DWORD curAddrOfName = 0;
-        MemRead((uint)(AddrOfNames_va + sizeof(DWORD)*i), &curAddrOfName, sizeof(DWORD));
+        MemRead((duint)(AddrOfNames_va + sizeof(DWORD)*i), &curAddrOfName, sizeof(DWORD));
         char* cur_name_va = (char*)(curAddrOfName + base);
         char cur_name[deflen] = "";
         memset(cur_name, 0, deflen);
-        MemRead((uint)cur_name_va, cur_name, deflen);
+        MemRead((duint)cur_name_va, cur_name, deflen);
         WORD curAddrOfNameOrdinals = 0;
-        MemRead((uint)(AddrOfNameOrdinals_va + sizeof(WORD)*i), &curAddrOfNameOrdinals, sizeof(WORD));
+        MemRead((duint)(AddrOfNameOrdinals_va + sizeof(WORD)*i), &curAddrOfNameOrdinals, sizeof(WORD));
         DWORD curFunctionRva = 0;
-        MemRead((uint)(AddrOfFunctions_va + sizeof(DWORD)*curAddrOfNameOrdinals), &curFunctionRva, sizeof(DWORD));
+        MemRead((duint)(AddrOfFunctions_va + sizeof(DWORD)*curAddrOfNameOrdinals), &curFunctionRva, sizeof(DWORD));
 
         if(curFunctionRva >= export_dir_rva && curFunctionRva < export_dir_rva + export_dir_size)
         {
@@ -218,10 +218,10 @@ bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum)
                 HINSTANCE hTempDll = LoadLibraryExA(forwarded_api, 0, DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE);
                 if(hTempDll)
                 {
-                    uint local_addr = (uint)GetProcAddress(hTempDll, forwarded_api + j + 1);
+                    duint local_addr = (duint)GetProcAddress(hTempDll, forwarded_api + j + 1);
                     if(local_addr)
                     {
-                        uint remote_addr = ImporterGetRemoteAPIAddress(fdProcessInfo->hProcess, local_addr);
+                        duint remote_addr = ImporterGetRemoteAPIAddress(fdProcessInfo->hProcess, local_addr);
                         cbEnum(base, modname, cur_name, remote_addr);
                     }
                 }

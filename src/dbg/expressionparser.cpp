@@ -368,34 +368,34 @@ static bool operation(const ExpressionParser::Token::Type type, const T op1, con
     }
 }
 
-bool ExpressionParser::unsignedoperation(const Token::Type type, const uint op1, const uint op2, uint & result)
+bool ExpressionParser::unsignedoperation(const Token::Type type, const duint op1, const duint op2, duint & result)
 {
-    return operation<uint>(type, op1, op2, result, false);
+    return operation<duint>(type, op1, op2, result, false);
 }
 
-bool ExpressionParser::signedoperation(const Token::Type type, const sint op1, const sint op2, uint & result)
+bool ExpressionParser::signedoperation(const Token::Type type, const sint op1, const sint op2, duint & result)
 {
     sint signedResult;
     if(!operation<sint>(type, op1, op2, signedResult, true))
         return false;
-    result = (uint)signedResult;
+    result = (duint)signedResult;
     return true;
 }
 
-bool ExpressionParser::calculate(uint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+bool ExpressionParser::calculate(duint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     value = 0;
     if(!_prefixTokens.size())
         return false;
-    std::stack<uint> stack;
+    std::stack<duint> stack;
     //calculate the result from the RPN queue
     for(const auto & token : _prefixTokens)
     {
         if(token.isOperator())
         {
-            uint op1 = 0;
-            uint op2 = 0;
-            uint result = 0;
+            duint op1 = 0;
+            duint op2 = 0;
+            duint result = 0;
             switch(token.type())
             {
             case Token::Type::OperatorUnarySub:
@@ -439,7 +439,7 @@ bool ExpressionParser::calculate(uint & value, bool signedcalc, bool silent, boo
         }
         else
         {
-            uint result;
+            duint result;
             if(!valfromstring_noexpr(token.data().c_str(), &result, silent, baseonly, value_size, isvar, hexonly))
                 return false;
             stack.push(result);

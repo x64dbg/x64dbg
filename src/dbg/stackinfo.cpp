@@ -12,23 +12,23 @@
 #include "module.h"
 #include "thread.h"
 
-bool stackcommentget(uint addr, STACK_COMMENT* comment)
+bool stackcommentget(duint addr, STACK_COMMENT* comment)
 {
-    uint data = 0;
+    duint data = 0;
     memset(comment, 0, sizeof(STACK_COMMENT));
-    MemRead(addr, &data, sizeof(uint));
+    MemRead(addr, &data, sizeof(duint));
     if(!MemIsValidReadPtr(data)) //the stack value is no pointer
         return false;
 
-    uint size = 0;
-    uint base = MemFindBaseAddr(data, &size);
-    uint readStart = data - 16 * 4;
+    duint size = 0;
+    duint base = MemFindBaseAddr(data, &size);
+    duint readStart = data - 16 * 4;
     if(readStart < base)
         readStart = base;
     unsigned char disasmData[256];
     MemRead(readStart, disasmData, sizeof(disasmData));
-    uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
-    uint previousInstr = readStart + prev;
+    duint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
+    duint previousInstr = readStart + prev;
 
     BASIC_INSTRUCTION_INFO basicinfo;
     bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
@@ -114,7 +114,7 @@ BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddres
     // Fix for 64-bit sizes
     SIZE_T bytesRead = 0;
 
-    if(MemRead((uint)lpBaseAddress, lpBuffer, nSize, &bytesRead))
+    if(MemRead((duint)lpBaseAddress, lpBuffer, nSize, &bytesRead))
     {
         if(lpNumberOfBytesRead)
             *lpNumberOfBytesRead = (DWORD)bytesRead;
@@ -127,7 +127,7 @@ BOOL CALLBACK StackReadProcessMemoryProc64(HANDLE hProcess, DWORD64 lpBaseAddres
 
 DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 {
-    return (DWORD64)ModBaseFromAddr((uint)Address);
+    return (DWORD64)ModBaseFromAddr((duint)Address);
 }
 
 DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
@@ -136,7 +136,7 @@ DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LP
     return 0;
 }
 
-void StackEntryFromFrame(CALLSTACKENTRY* Entry, uint Address, uint From, uint To)
+void StackEntryFromFrame(CALLSTACKENTRY* Entry, duint Address, duint From, duint To)
 {
     Entry->addr = Address;
     Entry->from = From;
@@ -177,7 +177,7 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, uint Address, uint From, uint To
         sprintf_s(Entry->comment, "return to %s from ???", returnToAddr);
 }
 
-void stackgetcallstack(uint csp, CALLSTACK* callstack)
+void stackgetcallstack(duint csp, CALLSTACK* callstack)
 {
     // Gather context data
     CONTEXT context;
@@ -242,7 +242,7 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
             CALLSTACKENTRY entry;
             memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, (uint)frame.AddrFrame.Offset, (uint)frame.AddrReturn.Offset, (uint)frame.AddrPC.Offset);
+            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset, (duint)frame.AddrReturn.Offset, (duint)frame.AddrPC.Offset);
             callstackVector.push_back(entry);
         }
         else

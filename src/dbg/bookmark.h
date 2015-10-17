@@ -5,14 +5,14 @@
 struct BOOKMARKSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint addr;
+    duint addr;
     bool manual;
 };
 
-bool BookmarkSet(uint Address, bool Manual);
-bool BookmarkGet(uint Address);
-bool BookmarkDelete(uint Address);
-void BookmarkDelRange(uint Start, uint End);
+bool BookmarkSet(duint Address, bool Manual);
+bool BookmarkGet(duint Address);
+bool BookmarkDelete(duint Address);
+void BookmarkDelRange(duint Start, duint End);
 void BookmarkCacheSave(JSON Root);
 void BookmarkCacheLoad(JSON Root);
 bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size);

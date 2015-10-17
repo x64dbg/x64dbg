@@ -7,20 +7,20 @@
 class FunctionPass : public AnalysisPass
 {
 public:
-    FunctionPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
+    FunctionPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~FunctionPass();
 
     virtual const char* GetName() override;
     virtual bool Analyse() override;
 
 private:
-    uint m_ModuleStart;
+    duint m_ModuleStart;
 
     PVOID m_FunctionInfo;
     ULONG m_FunctionInfoSize;
 
-    void AnalysisWorker(uint Start, uint End, std::vector<FunctionDef>* Blocks);
-    void FindFunctionWorkerPrepass(uint Start, uint End, std::vector<FunctionDef>* Blocks);
+    void AnalysisWorker(duint Start, duint End, std::vector<FunctionDef>* Blocks);
+    void FindFunctionWorkerPrepass(duint Start, duint End, std::vector<FunctionDef>* Blocks);
     void FindFunctionWorker(std::vector<FunctionDef>* Blocks);
 
     bool ResolveKnownFunctionEnd(FunctionDef* Function);

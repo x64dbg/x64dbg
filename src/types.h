@@ -1,0 +1,30 @@
+#pragma once
+
+/***************************************************************/
+//
+// This file declares common types to be used
+// throughout the project. Originally duint, int_t,
+// or size_t were used to represent pointers and addresses.
+//
+// The purpose is to use a single type as the representation.
+//
+/***************************************************************/
+#undef COMPILE_64
+#undef COMPILE_32
+
+#ifdef _WIN64
+#define COMPILE_64 1	// Program is being compiled as 64-bit
+#else
+#define COMPILE_32 1	// Program is being compiled as 32-bit
+#endif // _WIN64
+
+//
+// Define types
+//
+#ifdef COMPILE_64
+typedef unsigned long long	duint;
+typedef signed long long	dsint;
+#else
+typedef unsigned long __w64 duint;
+typedef signed long __w64	dsint;
+#endif // COMPILE_64

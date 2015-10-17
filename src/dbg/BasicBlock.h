@@ -2,7 +2,7 @@
 
 #include "_global.h"
 
-enum BasicBlockFlags : uint
+enum BasicBlockFlags : duint
 {
     BASIC_BLOCK_FLAG_NONE = 0,              // No flag
 
@@ -23,22 +23,22 @@ enum BasicBlockFlags : uint
 
 struct BasicBlock
 {
-    uint VirtualStart;  // Inclusive
-    uint VirtualEnd;    // Exclusive
-    uint Flags;
-    uint Target;
+    duint VirtualStart;  // Inclusive
+    duint VirtualEnd;    // Exclusive
+    duint Flags;
+    duint Target;
 
-    __forceinline bool GetFlag(uint Flag)
+    __forceinline bool GetFlag(duint Flag)
     {
         return (Flags & Flag) == Flag;
     }
 
-    __forceinline void SetFlag(uint Flag)
+    __forceinline void SetFlag(duint Flag)
     {
         Flags |= Flag;
     }
 
-    __forceinline uint Size()
+    __forceinline duint Size()
     {
         return VirtualEnd - VirtualStart;
     }
@@ -56,11 +56,11 @@ struct BasicBlock
 
 struct FunctionDef
 {
-    uint VirtualStart;  // Inclusive
-    uint VirtualEnd;    // Exclusive
+    duint VirtualStart;  // Inclusive
+    duint VirtualEnd;    // Exclusive
 
-    uint BBlockStart;   // Index of first basic block
-    uint BBlockEnd;     // Index of last basic block
+    duint BBlockStart;   // Index of first basic block
+    duint BBlockEnd;     // Index of last basic block
 
     bool operator< (const FunctionDef & b) const
     {

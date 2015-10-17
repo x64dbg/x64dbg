@@ -3,9 +3,9 @@
 #include "module.h"
 #include "memory.h"
 
-std::unordered_map<uint, BOOKMARKSINFO> bookmarks;
+std::unordered_map<duint, BOOKMARKSINFO> bookmarks;
 
-bool BookmarkSet(uint Address, bool Manual)
+bool BookmarkSet(duint Address, bool Manual)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -32,7 +32,7 @@ bool BookmarkSet(uint Address, bool Manual)
     return true;
 }
 
-bool BookmarkGet(uint Address)
+bool BookmarkGet(duint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -42,7 +42,7 @@ bool BookmarkGet(uint Address)
     return (bookmarks.count(ModHashFromAddr(Address)) > 0);
 }
 
-bool BookmarkDelete(uint Address)
+bool BookmarkDelete(duint Address)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -52,7 +52,7 @@ bool BookmarkDelete(uint Address)
     return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void BookmarkDelRange(uint Start, uint End)
+void BookmarkDelRange(duint Start, duint End)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -67,7 +67,7 @@ void BookmarkDelRange(uint Start, uint End)
     else
     {
         // Make sure 'Start' and 'End' reference the same module
-        uint moduleBase = ModBaseFromAddr(Start);
+        duint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
@@ -150,10 +150,10 @@ void BookmarkCacheLoad(JSON Root)
                 strcpy_s(bookmarkInfo.mod, mod);
 
             // Load address and set auto-generated flag
-            bookmarkInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
+            bookmarkInfo.addr = (duint)json_hex_value(json_object_get(value, "address"));
             bookmarkInfo.manual = Manual;
 
-            const uint key = ModHashFromName(bookmarkInfo.mod) + bookmarkInfo.addr;
+            const duint key = ModHashFromName(bookmarkInfo.mod) + bookmarkInfo.addr;
             bookmarks.insert(std::make_pair(key, bookmarkInfo));
         }
     };

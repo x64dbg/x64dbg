@@ -38,7 +38,7 @@ static int maxFindResults = 5000;
 
 CMDRESULT cbBadCmd(int argc, char* argv[])
 {
-    uint value = 0;
+    duint value = 0;
     int valsize = 0;
     bool isvar = false;
     bool hexonly = false;
@@ -102,7 +102,7 @@ CMDRESULT cbInstrVar(int argc, char* argv[])
     char arg2[deflen] = ""; //var value (optional)
     if(argc > 2)
         strcpy_s(arg2, argv[2]);
-    uint value = 0;
+    duint value = 0;
     int add = 0;
     if(*argv[1] == '$')
         add++;
@@ -173,7 +173,7 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
             }
         }
         //Check the destination
-        uint dest;
+        duint dest;
         if(!valfromstring(argv[1], &dest) || !MemIsValidReadPtr(dest))
         {
             dprintf("invalid destination \"%s\"\n", argv[1]);
@@ -201,20 +201,20 @@ CMDRESULT cbInstrMov(int argc, char* argv[])
     }
     else
     {
-        uint set_value = 0;
+        duint set_value = 0;
         if(!valfromstring(srcText.c_str(), &set_value))
         {
             dprintf("invalid src \"%s\"\n", argv[2]);
             return STATUS_ERROR;
         }
         bool isvar = false;
-        uint temp = 0;
+        duint temp = 0;
         valfromstring(argv[1], &temp, true, false, 0, &isvar, 0);
         if(!isvar)
             isvar = vargettype(argv[1], 0);
         if(!isvar || !valtostring(argv[1], set_value, true))
         {
-            uint value;
+            duint value;
             if(valfromstring(argv[1], &value)) //if the var is a value already it's an invalid destination
             {
                 dprintf("invalid dest \"%s\"\n", argv[1]);
@@ -259,7 +259,7 @@ CMDRESULT cbInstrVarList(int argc, char* argv[])
             continue;
         char name[deflen] = "";
         strcpy_s(name, variables()[i].name.c_str());
-        uint value = (uint)variables()[i].value.u.value;
+        duint value = (duint)variables()[i].value.u.value;
         if(variables()[i].type != VAR_HIDDEN)
         {
             if(filter)
@@ -308,7 +308,7 @@ CMDRESULT cbInstrCmt(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!CommentSet(addr, argv[2], true))
@@ -326,7 +326,7 @@ CMDRESULT cbInstrCmtdel(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!CommentDelete(addr))
@@ -345,7 +345,7 @@ CMDRESULT cbInstrLbl(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!LabelSet(addr, argv[2], true))
@@ -364,7 +364,7 @@ CMDRESULT cbInstrLbldel(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!LabelDelete(addr))
@@ -382,7 +382,7 @@ CMDRESULT cbInstrBookmarkSet(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!BookmarkSet(addr, true))
@@ -401,7 +401,7 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!BookmarkDelete(addr))
@@ -433,7 +433,7 @@ CMDRESULT cbInstrAssemble(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid expression: \"%s\"!\n", argv[1]);
@@ -467,8 +467,8 @@ CMDRESULT cbInstrFunctionAdd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint start = 0;
-    uint end = 0;
+    duint start = 0;
+    duint end = 0;
     if(!valfromstring(argv[1], &start, false) || !valfromstring(argv[2], &end, false))
         return STATUS_ERROR;
     if(!FunctionAdd(start, end, true))
@@ -488,7 +488,7 @@ CMDRESULT cbInstrFunctionDel(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!FunctionDelete(addr))
@@ -508,14 +508,14 @@ CMDRESULT cbInstrCmp(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint arg1 = 0;
+    duint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
-    uint arg2 = 0;
+    duint arg2 = 0;
     if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
-    uint ezflag;
-    uint bsflag;
+    duint ezflag;
+    duint bsflag;
     if(arg1 == arg2)
         ezflag = 1;
     else
@@ -552,7 +552,7 @@ CMDRESULT cbInstrGpa(int argc, char* argv[])
         sprintf(newcmd, "%s:%s", argv[2], argv[1]);
     else
         sprintf(newcmd, "%s", argv[1]);
-    uint result = 0;
+    duint result = 0;
     if(!valfromstring(newcmd, &result, false))
         return STATUS_ERROR;
     varset("$RESULT", result, false);
@@ -751,14 +751,14 @@ CMDRESULT cbInstrTest(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint arg1 = 0;
+    duint arg1 = 0;
     if(!valfromstring(argv[1], &arg1, false))
         return STATUS_ERROR;
-    uint arg2 = 0;
+    duint arg2 = 0;
     if(!valfromstring(argv[2], &arg2, false))
         return STATUS_ERROR;
-    uint ezflag;
-    uint bsflag = 0;
+    duint ezflag;
+    duint bsflag = 0;
     if(!(arg1 & arg2))
         ezflag = 1;
     else
@@ -795,7 +795,7 @@ CMDRESULT cbInstrPush(int argc, char* argv[])
         return STATUS_ERROR;
     }
     Script::Stack::Push(value);
-    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     GuiStackDumpAt(csp, csp);
     GuiUpdateRegisterView();
     return STATUS_CONTINUE;
@@ -804,7 +804,7 @@ CMDRESULT cbInstrPush(int argc, char* argv[])
 CMDRESULT cbInstrPop(int argc, char* argv[])
 {
     duint value = Script::Stack::Pop();
-    uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+    duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     GuiStackDumpAt(csp, csp);
     GuiUpdateRegisterView();
     if(argc > 1)
@@ -818,7 +818,7 @@ CMDRESULT cbInstrPop(int argc, char* argv[])
 CMDRESULT cbInstrRefinit(int argc, char* argv[])
 {
     GuiReferenceInitialize("Script");
-    GuiReferenceAddColumn(sizeof(uint) * 2, "Address");
+    GuiReferenceAddColumn(sizeof(duint) * 2, "Address");
     GuiReferenceAddColumn(0, "Data");
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
@@ -833,7 +833,7 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     if(!bRefinit)
@@ -850,8 +850,8 @@ CMDRESULT cbInstrRefadd(int argc, char* argv[])
 
 struct VALUERANGE
 {
-    uint start;
-    uint end;
+    duint start;
+    duint end;
 };
 
 static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
@@ -859,7 +859,7 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
@@ -867,23 +867,23 @@ static bool cbRefFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     }
     bool found = false;
     VALUERANGE* range = (VALUERANGE*)refinfo->userinfo;
-    uint start = range->start;
-    uint end = range->end;
+    duint start = range->start;
+    duint end = range->end;
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
-        uint value = basicinfo->value.value;
+        duint value = basicinfo->value.value;
         if(value >= start && value <= end)
             found = true;
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
-        uint value = basicinfo->memory.value;
+        duint value = basicinfo->memory.value;
         if(value >= start && value <= end)
             found = true;
     }
     if((basicinfo->type & TYPE_ADDR) == TYPE_ADDR)
     {
-        uint value = basicinfo->addr;
+        duint value = basicinfo->addr;
         if(value >= start && value <= end)
             found = true;
     }
@@ -929,14 +929,14 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         return STATUS_ERROR;
     if(argc < 3 || !valfromstring(argv[2], &range.end, false))
         range.end = range.start;
-    uint addr = 0;
+    duint addr = 0;
     if(argc < 4 || !valfromstring(argv[3], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
-    uint size = 0;
+    duint size = 0;
     if(argc >= 5)
         if(!valfromstring(argv[4], &size))
             size = 0;
-    uint ticks = GetTickCount();
+    duint ticks = GetTickCount();
     char title[256] = "";
     if(range.start == range.end)
         sprintf_s(title, "Constant: %" fext "X", range.start);
@@ -953,7 +953,7 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
     if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
         GuiReferenceAddColumn(64, "Disassembly");
         GuiReferenceAddColumn(500, "String");
         GuiReferenceSetSearchStartCol(2); //only search the strings
@@ -998,14 +998,14 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
 
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
-    uint addr;
+    duint addr;
     if(argc < 2 || !valfromstring(argv[1], &addr, true))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
-    uint size = 0;
+    duint size = 0;
     if(argc >= 3)
         if(!valfromstring(argv[2], &size, true))
             size = 0;
-    uint ticks = GetTickCount();
+    duint ticks = GetTickCount();
     int found = RefFind(addr, size, cbRefStr, 0, false, "Strings");
     dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
@@ -1100,7 +1100,7 @@ CMDRESULT cbInstrCopystr(int argc, char* argv[])
         dprintf("failed to get variable data \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    uint addr;
+    duint addr;
     if(!valfromstring(argv[1], &addr))
     {
         dprintf("invalid address \"%s\"!\n", argv[1]);
@@ -1124,7 +1124,7 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
     char pattern[deflen] = "";
@@ -1136,8 +1136,8 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
-    uint size = 0;
-    uint base = MemFindBaseAddr(addr, &size, true);
+    duint size = 0;
+    duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address " fhex "!\n", addr);
@@ -1149,8 +1149,8 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
-    uint start = addr - base;
-    uint find_size = 0;
+    duint start = addr - base;
+    duint find_size = 0;
     if(argc >= 4)
     {
         if(!valfromstring(argv[3], &find_size))
@@ -1160,8 +1160,8 @@ CMDRESULT cbInstrFind(int argc, char* argv[])
     }
     else
         find_size = size - start;
-    uint foundoffset = patternfind(data() + start, find_size, pattern);
-    uint result = 0;
+    duint foundoffset = patternfind(data() + start, find_size, pattern);
+    duint result = 0;
     if(foundoffset != -1)
         result = addr + foundoffset;
     varset("$result", result, false);
@@ -1175,7 +1175,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
 
@@ -1188,8 +1188,8 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     int len = (int)strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
-    uint size = 0;
-    uint base = MemFindBaseAddr(addr, &size, true);
+    duint size = 0;
+    duint base = MemFindBaseAddr(addr, &size, true);
     if(!base)
     {
         dprintf("invalid memory address " fhex "!\n", addr);
@@ -1201,8 +1201,8 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
         dputs("failed to read memory!");
         return STATUS_ERROR;
     }
-    uint start = addr - base;
-    uint find_size = 0;
+    duint start = addr - base;
+    duint find_size = 0;
     bool findData = false;
     if(argc >= 4)
     {
@@ -1226,7 +1226,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     char patterntitle[256] = "";
     sprintf_s(patterntitle, "Pattern: %s", patternshort);
     GuiReferenceInitialize(patterntitle);
-    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     if(findData)
         GuiReferenceAddColumn(0, "&Data&");
     else
@@ -1234,8 +1234,8 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     GuiReferenceReloadData();
     DWORD ticks = GetTickCount();
     int refCount = 0;
-    uint i = 0;
-    uint result = 0;
+    duint i = 0;
+    duint result = 0;
     std::vector<PatternByte> searchpattern;
     if(!patterntransform(pattern, searchpattern))
     {
@@ -1244,7 +1244,7 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
     }
     while(refCount < maxFindResults)
     {
-        uint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
+        duint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;
@@ -1291,7 +1291,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return STATUS_ERROR;
 
@@ -1311,7 +1311,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    uint endAddr = -1;
+    duint endAddr = -1;
     bool findData = false;
     if(argc >= 4)
     {
@@ -1325,7 +1325,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     std::vector<SimplePage> searchPages;
     for(auto & itr : memoryPages)
     {
-        SimplePage page(uint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+        SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
         if(page.address >= addr && page.address + page.size <= endAddr)
             searchPages.push_back(page);
     }
@@ -1333,7 +1333,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
 
     DWORD ticks = GetTickCount();
 
-    std::vector<uint> results;
+    std::vector<duint> results;
     if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
     {
         dputs("MemFindInMap failed!");
@@ -1348,7 +1348,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     char patterntitle[256] = "";
     sprintf_s(patterntitle, "Pattern: %s", patternshort);
     GuiReferenceInitialize(patterntitle);
-    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     if(findData)
         GuiReferenceAddColumn(0, "&Data&");
     else
@@ -1356,7 +1356,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     GuiReferenceReloadData();
 
     int refCount = 0;
-    for(uint result : results)
+    for(duint result : results)
     {
         char msg[deflen] = "";
         sprintf(msg, fhex, result);
@@ -1394,7 +1394,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
         return true;
@@ -1402,7 +1402,7 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
     bool found = false;
     if(basicinfo->call) //we are looking for calls
     {
-        uint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
+        duint ptr = basicinfo->addr > 0 ? basicinfo->addr : basicinfo->memory.value;
         char label[MAX_LABEL_SIZE] = "";
         found = DbgGetLabelAt(ptr, SEG_DEFAULT, label) && !LabelGet(ptr, label); //a non-user label
     }
@@ -1423,14 +1423,14 @@ static bool cbModCallFind(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, R
 
 CMDRESULT cbInstrModCallFind(int argc, char* argv[])
 {
-    uint addr;
+    duint addr;
     if(argc < 2 || !valfromstring(argv[1], &addr, true))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
-    uint size = 0;
+    duint size = 0;
     if(argc >= 3)
         if(!valfromstring(argv[2], &size, true))
             size = 0;
-    uint ticks = GetTickCount();
+    duint ticks = GetTickCount();
     int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls");
     dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
@@ -1441,7 +1441,7 @@ CMDRESULT cbInstrCommentList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize("Comments");
-    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Comment");
     GuiReferenceReloadData();
@@ -1476,7 +1476,7 @@ CMDRESULT cbInstrLabelList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize("Labels");
-    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     GuiReferenceAddColumn(64, "Disassembly");
     GuiReferenceAddColumn(0, "Label");
     GuiReferenceReloadData();
@@ -1511,7 +1511,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize("Bookmarks");
-    GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Address");
     GuiReferenceAddColumn(0, "Disassembly");
     GuiReferenceReloadData();
     size_t cbsize;
@@ -1544,8 +1544,8 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize("Functions");
-    GuiReferenceAddColumn(2 * sizeof(uint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(uint), "End");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
+    GuiReferenceAddColumn(2 * sizeof(duint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
@@ -1590,8 +1590,8 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
 {
     //setup reference view
     GuiReferenceInitialize("Loops");
-    GuiReferenceAddColumn(2 * sizeof(uint), "Start");
-    GuiReferenceAddColumn(2 * sizeof(uint), "End");
+    GuiReferenceAddColumn(2 * sizeof(duint), "Start");
+    GuiReferenceAddColumn(2 * sizeof(duint), "End");
     GuiReferenceAddColumn(64, "Disassembly (Start)");
     GuiReferenceAddColumn(0, "Label/Comment");
     GuiReferenceReloadData();
@@ -1634,7 +1634,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
 
 CMDRESULT cbInstrSleep(int argc, char* argv[])
 {
-    uint ms = 100;
+    duint ms = 100;
     if(argc > 1)
         if(!valfromstring(argv[1], &ms, false))
             return STATUS_ERROR;
@@ -1649,7 +1649,7 @@ static bool cbFindAsm(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     if(!disasm || !basicinfo) //initialize
     {
         GuiReferenceInitialize(refinfo->name);
-        GuiReferenceAddColumn(2 * sizeof(uint), "Address");
+        GuiReferenceAddColumn(2 * sizeof(duint), "Address");
         GuiReferenceAddColumn(0, "Disassembly");
         GuiReferenceReloadData();
         return true;
@@ -1679,10 +1679,10 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    uint addr = 0;
+    duint addr = 0;
     if(argc < 3 || !valfromstring(argv[2], &addr))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
-    uint size = 0;
+    duint size = 0;
     if(argc >= 4)
         if(!valfromstring(argv[3], &size))
             size = 0;
@@ -1699,7 +1699,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     disasmfast(dest, addr + size / 2, &basicinfo);
 
-    uint ticks = GetTickCount();
+    duint ticks = GetTickCount();
     char title[256] = "";
     sprintf_s(title, "Command: \"%s\"", basicinfo.instruction);
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title);
@@ -1755,7 +1755,7 @@ static String yara_print_hex_string(const uint8_t* data, int length)
 
 struct YaraScanInfo
 {
-    uint base;
+    duint base;
     int index;
 };
 
@@ -1766,7 +1766,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
     case CALLBACK_MSG_RULE_MATCHING:
     {
-        uint base = scanInfo->base;
+        duint base = scanInfo->base;
         YR_RULE* yrRule = (YR_RULE*)message_data;
         dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
         YR_STRING* string;
@@ -1780,7 +1780,7 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                     pattern = yara_print_hex_string(match->data, match->length);
                 else
                     pattern = yara_print_string(match->data, match->length);
-                uint addr = (uint)(base + match->base + match->offset);
+                duint addr = (duint)(base + match->base + match->offset);
                 //dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
 
                 //update references
@@ -1831,14 +1831,14 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr = 0;
+    duint addr = 0;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     addr = sel.start;
 
-    uint base = 0;
-    uint size = 0;
-    uint mod = ModBaseFromName(argv[2]);
+    duint base = 0;
+    duint size = 0;
+    duint mod = ModBaseFromName(argv[2]);
     if(mod)
     {
         base = mod;
@@ -1898,7 +1898,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 fullName += modname;
                 fullName += ")"; //nanana, very ugly code (long live open source)
                 GuiReferenceInitialize(fullName.c_str());
-                GuiReferenceAddColumn(sizeof(uint) * 2, "Address");
+                GuiReferenceAddColumn(sizeof(duint) * 2, "Address");
                 GuiReferenceAddColumn(48, "Rule");
                 GuiReferenceAddColumn(0, "Data");
                 GuiReferenceSetRowCount(0);
@@ -1906,7 +1906,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 YaraScanInfo scanInfo;
                 scanInfo.base = base;
                 scanInfo.index = 0;
-                uint ticks = GetTickCount();
+                duint ticks = GetTickCount();
                 dputs("[YARA] Scan started...");
                 int err = yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallback, &scanInfo, 0);
                 GuiReferenceReloadData();
@@ -1944,13 +1944,13 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint base = ModBaseFromName(argv[2]);
+    duint base = ModBaseFromName(argv[2]);
     if(!base)
     {
         dprintf("invalid module \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    uint size = ModSizeFromAddr(base);
+    duint size = ModSizeFromAddr(base);
     char newcmd[deflen] = "";
     sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
     return cmddirectexec(dbggetcommandlist(), newcmd);
@@ -1983,7 +1983,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
         return STATUS_ERROR;
     }
 
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !MemIsValidReadPtr(addr))
     {
         dprintf("invalid address \"%s\"\n", argv[1]);
@@ -2052,8 +2052,8 @@ CMDRESULT cbInstrAnalyseNukem(int argc, char* argv[])
 {
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-    uint size = 0;
-    uint base = MemFindBaseAddr(sel.start, &size);
+    duint size = 0;
+    duint base = MemFindBaseAddr(sel.start, &size);
     Analyse_nukem(base, size);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
@@ -2063,8 +2063,8 @@ CMDRESULT cbInstrAnalyse(int argc, char* argv[])
 {
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-    uint size = 0;
-    uint base = MemFindBaseAddr(sel.start, &size);
+    duint size = 0;
+    duint base = MemFindBaseAddr(sel.start, &size);
     LinearAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
@@ -2079,8 +2079,8 @@ CMDRESULT cbInstrCfanalyse(int argc, char* argv[])
         exceptionDirectory = true;
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-    uint size = 0;
-    uint base = MemFindBaseAddr(sel.start, &size);
+    duint size = 0;
+    duint base = MemFindBaseAddr(sel.start, &size);
     ControlFlowAnalysis anal(base, size, exceptionDirectory);
     anal.Analyse();
     anal.SetMarkers();
@@ -2092,8 +2092,8 @@ CMDRESULT cbInstrExanalyse(int argc, char* argv[])
 {
     SELECTIONDATA sel;
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
-    uint size = 0;
-    uint base = MemFindBaseAddr(sel.start, &size);
+    duint size = 0;
+    duint base = MemFindBaseAddr(sel.start, &size);
     ExceptionDirectoryAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
@@ -2108,7 +2108,7 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
         dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
-    uint base;
+    duint base;
     if(!valfromstring(argv[2], &base))
     {
         dputs("Invalid parameter [base]!");
@@ -2119,7 +2119,7 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[])
         dputs("Invalid memory address!");
         return STATUS_ERROR;
     }
-    uint size;
+    duint size;
     if(argc < 4)
         base = MemFindBaseAddr(base, &size);
     else if(!valfromstring(argv[3], &size))
@@ -2150,8 +2150,8 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint start;
-    uint maxaddr;
+    duint start;
+    duint maxaddr;
     if(!valfromstring(argv[1], &start) || !valfromstring(argv[2], &maxaddr))
     {
         dputs("invalid arguments!");
@@ -2168,16 +2168,16 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
     {
         //initialize
         Capstone _cp;
-        uint _base = start;
-        uint _size = maxaddr - start;
+        duint _base = start;
+        duint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
         MemRead(_base, _data(), _size);
         FunctionClear();
 
         //linear search with some trickery
-        uint end = 0;
-        uint jumpback = 0;
-        for(uint addr = start, fardest = 0; addr < maxaddr;)
+        duint end = 0;
+        duint jumpback = 0;
+        for(duint addr = start, fardest = 0; addr < maxaddr;)
         {
             //update GUI
             BpClear();
@@ -2203,7 +2203,7 @@ CMDRESULT cbInstrVisualize(int argc, char* argv[])
                 const cs_x86_op & operand = _cp.x86().operands[0];
                 if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)    //jump
                 {
-                    uint dest = (uint)operand.imm;
+                    duint dest = (duint)operand.imm;
 
                     if(dest >= maxaddr)    //jump across function boundaries
                     {
@@ -2249,7 +2249,7 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
         dputs("usage: meminfo a/r, addr");
         return STATUS_ERROR;
     }
-    uint addr;
+    duint addr;
     if(!valfromstring(argv[2], &addr))
     {
         dputs("invalid argument");
@@ -2280,7 +2280,7 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
         dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
-    uint num;
+    duint num;
     if(!valfromstring(argv[1], &num))
     {
         dprintf("Invalid expression: \"%s\"", argv[1]);

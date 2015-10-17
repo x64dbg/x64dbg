@@ -4,12 +4,12 @@
 #include "FunctionPass.h"
 #include "console.h"
 
-void Analyse_nukem(uint base, uint size)
+void Analyse_nukem(duint base, duint size)
 {
     dputs("Starting analysis (Nukem)...");
     DWORD ticks = GetTickCount();
 
-    uint end = base + size;
+    duint end = base + size;
 
     BBlockArray blocks;
 

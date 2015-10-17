@@ -6,10 +6,10 @@ template<typename T, bool ReadOnly = false, bool BreakOnFail = false>
 class RemotePtr;
 
 template<typename T, typename U>
-RemotePtr<U> RemoteMemberPtr(uint Address, U T::*Member)
+RemotePtr<U> RemoteMemberPtr(duint Address, U T::*Member)
 {
     // Calculate the offset from the member to the class base
-    uint offset = ((char*) & ((T*)nullptr->*Member) - (char*)nullptr);
+    duint offset = ((char*) & ((T*)nullptr->*Member) - (char*)nullptr);
 
     return RemotePtr<U>(Address + offset);
 }
@@ -34,14 +34,14 @@ class RemotePtr
             isClass<U>::value > {};
 
 public:
-    explicit RemotePtr(uint Address)
+    explicit RemotePtr(duint Address)
     {
         Init(Address);
     }
 
     explicit RemotePtr(PVOID Address)
     {
-        Init((uint)Address);
+        Init((duint)Address);
     }
 
     ~RemotePtr()
@@ -75,7 +75,7 @@ public:
     }
 
     template<typename A, typename B = T>
-    enableIf<isClass<T>::value, uint> memberOffset(A B::*Member)
+    enableIf<isClass<T>::value, duint> memberOffset(A B::*Member)
     {
         return (char*) & ((typename std::remove_pointer<T>::type*)nullptr->*Member) - (char*)nullptr;
     }
@@ -136,7 +136,7 @@ private:
         m_Modified = false;
     }
 
-    inline void Init(uint Address)
+    inline void Init(duint Address)
     {
         m_Modified = false;
         m_InternalAddr = Address;
@@ -144,6 +144,6 @@ private:
     }
 
     bool m_Modified;
-    uint m_InternalAddr;
+    duint m_InternalAddr;
     T m_InternalData;
 };

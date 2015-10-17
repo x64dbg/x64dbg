@@ -7,16 +7,16 @@
 class ExceptionDirectoryAnalysis : public Analysis
 {
 public:
-    explicit ExceptionDirectoryAnalysis(uint base, uint size);
+    explicit ExceptionDirectoryAnalysis(duint base, duint size);
     ~ExceptionDirectoryAnalysis();
     void Analyse() override;
     void SetMarkers() override;
 
 private:
-    uint _moduleBase;
-    uint _functionInfoSize;
+    duint _moduleBase;
+    duint _functionInfoSize;
     void* _functionInfoData;
-    std::vector<std::pair<uint, uint>> _functions;
+    std::vector<std::pair<duint, duint>> _functions;
 
 #ifdef _WIN64
     void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);

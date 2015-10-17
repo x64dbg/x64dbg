@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <tlhelp32.h>
+#include "..\types.h"
 #include "..\bridge\bridgemain.h"
 #include "jansson\jansson.h"
 #include "jansson\jansson_x64dbg.h"
@@ -40,13 +41,9 @@
 #ifdef _WIN64 //defined by default
 #define fhex "%.16llX"
 #define fext "ll"
-typedef unsigned long long uint;
-typedef long long sint;
 #else
 #define fhex "%.8X"
 #define fext ""
-typedef unsigned long uint;
-typedef long sint;
 #endif // _WIN64
 
 enum arch

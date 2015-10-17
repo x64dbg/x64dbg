@@ -9,7 +9,7 @@
 class ControlFlowAnalysis : public Analysis
 {
 public:
-    explicit ControlFlowAnalysis(uint base, uint size, bool exceptionDirectory);
+    explicit ControlFlowAnalysis(duint base, duint size, bool exceptionDirectory);
     ~ControlFlowAnalysis();
     void Analyse() override;
     void SetMarkers() override;
@@ -17,11 +17,11 @@ public:
 private:
     struct BasicBlock
     {
-        uint start;
-        uint end;
-        uint left;
-        uint right;
-        uint function;
+        duint start;
+        duint end;
+        duint left;
+        duint right;
+        duint function;
 
         BasicBlock()
         {
@@ -32,7 +32,7 @@ private:
             this->function = 0;
         }
 
-        BasicBlock(uint start, uint end, uint left, uint right)
+        BasicBlock(duint start, duint end, duint left, duint right)
         {
             this->start = start;
             this->end = end;
@@ -47,17 +47,17 @@ private:
         }
     };
 
-    typedef std::set<uint> UintSet;
+    typedef std::set<duint> UintSet;
 
-    uint _moduleBase;
-    uint _functionInfoSize;
+    duint _moduleBase;
+    duint _functionInfoSize;
     void* _functionInfoData;
 
     UintSet _blockStarts;
     UintSet _functionStarts;
-    std::map<uint, BasicBlock> _blocks; //start of block -> block
-    std::map<uint, UintSet> _parentMap; //start child -> parents
-    std::map<uint, UintSet> _functions; //function start -> function block starts
+    std::map<duint, BasicBlock> _blocks; //start of block -> block
+    std::map<duint, UintSet> _parentMap; //start child -> parents
+    std::map<duint, UintSet> _functions; //function start -> function block starts
     std::vector<Range> _functionRanges; //function start -> function range TODO: smarter stuff with overlapping ranges
 
     void BasicBlockStarts();
@@ -65,12 +65,12 @@ private:
     void Functions();
     void FunctionRanges();
     void insertBlock(BasicBlock block);
-    BasicBlock* findBlock(uint start);
-    void insertParent(uint child, uint parent);
-    UintSet* findParents(uint child);
-    uint findFunctionStart(BasicBlock* block, UintSet* parents);
+    BasicBlock* findBlock(duint start);
+    void insertParent(duint child, duint parent);
+    UintSet* findParents(duint child);
+    duint findFunctionStart(BasicBlock* block, UintSet* parents);
     String blockToString(BasicBlock* block);
-    uint GetReferenceOperand();
+    duint GetReferenceOperand();
 #ifdef _WIN64
     void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
 #endif // _WIN64

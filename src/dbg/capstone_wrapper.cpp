@@ -31,12 +31,12 @@ Capstone::~Capstone()
         cs_free(mInstr, 1);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER])
+bool Capstone::Disassemble(duint addr, const unsigned char data[MAX_DISASM_BUFFER])
 {
     return Disassemble(addr, data, MAX_DISASM_BUFFER);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
+bool Capstone::Disassemble(duint addr, const unsigned char* data, int size)
 {
     if(!data)
         return false;
@@ -150,9 +150,9 @@ int Capstone::Size() const
     return GetInstr()->size;
 }
 
-uint Capstone::Address() const
+duint Capstone::Address() const
 {
-    return uint(GetInstr()->address);
+    return duint(GetInstr()->address);
 }
 
 const cs_x86 & Capstone::x86() const

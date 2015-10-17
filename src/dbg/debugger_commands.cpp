@@ -23,9 +23,9 @@
 #include "function.h"
 
 static bool bScyllaLoaded = false;
-uint LoadLibThreadID;
-uint DLLNameMem;
-uint ASMAddr;
+duint LoadLibThreadID;
+duint DLLNameMem;
+duint ASMAddr;
 TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
 CMDRESULT cbDebugInit(int argc, char* argv[])
@@ -151,7 +151,7 @@ CMDRESULT cbDebugSetBPXOptions(int argc, char* argv[])
     }
     DWORD type = 0;
     const char* strType = 0;
-    uint setting_type;
+    duint setting_type;
     if(strstr(argv[1], "long"))
     {
         setting_type = 1; //break_int3long
@@ -203,7 +203,7 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         *argname = 0;
     }
     _strlwr(argtype);
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argaddr, &addr))
     {
         dprintf("Invalid addr: \"%s\"\n", argaddr);
@@ -292,7 +292,7 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         }
         return STATUS_CONTINUE;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
@@ -345,7 +345,7 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
@@ -403,7 +403,7 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPNORMAL, 0, &found)) //invalid breakpoint
     {
         dprintf("No such breakpoint \"%s\"\n", argv[1]);
@@ -467,7 +467,7 @@ CMDRESULT cbDebugeStepOver(int argc, char* argv[])
 
 CMDRESULT cbDebugSingleStep(int argc, char* argv[])
 {
-    uint stepcount = 1;
+    duint stepcount = 1;
     if(argc > 1)
         if(!valfromstring(argv[1], &stepcount))
             stepcount = 1;
@@ -493,7 +493,7 @@ CMDRESULT cbDebugHide(int argc, char* argv[])
 
 CMDRESULT cbDebugDisasm(int argc, char* argv[])
 {
-    uint addr = 0;
+    duint addr = 0;
     if(argc > 1)
     {
         if(!valfromstring(argv[1], &addr))
@@ -512,7 +512,7 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr;
+    duint addr;
     if(!valfromstring(argv[1], &addr))
         return STATUS_ERROR;
     bool restore = false;
@@ -547,8 +547,8 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
             break;
         }
     }
-    uint size = 0;
-    uint base = MemFindBaseAddr(addr, &size, true);
+    duint size = 0;
+    duint base = MemFindBaseAddr(addr, &size, true);
     bool singleshoot = false;
     if(!restore)
         singleshoot = true;
@@ -590,7 +590,7 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPMEMORY, argv[1], &found)) //found a breakpoint with name
     {
-        uint size;
+        duint size;
         MemFindBaseAddr(found.addr, &size);
         if(!BpDelete(found.addr, BPMEMORY))
         {
@@ -604,13 +604,13 @@ CMDRESULT cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         }
         return STATUS_CONTINUE;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
         return STATUS_ERROR;
     }
-    uint size;
+    duint size;
     MemFindBaseAddr(found.addr, &size);
     if(!BpDelete(found.addr, BPMEMORY))
     {
@@ -647,7 +647,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    uint addr;
+    duint addr;
     if(!valfromstring(argv[1], &addr))
         return STATUS_ERROR;
     DWORD type = UE_HARDWARE_EXECUTE;
@@ -671,7 +671,7 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     DWORD titsize = UE_HARDWARE_SIZE_1;
     if(argc > 3)
     {
-        uint size;
+        duint size;
         if(!valfromstring(argv[3], &size))
             return STATUS_ERROR;
         switch(size)
@@ -762,7 +762,7 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         }
         return STATUS_CONTINUE;
     }
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
@@ -785,11 +785,11 @@ CMDRESULT cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
 
 CMDRESULT cbDebugAlloc(int argc, char* argv[])
 {
-    uint size = 0x1000;
+    duint size = 0x1000;
     if(argc > 1)
         if(!valfromstring(argv[1], &size, false))
             return STATUS_ERROR;
-    uint mem = (uint)MemAllocRemote(0, size);
+    duint mem = (duint)MemAllocRemote(0, size);
     if(!mem)
         dputs("VirtualAllocEx failed");
     else
@@ -807,9 +807,9 @@ CMDRESULT cbDebugAlloc(int argc, char* argv[])
 
 CMDRESULT cbDebugFree(int argc, char* argv[])
 {
-    uint lastalloc;
+    duint lastalloc;
     varget("$lastalloc", &lastalloc, 0, 0);
-    uint addr = lastalloc;
+    duint addr = lastalloc;
     if(argc > 1)
     {
         if(!valfromstring(argv[1], &addr, false))
@@ -821,7 +821,7 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
         return STATUS_ERROR;
     }
     if(addr == lastalloc)
-        varset("$lastalloc", (uint)0, true);
+        varset("$lastalloc", (duint)0, true);
     bool ok = !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs("VirtualFreeEx failed");
@@ -836,9 +836,9 @@ CMDRESULT cbDebugFree(int argc, char* argv[])
 
 CMDRESULT cbDebugMemset(int argc, char* argv[])
 {
-    uint addr;
-    uint value;
-    uint size;
+    duint addr;
+    duint value;
+    duint size;
     if(argc < 3)
     {
         dputs("Not enough arguments");
@@ -853,13 +853,13 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
     }
     else
     {
-        uint base = MemFindBaseAddr(addr, &size, true);
+        duint base = MemFindBaseAddr(addr, &size, true);
         if(!base)
         {
             dputs("Invalid address specified");
             return STATUS_ERROR;
         }
-        uint diff = addr - base;
+        duint diff = addr - base;
         addr = base + diff;
         size -= diff;
     }
@@ -873,9 +873,9 @@ CMDRESULT cbDebugMemset(int argc, char* argv[])
 
 CMDRESULT cbDebugBenchmark(int argc, char* argv[])
 {
-    uint addr = MemFindBaseAddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
+    duint addr = MemFindBaseAddr(GetContextDataEx(hActiveThread, UE_CIP), 0);
     DWORD ticks = GetTickCount();
-    for(uint i = addr; i < addr + 100000; i++)
+    for(duint i = addr; i < addr + 100000; i++)
     {
         CommentSet(i, "test", false);
         LabelSet(i, "test", false);
@@ -893,7 +893,7 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
         dputs("Program is not running");
         return STATUS_ERROR;
     }
-    uint debugBreakAddr;
+    duint debugBreakAddr;
     if(!valfromstring("DebugBreak", &debugBreakAddr))
     {
         dputs("Could not find DebugBreak!");
@@ -961,12 +961,12 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
         dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
-    uint pid = 0;
+    duint pid = 0;
     if(!valfromstring(argv[1], &pid, false))
         return STATUS_ERROR;
     if(argc > 2)
     {
-        uint eventHandle = 0;
+        duint eventHandle = 0;
         if(!valfromstring(argv[2], &eventHandle, false))
             return STATUS_ERROR;
         dbgsetattachevent((HANDLE)eventHandle);
@@ -1112,7 +1112,7 @@ CMDRESULT cbDebugBcDll(int argc, char* argv[])
 
 CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
 {
-    uint threadid = fdProcessInfo->dwThreadId; //main thread
+    duint threadid = fdProcessInfo->dwThreadId; //main thread
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
@@ -1130,7 +1130,7 @@ CMDRESULT cbDebugSwitchthread(int argc, char* argv[])
 
 CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
 {
-    uint threadid = fdProcessInfo->dwThreadId;
+    duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
@@ -1152,7 +1152,7 @@ CMDRESULT cbDebugSuspendthread(int argc, char* argv[])
 
 CMDRESULT cbDebugResumethread(int argc, char* argv[])
 {
-    uint threadid = fdProcessInfo->dwThreadId;
+    duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
@@ -1174,11 +1174,11 @@ CMDRESULT cbDebugResumethread(int argc, char* argv[])
 
 CMDRESULT cbDebugKillthread(int argc, char* argv[])
 {
-    uint threadid = fdProcessInfo->dwThreadId;
+    duint threadid = fdProcessInfo->dwThreadId;
     if(argc > 1)
         if(!valfromstring(argv[1], &threadid, false))
             return STATUS_ERROR;
-    uint exitcode = 0;
+    duint exitcode = 0;
     if(argc > 2)
         if(!valfromstring(argv[2], &exitcode, false))
             return STATUS_ERROR;
@@ -1221,10 +1221,10 @@ CMDRESULT cbDebugSetPriority(int argc, char* argv[])
         dputs("Not enough arguments!");
         return STATUS_ERROR;
     }
-    uint threadid;
+    duint threadid;
     if(!valfromstring(argv[1], &threadid, false))
         return STATUS_ERROR;
-    uint priority;
+    duint priority;
     if(!valfromstring(argv[2], &priority))
     {
         if(_strcmpi(argv[2], "Normal") == 0)
@@ -1302,7 +1302,7 @@ CMDRESULT cbDebugEnableHardwareBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
@@ -1342,7 +1342,7 @@ CMDRESULT cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPHARDWARE, 0, &found)) //invalid hardware breakpoint
     {
         dprintf("No such hardware breakpoint \"%s\"\n", argv[1]);
@@ -1379,7 +1379,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
@@ -1391,7 +1391,7 @@ CMDRESULT cbDebugEnableMemoryBreakpoint(int argc, char* argv[])
         GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
-    uint size = 0;
+    duint size = 0;
     MemFindBaseAddr(found.addr, &size);
     if(!BpEnable(found.addr, BPMEMORY, true) || !SetMemoryBPXEx(found.addr, size, found.titantype, !found.singleshoot, (void*)cbMemoryBreakpoint))
     {
@@ -1419,7 +1419,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     BREAKPOINT found;
-    uint addr = 0;
+    duint addr = 0;
     if(!valfromstring(argv[1], &addr) || !BpGet(addr, BPMEMORY, 0, &found)) //invalid memory breakpoint
     {
         dprintf("No such memory breakpoint \"%s\"\n", argv[1]);
@@ -1430,7 +1430,7 @@ CMDRESULT cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
         dputs("Memory breakpoint already disabled!");
         return STATUS_CONTINUE;
     }
-    uint size = 0;
+    duint size = 0;
     MemFindBaseAddr(found.addr, &size);
     if(!BpEnable(found.addr, BPMEMORY, false) || !RemoveMemoryBPX(found.addr, size))
     {
@@ -1459,7 +1459,7 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[])
         return STATUS_CONTINUE;
     }
     //get some module information
-    uint modbase = ModBaseFromName(argv[1]);
+    duint modbase = ModBaseFromName(argv[1]);
     if(!modbase)
     {
         dprintf("Invalid module \"%s\"!\n", argv[1]);
@@ -1823,7 +1823,7 @@ CMDRESULT cbDebugGetJIT(int argc, char* argv[])
 
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 {
-    uint addr = 0;
+    duint addr = 0;
     char rights[RIGHTS_STRING_SIZE];
 
     if(argc != 2 || !valfromstring(argv[1], &addr))
@@ -1845,7 +1845,7 @@ CMDRESULT cbDebugGetPageRights(int argc, char* argv[])
 
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[])
 {
-    uint addr = 0;
+    duint addr = 0;
     char rights[RIGHTS_STRING_SIZE];
 
     if(argc < 3 || !valfromstring(argv[1], &addr))
@@ -1904,7 +1904,7 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     int size = 0;
     int counter = 0;
-    uint LoadLibraryA = 0;
+    duint LoadLibraryA = 0;
     char command[50] = "";
     char error[MAX_ERROR_SIZE] = "";
 
@@ -1918,28 +1918,28 @@ CMDRESULT cbDebugLoadLib(int argc, char* argv[])
 
     // Arch specific asm code
 #ifdef _WIN64
-    sprintf(command, "mov rcx, " fhex, (uint)DLLNameMem);
+    sprintf(command, "mov rcx, " fhex, (duint)DLLNameMem);
 #else
     sprintf(command, "push " fhex, DLLNameMem);
 #endif // _WIN64
 
-    assembleat((uint)ASMAddr, command, &size, error, true);
+    assembleat((duint)ASMAddr, command, &size, error, true);
     counter += size;
 
 #ifdef _WIN64
     sprintf(command, "mov rax, " fhex, LoadLibraryA);
-    assembleat((uint)ASMAddr + counter, command, &size, error, true);
+    assembleat((duint)ASMAddr + counter, command, &size, error, true);
     counter += size;
     sprintf(command, "call rax");
 #else
     sprintf(command, "call " fhex, LoadLibraryA);
 #endif // _WIN64
 
-    assembleat((uint)ASMAddr + counter, command, &size, error, true);
+    assembleat((duint)ASMAddr + counter, command, &size, error, true);
     counter += size;
 
-    SetContextDataEx(LoadLibThread, UE_CIP, (uint)ASMAddr);
-    SetBPX((uint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
+    SetContextDataEx(LoadLibThread, UE_CIP, (duint)ASMAddr);
+    SetBPX((duint)ASMAddr + counter, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX);
 
     ThreadSuspendAll();
     ResumeThread(LoadLibThread);
@@ -1953,9 +1953,9 @@ void cbDebugLoadLibBPX()
 {
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 #ifdef _WIN64
-    uint LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
+    duint LibAddr = GetContextDataEx(LoadLibThread, UE_RAX);
 #else
-    uint LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
+    duint LibAddr = GetContextDataEx(LoadLibThread, UE_EAX);
 #endif //_WIN64
     varset("$result", LibAddr, false);
     backupctx.eflags &= ~0x100;
@@ -2084,7 +2084,7 @@ CMDRESULT cbDebugSetCmdline(int argc, char* argv[])
 CMDRESULT cbDebugSkip(int argc, char* argv[])
 {
     SetNextDbgContinueStatus(DBG_CONTINUE); //swallow the exception
-    uint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     BASIC_INSTRUCTION_INFO basicinfo;
     memset(&basicinfo, 0, sizeof(basicinfo));
     disasmfast(cip, &basicinfo);

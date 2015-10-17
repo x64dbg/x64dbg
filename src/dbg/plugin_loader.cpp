@@ -386,7 +386,7 @@ void plugincbcall(CBTYPE cbType, void* callbackInfo)
         if(currentCallback.cbType == cbType)
         {
             CBPLUGIN cbPlugin = currentCallback.cbPlugin;
-            if(!IsBadReadPtr((const void*)cbPlugin, sizeof(uint)))
+            if(!IsBadReadPtr((const void*)cbPlugin, sizeof(duint)))
                 cbPlugin(cbType, callbackInfo);
         }
     }

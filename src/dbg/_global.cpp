@@ -247,7 +247,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
 */
 bool settingboolget(const char* section, const char* name)
 {
-    uint setting;
+    duint setting;
     if(!BridgeSettingGetUint(section, name, &setting))
         return false;
     if(setting)

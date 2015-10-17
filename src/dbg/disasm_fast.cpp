@@ -85,7 +85,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
     }
 }
 
-bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+bool disasmfast(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     if(!data || !basicinfo)
         return false;
@@ -100,7 +100,7 @@ bool disasmfast(unsigned char* data, uint addr, BASIC_INSTRUCTION_INFO* basicinf
     return true;
 }
 
-bool disasmfast(uint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     unsigned int data[16];
     if(!MemRead(addr, data, sizeof(data)))

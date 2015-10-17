@@ -5,16 +5,16 @@
 struct LABELSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint addr;
+    duint addr;
     char text[MAX_LABEL_SIZE];
     bool manual;
 };
 
-bool LabelSet(uint Address, const char* Text, bool Manual);
-bool LabelFromString(const char* Text, uint* Address);
-bool LabelGet(uint Address, char* Text);
-bool LabelDelete(uint Address);
-void LabelDelRange(uint Start, uint End);
+bool LabelSet(duint Address, const char* Text, bool Manual);
+bool LabelFromString(const char* Text, duint* Address);
+bool LabelGet(duint Address, char* Text);
+bool LabelDelete(duint Address);
+void LabelDelRange(duint Start, duint End);
 void LabelCacheSave(JSON root);
 void LabelCacheLoad(JSON root);
 bool LabelEnum(LABELSINFO* List, size_t* Size);

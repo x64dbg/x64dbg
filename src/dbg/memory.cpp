@@ -25,8 +25,8 @@ void MemUpdateMap()
     std::vector<MEMPAGE> pageVector;
     {
         SIZE_T numBytes = 0;
-        uint pageStart = 0;
-        uint allocationBase = 0;
+        duint pageStart = 0;
+        duint allocationBase = 0;
 
         do
         {
@@ -40,10 +40,10 @@ void MemUpdateMap()
             if(mbi.State == MEM_COMMIT)
             {
                 // Only list allocation bases, unless if forced to list all
-                if(bListAllPages || allocationBase != (uint)mbi.AllocationBase)
+                if(bListAllPages || allocationBase != (duint)mbi.AllocationBase)
                 {
                     // Set the new allocation base page
-                    allocationBase = (uint)mbi.AllocationBase;
+                    allocationBase = (duint)mbi.AllocationBase;
 
                     MEMPAGE curPage;
                     memset(&curPage, 0, sizeof(MEMPAGE));
@@ -60,7 +60,7 @@ void MemUpdateMap()
             }
 
             // Calculate the next page start
-            uint newAddress = (uint)mbi.BaseAddress + mbi.RegionSize;
+            duint newAddress = (duint)mbi.BaseAddress + mbi.RegionSize;
 
             if(newAddress <= pageStart)
                 break;
@@ -79,7 +79,7 @@ void MemUpdateMap()
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))   //there is a module
             continue; //skip non-modules
         strcpy(curMod, pageVector.at(i).info);
-        uint base = ModBaseFromName(currentPage.info);
+        duint base = ModBaseFromName(currentPage.info);
         if(!base)
             continue;
         std::vector<MODSECTIONINFO> sections;
@@ -98,7 +98,7 @@ void MemUpdateMap()
                 const auto & currentSection = sections.at(j);
                 memset(&newPage, 0, sizeof(MEMPAGE));
                 VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                uint SectionSize = currentSection.size;
+                duint SectionSize = currentSection.size;
                 if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 if(SectionSize)
@@ -114,16 +114,16 @@ void MemUpdateMap()
         }
         else //list all pages
         {
-            uint start = (uint)currentPage.mbi.BaseAddress;
-            uint end = start + currentPage.mbi.RegionSize;
+            duint start = (duint)currentPage.mbi.BaseAddress;
+            duint end = start + currentPage.mbi.RegionSize;
             for(int j = 0, k = 0; j < SectionNumber; j++)
             {
                 const auto & currentSection = sections.at(j);
-                uint secStart = currentSection.addr;
-                uint SectionSize = currentSection.size;
+                duint secStart = currentSection.addr;
+                duint SectionSize = currentSection.size;
                 if(SectionSize % PAGE_SIZE)  //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
-                uint secEnd = secStart + SectionSize;
+                duint secEnd = secStart + SectionSize;
                 if(secStart >= start && secEnd <= end)  //section is inside the memory page
                 {
                     if(k)
@@ -146,13 +146,13 @@ void MemUpdateMap()
 
     for(auto & page : pageVector)
     {
-        uint start = (uint)page.mbi.BaseAddress;
-        uint size = (uint)page.mbi.RegionSize;
+        duint start = (duint)page.mbi.BaseAddress;
+        duint size = (duint)page.mbi.RegionSize;
         memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), page));
     }
 }
 
-uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
+duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
 {
     // Update the memory map if needed
     if(Refresh)
@@ -173,7 +173,7 @@ uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh)
     return found->first.first;
 }
 
-bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
+bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
@@ -201,9 +201,9 @@ bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
     if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
-        uint offset = 0;
-        uint readBase = BaseAddress;
-        uint readSize = ROUND_TO_PAGES(readBase) - readBase;
+        duint offset = 0;
+        duint readBase = BaseAddress;
+        duint readSize = ROUND_TO_PAGES(readBase) - readBase;
 
         // Reset the bytes read count
         *NumberOfBytesRead = 0;
@@ -227,7 +227,7 @@ bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead)
     return (*NumberOfBytesRead > 0);
 }
 
-bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten)
+bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
@@ -255,9 +255,9 @@ bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
     if(pageCount > 1)
     {
         // Determine the number of bytes between ADDRESS and the next page
-        uint offset = 0;
-        uint writeBase = BaseAddress;
-        uint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
+        duint offset = 0;
+        duint writeBase = BaseAddress;
+        duint writeSize = ROUND_TO_PAGES(writeBase) - writeBase;
 
         // Reset the bytes read count
         *NumberOfBytesWritten = 0;
@@ -281,7 +281,7 @@ bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
     return (*NumberOfBytesWritten > 0);
 }
 
-bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten)
+bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
 {
     // Buffer and size must be valid
     if(!Buffer || Size <= 0)
@@ -297,19 +297,19 @@ bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfByt
         return false;
     }
 
-    for(uint i = 0; i < Size; i++)
+    for(duint i = 0; i < Size; i++)
         PatchSet(BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
 
     return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
 }
 
-bool MemIsValidReadPtr(uint Address)
+bool MemIsValidReadPtr(duint Address)
 {
     unsigned char a = 0;
     return MemRead(Address, &a, sizeof(unsigned char));
 }
 
-bool MemIsCanonicalAddress(uint Address)
+bool MemIsCanonicalAddress(duint Address)
 {
 #ifndef _WIN64
     // 32-bit mode only supports 4GB max, so limits are
@@ -325,7 +325,7 @@ bool MemIsCanonicalAddress(uint Address)
 #endif // ndef _WIN64
 }
 
-bool MemIsCodePage(uint Address, bool Refresh)
+bool MemIsCodePage(duint Address, bool Refresh)
 {
     MEMPAGE pageInfo;
     if(!MemGetPageInfo(Address, &pageInfo, Refresh))
@@ -334,22 +334,22 @@ bool MemIsCodePage(uint Address, bool Refresh)
     return (pageInfo.mbi.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) != 0;
 }
 
-uint MemAllocRemote(uint Address, uint Size, DWORD Type, DWORD Protect)
+duint MemAllocRemote(duint Address, duint Size, DWORD Type, DWORD Protect)
 {
-    return (uint)VirtualAllocEx(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
+    return (duint)VirtualAllocEx(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
 }
 
-bool MemFreeRemote(uint Address)
+bool MemFreeRemote(duint Address)
 {
     return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
 }
 
-uint MemGetPageAligned(uint Address)
+duint MemGetPageAligned(duint Address)
 {
     return PAGE_ALIGN(Address);
 }
 
-bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
+bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh)
 {
     // Update the memory map if needed
     if(Refresh)
@@ -370,7 +370,7 @@ bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh)
     return true;
 }
 
-bool MemSetPageRights(uint Address, const char* Rights)
+bool MemSetPageRights(duint Address, const char* Rights)
 {
     // Align address to page base
     Address = MemGetPageAligned(Address);
@@ -387,7 +387,7 @@ bool MemSetPageRights(uint Address, const char* Rights)
     return true;
 }
 
-bool MemGetPageRights(uint Address, char* Rights)
+bool MemGetPageRights(duint Address, char* Rights)
 {
     // Align address to page base
     Address = MemGetPageAligned(Address);
@@ -472,7 +472,7 @@ bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
     return (*Protect != 0);
 }
 
-bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults)
+bool MemFindInPage(SimplePage page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults)
 {
     if(startoffset >= page.size || results.size() >= maxresults)
         return false;
@@ -482,27 +482,27 @@ bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternB
     if(!MemRead(page.address, data(), data.size()))
         return false;
 
-    uint maxFind = maxresults;
-    uint foundCount = results.size();
-    uint i = 0;
-    uint findSize = data.size() - startoffset;
+    duint maxFind = maxresults;
+    duint foundCount = results.size();
+    duint i = 0;
+    duint findSize = data.size() - startoffset;
     while(foundCount < maxFind)
     {
-        uint foundoffset = patternfind(data() + startoffset + i, findSize - i, pattern);
+        duint foundoffset = patternfind(data() + startoffset + i, findSize - i, pattern);
         if(foundoffset == -1)
             break;
         i += foundoffset + 1;
-        uint result = page.address + startoffset + i - 1;
+        duint result = page.address + startoffset + i - 1;
         results.push_back(result);
         foundCount++;
     }
     return true;
 }
 
-bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults, bool progress)
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress)
 {
-    uint count = 0;
-    uint total = pages.size();
+    duint count = 0;
+    duint total = pages.size();
     for(const auto page : pages)
     {
         if(!MemFindInPage(page, 0, pattern, results, maxresults))

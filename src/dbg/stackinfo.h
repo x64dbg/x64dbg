@@ -5,9 +5,9 @@
 
 struct CALLSTACKENTRY
 {
-    uint addr;
-    uint from;
-    uint to;
+    duint addr;
+    duint from;
+    duint to;
     char comment[MAX_COMMENT_SIZE];
 };
 
@@ -17,7 +17,7 @@ struct CALLSTACK
     CALLSTACKENTRY* entries;
 };
 
-bool stackcommentget(uint addr, STACK_COMMENT* comment);
-void stackgetcallstack(uint csp, CALLSTACK* callstack);
+bool stackcommentget(duint addr, STACK_COMMENT* comment);
+void stackgetcallstack(duint csp, CALLSTACK* callstack);
 
 #endif //_STACKINFO_H

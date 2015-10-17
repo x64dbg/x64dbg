@@ -3,9 +3,9 @@
 #include "module.h"
 #include "memory.h"
 
-std::unordered_map<uint, LABELSINFO> labels;
+std::unordered_map<duint, LABELSINFO> labels;
 
-bool LabelSet(uint Address, const char* Text, bool Manual)
+bool LabelSet(duint Address, const char* Text, bool Manual)
 {
     // CHECK: Exported/Command function
     if(!DbgIsDebugging())
@@ -37,7 +37,7 @@ bool LabelSet(uint Address, const char* Text, bool Manual)
     EXCLUSIVE_ACQUIRE(LockLabels);
 
     // Insert label by key
-    const uint key = ModHashFromAddr(Address);
+    const duint key = ModHashFromAddr(Address);
 
     if(!labels.insert(std::make_pair(ModHashFromAddr(key), labelInfo)).second)
         labels[key] = labelInfo;
@@ -45,7 +45,7 @@ bool LabelSet(uint Address, const char* Text, bool Manual)
     return true;
 }
 
-bool LabelFromString(const char* Text, uint* Address)
+bool LabelFromString(const char* Text, duint* Address)
 {
     // CHECK: Future? (Not used)
     if(!DbgIsDebugging())
@@ -69,7 +69,7 @@ bool LabelFromString(const char* Text, uint* Address)
     return false;
 }
 
-bool LabelGet(uint Address, char* Text)
+bool LabelGet(duint Address, char* Text)
 {
     // CHECK: Export function
     if(!DbgIsDebugging())
@@ -90,7 +90,7 @@ bool LabelGet(uint Address, char* Text)
     return true;
 }
 
-bool LabelDelete(uint Address)
+bool LabelDelete(duint Address)
 {
     // CHECK: Export function
     if(!DbgIsDebugging())
@@ -100,7 +100,7 @@ bool LabelDelete(uint Address)
     return (labels.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void LabelDelRange(uint Start, uint End)
+void LabelDelRange(duint Start, duint End)
 {
     // CHECK: Export function
     if(!DbgIsDebugging())
@@ -115,7 +115,7 @@ void LabelDelRange(uint Start, uint End)
     else
     {
         // Make sure 'Start' and 'End' reference the same module
-        uint moduleBase = ModBaseFromAddr(Start);
+        duint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
@@ -196,7 +196,7 @@ void LabelCacheLoad(JSON Root)
                 strcpy_s(labelInfo.mod, mod);
 
             // Address/Manual
-            labelInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
+            labelInfo.addr = (duint)json_hex_value(json_object_get(value, "address"));
             labelInfo.manual = Manual;
 
             // Text string
@@ -218,7 +218,7 @@ void LabelCacheLoad(JSON Root)
             }
 
             // Finally insert the data
-            const uint key = ModHashFromName(labelInfo.mod) + labelInfo.addr;
+            const duint key = ModHashFromName(labelInfo.mod) + labelInfo.addr;
 
             labels.insert(std::make_pair(key, labelInfo));
         }

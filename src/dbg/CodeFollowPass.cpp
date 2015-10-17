@@ -1,7 +1,7 @@
 #include "AnalysisPass.h"
 #include "CodeFollowPass.h"
 
-CodeFollowPass::CodeFollowPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+CodeFollowPass::CodeFollowPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
 
@@ -31,7 +31,7 @@ bool CodeFollowPass::Analyse()
     return false;
 }
 
-uint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
+duint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
 {
     for(int i = 0; i < Context.op_count; i++)
     {
@@ -40,7 +40,7 @@ uint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
         // Looking for immediate references
         if(operand.type == X86_OP_IMM)
         {
-            uint dest = (uint)operand.imm;
+            duint dest = (duint)operand.imm;
 
             if(ValidateAddress(dest))
                 return dest;
@@ -50,7 +50,7 @@ uint CodeFollowPass::GetReferenceOperand(const cs_x86 & Context)
     return 0;
 }
 
-uint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect)
+duint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect)
 {
     if(Context.op_count <= 0)
         return 0;
@@ -81,7 +81,7 @@ uint CodeFollowPass::GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context,
             // TODO: Translate RIP-Relative
             return 0;
 
-            uint dest = (uint)operand.mem.disp;
+            duint dest = (duint)operand.mem.disp;
 
             if(ValidateAddress(dest))
                 return dest;

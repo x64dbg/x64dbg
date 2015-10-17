@@ -112,7 +112,7 @@ void varfree()
 \param Type The variable type.
 \return true if the new variables was created and set successfully, false otherwise.
 */
-bool varnew(const char* Name, uint Value, VAR_TYPE Type)
+bool varnew(const char* Name, duint Value, VAR_TYPE Type)
 {
     if(!Name)
         return false;
@@ -137,7 +137,7 @@ bool varnew(const char* Name, uint Value, VAR_TYPE Type)
         if(i)
             var.alias = firstName;
         var.type = Type;
-        var.value.size = sizeof(uint);
+        var.value.size = sizeof(duint);
         var.value.type = VAR_UINT;
         var.value.u.value = Value;
         variables.insert(std::make_pair(name_, var));
@@ -188,7 +188,7 @@ bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type)
 \param [out] Type This function can get the variable type. If this value is null, it is ignored.
 \return true if the variable was found and the optional values were retrieved successfully, false otherwise.
 */
-bool varget(const char* Name, uint* Value, int* Size, VAR_TYPE* Type)
+bool varget(const char* Name, duint* Value, int* Size, VAR_TYPE* Type)
 {
     VAR_VALUE varvalue;
     int varsize;
@@ -235,11 +235,11 @@ bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type)
 \param ReadOnly true to set read-only variables (like $hProcess etc.).
 \return true if the variable was set successfully, false otherwise.
 */
-bool varset(const char* Name, uint Value, bool ReadOnly)
+bool varset(const char* Name, duint Value, bool ReadOnly)
 {
     // Insert variable as an unsigned integer
     VAR_VALUE varValue;
-    varValue.size = sizeof(uint);
+    varValue.size = sizeof(duint);
     varValue.type = VAR_UINT;
     varValue.u.value = Value;
 

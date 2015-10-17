@@ -4,7 +4,7 @@
 #include "LinearPass.h"
 #include "capstone_wrapper.h"
 
-LinearPass::LinearPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks)
+LinearPass::LinearPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
 {
     // This is a fix for when the total data analysis size is less
@@ -28,15 +28,15 @@ bool LinearPass::Analyse()
 {
     // Divide the work up between each thread
     // THREAD_WORK = (TOTAL / # THREADS)
-    uint workAmount = m_DataSize / IdealThreadCount();
+    duint workAmount = m_DataSize / IdealThreadCount();
 
     // Initialize thread vector
     auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(uint(0), IdealThreadCount(), [&](uint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
-        uint threadWorkStart = m_VirtualStart + (workAmount * i);
-        uint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
+        duint threadWorkStart = m_VirtualStart + (workAmount * i);
+        duint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
 
         // Allow a 256-byte variance of scanning because of
         // integer rounding errors and instruction overlap
@@ -57,7 +57,7 @@ bool LinearPass::Analyse()
     // Clear old data and combine vectors
     m_MainBlocks.clear();
 
-    for(uint i = 0; i < IdealThreadCount(); i++)
+    for(duint i = 0; i < IdealThreadCount(); i++)
     {
         std::move(threadBlocks[i].begin(), threadBlocks[i].end(), std::back_inserter(m_MainBlocks));
 
@@ -91,16 +91,16 @@ void LinearPass::AnalyseOverlaps()
     // the middle of other basic blocks.
     //
     // THREAD_WORK = ceil(TOTAL / # THREADS)
-    uint workTotal = m_MainBlocks.size();
-    uint workAmount = (workTotal + (IdealThreadCount() - 1)) / IdealThreadCount();
+    duint workTotal = m_MainBlocks.size();
+    duint workAmount = (workTotal + (IdealThreadCount() - 1)) / IdealThreadCount();
 
     // Initialize thread vectors
     auto threadInserts = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(uint(0), IdealThreadCount(), [&](uint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
-        uint threadWorkStart = (workAmount * i);
-        uint threadWorkStop = min((threadWorkStart + workAmount), workTotal);
+        duint threadWorkStart = (workAmount * i);
+        duint threadWorkStop = min((threadWorkStart + workAmount), workTotal);
 
         // Again, allow an overlap of +/- 1 entry
         if(threadWorkStart > 0)
@@ -116,7 +116,7 @@ void LinearPass::AnalyseOverlaps()
     // THREAD VECTOR
     std::vector<BasicBlock> overlapInserts;
     {
-        for(uint i = 0; i < IdealThreadCount(); i++)
+        for(duint i = 0; i < IdealThreadCount(); i++)
             std::move(threadInserts[i].begin(), threadInserts[i].end(), std::back_inserter(overlapInserts));
 
         // Sort and remove duplicates
@@ -142,16 +142,16 @@ void LinearPass::AnalyseOverlaps()
     }
 }
 
-void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
+void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
 {
     Capstone disasm;
 
-    uint blockBegin = Start;        // BBlock starting virtual address
-    uint blockEnd;                  // BBlock ending virtual address
+    duint blockBegin = Start;        // BBlock starting virtual address
+    duint blockEnd;                  // BBlock ending virtual address
     bool blockPrevPad = false;      // Indicator if the last instruction was padding
     BasicBlock* lastBlock = nullptr;// Avoid an expensive call to std::vector::back()
 
-    for(uint i = Start; i < End;)
+    for(duint i = Start; i < End;)
     {
         if(!disasm.Disassemble(i, TranslateAddress(i)))
         {
@@ -174,7 +174,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
         {
             // PADDING is treated differently. They are all created as their
             // own separate block for more analysis later.
-            uint realBlockEnd = blockEnd - disasm.Size();
+            duint realBlockEnd = blockEnd - disasm.Size();
 
             if((realBlockEnd - blockBegin) > 0)
             {
@@ -206,7 +206,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                 if(operand.type == X86_OP_IMM)
                 {
                     // Branch target immediate
-                    block->Target = (uint)operand.imm;
+                    block->Target = (duint)operand.imm;
 
                     // Check if absolute jump
                     if(disasm.GetId() == X86_INS_JMP)
@@ -223,7 +223,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
                             operand.mem.scale == 1)
                     {
                         block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
-                        block->Target = (uint)operand.mem.disp;
+                        block->Target = (duint)operand.mem.disp;
                     }
                 }
             }
@@ -235,7 +235,7 @@ void LinearPass::AnalysisWorker(uint Start, uint End, BBlockArray* Blocks)
     }
 }
 
-void LinearPass::AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insertions)
+void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Insertions)
 {
     // Comparison function to see if two blocks overlap
     auto BlockOverlapsRemove = [](BasicBlock * A, BasicBlock * B) -> BasicBlock*
@@ -256,7 +256,7 @@ void LinearPass::AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insert
     // Get a pointer to pure data
     const auto blocks = m_MainBlocks.data();
 
-    for(uint i = Start; i < End; i++)
+    for(duint i = Start; i < End; i++)
     {
         const auto curr = &blocks[i];
         const auto next = &blocks[i + 1];
@@ -302,7 +302,7 @@ void LinearPass::AnalysisOverlapWorker(uint Start, uint End, BBlockArray* Insert
     }
 }
 
-BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, uint Start, uint End, bool Call, bool Jmp, bool Ret, bool Pad)
+BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, duint Start, duint End, bool Call, bool Jmp, bool Ret, bool Pad)
 {
     BasicBlock block;
     block.VirtualStart = Start;

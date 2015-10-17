@@ -3,7 +3,7 @@
 #include "memory.h"
 #include "function.h"
 
-LinearAnalysis::LinearAnalysis(uint base, uint size) : Analysis(base, size)
+LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
 {
 }
 
@@ -41,12 +41,12 @@ void LinearAnalysis::SortCleanup()
 void LinearAnalysis::PopulateReferences()
 {
     //linear immediate reference scan (call <addr>, push <addr>, mov [somewhere], <addr>)
-    for(uint i = 0; i < _size;)
+    for(duint i = 0; i < _size;)
     {
-        uint addr = _base + i;
+        duint addr = _base + i;
         if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
         {
-            uint ref = GetReferenceOperand();
+            duint ref = GetReferenceOperand();
             if(ref)
                 _functions.push_back({ ref, 0 });
             i += _cp.Size();
@@ -64,11 +64,11 @@ void LinearAnalysis::AnalyseFunctions()
         FunctionInfo & function = _functions[i];
         if(function.end)  //skip already-analysed functions
             continue;
-        uint maxaddr = _base + _size;
+        duint maxaddr = _base + _size;
         if(i < _functions.size() - 1)
             maxaddr = _functions[i + 1].start;
 
-        uint end = FindFunctionEnd(function.start, maxaddr);
+        duint end = FindFunctionEnd(function.start, maxaddr);
         if(end)
         {
             if(_cp.Disassemble(end, TranslateAddress(end), MAX_DISASM_BUFFER))
@@ -79,7 +79,7 @@ void LinearAnalysis::AnalyseFunctions()
     }
 }
 
-uint LinearAnalysis::FindFunctionEnd(uint start, uint maxaddr)
+duint LinearAnalysis::FindFunctionEnd(duint start, duint maxaddr)
 {
     //disassemble first instruction for some heuristics
     if(_cp.Disassemble(start, TranslateAddress(start), MAX_DISASM_BUFFER))
@@ -90,9 +90,9 @@ uint LinearAnalysis::FindFunctionEnd(uint start, uint maxaddr)
     }
 
     //linear search with some trickery
-    uint end = 0;
-    uint jumpback = 0;
-    for(uint addr = start, fardest = 0; addr < maxaddr;)
+    duint end = 0;
+    duint jumpback = 0;
+    for(duint addr = start, fardest = 0; addr < maxaddr;)
     {
         if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
         {
@@ -102,7 +102,7 @@ uint LinearAnalysis::FindFunctionEnd(uint start, uint maxaddr)
             const cs_x86_op & operand = _cp.x86().operands[0];
             if((_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop()) && operand.type == X86_OP_IMM)   //jump
             {
-                uint dest = (uint)operand.imm;
+                duint dest = (duint)operand.imm;
 
                 if(dest >= maxaddr)   //jump across function boundaries
                 {
@@ -132,7 +132,7 @@ uint LinearAnalysis::FindFunctionEnd(uint start, uint maxaddr)
     return end < jumpback ? jumpback : end;
 }
 
-uint LinearAnalysis::GetReferenceOperand()
+duint LinearAnalysis::GetReferenceOperand()
 {
     for(int i = 0; i < _cp.x86().op_count; i++)
     {
@@ -141,7 +141,7 @@ uint LinearAnalysis::GetReferenceOperand()
             continue;
         if(operand.type == X86_OP_IMM)  //we are looking for immediate references
         {
-            uint dest = (uint)operand.imm;
+            duint dest = (duint)operand.imm;
             if(dest >= _base && dest < _base + _size)
                 return dest;
         }

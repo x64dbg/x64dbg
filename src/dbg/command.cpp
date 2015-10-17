@@ -262,7 +262,7 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
 */
 static bool isvalidexpression(const char* expression)
 {
-    uint value;
+    duint value;
     return valfromstring(expression, &value);
 }
 

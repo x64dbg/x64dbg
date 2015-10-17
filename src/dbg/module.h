@@ -4,17 +4,17 @@
 
 struct MODSECTIONINFO
 {
-    uint addr;      // Virtual address
-    uint size;      // Virtual size
+    duint addr;      // Virtual address
+    duint size;      // Virtual size
     char name[MAX_SECTION_SIZE * 5];  // Escaped section name
 };
 
 struct MODINFO
 {
-    uint base;  // Module base
-    uint size;  // Module size
-    uint hash;  // Full module name hash
-    uint entry; // Entry point
+    duint base;  // Module base
+    duint size;  // Module size
+    duint hash;  // Full module name hash
+    duint entry; // Entry point
 
     char name[MAX_MODULE_SIZE];         // Module name (without extension)
     char extension[MAX_MODULE_SIZE];    // File extension
@@ -23,18 +23,18 @@ struct MODINFO
     std::vector<MODSECTIONINFO> sections;
 };
 
-bool ModLoad(uint Base, uint Size, const char* FullPath);
-bool ModUnload(uint Base);
+bool ModLoad(duint Base, duint Size, const char* FullPath);
+bool ModUnload(duint Base);
 void ModClear();
-MODINFO* ModInfoFromAddr(uint Address);
-bool ModNameFromAddr(uint Address, char* Name, bool Extension);
-uint ModBaseFromAddr(uint Address);
-uint ModHashFromAddr(uint Address);
-uint ModHashFromName(const char* Module);
-uint ModBaseFromName(const char* Module);
-uint ModSizeFromAddr(uint Address);
-bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections);
-uint ModEntryFromAddr(uint Address);
+MODINFO* ModInfoFromAddr(duint Address);
+bool ModNameFromAddr(duint Address, char* Name, bool Extension);
+duint ModBaseFromAddr(duint Address);
+duint ModHashFromAddr(duint Address);
+duint ModHashFromName(const char* Module);
+duint ModBaseFromName(const char* Module);
+duint ModSizeFromAddr(duint Address);
+bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections);
+duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);

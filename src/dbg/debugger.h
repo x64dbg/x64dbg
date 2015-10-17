@@ -53,7 +53,7 @@ typedef enum
 typedef struct
 {
     cmdline_error_type_t type;
-    uint addr;
+    duint addr;
 } cmdline_error_t;
 
 struct ExceptionRange
@@ -76,12 +76,12 @@ typedef struct _THREADNAME_INFO
 SIZE_T dbggetprivateusage(HANDLE hProcess, bool update = false);
 void dbginit();
 void dbgstop();
-uint dbgdebuggedbase();
-uint dbggettimewastedcounter();
+duint dbgdebuggedbase();
+duint dbggettimewastedcounter();
 bool dbgisrunning();
 bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);
-void DebugUpdateGui(uint disasm_addr, bool stack);
+void DebugUpdateGui(duint disasm_addr, bool stack);
 void dbgsetskipexceptions(bool skip);
 void dbgsetstepping(bool stepping);
 void dbgsetispausedbyuser(bool b);
@@ -101,7 +101,7 @@ bool IsProcessElevated();
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
-uint dbggetdebuggedbase();
+duint dbggetdebuggedbase();
 
 void cbStep();
 void cbRtrStep();

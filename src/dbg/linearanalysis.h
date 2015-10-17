@@ -7,15 +7,15 @@
 class LinearAnalysis : public Analysis
 {
 public:
-    explicit LinearAnalysis(uint base, uint size);
+    explicit LinearAnalysis(duint base, duint size);
     void Analyse() override;
     void SetMarkers() override;
 
 private:
     struct FunctionInfo
     {
-        uint start;
-        uint end;
+        duint start;
+        duint end;
 
         bool operator<(const FunctionInfo & b) const
         {
@@ -33,8 +33,8 @@ private:
     void SortCleanup();
     void PopulateReferences();
     void AnalyseFunctions();
-    uint FindFunctionEnd(uint start, uint maxaddr);
-    uint GetReferenceOperand();
+    duint FindFunctionEnd(duint start, duint maxaddr);
+    duint GetReferenceOperand();
 };
 
 #endif //_LINEARANALYSIS_H

@@ -6,17 +6,17 @@
 struct LOOPSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint start;
-    uint end;
-    uint parent;
+    duint start;
+    duint end;
+    duint parent;
     int depth;
     bool manual;
 };
 
-bool LoopAdd(uint Start, uint End, bool Manual);
-bool LoopGet(int Depth, uint Address, uint* Start, uint* End);
-bool LoopOverlaps(int Depth, uint Start, uint End, int* FinalDepth);
-bool LoopDelete(int Depth, uint Address);
+bool LoopAdd(duint Start, duint End, bool Manual);
+bool LoopGet(int Depth, duint Address, duint* Start, duint* End);
+bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth);
+bool LoopDelete(int Depth, duint Address);
 void LoopCacheSave(JSON Root);
 void LoopCacheLoad(JSON Root);
 bool LoopEnum(LOOPSINFO* List, size_t* Size);

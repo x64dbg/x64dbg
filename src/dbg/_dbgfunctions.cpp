@@ -41,7 +41,7 @@ static bool _sectionfromaddr(duint addr, char* section)
     ULONG_PTR FileMapVA;
     if(StaticFileLoadW(curModPath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
     {
-        uint rva = addr - (uint)hMod;
+        duint rva = addr - (duint)hMod;
         int sectionNumber = GetPE32SectionNumberFromVA(FileMapVA, GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE) + rva);
         if(sectionNumber >= 0)
         {

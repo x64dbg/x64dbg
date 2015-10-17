@@ -3,7 +3,7 @@
 #include "AnalysisPass.h"
 #include "memory.h"
 
-AnalysisPass::AnalysisPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks) : m_MainBlocks(MainBlocks)
+AnalysisPass::AnalysisPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks) : m_MainBlocks(MainBlocks)
 {
     assert(VirtualEnd > VirtualStart);
 
@@ -29,20 +29,20 @@ AnalysisPass::~AnalysisPass()
         efree(m_Data);
 }
 
-BasicBlock* AnalysisPass::FindBBlockInRange(uint Address)
+BasicBlock* AnalysisPass::FindBBlockInRange(duint Address)
 {
     // NOTE: __MUST__ BE A SORTED VECTOR
     //
     // Use a binary search
-    uint indexLo = 0;
-    uint indexHi = m_MainBlocks.size();
+    duint indexLo = 0;
+    duint indexHi = m_MainBlocks.size();
 
     // Get a pointer to pure data
     const auto blocks = m_MainBlocks.data();
 
     while(indexHi > indexLo)
     {
-        uint indexMid = (indexLo + indexHi) / 2;
+        duint indexMid = (indexLo + indexHi) / 2;
         auto entry = &blocks[indexMid];
 
         if(Address < entry->VirtualStart)
@@ -66,18 +66,18 @@ BasicBlock* AnalysisPass::FindBBlockInRange(uint Address)
     return nullptr;
 }
 
-uint AnalysisPass::FindBBlockIndex(BasicBlock* Block)
+duint AnalysisPass::FindBBlockIndex(BasicBlock* Block)
 {
     // Fast pointer arithmetic to find index
-    return ((uint)Block - (uint)m_MainBlocks.data()) / sizeof(BasicBlock);
+    return ((duint)Block - (duint)m_MainBlocks.data()) / sizeof(BasicBlock);
 }
 
-uint AnalysisPass::IdealThreadCount()
+duint AnalysisPass::IdealThreadCount()
 {
     if(m_InternalMaxThreads == 0)
     {
         // Determine the maximum hardware thread count at once
-        uint maximumThreads = max(std::thread::hardware_concurrency(), 1);
+        duint maximumThreads = max(std::thread::hardware_concurrency(), 1);
 
         // Don't consume 100% of the CPU, adjust accordingly
         if(maximumThreads > 1)
@@ -89,7 +89,7 @@ uint AnalysisPass::IdealThreadCount()
     return m_InternalMaxThreads;
 }
 
-void AnalysisPass::SetIdealThreadCount(uint Count)
+void AnalysisPass::SetIdealThreadCount(duint Count)
 {
     m_InternalMaxThreads = (BYTE)min(Count, 255);
 }

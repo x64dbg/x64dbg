@@ -236,7 +236,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
     int len = (int)strlen(cmd);
     char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
     strcpy_s(newcmd, len + 1, cmd);
-    return MsgSend(gMsgStack, 0, (uint)newcmd, 0);
+    return MsgSend(gMsgStack, 0, (duint)newcmd, 0);
 }
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)

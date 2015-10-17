@@ -17,7 +17,7 @@ enum ValueType
 
 static String printValue(FormatValueType value, ValueType::ValueType type)
 {
-    uint valuint = 0;
+    duint valuint = 0;
     bool validval = valfromstring(value, &valuint);
     char result[deflen] = "???";
     switch(type)

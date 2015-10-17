@@ -7,7 +7,7 @@ class ExpressionParser
 {
 public:
     ExpressionParser(const String & expression);
-    bool calculate(uint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly);
+    bool calculate(duint & value, bool signedcalc, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly);
 
     class Token
     {
@@ -57,8 +57,8 @@ private:
     void tokenize(const String & expression);
     void shuntingYard();
     void addOperatorToken(const char ch, const Token::Type type);
-    bool unsignedoperation(const Token::Type type, const uint op1, const uint op2, uint & result);
-    bool signedoperation(const Token::Type type, const sint op1, const sint op2, uint & result);
+    bool unsignedoperation(const Token::Type type, const duint op1, const duint op2, duint & result);
+    bool signedoperation(const Token::Type type, const sint op1, const sint op2, duint & result);
 
     std::vector<Token> _tokens;
     std::vector<Token> _prefixTokens;

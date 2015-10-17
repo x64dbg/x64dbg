@@ -5,16 +5,16 @@
 struct FUNCTIONSINFO
 {
     char mod[MAX_MODULE_SIZE];
-    uint start;
-    uint end;
+    duint start;
+    duint end;
     bool manual;
 };
 
-bool FunctionAdd(uint Start, uint End, bool Manual);
-bool FunctionGet(uint Address, uint* Start, uint* End);
-bool FunctionOverlaps(uint Start, uint End);
-bool FunctionDelete(uint Address);
-void FunctionDelRange(uint Start, uint End);
+bool FunctionAdd(duint Start, duint End, bool Manual);
+bool FunctionGet(duint Address, duint* Start, duint* End);
+bool FunctionOverlaps(duint Start, duint End);
+bool FunctionDelete(duint Address);
+void FunctionDelRange(duint Start, duint End);
 void FunctionCacheSave(JSON Root);
 void FunctionCacheLoad(JSON Root);
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);

@@ -1,7 +1,7 @@
 #include "analysis.h"
 #include "memory.h"
 
-Analysis::Analysis(uint base, uint size)
+Analysis::Analysis(duint base, duint size)
 {
     _base = base;
     _size = size;
@@ -14,12 +14,12 @@ Analysis::~Analysis()
     delete[] _data;
 }
 
-bool Analysis::IsValidAddress(uint addr)
+bool Analysis::IsValidAddress(duint addr)
 {
     return addr >= _base && addr < _base + _size;
 }
 
-const unsigned char* Analysis::TranslateAddress(uint addr)
+const unsigned char* Analysis::TranslateAddress(duint addr)
 {
     return IsValidAddress(addr) ? _data + (addr - _base) : nullptr;
 }

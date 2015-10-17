@@ -346,8 +346,8 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
 
 static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump
 {
-    uint ezflag = 0;
-    uint bsflag = 0;
+    duint ezflag = 0;
+    duint bsflag = 0;
     varget("$_EZ_FLAG", &ezflag, 0, 0);
     varget("$_BS_FLAG", &bsflag, 0, 0);
     bool bJump = false;
@@ -426,7 +426,7 @@ static bool scriptinternalcmd()
 
 static DWORD WINAPI scriptRunThread(void* arg)
 {
-    int destline = (int)(uint)arg;
+    int destline = (int)(duint)arg;
     if(!destline || destline > (int)linemap.size()) //invalid line
         destline = 0;
     if(destline)
@@ -504,7 +504,7 @@ void scriptrun(int destline)
     if(bIsRunning) //already running
         return;
     bIsRunning = true;
-    CloseHandle(CreateThread(0, 0, scriptRunThread, (void*)(uint)destline, 0, 0));
+    CloseHandle(CreateThread(0, 0, scriptRunThread, (void*)(duint)destline, 0, 0));
 }
 
 DWORD WINAPI scriptStepThread(void* param)

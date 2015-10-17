@@ -3,9 +3,9 @@
 #include "module.h"
 #include "memory.h"
 
-std::unordered_map<uint, COMMENTSINFO> comments;
+std::unordered_map<duint, COMMENTSINFO> comments;
 
-bool CommentSet(uint Address, const char* Text, bool Manual)
+bool CommentSet(duint Address, const char* Text, bool Manual)
 {
     // CHECK: Exported/Command function
     if(!DbgIsDebugging())
@@ -32,7 +32,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
     comment.addr = Address - ModBaseFromAddr(Address);
 
     // Key generated from module hash
-    const uint key = ModHashFromAddr(Address);
+    const duint key = ModHashFromAddr(Address);
 
     EXCLUSIVE_ACQUIRE(LockComments);
 
@@ -43,7 +43,7 @@ bool CommentSet(uint Address, const char* Text, bool Manual)
     return true;
 }
 
-bool CommentGet(uint Address, char* Text)
+bool CommentGet(duint Address, char* Text)
 {
     // CHECK: Exported/Command function
     if(!DbgIsDebugging())
@@ -66,7 +66,7 @@ bool CommentGet(uint Address, char* Text)
     return true;
 }
 
-bool CommentDelete(uint Address)
+bool CommentDelete(duint Address)
 {
     // CHECK: Command/Sub function
     if(!DbgIsDebugging())
@@ -76,7 +76,7 @@ bool CommentDelete(uint Address)
     return (comments.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void CommentDelRange(uint Start, uint End)
+void CommentDelRange(duint Start, duint End)
 {
     // CHECK: Export function
     if(!DbgIsDebugging())
@@ -91,7 +91,7 @@ void CommentDelRange(uint Start, uint End)
     else
     {
         // Make sure 'Start' and 'End' reference the same module
-        uint moduleBase = ModBaseFromAddr(Start);
+        duint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
@@ -175,7 +175,7 @@ void CommentCacheLoad(JSON Root)
                 strcpy_s(commentInfo.mod, mod);
 
             // Address/Manual
-            commentInfo.addr = (uint)json_hex_value(json_object_get(value, "address"));
+            commentInfo.addr = (duint)json_hex_value(json_object_get(value, "address"));
             commentInfo.manual = Manual;
 
             // String value
@@ -189,7 +189,7 @@ void CommentCacheLoad(JSON Root)
                 continue;
             }
 
-            const uint key = ModHashFromName(commentInfo.mod) + commentInfo.addr;
+            const duint key = ModHashFromName(commentInfo.mod) + commentInfo.addr;
             comments.insert(std::make_pair(key, commentInfo));
         }
     };

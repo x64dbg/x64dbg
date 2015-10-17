@@ -9,10 +9,10 @@ extern bool bListAllPages;
 
 struct SimplePage
 {
-    uint address;
-    uint size;
+    duint address;
+    duint size;
 
-    SimplePage(uint address, uint size)
+    SimplePage(duint address, duint size)
     {
         this->address = address;
         this->size = size;
@@ -20,20 +20,20 @@ struct SimplePage
 };
 
 void MemUpdateMap();
-uint MemFindBaseAddr(uint Address, uint* Size, bool Refresh = false);
-bool MemRead(uint BaseAddress, void* Buffer, uint Size, uint* NumberOfBytesRead = nullptr);
-bool MemWrite(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten = nullptr);
-bool MemPatch(uint BaseAddress, const void* Buffer, uint Size, uint* NumberOfBytesWritten = nullptr);
-bool MemIsValidReadPtr(uint Address);
-bool MemIsCanonicalAddress(uint Address);
-bool MemIsCodePage(uint Address, bool Refresh);
-uint MemAllocRemote(uint Address, uint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);
-bool MemFreeRemote(uint Address);
-uint MemGetPageAligned(uint Address);
-bool MemGetPageInfo(uint Address, MEMPAGE* PageInfo, bool Refresh = false);
-bool MemSetPageRights(uint Address, const char* Rights);
-bool MemGetPageRights(uint Address, char* Rights);
+duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh = false);
+bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr);
+bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
+bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
+bool MemIsValidReadPtr(duint Address);
+bool MemIsCanonicalAddress(duint Address);
+bool MemIsCodePage(duint Address, bool Refresh);
+duint MemAllocRemote(duint Address, duint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);
+bool MemFreeRemote(duint Address);
+duint MemGetPageAligned(duint Address);
+bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh = false);
+bool MemSetPageRights(duint Address, const char* Rights);
+bool MemGetPageRights(duint Address, char* Rights);
 bool MemPageRightsToString(DWORD Protect, char* Rights);
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
-bool MemFindInPage(SimplePage page, uint startoffset, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults);
-bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<uint> & results, uint maxresults, bool progress = true);
+bool MemFindInPage(SimplePage page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults);
+bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress = true);

@@ -9,10 +9,10 @@
 #include "console.h"
 #include "module.h"
 
-int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent, const char* Name)
+int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name)
 {
-    uint regionSize = 0;
-    uint regionBase = MemFindBaseAddr(Address, &regionSize, true);
+    duint regionSize = 0;
+    duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
 
     // If the memory page wasn't found, fail
     if(!regionBase || !regionSize)
@@ -24,13 +24,13 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
     }
 
     // Assume the entire range is used
-    uint scanStart = regionBase;
-    uint scanSize = regionSize;
+    duint scanStart = regionBase;
+    duint scanSize = regionSize;
 
     // Otherwise use custom boundaries if size was supplied
     if(Size)
     {
-        uint maxsize = Size - (Address - regionBase);
+        duint maxsize = Size - (Address - regionBase);
 
         // Make sure the size fits in one page
         scanStart = Address;
@@ -69,8 +69,8 @@ int RefFind(uint Address, uint Size, CBREF Callback, void* UserData, bool Silent
 
     Callback(0, 0, &refInfo);
 
-    //concurrency::parallel_for(uint(0), scanSize, [&](uint i)
-    for(uint i = 0; i < scanSize;)
+    //concurrency::parallel_for(duint(0), scanSize, [&](duint i)
+    for(duint i = 0; i < scanSize;)
     {
         // Print the progress every 4096 bytes
         if((i % 0x1000) == 0)

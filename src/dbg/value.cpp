@@ -345,7 +345,7 @@ static unsigned int getmxcsrflagfromstring(const char* string)
 \param string The string with the flag name.
 \return true if the flag is 1, false if the flag is 0.
 */
-bool valmxcsrflagfromstring(uint mxcsrflags, const char* string)
+bool valmxcsrflagfromstring(duint mxcsrflags, const char* string)
 {
     unsigned int flag = getmxcsrflagfromstring(string);
     if(flag == 0)
@@ -409,7 +409,7 @@ static unsigned int getx87statuswordflagfromstring(const char* string)
 \param string The flag name.
 \return true if the flag is 1, false if the flag is 0.
 */
-bool valx87statuswordflagfromstring(uint statusword, const char* string)
+bool valx87statuswordflagfromstring(duint statusword, const char* string)
 {
     unsigned int flag = getx87statuswordflagfromstring(string);
     if(flag == 0)
@@ -463,7 +463,7 @@ static unsigned int getx87controlwordflagfromstring(const char* string)
 \param string The flag name.
 \return true if the flag is 1, false when the flag is 0.
 */
-bool valx87controlwordflagfromstring(uint controlword, const char* string)
+bool valx87controlwordflagfromstring(duint controlword, const char* string)
 {
     unsigned int flag = getx87controlwordflagfromstring(string);
 
@@ -479,7 +479,7 @@ bool valx87controlwordflagfromstring(uint controlword, const char* string)
 \param string The name of the field (should be "RC").
 \return The MXCSR field word.
 */
-unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
+unsigned short valmxcsrfieldfromstring(duint mxcsrflags, const char* string)
 {
     if(scmp(string, "RC"))
         return ((mxcsrflags & 0x6000) >> 13);
@@ -493,7 +493,7 @@ unsigned short valmxcsrfieldfromstring(uint mxcsrflags, const char* string)
 \param string The name of the field (should be "TOP").
 \return The x87 status word field.
 */
-unsigned short valx87statuswordfieldfromstring(uint statusword, const char* string)
+unsigned short valx87statuswordfieldfromstring(duint statusword, const char* string)
 {
     if(scmp(string, "TOP"))
         return ((statusword & 0x3800) >> 11);
@@ -507,7 +507,7 @@ unsigned short valx87statuswordfieldfromstring(uint statusword, const char* stri
 \param string The name of the field.
 \return The x87 control word field.
 */
-unsigned short valx87controlwordfieldfromstring(uint controlword, const char* string)
+unsigned short valx87controlwordfieldfromstring(duint controlword, const char* string)
 {
     if(scmp(string, "PC"))
         return ((controlword & 0x300) >> 8);
@@ -523,7 +523,7 @@ unsigned short valx87controlwordfieldfromstring(uint controlword, const char* st
 \param string The name of the flag.
 \return true if the flag equals to 1, false if the flag is 0 or not found.
 */
-bool valflagfromstring(uint eflags, const char* string)
+bool valflagfromstring(duint eflags, const char* string)
 {
     if(scmp(string, "cf"))
         return (bool)((int)(eflags & 0x1) != 0);
@@ -566,9 +566,9 @@ bool valflagfromstring(uint eflags, const char* string)
 */
 bool setflag(const char* string, bool set)
 {
-    uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
-    uint xorval = 0;
-    uint flag = 0;
+    duint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
+    duint xorval = 0;
+    duint flag = 0;
     if(scmp(string, "cf"))
         flag = 0x1;
     else if(scmp(string, "pf"))
@@ -612,7 +612,7 @@ bool setflag(const char* string, bool set)
 \param string The name of the register to get.
 \return The register value.
 */
-static uint getregister(int* size, const char* string)
+static duint getregister(int* size, const char* string)
 {
     if(size)
         *size = 4;
@@ -686,47 +686,47 @@ static uint getregister(int* size, const char* string)
         *size = 2;
     if(scmp(string, "ax"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        duint val = GetContextDataEx(hActiveThread, UE_EAX);
         return val & 0xFFFF;
     }
     if(scmp(string, "bx"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        duint val = GetContextDataEx(hActiveThread, UE_EBX);
         return val & 0xFFFF;
     }
     if(scmp(string, "cx"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        duint val = GetContextDataEx(hActiveThread, UE_ECX);
         return val & 0xFFFF;
     }
     if(scmp(string, "dx"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        duint val = GetContextDataEx(hActiveThread, UE_EDX);
         return val & 0xFFFF;
     }
     if(scmp(string, "si"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        duint val = GetContextDataEx(hActiveThread, UE_ESI);
         return val & 0xFFFF;
     }
     if(scmp(string, "di"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        duint val = GetContextDataEx(hActiveThread, UE_EDI);
         return val & 0xFFFF;
     }
     if(scmp(string, "bp"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        duint val = GetContextDataEx(hActiveThread, UE_EBP);
         return val & 0xFFFF;
     }
     if(scmp(string, "sp"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        duint val = GetContextDataEx(hActiveThread, UE_ESP);
         return val & 0xFFFF;
     }
     if(scmp(string, "ip"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        duint val = GetContextDataEx(hActiveThread, UE_EIP);
         return val & 0xFFFF;
     }
 
@@ -734,97 +734,97 @@ static uint getregister(int* size, const char* string)
         *size = 1;
     if(scmp(string, "ah"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        duint val = GetContextDataEx(hActiveThread, UE_EAX);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "al"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EAX);
+        duint val = GetContextDataEx(hActiveThread, UE_EAX);
         return val & 0xFF;
     }
     if(scmp(string, "bh"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        duint val = GetContextDataEx(hActiveThread, UE_EBX);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "bl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBX);
+        duint val = GetContextDataEx(hActiveThread, UE_EBX);
         return val & 0xFF;
     }
     if(scmp(string, "ch"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        duint val = GetContextDataEx(hActiveThread, UE_ECX);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "cl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ECX);
+        duint val = GetContextDataEx(hActiveThread, UE_ECX);
         return val & 0xFF;
     }
     if(scmp(string, "dh"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        duint val = GetContextDataEx(hActiveThread, UE_EDX);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "dl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDX);
+        duint val = GetContextDataEx(hActiveThread, UE_EDX);
         return val & 0xFF;
     }
     if(scmp(string, "sih"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        duint val = GetContextDataEx(hActiveThread, UE_ESI);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "sil"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESI);
+        duint val = GetContextDataEx(hActiveThread, UE_ESI);
         return val & 0xFF;
     }
     if(scmp(string, "dih"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        duint val = GetContextDataEx(hActiveThread, UE_EDI);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "dil"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EDI);
+        duint val = GetContextDataEx(hActiveThread, UE_EDI);
         return val & 0xFF;
     }
     if(scmp(string, "bph"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        duint val = GetContextDataEx(hActiveThread, UE_EBP);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "bpl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EBP);
+        duint val = GetContextDataEx(hActiveThread, UE_EBP);
         return val & 0xFF;
     }
     if(scmp(string, "sph"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        duint val = GetContextDataEx(hActiveThread, UE_ESP);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "spl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_ESP);
+        duint val = GetContextDataEx(hActiveThread, UE_ESP);
         return val & 0xFF;
     }
     if(scmp(string, "iph"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        duint val = GetContextDataEx(hActiveThread, UE_EIP);
         return (val >> 8) & 0xFF;
     }
     if(scmp(string, "ipl"))
     {
-        uint val = GetContextDataEx(hActiveThread, UE_EIP);
+        duint val = GetContextDataEx(hActiveThread, UE_EIP);
         return val & 0xFF;
     }
 
     if(size)
-        *size = sizeof(uint);
+        *size = sizeof(duint);
     if(scmp(string, "dr0"))
     {
         return GetContextDataEx(hActiveThread, UE_DR0);
@@ -1056,7 +1056,7 @@ static uint getregister(int* size, const char* string)
 \param value The new register value.
 \return true if the register was set, false otherwise.
 */
-bool setregister(const char* string, uint value)
+bool setregister(const char* string, duint value)
 {
     if(scmp(string, "eax"))
         return SetContextDataEx(hActiveThread, UE_EAX, value & 0xFFFFFFFF);
@@ -1264,13 +1264,13 @@ bool setregister(const char* string, uint value)
 \brief Gets the address of an API from a name.
 \param name The name of the API, see the command help for more information about valid constructions.
 \param [out] value The address of the retrieved API. Cannot be null.
-\param [out] value_size This function sets this value to the size of the address, sizeof(uint).
+\param [out] value_size This function sets this value to the size of the address, sizeof(duint).
 \param printall true to print all possible API values to the console.
 \param silent true to have no console output. If true, the \p printall parameter is ignored.
 \param [out] hexonly If set to true, the values should be printed in hex only. Usually this function sets it to true.
 \return true if the API was found and a value retrieved, false otherwise.
 */
-bool valapifromstring(const char* name, uint* value, int* value_size, bool printall, bool silent, bool* hexonly)
+bool valapifromstring(const char* name, duint* value, int* value_size, bool printall, bool silent, bool* hexonly)
 {
     if(!value || !DbgIsDebugging())
         return false;
@@ -1305,7 +1305,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
         apiname++;
         if(!strlen(apiname))
             return false;
-        uint modbase = ModBaseFromName(modname);
+        duint modbase = ModBaseFromName(modname);
         wchar_t szModName[MAX_PATH] = L"";
         if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, szModName, MAX_PATH))
         {
@@ -1322,9 +1322,9 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
             }
             else
             {
-                uint addr = noexports ? 0 : (uint)GetProcAddress(mod, apiname);
+                duint addr = noexports ? 0 : (duint)GetProcAddress(mod, apiname);
                 if(addr) //found exported function
-                    addr = modbase + (addr - (uint)mod); //correct for loaded base
+                    addr = modbase + (addr - (duint)mod); //correct for loaded base
                 else //not found
                 {
                     if(scmp(apiname, "base") || scmp(apiname, "imagebase") || scmp(apiname, "header")) //get loaded base
@@ -1333,13 +1333,13 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                         addr = modbase + GetPE32DataW(szModName, 0, UE_OEP);
                     else if(*apiname == '$') //RVA
                     {
-                        uint rva;
+                        duint rva;
                         if(valfromstring(apiname + 1, &rva))
                             addr = modbase + rva;
                     }
                     else if(*apiname == '#') //File Offset
                     {
-                        uint offset;
+                        duint offset;
                         if(valfromstring(apiname + 1, &offset))
                             addr = valfileoffsettova(modname, offset);
                     }
@@ -1347,18 +1347,18 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                     {
                         if(noexports) //get the exported functions with the '?' delimiter
                         {
-                            addr = (uint)GetProcAddress(mod, apiname);
+                            addr = (duint)GetProcAddress(mod, apiname);
                             if(addr) //found exported function
-                                addr = modbase + (addr - (uint)mod); //correct for loaded base
+                                addr = modbase + (addr - (duint)mod); //correct for loaded base
                         }
                         else
                         {
-                            uint ordinal;
+                            duint ordinal;
                             if(valfromstring(apiname, &ordinal))
                             {
-                                addr = (uint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
+                                addr = (duint)GetProcAddress(mod, (LPCSTR)(ordinal & 0xFFFF));
                                 if(addr) //found exported function
-                                    addr = modbase + (addr - (uint)mod); //correct for loaded base
+                                    addr = modbase + (addr - (duint)mod); //correct for loaded base
                                 else if(!ordinal) //support for getting the image base using <modname>:0
                                     addr = modbase;
                             }
@@ -1369,7 +1369,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                 if(addr) //found!
                 {
                     if(value_size)
-                        *value_size = sizeof(uint);
+                        *value_size = sizeof(duint);
                     if(hexonly)
                         *hexonly = true;
                     *value = addr;
@@ -1382,10 +1382,10 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     int found = 0;
     int kernel32 = -1;
     DWORD cbNeeded = 0;
-    Memory<uint*> addrfound;
+    Memory<duint*> addrfound;
     if(EnumProcessModules(fdProcessInfo->hProcess, 0, 0, &cbNeeded))
     {
-        addrfound.realloc(cbNeeded * sizeof(uint), "valapifromstring:addrfound");
+        addrfound.realloc(cbNeeded * sizeof(duint), "valapifromstring:addrfound");
         Memory<HMODULE*> hMods(cbNeeded * sizeof(HMODULE), "valapifromstring:hMods");
         if(EnumProcessModules(fdProcessInfo->hProcess, hMods(), cbNeeded, &cbNeeded))
         {
@@ -1406,8 +1406,8 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
                             {
                                 if(!_wcsicmp(szBaseName, L"kernel32.dll"))
                                     kernel32 = found;
-                                uint rva = funcAddress - (uint)hModule;
-                                addrfound()[found] = (uint)hMods()[i] + rva;
+                                duint rva = funcAddress - (duint)hModule;
+                                addrfound()[found] = (duint)hMods()[i] + rva;
                                 found++;
                             }
                             FreeLibrary(hModule);
@@ -1420,7 +1420,7 @@ bool valapifromstring(const char* name, uint* value, int* value_size, bool print
     if(!found)
         return false;
     if(value_size)
-        *value_size = sizeof(uint);
+        *value_size = sizeof(duint);
     if(hexonly)
         *hexonly = true;
     if(kernel32 != -1) //prioritize kernel32 exports
@@ -1498,7 +1498,7 @@ static bool ishexnumber(const char* string)
 \param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
 \return true if the expression was parsed successful, false otherwise.
 */
-bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     if(!value || !string)
         return false;
@@ -1534,7 +1534,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
                 newstring += string[i];
         }
 
-        int read_size = sizeof(uint);
+        int read_size = sizeof(duint);
         int add = 1;
         if(string[1] == ':')  //n:[ (number of bytes to read)
         {
@@ -1548,7 +1548,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
             dprintf("noexpr failed on %s\n", newstring.c_str());
             return false;
         }
-        uint addr = *value;
+        duint addr = *value;
         *value = 0;
         if(!MemRead(addr, value, read_size))
         {
@@ -1593,7 +1593,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
                 *isvar = true;
             return true;
         }
-        uint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
+        duint eflags = GetContextDataEx(hActiveThread, UE_CFLAGS);
         if(valflagfromstring(eflags, string + 1))
             *value = 1;
         else
@@ -1656,7 +1656,7 @@ bool valfromstring_noexpr(const char* string, uint* value, bool silent, bool bas
 \param [out] hexonly This function can output if the output value should only be printed as hexadecimal (for example addresses). Can be null.
 \return true if the expression was parsed successful, false otherwise.
 */
-bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
+bool valfromstring(const char* string, duint* value, bool silent, bool baseonly, int* value_size, bool* isvar, bool* hexonly)
 {
     if(!value || !string)
         return false;
@@ -1666,7 +1666,7 @@ bool valfromstring(const char* string, uint* value, bool silent, bool baseonly, 
         return true;
     }
     ExpressionParser parser(string);
-    uint result;
+    duint result;
     if(!parser.calculate(result, valuesignedcalc(), silent, baseonly, value_size, isvar, hexonly))
         return false;
     *value = result;
@@ -1716,11 +1716,11 @@ static bool startsWith(const char* pre, const char* str)
 \param string The name of the FPU value to set.
 \param value The value to set.
 */
-static void setfpuvalue(const char* string, uint value)
+static void setfpuvalue(const char* string, duint value)
 {
-    uint xorval = 0;
-    uint flags = 0;
-    uint flag = 0;
+    duint xorval = 0;
+    duint flags = 0;
+    duint flag = 0;
     bool set = false;
 
     if(value)
@@ -1730,7 +1730,7 @@ static void setfpuvalue(const char* string, uint value)
     {
         if(StrNCmpI(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            duint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             int i = 3;
             i <<= 13;
             flags &= ~i;
@@ -1740,7 +1740,7 @@ static void setfpuvalue(const char* string, uint value)
         }
         else
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
+            duint flags = GetContextDataEx(hActiveThread, UE_MXCSR);
             flag = getmxcsrflagfromstring(string + STRLEN_USING_SIZEOF(MxCsr_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -1778,7 +1778,7 @@ static void setfpuvalue(const char* string, uint value)
     {
         if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING), "TOP", (int) strlen("TOP")) == 0)
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            duint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             int i = 7;
             i <<= 11;
             flags &= ~i;
@@ -1788,7 +1788,7 @@ static void setfpuvalue(const char* string, uint value)
         }
         else
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
+            duint flags = GetContextDataEx(hActiveThread, UE_X87_STATUSWORD);
             flag = getx87statuswordflagfromstring(string + STRLEN_USING_SIZEOF(x87SW_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -1801,7 +1801,7 @@ static void setfpuvalue(const char* string, uint value)
     {
         if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "RC", (int) strlen("RC")) == 0)
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
             i <<= 10;
             flags &= ~i;
@@ -1811,7 +1811,7 @@ static void setfpuvalue(const char* string, uint value)
         }
         else if(StrNCmpI(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING), "PC", (int) strlen("PC")) == 0)
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             int i = 3;
             i <<= 8;
             flags &= ~i;
@@ -1821,7 +1821,7 @@ static void setfpuvalue(const char* string, uint value)
         }
         else
         {
-            uint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
+            duint flags = GetContextDataEx(hActiveThread, UE_X87_CONTROLWORD);
             flag = getx87controlwordflagfromstring(string + STRLEN_USING_SIZEOF(x87CW_PRE_FIELD_STRING));
             if(flags & flag && !set)
                 xorval = flag;
@@ -2104,7 +2104,7 @@ static void setfpuvalue(const char* string, uint value)
 \param silent true to not have output to the console.
 \return true if the value was set successfully, false otherwise.
 */
-bool valtostring(const char* string, uint value, bool silent)
+bool valtostring(const char* string, duint value, bool silent)
 {
     if(!*string)
         return false;
@@ -2137,7 +2137,7 @@ bool valtostring(const char* string, uint value, bool silent)
         }
         else
             strcpy_s(newstring(), len * 2, string);
-        int read_size = sizeof(uint);
+        int read_size = sizeof(duint);
         int add = 1;
         if(newstring()[2] == ':' && isdigit((newstring()[1])))
         {
@@ -2146,12 +2146,12 @@ bool valtostring(const char* string, uint value, bool silent)
             if(new_size < read_size)
                 read_size = new_size;
         }
-        uint temp;
+        duint temp;
         if(!valfromstring(newstring() + add, &temp, silent, false))
         {
             return false;
         }
-        uint value_ = value;
+        duint value_ = value;
         if(!MemPatch(temp, &value_, read_size))
         {
             if(!silent)
@@ -2179,7 +2179,7 @@ bool valtostring(const char* string, uint value, bool silent)
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), false); //update disassembly + register view
         else if(strstr(regName(), "sp")) //update stack
         {
-            uint csp = GetContextDataEx(hActiveThread, UE_CSP);
+            duint csp = GetContextDataEx(hActiveThread, UE_CSP);
             GuiStackDumpAt(csp, csp);
             GuiUpdateRegisterView();
         }
@@ -2223,7 +2223,7 @@ bool valtostring(const char* string, uint value, bool silent)
 \param offset The file offset.
 \return The VA of the file offset, 0 when there was a problem with the conversion.
 */
-uint valfileoffsettova(const char* modname, uint offset)
+duint valfileoffsettova(const char* modname, duint offset)
 {
     char modpath[MAX_PATH] = "";
     if(ModPathFromName(modname, modpath, MAX_PATH))
@@ -2249,7 +2249,7 @@ uint valfileoffsettova(const char* modname, uint offset)
 \param va The virtual address (must be inside a module).
 \return The file offset. 0 when there was a problem with the conversion.
 */
-uint valvatofileoffset(uint va)
+duint valvatofileoffset(duint va)
 {
     char modpath[MAX_PATH] = "";
     if(ModPathFromAddr(va, modpath, MAX_PATH))

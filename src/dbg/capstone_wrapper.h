@@ -13,15 +13,15 @@ public:
     static void GlobalFinalize();
     Capstone();
     ~Capstone();
-    bool Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER]);
-    bool Disassemble(uint addr, const unsigned char* data, int size);
+    bool Disassemble(duint addr, const unsigned char data[MAX_DISASM_BUFFER]);
+    bool Disassemble(duint addr, const unsigned char* data, int size);
     const cs_insn* GetInstr() const;
     cs_err GetError() const;
     const char* RegName(x86_reg reg) const;
     bool InGroup(cs_group_type group) const;
     String OperandText(int opindex) const;
     int Size() const;
-    uint Address() const;
+    duint Address() const;
     const cs_x86 & x86() const;
     bool IsFilling() const;
     bool IsLoop() const;

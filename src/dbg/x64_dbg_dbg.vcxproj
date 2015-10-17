@@ -47,7 +47,6 @@
     <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
     <ClCompile Include="instruction.cpp" />
-    <ClCompile Include="Int3CoagulatorPass.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="LinearPass.cpp" />
     <ClCompile Include="loop.cpp" />
@@ -130,7 +129,6 @@
     <ClInclude Include="FunctionPass.h" />
     <ClInclude Include="handle.h" />
     <ClInclude Include="instruction.h" />
-    <ClInclude Include="Int3CoagulatorPass.h" />
     <ClInclude Include="jansson\jansson.h" />
     <ClInclude Include="jansson\jansson_config.h" />
     <ClInclude Include="jansson\jansson_x64dbg.h" />

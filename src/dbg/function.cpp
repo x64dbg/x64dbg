@@ -5,7 +5,7 @@
 
 std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
-bool FunctionAdd(uint Start, uint End, bool Manual)
+bool FunctionAdd(duint Start, duint End, bool Manual)
 {
     // CHECK: Export/Command function
     if(!DbgIsDebugging())
@@ -16,7 +16,7 @@ bool FunctionAdd(uint Start, uint End, bool Manual)
         return false;
 
     // Fail if boundary exceeds module size
-    const uint moduleBase = ModBaseFromAddr(Start);
+    const duint moduleBase = ModBaseFromAddr(Start);
 
     if(moduleBase != ModBaseFromAddr(End))
         return false;
@@ -38,13 +38,13 @@ bool FunctionAdd(uint Start, uint End, bool Manual)
     return true;
 }
 
-bool FunctionGet(uint Address, uint* Start, uint* End)
+bool FunctionGet(duint Address, duint* Start, duint* End)
 {
     // CHECK: Exported function
     if(!DbgIsDebugging())
         return false;
 
-    const uint moduleBase = ModBaseFromAddr(Address);
+    const duint moduleBase = ModBaseFromAddr(Address);
 
     // Lookup by module hash, then function range
     SHARED_ACQUIRE(LockFunctions);
@@ -64,7 +64,7 @@ bool FunctionGet(uint Address, uint* Start, uint* End)
     return true;
 }
 
-bool FunctionOverlaps(uint Start, uint End)
+bool FunctionOverlaps(duint Start, duint End)
 {
     // CHECK: Exported function
     if(!DbgIsDebugging())
@@ -74,25 +74,25 @@ bool FunctionOverlaps(uint Start, uint End)
     if(Start > End)
         return false;
 
-    const uint moduleBase = ModBaseFromAddr(Start);
+    const duint moduleBase = ModBaseFromAddr(Start);
 
     SHARED_ACQUIRE(LockFunctions);
     return (functions.count(ModuleRange(ModHashFromAddr(moduleBase), Range(Start - moduleBase, End - moduleBase))) > 0);
 }
 
-bool FunctionDelete(uint Address)
+bool FunctionDelete(duint Address)
 {
     // CHECK: Exported function
     if(!DbgIsDebugging())
         return false;
 
-    const uint moduleBase = ModBaseFromAddr(Address);
+    const duint moduleBase = ModBaseFromAddr(Address);
 
     EXCLUSIVE_ACQUIRE(LockFunctions);
     return (functions.erase(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase))) > 0);
 }
 
-void FunctionDelRange(uint Start, uint End)
+void FunctionDelRange(duint Start, duint End)
 {
     // CHECK: Exported function
     if(!DbgIsDebugging())
@@ -107,7 +107,7 @@ void FunctionDelRange(uint Start, uint End)
     else
     {
         // The start and end address must be in the same module
-        uint moduleBase = ModBaseFromAddr(Start);
+        duint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
@@ -194,15 +194,15 @@ void FunctionCacheLoad(JSON Root)
                 strcpy_s(functionInfo.mod, mod);
 
             // Function address
-            functionInfo.start = (uint)json_hex_value(json_object_get(value, "start"));
-            functionInfo.end = (uint)json_hex_value(json_object_get(value, "end"));
+            functionInfo.start = (duint)json_hex_value(json_object_get(value, "start"));
+            functionInfo.end = (duint)json_hex_value(json_object_get(value, "end"));
             functionInfo.manual = Manual;
 
             // Sanity check
             if(functionInfo.end < functionInfo.start)
                 continue;
 
-            const uint key = ModHashFromName(functionInfo.mod);
+            const duint key = ModHashFromName(functionInfo.mod);
             functions.insert(std::make_pair(ModuleRange(key, Range(functionInfo.start, functionInfo.end)), functionInfo));
         }
     };
@@ -244,7 +244,7 @@ bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
     for(auto & itr : functions)
     {
         // Adjust for relative to virtual addresses
-        uint moduleBase = ModBaseFromName(itr.second.mod);
+        duint moduleBase = ModBaseFromName(itr.second.mod);
 
         *List = itr.second;
         List->start += moduleBase;

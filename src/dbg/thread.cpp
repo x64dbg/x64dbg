@@ -19,8 +19,8 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     curInfo.ThreadNumber = ThreadGetCount();
     curInfo.Handle = CreateThread->hThread;
     curInfo.ThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
-    curInfo.ThreadStartAddress = (uint)CreateThread->lpStartAddress;
-    curInfo.ThreadLocalBase = (uint)CreateThread->lpThreadLocalBase;
+    curInfo.ThreadStartAddress = (duint)CreateThread->lpStartAddress;
+    curInfo.ThreadLocalBase = (duint)CreateThread->lpThreadLocalBase;
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
@@ -110,7 +110,7 @@ bool ThreadIsValid(DWORD ThreadId)
     return threadList.find(ThreadId) != threadList.end();
 }
 
-bool ThreadGetTeb(uint TEBAddress, TEB* Teb)
+bool ThreadGetTeb(duint TEBAddress, TEB* Teb)
 {
     memset(Teb, 0, sizeof(TEB));
     return MemRead(TEBAddress, Teb, sizeof(TEB));

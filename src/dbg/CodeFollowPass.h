@@ -7,13 +7,13 @@
 class CodeFollowPass : public AnalysisPass
 {
 public:
-    CodeFollowPass(uint VirtualStart, uint VirtualEnd, BBlockArray & MainBlocks);
+    CodeFollowPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks);
     virtual ~CodeFollowPass();
 
     virtual const char* GetName() override;
     virtual bool Analyse() override;
 
 private:
-    uint GetReferenceOperand(const cs_x86 & Context);
-    uint GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect);
+    duint GetReferenceOperand(const cs_x86 & Context);
+    duint GetMemoryOperand(Capstone & Disasm, const cs_x86 & Context, bool* Indirect);
 };

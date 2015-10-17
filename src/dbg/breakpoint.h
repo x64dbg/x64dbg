@@ -18,7 +18,7 @@ enum BP_TYPE
 
 struct BREAKPOINT
 {
-    uint addr;
+    duint addr;
     bool enabled;
     bool singleshoot;
     bool active;
@@ -32,14 +32,14 @@ struct BREAKPOINT
 // Breakpoint enumeration callback
 typedef bool (*BPENUMCALLBACK)(const BREAKPOINT* bp);
 
-BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address);
+BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address);
 int BpGetList(std::vector<BREAKPOINT>* List);
-bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name);
-bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
-bool BpDelete(uint Address, BP_TYPE Type);
-bool BpEnable(uint Address, BP_TYPE Type, bool Enable);
-bool BpSetName(uint Address, BP_TYPE Type, const char* Name);
-bool BpSetTitanType(uint Address, BP_TYPE Type, int TitanType);
+bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name);
+bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
+bool BpDelete(duint Address, BP_TYPE Type);
+bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
+bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
+bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback);
 int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);

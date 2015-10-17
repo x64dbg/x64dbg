@@ -23,7 +23,7 @@ struct VAR_VALUE
 {
     union
     {
-        uint value;
+        duint value;
         std::vector<unsigned char>* data;
     } u;
     VAR_VALUE_TYPE type;
@@ -51,11 +51,11 @@ void varsetvalue(VAR* Var, VAR_VALUE* Value);
 bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly);
 void varinit();
 void varfree();
-bool varnew(const char* Name, uint Value, VAR_TYPE Type);
+bool varnew(const char* Name, duint Value, VAR_TYPE Type);
 bool varget(const char* Name, VAR_VALUE* Value, int* Size, VAR_TYPE* Type);
-bool varget(const char* Name, uint* Value, int* Size, VAR_TYPE* Type);
+bool varget(const char* Name, duint* Value, int* Size, VAR_TYPE* Type);
 bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type);
-bool varset(const char* Name, uint Value, bool ReadOnly);
+bool varset(const char* Name, duint Value, bool ReadOnly);
 bool varset(const char* Name, const char* Value, bool ReadOnly);
 bool vardel(const char* Name, bool DelSystem);
 bool vargettype(const char* Name, VAR_TYPE* Type = nullptr, VAR_VALUE_TYPE* ValueType = nullptr);

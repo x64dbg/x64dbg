@@ -11,7 +11,7 @@ std::map<Range, MODINFO, RangeCompare> modinfo;
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the entry point
-    uint moduleOEP = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP);
+    duint moduleOEP = GetPE32DataFromMappedFile(FileMapVA, 0, UE_OEP);
 
     // Fix a problem where the OEP is set to zero (non-existent).
     // OEP can't start at the PE header/offset 0 -- except if module is an EXE.
@@ -47,7 +47,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 }
 
-bool ModLoad(uint Base, uint Size, const char* FullPath)
+bool ModLoad(duint Base, duint Size, const char* FullPath)
 {
     // Handle a new module being loaded
     if(!Base || !Size || !FullPath)
@@ -137,7 +137,7 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
         if(info.entry >= Base && info.entry < Base + Size)
             LabelSet(info.entry, "EntryPoint", false);
 
-        apienumexports(Base, [](uint base, const char* mod, const char* name, uint addr)
+        apienumexports(Base, [](duint base, const char* mod, const char* name, duint addr)
         {
             LabelSet(addr, name, false);
         });
@@ -147,7 +147,7 @@ bool ModLoad(uint Base, uint Size, const char* FullPath)
     return true;
 }
 
-bool ModUnload(uint Base)
+bool ModUnload(duint Base)
 {
     EXCLUSIVE_ACQUIRE(LockModules);
 
@@ -177,7 +177,7 @@ void ModClear()
     GuiSymbolUpdateModuleList(0, nullptr);
 }
 
-MODINFO* ModInfoFromAddr(uint Address)
+MODINFO* ModInfoFromAddr(duint Address)
 {
     //
     // NOTE: THIS DOES _NOT_ USE LOCKS
@@ -191,7 +191,7 @@ MODINFO* ModInfoFromAddr(uint Address)
     return &found->second;
 }
 
-bool ModNameFromAddr(uint Address, char* Name, bool Extension)
+bool ModNameFromAddr(duint Address, char* Name, bool Extension)
 {
     if(!Name)
         return false;
@@ -213,7 +213,7 @@ bool ModNameFromAddr(uint Address, char* Name, bool Extension)
     return true;
 }
 
-uint ModBaseFromAddr(uint Address)
+duint ModBaseFromAddr(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -225,7 +225,7 @@ uint ModBaseFromAddr(uint Address)
     return module->base;
 }
 
-uint ModHashFromAddr(uint Address)
+duint ModHashFromAddr(duint Address)
 {
     // Returns a unique hash from a virtual address
     SHARED_ACQUIRE(LockModules);
@@ -238,7 +238,7 @@ uint ModHashFromAddr(uint Address)
     return module->hash + (Address - module->base);
 }
 
-uint ModHashFromName(const char* Module)
+duint ModHashFromName(const char* Module)
 {
     // return MODINFO.hash (based on the name)
     if(!Module || Module[0] == '\0')
@@ -247,7 +247,7 @@ uint ModHashFromName(const char* Module)
     return murmurhash(Module, (int)strlen(Module));
 }
 
-uint ModBaseFromName(const char* Module)
+duint ModBaseFromName(const char* Module)
 {
     if(!Module || strlen(Module) >= MAX_MODULE_SIZE)
         return 0;
@@ -269,7 +269,7 @@ uint ModBaseFromName(const char* Module)
     return 0;
 }
 
-uint ModSizeFromAddr(uint Address)
+duint ModSizeFromAddr(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -281,7 +281,7 @@ uint ModSizeFromAddr(uint Address)
     return module->size;
 }
 
-bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections)
+bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -295,7 +295,7 @@ bool ModSectionsFromAddr(uint Address, std::vector<MODSECTIONINFO>* Sections)
     return true;
 }
 
-uint ModEntryFromAddr(uint Address)
+duint ModEntryFromAddr(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
 

@@ -9,10 +9,10 @@
 #include "threading.h"
 #include "module.h"
 
-typedef std::pair<BP_TYPE, uint> BreakpointKey;
+typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
-BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, uint Address)
+BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
 {
     //
     // NOTE: THIS DOES _NOT_ USE LOCKS
@@ -52,7 +52,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
     return (int)breakpoints.size();
 }
 
-bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
+bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
 {
     // CHECK: Command function
     if(!DbgIsDebugging())
@@ -91,7 +91,7 @@ bool BpNew(uint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE T
     return true;
 }
 
-bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
+bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
     // CHECK: Export/Command function
     if(!DbgIsDebugging())
@@ -140,7 +140,7 @@ bool BpGet(uint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     return false;
 }
 
-bool BpDelete(uint Address, BP_TYPE Type)
+bool BpDelete(duint Address, BP_TYPE Type)
 {
     // CHECK: Command function
     if(!DbgIsDebugging())
@@ -152,7 +152,7 @@ bool BpDelete(uint Address, BP_TYPE Type)
     return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
 }
 
-bool BpEnable(uint Address, BP_TYPE Type, bool Enable)
+bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
 {
     // CHECK: Command function
     if(!DbgIsDebugging())
@@ -170,7 +170,7 @@ bool BpEnable(uint Address, BP_TYPE Type, bool Enable)
     return true;
 }
 
-bool BpSetName(uint Address, BP_TYPE Type, const char* Name)
+bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
 {
     // CHECK: Future(?); This is not used anywhere
     if(!DbgIsDebugging())
@@ -192,7 +192,7 @@ bool BpSetName(uint Address, BP_TYPE Type, const char* Name)
     return true;
 }
 
-bool BpSetTitanType(uint Address, BP_TYPE Type, int TitanType)
+bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
 {
     // CHECK: Command function
     if(!DbgIsDebugging())
@@ -377,7 +377,7 @@ void BpCacheLoad(JSON Root)
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (short)json_hex_value(json_object_get(value, "oldbytes"));
         breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
-        breakpoint.addr = (uint)json_hex_value(json_object_get(value, "address"));
+        breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
 
@@ -394,7 +394,7 @@ void BpCacheLoad(JSON Root)
             strcpy_s(breakpoint.mod, mod);
 
         // Build the hash map key: MOD_HASH + ADDRESS
-        const uint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
+        const duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
         breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
     }
 }

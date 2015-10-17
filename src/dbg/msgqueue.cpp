@@ -37,7 +37,7 @@ void MsgFreeStack(MESSAGE_STACK* msgstack)
 }
 
 //add a message to the stack
-bool MsgSend(MESSAGE_STACK* msgstack, int msg, uint param1, uint param2)
+bool MsgSend(MESSAGE_STACK* msgstack, int msg, duint param1, duint param2)
 {
     CRITICAL_SECTION* cr = &msgstack->cr;
     EnterCriticalSection(cr);

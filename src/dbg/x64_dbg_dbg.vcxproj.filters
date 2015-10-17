@@ -245,9 +245,6 @@
     <ClCompile Include="FunctionPass.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
-    <ClCompile Include="Int3CoagulatorPass.cpp">
-      <Filter>Source Files\Analysis</Filter>
-    </ClCompile>
     <ClCompile Include="analysis.cpp">
       <Filter>Source Files\Analysis</Filter>
     </ClCompile>
@@ -605,9 +602,6 @@
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="FunctionPass.h">
-      <Filter>Header Files\Analysis</Filter>
-    </ClInclude>
-    <ClInclude Include="Int3CoagulatorPass.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
     <ClInclude Include="analysis.h">

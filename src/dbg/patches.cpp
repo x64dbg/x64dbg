@@ -10,9 +10,9 @@
 #include "threading.h"
 #include "module.h"
 
-std::unordered_map<uint, PATCHINFO> patches;
+std::unordered_map<duint, PATCHINFO> patches;
 
-bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
+bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 {
     // CHECK: Exported function
     if(!DbgIsDebugging())
@@ -33,7 +33,7 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
     ModNameFromAddr(Address, newPatch.mod, true);
 
     // Generate a key for this address
-    const uint key = ModHashFromAddr(Address);
+    const duint key = ModHashFromAddr(Address);
 
     EXCLUSIVE_ACQUIRE(LockPatches);
 
@@ -62,7 +62,7 @@ bool PatchSet(uint Address, unsigned char OldByte, unsigned char NewByte)
     return true;
 }
 
-bool PatchGet(uint Address, PATCHINFO* Patch)
+bool PatchGet(duint Address, PATCHINFO* Patch)
 {
     // CHECK: Export
     if(!DbgIsDebugging())
@@ -87,7 +87,7 @@ bool PatchGet(uint Address, PATCHINFO* Patch)
     return true;
 }
 
-bool PatchDelete(uint Address, bool Restore)
+bool PatchDelete(duint Address, bool Restore)
 {
     // CHECK: Export function
     if(!DbgIsDebugging())
@@ -110,7 +110,7 @@ bool PatchDelete(uint Address, bool Restore)
     return true;
 }
 
-void PatchDelRange(uint Start, uint End, bool Restore)
+void PatchDelRange(duint Start, duint End, bool Restore)
 {
     // CHECK: Export call
     if(!DbgIsDebugging())
@@ -126,7 +126,7 @@ void PatchDelRange(uint Start, uint End, bool Restore)
     else
     {
         // Make sure 'Start' and 'End' reference the same module
-        uint moduleBase = ModBaseFromAddr(Start);
+        duint moduleBase = ModBaseFromAddr(Start);
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
@@ -218,7 +218,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     }
 
     // See if the module was loaded
-    uint moduleBase = ModBaseFromName(moduleName);
+    duint moduleBase = ModBaseFromName(moduleName);
 
     if(!moduleBase)
     {

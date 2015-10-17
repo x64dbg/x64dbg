@@ -5,8 +5,8 @@
 #include <functional>
 
 //ranges
-typedef std::pair<uint, uint> Range;
-typedef std::pair<uint, Range> ModuleRange; //modhash + RVA range
+typedef std::pair<duint, duint> Range;
+typedef std::pair<duint, Range> ModuleRange; //modhash + RVA range
 typedef std::pair<int, ModuleRange> DepthModuleRange; //depth + modulerange
 
 struct RangeCompare
@@ -54,12 +54,12 @@ struct DepthModuleRangeCompare
 };
 
 //typedefs
-typedef std::function<void (uint base, const char* mod, const char* name, uint addr)> EXPORTENUMCALLBACK;
+typedef std::function<void (duint base, const char* mod, const char* name, duint addr)> EXPORTENUMCALLBACK;
 
 void dbsave();
 void dbload();
 void dbclose();
 
-bool apienumexports(uint base, EXPORTENUMCALLBACK cbEnum);
+bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum);
 
 #endif // _ADDRINFO_H
