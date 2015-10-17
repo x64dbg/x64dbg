@@ -179,60 +179,6 @@ void StackEntryFromFrame(CALLSTACKENTRY* Entry, uint Address, uint From, uint To
 
 void stackgetcallstack(uint csp, CALLSTACK* callstack)
 {
-#if 1
-    callstack->total = 0;
-    if(!DbgIsDebugging() || csp % sizeof(uint)) //alignment problem
-        return;
-    if(!MemIsValidReadPtr(csp))
-        return;
-    std::vector<CALLSTACKENTRY> callstackVector;
-    uint stacksize = 0;
-    uint stackbase = MemFindBaseAddr(csp, &stacksize, false);
-    if(!stackbase) //super-fail (invalid stack address)
-        return;
-    //walk up the stack
-    uint i = csp;
-    while(i != stackbase + stacksize)
-    {
-        uint data = 0;
-        MemRead(i, &data, sizeof(uint));
-        if(MemIsValidReadPtr(data) && MemIsCodePage(data, false)) //the stack value is a pointer to an executable page
-        {
-            uint size = 0;
-            uint base = MemFindBaseAddr(data, &size);
-            uint readStart = data - 16 * 4;
-            if(readStart < base)
-                readStart = base;
-            unsigned char disasmData[256];
-            MemRead(readStart, disasmData, sizeof(disasmData));
-            uint prev = disasmback(disasmData, 0, sizeof(disasmData), data - readStart, 1);
-            uint previousInstr = readStart + prev;
-            BASIC_INSTRUCTION_INFO basicinfo;
-            bool valid = disasmfast(disasmData + prev, previousInstr, &basicinfo);
-            if(valid && basicinfo.call) //call
-            {
-                CALLSTACKENTRY curEntry;
-                memset(&curEntry, 0, sizeof(CALLSTACKENTRY));
-
-                StackEntryFromFrame(&curEntry, i, basicinfo.addr, data);
-                callstackVector.push_back(curEntry);
-            }
-        }
-        i += sizeof(uint);
-    }
-    callstack->total = (int)callstackVector.size();
-    if(callstack->total)
-    {
-        callstack->entries = (CALLSTACKENTRY*)BridgeAlloc(callstack->total * sizeof(CALLSTACKENTRY));
-        for(int i = 0; i < callstack->total; i++)
-        {
-            //CALLSTACKENTRY curEntry;
-            //memcpy(&curEntry, &callstackVector.at(i), sizeof(CALLSTACKENTRY));
-            //dprintf(fhex":" fhex ":" fhex ":%s\n", curEntry.addr, curEntry.to, curEntry.from, curEntry.comment);
-            memcpy(&callstack->entries[i], &callstackVector.at(i), sizeof(CALLSTACKENTRY));
-        }
-    }
-#else
     // Gather context data
     CONTEXT context;
     memset(&context, 0, sizeof(CONTEXT));
@@ -316,5 +262,4 @@ void stackgetcallstack(uint csp, CALLSTACK* callstack)
         // Copy data directly from the vector
         memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
     }
-#endif
 }
