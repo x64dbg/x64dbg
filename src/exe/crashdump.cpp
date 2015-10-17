@@ -94,7 +94,7 @@ LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
 {
     if(ExceptionInfo)
     {
-        // Skip DBG_PRINTEXCEPTION_C and DBG_PRINTEXCEPTIONW_C
+        // Skip DBG_PRINTEXCEPTION_C and DBG_PRINTEXCEPTION_WIDE_C
         switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
         {
         case DBG_PRINTEXCEPTION_C:
