@@ -259,7 +259,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     mCpuWidget->mDisas->setFocus();
 
-    GuiAddLogMessage(QString().sprintf("thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
+    GuiAddLogMessage(QString().sprintf("Thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
