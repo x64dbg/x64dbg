@@ -62,7 +62,6 @@ SCRIPT_EXPORT bool Script::Memory::WriteDword(duint addr, unsigned int data)
     return Write(addr, &data, sizeof(data), nullptr);
 }
 
-#ifdef _WIN64
 SCRIPT_EXPORT unsigned long long Script::Memory::ReadQword(duint addr)
 {
     unsigned long long data;
@@ -74,7 +73,6 @@ SCRIPT_EXPORT bool Script::Memory::WriteQword(duint addr, unsigned long long dat
 {
     return Write(addr, &data, sizeof(data), nullptr);
 }
-#endif //_WIN64
 
 SCRIPT_EXPORT duint Script::Memory::ReadPtr(duint addr)
 {

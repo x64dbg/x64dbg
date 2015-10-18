@@ -19,10 +19,8 @@ SCRIPT_EXPORT unsigned short ReadWord(duint addr);
 SCRIPT_EXPORT bool WriteWord(duint addr, unsigned short data);
 SCRIPT_EXPORT unsigned int ReadDword(duint addr);
 SCRIPT_EXPORT bool WriteDword(duint addr, unsigned int data);
-#ifdef _WIN64
 SCRIPT_EXPORT unsigned long long ReadQword(duint addr);
 SCRIPT_EXPORT bool WriteQword(duint addr, unsigned long long data);
-#endif //_WIN64
 SCRIPT_EXPORT duint ReadPtr(duint addr);
 SCRIPT_EXPORT bool WritePtr(duint addr, duint data);
 }; //Memory
