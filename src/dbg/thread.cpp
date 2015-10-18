@@ -68,19 +68,20 @@ int ThreadGetCount()
 
 void ThreadGetList(THREADLIST* List)
 {
+	ASSERT_NONNULL(List);
     SHARED_ACQUIRE(LockThreads);
 
     //
     // This function converts a C++ std::unordered_map to a C-style THREADLIST[].
     // Also assume BridgeAlloc zeros the returned buffer.
     //
-    int count = (int)threadList.size();
+	List->count = (int)threadList.size();
 
-    if(count <= 0)
+	if (List->count <= 0)
         return;
 
-    List->count = count;
-    List->list = (THREADALLINFO*)BridgeAlloc(count * sizeof(THREADALLINFO));
+	// Allocate C-style array
+	List->list = (THREADALLINFO*)BridgeAlloc(List->count * sizeof(THREADALLINFO));
 
     // Fill out the list data
     int index = 0;
