@@ -7,9 +7,7 @@ std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
 
 bool LoopAdd(duint Start, duint End, bool Manual)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // Loop must begin before it ends
     if(Start > End)
@@ -55,9 +53,7 @@ bool LoopAdd(duint Start, duint End, bool Manual)
 // Get the start/end of a loop at a certain depth and address
 bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
 {
-    // CHECK: Exported function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // Get the virtual address module
     const duint moduleBase = ModBaseFromAddr(Address);
@@ -83,12 +79,10 @@ bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
     return true;
 }
 
-//check if a loop overlaps a range, inside is not overlapping
+// Check if a loop overlaps a range, inside is not overlapping
 bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // Determine module addresses and lookup keys
     const duint moduleBase = ModBaseFromAddr(Start);
@@ -139,6 +133,7 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
 // This should delete a loop and all sub-loops that matches a certain addr
 bool LoopDelete(int Depth, duint Address)
 {
+	ASSERT_ALWAYS("Function unimplemented");
     return false;
 }
 
@@ -235,9 +230,7 @@ void LoopCacheLoad(JSON Root)
 bool LoopEnum(LOOPSINFO* List, size_t* Size)
 {
     // If list or size is not requested, fail
-    if(!List && !Size)
-        return false;
-
+	ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockLoops);
 
     // See if the caller requested an output size

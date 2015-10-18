@@ -132,7 +132,7 @@ DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
 
 DWORD64 CALLBACK StackTranslateAddressProc64(HANDLE hProcess, HANDLE hThread, LPADDRESS64 lpaddr)
 {
-    __debugbreak();
+	ASSERT_ALWAYS("This function should never be called");
     return 0;
 }
 
@@ -216,8 +216,8 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
     frame.AddrStack.Mode = AddrModeFlat;
 #endif
 
-    // Container for each callstack entry
-    std::vector<CALLSTACKENTRY> callstackVector;
+    // Container for each callstack entry (20 pre-allocated entries)
+    std::vector<CALLSTACKENTRY> callstackVector(20);
 
     while(true)
     {

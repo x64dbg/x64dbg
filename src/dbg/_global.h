@@ -18,7 +18,8 @@
 #include <algorithm>
 #include <unordered_map>
 #include <tlhelp32.h>
-#include "..\types.h"
+#include "..\dbg_types.h"
+#include "..\dbg_assert.h"
 #include "..\bridge\bridgemain.h"
 #include "jansson\jansson.h"
 #include "jansson\jansson_x64dbg.h"

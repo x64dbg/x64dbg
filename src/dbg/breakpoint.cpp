@@ -28,10 +28,7 @@ BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
 
 int BpGetList(std::vector<BREAKPOINT>* List)
 {
-    // CHECK: Exported function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);
 
     // Did the caller request an output?
@@ -54,9 +51,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
 
 bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE Type, DWORD TitanType, const char* Name)
 {
-    // CHECK: Command function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // Fail if the address is a bad memory region
     if(!MemIsValidReadPtr(Address))
@@ -93,10 +88,7 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
 
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 {
-    // CHECK: Export/Command function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);
 
     // Name is optional
@@ -142,22 +134,16 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
 bool BpDelete(duint Address, BP_TYPE Type)
 {
-    // CHECK: Command function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Command function call");
+	EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Erase the index from the global list
-    EXCLUSIVE_ACQUIRE(LockBreakpoints);
-
     return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
 }
 
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
 {
-    // CHECK: Command function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Check if the breakpoint exists first
@@ -172,15 +158,12 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
 
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
 {
-    // CHECK: Future(?); This is not used anywhere
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Future(?): This is not used anywhere");
+	EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // If a name wasn't supplied, set to nothing
     if(!Name)
         Name = "";
-
-    EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Check if the breakpoint exists first
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
@@ -194,10 +177,7 @@ bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
 
 bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
 {
-    // CHECK: Command function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Set the TitanEngine type, separate from BP_TYPE
@@ -212,9 +192,7 @@ bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
 
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
 {
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);
 
     // Loop each entry, executing the user's callback
@@ -285,9 +263,8 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     // Convert a debugger breakpoint to an open/exported
     // bridge breakpoint
     //
-    // TOOD: ASSERT(?) These should never be null
-    if(!Bp || !BridgeBp)
-        return;
+	ASSERT_NONNULL(Bp);
+	ASSERT_NONNULL(BridgeBp);
 
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
     strcpy_s(BridgeBp->mod, Bp->mod);

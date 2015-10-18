@@ -14,9 +14,7 @@ std::unordered_map<duint, PATCHINFO> patches;
 
 bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 {
-    // CHECK: Exported function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // Address must be valid
     if(!MemIsValidReadPtr(Address))
@@ -64,10 +62,7 @@ bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 
 bool PatchGet(duint Address, PATCHINFO* Patch)
 {
-    // CHECK: Export
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockPatches);
 
     // Find this specific address in the list
@@ -89,10 +84,7 @@ bool PatchGet(duint Address, PATCHINFO* Patch)
 
 bool PatchDelete(duint Address, bool Restore)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     EXCLUSIVE_ACQUIRE(LockPatches);
 
     // Do a list lookup with hash
@@ -112,9 +104,7 @@ bool PatchDelete(duint Address, bool Restore)
 
 void PatchDelRange(duint Start, duint End, bool Restore)
 {
-    // CHECK: Export call
-    if(!DbgIsDebugging())
-        return;
+	ASSERT_DEBUGGING("Export call");
 
     // Are all bookmarks going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
@@ -156,14 +146,8 @@ void PatchDelRange(duint Start, duint End, bool Restore)
 
 bool PatchEnum(PATCHINFO* List, size_t* Size)
 {
-    // CHECK: Exported
-    if(!DbgIsDebugging())
-        return false;
-
-    // At least one parameter is needed
-    if(!List && !Size)
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
+	ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockPatches);
 
     // Did the user request the size?

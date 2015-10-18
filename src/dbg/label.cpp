@@ -7,9 +7,7 @@ std::unordered_map<duint, LABELSINFO> labels;
 
 bool LabelSet(duint Address, const char* Text, bool Manual)
 {
-    // CHECK: Exported/Command function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Exported/Command function");
 
     // A valid memory address must be supplied
     if(!MemIsValidReadPtr(Address))
@@ -47,10 +45,7 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
 
 bool LabelFromString(const char* Text, duint* Address)
 {
-    // CHECK: Future? (Not used)
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Future(?): Currently not used");
     SHARED_ACQUIRE(LockLabels);
 
     for(auto & itr : labels)
@@ -71,10 +66,7 @@ bool LabelFromString(const char* Text, duint* Address)
 
 bool LabelGet(duint Address, char* Text)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockLabels);
 
     // Was the label at this address exist?
@@ -92,19 +84,15 @@ bool LabelGet(duint Address, char* Text)
 
 bool LabelDelete(duint Address)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
-
+	ASSERT_DEBUGGING("Export call");
     EXCLUSIVE_ACQUIRE(LockLabels);
+
     return (labels.erase(ModHashFromAddr(Address)) > 0);
 }
 
 void LabelDelRange(duint Start, duint End)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return;
+	ASSERT_DEBUGGING("Export call");
 
     // Are all comments going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
@@ -241,9 +229,7 @@ void LabelCacheLoad(JSON Root)
 
 bool LabelEnum(LABELSINFO* List, size_t* Size)
 {
-    // CHECK: Export function
-    if(!DbgIsDebugging())
-        return false;
+	ASSERT_DEBUGGING("Export call");
 
     // At least 1 parameter is required
     if(!List && !Size)

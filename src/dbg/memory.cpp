@@ -341,7 +341,7 @@ duint MemAllocRemote(duint Address, duint Size, DWORD Type, DWORD Protect)
 
 bool MemFreeRemote(duint Address)
 {
-    return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
+	return VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE) == TRUE;
 }
 
 duint MemGetPageAligned(duint Address)
@@ -437,9 +437,7 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
 
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
 {
-    if(strlen(Rights) < 2)
-        return false;
-
+	ASSERT_TRUE(strlen(Rights) >= 2);
     *Protect = 0;
 
     // Check for the PAGE_GUARD flag
