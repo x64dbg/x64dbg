@@ -1265,13 +1265,15 @@ void RegistersView::paintEvent(QPaintEvent* event)
     QPainter wPainter(this->viewport());
     wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
-    QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
-    // iterate all registers
-    while(it != mRegisterMapping.end())
+    // Don't draw the registers if a program isn't actually running
+    if (!DbgIsDebugging())
+        return;
+
+    // Iterate all registers
+    for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
     {
-        // paint register at given position
-        drawRegister(&wPainter, it.key(), registerValue(&wRegDumpStruct, it.key()));
-        it++;
+        // Paint register at given position
+        drawRegister(&wPainter, itr.key(), registerValue(&wRegDumpStruct, itr.key()));
     }
 }
 
