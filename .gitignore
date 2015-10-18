@@ -1,5 +1,5 @@
 # Ignored directories
-bin/
+bin/*/
 obj/
 ipch/
 Win32/
