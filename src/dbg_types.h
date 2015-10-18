@@ -9,25 +9,25 @@
 // The purpose is to use a single type as the representation.
 //
 /***************************************************************/
-#undef COMPILE_64
-#undef COMPILE_32
+#undef COMPILE_X64
+#undef COMPILE_X32
 
 #ifdef _WIN64
-#define COMPILE_64 1    // Program is being compiled as 64-bit
+#define COMPILE_X64 1    // Program is being compiled as 64-bit
 #else
-#define COMPILE_32 1    // Program is being compiled as 32-bit
+#define COMPILE_X32 1    // Program is being compiled as 32-bit
 #endif // _WIN64
 
 //
 // Define types
 //
-#ifdef COMPILE_64
+#ifdef COMPILE_X64
 typedef unsigned long long  duint;
 typedef signed long long    dsint;
 #else
 typedef unsigned long __w64 duint;
 typedef signed long __w64   dsint;
-#endif // COMPILE_64
+#endif // COMPILE_X64
 
 typedef short int16;
 typedef unsigned short uint16;

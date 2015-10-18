@@ -9,7 +9,7 @@
 #include "threading.h"
 #include "dynamicptr.h"
 
-static std::unordered_map<DWORD, THREADINFO> threadList;
+std::unordered_map<DWORD, THREADINFO> threadList;
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
