@@ -7,7 +7,7 @@ std::unordered_map<duint, BOOKMARKSINFO> bookmarks;
 
 bool BookmarkSet(duint Address, bool Manual)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // Validate the incoming address
     if(!MemIsValidReadPtr(Address))
@@ -32,7 +32,7 @@ bool BookmarkSet(duint Address, bool Manual)
 
 bool BookmarkGet(duint Address)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBookmarks);
 
     return (bookmarks.count(ModHashFromAddr(Address)) > 0);
@@ -40,7 +40,7 @@ bool BookmarkGet(duint Address)
 
 bool BookmarkDelete(duint Address)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
     EXCLUSIVE_ACQUIRE(LockBookmarks);
 
     return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
@@ -48,7 +48,7 @@ bool BookmarkDelete(duint Address)
 
 void BookmarkDelRange(duint Start, duint End)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // Are all bookmarks going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
@@ -91,7 +91,7 @@ void BookmarkDelRange(duint Start, duint End)
 
 void BookmarkCacheSave(JSON Root)
 {
-	EXCLUSIVE_ACQUIRE(LockBookmarks);
+    EXCLUSIVE_ACQUIRE(LockBookmarks);
 
     const JSON jsonBookmarks = json_array();
     const JSON jsonAutoBookmarks = json_array();
@@ -168,7 +168,7 @@ void BookmarkCacheLoad(JSON Root)
 bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
 {
     // The array container must be set, or the size must be set, or both
-	ASSERT_FALSE(!List && !Size);
+    ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockBookmarks);
 
     // Return the size if set

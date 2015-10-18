@@ -69,7 +69,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
     Callback(0, 0, &refInfo);
 
-    //concurrency::parallel_for(duint(0), scanSize, [&](duint i)
+    //concurrency::parallel_for(duint (0), scanSize, [&](duint i)
     for(duint i = 0; i < scanSize;)
     {
         // Print the progress every 4096 bytes

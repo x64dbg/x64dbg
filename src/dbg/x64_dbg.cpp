@@ -375,9 +375,9 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs("Unloading plugins...");
     pluginunload();
     dputs("Stopping command thread...");
-	bStopCommandLoopThread = true;
-	MsgFreeStack(gMsgStack);
-	WaitForThreadTermination(hCommandLoopThread);
+    bStopCommandLoopThread = true;
+    MsgFreeStack(gMsgStack);
+    WaitForThreadTermination(hCommandLoopThread);
     dputs("Cleaning up allocated data...");
     cmdfree(command_list);
     varfree();

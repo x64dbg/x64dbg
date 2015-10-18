@@ -341,7 +341,7 @@ duint MemAllocRemote(duint Address, duint Size, DWORD Type, DWORD Protect)
 
 bool MemFreeRemote(duint Address)
 {
-	return VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE) == TRUE;
+    return VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE) == TRUE;
 }
 
 duint MemGetPageAligned(duint Address)
@@ -381,7 +381,7 @@ bool MemSetPageRights(duint Address, const char* Rights)
         return false;
 
     DWORD oldProtect;
-	return VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect) == TRUE;
+    return VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect) == TRUE;
 }
 
 bool MemGetPageRights(duint Address, char* Rights)
@@ -428,7 +428,7 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
         break;
     }
 
-	strcat_s(Rights, RIGHTS_STRING_SIZE, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");
+    strcat_s(Rights, RIGHTS_STRING_SIZE, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");
     //  Rights[5] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
     //  Rights[6] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
 
@@ -437,7 +437,7 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
 
 bool MemPageRightsFromString(DWORD* Protect, const char* Rights)
 {
-	ASSERT_TRUE(strlen(Rights) >= 2);
+    ASSERT_TRUE(strlen(Rights) >= 2);
     *Protect = 0;
 
     // Check for the PAGE_GUARD flag
@@ -502,13 +502,13 @@ bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<Patte
     {
         if(!MemFindInPage(page, 0, pattern, results, maxresults))
             return false;
-        if (progress)
+        if(progress)
             GuiReferenceSetProgress(int(floor((float(count) / float(total)) * 100.0f)));
         if(results.size() >= maxresults)
             break;
         count++;
     }
-    if (progress)
+    if(progress)
     {
         GuiReferenceSetProgress(100);
         GuiReferenceReloadData();

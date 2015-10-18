@@ -1,6 +1,6 @@
 /**
  * Code originally from:
- * 
+ *
  * (c) 2015 Alexandro Sanchez Bach. All rights reserved.
  * https://github.com/AlexAltea/nucleus/blob/9103d7eb52cc861cb6e317f0007246bd03d663a2/nucleus/assert.h
  * https://github.com/AlexAltea/nucleus/blob/9103d7eb52cc861cb6e317f0007246bd03d663a2/LICENSE

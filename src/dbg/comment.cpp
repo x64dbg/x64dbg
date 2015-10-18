@@ -7,7 +7,7 @@ std::unordered_map<duint, COMMENTSINFO> comments;
 
 bool CommentSet(duint Address, const char* Text, bool Manual)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // A valid memory address must be supplied
     if(!MemIsValidReadPtr(Address))
@@ -43,7 +43,7 @@ bool CommentSet(duint Address, const char* Text, bool Manual)
 
 bool CommentGet(duint Address, char* Text)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockComments);
 
     // Get an existing comment and copy the string buffer
@@ -63,7 +63,7 @@ bool CommentGet(duint Address, char* Text)
 
 bool CommentDelete(duint Address)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
     EXCLUSIVE_ACQUIRE(LockComments);
 
     return (comments.erase(ModHashFromAddr(Address)) > 0);
@@ -71,7 +71,7 @@ bool CommentDelete(duint Address)
 
 void CommentDelRange(duint Start, duint End)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // Are all comments going to be deleted?
     // 0x00000000 - 0xFFFFFFFF
@@ -202,10 +202,10 @@ void CommentCacheLoad(JSON Root)
 
 bool CommentEnum(COMMENTSINFO* List, size_t* Size)
 {
-	ASSERT_DEBUGGING("Command function call");
+    ASSERT_DEBUGGING("Command function call");
 
     // At least 1 parameter must be supplied
-	ASSERT_FALSE(!List && !Size);
+    ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockComments);
 
     // Check if the user requested size only

@@ -33,7 +33,7 @@ bool LinearPass::Analyse()
     // Initialize thread vector
     auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = m_VirtualStart + (workAmount * i);
         duint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
@@ -97,7 +97,7 @@ void LinearPass::AnalyseOverlaps()
     // Initialize thread vectors
     auto threadInserts = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = (workAmount * i);
         duint threadWorkStop = min((threadWorkStart + workAmount), workTotal);

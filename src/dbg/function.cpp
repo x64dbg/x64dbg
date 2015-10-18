@@ -7,7 +7,7 @@ std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
 bool FunctionAdd(duint Start, duint End, bool Manual)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // Make sure memory is readable
     if(!MemIsValidReadPtr(Start))
@@ -38,7 +38,7 @@ bool FunctionAdd(duint Start, duint End, bool Manual)
 
 bool FunctionGet(duint Address, duint* Start, duint* End)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     const duint moduleBase = ModBaseFromAddr(Address);
 
@@ -62,7 +62,7 @@ bool FunctionGet(duint Address, duint* Start, duint* End)
 
 bool FunctionOverlaps(duint Start, duint End)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // A function can't end before it begins
     if(Start > End)
@@ -76,7 +76,7 @@ bool FunctionOverlaps(duint Start, duint End)
 
 bool FunctionDelete(duint Address)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     const duint moduleBase = ModBaseFromAddr(Address);
 
@@ -86,7 +86,7 @@ bool FunctionDelete(duint Address)
 
 void FunctionDelRange(duint Start, duint End)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // Should all functions be deleted?
     // 0x00000000 - 0xFFFFFFFF
@@ -211,10 +211,10 @@ void FunctionCacheLoad(JSON Root)
 
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
 {
-	ASSERT_DEBUGGING("Export call");
+    ASSERT_DEBUGGING("Export call");
 
     // If a list isn't passed and the size not requested, fail
-	ASSERT_FALSE(!List && !Size);
+    ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockFunctions);
 
     // Did the caller request the buffer size needed?

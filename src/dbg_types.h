@@ -13,20 +13,20 @@
 #undef COMPILE_32
 
 #ifdef _WIN64
-#define COMPILE_64 1	// Program is being compiled as 64-bit
+#define COMPILE_64 1    // Program is being compiled as 64-bit
 #else
-#define COMPILE_32 1	// Program is being compiled as 32-bit
+#define COMPILE_32 1    // Program is being compiled as 32-bit
 #endif // _WIN64
 
 //
 // Define types
 //
 #ifdef COMPILE_64
-typedef unsigned long long	duint;
-typedef signed long long	dsint;
+typedef unsigned long long  duint;
+typedef signed long long    dsint;
 #else
 typedef unsigned long __w64 duint;
-typedef signed long __w64	dsint;
+typedef signed long __w64   dsint;
 #endif // COMPILE_64
 
 typedef short int16;

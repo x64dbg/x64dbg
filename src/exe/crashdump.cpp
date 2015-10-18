@@ -92,8 +92,8 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
 
 LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
 {
-	// Any "exception" under 0x1000 is usually just a failed RPC call
-	if (ExceptionInfo && ExceptionInfo->ExceptionRecord->ExceptionCode > 0x00001000)
+    // Any "exception" under 0x1000 is usually just a failed RPC call
+    if(ExceptionInfo && ExceptionInfo->ExceptionRecord->ExceptionCode > 0x00001000)
     {
         // Skip DBG_PRINTEXCEPTION_C and DBG_PRINTEXCEPTION_WIDE_C
         switch(ExceptionInfo->ExceptionRecord->ExceptionCode)

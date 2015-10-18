@@ -193,7 +193,7 @@ MODINFO* ModInfoFromAddr(duint Address)
 
 bool ModNameFromAddr(duint Address, char* Name, bool Extension)
 {
-	ASSERT_NONNULL(Name);
+    ASSERT_NONNULL(Name);
     SHARED_ACQUIRE(LockModules);
 
     // Get a pointer to module information
@@ -239,16 +239,16 @@ duint ModHashFromAddr(duint Address)
 duint ModHashFromName(const char* Module)
 {
     // return MODINFO.hash (based on the name)
-	ASSERT_NONNULL(Module);
-	ASSERT_FALSE(Module[0] == '\0');
+    ASSERT_NONNULL(Module);
+    ASSERT_FALSE(Module[0] == '\0');
 
     return murmurhash(Module, (int)strlen(Module));
 }
 
 duint ModBaseFromName(const char* Module)
 {
-	ASSERT_NONNULL(Module);
-	ASSERT_TRUE(strlen(Module) < MAX_MODULE_SIZE);
+    ASSERT_NONNULL(Module);
+    ASSERT_TRUE(strlen(Module) < MAX_MODULE_SIZE);
     SHARED_ACQUIRE(LockModules);
 
     for(const auto & i : modinfo)

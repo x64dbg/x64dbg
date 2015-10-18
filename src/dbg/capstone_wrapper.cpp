@@ -152,7 +152,7 @@ int Capstone::Size() const
 
 duint Capstone::Address() const
 {
-    return duint(GetInstr()->address);
+    return duint (GetInstr()->address);
 }
 
 const cs_x86 & Capstone::x86() const

@@ -15,7 +15,7 @@ BeaTokenizer::BeaTokenizer()
 }
 
 void BeaTokenizer::AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value)
-{  
+{
     BeaSingleToken token;
     token.type = type;
     if(type != TokenSpace && type != TokenArgumentSpace && type != TokenMemoryOperatorSpace)

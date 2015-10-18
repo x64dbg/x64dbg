@@ -75,7 +75,7 @@ bool FunctionPass::Analyse()
     // Initialize thread vector
     auto threadFunctions = new std::vector<FunctionDef>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = (workAmount * i);
         duint threadWorkStop = min((threadWorkStart + workAmount), m_MainBlocks.size());
@@ -263,7 +263,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
 
     if(!block)
     {
-		ASSERT_ALWAYS("Block should exist at this point");
+        ASSERT_ALWAYS("Block should exist at this point");
         return false;
     }
 
@@ -296,7 +296,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
         }
 
         // Sanity check
-		ASSERT_TRUE(maximumAddr >= block->VirtualStart);
+        ASSERT_TRUE(maximumAddr >= block->VirtualStart);
 
         // Does this node contain the maximum address?
         if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)

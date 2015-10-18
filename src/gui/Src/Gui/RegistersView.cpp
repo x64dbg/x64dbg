@@ -1266,7 +1266,7 @@ void RegistersView::paintEvent(QPaintEvent* event)
     wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     // Don't draw the registers if a program isn't actually running
-    if (!DbgIsDebugging())
+    if(!DbgIsDebugging())
         return;
 
     // Iterate all registers

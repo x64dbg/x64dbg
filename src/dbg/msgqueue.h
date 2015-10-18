@@ -19,10 +19,10 @@ struct MESSAGE
 class MESSAGE_STACK
 {
 public:
-	Concurrency::unbounded_buffer<MESSAGE> msgs;
+    Concurrency::unbounded_buffer<MESSAGE> msgs;
 
-	int WaitingCalls;	// Number of threads waiting
-	bool Destroy;		// Destroy stack as soon as possible
+    int WaitingCalls;   // Number of threads waiting
+    bool Destroy;       // Destroy stack as soon as possible
 };
 
 // Function definitions

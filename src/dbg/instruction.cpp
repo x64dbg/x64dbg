@@ -1325,7 +1325,7 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     std::vector<SimplePage> searchPages;
     for(auto & itr : memoryPages)
     {
-        SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+        SimplePage page(duint (itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
         if(page.address >= addr && page.address + page.size <= endAddr)
             searchPages.push_back(page);
     }
