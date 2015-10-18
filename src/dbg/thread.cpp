@@ -158,6 +158,7 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     if(threadList.find(ThreadId) != threadList.end())
         return ThreadGetLastErrorTEB(threadList[ThreadId].ThreadLocalBase);
 
+	ASSERT_ALWAYS("Trying to get last error of a thread that doesn't exist!");
     return 0;
 }
 
@@ -185,6 +186,7 @@ HANDLE ThreadGetHandle(DWORD ThreadId)
     if(threadList.find(ThreadId) != threadList.end())
         return threadList[ThreadId].Handle;
 
+	ASSERT_ALWAYS("Trying to get handle of a thread that doesn't exist!");
     return nullptr;
 }
 
@@ -207,9 +209,7 @@ DWORD ThreadGetId(HANDLE Thread)
 
 int ThreadSuspendAll()
 {
-    //
     // SuspendThread does not modify any internal variables
-    //
     SHARED_ACQUIRE(LockThreads);
 
     int count = 0;
@@ -224,9 +224,7 @@ int ThreadSuspendAll()
 
 int ThreadResumeAll()
 {
-    //
     // ResumeThread does not modify any internal variables
-    //
     SHARED_ACQUIRE(LockThreads);
 
     int count = 0;

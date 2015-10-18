@@ -41,22 +41,22 @@
 #define ASSERT_FALSE2(expr, message) assert(!(expr) && (message))
 
 // Trigger an exception if expression is zero
-#define assert_zero(...) \
-    __DBG_MACRO_DISPATCH(assert_zero, __VA_ARGS__)(__VA_ARGS__)
-#define assert_zero1(expr) assert(expr)
-#define assert_zero2(expr, message) assert(((expr) == 0) && (message))
+#define ASSERT_ZERO(...) \
+    __DBG_MACRO_DISPATCH(ASSERT_ZERO, __VA_ARGS__)(__VA_ARGS__)
+#define ASSERT_ZERO1(expr) assert(expr)
+#define ASSERT_ZERO2(expr, message) assert(((expr) == 0) && (message))
 
 // Trigger an exception if expression is non-zero
-#define assert_nonzero(...) \
+#define ASSERT_NONZERO(...) \
     __DBG_MACRO_DISPATCH(ASSERT_TRUE, __VA_ARGS__)(__VA_ARGS__)
-#define assert_nonzero1(expr) assert_nonzero(expr)
-#define assert_nonzero2(expr, message) assert(((expr) != 0) && (message))
+#define ASSERT_NONZERO1(expr) ASSERT_NONZERO(expr)
+#define ASSERT_NONZERO2(expr, message) assert(((expr) != 0) && (message))
 
 // Trigger an exception if expression is a nullptr
-#define assert_null(...) \
-    __DBG_MACRO_DISPATCH(assert_null, __VA_ARGS__)(__VA_ARGS__)
-#define assert_null1(expr) assert(expr)
-#define assert_null2(expr, message) assert(((expr) == nullptr) && (message))
+#define ASSERT_NULL(...) \
+    __DBG_MACRO_DISPATCH(ASSERT_NULL, __VA_ARGS__)(__VA_ARGS__)
+#define ASSERT_NULL1(expr) assert(expr)
+#define ASSERT_NULL2(expr, message) assert(((expr) == nullptr) && (message))
 
 // Trigger an exception if expression is not a nullptr
 #define ASSERT_NONNULL(...) \
