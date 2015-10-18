@@ -1518,7 +1518,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
     BookmarkEnum(0, &cbsize);
     if(!cbsize)
     {
-        dputs("no bookmarks");
+        dputs("No bookmarks found");
         return STATUS_CONTINUE;
     }
     Memory<BOOKMARKSINFO*> bookmarks(cbsize, "cbInstrBookmarkList:bookmarks");
@@ -1535,7 +1535,7 @@ CMDRESULT cbInstrBookmarkList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
     }
     varset("$result", count, false);
-    dprintf("%d bookmark(s) listed in Reference View\n", count);
+    dprintf("%d bookmark(s) listed\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1581,7 +1581,7 @@ CMDRESULT cbInstrFunctionList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
-    dprintf("%d function(s) listed in Reference View\n", count);
+    dprintf("%d function(s) listed\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }
@@ -1627,7 +1627,7 @@ CMDRESULT cbInstrLoopList(int argc, char* argv[])
         }
     }
     varset("$result", count, false);
-    dprintf("%d loop(s) listed in Reference View\n", count);
+    dprintf("%d loop(s) listed\n", count);
     GuiReferenceReloadData();
     return STATUS_CONTINUE;
 }

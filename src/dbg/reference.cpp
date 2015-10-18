@@ -18,7 +18,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     if(!regionBase || !regionSize)
     {
         if(!Silent)
-            dprintf("Invalid memory page 0x%p", Address);
+            dprintf("Invalid memory page 0x%p\n", Address);
 
         return 0;
     }
@@ -57,9 +57,8 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     else
         sprintf_s(fullName, "%s (%p)", Name, scanStart);
 
-    // Initialize the disassembler
+    // Initialize disassembler
     Capstone cp;
-    unsigned char* dataptr = data();
 
     // Allow an "initialization" notice
     REFINFO refInfo;
@@ -83,25 +82,26 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Disassemble the instruction
-        int len;
-        if(cp.Disassemble(scanStart, dataptr, MAX_DISASM_BUFFER))
+		int disasmMaxSize = min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
+        int disasmLen = 1;
+
+		if (cp.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
             fillbasicinfo(&cp, &basicinfo);
 
             if(Callback(&cp, &basicinfo, &refInfo))
                 refInfo.refcount++;
-            len = cp.Size();
+
+			disasmLen = cp.Size();
         }
         else
         {
             // Invalid instruction detected, so just skip the byte
-            len = 1;
         }
 
-        dataptr += len;
-        scanStart += len;
-        i += len;
+		scanStart += disasmLen;
+		i += disasmLen;
     }
 
     GuiReferenceSetProgress(100);
