@@ -28,7 +28,6 @@ BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
 
 int BpGetList(std::vector<BREAKPOINT>* List)
 {
-	ASSERT_DEBUGGING("Export call");
     SHARED_ACQUIRE(LockBreakpoints);
 
     // Did the caller request an output?
