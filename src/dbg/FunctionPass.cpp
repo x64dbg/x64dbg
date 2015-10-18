@@ -256,14 +256,14 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
 
 bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock)
 {
-    assert(Function->VirtualStart != 0);
+    ASSERT_TRUE(Function->VirtualStart != 0);
 
     // Find the first basic block of the function
     BasicBlock* block = FindBBlockInRange(Function->VirtualStart);
 
     if(!block)
     {
-        assert(false);
+		ASSERT_ALWAYS("Block should exist at this point");
         return false;
     }
 
@@ -296,7 +296,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
         }
 
         // Sanity check
-        assert(maximumAddr >= block->VirtualStart);
+		ASSERT_TRUE(maximumAddr >= block->VirtualStart);
 
         // Does this node contain the maximum address?
         if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)
