@@ -1,94 +1,68 @@
 #include "msgqueue.h"
 
-//allocate a message (internal)
-static MESSAGE* msgalloc()
-{
-    return (MESSAGE*)emalloc(sizeof(MESSAGE), "msgalloc:msg");
-}
-
-//free a message (internal)
-static void msgfree(MESSAGE* msg)
-{
-    efree(msg, "msgfree:msg");
-}
-
-//allocate a message stack
+// Allocate a message stack
 MESSAGE_STACK* MsgAllocStack()
 {
-    MESSAGE_STACK* msgstack = (MESSAGE_STACK*)emalloc(sizeof(MESSAGE_STACK), "msgallocstack:msgstack");
-    if(!msgstack)
-        return 0;
-    memset(msgstack, 0, sizeof(MESSAGE_STACK));
-    InitializeCriticalSection(&msgstack->cr);
-    return msgstack;
+	auto stack = new MESSAGE_STACK;
+
+	stack->WaitingCalls = 0;
+	stack->Destroy = false;
+
+	return stack;
 }
 
-//free a message stack
-void MsgFreeStack(MESSAGE_STACK* msgstack)
+// Free a message stack
+void MsgFreeStack(MESSAGE_STACK* Stack)
 {
-    EnterCriticalSection(&msgstack->cr);
-    LeaveCriticalSection(&msgstack->cr);
-    DeleteCriticalSection(&msgstack->cr);
+	ASSERT_NONNULL(Stack);
 
-    int stackpos = msgstack->stackpos;
-    for(int i = 0; i < stackpos; i++) //free all messages left in stack
-        msgfree(msgstack->msg[i]);
-    efree(msgstack, "msgfreestack:msgstack");
+	// Update termination variable
+	Stack->Destroy = true;
+
+	// Notify each thread
+	for (int i = 0; i < Stack->WaitingCalls + 1; i++)
+	{
+		MESSAGE newMessage;
+		Stack->msgs.enqueue(newMessage);
+	}
+
+	// Delete allocate structure
+	delete Stack;
 }
 
-//add a message to the stack
-bool MsgSend(MESSAGE_STACK* msgstack, int msg, duint param1, duint param2)
+// Add a message to the stack
+bool MsgSend(MESSAGE_STACK* Stack, int Msg, duint Param1, duint Param2)
 {
-    CRITICAL_SECTION* cr = &msgstack->cr;
-    EnterCriticalSection(cr);
-    int stackpos = msgstack->stackpos;
-    if(stackpos >= MAX_MESSAGES)
-    {
-        LeaveCriticalSection(cr);
-        return false;
-    }
-    MESSAGE* newmsg = msgalloc();
-    if(!newmsg)
-    {
-        LeaveCriticalSection(cr);
-        return false;
-    }
-    newmsg->msg = msg;
-    newmsg->param1 = param1;
-    newmsg->param2 = param2;
-    msgstack->msg[stackpos] = newmsg;
-    msgstack->stackpos++; //increase stack pointer
-    LeaveCriticalSection(cr);
+	if (Stack->Destroy)
+		return false;
+
+	MESSAGE newMessage;
+	newMessage.msg = Msg;
+	newMessage.param1 = Param1;
+	newMessage.param2 = Param2;
+
+	Stack->msgs.enqueue(newMessage);
     return true;
 }
 
-//get a message from the stack (will return false when there are no messages)
-bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg)
+// Get a message from the stack (will return false when there are no messages)
+bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Msg)
 {
-    CRITICAL_SECTION* cr = &msgstack->cr;
-    EnterCriticalSection(cr);
-    int stackpos = msgstack->stackpos;
-    if(!msgstack->stackpos) //no messages to process
-    {
-        LeaveCriticalSection(cr);
-        return false;
-    }
-    msgstack->stackpos--; //current message is at stackpos-1
-    stackpos--;
-    MESSAGE* stackmsg = msgstack->msg[stackpos];
-    memcpy(msg, stackmsg, sizeof(MESSAGE));
-    msgfree(stackmsg);
-    msgstack->msg[stackpos] = 0;
-    LeaveCriticalSection(cr);
-    return true;
+	if (Stack->Destroy)
+		return false;
+
+	// Don't increment the wait count because this does not wait
+	return try_receive(Stack->msgs, *Msg);
 }
 
-//wait for a message on the specified stack
-void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg, bool* bStop)
+// Wait for a message on the specified stack
+void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Msg)
 {
-    while(!MsgGet(msgstack, msg) && (bStop == nullptr || !*bStop))
-    {
-        YieldProcessor();
-        Sleep(1);
-    }
+	if (Stack->Destroy)
+		return;
+
+	// Increment/decrement wait count
+	InterlockedIncrement((volatile long *)&Stack->WaitingCalls);
+	*Msg = Stack->msgs.dequeue();
+	InterlockedDecrement((volatile long *)&Stack->WaitingCalls);
 }

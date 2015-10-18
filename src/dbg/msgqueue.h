@@ -3,10 +3,11 @@
 
 #include "_global.h"
 #include <windows.h>
+#include <agents.h>
 
 #define MAX_MESSAGES 256
 
-//message structure
+// Message structure
 struct MESSAGE
 {
     int msg;
@@ -14,19 +15,21 @@ struct MESSAGE
     duint param2;
 };
 
-//message stack structure
-struct MESSAGE_STACK
+// Message stack structure
+class MESSAGE_STACK
 {
-    CRITICAL_SECTION cr;
-    int stackpos;
-    MESSAGE* msg[MAX_MESSAGES];
+public:
+	Concurrency::unbounded_buffer<MESSAGE> msgs;
+
+	int WaitingCalls;	// Number of threads waiting
+	bool Destroy;		// Destroy stack as soon as possible
 };
 
-//function definitions
+// Function definitions
 MESSAGE_STACK* MsgAllocStack();
-void MsgFreeStack(MESSAGE_STACK* msgstack);
-bool MsgSend(MESSAGE_STACK* msgstack, int msg, duint param1, duint param2);
-bool MsgGet(MESSAGE_STACK* msgstack, MESSAGE* msg);
-void MsgWait(MESSAGE_STACK* msgstack, MESSAGE* msg, bool* bStop);
+void MsgFreeStack(MESSAGE_STACK* Stack);
+bool MsgSend(MESSAGE_STACK* Stack, int Msg, duint Param1, duint Param2);
+bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Msg);
+void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Msg);
 
 #endif // _MSGQUEUE_H

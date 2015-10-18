@@ -217,7 +217,7 @@ static void registercommands()
 static bool cbCommandProvider(char* cmd, int maxlen)
 {
     MESSAGE msg;
-    MsgWait(gMsgStack, &msg, &bStopCommandLoopThread);
+    MsgWait(gMsgStack, &msg);
     if(bStopCommandLoopThread)
         return false;
     char* newcmd = (char*)msg.param1;
@@ -375,12 +375,12 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs("Unloading plugins...");
     pluginunload();
     dputs("Stopping command thread...");
-    bStopCommandLoopThread = true;
-    WaitForThreadTermination(hCommandLoopThread);
+	bStopCommandLoopThread = true;
+	MsgFreeStack(gMsgStack);
+	WaitForThreadTermination(hCommandLoopThread);
     dputs("Cleaning up allocated data...");
     cmdfree(command_list);
     varfree();
-    MsgFreeStack(gMsgStack);
     yr_finalize();
     Capstone::GlobalFinalize();
     dputs("Checking for mem leaks...");
