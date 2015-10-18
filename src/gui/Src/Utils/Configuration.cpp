@@ -167,10 +167,10 @@ Configuration::Configuration() : QObject()
     defaultBools.insert("Engine", engineBool);
 
     //uint settings
-    QMap<QString, uint_t> hexdumpUint;
+    QMap<QString, duint> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
     defaultUints.insert("HexDump", hexdumpUint);
-    QMap<QString, uint_t> disasmUint;
+    QMap<QString, duint> disasmUint;
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
 
@@ -382,7 +382,7 @@ void Configuration::readUints()
     for(int i = 0; i < Uints.size(); i++)
     {
         QString category = Uints.keys().at(i);
-        QMap<QString, uint_t>* currentUint = &Uints[category];
+        QMap<QString, duint>* currentUint = &Uints[category];
         for(int j = 0; j < currentUint->size(); j++)
         {
             QString id = (*currentUint).keys().at(j);
@@ -397,7 +397,7 @@ void Configuration::writeUints()
     for(int i = 0; i < Uints.size(); i++)
     {
         QString category = Uints.keys().at(i);
-        QMap<QString, uint_t>* currentUint = &Uints[category];
+        QMap<QString, duint>* currentUint = &Uints[category];
         for(int j = 0; j < currentUint->size(); j++)
         {
             QString id = (*currentUint).keys().at(j);
@@ -523,7 +523,7 @@ void Configuration::setBool(const QString category, const QString id, const bool
     msg.exec();
 }
 
-const uint_t Configuration::getUint(const QString category, const QString id) const
+const duint Configuration::getUint(const QString category, const QString id) const
 {
     if(Uints.contains(category))
     {
@@ -542,7 +542,7 @@ const uint_t Configuration::getUint(const QString category, const QString id) co
     return 0;
 }
 
-void Configuration::setUint(const QString category, const QString id, const uint_t i)
+void Configuration::setUint(const QString category, const QString id, const duint i)
 {
     if(Uints.contains(category))
     {
@@ -659,7 +659,7 @@ bool Configuration::boolToConfig(const QString category, const QString id, const
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), bBool);
 }
 
-uint_t Configuration::uintFromConfig(const QString category, const QString id)
+duint Configuration::uintFromConfig(const QString category, const QString id)
 {
     duint setting;
     if(!BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
@@ -675,7 +675,7 @@ uint_t Configuration::uintFromConfig(const QString category, const QString id)
     return setting;
 }
 
-bool Configuration::uintToConfig(const QString category, const QString id, uint_t i)
+bool Configuration::uintToConfig(const QString category, const QString id, duint i)
 {
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), i);
 }

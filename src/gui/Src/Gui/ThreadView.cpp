@@ -189,12 +189,12 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     int charwidth = getCharWidth();
     addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "Number", false);
     addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, "ID", false);
-    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "Entry", false);
-    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "TEB", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, "Entry", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, "TEB", false);
 #ifdef _WIN64
-    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "RIP", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, "RIP", false);
 #else
-    addColumnAt(8 + charwidth * sizeof(uint_t) * 2, "EIP", false);
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, "EIP", false);
 #endif //_WIN64
     addColumnAt(8 + charwidth * 14, "Suspend Count", false);
     addColumnAt(8 + charwidth * 12, "Priority", false);
@@ -224,9 +224,9 @@ void ThreadView::updateThreadList()
         else
             setCellContent(i, 0, QString("%1").arg(threadList.list[i].BasicInfo.ThreadNumber, 0, 10));
         setCellContent(i, 1, QString("%1").arg(threadList.list[i].BasicInfo.ThreadId, 0, 16).toUpper());
-        setCellContent(i, 2, QString("%1").arg(threadList.list[i].BasicInfo.ThreadStartAddress, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 3, QString("%1").arg(threadList.list[i].BasicInfo.ThreadLocalBase, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 4, QString("%1").arg(threadList.list[i].ThreadCip, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+        setCellContent(i, 2, QString("%1").arg(threadList.list[i].BasicInfo.ThreadStartAddress, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+        setCellContent(i, 3, QString("%1").arg(threadList.list[i].BasicInfo.ThreadLocalBase, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+        setCellContent(i, 4, QString("%1").arg(threadList.list[i].ThreadCip, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 5, QString().sprintf("%d", threadList.list[i].SuspendCount));
         QString priorityString;
         switch(threadList.list[i].Priority)
@@ -385,7 +385,7 @@ void ThreadView::updateThreadList()
     reloadData();
 }
 
-QString ThreadView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
     if(rowBase + rowOffset == mCurrentThread && !col)

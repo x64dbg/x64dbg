@@ -20,14 +20,14 @@ QBeaEngine::QBeaEngine(int maxModuleSize)
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
+ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
 {
 
     const unsigned int max_instructions = 128;
 
     Q_UNUSED(base);
     int i;
-    uint_t abuf[131], addr, back, cmdsize;
+    duint abuf[131], addr, back, cmdsize;
     byte_t* pdata;
     int len;
 
@@ -56,7 +56,7 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
     if(n == 0)
         return ip;
 
-    if(ip < (uint_t)n)
+    if(ip < (duint)n)
         return ip;
 
     back = 16 * (n + 3); // Instruction length limited to 16
@@ -99,11 +99,11 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t ip, int n)
+ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
 {
     Q_UNUSED(base);
     int i;
-    uint_t cmdsize;
+    duint cmdsize;
     byte_t* pdata;
     int len;
 
@@ -153,7 +153,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
  *
  * @return      Return the disassembled instruction
  */
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIndex, uint_t origBase, uint_t origInstRVA)
+Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA)
 {
     Instruction_t wInst;
     int len;
@@ -166,9 +166,9 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
 #endif
     mDisasmStruct.Options = NoformatNumeral | ShowSegmentRegs;
 
-    mDisasmStruct.EIP = (UIntPtr)((uint_t)data + (uint_t)instIndex);
+    mDisasmStruct.EIP = (UIntPtr)((duint)data + (duint)instIndex);
     mDisasmStruct.VirtualAddr = origBase + origInstRVA;
-    mDisasmStruct.SecurityBlock = (UIntPtr)((uint_t)size - instIndex);
+    mDisasmStruct.SecurityBlock = (UIntPtr)((duint)size - instIndex);
 
     len = Disasm(&mDisasmStruct);
     len = (len < 1) ? 1 : len ;

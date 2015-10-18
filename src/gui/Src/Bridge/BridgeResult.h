@@ -8,7 +8,7 @@ class BridgeResult
 public:
     BridgeResult();
     ~BridgeResult();
-    int_t Wait();
+    dsint Wait();
 };
 
 #endif // BRIDGERESULT_H

@@ -44,7 +44,7 @@ private:
     bool isGroupEnabled(const PatchInfoList & patchList, int group);
     bool hasPreviousGroup(const PatchInfoList & patchList, int group);
     bool hasNextGroup(const PatchInfoList & patchList, int group);
-    int_t getGroupAddress(const PatchInfoList & patchList, int group);
+    dsint getGroupAddress(const PatchInfoList & patchList, int group);
 
 private slots:
     void dbgStateChanged(DBGSTATE state);

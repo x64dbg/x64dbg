@@ -32,7 +32,7 @@ ReferenceView::ReferenceView()
 
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
@@ -76,7 +76,7 @@ void ReferenceView::setupContextMenu()
 void ReferenceView::disconnectBridge()
 {
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
-    disconnect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(int_t)), this, SLOT(setRowCount(int_t)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
@@ -107,7 +107,7 @@ void ReferenceView::addColumnAt(int width, QString title)
     mSearchList->addColumnAt(width, title, true);
 }
 
-void ReferenceView::setRowCount(int_t count)
+void ReferenceView::setRowCount(dsint count)
 {
     emit mCountLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
@@ -173,7 +173,7 @@ void ReferenceView::followDumpAddress()
 
 void ReferenceView::followApiAddress()
 {
-    int_t apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
+    dsint apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
     DbgCmdExecDirect(QString("disasm " + QString().sprintf("%p", apiValue)).toUtf8().constData());
     emit showCpu();
 }
@@ -205,11 +205,11 @@ void ReferenceView::toggleBreakpoint()
 
     if((wBpType & bp_normal) == bp_normal)
     {
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else
     {
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -245,7 +245,7 @@ void ReferenceView::toggleBookmark()
     GuiUpdateAllViews();
 }
 
-int_t ReferenceView::apiAddressFromString(const QString & s)
+dsint ReferenceView::apiAddressFromString(const QString & s)
 {
     QRegExp regEx("call.+<(.+)>");
     regEx.indexIn(s);

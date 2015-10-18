@@ -25,7 +25,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     wColDesc.data.itemSize = Dword;
     wColDesc.data.dwordMode = HexDword;
 #endif
-    appendDescriptor(8 + charwidth * 2 * sizeof(uint_t), "void*", false, wColDesc);
+    appendDescriptor(8 + charwidth * 2 * sizeof(duint), "void*", false, wColDesc);
 
     wColDesc.isData = false; //comments
     wColDesc.itemCount = 0;
@@ -35,7 +35,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     wColDesc.data = dDesc;
     appendDescriptor(2000, "Comments", false, wColDesc);
 
-    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(uint_t, uint_t)), this, SLOT(stackDumpAt(uint_t, uint_t)));
+    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(stackDumpAt(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
 
@@ -170,7 +170,7 @@ void CPUStack::refreshShortcutsSlot()
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
 }
 
-QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
@@ -178,8 +178,8 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
-    int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
-    uint_t wVa = rvaToVa(wRva);
+    dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
+    duint wVa = rvaToVa(wRva);
 
     bool wIsSelected = isSelected(wRva);
     if(wIsSelected) //highlight if selected
@@ -195,10 +195,10 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     {
         char label[MAX_LABEL_SIZE] = "";
         QString addrText = "";
-        int_t cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
+        dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
         if(mRvaDisplayEnabled) //RVA display
         {
-            int_t rva = cur_addr - mRvaDisplayBase;
+            dsint rva = cur_addr - mRvaDisplayBase;
             if(rva == 0)
             {
 #ifdef _WIN64
@@ -274,7 +274,7 @@ QString CPUStack::paintContent(QPainter* painter, int_t rowBase, int rowOffset, 
     else if(mDescriptor.at(col - 1).isData == true) //paint stack data
     {
         int wBytePerRowCount = getBytePerRowCount();
-        int_t wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
+        dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
         QList<RichTextPainter::CustomRichText_t> richText;
         getString(col - 1, wRva, &richText);
@@ -314,8 +314,8 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     QMenu* wMenu = new QMenu(this); //create context menu
     wMenu->addAction(mModifyAction);
     wMenu->addMenu(mBinaryMenu);
-    int_t start = rvaToVa(getSelectionStart());
-    int_t end = rvaToVa(getSelectionEnd());
+    dsint start = rvaToVa(getSelectionStart());
+    dsint end = rvaToVa(getSelectionEnd());
     if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
         wMenu->addAction(mUndoSelection);
     wMenu->addAction(mFindPatternAction);
@@ -323,12 +323,12 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mGotoBp);
     wMenu->addAction(mGotoExpression);
 
-    uint_t selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            uint_t stackBegin = mMemPage->getBase();
-            uint_t stackEnd = stackBegin + mMemPage->getSize();
+            duint stackBegin = mMemPage->getBase();
+            duint stackEnd = stackBegin + mMemPage->getSize();
             if(selectedData >= stackBegin && selectedData < stackEnd)
                 wMenu->addAction(mFollowStack);
             else
@@ -351,10 +351,10 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     case 0: //address
     {
         //very ugly way to calculate the base of the current row (no clue why it works)
-        int_t deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
+        dsint deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
         if(deltaRowBase >= getBytePerRowCount())
             deltaRowBase -= getBytePerRowCount();
-        int_t mSelectedVa = rvaToVa(getInitialSelection() - deltaRowBase);
+        dsint mSelectedVa = rvaToVa(getInitialSelection() - deltaRowBase);
         if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
             mRvaDisplayEnabled = false;
         else
@@ -375,7 +375,7 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUStack::stackDumpAt(uint_t addr, uint_t csp)
+void CPUStack::stackDumpAt(duint addr, duint csp)
 {
     mCsp = csp;
     printDumpAt(addr);
@@ -401,8 +401,8 @@ void CPUStack::gotoExpressionSlot()
 {
     if(!DbgIsDebugging())
         return;
-    uint_t size = 0;
-    uint_t base = DbgMemFindBaseAddr(mCsp, &size);
+    duint size = 0;
+    duint base = DbgMemFindBaseAddr(mCsp, &size);
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->validRangeStart = base;
@@ -424,10 +424,10 @@ void CPUStack::selectionGet(SELECTIONDATA* selection)
 
 void CPUStack::selectionSet(const SELECTIONDATA* selection)
 {
-    int_t selMin = mMemPage->getBase();
-    int_t selMax = selMin + mMemPage->getSize();
-    int_t start = selection->start;
-    int_t end = selection->end;
+    dsint selMin = mMemPage->getBase();
+    dsint selMax = selMin + mMemPage->getSize();
+    dsint start = selection->start;
+    dsint end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
         Bridge::getBridge()->setResult(0);
@@ -441,33 +441,33 @@ void CPUStack::selectionSet(const SELECTIONDATA* selection)
 
 void CPUStack::followDisasmSlot()
 {
-    uint_t selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("disasm " + addrText).toUtf8().constData());
         }
 }
 
 void CPUStack::followDumpSlot()
 {
-    uint_t selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("dump " + addrText).toUtf8().constData());
         }
 }
 
 void CPUStack::followStackSlot()
 {
-    uint_t selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(uint_t)))
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
-            QString addrText = QString("%1").arg(selectedData, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("sdump " + addrText).toUtf8().constData());
         }
 }
@@ -475,17 +475,17 @@ void CPUStack::followStackSlot()
 void CPUStack::binaryEditSlot()
 {
     HexEditDialog hexEdit(this);
-    int_t selStart = getSelectionStart();
-    int_t selSize = getSelectionEnd() - selStart + 1;
+    dsint selStart = getSelectionStart();
+    dsint selSize = getSelectionEnd() - selStart + 1;
     byte_t* data = new byte_t[selSize];
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
-    hexEdit.setWindowTitle("Edit data at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    hexEdit.setWindowTitle("Edit data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    int_t dataSize = hexEdit.mHexEdit->data().size();
-    int_t newSize = selSize > dataSize ? selSize : dataSize;
+    dsint dataSize = hexEdit.mHexEdit->data().size();
+    dsint newSize = selSize > dataSize ? selSize : dataSize;
     data = new byte_t[newSize];
     mMemPage->read(data, selStart, newSize);
     QByteArray patched = hexEdit.mHexEdit->applyMaskedData(QByteArray((const char*)data, newSize));
@@ -497,12 +497,12 @@ void CPUStack::binaryFillSlot()
 {
     HexEditDialog hexEdit(this);
     hexEdit.mHexEdit->setOverwriteMode(false);
-    int_t selStart = getSelectionStart();
-    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    dsint selStart = getSelectionStart();
+    hexEdit.setWindowTitle("Fill data at " + QString("%1").arg(rvaToVa(selStart), sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     QString pattern = hexEdit.mHexEdit->pattern();
-    int_t selSize = getSelectionEnd() - selStart + 1;
+    dsint selSize = getSelectionEnd() - selStart + 1;
     byte_t* data = new byte_t[selSize];
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
@@ -516,8 +516,8 @@ void CPUStack::binaryFillSlot()
 void CPUStack::binaryCopySlot()
 {
     HexEditDialog hexEdit(this);
-    int_t selStart = getSelectionStart();
-    int_t selSize = getSelectionEnd() - selStart + 1;
+    dsint selStart = getSelectionStart();
+    dsint selSize = getSelectionEnd() - selStart + 1;
     byte_t* data = new byte_t[selSize];
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
@@ -528,8 +528,8 @@ void CPUStack::binaryCopySlot()
 void CPUStack::binaryPasteSlot()
 {
     HexEditDialog hexEdit(this);
-    int_t selStart = getSelectionStart();
-    int_t selSize = getSelectionEnd() - selStart + 1;
+    dsint selStart = getSelectionStart();
+    dsint selSize = getSelectionEnd() - selStart + 1;
     QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
@@ -545,8 +545,8 @@ void CPUStack::binaryPasteSlot()
 void CPUStack::binaryPasteIgnoreSizeSlot()
 {
     HexEditDialog hexEdit(this);
-    int_t selStart = getSelectionStart();
-    int_t selSize = getSelectionEnd() - selStart + 1;
+    dsint selStart = getSelectionStart();
+    dsint selSize = getSelectionEnd() - selStart + 1;
     QClipboard* clipboard = QApplication::clipboard();
     hexEdit.mHexEdit->setData(clipboard->text());
 
@@ -566,18 +566,18 @@ void CPUStack::findPattern()
     hexEdit.setWindowTitle("Find Pattern...");
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    int_t addr = rvaToVa(getSelectionStart());
+    dsint addr = rvaToVa(getSelectionStart());
     if(hexEdit.entireBlock())
         addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&").toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUStack::undoSelectionSlot()
 {
-    int_t start = rvaToVa(getSelectionStart());
-    int_t end = rvaToVa(getSelectionEnd());
+    dsint start = rvaToVa(getSelectionStart());
+    dsint end = rvaToVa(getSelectionEnd());
     if(!DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
         return;
     DbgFunctions()->PatchRestoreRange(start, end);
@@ -586,14 +586,14 @@ void CPUStack::undoSelectionSlot()
 
 void CPUStack::modifySlot()
 {
-    int_t addr = getInitialSelection();
+    dsint addr = getInitialSelection();
     WordEditDialog wEditDialog(this);
-    int_t value = 0;
-    mMemPage->read(&value, addr, sizeof(int_t));
-    wEditDialog.setup("Modify", value, sizeof(int_t));
+    dsint value = 0;
+    mMemPage->read(&value, addr, sizeof(dsint));
+    wEditDialog.setup("Modify", value, sizeof(dsint));
     if(wEditDialog.exec() != QDialog::Accepted)
         return;
     value = wEditDialog.getVal();
-    mMemPage->write(&value, addr, sizeof(int_t));
+    mMemPage->write(&value, addr, sizeof(dsint));
     reloadData();
 }

@@ -25,77 +25,77 @@ void RegistersView::InitMappings()
      */
 #ifdef _WIN64
     mRegisterMapping.insert(CAX, "RAX");
-    mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CBX, "RBX");
-    mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CCX, "RCX");
-    mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CDX, "RDX");
-    mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CBP, "RBP");
-    mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CSP, "RSP");
-    mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CSI, "RSI");
-    mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CDI, "RDI");
-    mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
 
     offset++;
 
     mRegisterMapping.insert(R8, "R8");
-    mRegisterPlaces.insert(R8 , Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R8 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R9, "R9");
-    mRegisterPlaces.insert(R9 , Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R9 , Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R10, "R10");
-    mRegisterPlaces.insert(R10, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R10, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R11, "R11");
-    mRegisterPlaces.insert(R11, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R11, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R12, "R12");
-    mRegisterPlaces.insert(R12, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R12, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R13, "R13");
-    mRegisterPlaces.insert(R13, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R13, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R14, "R14");
-    mRegisterPlaces.insert(R14, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R14, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(R15, "R15");
-    mRegisterPlaces.insert(R15, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(R15, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
 
     offset++;
 
     mRegisterMapping.insert(CIP, "RIP");
-    mRegisterPlaces.insert(CIP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CIP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
 
     offset++;
 
     mRegisterMapping.insert(EFLAGS, "RFLAGS");
-    mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(duint) * 2));
 #else //x32
     mRegisterMapping.insert(CAX, "EAX");
-    mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CBX, "EBX");
-    mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CCX, "ECX");
-    mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CDX, "EDX");
-    mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CBP, "EBP");
-    mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CSP, "ESP");
-    mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CSI, "ESI");
-    mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterMapping.insert(CDI, "EDI");
-    mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
 
     offset++;
 
     mRegisterMapping.insert(CIP, "EIP");
-    mRegisterPlaces.insert(CIP, Register_Position(offset++, 0, 6, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(CIP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
 
     offset++;
 
     mRegisterMapping.insert(EFLAGS, "EFLAGS");
-    mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(duint) * 2));
 #endif
 
     mRegisterMapping.insert(ZF, "ZF");
@@ -389,17 +389,17 @@ void RegistersView::InitMappings()
     offset++;
 
     mRegisterMapping.insert(DR0, "DR0");
-    mRegisterPlaces.insert(DR0, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR0, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR1, "DR1");
-    mRegisterPlaces.insert(DR1, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR1, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR2, "DR2");
-    mRegisterPlaces.insert(DR2, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR2, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR3, "DR3");
-    mRegisterPlaces.insert(DR3, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR3, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR6, "DR6");
-    mRegisterPlaces.insert(DR6, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR6, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR7, "DR7");
-    mRegisterPlaces.insert(DR7, Register_Position(offset++, 0, 4, sizeof(uint_t) * 2));
+    mRegisterPlaces.insert(DR7, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
 
     mRowsNeeded = offset + 1;
 }
@@ -1305,8 +1305,8 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     char module_text[MAX_MODULE_SIZE] = "";
     char string_text[MAX_STRING_SIZE] = "";
 
-    QString valueText = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
-    duint register_value = (* ((uint_t*) registerValue(&wRegDumpStruct, register_selected)));
+    QString valueText = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
+    duint register_value = (* ((duint*) registerValue(&wRegDumpStruct, register_selected)));
     QString newText = QString("");
 
     bool hasString = DbgGetStringAt(register_value, string_text);
@@ -1424,7 +1424,7 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value
     QString valueText;
 
     if(mUINTDISPLAY.contains(reg))
-        valueText = QString("%1").arg((* ((uint_t*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
+        valueText = QString("%1").arg((* ((duint*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
     else if(mUSHORTDISPLAY.contains(reg))
         valueText = QString("%1").arg((* ((unsigned short*) value)), mRegisterPlaces[reg].valuesize, 16, QChar('0')).toUpper();
     else if(mDWORDDISPLAY.contains(reg))
@@ -1869,7 +1869,7 @@ void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZ
 
     QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
 
-    uint_t value;
+    duint value;
 
     for(i = 0; i < size; i++)
     {
@@ -1879,7 +1879,7 @@ void RegistersView::ModifyFields(QString title, STRING_VALUE_TABLE_t* table, SIZ
 
     value = table[i].value;
 
-    setRegister(mSelected, (uint_t)value);
+    setRegister(mSelected, (duint)value);
 }
 
 #define MODIFY_FIELDS_DISPLAY(title, table) ModifyFields(QString("Edit ") + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
@@ -1916,10 +1916,10 @@ void RegistersView::displayEditDialog()
                 else
                 {
                     bool ok = false;
-                    uint_t fpuvalue;
+                    duint fpuvalue;
 
                     if(mUSHORTDISPLAY.contains(mSelected))
-                        fpuvalue = (uint_t) mLineEdit.editText.toUShort(&ok, 16);
+                        fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
                     else if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
@@ -1947,7 +1947,7 @@ void RegistersView::displayEditDialog()
                                 }
 
                                 if(ok)
-                                    setRegister(mSelected, (uint_t) pData);
+                                    setRegister(mSelected, (duint) pData);
 
                                 free(pData);
 
@@ -1977,7 +1977,7 @@ void RegistersView::displayEditDialog()
     else
     {
         WordEditDialog wEditDial(this);
-        wEditDial.setup(QString("Edit"), (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), sizeof(int_t));
+        wEditDial.setup(QString("Edit"), (* ((duint*) registerValue(&wRegDumpStruct, mSelected))), sizeof(dsint));
         if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
             setRegister(mSelected, wEditDial.getVal());
     }
@@ -1986,25 +1986,25 @@ void RegistersView::displayEditDialog()
 void RegistersView::onIncrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 8);
+        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 8);
 }
 
 void RegistersView::onDecrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((uint_t*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 8);
+        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 8);
 }
 
 void RegistersView::onIncrementAction()
 {
     if(mINCREMENTDECREMET.contains(mSelected))
-        setRegister(mSelected, (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) + 1);
+        setRegister(mSelected, (* ((duint*) registerValue(&wRegDumpStruct, mSelected))) + 1);
 }
 
 void RegistersView::onDecrementAction()
 {
     if(mINCREMENTDECREMET.contains(mSelected))
-        setRegister(mSelected, (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) - 1);
+        setRegister(mSelected, (* ((duint*) registerValue(&wRegDumpStruct, mSelected))) - 1);
 }
 
 void RegistersView::onZeroAction()
@@ -2037,7 +2037,7 @@ void RegistersView::onToggleValueAction()
         else
         {
             bool ok = false;
-            int_t val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
+            dsint val = GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)).toInt(&ok, 16);
             if(ok)
             {
                 val++;
@@ -2069,8 +2069,8 @@ void RegistersView::onFollowInDisassembly()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -2079,8 +2079,8 @@ void RegistersView::onFollowInDump()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -2089,8 +2089,8 @@ void RegistersView::onFollowInStack()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
     }
 }
@@ -2113,9 +2113,9 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     {
         if(mSETONEZEROTOGGLE.contains(mSelected))
         {
-            if((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
+            if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
                 wMenu.addAction(wCM_Zero);
-            if((* ((uint_t*) registerValue(&wRegDumpStruct, mSelected))) == 0)
+            if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
                 wMenu.addAction(wCM_SetToOne);
             wMenu.addAction(wCM_ToggleValue);
         }
@@ -2139,7 +2139,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
         if(mCANSTOREADDRESS.contains(mSelected))
         {
-            uint_t addr = (* ((uint_t*) registerValue(&wRegDumpStruct, mSelected)));
+            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
             if(DbgMemIsValidReadPtr(addr))
             {
                 wMenu.addAction(wCM_FollowInDump);
@@ -2179,7 +2179,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     }
 }
 
-void RegistersView::setRegister(REGISTER_NAME reg, uint_t value)
+void RegistersView::setRegister(REGISTER_NAME reg, duint value)
 {
     // is register-id known?
     if(mRegisterMapping.contains(reg))
@@ -2223,7 +2223,7 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     SIZE_T size;
 
     if(mUINTDISPLAY.contains(reg_name))
-        size = sizeof(uint_t);
+        size = sizeof(duint);
     else if(mUSHORTDISPLAY.contains(reg_name) || mFIELDVALUE.contains(reg_name))
         size = sizeof(unsigned short);
     else if(mDWORDDISPLAY.contains(reg_name))

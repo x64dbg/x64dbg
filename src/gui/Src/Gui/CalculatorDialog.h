@@ -37,7 +37,7 @@ signals:
     void showCpu();
 
 private slots:
-    void expressionChanged(bool validExpression, bool validPointer, int_t value);
+    void expressionChanged(bool validExpression, bool validPointer, dsint value);
     void on_btnGoto_clicked();
     void on_txtHex_textEdited(const QString & arg1);
     void on_txtSignedDec_textEdited(const QString & arg1);
@@ -51,7 +51,7 @@ private slots:
 private:
     ValidateExpressionThread* mValidateThread;
     Ui::CalculatorDialog* ui;
-    QString inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const;
+    QString inFormat(const duint val, CalculatorDialog::NUMBERFORMAT NF) const;
 };
 
 #endif // CALCULATORDIALOG_H

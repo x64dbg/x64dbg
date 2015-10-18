@@ -460,7 +460,7 @@ void AbstractTableView::keyPressEvent(QKeyEvent* event)
  */
 void AbstractTableView::vertSliderActionSlot(int action)
 {
-    int_t wDelta = 0;
+    dsint wDelta = 0;
     int wSliderPos = verticalScrollBar()->sliderPosition();
     int wNewScrollBarValue;
 
@@ -531,11 +531,11 @@ void AbstractTableView::vertSliderActionSlot(int action)
  *
  * @return      Return the value of the new table offset.
  */
-int_t AbstractTableView::sliderMovedHook(int type, int_t value, int_t delta)
+dsint AbstractTableView::sliderMovedHook(int type, dsint value, dsint delta)
 {
     Q_UNUSED(type);
-    int_t wValue = value + delta;
-    int_t wMax = getRowCount() - getViewableRowsCount() + 1;
+    dsint wValue = value + delta;
+    dsint wMax = getRowCount() - getViewableRowsCount() + 1;
 
     // Bounding
     wValue = wValue > wMax ? wMax : wValue;
@@ -553,17 +553,17 @@ int_t AbstractTableView::sliderMovedHook(int type, int_t value, int_t delta)
  * @return      32bits integer.
  */
 #ifdef _WIN64
-int AbstractTableView::scaleFromUint64ToScrollBarRange(int_t value)
+int AbstractTableView::scaleFromUint64ToScrollBarRange(dsint value)
 {
     if(mScrollBarAttributes.is64 == true)
     {
-        int_t wValue = ((int_t)value) >> mScrollBarAttributes.rightShiftCount;
-        int_t wValueMax = ((int_t)getRowCount() - 1) >> mScrollBarAttributes.rightShiftCount;
+        dsint wValue = ((dsint)value) >> mScrollBarAttributes.rightShiftCount;
+        dsint wValueMax = ((dsint)getRowCount() - 1) >> mScrollBarAttributes.rightShiftCount;
 
-        if(value == ((int_t)getRowCount() - 1))
+        if(value == ((dsint)getRowCount() - 1))
             return (int)(verticalScrollBar()->maximum());
         else
-            return (int)((int_t)((int_t)verticalScrollBar()->maximum() * (int_t)wValue) / (int_t)wValueMax);
+            return (int)((dsint)((dsint)verticalScrollBar()->maximum() * (dsint)wValue) / (dsint)wValueMax);
     }
     else
     {
@@ -581,20 +581,20 @@ int AbstractTableView::scaleFromUint64ToScrollBarRange(int_t value)
  * @return      64bits integer.
  */
 #ifdef _WIN64
-int_t AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
+dsint AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
 {
     if(mScrollBarAttributes.is64 == true)
     {
-        int_t wValueMax = ((int_t)getRowCount() - 1) >> mScrollBarAttributes.rightShiftCount;
+        dsint wValueMax = ((dsint)getRowCount() - 1) >> mScrollBarAttributes.rightShiftCount;
 
         if(value == (int)0x7FFFFFFF)
-            return (int_t)(getRowCount() - 1);
+            return (dsint)(getRowCount() - 1);
         else
-            return (int_t)(((int_t)((int_t)wValueMax * (int_t)value) / (int_t)0x7FFFFFFF) << mScrollBarAttributes.rightShiftCount);
+            return (dsint)(((dsint)((dsint)wValueMax * (dsint)value) / (dsint)0x7FFFFFFF) << mScrollBarAttributes.rightShiftCount);
     }
     else
     {
-        return (int_t)value;
+        return (dsint)value;
     }
 }
 #endif
@@ -607,14 +607,14 @@ int_t AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
  *
  * @return      32bits integer.
  */
-void AbstractTableView::updateScrollBarRange(int_t range)
+void AbstractTableView::updateScrollBarRange(dsint range)
 {
-    int_t wMax = range - getViewableRowsCount() + 1;
+    dsint wMax = range - getViewableRowsCount() + 1;
 
     if(wMax > 0)
     {
 #ifdef _WIN64
-        if((uint_t)wMax < (uint_t)0x0000000080000000)
+        if((duint)wMax < (duint)0x0000000080000000)
         {
             mScrollBarAttributes.is64 = false;
             mScrollBarAttributes.rightShiftCount = 0;
@@ -622,13 +622,13 @@ void AbstractTableView::updateScrollBarRange(int_t range)
         }
         else
         {
-            uint_t wMask = 0x8000000000000000;
+            duint wMask = 0x8000000000000000;
             int wLeadingZeroCount;
 
             // Count leading zeros
             for(wLeadingZeroCount = 0; wLeadingZeroCount < 64; wLeadingZeroCount++)
             {
-                if((uint_t)wMax < wMask)
+                if((duint)wMax < wMask)
                 {
                     wMask = wMask >> 1;
                 }
@@ -760,8 +760,8 @@ int AbstractTableView::getViewableRowsCount()
 int AbstractTableView::getLineToPrintcount()
 {
     int wViewableRowsCount = getViewableRowsCount();
-    int_t wRemainingRowsCount = getRowCount() - mTableOffset;
-    int wCount = (int_t)wRemainingRowsCount > (int_t)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
+    dsint wRemainingRowsCount = getRowCount() - mTableOffset;
+    int wCount = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
     return wCount;
 }
 
@@ -794,7 +794,7 @@ void AbstractTableView::addColumnAt(int width, QString title, bool isClickable)
     mColumnList.append(wColumn);
 }
 
-void AbstractTableView::setRowCount(int_t count)
+void AbstractTableView::setRowCount(dsint count)
 {
     updateScrollBarRange(count);
     mRowCount = count;
@@ -825,7 +825,7 @@ QString AbstractTableView::getColTitle(int index)
 /************************************************************************************
                                 Getter & Setter
 ************************************************************************************/
-int_t AbstractTableView::getRowCount()
+dsint AbstractTableView::getRowCount()
 {
     return mRowCount;
 }
@@ -906,15 +906,15 @@ int AbstractTableView::getCharWidth()
 /************************************************************************************
                            Table Offset Management
 ************************************************************************************/
-int_t AbstractTableView::getTableOffset()
+dsint AbstractTableView::getTableOffset()
 {
     return mTableOffset;
 }
 
 
-void AbstractTableView::setTableOffset(int_t val)
+void AbstractTableView::setTableOffset(dsint val)
 {
-    int_t wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
+    dsint wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
     wMaxOffset = wMaxOffset > 0 ? wMaxOffset : 0;
     if(val > wMaxOffset)
         return;
@@ -957,6 +957,6 @@ void AbstractTableView::repaint()
 void AbstractTableView::prepareData()
 {
     int wViewableRowsCount = getViewableRowsCount();
-    int_t wRemainingRowsCount = getRowCount() - mTableOffset;
-    mNbrOfLineToPrint = (int_t)wRemainingRowsCount > (int_t)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
+    dsint wRemainingRowsCount = getRowCount() - mTableOffset;
+    mNbrOfLineToPrint = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
 }

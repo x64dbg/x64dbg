@@ -23,7 +23,7 @@ void SourceView::contextMenuSlot(const QPoint & pos)
     QMenu* wMenu = new QMenu(this);
 
     int line = getInitialSelection() + 1;
-    int_t addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
+    dsint addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
     if(addr)
         wMenu->addAction(mFollowInDisasm);
 
@@ -97,7 +97,7 @@ void SourceView::loadFile()
     file.close();
 }
 
-QString SourceView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString SourceView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     painter->save();
     bool wIsSelected = isSelected(rowBase, rowOffset);
@@ -134,7 +134,7 @@ QString SourceView::paintContent(QPainter* painter, int_t rowBase, int rowOffset
 void SourceView::followInDisasmSlot()
 {
     int line = getInitialSelection() + 1;
-    int_t addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
+    dsint addr = DbgFunctions()->GetAddrFromLine(mSourcePath.toUtf8().constData(), line);
     DbgCmdExecDirect(QString().sprintf("disasm %p", addr).toUtf8().constData());
     emit showCpu();
 }

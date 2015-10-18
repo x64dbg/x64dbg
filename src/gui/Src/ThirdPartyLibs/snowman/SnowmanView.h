@@ -9,7 +9,7 @@ class SnowmanView : public QWidget
 };
 
 extern "C" __declspec(dllexport) SnowmanView* CreateSnowman(QWidget* parent);
-extern "C" __declspec(dllexport) void DecompileAt(SnowmanView* snowman, int_t start, int_t end);
+extern "C" __declspec(dllexport) void DecompileAt(SnowmanView* snowman, dsint start, dsint end);
 extern "C" __declspec(dllexport) void CloseSnowman(SnowmanView* snowman);
 
 #endif // SNOWMANVIEW_H

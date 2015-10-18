@@ -59,8 +59,8 @@ int main(int argc, char* argv[])
     application.setFont(ConfigFont("Application"));
 
     // Register custom data types
-    qRegisterMetaType<int_t>("int_t");
-    qRegisterMetaType<uint_t>("uint_t");
+    qRegisterMetaType<dsint>("dsint");
+    qRegisterMetaType<duint>("duint");
     qRegisterMetaType<byte_t>("byte_t");
     qRegisterMetaType<DBGSTATE>("DBGSTATE");
 

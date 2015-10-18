@@ -72,7 +72,7 @@ bool PatchDialog::hasNextGroup(const PatchInfoList & patchList, int group)
     return false;
 }
 
-int_t PatchDialog::getGroupAddress(const PatchInfoList & patchList, int group)
+dsint PatchDialog::getGroupAddress(const PatchInfoList & patchList, int group)
 {
     for(int i = 0; i < patchList.size(); i++)
         if(patchList.at(i).second.group == group)
@@ -185,11 +185,11 @@ void PatchDialog::groupToggle()
     }
     GuiUpdateAllViews();
     mIsWorking = false;
-    int_t groupStart = getGroupAddress(curPatchList, group);
+    dsint groupStart = getGroupAddress(curPatchList, group);
     if(!groupStart)
         return;
     QString color = enabled ? "#00DD00" : "red";
-    QString addrText = QString("%1").arg(groupStart, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(groupStart, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
@@ -210,7 +210,7 @@ void PatchDialog::groupPrevious()
         return;
     group--;
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
-    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setGroup(group);
@@ -235,7 +235,7 @@ void PatchDialog::groupNext()
         return;
     group++;
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
-    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setGroup(group);
@@ -260,7 +260,7 @@ void PatchDialog::on_listModules_itemSelectionChanged()
     for(int i = 0; i < patchList.size(); i++)
     {
         const DBGPATCHINFO curPatch = patchList.at(i).first;
-        QString addrText = QString("%1").arg(curPatch.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addrText = QString("%1").arg(curPatch.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         QListWidgetItem* item = new QListWidgetItem(QString().sprintf("%d", patchList.at(i).second.group).rightJustified(4, ' ', true) + "|" + addrText + QString().sprintf(":%.2X->%.2X", curPatch.oldbyte, curPatch.newbyte), ui->listPatches);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         Qt::CheckState state = patchList.at(i).second.checked ? Qt::Checked : Qt::Unchecked;
@@ -306,7 +306,7 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
     GuiUpdateAllViews();
     int group = mGroupSelector->group();
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
-    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
@@ -393,10 +393,10 @@ void PatchDialog::on_listPatches_itemSelectionChanged()
         return;
     PatchInfoList & curPatchList = found.value();
     PatchPair & patch = curPatchList[ui->listPatches->row(ui->listPatches->selectedItems().at(0))]; //selected item
-    int_t groupStart = getGroupAddress(curPatchList, patch.second.group);
+    dsint groupStart = getGroupAddress(curPatchList, patch.second.group);
     if(!groupStart)
         return;
-    QString addrText = QString("%1").arg(groupStart, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(groupStart, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
     DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
 }
@@ -416,7 +416,7 @@ void PatchDialog::on_btnPickGroups_clicked()
 
     int group = mGroupSelector->group();
     QString color = isGroupEnabled(curPatchList, group) ? "#00DD00" : "red";
-    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(getGroupAddress(curPatchList, group), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
@@ -525,7 +525,7 @@ void PatchDialog::on_btnImport_clicked()
     } IMPORTSTATUS;
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
-    int_t modbase = 0;
+    dsint modbase = 0;
     bool bBadOriginal = false;
     bool bAlreadyDone = false;
     for(int i = 0; i < lines.size(); i++)
@@ -647,7 +647,7 @@ void PatchDialog::on_btnExport_clicked()
     {
         const PatchInfoList & curPatchList = i.value();
         bool bModPlaced = false;
-        int_t modbase = DbgFunctions()->ModBaseFromName(i.key().toUtf8().constData());
+        dsint modbase = DbgFunctions()->ModBaseFromName(i.key().toUtf8().constData());
         if(!modbase)
             continue;
         for(int j = 0; j < curPatchList.size(); j++)
@@ -659,7 +659,7 @@ void PatchDialog::on_btnExport_clicked()
                 lines.push_back(">" + i.key());
                 bModPlaced = true;
             }
-            QString addrText = QString("%1").arg(curPatchList.at(j).first.addr - modbase, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(curPatchList.at(j).first.addr - modbase, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             lines.push_back(addrText + QString().sprintf(":%.2X->%.2X", curPatchList.at(j).first.oldbyte, curPatchList.at(j).first.newbyte));
             patches++;
         }

@@ -12,7 +12,7 @@ BridgeResult::~BridgeResult()
     Bridge::getBridge()->mBridgeMutex->unlock();
 }
 
-int_t BridgeResult::Wait()
+dsint BridgeResult::Wait()
 {
     while(!Bridge::getBridge()->hasBridgeResult) //wait for thread completion
         Sleep(100);

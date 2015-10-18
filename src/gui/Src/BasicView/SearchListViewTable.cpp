@@ -7,7 +7,7 @@ SearchListViewTable::SearchListViewTable(StdTable* parent) : StdTable(parent)
     highlightText = "";
 }
 
-QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString SearchListViewTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     bool isaddr = true;
     QString text = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
@@ -16,7 +16,7 @@ QString SearchListViewTable::paintContent(QPainter* painter, int_t rowBase, int 
     if(!getRowCount())
         isaddr = false;
     ULONGLONG val = 0;
-    uint_t wVA;
+    duint wVA;
     if(sscanf_s(text.toUtf8().constData(), "%llX", &val) != 1)
         isaddr = false;
     else

@@ -9,7 +9,7 @@ typedef struct _Instruction_t
 {
     QString instStr;
     QByteArray dump;
-    uint_t rva;
+    duint rva;
     int length;
     DISASM disasm;
     BeaTokenizer::BeaInstructionToken tokens;
@@ -19,9 +19,9 @@ class QBeaEngine
 {
 public:
     explicit QBeaEngine(int maxModuleSize);
-    ulong DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t ip, int n);
-    ulong DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t ip, int n);
-    Instruction_t DisassembleAt(byte_t* data, uint_t size, uint_t instIndex, uint_t origBase, uint_t origInstRVA);
+    ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n);
+    ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
+    Instruction_t DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA);
 
 private:
     DISASM mDisasmStruct;

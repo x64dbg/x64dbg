@@ -17,17 +17,17 @@ class Breakpoints : public QObject
 
 public:
     explicit Breakpoints(QObject* parent = 0);
-    static void setBP(BPXTYPE type, uint_t va);
+    static void setBP(BPXTYPE type, duint va);
     static void enableBP(const BRIDGEBP & bp);
-    static void enableBP(BPXTYPE type, uint_t va);
+    static void enableBP(BPXTYPE type, duint va);
     static void disableBP(const BRIDGEBP & bp);
-    static void disableBP(BPXTYPE type, uint_t va);
+    static void disableBP(BPXTYPE type, duint va);
     static void removeBP(const BRIDGEBP & bp);
-    static void removeBP(BPXTYPE type, uint_t va);
+    static void removeBP(BPXTYPE type, duint va);
     static void toggleBPByDisabling(const BRIDGEBP & bp);
-    static void toggleBPByDisabling(BPXTYPE type, uint_t va);
-    static void toggleBPByRemoving(BPXTYPE type, uint_t va);
-    static BPXSTATE BPState(BPXTYPE type, uint_t va);
+    static void toggleBPByDisabling(BPXTYPE type, duint va);
+    static void toggleBPByRemoving(BPXTYPE type, duint va);
+    static BPXSTATE BPState(BPXTYPE type, duint va);
 };
 
 #endif // BREAKPOINTS_H

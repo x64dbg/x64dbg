@@ -51,7 +51,7 @@ private:
     QWidget* mSymbolPlaceHolder;
     SearchListView* mSearchListView;
     StdTable* mModuleList;
-    QMap<QString, uint_t> mModuleBaseList;
+    QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;
     QAction* mToggleBreakpoint;

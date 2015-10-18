@@ -18,9 +18,9 @@ public:
 
     // Context Menu Management
     void setupRightClickContextMenu();
-    void addFollowReferenceMenuItem(QString name, int_t value, QMenu* menu, bool isReferences);
-    void setupFollowReferenceMenu(int_t wVA, QMenu* menu, bool isReferences);
-    void setHwBpAt(uint_t va, int slot);
+    void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences);
+    void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences);
+    void setHwBpAt(duint va, int slot);
 
     void copySelection(bool copyBytes);
 
@@ -28,7 +28,7 @@ signals:
     void displayReferencesWidget();
     void displaySourceManagerWidget();
     void showPatches();
-    void decompileAt(int_t start, int_t end);
+    void decompileAt(dsint start, dsint end);
     void displaySnowmanWidget();
 
 public slots:

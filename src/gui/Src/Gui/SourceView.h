@@ -13,7 +13,7 @@ public:
     explicit SourceView(QString path, int line = 0, StdTable* parent = 0);
     QString getSourcePath();
     void setInstructionPointer(int line);
-    QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void setSelection(int line);
 

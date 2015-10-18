@@ -44,7 +44,7 @@ void ScriptView::colorsUpdated()
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 }
 
-QString ScriptView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     bool wIsSelected = isSelected(rowBase, rowOffset);
     // Highlight if selected
@@ -312,8 +312,8 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
     int key = event->key();
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
-        int_t botRVA = getTableOffset();
-        int_t topRVA = botRVA + getNbrOfLineToPrint() - 1;
+        dsint botRVA = getTableOffset();
+        dsint topRVA = botRVA + getNbrOfLineToPrint() - 1;
         if(key == Qt::Key_Up)
             selectPrevious();
         else

@@ -23,16 +23,16 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     // Create module list
     mModuleList = new StdTable();
     int charwidth = mModuleList->getCharWidth();
-    mModuleList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Base", false);
+    mModuleList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
     mModuleList->addColumnAt(500, "Module", true);
 
     // Setup symbol list
-    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
+    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
     mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mList->addColumnAt(2000, "Symbol (undecorated)", true);
 
     // Setup search list
-    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(int_t) + 8, "Address", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mSearchList->addColumnAt(2000, "Symbol (undecorated)", true);
 
@@ -161,9 +161,9 @@ void SymbolView::clearSymbolLogSlot()
 void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 {
     StdTable* symbolList = (StdTable*)user;
-    int_t index = symbolList->getRowCount();
+    dsint index = symbolList->getRowCount();
     symbolList->setRowCount(index + 1);
-    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 1, symbol->decoratedSymbol);
@@ -203,7 +203,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
     for(int i = 0; i < module_count; i++)
     {
         mModuleBaseList.insert(modules[i].name, modules[i].base);
-        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
         mModuleList->setCellContent(i, 1, modules[i].name);
     }
     mModuleList->reloadData();
@@ -248,7 +248,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
-    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
@@ -278,7 +278,7 @@ void SymbolView::moduleEntryFollow()
 
 void SymbolView::moduleCopyPath()
 {
-    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         Bridge::CopyToClipboard(szModPath);
@@ -325,11 +325,11 @@ void SymbolView::toggleBreakpoint()
 
     if((wBpType & bp_normal) == bp_normal)
     {
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else
     {
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -367,7 +367,7 @@ void SymbolView::toggleBookmark()
 
 void SymbolView::moduleEntropy()
 {
-    int_t modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {

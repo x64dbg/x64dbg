@@ -53,7 +53,7 @@ public:
     struct BeaTokenValue
     {
         int size; //value size
-        int_t value; //value
+        dsint value; //value
     };
 
     struct BeaSingleToken

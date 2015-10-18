@@ -10,12 +10,12 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     setFixedSize(this->size()); //fixed size
     connect(this, SIGNAL(validAddress(bool)), ui->btnGoto, SLOT(setEnabled(bool)));
     emit validAddress(false);
-    ui->txtBin->setInputMask(QString("bbbb ").repeated(sizeof(uint_t) * 2));
+    ui->txtBin->setInputMask(QString("bbbb ").repeated(sizeof(duint) * 2));
     ui->txtExpression->setText("0");
     ui->txtExpression->selectAll();
     ui->txtExpression->setFocus();
     mValidateThread = new ValidateExpressionThread(this);
-    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->txtExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
 }
 
@@ -43,7 +43,7 @@ void CalculatorDialog::setExpressionFocus()
     ui->txtExpression->setFocus();
 }
 
-void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
+void CalculatorDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
 {
     if(!validExpression)
     {
@@ -108,7 +108,7 @@ void CalculatorDialog::on_txtExpression_textChanged(const QString & arg1)
     emit validAddress(false);
 }
 
-QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFORMAT NF) const
+QString CalculatorDialog::inFormat(const duint val, CalculatorDialog::NUMBERFORMAT NF) const
 {
     switch(NF)
     {
@@ -116,14 +116,14 @@ QString CalculatorDialog::inFormat(const uint_t val, CalculatorDialog::NUMBERFOR
     case N_HEX:
         return QString("%1").arg(val, 1, 16, QChar('0')).toUpper();
     case N_SDEC:
-        return QString("%1").arg((int_t)val);
+        return QString("%1").arg((dsint)val);
     case N_UDEC:
         return QString("%1").arg(val);
     case N_BIN:
     {
-        QString binary = QString("%1").arg(val, 8 * sizeof(uint_t), 2, QChar('0')).toUpper();
+        QString binary = QString("%1").arg(val, 8 * sizeof(duint), 2, QChar('0')).toUpper();
         QString ans = "";
-        for(int i = 0; i < sizeof(uint_t) * 8; i++)
+        for(int i = 0; i < sizeof(duint) * 8; i++)
         {
             if((i % 4 == 0) && (i != 0))
                 ans += " ";

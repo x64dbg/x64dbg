@@ -236,7 +236,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
-    connect(mCpuWidget->mDisas, SIGNAL(decompileAt(int_t, int_t)), this, SLOT(decompileAt(int_t, int_t)));
+    connect(mCpuWidget->mDisas, SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
     connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
@@ -758,13 +758,13 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 
 void MainWindow::findStrings()
 {
-    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 
 void MainWindow::findModularCalls()
 {
-    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 
@@ -958,7 +958,7 @@ void MainWindow::runSelection()
 {
     if(!DbgIsDebugging())
         return;
-    QString command = "bp " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(int_t) * 2, 16, QChar('0')).toUpper() + ", ss";
+    QString command = "bp " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper() + ", ss";
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
@@ -1113,7 +1113,7 @@ void MainWindow::changeCommandLine()
     }
 }
 
-void MainWindow::decompileAt(int_t start, int_t end)
+void MainWindow::decompileAt(dsint start, dsint end)
 {
     DecompileAt(mSnowmanView, start, end);
 }

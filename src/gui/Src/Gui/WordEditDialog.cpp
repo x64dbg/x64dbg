@@ -10,7 +10,7 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
     setModal(true);
 
     mValidateThread = new ValidateExpressionThread(this);
-    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->expressionLineEdit, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
 }
@@ -33,7 +33,7 @@ void WordEditDialog::hideEvent(QHideEvent* event)
     mValidateThread->wait();
 }
 
-void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
+void WordEditDialog::setup(QString title, duint defVal, int byteCount)
 {
     this->setWindowTitle(title);
     ui->hexLineEdit->setInputMask(QString("hh").repeated(byteCount));
@@ -43,12 +43,12 @@ void WordEditDialog::setup(QString title, uint_t defVal, int byteCount)
     ui->expressionLineEdit->setFocus();
 }
 
-uint_t WordEditDialog::getVal()
+duint WordEditDialog::getVal()
 {
     return mWord;
 }
 
-void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
+void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
 {
     Q_UNUSED(validPointer);
     if(validExpression)
@@ -60,7 +60,7 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
 
         //hex
         mWord = value;
-        uint_t hexWord = 0;
+        duint hexWord = 0;
         unsigned char* hex = (unsigned char*)&hexWord;
         unsigned char* word = (unsigned char*)&mWord;
 #ifdef _WIN64
@@ -78,11 +78,11 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         hex[2] = word[1];
         hex[3] = word[0];
 #endif //_WIN64
-        ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+        ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(duint) * 2, 16, QChar('0')).toUpper());
         //signed
-        ui->signedLineEdit->setText(QString::number((int_t)mWord));
+        ui->signedLineEdit->setText(QString::number((dsint)mWord));
         //unsigned
-        ui->unsignedLineEdit->setText(QString::number((uint_t)mWord));
+        ui->unsignedLineEdit->setText(QString::number((duint)mWord));
     }
     else
     {
@@ -104,7 +104,7 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
     {
         ui->signedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((uint_t)value, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
     }
     else
     {
@@ -120,7 +120,7 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
-        ui->expressionLineEdit->setText(QString("%1").arg((uint_t)value, sizeof(uint_t) * 2, 16, QChar('0')).toUpper());
+        ui->expressionLineEdit->setText(QString("%1").arg((duint)value, sizeof(duint) * 2, 16, QChar('0')).toUpper());
     }
     else
     {

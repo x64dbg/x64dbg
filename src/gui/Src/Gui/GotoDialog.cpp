@@ -21,7 +21,7 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     validRangeEnd = 0;
     fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
-    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, int_t)), this, SLOT(expressionChanged(bool, bool, int_t)));
+    connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
@@ -44,7 +44,7 @@ void GotoDialog::hideEvent(QHideEvent* event)
     mValidateThread->wait();
 }
 
-void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_t value)
+void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
 {
     QString expression = ui->editExpression->text();
     if(expressionText == expression)
@@ -63,11 +63,11 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_
     }
     else if(fileOffset)
     {
-        uint_t offset = value;
-        uint_t va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
+        duint offset = value;
+        duint va = DbgFunctions()->FileOffsetToVa(modName.toUtf8().constData(), offset);
         if(va)
         {
-            QString addrText = QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+            QString addrText = QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
             ui->buttonOk->setEnabled(true);
             expressionText = expression;
@@ -81,7 +81,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_
     }
     else
     {
-        uint_t addr = value;
+        duint addr = value;
         if(!validPointer)
         {
             ui->labelError->setText("<font color='red'><b>Invalid memory address...</b></font>");
@@ -107,9 +107,9 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, int_
                     addrText = QString(label);
             }
             else if(DbgGetModuleAt(addr, module) && !QString(label).startsWith("JMP.&"))
-                addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+                addrText = QString(module) + "." + QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             else
-                addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+                addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             ui->labelError->setText(QString("<font color='#00DD00'><b>Correct expression! -> </b></font>" + addrText));
             ui->buttonOk->setEnabled(true);
             expressionText = expression;
@@ -123,7 +123,7 @@ void GotoDialog::on_editExpression_textChanged(const QString & arg1)
     ui->buttonOk->setEnabled(false);
 }
 
-bool GotoDialog::IsValidMemoryRange(uint_t addr)
+bool GotoDialog::IsValidMemoryRange(duint addr)
 {
     return ((!validRangeStart && !validRangeEnd) || (addr >= validRangeStart && addr < validRangeEnd));
 }

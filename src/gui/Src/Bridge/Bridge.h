@@ -30,7 +30,7 @@ public:
     static void CopyToClipboard(const QString & text);
 
     //result function
-    void setResult(int_t result = 0);
+    void setResult(dsint result = 0);
 
     //helper functions
     void emitLoadSourceFile(const QString path, int line = 0, int selection = 0);
@@ -43,7 +43,7 @@ public:
     ReferenceManager* referenceManager;
 
 signals:
-    void disassembleAt(int_t va, int_t eip);
+    void disassembleAt(dsint va, dsint eip);
     void repaintGui();
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QString msg);
@@ -51,7 +51,7 @@ signals:
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
-    void dumpAt(int_t va);
+    void dumpAt(dsint va);
     void scriptAdd(int count, const char** lines);
     void scriptClear();
     void scriptSetIp(int line);
@@ -66,14 +66,14 @@ signals:
     void clearSymbolLog();
     void setSymbolProgress(int progress);
     void referenceAddColumnAt(int width, QString title);
-    void referenceSetRowCount(int_t count);
+    void referenceSetRowCount(dsint count);
     void referenceSetCellContent(int r, int c, QString s);
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
     void referenceSetSearchStartCol(int col);
     void referenceInitialize(QString name);
-    void stackDumpAt(uint_t va, uint_t csp);
+    void stackDumpAt(duint va, duint csp);
     void updateDump();
     void updateThreads();
     void updateMemory();
@@ -117,7 +117,7 @@ signals:
 
 private:
     QMutex* mBridgeMutex;
-    int_t bridgeResult;
+    dsint bridgeResult;
     volatile bool hasBridgeResult;
     volatile bool dbgStopped;
 };

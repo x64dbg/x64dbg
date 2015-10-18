@@ -50,7 +50,7 @@ void CPUInfoBox::clear()
     setInfoLine(2, "");
 }
 
-QString CPUInfoBox::getSymbolicName(int_t addr)
+QString CPUInfoBox::getSymbolicName(dsint addr)
 {
     char labelText[MAX_LABEL_SIZE] = "";
     char moduleText[MAX_MODULE_SIZE] = "";
@@ -59,7 +59,7 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
     QString addrText;
-    addrText = QString("%1").arg(addr & (uint_t) - 1, 0, 16, QChar('0')).toUpper();
+    addrText = QString("%1").arg(addr & (duint) - 1, 0, 16, QChar('0')).toUpper();
     QString finalText;
     if(bHasString)
         finalText = addrText + " " + QString(string);
@@ -88,7 +88,7 @@ QString CPUInfoBox::getSymbolicName(int_t addr)
     return finalText;
 }
 
-void CPUInfoBox::disasmSelectionChanged(int_t parVA)
+void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
     if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
@@ -149,7 +149,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
             else
             {
                 QString addrText;
-                if(memsize == sizeof(int_t))
+                if(memsize == sizeof(dsint))
                     addrText = getSymbolicName(arg.memvalue);
                 else
                     addrText = QString("%1").arg(arg.memvalue, memsize * 2, 16, QChar('0')).toUpper();
@@ -175,7 +175,7 @@ void CPUInfoBox::disasmSelectionChanged(int_t parVA)
     char mod[MAX_MODULE_SIZE] = "";
     if(DbgFunctions()->ModNameFromAddr(parVA, mod, true))
     {
-        int_t modbase = DbgFunctions()->ModBaseFromAddr(parVA);
+        dsint modbase = DbgFunctions()->ModBaseFromAddr(parVA);
         if(modbase)
             info = QString(mod) + "[" + QString("%1").arg(parVA - modbase, 0, 16, QChar('0')).toUpper() + "] | ";
         else
@@ -204,7 +204,7 @@ void CPUInfoBox::followActionSlot()
         DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()).toUtf8().constData());
 }
 
-void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, int_t value)
+void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, dsint value)
 {
     foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
@@ -212,11 +212,11 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, int_t value)
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
-    newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(int_t) * 2, 16, QChar('0')).toUpper());
+    newAction->setObjectName(QString("DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
 
-void CPUInfoBox::setupFollowMenu(QMenu* menu, int_t wVA)
+void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
 {
     //most basic follow action
     addFollowMenuItem(menu, "&Selection", wVA);

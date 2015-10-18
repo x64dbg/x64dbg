@@ -55,8 +55,8 @@ public:
     const QColor getColor(const QString id) const;
     const bool getBool(const QString category, const QString id) const;
     void setBool(const QString category, const QString id, const bool b);
-    const uint_t getUint(const QString category, const QString id) const;
-    void setUint(const QString category, const QString id, const uint_t i);
+    const duint getUint(const QString category, const QString id) const;
+    void setUint(const QString category, const QString id, const duint i);
     const QFont getFont(const QString id) const;
     const Shortcut getShortcut(const QString key_id) const;
     void setShortcut(const QString key_id, const QKeySequence key_sequence);
@@ -64,14 +64,14 @@ public:
     //default setting maps
     QMap<QString, QColor> defaultColors;
     QMap<QString, QMap<QString, bool>> defaultBools;
-    QMap<QString, QMap<QString, uint_t>> defaultUints;
+    QMap<QString, QMap<QString, duint>> defaultUints;
     QMap<QString, QFont> defaultFonts;
     QMap<QString, Shortcut> defaultShortcuts;
 
     //public variables
     QMap<QString, QColor> Colors;
     QMap<QString, QMap<QString, bool>> Bools;
-    QMap<QString, QMap<QString, uint_t>> Uints;
+    QMap<QString, QMap<QString, duint>> Uints;
     QMap<QString, QFont> Fonts;
     QMap<QString, Shortcut> Shortcuts;
 
@@ -87,8 +87,8 @@ private:
     bool colorToConfig(const QString id, const QColor color);
     bool boolFromConfig(const QString category, const QString id);
     bool boolToConfig(const QString category, const QString id, bool bBool);
-    uint_t uintFromConfig(const QString category, const QString id);
-    bool uintToConfig(const QString category, const QString id, uint_t i);
+    duint uintFromConfig(const QString category, const QString id);
+    bool uintToConfig(const QString category, const QString id, duint i);
     QFont fontFromConfig(const QString id);
     bool fontToConfig(const QString id, const QFont font);
     QString shortcutFromConfig(const QString id);

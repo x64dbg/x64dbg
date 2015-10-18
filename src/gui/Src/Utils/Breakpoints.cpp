@@ -13,7 +13,7 @@ Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
  *
  * @return      Nothing.
  */
-void Breakpoints::setBP(BPXTYPE type, uint_t va)
+void Breakpoints::setBP(BPXTYPE type, duint va)
 {
     QString wCmd = "";
 
@@ -21,19 +21,19 @@ void Breakpoints::setBP(BPXTYPE type, uint_t va)
     {
     case bp_normal:
     {
-        wCmd = "bp " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
     case bp_hardware:
     {
-        wCmd = "bph " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bph " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
     case bp_memory:
     {
-        wCmd = "bpm " + QString("%1").arg(va, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bpm " + QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
@@ -60,15 +60,15 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = "bphwe " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphwe " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = "be " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "be " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = "bpme " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bpme " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -85,7 +85,7 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::enableBP(BPXTYPE type, uint_t va)
+void Breakpoints::enableBP(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
 
@@ -117,15 +117,15 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = "bphwd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphwd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = "bd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = "bpmd " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bpmd " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
@@ -142,7 +142,7 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::disableBP(BPXTYPE type, uint_t va)
+void Breakpoints::disableBP(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
 
@@ -176,19 +176,19 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
     {
     case bp_normal:
     {
-        wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
     case bp_hardware:
     {
-        wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bphc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
     case bp_memory:
     {
-        wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bpmc " + QString("%1").arg(bp.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     }
     break;
 
@@ -213,7 +213,7 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::removeBP(BPXTYPE type, uint_t va)
+void Breakpoints::removeBP(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
 
@@ -260,7 +260,7 @@ void Breakpoints::toggleBPByDisabling(const BRIDGEBP & bp)
  *
  * @return      Nothing.
  */
-void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByDisabling(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
 
@@ -287,7 +287,7 @@ void Breakpoints::toggleBPByDisabling(BPXTYPE type, uint_t va)
  *
  * @return      enabled/disabled.
  */
-BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
+BPXSTATE Breakpoints::BPState(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
     BPXSTATE result = bp_non_existent;
@@ -330,7 +330,7 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, uint_t va)
  *
  * @return      Nothing.
  */
-void Breakpoints::toggleBPByRemoving(BPXTYPE type, uint_t va)
+void Breakpoints::toggleBPByRemoving(BPXTYPE type, duint va)
 {
     BPMAP wBPList;
     bool wNormalWasRemoved = false;

@@ -77,7 +77,7 @@ void BeaTokenizer::StringInstructionMemory(BeaInstructionToken* instr, int size,
     AddToken(instr, TokenMemorySegment, segment, 0);
     AddToken(instr, TokenUncategorized, ":", 0);
     AddToken(instr, TokenMemoryBrackets, "[", 0);
-    AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(int_t) * 8, reg), 0); //EDI/RDI
+    AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(dsint) * 8, reg), 0); //EDI/RDI
     AddToken(instr, TokenMemoryBrackets, "]", 0);
 }
 
@@ -177,7 +177,7 @@ QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module, int ma
     char labelText[MAX_LABEL_SIZE] = "";
     char module_[MAX_MODULE_SIZE] = "";
     QString moduleText;
-    int_t addr = value->value;
+    dsint addr = value->value;
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (module && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
     moduleText = QString(module_);
@@ -186,7 +186,7 @@ QString BeaTokenizer::PrintValue(const BeaTokenValue* value, bool module, int ma
     if(moduleText.length())
         moduleText += ".";
     QString addrText;
-    addrText = QString("%1").arg(addr & (uint_t) - 1, 0, 16, QChar('0')).toUpper();
+    addrText = QString("%1").arg(addr & (duint) - 1, 0, 16, QChar('0')).toUpper();
     QString finalText;
     if(bHasLabel && bHasModule) //<module.label>
         finalText = QString("<%1%2>").arg(moduleText).arg(labelText);
@@ -244,7 +244,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
         bool prependPlusMinus = false;
         if(arg->Memory.BaseRegister) //base register
         {
-            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(int_t) * 8, arg->Memory.BaseRegister), 0);
+            AddToken(instr, TokenMemoryBaseRegister, RegisterToString(sizeof(dsint) * 8, arg->Memory.BaseRegister), 0);
             prependPlusMinus = true;
         }
         if(arg->Memory.IndexRegister) //index register + scale
@@ -255,7 +255,7 @@ void BeaTokenizer::Argument(BeaInstructionToken* instr, const DISASM* disasm, co
                 AddToken(instr, TokenMemoryOperator, "+", 0);
                 AddToken(instr, TokenMemoryOperatorSpace, " ", 0);
             }
-            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(sizeof(int_t) * 8, arg->Memory.IndexRegister), 0);
+            AddToken(instr, TokenMemoryIndexRegister, RegisterToString(sizeof(dsint) * 8, arg->Memory.IndexRegister), 0);
             int scale = arg->Memory.Scale;
             if(scale > 1) //eax * 1 = eax
             {

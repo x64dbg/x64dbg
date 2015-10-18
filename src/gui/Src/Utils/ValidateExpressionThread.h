@@ -14,7 +14,7 @@ public:
     void stop();
 
 signals:
-    void expressionChanged(bool validExpression, bool validPointer, int_t value);
+    void expressionChanged(bool validExpression, bool validPointer, dsint value);
 
 public slots:
     void textChanged(QString text);

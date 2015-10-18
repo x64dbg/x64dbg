@@ -7,7 +7,7 @@
 class CPUSideBar : public QAbstractScrollArea
 {
     Q_OBJECT
-    QPair<int_t, int_t> mHighlightedJump;
+    QPair<dsint, dsint> mHighlightedJump;
 public:
     explicit CPUSideBar(CPUDisassembly* Ptr, QWidget* parent = 0);
     QSize sizeHint() const;
@@ -19,9 +19,9 @@ public:
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
-    void changeTopmostAddress(int_t i);
+    void changeTopmostAddress(dsint i);
     void setViewableRows(int rows);
-    void setSelection(int_t selVA);
+    void setSelection(dsint selVA);
 
 protected:
     virtual void paintEvent(QPaintEvent* event);
@@ -33,8 +33,8 @@ protected:
     void drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive);
 
 private:
-    int_t topVA;
-    int_t selectedVA;
+    dsint topVA;
+    dsint selectedVA;
     QFont m_DefaultFont;
     int fontWidth, fontHeight;
     int viewableRows;

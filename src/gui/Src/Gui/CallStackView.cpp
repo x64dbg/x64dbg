@@ -5,9 +5,9 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * sizeof(int_t) * 2, "Address", true); //address in the stack
-    addColumnAt(8 + charwidth * sizeof(int_t) * 2, "To", true); //return to
-    addColumnAt(8 + charwidth * sizeof(int_t) * 2, "From", true); //return from
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "Address", true); //address in the stack
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "To", true); //return to
+    addColumnAt(8 + charwidth * sizeof(dsint) * 2, "From", true); //return from
     addColumnAt(0, "Comment", true);
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
@@ -38,13 +38,13 @@ void CallStackView::updateCallStack()
     setRowCount(callstack.total);
     for(int i = 0; i < callstack.total; i++)
     {
-        QString addrText = QString("%1").arg((uint_t)callstack.entries[i].addr, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        QString addrText = QString("%1").arg((duint)callstack.entries[i].addr, sizeof(duint) * 2, 16, QChar('0')).toUpper();
         setCellContent(i, 0, addrText);
-        addrText = QString("%1").arg((uint_t)callstack.entries[i].to, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        addrText = QString("%1").arg((duint)callstack.entries[i].to, sizeof(duint) * 2, 16, QChar('0')).toUpper();
         setCellContent(i, 1, addrText);
         if(callstack.entries[i].from)
         {
-            addrText = QString("%1").arg((uint_t)callstack.entries[i].from, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+            addrText = QString("%1").arg((duint)callstack.entries[i].from, sizeof(duint) * 2, 16, QChar('0')).toUpper();
             setCellContent(i, 2, addrText);
         }
         setCellContent(i, 3, callstack.entries[i].comment);

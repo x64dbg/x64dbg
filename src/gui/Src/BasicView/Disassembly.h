@@ -14,7 +14,7 @@ public:
     void fontsUpdated();
 
     // Reimplemented Functions
-    QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
     // Mouse Management
     void mouseMoveEvent(QMouseEvent* event);
@@ -25,10 +25,10 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
     // ScrollBar Management
-    int_t sliderMovedHook(int type, int_t value, int_t delta);
+    dsint sliderMovedHook(int type, dsint value, dsint delta);
 
     // Jumps Graphic
-    int paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr);
+    int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr);
 
     // Function Graphic
 
@@ -45,22 +45,22 @@ public:
     int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
 
     // Instructions Management
-    int_t getPreviousInstructionRVA(int_t rva, uint_t count);
-    int_t getNextInstructionRVA(int_t rva, uint_t count);
-    int_t getInstructionRVA(int_t index, int_t count);
-    Instruction_t DisassembleAt(int_t rva);
-    Instruction_t DisassembleAt(int_t rva, int_t count);
+    dsint getPreviousInstructionRVA(dsint rva, duint count);
+    dsint getNextInstructionRVA(dsint rva, duint count);
+    dsint getInstructionRVA(dsint index, dsint count);
+    Instruction_t DisassembleAt(dsint rva);
+    Instruction_t DisassembleAt(dsint rva, dsint count);
 
     // Selection Management
-    void expandSelectionUpTo(int_t to);
-    void setSingleSelection(int_t index);
-    int_t getInitialSelection();
-    int_t getSelectionSize();
-    int_t getSelectionStart();
-    int_t getSelectionEnd();
+    void expandSelectionUpTo(dsint to);
+    void setSingleSelection(dsint index);
+    dsint getInitialSelection();
+    dsint getSelectionSize();
+    dsint getSelectionStart();
+    dsint getSelectionEnd();
     void selectNext(bool expand);
     void selectPrevious(bool expand);
-    bool isSelected(int_t base, int_t offset);
+    bool isSelected(dsint base, dsint offset);
     bool isSelected(QList<Instruction_t>* buffer, int index);
 
     // Update/Reload/Refresh/Repaint
@@ -68,10 +68,10 @@ public:
     void reloadData();
 
     // Public Methods
-    uint_t rvaToVa(int_t rva);
+    duint rvaToVa(dsint rva);
     void disassembleClear();
-    const int_t getBase() const;
-    int_t getSize();
+    const dsint getBase() const;
+    dsint getSize();
 
     // history management
     void historyClear();
@@ -81,22 +81,22 @@ public:
     bool historyHasNext();
 
     //disassemble
-    void disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
+    void disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
 
     QList<Instruction_t>* instructionsBuffer();
-    const int_t baseAddress() const;
-    const int_t currentEIP() const;
+    const dsint baseAddress() const;
+    const dsint currentEIP() const;
 
-    QString getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE]);
-    void prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer);
-    void prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer);
+    QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE]);
+    void prepareDataCount(dsint wRVA, int wCount, QList<Instruction_t>* instBuffer);
+    void prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer);
 
 signals:
-    void selectionChanged(int_t parVA);
-    void disassembledAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset);
+    void selectionChanged(dsint parVA);
+    void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
 
 public slots:
-    void disassembleAt(int_t parVA, int_t parCIP);
+    void disassembleAt(dsint parVA, dsint parCIP);
     void debugStateChangedSlot(DBGSTATE state);
 
 private:
@@ -105,9 +105,9 @@ private:
 
     typedef struct _SelectionData_t
     {
-        int_t firstSelectedIndex;
-        int_t fromIndex;
-        int_t toIndex;
+        dsint firstSelectedIndex;
+        dsint fromIndex;
+        dsint toIndex;
     } SelectionData_t;
 
     QBeaEngine* mDisasm;
@@ -119,14 +119,14 @@ private:
 
     GuiState_t mGuiState;
 
-    int_t mCipRva;
+    dsint mCipRva;
 
     QList<Instruction_t> mInstBuffer;
 
     typedef struct _HistoryData_t
     {
-        int_t va;
-        int_t tableOffset;
+        dsint va;
+        dsint tableOffset;
     } HistoryData_t;
 
     QList<HistoryData_t> mVaHistory;
@@ -135,8 +135,8 @@ private:
 
 protected:
     bool mRvaDisplayEnabled;
-    uint_t mRvaDisplayBase;
-    int_t mRvaDisplayPageBase;
+    duint mRvaDisplayBase;
+    dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
     MemoryPage* mMemPage;
 };

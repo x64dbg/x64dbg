@@ -34,7 +34,7 @@ void Bridge::CopyToClipboard(const QString & text)
     clipboard->setText(text);
 }
 
-void Bridge::setResult(int_t result)
+void Bridge::setResult(dsint result)
 {
     bridgeResult = result;
     hasBridgeResult = true;
@@ -85,11 +85,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     switch(type)
     {
     case GUI_DISASSEMBLE_AT:
-        emit disassembleAt((int_t)param1, (int_t)param2);
+        emit disassembleAt((dsint)param1, (dsint)param2);
         break;
 
     case GUI_SET_DEBUG_STATE:
-        emit dbgStateChanged((DBGSTATE)(int_t)param1);
+        emit dbgStateChanged((DBGSTATE)(dsint)param1);
         break;
 
     case GUI_ADD_MSG_TO_LOG:
@@ -120,7 +120,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         return winId;
 
     case GUI_DUMP_AT:
-        emit dumpAt((int_t)param1);
+        emit dumpAt((dsint)param1);
         break;
 
     case GUI_SCRIPT_ADD:
@@ -196,7 +196,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_SETROWCOUNT:
-        emit referenceSetRowCount((int_t)param1);
+        emit referenceSetRowCount((dsint)param1);
         break;
 
     case GUI_REF_GETROWCOUNT:
@@ -241,7 +241,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_STACK_DUMP_AT:
-        emit stackDumpAt((uint_t)param1, (uint_t)param2);
+        emit stackDumpAt((duint)param1, (duint)param2);
         break;
 
     case GUI_UPDATE_DUMP_VIEW:
@@ -266,7 +266,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_GET_DISASSEMBLY:
     {
-        uint_t parVA = (uint_t)param1;
+        duint parVA = (duint)param1;
         char* text = (char*)param2;
         if(!text || !parVA || !DbgIsDebugging())
             return 0;
@@ -342,7 +342,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         result.Wait();
         if(selection->start > selection->end) //swap start and end
         {
-            int_t temp = selection->end;
+            dsint temp = selection->end;
             selection->end = selection->start;
             selection->start = temp;
         }

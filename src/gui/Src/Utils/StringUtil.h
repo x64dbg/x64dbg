@@ -4,7 +4,7 @@
 #include <QString>
 #include "NewTypes.h"
 
-static QString AddressToString(int_t Address)
+static QString AddressToString(dsint Address)
 {
     //
     // This function exists because of how QT handles

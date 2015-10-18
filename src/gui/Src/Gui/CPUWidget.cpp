@@ -8,10 +8,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mDisas = new CPUDisassembly(0);
     mSideBar = new CPUSideBar(mDisas);
-    connect(mDisas, SIGNAL(tableOffsetChanged(int_t)), mSideBar, SLOT(changeTopmostAddress(int_t)));
+    connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRows(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(repainted()), mSideBar, SLOT(repaint()));
-    connect(mDisas, SIGNAL(selectionChanged(int_t)), mSideBar, SLOT(setSelection(int_t)));
+    connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
 
@@ -29,7 +29,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
     ui->mTopLeftLowerFrame->setMaximumHeight(height + 2);
 
-    connect(mDisas, SIGNAL(selectionChanged(int_t)), mInfo, SLOT(disasmSelectionChanged(int_t)));
+    connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
 
     mGeneralRegs = new RegistersView(0);
     mGeneralRegs->setFixedWidth(1000);

@@ -18,7 +18,7 @@ PageMemoryRights::~PageMemoryRights()
     delete ui;
 }
 
-void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetypein)
+void PageMemoryRights::RunAddrSize(duint addrin, duint sizein, QString pagetypein)
 {
     addr = addrin;
     size = sizein;
@@ -26,7 +26,7 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
 
     QTableWidget* tableWidget = ui->pagetableWidget;
     tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
-    uint_t nr_pages = size / PAGE_SIZE;
+    duint nr_pages = size / PAGE_SIZE;
     tableWidget->setColumnCount(2);
     tableWidget->setRowCount(nr_pages);
     tableWidget->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Address")));
@@ -34,10 +34,10 @@ void PageMemoryRights::RunAddrSize(uint_t addrin, uint_t sizein, QString pagetyp
 
     duint actual_addr;
     char rights[RIGHTS_STRING_SIZE];
-    for(uint_t i = 0; i < nr_pages; i++)
+    for(duint i = 0; i < nr_pages; i++)
     {
         actual_addr = addr + (i * PAGE_SIZE);
-        tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(actual_addr, sizeof(uint_t) * 2, 16, QChar('0')).toUpper()));
+        tableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(actual_addr, sizeof(duint) * 2, 16, QChar('0')).toUpper()));
         if(DbgFunctions()->GetPageRights(actual_addr, rights))
             tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }

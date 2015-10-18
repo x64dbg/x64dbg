@@ -155,7 +155,6 @@ HEADERS += \
     Src/Disassembler/QBeaEngine.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
-    Src/Global/NewTypes.h \
     Src/Exports.h \
     Src/Imports.h \
     Src/BasicView/StdTable.h \

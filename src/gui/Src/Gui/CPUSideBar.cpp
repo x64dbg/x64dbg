@@ -43,7 +43,7 @@ void CPUSideBar::repaint()
     viewport()->repaint();
 }
 
-void CPUSideBar::changeTopmostAddress(int_t i)
+void CPUSideBar::changeTopmostAddress(dsint i)
 {
     if(i != topVA)
     {
@@ -59,7 +59,7 @@ void CPUSideBar::setViewableRows(int rows)
     viewableRows = rows;
 }
 
-void CPUSideBar::setSelection(int_t selVA)
+void CPUSideBar::setSelection(dsint selVA)
 {
     if(selVA != selectedVA)
     {
@@ -73,9 +73,9 @@ bool CPUSideBar::isJump(int i) const
     int BranchType = InstrBuffer->at(i).disasm.Instruction.BranchType;
     if(BranchType && BranchType != RetType && BranchType != CallType)
     {
-        uint_t start = CodePtr->getBase();
-        uint_t end = start + CodePtr->getSize();
-        uint_t addr = DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
+        duint start = CodePtr->getBase();
+        duint end = start + CodePtr->getSize();
+        duint addr = DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
         return addr >= start && addr < end; //do not draw jumps that go out of the section
     }
     return false;
@@ -95,15 +95,15 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
     int jumpoffset = 0;
 
-    int_t last_va = InstrBuffer->last().rva + CodePtr->getBase();
-    int_t first_va = InstrBuffer->first().rva + CodePtr->getBase();
+    dsint last_va = InstrBuffer->last().rva + CodePtr->getBase();
+    dsint first_va = InstrBuffer->first().rva + CodePtr->getBase();
 
     for(int line = 0; line < viewableRows; line++)
     {
         if(line >= InstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
         Instruction_t instr = InstrBuffer->at(line);
-        int_t instrVA = instr.rva + CodePtr->getBase();
+        dsint instrVA = instr.rva + CodePtr->getBase();
 
         // draw bullet
         drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
@@ -120,7 +120,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
             jumpoffset++;
 
-            int_t destVA = (int_t)DbgGetBranchDestination(CodePtr->rvaToVa(instr.rva));
+            dsint destVA = (dsint)DbgGetBranchDestination(CodePtr->rvaToVa(instr.rva));
 
             if(instr.disasm.Instruction.Opcode == 0xFF)
                 continue;
@@ -156,7 +156,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             drawLabel(&painter, line, "EIP");
 #endif
 
-        const int_t cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
+        const dsint cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
 #ifdef _WIN64
         if(cur_VA == regDump.regcontext.cax)  drawLabel(&painter, line, "RAX");
         if(cur_VA == regDump.regcontext.cbx)  drawLabel(&painter, line, "RBX");
@@ -196,7 +196,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
         return;
 
     // calculate virtual adress of clicked line
-    uint_t wVA = InstrBuffer->at(line).rva + CodePtr->getBase();
+    duint wVA = InstrBuffer->at(line).rva + CodePtr->getBase();
 
     QString wCmd;
     // create --> disable --> delete --> create --> ...
@@ -204,17 +204,17 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     {
     case bp_enabled:
         // breakpoint exists and is enabled --> disable breakpoint
-        wCmd = "bd " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bd " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_disabled:
         // is disabled --> delete
-        wCmd = "bc " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bc " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     case bp_non_existent:
         // no breakpoint was found --> create breakpoint
-        wCmd = "bp " + QString("%1").arg(wVA, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
 

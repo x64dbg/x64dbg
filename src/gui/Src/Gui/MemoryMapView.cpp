@@ -12,8 +12,8 @@ MemoryMapView::MemoryMapView(StdTable* parent) : StdTable(parent)
 
     int charwidth = getCharWidth();
 
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Address", false, "Address"); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(uint_t), "Size", false, "Size"); //size
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), "Address", false, "Address"); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), "Size", false, "Size"); //size
     addColumnAt(8 + charwidth * 32, "Info", false, "Page Information"); //page information
     addColumnAt(8 + charwidth * 5, "Type", false, "Allocation Type"); //allocation type
     addColumnAt(8 + charwidth * 11, "Protection", false, "Current Protection"); //current protection
@@ -146,9 +146,9 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
     QString wStr = getCellContent(getInitialSelection(), 0);
 #ifdef _WIN64
-    uint_t selectedAddr = wStr.toULongLong(0, 16);
+    duint selectedAddr = wStr.toULongLong(0, 16);
 #else //x86
-    uint_t selectedAddr = wStr.toULong(0, 16);
+    duint selectedAddr = wStr.toULong(0, 16);
 #endif //_WIN64
     if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
     {
@@ -179,15 +179,15 @@ QString MemoryMapView::getProtectionString(DWORD Protect)
     return QString(rights);
 }
 
-QString MemoryMapView::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(col == 0) //address
     {
         QString wStr = getCellContent(rowBase + rowOffset, col);
 #ifdef _WIN64
-        uint_t addr = wStr.toULongLong(0, 16);
+        duint addr = wStr.toULongLong(0, 16);
 #else //x86
-        uint_t addr = wStr.toULong(0, 16);
+        duint addr = wStr.toULong(0, 16);
 #endif //_WIN64
         if((DbgGetBpxTypeAt(addr)&bp_memory) == bp_memory)
         {
@@ -242,11 +242,11 @@ void MemoryMapView::refreshMap()
         MEMORY_BASIC_INFORMATION wMbi = (wMemMapStruct.page)[wI].mbi;
 
         // Base address
-        wS = QString("%1").arg((uint_t)wMbi.BaseAddress, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        wS = QString("%1").arg((duint)wMbi.BaseAddress, sizeof(duint) * 2, 16, QChar('0')).toUpper();
         setCellContent(wI, 0, wS);
 
         // Size
-        wS = QString("%1").arg((uint_t)wMbi.RegionSize, sizeof(uint_t) * 2, 16, QChar('0')).toUpper();
+        wS = QString("%1").arg((duint)wMbi.RegionSize, sizeof(duint) * 2, 16, QChar('0')).toUpper();
         setCellContent(wI, 1, wS);
 
         // Information
@@ -386,9 +386,9 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 {
     QString addr_text = getCellContent(getInitialSelection(), 0);
 #ifdef _WIN64
-    uint_t selectedAddr = addr_text.toULongLong(0, 16);
+    duint selectedAddr = addr_text.toULongLong(0, 16);
 #else //x86
-    uint_t selectedAddr = addr_text.toULong(0, 16);
+    duint selectedAddr = addr_text.toULong(0, 16);
 #endif //_WIN64
     if((DbgGetBpxTypeAt(selectedAddr)&bp_memory) == bp_memory) //memory breakpoint set
         memoryRemoveSlot();
@@ -400,8 +400,8 @@ void MemoryMapView::pageMemoryRights()
 {
     PageMemoryRights PageMemoryRightsDialog(this);
     connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMap()));
-    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+    duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    duint size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
     PageMemoryRightsDialog.RunAddrSize(addr, size, getCellContent(getInitialSelection(), 3));
 }
 
@@ -418,8 +418,8 @@ void MemoryMapView::switchView()
 
 void MemoryMapView::entropy()
 {
-    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-    uint_t size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+    duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    duint size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
     unsigned char* data = new unsigned char[size];
     DbgMemRead(addr, data, size);
 
@@ -440,10 +440,10 @@ void MemoryMapView::findPatternSlot()
     hexEdit.setWindowTitle("Find Pattern...");
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    uint_t addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
+    duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
     if(hexEdit.entireBlock())
         addr = 0;
-    QString addrText = QString("%1").arg(addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+    QString addrText = QString("%1").arg(addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
     emit showReferences();
 }

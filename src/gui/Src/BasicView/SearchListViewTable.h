@@ -11,7 +11,7 @@ public:
     QString highlightText;
 
 protected:
-    QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 };
 
 #endif // SEARCHLISTVIEWTABLE_H

@@ -48,7 +48,7 @@ public:
     virtual void fontsUpdated();
 
     // Pure Virtual Methods
-    virtual QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
+    virtual QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
 
     // Painting Stuff
     void paintEvent(QPaintEvent* event);
@@ -62,10 +62,10 @@ public:
     void keyPressEvent(QKeyEvent* event);
 
     // ScrollBar Management
-    virtual int_t sliderMovedHook(int type, int_t value, int_t delta);
-    int scaleFromUint64ToScrollBarRange(int_t value);
-    int_t scaleFromScrollBarRangeToUint64(int value);
-    void updateScrollBarRange(int_t range);
+    virtual dsint sliderMovedHook(int type, dsint value, dsint delta);
+    int scaleFromUint64ToScrollBarRange(dsint value);
+    dsint scaleFromScrollBarRangeToUint64(int value);
+    void updateScrollBarRange(dsint range);
 
 
     // Coordinates Utils
@@ -78,13 +78,13 @@ public:
 
     // New Columns/New Size
     virtual void addColumnAt(int width, QString title, bool isClickable);
-    virtual void setRowCount(int_t count);
+    virtual void setRowCount(dsint count);
     virtual void deleteAllColumns();
     void setColTitle(int index, QString title);
     QString getColTitle(int index);
 
     // Getter & Setter
-    int_t getRowCount();
+    dsint getRowCount();
     int getColumnCount();
     int getRowHeight();
     int getColumnWidth(int index);
@@ -98,8 +98,8 @@ public:
     int getCharWidth();
 
     // Table Offset Management
-    int_t getTableOffset();
-    void setTableOffset(int_t val);
+    dsint getTableOffset();
+    void setTableOffset(dsint val);
 
     // Update/Reload/Refresh/Repaint
     virtual void prepareData();
@@ -108,7 +108,7 @@ signals:
     void enterPressedSignal();
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
-    void tableOffsetChanged(int_t i);
+    void tableOffsetChanged(dsint i);
     void viewableRows(int rows);
     void repainted();
 
@@ -166,16 +166,16 @@ private:
 
     QList<Column_t> mColumnList;
 
-    int_t mRowCount;
+    dsint mRowCount;
 
     int mMouseWheelScrollDelta;
 
-    int_t mTableOffset;
+    dsint mTableOffset;
     Header_t mHeader;
 
     int mNbrOfLineToPrint;
 
-    int_t mPrevTableOffset;
+    dsint mPrevTableOffset;
 
     bool mShouldReload;
 

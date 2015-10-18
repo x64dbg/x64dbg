@@ -15,7 +15,7 @@ class PageMemoryRights : public QDialog
 
 public:
     explicit PageMemoryRights(QWidget* parent = 0);
-    void RunAddrSize(uint_t, uint_t, QString);
+    void RunAddrSize(duint, duint, QString);
     ~PageMemoryRights();
 
 private slots:
@@ -28,8 +28,8 @@ signals:
 
 private:
     Ui::PageMemoryRights* ui;
-    uint_t addr;
-    uint_t size;
+    duint addr;
+    duint size;
     QString pagetype;
 };
 

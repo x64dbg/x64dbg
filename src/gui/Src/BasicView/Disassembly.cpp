@@ -32,7 +32,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     setRowCount(mMemPage->getSize());
 
-    addColumnAt(getCharWidth() * 2 * sizeof(int_t) + 8, "", false); //address
+    addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
     addColumnAt(getCharWidth() * 40, "", false); //disassembly
     addColumnAt(1000, "", false); //comments
@@ -73,7 +73,7 @@ void Disassembly::fontsUpdated()
  *
  * @return      String to paint.
  */
-QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     Q_UNUSED(rowBase)
     if(mHighlightingMode)
@@ -85,7 +85,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
         rect.adjust(1, 1, -1, -1);
         painter->drawRect(rect);
     }
-    int_t wRVA = mInstBuffer.at(rowOffset).rva;
+    dsint wRVA = mInstBuffer.at(rowOffset).rva;
     bool wIsSelected = isSelected(&mInstBuffer, rowOffset);
 
     // Highlight if selected
@@ -97,7 +97,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     case 0: // Draw address (+ label)
     {
         char label[MAX_LABEL_SIZE] = "";
-        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
@@ -280,7 +280,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
     case 1: //draw bytes (TODO: some spaces between bytes)
     {
         //draw functions
-        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
         FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
@@ -334,7 +334,7 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
     case 2: //draw disassembly (with colours needed)
     {
-        int_t cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+        dsint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
         int loopsize = 0;
         int depth = 0;
 
@@ -447,8 +447,8 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                 wI = wI >= mInstBuffer.size() ? mInstBuffer.size() - 1 : wI;
                 wI = wI < 0 ? 0 : wI;
 
-                int_t wRowIndex = mInstBuffer.at(wI).rva;
-                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
+                dsint wRowIndex = mInstBuffer.at(wI).rva;
+                dsint wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
@@ -521,8 +521,8 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
             }
             else if(event->y() > getHeaderHeight())
             {
-                int_t wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
-                int_t wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
+                dsint wRowIndex = getInstructionRVA(getTableOffset(), getIndexOffsetFromY(transY(event->y())));
+                dsint wInstrSize = getInstructionRVA(wRowIndex, 1) - wRowIndex - 1;
 
                 if(wRowIndex < getRowCount())
                 {
@@ -600,8 +600,8 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
-        int_t botRVA = getTableOffset();
-        int_t topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
+        dsint botRVA = getTableOffset();
+        dsint topRVA = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
 
         bool expand = false;
         if(event->modifiers() & Qt::ShiftModifier) //SHIFT pressed
@@ -625,10 +625,10 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
-        uint_t dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
+        duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!dest)
             return;
-        QString cmd = "disasm " + QString("%1").arg(dest, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString cmd = "disasm " + QString("%1").arg(dest, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(cmd.toUtf8().constData());
     }
     else
@@ -649,9 +649,9 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
  *
  * @return      Return the value of the new table offset.
  */
-int_t Disassembly::sliderMovedHook(int type, int_t value, int_t delta)
+dsint Disassembly::sliderMovedHook(int type, dsint value, dsint delta)
 {
-    int_t wNewValue;
+    dsint wNewValue;
 
     if(type == QAbstractSlider::SliderNoAction) // QAbstractSlider::SliderNoAction is used to disassembe at a specific address
     {
@@ -689,10 +689,10 @@ int_t Disassembly::sliderMovedHook(int type, int_t value, int_t delta)
  *
  * @return      Nothing.
  */
-int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
+int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 {
-    int_t selHeadRVA = mSelection.fromIndex;
-    int_t rva = addr;
+    dsint selHeadRVA = mSelection.fromIndex;
+    dsint rva = addr;
     Instruction_t instruction = DisassembleAt(selHeadRVA);
     Int32 branchType = instruction.disasm.Instruction.BranchType;
 
@@ -700,12 +700,12 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 
     if(branchType && branchType != RetType && branchType != CallType)
     {
-        int_t destRVA = (int_t)DbgGetBranchDestination(rvaToVa(instruction.rva));
+        dsint destRVA = (dsint)DbgGetBranchDestination(rvaToVa(instruction.rva));
 
-        int_t base = mMemPage->getBase();
-        if(destRVA >= base && destRVA < base + (int_t)mMemPage->getSize())
+        dsint base = mMemPage->getBase();
+        if(destRVA >= base && destRVA < base + (dsint)mMemPage->getSize())
         {
-            destRVA -= (int_t)mMemPage->getBase();
+            destRVA -= (dsint)mMemPage->getBase();
 
             if(destRVA < selHeadRVA)
             {
@@ -889,24 +889,24 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
  *
  * @return      RVA of count-th instructions before the given instruction RVA.
  */
-int_t Disassembly::getPreviousInstructionRVA(int_t rva, uint_t count)
+dsint Disassembly::getPreviousInstructionRVA(dsint rva, duint count)
 {
     QByteArray wBuffer;
-    int_t wBottomByteRealRVA;
-    int_t wVirtualRVA;
-    int_t wMaxByteCountToRead ;
+    dsint wBottomByteRealRVA;
+    dsint wVirtualRVA;
+    dsint wMaxByteCountToRead ;
 
-    wBottomByteRealRVA = (int_t)rva - 16 * (count + 3);
+    wBottomByteRealRVA = (dsint)rva - 16 * (count + 3);
     wBottomByteRealRVA = wBottomByteRealRVA < 0 ? 0 : wBottomByteRealRVA;
 
-    wVirtualRVA = (int_t)rva - wBottomByteRealRVA;
+    wVirtualRVA = (dsint)rva - wBottomByteRealRVA;
 
     wMaxByteCountToRead = wVirtualRVA + 1 + 16;
     wBuffer.resize(wMaxByteCountToRead);
 
     mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wBottomByteRealRVA, wMaxByteCountToRead);
 
-    int_t addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
+    dsint addr = mDisasm->DisassembleBack(reinterpret_cast<byte_t*>(wBuffer.data()), 0,  wMaxByteCountToRead, wVirtualRVA, count);
 
     addr += rva - wVirtualRVA;
 
@@ -922,15 +922,15 @@ int_t Disassembly::getPreviousInstructionRVA(int_t rva, uint_t count)
  *
  * @return      RVA of count-th instructions after the given instruction RVA.
  */
-int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
+dsint Disassembly::getNextInstructionRVA(dsint rva, duint count)
 {
     QByteArray wBuffer;
-    int_t wVirtualRVA = 0;
-    int_t wRemainingBytes;
-    int_t wMaxByteCountToRead;
-    int_t wNewRVA;
+    dsint wVirtualRVA = 0;
+    dsint wRemainingBytes;
+    dsint wMaxByteCountToRead;
+    dsint wNewRVA;
 
-    if(mMemPage->getSize() < (uint_t)rva)
+    if(mMemPage->getSize() < (duint)rva)
         return rva;
     wRemainingBytes = mMemPage->getSize() - rva;
 
@@ -955,9 +955,9 @@ int_t Disassembly::getNextInstructionRVA(int_t rva, uint_t count)
  *
  * @return      RVA of count-th instructions before/after the given instruction RVA.
  */
-int_t Disassembly::getInstructionRVA(int_t index, int_t count)
+dsint Disassembly::getInstructionRVA(dsint index, dsint count)
 {
-    int_t wAddr = 0;
+    dsint wAddr = 0;
 
     if(count == 0)
         wAddr = index;
@@ -983,15 +983,15 @@ int_t Disassembly::getInstructionRVA(int_t index, int_t count)
  *
  * @return      Return the disassembled instruction.
  */
-Instruction_t Disassembly::DisassembleAt(int_t rva)
+Instruction_t Disassembly::DisassembleAt(dsint rva)
 {
     QByteArray wBuffer;
-    int_t base = mMemPage->getBase();
-    int_t wMaxByteCountToRead = 16 * 2;
+    dsint base = mMemPage->getBase();
+    dsint wMaxByteCountToRead = 16 * 2;
 
     // Bounding
     //TODO: fix problems with negative sizes
-    int_t size = getSize();
+    dsint size = getSize();
     if(!size)
         size = rva;
 
@@ -1014,7 +1014,7 @@ Instruction_t Disassembly::DisassembleAt(int_t rva)
  *
  * @return      Return the disassembled instruction.
  */
-Instruction_t Disassembly::DisassembleAt(int_t rva, int_t count)
+Instruction_t Disassembly::DisassembleAt(dsint rva, dsint count)
 {
     rva = getNextInstructionRVA(rva, count);
     return DisassembleAt(rva);
@@ -1024,7 +1024,7 @@ Instruction_t Disassembly::DisassembleAt(int_t rva, int_t count)
 /************************************************************************************
                                 Selection Management
 ************************************************************************************/
-void Disassembly::expandSelectionUpTo(int_t to)
+void Disassembly::expandSelectionUpTo(dsint to)
 {
     if(to < mSelection.firstSelectedIndex)
     {
@@ -1040,7 +1040,7 @@ void Disassembly::expandSelectionUpTo(int_t to)
     }
 }
 
-void Disassembly::setSingleSelection(int_t index)
+void Disassembly::setSingleSelection(dsint index)
 {
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
@@ -1049,30 +1049,30 @@ void Disassembly::setSingleSelection(int_t index)
 }
 
 
-int_t Disassembly::getInitialSelection()
+dsint Disassembly::getInitialSelection()
 {
     return mSelection.firstSelectedIndex;
 }
 
-int_t Disassembly::getSelectionSize()
+dsint Disassembly::getSelectionSize()
 {
     return mSelection.toIndex - mSelection.fromIndex;
 }
 
-int_t Disassembly::getSelectionStart()
+dsint Disassembly::getSelectionStart()
 {
     return mSelection.fromIndex;
 }
 
-int_t Disassembly::getSelectionEnd()
+dsint Disassembly::getSelectionEnd()
 {
     return mSelection.toIndex;
 }
 
 void Disassembly::selectNext(bool expand)
 {
-    int_t wAddr;
-    int_t wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    dsint wAddr;
+    dsint wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
     if(expand)
     {
         if(getSelectionEnd() == getInitialSelection() && wStart != getSelectionEnd()) //decrease down
@@ -1083,7 +1083,7 @@ void Disassembly::selectNext(bool expand)
         else //expand down
         {
             wAddr = getSelectionEnd() + 1;
-            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
             expandSelectionUpTo(wAddr + wInstrSize);
         }
     }
@@ -1091,7 +1091,7 @@ void Disassembly::selectNext(bool expand)
     {
         wAddr = getSelectionEnd() + 1;
         setSingleSelection(wAddr);
-        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
         expandSelectionUpTo(wAddr + wInstrSize);
     }
 }
@@ -1099,14 +1099,14 @@ void Disassembly::selectNext(bool expand)
 
 void Disassembly::selectPrevious(bool expand)
 {
-    int_t wAddr;
-    int_t wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
+    dsint wAddr;
+    dsint wStart = getInstructionRVA(getSelectionStart(), 1) - 1;
     if(expand)
     {
         if(getSelectionStart() == getInitialSelection() && wStart != getSelectionEnd()) //decrease up
         {
             wAddr = getInstructionRVA(getSelectionEnd() + 1, -2);
-            int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+            dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
             expandSelectionUpTo(wAddr + wInstrSize);
         }
         else //expand up
@@ -1119,15 +1119,15 @@ void Disassembly::selectPrevious(bool expand)
     {
         wAddr = getInstructionRVA(getSelectionStart(), -1);
         setSingleSelection(wAddr);
-        int_t wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
+        dsint wInstrSize = getInstructionRVA(wAddr, 1) - wAddr - 1;
         expandSelectionUpTo(wAddr + wInstrSize);
     }
 }
 
 
-bool Disassembly::isSelected(int_t base, int_t offset)
+bool Disassembly::isSelected(dsint base, dsint offset)
 {
-    int_t wAddr = base;
+    dsint wAddr = base;
 
     if(offset < 0)
         wAddr = getPreviousInstructionRVA(getTableOffset(), offset);
@@ -1145,7 +1145,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
 {
     if(buffer->size() > 0 && index >= 0 && index < buffer->size())
     {
-        if((int_t)buffer->at(index).rva >= mSelection.fromIndex && (int_t)buffer->at(index).rva <= mSelection.toIndex)
+        if((dsint)buffer->at(index).rva >= mSelection.fromIndex && (dsint)buffer->at(index).rva <= mSelection.toIndex)
             return true;
         else
             return false;
@@ -1161,7 +1161,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
                          Update/Reload/Refresh/Repaint
 ************************************************************************************/
 
-void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>* instBuffer)
+void Disassembly::prepareDataCount(dsint wRVA, int wCount, QList<Instruction_t>* instBuffer)
 {
     instBuffer->clear();
     Instruction_t wInst;
@@ -1173,14 +1173,14 @@ void Disassembly::prepareDataCount(int_t wRVA, int wCount, QList<Instruction_t>*
     }
 }
 
-void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instruction_t>* instBuffer)
+void Disassembly::prepareDataRange(dsint startRva, dsint endRva, QList<Instruction_t>* instBuffer)
 {
     if(startRva == endRva)
         prepareDataCount(startRva, 1, instBuffer);
     else
     {
         int wCount = 0;
-        int_t addr = startRva;
+        dsint addr = startRva;
         while(addr <= endRva)
         {
             addr = getNextInstructionRVA(addr, 1);
@@ -1192,10 +1192,10 @@ void Disassembly::prepareDataRange(int_t startRva, int_t endRva, QList<Instructi
 
 void Disassembly::prepareData()
 {
-    int_t wViewableRowsCount = getViewableRowsCount();
+    dsint wViewableRowsCount = getViewableRowsCount();
 
-    int_t wAddrPrev = getTableOffset();
-    int_t wAddr = wAddrPrev;
+    dsint wAddrPrev = getTableOffset();
+    dsint wAddr = wAddrPrev;
 
     int wCount = 0;
 
@@ -1227,19 +1227,19 @@ void Disassembly::reloadData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
-uint_t Disassembly::rvaToVa(int_t rva)
+duint Disassembly::rvaToVa(dsint rva)
 {
     return mMemPage->va(rva);
 }
 
-void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t newTableOffset)
+void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset)
 {
-    int_t wBase = DbgMemFindBaseAddr(parVA, 0);
-    int_t wSize = DbgMemGetPageSize(wBase);
+    dsint wBase = DbgMemFindBaseAddr(parVA, 0);
+    dsint wSize = DbgMemGetPageSize(wBase);
     if(!wBase || !wSize)
         return;
-    int_t wRVA = parVA - wBase;
-    int_t wCipRva = parCIP - wBase;
+    dsint wRVA = parVA - wBase;
+    dsint wCipRva = parCIP - wBase;
 
     HistoryData_t newHistory;
 
@@ -1253,8 +1253,8 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
         //NOTE: mCurrentVa always points to the last entry of the list
 
         //add the currently selected address to the history
-        int_t selectionVA = rvaToVa(getInitialSelection()); //currently selected VA
-        int_t selectionTableOffset = getTableOffset();
+        dsint selectionVA = rvaToVa(getInitialSelection()); //currently selected VA
+        dsint selectionTableOffset = getTableOffset();
         if(selectionVA && mVaHistory.size() && mVaHistory.last().va != selectionVA) //do not have 2x the same va in a row
         {
             if(mVaHistory.size() >= 1024) //max 1024 in the history
@@ -1278,7 +1278,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     setRowCount(wSize);
 
     setSingleSelection(wRVA);               // Selects disassembled instruction
-    int_t wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
+    dsint wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
     expandSelectionUpTo(wRVA + wInstrSize);
 
     //set CIP rva
@@ -1287,7 +1287,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
     if(newTableOffset == -1) //nothing specified
     {
         // Update table offset depending on the location of the instruction to disassemble
-        if(mInstBuffer.size() > 0 && wRVA >= (int_t)mInstBuffer.first().rva && wRVA < (int_t)mInstBuffer.last().rva)
+        if(mInstBuffer.size() > 0 && wRVA >= (dsint)mInstBuffer.first().rva && wRVA < (dsint)mInstBuffer.last().rva)
         {
             int wI;
             bool wIsAligned = false;
@@ -1311,7 +1311,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP, bool history, int_t n
                 setTableOffset(wRVA);
             }
         }
-        else if(mInstBuffer.size() > 0 && wRVA == (int_t)mInstBuffer.last().rva)
+        else if(mInstBuffer.size() > 0 && wRVA == (dsint)mInstBuffer.last().rva)
         {
             setTableOffset(mInstBuffer.first().rva + mInstBuffer.first().length);
         }
@@ -1365,13 +1365,13 @@ QList<Instruction_t>* Disassembly::instructionsBuffer()
     return &mInstBuffer;
 }
 
-const int_t Disassembly::currentEIP() const
+const dsint Disassembly::currentEIP() const
 {
     return mCipRva;
 }
 
 
-void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
+void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
     disassembleAt(parVA, parCIP, true, -1);
 }
@@ -1407,12 +1407,12 @@ void Disassembly::debugStateChangedSlot(DBGSTATE state)
     }
 }
 
-const int_t Disassembly::getBase() const
+const dsint Disassembly::getBase() const
 {
     return mMemPage->getBase();
 }
 
-int_t Disassembly::getSize()
+dsint Disassembly::getSize()
 {
     return mMemPage->getSize();
 }
@@ -1455,12 +1455,12 @@ bool Disassembly::historyHasNext()
     return true;
 }
 
-QString Disassembly::getAddrText(int_t cur_addr, char label[MAX_LABEL_SIZE])
+QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
 {
     QString addrText = "";
     if(mRvaDisplayEnabled) //RVA display
     {
-        int_t rva = cur_addr - mRvaDisplayBase;
+        dsint rva = cur_addr - mRvaDisplayBase;
         if(rva == 0)
         {
 #ifdef _WIN64

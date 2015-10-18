@@ -9,7 +9,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     mSoftBPTable = new StdTable(this);
     int wCharWidth = mSoftBPTable->getCharWidth();
     mSoftBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Software", false, "Address");
+    mSoftBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Software", false, "Address");
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
     mSoftBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
@@ -18,7 +18,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     // Hardware
     mHardBPTable = new StdTable(this);
     mHardBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Hardware", false, "Address");
+    mHardBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Hardware", false, "Address");
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
     mHardBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
@@ -27,7 +27,7 @@ BreakpointsView::BreakpointsView(QWidget* parent) : QWidget(parent)
     // Memory
     mMemBPTable = new StdTable(this);
     mMemBPTable->setContextMenuPolicy(Qt::CustomContextMenu);
-    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(uint_t), "Memory", false, "Address");
+    mMemBPTable->addColumnAt(8 + wCharWidth * 2 * sizeof(duint), "Memory", false, "Address");
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Name", false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 32, "Module/Label", false);
     mMemBPTable->addColumnAt(8 + wCharWidth * 8, "State", false);
@@ -79,7 +79,7 @@ void BreakpointsView::reloadData()
     mHardBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mHardBPTable->setCellContent(wI, 0, addr_text);
         mHardBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
@@ -118,7 +118,7 @@ void BreakpointsView::reloadData()
     mSoftBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mSoftBPTable->setCellContent(wI, 0, addr_text);
         mSoftBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
@@ -157,7 +157,7 @@ void BreakpointsView::reloadData()
     mMemBPTable->setRowCount(wBPList.count);
     for(wI = 0; wI < wBPList.count; wI++)
     {
-        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(int_t) * 2, 16, QChar('0')).toUpper();
+        QString addr_text = QString("%1").arg(wBPList.bp[wI].addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         mMemBPTable->setCellContent(wI, 0, addr_text);
         mMemBPTable->setCellContent(wI, 1, QString(wBPList.bp[wI].name));
 
@@ -234,7 +234,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+        duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -288,7 +288,7 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
 void BreakpointsView::removeHardBPActionSlot()
 {
     StdTable* table = mHardBPTable;
-    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+    duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_hardware, wVA);
 }
 
@@ -342,7 +342,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+        duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -396,7 +396,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
 void BreakpointsView::removeSoftBPActionSlot()
 {
     StdTable* table = mSoftBPTable;
-    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+    duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_normal, wVA);
 }
 
@@ -450,7 +450,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
     {
         int wI = 0;
         QMenu* wMenu = new QMenu(this);
-        uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+        duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
         BPMAP wBPList;
 
         // Remove
@@ -504,7 +504,7 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
 void BreakpointsView::removeMemBPActionSlot()
 {
     StdTable* table = mMemBPTable;
-    uint_t wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
+    duint wVA = table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16);
     Breakpoints::removeBP(bp_memory, wVA);
 }
 

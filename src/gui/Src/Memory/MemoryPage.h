@@ -8,20 +8,20 @@ class MemoryPage : public QObject
 {
     Q_OBJECT
 public:
-    explicit MemoryPage(uint_t parBase, uint_t parSize, QObject* parent = 0);
+    explicit MemoryPage(duint parBase, duint parSize, QObject* parent = 0);
 
-    bool read(void* parDest, uint_t parRVA, uint_t parSize) const;
-    bool read(byte_t* parDest, uint_t parRVA, uint_t parSize) const;
-    bool write(const void* parDest, uint_t parRVA, uint_t parSize);
-    bool write(const byte_t* parDest, uint_t parRVA, uint_t parSize);
-    uint_t getSize() const;
-    uint_t getBase() const;
-    uint_t va(int_t rva) const;
-    void setAttributes(uint_t base, uint_t size);
+    bool read(void* parDest, duint parRVA, duint parSize) const;
+    bool read(byte_t* parDest, duint parRVA, duint parSize) const;
+    bool write(const void* parDest, duint parRVA, duint parSize);
+    bool write(const byte_t* parDest, duint parRVA, duint parSize);
+    duint getSize() const;
+    duint getBase() const;
+    duint va(dsint rva) const;
+    void setAttributes(duint base, duint size);
 
 private:
-    uint_t mBase;
-    uint_t mSize;
+    duint mBase;
+    duint mSize;
 };
 
 #endif // MEMORYPAGE_H

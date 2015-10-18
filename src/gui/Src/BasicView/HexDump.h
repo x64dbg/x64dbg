@@ -85,20 +85,20 @@ public:
     void mousePressEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
 
-    QString paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void paintGraphicDump(QPainter* painter, int x, int y, int addr);
 
-    void printSelected(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void printSelected(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
     // Selection Management
-    void expandSelectionUpTo(int_t rva);
-    void setSingleSelection(int_t rva);
-    int_t getInitialSelection();
-    int_t getSelectionStart();
-    int_t getSelectionEnd();
-    bool isSelected(int_t rva);
+    void expandSelectionUpTo(dsint rva);
+    void setSingleSelection(dsint rva);
+    dsint getInitialSelection();
+    dsint getSelectionStart();
+    dsint getSelectionEnd();
+    bool isSelected(dsint rva);
 
-    void getString(int col, int_t rva, QList<RichTextPainter::CustomRichText_t>* richText);
+    void getString(int col, dsint rva, QList<RichTextPainter::CustomRichText_t>* richText);
     int getSizeOf(DataSize_e size);
 
     QString toString(DataDescriptor_t desc, void* data);
@@ -118,7 +118,7 @@ public:
     int twordStringMaxLength(TwordViewMode_e mode);
 
     int getItemIndexFromX(int x);
-    int_t getItemStartingAddress(int x, int y);
+    dsint getItemStartingAddress(int x, int y);
 
     int getBytePerRowCount();
     int getItemPixelWidth(ColumnDescriptor_t desc);
@@ -128,14 +128,14 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
 
-    void printDumpAt(int_t parVA, bool select, bool repaint = true);
-    uint_t rvaToVa(int_t rva);
+    void printDumpAt(dsint parVA, bool select, bool repaint = true);
+    duint rvaToVa(dsint rva);
 
 signals:
     void selectionUpdated();
 
 public slots:
-    void printDumpAt(int_t parVA);
+    void printDumpAt(dsint parVA);
     void debugStateChanged(DBGSTATE state);
 
 private:
@@ -143,9 +143,9 @@ private:
 
     typedef struct _RowDescriptor_t
     {
-        int_t firstSelectedIndex;
-        int_t fromIndex;
-        int_t toIndex;
+        dsint firstSelectedIndex;
+        dsint fromIndex;
+        dsint toIndex;
     } SelectionData_t;
 
     SelectionData_t mSelection;
@@ -158,8 +158,8 @@ protected:
     QList<ColumnDescriptor_t> mDescriptor;
     int mForceColumn;
     bool mRvaDisplayEnabled;
-    uint_t mRvaDisplayBase;
-    int_t mRvaDisplayPageBase;
+    duint mRvaDisplayBase;
+    dsint mRvaDisplayPageBase;
 };
 
 #endif // _HEXDUMP_H

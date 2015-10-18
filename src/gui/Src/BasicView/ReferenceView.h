@@ -16,7 +16,7 @@ public:
 
 private slots:
     void addColumnAt(int width, QString title);
-    void setRowCount(int_t count);
+    void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
     void reloadData();
     void setSingleSelection(int index, bool scroll);
@@ -43,7 +43,7 @@ private:
     bool mFollowDumpDefault;
     QLabel* mCountLabel;
 
-    int_t apiAddressFromString(const QString & s);
+    dsint apiAddressFromString(const QString & s);
 };
 
 #endif // REFERENCEVIEW_H

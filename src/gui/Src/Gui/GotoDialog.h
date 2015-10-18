@@ -18,15 +18,15 @@ public:
     explicit GotoDialog(QWidget* parent = 0);
     ~GotoDialog();
     QString expressionText;
-    uint_t validRangeStart;
-    uint_t validRangeEnd;
+    duint validRangeStart;
+    duint validRangeEnd;
     bool fileOffset;
     QString modName;
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
 
 private slots:
-    void expressionChanged(bool validExpression, bool validPointer, int_t value);
+    void expressionChanged(bool validExpression, bool validPointer, dsint value);
     void on_editExpression_textChanged(const QString & arg1);
     void on_buttonOk_clicked();
     void finishedSlot(int result);
@@ -34,7 +34,7 @@ private slots:
 private:
     Ui::GotoDialog* ui;
     ValidateExpressionThread* mValidateThread;
-    bool IsValidMemoryRange(uint_t addr);
+    bool IsValidMemoryRange(duint addr);
 };
 
 #endif // GOTODIALOG_H

@@ -101,7 +101,7 @@ public slots:
     void refreshShortcutsSlot();
     void updateRegistersSlot();
     void displayCustomContextMenuSlot(QPoint pos);
-    void setRegister(REGISTER_NAME reg, uint_t value);
+    void setRegister(REGISTER_NAME reg, duint value);
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
     void ShowFPU(bool set_showfpu);
@@ -217,7 +217,7 @@ private:
     QAction* wCM_Incrementx87Stack;
     QAction* wCM_Decrementx87Stack;
     QAction* wCM_ChangeFPUView;
-    int_t mCip;
+    dsint mCip;
 };
 
 #endif // REGISTERSVIEW_H

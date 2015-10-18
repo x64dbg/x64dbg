@@ -24,7 +24,7 @@ StdTable::StdTable(QWidget* parent) : AbstractTableView(parent)
     connect(this, SIGNAL(headerButtonPressed(int)), this, SLOT(headerButtonPressedSlot(int)));
 }
 
-QString StdTable::paintContent(QPainter* painter, int_t rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString StdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset) == true)
         painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
@@ -128,8 +128,8 @@ void StdTable::keyPressEvent(QKeyEvent* event)
 
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
-        int_t wBotIndex = getTableOffset();
-        int_t wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
+        dsint wBotIndex = getTableOffset();
+        dsint wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
 
         if(key == Qt::Key_Up)
             selectPrevious();
