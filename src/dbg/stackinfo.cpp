@@ -217,7 +217,8 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
 #endif
 
     // Container for each callstack entry (20 pre-allocated entries)
-    std::vector<CALLSTACKENTRY> callstackVector(20);
+    std::vector<CALLSTACKENTRY> callstackVector;
+	callstackVector.reserve(20);
 
     while(true)
     {
