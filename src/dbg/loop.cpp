@@ -73,11 +73,10 @@ bool LoopGet(int Depth, duint Address, duint* Start, duint* End)
     if(found == loops.end())
         return false;
 
-    // Return the loop start
+    // Return the loop start and end
     if(Start)
         *Start = found->second.start + moduleBase;
 
-    // Also the loop end
     if(End)
         *End = found->second.end + moduleBase;
 

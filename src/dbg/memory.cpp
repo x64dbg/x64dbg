@@ -381,10 +381,7 @@ bool MemSetPageRights(duint Address, const char* Rights)
         return false;
 
     DWORD oldProtect;
-    if(!VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect))
-        return false;
-
-    return true;
+	return VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, protect, &oldProtect) == TRUE;
 }
 
 bool MemGetPageRights(duint Address, char* Rights)
@@ -431,7 +428,7 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
         break;
     }
 
-    strcpy_s(Rights + 4, RIGHTS_STRING_SIZE - 4, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");
+	strcat_s(Rights, RIGHTS_STRING_SIZE, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");
     //  Rights[5] = ((Protect & PAGE_NOCACHE) == PAGE_NOCACHE) ? '' : '-';
     //  Rights[6] = ((Protect & PAGE_WRITECOMBINE) == PAGE_GUARD) ? '' : '-';
 
