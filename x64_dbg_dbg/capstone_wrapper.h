@@ -27,6 +27,9 @@ public:
     bool IsLoop() const;
     x86_insn GetId() const;
     String InstructionText() const;
+    int OpCount() const;
+    cs_x86_op operator[](int index) const;
+
 
 private:
     static csh mHandle;

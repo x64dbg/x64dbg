@@ -26,6 +26,7 @@
     <ClCompile Include="assemble.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="breakpoint.cpp" />
+    <ClCompile Include="capstone_gui.cpp" />
     <ClCompile Include="capstone_wrapper.cpp" />
     <ClCompile Include="CodeFollowPass.cpp" />
     <ClCompile Include="command.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="capstone\systemz.h" />
     <ClInclude Include="capstone\x86.h" />
     <ClInclude Include="capstone\xcore.h" />
+    <ClInclude Include="capstone_gui.h" />
     <ClInclude Include="capstone_wrapper.h" />
     <ClInclude Include="CodeFollowPass.h" />
     <ClInclude Include="command.h" />

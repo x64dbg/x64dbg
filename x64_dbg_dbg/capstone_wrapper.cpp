@@ -197,3 +197,15 @@ String Capstone::InstructionText() const
     result += mInstr->op_str;
     return result;
 }
+
+int Capstone::OpCount() const
+{
+    return x86().op_count;
+}
+
+cs_x86_op Capstone::operator[](int index) const
+{
+    if (index >= OpCount())
+        DebugBreak();
+    return x86().operands[index];
+}
