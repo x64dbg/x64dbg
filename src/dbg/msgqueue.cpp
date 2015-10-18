@@ -41,7 +41,8 @@ bool MsgSend(MESSAGE_STACK* Stack, int Msg, duint Param1, duint Param2)
 	newMessage.param1 = Param1;
 	newMessage.param2 = Param2;
 
-	Stack->msgs.enqueue(newMessage);
+	// Asynchronous send
+	asend(Stack->msgs, newMessage);
     return true;
 }
 
