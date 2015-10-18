@@ -60,6 +60,7 @@ INCLUDEPATH += \
     Src/Disassembler \
     Src/BeaEngine \
     Src/ThirdPartyLibs/BeaEngine \
+    Src/ThirdPartyLibs/Capstone \
     Src/ThirdPartyLibs/snowman \
     Src/Memory \
     Src/Bridge \
@@ -252,11 +253,13 @@ LIBS += -luser32
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/Capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/Capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

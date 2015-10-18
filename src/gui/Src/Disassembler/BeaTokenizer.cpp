@@ -1,5 +1,6 @@
 #include "BeaTokenizer.h"
 #include "Configuration.h"
+#include "capstone.h"
 
 //variables
 QMap<BeaTokenizer::BeaTokenType, BeaTokenizer::BeaTokenColor> BeaTokenizer::colorNamesMap;
@@ -14,7 +15,7 @@ BeaTokenizer::BeaTokenizer()
 }
 
 void BeaTokenizer::AddToken(BeaInstructionToken* instr, const BeaTokenType type, const QString text, const BeaTokenValue* value)
-{
+{  
     BeaSingleToken token;
     token.type = type;
     if(type != TokenSpace && type != TokenArgumentSpace && type != TokenMemoryOperatorSpace)
@@ -648,8 +649,8 @@ bool BeaTokenizer::IsHighlightableToken(const BeaSingleToken* token)
     case TokenMemoryStackBrackets:
     case TokenMemoryOperator:
         return false;
-        break;
     }
+
     return true;
 }
 
@@ -657,6 +658,7 @@ bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b,
 {
     if(!a || !b)
         return false;
+
     if(a->value.size != 0 && b->value.size != 0) //we have a value
     {
         if(!ignoreSize && a->value.size != b->value.size)
@@ -666,5 +668,7 @@ bool BeaTokenizer::TokenEquals(const BeaSingleToken* a, const BeaSingleToken* b,
     }
     else if(a->text != b->text) //text doesn't equal
         return false;
-    return true; //passed all checks
+
+    // Passed all checks
+    return true;
 }
