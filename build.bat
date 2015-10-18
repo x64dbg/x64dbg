@@ -25,10 +25,10 @@ goto :EOF
 
 
 :coverity
-    if "%2"=="" (
-        echo "Usage: build.bat coverity x32/x64"
-        goto usage
-    )
+if "%2"=="" (
+    echo "Usage: build.bat coverity x32/x64"
+    goto usage
+)
 
 call setenv.bat coverity
 echo Building with Coverity

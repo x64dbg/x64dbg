@@ -27,7 +27,7 @@ echo Setting Qt in PATH
 set PATH=%PATH%;%QT32PATH%
 set PATH=%PATH%;%QTCREATORPATH%
 echo Setting VS in PATH
-call :vc-set-2015
+call :vc-set-2013
 goto :eof
 
 :x64
@@ -35,7 +35,7 @@ echo Setting Qt in PATH
 set PATH=%PATH%;%QT64PATH%
 set PATH=%PATH%;%QTCREATORPATH%
 echo Setting VS in PATH
-call :vc-set-2015 amd64
+call :vc-set-2013 amd64
 goto :eof
 
 :coverity
@@ -52,7 +52,6 @@ goto :eof
 echo Setting CHM in PATH
 set PATH=%PATH%;%CHMPATH%
 goto :eof
-
 
 
 
