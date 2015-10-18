@@ -42,9 +42,8 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
         this->setStyleSheet("QLabel { background-color : #c0c0c0; }");
         GuiUpdateWindowTitle("");
         break;
-    default:
-        break;
     }
+
     this->repaint();
 }
 

@@ -18,11 +18,6 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
     m_Windows.clear();
 }
 
-QTabBar* MHTabWidget::tabBar()
-{
-    return m_tabBar;
-}
-
 //////////////////////////////////////////////////////////////
 // Default Destructor
 //////////////////////////////////////////////////////////////
@@ -32,6 +27,11 @@ MHTabWidget::~MHTabWidget(void)
     disconnect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     disconnect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     delete m_tabBar;
+}
+
+QTabBar* MHTabWidget::tabBar()
+{
+    return m_tabBar;
 }
 
 int MHTabWidget::count() const
