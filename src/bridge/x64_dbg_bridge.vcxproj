@@ -71,24 +71,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\x32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32bridge</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\x32\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32bridge</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\x64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64bridge</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\x64\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64bridge</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

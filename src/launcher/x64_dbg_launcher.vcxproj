@@ -46,14 +46,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x96dbg</TargetName>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>..\..\bin\</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x96dbg</TargetName>
     <GenerateManifest>false</GenerateManifest>

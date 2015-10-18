@@ -3,5 +3,6 @@
 
 #include "bridge\bridgemain.h"
 #include "dbg\_dbgfunctions.h"
+#include "types.h"
 
 #endif // IMPORTS_H

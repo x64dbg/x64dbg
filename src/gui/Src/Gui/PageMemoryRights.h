@@ -2,7 +2,7 @@
 #define PAGEMEMORYRIGHTS_H
 
 #include <QDialog>
-#include "NewTypes.h"
+#include "types.h"
 
 namespace Ui
 {

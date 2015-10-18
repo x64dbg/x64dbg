@@ -2,7 +2,7 @@
 #define QBEAENGINE_H
 
 #include <QString>
-#include "NewTypes.h"
+#include "Imports.h"
 #include "BeaTokenizer.h"
 
 typedef struct _Instruction_t

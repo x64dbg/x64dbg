@@ -2,7 +2,7 @@
 #define MEMORYPAGE_H
 
 #include <QObject>
-#include "NewTypes.h"
+#include "Imports.h"
 
 class MemoryPage : public QObject
 {

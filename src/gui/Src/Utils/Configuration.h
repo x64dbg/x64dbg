@@ -6,7 +6,7 @@
 #include <QMap>
 #include <QColor>
 #include <QFont>
-#include "NewTypes.h"
+#include "Imports.h"
 
 #define Config() (Configuration::instance())
 #define ConfigColor(x) (Config()->getColor(x))

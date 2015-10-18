@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include "ValidateExpressionThread.h"
-#include "NewTypes.h"
+#include "Imports.h"
 
 namespace Ui
 {

@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QPushButton>
 #include "ValidateExpressionThread.h"
-#include "NewTypes.h"
+#include "Imports.h"
 
 namespace Ui
 {

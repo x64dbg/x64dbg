@@ -1,5 +1,5 @@
 #include "MainWindowCloseThread.h"
-#include "NewTypes.h"
+#include "Imports.h"
 #include "Bridge.h"
 
 void MainWindowCloseThread::run()

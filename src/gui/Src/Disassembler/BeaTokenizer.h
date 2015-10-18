@@ -5,7 +5,7 @@
 #include <QSet>
 #include "RichTextPainter.h"
 #include "BeaEngine.h"
-#include "NewTypes.h"
+#include "Imports.h"
 
 class BeaTokenizer : RichTextPainter
 {

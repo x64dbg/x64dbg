@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QVector>
-#include "NewTypes.h"
+#include "Imports.h"
 
 namespace Ui
 {

@@ -2,7 +2,7 @@
 #define STRINGUTIL_H
 
 #include <QString>
-#include "NewTypes.h"
+#include "Imports.h"
 
 static QString AddressToString(dsint Address)
 {

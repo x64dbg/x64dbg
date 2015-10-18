@@ -20,12 +20,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\x64_dbg_exe\resource.rc">
+    <ResourceCompile Include="..\exe\resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\x64_dbg_exe\resource.h">
+    <ClInclude Include="..\exe\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

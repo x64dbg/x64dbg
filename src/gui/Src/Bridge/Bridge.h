@@ -6,7 +6,6 @@
 #include <QWidget>
 #include <QMutex>
 #include "Imports.h"
-#include "NewTypes.h"
 #include "ReferenceManager.h"
 #include "BridgeResult.h"
 

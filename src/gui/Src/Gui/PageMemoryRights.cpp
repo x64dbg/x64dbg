@@ -1,3 +1,4 @@
+#include "Imports.h"
 #include "PageMemoryRights.h"
 #include "ui_PageMemoryRights.h"
 

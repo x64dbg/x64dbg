@@ -3,7 +3,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include "NewTypes.h"
+#include "Imports.h"
 
 class ValidateExpressionThread : public QThread
 {

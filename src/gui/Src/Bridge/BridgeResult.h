@@ -1,7 +1,7 @@
 #ifndef BRIDGERESULT_H
 #define BRIDGERESULT_H
 
-#include "NewTypes.h"
+#include "Imports.h"
 
 class BridgeResult
 {
