@@ -5,4 +5,4 @@
 void DBSave();
 void DBLoad();
 void DBClose();
-void DBSetPath(const char *Directory, const char *File);
+void DBSetPath(const char *Directory, const char *ModulePath);

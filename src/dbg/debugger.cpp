@@ -648,30 +648,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
-    //init program database
-    int len = (int)strlen(szFileName);
-    while(szFileName[len] != '\\' && len != 0)
-        len--;
-    if(len)
-        len++;
-    strcpy_s(sqlitedb, szFileName + len);
-#ifdef _WIN64
-    strcat_s(sqlitedb, ".dd64");
-#else
-    strcat_s(sqlitedb, ".dd32");
-#endif // _WIN64
-    if(settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
-    {
-        char szFileDir[MAX_PATH] = "";
-        strcpy_s(szFileDir, szFileName);
-        char* pathEnd = strrchr(szFileDir, '\\');
-        if(pathEnd)
-            *pathEnd = '\0';
-        DBSetPath(nullptr, StringUtils::sprintf("%s\\%s", szFileDir, sqlitedb).c_str());
-    }
-    else
-        DBSetPath(nullptr, sqlitedb);
-
+    // Init program database
+    DBSetPath(nullptr, szFileName);
     DBLoad();
 
     SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);

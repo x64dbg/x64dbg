@@ -168,7 +168,7 @@ void DBClose()
     PatchClear();
 }
 
-void DBSetPath(const char *Directory, const char *File)
+void DBSetPath(const char *Directory, const char *ModulePath)
 {
     // Initialize directory if it was only supplied
     if (Directory)
@@ -187,21 +187,47 @@ void DBSetPath(const char *Directory, const char *File)
     }
 
     // The database file path may be relative (dbbasepath) or a full path
-    if (File)
+    if (ModulePath)
     {
-        ASSERT_TRUE(strlen(File) > 0);
+        ASSERT_TRUE(strlen(ModulePath) > 0);
 
-        if (File[0] == '/' ||
-                File[0] == '\\' ||
-                File[1] == ':')
+#ifdef _WIN64
+        const char *dbType = "dd64";
+#else
+        const char *dbType = "dd32";
+#endif // _WIN64
+
+        // Get the module name and directory
+        char dbName[deflen];
+        char fileDir[deflen];
         {
-            // Path is absolute
-            strcpy_s(dbpath, File);
+            // Dir <- file path
+            strcpy_s(fileDir, ModulePath);
+
+            // Find the last instance of a path delimiter (slash)
+            char* fileStart = strrchr(fileDir, '\\');
+
+            if (fileStart)
+            {
+                strcpy_s(dbName, fileStart + 1);
+                fileStart[0] = '\0';
+            }
+            else
+            {
+                // Directory or file with no extension
+                strcpy_s(dbName, fileDir);
+            }
+        }
+
+        if (settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
+        {
+            // Absolute path in the program directory
+            sprintf_s(dbpath, "%s\\%s.%s", fileDir, dbName, dbType);
         }
         else
         {
-            // Path is relative. Append directory.
-            sprintf_s(dbpath, "%s\\%s", dbbasepath, File);
+            // Relative path in debugger directory
+            sprintf_s(dbpath, "%s\\%s.%s", dbbasepath, dbName, dbType);
         }
 
         dprintf("Database file: %s\n", dbpath);
