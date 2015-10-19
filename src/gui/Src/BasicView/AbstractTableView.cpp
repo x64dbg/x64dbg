@@ -911,16 +911,24 @@ dsint AbstractTableView::getTableOffset()
     return mTableOffset;
 }
 
-
 void AbstractTableView::setTableOffset(dsint val)
 {
-    dsint wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
-    wMaxOffset = wMaxOffset > 0 ? wMaxOffset : 0;
+    // Don't allow the new row value to go past the maximum
+    dsint wMaxOffset = getRowCount();
+
     if(val > wMaxOffset)
         return;
+
+    // Change the row index so that it isn't scrolled completely
+    // to the bottom of the table
+    if (val > (wMaxOffset - getViewableRowsCount()))
+        val -= (getViewableRowsCount() - 3);
+
+    // Signals
     mTableOffset = val;
     emit tableOffsetChanged(val);
 
+    // Change the scrollbar position
 #ifdef _WIN64
     int wNewValue = scaleFromUint64ToScrollBarRange(mTableOffset);
     verticalScrollBar()->setValue(wNewValue);

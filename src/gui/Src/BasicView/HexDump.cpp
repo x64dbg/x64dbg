@@ -54,8 +54,10 @@ void HexDump::printDumpAt(dsint parVA, bool select, bool repaint)
     dsint wRowCount;
 
     // Byte offset used to be aligned on the given RVA
-    mByteOffset = (int)((dsint)wRVA % (dsint)wBytePerRowCount);
-    mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
+    // TODO: CHECK THIS
+    mByteOffset = 0;
+    // mByteOffset = (int)((dsint)wRVA % (dsint)wBytePerRowCount);
+    // mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
 
     // Compute row count
     wRowCount = wSize / wBytePerRowCount;
