@@ -248,10 +248,15 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
         GuiAddLogMessage("DbgMemRead with invalid boundaries!\n");
         return false;
     }
-    bool ret = _dbg_memread(va, dest, size, 0);
-    if(!ret)
-        memset(dest, 0x90, size);
-    return ret;
+
+	if (!_dbg_memread(va, dest, size, 0))
+	{
+		// Zero the buffer on failure
+		memset(dest, 0, size);
+		return false;
+	}
+
+    return true;
 }
 
 BRIDGE_IMPEXP bool DbgMemWrite(duint va, const unsigned char* src, duint size)
