@@ -13,16 +13,6 @@
 HINSTANCE hInst;
 
 /**
-\brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
-*/
-char dbbasepath[deflen] = "";
-
-/**
-\brief Path of the current program database. UTF-8 encoding.
-*/
-char dbpath[3 * deflen] = "";
-
-/**
 \brief Number of allocated buffers by emalloc(). This should be 0 when x64dbg ends.
 */
 static int emalloc_count = 0;

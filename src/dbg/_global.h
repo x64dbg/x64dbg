@@ -57,8 +57,6 @@ enum arch
 
 //superglobal variables
 extern HINSTANCE hInst;
-extern char dbbasepath[deflen];
-extern char dbpath[3 * deflen];
 
 //functions
 void* emalloc(size_t size, const char* reason = "emalloc:???");

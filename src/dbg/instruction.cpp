@@ -9,6 +9,7 @@
 #include "console.h"
 #include "value.h"
 #include "command.h"
+#include "database.h"
 #include "addrinfo.h"
 #include "assemble.h"
 #include "debugger.h"
@@ -415,14 +416,14 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 
 CMDRESULT cbInstrLoaddb(int argc, char* argv[])
 {
-    dbload();
+    DBLoad();
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrSavedb(int argc, char* argv[])
 {
-    dbsave();
+    DBSave();
     return STATUS_CONTINUE;
 }
 

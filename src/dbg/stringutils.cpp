@@ -148,7 +148,7 @@ String StringUtils::sprintf(const char* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<char*> buffer(128 * sizeof(char), "StringUtils::sprintf");
+    Memory<char*> buffer(256 * sizeof(char), "StringUtils::sprintf");
     while(true)
     {
         int res = _vsnprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);
@@ -168,7 +168,7 @@ WString StringUtils::sprintf(const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    Memory<wchar_t*> buffer(128 * sizeof(wchar_t), "StringUtils::sprintf");
+    Memory<wchar_t*> buffer(256 * sizeof(wchar_t), "StringUtils::sprintf");
     while(true)
     {
         int res = _vsnwprintf_s(buffer(), buffer.size(), _TRUNCATE, format, args);

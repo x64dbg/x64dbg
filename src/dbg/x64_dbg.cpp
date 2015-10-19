@@ -20,6 +20,7 @@
 #include "capstone_wrapper.h"
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
+#include "database.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
 static COMMAND* command_list = 0;
@@ -278,9 +279,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
-    strcpy_s(dbbasepath, dir); //debug directory
-    strcat_s(dbbasepath, "\\db");
-    CreateDirectoryW(StringUtils::Utf8ToUtf16(dbbasepath).c_str(), 0); //create database directory
+
+	// Create database directory in the local debugger folder
+	DBSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
+
     char szLocalSymbolPath[MAX_PATH] = "";
     strcpy_s(szLocalSymbolPath, dir);
     strcat_s(szLocalSymbolPath, "\\symbols");

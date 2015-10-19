@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "threading.h"
 #include "command.h"
+#include "database.h"
 #include "addrinfo.h"
 #include "thread.h"
 #include "plugin_loader.h"
@@ -666,12 +667,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         char* pathEnd = strrchr(szFileDir, '\\');
         if(pathEnd)
             *pathEnd = '\0';
-        sprintf_s(dbpath, "%s\\%s", szFileDir, sqlitedb);
+		DBSetPath(nullptr, StringUtils::sprintf("%s\\%s", szFileDir, sqlitedb).c_str());
     }
     else
-        sprintf_s(dbpath, "%s\\%s", dbbasepath, sqlitedb);
-    dprintf("Database file: %s\n", dbpath);
-    dbload();
+		DBSetPath(nullptr, sqlitedb);
+
+    DBLoad();
+
     SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
     char szServerSearchPath[MAX_PATH * 2] = "";
@@ -1234,7 +1236,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    dbclose();
+    DBClose();
     ModClear();
     ThreadClear();
     GuiSetDebugState(stopped);
@@ -1501,7 +1503,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    dbclose();
+    DBClose();
     ModClear();
     ThreadClear();
     GuiSetDebugState(stopped);

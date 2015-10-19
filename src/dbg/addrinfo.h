@@ -56,10 +56,6 @@ struct DepthModuleRangeCompare
 //typedefs
 typedef std::function<void (duint base, const char* mod, const char* name, duint addr)> EXPORTENUMCALLBACK;
 
-void dbsave();
-void dbload();
-void dbclose();
-
 bool apienumexports(duint base, EXPORTENUMCALLBACK cbEnum);
 
 #endif // _ADDRINFO_H
