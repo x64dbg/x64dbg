@@ -507,13 +507,13 @@ bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<Patte
     {
         if(!MemFindInPage(page, 0, pattern, results, maxresults))
             return false;
-        if (progress)
+        if(progress)
             GuiReferenceSetProgress(int(floor((float(count) / float(total)) * 100.0f)));
         if(results.size() >= maxresults)
             break;
         count++;
     }
-    if (progress)
+    if(progress)
     {
         GuiReferenceSetProgress(100);
         GuiReferenceReloadData();
