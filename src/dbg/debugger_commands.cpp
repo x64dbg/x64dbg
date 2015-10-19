@@ -110,7 +110,7 @@ CMDRESULT cbDebugInit(int argc, char* argv[])
 
 CMDRESULT cbDebugStop(int argc, char* argv[])
 {
-	// HACK: TODO: Don't kill script on debugger ending a process
+    // HACK: TODO: Don't kill script on debugger ending a process
     //scriptreset(); //reset the currently-loaded script
     StopDebug();
     while(waitislocked(WAITID_STOP))  //custom waiting

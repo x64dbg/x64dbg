@@ -68,20 +68,20 @@ int ThreadGetCount()
 
 void ThreadGetList(THREADLIST* List)
 {
-	ASSERT_NONNULL(List);
+    ASSERT_NONNULL(List);
     SHARED_ACQUIRE(LockThreads);
 
     //
     // This function converts a C++ std::unordered_map to a C-style THREADLIST[].
     // Also assume BridgeAlloc zeros the returned buffer.
     //
-	List->count = (int)threadList.size();
+    List->count = (int)threadList.size();
 
-	if (List->count <= 0)
+    if (List->count <= 0)
         return;
 
-	// Allocate C-style array
-	List->list = (THREADALLINFO*)BridgeAlloc(List->count * sizeof(THREADALLINFO));
+    // Allocate C-style array
+    List->list = (THREADALLINFO*)BridgeAlloc(List->count * sizeof(THREADALLINFO));
 
     // Fill out the list data
     int index = 0;
@@ -159,7 +159,7 @@ DWORD ThreadGetLastError(DWORD ThreadId)
     if(threadList.find(ThreadId) != threadList.end())
         return ThreadGetLastErrorTEB(threadList[ThreadId].ThreadLocalBase);
 
-	ASSERT_ALWAYS("Trying to get last error of a thread that doesn't exist!");
+    ASSERT_ALWAYS("Trying to get last error of a thread that doesn't exist!");
     return 0;
 }
 
@@ -187,7 +187,7 @@ HANDLE ThreadGetHandle(DWORD ThreadId)
     if(threadList.find(ThreadId) != threadList.end())
         return threadList[ThreadId].Handle;
 
-	ASSERT_ALWAYS("Trying to get handle of a thread that doesn't exist!");
+    ASSERT_ALWAYS("Trying to get handle of a thread that doesn't exist!");
     return nullptr;
 }
 

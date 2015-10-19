@@ -667,10 +667,10 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         char* pathEnd = strrchr(szFileDir, '\\');
         if(pathEnd)
             *pathEnd = '\0';
-		DBSetPath(nullptr, StringUtils::sprintf("%s\\%s", szFileDir, sqlitedb).c_str());
+        DBSetPath(nullptr, StringUtils::sprintf("%s\\%s", szFileDir, sqlitedb).c_str());
     }
     else
-		DBSetPath(nullptr, sqlitedb);
+        DBSetPath(nullptr, sqlitedb);
 
     DBLoad();
 

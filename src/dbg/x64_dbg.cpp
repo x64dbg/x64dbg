@@ -280,8 +280,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 
-	// Create database directory in the local debugger folder
-	DBSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
+    // Create database directory in the local debugger folder
+    DBSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
     strcpy_s(szLocalSymbolPath, dir);

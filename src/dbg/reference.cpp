@@ -82,10 +82,10 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Disassemble the instruction
-		int disasmMaxSize = min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
+        int disasmMaxSize = min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
         int disasmLen = 1;
 
-		if (cp.Disassemble(scanStart, data() + i, disasmMaxSize))
+        if (cp.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
             fillbasicinfo(&cp, &basicinfo);
@@ -93,15 +93,15 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             if(Callback(&cp, &basicinfo, &refInfo))
                 refInfo.refcount++;
 
-			disasmLen = cp.Size();
+            disasmLen = cp.Size();
         }
         else
         {
             // Invalid instruction detected, so just skip the byte
         }
 
-		scanStart += disasmLen;
-		i += disasmLen;
+        scanStart += disasmLen;
+        i += disasmLen;
     }
 
     GuiReferenceSetProgress(100);
