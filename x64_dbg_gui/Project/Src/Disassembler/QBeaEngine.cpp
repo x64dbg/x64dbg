@@ -1,6 +1,7 @@
 #include "QBeaEngine.h"
 
 QBeaEngine::QBeaEngine(int maxModuleSize)
+    : _tokenizer(maxModuleSize)
 {
     mMaxModuleSize = maxModuleSize;
     // Reset the Disasm structure
@@ -153,6 +154,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t
  *
  * @return      Return the disassembled instruction
  */
+
 Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIndex, uint_t origBase, uint_t origInstRVA)
 {
     Instruction_t wInst;
@@ -183,7 +185,15 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     wInst.disasm = mDisasmStruct;
 
     //tokenize
-    BeaTokenizer::TokenizeInstruction(&wInst.tokens, &mDisasmStruct, mMaxModuleSize);
+    CapstoneTokenizer::InstructionToken cap;
+    _tokenizer.Tokenize(mDisasmStruct.VirtualAddr, data, size, cap);
+    for(const auto & token : cap.tokens)
+        wInst.tokens.tokens.push_back(_tokenizer.Convert(token));
 
     return wInst;
+}
+
+void QBeaEngine::UpdateConfig()
+{
+    _tokenizer.UpdateConfig();
 }

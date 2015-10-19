@@ -25,6 +25,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     Config()->writeUints();
 
     mDisasm = new QBeaEngine(maxModuleSize);
+    mDisasm->UpdateConfig();
 
     mIsLastInstDisplayed = false;
 

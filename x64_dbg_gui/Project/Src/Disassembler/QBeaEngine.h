@@ -4,6 +4,7 @@
 #include <QString>
 #include "NewTypes.h"
 #include "BeaTokenizer.h"
+#include "capstone_gui.h"
 
 typedef struct _Instruction_t
 {
@@ -13,6 +14,7 @@ typedef struct _Instruction_t
     int length;
     DISASM disasm;
     BeaTokenizer::BeaInstructionToken tokens;
+
 } Instruction_t;
 
 class QBeaEngine
@@ -22,10 +24,12 @@ public:
     ulong DisassembleBack(byte_t* data, uint_t base, uint_t size, uint_t ip, int n);
     ulong DisassembleNext(byte_t* data, uint_t base, uint_t size, uint_t ip, int n);
     Instruction_t DisassembleAt(byte_t* data, uint_t size, uint_t instIndex, uint_t origBase, uint_t origInstRVA);
+    void UpdateConfig();
 
 private:
     DISASM mDisasmStruct;
     int mMaxModuleSize;
+    CapstoneTokenizer _tokenizer;
 };
 
 #endif // QBEAENGINE_H

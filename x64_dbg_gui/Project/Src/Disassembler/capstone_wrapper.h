@@ -1,7 +1,8 @@
 #ifndef _CAPSTONE_WRAPPER_H
 #define _CAPSTONE_WRAPPER_H
 
-#include "capstone\capstone.h"
+#include "..\..\..\x64_dbg_dbg\capstone\capstone.h"
+#include "Imports.h"
 
 #define MAX_DISASM_BUFFER 16
 #define INVALID_TITAN_REG 0
@@ -13,25 +14,25 @@ public:
     static void GlobalFinalize();
     Capstone();
     ~Capstone();
-    bool Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER]);
-    bool Disassemble(uint addr, const unsigned char* data, int size);
+    bool Disassemble(duint addr, const unsigned char data[MAX_DISASM_BUFFER]);
+    bool Disassemble(duint addr, const unsigned char* data, int size);
     const cs_insn* GetInstr() const;
     cs_err GetError() const;
     const char* RegName(x86_reg reg) const;
     bool InGroup(cs_group_type group) const;
-    String OperandText(int opindex) const;
+    std::string OperandText(int opindex) const;
     int Size() const;
-    uint Address() const;
+    duint Address() const;
     const cs_x86 & x86() const;
     bool IsFilling() const;
     bool IsLoop() const;
     x86_insn GetId() const;
-    String InstructionText() const;
+    std::string InstructionText() const;
     int OpCount() const;
     cs_x86_op operator[](int index) const;
     bool IsNop() const;
     bool IsInt3() const;
-    String Mnemonic() const;
+    std::string Mnemonic() const;
     const char* MemSizeName(int size) const;
 
 private:

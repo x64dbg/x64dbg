@@ -282,9 +282,6 @@
     <ClCompile Include="filehelper.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="capstone_gui.cpp">
-      <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -648,9 +645,6 @@
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
     <ClInclude Include="filehelper.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone_gui.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

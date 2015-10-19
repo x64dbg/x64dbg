@@ -1,4 +1,3 @@
-#include "console.h"
 #include "capstone_wrapper.h"
 
 csh Capstone::mHandle = 0;
@@ -31,12 +30,12 @@ Capstone::~Capstone()
         cs_free(mInstr, 1);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER])
+bool Capstone::Disassemble(duint addr, const unsigned char data[MAX_DISASM_BUFFER])
 {
     return Disassemble(addr, data, MAX_DISASM_BUFFER);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
+bool Capstone::Disassemble(duint addr, const unsigned char* data, int size)
 {
     if(!data)
         return false;
@@ -68,12 +67,12 @@ bool Capstone::InGroup(cs_group_type group) const
     return cs_insn_group(mHandle, mInstr, group);
 }
 
-String Capstone::OperandText(int opindex) const
+std::string Capstone::OperandText(int opindex) const
 {
     if(opindex >= mInstr->detail->x86.op_count)
         return "";
     const auto & op = mInstr->detail->x86.operands[opindex];
-    String result;
+    std::string result;
     char temp[32] = "";
     switch(op.type)
     {
@@ -85,10 +84,7 @@ String Capstone::OperandText(int opindex) const
 
     case X86_OP_IMM:
     {
-        if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL) || IsLoop())
-            sprintf_s(temp, "%" fext "X", op.imm + Size());
-        else
-            sprintf_s(temp, "%" fext "X", op.imm);
+        sprintf_s(temp, "%p", op.imm);
         result = temp;
     }
     break;
@@ -98,7 +94,7 @@ String Capstone::OperandText(int opindex) const
         const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
-            sprintf_s(temp, "%" fext "X", Address() + op.mem.disp + Size());
+            sprintf_s(temp, "%p", Address() + op.mem.disp);
             result += temp;
         }
         else //normal
@@ -124,10 +120,10 @@ String Capstone::OperandText(int opindex) const
                 if(mem.disp < 0)
                 {
                     operatorText = '-';
-                    sprintf_s(temp, "%" fext "X", mem.disp * -1);
+                    sprintf_s(temp, "%p", mem.disp * -1);
                 }
                 else
-                    sprintf_s(temp, "%" fext "X", mem.disp);
+                    sprintf_s(temp, "%p", mem.disp);
                 if(prependPlus)
                     result += operatorText;
                 result += temp;
@@ -150,9 +146,9 @@ int Capstone::Size() const
     return GetInstr()->size;
 }
 
-uint Capstone::Address() const
+duint Capstone::Address() const
 {
-    return uint(GetInstr()->address);
+    return duint (GetInstr()->address);
 }
 
 const cs_x86 & Capstone::x86() const
@@ -190,9 +186,9 @@ x86_insn Capstone::GetId() const
     return x86_insn(mInstr->id);
 }
 
-String Capstone::InstructionText() const
+std::string Capstone::InstructionText() const
 {
-    String result = Mnemonic();
+    std::string result = Mnemonic();
     result += " ";
     result += mInstr->op_str;
     return result;
@@ -231,7 +227,7 @@ bool Capstone::IsInt3() const
     }
 }
 
-String Capstone::Mnemonic() const
+std::string Capstone::Mnemonic() const
 {
     return mInstr->mnemonic;
 }

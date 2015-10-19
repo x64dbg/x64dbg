@@ -15,7 +15,7 @@ public:
     enum BeaTokenType
     {
         //filling
-        TokenComma,
+        TokenComma = 0,
         TokenSpace,
         TokenArgumentSpace,
         TokenMemoryOperatorSpace,

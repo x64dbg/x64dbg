@@ -98,7 +98,9 @@ SOURCES += \
     Src/QEntropyView/QEntropyView.cpp \
     Src/Gui/EntropyDialog.cpp \
     Src/Gui/NotesManager.cpp \
-    Src/Gui/NotepadView.cpp
+    Src/Gui/NotepadView.cpp \
+    Src/Disassembler/capstone_gui.cpp \
+    Src/Disassembler/capstone_wrapper.cpp
 
 
 HEADERS += \
@@ -177,7 +179,9 @@ HEADERS += \
     Src/QEntropyView/QEntropyView.h \
     Src/Gui/EntropyDialog.h \
     Src/Gui/NotesManager.h \
-    Src/Gui/NotepadView.h
+    Src/Gui/NotepadView.h \
+    Src/Disassembler/capstone_gui.h \
+    Src/Disassembler/capstone_wrapper.h
 
 
 INCLUDEPATH += \
@@ -230,12 +234,14 @@ DEFINES += NOMINMAX
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
     LIBS += -L"$$PWD/Src/Bridge/" -lx32bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x86
 } else {
     #message("x86_64 build")
     ## Windows x64 (64bit) specific build here
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
     LIBS += -L"$$PWD/Src/Bridge/" -lx64bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x64
 }
 
 RESOURCES += \
