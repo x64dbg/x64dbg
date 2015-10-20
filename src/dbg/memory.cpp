@@ -297,10 +297,18 @@ bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
         return false;
     }
 
-    for(duint i = 0; i < Size; i++)
-        PatchSet(BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
+    // Are we able to write on this page?
+    if (MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten))
+    {
+        for (duint i = 0; i < Size; i++)
+            PatchSet(BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
 
-    return MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten);
+        // Done
+        return true;
+    }
+
+    // Unable to write memory
+    return false;
 }
 
 bool MemIsValidReadPtr(duint Address)

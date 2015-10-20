@@ -68,14 +68,26 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         *size = destSize;
 
     bool ret = MemPatch(addr, dest, destSize);
-    if(ret && fillnop && nopsize)
-    {
-        if(size)
-            *size += nopsize;
 
-        // Ignored if the memory patch for NOPs fail (although it should not)
-        MemPatch(addr + destSize, nops, nopsize);
+    if (ret)
+    {
+        if (fillnop && nopsize)
+        {
+            if (size)
+                *size += nopsize;
+
+            // Ignored if the memory patch for NOPs fail (although it should not)
+            MemPatch(addr + destSize, nops, nopsize);
+        }
+
+        // Update GUI if any patching succeeded
+        GuiUpdatePatches();
     }
-    GuiUpdatePatches();
-    return true;
+    else
+    {
+        // Tell the user writing is blocked
+        strcpy_s(error, MAX_ERROR_SIZE, "Error while writing process memory");
+    }
+
+    return ret;
 }

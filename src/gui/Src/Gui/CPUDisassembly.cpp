@@ -934,7 +934,7 @@ void CPUDisassembly::assembleAt()
             LineEditDialog mLineEdit(this);
             mLineEdit.setText(actual_inst);
             mLineEdit.setWindowTitle("Assemble at " + addr_text);
-            mLineEdit.setCheckBoxText("&Fill with NOP's");
+            mLineEdit.setCheckBoxText("&Fill with NOPs");
             mLineEdit.enableCheckBox(true);
             mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
             if(mLineEdit.exec() != QDialog::Accepted)
