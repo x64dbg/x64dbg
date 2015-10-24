@@ -330,15 +330,15 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
         return STATUS_CONTINUE;
     char command[deflen] = "";
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    COMMAND* found = cmdfindmain(dbggetcommandlist(), command);
+    COMMAND* found = cmdfindmain(command);
     if(!found) //invalid command
         return STATUS_ERROR;
     if(arraycontains(found->name, "var")) //var
     {
-        cmddirectexec(dbggetcommandlist(), command);
+        cmddirectexec(command);
         return STATUS_CONTINUE;
     }
-    CMDRESULT res = cmddirectexec(dbggetcommandlist(), command);
+    CMDRESULT res = cmddirectexec(command);
     while(DbgIsDebugging() && dbgisrunning()) //while not locked (NOTE: possible deadlock)
         Sleep(10);
     return res;

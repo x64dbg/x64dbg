@@ -18,7 +18,6 @@ DLL_EXPORT void _dbg_dbgexitsignal();
 }
 #endif
 
-COMMAND* dbggetcommandlist();
 bool dbgisstopped();
 
 #endif // _X64_DBG_H

@@ -17,7 +17,7 @@ enum CMDRESULT
 
 typedef CMDRESULT(*CBCOMMAND)(int, char**);
 typedef bool (*CBCOMMANDPROVIDER)(char*, int);
-typedef COMMAND* (*CBCOMMANDFINDER)(COMMAND*, char*);
+typedef COMMAND* (*CBCOMMANDFINDER)(char*);
 
 struct COMMAND
 {
@@ -29,14 +29,14 @@ struct COMMAND
 
 //functions
 COMMAND* cmdinit();
-void cmdfree(COMMAND* cmd_list);
-COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link);
-bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly);
-COMMAND* cmdget(COMMAND* command_list, const char* cmd);
-CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly);
-bool cmddel(COMMAND* command_list, const char* name);
-CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal);
-COMMAND* cmdfindmain(COMMAND* cmd_list, char* command);
-CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd);
+void cmdfree();
+COMMAND* cmdfind(const char* name, COMMAND** link);
+bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
+COMMAND* cmdget(const char* cmd);
+CBCOMMAND cmdset(const char* name, CBCOMMAND cbCommand, bool debugonly);
+bool cmddel(const char* name);
+CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal);
+COMMAND* cmdfindmain(char* command);
+CMDRESULT cmddirectexec(const char* cmd);
 
 #endif // _COMMAND_H

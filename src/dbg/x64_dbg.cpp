@@ -23,7 +23,6 @@
 #include "database.h"
 
 static MESSAGE_STACK* gMsgStack = 0;
-static COMMAND* command_list = 0;
 static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
@@ -58,7 +57,7 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
 
 static void registercommands()
 {
-    COMMAND* cmd = command_list = cmdinit();
+    cmdinit();
 
     //debug control
     dbgcmdnew("InitDebug\1init\1initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
@@ -242,7 +241,7 @@ extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
 
 static DWORD WINAPI DbgCommandLoopThread(void* a)
 {
-    cmdloop(command_list, cbBadCmd, cbCommandProvider, cmdfindmain, false);
+    cmdloop(cbBadCmd, cbCommandProvider, cmdfindmain, false);
     return 0;
 }
 
@@ -380,7 +379,7 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     MsgFreeStack(gMsgStack);
     WaitForThreadTermination(hCommandLoopThread);
     dputs("Cleaning up allocated data...");
-    cmdfree(command_list);
+    cmdfree();
     varfree();
     yr_finalize();
     Capstone::GlobalFinalize();
@@ -409,14 +408,9 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 
 extern "C" DLL_EXPORT bool _dbg_dbgcmddirectexec(const char* cmd)
 {
-    if(cmddirectexec(command_list, cmd) == STATUS_ERROR)
+    if(cmddirectexec(cmd) == STATUS_ERROR)
         return false;
     return true;
-}
-
-COMMAND* dbggetcommandlist()
-{
-    return command_list;
 }
 
 bool dbgisstopped()

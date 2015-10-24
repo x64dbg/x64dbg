@@ -9,6 +9,8 @@
 #include "console.h"
 #include "commandparser.h"
 
+COMMAND* cmd_list = 0;
+
 /**
 \brief Finds a ::COMMAND in a command list.
 \param [in] command list.
@@ -16,9 +18,9 @@
 \param [out] Link to the command.
 \return null if it fails, else a ::COMMAND*.
 */
-COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
+COMMAND* cmdfind(const char* name, COMMAND** link)
 {
-    COMMAND* cur = command_list;
+    COMMAND* cur = cmd_list;
     if(!cur->name)
         return 0;
     COMMAND* prev = 0;
@@ -42,16 +44,16 @@ COMMAND* cmdfind(COMMAND* command_list, const char* name, COMMAND** link)
 */
 COMMAND* cmdinit()
 {
-    COMMAND* cmd = (COMMAND*)emalloc(sizeof(COMMAND), "cmdinit:cmd");
-    memset(cmd, 0, sizeof(COMMAND));
-    return cmd;
+    cmd_list = (COMMAND*)emalloc(sizeof(COMMAND), "cmdinit:cmd");
+    memset(cmd_list, 0, sizeof(COMMAND));
+    return cmd_list;
 }
 
 /**
 \brief Clear a command list.
 \param [in] cmd_list Command list to clear.
 */
-void cmdfree(COMMAND* cmd_list)
+void cmdfree()
 {
     COMMAND* cur = cmd_list;
     while(cur)
@@ -71,15 +73,15 @@ void cmdfree(COMMAND* cmd_list)
 \param debugonly true if the command can only be executed in a debugging context.
 \return true if the command was successfully added to the list.
 */
-bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
+bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
-    if(!command_list || !cbCommand || !name || !*name || cmdfind(command_list, name, 0))
+    if (!cmd_list || !cbCommand || !name || !*name || cmdfind(name, 0))
         return false;
     COMMAND* cmd;
     bool nonext = false;
-    if(!command_list->name)
+    if (!cmd_list->name)
     {
-        cmd = command_list;
+        cmd = cmd_list;
         nonext = true;
     }
     else
@@ -89,7 +91,7 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
     strcpy(cmd->name, name);
     cmd->cbCommand = cbCommand;
     cmd->debugonly = debugonly;
-    COMMAND* cur = command_list;
+    COMMAND* cur = cmd_list;
     if(!nonext)
     {
         while(cur->next)
@@ -105,7 +107,7 @@ bool cmdnew(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool d
 \param cmd The command to get from the list.
 \return null if the command was not found. Otherwise a ::COMMAND*.
 */
-COMMAND* cmdget(COMMAND* command_list, const char* cmd)
+COMMAND* cmdget(const char* cmd)
 {
     char new_cmd[deflen] = "";
     strcpy_s(new_cmd, deflen, cmd);
@@ -114,7 +116,7 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
     while(new_cmd[start] != ' ' && start < len)
         start++;
     new_cmd[start] = 0;
-    COMMAND* found = cmdfind(command_list, new_cmd, 0);
+    COMMAND* found = cmdfind(new_cmd, 0);
     if(!found)
         return 0;
     return found;
@@ -128,11 +130,11 @@ COMMAND* cmdget(COMMAND* command_list, const char* cmd)
 \param debugonly The new debugonly value.
 \return The old command callback.
 */
-CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, bool debugonly)
+CBCOMMAND cmdset(const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
     if(!cbCommand)
         return 0;
-    COMMAND* found = cmdfind(command_list, name, 0);
+    COMMAND* found = cmdfind(name, 0);
     if(!found)
         return 0;
     CBCOMMAND old = found->cbCommand;
@@ -147,24 +149,24 @@ CBCOMMAND cmdset(COMMAND* command_list, const char* name, CBCOMMAND cbCommand, b
 \param name The name of the command to delete.
 \return true if the command was deleted.
 */
-bool cmddel(COMMAND* command_list, const char* name)
+bool cmddel(const char* name)
 {
     COMMAND* prev = 0;
-    COMMAND* found = cmdfind(command_list, name, &prev);
+    COMMAND* found = cmdfind(name, &prev);
     if(!found)
         return false;
     efree(found->name, "cmddel:found->name");
-    if(found == command_list)
+    if (found == cmd_list)
     {
-        COMMAND* next = command_list->next;
+        COMMAND* next = cmd_list->next;
         if(next)
         {
-            memcpy(command_list, command_list->next, sizeof(COMMAND));
-            command_list->next = next->next;
+            memcpy(cmd_list, cmd_list->next, sizeof(COMMAND));
+            cmd_list->next = next->next;
             efree(next, "cmddel:next");
         }
         else
-            memset(command_list, 0, sizeof(COMMAND));
+            memset(cmd_list, 0, sizeof(COMMAND));
     }
     else
     {
@@ -191,7 +193,7 @@ error_is_fatal:       error return of a command callback stops the command proce
 \param error_is_fatal true if commands that return ::STATUS_ERROR terminate the command loop.
 \return A CMDRESULT, will always be ::STATUS_EXIT.
 */
-CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
+CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal)
 {
     if(!cbUnknownCommand || !cbCommandProvider)
         return STATUS_ERROR;
@@ -206,9 +208,9 @@ CMDRESULT cmdloop(COMMAND* command_list, CBCOMMAND cbUnknownCommand, CBCOMMANDPR
             strcpy_s(command, StringUtils::Trim(command).c_str());
             COMMAND* cmd;
             if(!cbCommandFinder) //'clean' command processing
-                cmd = cmdget(command_list, command);
+                cmd = cmdget(command);
             else //'dirty' command processing
-                cmd = cbCommandFinder(command_list, command);
+                cmd = cbCommandFinder(command);
 
             if(!cmd || !cmd->cbCommand) //unknown command
             {
@@ -354,13 +356,13 @@ static void specialformat(char* string)
 \param [in] command Command name.
 \return null if it fails, else a COMMAND*.
 */
-COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
+COMMAND* cmdfindmain(char* command)
 {
-    COMMAND* cmd = cmdfind(cmd_list, command, 0);
+    COMMAND* cmd = cmdfind(command, 0);
     if(!cmd)
     {
         specialformat(command);
-        cmd = cmdget(cmd_list, command);
+        cmd = cmdget(command);
     }
     return cmd;
 }
@@ -371,13 +373,13 @@ COMMAND* cmdfindmain(COMMAND* cmd_list, char* command)
 \param cmd The command to execute.
 \return A CMDRESULT.
 */
-CMDRESULT cmddirectexec(COMMAND* cmd_list, const char* cmd)
+CMDRESULT cmddirectexec(const char* cmd)
 {
     if(!cmd || !strlen(cmd))
         return STATUS_ERROR;
     char command[deflen] = "";
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
-    COMMAND* found = cmdfindmain(cmd_list, command);
+    COMMAND* found = cmdfindmain(command);
     if(!found || !found->cbCommand)
         return STATUS_ERROR;
     if(found->debugonly && !DbgIsDebugging())

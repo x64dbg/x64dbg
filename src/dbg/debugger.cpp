@@ -195,7 +195,7 @@ bool dbgisignoredexception(unsigned int exception)
 
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
-    if(!cmdnew(dbggetcommandlist(), name, cbCommand, debugonly))
+    if(!cmdnew(name, cbCommand, debugonly))
         return false;
     GuiAutoCompleteAddCmd(name);
     return true;
@@ -203,7 +203,7 @@ bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
 
 bool dbgcmddel(const char* name)
 {
-    if(!cmddel(dbggetcommandlist(), name))
+    if(!cmddel(name))
         return false;
     GuiAutoCompleteDelCmd(name);
     return true;
@@ -696,7 +696,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                         if(MemIsValidReadPtr(callbackVA))
                         {
                             sprintf(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
-                            cmddirectexec(dbggetcommandlist(), command);
+                            cmddirectexec(command);
                         }
                         else
                             invalidCount++;
@@ -710,7 +710,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(settingboolget("Events", "EntryBreakpoint"))
         {
             sprintf(command, "bp " fhex ",\"entry breakpoint\",ss", (duint)CreateProcessInfo->lpStartAddress);
-            cmddirectexec(dbggetcommandlist(), command);
+            cmddirectexec(command);
         }
     }
     GuiUpdateBreakpointsView();
@@ -751,7 +751,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     {
         char command[256] = "";
         sprintf(command, "bp " fhex ",\"Thread %X\",ss", (duint)CreateThread->lpStartAddress, dwThreadId);
-        cmddirectexec(dbggetcommandlist(), command);
+        cmddirectexec(command);
     }
 
     PLUG_CB_CREATETHREAD callbackInfo;
@@ -876,7 +876,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         {
             bAlreadySetEntry = true;
             sprintf(command, "bp " fhex ",\"entry breakpoint\",ss", pDebuggedBase + pDebuggedEntry);
-            cmddirectexec(dbggetcommandlist(), command);
+            cmddirectexec(command);
         }
     }
     GuiUpdateBreakpointsView();
@@ -904,7 +904,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                             sprintf(command, "bp " fhex ",\"TLS Callback %d\",ss", callbackVA, i + 1);
                         else
                             sprintf(command, "bp " fhex ",\"TLS Callback %d (%s)\",ss", callbackVA, i + 1, modname);
-                        cmddirectexec(dbggetcommandlist(), command);
+                        cmddirectexec(command);
                     }
                     else
                         invalidCount++;
@@ -922,7 +922,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         {
             char command[256] = "";
             sprintf(command, "bp " fhex ",\"DllMain (%s)\",ss", oep + (duint)base, modname);
-            cmddirectexec(dbggetcommandlist(), command);
+            cmddirectexec(command);
         }
     }
 

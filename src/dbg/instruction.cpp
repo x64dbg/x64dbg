@@ -569,7 +569,7 @@ CMDRESULT cbInstrAdd(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s+%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
@@ -581,7 +581,7 @@ CMDRESULT cbInstrAnd(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s&%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
@@ -593,7 +593,7 @@ CMDRESULT cbInstrDec(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s-1", argv[1], argv[1]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
@@ -605,7 +605,7 @@ CMDRESULT cbInstrDiv(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s/%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
@@ -617,7 +617,7 @@ CMDRESULT cbInstrInc(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s+1", argv[1], argv[1]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
@@ -629,7 +629,7 @@ CMDRESULT cbInstrMul(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s*%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
@@ -641,7 +641,7 @@ CMDRESULT cbInstrNeg(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s*-1", argv[1], argv[1]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
@@ -653,7 +653,7 @@ CMDRESULT cbInstrNot(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,~%s", argv[1], argv[1]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
@@ -665,7 +665,7 @@ CMDRESULT cbInstrOr(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s|%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
@@ -679,7 +679,7 @@ CMDRESULT cbInstrRol(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //rol = signed
-    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -695,7 +695,7 @@ CMDRESULT cbInstrRor(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //ror = signed
-    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -711,7 +711,7 @@ CMDRESULT cbInstrShl(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shl = unsigned
-    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -727,7 +727,7 @@ CMDRESULT cbInstrShr(int argc, char* argv[])
     sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shr = unsigned
-    CMDRESULT res = cmddirectexec(dbggetcommandlist(), newcmd);
+    CMDRESULT res = cmddirectexec(newcmd);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -741,7 +741,7 @@ CMDRESULT cbInstrSub(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s-%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
@@ -779,7 +779,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
     }
     char newcmd[deflen] = "";
     sprintf(newcmd, "mov %s,%s^%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrPush(int argc, char* argv[])
@@ -915,7 +915,7 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
         newCommand += std::string(",") + argv[2];
     if(argc > 3)
         newCommand += std::string(",") + argv[3];
-    return cmddirectexec(dbggetcommandlist(), newCommand.c_str());
+    return cmddirectexec(newCommand.c_str());
 }
 
 CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
@@ -1033,7 +1033,7 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
     }
     char cmd[deflen] = "";
     sprintf(cmd, "getstr \"%s\"", argv[1]);
-    cmddirectexec(dbggetcommandlist(), cmd);
+    cmddirectexec(cmd);
     return STATUS_CONTINUE;
 }
 
@@ -1954,7 +1954,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
     duint size = ModSizeFromAddr(base);
     char newcmd[deflen] = "";
     sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
-    return cmddirectexec(dbggetcommandlist(), newcmd);
+    return cmddirectexec(newcmd);
 }
 
 CMDRESULT cbInstrLog(int argc, char* argv[])
