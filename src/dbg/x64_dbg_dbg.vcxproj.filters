@@ -281,6 +281,9 @@
     <ClCompile Include="jit.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
+    <ClCompile Include="IEngine.cpp">
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -648,6 +651,9 @@
     </ClInclude>
     <ClInclude Include="jit.h">
       <Filter>Header Files\Debugger Core</Filter>
+    </ClInclude>
+    <ClInclude Include="IEngine.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

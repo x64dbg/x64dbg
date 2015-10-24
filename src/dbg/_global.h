@@ -28,6 +28,7 @@
 #include "handle.h"
 #include "stringutils.h"
 #include "dbghelp_safe.h"
+#include "IEngine.h"
 
 #ifndef DLL_EXPORT
 #define DLL_EXPORT __declspec(dllexport)
