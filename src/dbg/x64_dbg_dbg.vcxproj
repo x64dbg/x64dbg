@@ -45,6 +45,7 @@
     <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
+    <ClCompile Include="jit.cpp" />
     <ClCompile Include="linearanalysis.cpp" />
     <ClCompile Include="FunctionPass.cpp" />
     <ClCompile Include="instruction.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filehelper.h" />
     <ClInclude Include="function.h" />
+    <ClInclude Include="jit.h" />
     <ClInclude Include="linearanalysis.h" />
     <ClInclude Include="FunctionPass.h" />
     <ClInclude Include="handle.h" />

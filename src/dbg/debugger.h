@@ -9,19 +9,7 @@
 #include "value.h"
 #include "_plugins.h"
 
-#define ATTACH_CMD_LINE "\" -a %ld -e %ld"
-#define JIT_ENTRY_DEF_SIZE (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
-#define JIT_ENTRY_MAX_SIZE 512
-#define JIT_REG_KEY TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
 #define MS_VC_EXCEPTION 0x406D1388
-
-typedef enum
-{
-    ERROR_RW = 0,
-    ERROR_RW_FILE_NOT_FOUND,
-    ERROR_RW_NOTWOW64,
-    ERROR_RW_NOTADMIN
-} readwritejitkey_error_t;
 
 //structures
 struct INIT_STRUCT
@@ -91,13 +79,7 @@ void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
-bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
-bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
-bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
-bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out);
-bool dbggetdefjit(char* jit_entry);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* list);
-bool IsProcessElevated();
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
 bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);

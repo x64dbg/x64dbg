@@ -5,6 +5,7 @@
  */
 
 #include "debugger_commands.h"
+#include "jit.h"
 #include "console.h"
 #include "value.h"
 #include "thread.h"

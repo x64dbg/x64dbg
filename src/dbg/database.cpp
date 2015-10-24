@@ -22,7 +22,7 @@ char dbbasepath[deflen];
 /**
 \brief Path of the current program database. UTF-8 encoding.
 */
-char dbpath[3 * deflen];
+char dbpath[deflen];
 
 void DBSave()
 {
