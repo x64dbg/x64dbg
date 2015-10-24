@@ -30,6 +30,8 @@ static char alloctrace[MAX_PATH] = "";
 */
 void* emalloc(size_t size, const char* reason)
 {
+    ASSERT_NONZERO(size);
+
     unsigned char* a = (unsigned char*)GlobalAlloc(GMEM_FIXED, size);
     if(!a)
     {
@@ -55,8 +57,10 @@ void* emalloc(size_t size, const char* reason)
 */
 void* erealloc(void* ptr, size_t size, const char* reason)
 {
-    if(!ptr)
-        return emalloc(size, reason);
+    // Data shouldn't be re-allocated with a nullptr
+    ASSERT_NONNULL(ptr);
+    ASSERT_NONZERO(size);
+
     unsigned char* a = (unsigned char*)GlobalReAlloc(ptr, size, GMEM_ZEROINIT | GMEM_MOVEABLE);
     if(!a)
     {
