@@ -373,11 +373,21 @@ COMMAND* cmdfindmain(char* command)
 \param cmd The command to execute.
 \return A CMDRESULT.
 */
-CMDRESULT cmddirectexec(const char* cmd)
+CMDRESULT cmddirectexec(const char* cmd, ...)
 {
-    if(!cmd || !strlen(cmd))
+    // Fail on null strings
+    ASSERT_NONNULL(cmd);
+
+    // Don't allow anyone to send in empty strings
+    if(strlen(cmd) <= 0)
         return STATUS_ERROR;
-    char command[deflen] = "";
+
+    char command[deflen];
+    va_list ap;
+    va_start(ap, cmd);
+    _vsnprintf_s(command, _TRUNCATE, cmd, ap);
+    va_end(ap);
+
     strcpy_s(command, StringUtils::Trim(cmd).c_str());
     COMMAND* found = cmdfindmain(command);
     if(!found || !found->cbCommand)

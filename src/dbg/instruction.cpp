@@ -567,9 +567,7 @@ CMDRESULT cbInstrAdd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s+%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s+%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrAnd(int argc, char* argv[])
@@ -579,9 +577,7 @@ CMDRESULT cbInstrAnd(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s&%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s&%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrDec(int argc, char* argv[])
@@ -591,9 +587,7 @@ CMDRESULT cbInstrDec(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s-1", argv[1], argv[1]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s-1", argv[1], argv[1]);
 }
 
 CMDRESULT cbInstrDiv(int argc, char* argv[])
@@ -603,9 +597,7 @@ CMDRESULT cbInstrDiv(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s/%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s/%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrInc(int argc, char* argv[])
@@ -615,9 +607,7 @@ CMDRESULT cbInstrInc(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s+1", argv[1], argv[1]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s+1", argv[1], argv[1]);
 }
 
 CMDRESULT cbInstrMul(int argc, char* argv[])
@@ -627,9 +617,7 @@ CMDRESULT cbInstrMul(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s*%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s*%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrNeg(int argc, char* argv[])
@@ -639,9 +627,7 @@ CMDRESULT cbInstrNeg(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s*-1", argv[1], argv[1]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s*-1", argv[1], argv[1]);
 }
 
 CMDRESULT cbInstrNot(int argc, char* argv[])
@@ -651,9 +637,7 @@ CMDRESULT cbInstrNot(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,~%s", argv[1], argv[1]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,~%s", argv[1], argv[1]);
 }
 
 CMDRESULT cbInstrOr(int argc, char* argv[])
@@ -663,9 +647,7 @@ CMDRESULT cbInstrOr(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s|%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s|%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrRol(int argc, char* argv[])
@@ -675,11 +657,9 @@ CMDRESULT cbInstrRol(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //rol = signed
-    CMDRESULT res = cmddirectexec(newcmd);
+    CMDRESULT res = cmddirectexec("mov %s,%s<%s", argv[1], argv[1], argv[2]);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -691,11 +671,9 @@ CMDRESULT cbInstrRor(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(true); //ror = signed
-    CMDRESULT res = cmddirectexec(newcmd);
+    CMDRESULT res = cmddirectexec("mov %s,%s>%s", argv[1], argv[1], argv[2]);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -707,11 +685,9 @@ CMDRESULT cbInstrShl(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s<%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shl = unsigned
-    CMDRESULT res = cmddirectexec(newcmd);
+    CMDRESULT res = cmddirectexec("mov %s,%s<%s", argv[1], argv[1], argv[2]);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -723,11 +699,9 @@ CMDRESULT cbInstrShr(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s>%s", argv[1], argv[1], argv[2]);
     bool signedcalc = valuesignedcalc();
     valuesetsignedcalc(false); //shr = unsigned
-    CMDRESULT res = cmddirectexec(newcmd);
+    CMDRESULT res = cmddirectexec("mov %s,%s>%s", argv[1], argv[1], argv[2]);
     valuesetsignedcalc(signedcalc);
     return res;
 }
@@ -739,9 +713,7 @@ CMDRESULT cbInstrSub(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s-%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s-%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrTest(int argc, char* argv[])
@@ -777,9 +749,7 @@ CMDRESULT cbInstrXor(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    char newcmd[deflen] = "";
-    sprintf(newcmd, "mov %s,%s^%s", argv[1], argv[1], argv[2]);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("mov %s,%s^%s", argv[1], argv[1], argv[2]);
 }
 
 CMDRESULT cbInstrPush(int argc, char* argv[])
@@ -1031,9 +1001,7 @@ CMDRESULT cbInstrSetstr(int argc, char* argv[])
         dprintf("failed to set variable \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    char cmd[deflen] = "";
-    sprintf(cmd, "getstr \"%s\"", argv[1]);
-    cmddirectexec(cmd);
+    cmddirectexec("getstr \"%s\"", argv[1]);
     return STATUS_CONTINUE;
 }
 
@@ -1952,9 +1920,7 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         return STATUS_ERROR;
     }
     duint size = ModSizeFromAddr(base);
-    char newcmd[deflen] = "";
-    sprintf_s(newcmd, "yara \"%s\",%p,%p", argv[1], base, size);
-    return cmddirectexec(newcmd);
+    return cmddirectexec("yara \"%s\",%p,%p", argv[1], base, size);
 }
 
 CMDRESULT cbInstrLog(int argc, char* argv[])

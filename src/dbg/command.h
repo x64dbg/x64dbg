@@ -37,6 +37,6 @@ CBCOMMAND cmdset(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool cmddel(const char* name);
 CMDRESULT cmdloop(CBCOMMAND cbUnknownCommand, CBCOMMANDPROVIDER cbCommandProvider, CBCOMMANDFINDER cbCommandFinder, bool error_is_fatal);
 COMMAND* cmdfindmain(char* command);
-CMDRESULT cmddirectexec(const char* cmd);
+CMDRESULT cmddirectexec(const char* cmd, ...);
 
 #endif // _COMMAND_H
