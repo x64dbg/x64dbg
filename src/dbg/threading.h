@@ -24,13 +24,13 @@ void waitdeinitialize();
 // Win Vista and newer: (Faster) SRW locks used
 // Win 2003 and older:  (Slower) Critical sections used
 //
-#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock;
-#define EXCLUSIVE_REACQUIRE()       __ThreadLock.Lock();
-#define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock();
+#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<SectionLock::##Index, false> __ThreadLock
+#define EXCLUSIVE_REACQUIRE()       __ThreadLock.Lock()
+#define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock()
 
-#define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock;
-#define SHARED_REACQUIRE()          __SThreadLock.Lock();
-#define SHARED_RELEASE()            __SThreadLock.Unlock();
+#define SHARED_ACQUIRE(Index)       SectionLocker<SectionLock::##Index, true> __SThreadLock
+#define SHARED_REACQUIRE()          __SThreadLock.Lock()
+#define SHARED_RELEASE()            __SThreadLock.Unlock()
 
 enum SectionLock
 {

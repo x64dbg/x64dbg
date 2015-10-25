@@ -379,7 +379,7 @@ CMDRESULT cmddirectexec(const char* cmd, ...)
     ASSERT_NONNULL(cmd);
 
     // Don't allow anyone to send in empty strings
-    if(strlen(cmd) <= 0)
+    if(!cmd || strlen(cmd) <= 0)
         return STATUS_ERROR;
 
     char command[deflen];

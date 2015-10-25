@@ -197,11 +197,10 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
     // Loop each entry, executing the user's callback
     bool callbackStatus = true;
 
-    auto i = breakpoints.begin();
-    while(i != breakpoints.end())
+    for (auto i = breakpoints.begin(); i != breakpoints.end();)
     {
         auto j = i;
-        ++i; //increment here, because the callback might remove the current entry
+        ++i; // Increment here, because the callback might remove the current entry
 
         // If a module name was sent, check it
         if(Module && Module[0] != '\0')
@@ -215,7 +214,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
         bpInfo.active = MemIsValidReadPtr(bpInfo.addr);
 
         // Lock must be released due to callback sub-locks
-        SHARED_RELEASE()
+        SHARED_RELEASE();
 
         // Execute the callback
         if(!EnumCallback(&bpInfo))

@@ -50,6 +50,8 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
         CrashDumpFatal("Unable to obtain current directory during crash dump\n");
         return;
     }
+
+    // Create minidump subdirectory if needed
     wcscat_s(dumpDir, L"\\minidump");
     CreateDirectoryW(dumpDir, nullptr);
 
@@ -75,7 +77,7 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
         return;
     }
 
-    // Create the mini dump with DbgHelp
+    // Create the minidump with DbgHelp
     MINIDUMP_EXCEPTION_INFORMATION info;
     memset(&info, 0, sizeof(MINIDUMP_EXCEPTION_INFORMATION));
 
