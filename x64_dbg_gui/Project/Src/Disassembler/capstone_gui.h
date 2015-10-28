@@ -2,7 +2,9 @@
 #define _CAPSTONE_GUI_H
 
 #include "capstone_wrapper.h"
-#include "BeaTokenizer.h"
+#include "RichTextPainter.h"
+#include "Configuration.h"
+#include <map>
 #include <QtCore>
 
 class CapstoneTokenizer
@@ -71,6 +73,11 @@ public:
         QString text; //token text
         TokenValue value; //token value (if applicable)
 
+        SingleToken() :
+            type(TokenType::Uncategorized)
+        {
+        }
+
         SingleToken(TokenType type, const QString & text, const TokenValue & value) :
             type(type),
             text(text),
@@ -96,15 +103,51 @@ public:
         }
     };
 
+    struct TokenColor
+    {
+        RichTextPainter::CustomRichTextFlags flags;
+        QColor color;
+        QColor backgroundColor;
+
+        TokenColor(QString color, QString backgroundColor)
+        {
+            if(color.length() && backgroundColor.length())
+            {
+                this->flags = RichTextPainter::FlagAll;
+                this->color = ConfigColor(color);
+                this->backgroundColor = ConfigColor(backgroundColor);
+            }
+            else if(color.length())
+            {
+                this->flags = RichTextPainter::FlagColor;
+                this->color = ConfigColor(color);
+            }
+            else if(backgroundColor.length())
+            {
+                this->flags = RichTextPainter::FlagBackground;
+                this->backgroundColor = ConfigColor(backgroundColor);
+            }
+            else
+                this->flags = RichTextPainter::FlagNone;
+        }
+    };
+
     CapstoneTokenizer(int maxModuleLength);
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
-    BeaTokenizer::BeaSingleToken Convert(const SingleToken & cap) const;
     void UpdateConfig();
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces);
     int Size() const;
     const Capstone & GetCapstone() const;
 
+    static void UpdateColors();
+    static void TokenToRichText(const InstructionToken & instr, QList<RichTextPainter::CustomRichText_t> & richTextList, const SingleToken* highlightToken);
+    static bool TokenFromX(const InstructionToken & instr, SingleToken & token, int x, int charwidth);
+    static bool IsHighlightableToken(const SingleToken & token);
+    static bool TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize = true);
+
 private:
+    static void addColorName(TokenType type, QString color, QString backgroundColor);
+
     Capstone _cp;
     InstructionToken _inst;
     bool _success;
@@ -118,6 +161,8 @@ private:
     void addToken(TokenType type, const QString & text);
     void addMemoryOperator(char operatorText);
     QString printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const;
+
+    static std::map<TokenType, TokenColor> colorNamesMap;
 
     bool tokenizePrefix();
     bool tokenizeMnemonic();

@@ -67,7 +67,6 @@ SOURCES += \
     Src/Utils/Configuration.cpp \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
-    Src/Disassembler/BeaTokenizer.cpp \
     Src/Gui/CloseDialog.cpp \
     Src/Gui/HexEditDialog.cpp \
     Src/QHexEdit/ArrayCommand.cpp \
@@ -146,7 +145,6 @@ HEADERS += \
     Src/Utils/Configuration.h \
     Src/Gui/CPUSideBar.h \
     Src/Gui/AppearanceDialog.h \
-    Src/Disassembler/BeaTokenizer.h \
     Src/Gui/CloseDialog.h \
     Src/Gui/HexEditDialog.h \
     Src/QHexEdit/ArrayCommand.h \

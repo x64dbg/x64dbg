@@ -276,7 +276,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         QBeaEngine disasm(-1);
         Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, 0, parVA);
         QList<RichTextPainter::CustomRichText_t> richText;
-        BeaTokenizer::TokenToRichText(&instr.tokens, &richText, 0);
+        CapstoneTokenizer::TokenToRichText(instr.tokens, richText, 0);
         QString finalInstruction = "";
         for(int i = 0; i < richText.size(); i++)
             finalInstruction += richText.at(i).text;

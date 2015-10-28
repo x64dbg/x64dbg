@@ -3,8 +3,7 @@
 QBeaEngine::QBeaEngine(int maxModuleSize)
     : _tokenizer(maxModuleSize)
 {
-    mMaxModuleSize = maxModuleSize;
-    BeaTokenizer::Init();
+    CapstoneTokenizer::UpdateColors();
 }
 
 /**
@@ -174,10 +173,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, uint_t size, uint_t instIn
     wInst.length = len;
     wInst.branchType = branchType;
     wInst.branchDestination = cp.BranchDestination();
-
-    //add tokens to struct
-    for(const auto & token : cap.tokens)
-        wInst.tokens.tokens.push_back(_tokenizer.Convert(token));
+    wInst.tokens = cap;
 
     return wInst;
 }

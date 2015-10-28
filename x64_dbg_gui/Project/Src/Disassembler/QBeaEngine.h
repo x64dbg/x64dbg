@@ -3,7 +3,6 @@
 
 #include <QString>
 #include "NewTypes.h"
-#include "BeaTokenizer.h"
 #include "capstone_gui.h"
 
 struct Instruction_t
@@ -30,7 +29,7 @@ struct Instruction_t
     //DISASM disasm;
     uint_t branchDestination;
     BranchType branchType;
-    BeaTokenizer::BeaInstructionToken tokens;
+    CapstoneTokenizer::InstructionToken tokens;
 };
 
 class QBeaEngine
@@ -43,7 +42,6 @@ public:
     void UpdateConfig();
 
 private:
-    int mMaxModuleSize;
     CapstoneTokenizer _tokenizer;
 };
 

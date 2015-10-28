@@ -2,7 +2,8 @@
 #include "Configuration.h"
 #include "Bridge.h"
 
-Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent)
+    : AbstractTableView(parent)
 {
     fontsUpdated();
     mMemPage = new MemoryPage(0, 0);
@@ -49,6 +50,8 @@ void Disassembly::colorsUpdated()
 {
     AbstractTableView::colorsUpdated();
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    CapstoneTokenizer::UpdateColors();
+    mDisasm->UpdateConfig();
 }
 
 void Disassembly::fontsUpdated()
@@ -368,14 +371,14 @@ QString Disassembly::paintContent(QPainter* painter, int_t rowBase, int rowOffse
 
         QList<RichTextPainter::CustomRichText_t> richText;
 
-        BeaTokenizer::BeaInstructionToken* token = &mInstBuffer[rowOffset].tokens;
+        auto & token = mInstBuffer[rowOffset].tokens;
         if(mHighlightToken.text.length())
-            BeaTokenizer::TokenToRichText(token, &richText, &mHighlightToken);
+            CapstoneTokenizer::TokenToRichText(token, richText, &mHighlightToken);
         else
-            BeaTokenizer::TokenToRichText(token, &richText, 0);
+            CapstoneTokenizer::TokenToRichText(token, richText, 0);
         int xinc = 4;
         RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, &richText, getCharWidth());
-        token->x = x + loopsize + xinc;
+        token.x = x + loopsize + xinc;
     }
     break;
 
@@ -496,28 +499,25 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
                     int rowOffset = getIndexOffsetFromY(transY(event->y()));
                     if(rowOffset < mInstBuffer.size())
                     {
-                        BeaTokenizer::BeaSingleToken token;
-                        if(BeaTokenizer::TokenFromX(&mInstBuffer.at(rowOffset).tokens, &token, event->x(), getCharWidth()))
+                        CapstoneTokenizer::SingleToken token;
+                        if(CapstoneTokenizer::TokenFromX(mInstBuffer.at(rowOffset).tokens, token, event->x(), getCharWidth()))
                         {
-                            if(BeaTokenizer::IsHighlightableToken(&token) && !BeaTokenizer::TokenEquals(&token, &mHighlightToken))
+                            if(CapstoneTokenizer::IsHighlightableToken(token) && !CapstoneTokenizer::TokenEquals(&token, &mHighlightToken))
                                 mHighlightToken = token;
                             else
                             {
-                                mHighlightToken.value.value = 0;
-                                mHighlightToken.text = "";
+                                mHighlightToken = CapstoneTokenizer::SingleToken();
                             }
                         }
                         else
                         {
-                            mHighlightToken.value.value = 0;
-                            mHighlightToken.text = "";
+                            mHighlightToken = CapstoneTokenizer::SingleToken();
                         }
                     }
                 }
                 else
                 {
-                    mHighlightToken.value.value = 0;
-                    mHighlightToken.text = "";
+                    mHighlightToken = CapstoneTokenizer::SingleToken();
                 }
             }
             else if(event->y() > getHeaderHeight())
@@ -1381,8 +1381,7 @@ void Disassembly::disassembleAt(int_t parVA, int_t parCIP)
 void Disassembly::disassembleClear()
 {
     mHighlightingMode = false;
-    mHighlightToken.value.value = 0;
-    mHighlightToken.text = "";
+    mHighlightToken = CapstoneTokenizer::SingleToken();
     historyClear();
     mMemPage->setAttributes(0, 0);
     setRowCount(0);

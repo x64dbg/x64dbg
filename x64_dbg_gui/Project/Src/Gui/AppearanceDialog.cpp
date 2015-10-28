@@ -482,8 +482,10 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("INT3s", "InstructionInt3Color", "InstructionInt3BackgroundColor");
     colorInfoListAppend("General Registers", "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend("FPU Registers", "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
-    colorInfoListAppend("SSE Registers", "InstructionSseRegisterColor", "InstructionSseRegisterBackgroundColor");
     colorInfoListAppend("MMX Registers", "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
+    colorInfoListAppend("XMM Registers", "InstructionXmmRegisterColor", "InstructionXmmRegisterBackgroundColor");
+    colorInfoListAppend("YMM Registers", "InstructionYmmRegisterColor", "InstructionYmmRegisterBackgroundColor");
+    colorInfoListAppend("ZMM Registers", "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
     colorInfoListAppend("Memory Sizes", "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     colorInfoListAppend("Memory Segments", "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
     colorInfoListAppend("Memory Brackets", "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");

@@ -1286,9 +1286,8 @@ void CPUDisassembly::copySelection(bool copyBytes)
             bytes += QString("%1").arg((unsigned char)(instBuffer.at(i).dump.at(j)), 2, 16, QChar('0')).toUpper();
         }
         QString disassembly;
-        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
-        for(int j = 0; j < token->tokens.size(); j++)
-            disassembly += token->tokens.at(j).text;
+        for(const auto & token : instBuffer.at(i).tokens.tokens)
+            disassembly += token.text;
         char comment[MAX_COMMENT_SIZE] = "";
         QString fullComment;
         if(DbgGetCommentAt(cur_addr, comment))
@@ -1344,9 +1343,8 @@ void CPUDisassembly::copyDisassembly()
     {
         if(i)
             clipboard += "\r\n";
-        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
-        for(int j = 0; j < token->tokens.size(); j++)
-            clipboard += token->tokens.at(j).text;
+        for(const auto & token : instBuffer.at(i).tokens.tokens)
+            clipboard += token.text;
     }
     Bridge::CopyToClipboard(clipboard);
 }

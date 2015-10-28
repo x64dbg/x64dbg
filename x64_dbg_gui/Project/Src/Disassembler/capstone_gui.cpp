@@ -8,6 +8,55 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     SetConfig(false, false, false, false);
 }
 
+std::map<CapstoneTokenizer::TokenType, CapstoneTokenizer::TokenColor> CapstoneTokenizer::colorNamesMap;
+
+void CapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
+{
+    colorNamesMap.insert({type, TokenColor(color, backgroundColor)});
+}
+
+void CapstoneTokenizer::UpdateColors()
+{
+    //color names map
+    colorNamesMap.clear();
+    //filling
+    addColorName(TokenType::Comma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
+    addColorName(TokenType::Space, "", "");
+    addColorName(TokenType::ArgumentSpace, "", "");
+    addColorName(TokenType::MemoryOperatorSpace, "", "");
+    //general instruction parts
+    addColorName(TokenType::Prefix, "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
+    addColorName(TokenType::Uncategorized, "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
+    addColorName(TokenType::Address, "InstructionAddressColor", "InstructionAddressBackgroundColor"); //jump/call destinations
+    addColorName(TokenType::Value, "InstructionValueColor", "InstructionValueBackgroundColor");
+    //mnemonics
+    addColorName(TokenType::MnemonicNormal, "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
+    addColorName(TokenType::MnemonicPushPop, "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
+    addColorName(TokenType::MnemonicCall, "InstructionCallColor", "InstructionCallBackgroundColor");
+    addColorName(TokenType::MnemonicRet, "InstructionRetColor", "InstructionRetBackgroundColor");
+    addColorName(TokenType::MnemonicCondJump, "InstructionConditionalJumpColor", "InstructionConditionalJumpBackgroundColor");
+    addColorName(TokenType::MnemonicUncondJump, "InstructionUnconditionalJumpColor", "InstructionUnconditionalJumpBackgroundColor");
+    addColorName(TokenType::MnemonicNop, "InstructionNopColor", "InstructionNopBackgroundColor");
+    addColorName(TokenType::MnemonicFar, "InstructionFarColor", "InstructionFarBackgroundColor");
+    addColorName(TokenType::MnemonicInt3, "InstructionInt3Color", "InstructionInt3BackgroundColor");
+    //memory
+    addColorName(TokenType::MemorySize, "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
+    addColorName(TokenType::MemorySegment, "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
+    addColorName(TokenType::MemoryBrackets, "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
+    addColorName(TokenType::MemoryStackBrackets, "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
+    addColorName(TokenType::MemoryBaseRegister, "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
+    addColorName(TokenType::MemoryIndexRegister, "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
+    addColorName(TokenType::MemoryScale, "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
+    addColorName(TokenType::MemoryOperator, "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
+    //registers
+    addColorName(TokenType::GeneralRegister, "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
+    addColorName(TokenType::FpuRegister, "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
+    addColorName(TokenType::MmxRegister, "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
+    addColorName(TokenType::XmmRegister, "InstructionXmmRegisterColor", "InstructionXmmRegisterBackgroundColor");
+    addColorName(TokenType::YmmRegister, "InstructionYmmRegisterColor", "InstructionYmmRegisterBackgroundColor");
+    addColorName(TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
+}
+
 bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
 {
     _inst = InstructionToken();
@@ -38,16 +87,6 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     return true;
 }
 
-BeaTokenizer::BeaSingleToken CapstoneTokenizer::Convert(const SingleToken & cap) const
-{
-    BeaTokenizer::BeaSingleToken bea;
-    bea.text = cap.text;
-    bea.value.size = cap.value.size;
-    bea.value.value = cap.value.value;
-    bea.type = (BeaTokenizer::BeaTokenType)cap.type;
-    return bea;
-}
-
 void CapstoneTokenizer::UpdateConfig()
 {
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
@@ -72,6 +111,81 @@ int CapstoneTokenizer::Size() const
 const Capstone & CapstoneTokenizer::GetCapstone() const
 {
     return _cp;
+}
+
+void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, QList<RichTextPainter::CustomRichText_t> & richTextList, const SingleToken* highlightToken)
+{
+    QColor highlightColor = ConfigColor("InstructionHighlightColor");
+    for(const auto & token : instr.tokens)
+    {
+        RichTextPainter::CustomRichText_t richText;
+        richText.highlight = TokenEquals(&token, highlightToken);
+        richText.highlightColor = highlightColor;
+        richText.flags = RichTextPainter::FlagNone;
+        richText.text = token.text;
+        auto found = colorNamesMap.find(token.type);
+        if(found != colorNamesMap.end())
+        {
+            auto tokenColor = found->second;
+            richText.flags = tokenColor.flags;
+            richText.textColor = tokenColor.color;
+            richText.textBackground = tokenColor.backgroundColor;
+        }
+        richTextList.append(richText);
+    }
+}
+
+bool CapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, int charwidth)
+{
+    if(x < instr.x) //before the first token
+        return false;
+    int len = int(instr.tokens.size());
+    for(int i = 0, xStart = instr.x; i < len; i++)
+    {
+        const auto & curToken = instr.tokens.at(i);
+        int curWidth = int(curToken.text.length()) * charwidth;
+        int xEnd = xStart + curWidth;
+        if(x >= xStart && x < xEnd)
+        {
+            token = curToken;
+            return true;
+        }
+        xStart = xEnd;
+    }
+    return false; //not found
+}
+
+bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
+{
+    switch(token.type)
+    {
+    case TokenType::Comma:
+    case TokenType::Space:
+    case TokenType::ArgumentSpace:
+    case TokenType::MemoryOperatorSpace:
+    case TokenType::MemoryBrackets:
+    case TokenType::MemoryStackBrackets:
+    case TokenType::MemoryOperator:
+        return false;
+        break;
+    }
+    return true;
+}
+
+bool CapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize)
+{
+    if(!a || !b)
+        return false;
+    if(a->value.size != 0 && b->value.size != 0) //we have a value
+    {
+        if(!ignoreSize && a->value.size != b->value.size)
+            return false;
+        else if(a->value.value != b->value.value)
+            return false;
+    }
+    else if(a->text != b->text) //text doesn't equal
+        return false;
+    return true; //passed all checks
 }
 
 void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue & value)
