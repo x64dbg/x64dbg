@@ -695,13 +695,13 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
     int_t selHeadRVA = mSelection.fromIndex;
     int_t rva = addr;
     Instruction_t instruction = DisassembleAt(selHeadRVA);
-    Int32 branchType = instruction.disasm.Instruction.BranchType;
+    auto branchType = instruction.branchType;
 
     GraphicDump_t wPict = GD_Nothing;
 
-    if(branchType && branchType != RetType && branchType != CallType)
+    if(branchType != Instruction_t::None)
     {
-        int_t destRVA = (int_t)DbgGetBranchDestination(rvaToVa(instruction.rva));
+        int_t destRVA = instruction.branchDestination;
 
         int_t base = mMemPage->getBase();
         if(destRVA >= base && destRVA < base + (int_t)mMemPage->getSize())
@@ -731,7 +731,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, int_t addr)
 
     bool bIsExecute = DbgIsJumpGoingToExecute(rvaToVa(instruction.rva));
 
-    if(branchType == JmpType) //unconditional
+    if(branchType == Instruction_t::Unconditional) //unconditional
     {
         painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
     }

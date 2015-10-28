@@ -104,8 +104,5 @@ int main(int argc, char* argv[])
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
 
-    //finalize capstone
-    Capstone::GlobalFinalize();
-
     return result;
 }

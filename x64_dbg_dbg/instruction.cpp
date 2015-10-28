@@ -1998,15 +1998,9 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     }
 
     Capstone cp;
-    if(cp.GetError())   //there was an error opening the handle
-    {
-        dprintf("cs_open() failed, error code %u\n", cp.GetError());
-        return STATUS_ERROR;
-    }
-
     if(!cp.Disassemble(addr, data))
     {
-        dprintf("failed to disassemble, error code %u!", cp.GetError());
+        dprintf("failed to disassemble!");
         return STATUS_ERROR;
     }
 

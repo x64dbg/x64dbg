@@ -6,16 +6,32 @@
 #include "BeaTokenizer.h"
 #include "capstone_gui.h"
 
-typedef struct _Instruction_t
+struct Instruction_t
 {
+    enum BranchType
+    {
+        None,
+        Conditional,
+        Unconditional
+    };
+
+    Instruction_t()
+        : rva(0),
+          length(0),
+          branchDestination(0),
+          branchType(None)
+    {
+    }
+
     QString instStr;
     QByteArray dump;
     uint_t rva;
     int length;
-    DISASM disasm;
+    //DISASM disasm;
+    uint_t branchDestination;
+    BranchType branchType;
     BeaTokenizer::BeaInstructionToken tokens;
-
-} Instruction_t;
+};
 
 class QBeaEngine
 {
@@ -27,7 +43,6 @@ public:
     void UpdateConfig();
 
 private:
-    DISASM mDisasmStruct;
     int mMaxModuleSize;
     CapstoneTokenizer _tokenizer;
 };

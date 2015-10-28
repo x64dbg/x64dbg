@@ -70,12 +70,13 @@ void CPUSideBar::setSelection(int_t selVA)
 
 bool CPUSideBar::isJump(int i) const
 {
-    int BranchType = InstrBuffer->at(i).disasm.Instruction.BranchType;
-    if(BranchType && BranchType != RetType && BranchType != CallType)
+    const auto & instr = InstrBuffer->at(i);
+    auto branchType = instr.branchType;
+    if(branchType != Instruction_t::None)
     {
         uint_t start = CodePtr->getBase();
         uint_t end = start + CodePtr->getSize();
-        uint_t addr = DbgGetBranchDestination(CodePtr->rvaToVa(InstrBuffer->at(i).rva));
+        uint_t addr = instr.branchDestination;
         return addr >= start && addr < end; //do not draw jumps that go out of the section
     }
     return false;
@@ -120,12 +121,9 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
             jumpoffset++;
 
-            int_t destVA = (int_t)DbgGetBranchDestination(CodePtr->rvaToVa(instr.rva));
+            int_t destVA = instr.branchDestination;
 
-            if(instr.disasm.Instruction.Opcode == 0xFF)
-                continue;
-
-            bool isConditional = !((instr.disasm.Instruction.Opcode == 0xEB) || instr.disasm.Instruction.Opcode == 0xE9);
+            bool isConditional = instr.branchType == Instruction_t::Conditional;
 
             if(destVA == instrVA) //do not try to draw EBFE
                 continue;

@@ -189,8 +189,6 @@ INCLUDEPATH += \
     Src/Gui \
     Src/BasicView \
     Src/Disassembler \
-    Src/BeaEngine \
-    Src/ThirdPartyLibs/BeaEngine \
     Src/Memory \
     Src/Bridge \
     Src/Global \
@@ -231,14 +229,12 @@ DEFINES += NOMINMAX
 !contains(QMAKE_HOST.arch, x86_64) {
     #message("x86 build")
     ## Windows x86 (32bit) specific build here
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
     LIBS += -L"$$PWD/Src/Bridge/" -lx32bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x86
 } else {
     #message("x86_64 build")
     ## Windows x64 (64bit) specific build here
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
     LIBS += -L"$$PWD/Src/Bridge/" -lx64bridge
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x64

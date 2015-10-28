@@ -24,7 +24,6 @@ mkdir %RELEASEDIR%\bin_base\x64
 
 copy bin\x32\x32_bridge.dll %RELEASEDIR%\bin_base\x32\x32_bridge.dll
 copy bin\x32\x32_dbg.dll %RELEASEDIR%\bin_base\x32\x32_dbg.dll
-copy bin\x32\BeaEngine.dll %RELEASEDIR%\bin_base\x32\BeaEngine.dll
 copy bin\x32\capstone.dll %RELEASEDIR%\bin_base\x32\capstone.dll
 copy bin\x32\dbghelp.dll %RELEASEDIR%\bin_base\x32\dbghelp.dll
 copy bin\x32\symsrv.dll %RELEASEDIR%\bin_base\x32\symsrv.dll
@@ -38,7 +37,6 @@ copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\yara.dll
 copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\snowman.dll
 copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\x64_bridge.dll
 copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\x64_dbg.dll
-copy bin\x64\BeaEngine.dll %RELEASEDIR%\bin_base\x64\BeaEngine.dll
 copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\capstone.dll
 copy bin\x64\dbghelp.dll %RELEASEDIR%\bin_base\x64\dbghelp.dll
 copy bin\x64\symsrv.dll %RELEASEDIR%\bin_base\x64\symsrv.dll
