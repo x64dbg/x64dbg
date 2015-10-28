@@ -2,7 +2,8 @@
 #include "Configuration.h"
 
 CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
-    : _maxModuleLength(maxModuleLength)
+    : _maxModuleLength(maxModuleLength),
+      _success(false)
 {
     SetConfig(false, false, false, false);
 }
@@ -11,7 +12,8 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
 {
     _inst = InstructionToken();
 
-    if(_cp.Disassemble(addr, data, datasize))
+    _success = _cp.Disassemble(addr, data, datasize);
+    if(_success)
     {
         if(!tokenizeMnemonic())
             return false;
@@ -36,7 +38,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     return true;
 }
 
-BeaTokenizer::BeaSingleToken CapstoneTokenizer::Convert(const SingleToken & cap)
+BeaTokenizer::BeaSingleToken CapstoneTokenizer::Convert(const SingleToken & cap) const
 {
     BeaTokenizer::BeaSingleToken bea;
     bea.text = cap.text;
@@ -60,6 +62,16 @@ void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bA
     _bTabbedMnemonic = bTabbedMnemonic;
     _bArgumentSpaces = bArgumentSpaces;
     _bMemorySpaces = bMemorySpaces;
+}
+
+int CapstoneTokenizer::Size() const
+{
+    return _success ? _cp.Size() : 1;
+}
+
+const Capstone & CapstoneTokenizer::GetCapstone() const
+{
+    return _cp;
 }
 
 void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue & value)

@@ -1,5 +1,5 @@
-#include "console.h"
 #include "capstone_wrapper.h"
+#include <windows.h>
 
 csh Capstone::mHandle = 0;
 
@@ -22,7 +22,7 @@ void Capstone::GlobalFinalize()
 Capstone::Capstone()
 {
     mInstr = nullptr;
-    mError = CS_ERR_OK;
+    mSuccess = false;
 }
 
 Capstone::~Capstone()
@@ -31,12 +31,12 @@ Capstone::~Capstone()
         cs_free(mInstr, 1);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char data[MAX_DISASM_BUFFER])
+bool Capstone::Disassemble(size_t addr, const unsigned char data[MAX_DISASM_BUFFER])
 {
     return Disassemble(addr, data, MAX_DISASM_BUFFER);
 }
 
-bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
+bool Capstone::Disassemble(size_t addr, const unsigned char* data, int size)
 {
     if(!data)
         return false;
@@ -45,17 +45,19 @@ bool Capstone::Disassemble(uint addr, const unsigned char* data, int size)
         cs_free(mInstr, 1);
         mInstr = nullptr;
     }
-    return !!cs_disasm(mHandle, data, size, addr, 1, &mInstr);
+    return mSuccess = !!cs_disasm(mHandle, data, size, addr, 1, &mInstr);
 }
 
 const cs_insn* Capstone::GetInstr() const
 {
+    if(!Success())
+        return nullptr;
     return mInstr;
 }
 
-cs_err Capstone::GetError() const
+bool Capstone::Success() const
 {
-    return mError;
+    return mSuccess;
 }
 
 const char* Capstone::RegName(x86_reg reg) const
@@ -65,15 +67,19 @@ const char* Capstone::RegName(x86_reg reg) const
 
 bool Capstone::InGroup(cs_group_type group) const
 {
+    if(!Success())
+        return false;
     return cs_insn_group(mHandle, mInstr, group);
 }
 
-String Capstone::OperandText(int opindex) const
+std::string Capstone::OperandText(int opindex) const
 {
+    if(!Success())
+        return false;
     if(opindex >= mInstr->detail->x86.op_count)
         return "";
     const auto & op = mInstr->detail->x86.operands[opindex];
-    String result;
+    std::string result;
     char temp[32] = "";
     switch(op.type)
     {
@@ -85,10 +91,7 @@ String Capstone::OperandText(int opindex) const
 
     case X86_OP_IMM:
     {
-        if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL) || IsLoop())
-            sprintf_s(temp, "%" fext "X", op.imm + Size());
-        else
-            sprintf_s(temp, "%" fext "X", op.imm);
+        sprintf_s(temp, "%p", op.imm);
         result = temp;
     }
     break;
@@ -98,7 +101,7 @@ String Capstone::OperandText(int opindex) const
         const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
-            sprintf_s(temp, "%" fext "X", Address() + op.mem.disp + Size());
+            sprintf_s(temp, "%p", Address() + op.mem.disp);
             result += temp;
         }
         else //normal
@@ -124,10 +127,10 @@ String Capstone::OperandText(int opindex) const
                 if(mem.disp < 0)
                 {
                     operatorText = '-';
-                    sprintf_s(temp, "%" fext "X", mem.disp * -1);
+                    sprintf_s(temp, "%p", mem.disp * -1);
                 }
                 else
-                    sprintf_s(temp, "%" fext "X", mem.disp);
+                    sprintf_s(temp, "%p", mem.disp);
                 if(prependPlus)
                     result += operatorText;
                 result += temp;
@@ -147,21 +150,29 @@ String Capstone::OperandText(int opindex) const
 
 int Capstone::Size() const
 {
+    if(!Success())
+        return 1;
     return GetInstr()->size;
 }
 
-uint Capstone::Address() const
+size_t Capstone::Address() const
 {
-    return uint(GetInstr()->address);
+    if(!Success())
+        return 0;
+    return size_t(GetInstr()->address);
 }
 
 const cs_x86 & Capstone::x86() const
 {
+    if(!Success())
+        DebugBreak();
     return GetInstr()->detail->x86;
 }
 
 bool Capstone::IsFilling() const
 {
+    if(!Success())
+        return false;
     switch(GetId())
     {
     case X86_INS_NOP:
@@ -174,6 +185,8 @@ bool Capstone::IsFilling() const
 
 bool Capstone::IsLoop() const
 {
+    if(!Success())
+        return false;
     switch(GetId())
     {
     case X86_INS_LOOP:
@@ -187,25 +200,34 @@ bool Capstone::IsLoop() const
 
 x86_insn Capstone::GetId() const
 {
+    if(!Success())
+        DebugBreak();
     return x86_insn(mInstr->id);
 }
 
-String Capstone::InstructionText() const
+std::string Capstone::InstructionText() const
 {
-    String result = Mnemonic();
-    result += " ";
-    result += mInstr->op_str;
+    if(!Success())
+        return "???";
+    std::string result = Mnemonic();
+    if(OpCount())
+    {
+        result += " ";
+        result += mInstr->op_str;
+    }
     return result;
 }
 
 int Capstone::OpCount() const
 {
+    if(!Success())
+        return 0;
     return x86().op_count;
 }
 
 cs_x86_op Capstone::operator[](int index) const
 {
-    if(index >= OpCount())
+    if(!Success() || index >= OpCount())
         DebugBreak();
     return x86().operands[index];
 }
@@ -217,6 +239,8 @@ bool Capstone::IsNop() const
 
 bool Capstone::IsInt3() const
 {
+    if(!Success())
+        return false;
     switch(GetId())
     {
     case X86_INS_INT3:
@@ -231,8 +255,10 @@ bool Capstone::IsInt3() const
     }
 }
 
-String Capstone::Mnemonic() const
+std::string Capstone::Mnemonic() const
 {
+    if(!Success())
+        return "???";
     return mInstr->mnemonic;
 }
 
@@ -261,4 +287,17 @@ const char* Capstone::MemSizeName(int size) const
     default:
         return nullptr;
     }
+}
+
+size_t Capstone::BranchDestination() const
+{
+    if(!Success())
+        return 0;
+    if(InGroup(CS_GRP_JUMP) || InGroup(CS_GRP_CALL) || IsLoop())
+    {
+        const auto & op = x86().operands[0];
+        if(op.type == CS_OP_IMM)
+            return size_t(op.imm);
+    }
+    return 0;
 }

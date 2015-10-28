@@ -2014,7 +2014,7 @@ CMDRESULT cbInstrCapstone(int argc, char* argv[])
     const cs_x86 & x86 = cp.x86();
     int argcount = x86.op_count;
     dprintf("%s %s\n", instr->mnemonic, instr->op_str);
-    dprintf("%d, NOP=%d\n", cp.GetId(), X86_INS_NOP);
+    dprintf("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), cp.OpCount());
     for(int i = 0; i < argcount; i++)
     {
         const cs_x86_op & op = x86.operands[i];

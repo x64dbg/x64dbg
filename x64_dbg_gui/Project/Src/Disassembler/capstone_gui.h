@@ -98,13 +98,16 @@ public:
 
     CapstoneTokenizer(int maxModuleLength);
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
-    BeaTokenizer::BeaSingleToken Convert(const SingleToken & cap);
+    BeaTokenizer::BeaSingleToken Convert(const SingleToken & cap) const;
     void UpdateConfig();
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bMemorySpaces);
+    int Size() const;
+    const Capstone & GetCapstone() const;
 
 private:
     Capstone _cp;
     InstructionToken _inst;
+    bool _success;
     int _maxModuleLength;
     bool _bUppercase;
     bool _bTabbedMnemonic;
