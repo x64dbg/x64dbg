@@ -290,7 +290,7 @@ void cbUserBreakpoint()
     DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
     lock(WAITID_RUN);
-    SetForegroundWindow(GuiGetWindowHandle());
+    //SetForegroundWindow(GuiGetWindowHandle());
     bSkipExceptions = false;
     PLUG_CB_PAUSEDEBUG pauseInfo;
     pauseInfo.reserved = 0;
