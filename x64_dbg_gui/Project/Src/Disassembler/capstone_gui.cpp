@@ -415,7 +415,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     //stuff inside the brackets
     if(mem.base == X86_REG_RIP)   //rip-relative (#replacement)
     {
-        duint addr = _cp.Address() + duint (mem.disp);
+        duint addr = _cp.Address() + duint (mem.disp) + _cp.Size();
         TokenValue value = TokenValue(op.size, addr);
         auto displacementType = DbgMemIsValidReadPtr(addr) ? TokenType::Address : TokenType::Value;
         addToken(displacementType, printValue(value, false, _maxModuleLength), value);

@@ -74,9 +74,7 @@ bool Capstone::InGroup(cs_group_type group) const
 
 std::string Capstone::OperandText(int opindex) const
 {
-    if(!Success())
-        return false;
-    if(opindex >= mInstr->detail->x86.op_count)
+    if(!Success() || opindex >= mInstr->detail->x86.op_count)
         return "";
     const auto & op = mInstr->detail->x86.operands[opindex];
     std::string result;
