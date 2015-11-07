@@ -247,7 +247,9 @@ FORMS += \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui
 
-# Libraries
+##
+## Libraries
+##
 LIBS += -luser32
 
 !contains(QMAKE_HOST.arch, x86_64) {

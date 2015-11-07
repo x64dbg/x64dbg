@@ -58,3 +58,4 @@ src/build-*/
 !/hooks/AStyleWhore.exe
 !/hooks/AStyle.dll
 !/bin/x64dbg_shell_remove.reg
+!*.lib
