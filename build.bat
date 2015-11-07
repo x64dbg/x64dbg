@@ -1,9 +1,12 @@
 @echo off
 
+echo Saving PATH
+if "%OLDPATH%"=="" set OLDPATH=%PATH%
+
 cd %~dp0
 
-if /i "%1"=="x32"	call setenv.bat x32&set type="Release|Win32"&goto build
-if /i "%1"=="x64"	call setenv.bat x64&set type="Release|x64"&goto build
+if /i "%1"=="x32"	call setenv.bat x32&set type=Configuration=Release;Platform=Win32&goto build
+if /i "%1"=="x64"	call setenv.bat x64&set type=Configuration=Release;Platform=x64&goto build
 if /i "%1"=="coverity"	goto coverity
 if /i "%1"=="doxygen"	call setenv.bat doxygen&goto doxygen
 if /i "%1"=="chm"	call setenv.bat chm&goto chm
@@ -13,15 +16,15 @@ goto usage
 
 :build
 echo Building DBG...
-devenv /Rebuild %type% x64dbg.sln
+msbuild.exe x64dbg.sln /m /verbosity:minimal /t:Rebuild /p:%type%
 
 echo Building GUI...
-cd /src/gui
+rmdir /S /Q src\build
+cd src\gui
 qmake x64dbg.pro CONFIG+=release
 jom
-cd ..
-cd ..
-goto :EOF
+cd ..\..
+goto :restorepath
 
 
 :coverity
@@ -34,17 +37,17 @@ call setenv.bat coverity
 echo Building with Coverity
 cov-configure --msvc
 cov-build --dir cov-int --instrument build.bat %2%
-goto :EOF
+goto :restorepath
 
 
 :doxygen
 doxygen
-goto :EOF
+goto :restorepath
 
 
 :chm
 start /w "" winchm.exe help\x64_dbg.wcp /h
-goto :EOF
+goto :restorepath
 
 
 :usage
@@ -57,4 +60,9 @@ echo   build.bat coverity x32      : builds 32-bit coverity build
 echo   build.bat coverity x64      : builds 64-bit coverity build
 echo   build.bat doxygen           : generate doxygen documentation
 echo   build.bat chm               : generate windows help format documentation
-goto :EOF
+goto :restorepath
+
+:restorepath
+echo Resetting PATH
+set PATH=%OLDPATH%
+set OLDPATH=

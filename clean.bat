@@ -6,25 +6,34 @@ del /Q *.layout
 del /Q /A H *.suo
 rmdir /S /Q ipch
 rmdir /S /Q release
+rmdir /S /Q build
+rmdir /S /Q cov-int
+
+echo Cleaning SRC...
+rmdir /S /Q src\build
 
 echo Cleaning BRIDGE...
-cd src/bridge
+cd src\bridge
 call :delfiles
 
 echo Cleaning DBG...
-cd src/dbg
+cd src\dbg
 call :delfiles
 
 echo Cleaning EXE...
-cd src/exe
+cd src\exe
+call :delfiles
+
+echo Cleaning LAUNCHER...
+cd src\launcher
 call :delfiles
 
 echo Cleaning GUI...
 cd src/gui
 rmdir /S /Q build
 del /Q Makefile*
-cd ..
-cd ..
+del /Q *.pdb
+cd ..\..
 
 echo Cleaning bin\
 del /Q bin\*.pdb
@@ -66,8 +75,6 @@ rmdir /S /Q output
 echo Done!
 exit 0
 
-
-
 :delfiles
 rmdir /S /Q obj
 rmdir /S /Q Win32
@@ -75,5 +82,5 @@ rmdir /S /Q x64
 del /Q *.bmarks
 del /Q *.layout
 del /Q *.depend
-cd ..
-cd ..
+del /Q *.pdb
+cd ..\..

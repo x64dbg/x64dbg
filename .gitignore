@@ -52,6 +52,7 @@ src/gui/build
 src/gui/Makefile*
 tools/
 RCa*
+src/build-*/
 
 # Exceptions
 !/hooks/AStyleWhore.exe
