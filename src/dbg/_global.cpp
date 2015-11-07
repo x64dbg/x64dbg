@@ -57,23 +57,13 @@ void* emalloc(size_t size, const char* reason)
 */
 void* erealloc(void* ptr, size_t size, const char* reason)
 {
-    // Data shouldn't be re-allocated with a nullptr
-    ASSERT_NONNULL(ptr);
     ASSERT_NONZERO(size);
 
-    unsigned char* a = (unsigned char*)GlobalReAlloc(ptr, size, GMEM_ZEROINIT | GMEM_MOVEABLE);
-    if(!a)
-    {
-        MessageBoxA(0, "Could not reallocate memory", "Error", MB_ICONERROR);
-        ExitProcess(1);
-    }
-    memset(a, 0, size);
-    /*
-    FILE* file = fopen(alloctrace, "a+");
-    fprintf(file, "DBG%.5d:realloc:" fhex ":%s:" fhex "\n", emalloc_count, a, reason, size);
-    fclose(file);
-    */
-    return a;
+    // Free the memory if the pointer was set (as per documentation).
+    if (ptr)
+        efree(ptr);
+
+    return emalloc(size, reason);
 }
 
 /**
