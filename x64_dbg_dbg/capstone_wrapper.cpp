@@ -99,7 +99,7 @@ std::string Capstone::OperandText(int opindex) const
         const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
-            sprintf_s(temp, "%p", Address() + op.mem.disp);
+            sprintf_s(temp, "%p", Address() + op.mem.disp + Size());
             result += temp;
         }
         else //normal
