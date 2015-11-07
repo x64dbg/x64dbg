@@ -26,7 +26,7 @@ void MsgFreeStack(MESSAGE_STACK* Stack)
         Stack->msgs.enqueue(newMessage);
     }
 
-    // Delete allocate structure
+    // Delete allocated structure
     delete Stack;
 }
 
