@@ -4,13 +4,13 @@
 #
 
 #check if the formatter is present
-if [ ! -f ./AStyleWhore.exe ]; then
+if [ ! -f ./hooks/AStyleWhore.exe ]; then
     echo "AStyleWhore not found!"
     exit 0
 fi
 
 #format the code
-"./AStyleWhore.exe" Silent
+"./hooks/AStyleWhore.exe" Silent
 
 #exit when nothing needs to be done
 if [ $? == 0 ]; then
@@ -28,6 +28,6 @@ fi
 #cancel commit if the changes were undone by the formatting
 gitFiles=$(git diff-index --name-only --cached HEAD)
 if [ -z "$gitFiles" ]; then
-    "./AStyleWhore.exe" "After formatting, no files were staged..."
+    "./hooks/AStyleWhore.exe" "After formatting, no files were staged..."
     exit 1
 fi
