@@ -859,7 +859,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, "Define function?", start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -882,7 +882,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(function_start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Warning, "Deleting function:", start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
+        QMessageBox msg(QMessageBox::Warning, "Delete function?", start_text + "-" + end_text + label_text, QMessageBox::Ok | QMessageBox::Cancel);
         msg.setDefaultButton(QMessageBox::Cancel);
         msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
         msg.setParent(this, Qt::Dialog);
@@ -934,7 +934,7 @@ void CPUDisassembly::assembleAt()
             LineEditDialog mLineEdit(this);
             mLineEdit.setText(actual_inst);
             mLineEdit.setWindowTitle("Assemble at " + addr_text);
-            mLineEdit.setCheckBoxText("&Fill with NOP's");
+            mLineEdit.setCheckBoxText("&Fill with NOPs");
             mLineEdit.enableCheckBox(true);
             mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
             if(mLineEdit.exec() != QDialog::Accepted)
