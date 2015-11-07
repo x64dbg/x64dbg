@@ -1,7 +1,8 @@
 #ifndef _CAPSTONE_WRAPPER_H
 #define _CAPSTONE_WRAPPER_H
 
-#include "capstone/capstone.h"
+#include "..\..\dbg\capstone\capstone.h"
+#include "Imports.h"
 #include <string>
 
 #define MAX_DISASM_BUFFER 16

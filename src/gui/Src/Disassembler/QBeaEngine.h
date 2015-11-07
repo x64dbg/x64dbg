@@ -3,17 +3,34 @@
 
 #include <QString>
 #include "Imports.h"
-#include "BeaTokenizer.h"
+#include "capstone_gui.h"
 
-typedef struct _Instruction_t
+struct Instruction_t
 {
+    enum BranchType
+    {
+        None,
+        Conditional,
+        Unconditional
+    };
+
+    Instruction_t()
+        : rva(0),
+          length(0),
+          branchDestination(0),
+          branchType(None)
+    {
+    }
+
     QString instStr;
     QByteArray dump;
     duint rva;
     int length;
-    DISASM disasm;
-    BeaTokenizer::BeaInstructionToken tokens;
-} Instruction_t;
+    //DISASM disasm;
+    duint branchDestination;
+    BranchType branchType;
+    CapstoneTokenizer::InstructionToken tokens;
+};
 
 class QBeaEngine
 {
@@ -22,10 +39,10 @@ public:
     ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n);
     ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
     Instruction_t DisassembleAt(byte_t* data, duint size, duint instIndex, duint origBase, duint origInstRVA);
+    void UpdateConfig();
 
 private:
-    DISASM mDisasmStruct;
-    int mMaxModuleSize;
+    CapstoneTokenizer _tokenizer;
 };
 
 #endif // QBEAENGINE_H

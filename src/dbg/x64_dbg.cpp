@@ -247,8 +247,11 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
-    if (!Engine->Initialize())
-        return "Debugger engine initialization failed";
+    if (!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
+        return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
+
+    if (sizeof(TITAN_ENGINE_CONTEXT_t) != sizeof(REGISTERCONTEXT))
+        return "Invalid REGISTERCONTEXT alignment!";
 
     dputs("Initializing wait objects...");
     waitinitialize();

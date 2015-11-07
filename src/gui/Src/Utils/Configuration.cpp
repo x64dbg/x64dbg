@@ -114,8 +114,12 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("InstructionFpuRegisterBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionMmxRegisterColor", QColor("#000080"));
     defaultColors.insert("InstructionMmxRegisterBackgroundColor", Qt::transparent);
-    defaultColors.insert("InstructionSseRegisterColor", QColor("#000080"));
-    defaultColors.insert("InstructionSseRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionXmmRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionXmmRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionYmmRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionYmmRegisterBackgroundColor", Qt::transparent);
+    defaultColors.insert("InstructionZmmRegisterColor", QColor("#000080"));
+    defaultColors.insert("InstructionZmmRegisterBackgroundColor", Qt::transparent);
 
     defaultColors.insert("HexDumpTextColor", QColor("#000000"));
     defaultColors.insert("HexDumpModifiedBytesColor", QColor("#FF0000"));

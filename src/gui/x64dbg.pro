@@ -58,9 +58,7 @@ INCLUDEPATH += \
     Src/Gui \
     Src/BasicView \
     Src/Disassembler \
-    Src/BeaEngine \
-    Src/ThirdPartyLibs/BeaEngine \
-    Src/ThirdPartyLibs/Capstone \
+    Src/ThirdPartyLibs/capstone \
     Src/ThirdPartyLibs/snowman \
     Src/Memory \
     Src/Bridge \
@@ -80,6 +78,8 @@ SOURCES += \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
+    Src/Disassembler/capstone_gui.cpp \
+    Src/Disassembler/capstone_wrapper.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
@@ -111,7 +111,6 @@ SOURCES += \
     Src/Utils/Configuration.cpp \
     Src/Gui/CPUSideBar.cpp \
     Src/Gui/AppearanceDialog.cpp \
-    Src/Disassembler/BeaTokenizer.cpp \
     Src/Gui/CloseDialog.cpp \
     Src/Gui/HexEditDialog.cpp \
     Src/QHexEdit/ArrayCommand.cpp \
@@ -154,6 +153,8 @@ HEADERS += \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
+    Src/Disassembler/capstone_gui.h \
+    Src/Disassembler/capstone_wrapper.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
     Src/Exports.h \
@@ -252,14 +253,12 @@ LIBS += -luser32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/Capstone/" -lcapstone_x86
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/BeaEngine/" -lBeaEngine_64
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/Capstone/" -lcapstone_x64
+    LIBS += -L"$$PWD/Src/ThirdPartyLibs/capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

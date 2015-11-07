@@ -859,7 +859,7 @@ void CPUDisassembly::toggleFunction()
         if(DbgGetLabelAt(start, SEG_DEFAULT, labeltext))
             label_text = " (" + QString(labeltext) + ")";
 
-        QMessageBox msg(QMessageBox::Question, "Define this function?", start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
+        QMessageBox msg(QMessageBox::Question, "Add the function?", start_text + "-" + end_text + label_text, QMessageBox::Yes | QMessageBox::No);
         msg.setWindowIcon(QIcon(":/icons/images/compile.png"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -934,7 +934,7 @@ void CPUDisassembly::assembleAt()
             LineEditDialog mLineEdit(this);
             mLineEdit.setText(actual_inst);
             mLineEdit.setWindowTitle("Assemble at " + addr_text);
-            mLineEdit.setCheckBoxText("&Fill with NOPs");
+            mLineEdit.setCheckBoxText("&Fill with NOP's");
             mLineEdit.enableCheckBox(true);
             mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
             if(mLineEdit.exec() != QDialog::Accepted)
@@ -1286,9 +1286,8 @@ void CPUDisassembly::copySelection(bool copyBytes)
             bytes += QString("%1").arg((unsigned char)(instBuffer.at(i).dump.at(j)), 2, 16, QChar('0')).toUpper();
         }
         QString disassembly;
-        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
-        for(int j = 0; j < token->tokens.size(); j++)
-            disassembly += token->tokens.at(j).text;
+        for(const auto & token : instBuffer.at(i).tokens.tokens)
+            disassembly += token.text;
         char comment[MAX_COMMENT_SIZE] = "";
         QString fullComment;
         if(DbgGetCommentAt(cur_addr, comment))
@@ -1344,9 +1343,8 @@ void CPUDisassembly::copyDisassembly()
     {
         if(i)
             clipboard += "\r\n";
-        const BeaTokenizer::BeaInstructionToken* token = &instBuffer.at(i).tokens;
-        for(int j = 0; j < token->tokens.size(); j++)
-            clipboard += token->tokens.at(j).text;
+        for(const auto & token : instBuffer.at(i).tokens.tokens)
+            clipboard += token.text;
     }
     Bridge::CopyToClipboard(clipboard);
 }

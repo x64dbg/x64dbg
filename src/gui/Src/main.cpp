@@ -1,4 +1,5 @@
 #include "main.h"
+#include "capstone_wrapper.h"
 #include <QTextCodec>
 
 MyApplication::MyApplication(int & argc, char** argv) : QApplication(argc, argv)
@@ -53,6 +54,8 @@ int main(int argc, char* argv[])
     QAbstractEventDispatcher::instance(application.thread())->installNativeEventFilter(filter);
 #endif
 
+    // initialize capstone
+    Capstone::GlobalInitialize();
 
     // load config file + set config font
     mConfiguration = new Configuration;
@@ -100,5 +103,6 @@ int main(int argc, char* argv[])
 #else
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
+
     return result;
 }
