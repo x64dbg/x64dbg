@@ -15,7 +15,7 @@ class MHTabBar;
 //////////////////////////////////////////////////////////////////////////////
 // Summary:
 //    MHTabWidget implements the a Tab Widget with detach and attach
-//    functionality.
+//    functionality for MHTabBar.
 //////////////////////////////////////////////////////////////////////////////
 class MHTabWidget: public QTabWidget
 {
@@ -71,7 +71,6 @@ public:
 protected:
     MHTabWidget* m_TabWidget;
 
-    //virtual void moveEvent(QMoveEvent *event);
     void closeEvent(QCloseEvent* event);
 
 signals:

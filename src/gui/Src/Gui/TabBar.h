@@ -12,7 +12,7 @@ class QMainWindow;
 
 //////////////////////////////////////////////////////////////////////////////
 // Summary:
-//    MHTabBar implements the a Tab Bar with tear-off functionality.
+//    MHTabBar implements the a Tab Bar with detach functionality.
 //////////////////////////////////////////////////////////////////////////////
 class MHTabBar: public QTabBar
 {
@@ -23,13 +23,6 @@ public:
 
 protected:
     void contextMenuEvent(QContextMenuEvent* event);
-    /*
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dragMoveEvent(QDragMoveEvent* event);
-    void dropEvent(QDropEvent* event);
-    */
 
 signals:
     // Detach Tab
@@ -42,13 +35,6 @@ signals:
 private:
     bool mAllowDetach;
     bool mAllowDelete;
-    /*
-    QPoint       m_dragStartPos;
-    QPoint       m_dragMovedPos;
-    QPoint       m_dragDroppedPos;
-    bool         m_dragInitiated;
-    int          m_dragCurrentIndex;
-    */
 };
 
 #endif // __MHTABBAR_H__

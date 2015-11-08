@@ -156,44 +156,15 @@ void MHTabWidget::AttachTab(QWidget* parent)
 
 //----------------------------------------------------------------------------
 
-//////////////////////////////////////////////////////////////////////////////
 MHDetachedWindow::MHDetachedWindow(QWidget* parent, MHTabWidget* tabwidget) : QMainWindow(parent)
 {
     m_TabWidget = tabwidget;
 }
 
-//////////////////////////////////////////////////////////////////////////////
 MHDetachedWindow::~MHDetachedWindow(void)
 {
 }
 
-/*
-//////////////////////////////////////////////////////////////////////////////
-void MHDetachedWindow::moveEvent(QMoveEvent *event)
-{
-    QRect rect = m_TabWidget->geometry();
-    QSize hint = m_TabWidget->tabBar()->sizeHint();
-
-    // Height of the actual top tab bar
-    rect.setBottom(rect.top() + hint.height());
-    QPoint pos1(rect.x(), rect.y());
-    pos1=m_TabWidget->mapToGlobal(pos1);
-    rect.setX(pos1.x());
-    rect.setY(pos1.y());
-
-    if (rect.contains(event->pos()))
-    {
-        m_TabWidget->AttachTab(this);
-        event->accept();
-    }
-    else
-    {
-        QMainWindow::moveEvent(event);
-    }
-}
-*/
-
-//////////////////////////////////////////////////////////////////////////////
 void MHDetachedWindow::closeEvent(QCloseEvent* /*event*/)
 {
     emit OnClose(this);
