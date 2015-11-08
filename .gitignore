@@ -6,6 +6,7 @@ Win32/
 x64/
 release/
 build/
+gui_build/
 debug/
 *XE Results*/
 doxygen*/
