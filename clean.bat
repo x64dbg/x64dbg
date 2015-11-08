@@ -9,9 +9,6 @@ rmdir /S /Q release
 rmdir /S /Q build
 rmdir /S /Q cov-int
 
-echo Cleaning SRC...
-rmdir /S /Q src\build
-
 echo Cleaning BRIDGE...
 cd src\bridge
 call :delfiles
@@ -27,6 +24,9 @@ call :delfiles
 echo Cleaning LAUNCHER...
 cd src\launcher
 call :delfiles
+
+echo Cleaning GUI SRC...
+rmdir /S /Q src\gui_build
 
 echo Cleaning GUI...
 cd src/gui
