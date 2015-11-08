@@ -29,7 +29,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Fully customizable color scheme
 - Dynamically recognize modules and strings
 - Import reconstructor integrated (Scylla)
-- Fast disassembler (BeaEngine)
+- Fast disassembler (Capstone)
 - User database (JSON) for comments, labels, bookmarks, etc.
 - Plugin support with growing API
 - Extendable, debuggable scripting language for automation
@@ -39,13 +39,15 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 - Built-in assembler (XEDParse)
 - Executable patching
 - Yara Pattern Matching
+- Decompiler (Snowman)
+- Analysis
 
 ## License
 *x64dbg* is licensed under GPLv3, which means you can freely distribute and/or modify the source of *x64dbg*, as long as you share your changes with us. The only exception is that plugins you write do not have to comply with the GPLv3 license. They do not have to be open-source and they can be commercial and/or private. The only exception to this is when your plugin uses code copied from *x64dbg*. In that case you would still have to share the changes to *x64dbg* with us.
 
 ## Credits
 - Debugger core by [TitanEngine Community Edition](https://bitbucket.org/mrexodia/titanengine-update)
-- Disassembly powered by [BeaEngine](http://www.beaengine.org) ([Updated](https://bitbucket.org/mrexodia/beaengine)) & [Capstone](http://capstone-engine.org)
+- Disassembly powered by [Capstone](http://capstone-engine.org)
 - Assembly powered by [XEDParse](https://bitbucket.org/mrexodia/xedparse)
 - Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)
 - JSON powered by [Jansson](http://www.digip.org/jansson)
