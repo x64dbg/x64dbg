@@ -17,13 +17,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
     ui->setupUi(this);
 
-    //build information
+    // Build information
     QString buildText = QString().sprintf("v%d, "__DATE__, BridgeGetDbgVersion());
     QAction* buildInfo = new QAction(buildText, this);
     buildInfo->setEnabled(false);
     ui->menuBar->addAction(buildInfo);
 
-    //setup bridge signals
+    // Setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
 
-    //setup menu api
+    // Setup menu API
     initMenuApi();
     addMenuToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
@@ -54,21 +54,21 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mWindowMainTitle = "x32dbg";
 #endif
 
-    //Set window title
+    // Set window title
     setWindowTitle(QString(mWindowMainTitle));
 
-    //Load application icon
+    // Load application icon
     HICON hIcon = LoadIcon(GetModuleHandleA(0), MAKEINTRESOURCE(100));
     SendMessageA((HWND)MainWindow::winId(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     DestroyIcon(hIcon);
 
-    //Load recent files
+    // Load recent files
     loadMRUList(16);
 
-    //Accept drops
+    // Accept drops
     setAcceptDrops(true);
 
-    // Log View
+    // Log view
     mLogView = new LogView();
     mLogView->setWindowTitle("Log");
     mLogView->setWindowIcon(QIcon(":/icons/images/log.png"));
@@ -80,7 +80,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mSymbolView->setWindowIcon(QIcon(":/icons/images/pdb.png"));
     mSymbolView->hide();
 
-    // Source View
+    // Source view
     mSourceViewManager = new SourceViewerManager();
     mSourceViewManager->setWindowTitle("Source");
     mSourceViewManager->setWindowIcon(QIcon(":/icons/images/source.png"));
@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mBreakpointsView->hide();
     connect(mBreakpointsView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
-    // Memory Map View
+    // Memory map view
     mMemMapView = new MemoryMapView();
     connect(mMemMapView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
@@ -102,7 +102,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mMemMapView->setWindowIcon(QIcon(":/icons/images/memory-map.png"));
     mMemMapView->hide();
 
-    // Callstack View
+    // Callstack view
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle("Call Stack");
     mCallStackView->setWindowIcon(QIcon(":/icons/images/callstack.png"));
@@ -114,24 +114,24 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mScriptView->setWindowIcon(QIcon(":/icons/images/script-code.png"));
     mScriptView->hide();
 
-    // CPU View
+    // CPU view
     mCpuWidget = new CPUWidget();
     mCpuWidget->setWindowTitle("CPU");
     mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
 
-    // Reference Manager
+    // Reference manager
     mReferenceManager = new ReferenceManager(this);
     Bridge::getBridge()->referenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle("References");
     mReferenceManager->setWindowIcon(QIcon(":/icons/images/search.png"));
 
-    // Thread View
+    // Thread view
     mThreadView = new ThreadView();
     connect(mThreadView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     mThreadView->setWindowTitle("Threads");
     mThreadView->setWindowIcon(QIcon(":/icons/images/arrow-threads.png"));
 
-    // Snowman View (decompiler)
+    // Snowman view (decompiler)
     mSnowmanView = CreateSnowman(this);
     mSnowmanView->setWindowTitle("Snowman");
     mSnowmanView->setWindowIcon(QIcon(":/icons/images/snowman.png"));
@@ -141,10 +141,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mNotesManager->setWindowTitle("Notes");
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
-    //Create the tab widget
+    // Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
-    //Setup tabs
+    // Setup tabs
     addQWidgetTab(mCpuWidget);
     addQWidgetTab(mLogView);
     addQWidgetTab(mNotesManager);
@@ -172,7 +172,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mLastLogLabel = new StatusLabel();
     ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
 
-    //time wasted counter
+    // Time wasted counter
     QLabel* timeWastedLabel = new QLabel(this);
     ui->statusBar->addPermanentWidget(timeWastedLabel);
     mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
@@ -181,7 +181,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCalculatorDialog = new CalculatorDialog(this);
     connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
-    // Setup Signals/Slots
+    // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
     connect(ui->actionStepOver, SIGNAL(triggered()), this, SLOT(execStepOver()));
     connect(ui->actionStepInto, SIGNAL(triggered()), this, SLOT(execStepInto()));
@@ -231,6 +231,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     connect(ui->actionDetach, SIGNAL(triggered()), this, SLOT(detach()));
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
+    connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
 
     connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
@@ -241,17 +242,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
-    //Set default setttings (when not set)
+    // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
     defaultSettings.SaveSettings();
 
-    //Create updatechecker
+    // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
 
     refreshShortcuts();
 
-    //setup close thread and dialog
+    // Setup close thread and dialog
     bCanClose = false;
     mCloseThread = new MainWindowCloseThread();
     connect(mCloseThread, SIGNAL(canClose()), this, SLOT(canClose()));
@@ -292,11 +293,13 @@ MainWindow::~MainWindow()
 void MainWindow::setTab(QWidget* widget)
 {
     for(int i = 0; i < mTabWidget->count(); i++)
+    {
         if(mTabWidget->widget(i) == widget)
         {
             mTabWidget->setCurrentIndex(i);
             break;
         }
+    }
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -355,6 +358,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionCheckUpdates, ConfigShortcut("HelpCheckForUpdates"));
     setGlobalShortcut(ui->actionCalculator, ConfigShortcut("HelpCalculator"));
     setGlobalShortcut(ui->actionReportBug, ConfigShortcut("HelpReportBug"));
+    setGlobalShortcut(ui->actionManual, ConfigShortcut("HelpManual"));
 
     setGlobalShortcut(ui->actionStrings, ConfigShortcut("ActionFindStrings"));
     setGlobalShortcut(ui->actionCalls, ConfigShortcut("ActionFindIntermodularCalls"));
@@ -1083,7 +1087,7 @@ void MainWindow::changeCommandLine()
     size_t cbsize = 0;
     char* cmdline = 0;
     if(!DbgFunctions()->GetCmdline(0, &cbsize))
-        mLineEdit.setText("Cannot get remote command line, use the 'getcmdline'' command for more information.");
+        mLineEdit.setText("Cannot get remote command line, use the 'getcmdline' command for more information.");
     else
     {
         cmdline = new char[cbsize];
@@ -1113,6 +1117,12 @@ void MainWindow::changeCommandLine()
     }
 }
 
+void MainWindow::displayManual()
+{
+    // Open the Windows CHM in the upper directory
+    QDesktopServices::openUrl(QUrl("..\\x64dbg.chm"));
+}
+
 void MainWindow::decompileAt(dsint start, dsint end)
 {
     DecompileAt(mSnowmanView, start, end);
@@ -1139,11 +1149,13 @@ void MainWindow::showQWidgetTab(QWidget* qWidget)
 void MainWindow::closeQWidgetTab(QWidget* qWidget)
 {
     for(int i = 0; i < mTabWidget->count(); i++)
+    {
         if(mTabWidget->widget(i) == qWidget)
         {
             mTabWidget->DeleteTab(i);
             break;
         }
+    }
 }
 
 void MainWindow::executeOnGuiThread(void* cbGuiThread)

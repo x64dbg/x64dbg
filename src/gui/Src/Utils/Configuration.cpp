@@ -238,6 +238,7 @@ Configuration::Configuration() : QObject()
     defaultShortcuts.insert("HelpCheckForUpdates", Shortcut(tr("Help -> Check for Updates"), "", true));
     defaultShortcuts.insert("HelpCalculator", Shortcut(tr("Help -> Calculator"), "?"));
     defaultShortcuts.insert("HelpReportBug", Shortcut(tr("Help -> Report Bug"), "", true));
+    defaultShortcuts.insert("HelpManual", Shortcut(tr("Help -> Manual"), "F1", true));
 
     defaultShortcuts.insert("ActionFindStrings", Shortcut(tr("Actions -> Find Strings"), "", true));
     defaultShortcuts.insert("ActionFindIntermodularCalls", Shortcut(tr("Actions -> Find Intermodular Calls"), "", true));

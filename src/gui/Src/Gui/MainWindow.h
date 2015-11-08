@@ -104,6 +104,7 @@ public slots:
     void displayAttach();
     void detach();
     void changeCommandLine();
+    void displayManual();
     void decompileAt(dsint start, dsint end);
     void canClose();
     void addQWidgetTab(QWidget* qWidget);

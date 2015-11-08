@@ -95,6 +95,7 @@
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionManual"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
@@ -665,6 +666,15 @@
    </property>
    <property name="toolTip">
     <string>Source</string>
+   </property>
+  </action>
+  <action name="actionManual">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/win-help.png</normaloff>:/icons/images/win-help.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Manual</string>
    </property>
   </action>
  </widget>
