@@ -24,29 +24,23 @@ class MHTabWidget: public QTabWidget
 public:
     MHTabWidget(QWidget* parent, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
-    QTabBar* tabBar();
+
+    QWidget* widget(int index) const;
+    int count() const;
 
 public slots:
-    int count() const;
-    QWidget* widget(int index) const;
-
-    // Move Tab
-    void MoveTab(int fromIndex, int toIndex);
-
-    // Detach Tab
-    void DetachTab(int index, QPoint &);
-
-    // Attach Tab
     void AttachTab(QWidget* parent);
-
-    // Delete Tab
+    void DetachTab(int index, QPoint &);
+    void MoveTab(int fromIndex, int toIndex);
     void DeleteTab(int index);
 
 public Q_SLOTS:
     void setCurrentIndex(int index);
-    void setCurrentWidget(QWidget* widget);
 
 protected:
+    QTabBar* tabBar() const;
+
+    void paintEvent(QPaintEvent *event);
 
 private:
     MHTabBar* m_tabBar;
@@ -64,6 +58,7 @@ private:
 class MHDetachedWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
     MHDetachedWindow(QWidget* parent = 0, MHTabWidget* tabwidget = 0);
     ~MHDetachedWindow(void);
