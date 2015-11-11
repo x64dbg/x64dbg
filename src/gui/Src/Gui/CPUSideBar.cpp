@@ -176,6 +176,10 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
 void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
 {
+    // Don't care if we are not debugging
+    if(!DbgIsDebugging())
+        return;
+
     // get clicked line
     const int x = e->pos().x();
     const int y = e->pos().y();
@@ -188,9 +192,6 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     if(x < bulletX || x > bulletX + bulletRadius)
         return;
     if(y < bulletY || y > bulletY + bulletRadius)
-        return;
-
-    if(!DbgIsDebugging())
         return;
 
     // calculate virtual adress of clicked line
@@ -244,7 +245,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     const int JumpPadding = 11;
     int x = viewport()->width() - jumpoffset * JumpPadding - 12;
     int x_right = viewport()->width() - 12;
-    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight;
+    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - 1;
     const int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
 
     //horizontal
@@ -354,7 +355,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     const int radius = fontHeight / 2; //14/2=7
     const int y = line * fontHeight; //initial y
-    const int yAdd = (fontHeight - radius) / 2 + 1;
+    const int yAdd = (fontHeight - radius) / 2;
     const int x = viewport()->width() - 10; //initial x
 
     //painter->drawLine(0, y, viewport()->width(), y); //draw raster

@@ -312,7 +312,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
 
         //draw jump arrows
-        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y, wRVA); //jump line
+        int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA); //jump line
 
         //draw bytes
         QColor bytesColor = ConfigColor("DisassemblyBytesColor");
