@@ -399,23 +399,23 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     int x = 1;
     int y = LineCoordinate - fontHeight;
 
-    QRect rect(x, y, width, fontHeight);
+    QRect rect(x, y, width, fontHeight - 1);
 
-    //draw rectangle
+    // Draw rectangle
     painter->setBrush(IPLabelBG);
     painter->setPen(QPen(IPLabelBG));
     painter->drawRect(rect);
 
-    //draw text inside the rectangle
+    // Draw text inside the rectangle
     painter->setPen(QPen(IPLabel));
     painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, Text);
 
-    //draw arrow
+    // Draw arrow
     y = fontHeight * (1 + Line) - 0.5 * fontHeight;
-    //y+=3;
-    painter->setPen(QPen(IPLabelBG, 2));
+
+    painter->setPen(QPen(IPLabelBG, 2.0));
     painter->setBrush(QBrush(IPLabelBG));
-    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 15, y);
+    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 11, y);
 
     painter->restore();
 }
