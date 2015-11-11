@@ -21,6 +21,9 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     curAddr = 0;
+
+    // Deselect any row (visual reasons only)
+    setSingleSelection(-1);
 }
 
 int CPUInfoBox::getHeight()
@@ -45,6 +48,7 @@ QString CPUInfoBox::getInfoLine(int line)
 
 void CPUInfoBox::clear()
 {
+    // Set all 3 lines to empty strings
     setInfoLine(0, "");
     setInfoLine(1, "");
     setInfoLine(2, "");
