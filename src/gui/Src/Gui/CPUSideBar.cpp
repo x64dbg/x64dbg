@@ -227,40 +227,58 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         painter->setPen(QPen(ConfigColor("SideBarConditionalJumpLineFalseColor"), 1, Qt::SolidLine));  // jmp
     else
         painter->setPen(QPen(ConfigColor("SideBarUnconditionalJumpLineFalseColor"), 1, Qt::DashLine));
-    QPen tmp = painter->pen();
+
+    // Pixel adjustment to make drawing lines even
+    int pixel_y_offs = 1;
 
     if(isactive) //selected
     {
-        tmp.setWidth(2); //bold line = selected
-        if(isexecute) //only highlight selected jumps
+        QPen activePen = painter->pen();
+
+        // Active/selected jumps use a bold line (2px wide)
+        activePen.setWidth(2);
+
+        // Adjust for 2px line
+        pixel_y_offs = 0;
+
+        // Use a different color to highlight jumps that will execute
+        if(isexecute)
         {
             if(!conditional)
-                tmp.setColor(ConfigColor("SideBarConditionalJumpLineTrueColor"));
+                activePen.setColor(ConfigColor("SideBarConditionalJumpLineTrueColor"));
             else
-                tmp.setColor(ConfigColor("SideBarUnconditionalJumpLineTrueColor"));
+                activePen.setColor(ConfigColor("SideBarUnconditionalJumpLineTrueColor"));
         }
+
+        // Update the painter itself with the new pen style
+        painter->setPen(activePen);
     }
-    painter->setPen(tmp);
+
+    // Cache variables
+    const int viewportWidth = viewport()->width();
+    const int viewportHeight = viewport()->height();
 
     const int JumpPadding = 11;
-    int x = viewport()->width() - jumpoffset * JumpPadding - 12;
-    int x_right = viewport()->width() - 12;
-    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - 1;
+    int x = viewportWidth - jumpoffset * JumpPadding - 12;
+    int x_right = viewportWidth - 12;
+    const int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
     const int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
 
-    //horizontal
+    // Horizontal (<----)
     painter->drawLine(x_right, y_start, x, y_start);
-    //vertical
+
+    // Vertical
     painter->drawLine(x, y_start, x, y_end);
-    //arrow
+
+    // Draw the arrow
     if(!isactive) //selected
     {
-        //horizontal
+        // Horizontal (---->)
         painter->drawLine(x, y_end, x_right, y_end);
 
         if(endLine == viewableRows + 6)
         {
-            int y = this->viewport()->height() - 1;
+            int y = viewportHeight - 1;
             if(y > y_start)
             {
                 QPen temp = painter->pen();
@@ -307,7 +325,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     {
         if(endLine == viewableRows + 6)
         {
-            int y = this->viewport()->height() - 1;
+            int y = viewportHeight - 1;
             x--;
             QPen temp = painter->pen();
             temp.setStyle(Qt::SolidLine);
@@ -406,12 +424,12 @@ void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, in
 {
     painter->drawLine(x1, y1, x2, y2);
 
-    const int ArrowSizeX = 4;  // width  of arrow tip in pixel
-    const int ArrowSizeY = 4;  // height of arrow tip in pixel
+    const int ArrowSizeX = 4;// Width  of arrow tip in pixels
+    const int ArrowSizeY = 4;// Height of arrow tip in pixels
 
-    painter->drawLine(x2, y2, x2 - ArrowSizeX, y2 - ArrowSizeY);
-    painter->drawLine(x2, y2, x2 - ArrowSizeX, y2 + ArrowSizeY);
-
+    // X and Y values adjusted so that the arrow itself is symmetrical on 2px
+    painter->drawLine(x2 - 1, y2 - 1, x2 - ArrowSizeX, y2 - ArrowSizeY);// Arrow top
+    painter->drawLine(x2 - 1, y2, x2 - ArrowSizeX, y2 + ArrowSizeY - 1);// Arrow bottom
 }
 
 void* CPUSideBar::operator new(size_t size)
