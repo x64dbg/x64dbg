@@ -8,6 +8,7 @@ class CPUSideBar : public QAbstractScrollArea
 {
     Q_OBJECT
     QPair<dsint, dsint> mHighlightedJump;
+
 public:
     explicit CPUSideBar(CPUDisassembly* Ptr, QWidget* parent = 0);
     QSize sizeHint() const;

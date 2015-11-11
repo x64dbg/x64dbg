@@ -405,17 +405,6 @@ void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, in
 {
     painter->drawLine(x1, y1, x2, y2);
 
-    /*
-    // this does not work
-    QPainterPath path;
-
-    path.moveTo( QPointF(x2, x2));
-    path.lineTo (QPointF(x2-ArrowSizeX,y2-ArrowSizeY));
-    path.lineTo (QPointF(x2-ArrowSizeX,y2+ArrowSizeY));
-    path.closeSubpath();
-
-    painter->setPen (Qt :: NoPen);
-    painter->fillPath (path, QBrush (color));*/
     const int ArrowSizeX = 4;  // width  of arrow tip in pixel
     const int ArrowSizeY = 4;  // height of arrow tip in pixel
 

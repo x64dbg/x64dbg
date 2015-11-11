@@ -79,7 +79,8 @@ void Disassembly::fontsUpdated()
  */
 QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    Q_UNUSED(rowBase)
+    Q_UNUSED(rowBase);
+
     if(mHighlightingMode)
     {
         QPen pen(ConfigColor("InstructionHighlightColor"));
@@ -412,9 +413,6 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         }
     }
     break;
-
-    default:
-        break;
     }
     return "";
 }

@@ -171,7 +171,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         y = getHeaderHeight();
         x += getColumnWidth(j);
     }
-    emit repainted();
+    //emit repainted();
 }
 
 

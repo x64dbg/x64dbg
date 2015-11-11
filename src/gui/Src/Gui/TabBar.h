@@ -17,6 +17,7 @@ class QMainWindow;
 class MHTabBar: public QTabBar
 {
     Q_OBJECT
+
 public:
     MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete);
     ~MHTabBar(void);
