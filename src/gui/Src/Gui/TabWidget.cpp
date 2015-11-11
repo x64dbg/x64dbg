@@ -144,16 +144,6 @@ void MHTabWidget::setCurrentIndex(int index)
     }
 }
 
-void MHTabWidget::paintEvent(QPaintEvent *event)
-{
-    QTabWidget::paintEvent(event);
-
-    // Force the tab bar to draw AFTER the main elements
-    // do. This prevents the bar from being hidden
-    // when using custom CSS.
-    tabBar()->update();
-}
-
 QTabBar* MHTabWidget::tabBar() const
 {
     return m_tabBar;

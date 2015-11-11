@@ -6,11 +6,10 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->setupUi(this);
     setDefaultDisposition();
 
-    mDisas = new CPUDisassembly(0);
+    mDisas = new CPUDisassembly(this);
     mSideBar = new CPUSideBar(mDisas);
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRows(int)), mSideBar, SLOT(setViewableRows(int)));
-    connect(mDisas, SIGNAL(repainted()), mSideBar, SLOT(repaint()));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
@@ -54,7 +53,6 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
 
     ui->mTopRightFrameLayout->addWidget(button_changeview);
-
     ui->mTopRightFrameLayout->addWidget(scrollArea);
 
     mDump = new CPUDump(mDisas, 0); //dump widget
@@ -99,31 +97,32 @@ void CPUWidget::setDefaultDisposition(void)
     ui->mBotHSplitter->setSizes(sizesList);
 }
 
-
-QVBoxLayout* CPUWidget::getTopLeftUpperWidget(void)
+QVBoxLayout* CPUWidget::getTopLeftUpperWidget()
 {
     return ui->mTopLeftUpperFrameLayout;
 }
 
-QVBoxLayout* CPUWidget::getTopLeftLowerWidget(void)
+QVBoxLayout* CPUWidget::getTopLeftLowerWidget()
 {
     return ui->mTopLeftLowerFrameLayout;
 }
 
-
-QVBoxLayout* CPUWidget::getTopRightWidget(void)
+QVBoxLayout* CPUWidget::getTopRightWidget()
 {
     return ui->mTopRightFrameLayout;
 }
 
-
-QVBoxLayout* CPUWidget::getBotLeftWidget(void)
+QVBoxLayout* CPUWidget::getBotLeftWidget()
 {
     return ui->mBotLeftFrameLayout;
 }
 
-
-QVBoxLayout* CPUWidget::getBotRightWidget(void)
+QVBoxLayout* CPUWidget::getBotRightWidget()
 {
     return ui->mBotRightFrameLayout;
+}
+
+CPUSideBar* CPUWidget::getSidebarWidget()
+{
+    return mSideBar;
 }

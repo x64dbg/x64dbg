@@ -5,11 +5,15 @@
 #include "GotoDialog.h"
 #include "SourceViewerManager.h"
 
+// Needed forward declaration for parent container class
+class CPUWidget;
+
 class CPUDisassembly : public Disassembly
 {
     Q_OBJECT
+
 public:
-    explicit CPUDisassembly(QWidget* parent = 0);
+    explicit CPUDisassembly(CPUWidget* parent);
 
     // Mouse Management
     void contextMenuEvent(QContextMenuEvent* event);
@@ -80,6 +84,9 @@ public slots:
     void decompileSelection();
     void decompileFunction();
 
+protected:
+    void paintEvent(QPaintEvent* event);
+
 private:
     // Menus
     QMenu* mBinaryMenu;
@@ -91,7 +98,9 @@ private:
     QMenu* mSearchMenu;
     QMenu* mCopyMenu;
     QMenu* mPluginMenu;
+    QMenu* mDecompileMenu;
 
+    // Actions
     QAction* mBinaryEditAction;
     QAction* mBinaryFillAction;
     QAction* mBinaryFillNopsAction;
@@ -134,12 +143,14 @@ private:
     QAction* mCopyRva;
     QAction* mCopyDisassembly;
     QAction* mOpenSource;
-
-    QMenu* mDecompileMenu;
     QAction* mDecompileSelection;
     QAction* mDecompileFunction;
 
+    // Goto dialog specific
     GotoDialog* mGoto;
+
+    // Parent CPU window
+    CPUWidget *mParentCPUWindow;
 };
 
 #endif // CPUDISASSEMBLY_H

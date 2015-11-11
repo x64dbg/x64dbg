@@ -40,8 +40,6 @@ public Q_SLOTS:
 protected:
     QTabBar* tabBar() const;
 
-    void paintEvent(QPaintEvent *event);
-
 private:
     MHTabBar* m_tabBar;
 

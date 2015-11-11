@@ -40,7 +40,7 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 void CPUSideBar::repaint()
 {
     fontHeight = CodePtr->getRowHeight();
-    viewport()->repaint();
+    viewport()->update();
 }
 
 void CPUSideBar::changeTopmostAddress(dsint i)
@@ -433,4 +433,3 @@ void CPUSideBar::operator delete(void* p)
 {
     _aligned_free(p);
 }
-

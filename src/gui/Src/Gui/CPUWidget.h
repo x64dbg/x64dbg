@@ -23,11 +23,16 @@ public:
     explicit CPUWidget(QWidget* parent = 0);
     ~CPUWidget();
     void setDefaultDisposition(void);
-    QVBoxLayout* getTopLeftUpperWidget(void);
-    QVBoxLayout* getTopLeftLowerWidget(void);
-    QVBoxLayout* getTopRightWidget(void);
-    QVBoxLayout* getBotLeftWidget(void);
-    QVBoxLayout* getBotRightWidget(void);
+
+    // Layout getters
+    QVBoxLayout* getTopLeftUpperWidget();
+    QVBoxLayout* getTopLeftLowerWidget();
+    QVBoxLayout* getTopRightWidget();
+    QVBoxLayout* getBotLeftWidget();
+    QVBoxLayout* getBotRightWidget();
+
+    // Widget getters
+    CPUSideBar* getSidebarWidget();
 
 public:
     CPUSideBar* mSideBar;

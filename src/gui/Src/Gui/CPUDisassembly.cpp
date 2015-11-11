@@ -1,4 +1,5 @@
 #include "CPUDisassembly.h"
+#include "CPUWidget.h"
 #include <QMessageBox>
 #include <QClipboard>
 #include "Configuration.h"
@@ -8,17 +9,20 @@
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
 
-CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
+CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
+    // Set specific widget handles
+    mGoto = nullptr;
+    mParentCPUWindow = parent;
+
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
 
+    // Connect bridge<->disasm calls
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAt(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
-
-    mGoto = 0;
 }
 
 void CPUDisassembly::mousePressEvent(QMouseEvent* event)
@@ -62,24 +66,22 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
     break;
 
-    case 1: //opcodes
-    {
-        toggleInt3BPAction(); //toggle INT3 breakpoint
-    }
-    break;
+    // (Opcodes) Set INT3 breakpoint
+    case 1:
+        toggleInt3BPAction();
+        break;
 
-    case 2: //disassembly
-    {
+    // (Disassembly) Assemble dialog
+    case 2:
         assembleAt();
-    }
-    break;
+        break;
 
-    case 3: //comments
-    {
+    // (Comments) Set comment dialog
+    case 3:
         setComment();
-    }
-    break;
+        break;
 
+    // Undefined area
     default:
         Disassembly::mouseDoubleClickEvent(event);
         break;
@@ -1419,4 +1421,17 @@ void CPUDisassembly::decompileFunction()
         emit displaySnowmanWidget();
         emit decompileAt(start, end);
     }
+}
+
+void CPUDisassembly::paintEvent(QPaintEvent* event)
+{
+    // Hook/hack to update the sidebar at the same time as this widget.
+    // Ensures the two widgets are synced and prevents "draw lag"
+    auto sidebar = mParentCPUWindow->getSidebarWidget();
+
+    if (sidebar)
+        sidebar->repaint();
+
+    // Signal to render the original content
+    Disassembly::paintEvent(event);
 }
