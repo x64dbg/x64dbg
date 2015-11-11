@@ -1155,6 +1155,12 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
     }
 }
 
+duint Disassembly::getSelectedVa()
+{
+    // Wrapper around commonly used code:
+    // Converts the selected index to a valid virtual address
+    return rvaToVa(getInitialSelection());
+}
 
 /************************************************************************************
                          Update/Reload/Refresh/Repaint

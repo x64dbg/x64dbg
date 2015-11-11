@@ -233,13 +233,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
 
-    connect(mCpuWidget->mDisas, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-    connect(mCpuWidget->mDisas, SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
-    connect(mCpuWidget->mDisas, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
-    connect(mCpuWidget->mDisas, SIGNAL(showPatches()), this, SLOT(patchWindow()));
-    connect(mCpuWidget->mDisas, SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
-    connect(mCpuWidget->mDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-    connect(mCpuWidget->mStack, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
+    connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
     // Set default setttings (when not set)
@@ -258,7 +258,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCloseThread, SIGNAL(canClose()), this, SLOT(canClose()));
     mCloseDialog = new CloseDialog(this);
 
-    mCpuWidget->mDisas->setFocus();
+    mCpuWidget->setDisasmFocus();
 
     GuiAddLogMessage(QString().sprintf("Thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
 }
@@ -597,7 +597,7 @@ void MainWindow::openFile()
         saveMRUList();
     }
 
-    mCpuWidget->mDisas->setFocus();
+    mCpuWidget->setDisasmFocus();
 }
 
 void MainWindow::execPause()
@@ -623,7 +623,7 @@ void MainWindow::restartDebugging()
     }
     DbgCmdExec(QString().sprintf("init \"%s\"", filename).toUtf8().constData());
 
-    mCpuWidget->mDisas->setFocus();
+    mCpuWidget->setDisasmFocus();
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -762,13 +762,13 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 
 void MainWindow::findStrings()
 {
-    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("strref " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 
 void MainWindow::findModularCalls()
 {
-    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
+    DbgCmdExec(QString("modcallfind " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper()).toUtf8().constData());
     displayReferencesWidget();
 }
 
@@ -962,7 +962,8 @@ void MainWindow::runSelection()
 {
     if(!DbgIsDebugging())
         return;
-    QString command = "bp " + QString("%1").arg(mCpuWidget->mDisas->rvaToVa(mCpuWidget->mDisas->getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper() + ", ss";
+
+    QString command = "bp " + QString("%1").arg(mCpuWidget->getDisasmWidget()->getSelectedVa(), sizeof(dsint) * 2, 16, QChar('0')).toUpper() + ", ss";
     if(DbgCmdExecDirect(command.toUtf8().constData()))
         DbgCmdExecDirect("run");
 }
@@ -1066,7 +1067,7 @@ void MainWindow::displayAttach()
     AttachDialog attach(this);
     attach.exec();
 
-    mCpuWidget->mDisas->setFocus();
+    mCpuWidget->setDisasmFocus();
 }
 
 void MainWindow::detach()

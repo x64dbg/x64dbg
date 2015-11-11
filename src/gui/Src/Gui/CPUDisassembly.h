@@ -15,12 +15,12 @@ class CPUDisassembly : public Disassembly
 public:
     explicit CPUDisassembly(CPUWidget* parent);
 
-    // Mouse Management
+    // Mouse management
     void contextMenuEvent(QContextMenuEvent* event);
     void mousePressEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
 
-    // Context Menu Management
+    // Context menu management
     void setupRightClickContextMenu();
     void addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences);
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences);

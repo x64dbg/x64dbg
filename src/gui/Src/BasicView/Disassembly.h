@@ -62,6 +62,7 @@ public:
     void selectPrevious(bool expand);
     bool isSelected(dsint base, dsint offset);
     bool isSelected(QList<Instruction_t>* buffer, int index);
+    duint getSelectedVa();
 
     // Update/Reload/Refresh/Repaint
     void prepareData();

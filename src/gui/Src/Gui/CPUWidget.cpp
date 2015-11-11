@@ -97,6 +97,11 @@ void CPUWidget::setDefaultDisposition(void)
     ui->mBotHSplitter->setSizes(sizesList);
 }
 
+void CPUWidget::setDisasmFocus()
+{
+    mDisas->setFocus();
+}
+
 QVBoxLayout* CPUWidget::getTopLeftUpperWidget()
 {
     return ui->mTopLeftUpperFrameLayout;
@@ -125,4 +130,19 @@ QVBoxLayout* CPUWidget::getBotRightWidget()
 CPUSideBar* CPUWidget::getSidebarWidget()
 {
     return mSideBar;
+}
+
+CPUDisassembly* CPUWidget::getDisasmWidget()
+{
+    return mDisas;
+}
+
+CPUDump* CPUWidget::getDumpWidget()
+{
+    return mDump;
+}
+
+CPUStack* CPUWidget::getStackWidget()
+{
+    return mStack;
 }

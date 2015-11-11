@@ -22,7 +22,10 @@ class CPUWidget : public QWidget
 public:
     explicit CPUWidget(QWidget* parent = 0);
     ~CPUWidget();
-    void setDefaultDisposition(void);
+
+    // Misc
+    void setDefaultDisposition();
+    void setDisasmFocus();
 
     // Layout getters
     QVBoxLayout* getTopLeftUpperWidget();
@@ -33,8 +36,11 @@ public:
 
     // Widget getters
     CPUSideBar* getSidebarWidget();
+    CPUDisassembly* getDisasmWidget();
+    CPUDump* getDumpWidget();
+    CPUStack* getStackWidget();
 
-public:
+protected:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
     CPUDump* mDump;
