@@ -10,7 +10,10 @@ class CPUSideBar : public QAbstractScrollArea
     QPair<dsint, dsint> mHighlightedJump;
 
 public:
+    // Constructors
     explicit CPUSideBar(CPUDisassembly* Ptr, QWidget* parent = 0);
+    ~CPUSideBar();
+
     QSize sizeHint() const;
     void drawStraightArrow(QPainter* painter, int x1, int y1, int x2, int y2);
 
@@ -18,6 +21,11 @@ public:
     static void operator delete(void* p);
 
 public slots:
+    // Configuration
+    void updateSlots();
+    void updateColors();
+    void updateFonts();
+
     void debugStateChangedSlot(DBGSTATE state);
     void repaint();
     void changeTopmostAddress(dsint i);
@@ -42,8 +50,24 @@ private:
 
     CPUDisassembly* CodePtr;
     QList<Instruction_t>* InstrBuffer;
-    QColor backgroundColor;
     REGDUMP regDump;
+
+    // Configuration
+private:
+    QColor mBackgroundColor;
+
+    QColor mConditionalJumpLineFalseColor;
+    QColor mUnconditionalJumpLineFalseColor;
+    QColor mConditionalJumpLineTrueColor;
+    QColor mUnconditionalJumpLineTrueColor;
+
+    QColor mBulletBreakpointColor;
+    QColor mBulletBookmarkColor;
+    QColor mBulletColor;
+    QColor mBulletDisabledBreakpointColor;
+
+    QColor mCipLabelColor;
+    QColor mCipLabelBackgroundColor;
 };
 
 #endif // CPUSIDEBAR_H

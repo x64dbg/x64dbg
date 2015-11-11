@@ -10,18 +10,53 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
 
     CodePtr = Ptr;
 
+    InstrBuffer = CodePtr->instructionsBuffer();
+
+    memset(&regDump, 0, sizeof(REGDUMP));
+
+    updateSlots();
+}
+
+CPUSideBar::~CPUSideBar()
+{
+}
+
+void CPUSideBar::updateSlots()
+{
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateColors()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateFonts()));
+
+    // Init all other updates once
+    updateColors();
+    updateFonts();
+}
+
+void CPUSideBar::updateColors()
+{
+    mBackgroundColor = ConfigColor("SideBarBackgroundColor");
+
+    mConditionalJumpLineFalseColor = ConfigColor("SideBarConditionalJumpLineFalseColor");
+    mUnconditionalJumpLineFalseColor = ConfigColor("SideBarUnconditionalJumpLineFalseColor");
+    mConditionalJumpLineTrueColor = ConfigColor("SideBarConditionalJumpLineTrueColor");
+    mUnconditionalJumpLineTrueColor = ConfigColor("SideBarUnconditionalJumpLineTrueColor");
+
+    mBulletBreakpointColor = ConfigColor("SideBarBulletBreakpointColor");
+    mBulletBookmarkColor = ConfigColor("SideBarBulletBookmarkColor");
+    mBulletColor = ConfigColor("SideBarBulletColor");
+    mBulletDisabledBreakpointColor = ConfigColor("SideBarBulletDisabledBreakpointColor");
+
+    mCipLabelColor = ConfigColor("SideBarCipLabelColor");
+    mCipLabelBackgroundColor = ConfigColor("SideBarCipLabelBackgroundColor");
+}
+
+void CPUSideBar::updateFonts()
+{
     m_DefaultFont = CodePtr->font();
     this->setFont(m_DefaultFont);
 
-    const QFontMetrics metrics(m_DefaultFont);
+    QFontMetrics metrics(m_DefaultFont);
     fontWidth  = metrics.width(' ');
     fontHeight = metrics.height();
-
-    InstrBuffer = CodePtr->instructionsBuffer();
-
-    backgroundColor = ConfigColor("SideBarBackgroundColor");
-
-    memset(&regDump, 0, sizeof(REGDUMP));
 }
 
 QSize CPUSideBar::sizeHint() const
@@ -89,7 +124,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     QPainter painter(this->viewport());
 
     // Paints background
-    painter.fillRect(painter.viewport(), ConfigColor("SideBarBackgroundColor"));
+    painter.fillRect(painter.viewport(), mBackgroundColor);
 
     if(InstrBuffer->size() == 0)
         return;
@@ -224,9 +259,9 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
 {
     painter->save();
     if(!conditional)
-        painter->setPen(QPen(ConfigColor("SideBarConditionalJumpLineFalseColor"), 1, Qt::SolidLine));  // jmp
+        painter->setPen(QPen(mConditionalJumpLineFalseColor, 1, Qt::SolidLine));  // jmp
     else
-        painter->setPen(QPen(ConfigColor("SideBarUnconditionalJumpLineFalseColor"), 1, Qt::DashLine));
+        painter->setPen(QPen(mUnconditionalJumpLineFalseColor, 1, Qt::DashLine));
 
     // Pixel adjustment to make drawing lines even
     int pixel_y_offs = 1;
@@ -245,9 +280,9 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         if(isexecute)
         {
             if(!conditional)
-                activePen.setColor(ConfigColor("SideBarConditionalJumpLineTrueColor"));
+                activePen.setColor(mConditionalJumpLineTrueColor);
             else
-                activePen.setColor(ConfigColor("SideBarUnconditionalJumpLineTrueColor"));
+                activePen.setColor(mUnconditionalJumpLineTrueColor);
         }
 
         // Update the painter itself with the new pen style
@@ -363,13 +398,13 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->save();
 
     if(isbp)
-        painter->setBrush(QBrush(ConfigColor("SideBarBulletBreakpointColor")));
+        painter->setBrush(QBrush(mBulletBreakpointColor));
     else if(isbookmark)
-        painter->setBrush(QBrush(ConfigColor("SideBarBulletBookmarkColor")));
+        painter->setBrush(QBrush(mBulletBookmarkColor));
     else
-        painter->setBrush(QBrush(ConfigColor("SideBarBulletColor")));
+        painter->setBrush(QBrush(mBulletColor));
 
-    painter->setPen(ConfigColor("SideBarBackgroundColor"));
+    painter->setPen(mBackgroundColor);
 
     const int radius = fontHeight / 2; //14/2=7
     const int y = line * fontHeight; //initial y
@@ -380,7 +415,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
-        painter->setBrush(QBrush(ConfigColor("SideBarBulletDisabledBreakpointColor")));
+        painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
     painter->drawEllipse(x, y + yAdd, radius, radius);
 
     painter->restore();
@@ -392,8 +427,8 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     const int LineCoordinate = fontHeight * (1 + Line);
     int length = Text.length();
 
-    const QColor IPLabel = ConfigColor("SideBarCipLabelColor");
-    const QColor IPLabelBG = ConfigColor("SideBarCipLabelBackgroundColor");
+    const QColor& IPLabel = mCipLabelColor;
+    const QColor& IPLabelBG = mCipLabelBackgroundColor;
 
     int width = length * fontWidth + 2;
     int x = 1;
