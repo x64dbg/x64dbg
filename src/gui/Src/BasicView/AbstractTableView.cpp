@@ -16,6 +16,9 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     fontsUpdated();
     colorsUpdated();
 
+    // Paint cell content only when debugger is running
+    setDrawDebugOnly(true);
+
     mRowCount = 0;
 
     mHeaderButtonSytle.setStyleSheet(" QPushButton {\n     background-color: rgb(192, 192, 192);\n     border-style: outset;\n     border-width: 2px;\n     border-color: rgb(128, 128, 128);\n }\n QPushButton:pressed {\n     background-color: rgb(192, 192, 192);\n     border-style: inset;\n }");
@@ -152,11 +155,16 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             //  Paints cell contents
             if(i < mNbrOfLineToPrint)
             {
-                QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
-                if(wStr.length())
+                // Don't draw cells if the flag is set, and no process is running
+                if (mDrawDebugOnly && DbgIsDebugging())
                 {
-                    wPainter.setPen(textColor);
-                    wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                    QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
+
+                    if(wStr.length())
+                    {
+                        wPainter.setPen(textColor);
+                        wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                    }
                 }
             }
 
@@ -904,7 +912,21 @@ int AbstractTableView::getCharWidth()
 }
 
 /************************************************************************************
-                           Table Offset Management
+                           Content drawing control
+************************************************************************************/
+
+bool AbstractTableView::getDrawDebugOnly()
+{
+    return mDrawDebugOnly;
+}
+
+void AbstractTableView::setDrawDebugOnly(bool value)
+{
+    mDrawDebugOnly = value;
+}
+
+/************************************************************************************
+                           Table offset management
 ************************************************************************************/
 dsint AbstractTableView::getTableOffset()
 {

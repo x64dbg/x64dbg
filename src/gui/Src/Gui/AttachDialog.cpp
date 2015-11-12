@@ -24,6 +24,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     int charwidth = ui->listProcesses->getCharWidth();
     ui->listProcesses->addColumnAt(charwidth * sizeof(int) * 2 + 8, "PID", true);
     ui->listProcesses->addColumnAt(800, "Path", true);
+    ui->listProcesses->setDrawDebugOnly(false);
     connect(ui->listProcesses, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
     connect(ui->listProcesses, SIGNAL(doubleClickedSignal()), this, SLOT(on_btnAttach_clicked()));
     connect(ui->listProcesses, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(processListContextMenu(QPoint)));

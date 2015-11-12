@@ -240,10 +240,6 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    // Don't draw if not debugging
-    if (!DbgIsDebugging())
-        return "";
-
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
         printDumpAt(mMemPage->getBase(), false, false);

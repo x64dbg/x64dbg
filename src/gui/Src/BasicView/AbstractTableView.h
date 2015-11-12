@@ -42,7 +42,7 @@ public:
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
 
-    //config updates
+    // Config updates
     virtual void colorsUpdated();
     virtual void fontsUpdated();
 
@@ -96,7 +96,11 @@ public:
     void setShowHeader(bool show);
     int getCharWidth();
 
-    // Table Offset Management
+    // Content drawing control
+    bool getDrawDebugOnly();
+    void setDrawDebugOnly(bool value);
+
+    // Table offset management
     dsint getTableOffset();
     void setTableOffset(dsint val);
 
@@ -187,6 +191,7 @@ protected:
     QColor headerTextColor;
     QColor selectionColor;
     bool mAllowPainting;
+    bool mDrawDebugOnly;
 };
 
 #endif // ABSTRACTTABLEVIEW_H
