@@ -411,8 +411,6 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     const int yAdd = (fontHeight - radius) / 2;
     const int x = viewport()->width() - 10; //initial x
 
-    //painter->drawLine(0, y, viewport()->width(), y); //draw raster
-
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
         painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
