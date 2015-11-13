@@ -5,7 +5,6 @@
 
 HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
 {
-    fontsUpdated();
     SelectionData_t data;
     memset(&data, 0, sizeof(SelectionData_t));
     mSelection = data;
@@ -25,20 +24,24 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
 
     mRvaDisplayEnabled = false;
 
+    // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+
+    Initialize();
 }
 
-void HexDump::colorsUpdated()
+void HexDump::updateColors()
 {
-    AbstractTableView::colorsUpdated();
+    AbstractTableView::updateColors();
+
     backgroundColor = ConfigColor("HexDumpBackgroundColor");
     textColor = ConfigColor("HexDumpTextColor");
     selectionColor = ConfigColor("HexDumpSelectionColor");
     reloadData();
 }
 
-void HexDump::fontsUpdated()
+void HexDump::updateFonts()
 {
     setFont(ConfigFont("HexDump"));
 }

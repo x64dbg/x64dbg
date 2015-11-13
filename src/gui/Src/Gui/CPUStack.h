@@ -9,8 +9,11 @@ class CPUStack : public HexDump
     Q_OBJECT
 public:
     explicit CPUStack(QWidget* parent = 0);
-    void colorsUpdated();
-    void fontsUpdated();
+
+    // Configuration
+    virtual void updateColors();
+    virtual void updateFonts();
+
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);

@@ -7,7 +7,6 @@
 
 CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
 {
-    fontsUpdated();
     setShowHeader(false);
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
@@ -35,28 +34,28 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     wColDesc.data = dDesc;
     appendDescriptor(2000, "Comments", false, wColDesc);
 
-    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(stackDumpAt(duint, duint)));
-    connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
-
     setupContextMenu();
 
     mGoto = 0;
 
-    backgroundColor = ConfigColor("StackBackgroundColor");
-    textColor = ConfigColor("StackTextColor");
-    selectionColor = ConfigColor("StackSelectionColor");
+    // Slots
+    connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(stackDumpAt(duint, duint)));
+    connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+
+    Initialize();
 }
 
-void CPUStack::colorsUpdated()
+void CPUStack::updateColors()
 {
-    HexDump::colorsUpdated();
+    HexDump::updateColors();
+
     backgroundColor = ConfigColor("StackBackgroundColor");
     textColor = ConfigColor("StackTextColor");
     selectionColor = ConfigColor("StackSelectionColor");
 }
 
-void CPUStack::fontsUpdated()
+void CPUStack::updateFonts()
 {
     setFont(ConfigFont("Stack"));
 }

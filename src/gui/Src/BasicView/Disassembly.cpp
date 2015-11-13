@@ -2,10 +2,8 @@
 #include "Configuration.h"
 #include "Bridge.h"
 
-Disassembly::Disassembly(QWidget* parent)
-    : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {
-    fontsUpdated();
     mMemPage = new MemoryPage(0, 0);
 
     mInstBuffer.clear();
@@ -32,6 +30,9 @@ Disassembly::Disassembly(QWidget* parent)
 
     mGuiState = Disassembly::NoState;
 
+    // Update fonts immediately because they are used in calculations
+    updateFonts();
+
     setRowCount(mMemPage->getSize());
 
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
@@ -43,18 +44,41 @@ Disassembly::Disassembly(QWidget* parent)
 
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
+    // Slots
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+
+    Initialize();
 }
 
-void Disassembly::colorsUpdated()
+void Disassembly::updateColors()
 {
-    AbstractTableView::colorsUpdated();
+    AbstractTableView::updateColors();
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+
+    mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
+    mSelectionColor = ConfigColor("DisassemblySelectionColor");
+    mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
+    mBreakpointBackgroundColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
+    mBreakpointColor = ConfigColor("DisassemblyBreakpointColor");
+    mCipColor = ConfigColor("DisassemblyCipColor");
+    mHardwareBreakpointBackgroundColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+    mHardwareBreakpointColor = ConfigColor("DisassemblyHardwareBreakpointColor");
+    mBookmarkBackgroundColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
+    mBookmarkColor = ConfigColor("DisassemblyBookmarkColor");
+    mLabelColor = ConfigColor("DisassemblyLabelColor");
+    mLabelBackgroundColor = ConfigColor("DisassemblyLabelBackgroundColor");
+    mSelectedAddressBackgroundColor = ConfigColor("DisassemblySelectedAddressBackgroundColor");
+    mSelectedAddressColor = ConfigColor("DisassemblySelectedAddressColor");
+    mAddressBackgroundColor = ConfigColor("DisassemblyAddressBackgroundColor");
+    mAddressColor = ConfigColor("DisassemblyAddressColor");
+
     CapstoneTokenizer::UpdateColors();
     mDisasm->UpdateConfig();
 }
 
-void Disassembly::fontsUpdated()
+void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
 }
@@ -83,7 +107,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     if(mHighlightingMode)
     {
-        QPen pen(ConfigColor("InstructionHighlightColor"));
+        QPen pen(mInstructionHighlightColor);
         pen.setWidth(2);
         painter->setPen(pen);
         QRect rect = viewport()->rect();
@@ -95,7 +119,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     // Highlight if selected
     if(wIsSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblySelectionColor")));
+        painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
     switch(col)
     {
@@ -108,39 +132,39 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
         if(mInstBuffer.at(rowOffset).rva == mCipRva && !mIsRunning) //cip + not running
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyCipBackgroundColor")));
+            painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
             {
                 if(bpxtype & bp_normal) //normal breakpoint
                 {
-                    QColor bpColor = ConfigColor("DisassemblyBreakpointBackgroundColor");
+                    QColor& bpColor = mBreakpointBackgroundColor;
                     if(!bpColor.alpha()) //we don't want transparent text
-                        bpColor = ConfigColor("DisassemblyBreakpointColor");
-                    if(bpColor == ConfigColor("DisassemblyCipBackgroundColor"))
-                        bpColor = ConfigColor("DisassemblyCipColor");
+                        bpColor = mBreakpointColor;
+                    if(bpColor == mCipBackgroundColor)
+                        bpColor = mCipColor;
                     painter->setPen(QPen(bpColor));
                 }
                 else if(bpxtype & bp_hardware) //hardware breakpoint only
                 {
-                    QColor hwbpColor = ConfigColor("DisassemblyHardwareBreakpointBackgroundColor");
+                    QColor hwbpColor = mHardwareBreakpointBackgroundColor;
                     if(!hwbpColor.alpha()) //we don't want transparent text
-                        hwbpColor = ConfigColor("DisassemblyHardwareBreakpointColor");
-                    if(hwbpColor == ConfigColor("DisassemblyCipBackgroundColor"))
-                        hwbpColor = ConfigColor("DisassemblyCipColor");
+                        hwbpColor = mHardwareBreakpointColor;
+                    if(hwbpColor == mCipBackgroundColor)
+                        hwbpColor = mCipColor;
                     painter->setPen(hwbpColor);
                 }
                 else //no breakpoint
                 {
-                    painter->setPen(QPen(ConfigColor("DisassemblyCipColor")));
+                    painter->setPen(QPen(mCipColor));
                 }
             }
             else //bookmark
             {
-                QColor bookmarkColor = ConfigColor("DisassemblyBookmarkBackgroundColor");
+                QColor bookmarkColor = mBookmarkBackgroundColor;
                 if(!bookmarkColor.alpha()) //we don't want transparent text
-                    bookmarkColor = ConfigColor("DisassemblyBookmarkColor");
-                if(bookmarkColor == ConfigColor("DisassemblyCipBackgroundColor"))
-                    bookmarkColor = ConfigColor("DisassemblyCipColor");
+                    bookmarkColor = mBookmarkColor;
+                if(bookmarkColor == mCipBackgroundColor)
+                    bookmarkColor = mCipColor;
                 painter->setPen(QPen(bookmarkColor));
             }
         }
@@ -152,25 +176,25 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 {
                     if(bpxtype == bp_none) //label only
                     {
-                        painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
-                        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
+                        painter->setPen(QPen(mLabelColor)); //red -> address + label text
+                        painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
                     }
                     else //label+breakpoint
                     {
                         if(bpxtype & bp_normal) //label + normal breakpoint
                         {
-                            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
-                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor"))); //fill red
+                            painter->setPen(QPen(mBreakpointColor));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
                         }
                         else if(bpxtype & bp_hardware) //label + hardware breakpoint only
                         {
-                            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
-                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor"))); //fill ?
+                            painter->setPen(QPen(mHardwareBreakpointColor));
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill ?
                         }
                         else //other cases -> do as normal
                         {
-                            painter->setPen(QPen(ConfigColor("DisassemblyLabelColor"))); //red -> address + label text
-                            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyLabelBackgroundColor"))); //fill label background
+                            painter->setPen(QPen(mLabelColor)); //red -> address + label text
+                            painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
                         }
                     }
                 }
@@ -181,13 +205,13 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                         QColor background;
                         if(wIsSelected)
                         {
-                            background = ConfigColor("DisassemblySelectedAddressBackgroundColor");
-                            painter->setPen(QPen(ConfigColor("DisassemblySelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
+                            background = mSelectedAddressBackgroundColor;
+                            painter->setPen(QPen(mSelectedAddressColor)); //black address (DisassemblySelectedAddressColor)
                         }
                         else
                         {
-                            background = ConfigColor("DisassemblyAddressBackgroundColor");
-                            painter->setPen(QPen(ConfigColor("DisassemblyAddressColor"))); //DisassemblyAddressColor
+                            background = mAddressBackgroundColor;
+                            painter->setPen(QPen(mAddressColor)); //DisassemblyAddressColor
                         }
                         if(background.alpha())
                             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background

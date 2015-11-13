@@ -36,15 +36,18 @@ public:
 class AbstractTableView : public QAbstractScrollArea
 {
     Q_OBJECT
+
 public:
     enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed};
 
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
 
-    // Config updates
-    virtual void colorsUpdated();
-    virtual void fontsUpdated();
+    // Configuration
+    virtual void Initialize();
+    virtual void updateColors();
+    virtual void updateFonts();
+    virtual void updateShortcuts();
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
@@ -116,8 +119,10 @@ signals:
     void repainted();
 
 public slots:
-    void colorsUpdatedSlot();
-    void fontsUpdatedSlot();
+    // Configuration
+    void slot_updateColors();
+    void slot_updateFonts();
+    void slot_updateShortcuts();
 
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();
@@ -185,13 +190,15 @@ private:
     ScrollBar64_t mScrollBarAttributes;
 
 protected:
+    bool mAllowPainting;
+    bool mDrawDebugOnly;
+
+    // Configuration
     QColor backgroundColor;
     QColor textColor;
     QColor separatorColor;
     QColor headerTextColor;
     QColor selectionColor;
-    bool mAllowPainting;
-    bool mDrawDebugOnly;
 };
 
 #endif // ABSTRACTTABLEVIEW_H

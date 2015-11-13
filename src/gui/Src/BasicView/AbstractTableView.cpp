@@ -13,9 +13,6 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     data.activeButtonIndex = -1;
     mHeader = data;
 
-    fontsUpdated();
-    colorsUpdated();
-
     // Paint cell content only when debugger is running
     setDrawDebugOnly(true);
 
@@ -41,18 +38,32 @@ AbstractTableView::AbstractTableView(QWidget* parent) : QAbstractScrollArea(pare
     mMouseWheelScrollDelta = 4;
     setMouseTracking(true);
 
-    // Signals/Slots Connections
+    // Slots
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertSliderActionSlot(int)));
-    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
-    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(slot_updateColors()));
+    connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(slot_updateFonts()));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(slot_updateShortcuts()));
+
+    // todo: try Qt::QueuedConnection to init
+    Initialize();
 }
 
-void AbstractTableView::colorsUpdatedSlot()
+/************************************************************************************
+                           Configuration
+************************************************************************************/
+
+void AbstractTableView::Initialize()
 {
-    colorsUpdated();
+    // Required to be called by each constructor because
+    // of VTable changes
+    //
+    // Init all other updates once
+    updateColors();
+    updateFonts();
+    updateShortcuts();
 }
 
-void AbstractTableView::colorsUpdated()
+void AbstractTableView::updateColors()
 {
     backgroundColor = ConfigColor("AbstractTableViewBackgroundColor");
     textColor = ConfigColor("AbstractTableViewTextColor");
@@ -61,14 +72,28 @@ void AbstractTableView::colorsUpdated()
     selectionColor = ConfigColor("AbstractTableViewSelectionColor");
 }
 
-void AbstractTableView::fontsUpdatedSlot()
-{
-    fontsUpdated();
-}
-
-void AbstractTableView::fontsUpdated()
+void AbstractTableView::updateFonts()
 {
     setFont(ConfigFont("AbstractTableView"));
+}
+
+void AbstractTableView::updateShortcuts()
+{
+}
+
+void AbstractTableView::slot_updateColors()
+{
+    updateColors();
+}
+
+void AbstractTableView::slot_updateFonts()
+{
+    updateFonts();
+}
+
+void AbstractTableView::slot_updateShortcuts()
+{
+    updateShortcuts();
 }
 
 /************************************************************************************

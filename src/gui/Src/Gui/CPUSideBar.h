@@ -52,8 +52,8 @@ private:
     QList<Instruction_t>* InstrBuffer;
     REGDUMP regDump;
 
-    // Configuration
 private:
+    // Configuration
     QColor mBackgroundColor;
 
     QColor mConditionalJumpLineFalseColor;

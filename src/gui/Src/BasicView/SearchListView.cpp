@@ -54,7 +54,7 @@ SearchListView::SearchListView(QWidget* parent) :
     mSearchAction = new QAction("Search...", this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
-    // Setup signals
+    // Slots
     connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));

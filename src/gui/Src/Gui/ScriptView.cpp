@@ -20,6 +20,9 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
 
     setIp(0); //no IP
 
+    setupContextMenu();
+
+    // Slots
     connect(Bridge::getBridge(), SIGNAL(scriptAdd(int, const char**)), this, SLOT(add(int, const char**)));
     connect(Bridge::getBridge(), SIGNAL(scriptClear()), this, SLOT(clear()));
     connect(Bridge::getBridge(), SIGNAL(scriptSetIp(int)), this, SLOT(setIp(int)));
@@ -31,15 +34,13 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
-    setupContextMenu();
-
-    selectionColor = ConfigColor("DisassemblySelectionColor");
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    Initialize();
 }
 
-void ScriptView::colorsUpdated()
+void ScriptView::updateColors()
 {
-    StdTable::colorsUpdated();
+    StdTable::updateColors();
+
     selectionColor = ConfigColor("DisassemblySelectionColor");
     backgroundColor = ConfigColor("DisassemblyBackgroundColor");
 }

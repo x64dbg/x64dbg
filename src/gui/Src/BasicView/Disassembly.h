@@ -10,8 +10,10 @@ class Disassembly : public AbstractTableView
     Q_OBJECT
 public:
     explicit Disassembly(QWidget* parent = 0);
-    void colorsUpdated();
-    void fontsUpdated();
+
+    // Configuration
+    virtual void updateColors();
+    virtual void updateFonts();
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
@@ -135,6 +137,24 @@ private:
     CapstoneTokenizer::SingleToken mHighlightToken;
 
 protected:
+    // Configuration
+    QColor mInstructionHighlightColor;
+    QColor mSelectionColor;
+    QColor mCipBackgroundColor;
+    QColor mBreakpointBackgroundColor;
+    QColor mBreakpointColor;
+    QColor mCipColor;
+    QColor mHardwareBreakpointBackgroundColor;
+    QColor mHardwareBreakpointColor;
+    QColor mBookmarkBackgroundColor;
+    QColor mBookmarkColor;
+    QColor mLabelColor;
+    QColor mLabelBackgroundColor;
+    QColor mSelectedAddressBackgroundColor;
+    QColor mSelectedAddressColor;
+    QColor mAddressBackgroundColor;
+    QColor mAddressColor;
+
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;

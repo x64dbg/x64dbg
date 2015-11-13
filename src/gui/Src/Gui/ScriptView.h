@@ -8,7 +8,9 @@ class ScriptView : public StdTable
     Q_OBJECT
 public:
     explicit ScriptView(StdTable* parent = 0);
-    void colorsUpdated();
+
+    // Configuration
+    void updateColors();
 
     // Reimplemented Functions
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
