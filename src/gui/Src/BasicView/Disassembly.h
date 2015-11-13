@@ -140,21 +140,37 @@ protected:
     // Configuration
     QColor mInstructionHighlightColor;
     QColor mSelectionColor;
+
     QColor mCipBackgroundColor;
+    QColor mCipColor;
+
     QColor mBreakpointBackgroundColor;
     QColor mBreakpointColor;
-    QColor mCipColor;
+
     QColor mHardwareBreakpointBackgroundColor;
     QColor mHardwareBreakpointColor;
+
     QColor mBookmarkBackgroundColor;
     QColor mBookmarkColor;
+
     QColor mLabelColor;
     QColor mLabelBackgroundColor;
+
     QColor mSelectedAddressBackgroundColor;
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
 
+    QColor mBytesColor;
+    QColor mModifiedBytesColor;
+
+    QColor mAutoCommentColor;
+    QColor mAutoCommentBackgroundColor;
+
+    QColor mCommentColor;
+    QColor mCommentBackgroundColor;
+
+    // Misc
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
