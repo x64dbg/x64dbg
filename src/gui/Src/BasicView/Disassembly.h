@@ -170,6 +170,13 @@ protected:
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
 
+    QColor mUnconditionalJumpLineColor;
+    QColor mConditionalJumpLineTrueColor;
+    QColor mConditionalJumpLineFalseColor;
+
+    QColor mLoopColor;
+    QColor mFunctionColor;
+
     // Misc
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;

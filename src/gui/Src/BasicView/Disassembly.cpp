@@ -79,6 +79,11 @@ void Disassembly::updateColors()
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
+    mUnconditionalJumpLineColor = ConfigColor("DisassemblyUnconditionalJumpLineColor");
+    mConditionalJumpLineTrueColor = ConfigColor("DisassemblyConditionalJumpLineTrueColor");
+    mConditionalJumpLineFalseColor = ConfigColor("DisassemblyConditionalJumpLineFalseColor");
+    mLoopColor = ConfigColor("DisassemblyLoopColor");
+    mFunctionColor = ConfigColor("DisassemblyFunctionColor");
 
     CapstoneTokenizer::UpdateColors();
     mDisasm->UpdateConfig();
@@ -678,7 +683,6 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
  */
 dsint Disassembly::sliderMovedHook(int type, dsint value, dsint delta)
 {
-
     // QAbstractSlider::SliderNoAction is used to disassembe at a specific address
     if(type == QAbstractSlider::SliderNoAction)
         return value + delta;
@@ -758,14 +762,14 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 
     if(branchType == Instruction_t::Unconditional) //unconditional
     {
-        painter->setPen(ConfigColor("DisassemblyUnconditionalJumpLineColor"));
+        painter->setPen(mUnconditionalJumpLineColor);
     }
     else
     {
         if(bIsExecute)
-            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineTrueColor"));
+            painter->setPen(mConditionalJumpLineTrueColor);
         else
-            painter->setPen(ConfigColor("DisassemblyConditionalJumpLineFalseColor"));
+            painter->setPen(mConditionalJumpLineFalseColor);
     }
 
     if(wPict == GD_Vert)
@@ -831,9 +835,9 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     if(loop && funcType == Function_none)
         return 0;
     if(loop)
-        painter->setPen(QPen(ConfigColor("DisassemblyLoopColor"), 2)); //thick black line
+        painter->setPen(QPen(mLoopColor, 2)); //thick black line
     else
-        painter->setPen(QPen(ConfigColor("DisassemblyFunctionColor"), 2)); //thick black line
+        painter->setPen(QPen(mFunctionColor, 2)); //thick black line
     int height = getRowHeight();
     int x_add = 5;
     int y_add = 4;
