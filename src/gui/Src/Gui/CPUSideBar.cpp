@@ -126,8 +126,12 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     // Paints background
     painter.fillRect(painter.viewport(), mBackgroundColor);
 
+    // Don't draw anything if there aren't any instructions to draw
     if(InstrBuffer->size() == 0)
         return;
+
+    // Line numbers to draw each register label
+    int registerLines[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1 };
 
     int jumpoffset = 0;
 
@@ -148,6 +152,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         {
             bool isJumpGoingToExecute = DbgIsJumpGoingToExecute(instrVA);
             bool isSelected = (selectedVA == instrVA);
+            bool isConditional = instr.branchType == Instruction_t::Conditional;
 
             /*
             if(CodePtr->currentEIP() != InstrBuffer->at(line).rva) //create a setting for this
@@ -158,13 +163,15 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
             dsint destVA = instr.branchDestination;
 
-            bool isConditional = instr.branchType == Instruction_t::Conditional;
+            // Do not try to draw EBFE (Jump to the same line)
+            if(destVA == instrVA)
+                continue;
 
-            if(destVA == instrVA) //do not try to draw EBFE
+            // Do not draw jumps that leave the memory range
+            if(destVA >= CodePtr->getBase() + CodePtr->getSize() || destVA < CodePtr->getBase())
                 continue;
-            else if(destVA >= CodePtr->getBase() + CodePtr->getSize() || destVA < CodePtr->getBase()) //do not draw jumps that leave the page
-                continue;
-            else if(destVA <= last_va && destVA >= first_va)
+
+            if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
                 while(destLine > -1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva + CodePtr->getBase() != destVA)
@@ -182,31 +189,37 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
                 drawJump(&painter, line, -6, jumpoffset, isConditional, isJumpGoingToExecute, isSelected);
         }
 
-        if(InstrBuffer->at(line).rva == CodePtr->currentEIP())
-#ifdef _WIN64
-            drawLabel(&painter, line, "RIP");
-#else //x86
-            drawLabel(&painter, line, "EIP");
-#endif
-
+        // Register label line positions
         const dsint cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
-#ifdef _WIN64
-        if(cur_VA == regDump.regcontext.cax)  drawLabel(&painter, line, "RAX");
-        if(cur_VA == regDump.regcontext.cbx)  drawLabel(&painter, line, "RBX");
-        if(cur_VA == regDump.regcontext.ccx)  drawLabel(&painter, line, "RCX");
-        if(cur_VA == regDump.regcontext.cdx)  drawLabel(&painter, line, "RDX");
-        if(cur_VA == regDump.regcontext.csi)  drawLabel(&painter, line, "RSI");
-        if(cur_VA == regDump.regcontext.cdi)  drawLabel(&painter, line, "RDI");
-#else //x86
-        if(cur_VA == regDump.regcontext.cax)  drawLabel(&painter, line, "EAX");
-        if(cur_VA == regDump.regcontext.cbx)  drawLabel(&painter, line, "EBX");
-        if(cur_VA == regDump.regcontext.ccx)  drawLabel(&painter, line, "ECX");
-        if(cur_VA == regDump.regcontext.cdx)  drawLabel(&painter, line, "EDX");
-        if(cur_VA == regDump.regcontext.csi)  drawLabel(&painter, line, "ESI");
-        if(cur_VA == regDump.regcontext.cdi)  drawLabel(&painter, line, "EDI");
-#endif
 
+        if(InstrBuffer->at(line).rva == CodePtr->currentEIP())
+            registerLines[0] = line;
+
+        if(cur_VA == regDump.regcontext.cax) registerLines[1] = line;
+        if(cur_VA == regDump.regcontext.cbx) registerLines[2] = line;
+        if(cur_VA == regDump.regcontext.ccx) registerLines[3] = line;
+        if(cur_VA == regDump.regcontext.cdx) registerLines[4] = line;
+        if(cur_VA == regDump.regcontext.csi) registerLines[5] = line;
+        if(cur_VA == regDump.regcontext.cdi) registerLines[6] = line;
     }
+
+#ifdef _WIN64
+    if(registerLines[0] != -1) drawLabel(&painter, registerLines[0], "RIP");
+    if(registerLines[1] != -1) drawLabel(&painter, registerLines[1], "RAX");
+    if(registerLines[2] != -1) drawLabel(&painter, registerLines[2], "RBX");
+    if(registerLines[3] != -1) drawLabel(&painter, registerLines[3], "RCX");
+    if(registerLines[4] != -1) drawLabel(&painter, registerLines[4], "RDX");
+    if(registerLines[5] != -1) drawLabel(&painter, registerLines[5], "RSI");
+    if(registerLines[6] != -1) drawLabel(&painter, registerLines[6], "RDI");
+#else //x86
+    if(registerLines[0] != -1) drawLabel(&painter, registerLines[0], "EIP");
+    if(registerLines[1] != -1) drawLabel(&painter, registerLines[1], "EAX");
+    if(registerLines[2] != -1) drawLabel(&painter, registerLines[2], "EBX");
+    if(registerLines[3] != -1) drawLabel(&painter, registerLines[3], "ECX");
+    if(registerLines[4] != -1) drawLabel(&painter, registerLines[4], "EDX");
+    if(registerLines[5] != -1) drawLabel(&painter, registerLines[5], "ESI");
+    if(registerLines[6] != -1) drawLabel(&painter, registerLines[6], "EDI");
+#endif
 }
 
 void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
