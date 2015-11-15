@@ -35,6 +35,7 @@ void CPUInfoBox::setInfoLine(int line, QString text)
 {
     if(line < 0 || line > 2)
         return;
+
     setCellContent(line, 0, text);
     reloadData();
 }
@@ -42,7 +43,8 @@ void CPUInfoBox::setInfoLine(int line, QString text)
 QString CPUInfoBox::getInfoLine(int line)
 {
     if(line < 0 || line > 2)
-        return QString();
+        return "";
+
     return getCellContent(line, 0);
 }
 
@@ -97,7 +99,10 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     curAddr = parVA;
     if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
         return;
-    clear();
+
+    // Rather than using clear() or setInfoLine(), only reset the first two cells to reduce flicker
+    setCellContent(0, 0, "");
+    setCellContent(1, 0, "");
 
     DISASM_INSTR instr;
     memset(&instr, 0, sizeof(instr));
