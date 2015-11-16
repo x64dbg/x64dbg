@@ -329,9 +329,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
             int y = viewportHeight - 1;
             if(y > y_start)
             {
-                QPen temp = painter->pen();
-                temp.setStyle(Qt::SolidLine);
-                painter->setPen(temp);
+                painter->setPen(Qt::SolidLine);
                 QPoint wPoints[] =
                 {
                     QPoint(x - 3, y - 3),
@@ -344,9 +342,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         else if(endLine == -6)
         {
             int y = 0;
-            QPen temp = painter->pen();
-            temp.setStyle(Qt::SolidLine);
-            painter->setPen(temp);
+            painter->setPen(Qt::SolidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y + 3),
@@ -357,9 +353,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         }
         else
         {
-            QPen temp = painter->pen();
-            temp.setStyle(Qt::SolidLine);
-            painter->setPen(temp);
+            painter->setPen(Qt::SolidLine);
             QPoint wPoints[] =
             {
                 QPoint(x_right - 3, y_end - 3),
@@ -375,9 +369,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         {
             int y = viewportHeight - 1;
             x--;
-            QPen temp = painter->pen();
-            temp.setStyle(Qt::SolidLine);
-            painter->setPen(temp);
+            painter->setPen(Qt::SolidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y - 3),
@@ -389,9 +381,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         else if(endLine == -6)
         {
             int y = 0;
-            QPen temp = painter->pen();
-            temp.setStyle(Qt::SolidLine);
-            painter->setPen(temp);
+            painter->setPen(Qt::SolidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y + 3),
@@ -449,11 +439,11 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
 
     // Draw rectangle
     painter->setBrush(IPLabelBG);
-    painter->setPen(QPen(IPLabelBG));
+    painter->setPen(IPLabelBG);
     painter->drawRect(rect);
 
     // Draw text inside the rectangle
-    painter->setPen(QPen(IPLabel));
+    painter->setPen(IPLabel);
     painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, Text);
 
     // Draw arrow
