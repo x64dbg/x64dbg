@@ -7,17 +7,15 @@
 ##
 ## Pre-defined global variables
 ##
-X64_SRC_DIR = $$PWD/../                 # Main /src/<PROJECT> directory relative to this project file.
-                                        # Contains dbg, exe, gui, bridge, and launcher.
 
 !contains(QMAKE_HOST.arch, x86_64) {
-    X64_BIN_DIR = $$PWD/../../bin/x32      # Relative BIN path, 32-bit
-    X64_GEN_DIR = $$PWD/../gui_build/out32 # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
-    TARGET = x32gui                        # Build x32gui
+    X64_BIN_DIR = ../../bin/x32      # Relative BIN path, 32-bit
+    X64_GEN_DIR = ../gui_build/out32 # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
+    TARGET = x32gui                  # Build x32gui
 } else {
-    X64_BIN_DIR = $$PWD/../../bin/x64      # Relative BIN path, 64-bit
-    X64_GEN_DIR = $$PWD/../gui_build/out64 # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
-    TARGET = x64gui                        # Build x64gui
+    X64_BIN_DIR = ../../bin/x64      # Relative BIN path, 64-bit
+    X64_GEN_DIR = ../gui_build/out64 # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
+    TARGET = x64gui                  # Build x64gui
 }
 
 ##
@@ -53,7 +51,7 @@ TEMPLATE = lib
 ## Includes
 ##
 INCLUDEPATH += \
-    $${X64_SRC_DIR} \
+    ../ \
     Src \
     Src/Gui \
     Src/BasicView \
@@ -254,12 +252,12 @@ LIBS += -luser32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
-    LIBS += -L"$${X64_SRC_DIR}/dbg/capstone/" -lcapstone_x86
+    LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
-    LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
+    LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
-    LIBS += -L"$${X64_SRC_DIR}/dbg/capstone/" -lcapstone_x64
+    LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
-    LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
+    LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge
 }
