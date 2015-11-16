@@ -179,24 +179,44 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     }
     if(getInfoLine(0) == getInfoLine(1)) //check for duplicate info line
         setInfoLine(1, "");
-    //set last line
+
+    // Set last line
+    //
+    // Format: SECTION:VA MODULE+RVA FILE_OFFSET FUNCTION
     QString info;
-    char mod[MAX_MODULE_SIZE] = "";
+
+    // Section
+    char section[MAX_SECTION_SIZE];
+    if(DbgFunctions()->SectionFromAddr(parVA, section))
+        info += QString(section) + ":";
+
+    // VA
+    info += AddressToString(parVA) + " ";
+
+    // Module name, RVA, and file offset
+    char mod[MAX_MODULE_SIZE];
     if(DbgFunctions()->ModNameFromAddr(parVA, mod, true))
     {
         dsint modbase = DbgFunctions()->ModBaseFromAddr(parVA);
+
+        // Append modname
+        info += mod;
+
         if(modbase)
-            info = QString(mod) + "[" + QString("%1").arg(parVA - modbase, 0, 16, QChar('0')).toUpper() + "] | ";
-        else
-            info = QString(mod) + " | ";
+            info += ":" + QString("%1").arg(parVA - modbase, 0, 16, QChar('0')).toUpper();
+
+        // Append space afterwards
+        info += " ";
+
+        // File offset
+        info += QString("%1").arg(DbgFunctions()->VaToFileOffset(parVA), 0, 16, QChar('0')).toUpper() + " ";
     }
-    char section[MAX_SECTION_SIZE] = "";
-    if(DbgFunctions()->SectionFromAddr(parVA, section))
-        info += "\"" + QString(section) + "\":";
-    info += AddressToString(parVA);
-    char label[MAX_LABEL_SIZE] = "";
+
+    // Function/label name
+    char label[MAX_LABEL_SIZE];
     if(DbgGetLabelAt(parVA, SEG_DEFAULT, label))
-        info += " <" + QString(label) + ">";
+        info += "<" + QString(label) + ">";
+
     setInfoLine(2, info);
 }
 
