@@ -8,6 +8,7 @@
 #include "debugger.h"
 #include "patches.h"
 #include "threading.h"
+#include "thread.h"
 #include "module.h"
 
 #define PAGE_SHIFT              (12)
@@ -70,7 +71,7 @@ void MemUpdateMap()
         while(numBytes);
     }
 
-    //process file sections
+    // Process file sections
     int pagecount = (int)pageVector.size();
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
@@ -139,6 +140,50 @@ void MemUpdateMap()
             }
         }
     }
+
+    // Get a list of threads for information about Kernel/PEB/TEB/Stack ranges
+    THREADLIST threadList;
+    ThreadGetList(&threadList);
+
+    for (auto & page : pageVector)
+    {
+        const duint pageBase = (duint)page.mbi.BaseAddress;
+        const duint pageSize = (duint)page.mbi.RegionSize;
+
+        // Check for windows specific data
+        if (pageBase == 0x7FFE0000)
+        {
+            strcpy_s(page.info, "KUSER_SHARED_DATA");
+            continue;
+        }
+
+        // Check in threads
+        for (int i = 0; i < threadList.count; i++)
+        {
+            duint tebBase = threadList.list[i].BasicInfo.ThreadLocalBase;
+            DWORD threadId = threadList.list[i].BasicInfo.ThreadId;
+
+            // Mark TEB
+            if (pageBase == tebBase)
+            {
+                sprintf_s(page.info, "Thread %X TEB", threadId);
+                break;
+            }
+
+            // Read the TEB to get stack information
+            TEB teb;
+            if (!ThreadGetTeb(tebBase, &teb))
+                continue;
+
+            // The stack will be a specific range only, not always the base address
+            duint stackAddr = (duint)teb.Tib.StackLimit;
+
+            if (stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
+                sprintf_s(page.info, "Thread %X Stack", threadId);
+        }
+    }
+
+    BridgeFree(threadList.list);
 
     // Convert the vector to a map
     EXCLUSIVE_ACQUIRE(LockMemoryPages);
