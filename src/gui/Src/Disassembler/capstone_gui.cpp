@@ -393,8 +393,21 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     //memory segment
     const auto & mem = op.mem;
     const char* segmentText = _cp.RegName(x86_reg(mem.segment));
-    if(mem.segment == X86_REG_INVALID)
-        segmentText = "ds";
+    if(mem.segment == X86_REG_INVALID) //segment not set
+    {
+        switch(x86_reg(mem.base))
+        {
+        case X86_REG_ESP:
+        case X86_REG_RSP:
+        case X86_REG_EBP:
+        case X86_REG_RBP:
+            segmentText = "ss";
+            break;
+        default:
+            segmentText = "ds";
+            break;
+        }
+    }
     addToken(TokenType::MemorySegment, segmentText);
     addToken(TokenType::Uncategorized, ":");
 
