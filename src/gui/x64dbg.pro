@@ -61,7 +61,8 @@ INCLUDEPATH += \
     Src/Memory \
     Src/Bridge \
     Src/Global \
-    Src/Utils
+    Src/Utils \
+    ../capstone_wrapper
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -77,7 +78,6 @@ SOURCES += \
     Src/BasicView/AbstractTableView.cpp \
     Src/Disassembler/QBeaEngine.cpp \
     Src/Disassembler/capstone_gui.cpp \
-    Src/Disassembler/capstone_wrapper.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
     Src/BasicView/StdTable.cpp \
@@ -152,7 +152,6 @@ HEADERS += \
     Src/BasicView/AbstractTableView.h \
     Src/Disassembler/QBeaEngine.h \
     Src/Disassembler/capstone_gui.h \
-    Src/Disassembler/capstone_wrapper.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
     Src/Exports.h \
@@ -254,10 +253,10 @@ LIBS += -luser32
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
-    LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge
+    LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge -lcapstone_wrapper
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
-    LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge
+    LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge -lcapstone_wrapper
 }

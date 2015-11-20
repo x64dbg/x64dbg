@@ -1,7 +1,7 @@
 #ifndef _CAPSTONE_GUI_H
 #define _CAPSTONE_GUI_H
 
-#include "capstone_wrapper.h"
+#include <capstone_wrapper.h>
 #include "RichTextPainter.h"
 #include "Configuration.h"
 #include <map>

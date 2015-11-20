@@ -209,9 +209,6 @@
     <ClCompile Include="commandparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="capstone_wrapper.cpp">
-      <Filter>Source Files\Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="expressionparser.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -537,9 +534,6 @@
     </ClInclude>
     <ClInclude Include="jansson\jansson_x64dbg.h">
       <Filter>Header Files\Third Party\jansson</Filter>
-    </ClInclude>
-    <ClInclude Include="capstone_wrapper.h">
-      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="capstone\arm.h">
       <Filter>Header Files\Third Party\capstone</Filter>

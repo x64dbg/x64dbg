@@ -8,7 +8,7 @@
 #include "value.h"
 #include "console.h"
 #include "memory.h"
-#include "capstone_wrapper.h"
+#include <capstone_wrapper.h>
 
 duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
 {

@@ -1939,8 +1939,7 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
-#include "capstone\capstone.h"
-#include "capstone_wrapper.h"
+#include <capstone_wrapper.h>
 
 CMDRESULT cbInstrCapstone(int argc, char* argv[])
 {

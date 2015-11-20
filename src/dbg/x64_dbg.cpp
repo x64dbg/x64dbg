@@ -17,7 +17,7 @@
 #include "plugin_loader.h"
 #include "_dbgfunctions.h"
 #include "debugger_commands.h"
-#include "capstone_wrapper.h"
+#include <capstone_wrapper.h>
 #include "_scriptapi_gui.h"
 #include "filehelper.h"
 #include "database.h"

@@ -2,7 +2,7 @@
 #include <ppl.h>
 #include "AnalysisPass.h"
 #include "LinearPass.h"
-#include "capstone_wrapper.h"
+#include <capstone_wrapper.h>
 
 LinearPass::LinearPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
