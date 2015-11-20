@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\capstone">
+      <UniqueIdentifier>{4ccbf4c1-9486-4a56-ae45-53ffa1bdea25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="capstone_wrapper.cpp">
@@ -22,6 +25,36 @@
   <ItemGroup>
     <ClInclude Include="capstone_wrapper.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\arm.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\arm64.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\capstone.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\mips.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\platform.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\ppc.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\sparc.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\systemz.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\x86.h">
+      <Filter>Header Files\capstone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dbg\capstone\xcore.h">
+      <Filter>Header Files\capstone</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

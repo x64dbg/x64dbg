@@ -137,6 +137,16 @@
     <ClCompile Include="capstone_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dbg\capstone\arm.h" />
+    <ClInclude Include="..\dbg\capstone\arm64.h" />
+    <ClInclude Include="..\dbg\capstone\capstone.h" />
+    <ClInclude Include="..\dbg\capstone\mips.h" />
+    <ClInclude Include="..\dbg\capstone\platform.h" />
+    <ClInclude Include="..\dbg\capstone\ppc.h" />
+    <ClInclude Include="..\dbg\capstone\sparc.h" />
+    <ClInclude Include="..\dbg\capstone\systemz.h" />
+    <ClInclude Include="..\dbg\capstone\x86.h" />
+    <ClInclude Include="..\dbg\capstone\xcore.h" />
     <ClInclude Include="capstone_wrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

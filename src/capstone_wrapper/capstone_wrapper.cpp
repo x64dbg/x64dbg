@@ -89,7 +89,7 @@ std::string Capstone::OperandText(int opindex) const
 
     case X86_OP_IMM:
     {
-        sprintf_s(temp, "%p", op.imm);
+        sprintf_s(temp, "%llX", op.imm);
         result = temp;
     }
     break;
@@ -99,7 +99,7 @@ std::string Capstone::OperandText(int opindex) const
         const auto & mem = op.mem;
         if(op.mem.base == X86_REG_RIP)  //rip-relative
         {
-            sprintf_s(temp, "%p", Address() + op.mem.disp + Size());
+            sprintf_s(temp, "%llX", Address() + op.mem.disp + Size());
             result += temp;
         }
         else //normal
@@ -125,10 +125,10 @@ std::string Capstone::OperandText(int opindex) const
                 if(mem.disp < 0)
                 {
                     operatorText = '-';
-                    sprintf_s(temp, "%p", mem.disp * -1);
+                    sprintf_s(temp, "%llX", mem.disp * -1);
                 }
                 else
-                    sprintf_s(temp, "%p", mem.disp);
+                    sprintf_s(temp, "%llX", mem.disp);
                 if(prependPlus)
                     result += operatorText;
                 result += temp;
