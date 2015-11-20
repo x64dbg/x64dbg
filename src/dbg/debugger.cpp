@@ -35,7 +35,6 @@ static bool bSkipExceptions = false;
 static bool bBreakOnNextDll = false;
 static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
-static SIZE_T cachePrivateUsage = 0;
 static HANDLE hEvent = 0;
 static HANDLE hProcess = 0;
 static HANDLE hMemMapThread = 0;
@@ -64,13 +63,8 @@ static DWORD WINAPI memMapThread(void* ptr)
         }
         if(bStopMemMapThread)
             break;
-        const SIZE_T PrivateUsage = dbggetprivateusage(fdProcessInfo->hProcess);
-        if(cachePrivateUsage != PrivateUsage && !dbgisrunning()) //update the memory map when the memory usage changed
-        {
-            cachePrivateUsage = PrivateUsage;
-            MemUpdateMap();
-            GuiUpdateMemoryView();
-        }
+        MemUpdateMap();
+        GuiUpdateMemoryView();
         Sleep(1000);
     }
     return 0;
@@ -113,17 +107,6 @@ void dbgstop()
     bStopTimeWastedCounterThread = true;
     WaitForThreadTermination(hMemMapThread);
     WaitForThreadTermination(hTimeWastedCounterThread);
-}
-
-SIZE_T dbggetprivateusage(HANDLE hProcess, bool update)
-{
-    PROCESS_MEMORY_COUNTERS_EX memoryCounters;
-    memoryCounters.cb = sizeof(PROCESS_MEMORY_COUNTERS_EX);
-    if(!GetProcessMemoryInfo(fdProcessInfo->hProcess, (PPROCESS_MEMORY_COUNTERS)&memoryCounters, sizeof(PROCESS_MEMORY_COUNTERS_EX)))
-        return 0;
-    if(update)
-        cachePrivateUsage = memoryCounters.PrivateUsage;
-    return memoryCounters.PrivateUsage;
 }
 
 duint dbgdebuggedbase()
@@ -642,7 +625,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     dprintf("Process Started: " fhex " %s\n", base, DebugFileName);
 
     //update memory map
-    dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap();
     GuiUpdateMemoryView();
 
@@ -764,7 +746,6 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     if(settingboolget("Events", "ThreadStart"))
     {
         //update memory map
-        dbggetprivateusage(fdProcessInfo->hProcess, true);
         MemUpdateMap();
         //update GUI
         GuiSetDebugState(paused);
@@ -856,7 +837,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         ModLoad((duint)base, modInfo.ImageSize, modInfo.ImageName);
 
     //update memory map
-    dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap();
     GuiUpdateMemoryView();
 
@@ -984,7 +964,6 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     ModUnload((duint)base);
 
     //update memory map
-    dbggetprivateusage(fdProcessInfo->hProcess, true);
     MemUpdateMap();
     GuiUpdateMemoryView();
 }
@@ -1057,7 +1036,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             dputs("paused!");
             SetNextDbgContinueStatus(DBG_CONTINUE);
             GuiSetDebugState(paused);
-            dbggetprivateusage(fdProcessInfo->hProcess, true);
+            //update memory map
             MemUpdateMap();
             DebugUpdateGui(GetContextDataEx(hActiveThread, UE_CIP), true);
             //lock
@@ -1174,7 +1153,6 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
     ecount = 0;
-    cachePrivateUsage = 0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -1438,7 +1416,6 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     bFileIsDll = IsFileDLL(szFileName, 0);
     GuiAddRecentFile(szFileName);
     ecount = 0;
-    cachePrivateUsage = 0;
     //NOTE: set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);

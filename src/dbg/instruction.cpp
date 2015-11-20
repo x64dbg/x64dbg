@@ -2225,7 +2225,6 @@ CMDRESULT cbInstrMeminfo(int argc, char* argv[])
     }
     else if (argv[1][0] == 'r')
     {
-        dbggetprivateusage(fdProcessInfo->hProcess, true);
         MemUpdateMap();
         GuiUpdateMemoryView();
         dputs("memory map updated!");

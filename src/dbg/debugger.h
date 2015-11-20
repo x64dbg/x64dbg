@@ -61,7 +61,6 @@ typedef struct _THREADNAME_INFO
 #pragma pack(pop)
 
 //functions
-SIZE_T dbggetprivateusage(HANDLE hProcess, bool update = false);
 void dbginit();
 void dbgstop();
 duint dbgdebuggedbase();
