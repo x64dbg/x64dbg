@@ -79,6 +79,8 @@ void AbstractTableView::updateFonts()
 
 void AbstractTableView::updateShortcuts()
 {
+    for(const auto & actionShortcut : actionShortcutPairs)
+        actionShortcut.action->setShortcut(ConfigShortcut(actionShortcut.shortcut));
 }
 
 void AbstractTableView::slot_updateColors()

@@ -7,7 +7,9 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QMenu>
 #include "StringUtil.h"
+#include "Configuration.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
@@ -199,6 +201,82 @@ protected:
     QColor separatorColor;
     QColor headerTextColor;
     QColor selectionColor;
+
+    //action helpers
+private:
+    struct ActionShortcut
+    {
+        QAction* action;
+        const char* shortcut;
+
+        ActionShortcut(QAction* action, const char* shortcut)
+            : action(action),
+              shortcut(shortcut)
+        {
+        }
+    };
+
+    std::vector<ActionShortcut> actionShortcutPairs;
+
+    inline QAction* connectAction(QAction* action, const char* slot)
+    {
+        connect(action, SIGNAL(triggered(bool)), this, slot);
+        addAction(action);
+        return action;
+    }
+
+    inline QAction* connectShortcutAction(QAction* action, const char* shortcut)
+    {
+        actionShortcutPairs.push_back(ActionShortcut(action, shortcut));
+        action->setShortcut(ConfigShortcut(shortcut));
+        return action;
+    }
+
+    inline QAction* connectMenuAction(QMenu* menu, QAction* action)
+    {
+        return connectMenuAction(menu, action);
+    }
+
+protected:
+    inline QAction* makeAction(const QString & text, const char* slot)
+    {
+        return connectAction(new QAction(text, this), slot);
+    }
+
+    inline QAction* makeAction(const QIcon & icon, const QString & text, const char* slot)
+    {
+        return connectAction(new QAction(icon, text, this), slot);
+    }
+
+    inline QAction* makeShortcutAction(const QString & text, const char* slot, const char* shortcut)
+    {
+        return connectShortcutAction(makeAction(text, slot), shortcut);
+    }
+
+    inline QAction* makeShortcutAction(const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
+    {
+        return connectShortcutAction(makeAction(icon, text, slot), shortcut);
+    }
+
+    inline QAction* makeMenuAction(QMenu* menu, const QString & text, const char* slot)
+    {
+        return connectMenuAction(menu, makeAction(text, slot));
+    }
+
+    inline QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot)
+    {
+        return connectMenuAction(menu, makeAction(icon, text, slot));
+    }
+
+    inline QAction* makeMenuShortcutAction(QMenu* menu, const QString & text, const char* slot, const char* shortcut)
+    {
+        return connectShortcutAction(makeMenuAction(menu, text, slot), shortcut);
+    }
+
+    inline QAction* makeMenuShortcutAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
+    {
+        return connectShortcutAction(makeMenuAction(menu, icon, text, slot), shortcut);
+    }
 };
 
 #endif // ABSTRACTTABLEVIEW_H
