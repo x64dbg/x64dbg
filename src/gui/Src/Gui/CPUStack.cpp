@@ -223,7 +223,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
 #endif //_WIN64
             }
         }
-        addrText += AddressToString(cur_addr);
+        addrText += ToPtrString(cur_addr);
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";

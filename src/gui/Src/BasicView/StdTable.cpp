@@ -388,7 +388,7 @@ void StdTable::setupCopyMenu(QMenu* copyMenu)
     QAction* mCopyTable = new QAction("Whole &Table", this);
     connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
     copyMenu->addAction(mCopyTable);
-    //Copy->Separatoe
+    //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName
     for(int i = 0; i < getColumnCount(); i++)

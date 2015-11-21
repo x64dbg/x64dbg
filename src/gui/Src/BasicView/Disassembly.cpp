@@ -1520,7 +1520,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE])
 #endif //_WIN64
         }
     }
-    addrText += AddressToString(cur_addr);
+    addrText += ToPtrString(cur_addr);
     char label_[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {

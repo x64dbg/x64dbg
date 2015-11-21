@@ -2,6 +2,7 @@
 #define INFOBOX_H
 
 #include "StdTable.h"
+#include <QAction>
 
 class CPUInfoBox : public StdTable
 {
@@ -17,13 +18,23 @@ public slots:
     void dbgStateChanged(DBGSTATE state);
     void contextMenuSlot(QPoint pos);
     void followActionSlot();
+    void copyAddress();
+    void copyRva();
+    void copyOffset();
 
 private:
     dsint curAddr;
+    dsint curRva;
+    dsint curOffset;
     QString getSymbolicName(dsint addr);
     void setInfoLine(int line, QString text);
     QString getInfoLine(int line);
     void clear();
+    void setupContextMenu();
+
+    QAction* mCopyAddressAction;
+    QAction* mCopyRvaAction;
+    QAction* mCopyOffsetAction;
 };
 
 #endif // INFOBOX_H

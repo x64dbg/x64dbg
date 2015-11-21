@@ -24,6 +24,15 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 
     // Deselect any row (visual reasons only)
     setSingleSelection(-1);
+
+    setupContextMenu();
+}
+
+void CPUInfoBox::setupContextMenu()
+{
+    mCopyAddressAction = makeAction("Address", SLOT(copyAddress()));
+    mCopyRvaAction = makeAction("RVA", SLOT(copyRva()));
+    mCopyOffsetAction = makeAction("File Offset", SLOT(copyOffset()));
 }
 
 int CPUInfoBox::getHeight()
@@ -97,6 +106,9 @@ QString CPUInfoBox::getSymbolicName(dsint addr)
 void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
+    curRva = -1;
+    curOffset = -1;
+
     if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
         return;
 
@@ -182,7 +194,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
     // Set last line
     //
-    // Format: SECTION:VA MODULE+RVA FILE_OFFSET FUNCTION
+    // Format: SECTION:VA MODULE:$RVA :#FILE_OFFSET FUNCTION
     QString info;
 
     // Section
@@ -191,7 +203,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         info += QString(section) + ":";
 
     // VA
-    info += AddressToString(parVA) + " ";
+    info += ToPtrString(parVA) + " ";
 
     // Module name, RVA, and file offset
     char mod[MAX_MODULE_SIZE];
@@ -202,14 +214,14 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         // Append modname
         info += mod;
 
+        // Module RVA
+        curRva = parVA - modbase;
         if(modbase)
-            info += ":" + QString("%1").arg(parVA - modbase, 0, 16, QChar('0')).toUpper();
-
-        // Append space afterwards
-        info += " ";
+            info += QString(":$%1 ").arg(curRva, 0, 16, QChar('0')).toUpper();
 
         // File offset
-        info += QString("%1").arg(DbgFunctions()->VaToFileOffset(parVA), 0, 16, QChar('0')).toUpper() + " ";
+        curOffset = DbgFunctions()->VaToFileOffset(parVA);
+        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper() + " ";
     }
 
     // Function/label name
@@ -248,7 +260,7 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, dsint value)
 void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
 {
     //most basic follow action
-    addFollowMenuItem(menu, "&Selection", wVA);
+    addFollowMenuItem(menu, "&Selected Address", wVA);
 
     //add follow actions
     DISASM_INSTR instr;
@@ -286,10 +298,33 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     wMenu->addMenu(wFollowMenu);
     QMenu wCopyMenu("&Copy", this);
     setupCopyMenu(&wCopyMenu);
+    if(DbgIsDebugging())
+    {
+        wCopyMenu.addAction(mCopyAddressAction);
+        if(curRva != -1)
+            wCopyMenu.addAction(mCopyRvaAction);
+        if(curOffset != -1)
+            wCopyMenu.addAction(mCopyOffsetAction);
+    }
     if(wCopyMenu.actions().length())
     {
         wMenu->addSeparator();
         wMenu->addMenu(&wCopyMenu);
     }
     wMenu->exec(mapToGlobal(pos)); //execute context menu
+}
+
+void CPUInfoBox::copyAddress()
+{
+    Bridge::CopyToClipboard(ToPtrString(curAddr));
+}
+
+void CPUInfoBox::copyRva()
+{
+    Bridge::CopyToClipboard(ToHexString(curRva));
+}
+
+void CPUInfoBox::copyOffset()
+{
+    Bridge::CopyToClipboard(ToHexString(curOffset));
 }
