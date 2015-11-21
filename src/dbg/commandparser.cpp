@@ -12,6 +12,7 @@ Command::Command(const String & command)
         case Default:
             switch(ch)
             {
+            case '\t':
             case ' ':
                 if(!_tokens.size())
                     dataFinish();
@@ -33,8 +34,9 @@ Command::Command(const String & command)
         case Escaped:
             switch(ch)
             {
+            case '\t':
             case ' ':
-                dataAppend(ch);
+                dataAppend(' ');
                 break;
             case ',':
                 dataAppend(ch);
