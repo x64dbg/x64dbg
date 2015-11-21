@@ -562,7 +562,7 @@ void MainWindow::openFile()
     {
         filename = fileToOpen->text();
     }
-    DbgCmdExec(QString("init \"" + filename + "\"").toUtf8().constData());
+    DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
 
     //file is from recent menu
     if(fileToOpen != NULL && fileToOpen->objectName().startsWith("MRU"))
@@ -612,16 +612,9 @@ void MainWindow::startScylla() //this is executed
 
 void MainWindow::restartDebugging()
 {
-    char filename[MAX_SETTING_SIZE] = "";
     if(!mMRUList.size())
         return;
-    strcpy_s(filename, mMRUList.at(0).toUtf8().constData());
-    if(DbgIsDebugging())
-    {
-        DbgCmdExec("stop"); //close current file (when present)
-        Sleep(400);
-    }
-    DbgCmdExec(QString().sprintf("init \"%s\"", filename).toUtf8().constData());
+    DbgCmdExec(QString().sprintf("init \"%s\"", mMRUList.at(0).toUtf8().constData()).toUtf8().constData());
 
     mCpuWidget->setDisasmFocus();
 }
@@ -644,10 +637,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        if(DbgIsDebugging())
-            DbgCmdExecDirect("stop");
-        QString cmd;
-        DbgCmdExec(cmd.sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
+        DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()).toUtf8().constData());
         pEvent->acceptProposedAction();
     }
 }

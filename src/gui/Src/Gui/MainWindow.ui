@@ -94,8 +94,8 @@
     <addaction name="actionDonate"/>
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
-    <addaction name="actionAbout"/>
     <addaction name="actionManual"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
     <property name="title">
