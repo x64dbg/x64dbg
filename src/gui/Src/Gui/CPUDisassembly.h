@@ -26,7 +26,7 @@ public:
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences);
     void setHwBpAt(duint va, int slot);
 
-    void copySelection(bool copyBytes);
+    void copySelectionSlot(bool copyBytes);
 
 signals:
     void displayReferencesWidget();
@@ -36,35 +36,34 @@ signals:
     void displaySnowmanWidget();
 
 public slots:
-    void refreshShortcutsSlot();
-    void toggleInt3BPAction();
+    void toggleInt3BPActionSlot();
     void toggleHwBpActionSlot();
     void setHwBpOnSlot0ActionSlot();
     void setHwBpOnSlot1ActionSlot();
     void setHwBpOnSlot2ActionSlot();
     void setHwBpOnSlot3ActionSlot();
     void setNewOriginHereActionSlot();
-    void gotoOrigin();
-    void setLabel();
-    void setComment();
-    void setBookmark();
-    void toggleFunction();
-    void assembleAt();
-    void gotoExpression();
-    void gotoFileOffset();
+    void gotoOriginSlot();
+    void setLabelSlot();
+    void setCommentSlot();
+    void setBookmarkSlot();
+    void toggleFunctionSlot();
+    void assembleSlot();
+    void gotoExpressionSlot();
+    void gotoFileOffsetSlot();
     void gotoStartSlot();
     void gotoEndSlot();
     void followActionSlot();
-    void gotoPrevious();
-    void gotoNext();
-    void findReferences();
-    void findConstant();
-    void findStrings();
-    void findCalls();
-    void findPattern();
-    void selectionGet(SELECTIONDATA* selection);
-    void selectionSet(const SELECTIONDATA* selection);
-    void enableHighlightingMode();
+    void gotoPreviousSlot();
+    void gotoNextSlot();
+    void findReferencesSlot();
+    void findConstantSlot();
+    void findStringsSlot();
+    void findCallsSlot();
+    void findPatternSlot();
+    void selectionGetSlot(SELECTIONDATA* selection);
+    void selectionSetSlot(const SELECTIONDATA* selection);
+    void enableHighlightingModeSlot();
     void binaryEditSlot();
     void binaryFillSlot();
     void binaryFillNopsSlot();
@@ -74,15 +73,15 @@ public slots:
     void undoSelectionSlot();
     void showPatchesSlot();
     void yaraSlot();
-    void copySelection();
-    void copySelectionNoBytes();
-    void copyAddress();
-    void copyRva();
-    void copyDisassembly();
-    void findCommand();
-    void openSource();
-    void decompileSelection();
-    void decompileFunction();
+    void copySelectionSlot();
+    void copySelectionNoBytesSlot();
+    void copyAddressSlot();
+    void copyRvaSlot();
+    void copyDisassemblySlot();
+    void findCommandSlot();
+    void openSourceSlot();
+    void decompileSelectionSlot();
+    void decompileFunctionSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
@@ -112,23 +111,23 @@ private:
     QAction* mSetHwBpAction;
     QAction* mClearHwBpAction;
     QAction* mSetNewOriginHere;
-    QAction* mGotoOrigin;
-    QAction* mSetComment;
-    QAction* mSetLabel;
-    QAction* mSetBookmark;
-    QAction* mToggleFunction;
-    QAction* mAssemble;
+    QAction* mGotoOriginAction;
+    QAction* mSetCommentAction;
+    QAction* mSetLabelAction;
+    QAction* mSetBookmarkAction;
+    QAction* mToggleFunctionAction;
+    QAction* mAssembleAction;
     QAction* msetHwBPOnSlot0Action;
     QAction* msetHwBPOnSlot1Action;
     QAction* msetHwBPOnSlot2Action;
     QAction* msetHwBPOnSlot3Action;
-    QAction* mGotoExpression;
-    QAction* mGotoFileOffset;
-    QAction* mGotoPrevious;
-    QAction* mGotoNext;
-    QAction* mGotoStart;
-    QAction* mGotoEnd;
-    QAction* mReferenceSelectedAddress;
+    QAction* mGotoExpressionAction;
+    QAction* mGotoFileOffsetAction;
+    QAction* mGotoPreviousAction;
+    QAction* mGotoNextAction;
+    QAction* mGotoStartAction;
+    QAction* mGotoEndAction;
+    QAction* mReferenceSelectedAddressAction;
     QAction* mSearchCommand;
     QAction* mSearchConstant;
     QAction* mSearchStrings;
@@ -137,14 +136,14 @@ private:
     QAction* mEnableHighlightingMode;
     QAction* mPatchesAction;
     QAction* mYaraAction;
-    QAction* mCopySelection;
-    QAction* mCopySelectionNoBytes;
-    QAction* mCopyAddress;
-    QAction* mCopyRva;
-    QAction* mCopyDisassembly;
-    QAction* mOpenSource;
-    QAction* mDecompileSelection;
-    QAction* mDecompileFunction;
+    QAction* mCopySelectionAction;
+    QAction* mCopySelectionNoBytesAction;
+    QAction* mCopyAddressAction;
+    QAction* mCopyRvaAction;
+    QAction* mCopyDisassemblyAction;
+    QAction* mOpenSourceAction;
+    QAction* mDecompileSelectionAction;
+    QAction* mDecompileFunctionAction;
 
     // Goto dialog specific
     GotoDialog* mGoto;

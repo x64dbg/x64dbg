@@ -221,7 +221,6 @@ private:
     inline QAction* connectAction(QAction* action, const char* slot)
     {
         connect(action, SIGNAL(triggered(bool)), this, slot);
-        addAction(action);
         return action;
     }
 
@@ -229,12 +228,15 @@ private:
     {
         actionShortcutPairs.push_back(ActionShortcut(action, shortcut));
         action->setShortcut(ConfigShortcut(shortcut));
+        action->setShortcutContext(Qt::WidgetShortcut);
+        addAction(action);
         return action;
     }
 
     inline QAction* connectMenuAction(QMenu* menu, QAction* action)
     {
-        return connectMenuAction(menu, action);
+        menu->addAction(action);
+        return action;
     }
 
 protected:
@@ -268,12 +270,12 @@ protected:
         return connectMenuAction(menu, makeAction(icon, text, slot));
     }
 
-    inline QAction* makeMenuShortcutAction(QMenu* menu, const QString & text, const char* slot, const char* shortcut)
+    inline QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, const char* slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, text, slot), shortcut);
     }
 
-    inline QAction* makeMenuShortcutAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
+    inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, icon, text, slot), shortcut);
     }

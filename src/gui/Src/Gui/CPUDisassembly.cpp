@@ -21,8 +21,10 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     // Connect bridge<->disasm calls
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAt(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+
+    Initialize();
 }
 
 void CPUDisassembly::mousePressEvent(QMouseEvent* event)
@@ -32,7 +34,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         if(!DbgIsDebugging())
             return;
         MessageBeep(MB_OK);
-        copyAddress();
+        copyAddressSlot();
     }
     else
     {
@@ -68,17 +70,17 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Opcodes) Set INT3 breakpoint
     case 1:
-        toggleInt3BPAction();
+        toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
     case 2:
-        assembleAt();
+        assembleSlot();
         break;
 
     // (Comments) Set comment dialog
     case 3:
-        setComment();
+        setCommentSlot();
         break;
 
     // Undefined area
@@ -109,7 +111,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
 
     //most basic follow action
     if(isReferences)
-        menu->addAction(mReferenceSelectedAddress);
+        menu->addAction(mReferenceSelectedAddressAction);
     else
         addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
 
@@ -247,35 +249,35 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mFollowMenu);
         setupFollowReferenceMenu(wVA, mFollowMenu, false);
         if(DbgFunctions()->GetSourceFromAddr(wVA, 0, 0))
-            wMenu->addAction(mOpenSource);
+            wMenu->addAction(mOpenSourceAction);
 
         mDecompileMenu->clear();
         if(DbgFunctionGet(wVA, 0, 0))
-            mDecompileMenu->addAction(mDecompileFunction);
-        mDecompileMenu->addAction(mDecompileSelection);
+            mDecompileMenu->addAction(mDecompileFunctionAction);
+        mDecompileMenu->addAction(mDecompileSelectionAction);
         wMenu->addMenu(mDecompileMenu);
 
         wMenu->addAction(mEnableHighlightingMode);
         wMenu->addSeparator();
 
-        wMenu->addAction(mSetLabel);
-        wMenu->addAction(mSetComment);
-        wMenu->addAction(mSetBookmark);
+        wMenu->addAction(mSetLabelAction);
+        wMenu->addAction(mSetCommentAction);
+        wMenu->addAction(mSetBookmarkAction);
 
         duint selection_start = rvaToVa(getSelectionStart());
         duint selection_end = rvaToVa(getSelectionEnd());
         if(!DbgFunctionOverlaps(selection_start, selection_end))
         {
-            mToggleFunction->setText("Add function");
-            wMenu->addAction(mToggleFunction);
+            mToggleFunctionAction->setText("Add function");
+            wMenu->addAction(mToggleFunctionAction);
         }
         else if(DbgFunctionOverlaps(selection_start, selection_end))
         {
-            mToggleFunction->setText("Delete function");
-            wMenu->addAction(mToggleFunction);
+            mToggleFunctionAction->setText("Delete function");
+            wMenu->addAction(mToggleFunctionAction);
         }
 
-        wMenu->addAction(mAssemble);
+        wMenu->addAction(mAssembleAction);
 
         wMenu->addAction(mPatchesAction);
         wMenu->addAction(mYaraAction);
@@ -287,17 +289,17 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 
         // Goto Menu
         mGotoMenu->clear();
-        mGotoMenu->addAction(mGotoOrigin);
+        mGotoMenu->addAction(mGotoOriginAction);
         if(historyHasPrevious())
-            mGotoMenu->addAction(mGotoPrevious);
+            mGotoMenu->addAction(mGotoPreviousAction);
         if(historyHasNext())
-            mGotoMenu->addAction(mGotoNext);
-        mGotoMenu->addAction(mGotoExpression);
+            mGotoMenu->addAction(mGotoNextAction);
+        mGotoMenu->addAction(mGotoExpressionAction);
         char modname[MAX_MODULE_SIZE] = "";
         if(DbgGetModuleAt(wVA, modname))
-            mGotoMenu->addAction(mGotoFileOffset);
-        mGotoMenu->addAction(mGotoStart);
-        mGotoMenu->addAction(mGotoEnd);
+            mGotoMenu->addAction(mGotoFileOffsetAction);
+        mGotoMenu->addAction(mGotoStartAction);
+        mGotoMenu->addAction(mGotoEndAction);
         wMenu->addMenu(mGotoMenu);
         wMenu->addSeparator();
 
@@ -319,334 +321,86 @@ void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 ************************************************************************************/
 void CPUDisassembly::setupRightClickContextMenu()
 {
-    //Binary
     mBinaryMenu = new QMenu("&Binary", this);
     mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
-
-    //Binary->Edit
-    mBinaryEditAction = new QAction("&Edit", this);
-    mBinaryEditAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryEditAction);
-    mBinaryMenu->addAction(mBinaryEditAction);
-    connect(mBinaryEditAction, SIGNAL(triggered()), this, SLOT(binaryEditSlot()));
-
-    //Binary->Fill
-    mBinaryFillAction = new QAction("&Fill...", this);
-    mBinaryFillAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryFillAction);
-    connect(mBinaryFillAction, SIGNAL(triggered()), this, SLOT(binaryFillSlot()));
-    mBinaryMenu->addAction(mBinaryFillAction);
-
-    //Binary->Fill with NOPs
-    mBinaryFillNopsAction = new QAction("Fill with &NOPs", this);
-    mBinaryFillNopsAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryFillNopsAction);
-    connect(mBinaryFillNopsAction, SIGNAL(triggered()), this, SLOT(binaryFillNopsSlot()));
-    mBinaryMenu->addAction(mBinaryFillNopsAction);
-
-    //Binary->Separator
+    mBinaryEditAction = makeShortcutMenuAction(mBinaryMenu, "&Edit", SLOT(binaryEditSlot()), "ActionBinaryEdit");
+    mBinaryFillAction = makeShortcutMenuAction(mBinaryMenu, "&Fill...", SLOT(binaryFillSlot()), "ActionBinaryFill");
+    mBinaryFillNopsAction = makeShortcutMenuAction(mBinaryMenu, "Fill with &NOPs", SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops");
     mBinaryMenu->addSeparator();
+    mBinaryCopyAction = makeShortcutMenuAction(mBinaryMenu, "&Copy", SLOT(binaryCopySlot()), "ActionBinaryCopy");
+    mBinaryPasteAction = makeShortcutMenuAction(mBinaryMenu, "&Paste", SLOT(binaryPasteSlot()), "ActionBinaryPaste");
+    mBinaryPasteIgnoreSizeAction = makeShortcutMenuAction(mBinaryMenu, "Paste (&Ignore Size)", SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize");
 
-    //Binary->Copy
-    mBinaryCopyAction = new QAction("&Copy", this);
-    mBinaryCopyAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryCopyAction);
-    connect(mBinaryCopyAction, SIGNAL(triggered()), this, SLOT(binaryCopySlot()));
-    mBinaryMenu->addAction(mBinaryCopyAction);
+    mUndoSelection = makeShortcutAction("&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection");
+    mSetLabelAction = makeShortcutAction(QIcon(":/icons/images/label.png"), "Label", SLOT(setLabelSlot()), "ActionSetLabel");
+    mSetCommentAction = makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment");
+    mSetBookmarkAction = makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark");
+    mToggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
+    mAssembleAction = makeShortcutAction("Assemble", SLOT(assembleSlot()), "ActionAssemble");
 
-    //Binary->Paste
-    mBinaryPasteAction = new QAction("&Paste", this);
-    mBinaryPasteAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryPasteAction);
-    connect(mBinaryPasteAction, SIGNAL(triggered()), this, SLOT(binaryPasteSlot()));
-    mBinaryMenu->addAction(mBinaryPasteAction);
-
-    //Binary->Paste (Ignore Size)
-    mBinaryPasteIgnoreSizeAction = new QAction("Paste (&Ignore Size)", this);
-    mBinaryPasteIgnoreSizeAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mBinaryPasteIgnoreSizeAction);
-    connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
-    mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
-
-    // Restore Selection
-    mUndoSelection = new QAction("&Restore selection", this);
-    mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mUndoSelection);
-    connect(mUndoSelection, SIGNAL(triggered()), this, SLOT(undoSelectionSlot()));
-
-    // Labels
-    mSetLabel = new QAction(QIcon(":/icons/images/label.png"), "Label", this);
-    mSetLabel->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSetLabel);
-    connect(mSetLabel, SIGNAL(triggered()), this, SLOT(setLabel()));
-
-    // Comments
-    mSetComment = new QAction(QIcon(":/icons/images/comment.png"), "Comment", this);
-    mSetComment->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSetComment);
-    connect(mSetComment, SIGNAL(triggered()), this, SLOT(setComment()));
-
-    // Bookmarks
-    mSetBookmark = new QAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", this);
-    mSetBookmark->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSetBookmark);
-    connect(mSetBookmark, SIGNAL(triggered()), this, SLOT(setBookmark()));
-
-    // Functions
-    mToggleFunction = new QAction(QIcon(":/icons/images/functions.png"), "Function", this);
-    mToggleFunction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mToggleFunction);
-    connect(mToggleFunction, SIGNAL(triggered()), this, SLOT(toggleFunction()));
-
-    // Assemble
-    mAssemble = new QAction("Assemble", this);
-    mAssemble->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mAssemble);
-    connect(mAssemble, SIGNAL(triggered()), this, SLOT(assembleAt()));
-
-    //---------------------- Breakpoints -----------------------------
-    // Menu
     mBPMenu = new QMenu("Breakpoint", this);
     mBPMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
+    mToggleInt3BpAction = makeShortcutAction("Toggle", SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
 
-    // Standard breakpoint (option set using SetBPXOption)
-    mToggleInt3BpAction = new QAction("Toggle", this);
-    mToggleInt3BpAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mToggleInt3BpAction);
-    connect(mToggleInt3BpAction, SIGNAL(triggered()), this, SLOT(toggleInt3BPAction()));
-
-    // HW BP
     mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
+    mSetHwBpAction = makeAction("Set Hardware on Execution", SLOT(toggleHwBpActionSlot()));
+    mClearHwBpAction = makeAction("Remove Hardware", SLOT(toggleHwBpActionSlot()));
+    msetHwBPOnSlot0Action = makeAction("Set Hardware on Execution on Slot 0 (Free)", SLOT(setHwBpOnSlot0ActionSlot()));
+    msetHwBPOnSlot1Action = makeAction("Set Hardware on Execution on Slot 1 (Free)", SLOT(setHwBpOnSlot1ActionSlot()));
+    msetHwBPOnSlot2Action = makeAction("Set Hardware on Execution on Slot 2 (Free)", SLOT(setHwBpOnSlot2ActionSlot()));
+    msetHwBPOnSlot3Action = makeAction("Set Hardware on Execution on Slot 3 (Free)", SLOT(setHwBpOnSlot3ActionSlot()));
 
-    mSetHwBpAction = new QAction("Set Hardware on Execution", this);
-    connect(mSetHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
+    mPatchesAction = makeShortcutAction(QIcon(":/icons/images/patch.png"), "Patches", SLOT(showPatchesSlot()), "ViewPatches");
+    removeAction(mPatchesAction); //prevent conflicting shortcut with the MainWindow
+    mYaraAction = makeShortcutAction(QIcon(":/icons/images/yara.png"), "&Yara...", SLOT(yaraSlot()), "ActionYara");
+    mSetNewOriginHere = makeShortcutAction("Set New Origin Here", SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere");
 
-    mClearHwBpAction = new QAction("Remove Hardware", this);
-    connect(mClearHwBpAction, SIGNAL(triggered()), this, SLOT(toggleHwBpActionSlot()));
-
-    msetHwBPOnSlot0Action = new QAction("Set Hardware on Execution on Slot 0 (Free)", this);
-    connect(msetHwBPOnSlot0Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot0ActionSlot()));
-
-    msetHwBPOnSlot1Action = new QAction("Set Hardware on Execution on Slot 1 (Free)", this);
-    connect(msetHwBPOnSlot1Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot1ActionSlot()));
-
-    msetHwBPOnSlot2Action = new QAction("Set Hardware on Execution on Slot 2 (Free)", this);
-    connect(msetHwBPOnSlot2Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot2ActionSlot()));
-
-    msetHwBPOnSlot3Action = new QAction("Set Hardware on Execution on Slot 3 (Free)", this);
-    connect(msetHwBPOnSlot3Action, SIGNAL(triggered()), this, SLOT(setHwBpOnSlot3ActionSlot()));
-
-    mPatchesAction = new QAction(QIcon(":/icons/images/patch.png"), "Patches", this);
-    mPatchesAction->setShortcutContext(Qt::WidgetShortcut);
-    connect(mPatchesAction, SIGNAL(triggered()), this, SLOT(showPatchesSlot()));
-
-    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
-    mYaraAction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mYaraAction);
-    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(yaraSlot()));
-
-    //--------------------------------------------------------------------
-
-    //---------------------- New origin here -----------------------------
-    mSetNewOriginHere = new QAction("Set New Origin Here", this);
-    mSetNewOriginHere->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSetNewOriginHere);
-    connect(mSetNewOriginHere, SIGNAL(triggered()), this, SLOT(setNewOriginHereActionSlot()));
-
-
-    //---------------------- Go to -----------------------------------
-    // Menu
     mGotoMenu = new QMenu("Go to", this);
+    mGotoOriginAction = makeShortcutAction("Origin", SLOT(gotoOriginSlot()), "ActionGotoOrigin");
+    mGotoPreviousAction = makeShortcutAction("Previous", SLOT(gotoPreviousSlot()), "ActionGotoPrevious");
+    mGotoNextAction = makeShortcutAction("Next", SLOT(gotoNextSlot()), "ActionGotoNext");
+    mGotoExpressionAction = makeShortcutAction("Expression", SLOT(gotoExpressionSlot()), "ActionGotoExpression");
+    mGotoFileOffsetAction = makeShortcutAction("File Offset", SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset");
+    mGotoStartAction = makeShortcutAction("Start of Page", SLOT(gotoStartSlot()), "ActionGotoStart");
+    mGotoEndAction = makeShortcutAction("End of Page", SLOT(gotoEndSlot()), "ActionGotoEnd");
 
-    // Origin action
-    mGotoOrigin = new QAction("Origin", this);
-    mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoOrigin);
-    connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOrigin()));
-
-    // Previous action
-    mGotoPrevious = new QAction("Previous", this);
-    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoPrevious);
-    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevious()));
-
-    // Next action
-    mGotoNext = new QAction("Next", this);
-    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoNext);
-    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNext()));
-
-    // Address action
-    mGotoExpression = new QAction("Expression", this);
-    mGotoExpression->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoExpression);
-    connect(mGotoExpression, SIGNAL(triggered()), this, SLOT(gotoExpression()));
-
-    // File offset action
-    mGotoFileOffset = new QAction("File Offset", this);
-    mGotoFileOffset->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoFileOffset);
-    connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffset()));
-
-    // Goto->Start of page
-    mGotoStart = new QAction("Start of Page", this);
-    mGotoStart->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoStart);
-    connect(mGotoStart, SIGNAL(triggered()), this, SLOT(gotoStartSlot()));
-
-    // Goto->End of page
-    mGotoEnd = new QAction("End of Page", this);
-    mGotoEnd->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mGotoEnd);
-    connect(mGotoEnd, SIGNAL(triggered()), this, SLOT(gotoEndSlot()));
-
-    //-------------------- Follow in Dump ----------------------------
-    // Menu
     mFollowMenu = new QMenu("&Follow in Dump", this);
 
-    //-------------------- Copy -------------------------------------
     mCopyMenu = new QMenu("&Copy", this);
     mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
+    mCopySelectionAction = makeShortcutMenuAction(mCopyMenu, "&Selection", SLOT(copySelectionSlot()), "ActionCopy");
+    mCopySelectionNoBytesAction = makeMenuAction(mCopyMenu, "Selection (&No Bytes)", SLOT(copySelectionNoBytesSlot()));
+    mCopyAddressAction = makeShortcutMenuAction(mCopyMenu, "&Address", SLOT(copyAddressSlot()), "ActionCopyAddress");
+    mCopyRvaAction = makeMenuAction(mCopyMenu, "&RVA", SLOT(copyRvaSlot()));
+    mCopyDisassemblyAction = makeMenuAction(mCopyMenu, "Disassembly", SLOT(copyDisassemblySlot()));
 
-    mCopySelection = new QAction("&Selection", this);
-    mCopySelection->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mCopySelection);
-    connect(mCopySelection, SIGNAL(triggered()), this, SLOT(copySelection()));
+    mOpenSourceAction = makeAction(QIcon(":/icons/images/source.png"), "Open Source File", SLOT(openSourceSlot()));
 
-    mCopySelectionNoBytes = new QAction("Selection (&No Bytes)", this);
-    connect(mCopySelectionNoBytes, SIGNAL(triggered()), this, SLOT(copySelectionNoBytes()));
-
-    mCopyAddress = new QAction("&Address", this);
-    mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mCopyAddress);
-    connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddress()));
-
-    mCopyRva = new QAction("&RVA", this);
-    connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRva()));
-
-    mCopyDisassembly = new QAction("Disassembly", this);
-    connect(mCopyDisassembly, SIGNAL(triggered()), this, SLOT(copyDisassembly()));
-
-    mCopyMenu->addAction(mCopySelection);
-    mCopyMenu->addAction(mCopySelectionNoBytes);
-    mCopyMenu->addAction(mCopyAddress);
-    mCopyMenu->addAction(mCopyRva);
-    mCopyMenu->addAction(mCopyDisassembly);
-
-    // Open Source file
-    mOpenSource = new QAction(QIcon(":/icons/images/source.png"), "Open Source File", this);
-    connect(mOpenSource, SIGNAL(triggered()), this, SLOT(openSource()));
-
-    // Decompile menu
     mDecompileMenu = new QMenu("Decompile");
     mDecompileMenu->setIcon(QIcon(":/icons/images/snowman.png"));
+    mDecompileSelectionAction = makeShortcutAction("Selection", SLOT(decompileSelectionSlot()), "ActionDecompileSelection");
+    mDecompileFunctionAction = makeShortcutAction("Function", SLOT(decompileFunctionSlot()), "ActionDecompileFunction");
 
-    // Decompile selection
-    mDecompileSelection = new QAction("Selection", this);
-    mDecompileSelection->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mDecompileSelection);
-    connect(mDecompileSelection, SIGNAL(triggered()), this, SLOT(decompileSelection()));
-
-    mDecompileFunction = new QAction("Function", this);
-    mDecompileFunction->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mDecompileFunction);
-    connect(mDecompileFunction, SIGNAL(triggered()), this, SLOT(decompileFunction()));
-
-    //-------------------- Find references to -----------------------
-    // Menu
     mReferencesMenu = new QMenu("Find &references to", this);
+    mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
+    mReferenceSelectedAddressAction->setFont(QFont("Courier New", 8));
 
-    // Selected address
-    mReferenceSelectedAddress = new QAction("&Selected Address(es)", this);
-    mReferenceSelectedAddress->setFont(QFont("Courier New", 8));
-    mReferenceSelectedAddress->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mReferenceSelectedAddress);
-    connect(mReferenceSelectedAddress, SIGNAL(triggered()), this, SLOT(findReferences()));
-
-    //---------------------- Search for -----------------------------
-    // Menu
     mSearchMenu = new QMenu("&Search for", this);
     mSearchMenu->setIcon(QIcon(":/icons/images/search-for.png"));
+    mSearchCommand = makeShortcutMenuAction(mSearchMenu, "C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mSearchConstant = makeMenuAction(mSearchMenu, "&Constant", SLOT(findConstantSlot()));
+    mSearchStrings = makeMenuAction(mSearchMenu, "&String references", SLOT(findStringsSlot()));
+    mSearchCalls = makeMenuAction(mSearchMenu, "&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchPattern = makeShortcutMenuAction(mSearchMenu, "&Pattern", SLOT(findPatternSlot()), "ActionFindPattern");
 
-    // Command
-    mSearchCommand = new QAction("C&ommand", this);
-    mSearchCommand->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSearchCommand);
-    connect(mSearchCommand, SIGNAL(triggered()), this, SLOT(findCommand()));
-    mSearchMenu->addAction(mSearchCommand);
-
-    // Constant
-    mSearchConstant = new QAction("&Constant", this);
-    connect(mSearchConstant, SIGNAL(triggered()), this, SLOT(findConstant()));
-    mSearchMenu->addAction(mSearchConstant);
-
-    // String References
-    mSearchStrings = new QAction("&String references", this);
-    connect(mSearchStrings, SIGNAL(triggered()), this, SLOT(findStrings()));
-    mSearchMenu->addAction(mSearchStrings);
-
-    // Intermodular Calls
-    mSearchCalls = new QAction("&Intermodular calls", this);
-    connect(mSearchCalls, SIGNAL(triggered()), this, SLOT(findCalls()));
-    mSearchMenu->addAction(mSearchCalls);
-
-    // Pattern
-    mSearchPattern = new QAction("&Pattern", this);
-    mSearchPattern->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mSearchPattern);
-    connect(mSearchPattern, SIGNAL(triggered()), this, SLOT(findPattern()));
-    mSearchMenu->addAction(mSearchPattern);
-
-    // Highlighting mode
-    mEnableHighlightingMode = new QAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", this);
-    mEnableHighlightingMode->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mEnableHighlightingMode);
-    connect(mEnableHighlightingMode, SIGNAL(triggered()), this, SLOT(enableHighlightingMode()));
+    mEnableHighlightingMode = makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode");
 
     // Plugins
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
-
-    refreshShortcutsSlot();
-    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
 
-void CPUDisassembly::refreshShortcutsSlot()
-{
-    mBinaryEditAction->setShortcut(ConfigShortcut("ActionBinaryEdit"));
-    mBinaryFillAction->setShortcut(ConfigShortcut("ActionBinaryFill"));
-    mBinaryFillNopsAction->setShortcut(ConfigShortcut("ActionBinaryFillNops"));
-    mBinaryCopyAction->setShortcut(ConfigShortcut("ActionBinaryCopy"));
-    mBinaryPasteAction->setShortcut(ConfigShortcut("ActionBinaryPaste"));
-    mBinaryPasteIgnoreSizeAction->setShortcut(ConfigShortcut("ActionBinaryPasteIgnoreSize"));
-    mUndoSelection->setShortcut(ConfigShortcut("ActionUndoSelection"));
-    mSetLabel->setShortcut(ConfigShortcut("ActionSetLabel"));
-    mSetComment->setShortcut(ConfigShortcut("ActionSetComment"));
-    mSetBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
-    mToggleFunction->setShortcut(ConfigShortcut("ActionToggleFunction"));
-    mAssemble->setShortcut(ConfigShortcut("ActionAssemble"));
-    mToggleInt3BpAction->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
-    mPatchesAction->setShortcut(ConfigShortcut("ViewPatches"));
-    mYaraAction->setShortcut(ConfigShortcut("ActionYara"));
-    mSetNewOriginHere->setShortcut(ConfigShortcut("ActionSetNewOriginHere"));
-    mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
-    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
-    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
-    mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
-    mGotoStart->setShortcut(ConfigShortcut("ActionGotoStart"));
-    mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
-    mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
-    mReferenceSelectedAddress->setShortcut(ConfigShortcut("ActionFindReferencesToSelectedAddress"));
-    mSearchPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
-    mEnableHighlightingMode->setShortcut(ConfigShortcut("ActionHighlightingMode"));
-    mCopySelection->setShortcut(ConfigShortcut("ActionCopy"));
-    mCopyAddress->setShortcut(ConfigShortcut("ActionCopyAddress"));
-    mSearchCommand->setShortcut(ConfigShortcut("ActionFind"));
-    mDecompileFunction->setShortcut(ConfigShortcut("ActionDecompileFunction"));
-    mDecompileSelection->setShortcut(ConfigShortcut("ActionDecompileSelection"));
-}
-
-void CPUDisassembly::gotoOrigin()
+void CPUDisassembly::gotoOriginSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -654,7 +408,7 @@ void CPUDisassembly::gotoOrigin()
 }
 
 
-void CPUDisassembly::toggleInt3BPAction()
+void CPUDisassembly::toggleInt3BPActionSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -770,7 +524,7 @@ void CPUDisassembly::setNewOriginHereActionSlot()
     DbgCmdExec(wCmd.toUtf8().constData());
 }
 
-void CPUDisassembly::setLabel()
+void CPUDisassembly::setLabelSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -794,7 +548,7 @@ void CPUDisassembly::setLabel()
     GuiUpdateAllViews();
 }
 
-void CPUDisassembly::setComment()
+void CPUDisassembly::setCommentSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -823,7 +577,7 @@ void CPUDisassembly::setComment()
     GuiUpdateAllViews();
 }
 
-void CPUDisassembly::setBookmark()
+void CPUDisassembly::setBookmarkSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -844,7 +598,7 @@ void CPUDisassembly::setBookmark()
     GuiUpdateAllViews();
 }
 
-void CPUDisassembly::toggleFunction()
+void CPUDisassembly::toggleFunctionSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -896,7 +650,7 @@ void CPUDisassembly::toggleFunction()
     }
 }
 
-void CPUDisassembly::assembleAt()
+void CPUDisassembly::assembleSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -984,7 +738,7 @@ void CPUDisassembly::assembleAt()
     while(1);
 }
 
-void CPUDisassembly::gotoExpression()
+void CPUDisassembly::gotoExpressionSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -996,7 +750,7 @@ void CPUDisassembly::gotoExpression()
     }
 }
 
-void CPUDisassembly::gotoFileOffset()
+void CPUDisassembly::gotoFileOffsetSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1045,17 +799,17 @@ void CPUDisassembly::followActionSlot()
     }
 }
 
-void CPUDisassembly::gotoPrevious()
+void CPUDisassembly::gotoPreviousSlot()
 {
     historyPrevious();
 }
 
-void CPUDisassembly::gotoNext()
+void CPUDisassembly::gotoNextSlot()
 {
     historyNext();
 }
 
-void CPUDisassembly::findReferences()
+void CPUDisassembly::findReferencesSlot()
 {
     QString addrStart = QString("%1").arg(rvaToVa(getSelectionStart()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString addrEnd = QString("%1").arg(rvaToVa(getSelectionEnd()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -1064,7 +818,7 @@ void CPUDisassembly::findReferences()
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::findConstant()
+void CPUDisassembly::findConstantSlot()
 {
     WordEditDialog wordEdit(this);
     wordEdit.setup("Enter Constant", 0, sizeof(dsint));
@@ -1076,21 +830,21 @@ void CPUDisassembly::findConstant()
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::findStrings()
+void CPUDisassembly::findStringsSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::findCalls()
+void CPUDisassembly::findCallsSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     DbgCmdExec(QString("modcallfind " + addrText).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::findPattern()
+void CPUDisassembly::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
     hexEdit.showEntireBlock(true);
@@ -1106,14 +860,14 @@ void CPUDisassembly::findPattern()
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::selectionGet(SELECTIONDATA* selection)
+void CPUDisassembly::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
     Bridge::getBridge()->setResult(1);
 }
 
-void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
+void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
 {
     dsint selMin = getBase();
     dsint selMax = selMin + getSize();
@@ -1130,7 +884,7 @@ void CPUDisassembly::selectionSet(const SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(1);
 }
 
-void CPUDisassembly::enableHighlightingMode()
+void CPUDisassembly::enableHighlightingModeSlot()
 {
     if(mHighlightingMode)
         mHighlightingMode = false;
@@ -1266,7 +1020,7 @@ void CPUDisassembly::yaraSlot()
     }
 }
 
-void CPUDisassembly::copySelection(bool copyBytes)
+void CPUDisassembly::copySelectionSlot(bool copyBytes)
 {
     QList<Instruction_t> instBuffer;
     prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
@@ -1307,23 +1061,23 @@ void CPUDisassembly::copySelection(bool copyBytes)
     Bridge::CopyToClipboard(clipboard);
 }
 
-void CPUDisassembly::copySelection()
+void CPUDisassembly::copySelectionSlot()
 {
-    copySelection(true);
+    copySelectionSlot(true);
 }
 
-void CPUDisassembly::copySelectionNoBytes()
+void CPUDisassembly::copySelectionNoBytesSlot()
 {
-    copySelection(false);
+    copySelectionSlot(false);
 }
 
-void CPUDisassembly::copyAddress()
+void CPUDisassembly::copyAddressSlot()
 {
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     Bridge::CopyToClipboard(addrText);
 }
 
-void CPUDisassembly::copyRva()
+void CPUDisassembly::copyRvaSlot()
 {
     duint addr = rvaToVa(getInitialSelection());
     duint base = DbgFunctions()->ModBaseFromAddr(addr);
@@ -1336,7 +1090,7 @@ void CPUDisassembly::copyRva()
         QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }
 
-void CPUDisassembly::copyDisassembly()
+void CPUDisassembly::copyDisassemblySlot()
 {
     QList<Instruction_t> instBuffer;
     prepareDataRange(getSelectionStart(), getSelectionEnd(), &instBuffer);
@@ -1351,7 +1105,7 @@ void CPUDisassembly::copyDisassembly()
     Bridge::CopyToClipboard(clipboard);
 }
 
-void CPUDisassembly::findCommand()
+void CPUDisassembly::findCommandSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1393,7 +1147,7 @@ void CPUDisassembly::findCommand()
     emit displayReferencesWidget();
 }
 
-void CPUDisassembly::openSource()
+void CPUDisassembly::openSourceSlot()
 {
     char szSourceFile[MAX_STRING_SIZE] = "";
     int line = 0;
@@ -1403,7 +1157,7 @@ void CPUDisassembly::openSource()
     emit displaySourceManagerWidget();
 }
 
-void CPUDisassembly::decompileSelection()
+void CPUDisassembly::decompileSelectionSlot()
 {
     dsint addr = rvaToVa(getSelectionStart());
     dsint size = getSelectionSize();
@@ -1411,7 +1165,7 @@ void CPUDisassembly::decompileSelection()
     emit decompileAt(addr, addr + size);
 }
 
-void CPUDisassembly::decompileFunction()
+void CPUDisassembly::decompileFunctionSlot()
 {
     dsint addr = rvaToVa(getInitialSelection());
     duint start;
