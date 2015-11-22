@@ -88,68 +88,19 @@ protected:
 
 private:
     // Menus
-    QMenu* mBinaryMenu;
-    QMenu* mGotoMenu;
-    QMenu* mFollowMenu;
-    QMenu* mBPMenu;
     QMenu* mHwSlotSelectMenu;
-    QMenu* mReferencesMenu;
-    QMenu* mSearchMenu;
-    QMenu* mCopyMenu;
     QMenu* mPluginMenu;
-    QMenu* mDecompileMenu;
 
     // Actions
-    QAction* mBinaryEditAction;
-    QAction* mBinaryFillAction;
-    QAction* mBinaryFillNopsAction;
-    QAction* mBinaryCopyAction;
-    QAction* mBinaryPasteAction;
-    QAction* mBinaryPasteIgnoreSizeAction;
-    QAction* mUndoSelection;
-    QAction* mToggleInt3BpAction;
-    QAction* mSetHwBpAction;
-    QAction* mClearHwBpAction;
-    QAction* mSetNewOriginHere;
-    QAction* mGotoOriginAction;
-    QAction* mSetCommentAction;
-    QAction* mSetLabelAction;
-    QAction* mSetBookmarkAction;
-    QAction* mToggleFunctionAction;
-    QAction* mAssembleAction;
-    QAction* msetHwBPOnSlot0Action;
-    QAction* msetHwBPOnSlot1Action;
-    QAction* msetHwBPOnSlot2Action;
-    QAction* msetHwBPOnSlot3Action;
-    QAction* mGotoExpressionAction;
-    QAction* mGotoFileOffsetAction;
-    QAction* mGotoPreviousAction;
-    QAction* mGotoNextAction;
-    QAction* mGotoStartAction;
-    QAction* mGotoEndAction;
     QAction* mReferenceSelectedAddressAction;
-    QAction* mSearchCommand;
-    QAction* mSearchConstant;
-    QAction* mSearchStrings;
-    QAction* mSearchCalls;
-    QAction* mSearchPattern;
-    QAction* mEnableHighlightingMode;
-    QAction* mPatchesAction;
-    QAction* mYaraAction;
-    QAction* mCopySelectionAction;
-    QAction* mCopySelectionNoBytesAction;
-    QAction* mCopyAddressAction;
-    QAction* mCopyRvaAction;
-    QAction* mCopyDisassemblyAction;
-    QAction* mOpenSourceAction;
-    QAction* mDecompileSelectionAction;
-    QAction* mDecompileFunctionAction;
 
     // Goto dialog specific
     GotoDialog* mGoto;
 
     // Parent CPU window
     CPUWidget *mParentCPUWindow;
+
+    MenuBuilder* mMenuBuilder;
 };
 
 #endif // CPUDISASSEMBLY_H

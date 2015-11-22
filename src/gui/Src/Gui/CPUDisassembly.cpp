@@ -171,233 +171,203 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
  */
 void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 {
-    if(getSize() != 0)
-    {
-        int wI;
-        QMenu* wMenu = new QMenu(this);
-        duint wVA = rvaToVa(getInitialSelection());
-        BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-
-        // Build Menu
-        wMenu->addMenu(mBinaryMenu);
-        wMenu->addMenu(mCopyMenu);
-        dsint start = rvaToVa(getSelectionStart());
-        dsint end = rvaToVa(getSelectionEnd());
-        if(DbgFunctions()->PatchInRange(start, end)) //nothing patched in selected range
-            wMenu->addAction(mUndoSelection);
-
-        // BP Menu
-        mBPMenu->clear();
-        // Soft BP
-        mBPMenu->addAction(mToggleInt3BpAction);
-        // Hardware BP
-        if((wBpType & bp_hardware) == bp_hardware)
-        {
-            mBPMenu->addAction(mClearHwBpAction);
-        }
-        else
-        {
-            BPMAP wBPList;
-            DbgGetBpList(bp_hardware, &wBPList);
-
-            //get enabled hwbp count
-            int enabledCount = wBPList.count;
-            for(int i = 0; i < wBPList.count; i++)
-                if(!wBPList.bp[i].enabled)
-                    enabledCount--;
-
-            if(enabledCount < 4)
-            {
-                mBPMenu->addAction(mSetHwBpAction);
-            }
-            else
-            {
-                REGDUMP wRegDump;
-                DbgGetRegDump(&wRegDump);
-
-                for(wI = 0; wI < 4; wI++)
-                {
-                    switch(wBPList.bp[wI].slot)
-                    {
-                    case 0:
-                        msetHwBPOnSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
-                    case 1:
-                        msetHwBPOnSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
-                    case 2:
-                        msetHwBPOnSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
-                    case 3:
-                        msetHwBPOnSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(wBPList.bp[wI].addr, 8, 16, QChar('0')).toUpper() + ")");
-                        break;
-                    default:
-                        break;
-                    }
-                }
-
-                mHwSlotSelectMenu->addAction(msetHwBPOnSlot0Action);
-                mHwSlotSelectMenu->addAction(msetHwBPOnSlot1Action);
-                mHwSlotSelectMenu->addAction(msetHwBPOnSlot2Action);
-                mHwSlotSelectMenu->addAction(msetHwBPOnSlot3Action);
-                mBPMenu->addMenu(mHwSlotSelectMenu);
-            }
-            if(wBPList.count)
-                BridgeFree(wBPList.bp);
-        }
-        wMenu->addMenu(mBPMenu);
-        wMenu->addMenu(mFollowMenu);
-        setupFollowReferenceMenu(wVA, mFollowMenu, false);
-        if(DbgFunctions()->GetSourceFromAddr(wVA, 0, 0))
-            wMenu->addAction(mOpenSourceAction);
-
-        mDecompileMenu->clear();
-        if(DbgFunctionGet(wVA, 0, 0))
-            mDecompileMenu->addAction(mDecompileFunctionAction);
-        mDecompileMenu->addAction(mDecompileSelectionAction);
-        wMenu->addMenu(mDecompileMenu);
-
-        wMenu->addAction(mEnableHighlightingMode);
-        wMenu->addSeparator();
-
-        wMenu->addAction(mSetLabelAction);
-        wMenu->addAction(mSetCommentAction);
-        wMenu->addAction(mSetBookmarkAction);
-
-        duint selection_start = rvaToVa(getSelectionStart());
-        duint selection_end = rvaToVa(getSelectionEnd());
-        if(!DbgFunctionOverlaps(selection_start, selection_end))
-        {
-            mToggleFunctionAction->setText("Add function");
-            wMenu->addAction(mToggleFunctionAction);
-        }
-        else if(DbgFunctionOverlaps(selection_start, selection_end))
-        {
-            mToggleFunctionAction->setText("Delete function");
-            wMenu->addAction(mToggleFunctionAction);
-        }
-
-        wMenu->addAction(mAssembleAction);
-
-        wMenu->addAction(mPatchesAction);
-        wMenu->addAction(mYaraAction);
-
-        wMenu->addSeparator();
-
-        // New origin
-        wMenu->addAction(mSetNewOriginHere);
-
-        // Goto Menu
-        mGotoMenu->clear();
-        mGotoMenu->addAction(mGotoOriginAction);
-        if(historyHasPrevious())
-            mGotoMenu->addAction(mGotoPreviousAction);
-        if(historyHasNext())
-            mGotoMenu->addAction(mGotoNextAction);
-        mGotoMenu->addAction(mGotoExpressionAction);
-        char modname[MAX_MODULE_SIZE] = "";
-        if(DbgGetModuleAt(wVA, modname))
-            mGotoMenu->addAction(mGotoFileOffsetAction);
-        mGotoMenu->addAction(mGotoStartAction);
-        mGotoMenu->addAction(mGotoEndAction);
-        wMenu->addMenu(mGotoMenu);
-        wMenu->addSeparator();
-
-        wMenu->addMenu(mSearchMenu);
-
-        wMenu->addMenu(mReferencesMenu);
-        setupFollowReferenceMenu(wVA, mReferencesMenu, true);
-
-        wMenu->addSeparator();
-        wMenu->addActions(mPluginMenu->actions());
-
-        wMenu->exec(event->globalPos());
-    }
+    QMenu wMenu(this);
+    mMenuBuilder->build(&wMenu);
+    wMenu.exec(event->globalPos());
 }
-
 
 /************************************************************************************
                          Context Menu Management
 ************************************************************************************/
 void CPUDisassembly::setupRightClickContextMenu()
 {
-    mBinaryMenu = new QMenu("&Binary", this);
-    mBinaryMenu->setIcon(QIcon(":/icons/images/binary.png"));
-    mBinaryEditAction = makeShortcutMenuAction(mBinaryMenu, "&Edit", SLOT(binaryEditSlot()), "ActionBinaryEdit");
-    mBinaryFillAction = makeShortcutMenuAction(mBinaryMenu, "&Fill...", SLOT(binaryFillSlot()), "ActionBinaryFill");
-    mBinaryFillNopsAction = makeShortcutMenuAction(mBinaryMenu, "Fill with &NOPs", SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops");
-    mBinaryMenu->addSeparator();
-    mBinaryCopyAction = makeShortcutMenuAction(mBinaryMenu, "&Copy", SLOT(binaryCopySlot()), "ActionBinaryCopy");
-    mBinaryPasteAction = makeShortcutMenuAction(mBinaryMenu, "&Paste", SLOT(binaryPasteSlot()), "ActionBinaryPaste");
-    mBinaryPasteIgnoreSizeAction = makeShortcutMenuAction(mBinaryMenu, "Paste (&Ignore Size)", SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize");
+    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    {
+        return DbgIsDebugging();
+    });
 
-    mUndoSelection = makeShortcutAction("&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection");
-    mSetLabelAction = makeShortcutAction(QIcon(":/icons/images/label.png"), "Label", SLOT(setLabelSlot()), "ActionSetLabel");
-    mSetCommentAction = makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment");
-    mSetBookmarkAction = makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark");
-    mToggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
-    mAssembleAction = makeShortcutAction("Assemble", SLOT(assembleSlot()), "ActionAssemble");
+    MenuBuilder* binaryMenu = new MenuBuilder(this);
+    binaryMenu->addAction(makeShortcutAction("&Edit", SLOT(binaryEditSlot()), "ActionBinaryEdit"));
+    binaryMenu->addAction(makeShortcutAction("&Fill...", SLOT(binaryFillSlot()), "ActionBinaryFill"));
+    binaryMenu->addAction(makeShortcutAction("Fill with &NOPs", SLOT(binaryFillNopsSlot()), "ActionBinaryFillNops"));
+    binaryMenu->addSeparator();
+    binaryMenu->addAction(makeShortcutAction("&Copy", SLOT(binaryCopySlot()), "ActionBinaryCopy"));
+    binaryMenu->addAction(makeShortcutAction("&Paste", SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
+    binaryMenu->addAction(makeShortcutAction("Paste (&Ignore Size)", SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/binary.png"), "&Binary"), binaryMenu);
 
-    mBPMenu = new QMenu("Breakpoint", this);
-    mBPMenu->setIcon(QIcon(":/icons/images/breakpoint.png"));
-    mToggleInt3BpAction = makeShortcutAction("Toggle", SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
+    MenuBuilder* copyMenu = new MenuBuilder(this);
+    copyMenu->addAction(makeShortcutAction("&Selection", SLOT(copySelectionSlot()), "ActionCopy"));
+    copyMenu->addAction(makeAction("Selection (&No Bytes)", SLOT(copySelectionNoBytesSlot())));
+    copyMenu->addAction(makeShortcutAction("&Address", SLOT(copyAddressSlot()), "ActionCopyAddress"));
+    copyMenu->addAction(makeAction("&RVA", SLOT(copyRvaSlot())));
+    copyMenu->addAction(makeAction("Disassembly", SLOT(copyDisassemblySlot())));
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/copy.png"), "&Copy"), copyMenu);
 
-    mHwSlotSelectMenu = new QMenu("Set Hardware on Execution", this);
-    mSetHwBpAction = makeAction("Set Hardware on Execution", SLOT(toggleHwBpActionSlot()));
-    mClearHwBpAction = makeAction("Remove Hardware", SLOT(toggleHwBpActionSlot()));
-    msetHwBPOnSlot0Action = makeAction("Set Hardware on Execution on Slot 0 (Free)", SLOT(setHwBpOnSlot0ActionSlot()));
-    msetHwBPOnSlot1Action = makeAction("Set Hardware on Execution on Slot 1 (Free)", SLOT(setHwBpOnSlot1ActionSlot()));
-    msetHwBPOnSlot2Action = makeAction("Set Hardware on Execution on Slot 2 (Free)", SLOT(setHwBpOnSlot2ActionSlot()));
-    msetHwBPOnSlot3Action = makeAction("Set Hardware on Execution on Slot 3 (Free)", SLOT(setHwBpOnSlot3ActionSlot()));
+    mMenuBuilder->addAction(makeShortcutAction("&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
+    {
+        dsint start = rvaToVa(getSelectionStart());
+        dsint end = rvaToVa(getSelectionEnd());
+        return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
+    });
 
-    mPatchesAction = makeShortcutAction(QIcon(":/icons/images/patch.png"), "Patches", SLOT(showPatchesSlot()), "ViewPatches");
-    removeAction(mPatchesAction); //prevent conflicting shortcut with the MainWindow
-    mYaraAction = makeShortcutAction(QIcon(":/icons/images/yara.png"), "&Yara...", SLOT(yaraSlot()), "ActionYara");
-    mSetNewOriginHere = makeShortcutAction("Set New Origin Here", SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere");
+    QAction* toggleBreakpointAction = makeShortcutAction("Toggle", SLOT(toggleInt3BPActionSlot()), "ActionToggleBreakpoint");
+    QAction* setHwBreakpointAction = makeAction("Set Hardware on Execution", SLOT(toggleHwBpActionSlot()));
+    QAction* removeHwBreakpointAction = makeAction("Remove Hardware", SLOT(toggleHwBpActionSlot()));
 
-    mGotoMenu = new QMenu("Go to", this);
-    mGotoOriginAction = makeShortcutAction("Origin", SLOT(gotoOriginSlot()), "ActionGotoOrigin");
-    mGotoPreviousAction = makeShortcutAction("Previous", SLOT(gotoPreviousSlot()), "ActionGotoPrevious");
-    mGotoNextAction = makeShortcutAction("Next", SLOT(gotoNextSlot()), "ActionGotoNext");
-    mGotoExpressionAction = makeShortcutAction("Expression", SLOT(gotoExpressionSlot()), "ActionGotoExpression");
-    mGotoFileOffsetAction = makeShortcutAction("File Offset", SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset");
-    mGotoStartAction = makeShortcutAction("Start of Page", SLOT(gotoStartSlot()), "ActionGotoStart");
-    mGotoEndAction = makeShortcutAction("End of Page", SLOT(gotoEndSlot()), "ActionGotoEnd");
+    QMenu* replaceSlotMenu = makeMenu("Set Hardware on Execution");
+    QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, "Replace Slot 0 (Free)", SLOT(setHwBpOnSlot0ActionSlot()));
+    QAction* replaceSlot1Action  = makeMenuAction(replaceSlotMenu, "Replace Slot 1 (Free)", SLOT(setHwBpOnSlot1ActionSlot()));
+    QAction* replaceSlot2Action  = makeMenuAction(replaceSlotMenu, "Replace Slot 2 (Free)", SLOT(setHwBpOnSlot2ActionSlot()));
+    QAction* replaceSlot3Action  = makeMenuAction(replaceSlotMenu, "Replace Slot 3 (Free)", SLOT(setHwBpOnSlot3ActionSlot()));
 
-    mFollowMenu = new QMenu("&Follow in Dump", this);
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), "Breakpoint"), [=](QMenu* menu)
+    {
+        BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
 
-    mCopyMenu = new QMenu("&Copy", this);
-    mCopyMenu->setIcon(QIcon(":/icons/images/copy.png"));
-    mCopySelectionAction = makeShortcutMenuAction(mCopyMenu, "&Selection", SLOT(copySelectionSlot()), "ActionCopy");
-    mCopySelectionNoBytesAction = makeMenuAction(mCopyMenu, "Selection (&No Bytes)", SLOT(copySelectionNoBytesSlot()));
-    mCopyAddressAction = makeShortcutMenuAction(mCopyMenu, "&Address", SLOT(copyAddressSlot()), "ActionCopyAddress");
-    mCopyRvaAction = makeMenuAction(mCopyMenu, "&RVA", SLOT(copyRvaSlot()));
-    mCopyDisassemblyAction = makeMenuAction(mCopyMenu, "Disassembly", SLOT(copyDisassemblySlot()));
+        menu->addAction(toggleBreakpointAction);
 
-    mOpenSourceAction = makeAction(QIcon(":/icons/images/source.png"), "Open Source File", SLOT(openSourceSlot()));
+        if((bpType & bp_hardware) == bp_hardware)
+        {
+            menu->addAction(removeHwBreakpointAction);
+        }
+        else
+        {
+            BPMAP bpList;
+            DbgGetBpList(bp_hardware, &bpList);
 
-    mDecompileMenu = new QMenu("Decompile");
-    mDecompileMenu->setIcon(QIcon(":/icons/images/snowman.png"));
-    mDecompileSelectionAction = makeShortcutAction("Selection", SLOT(decompileSelectionSlot()), "ActionDecompileSelection");
-    mDecompileFunctionAction = makeShortcutAction("Function", SLOT(decompileFunctionSlot()), "ActionDecompileFunction");
+            //get enabled hwbp count
+            int enabledCount = bpList.count;
+            for(int i = 0; i < bpList.count; i++)
+                if(!bpList.bp[i].enabled)
+                    enabledCount--;
 
-    mReferencesMenu = new QMenu("Find &references to", this);
+            if(enabledCount < 4)
+            {
+                menu->addAction(setHwBreakpointAction);
+            }
+            else
+            {
+                REGDUMP wRegDump;
+                DbgGetRegDump(&wRegDump);
+
+                for(int i = 0; i < 4; i++)
+                {
+                    switch(bpList.bp[i].slot)
+                    {
+                    case 0:
+                        replaceSlot0Action->setText("Replace Slot 0 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 1:
+                        replaceSlot1Action->setText("Replace Slot 1 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 2:
+                        replaceSlot2Action->setText("Replace Slot 2 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    case 3:
+                        replaceSlot3Action->setText("Replace Slot 3 (0x" + QString("%1").arg(bpList.bp[i].addr, 8, 16, QChar('0')).toUpper() + ")");
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                menu->addMenu(replaceSlotMenu);
+            }
+            if(bpList.count)
+                BridgeFree(bpList.bp);
+        }
+        return true;
+    });
+
+    mMenuBuilder->addMenu(makeMenu("&Follow in Dump"), [this](QMenu* menu)
+    {
+        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false);
+        return true;
+    });
+
+    mMenuBuilder->addAction(makeAction(QIcon(":/icons/images/source.png"), "Open Source File", SLOT(openSourceSlot())), [this](QMenu*)
+    {
+        return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
+    });
+
+    MenuBuilder* decompileMenu = new MenuBuilder(this);
+    decompileMenu->addAction(makeShortcutAction("Selection", SLOT(decompileSelectionSlot()), "ActionDecompileSelection"), [this](QMenu*)
+    {
+        return DbgFunctionGet(rvaToVa(getInitialSelection()), 0, 0);
+    });
+    decompileMenu->addAction(makeShortcutAction("Function", SLOT(decompileFunctionSlot()), "ActionDecompileFunction"));
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/snowman.png"), "Decompile"), decompileMenu);
+
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
+    mMenuBuilder->addSeparator();
+
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/label.png"), "Label", SLOT(setLabelSlot()), "ActionSetLabel"));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment"));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
+    QAction* toggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
+    mMenuBuilder->addAction(toggleFunctionAction, [this, toggleFunctionAction](QMenu*)
+    {
+        if(!DbgFunctionOverlaps(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd())))
+            toggleFunctionAction->setText("Add function");
+        else
+            toggleFunctionAction->setText("Delete function");
+        return true;
+    });
+    mMenuBuilder->addAction(makeShortcutAction("Assemble", SLOT(assembleSlot()), "ActionAssemble"));
+    removeAction(mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/patch.png"), "Patches", SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/yara.png"), "&Yara...", SLOT(yaraSlot()), "ActionYara"));
+    mMenuBuilder->addSeparator();
+
+    mMenuBuilder->addAction(makeShortcutAction("Set New Origin Here", SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
+
+    MenuBuilder* gotoMenu = new MenuBuilder(this);
+    gotoMenu->addAction(makeShortcutAction("Origin", SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction("Previous", SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    {
+        return historyHasPrevious();
+    });
+    gotoMenu->addAction(makeShortcutAction("Next", SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    {
+        return historyHasNext();
+    });
+    gotoMenu->addAction(makeShortcutAction("Expression", SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
+    gotoMenu->addAction(makeShortcutAction("File Offset", SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"), [this](QMenu*)
+    {
+        char modname[MAX_MODULE_SIZE] = "";
+        return DbgGetModuleAt(rvaToVa(getInitialSelection()), modname);
+    });
+    gotoMenu->addAction(makeShortcutAction("Start of Page", SLOT(gotoStartSlot()), "ActionGotoStart"));
+    gotoMenu->addAction(makeShortcutAction("End of Page", SLOT(gotoEndSlot()), "ActionGotoEnd"));
+    mMenuBuilder->addMenu(makeMenu("Go to"), gotoMenu);
+    mMenuBuilder->addSeparator();
+
+    MenuBuilder* searchMenu = new MenuBuilder(this);
+    searchMenu->addAction(makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind"));
+    searchMenu->addAction(makeAction("&Constant", SLOT(findConstantSlot())));
+    searchMenu->addAction(makeAction("&String references", SLOT(findStringsSlot())));
+    searchMenu->addAction(makeAction("&Intermodular calls", SLOT(findCallsSlot())));
+    searchMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/search-for.png"), "&Search for"), searchMenu);
+
     mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
     mReferenceSelectedAddressAction->setFont(QFont("Courier New", 8));
 
-    mSearchMenu = new QMenu("&Search for", this);
-    mSearchMenu->setIcon(QIcon(":/icons/images/search-for.png"));
-    mSearchCommand = makeShortcutMenuAction(mSearchMenu, "C&ommand", SLOT(findCommandSlot()), "ActionFind");
-    mSearchConstant = makeMenuAction(mSearchMenu, "&Constant", SLOT(findConstantSlot()));
-    mSearchStrings = makeMenuAction(mSearchMenu, "&String references", SLOT(findStringsSlot()));
-    mSearchCalls = makeMenuAction(mSearchMenu, "&Intermodular calls", SLOT(findCallsSlot()));
-    mSearchPattern = makeShortcutMenuAction(mSearchMenu, "&Pattern", SLOT(findPatternSlot()), "ActionFindPattern");
-
-    mEnableHighlightingMode = makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode");
+    mMenuBuilder->addMenu(makeMenu("Find &references to"), [this](QMenu* menu)
+    {
+        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, true);
+        return true;
+    });
 
     // Plugins
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
+
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu* menu)
+    {
+        menu->addActions(mPluginMenu->actions());
+        return true;
+    }));
 }
 
 void CPUDisassembly::gotoOriginSlot()
@@ -471,14 +441,6 @@ void CPUDisassembly::setHwBpOnSlot3ActionSlot()
 
 void CPUDisassembly::setHwBpAt(duint va, int slot)
 {
-    BPXTYPE wBpType = DbgGetBpxTypeAt(va);
-
-    if((wBpType & bp_hardware) == bp_hardware)
-    {
-        mBPMenu->addAction(mClearHwBpAction);
-    }
-
-
     int wI = 0;
     int wSlotIndex = -1;
     BPMAP wBPList;

@@ -217,7 +217,8 @@ HEADERS += \
     Src/QEntropyView/QEntropyView.h \
     Src/Gui/EntropyDialog.h \
     Src/Gui/NotesManager.h \
-    Src/Gui/NotepadView.h
+    Src/Gui/NotepadView.h \
+    Src/Utils/MenuBuilder.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \

@@ -10,6 +10,7 @@
 #include <QMenu>
 #include "StringUtil.h"
 #include "Configuration.h"
+#include "MenuBuilder.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
@@ -240,6 +241,18 @@ private:
     }
 
 protected:
+    inline QMenu* makeMenu(const QString & title)
+    {
+        return new QMenu(title, this);
+    }
+
+    inline QMenu* makeMenu(const QIcon & icon, const QString & title)
+    {
+        QMenu* menu = new QMenu(title, this);
+        menu->setIcon(icon);
+        return menu;
+    }
+
     inline QAction* makeAction(const QString & text, const char* slot)
     {
         return connectAction(new QAction(text, this), slot);
