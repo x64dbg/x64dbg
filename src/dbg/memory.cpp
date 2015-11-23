@@ -183,7 +183,9 @@ void MemUpdateMap()
         }
     }
 
-    BridgeFree(threadList.list);
+    // Only free thread data if it was allocated
+    if (threadList.list)
+        BridgeFree(threadList.list);
 
     // Convert the vector to a map
     EXCLUSIVE_ACQUIRE(LockMemoryPages);

@@ -76,6 +76,7 @@ void ThreadGetList(THREADLIST* List)
     // Also assume BridgeAlloc zeros the returned buffer.
     //
     List->count = (int)threadList.size();
+    List->list = nullptr;
 
     if (List->count <= 0)
         return;
