@@ -74,6 +74,7 @@ void dbgsetskipexceptions(bool skip);
 void dbgsetstepping(bool stepping);
 void dbgsetispausedbyuser(bool b);
 void dbgsetisdetachedbyuser(bool b);
+void dbgsetfreezestack(bool freeze);
 void dbgclearignoredexceptions();
 void dbgaddignoredexception(ExceptionRange range);
 bool dbgisignoredexception(unsigned int exception);

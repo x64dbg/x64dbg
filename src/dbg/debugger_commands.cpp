@@ -2091,3 +2091,16 @@ CMDRESULT cbDebugSkip(int argc, char* argv[])
     DebugUpdateGui(cip, false); //update GUI
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbDebugSetfreezestack(int argc, char* argv[])
+{
+    if (argc < 2)
+    {
+        dputs("Not enough arguments!");
+        return STATUS_ERROR;
+    }
+    bool freeze = *argv[1] != '0';
+    dbgsetfreezestack(freeze);
+    dprintf("Stack is now %s\n", freeze ? "freezed" : "unfreezed");
+    return STATUS_CONTINUE;
+}

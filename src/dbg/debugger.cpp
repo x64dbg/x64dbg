@@ -155,6 +155,11 @@ void dbgsetisdetachedbyuser(bool b)
     isDetachedByUser = b;
 }
 
+void dbgsetfreezestack(bool freeze)
+{
+    bFreezeStack = freeze;
+}
+
 void dbgclearignoredexceptions()
 {
     ignoredExceptionRange.clear();
@@ -1128,6 +1133,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     bIsAttached = false;
     bSkipExceptions = false;
     bBreakOnNextDll = false;
+    bFreezeStack = false;
     INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
     bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0);
     pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
@@ -1421,6 +1427,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     lock(WAITID_STOP);
     bIsAttached = true;
     bSkipExceptions = false;
+    bFreezeStack = false;
     DWORD pid = (DWORD)lpParameter;
     static PROCESS_INFORMATION pi_attached;
     fdProcessInfo = &pi_attached;
