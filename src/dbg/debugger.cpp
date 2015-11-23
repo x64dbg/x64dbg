@@ -33,6 +33,7 @@ static bool isDetachedByUser = false;
 static bool bIsAttached = false;
 static bool bSkipExceptions = false;
 static bool bBreakOnNextDll = false;
+static bool bFreezeStack = false;
 static int ecount = 0;
 static std::vector<ExceptionRange> ignoredExceptionRange;
 static HANDLE hEvent = 0;
@@ -214,7 +215,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     }
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
-        GuiStackDumpAt(csp, csp);
+        DebugUpdateStack(csp, csp);
     static duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
@@ -231,6 +232,17 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     sprintf(title, "File: %s - PID: %X - %sThread: %X", szBaseFileName, fdProcessInfo->dwProcessId, modtext, ThreadGetId(hActiveThread));
     GuiUpdateWindowTitle(title);
     GuiUpdateAllViews();
+}
+
+void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
+{
+    if (!forceDump && bFreezeStack)
+    {
+        SELECTIONDATA selection;
+        if (GuiSelectionGet(GUI_STACK, &selection))
+            dumpAddr = selection.start;
+    }
+    GuiStackDumpAt(dumpAddr, csp);
 }
 
 void cbUserBreakpoint()

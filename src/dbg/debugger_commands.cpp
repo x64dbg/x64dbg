@@ -1045,7 +1045,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     duint size = 0;
     duint base = MemFindBaseAddr(csp, &size);
     if(base && addr >= base && addr < (base + size))
-        GuiStackDumpAt(addr, csp);
+        DebugUpdateStack(addr, csp, true);
     else
         dputs("Invalid stack address!");
     return STATUS_CONTINUE;
