@@ -45,8 +45,8 @@ public:
         addBuilder(new MenuBuilder(submenu->parent(), [submenu, callback](QMenu* menu)
         {
             submenu->clear();
-            if(callback(submenu));
-            menu->addMenu(submenu);
+            if(callback(submenu))
+                menu->addMenu(submenu);
             return true;
         }));
         return submenu;
