@@ -797,6 +797,7 @@ typedef struct
 {
     duint start;
     duint end;
+    duint view;
 } SELECTIONDATA;
 
 typedef struct

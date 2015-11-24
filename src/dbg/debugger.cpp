@@ -245,7 +245,7 @@ void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
     {
         SELECTIONDATA selection;
         if (GuiSelectionGet(GUI_STACK, &selection))
-            dumpAddr = selection.start;
+            dumpAddr = selection.view;
     }
     GuiStackDumpAt(dumpAddr, csp);
 }

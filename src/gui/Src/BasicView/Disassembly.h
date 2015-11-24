@@ -75,6 +75,7 @@ public:
     void disassembleClear();
     const dsint getBase() const;
     dsint getSize();
+    duint getTableOffsetRva();
 
     // history management
     void historyClear();

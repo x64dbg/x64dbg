@@ -1173,6 +1173,7 @@ void CPUDump::selectionGet(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
+    selection->view = rvaToVa(getTableOffsetRva());
     Bridge::getBridge()->setResult(1);
 }
 

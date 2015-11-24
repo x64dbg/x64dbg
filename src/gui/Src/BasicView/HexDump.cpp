@@ -96,6 +96,11 @@ duint HexDump::rvaToVa(dsint rva)
     return mMemPage->va(rva);
 }
 
+duint HexDump::getTableOffsetRva()
+{
+    return getTableOffset() * getBytePerRowCount() - mByteOffset;
+}
+
 void HexDump::mouseMoveEvent(QMouseEvent* event)
 {
     bool wAccept = true;

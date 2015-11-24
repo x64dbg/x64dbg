@@ -132,6 +132,7 @@ public:
 
     void printDumpAt(dsint parVA, bool select, bool repaint = true);
     duint rvaToVa(dsint rva);
+    duint getTableOffsetRva();
 
 signals:
     void selectionUpdated();

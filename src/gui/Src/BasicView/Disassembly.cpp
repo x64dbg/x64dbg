@@ -1451,6 +1451,12 @@ dsint Disassembly::getSize()
     return mMemPage->getSize();
 }
 
+duint Disassembly::getTableOffsetRva()
+{
+    return mInstBuffer.size() ? mInstBuffer.at(0).rva : 0;
+
+}
+
 void Disassembly::historyClear()
 {
     mVaHistory.clear(); //clear history for new targets
