@@ -2180,7 +2180,7 @@ bool valtostring(const char* string, duint value, bool silent)
         else if(strstr(regName(), "sp")) //update stack
         {
             duint csp = GetContextDataEx(hActiveThread, UE_CSP);
-            DebugUpdateStack(csp, csp);
+            GuiStackDumpAt(csp, csp);
             GuiUpdateRegisterView();
         }
         else

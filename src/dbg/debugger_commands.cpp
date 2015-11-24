@@ -1045,7 +1045,7 @@ CMDRESULT cbDebugStackDump(int argc, char* argv[])
     duint size = 0;
     duint base = MemFindBaseAddr(csp, &size);
     if(base && addr >= base && addr < (base + size))
-        DebugUpdateStack(addr, csp, true);
+        GuiStackDumpAt(addr, csp);
     else
         dputs("Invalid stack address!");
     return STATUS_CONTINUE;
@@ -2089,18 +2089,5 @@ CMDRESULT cbDebugSkip(int argc, char* argv[])
     cip += basicinfo.size;
     SetContextDataEx(hActiveThread, UE_CIP, cip);
     DebugUpdateGui(cip, false); //update GUI
-    return STATUS_CONTINUE;
-}
-
-CMDRESULT cbDebugSetfreezestack(int argc, char* argv[])
-{
-    if (argc < 2)
-    {
-        dputs("Not enough arguments!");
-        return STATUS_ERROR;
-    }
-    bool freeze = *argv[1] != '0';
-    dbgsetfreezestack(freeze);
-    dprintf("Stack is now %s\n", freeze ? "freezed" : "unfreezed");
     return STATUS_CONTINUE;
 }

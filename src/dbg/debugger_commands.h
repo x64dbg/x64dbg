@@ -64,7 +64,6 @@ CMDRESULT cbDebugDownloadSymbol(int argc, char* argv[]);
 CMDRESULT cbDebugGetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSetPageRights(int argc, char* argv[]);
 CMDRESULT cbDebugSkip(int argc, char* argv[]);
-CMDRESULT cbDebugSetfreezestack(int argc, char* argv[]);
 
 //misc
 void showcommandlineerror(cmdline_error_t* cmdline_error);

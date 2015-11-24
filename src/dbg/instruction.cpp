@@ -767,7 +767,7 @@ CMDRESULT cbInstrPush(int argc, char* argv[])
     }
     Script::Stack::Push(value);
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
-    DebugUpdateStack(csp, csp);
+    GuiStackDumpAt(csp, csp);
     GuiUpdateRegisterView();
     return STATUS_CONTINUE;
 }
@@ -776,7 +776,7 @@ CMDRESULT cbInstrPop(int argc, char* argv[])
 {
     duint value = Script::Stack::Pop();
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
-    DebugUpdateStack(csp, csp);
+    GuiStackDumpAt(csp, csp);
     GuiUpdateRegisterView();
     if (argc > 1)
     {
