@@ -1,0 +1,180 @@
+odbgscript commands:
+
+general purpose:
+$result
+$result_1
+$result_2
+$result_3
+$result_4
+$version
+**eval
+refresh
+*var
+*varlist
+*help
+
+assembly:
+*asm
+*asmtxt
+**exec
+ende
+*opcode
+preop
+
+automation:
+an
+**cmt
+*dbh
+*dbs
+key
+***lbl
+**lc
+**lclr
+opendump
+opentrace
+tc
+
+breakpoints:
+*bc
+*bd
+*bp
+bpcnd
+*bpd
+***bpgoto
+*bphwc
+*bphws
+bpl
+bplcnd
+*bpmc
+*bprm
+*bpwm
+*bpx
+cob
+coe
+eob
+eoe
+gpmb
+gbpr
+
+mathematic, binary operands:
+*add
+*and
+*dec
+*div
+*inc
+*mov
+*mul
+*neg
+*not
+*or
+*rev
+*rol
+*ror
+*shl
+*shr
+*sub
+*test
+*xor
+*xchg
+
+jump, call, conditional jumps:
+call
+*cmp
+cret
+goto //jump
+ifa //if above
+ifae //if above or equal
+ifb //if below
+ifbe //if below or equal
+ifeq //if equal
+ifneq //if not equal
+ja //jump above
+jae //jump above or equal
+jb //jump below
+jbe //jump below or equal
+je //jump equal
+jg //jump greater
+jge //jump greater or equal
+jl //jump less
+jle //jump less or equal
+jmp //jump
+jne //jump if not equal
+jnz //jump if not zero
+jz //jump if zero
+ret //end if script
+
+log commands:
+#log
+**log
+**logbuf
+***wrt
+***wrta
+
+strings:
+*atoi
+buf
+*itoa
+*len
+readstr
+scmp
+scmpi
+*str
+
+stepping:
+ai
+ao
+*erun
+*esti
+*esto
+*go
+*rtr
+**rtu
+*run
+*sti
+*sto
+ti
+ticnd
+to
+tocnd
+
+information:
+gapi
+*gci
+gcmt
+gma
+*gmemi
+*gmi
+gn
+*gpa
+gpi
+gro
+**ref
+tick
+
+memory:
+*alloc
+*dm
+*dma
+*dpe
+*fill
+*free
+*lm
+*memcpy
+*pop
+*push
+
+search:
+*find
+**findcalls
+**findcmd
+*findop
+*findmem
+gref
+*repl
+
+user interface:
+***ask
+***msg
+***msgyn
+***pause
+setoption

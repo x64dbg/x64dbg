@@ -1,0 +1,20 @@
+#pragma once
+
+#include "_global.h"
+
+struct COMMENTSINFO
+{
+    char mod[MAX_MODULE_SIZE];
+    duint addr;
+    char text[MAX_COMMENT_SIZE];
+    bool manual;
+};
+
+bool CommentSet(duint Address, const char* Text, bool Manual);
+bool CommentGet(duint Address, char* Text);
+bool CommentDelete(duint Address);
+void CommentDelRange(duint Start, duint End);
+void CommentCacheSave(JSON Root);
+void CommentCacheLoad(JSON Root);
+bool CommentEnum(COMMENTSINFO* List, size_t* Size);
+void CommentClear();

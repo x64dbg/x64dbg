@@ -21,7 +21,7 @@ if "%1"=="x32" (
 ) else if "%1"=="chm" (
     goto chm
 ) else (
-    echo "usage: setenv x32/x64/coverity/doxygen/chm"
+    echo "Usage: setenv x32/x64/coverity/doxygen/chm"
     goto :eof
 )
 

@@ -3,70 +3,64 @@
 echo Saving PATH
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%1"=="x32" (
-    call setenv.bat x32
-    set type=Win32
-	goto build
-) else if "%1"=="x64" (
-    call setenv.bat x64
-    set type=x64
-	goto build
-) else if "%1"=="coverity" (
-    if "%2"=="" (
-        echo "usage: build.bat coverity x32/x64"
-        goto :eof
-    )
-	goto coverity
-) else if "%1"=="doxygen" (
-    goto doxygen
-) else if "%1"=="chm" (
-    goto chm
-) else (
-    echo "usage: build.bat x32/x64/coverity/doxygen/chm"
-    goto :eof
-)
+cd %~dp0
+
+if /i "%1"=="x32"	call setenv.bat x32&set type=Configuration=Release;Platform=Win32&goto build
+if /i "%1"=="x64"	call setenv.bat x64&set type=Configuration=Release;Platform=x64&goto build
+if /i "%1"=="coverity"	goto coverity
+if /i "%1"=="doxygen"	call setenv.bat doxygen&goto doxygen
+if /i "%1"=="chm"	call setenv.bat chm&goto chm
+
+goto usage
+
 
 :build
 echo Building DBG...
-devenv /Rebuild "Release|%type%" x64_dbg.sln
-
-echo GUI prebuildStep
-cd x64_dbg_gui\Project
-cmd /k "prebuildStep.bat %1"
-cd ..
-cd ..
+msbuild.exe x64dbg.sln /m /verbosity:minimal /t:Rebuild /p:%type%
 
 echo Building GUI...
-rmdir /S /Q build
-mkdir build
-cd build
-qmake ..\x64_dbg_gui\Project\x64_dbg.pro CONFIG+=release
+rmdir /S /Q src\gui_build
+cd src\gui
+qmake x64dbg.pro CONFIG+=release
 jom
-cd ..
+cd ..\..
+goto :restorepath
 
-echo GUI afterbuildStep
-cd x64_dbg_gui\Project
-call afterbuildStep.bat %1 ..\..\build\release
-cd ..
-cd ..
-goto restorepath
 
 :coverity
+if "%2"=="" (
+    echo "Usage: build.bat coverity x32/x64"
+    goto usage
+)
+
 call setenv.bat coverity
 echo Building with Coverity
 cov-configure --msvc
 cov-build --dir cov-int --instrument build.bat %2%
-goto restorepath
+goto :restorepath
+
 
 :doxygen
-call setenv.bat doxygen
 doxygen
-goto restorepath
+goto :restorepath
+
 
 :chm
-call setenv.bat chm
 start /w "" winchm.exe help\x64_dbg.wcp /h
-goto restorepath
+goto :restorepath
+
+
+:usage
+echo "Usage: build.bat x32/x64/coverity (x32/x64)/doxygen/chm"
+echo.
+echo Examples:
+echo   build.bat x32               : builds 32-bit release build
+echo   build.bat x64               : builds 64-bit release build
+echo   build.bat coverity x32      : builds 32-bit coverity build
+echo   build.bat coverity x64      : builds 64-bit coverity build
+echo   build.bat doxygen           : generate doxygen documentation
+echo   build.bat chm               : generate windows help format documentation
+goto :restorepath
 
 :restorepath
 echo Resetting PATH
