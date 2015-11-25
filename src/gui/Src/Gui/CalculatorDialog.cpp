@@ -9,6 +9,7 @@ CalculatorDialog::CalculatorDialog(QWidget* parent) : QDialog(parent), ui(new Ui
 #endif
     setFixedSize(this->size()); //fixed size
     connect(this, SIGNAL(validAddress(bool)), ui->btnGoto, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(validAddress(bool)), ui->btnGotoDump, SLOT(setEnabled(bool)));
     emit validAddress(false);
     ui->txtBin->setInputMask(QString("bbbb ").repeated(sizeof(duint) * 2));
     ui->txtExpression->setText("0");
@@ -237,4 +238,10 @@ void CalculatorDialog::on_txtUnicode_textEdited(const QString & arg1)
     ui->txtUnicode->setStyleSheet("");
     ui->txtExpression->setText(QString().sprintf("%X", text[0].unicode()));
     ui->txtUnicode->setCursorPosition(2);
+}
+
+void CalculatorDialog::on_btnGotoDump_clicked()
+{
+    DbgCmdExecDirect(QString("dump " + ui->txtExpression->text()).toUtf8().constData());
+    emit showCpu();
 }

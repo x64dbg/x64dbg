@@ -48,6 +48,8 @@ private slots:
     void on_txtUnicode_textEdited(const QString & arg1);
     void on_txtExpression_textChanged(const QString & arg1);
 
+    void on_btnGotoDump_clicked();
+
 private:
     ValidateExpressionThread* mValidateThread;
     Ui::CalculatorDialog* ui;

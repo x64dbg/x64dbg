@@ -28,7 +28,7 @@
     <rect>
      <x>10</x>
      <y>220</y>
-     <width>141</width>
+     <width>121</width>
      <height>23</height>
     </rect>
    </property>
@@ -42,7 +42,7 @@
      <x>11</x>
      <y>8</y>
      <width>481</width>
-     <height>201</height>
+     <height>204</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -218,6 +218,19 @@
    </property>
    <property name="text">
     <string>&amp;Close</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnGotoDump">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>220</y>
+     <width>81</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Follow in &amp;Dump</string>
    </property>
   </widget>
  </widget>
