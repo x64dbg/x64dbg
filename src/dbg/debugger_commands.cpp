@@ -1027,7 +1027,18 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
         dprintf("Invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    GuiDumpAt(addr);
+    if (argc > 2)
+    {
+        duint index = 0;
+        if (!valfromstring(argv[2], &index))
+        {
+            dprintf("Invalid address \"%s\"!\n", argv[2]);
+            return STATUS_ERROR;
+        }
+        GuiDumpAtN(addr, index);
+    }
+    else
+        GuiDumpAt(addr);
     return STATUS_CONTINUE;
 }
 

@@ -1231,6 +1231,11 @@ BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text)
     _gui_sendmessage(GUI_GET_DEBUGGEE_NOTES, text, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index)
+{
+    _gui_sendmessage(GUI_DUMP_AT_N, (void*)va, (void*)index);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

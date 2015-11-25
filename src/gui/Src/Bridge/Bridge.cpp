@@ -518,6 +518,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         result.Wait();
     }
     break;
+
+    case GUI_DUMP_AT_N:
+    {
+        emit dumpAtN((duint)param1, (int)param2);
+    }
+    break;
     }
     return nullptr;
 }
