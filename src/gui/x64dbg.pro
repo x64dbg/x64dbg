@@ -30,7 +30,6 @@ UI_DIR = $${X64_GEN_DIR}
 ##
 ## QT libraries
 ##
-# TODO: Remove networking because no one wants a firewall notice for a debugger
 QT += core gui network
 
 # QT5 requires widgets
@@ -40,8 +39,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 ## Build flags
 ##
 # Generate debug symbols in release mode
-QMAKE_CXXFLAGS_RELEASE += -Zi #-O3      # Compiler
-QMAKE_LFLAGS_RELEASE += /DEBUG          # Linker
+QMAKE_CXXFLAGS_RELEASE += -Zi   # Compiler
+QMAKE_LFLAGS_RELEASE += /DEBUG  # Linker
 
 # Build as a library
 DEFINES += BUILD_LIB NOMINMAX
