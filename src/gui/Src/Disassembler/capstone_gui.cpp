@@ -1,5 +1,6 @@
 #include "capstone_gui.h"
 #include "Configuration.h"
+#include "StringUtil.h"
 
 CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
@@ -223,19 +224,30 @@ void CapstoneTokenizer::addMemoryOperator(char operatorText)
 
 QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const
 {
-    char labelText[MAX_LABEL_SIZE] = "";
+    QString labelText;
+    char label_[MAX_LABEL_SIZE] = "";
     char module_[MAX_MODULE_SIZE] = "";
     QString moduleText;
     duint addr = value.value;
-    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
+    bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, label_);
+    if(!bHasLabel) //handle function+offset
+    {
+        duint start;
+        if(DbgFunctionGet(addr, &start, nullptr) && DbgGetLabelAt(start, SEG_DEFAULT, label_))
+        {
+            labelText = QString("%1+%2").arg(label_).arg(ToHexString(addr - start));
+            bHasLabel = true;
+        }
+    }
+    else
+        labelText = QString(label_);
     bool bHasModule = (expandModule && DbgGetModuleAt(addr, module_) && !QString(labelText).startsWith("JMP.&"));
     moduleText = QString(module_);
     if(maxModuleLength != -1)
         moduleText.truncate(maxModuleLength);
     if(moduleText.length())
         moduleText += ".";
-    QString addrText;
-    addrText = QString("%1").arg(addr & (duint) - 1, 0, 16, QChar('0')).toUpper();
+    QString addrText = ToHexString(addr);
     QString finalText;
     if(bHasLabel && bHasModule)  //<module.label>
         finalText = QString("<%1%2>").arg(moduleText).arg(labelText);

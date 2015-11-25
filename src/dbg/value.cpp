@@ -13,6 +13,7 @@
 #include "module.h"
 #include "label.h"
 #include "expressionparser.h"
+#include "function.h"
 
 static bool dosignedcalc = false;
 
@@ -1634,11 +1635,17 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return true;
     else if(SymAddrFromName(string, value))  //then come symbols
         return true;
-    else if(varget(string, value, value_size, 0))  //finally variables
+    else if(varget(string, value, value_size, 0))  //then come variables
     {
         if(isvar)
             *isvar = true;
         return true;
+    }
+    else if (strstr(string, "sub_") == string) //then come sub_ functions
+    {
+        auto result = sscanf(string, "sub_%" fext "X", value) == 1;
+        duint start;
+        return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
     if(!silent)
         dprintf("invalid value: \"%s\"!\n", string);

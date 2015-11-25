@@ -101,6 +101,77 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
     return cacheResult;
 }
 
+static bool shouldFilterSymbol(const char* name)
+{
+    if (!name)
+        return true;
+    if (!strcmp(name, "`string'"))
+        return true;
+    if (strstr(name, "__imp__") == name)
+        return true;
+    return false;
+}
+
+static bool getLabel(duint addr, char* label)
+{
+    bool retval = false;
+    if (LabelGet(addr, label))
+        retval = true;
+    else //no user labels
+    {
+        DWORD64 displacement = 0;
+        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
+        PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+        pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        pSymbol->MaxNameLen = MAX_LABEL_SIZE;
+        if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && !displacement)
+        {
+            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
+            if (!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                strcpy_s(label, MAX_LABEL_SIZE, pSymbol->Name);
+            retval = !shouldFilterSymbol(label);
+        }
+        if (!retval) //search for CALL <jmp.&user32.MessageBoxA>
+        {
+            BASIC_INSTRUCTION_INFO basicinfo;
+            memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
+            if (disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
+            {
+                duint val = 0;
+                if (MemRead(basicinfo.memory.value, &val, sizeof(val)))
+                {
+                    if (SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
+                    {
+                        pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
+                        if (!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
+                            sprintf_s(label, MAX_LABEL_SIZE, "JMP.&%s", pSymbol->Name);
+                        retval = !shouldFilterSymbol(label);
+                    }
+                }
+            }
+        }
+        if (!retval) //search for module entry
+        {
+            duint entry = ModEntryFromAddr(addr);
+            if (entry && entry == addr)
+            {
+                strcpy_s(label, MAX_LABEL_SIZE, "EntryPoint");
+                retval = true;
+            }
+        }
+        if (!retval) //search for function+offset
+        {
+            duint start;
+            if (FunctionGet(addr, &start, nullptr) && addr == start)
+            {
+                sprintf_s(label, MAX_LABEL_SIZE, "sub_%" fext "X", start);
+                retval = true;
+            }
+        }
+    }
+    return retval;
+}
+
 extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo)
 {
     if(!DbgIsDebugging())
@@ -113,51 +184,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flaglabel)
     {
-        if(LabelGet(addr, addrinfo->label))
-            retval = true;
-        else //no user labels
-        {
-            DWORD64 displacement = 0;
-            char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(char)];
-            PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-            pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-            pSymbol->MaxNameLen = MAX_LABEL_SIZE;
-            if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)addr, &displacement, pSymbol) && !displacement)
-            {
-                pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
-                    strcpy_s(addrinfo->label, pSymbol->Name);
-                retval = true;
-            }
-            if(!retval) //search for CALL <jmp.&user32.MessageBoxA>
-            {
-                BASIC_INSTRUCTION_INFO basicinfo;
-                memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
-                if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value) //thing is a JMP
-                {
-                    duint val = 0;
-                    if(MemRead(basicinfo.memory.value, &val, sizeof(val)))
-                    {
-                        if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
-                        {
-                            pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
-                            if(!bUndecorateSymbolNames || !SafeUnDecorateSymbolName(pSymbol->Name, addrinfo->label, MAX_LABEL_SIZE, UNDNAME_COMPLETE))
-                                sprintf_s(addrinfo->label, "JMP.&%s", pSymbol->Name);
-                            retval = true;
-                        }
-                    }
-                }
-            }
-            if(!retval)  //search for module entry
-            {
-                duint entry = ModEntryFromAddr(addr);
-                if(entry && entry == addr)
-                {
-                    strcpy_s(addrinfo->label, "EntryPoint");
-                    retval = true;
-                }
-            }
-        }
+        retval = getLabel(addr, addrinfo->label);
     }
     if(addrinfo->flags & flagbookmark)
     {
