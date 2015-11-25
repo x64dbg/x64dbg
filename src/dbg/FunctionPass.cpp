@@ -113,9 +113,12 @@ bool FunctionPass::Analyse()
 
 void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDef>* Blocks)
 {
+    //
     // Step 1: Use any defined functions in the PE function table
+    //
     FindFunctionWorkerPrepass(Start, End, Blocks);
 
+    //
     // Step 2: for each block that contains a CALL flag,
     // add it to a local function start array
     //
@@ -155,21 +158,62 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
         }
     }
 
+    //
     // Step 3: Sort and remove duplicates
+    //
     std::sort(Blocks->begin(), Blocks->end());
     Blocks->erase(std::unique(Blocks->begin(), Blocks->end()), Blocks->end());
 
-    // Step 4: Find the end of functions
+    //
+    // Step 4: Find function ends
+    //
     FindFunctionWorker(Blocks);
 
-    dprintf("Total detected functions: %d\n", Blocks->size());
+    dprintf("PRE: Total detected functions: %d\n", Blocks->size());
 
+    //
     // Step 5: Find all orphaned blocks and repeat analysis process
-    // TODO
+    //
+    // Starting from the first global block, scan until an "untouched" block is found
+    blockItr = std::next(m_MainBlocks.begin(), Start);
+
+    // Cached final block
+    BasicBlock* finalBlock = &m_MainBlocks.back();
+
+    duint virtEnd = 0;
+    for (duint i = Start; i < End; i++, ++blockItr)
+    {
+        if (blockItr->VirtualStart < virtEnd)
+            continue;
+
+        // Skip padding
+        if (blockItr->GetFlag(BASIC_BLOCK_FLAG_PAD))
+            continue;
+
+        // Is the block untouched?
+        if (blockItr->GetFlag(BASIC_BLOCK_FLAG_FUNCTION))
+            continue;
+
+        // Try to define a function
+        FunctionDef def;
+        def.VirtualStart = blockItr->VirtualStart;
+        def.VirtualEnd = 0;
+        def.BBlockStart = 0;
+        def.BBlockEnd = 0;
+
+        if (ResolveFunctionEnd(&def, finalBlock))
+        {
+            Blocks->push_back(def);
+            virtEnd = def.VirtualEnd;
+        }
+    }
+
+    dprintf("POST: Total detected functions: %d\n", Blocks->size());
 }
 
 void FunctionPass::FindFunctionWorkerPrepass(duint Start, duint End, std::vector<FunctionDef>* Blocks)
 {
+    return;
     const duint minFunc = std::next(m_MainBlocks.begin(), Start)->VirtualStart;
     const duint maxFunc = std::next(m_MainBlocks.begin(), End - 1)->VirtualEnd;
 
