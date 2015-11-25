@@ -107,7 +107,7 @@ static bool shouldFilterSymbol(const char* name)
         return true;
     if (!strcmp(name, "`string'"))
         return true;
-    if (strstr(name, "__imp__") == name)
+    if (strstr(name, "_imp_") == name)
         return true;
     return false;
 }
