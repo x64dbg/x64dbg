@@ -43,6 +43,7 @@ ui_*
 # Project to ignore
 help/x64*dbg.chm
 help/output/
+bin/x64*dbg.chm
 
 # Debugger files to ignore
 CppCheckResults.xml
