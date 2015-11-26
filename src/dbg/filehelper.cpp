@@ -33,6 +33,7 @@ bool FileHelper::ReadAllText(const String & fileName, String & content)
     std::vector<unsigned char> data;
     if (!ReadAllData(fileName, data))
         return false;
+    data.push_back(0);
     content = String((const char*)data.data());
     return true;
 }
