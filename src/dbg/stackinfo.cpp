@@ -243,7 +243,7 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
             CALLSTACKENTRY entry;
             memset(&entry, 0, sizeof(CALLSTACKENTRY));
 
-            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset, (duint)frame.AddrReturn.Offset, (duint)frame.AddrPC.Offset);
+            StackEntryFromFrame(&entry, (duint)frame.AddrFrame.Offset, (duint)frame.AddrPC.Offset, (duint)frame.AddrReturn.Offset);
             callstackVector.push_back(entry);
         }
         else
