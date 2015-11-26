@@ -1974,7 +1974,7 @@ CMDRESULT cbInstrLog(int argc, char* argv[])
     //log "format {0} string",arg1, arg2, argN
     if (argc == 1) //just log newline
     {
-        dputs("");
+        dprintf("");
         return STATUS_CONTINUE;
     }
     FormatValueVector formatArgs;
