@@ -11,6 +11,7 @@
 #include "StringUtil.h"
 #include "Configuration.h"
 #include "MenuBuilder.h"
+#include "QActionLambda.h"
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
@@ -225,6 +226,13 @@ private:
         return action;
     }
 
+    inline QAction* connectAction(QAction* action, QActionLambda::TriggerCallback callback)
+    {
+        auto lambda = new QActionLambda(action->parent(), callback);
+        connect(action, SIGNAL(triggered(bool)), lambda, SLOT(triggeredSlot()));
+        return action;
+    }
+
     inline QAction* connectShortcutAction(QAction* action, const char* shortcut)
     {
         actionShortcutPairs.push_back(ActionShortcut(action, shortcut));
@@ -253,42 +261,50 @@ protected:
         return menu;
     }
 
-    inline QAction* makeAction(const QString & text, const char* slot)
+    template<typename T>
+    inline QAction* makeAction(const QString & text, T slot)
     {
         return connectAction(new QAction(text, this), slot);
     }
 
-    inline QAction* makeAction(const QIcon & icon, const QString & text, const char* slot)
+    template<typename T>
+    inline QAction* makeAction(const QIcon & icon, const QString & text, T slot)
     {
         return connectAction(new QAction(icon, text, this), slot);
     }
 
-    inline QAction* makeShortcutAction(const QString & text, const char* slot, const char* shortcut)
+    template<typename T>
+    inline QAction* makeShortcutAction(const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeAction(text, slot), shortcut);
     }
 
-    inline QAction* makeShortcutAction(const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
+    template<typename T>
+    inline QAction* makeShortcutAction(const QIcon & icon, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeAction(icon, text, slot), shortcut);
     }
 
-    inline QAction* makeMenuAction(QMenu* menu, const QString & text, const char* slot)
+    template<typename T>
+    inline QAction* makeMenuAction(QMenu* menu, const QString & text, T slot)
     {
         return connectMenuAction(menu, makeAction(text, slot));
     }
 
-    inline QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot)
+    template<typename T>
+    inline QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot)
     {
         return connectMenuAction(menu, makeAction(icon, text, slot));
     }
 
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, const char* slot, const char* shortcut)
+    template<typename T>
+    inline QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, text, slot), shortcut);
     }
 
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const char* slot, const char* shortcut)
+    template<typename T>
+    inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, icon, text, slot), shortcut);
     }

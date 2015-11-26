@@ -217,7 +217,8 @@ HEADERS += \
     Src/Gui/EntropyDialog.h \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
-    Src/Utils/MenuBuilder.h
+    Src/Utils/MenuBuilder.h \
+    Src/Utils/QActionLambda.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
