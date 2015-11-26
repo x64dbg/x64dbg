@@ -318,6 +318,10 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     // Vertical
     painter->drawLine(x, y_start, x, y_end);
 
+    // Specialized pen for solid lines only, keeping other styles
+    QPen solidLine = painter->pen();
+    solidLine.setStyle(Qt::SolidLine);
+
     // Draw the arrow
     if(!isactive) //selected
     {
@@ -329,7 +333,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
             int y = viewportHeight - 1;
             if(y > y_start)
             {
-                painter->setPen(Qt::SolidLine);
+                painter->setPen(solidLine);
                 QPoint wPoints[] =
                 {
                     QPoint(x - 3, y - 3),
@@ -342,7 +346,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         else if(endLine == -6)
         {
             int y = 0;
-            painter->setPen(Qt::SolidLine);
+            painter->setPen(solidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y + 3),
@@ -353,7 +357,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         }
         else
         {
-            painter->setPen(Qt::SolidLine);
+            painter->setPen(solidLine);
             QPoint wPoints[] =
             {
                 QPoint(x_right - 3, y_end - 3),
@@ -369,7 +373,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         {
             int y = viewportHeight - 1;
             x--;
-            painter->setPen(Qt::SolidLine);
+            painter->setPen(solidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y - 3),
@@ -381,7 +385,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         else if(endLine == -6)
         {
             int y = 0;
-            painter->setPen(Qt::SolidLine);
+            painter->setPen(solidLine);
             QPoint wPoints[] =
             {
                 QPoint(x - 3, y + 3),
