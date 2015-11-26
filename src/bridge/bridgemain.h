@@ -323,6 +323,7 @@ typedef struct
 {
     duint start; //OUT
     duint end; //OUT
+    duint instrcount; //OUT
 } FUNCTION;
 
 typedef struct

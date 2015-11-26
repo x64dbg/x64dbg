@@ -193,7 +193,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, ADDR
     }
     if(addrinfo->flags & flagfunction)
     {
-        if(FunctionGet(addr, &addrinfo->function.start, &addrinfo->function.end))
+        if (FunctionGet(addr, &addrinfo->function.start, &addrinfo->function.end, &addrinfo->function.instrcount))
             retval = true;
     }
     if(addrinfo->flags & flagloop)

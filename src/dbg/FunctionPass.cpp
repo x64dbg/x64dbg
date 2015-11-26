@@ -77,20 +77,20 @@ bool FunctionPass::Analyse()
 
     concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
     {
-        duint threadWorkStart = (workAmount * i);
-        duint threadWorkStop = min((threadWorkStart + workAmount), m_MainBlocks.size());
-
         // Memory allocation optimization
         // TODO: Option to conserve memory
         threadFunctions[i].reserve(30000);
 
         // Execute
+        duint threadWorkStart = (workAmount * i);
+        duint threadWorkStop = min((threadWorkStart + workAmount), m_MainBlocks.size());
+
         AnalysisWorker(threadWorkStart, threadWorkStop, &threadFunctions[i]);
     });
 
+    // Merge thread vectors into single local
     std::vector<FunctionDef> funcs;
 
-    // Merge thread vectors into single local
     for(duint i = 0; i < IdealThreadCount(); i++)
         std::move(threadFunctions[i].begin(), threadFunctions[i].end(), std::back_inserter(funcs));
 
@@ -103,7 +103,7 @@ bool FunctionPass::Analyse()
     FunctionClear();
     for(auto & func : funcs)
     {
-        FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true);
+        FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true, func.InstrCount);
     }
     GuiUpdateAllViews();
 
@@ -149,12 +149,7 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
             if(!ValidateAddress(destination))
                 continue;
 
-            FunctionDef def;
-            def.VirtualStart = destination;
-            def.VirtualEnd = 0;
-            def.BBlockStart = 0;
-            def.BBlockEnd = 0;
-            Blocks->push_back(def);
+            Blocks->push_back({ destination, 0, 0, 0, 0 });
         }
     }
 
@@ -168,8 +163,6 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
     // Step 4: Find function ends
     //
     FindFunctionWorker(Blocks);
-
-    dprintf("PRE: Total detected functions: %d\n", Blocks->size());
 
     //
     // Step 5: Find all orphaned blocks and repeat analysis process
@@ -195,11 +188,7 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
             continue;
 
         // Try to define a function
-        FunctionDef def;
-        def.VirtualStart = blockItr->VirtualStart;
-        def.VirtualEnd = 0;
-        def.BBlockStart = 0;
-        def.BBlockEnd = 0;
+        FunctionDef def { blockItr->VirtualStart, 0, 0, 0, 0 };
 
         if (ResolveFunctionEnd(&def, finalBlock))
         {
@@ -207,8 +196,6 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
             virtEnd = def.VirtualEnd;
         }
     }
-
-    dprintf("POST: Total detected functions: %d\n", Blocks->size());
 }
 
 void FunctionPass::FindFunctionWorkerPrepass(duint Start, duint End, std::vector<FunctionDef>* Blocks)
@@ -227,13 +214,8 @@ void FunctionPass::FindFunctionWorkerPrepass(duint Start, duint End, std::vector
         // If within limits...
         if(funcAddr >= minFunc && funcAddr < maxFunc)
         {
-            // Add the descriptor
-            FunctionDef def;
-            def.VirtualStart = funcAddr;
-            def.VirtualEnd = funcEnd;
-            def.BBlockStart = 0;
-            def.BBlockEnd = 0;
-            Blocks->push_back(def);
+            // Add the descriptor (virtual start/end)
+            Blocks->push_back({ funcAddr, funcEnd, 0, 0, 0 });
         }
 
         return true;
@@ -246,13 +228,8 @@ void FunctionPass::FindFunctionWorkerPrepass(duint Start, duint End, std::vector
         // If within limits...
         if(Address >= minFunc && Address < maxFunc)
         {
-            // Add the descriptor
-            FunctionDef def;
-            def.VirtualStart = Address;
-            def.VirtualEnd = 0;
-            def.BBlockStart = 0;
-            def.BBlockEnd = 0;
-            Blocks->push_back(def);
+            // Add the descriptor (virtual start)
+            Blocks->push_back({ Address, 0, 0, 0, 0 });
         }
     });
 }
@@ -265,8 +242,7 @@ void FunctionPass::FindFunctionWorker(std::vector<FunctionDef>* Blocks)
     // Enumerate all function entries for this thread
     for(auto & block : *Blocks)
     {
-        // Sometimes the ending address is already supplied, so
-        // check first
+        // Sometimes the ending address is already supplied, so check first
         if(block.VirtualEnd != 0)
         {
             if(ResolveKnownFunctionEnd(&block))
@@ -292,8 +268,14 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
     Function->BBlockEnd = FindBBlockIndex(endBlock);
 
     // Set the flag for blocks that have been scanned
-    for(BasicBlock* block = startBlock; (duint)block <= (duint)endBlock; block++)
+    for (BasicBlock* block = startBlock; (duint)block <= (duint)endBlock; block++)
+    {
+        // Block now in use
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+        // Counter
+        Function->InstrCount += block->InstrCount;
+    }
 
     return true;
 }
@@ -321,6 +303,9 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
     {
         // Block is now in use
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
+
+        // Increment instruction count
+        Function->InstrCount += block->InstrCount;
 
         // Calculate max from just linear instructions
         maximumAddr = max(maximumAddr, block->VirtualEnd - 1);
@@ -391,10 +376,10 @@ void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIM
 
     // Get the table pointer and size
     auto functionTable = (PRUNTIME_FUNCTION)m_FunctionInfo;
-    ULONG totalCount = (m_FunctionInfoSize / sizeof(RUNTIME_FUNCTION));
+    size_t totalCount = (m_FunctionInfoSize / sizeof(RUNTIME_FUNCTION));
 
     // Enumerate each entry
-    for(ULONG i = 0; i < totalCount; i++)
+    for (size_t i = 0; i < totalCount; i++)
     {
         if(!Callback(&functionTable[i]))
             break;

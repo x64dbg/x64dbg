@@ -145,9 +145,12 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
     Capstone disasm;
 
     duint blockBegin = Start;        // BBlock starting virtual address
-    duint blockEnd;                  // BBlock ending virtual address
+    duint blockEnd = 0;              // BBlock ending virtual address
+
     bool blockPrevPad = false;       // Indicator if the last instruction was padding
     BasicBlock* lastBlock = nullptr; // Avoid an expensive call to std::vector::back()
+
+    int insnCount = 0;               // Temporary number of instructions counted for a block
 
     for(duint i = Start; i < End;)
     {
@@ -158,9 +161,10 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
             continue;
         }
 
-        // Increment counter
+        // Increment counters
         i += disasm.Size();
         blockEnd = i;
+        insnCount++;
 
         // The basic block ends here if it is a branch
         bool call = disasm.InGroup(CS_GRP_CALL);    // CALL
@@ -182,6 +186,8 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                 lastBlock->SetFlag(BASIC_BLOCK_FLAG_PREPAD);
 
                 blockBegin = realBlockEnd;
+                lastBlock->InstrCount = insnCount;
+                insnCount = 0;
             }
         }
 
@@ -198,30 +204,39 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                 // Otherwise use the default route: create a new entry
                 auto block = lastBlock = CreateBlockWorker(Blocks, blockBegin, blockEnd, call, jmp, ret, padding);
 
-                // Figure out the operand type
-                auto operand = disasm.x86().operands[0];
+                // Counters
+                lastBlock->InstrCount = insnCount;
+                insnCount = 0;
 
-                if(operand.type == X86_OP_IMM)
+                if (!padding)
                 {
-                    // Branch target immediate
-                    block->Target = (duint)operand.imm;
-
-                    // Check if absolute jump
-                    if(disasm.GetId() == X86_INS_JMP)
+                    // Check if absolute jump, regardless of operand
+                    if (disasm.GetId() == X86_INS_JMP)
                         block->SetFlag(BASIC_BLOCK_FLAG_ABSJMP);
-                }
-                else
-                {
-                    // Indirects
-                    block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-                    if(operand.type == X86_OP_MEM &&
-                            operand.mem.base == X86_REG_INVALID &&
-                            operand.mem.index == X86_REG_INVALID &&
-                            operand.mem.scale == 1)
+                    // Figure out the operand type(s)
+                    const auto& operand = disasm.x86().operands[0];
+
+                    if (operand.type == X86_OP_IMM)
                     {
-                        block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
-                        block->Target = (duint)operand.mem.disp;
+                        // Branch target immediate
+                        block->Target = (duint)operand.imm;
+                    }
+                    else
+                    {
+                        // Indirects (no operand, register, or memory)
+                        block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
+
+                        if (operand.type == X86_OP_MEM &&
+                                operand.mem.base == X86_REG_RIP &&
+                                operand.mem.index == X86_REG_INVALID &&
+                                operand.mem.scale == 1)
+                        {
+                            /*
+                            block->SetFlag(BASIC_BLOCK_FLAG_INDIRPTR);
+                            block->Target = (duint)operand.mem.disp;
+                            */
+                        }
                     }
                 }
             }
@@ -284,14 +299,16 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
                 block1.VirtualStart = removal->VirtualStart;
                 block1.VirtualEnd = curr->Target;
                 block1.Target = 0;
-                block1.Flags = removal->Flags;
+                block1.Flags = BASIC_BLOCK_FLAG_CUTOFF; // Attributes of the top half
+                block1.InstrCount = removal->InstrCount;
 
                 // Block part 2
                 BasicBlock block2;
                 block2.VirtualStart = curr->Target;
                 block2.VirtualEnd = removal->VirtualEnd;
                 block2.Target = removal->Target;
-                block2.Flags = BASIC_BLOCK_FLAG_CUTOFF;
+                block2.Flags = removal->Flags;          // Attributes of the bottom half (taken from original block)
+                block2.InstrCount = removal->InstrCount;
 
                 Insertions->push_back(block1);
                 Insertions->push_back(block2);
@@ -302,11 +319,7 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
 
 BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, duint Start, duint End, bool Call, bool Jmp, bool Ret, bool Pad)
 {
-    BasicBlock block;
-    block.VirtualStart = Start;
-    block.VirtualEnd = End;
-    block.Flags = 0;
-    block.Target = 0;
+    BasicBlock block { Start, End, 0, 0, 0 };
 
     // Check for calls
     if(Call)

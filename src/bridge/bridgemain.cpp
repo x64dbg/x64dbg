@@ -469,7 +469,7 @@ BRIDGE_IMPEXP FUNCTYPE DbgGetFunctionTypeAt(duint addr)
         return FUNC_NONE;
     duint start = info.function.start;
     duint end = info.function.end;
-    if(start == end)
+    if(start == end || info.function.instrcount == 1)
         return FUNC_SINGLE;
     else if(addr == start)
         return FUNC_BEGIN;

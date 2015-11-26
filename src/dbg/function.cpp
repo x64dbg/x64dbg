@@ -5,7 +5,7 @@
 
 std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
-bool FunctionAdd(duint Start, duint End, bool Manual)
+bool FunctionAdd(duint Start, duint End, bool Manual, int InstructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -28,6 +28,7 @@ bool FunctionAdd(duint Start, duint End, bool Manual)
     function.start = Start - moduleBase;
     function.end = End - moduleBase;
     function.manual = Manual;
+    function.instructioncount = InstructionCount;
 
     // Insert to global table
     EXCLUSIVE_ACQUIRE(LockFunctions);
@@ -36,7 +37,7 @@ bool FunctionAdd(duint Start, duint End, bool Manual)
     return true;
 }
 
-bool FunctionGet(duint Address, duint* Start, duint* End)
+bool FunctionGet(duint Address, duint* Start, duint* End, duint* InstrCount)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -56,6 +57,9 @@ bool FunctionGet(duint Address, duint* Start, duint* End)
 
     if(End)
         *End = found->second.end + moduleBase;
+
+    if(InstrCount)
+        *InstrCount = found->second.instructioncount;
 
     return true;
 }
@@ -142,6 +146,7 @@ void FunctionCacheSave(JSON Root)
         json_object_set_new(currentFunction, "module", json_string(i.second.mod));
         json_object_set_new(currentFunction, "start", json_hex(i.second.start));
         json_object_set_new(currentFunction, "end", json_hex(i.second.end));
+        json_object_set_new(currentFunction, "icount", json_hex(i.second.instructioncount));
 
         if(i.second.manual)
             json_array_append_new(jsonFunctions, currentFunction);
@@ -187,6 +192,7 @@ void FunctionCacheLoad(JSON Root)
             functionInfo.start = (duint)json_hex_value(json_object_get(value, "start"));
             functionInfo.end = (duint)json_hex_value(json_object_get(value, "end"));
             functionInfo.manual = Manual;
+            functionInfo.instructioncount = (duint)json_hex_value(json_object_get(value, "icount"));
 
             // Sanity check
             if(functionInfo.end < functionInfo.start)

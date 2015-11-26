@@ -7,7 +7,6 @@ enum BasicBlockFlags : duint
     BASIC_BLOCK_FLAG_NONE = 0,              // No flag
 
     BASIC_BLOCK_FLAG_FUNCTION = (1 << 1),   // Scanned; also part of a known function
-    BASIC_BLOCK_FLAG_ORPHANED = (1 << 2),   // No targets ever reach this block
     BASIC_BLOCK_FLAG_CUTOFF = (1 << 3),     // Ends prematurely because of another JMP to location
     BASIC_BLOCK_FLAG_DELETE = (1 << 4),     // Delete element at the next possible time
 
@@ -27,6 +26,8 @@ struct BasicBlock
     duint VirtualEnd;    // Exclusive
     duint Flags;
     duint Target;
+
+    duint InstrCount;   // Number of instructions in block
 
     __forceinline bool GetFlag(duint Flag)
     {
@@ -61,6 +62,8 @@ struct FunctionDef
 
     duint BBlockStart;   // Index of first basic block
     duint BBlockEnd;     // Index of last basic block
+
+    duint InstrCount;   // Number of instructions in function
 
     bool operator< (const FunctionDef & b) const
     {

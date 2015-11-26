@@ -21,7 +21,7 @@ protected:
 
     inline unsigned char* AnalysisPass::TranslateAddress(duint Address)
     {
-        assert(ValidateAddress(Address));
+        ASSERT_TRUE(ValidateAddress(Address));
 
         return &m_Data[Address - m_VirtualStart];
     }
