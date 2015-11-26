@@ -272,7 +272,7 @@ void SymbolView::moduleFollow()
 
 void SymbolView::moduleEntryFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + "?entry").toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + ":entry").toUtf8().constData());
     emit showCpu();
 }
 
