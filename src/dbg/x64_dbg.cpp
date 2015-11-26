@@ -212,6 +212,7 @@ static void registercommands()
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
+    dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

@@ -2294,3 +2294,32 @@ CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[])
     maxFindResults = int(num & 0x7FFFFFFF);
     return STATUS_CONTINUE;
 }
+
+CMDRESULT cbInstrSavedata(int argc, char* argv[])
+{
+    if (argc < 3) //savedata filename,addr,size
+    {
+        dputs("Not enough arguments...");
+        return STATUS_ERROR;
+    }
+    duint addr, size;
+    if (!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
+        return STATUS_ERROR;
+
+    Memory<unsigned char*> data(size);
+    if (!MemRead(addr, data(), data.size()))
+    {
+        dputs("Failed to read memory...");
+        return STATUS_ERROR;
+    }
+
+    if(!FileHelper::WriteAllData(argv[1], data(), data.size()))
+    {
+        dputs("Failed to write file...");
+        return STATUS_ERROR;
+    }
+
+    dprintf("%p[% " fext "X] written to \"%s\" !\n", addr, size, argv[1]);
+
+    return STATUS_CONTINUE;
+}
