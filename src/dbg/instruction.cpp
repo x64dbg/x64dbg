@@ -1737,34 +1737,51 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
     {
         duint base = scanInfo->base;
         YR_RULE* yrRule = (YR_RULE*)message_data;
-        dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
-        YR_STRING* string;
-        yr_rule_strings_foreach(yrRule, string)
+        auto addReference = [scanInfo, yrRule](duint addr, const char* identifier, const std::string & pattern)
         {
-            YR_MATCH* match;
-            yr_string_matches_foreach(string, match)
-            {
-                String pattern;
-                if (STRING_IS_HEX(string))
-                    pattern = yara_print_hex_string(match->data, match->length);
-                else
-                    pattern = yara_print_string(match->data, match->length);
-                duint addr = (duint)(base + match->base + match->offset);
-                //dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
+            auto index = scanInfo->index;
+            GuiReferenceSetRowCount(index + 1);
+            scanInfo->index++;
 
-                //update references
-                int index = scanInfo->index;
-                GuiReferenceSetRowCount(index + 1);
-                scanInfo->index++;
-                char addr_text[deflen] = "";
-                sprintf(addr_text, fhex, addr);
-                GuiReferenceSetCellContent(index, 0, addr_text); //Address
-                String ruleFullName = "";
-                ruleFullName += yrRule->identifier;
+            char addr_text[deflen] = "";
+            sprintf(addr_text, fhex, addr);
+            GuiReferenceSetCellContent(index, 0, addr_text); //Address
+            String ruleFullName = "";
+            ruleFullName += yrRule->identifier;
+            if (identifier)
+            {
                 ruleFullName += ".";
-                ruleFullName += string->identifier;
-                GuiReferenceSetCellContent(index, 1, ruleFullName.c_str()); //Rule
-                GuiReferenceSetCellContent(index, 2, pattern.c_str()); //Data
+                ruleFullName += identifier;
+            }
+            GuiReferenceSetCellContent(index, 1, ruleFullName.c_str()); //Rule
+            GuiReferenceSetCellContent(index, 2, pattern.c_str()); //Data
+        };
+
+        if (STRING_IS_NULL(yrRule->strings))
+        {
+            dprintf("[YARA] Global rule \"%s\' matched!\n", yrRule->identifier);
+            GuiReferenceSetRowCount(1);
+            addReference(base, nullptr, "");
+        }
+        else
+        {
+            dprintf("[YARA] Rule \"%s\" matched:\n", yrRule->identifier);
+            YR_STRING* string;
+            yr_rule_strings_foreach(yrRule, string)
+            {
+                YR_MATCH* match;
+                yr_string_matches_foreach(string, match)
+                {
+                    String pattern;
+                    if (STRING_IS_HEX(string))
+                        pattern = yara_print_hex_string(match->data, match->length);
+                    else
+                        pattern = yara_print_string(match->data, match->length);
+                    auto addr = duint(base + match->base + match->offset);
+                    dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
+
+                    addReference(addr, string->identifier, pattern);
+                }
             }
         }
     }
