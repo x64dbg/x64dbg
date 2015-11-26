@@ -1726,6 +1726,13 @@ struct YaraScanInfo
 {
     duint base;
     int index;
+    bool rawFile;
+    const char* modname;
+
+    YaraScanInfo(duint base, bool rawFile, const char* modname)
+        : base(base), index(0), rawFile(rawFile), modname(modname)
+    {
+    }
 };
 
 static int yaraScanCallback(int message, void* message_data, void* user_data)
@@ -1777,7 +1784,13 @@ static int yaraScanCallback(int message, void* message_data, void* user_data)
                         pattern = yara_print_hex_string(match->data, match->length);
                     else
                         pattern = yara_print_string(match->data, match->length);
-                    auto addr = duint(base + match->base + match->offset);
+                    auto offset = duint(match->base + match->offset);
+                    duint addr;
+                    if (scanInfo->rawFile) //convert raw offset to virtual offset
+                        addr = valfileoffsettova(scanInfo->modname, offset);
+                    else
+                        addr = base + offset;
+
                     dprintf("[YARA] String \"%s\" : %s on 0x%" fext "X\n", string->identifier, pattern.c_str(), addr);
 
                     addReference(addr, string->identifier, pattern);
@@ -1825,10 +1838,12 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
     duint base = 0;
     duint size = 0;
     duint mod = ModBaseFromName(argv[2]);
+    bool rawFile = false;
     if (mod)
     {
         base = mod;
         size = ModSizeFromAddr(base);
+        rawFile = argc > 3 && *argv[3] == '1';
     }
     else
     {
@@ -1846,8 +1861,26 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
             addr = MemFindBaseAddr(addr, &size);
         base = addr;
     }
+    std::vector<unsigned char> rawFileData;
+    if (rawFile) //read the file from disk
+    {
+        char modPath[MAX_PATH] = "";
+        if(!ModPathFromAddr(base, modPath, MAX_PATH))
+        {
+            dprintf("failed to get module path for " fhex "!\n", base);
+            return STATUS_ERROR;
+        }
+        if(!FileHelper::ReadAllData(modPath, rawFileData))
+        {
+            dprintf("failed to read file \"%s\"!\n", modPath);
+            return STATUS_ERROR;
+        }
+        size = rawFileData.size();
+    }
     Memory<uint8_t*> data(size);
-    if (!MemRead(base, data(), size))
+    if (rawFile)
+        memcpy(data(), rawFileData.data(), size);
+    else if (!MemRead(base, data(), size))
     {
         dprintf("failed to read memory page %p[%X]!\n", base, size);
         return STATUS_ERROR;
@@ -1889,9 +1922,7 @@ CMDRESULT cbInstrYara(int argc, char* argv[])
                 GuiReferenceAddColumn(0, "Data");
                 GuiReferenceSetRowCount(0);
                 GuiReferenceReloadData();
-                YaraScanInfo scanInfo;
-                scanInfo.base = base;
-                scanInfo.index = 0;
+                YaraScanInfo scanInfo(base, rawFile, argv[2]);
                 duint ticks = GetTickCount();
                 dputs("[YARA] Scan started...");
                 int err = yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallback, &scanInfo, 0);
@@ -1930,14 +1961,12 @@ CMDRESULT cbInstrYaramod(int argc, char* argv[])
         dputs("not enough arguments!");
         return STATUS_ERROR;
     }
-    duint base = ModBaseFromName(argv[2]);
-    if (!base)
+    if (!ModBaseFromName(argv[2]))
     {
         dprintf("invalid module \"%s\"!\n", argv[2]);
         return STATUS_ERROR;
     }
-    duint size = ModSizeFromAddr(base);
-    return cmddirectexec("yara \"%s\",%p,%p", argv[1], base, size);
+    return cmddirectexec("yara \"%s\",%s,%s", argv[1], argv[2], argc > 3 && *argv[3] == '1' ? "1" : "0");
 }
 
 CMDRESULT cbInstrLog(int argc, char* argv[])
