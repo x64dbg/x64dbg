@@ -125,8 +125,11 @@ void SymbolView::setupContextMenu()
     mCopyPathAction = new QAction("Copy File &Path", this);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
-    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara...", this);
+    mYaraAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara Memory...", this);
     connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
+
+    mYaraFileAction = new QAction(QIcon(":/icons/images/yara.png"), "&Yara File...", this);
+    connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
 
     mEntropyAction = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
@@ -253,6 +256,7 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
     wMenu->addAction(mYaraAction);
+    wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
     QMenu wCopyMenu("&Copy", this);
     mModuleList->setupCopyMenu(&wCopyMenu);
@@ -287,10 +291,21 @@ void SymbolView::moduleCopyPath()
 void SymbolView::moduleYara()
 {
     QString modname = mModuleList->getCellContent(mModuleList->getInitialSelection(), 1);
-    YaraRuleSelectionDialog yaraDialog(this);
+    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
     if(yaraDialog.exec() == QDialog::Accepted)
     {
-        DbgCmdExec(QString("yara \"%0\",\"%1\"").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
+        DbgCmdExec(QString("yaramod \"%0\",\"%1\"").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
+        emit showReferences();
+    }
+}
+
+void SymbolView::moduleYaraFile()
+{
+    QString modname = mModuleList->getCellContent(mModuleList->getInitialSelection(), 1);
+    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
+    if(yaraDialog.exec() == QDialog::Accepted)
+    {
+        DbgCmdExec(QString("yaramod \"%0\",\"%1\",1").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
         emit showReferences();
     }
 }

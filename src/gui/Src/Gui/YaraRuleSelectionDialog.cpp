@@ -6,7 +6,7 @@
 #include <QDirIterator>
 #include "Imports.h"
 
-YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget* parent) :
+YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget* parent, const QString & title) :
     QDialog(parent),
     ui(new Ui::YaraRuleSelectionDialog)
 {
@@ -15,6 +15,7 @@ YaraRuleSelectionDialog::YaraRuleSelectionDialog(QWidget* parent) :
     setWindowFlags(Qt::Dialog | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::MSWindowsFixedSizeDialogHint);
 #endif
     setFixedSize(this->size()); //fixed size
+    setWindowTitle(title);
 
     char setting[MAX_SETTING_SIZE] = "";
     if(BridgeSettingGet("Misc", "YaraRulesDirectory", setting))

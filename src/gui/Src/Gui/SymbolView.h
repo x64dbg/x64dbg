@@ -35,6 +35,7 @@ private slots:
     void moduleDownloadAllSymbols();
     void moduleCopyPath();
     void moduleYara();
+    void moduleYaraFile();
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
@@ -62,6 +63,7 @@ private:
     QAction* mDownloadAllSymbolsAction;
     QAction* mCopyPathAction;
     QAction* mYaraAction;
+    QAction* mYaraFileAction;
     QAction* mEntropyAction;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
