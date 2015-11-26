@@ -331,10 +331,10 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
             if(block->Target != 0)
             {
                 // Here's a problem: Compilers add tail-call elimination with a jump.
-                // Solve this by creating a maximum jump limit: +/- 512 bytes from the end.
+                // Solve this by creating a maximum jump limit: +/- 1024 bytes from the end.
                 //
                 // abs(block->VirtualEnd - block->Target) -- unsigned
-                if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) <= 512)
+                if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) <= 1024)
                     maximumAddr = max(maximumAddr, block->Target);
             }
         }

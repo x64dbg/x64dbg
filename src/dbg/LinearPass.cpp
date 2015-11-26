@@ -81,11 +81,9 @@ void LinearPass::AnalyseOverlaps()
 {
     // Goal of this function:
     //
-    // Remove all overlapping
-    // basic blocks because of threads not ending or
-    // starting at absolutely defined points.
-    // (Example: one thread starts in the middle of
-    // an instruction)
+    // Remove all overlapping basic blocks because of threads
+    // not ending or starting at absolutely defined points.
+    // (Example: one thread starts in the middle of an instruction)
     //
     // This also checks for basic block targets jumping into
     // the middle of other basic blocks.
@@ -148,8 +146,8 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
 
     duint blockBegin = Start;        // BBlock starting virtual address
     duint blockEnd;                  // BBlock ending virtual address
-    bool blockPrevPad = false;      // Indicator if the last instruction was padding
-    BasicBlock* lastBlock = nullptr;// Avoid an expensive call to std::vector::back()
+    bool blockPrevPad = false;       // Indicator if the last instruction was padding
+    BasicBlock* lastBlock = nullptr; // Avoid an expensive call to std::vector::back()
 
     for(duint i = Start; i < End;)
     {
@@ -286,14 +284,14 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
                 block1.VirtualStart = removal->VirtualStart;
                 block1.VirtualEnd = curr->Target;
                 block1.Target = 0;
-                block1.Flags = BASIC_BLOCK_FLAG_CUTOFF;
+                block1.Flags = removal->Flags;
 
                 // Block part 2
                 BasicBlock block2;
                 block2.VirtualStart = curr->Target;
                 block2.VirtualEnd = removal->VirtualEnd;
                 block2.Target = removal->Target;
-                block2.Flags = removal->Flags;
+                block2.Flags = BASIC_BLOCK_FLAG_CUTOFF;
 
                 Insertions->push_back(block1);
                 Insertions->push_back(block2);
