@@ -643,5 +643,8 @@
     <ClInclude Include="jit.h">
       <Filter>Header Files\Debugger Core</Filter>
     </ClInclude>
+    <ClInclude Include="yara\yara\stream.h">
+      <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

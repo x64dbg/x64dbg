@@ -49,27 +49,32 @@ limitations under the License.
 #define OP_OBJ_FIELD      18
 #define OP_INDEX_ARRAY    19
 #define OP_COUNT          20
-#define OP_FOUND          21
-#define OP_FOUND_AT       22
-#define OP_FOUND_IN       23
-#define OP_OFFSET         24
-#define OP_OF             25
-#define OP_PUSH_RULE      26
-#define OP_MATCH_RULE     27
-#define OP_INCR_M         28
-#define OP_CLEAR_M        29
-#define OP_ADD_M          30
-#define OP_POP_M          31
-#define OP_PUSH_M         32
-#define OP_SWAPUNDEF      33
-#define OP_JNUNDEF        34
-#define OP_JLE            35
-#define OP_FILESIZE       36
-#define OP_ENTRYPOINT     37
-#define OP_CONTAINS       38
-#define OP_MATCHES        39
-#define OP_IMPORT         40
-#define OP_LOOKUP_DICT    41
+#define OP_LENGTH         21
+#define OP_FOUND          22
+#define OP_FOUND_AT       23
+#define OP_FOUND_IN       24
+#define OP_OFFSET         25
+#define OP_OF             26
+#define OP_PUSH_RULE      27
+#define OP_INIT_RULE      28
+#define OP_MATCH_RULE     29
+#define OP_INCR_M         30
+#define OP_CLEAR_M        31
+#define OP_ADD_M          32
+#define OP_POP_M          33
+#define OP_PUSH_M         34
+#define OP_SWAPUNDEF      35
+#define OP_JNUNDEF        36
+#define OP_JLE            37
+#define OP_FILESIZE       38
+#define OP_ENTRYPOINT     39
+#define OP_CONTAINS       40
+#define OP_MATCHES        41
+#define OP_IMPORT         42
+#define OP_LOOKUP_DICT    43
+#define OP_JFALSE         44
+#define OP_JTRUE          45
+
 
 #define _OP_EQ            0
 #define _OP_NEQ           1
@@ -82,6 +87,7 @@ limitations under the License.
 #define _OP_MUL           8
 #define _OP_DIV           9
 #define _OP_MINUS         10
+
 
 #define OP_INT_BEGIN      100
 #define OP_INT_EQ         (OP_INT_BEGIN + _OP_EQ)

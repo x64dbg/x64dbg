@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 #ifndef YR_RULES_H
 #define YR_RULES_H
 
 #include "types.h"
 #include "utils.h"
+#include "filemap.h"
 
 
 #define CALLBACK_MSG_RULE_MATCHING              1
@@ -74,6 +74,15 @@ YR_API int yr_rules_scan_file(
     int timeout);
 
 
+YR_API int yr_rules_scan_fd(
+    YR_RULES* rules,
+    YR_FILE_DESCRIPTOR fd,
+    int flags,
+    YR_CALLBACK_FUNC callback,
+    void* user_data,
+    int timeout);
+
+
 YR_API int yr_rules_scan_proc(
     YR_RULES* rules,
     int pid,
@@ -88,8 +97,18 @@ YR_API int yr_rules_save(
     const char* filename);
 
 
+YR_API int yr_rules_save_stream(
+    YR_RULES* rules,
+    YR_STREAM* stream);
+
+
 YR_API int yr_rules_load(
     const char* filename,
+    YR_RULES** rules);
+
+
+YR_API int yr_rules_load_stream(
+    YR_STREAM* stream,
     YR_RULES** rules);
 
 

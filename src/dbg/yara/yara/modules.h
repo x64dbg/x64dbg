@@ -338,10 +338,10 @@ limitations under the License.
 
 
 #define return_float(double_) { \
+      double d = (double) (double_); \
       assertf( \
           __function_obj->return_obj->type == OBJECT_TYPE_FLOAT, \
           "return type differs from function declaration"); \
-      double d = (double) (double_); \
       yr_object_set_float( \
           (d != (double) UNDEFINED) ? d : NAN, \
           __function_obj->return_obj, \
@@ -351,10 +351,10 @@ limitations under the License.
 
 
 #define return_string(string) { \
+      char* s = (char*) (string); \
       assertf( \
           __function_obj->return_obj->type == OBJECT_TYPE_STRING, \
           "return type differs from function declaration"); \
-      char* s = (char*) (string); \
       yr_object_set_string( \
           (s != (char*) UNDEFINED) ? s : NULL, \
           (s != (char*) UNDEFINED) ? strlen(s) : 0, \
@@ -392,8 +392,6 @@ typedef int (*YR_EXT_UNLOAD_FUNC)(
 
 typedef struct _YR_MODULE
 {
-    tidx_mask_t is_loaded;
-
     char* name;
 
     YR_EXT_DECLARATIONS_FUNC declarations;

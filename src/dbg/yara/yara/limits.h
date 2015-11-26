@@ -17,6 +17,10 @@ limitations under the License.
 #ifndef YR_LIMITS_H
 #define YR_LIMITS_H
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 
 // MAX_THREADS is the number of threads that can use a YR_RULES
 // object simultaneosly. This value is limited by the number of
@@ -42,7 +46,7 @@ limitations under the License.
 
 #define LOOP_LOCAL_VARS                 4
 #define STRING_CHAINING_THRESHOLD       200
-#define LEX_BUF_SIZE                    1024
+#define LEX_BUF_SIZE                    8192
 
 
 #endif

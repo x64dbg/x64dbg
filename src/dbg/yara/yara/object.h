@@ -150,7 +150,8 @@ YR_OBJECT* yr_object_get_root(
 
 void yr_object_print_data(
     YR_OBJECT* object,
-    int indent);
+    int indent,
+    int print_identifier);
 
 
 #endif

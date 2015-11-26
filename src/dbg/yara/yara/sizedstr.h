@@ -17,6 +17,8 @@ limitations under the License.
 #ifndef _SIZEDSTR_H
 #define _SIZEDSTR_H
 
+#include <stddef.h>
+
 //
 // This struct is used to support strings containing null chars. The length of
 // the string is stored along the string data. However the string data is also
@@ -28,7 +30,7 @@ limitations under the License.
 
 typedef struct _SIZED_STRING
 {
-    int length;
+    size_t length;
     int flags;
     char c_string[1];
 

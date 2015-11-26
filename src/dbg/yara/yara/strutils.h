@@ -34,7 +34,7 @@ uint64_t xtoi(
     const char* hexstr);
 
 
-#if !HAVE_STRLCPY
+#if !HAVE_STRLCPY && !defined(strlcpy)
 size_t strlcpy(
     char* dst,
     const char* src,
@@ -42,7 +42,7 @@ size_t strlcpy(
 #endif
 
 
-#if !HAVE_STRLCAT
+#if !HAVE_STRLCAT && !defined(strlcat)
 size_t strlcat(
     char* dst,
     const char* src,
@@ -50,7 +50,7 @@ size_t strlcat(
 #endif
 
 
-#if !HAVE_MEMMEM
+#if !HAVE_MEMMEM && !defined(memmem)
 void* memmem(
     const void* haystack,
     size_t haystack_size,
@@ -59,7 +59,7 @@ void* memmem(
 #endif
 
 
-int strlen_w(
+int strnlen_w(
     const char* w_str);
 
 

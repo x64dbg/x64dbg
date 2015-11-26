@@ -17,13 +17,17 @@ limitations under the License.
 #ifndef YR_FILEMAP_H
 #define YR_FILEMAP_H
 
-#ifdef _WIN32
-#include <windows.h>
-#define FILE_DESCRIPTOR    HANDLE
+#ifdef _MSC_VER
 #define off_t              int64_t
 #else
 #include <sys/types.h>
-#define FILE_DESCRIPTOR    int
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#define YR_FILE_DESCRIPTOR    HANDLE
+#else
+#define YR_FILE_DESCRIPTOR    int
 #endif
 
 #include <stdlib.h>
@@ -34,7 +38,7 @@ limitations under the License.
 
 typedef struct _YR_MAPPED_FILE
 {
-    FILE_DESCRIPTOR     file;
+    YR_FILE_DESCRIPTOR  file;
     size_t              size;
     uint8_t*            data;
 #ifdef _WIN32
@@ -46,6 +50,13 @@ typedef struct _YR_MAPPED_FILE
 
 YR_API int yr_filemap_map(
     const char* file_path,
+    YR_MAPPED_FILE* pmapped_file);
+
+
+YR_API int yr_filemap_map_fd(
+    YR_FILE_DESCRIPTOR file,
+    off_t offset,
+    size_t size,
     YR_MAPPED_FILE* pmapped_file);
 
 

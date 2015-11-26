@@ -38,6 +38,14 @@ typedef void (*YR_COMPILER_CALLBACK_FUNC)(
     void* user_data);
 
 
+typedef struct _YR_FIXUP
+{
+    int64_t* address;
+    struct _YR_FIXUP* next;
+
+} YR_FIXUP;
+
+
 typedef struct _YR_COMPILER
 {
     int               errors;
@@ -63,12 +71,13 @@ typedef struct _YR_COMPILER
     YR_HASH_TABLE*    rules_table;
     YR_HASH_TABLE*    objects_table;
     YR_NAMESPACE*     current_namespace;
-    YR_STRING*        current_rule_strings;
+    YR_RULE*          current_rule;
 
-    int               current_rule_flags;
+    YR_FIXUP*         fixup_stack_head;
+
     int               namespaces_count;
 
-    int8_t*           loop_address[MAX_LOOP_NESTING];
+    uint8_t*          loop_address[MAX_LOOP_NESTING];
     char*             loop_identifier[MAX_LOOP_NESTING];
     int               loop_depth;
     int               loop_for_of_mem_offset;

@@ -20,17 +20,18 @@ limitations under the License.
 #include <stdint.h>
 #include <stddef.h>
 
+#include "stream.h"
 
 #define ARENA_FLAGS_FIXED_SIZE   1
 #define ARENA_FLAGS_COALESCED    2
-#define ARENA_FILE_VERSION       6
+#define ARENA_FILE_VERSION       10
 
 #define EOL ((size_t) -1)
 
 
 typedef struct _YR_RELOC
 {
-    int32_t offset;
+    uint32_t offset;
     struct _YR_RELOC* next;
 
 } YR_RELOC;
@@ -81,7 +82,7 @@ void* yr_arena_base_address(
 void* yr_arena_next_address(
     YR_ARENA* arena,
     void* address,
-    int offset);
+    size_t offset);
 
 
 int yr_arena_coalesce(
@@ -130,14 +131,14 @@ int yr_arena_append(
     YR_ARENA* source_arena);
 
 
-int yr_arena_save(
-    YR_ARENA* arena,
-    const char* filename);
-
-
-int yr_arena_load(
-    const char* filename,
+int yr_arena_load_stream(
+    YR_STREAM* stream,
     YR_ARENA** arena);
+
+
+int yr_arena_save_stream(
+    YR_ARENA* arena,
+    YR_STREAM* stream);
 
 
 int yr_arena_duplicate(

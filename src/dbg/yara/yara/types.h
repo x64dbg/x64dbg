@@ -31,6 +31,10 @@ typedef HANDLE mutex_t;
 typedef pthread_mutex_t mutex_t;
 #endif
 
+#ifdef PROFILING_ENABLED
+#include <time.h>
+#endif
+
 typedef int32_t tidx_mask_t;
 
 
@@ -38,13 +42,10 @@ typedef int32_t tidx_mask_t;
     union { type name; int64_t name##_; }
 
 #pragma pack(push)
-#pragma pack(1)
+#pragma pack(8)
 
 
 #define NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL      0x01
-
-#define NAMESPACE_HAS_UNSATISFIED_GLOBAL(x) \
-    ((x)->t_flags[yr_get_tidx()] & NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL)
 
 
 typedef struct _YR_NAMESPACE
@@ -67,7 +68,7 @@ typedef struct _YR_NAMESPACE
 typedef struct _YR_META
 {
     int32_t type;
-    int32_t integer;
+    int64_t integer;
 
     DECLARE_REFERENCE(const char*, identifier);
     DECLARE_REFERENCE(char*, string);
@@ -119,6 +120,7 @@ typedef struct _YR_MATCHES
 #define STRING_GFLAGS_CHAIN_PART        0x2000
 #define STRING_GFLAGS_CHAIN_TAIL        0x4000
 #define STRING_GFLAGS_FIXED_OFFSET      0x8000
+#define STRING_GFLAGS_GREEDY_REGEXP     0x10000
 
 
 #define STRING_IS_HEX(x) \
@@ -135,6 +137,9 @@ typedef struct _YR_MATCHES
 
 #define STRING_IS_REGEXP(x) \
     (((x)->g_flags) & STRING_GFLAGS_REGEXP)
+
+#define STRING_IS_GREEDY_REGEXP(x) \
+    (((x)->g_flags) & STRING_GFLAGS_GREEDY_REGEXP)
 
 #define STRING_IS_FULL_WORD(x) \
     (((x)->g_flags) & STRING_GFLAGS_FULL_WORD)
@@ -194,7 +199,7 @@ typedef struct _YR_STRING
     YR_MATCHES unconfirmed_matches[MAX_THREADS];
 
 #ifdef PROFILING_ENABLED
-    uint64_t clock_ticks;
+    clock_t clock_ticks;
 #endif
 
 } YR_STRING;
@@ -233,7 +238,7 @@ typedef struct _YR_RULE
     DECLARE_REFERENCE(YR_NAMESPACE*, ns);
 
 #ifdef PROFILING_ENABLED
-    uint64_t clock_ticks;
+    clock_t clock_ticks;
 #endif
 
 } YR_RULE;
@@ -383,11 +388,16 @@ typedef struct _YR_SCAN_CONTEXT
     uint64_t  entry_point;
 
     int flags;
+    int tidx;
+
     void* user_data;
 
     YR_MEMORY_BLOCK*  mem_block;
     YR_HASH_TABLE*  objects_table;
     YR_CALLBACK_FUNC  callback;
+
+    YR_ARENA* matches_arena;
+    YR_ARENA* matching_strings_arena;
 
 } YR_SCAN_CONTEXT;
 

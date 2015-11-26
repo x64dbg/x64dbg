@@ -45,16 +45,20 @@ typedef uint64_t elf64_xword_t;
 #define ELF_ET_LOPROC   0xFF00  // Processor-specific
 #define ELF_ET_HIPROC   0x00FF  // Processor-specific
 
-#define ELF_EM_NONE     0x0000  // no type
-#define ELF_EM_M32      0x0001  // AT&T WE 32100
-#define ELF_EM_SPARC    0x0002  // SPARC
-#define ELF_EM_386      0x0003  // Intel 80386
-#define ELF_EM_68K      0x0004  // Motorola 68000
-#define ELF_EM_88K      0x0005  // Motorola 88000
-#define ELF_EM_860      0x0007  // Intel 80860
-#define ELF_EM_MIPS     0x0008  // MIPS RS3000
-#define ELF_EM_ARM      0x0032  // ARM
-#define ELF_EM_X86_64   0x003E  // AMD/Intel x86_64
+#define ELF_EM_NONE         0x0000  // no type
+#define ELF_EM_M32          0x0001  // AT&T WE 32100
+#define ELF_EM_SPARC        0x0002  // SPARC
+#define ELF_EM_386          0x0003  // Intel 80386
+#define ELF_EM_68K          0x0004  // Motorola 68000
+#define ELF_EM_88K          0x0005  // Motorola 88000
+#define ELF_EM_860          0x0007  // Intel 80860
+#define ELF_EM_MIPS         0x0008  // MIPS I Architecture
+#define ELF_EM_MIPS_RS3_LE  0x000A  // MIPS RS3000 Little-endian
+#define ELF_EM_PPC          0x0014  // PowerPC
+#define ELF_EM_PPC64        0x0015  // 64-bit PowerPC
+#define ELF_EM_ARM          0x0028  // ARM
+#define ELF_EM_X86_64       0x003E  // AMD/Intel x86_64
+#define ELF_EM_AARCH64      0x00B7  // 64-bit ARM
 
 #define ELF_CLASS_NONE  0x0000
 #define ELF_CLASS_32    0x0001  // 32bit file
@@ -82,6 +86,25 @@ typedef uint64_t elf64_xword_t;
 #define ELF_SHF_WRITE        0x1   // Section is writable
 #define ELF_SHF_ALLOC        0x2   // Section is present during execution
 #define ELF_SHF_EXECINSTR    0x4   // Section contains executable instructions
+
+#define ELF_SHN_LORESERVE    0xFF00
+
+#define ELF_PT_NULL          0     // The array element is unused
+#define ELF_PT_LOAD          1     // Loadable segment
+#define ELF_PT_DYNAMIC       2     // Segment contains dynamic linking info
+#define ELF_PT_INTERP        3     // Contains interpreter pathname
+#define ELF_PT_NOTE          4     // Location & size of auxiliary info
+#define ELF_PT_SHLIB         5     // Reserved, unspecified semantics
+#define ELF_PT_PHDR          6     // Location and size of program header table
+#define ELF_PT_TLS           7     // Thread-Local Storage
+#define ELF_PT_GNU_EH_FRAME  0x6474e550
+#define ELF_PT_GNU_STACK     0x6474e551
+
+#define ELF_PF_X             0x1   // Segment is executable
+#define ELF_PF_W             0x2   // Segment is writable
+#define ELF_PF_R             0x4   // Segment is readable
+
+#define ELF_PN_XNUM          0xffff
 
 #pragma pack(push,1)
 

@@ -31,26 +31,28 @@ limitations under the License.
 #endif
 
 #ifdef __cplusplus
-#define YR_API extern "C" __declspec(dllimport)
+#define EXTERNC extern "C"
 #else
-#define YR_API
+#define EXTERNC
 #endif
 
-#ifndef min
-#define min(x, y) ((x < y) ? (x) : (y))
+#if defined(__GNUC__)
+#define YR_API EXTERNC __attribute__((visibility("default")))
+#elif defined(_MSC_VER)
+#define YR_API EXTERNC __declspec(dllexport)
+#else
+#deinfe YR_API EXTERNC
 #endif
 
-#ifndef max
-#define max(x, y) ((x > y) ? (x) : (y))
-#endif
+#define yr_min(x, y) ((x < y) ? (x) : (y))
+#define yr_max(x, y) ((x > y) ? (x) : (y))
 
-
-#define PTR_TO_UINT64(x)  ((uint64_t) (size_t) x)
+#define PTR_TO_INT64(x)  ((int64_t) (size_t) x)
 
 
 #ifdef NDEBUG
 
-#define assertf(expr, msg)  ((void)0)
+#define assertf(expr, msg, ...)  ((void)0)
 
 #else
 

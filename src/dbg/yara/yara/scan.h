@@ -19,17 +19,18 @@ limitations under the License.
 
 #include "types.h"
 
+// Bitmasks for flags.
 #define SCAN_FLAGS_FAST_MODE         1
 #define SCAN_FLAGS_PROCESS_MEMORY    2
+#define SCAN_FLAGS_SHOW_MODULE_DATA  4
 
 
 int yr_scan_verify_match(
+    YR_SCAN_CONTEXT* context,
     YR_AC_MATCH* ac_match,
     uint8_t* data,
     size_t data_size,
     size_t data_base,
-    size_t offset,
-    YR_ARENA* matches_arena,
-    int flags);
+    size_t offset);
 
 #endif

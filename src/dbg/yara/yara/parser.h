@@ -23,29 +23,32 @@ limitations under the License.
 
 int yr_parser_emit(
     yyscan_t yyscanner,
-    int8_t instruction,
-    int8_t** instruction_address);
+    uint8_t instruction,
+    uint8_t** instruction_address);
 
 
 int yr_parser_emit_with_arg(
     yyscan_t yyscanner,
-    int8_t instruction,
+    uint8_t instruction,
     int64_t argument,
-    int8_t** instruction_address);
+    uint8_t** instruction_address,
+    int64_t** argument_address);
 
 
 int yr_parser_emit_with_arg_double(
     yyscan_t yyscanner,
-    int8_t instruction,
+    uint8_t instruction,
     double argument,
-    int8_t** instruction_address);
+    uint8_t** instruction_address,
+    double** argument_address);
 
 
 int yr_parser_emit_with_arg_reloc(
     yyscan_t yyscanner,
-    int8_t instruction,
+    uint8_t instruction,
     int64_t argument,
-    int8_t** instruction_address);
+    uint8_t** instruction_address,
+    int64_t** argument_address);
 
 
 int yr_parser_check_types(
@@ -64,18 +67,23 @@ int yr_parser_lookup_loop_variable(
     const char* identifier);
 
 
-int yr_parser_reduce_rule_declaration(
+YR_RULE* yr_parser_reduce_rule_declaration_phase_1(
     yyscan_t yyscanner,
-    int flags,
+    int32_t flags,
     const char* identifier,
     char* tags,
     YR_STRING* strings,
     YR_META* metas);
 
 
+int yr_parser_reduce_rule_declaration_phase_2(
+    yyscan_t yyscanner,
+    YR_RULE* rule);
+
+
 YR_STRING* yr_parser_reduce_string_declaration(
     yyscan_t yyscanner,
-    int flags,
+    int32_t flags,
     const char* identifier,
     SIZED_STRING* str);
 
@@ -85,13 +93,13 @@ YR_META* yr_parser_reduce_meta_declaration(
     int32_t type,
     const char* identifier,
     const char* string,
-    int32_t integer);
+    int64_t integer);
 
 
 int yr_parser_reduce_string_identifier(
     yyscan_t yyscanner,
     const char* identifier,
-    int8_t instruction,
+    uint8_t instruction,
     uint64_t at_offset);
 
 
@@ -103,7 +111,7 @@ int yr_parser_emit_pushes_for_strings(
 int yr_parser_reduce_external(
     yyscan_t yyscanner,
     const char* identifier,
-    int8_t intruction);
+    uint8_t intruction);
 
 
 int yr_parser_reduce_import(
