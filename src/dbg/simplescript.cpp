@@ -157,6 +157,8 @@ static bool scriptcreatelinemap(const char* filename)
         //temp. remove comments from the raw line
         char line_comment[256] = "";
         char* comment = strstr(&cur.raw[0], "//");
+        if (!comment)
+            comment = strstr(&cur.raw[0], ";");
         if(comment && comment != cur.raw) //only when the line doesnt start with a comment
         {
             if(*(comment - 1) == ' ') //space before comment
@@ -176,7 +178,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             cur.type = lineempty;
         }
-        else if(!strncmp(cur.raw, "//", 2)) //comment
+        else if (!strncmp(cur.raw, "//", 2) || *cur.raw == ';') //comment
         {
             cur.type = linecomment;
             strcpy_s(cur.u.comment, cur.raw);
