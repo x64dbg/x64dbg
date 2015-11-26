@@ -388,7 +388,7 @@ CMDRESULT cmddirectexec(const char* cmd, ...)
     _vsnprintf_s(command, _TRUNCATE, cmd, ap);
     va_end(ap);
 
-    strcpy_s(command, StringUtils::Trim(cmd).c_str());
+    strcpy_s(command, StringUtils::Trim(command).c_str());
     COMMAND* found = cmdfindmain(command);
     if(!found || !found->cbCommand)
         return STATUS_ERROR;
