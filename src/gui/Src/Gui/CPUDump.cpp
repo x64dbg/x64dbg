@@ -8,10 +8,12 @@
 #include "YaraRuleSelectionDialog.h"
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
+#include "CPUMultiDump.h"
 
-CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
+CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
+    mMultiDump = multiDump;
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
     case ViewHexAscii:
@@ -151,11 +153,26 @@ void CPUDump::setupContextMenu()
 
     //Follow DWORD/QWORD in Disasm
 #ifdef _WIN64
-    mFollowDataDump = new QAction("&Follow QWORD in Dump", this);
+    mFollowDataDump = new QAction("&Follow QWORD in Current Dump", this);
 #else //x86
-    mFollowDataDump = new QAction("&Follow DWORD in Dump", this);
+    mFollowDataDump = new QAction("&Follow DWORD in Current Dump", this);
 #endif //_WIN64
     connect(mFollowDataDump, SIGNAL(triggered()), this, SLOT(followDataDumpSlot()));
+
+#ifdef _WIN64
+    mFollowInDumpMenu = new QMenu("&Follow QWORD in Dump", this);
+#else //x86
+    mFollowInDumpMenu = new QMenu("&Follow DWORD in Dump", this);
+#endif //_WIN64
+
+    int maxDumps = mMultiDump->getMaxCPUTabs();
+    for(int i=0; i<maxDumps; i++)
+    {
+        QAction* action = new QAction(QString("Dump %1").arg(i+1), this);
+        connect(action, SIGNAL(triggered()), this, SLOT(followInDumpNSlot()));
+        mFollowInDumpMenu->addAction(action);
+        mFollowInDumpActions.push_back(action);
+    }
 
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
@@ -548,6 +565,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     {
         wMenu->addAction(mFollowData);
         wMenu->addAction(mFollowDataDump);
+        wMenu->addMenu(mFollowInDumpMenu);
     }
 
     wMenu->addAction(mSetLabelAction);
@@ -566,6 +584,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
 
+    QList<QString> tabNames;
+    mMultiDump->getTabNames(tabNames);
+    for(int i=0; i<tabNames.length(); i++)
+        mFollowInDumpActions[i]->setText(tabNames[i]);
 
     if((DbgGetBpxTypeAt(selectedAddr) & bp_hardware) == bp_hardware) //hardware breakpoint set
     {
@@ -1502,4 +1524,15 @@ void CPUDump::copyRvaSlot()
     }
     else
         QMessageBox::warning(this, "Error!", "Selection not in a module...");
+}
+
+void CPUDump::followInDumpNSlot()
+{
+    for(int i=0; i<mFollowInDumpActions.length(); i++)
+    {
+        if(mFollowInDumpActions[i] == sender())
+        {
+            DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
+        }
+    }
 }

@@ -5,7 +5,7 @@
 #include <QTabBar>
 
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
-    : MHTabWidget(parent, true, false)
+    : MHTabWidget(parent, false)
 {
     mMaxCPUDumpTabs = nbCpuDumpTabs;
     mInitAllDumpTabs = false;
@@ -33,6 +33,18 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
 CPUDump* CPUMultiDump::getCurrentCPUDump()
 {
     return mCurrentCPUDump;
+}
+
+void CPUMultiDump::getTabNames(QList<QString> & names)
+{
+    names.clear();
+    for(int i=0; i<count(); i++)
+        names.push_back(tabBar()->tabText(i));
+}
+
+int CPUMultiDump::getMaxCPUTabs()
+{
+    return mMaxCPUDumpTabs;
 }
 
 void CPUMultiDump::updateCurrentTabSlot(int tabIndex)

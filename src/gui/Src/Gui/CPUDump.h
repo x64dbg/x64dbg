@@ -5,11 +5,14 @@
 #include "GotoDialog.h"
 #include "CPUDisassembly.h"
 
+//forward declaration
+class CPUMultiDump;
+
 class CPUDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUDump(CPUDisassembly* disas, QWidget* parent = 0);
+    explicit CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent = 0);
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
@@ -89,6 +92,7 @@ public slots:
     void entropySlot();
     void copyAddressSlot();
     void copyRvaSlot();
+    void followInDumpNSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -186,9 +190,12 @@ private:
     QMenu* mCustomMenu;
     QMenu* mPluginMenu;
     QMenu* mCopyMenu;
+    QMenu* mFollowInDumpMenu;
+    QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
+    CPUMultiDump* mMultiDump;
 
     enum ViewEnum_t
     {

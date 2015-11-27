@@ -13,6 +13,8 @@ class CPUMultiDump : public MHTabWidget
 public:
     explicit CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs = 1, QWidget* parent = 0);
     CPUDump* getCurrentCPUDump();
+    void getTabNames(QList<QString> & names);
+    int getMaxCPUTabs();
 
 signals:
     void displayReferencesWidget();
