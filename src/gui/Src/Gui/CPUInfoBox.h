@@ -12,6 +12,7 @@ public:
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, dsint value);
     void setupFollowMenu(QMenu* menu, dsint wVA);
+    int followInDump(dsint wVA);
 
 public slots:
     void disasmSelectionChanged(dsint parVA);
@@ -21,6 +22,7 @@ public slots:
     void copyAddress();
     void copyRva();
     void copyOffset();
+    void doubleClickedSlot();
 
 private:
     dsint curAddr;
