@@ -11,6 +11,7 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     this->setCompleter(mCompleter);
 
     //Setup signals & slots
+    connect(mCompleter, SIGNAL(activated(const QString&)), this, SLOT(clear()), Qt::QueuedConnection);
     connect(Bridge::getBridge(), SIGNAL(autoCompleteAddCmd(QString)), this, SLOT(autoCompleteAddCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));

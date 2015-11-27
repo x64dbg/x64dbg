@@ -7,6 +7,7 @@
 class CommandLineEdit : public HistoryLineEdit
 {
     Q_OBJECT
+
 public:
     explicit CommandLineEdit(QWidget* parent = 0);
 

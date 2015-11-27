@@ -464,24 +464,21 @@ void MainWindow::updateMRUMenu()
 
 QString MainWindow::getMRUEntry(int index)
 {
-    QString path;
-
     if(index < mMRUList.size())
-        path = mMRUList.at(index);
+        return mMRUList.at(index);
 
-    return path;
+    return "";
 }
 
 void MainWindow::executeCommand()
 {
-    QString wCmd = mCmdLineEdit->text();
+    QString& wCmd = mCmdLineEdit->text();
 
     DbgCmdExec(wCmd.toUtf8().constData());
 
     mCmdLineEdit->addLineToHistory(wCmd);
     mCmdLineEdit->setText("");
 }
-
 
 void MainWindow::execStepOver()
 {
