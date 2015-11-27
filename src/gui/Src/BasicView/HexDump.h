@@ -130,7 +130,7 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
     void clearDescriptors();
 
-    void printDumpAt(dsint parVA, bool select, bool repaint = true);
+    void printDumpAt(dsint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
     duint rvaToVa(dsint rva);
     duint getTableOffsetRva();
 
