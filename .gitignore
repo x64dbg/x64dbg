@@ -38,7 +38,6 @@ ui_*
 *.pro.user
 .DS_Store
 *.ipgset
-*.vcxproj.user
 
 # Project to ignore
 help/x64*dbg.chm
