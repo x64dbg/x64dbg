@@ -144,7 +144,7 @@ void MHTabWidget::setCurrentIndex(int index)
     }
 }
 
-QTabBar* MHTabWidget::tabBar() const
+MHTabBar* MHTabWidget::tabBar() const
 {
     return m_tabBar;
 }

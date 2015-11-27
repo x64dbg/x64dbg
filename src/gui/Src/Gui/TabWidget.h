@@ -8,6 +8,7 @@
 #include <QMoveEvent>
 #include <QApplication>
 #include <QDesktopWidget>
+#include "TabBar.h"
 
 // Qt forward class definitions
 class MHTabBar;
@@ -38,7 +39,7 @@ public Q_SLOTS:
     void setCurrentIndex(int index);
 
 protected:
-    QTabBar* tabBar() const;
+    MHTabBar* tabBar() const;
 
 private:
     MHTabBar* m_tabBar;

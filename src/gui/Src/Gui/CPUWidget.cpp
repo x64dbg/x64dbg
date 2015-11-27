@@ -55,7 +55,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopRightFrameLayout->addWidget(button_changeview);
     ui->mTopRightFrameLayout->addWidget(scrollArea);
 
-    mDump = new CPUDump(mDisas, 0); //dump widget
+    mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);
 
     mStack = new CPUStack(0); //stack widget
@@ -137,7 +137,7 @@ CPUDisassembly* CPUWidget::getDisasmWidget()
     return mDisas;
 }
 
-CPUDump* CPUWidget::getDumpWidget()
+CPUMultiDump* CPUWidget::getDumpWidget()
 {
     return mDump;
 }

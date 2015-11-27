@@ -53,3 +53,15 @@ void MHTabBar::contextMenuEvent(QContextMenuEvent* event)
         OnDeleteTab((int)tabAt(event->pos()));
     }
 }
+
+void MHTabBar::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    // On tab double click emit the index of the tab that was double clicked
+    if(event->button() == Qt::LeftButton)
+    {
+        int tabIndex = tabAt(event->pos());
+
+        if(tabIndex != -1)
+            emit OnDoubleClickTabIndex(tabIndex);
+    }
+}
