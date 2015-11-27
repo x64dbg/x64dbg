@@ -49,14 +49,23 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
 
 void StatusLabel::logUpdate(QString message)
 {
-    if(labelText.contains(QChar('\n'))) //newline
+    if (labelText.contains('\n'))
         labelText = "";
-    labelText += message;
-    //only show the last line in the status label
-    QStringList lineList = labelText.split(QChar('\n'), QString::SkipEmptyParts);
-    if(lineList.size())
-        setText(Qt::convertFromPlainText(lineList[lineList.length() - 1]));
+
+    // Split each newline into a separate string
+    QStringList lineList = message.split('\n', QString::SkipEmptyParts);
+
+    if (lineList.size() > 0)
+    {
+        // Get a substring for the last line only
+        labelText += lineList[lineList.size() - 1] + "\n";
+    }
     else
-        setText(Qt::convertFromPlainText(labelText));
-    this->repaint();
+    {
+        // Append to the existing message
+        labelText += message;
+    }
+
+    // We want to trim every \n from the visual display
+    setText(Qt::convertFromPlainText(QString(labelText).replace("\n", "")));
 }

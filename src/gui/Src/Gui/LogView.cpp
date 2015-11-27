@@ -28,7 +28,6 @@ void LogView::addMsgToLogSlot(QString msg)
     this->insertPlainText(msg);
 }
 
-
 void LogView::clearLogSlot()
 {
     this->clear();
