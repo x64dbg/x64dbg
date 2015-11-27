@@ -334,5 +334,12 @@ BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, duint
         block.SetFlag(BASIC_BLOCK_FLAG_PAD);
 
     Blocks->push_back(block);
+
+    // std::vector::back() incurs a very large performance overhead (30% slower) when
+    // used in debug mode. This code eliminates it from showing up in the profiler.
+#ifdef _DEBUG
+    return &Blocks->data()[Blocks->size() - 1];
+#else
     return &Blocks->back();
+#endif // _DEBUG
 }
