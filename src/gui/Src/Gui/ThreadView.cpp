@@ -1,6 +1,7 @@
 #include "ThreadView.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "StringUtil.h"
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {
@@ -222,12 +223,12 @@ void ThreadView::updateThreadList()
         if(!threadList.list[i].BasicInfo.ThreadNumber)
             setCellContent(i, 0, "Main");
         else
-            setCellContent(i, 0, QString("%1").arg(threadList.list[i].BasicInfo.ThreadNumber, 0, 10));
-        setCellContent(i, 1, QString("%1").arg(threadList.list[i].BasicInfo.ThreadId, 0, 16).toUpper());
-        setCellContent(i, 2, QString("%1").arg(threadList.list[i].BasicInfo.ThreadStartAddress, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 3, QString("%1").arg(threadList.list[i].BasicInfo.ThreadLocalBase, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 4, QString("%1").arg(threadList.list[i].ThreadCip, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 5, QString().sprintf("%d", threadList.list[i].SuspendCount));
+            setCellContent(i, 0, ToDecString(threadList.list[i].BasicInfo.ThreadNumber));
+        setCellContent(i, 1, ToHexString(threadList.list[i].BasicInfo.ThreadId));
+        setCellContent(i, 2, ToPtrString(threadList.list[i].BasicInfo.ThreadStartAddress));
+        setCellContent(i, 3, ToPtrString(threadList.list[i].BasicInfo.ThreadLocalBase));
+        setCellContent(i, 4, ToPtrString(threadList.list[i].ThreadCip));
+        setCellContent(i, 5, ToDecString(threadList.list[i].SuspendCount));
         QString priorityString;
         switch(threadList.list[i].Priority)
         {
@@ -379,16 +380,22 @@ void ThreadView::updateThreadList()
         setCellContent(i, 8, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());
         setCellContent(i, 9, threadList.list[i].BasicInfo.threadName);
     }
+    mCurrentThreadId = "NONE";
     if(threadList.count)
+    {
         BridgeFree(threadList.list);
-    mCurrentThread = threadList.CurrentThread;
+        int currentThread = threadList.CurrentThread;
+        if(currentThread >= 0 && currentThread < threadList.count)
+            mCurrentThreadId = ToHexString(threadList.list[currentThread].BasicInfo.ThreadId);
+    }
     reloadData();
 }
 
 QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    if(rowBase + rowOffset == mCurrentThread && !col)
+    QString threadId = getCellContent(rowBase + rowOffset, 1);
+    if(threadId == mCurrentThreadId && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
         painter->setPen(QPen(ConfigColor("ThreadCurrentColor"))); //white text

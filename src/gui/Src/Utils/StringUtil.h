@@ -24,14 +24,27 @@ static QString ToPtrString(duint Address)
     return QString(temp);
 }
 
-static QString ToHexString(duint Address)
+static QString ToHexString(duint Value)
 {
     char temp[32];
 
 #ifdef _WIN64
-    sprintf_s(temp, "%llX", Address);
+    sprintf_s(temp, "%llX", Value);
 #else
-    sprintf_s(temp, "%X", Address);
+    sprintf_s(temp, "%X", Value);
+#endif // _WIN64
+
+    return QString(temp);
+}
+
+static QString ToDecString(dsint Value)
+{
+    char temp[32];
+
+#ifdef _WIN64
+    sprintf_s(temp, "%lld", Value);
+#else
+    sprintf_s(temp, "%d", Value);
 #endif // _WIN64
 
     return QString(temp);

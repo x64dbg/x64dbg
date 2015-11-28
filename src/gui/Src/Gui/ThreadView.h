@@ -33,7 +33,7 @@ signals:
     void showCpu();
 
 private:
-    int mCurrentThread;
+    QString mCurrentThreadId;
     QAction* mSwitchThread;
     QAction* mSuspendThread;
     QAction* mGoToThreadEntry;
