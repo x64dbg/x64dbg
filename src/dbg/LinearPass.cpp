@@ -288,30 +288,36 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
         {
             removal = FindBBlockInRange(curr->Target);
 
-            // If the target does not equal the block start...
-            if(removal && curr->Target != removal->VirtualStart)
+            if (removal)
             {
-                // Mark for deletion
-                removal->SetFlag(BASIC_BLOCK_FLAG_DELETE);
+                if (curr->GetFlag(BASIC_BLOCK_FLAG_CALL))
+                    removal->SetFlag(BASIC_BLOCK_FLAG_CALL_TARGET);
 
-                // Block part 1
-                BasicBlock block1;
-                block1.VirtualStart = removal->VirtualStart;
-                block1.VirtualEnd = curr->Target;
-                block1.Target = 0;
-                block1.Flags = BASIC_BLOCK_FLAG_CUTOFF; // Attributes of the top half
-                block1.InstrCount = removal->InstrCount;
+                // If the target does not equal the block start...
+                if (curr->Target != removal->VirtualStart)
+                {
+                    // Mark for deletion
+                    removal->SetFlag(BASIC_BLOCK_FLAG_DELETE);
 
-                // Block part 2
-                BasicBlock block2;
-                block2.VirtualStart = curr->Target;
-                block2.VirtualEnd = removal->VirtualEnd;
-                block2.Target = removal->Target;
-                block2.Flags = removal->Flags;          // Attributes of the bottom half (taken from original block)
-                block2.InstrCount = removal->InstrCount;
+                    // Block part 1
+                    BasicBlock block1;
+                    block1.VirtualStart = removal->VirtualStart;
+                    block1.VirtualEnd = curr->Target;
+                    block1.Target = 0;
+                    block1.Flags = BASIC_BLOCK_FLAG_CUTOFF; // Attributes of the top half
+                    block1.InstrCount = removal->InstrCount;
 
-                Insertions->push_back(block1);
-                Insertions->push_back(block2);
+                    // Block part 2
+                    BasicBlock block2;
+                    block2.VirtualStart = curr->Target;
+                    block2.VirtualEnd = removal->VirtualEnd;
+                    block2.Target = removal->Target;
+                    block2.Flags = removal->Flags;          // Attributes of the bottom half (taken from original block)
+                    block2.InstrCount = removal->InstrCount;
+
+                    Insertions->push_back(block1);
+                    Insertions->push_back(block2);
+                }
             }
         }
     }
@@ -319,7 +325,7 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
 
 BasicBlock* LinearPass::CreateBlockWorker(std::vector<BasicBlock>* Blocks, duint Start, duint End, bool Call, bool Jmp, bool Ret, bool Pad)
 {
-    BasicBlock block { Start, End, 0, 0, 0 };
+    BasicBlock block { Start, End - 1, 0, 0, 0 };
 
     // Check for calls
     if(Call)

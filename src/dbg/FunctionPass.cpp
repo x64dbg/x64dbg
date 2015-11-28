@@ -103,7 +103,7 @@ bool FunctionPass::Analyse()
     FunctionClear();
     for(auto & func : funcs)
     {
-        FunctionAdd(func.VirtualStart, func.VirtualEnd - 1, true, func.InstrCount);
+        FunctionAdd(func.VirtualStart, func.VirtualEnd, true, func.InstrCount);
     }
     GuiUpdateAllViews();
 
@@ -280,6 +280,7 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
     return true;
 }
 
+#include "console.h"
 bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock)
 {
     ASSERT_TRUE(Function->VirtualStart != 0);
@@ -301,6 +302,12 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
     // Loop forever until the end is found
     for(; (duint)block <= (duint)LastBlock; block++)
     {
+        if (block->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET) && block->VirtualStart != Function->VirtualStart)
+        {
+            block--;
+            break;
+        }
+
         // Block is now in use
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
 
@@ -308,19 +315,57 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
         Function->InstrCount += block->InstrCount;
 
         // Calculate max from just linear instructions
-        maximumAddr = max(maximumAddr, block->VirtualEnd - 1);
+        maximumAddr = max(maximumAddr, block->VirtualEnd);
 
         // Find maximum jump target
         if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
         {
-            if(block->Target != 0)
+            if (block->Target != 0 && block->Target >= maximumAddr)
             {
                 // Here's a problem: Compilers add tail-call elimination with a jump.
-                // Solve this by creating a maximum jump limit: +/- 1024 bytes from the end.
-                //
-                // abs(block->VirtualEnd - block->Target) -- unsigned
-                if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) <= 1024)
-                    maximumAddr = max(maximumAddr, block->Target);
+                // Solve this by creating a maximum jump limit.
+                auto targetBlock = FindBBlockInRange(block->Target);
+
+                // If (target block found) and (target block is not called)
+                if (targetBlock && !targetBlock->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET))
+                {
+                    duint blockEnd = targetBlock->VirtualEnd;
+
+                    //
+                    // Edge case when a compiler emits:
+                    //
+                    // pop ebp
+                    // jmp some_func
+                    // int3
+                    // int3
+                    //                  some_func:
+                    //  push ebp
+                    //
+                    // Where INT3 will align "some_func" to 4, 8, 12, or 16.
+                    // INT3 padding is also optional (if the jump fits perfectly).
+                    //
+                    if (true/*block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP)*/)
+                    {
+
+                        {
+                            // Check if padding is aligned to 4
+                            auto nextBlock = block + 1;
+
+                            if ((duint)nextBlock <= (duint)LastBlock)
+                            {
+                                if (nextBlock->GetFlag(BASIC_BLOCK_FLAG_PAD))
+                                {
+                                    // If this block is aligned to 4 bytes at the end
+                                    if ((nextBlock->VirtualEnd + 1) % 4 == 0)
+                                        blockEnd = block->VirtualEnd;
+                                }
+                            }
+                        }
+                    }
+
+                    // Now calculate the maximum end address, taking into account the jump destination
+                    maximumAddr = max(maximumAddr, blockEnd);
+                }
             }
         }
 
@@ -328,7 +373,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
         ASSERT_TRUE(maximumAddr >= block->VirtualStart);
 
         // Does this node contain the maximum address?
-        if(maximumAddr >= block->VirtualStart && maximumAddr < block->VirtualEnd)
+        if(maximumAddr >= block->VirtualStart && maximumAddr <= block->VirtualEnd)
         {
             // It does! There's 4 possibilities next:
             //
@@ -347,9 +392,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
                 if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
                 {
                     // 2.
-                    //
-                    // abs(block->VirtualEnd - block->Target) -- unsigned
-                    if(min(block->VirtualEnd - block->Target, block->Target - block->VirtualEnd) > 128)
+                    if (block->VirtualEnd == maximumAddr)
                         break;
 
                     // 3.
