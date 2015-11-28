@@ -5,15 +5,25 @@
 #include "GotoDialog.h"
 #include "CPUDisassembly.h"
 
+//forward declaration
+class CPUMultiDump;
+
 class CPUDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUDump(CPUDisassembly* disas, QWidget* parent = 0);
+    explicit CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent = 0);
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
+    void addVaToHistory(dsint parVa);
+    bool historyHasPrev();
+    bool historyHasNext();
+    void historyPrev();
+    void historyNext();
+    void historyClear();
+
 
 signals:
     void displayReferencesWidget();
@@ -89,6 +99,10 @@ public slots:
     void entropySlot();
     void copyAddressSlot();
     void copyRvaSlot();
+    void followInDumpNSlot();
+
+    void gotoNextSlot();
+    void gotoPrevSlot();
 
 private:
     QMenu* mBreakpointMenu;
@@ -125,6 +139,8 @@ private:
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
     QAction* mGotoFileOffset;
+    QAction* mGotoPrevious;
+    QAction* mGotoNext;
     QAction* mGotoStart;
     QAction* mGotoEnd;
 
@@ -186,9 +202,15 @@ private:
     QMenu* mCustomMenu;
     QMenu* mPluginMenu;
     QMenu* mCopyMenu;
+    QMenu* mFollowInDumpMenu;
+    QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
+    CPUMultiDump* mMultiDump;
+
+    QList<dsint> mVaHistory;
+    int mCurrentVa;
 
     enum ViewEnum_t
     {

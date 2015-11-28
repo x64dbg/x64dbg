@@ -21,10 +21,13 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSearchListView->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new StdTable();
-    int charwidth = mModuleList->getCharWidth();
-    mModuleList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
-    mModuleList->addColumnAt(500, "Module", true);
+    mModuleList = new SearchListView();
+    mModuleList->mSearchStartCol = 1;
+    int charwidth = mModuleList->mList->getCharWidth();
+    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
+    mModuleList->mList->addColumnAt(500, "Module", true);
+    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Base", false);
+    mModuleList->mSearchList->addColumnAt(500, "Module", true);
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
@@ -50,7 +53,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 #endif //_WIN64
 
     // Setup log edit
-    ui->symbolLogEdit->setFont(mModuleList->font());
+    ui->symbolLogEdit->setFont(mModuleList->mList->font());
     ui->symbolLogEdit->setStyleSheet("QTextEdit { background-color: rgb(255, 251, 240) }");
     ui->symbolLogEdit->setUndoRedoEnabled(false);
     ui->symbolLogEdit->setReadOnly(true);
@@ -66,10 +69,10 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(addMsgToSymbolLog(QString)), this, SLOT(addMsgToSymbolLogSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
-    connect(mModuleList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
-    connect(mModuleList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(moduleContextMenu(QPoint)));
+    connect(mModuleList->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(moduleContextMenu(QMenu*)));
     connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
-    connect(mModuleList, SIGNAL(doubleClickedSignal()), this, SLOT(moduleFollow()));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int, SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int, SYMBOLMODULEINFO*)));
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
@@ -181,7 +184,7 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
 
 void SymbolView::moduleSelectionChanged(int index)
 {
-    QString mod = mModuleList->getCellContent(index, 1);
+    QString mod = mModuleList->mCurList->getCellContent(index, 1);
     if(!mModuleBaseList.count(mod))
         return;
     mSearchListView->mList->setRowCount(0);
@@ -189,27 +192,27 @@ void SymbolView::moduleSelectionChanged(int index)
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);
-    mSearchListView->mList->setFocus();
     mSearchListView->mSearchBox->setText("");
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
-    mModuleList->setRowCount(module_count);
+    mModuleList->mList->setRowCount(module_count);
     if(!module_count)
     {
         mSearchListView->mList->setRowCount(0);
         mSearchListView->mList->setSingleSelection(0);
-        mModuleList->setSingleSelection(0);
+        mModuleList->mList->setSingleSelection(0);
     }
+    mModuleList->mList->setFocus();
     mModuleBaseList.clear();
     for(int i = 0; i < module_count; i++)
     {
         mModuleBaseList.insert(modules[i].name, modules[i].base);
-        mModuleList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
-        mModuleList->setCellContent(i, 1, modules[i].name);
+        mModuleList->mList->setCellContent(i, 0, QString("%1").arg(modules[i].base, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+        mModuleList->mList->setCellContent(i, 1, modules[i].name);
     }
-    mModuleList->reloadData();
+    mModuleList->mList->reloadData();
     if(modules)
         BridgeFree(modules);
 }
@@ -227,7 +230,7 @@ void SymbolView::symbolContextMenu(QMenu* wMenu)
 
 void SymbolView::symbolRefreshCurrent()
 {
-    mModuleList->setSingleSelection(mModuleList->getInitialSelection());
+    mModuleList->mList->setSingleSelection(mModuleList->mList->getInitialSelection());
 }
 
 void SymbolView::symbolFollow()
@@ -242,16 +245,16 @@ void SymbolView::symbolFollowDump()
     emit showCpu();
 }
 
-void SymbolView::moduleContextMenu(const QPoint & pos)
+void SymbolView::moduleContextMenu(QMenu* wMenu)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || !mModuleList->mCurList->getRowCount())
         return;
-    QMenu* wMenu = new QMenu(this); //create context menu
+
     wMenu->addAction(mFollowModuleAction);
     wMenu->addAction(mFollowModuleEntryAction);
     wMenu->addAction(mDownloadSymbolsAction);
     wMenu->addAction(mDownloadAllSymbolsAction);
-    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         wMenu->addAction(mCopyPathAction);
@@ -259,30 +262,29 @@ void SymbolView::moduleContextMenu(const QPoint & pos)
     wMenu->addAction(mYaraFileAction);
     wMenu->addAction(mEntropyAction);
     QMenu wCopyMenu("&Copy", this);
-    mModuleList->setupCopyMenu(&wCopyMenu);
+    mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
         wMenu->addSeparator();
         wMenu->addMenu(&wCopyMenu);
     }
-    wMenu->exec(mapToGlobal(pos)); //execute context menu
 }
 
 void SymbolView::moduleFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0) + "+1000").toUtf8().constData());
     emit showCpu();
 }
 
 void SymbolView::moduleEntryFollow()
 {
-    DbgCmdExecDirect(QString("disasm " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1) + ":entry").toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1) + ":entry").toUtf8().constData());
     emit showCpu();
 }
 
 void SymbolView::moduleCopyPath()
 {
-    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
         Bridge::CopyToClipboard(szModPath);
@@ -290,7 +292,7 @@ void SymbolView::moduleCopyPath()
 
 void SymbolView::moduleYara()
 {
-    QString modname = mModuleList->getCellContent(mModuleList->getInitialSelection(), 1);
+    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
     YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
     if(yaraDialog.exec() == QDialog::Accepted)
     {
@@ -301,7 +303,7 @@ void SymbolView::moduleYara()
 
 void SymbolView::moduleYaraFile()
 {
-    QString modname = mModuleList->getCellContent(mModuleList->getInitialSelection(), 1);
+    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
     YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
     if(yaraDialog.exec() == QDialog::Accepted)
     {
@@ -312,7 +314,7 @@ void SymbolView::moduleYaraFile()
 
 void SymbolView::moduleDownloadSymbols()
 {
-    DbgCmdExec(QString("symdownload " + mModuleList->getCellContent(mModuleList->getInitialSelection(), 1)).toUtf8().constData());
+    DbgCmdExec(QString("symdownload " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1)).toUtf8().constData());
 }
 
 void SymbolView::moduleDownloadAllSymbols()
@@ -382,12 +384,12 @@ void SymbolView::toggleBookmark()
 
 void SymbolView::moduleEntropy()
 {
-    dsint modbase = DbgValFromString(mModuleList->getCellContent(mModuleList->getInitialSelection(), 0).toUtf8().constData());
+    dsint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
         EntropyDialog entropyDialog(this);
-        entropyDialog.setWindowTitle(QString("Entropy (%1)").arg(mModuleList->getCellContent(mModuleList->getInitialSelection(), 1)));
+        entropyDialog.setWindowTitle(QString("Entropy (%1)").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1)));
         entropyDialog.show();
         entropyDialog.GraphFile(QString(szModPath));
         entropyDialog.exec();

@@ -5,7 +5,7 @@
 #include <QTabWidget>
 #include "CPUSideBar.h"
 #include "CPUDisassembly.h"
-#include "CPUDump.h"
+#include "CPUMultiDump.h"
 #include "CPUStack.h"
 #include "RegistersView.h"
 #include "CPUInfoBox.h"
@@ -37,13 +37,13 @@ public:
     // Widget getters
     CPUSideBar* getSidebarWidget();
     CPUDisassembly* getDisasmWidget();
-    CPUDump* getDumpWidget();
+    CPUMultiDump* getDumpWidget();
     CPUStack* getStackWidget();
 
 protected:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
-    CPUDump* mDump;
+    CPUMultiDump* mDump;
     CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;

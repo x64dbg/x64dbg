@@ -88,6 +88,8 @@ void SearchListView::listKeyPressed(QKeyEvent* event)
     }
     else if((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) //user pressed enter
         emit enterPressedSignal();
+    else if(event->key() == Qt::Key_Escape) // Press escape, clears the search box
+        mSearchBox->clear();
 }
 
 bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)

@@ -46,7 +46,7 @@ void HexDump::updateFonts()
     setFont(ConfigFont("HexDump"));
 }
 
-void HexDump::printDumpAt(dsint parVA, bool select, bool repaint)
+void HexDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
 {
     dsint wBase = DbgMemFindBaseAddr(parVA, 0); //get memory base
     dsint wSize = DbgMemGetPageSize(wBase); //get page size
@@ -71,9 +71,11 @@ void HexDump::printDumpAt(dsint parVA, bool select, bool repaint)
 
     mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
 
-    setTableOffset(-1); //make sure the requested address is always first
-
-    setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
+    if(updateTableOffset)
+    {
+        setTableOffset(-1); //make sure the requested address is always first
+        setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
+    }
 
     if(select)
     {

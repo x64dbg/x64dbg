@@ -6,10 +6,6 @@
 #include <QMenu>
 #include <QAction>
 
-// Qt forward class definitions
-class MHTabBar;
-class QMainWindow;
-
 //////////////////////////////////////////////////////////////////////////////
 // Summary:
 //    MHTabBar implements the a Tab Bar with detach functionality.
@@ -24,6 +20,7 @@ public:
 
 protected:
     void contextMenuEvent(QContextMenuEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
 signals:
     // Detach Tab
@@ -32,6 +29,8 @@ signals:
     void OnMoveTab(int fromIndex, int toIndex);
     // Delete Tab
     void OnDeleteTab(int index);
+    // Double Click on Tab, Get Index
+    void OnDoubleClickTabIndex(int index);
 
 private:
     bool mAllowDetach;

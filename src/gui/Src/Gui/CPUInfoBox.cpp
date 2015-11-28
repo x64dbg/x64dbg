@@ -20,6 +20,7 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     setMinimumHeight(height);
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     curAddr = 0;
 
     // Deselect any row (visual reasons only)
@@ -290,6 +291,51 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, dsint wVA)
     }
 }
 
+int CPUInfoBox::followInDump(dsint wVA)
+{
+    // Copy pasta from setupFollowMenu for now
+    int tableOffset = getInitialSelection();
+    QString cellContent = this->getCellContent(tableOffset, 0);
+
+    // No text in row that was clicked
+    if(cellContent.length() == 0)
+        return -1;
+
+    // Last line of infoBox => Current Address(EIP) in disassembly
+    if(tableOffset == 2)
+    {
+        DbgCmdExec(QString("dump %1").arg(ToPtrString(wVA)).toUtf8().constData());
+        return 0;
+    }
+
+    DISASM_INSTR instr;
+    DbgDisasmAt(wVA, &instr);
+
+    if(instr.type == instr_branch && cellContent.contains("Jump"))
+    {
+        DbgCmdExec(QString("dump %1").arg(ToPtrString(instr.arg[0].value)).toUtf8().constData());
+        return 0;
+    }
+
+    // Loop through all instruction arguments
+    for(int i = 0; i < instr.argcount; i++)
+    {
+        const DISASM_ARG arg = instr.arg[i];
+        if(arg.type == arg_memory)
+        {
+            if(DbgMemIsValidReadPtr(arg.value))
+            {
+                if(cellContent.contains(arg.mnemonic))
+                {
+                    DbgCmdExec(QString("dump %1").arg(ToPtrString(arg.value)).toUtf8().constData());
+                    return 0;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 void CPUInfoBox::contextMenuSlot(QPoint pos)
 {
     QMenu* wMenu = new QMenu(this); //create context menu
@@ -327,4 +373,9 @@ void CPUInfoBox::copyRva()
 void CPUInfoBox::copyOffset()
 {
     Bridge::CopyToClipboard(ToHexString(curOffset));
+}
+
+void CPUInfoBox::doubleClickedSlot()
+{
+    followInDump(curAddr);
 }

@@ -138,7 +138,8 @@ SOURCES += \
     Src/QEntropyView/QEntropyView.cpp \
     Src/Gui/EntropyDialog.cpp \
     Src/Gui/NotesManager.cpp \
-    Src/Gui/NotepadView.cpp
+    Src/Gui/NotepadView.cpp \
+    Src/Gui/CPUMultiDump.cpp
 
 
 HEADERS += \
@@ -218,7 +219,8 @@ HEADERS += \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
-    Src/Utils/QActionLambda.h
+    Src/Utils/QActionLambda.h \
+    Src/Gui/CPUMultiDump.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \

@@ -28,7 +28,7 @@ private slots:
     void symbolFollowDump();
     void symbolContextMenu(QMenu* wMenu);
     void symbolRefreshCurrent();
-    void moduleContextMenu(const QPoint & pos);
+    void moduleContextMenu(QMenu* wMenu);
     void moduleFollow();
     void moduleEntryFollow();
     void moduleDownloadSymbols();
@@ -51,7 +51,7 @@ private:
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;
     SearchListView* mSearchListView;
-    StdTable* mModuleList;
+    SearchListView* mModuleList;
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;

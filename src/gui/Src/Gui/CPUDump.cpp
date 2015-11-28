@@ -8,10 +8,14 @@
 #include "YaraRuleSelectionDialog.h"
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
+#include "CPUMultiDump.h"
 
-CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
+CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
+    mCurrentVa = 0;
+    mMultiDump = multiDump;
+
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
     case ViewHexAscii:
@@ -76,9 +80,6 @@ CPUDump::CPUDump(CPUDisassembly* disas, QWidget* parent) : HexDump(parent)
         break;
     }
 
-    connect(Bridge::getBridge(), SIGNAL(dumpAt(dsint)), this, SLOT(printDumpAt(dsint)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     setupContextMenu();
@@ -154,11 +155,26 @@ void CPUDump::setupContextMenu()
 
     //Follow DWORD/QWORD in Disasm
 #ifdef _WIN64
-    mFollowDataDump = new QAction("&Follow QWORD in Dump", this);
+    mFollowDataDump = new QAction("&Follow QWORD in Current Dump", this);
 #else //x86
-    mFollowDataDump = new QAction("&Follow DWORD in Dump", this);
+    mFollowDataDump = new QAction("&Follow DWORD in Current Dump", this);
 #endif //_WIN64
     connect(mFollowDataDump, SIGNAL(triggered()), this, SLOT(followDataDumpSlot()));
+
+#ifdef _WIN64
+    mFollowInDumpMenu = new QMenu("&Follow QWORD in Dump", this);
+#else //x86
+    mFollowInDumpMenu = new QMenu("&Follow DWORD in Dump", this);
+#endif //_WIN64
+
+    int maxDumps = mMultiDump->getMaxCPUTabs();
+    for(int i=0; i<maxDumps; i++)
+    {
+        QAction* action = new QAction(QString("Dump %1").arg(i+1), this);
+        connect(action, SIGNAL(triggered()), this, SLOT(followInDumpNSlot()));
+        mFollowInDumpMenu->addAction(action);
+        mFollowInDumpActions.push_back(action);
+    }
 
     //Entropy
     mEntropy = new QAction(QIcon(":/icons/images/entropy.png"), "Entropy...", this);
@@ -293,6 +309,21 @@ void CPUDump::setupContextMenu()
     this->addAction(mGotoFileOffset);
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
+
+    // Goto->Previous
+    mGotoPrevious = new QAction("Previous", this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
+    mGotoMenu->addAction(mGotoPrevious);
+
+    // Goto->Next
+    mGotoNext = new QAction("Next", this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
+    mGotoMenu->addAction(mGotoNext);
+
 
     // Goto->Start of page
     mGotoStart = new QAction("Start of Page", this);
@@ -434,6 +465,8 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
+    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
     mGotoStart->setShortcut(ConfigShortcut("ActionGotoStart"));
     mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
     mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
@@ -551,7 +584,18 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     {
         wMenu->addAction(mFollowData);
         wMenu->addAction(mFollowDataDump);
+        wMenu->addMenu(mFollowInDumpMenu);
     }
+
+    if(historyHasPrev())
+        mGotoPrevious->setVisible(true);
+    else
+        mGotoPrevious->setVisible(false);
+
+    if(historyHasNext())
+        mGotoNext->setVisible(true);
+    else
+        mGotoNext->setVisible(false);
 
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
@@ -569,6 +613,10 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mAddressAction);
     wMenu->addAction(mDisassemblyAction);
 
+    QList<QString> tabNames;
+    mMultiDump->getTabNames(tabNames);
+    for(int i=0; i<tabNames.length(); i++)
+        mFollowInDumpActions[i]->setText(tabNames[i]);
 
     if((DbgGetBpxTypeAt(selectedAddr) & bp_hardware) == bp_hardware) //hardware breakpoint set
     {
@@ -636,6 +684,57 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
     break;
     }
+}
+
+void CPUDump::addVaToHistory(dsint parVa)
+{
+    mVaHistory.push_back(parVa);
+    if(mVaHistory.size() > 1)
+        mCurrentVa++;
+}
+
+bool CPUDump::historyHasPrev()
+{
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return false;
+    return true;
+}
+
+bool CPUDump::historyHasNext()
+{
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+        return false;
+    return true;
+}
+
+void CPUDump::historyPrev()
+{
+    if(!historyHasPrev())
+        return;
+
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return;
+    mCurrentVa--;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void CPUDump::historyNext()
+{
+    if(!historyHasNext())
+        return;
+
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+        return;
+    mCurrentVa++;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void CPUDump::historyClear()
+{
+    mCurrentVa = 0;
+    mVaHistory.clear();
 }
 
 void CPUDump::setLabelSlot()
@@ -1506,3 +1605,26 @@ void CPUDump::copyRvaSlot()
     else
         QMessageBox::warning(this, "Error!", "Selection not in a module...");
 }
+
+void CPUDump::followInDumpNSlot()
+{
+    for(int i=0; i<mFollowInDumpActions.length(); i++)
+    {
+        if(mFollowInDumpActions[i] == sender())
+        {
+            DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i).toUtf8().constData());
+        }
+    }
+}
+
+void CPUDump::gotoNextSlot()
+{
+    historyNext();
+}
+
+void CPUDump::gotoPrevSlot()
+{
+    historyPrev();
+}
+
+
