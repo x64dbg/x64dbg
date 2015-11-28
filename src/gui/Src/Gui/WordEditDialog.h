@@ -23,6 +23,10 @@ public:
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
 
+protected:
+    void saveCursorPositions();
+    void restoreCursorPositions();
+
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);
     void on_signedLineEdit_textEdited(const QString & arg1);
@@ -32,6 +36,10 @@ private:
     Ui::WordEditDialog* ui;
     duint mWord;
     ValidateExpressionThread* mValidateThread;
+
+    int mHexLineEditPos;
+    int mSignedEditPos;
+    int mUnsignedEditPos;
 };
 
 #endif // WORDEDITDIALOG_H

@@ -82,11 +82,19 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         hex[2] = word[1];
         hex[3] = word[0];
 #endif //_WIN64
+
+        // Save the original index for inputs
+        saveCursorPositions();
+
+        // Byte edit line
         ui->hexLineEdit->setText(QString("%1").arg(hexWord, sizeof(duint) * 2, 16, QChar('0')).toUpper());
-        //signed
+        // Signed edit
         ui->signedLineEdit->setText(QString::number((dsint)mWord));
-        //unsigned
+        // Unsigned edit
         ui->unsignedLineEdit->setText(QString::number((duint)mWord));
+
+        // Use the same indices, but with different text
+        restoreCursorPositions();
     }
     else
     {
@@ -125,4 +133,20 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
         ui->unsignedLineEdit->setStyleSheet("border: 1px solid red");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
+}
+
+void WordEditDialog::saveCursorPositions()
+{
+    // Save the user's cursor index
+    mHexLineEditPos = ui->hexLineEdit->cursorPosition();
+    mSignedEditPos = ui->signedLineEdit->cursorPosition();
+    mUnsignedEditPos = ui->unsignedLineEdit->cursorPosition();
+}
+
+void WordEditDialog::restoreCursorPositions()
+{
+    // Load the old cursor index (bounds checking is automatic)
+    ui->hexLineEdit->setCursorPosition(mHexLineEditPos);
+    ui->signedLineEdit->setCursorPosition(mSignedEditPos);
+    ui->unsignedLineEdit->setCursorPosition(mUnsignedEditPos);
 }
