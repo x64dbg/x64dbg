@@ -22,7 +22,7 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
-    connect(ui->editExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
+    connect(ui->editExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
 }
 
@@ -115,12 +115,6 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
             expressionText = expression;
         }
     }
-}
-
-void GotoDialog::on_editExpression_textChanged(const QString & arg1)
-{
-    Q_UNUSED(arg1);
-    ui->buttonOk->setEnabled(false);
 }
 
 bool GotoDialog::IsValidMemoryRange(duint addr)

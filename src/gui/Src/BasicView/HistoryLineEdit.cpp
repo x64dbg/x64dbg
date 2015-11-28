@@ -50,10 +50,9 @@ void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
         if(mCmdIndex != -1)
             newText = mCmdHistory.at(mCmdIndex);
 
-        // Quote from QT docs: "Unlike textChanged(), this signal is not emitted when
+        // NOTE: "Unlike textChanged(), this signal [textEdited()] is not emitted when
         // the text is changed programmatically, for example, by calling setText()."
         setText(newText);
-        emit textEdited(newText);
     }
 
     QLineEdit::keyPressEvent(event);

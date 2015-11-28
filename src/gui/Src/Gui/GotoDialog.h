@@ -27,7 +27,6 @@ public:
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);
-    void on_editExpression_textChanged(const QString & arg1);
     void on_buttonOk_clicked();
     void finishedSlot(int result);
 
