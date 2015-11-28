@@ -25,7 +25,6 @@ public:
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);
-    void on_expressionLineEdit_textChanged(const QString & arg1);
     void on_signedLineEdit_textEdited(const QString & arg1);
     void on_unsignedLineEdit_textEdited(const QString & arg1);
 

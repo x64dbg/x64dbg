@@ -9,9 +9,13 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
 #endif
     setModal(true);
 
+    // Set up default validators for numerical input
+    ui->signedLineEdit->setValidator(new QRegExpValidator(QRegExp("^-?\\d*(\\d+)?$"), this));// Optional negative, 0-9
+    ui->unsignedLineEdit->setValidator(new QRegExpValidator(QRegExp("^\\d*(\\d+)?$"), this));// No signs, 0-9
+
     mValidateThread = new ValidateExpressionThread(this);
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
-    connect(ui->expressionLineEdit, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
+    connect(ui->expressionLineEdit, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
 }
 
@@ -54,8 +58,8 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
     if(validExpression)
     {
         ui->expressionLineEdit->setStyleSheet("");
-        ui->unsignedLineEdit->setStyleSheet("");
         ui->signedLineEdit->setStyleSheet("");
+        ui->unsignedLineEdit->setStyleSheet("");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
 
         //hex
@@ -89,12 +93,6 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         ui->expressionLineEdit->setStyleSheet("border: 1px solid red");
         ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
     }
-}
-
-void WordEditDialog::on_expressionLineEdit_textChanged(const QString & arg1)
-{
-    Q_UNUSED(arg1);
-    ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
