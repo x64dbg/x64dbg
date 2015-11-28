@@ -68,21 +68,21 @@ mkdir %RELEASEDIR%\pluginsdk\XEDParse
 mkdir %RELEASEDIR%\pluginsdk\yara
 mkdir %RELEASEDIR%\pluginsdk\yara\yara
 
-xcopy x64_dbg_dbg\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
-xcopy x64_dbg_dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
-xcopy x64_dbg_dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
-xcopy x64_dbg_dbg\jansson %RELEASEDIR%\pluginsdk\jansson /S /Y
-xcopy x64_dbg_dbg\lz4 %RELEASEDIR%\pluginsdk\lz4 /S /Y
-xcopy x64_dbg_dbg\TitanEngine %RELEASEDIR%\pluginsdk\TitanEngine /S /Y
+xcopy src\dbg\capstone %RELEASEDIR%\pluginsdk\capstone /S /Y
+xcopy src\dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
+xcopy src\dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
+xcopy src\dbg\jansson %RELEASEDIR%\pluginsdk\jansson /S /Y
+xcopy src\dbg\lz4 %RELEASEDIR%\pluginsdk\lz4 /S /Y
+xcopy src\dbg\TitanEngine %RELEASEDIR%\pluginsdk\TitanEngine /S /Y
 del %RELEASEDIR%\pluginsdk\TitanEngine\TitanEngine.txt /F /Q
-xcopy x64_dbg_dbg\XEDParse %RELEASEDIR%\pluginsdk\XEDParse /S /Y
-xcopy x64_dbg_dbg\yara %RELEASEDIR%\pluginsdk\yara /S /Y
-copy x64_dbg_dbg\_plugin_types.h %RELEASEDIR%\pluginsdk\_plugin_types.h
-copy x64_dbg_dbg\_plugins.h %RELEASEDIR%\pluginsdk\_plugins.h
-copy x64_dbg_dbg\_scriptapi*.h %RELEASEDIR%\pluginsdk\_scriptapi*.h
-copy x64_dbg_dbg\_dbgfunctions.h %RELEASEDIR%\pluginsdk\_dbgfunctions.h
-copy x64_dbg_bridge\bridgelist.h %RELEASEDIR%\pluginsdk\bridgelist.h
-copy x64_dbg_bridge\bridgemain.h %RELEASEDIR%\pluginsdk\bridgemain.h
+xcopy src\dbg\XEDParse %RELEASEDIR%\pluginsdk\XEDParse /S /Y
+xcopy src\dbg\yara %RELEASEDIR%\pluginsdk\yara /S /Y
+copy src\dbg\_plugin_types.h %RELEASEDIR%\pluginsdk\_plugin_types.h
+copy src\dbg\_plugins.h %RELEASEDIR%\pluginsdk\_plugins.h
+copy src\dbg\_scriptapi*.h %RELEASEDIR%\pluginsdk\_scriptapi*.h
+copy src\dbg\_dbgfunctions.h %RELEASEDIR%\pluginsdk\_dbgfunctions.h
+copy src\bridge\bridgelist.h %RELEASEDIR%\pluginsdk\bridgelist.h
+copy src\bridge\bridgemain.h %RELEASEDIR%\pluginsdk\bridgemain.h
 
 genlib bin\x32\x32bridge.dll
 copy x32bridge.a %RELEASEDIR%\pluginsdk\libx32bridge.a
