@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -549,6 +549,18 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>chkSystemBreakpoint</tabstop>
+  <tabstop>chkDllLoad</tabstop>
+  <tabstop>chkTlsCallbacks</tabstop>
+  <tabstop>chkDllUnload</tabstop>
+  <tabstop>chkEntryBreakpoint</tabstop>
+  <tabstop>chkThreadStart</tabstop>
+  <tabstop>chkDllEntry</tabstop>
+  <tabstop>chkThreadEnd</tabstop>
+  <tabstop>chkAttachBreakpoint</tabstop>
+  <tabstop>chkDebugStrings</tabstop>
+  <tabstop>chkThreadEntry</tabstop>
   <tabstop>radioSigned</tabstop>
   <tabstop>radioUnsigned</tabstop>
   <tabstop>radioInt3Short</tabstop>
@@ -556,10 +568,25 @@
   <tabstop>radioUd2</tabstop>
   <tabstop>chkUndecorateSymbolNames</tabstop>
   <tabstop>chkEnableDebugPrivilege</tabstop>
+  <tabstop>chkEnableSourceDebugging</tabstop>
+  <tabstop>chkDisableDatabaseCompression</tabstop>
+  <tabstop>chkSaveDatabaseInProgramDirectory</tabstop>
   <tabstop>listExceptions</tabstop>
   <tabstop>btnAddRange</tabstop>
   <tabstop>btnDeleteRange</tabstop>
   <tabstop>btnAddLast</tabstop>
+  <tabstop>chkArgumentSpaces</tabstop>
+  <tabstop>chkTabBetweenMnemonicAndArguments</tabstop>
+  <tabstop>chkMemorySpaces</tabstop>
+  <tabstop>chkUppercase</tabstop>
+  <tabstop>chkOnlyCipAutoComments</tabstop>
+  <tabstop>editSymbolStore</tabstop>
+  <tabstop>editSymbolCache</tabstop>
+  <tabstop>chkSetJIT</tabstop>
+  <tabstop>editJIT</tabstop>
+  <tabstop>chkConfirmBeforeAtt</tabstop>
+  <tabstop>btnSave</tabstop>
+  <tabstop>btnCancel</tabstop>
  </tabstops>
  <resources>
   <include location="../../resource.qrc"/>

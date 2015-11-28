@@ -5,7 +5,7 @@
 
 std::map<ModuleRange, FUNCTIONSINFO, ModuleRangeCompare> functions;
 
-bool FunctionAdd(duint Start, duint End, bool Manual, int InstructionCount)
+bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount)
 {
     ASSERT_DEBUGGING("Export call");
 

@@ -20,14 +20,14 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mCurrentCPUDump = (CPUDump*)currentWidget();
 
 
-    connect(this,                SIGNAL(currentChanged(int)),        this, SLOT(updateCurrentTabSlot(int)));
-    connect(tabBar(),            SIGNAL(OnDoubleClickTabIndex(int)), this, SLOT(openChangeTabTitleDialogSlot(int)));
+    connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
+    connect(tabBar(), SIGNAL(OnDoubleClickTabIndex(int)), this, SLOT(openChangeTabTitleDialogSlot(int)));
 
-    connect(Bridge::getBridge(), SIGNAL(dumpAt(dsint)),                          this, SLOT(printDumpAtSlot(dsint)));
-    connect(Bridge::getBridge(), SIGNAL(dumpAtN(duint, int)),                    this, SLOT(printDumpAtNSlot(duint, int)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)),       this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(dumpAt(dsint)), this, SLOT(printDumpAtSlot(dsint)));
+    connect(Bridge::getBridge(), SIGNAL(dumpAtN(duint, int)), this, SLOT(printDumpAtNSlot(duint, int)));
+    connect(Bridge::getBridge(), SIGNAL(selectionDumpGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDumpSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)),              this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 
     connect(mCurrentCPUDump, SIGNAL(selectionUpdated()), mCurrentCPUDump, SLOT(selectionUpdatedSlot()));
 }

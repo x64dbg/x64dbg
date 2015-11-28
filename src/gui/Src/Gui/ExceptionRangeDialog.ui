@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>131</width>
+    <width>176</width>
     <height>106</height>
    </rect>
   </property>
@@ -111,12 +111,12 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>70</y>
-     <width>111</width>
+     <width>158</width>
      <height>25</height>
     </rect>
    </property>

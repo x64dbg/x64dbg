@@ -213,7 +213,7 @@
     <string>PAGE GUARD</string>
    </property>
   </widget>
-  <zorder>layoutWidget</zorder>
+  <zorder>paddingLayoutWidget</zorder>
   <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
   <zorder>LnEdStatus</zorder>
@@ -221,6 +221,22 @@
   <zorder>label</zorder>
   <zorder>chkPageguard</zorder>
  </widget>
+ <tabstops>
+  <tabstop>pagetableWidget</tabstop>
+  <tabstop>btnSelectall</tabstop>
+  <tabstop>btnDeselectall</tabstop>
+  <tabstop>radioNoaccess</tabstop>
+  <tabstop>radioReadonly</tabstop>
+  <tabstop>radioReadwrite</tabstop>
+  <tabstop>radioExecute</tabstop>
+  <tabstop>radioExecuteread</tabstop>
+  <tabstop>radioFullaccess</tabstop>
+  <tabstop>radioWritecopy</tabstop>
+  <tabstop>radioExecutewritecopy</tabstop>
+  <tabstop>btnSetrights</tabstop>
+  <tabstop>chkPageguard</tabstop>
+  <tabstop>LnEdStatus</tabstop>
+ </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>

@@ -30,7 +30,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tabColors">
     <attribute name="title">
@@ -1712,8 +1712,31 @@
   <tabstop>buttonBackgroundFFFF00</tabstop>
   <tabstop>editBackgroundColor</tabstop>
   <tabstop>buttonBackgroundColor</tabstop>
-  <tabstop>buttonSave</tabstop>
+  <tabstop>fontAbstractTables</tabstop>
+  <tabstop>fontAbstractTablesStyle</tabstop>
+  <tabstop>fontAbstractTablesSize</tabstop>
+  <tabstop>fontDisassembly</tabstop>
+  <tabstop>fontDisassemblyStyle</tabstop>
+  <tabstop>fontDisassemblySize</tabstop>
+  <tabstop>fontHexDump</tabstop>
+  <tabstop>fontHexDumpStyle</tabstop>
+  <tabstop>fontHexDumpSize</tabstop>
+  <tabstop>fontStack</tabstop>
+  <tabstop>fontStackStyle</tabstop>
+  <tabstop>fontStackSize</tabstop>
+  <tabstop>fontRegisters</tabstop>
+  <tabstop>fontRegistersStyle</tabstop>
+  <tabstop>fontRegistersSize</tabstop>
+  <tabstop>fontHexEdit</tabstop>
+  <tabstop>fontHexEditStyle</tabstop>
+  <tabstop>fontHexEditSize</tabstop>
+  <tabstop>fontLog</tabstop>
+  <tabstop>fontLogStyle</tabstop>
+  <tabstop>fontLogSize</tabstop>
+  <tabstop>buttonApplicationFont</tabstop>
+  <tabstop>buttonFontDefaults</tabstop>
   <tabstop>buttonCancel</tabstop>
+  <tabstop>buttonSave</tabstop>
  </tabstops>
  <resources>
   <include location="../../resource.qrc"/>

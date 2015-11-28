@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>191</width>
+    <width>261</width>
     <height>71</height>
    </rect>
   </property>
@@ -17,12 +17,12 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/patch.png</normaloff>:/icons/images/patch.png</iconset>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>171</width>
+     <width>241</width>
      <height>51</height>
     </rect>
    </property>

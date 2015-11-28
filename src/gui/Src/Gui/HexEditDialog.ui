@@ -222,8 +222,8 @@
   <tabstop>btnAscii2Hex</tabstop>
   <tabstop>lineEditUnicode</tabstop>
   <tabstop>btnUnicode2Hex</tabstop>
-  <tabstop>scrollArea</tabstop>
   <tabstop>chkKeepSize</tabstop>
+  <tabstop>chkEntireBlock</tabstop>
   <tabstop>btnOk</tabstop>
   <tabstop>btnCancel</tabstop>
  </tabstops>

@@ -212,6 +212,12 @@
    </property>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>expressionLineEdit</tabstop>
+  <tabstop>hexLineEdit</tabstop>
+  <tabstop>signedLineEdit</tabstop>
+  <tabstop>unsignedLineEdit</tabstop>
+ </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>

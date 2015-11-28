@@ -1035,7 +1035,7 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
             dprintf("Invalid address \"%s\"!\n", argv[2]);
             return STATUS_ERROR;
         }
-        GuiDumpAtN(addr, index);
+        GuiDumpAtN(addr, int(index));
     }
     else
         GuiDumpAt(addr);

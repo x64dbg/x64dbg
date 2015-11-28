@@ -244,6 +244,7 @@
   <tabstop>txtAscii</tabstop>
   <tabstop>txtUnicode</tabstop>
   <tabstop>btnGoto</tabstop>
+  <tabstop>btnGotoDump</tabstop>
   <tabstop>pushButton</tabstop>
  </tabstops>
  <resources>

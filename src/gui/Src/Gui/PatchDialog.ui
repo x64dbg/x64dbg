@@ -134,7 +134,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>7</x>
@@ -163,7 +163,13 @@
  </widget>
  <tabstops>
   <tabstop>listModules</tabstop>
+  <tabstop>btnImport</tabstop>
+  <tabstop>btnExport</tabstop>
   <tabstop>listPatches</tabstop>
+  <tabstop>btnSelectAll</tabstop>
+  <tabstop>btnDeselectAll</tabstop>
+  <tabstop>btnRestoreSelected</tabstop>
+  <tabstop>btnPickGroups</tabstop>
   <tabstop>btnPatchFile</tabstop>
  </tabstops>
  <resources>

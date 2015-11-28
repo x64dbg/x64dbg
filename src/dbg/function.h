@@ -8,10 +8,10 @@ struct FUNCTIONSINFO
     duint start;
     duint end;
     bool manual;
-    int instructioncount;
+    duint instructioncount;
 };
 
-bool FunctionAdd(duint Start, duint End, bool Manual, int InstructionCount = 0);
+bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount = 0);
 bool FunctionGet(duint Address, duint* Start = nullptr, duint* End = nullptr, duint* InstrCount = nullptr);
 bool FunctionOverlaps(duint Start, duint End);
 bool FunctionDelete(duint Address);
