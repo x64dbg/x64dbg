@@ -22,7 +22,7 @@ signals:
 public slots:
     void updateCurrentTabSlot(int tabIndex);
     void printDumpAtSlot(dsint parVa);
-    void dumpAtNSlot(duint parVa, int index);
+    void printDumpAtNSlot(duint parVa, int index);
     void selectionGetSlot(SELECTIONDATA* selectionData);
     void selectionSetSlot(const SELECTIONDATA* selectionData);
     void dbgStateChangedSlot(DBGSTATE dbgState);

@@ -46,6 +46,11 @@ int MHTabWidget::count() const
     return QTabWidget::count() + m_Windows.size();
 }
 
+QList<QWidget *> MHTabWidget::windows()
+{
+    return m_Windows;
+}
+
 // Convert an external window to a widget tab
 void MHTabWidget::AttachTab(QWidget* parent)
 {

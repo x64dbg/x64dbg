@@ -28,6 +28,7 @@ public:
 
     QWidget* widget(int index) const;
     int count() const;
+    QList<QWidget*> windows();
 
 public slots:
     void AttachTab(QWidget* parent);
