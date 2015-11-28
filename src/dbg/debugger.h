@@ -9,8 +9,6 @@
 #include "value.h"
 #include "_plugins.h"
 
-#define MS_VC_EXCEPTION 0x406D1388
-
 //structures
 struct INIT_STRUCT
 {
