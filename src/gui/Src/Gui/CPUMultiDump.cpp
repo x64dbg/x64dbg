@@ -85,13 +85,17 @@ void CPUMultiDump::printDumpAtSlot(dsint parVa)
         for(int i = 0; i < count(); i++)
         {
             cpuDump = (CPUDump*)widget(i);
+            cpuDump->historyClear();
+            cpuDump->addVaToHistory(parVa);
             cpuDump->printDumpAt(parVa);
         }
+
         mInitAllDumpTabs = false;
     }
     else
     {
         mCurrentCPUDump->printDumpAt(parVa);
+        mCurrentCPUDump->addVaToHistory(parVa);
     }
 }
 
@@ -101,6 +105,7 @@ void CPUMultiDump::printDumpAtNSlot(duint parVa, int index)
 
     mCurrentCPUDump = (CPUDump*) widget(index);
     mCurrentCPUDump->printDumpAt(parVa);
+    mCurrentCPUDump->addVaToHistory(parVa);
 }
 
 void CPUMultiDump::selectionGetSlot(SELECTIONDATA* selectionData)

@@ -13,7 +13,9 @@
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     mDisas = disas;
+    mCurrentVa = 0;
     mMultiDump = multiDump;
+
     switch((ViewEnum_t)ConfigUint("HexDump", "DefaultView"))
     {
     case ViewHexAscii:
@@ -308,6 +310,21 @@ void CPUDump::setupContextMenu()
     connect(mGotoFileOffset, SIGNAL(triggered()), this, SLOT(gotoFileOffsetSlot()));
     mGotoMenu->addAction(mGotoFileOffset);
 
+    // Goto->Previous
+    mGotoPrevious = new QAction("Previous", this);
+    mGotoPrevious->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoPrevious);
+    connect(mGotoPrevious, SIGNAL(triggered()), this, SLOT(gotoPrevSlot()));
+    mGotoMenu->addAction(mGotoPrevious);
+
+    // Goto->Next
+    mGotoNext = new QAction("Next", this);
+    mGotoNext->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mGotoNext);
+    connect(mGotoNext, SIGNAL(triggered()), this, SLOT(gotoNextSlot()));
+    mGotoMenu->addAction(mGotoNext);
+
+
     // Goto->Start of page
     mGotoStart = new QAction("Start of Page", this);
     mGotoStart->setShortcutContext(Qt::WidgetShortcut);
@@ -448,6 +465,8 @@ void CPUDump::refreshShortcutsSlot()
     mFindPatternAction->setShortcut(ConfigShortcut("ActionFindPattern"));
     mFindReferencesAction->setShortcut(ConfigShortcut("ActionFindReferences"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
+    mGotoPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
+    mGotoNext->setShortcut(ConfigShortcut("ActionGotoNext"));
     mGotoStart->setShortcut(ConfigShortcut("ActionGotoStart"));
     mGotoEnd->setShortcut(ConfigShortcut("ActionGotoEnd"));
     mGotoFileOffset->setShortcut(ConfigShortcut("ActionGotoFileOffset"));
@@ -568,6 +587,16 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
         wMenu->addMenu(mFollowInDumpMenu);
     }
 
+    if(historyHasPrev())
+        mGotoPrevious->setVisible(true);
+    else
+        mGotoPrevious->setVisible(false);
+
+    if(historyHasNext())
+        mGotoNext->setVisible(true);
+    else
+        mGotoNext->setVisible(false);
+
     wMenu->addAction(mSetLabelAction);
     wMenu->addMenu(mBreakpointMenu);
     wMenu->addAction(mFindPatternAction);
@@ -655,6 +684,57 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
     break;
     }
+}
+
+void CPUDump::addVaToHistory(dsint parVa)
+{
+    mVaHistory.push_back(parVa);
+    if(mVaHistory.size() > 1)
+        mCurrentVa++;
+}
+
+bool CPUDump::historyHasPrev()
+{
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return false;
+    return true;
+}
+
+bool CPUDump::historyHasNext()
+{
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+        return false;
+    return true;
+}
+
+void CPUDump::historyPrev()
+{
+    if(!historyHasPrev())
+        return;
+
+    if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
+        return;
+    mCurrentVa--;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void CPUDump::historyNext()
+{
+    if(!historyHasNext())
+        return;
+
+    int size = mVaHistory.size();
+    if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
+        return;
+    mCurrentVa++;
+    printDumpAt(mVaHistory.at(mCurrentVa));
+}
+
+void CPUDump::historyClear()
+{
+    mCurrentVa = 0;
+    mVaHistory.clear();
 }
 
 void CPUDump::setLabelSlot()
@@ -1536,3 +1616,15 @@ void CPUDump::followInDumpNSlot()
         }
     }
 }
+
+void CPUDump::gotoNextSlot()
+{
+    historyNext();
+}
+
+void CPUDump::gotoPrevSlot()
+{
+    historyPrev();
+}
+
+

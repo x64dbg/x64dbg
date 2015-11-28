@@ -17,6 +17,13 @@ public:
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
+    void addVaToHistory(dsint parVa);
+    bool historyHasPrev();
+    bool historyHasNext();
+    void historyPrev();
+    void historyNext();
+    void historyClear();
+
 
 signals:
     void displayReferencesWidget();
@@ -94,6 +101,9 @@ public slots:
     void copyRvaSlot();
     void followInDumpNSlot();
 
+    void gotoNextSlot();
+    void gotoPrevSlot();
+
 private:
     QMenu* mBreakpointMenu;
 
@@ -129,6 +139,8 @@ private:
     QMenu* mGotoMenu;
     QAction* mGotoExpression;
     QAction* mGotoFileOffset;
+    QAction* mGotoPrevious;
+    QAction* mGotoNext;
     QAction* mGotoStart;
     QAction* mGotoEnd;
 
@@ -196,6 +208,9 @@ private:
     GotoDialog* mGoto;
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
+
+    QList<dsint> mVaHistory;
+    int mCurrentVa;
 
     enum ViewEnum_t
     {
