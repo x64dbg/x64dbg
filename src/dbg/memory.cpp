@@ -50,7 +50,23 @@ void MemUpdateMap()
                     memset(&curPage, 0, sizeof(MEMPAGE));
                     memcpy(&curPage.mbi, &mbi, sizeof(mbi));
 
-                    ModNameFromAddr(pageStart, curPage.info, true);
+                    if (!ModNameFromAddr(pageStart, curPage.info, true))
+                    {
+                        // Module lookup failed; check if it's a file mapping
+                        if ((mbi.Type == MEM_MAPPED) &&
+                                (GetMappedFileName(fdProcessInfo->hProcess, mbi.AllocationBase, curPage.info, MAX_MODULE_SIZE) != 0))
+                        {
+                            // Get the file name only
+                            char* fileStart = strrchr(curPage.info, '\\');
+                            size_t fileLen = strlen(fileStart);
+
+                            if (fileStart)
+                                memmove(curPage.info, fileStart + 1, fileLen);
+
+                            curPage.info[fileLen] = '\0';
+                        }
+                    }
+
                     pageVector.push_back(curPage);
                 }
                 else
