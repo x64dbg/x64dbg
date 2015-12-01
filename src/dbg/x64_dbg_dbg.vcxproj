@@ -28,6 +28,7 @@
     <ClCompile Include="breakpoint.cpp" />
     <ClCompile Include="CodeFollowPass.cpp" />
     <ClCompile Include="command.cpp" />
+    <ClCompile Include="commandline.cpp" />
     <ClCompile Include="commandparser.cpp" />
     <ClCompile Include="comment.cpp" />
     <ClCompile Include="console.cpp" />
@@ -106,6 +107,7 @@
     <ClInclude Include="capstone\xcore.h" />
     <ClInclude Include="CodeFollowPass.h" />
     <ClInclude Include="command.h" />
+    <ClInclude Include="commandline.h" />
     <ClInclude Include="commandparser.h" />
     <ClInclude Include="comment.h" />
     <ClInclude Include="console.h" />

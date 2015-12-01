@@ -71,6 +71,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(mModuleList->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));
     connect(mModuleList, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(moduleContextMenu(QMenu*)));
     connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
     connect(Bridge::getBridge(), SIGNAL(updateSymbolList(int, SYMBOLMODULEINFO*)), this, SLOT(updateSymbolList(int, SYMBOLMODULEINFO*)));
@@ -394,4 +395,10 @@ void SymbolView::moduleEntropy()
         entropyDialog.GraphFile(QString(szModPath));
         entropyDialog.exec();
     }
+}
+
+void SymbolView::emptySearchResultSlot()
+{
+    // No result after search
+    mSearchListView->mCurList->setRowCount(0);
 }

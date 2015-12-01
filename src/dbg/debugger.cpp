@@ -20,6 +20,7 @@
 #include "exception.h"
 #include "error.h"
 #include "module.h"
+#include "commandline.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -632,7 +633,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     // Init program database
     DBSetPath(nullptr, szFileName);
-    DBLoad();
+    DBLoad(ALL_BUT_COMMAND_LINE);
 
     SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
@@ -1120,6 +1121,21 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0);
     pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
     strcpy_s(szFileName, init->exe);
+
+    // Load command line if it exists in DB
+    DBSetPath(nullptr, szFileName);
+    DBLoad(COMMAND_LINE_ONLY);
+
+    if (!isCmdLineEmpty())
+    {
+        char* commandLineArguments = NULL;
+        commandLineArguments = getCommandLineArgs();
+
+        if (commandLineArguments)
+            init->commandline = commandLineArguments;
+    }
+
+
     if(bFileIsDll)
         fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), false, StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str(), 0);
     else
@@ -1596,7 +1612,7 @@ static bool fixgetcommandlinesbase(duint new_command_line_unicode, duint new_com
 {
     duint getcommandline;
 
-    if(!valfromstring("kernelbase:GetCommandLineA", &getcommandline))
+    if(!valfromstring("kernelBase:GetCommandLineA", &getcommandline))
     {
         if(!valfromstring("kernel32:GetCommandLineA", &getcommandline))
         {
@@ -1682,6 +1698,9 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         return false;
     }
 
+    // Copy command line
+    copyCommandLine(cmd_line);
+
     return true;
 }
 
@@ -1723,6 +1742,7 @@ bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error)
         cmd_line_error->type = CMDL_ERR_CONVERTUNICODE;
         return false;
     }
+
     return true;
 }
 

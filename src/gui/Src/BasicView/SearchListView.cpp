@@ -168,6 +168,10 @@ void SearchListView::searchTextChanged(const QString & arg1)
             break;
         }
     }
+
+    if(rows == 0)
+        emit emptySearchResult();
+
     if(ui->checkBoxRegex->checkState() != Qt::Checked) //do not highlight with regex
         mSearchList->highlightText = arg1;
     mSearchList->reloadData();
