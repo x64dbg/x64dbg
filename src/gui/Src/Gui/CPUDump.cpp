@@ -1,6 +1,7 @@
 #include "CPUDump.h"
 #include <QMessageBox>
 #include <QClipboard>
+#include <QFileDialog>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "LineEditDialog.h"
@@ -131,6 +132,14 @@ void CPUDump::setupContextMenu()
     this->addAction(mBinaryPasteIgnoreSizeAction);
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
+
+    //Binary->Save To a File
+    mBinarySaveToFile = new QAction("Save To a File", this);
+    mBinarySaveToFile->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mBinarySaveToFile);
+    connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
+    mBinaryMenu->addAction(mBinarySaveToFile);
+
 
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
@@ -449,6 +458,7 @@ void CPUDump::setupContextMenu()
     mCopyRva = new QAction("&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
+
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -1529,6 +1539,22 @@ void CPUDump::binaryPasteIgnoreSizeSlot()
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
+}
+
+void CPUDump::binarySaveToFileSlot()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save to file", QDir::currentPath(), tr("All files (*.*)"));
+    if(fileName.length())
+    {
+        // Get starting selection and selection size, then convert selStart to VA
+        dsint rvaSelStart = getSelectionStart();
+        dsint selSize = getSelectionEnd() - rvaSelStart + 1;
+        dsint vaSelStart = rvaToVa(rvaSelStart);
+
+        // Prepare command
+        QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(vaSelStart, 16), QString::number(selSize));
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
 }
 
 void CPUDump::findPattern()
