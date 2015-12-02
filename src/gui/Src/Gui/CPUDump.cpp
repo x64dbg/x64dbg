@@ -9,6 +9,7 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -683,6 +684,45 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
         binaryEditSlot();
     }
     break;
+    }
+}
+
+void CPUDump::mouseMoveEvent(QMouseEvent *event)
+{
+    dsint ptr = 0, ptrValue = 0;
+
+    // Get mouse pointer relative position
+    int x = event->x();
+    int y = event->y();
+
+    // Get HexDump own RVA address, then VA in memory
+    int rva = getItemStartingAddress(x, y);
+    int va = rvaToVa(rva);
+
+    // Read VA
+    DbgMemRead(va, (unsigned char*)&ptr, sizeof(dsint));
+
+    // Check if its a pointer
+    if(DbgMemIsValidReadPtr(ptr))
+    {
+        // Get the value at the address pointed by the ptr
+        DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
+
+        // Format text like this : [ptr] = ptrValue
+        QString strPtrValue;
+#ifdef _WIN64
+        strPtrValue.sprintf("[%#016X] = %#016X", ptr, ptrValue)
+#else
+        strPtrValue.sprintf("[%#08X] = %#08X", ptr, ptrValue);
+#endif
+
+        // Show tooltip
+        QToolTip::showText(event->globalPos(), strPtrValue);
+    }
+    // If not a pointer, hide tooltips
+    else
+    {
+        QToolTip::hideText();
     }
 }
 
