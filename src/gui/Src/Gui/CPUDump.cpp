@@ -724,6 +724,8 @@ void CPUDump::mouseMoveEvent(QMouseEvent *event)
     {
         QToolTip::hideText();
     }
+
+    HexDump::mouseMoveEvent(event);
 }
 
 void CPUDump::addVaToHistory(dsint parVa)
