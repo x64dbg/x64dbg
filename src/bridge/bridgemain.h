@@ -741,7 +741,7 @@ typedef enum
     GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
     GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
     GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
-    GUI_REF_SETPROGRESS,            // param1=int progress,            param2=unused
+    GUI_REF_SETPROGRESS,            // param1=int progress,         param2=unused
     GUI_REF_SETSEARCHSTARTCOL,      // param1=int col               param2=unused
     GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
     GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
@@ -758,7 +758,7 @@ typedef enum
     GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
     GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,              param2=unused
+    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,               param2=unused
     GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
     GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused

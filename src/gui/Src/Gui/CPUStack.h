@@ -18,6 +18,7 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void setupContextMenu();
+    void updateFreezeStackAction();
 
 signals:
     void displayReferencesWidget();
@@ -41,9 +42,12 @@ public slots:
     void binaryPasteIgnoreSizeSlot();
     void undoSelectionSlot();
     void modifySlot();
+    void freezeStackSlot();
+    void dbgStateChangedSlot(DBGSTATE state);
 
 private:
     duint mCsp;
+    bool bStackFrozen;
 
     QMenu* mBinaryMenu;
     QAction* mBinaryEditAction;
@@ -55,6 +59,7 @@ private:
     QAction* mUndoSelection;
     QAction* mGotoSp;
     QAction* mGotoBp;
+    QAction* mFreezeStack;
     QAction* mGotoExpression;
     QAction* mFindPatternAction;
     QAction* mFollowDisasm;

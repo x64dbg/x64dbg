@@ -13,6 +13,8 @@
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
 
+QString MainWindow::windowTitle = "";
+
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -233,6 +235,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
 
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
@@ -645,9 +648,15 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
 void MainWindow::updateWindowTitleSlot(QString filename)
 {
     if(filename.length())
+    {
         setWindowTitle(QString(mWindowMainTitle) + QString(" - ") + filename);
+        windowTitle = filename;
+    }
     else
+    {
         setWindowTitle(QString(mWindowMainTitle));
+        windowTitle = QString(mWindowMainTitle);
+    }
 }
 
 void MainWindow::execeStepOver()

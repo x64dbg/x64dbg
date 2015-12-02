@@ -190,6 +190,9 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);
     void dropEvent(QDropEvent* pEvent);
+
+public:
+    static QString windowTitle;
 };
 
 #endif // MAINWINDOW_H

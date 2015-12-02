@@ -57,11 +57,16 @@ void CmdLineCacheLoad(JSON Root)
 
     // Return if there was nothing to load
     if (!jsonCmdLine)
+    {
+        json_decref(jsonCmdLine);
         return;
+    }
 
     const char *cmdLine = json_string_value(json_object_get(jsonCmdLine, "cmdLine"));
 
     strcpy_s(commandLine, cmdLine);
+
+    json_decref(jsonCmdLine);
 }
 
 void copyCommandLine(const char* cmdLine)
