@@ -139,7 +139,8 @@ SOURCES += \
     Src/Gui/EntropyDialog.cpp \
     Src/Gui/NotesManager.cpp \
     Src/Gui/NotepadView.cpp \
-    Src/Gui/CPUMultiDump.cpp
+    Src/Gui/CPUMultiDump.cpp \
+    Src/Gui/AssembleDialog.cpp
 
 
 HEADERS += \
@@ -220,7 +221,8 @@ HEADERS += \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
     Src/Utils/QActionLambda.h \
-    Src/Gui/CPUMultiDump.h
+    Src/Gui/CPUMultiDump.h \
+    Src/Gui/AssembleDialog.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -245,7 +247,8 @@ FORMS += \
     Src/Gui/SelectFields.ui \
     Src/Gui/YaraRuleSelectionDialog.ui \
     Src/Gui/DataCopyDialog.ui \
-    Src/Gui/EntropyDialog.ui
+    Src/Gui/EntropyDialog.ui \
+    Src/Gui/AssembleDialog.ui
 
 ##
 ## Libraries

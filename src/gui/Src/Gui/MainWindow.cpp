@@ -1228,7 +1228,7 @@ void MainWindow::tabMovedSlot(int from, int to)
 
 void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
 {
-    if(state == Qt::Checked)
+    if(state)
         loadTabSavedOrder();
     else
         loadTabDefaultOrder();

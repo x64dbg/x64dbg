@@ -8,6 +8,7 @@
 #include "WordEditDialog.h"
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
+#include "AssembleDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -617,6 +618,8 @@ void CPUDisassembly::assembleSlot()
     if(!DbgIsDebugging())
         return;
 
+    AssembleDialog assembleDialog;
+
     do
     {
         dsint wRVA = getInitialSelection();
@@ -647,32 +650,34 @@ void CPUDisassembly::assembleSlot()
         bool assembly_error;
         do
         {
+            char error[MAX_ERROR_SIZE] = "";
+
             assembly_error = false;
 
-            LineEditDialog mLineEdit(this);
-            mLineEdit.setText(actual_inst);
-            mLineEdit.setWindowTitle("Assemble at " + addr_text);
-            mLineEdit.setCheckBoxText("&Fill with NOPs");
-            mLineEdit.enableCheckBox(true);
-            mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
-            if(mLineEdit.exec() != QDialog::Accepted)
+            assembleDialog.setSelectedInstrVa(wVA);
+            assembleDialog.setTextEditValue(actual_inst);
+            assembleDialog.setWindowTitle("Assemble at " + addr_text);
+            assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
+            assembleDialog.setKeepSizeChecked(ConfigBool("Disassembler", "KeepSize"));
+
+            if(assembleDialog.exec() != QDialog::Accepted)
                 return;
 
-            //if the instruction its unkown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(mLineEdit.editText == QString("???") || mLineEdit.editText.toLower() == instr.instStr.toLower() || mLineEdit.editText == QString(""))
+            //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
+            if(assembleDialog.editText == QString("???") || assembleDialog.editText.toLower() == instr.instStr.toLower() || assembleDialog.editText == QString(""))
                 break;
 
-            Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+            Config()->setBool("Disassembler", "FillNOPs", assembleDialog.bFillWithNopsChecked);
+            Config()->setBool("Disassembler", "KeepSize", assembleDialog.bKeepSizeChecked);
 
-            char error[MAX_ERROR_SIZE] = "";
-            if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+            if(!DbgFunctions()->AssembleAtEx(wVA, assembleDialog.editText.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {
-                QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+                QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + assembleDialog.editText + "\" (" + error + ")");
                 msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                 msg.exec();
-                actual_inst = mLineEdit.editText;
+                actual_inst = assembleDialog.editText;
                 assembly_error = true;
             }
         }

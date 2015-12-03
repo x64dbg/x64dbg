@@ -159,6 +159,7 @@ Configuration::Configuration() : QObject()
     QMap<QString, bool> disassemblyBool;
     disassemblyBool.insert("ArgumentSpaces", false);
     disassemblyBool.insert("MemorySpaces", false);
+    disassemblyBool.insert("KeepSize", false);
     disassemblyBool.insert("FillNOPs", false);
     disassemblyBool.insert("Uppercase", false);
     disassemblyBool.insert("FindCommandEntireBlock", false);

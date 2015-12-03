@@ -510,7 +510,7 @@
         <item>
          <widget class="QCheckBox" name="chkSaveLoadTabOrder">
           <property name="text">
-           <string>Load/Save Tab Order</string>
+           <string>Enable Load/Save Tab Order</string>
           </property>
          </widget>
         </item>
