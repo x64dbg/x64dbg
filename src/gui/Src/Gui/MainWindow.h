@@ -24,6 +24,7 @@
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
+#include "SettingsDialog.h"
 
 namespace Ui
 {
@@ -40,6 +41,9 @@ public:
     static DWORD WINAPI closeThread(void* ptr);
     void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
+    void loadTabDefaultOrder();
+    void loadTabSavedOrder();
+    void clearTabWidget();
 
 public slots:
     void executeCommand();
@@ -111,6 +115,8 @@ public slots:
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
+    void tabMovedSlot(int from, int to);
+    void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
 
 private:
     Ui::MainWindow* ui;
@@ -186,6 +192,7 @@ private:
 
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
+    QVector<QWidget* > mWidgetList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>383</width>
-    <height>307</height>
+    <height>365</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -432,7 +432,7 @@
          <x>11</x>
          <y>13</y>
          <width>341</width>
-         <height>145</height>
+         <height>168</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -504,6 +504,13 @@
          <widget class="QLabel" name="lblAdminWarning">
           <property name="text">
            <string>&lt;font color=&quot;red&quot;&gt;DIE SCUM!&lt;/font&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="chkSaveLoadTabOrder">
+          <property name="text">
+           <string>Load/Save Tab Order</string>
           </property>
          </widget>
         </item>

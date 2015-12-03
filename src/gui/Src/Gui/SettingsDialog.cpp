@@ -230,6 +230,9 @@ void SettingsDialog::LoadSettings()
 
     bJitOld = settings.miscSetJIT;
     bJitAutoOld = settings.miscSetJITAuto;
+
+    GetSettingBool("Miscellaneous", "LoadSaveTabOrder", &settings.miscLoadSaveTabOrder);
+    ui->chkSaveLoadTabOrder->setChecked(settings.miscLoadSaveTabOrder);
 }
 
 void SettingsDialog::SaveSettings()
@@ -296,6 +299,8 @@ void SettingsDialog::SaveSettings()
         BridgeSettingSet("Symbols", "DefaultStore", ui->editSymbolStore->text().toUtf8().constData());
     if(settings.miscSymbolCache)
         BridgeSettingSet("Symbols", "CachePath", ui->editSymbolCache->text().toUtf8().constData());
+
+    BridgeSettingSetUint("Miscellaneous", "LoadSaveTabOrder", settings.miscLoadSaveTabOrder);
 
     BridgeSettingFlush();
     Config()->load();
@@ -623,4 +628,14 @@ void SettingsDialog::on_editSymbolCache_textEdited(const QString & arg1)
 {
     Q_UNUSED(arg1);
     settings.miscSymbolCache = true;
+}
+
+void SettingsDialog::on_chkSaveLoadTabOrder_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Unchecked)
+        settings.miscLoadSaveTabOrder = false;
+    else
+        settings.miscLoadSaveTabOrder = true;
+
+    emit chkSaveLoadTabOrderStateChanged((bool)arg1);
 }

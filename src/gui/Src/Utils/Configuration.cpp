@@ -170,6 +170,10 @@ Configuration::Configuration() : QObject()
     engineBool.insert("ListAllPages", false);
     defaultBools.insert("Engine", engineBool);
 
+    QMap<QString, bool> miscellaneousBool;
+    miscellaneousBool.insert("LoadSaveTabOrder", false);
+    defaultBools.insert("Miscellaneous", miscellaneousBool);
+
     //uint settings
     QMap<QString, duint> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
@@ -177,6 +181,20 @@ Configuration::Configuration() : QObject()
     QMap<QString, duint> disasmUint;
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
+    QMap<QString, duint> tabOrderUint;
+    tabOrderUint.insert("CPUTab", 0);
+    tabOrderUint.insert("LogTab", 1);
+    tabOrderUint.insert("NotesTab", 2);
+    tabOrderUint.insert("BreakpointsTab", 3);
+    tabOrderUint.insert("MemoryMapTab", 4);
+    tabOrderUint.insert("CallStackTab", 5);
+    tabOrderUint.insert("ScriptTab", 6);
+    tabOrderUint.insert("SymbolsTab", 7);
+    tabOrderUint.insert("SourceTab", 8);
+    tabOrderUint.insert("ReferencesTab", 9);
+    tabOrderUint.insert("ThreadsTab", 10);
+    tabOrderUint.insert("SnowmanTab", 11);
+    defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings
     QFont font("Lucida Console", 8, QFont::Normal, false);
@@ -398,6 +416,9 @@ void Configuration::readUints()
 
 void Configuration::writeUints()
 {
+    duint setting;
+    bool bSaveLoadTabOrder = ConfigBool("Miscellaneous", "LoadSaveTabOrder");
+
     //write config
     for(int i = 0; i < Uints.size(); i++)
     {
@@ -406,6 +427,11 @@ void Configuration::writeUints()
         for(int j = 0; j < currentUint->size(); j++)
         {
             QString id = (*currentUint).keys().at(j);
+
+            // Do not save settings to file if saveLoadTabOrder checkbox is Unchecked
+            if(!bSaveLoadTabOrder && category == "TabOrder" && BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
+                continue;
+
             uintToConfig(category, id, (*currentUint)[id]);
         }
     }

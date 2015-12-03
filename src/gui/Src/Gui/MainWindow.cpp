@@ -146,19 +146,25 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
-    // Setup tabs
-    addQWidgetTab(mCpuWidget);
-    addQWidgetTab(mLogView);
-    addQWidgetTab(mNotesManager);
-    addQWidgetTab(mBreakpointsView);
-    addQWidgetTab(mMemMapView);
-    addQWidgetTab(mCallStackView);
-    addQWidgetTab(mScriptView);
-    addQWidgetTab(mSymbolView);
-    addQWidgetTab(mSourceViewManager);
-    addQWidgetTab(mReferenceManager);
-    addQWidgetTab(mThreadView);
-    addQWidgetTab(mSnowmanView);
+    // Add all widgets to the list
+    mWidgetList.push_back(mCpuWidget);
+    mWidgetList.push_back(mLogView);
+    mWidgetList.push_back(mNotesManager);
+    mWidgetList.push_back(mBreakpointsView);
+    mWidgetList.push_back(mMemMapView);
+    mWidgetList.push_back(mCallStackView);
+    mWidgetList.push_back(mScriptView);
+    mWidgetList.push_back(mSymbolView);
+    mWidgetList.push_back(mSourceViewManager);
+    mWidgetList.push_back(mReferenceManager);
+    mWidgetList.push_back(mThreadView);
+    mWidgetList.push_back(mSnowmanView);
+
+    // If LoadSaveTabOrder disabled, load tabs in default order
+    if(!ConfigBool("Miscellaneous", "LoadSaveTabOrder"))
+        loadTabDefaultOrder();
+    else
+        loadTabSavedOrder();
 
     setCentralWidget(mTabWidget);
 
@@ -243,12 +249,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mTabWidget, SIGNAL(tabMovedTabWidget(int,int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
+
 
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
     lastException = 0;
     defaultSettings.SaveSettings();
+
 
     // Create updatechecker
     mUpdateChecker = new UpdateChecker(this);
@@ -302,6 +311,49 @@ void MainWindow::setTab(QWidget* widget)
             mTabWidget->setCurrentIndex(i);
             break;
         }
+    }
+}
+
+void MainWindow::loadTabDefaultOrder()
+{
+    clearTabWidget();
+
+    // Setup tabs
+    for(int i=0; i < mWidgetList.size(); i++)
+        addQWidgetTab(mWidgetList[i]);
+}
+
+void MainWindow::loadTabSavedOrder()
+{
+    clearTabWidget();
+
+    QMap<duint, QWidget* > tabIndexToWidget;
+
+    // Get tabIndex for each widget and add them to tabIndexToWidget
+    for(int i=0; i < mWidgetList.size(); i++)
+    {
+        QString tabName = mWidgetList[i]->windowTitle();
+        tabName = tabName.replace(" ", "") + "Tab";
+        duint tabIndex = Config()->getUint("TabOrder", tabName);
+        tabIndexToWidget.insert(tabIndex, mWidgetList[i]);
+    }
+
+    // Setup tabs
+    QMap<duint, QWidget* >::iterator it = tabIndexToWidget.begin();
+    for(it; it != tabIndexToWidget.end(); it++)
+    {
+        addQWidgetTab(it.value());
+    }
+}
+
+void MainWindow::clearTabWidget()
+{
+    if(!mTabWidget->count())
+        return;
+
+    for(int i=mTabWidget->count()-1; i >= 0; i--)
+    {
+        mTabWidget->removeTab(i);
     }
 }
 
@@ -715,9 +767,10 @@ void MainWindow::displaySnowmanWidget()
 
 void MainWindow::openSettings()
 {
-    SettingsDialog settings(this);
-    settings.lastException = lastException;
-    settings.exec();
+    SettingsDialog *settings = new SettingsDialog(this);
+    connect(settings, SIGNAL(chkSaveLoadTabOrderStateChanged(bool)), this, SLOT(chkSaveloadTabSavedOrderStateChangedSlot(bool)));
+    settings->lastException = lastException;
+    settings->exec();
 }
 
 void MainWindow::openAppearance()
@@ -1161,4 +1214,22 @@ void MainWindow::closeQWidgetTab(QWidget* qWidget)
 void MainWindow::executeOnGuiThread(void* cbGuiThread)
 {
     ((GUICALLBACK)cbGuiThread)();
+}
+
+void MainWindow::tabMovedSlot(int from, int to)
+{
+    for(int i=0; i < mTabWidget->count(); i++)
+    {
+        // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)
+        QString tabName = mTabWidget->tabText(i).replace(" ", "") + "Tab";
+        Config()->setUint("TabOrder", tabName, i);
+    }
+}
+
+void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
+{
+    if(state == Qt::Checked)
+        loadTabSavedOrder();
+    else
+        loadTabDefaultOrder();
 }
