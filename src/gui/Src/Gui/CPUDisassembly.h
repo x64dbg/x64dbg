@@ -45,6 +45,7 @@ public slots:
     void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
+    void setLabelAddressSlot();
     void setCommentSlot();
     void setBookmarkSlot();
     void toggleFunctionSlot();

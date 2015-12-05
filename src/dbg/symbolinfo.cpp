@@ -16,6 +16,10 @@ struct SYMBOLCBDATA
     void* user;
 };
 
+typedef std::vector<SYMBOLINFO> SYMBOLINFOVECTOR;
+typedef std::map<ULONG64, SYMBOLINFOVECTOR> SYMBOLINFOMAP;
+SYMBOLINFOMAP modulesCacheList;
+
 BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
     SYMBOLINFO curSymbol;
@@ -46,16 +50,50 @@ BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserCont
         curSymbol.undecoratedSymbol = nullptr;
     }
 
+    // Add to the cache
+    modulesCacheList[SymInfo->ModBase].push_back(curSymbol);
+
     SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
 }
 
-void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
+void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData, bool useCache)
 {
     SYMBOLCBDATA symbolCbData;
     symbolCbData.cbSymbolEnum = EnumCallback;
     symbolCbData.user = UserData;
+
+    // Retrieve from cache
+    if (useCache)
+    {
+        // Check if this module is cached in the list
+        if (modulesCacheList.find(Base) != modulesCacheList.end())
+        {
+            for (duint i = 0; i < modulesCacheList[Base].size(); i++)
+            {
+                symbolCbData.cbSymbolEnum(&modulesCacheList[Base].at(i), symbolCbData.user);
+            }
+
+            return;
+        }
+    }
+    else
+    {
+        // Check if this module is cached in the list
+        if (modulesCacheList.find(Base) != modulesCacheList.end())
+        {
+            // Free up previously allocated memory
+            for (duint i = 0; i < modulesCacheList[Base].size(); i++)
+            {
+                BridgeFree(modulesCacheList[Base].at(i).decoratedSymbol);
+                BridgeFree(modulesCacheList[Base].at(i).undecoratedSymbol);
+            }
+
+            // Clear the SYMBOLINFOVECTOR
+            modulesCacheList[Base].clear();
+        }
+    }
 
     // Enumerate every single symbol for the module in 'base'
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
@@ -301,4 +339,23 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
     }
 
     return true;
+}
+
+void SymClearMemoryCache()
+{
+    SYMBOLINFOMAP::iterator it = modulesCacheList.begin();
+    for (; it != modulesCacheList.end(); it++)
+    {
+        SYMBOLINFOVECTOR* pModuleVector = &((*it).second);
+
+        // Free up previously allocated memory
+        for (duint i = 0; i < pModuleVector->size(); i++)
+        {
+            BridgeFree(pModuleVector->at(i).decoratedSymbol);
+            BridgeFree(pModuleVector->at(i).undecoratedSymbol);
+        }
+    }
+
+    // Clear the whole map
+    modulesCacheList.clear();
 }

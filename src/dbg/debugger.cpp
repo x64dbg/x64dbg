@@ -1229,6 +1229,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     DBClose();
     ModClear();
     ThreadClear();
+    SymClearMemoryCache();
     GuiSetDebugState(stopped);
     dputs("Debugging stopped!");
     varset("$hp", (duint)0, true);
@@ -1496,6 +1497,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     DBClose();
     ModClear();
     ThreadClear();
+    SymClearMemoryCache();
     GuiSetDebugState(stopped);
     dputs("debugging stopped!");
     varset("$hp", (duint)0, true);

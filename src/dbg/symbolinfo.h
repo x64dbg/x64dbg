@@ -2,12 +2,13 @@
 
 #include "_global.h"
 
-void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData);
+void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData, bool bUseCache);
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List);
 void SymUpdateModuleList();
 void SymDownloadAllSymbols(const char* SymbolStore);
 bool SymAddrFromName(const char* Name, duint* Address);
 const char* SymGetSymbolicName(duint Address);
+void SymClearMemoryCache();
 
 /**
 \brief Gets the source code file name and line from an address.

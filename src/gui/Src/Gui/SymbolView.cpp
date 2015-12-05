@@ -174,12 +174,10 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     if(symbol->decoratedSymbol)
     {
         symbolList->setCellContent(index, 1, symbol->decoratedSymbol);
-        BridgeFree(symbol->decoratedSymbol);
     }
     if(symbol->undecoratedSymbol)
     {
         symbolList->setCellContent(index, 2, symbol->undecoratedSymbol);
-        BridgeFree(symbol->undecoratedSymbol);
     }
 }
 
@@ -189,7 +187,7 @@ void SymbolView::moduleSelectionChanged(int index)
     if(!mModuleBaseList.count(mod))
         return;
     mSearchListView->mList->setRowCount(0);
-    DbgSymbolEnum(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
+    DbgSymbolEnum(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList, true);
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);

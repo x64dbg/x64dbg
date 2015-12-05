@@ -302,7 +302,22 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/label.png"), "Label", SLOT(setLabelSlot()), "ActionSetLabel"));
+    MenuBuilder* labelMenu = new MenuBuilder(this);
+    labelMenu->addAction(makeShortcutAction("Label Current Address", SLOT(setLabelSlot()), "ActionSetLabel"));
+    QAction* labelAddress = makeAction("Label", SLOT(setLabelAddressSlot()));
+    labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
+    {
+        BASIC_INSTRUCTION_INFO instr_info;
+        duint wVA = rvaToVa(getInitialSelection());
+
+        DbgDisasmFastAt(wVA, &instr_info);
+        QString targetAddress = "0x" + QString::number(instr_info.addr, 16).toUpper();
+        labelAddress->setText("Label " + targetAddress);
+
+        return (instr_info.branch || instr_info.call);
+    });
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), "Label"), labelMenu);
+
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     QAction* toggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
@@ -492,6 +507,35 @@ void CPUDisassembly::setLabelSlot()
     if(!DbgIsDebugging())
         return;
     duint wVA = rvaToVa(getInitialSelection());
+    LineEditDialog mLineEdit(this);
+    QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    char label_text[MAX_COMMENT_SIZE] = "";
+    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+        mLineEdit.setText(QString(label_text));
+    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    GuiUpdateAllViews();
+}
+
+void CPUDisassembly::setLabelAddressSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    BASIC_INSTRUCTION_INFO instr_info;
+    duint wVA = rvaToVa(getInitialSelection());
+
+    DbgDisasmFastAt(wVA, &instr_info);
+    wVA = instr_info.addr;
+
     LineEditDialog mLineEdit(this);
     QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     char label_text[MAX_COMMENT_SIZE] = "";
