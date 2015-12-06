@@ -251,7 +251,7 @@ void CPUDump::setupContextMenu()
     mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction("&Restore", this);
+    mMemoryAccessRestore = new QAction("&Restore on hit", this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
@@ -261,7 +261,7 @@ void CPUDump::setupContextMenu()
     mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction("&Restore", this);
+    mMemoryWriteRestore = new QAction("&Restore on hit", this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
@@ -271,7 +271,7 @@ void CPUDump::setupContextMenu()
     mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction("&Restore", this);
+    mMemoryExecuteRestore = new QAction("&Restore on hit", this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
@@ -721,9 +721,9 @@ void CPUDump::mouseMoveEvent(QMouseEvent *event)
         // Format text like this : [ptr] = ptrValue
         QString strPtrValue;
 #ifdef _WIN64
-        strPtrValue.sprintf("[%#016X] = %#016X", ptr, ptrValue)
+        strPtrValue.sprintf("[0x%016X] = 0x%016X", ptr, ptrValue);
 #else
-        strPtrValue.sprintf("[%#08X] = %#08X", ptr, ptrValue);
+        strPtrValue.sprintf("[0x%08X] = 0x%08X", ptr, ptrValue);
 #endif
 
         // Show tooltip

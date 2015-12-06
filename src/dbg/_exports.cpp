@@ -762,8 +762,14 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_SYMBOL_ENUM:
     {
         SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
-        bool bUseCache = (bool)param2;
-        SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user, bUseCache);
+        SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
+    }
+    break;
+
+    case DBG_SYMBOL_ENUM_FROMCACHE:
+    {
+        SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
+        SymEnumFromCache(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
     }
     break;
 

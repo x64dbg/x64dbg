@@ -59,6 +59,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_LABEL_SIZE 256
 #define MAX_COMMENT_SIZE 512
 #define MAX_MODULE_SIZE 256
+#define MAX_IMPORT_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
@@ -144,6 +145,7 @@ typedef enum
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
     DBG_SCRIPT_GETBRANCHINFO,       // param1=int line,                  param2=SCRIPTBRANCH* info
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
+    DBG_SYMBOL_ENUM_FROMCACHE,      // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
     DBG_DISASM_AT,                  // param1=duint addr,                 param2=DISASM_INSTR* instr
@@ -349,6 +351,7 @@ struct SYMBOLINFO_
     duint addr;
     char* decoratedSymbol;
     char* undecoratedSymbol;
+    bool isImported;
 };
 
 typedef struct
@@ -661,7 +664,8 @@ BRIDGE_IMPEXP void DbgScriptAbort();
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info);
-BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user, bool bUseCache);
+BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);

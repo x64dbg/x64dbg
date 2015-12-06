@@ -31,11 +31,13 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
+    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Type", true);
     mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mList->addColumnAt(2000, "Symbol (undecorated)", true);
 
     // Setup search list
     mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Type", true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mSearchList->addColumnAt(2000, "Symbol (undecorated)", true);
 
@@ -173,11 +175,20 @@ void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
     symbolList->setCellContent(index, 0, QString("%1").arg(symbol->addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     if(symbol->decoratedSymbol)
     {
-        symbolList->setCellContent(index, 1, symbol->decoratedSymbol);
+        symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
     }
     if(symbol->undecoratedSymbol)
     {
-        symbolList->setCellContent(index, 2, symbol->undecoratedSymbol);
+        symbolList->setCellContent(index, 3, symbol->undecoratedSymbol);
+    }
+
+    if(symbol->isImported)
+    {
+        symbolList->setCellContent(index, 1, "Import");
+    }
+    else
+    {
+        symbolList->setCellContent(index, 1, "Export");
     }
 }
 
@@ -187,7 +198,7 @@ void SymbolView::moduleSelectionChanged(int index)
     if(!mModuleBaseList.count(mod))
         return;
     mSearchListView->mList->setRowCount(0);
-    DbgSymbolEnum(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList, true);
+    DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
     mSearchListView->mList->reloadData();
     mSearchListView->mList->setSingleSelection(0);
     mSearchListView->mList->setTableOffset(0);

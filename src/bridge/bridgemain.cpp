@@ -566,13 +566,23 @@ BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 }
 
 // FIXME all
-BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user, bool bUseCache)
+BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
     cbInfo.base = base;
     cbInfo.cbSymbolEnum = cbSymbolEnum;
     cbInfo.user = user;
-    _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, (void*)(duint)bUseCache);
+    _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
+}
+
+// FIXME all
+BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+{
+    SYMBOLCBINFO cbInfo;
+    cbInfo.base = base;
+    cbInfo.cbSymbolEnum = cbSymbolEnum;
+    cbInfo.user = user;
+    _dbg_sendmessage(DBG_SYMBOL_ENUM_FROMCACHE, &cbInfo, 0);
 }
 
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
