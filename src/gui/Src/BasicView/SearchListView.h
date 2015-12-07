@@ -31,7 +31,6 @@ public:
 
 private slots:
     void searchTextChanged(const QString & arg1);
-    void listKeyPressed(QKeyEvent* event);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
     void searchSlot();
@@ -47,6 +46,10 @@ private:
     QVBoxLayout* mListLayout;
     QWidget* mListPlaceHolder;
     QAction* mSearchAction;
+    int mCursorPosition;
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 #endif // SEARCHLISTVIEW_H
