@@ -9,34 +9,182 @@
 #include "console.h"
 #include "module.h"
 
-int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name)
+int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type)
 {
-    duint regionSize = 0;
-    duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
+    char fullName[deflen];
+    char moduleName[MAX_MODULE_SIZE];
+    int refFindInRangeRet;
+    duint scanStart, scanSize;
+    REFINFO refInfo;
 
-    // If the memory page wasn't found, fail
-    if(!regionBase || !regionSize)
+    // Search in current Region
+    if (type == CURRENT_REGION)
     {
-        if(!Silent)
-            dprintf("Invalid memory page 0x%p\n", Address);
+        duint regionSize = 0;
+        duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
 
-        return 0;
+        // If the memory page wasn't found, fail
+        if (!regionBase || !regionSize)
+        {
+            if (!Silent)
+                dprintf("Invalid memory page 0x%p\n", Address);
+
+            return 0;
+        }
+
+        // Assume the entire range is used
+        scanStart = regionBase;
+        scanSize  = regionSize;
+
+        // Otherwise use custom boundaries if size was supplied
+        if(Size)
+        {
+            duint maxsize = Size - (Address - regionBase);
+
+            // Make sure the size fits in one page
+            scanStart = Address;
+            scanSize  = min(Size, maxsize);
+        }
+
+        // Determine the full module name
+        if (ModNameFromAddr(scanStart, moduleName, true))
+            sprintf_s(fullName, "%s (Region %s)", Name, moduleName);
+        else
+            sprintf_s(fullName, "%s (Region %p)", Name, scanStart);
+
+        // Initialize disassembler
+        Capstone cp;
+
+        // Allow an "initialization" notice
+        refInfo.refcount = 0;
+        refInfo.userinfo = UserData;
+        refInfo.name = fullName;
+
+
+        refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        {
+            GuiReferenceSetCurrentTaskProgress(percent, "Region Search");
+            GuiReferenceSetProgress(percent);
+        });
+
+        GuiReferenceReloadData();
+
+        if (!refFindInRangeRet)
+            return refFindInRangeRet;
+
+        refInfo.refcount += refFindInRangeRet;
     }
 
-    // Assume the entire range is used
-    duint scanStart = regionBase;
-    duint scanSize = regionSize;
-
-    // Otherwise use custom boundaries if size was supplied
-    if(Size)
+    // Search in current Module
+    else if (type == CURRENT_MODULE)
     {
-        duint maxsize = Size - (Address - regionBase);
+        MODINFO *modInfo = ModInfoFromAddr(Address);
 
-        // Make sure the size fits in one page
-        scanStart = Address;
-        scanSize = min(Size, maxsize);
+        if (!modInfo)
+        {
+            if (!Silent)
+                dprintf("Couldn't locate module for 0x%p\n", Address);
+
+            return 0;
+        }
+
+        duint modBase = modInfo->base;
+        duint modSize = modInfo->size;
+
+        scanStart = modBase;
+        scanSize  = modSize;
+
+        // Determine the full module name
+        if (ModNameFromAddr(scanStart, moduleName, true))
+            sprintf_s(fullName, "%s (%s)", Name, moduleName);
+        else
+            sprintf_s(fullName, "%s (%p)", Name, scanStart);
+
+        // Initialize disassembler
+        Capstone cp;
+
+        // Allow an "initialization" notice
+        refInfo.refcount = 0;
+        refInfo.userinfo = UserData;
+        refInfo.name = fullName;
+
+        refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        {
+            GuiReferenceSetCurrentTaskProgress(percent, "Module Search");
+            GuiReferenceSetProgress(percent);
+        });
+
+
+        if (!refFindInRangeRet)
+            return refFindInRangeRet;
+
+        GuiReferenceReloadData();
     }
 
+    // Search in all Modules
+    else if (type == ALL_MODULES)
+    {
+        bool initCallBack = true;
+        std::vector<MODINFO > modList;
+        ModGetList(modList);
+
+        if (!modList.size())
+        {
+            if (!Silent)
+                dprintf("Couldn't get module list");
+
+            return 0;
+        }
+
+        // Initialize disassembler
+        Capstone cp;
+
+        // Determine the full module
+        sprintf_s(fullName, "All Modules (%s)", Name);
+
+        // Allow an "initialization" notice
+        refInfo.refcount = 0;
+        refInfo.userinfo = UserData;
+        refInfo.name = fullName;
+
+        for (duint i = 0; i < modList.size(); i++)
+        {
+            scanStart = modList[i].base;
+            scanSize  = modList[i].size;
+
+            if (i != 0)
+                initCallBack = false;
+
+            refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+            {
+                float fPercent = (float)percent / 100.f;
+                float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
+
+                int totalPercent = (int)floor(fTotalPercent * 100.f);
+
+                char tst[256];
+                strcpy_s(tst, modList[i].name);
+
+                GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
+                GuiReferenceSetProgress(totalPercent);
+            });
+
+
+            if (!refFindInRangeRet)
+                return refFindInRangeRet;
+
+            GuiReferenceReloadData();
+        }
+    }
+
+    GuiReferenceSetProgress(100);
+    GuiReferenceReloadData();
+    return refInfo.refcount;
+}
+
+
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO &refInfo, Capstone &cp, bool initCallBack, CBPROGRESS cbUpdateProgress)
+{
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
 
@@ -48,25 +196,8 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         return 0;
     }
 
-    // Determine the full module name
-    char fullName[deflen];
-    char moduleName[MAX_MODULE_SIZE];
-
-    if(ModNameFromAddr(scanStart, moduleName, true))
-        sprintf_s(fullName, "%s (%s)", Name, moduleName);
-    else
-        sprintf_s(fullName, "%s (%p)", Name, scanStart);
-
-    // Initialize disassembler
-    Capstone cp;
-
-    // Allow an "initialization" notice
-    REFINFO refInfo;
-    refInfo.refcount = 0;
-    refInfo.userinfo = UserData;
-    refInfo.name = fullName;
-
-    Callback(0, 0, &refInfo);
+    if(initCallBack)
+        Callback(0, 0, &refInfo);
 
     //concurrency::parallel_for(duint (0), scanSize, [&](duint i)
     for(duint i = 0; i < scanSize;)
@@ -78,7 +209,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             // Integer = floor(percent)
             int percent = (int)floor(((float)i / (float)scanSize) * 100.0f);
 
-            GuiReferenceSetProgress(percent);
+            cbUpdateProgress(percent);
         }
 
         // Disassemble the instruction
@@ -104,7 +235,6 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         i += disasmLen;
     }
 
-    GuiReferenceSetProgress(100);
-    GuiReferenceReloadData();
+    cbUpdateProgress(100);
     return refInfo.refcount;
 }

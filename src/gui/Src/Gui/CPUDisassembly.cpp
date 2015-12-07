@@ -358,11 +358,45 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
 
     MenuBuilder* searchMenu = new MenuBuilder(this);
-    searchMenu->addAction(makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind"));
-    searchMenu->addAction(makeAction("&Constant", SLOT(findConstantSlot())));
-    searchMenu->addAction(makeAction("&String references", SLOT(findStringsSlot())));
-    searchMenu->addAction(makeAction("&Intermodular calls", SLOT(findCallsSlot())));
-    searchMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
+    MenuBuilder* mSearchRegionMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchModuleMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
+
+    // Search in Current Region menu
+    mFindCommandRegion = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantRegion = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsRegion = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsRegion = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchRegionMenu->addAction(mFindCommandRegion);
+    mSearchRegionMenu->addAction(mFindConstantRegion);
+    mSearchRegionMenu->addAction(mFindStringsRegion);
+    mSearchRegionMenu->addAction(mFindCallsRegion);
+    mSearchRegionMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
+
+    // Search in Current Module menu
+    mFindCommandModule = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantModule = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsModule = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsModule = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchModuleMenu->addAction(mFindCommandModule);
+    mSearchModuleMenu->addAction(mFindConstantModule);
+    mSearchModuleMenu->addAction(mFindStringsModule);
+    mSearchModuleMenu->addAction(mFindCallsModule);
+
+
+    // Search in All Modules menu
+    mFindCommandAll = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantAll = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsAll = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsAll = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchAllMenu->addAction(mFindCommandAll);
+    mSearchAllMenu->addAction(mFindConstantAll);
+    mSearchAllMenu->addAction(mFindStringsAll);
+    mSearchAllMenu->addAction(mFindCallsAll);
+
+    searchMenu->addMenu(makeMenu("Current Region"), mSearchRegionMenu);
+    searchMenu->addMenu(makeMenu("Current Module"), mSearchModuleMenu);
+    searchMenu->addMenu(makeMenu("All Modules"), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/search-for.png"), "&Search for"), searchMenu);
 
     mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
@@ -831,27 +865,52 @@ void CPUDisassembly::findReferencesSlot()
 
 void CPUDisassembly::findConstantSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindConstantRegion)
+        refFindType = 0;
+    else if(sender() == mFindConstantModule)
+        refFindType = 1;
+    else if(sender() == mFindConstantAll)
+        refFindType = 2;
+
     WordEditDialog wordEdit(this);
     wordEdit.setup("Enter Constant", 0, sizeof(dsint));
     if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
         return;
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString constText = QString("%1").arg(wordEdit.getVal(), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + constText + ", " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("findref " + constText + ", " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUDisassembly::findStringsSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindStringsRegion)
+        refFindType = 0;
+    else if(sender() == mFindStringsModule)
+        refFindType = 1;
+    else if(sender() == mFindStringsAll)
+        refFindType = 2;
+
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("strref " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
+
 void CPUDisassembly::findCallsSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindCallsRegion)
+        refFindType = 0;
+    else if(sender() == mFindCallsModule)
+        refFindType = 1;
+    else if(sender() == mFindCallsAll)
+        refFindType = 2;
+
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("modcallfind " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("modcallfind " + addrText + ", 0, 0").toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -1121,10 +1180,18 @@ void CPUDisassembly::findCommandSlot()
     if(!DbgIsDebugging())
         return;
 
+    int refFindType = 0;
+    if(sender() == mFindCommandRegion)
+        refFindType = 0;
+    else if(sender() == mFindCommandModule)
+        refFindType = 1;
+    else if(sender() == mFindCommandAll)
+        refFindType = 2;
+
     LineEditDialog mLineEdit(this);
-    mLineEdit.enableCheckBox(true);
-    mLineEdit.setCheckBoxText("Entire &Block");
-    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.enableCheckBox(false);
+//    mLineEdit.setCheckBoxText("Entire &Block");
+//    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1147,13 +1214,8 @@ void CPUDisassembly::findCommandSlot()
 
     QString addr_text = QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
 
-    if(!mLineEdit.bChecked)
-    {
-        dsint size = mMemPage->getSize();
-        DbgCmdExec(QString("findasm \"%1\", %2, .%3").arg(mLineEdit.editText).arg(addr_text).arg(size).toUtf8().constData());
-    }
-    else
-        DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
+    dsint size = mMemPage->getSize();
+    DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType).toUtf8().constData());
 
     emit displayReferencesWidget();
 }

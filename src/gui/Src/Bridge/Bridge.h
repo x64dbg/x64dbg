@@ -70,6 +70,7 @@ signals:
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
+    void referenceSetCurrentTaskProgress(int progress, QString taskTitle);
     void referenceSetSearchStartCol(int col);
     void referenceInitialize(QString name);
     void stackDumpAt(duint va, duint csp);

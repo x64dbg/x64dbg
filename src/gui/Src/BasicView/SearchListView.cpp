@@ -194,8 +194,10 @@ bool SearchListView::eventFilter(QObject *obj, QEvent *event)
     {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent* >(event);
         QLineEdit *lineEdit = static_cast<QLineEdit* >(obj);
+
         mCursorPosition = lineEdit->cursorPositionAt(mouseEvent->pos());
         lineEdit->setFocusPolicy(Qt::NoFocus);
+
         return QObject::eventFilter(obj, event);
     }
     // KeyPress in List

@@ -885,6 +885,8 @@ CMDRESULT cbInstrRefFind(int argc, char* argv[])
         newCommand += std::string(",") + argv[2];
     if (argc > 3)
         newCommand += std::string(",") + argv[3];
+    if (argc > 4)
+        newCommand += std::string(",") + argv[4];
     return cmddirectexec(newCommand.c_str());
 }
 
@@ -913,7 +915,13 @@ CMDRESULT cbInstrRefFindRange(int argc, char* argv[])
         sprintf_s(title, "Constant: %" fext "X", range.start);
     else
         sprintf_s(title, "Range: %" fext "X-%" fext "X", range.start, range.end);
-    int found = RefFind(addr, size, cbRefFind, &range, false, title);
+
+    duint refFindType = CURRENT_REGION;
+    if (argc >= 6 && valfromstring(argv[5], &refFindType, true))
+        if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType);
     dprintf("%u reference(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -970,14 +978,22 @@ bool cbRefStr(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refi
 CMDRESULT cbInstrRefStr(int argc, char* argv[])
 {
     duint addr;
+    duint size = 0;
+
+    // If not specified, assume CURRENT_REGION by default
     if (argc < 2 || !valfromstring(argv[1], &addr, true))
         addr = GetContextDataEx(hActiveThread, UE_CIP);
-    duint size = 0;
     if (argc >= 3)
         if (!valfromstring(argv[2], &size, true))
             size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if (argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings");
+    int found = RefFind(addr, size, cbRefStr, 0, false, "Strings", (REFFINDTYPE)refFindType);
     dprintf("%u string(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1399,8 +1415,14 @@ CMDRESULT cbInstrModCallFind(int argc, char* argv[])
     if (argc >= 3)
         if (!valfromstring(argv[2], &size, true))
             size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if (argc >= 4 && valfromstring(argv[3], &refFindType, true))
+        if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
     duint ticks = GetTickCount();
-    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls");
+    int found = RefFind(addr, size, cbModCallFind, 0, false, "Calls", (REFFINDTYPE)refFindType);
     dprintf("%u call(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;
@@ -1656,6 +1678,11 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
         if (!valfromstring(argv[3], &size))
             size = 0;
 
+    duint refFindType = CURRENT_REGION;
+    if (argc >= 5 && valfromstring(argv[4], &refFindType, true))
+        if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
     unsigned char dest[16];
     int asmsize = 0;
     char error[MAX_ERROR_SIZE] = "";
@@ -1671,7 +1698,7 @@ CMDRESULT cbInstrFindAsm(int argc, char* argv[])
     duint ticks = GetTickCount();
     char title[256] = "";
     sprintf_s(title, "Command: \"%s\"", basicinfo.instruction);
-    int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title);
+    int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType);
     dprintf("%u result(s) in %ums\n", found, GetTickCount() - ticks);
     varset("$result", found, false);
     return STATUS_CONTINUE;

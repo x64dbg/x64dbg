@@ -228,6 +228,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit referenceSetProgress((int)param1);
         break;
 
+    case GUI_REF_SETCURRENTTASKPROGRESS:
+        emit referenceSetCurrentTaskProgress((int)param1, QString((const char*)param2));
+        break;
+
     case GUI_REF_SETSEARCHSTARTCOL:
         emit referenceSetSearchStartCol((int)param1);
         break;

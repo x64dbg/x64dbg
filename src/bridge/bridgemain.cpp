@@ -1038,6 +1038,10 @@ BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
     _gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
 }
 
+BRIDGE_IMPEXP void GuiReferenceSetCurrentTaskProgress(int progress, const char* taskTitle)
+{
+    _gui_sendmessage(GUI_REF_SETCURRENTTASKPROGRESS, (void*)(duint)progress, (void*)taskTitle);
+}
 
 BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
 {
