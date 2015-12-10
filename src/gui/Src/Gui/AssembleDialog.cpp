@@ -68,7 +68,7 @@ void AssembleDialog::compareTypedInstructionToSelected()
     selectedInstructionSize = basicInstrInfo.size;
 
     // Get typed in instruction size
-    if(!DbgFunctions()->Assemble(0, NULL, &typedInstructionSize, editText.toUtf8().constData(), error)  || selectedInstructionSize == 0)
+    if(!DbgFunctions()->Assemble(this->selectedInstrVa, NULL, &typedInstructionSize, editText.toUtf8().constData(), error)  || selectedInstructionSize == 0)
     {
         this->setKeepSizeLabel("<font color='orange'><b>Instruction decoding error : " + QString(error) + "</b></font>");
         return;
