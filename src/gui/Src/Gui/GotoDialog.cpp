@@ -21,6 +21,8 @@ GotoDialog::GotoDialog(QWidget* parent) : QDialog(parent), ui(new Ui::GotoDialog
     validRangeEnd = 0;
     fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
+    mValidateThread->setOnExpressionChangedCallback(std::bind(&GotoDialog::validateExpression, this, std::placeholders::_1));
+
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textEdited(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
@@ -42,6 +44,14 @@ void GotoDialog::hideEvent(QHideEvent* event)
     Q_UNUSED(event);
     mValidateThread->stop();
     mValidateThread->wait();
+}
+
+void GotoDialog::validateExpression(QString expression)
+{
+    duint value;
+    bool validExpression = DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
+    bool validPointer = validExpression && DbgMemIsValidReadPtr(value);
+    this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
 }
 
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)

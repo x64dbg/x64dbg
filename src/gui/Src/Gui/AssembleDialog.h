@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <functional>
 #include "Bridge.h"
+#include "ValidateExpressionThread.h"
 
 namespace Ui
 {
@@ -30,17 +31,22 @@ public:
     void setFillWithNopsLabel(const QString & text);
 
     void setSelectedInstrVa(const duint va);
-    void compareTypedInstructionToSelected();
     void setOkButtonEnabled(bool enabled);
 
+    void validateInstruction(QString expression);
+    void hideEvent(QHideEvent *event);
+
 private slots:
+    void textChangedSlot(QString text);
+    void instructionChangedSlot(dsint sizeDifference, QString error);
     void on_lineEdit_textChanged(const QString &arg1);
     void on_checkBoxKeepSize_clicked(bool checked);
     void on_checkBoxFillWithNops_clicked(bool checked);
 
 private:
     Ui::AssembleDialog *ui;
-    duint selectedInstrVa;
+    duint mSelectedInstrVa;
+    ValidateExpressionThread *mValidateThread;
 
 };
 
