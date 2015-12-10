@@ -890,7 +890,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
                         invalidCount++;
                 }
                 if(invalidCount)
-                    dprintf("%s invalid TLS callback addresses...\n", invalidCount);
+                    dprintf("%d invalid TLS callback addresses...\n", invalidCount);
             }
         }
     }
