@@ -5,5 +5,6 @@
 
 bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error);
 bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop);
+bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest);
 
 #endif // _ASSEMBLE_H

@@ -115,6 +115,7 @@ signals:
     void setDebuggeeNotes(const QString text);
     void getDebuggeeNotes(void* text);
     void dumpAtN(duint va, int index);
+    void displayWarning(QString title, QString text);
 
 private:
     QMutex* mBridgeMutex;

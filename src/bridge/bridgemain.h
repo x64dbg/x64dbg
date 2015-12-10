@@ -787,6 +787,7 @@ typedef enum
     GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
     GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
+    GUI_DISPLAY_WARNING             // param1=const char *text,     param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -886,6 +887,7 @@ BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
+BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text);
 
 #ifdef __cplusplus
 }

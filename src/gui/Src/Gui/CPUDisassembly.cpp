@@ -24,6 +24,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
 
     Initialize();
 }
@@ -704,24 +705,7 @@ void CPUDisassembly::assembleSlot()
         duint wVA = rvaToVa(wRVA);
         QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
 
-        QByteArray wBuffer;
-
-        dsint wMaxByteCountToRead = 16 * 2;
-
-        //TODO: fix size problems
-        dsint size = getSize();
-        if(!size)
-            size = wRVA;
-
-        // Bounding
-        wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
-
-        wBuffer.resize(wMaxByteCountToRead);
-
-        mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
-
-        QBeaEngine disasm(-1);
-        Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+        Instruction_t instr = this->DisassembleAt(wRVA);
 
         QString actual_inst = instr.instStr;
 
@@ -1248,6 +1232,11 @@ void CPUDisassembly::decompileFunctionSlot()
         emit displaySnowmanWidget();
         emit decompileAt(start, end);
     }
+}
+
+void CPUDisassembly::displayWarningSlot(QString title, QString text)
+{
+    QMessageBox::QMessageBox(QMessageBox::Information, title, text, QMessageBox::Ok).exec();
 }
 
 void CPUDisassembly::paintEvent(QPaintEvent* event)
