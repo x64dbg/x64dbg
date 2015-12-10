@@ -383,10 +383,10 @@ void ThreadView::updateThreadList()
     mCurrentThreadId = "NONE";
     if(threadList.count)
     {
-        BridgeFree(threadList.list);
         int currentThread = threadList.CurrentThread;
         if(currentThread >= 0 && currentThread < threadList.count)
             mCurrentThreadId = ToHexString(threadList.list[currentThread].BasicInfo.ThreadId);
+        BridgeFree(threadList.list);
     }
     reloadData();
 }
