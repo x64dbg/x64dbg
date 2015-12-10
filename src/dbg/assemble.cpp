@@ -69,7 +69,7 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         *size = destSize;
 
     // Check if the instruction doesn't set IP to non-executable memory
-    if (!isInstructionPointingToExMemory(addr, dest))
+    if (isInstructionPointingToExMemory(addr, dest) == NX_MEMORY)
         GuiDisplayWarning("Non-executable memory region", "Assembled instruction points to non-executable memory region !");
 
     bool ret = MemPatch(addr, dest, destSize);
@@ -97,7 +97,7 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
     return ret;
 }
 
-bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
+INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
 {
     MEMMAP wMemMapStruct;
     DISASM_ARG arg;
@@ -134,7 +134,7 @@ bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
 
     // No memory pointer in the instruction, no need to go further
     if (!instrMemValuesIndex)
-        return false;
+        return NO_POINTER;
 
     // Get memory map to locate the sections to which the instr memory address belongs to
     DbgMemMap(&wMemMapStruct);
@@ -162,15 +162,15 @@ bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
 
                     // DEP is disabled if lpFlagsDep == 0
                     if (GetProcessDEPPolicy(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
-                        return true;
+                        return EX_MEMORY;
 #else
                     // DEP enabled on x64
-                    return true;
+                    return EX_MEMORY;
 #endif
                 }
             }
         }
     }
 
-    return false;
+    return NX_MEMORY;
 }
