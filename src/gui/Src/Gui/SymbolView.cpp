@@ -214,7 +214,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         mSearchListView->mList->setSingleSelection(0);
         mModuleList->mList->setSingleSelection(0);
     }
-    mModuleList->mList->setFocus();
+
     mModuleBaseList.clear();
     for(int i = 0; i < module_count; i++)
     {
