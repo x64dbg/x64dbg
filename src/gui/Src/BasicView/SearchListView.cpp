@@ -223,8 +223,8 @@ bool SearchListView::eventFilter(QObject *obj, QEvent *event)
             {
                 newText = mSearchBox->text();
 
-                if(mCursorPosition != 0)
-                    newText.remove(mCursorPosition, 1);
+                if(mCursorPosition > 0)
+                    newText.remove(mCursorPosition-1, 1);
 
                 ((mCursorPosition - 1) < 0) ? mCursorPosition = 0 : mCursorPosition--;
             }
