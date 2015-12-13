@@ -16,6 +16,63 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
 }
 
+void CommandLineEdit::keyPressEvent(QKeyEvent *event)
+{
+    if(event->type() == QEvent::KeyPress)
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        if(keyEvent->key() == Qt::Key_Tab)
+        {
+            QStringListModel *strListModel = (QStringListModel*)(mCompleter->model());
+            QStringList stringList = strListModel->stringList();
+
+            if(stringList.size())
+            {
+                QModelIndex currentModelIndex = mCompleter->popup()->currentIndex();
+
+                // If not item selected, select first one in the list
+                if(currentModelIndex.row() < 0)
+                    currentModelIndex = mCompleter->currentIndex();
+
+
+                // If popup list is not visible, selected next suggested command
+                if(!mCompleter->popup()->isVisible())
+                {
+                    for(int row=0; row < mCompleter->popup()->model()->rowCount(); row++)
+                    {
+                        QModelIndex modelIndex = mCompleter->popup()->model()->index(row, 0);
+
+                        // If the lineedit contains a suggested command, get the next suggested one
+                        if(mCompleter->popup()->model()->data(modelIndex) == this->text())
+                        {
+                            int nextModelIndexRow = (currentModelIndex.row() + 1) % mCompleter->popup()->model()->rowCount();
+                            currentModelIndex = mCompleter->popup()->model()->index(nextModelIndexRow, 0);
+                            break;
+                        }
+                    }
+                }
+
+                mCompleter->popup()->setCurrentIndex(currentModelIndex);
+                mCompleter->popup()->hide();
+
+                int currentRow = mCompleter->currentRow();
+                mCompleter->setCurrentRow(currentRow);
+            }
+        }
+        else
+            HistoryLineEdit::keyPressEvent(event);
+    }
+    else
+        HistoryLineEdit::keyPressEvent(event);
+}
+
+// Disables moving to Prev/Next child when pressing tab
+bool CommandLineEdit::focusNextPrevChild(bool next)
+{
+    Q_UNUSED(next);
+    return false;
+}
+
 void CommandLineEdit::autoCompleteAddCmd(const QString cmd)
 {
     QStringListModel* model = (QStringListModel*)(mCompleter->model());
