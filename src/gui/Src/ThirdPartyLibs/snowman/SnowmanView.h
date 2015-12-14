@@ -2,6 +2,7 @@
 #define SNOWMANVIEW_H
 
 #include <QWidget>
+#include "Imports.h"
 
 class SnowmanView : public QWidget
 {

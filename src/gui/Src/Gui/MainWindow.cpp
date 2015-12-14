@@ -141,6 +141,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mNotesManager->setWindowTitle("Notes");
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
+    // Graph view
+    mGraphView = new GraphView(this);
+    mGraphView->setWindowTitle("Graph");
+    mGraphView->setWindowIcon(QIcon(":/icons/images/graph.png"));
+
     // Create the tab widget
     mTabWidget = new MHTabWidget(NULL);
 
@@ -157,6 +162,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     addQWidgetTab(mReferenceManager);
     addQWidgetTab(mThreadView);
     addQWidgetTab(mSnowmanView);
+    addQWidgetTab(mGraphView);
 
     setCentralWidget(mTabWidget);
 

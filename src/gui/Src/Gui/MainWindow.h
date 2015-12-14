@@ -24,6 +24,7 @@
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
 #include "NotesManager.h"
+#include "GraphView.h"
 
 namespace Ui
 {
@@ -131,6 +132,7 @@ private:
     CalculatorDialog* mCalculatorDialog;
     SnowmanView* mSnowmanView;
     NotesManager* mNotesManager;
+    GraphView* mGraphView;
 
     StatusLabel* mStatusLabel;
     StatusLabel* mLastLogLabel;
