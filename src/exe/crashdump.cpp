@@ -97,12 +97,13 @@ LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
     // Any "exception" under 0x1000 is usually just a failed RPC call
     if(ExceptionInfo && ExceptionInfo->ExceptionRecord->ExceptionCode > 0x00001000)
     {
-        // Skip OutputDebugString(A/W) and invalid handles from TitanEngine
         switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
         {
-        case DBG_PRINTEXCEPTION_C:
-        case 0x4001000A:
-        case STATUS_INVALID_HANDLE:
+        case DBG_PRINTEXCEPTION_C:  // OutputDebugStringA
+        case 0x4001000A:        // OutputDebugStringW
+        case STATUS_INVALID_HANDLE: // Invalid TitanEngine handle
+        case 0xE06D7363:        // CPP_EH_EXCEPTION
+        case 0x406D1388:        // SetThreadName
             return EXCEPTION_CONTINUE_SEARCH;
         }
 
