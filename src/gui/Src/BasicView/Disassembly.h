@@ -98,6 +98,7 @@ public:
 signals:
     void selectionChanged(dsint parVA);
     void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
+    void updateWindowTitle(QString title);
 
 public slots:
     void disassembleAt(dsint parVA, dsint parCIP);
@@ -131,6 +132,7 @@ private:
     {
         dsint va;
         dsint tableOffset;
+        QString windowTitle;
     } HistoryData_t;
 
     QList<HistoryData_t> mVaHistory;

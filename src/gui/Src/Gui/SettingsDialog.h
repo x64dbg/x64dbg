@@ -18,6 +18,9 @@ public:
     void SaveSettings();
     unsigned int lastException;
 
+signals:
+    void chkSaveLoadTabOrderStateChanged(bool state);
+
 private slots:
     //Manual slots
     void setLastException(unsigned int exceptionCode);
@@ -61,6 +64,8 @@ private slots:
     void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
+
+    void on_chkSaveLoadTabOrder_stateChanged(int arg1);
 
 private:
     //enums
@@ -127,6 +132,7 @@ private:
         bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
+        bool miscLoadSaveTabOrder;
     };
 
     //variables

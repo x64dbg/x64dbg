@@ -24,6 +24,7 @@ public:
     QString modName;
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);
+    void validateExpression(QString expression);
 
 private slots:
     void expressionChanged(bool validExpression, bool validPointer, dsint value);

@@ -51,6 +51,7 @@ enum SectionLock
     LockPluginCommandList,
     LockPluginMenuList,
     LockLast,
+    LockCmdLine
 };
 
 class SectionLockerGlobal

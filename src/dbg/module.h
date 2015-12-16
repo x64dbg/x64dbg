@@ -9,6 +9,13 @@ struct MODSECTIONINFO
     char name[MAX_SECTION_SIZE * 5];  // Escaped section name
 };
 
+struct MODIMPORTINFO
+{
+    duint addr;     // Virtual address
+    char name[MAX_IMPORT_SIZE];
+    char moduleName[MAX_MODULE_SIZE];
+};
+
 struct MODINFO
 {
     duint base;  // Module base
@@ -21,6 +28,7 @@ struct MODINFO
     char path[MAX_PATH];                // File path (in UTF8)
 
     std::vector<MODSECTIONINFO> sections;
+    std::vector<MODIMPORTINFO> imports;
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);
@@ -34,7 +42,9 @@ duint ModHashFromName(const char* Module);
 duint ModBaseFromName(const char* Module);
 duint ModSizeFromAddr(duint Address);
 bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections);
+bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports);
 duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);
+bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo);

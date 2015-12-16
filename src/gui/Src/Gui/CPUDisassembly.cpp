@@ -8,6 +8,7 @@
 #include "WordEditDialog.h"
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
+#include "AssembleDialog.h"
 
 CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
 {
@@ -23,6 +24,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
 
     Initialize();
 }
@@ -301,7 +303,22 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/label.png"), "Label", SLOT(setLabelSlot()), "ActionSetLabel"));
+    MenuBuilder* labelMenu = new MenuBuilder(this);
+    labelMenu->addAction(makeShortcutAction("Label Current Address", SLOT(setLabelSlot()), "ActionSetLabel"));
+    QAction* labelAddress = makeAction("Label", SLOT(setLabelAddressSlot()));
+    labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
+    {
+        BASIC_INSTRUCTION_INFO instr_info;
+        duint wVA = rvaToVa(getInitialSelection());
+
+        DbgDisasmFastAt(wVA, &instr_info);
+        QString targetAddress = "0x" + QString::number(instr_info.addr, 16).toUpper();
+        labelAddress->setText("Label " + targetAddress);
+
+        return (instr_info.branch || instr_info.call);
+    });
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), "Label"), labelMenu);
+
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     QAction* toggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
@@ -342,11 +359,45 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
 
     MenuBuilder* searchMenu = new MenuBuilder(this);
-    searchMenu->addAction(makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind"));
-    searchMenu->addAction(makeAction("&Constant", SLOT(findConstantSlot())));
-    searchMenu->addAction(makeAction("&String references", SLOT(findStringsSlot())));
-    searchMenu->addAction(makeAction("&Intermodular calls", SLOT(findCallsSlot())));
-    searchMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
+    MenuBuilder* mSearchRegionMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchModuleMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
+
+    // Search in Current Region menu
+    mFindCommandRegion = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantRegion = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsRegion = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsRegion = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchRegionMenu->addAction(mFindCommandRegion);
+    mSearchRegionMenu->addAction(mFindConstantRegion);
+    mSearchRegionMenu->addAction(mFindStringsRegion);
+    mSearchRegionMenu->addAction(mFindCallsRegion);
+    mSearchRegionMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
+
+    // Search in Current Module menu
+    mFindCommandModule = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantModule = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsModule = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsModule = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchModuleMenu->addAction(mFindCommandModule);
+    mSearchModuleMenu->addAction(mFindConstantModule);
+    mSearchModuleMenu->addAction(mFindStringsModule);
+    mSearchModuleMenu->addAction(mFindCallsModule);
+
+
+    // Search in All Modules menu
+    mFindCommandAll = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindConstantAll = makeAction("&Constant", SLOT(findConstantSlot()));
+    mFindStringsAll = makeAction("&String references", SLOT(findStringsSlot()));
+    mFindCallsAll = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
+    mSearchAllMenu->addAction(mFindCommandAll);
+    mSearchAllMenu->addAction(mFindConstantAll);
+    mSearchAllMenu->addAction(mFindStringsAll);
+    mSearchAllMenu->addAction(mFindCallsAll);
+
+    searchMenu->addMenu(makeMenu("Current Region"), mSearchRegionMenu);
+    searchMenu->addMenu(makeMenu("Current Module"), mSearchModuleMenu);
+    searchMenu->addMenu(makeMenu("All Modules"), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/search-for.png"), "&Search for"), searchMenu);
 
     mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
@@ -510,6 +561,35 @@ void CPUDisassembly::setLabelSlot()
     GuiUpdateAllViews();
 }
 
+void CPUDisassembly::setLabelAddressSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    BASIC_INSTRUCTION_INFO instr_info;
+    duint wVA = rvaToVa(getInitialSelection());
+
+    DbgDisasmFastAt(wVA, &instr_info);
+    wVA = instr_info.addr;
+
+    LineEditDialog mLineEdit(this);
+    QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+    char label_text[MAX_COMMENT_SIZE] = "";
+    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+        mLineEdit.setText(QString(label_text));
+    mLineEdit.setWindowTitle("Add label at " + addr_text);
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    if(!DbgSetLabelAt(wVA, mLineEdit.editText.toUtf8().constData()))
+    {
+        QMessageBox msg(QMessageBox::Critical, "Error!", "DbgSetLabelAt failed!");
+        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
+    }
+    GuiUpdateAllViews();
+}
+
 void CPUDisassembly::setCommentSlot()
 {
     if(!DbgIsDebugging())
@@ -617,62 +697,49 @@ void CPUDisassembly::assembleSlot()
     if(!DbgIsDebugging())
         return;
 
+    AssembleDialog assembleDialog;
+
     do
     {
         dsint wRVA = getInitialSelection();
         duint wVA = rvaToVa(wRVA);
         QString addr_text = QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
 
-        QByteArray wBuffer;
-
-        dsint wMaxByteCountToRead = 16 * 2;
-
-        //TODO: fix size problems
-        dsint size = getSize();
-        if(!size)
-            size = wRVA;
-
-        // Bounding
-        wMaxByteCountToRead = wMaxByteCountToRead > (size - wRVA) ? (size - wRVA) : wMaxByteCountToRead;
-
-        wBuffer.resize(wMaxByteCountToRead);
-
-        mMemPage->read(reinterpret_cast<byte_t*>(wBuffer.data()), wRVA, wMaxByteCountToRead);
-
-        QBeaEngine disasm(-1);
-        Instruction_t instr = disasm.DisassembleAt(reinterpret_cast<byte_t*>(wBuffer.data()), wMaxByteCountToRead, 0, 0, wVA);
+        Instruction_t instr = this->DisassembleAt(wRVA);
 
         QString actual_inst = instr.instStr;
 
         bool assembly_error;
         do
         {
+            char error[MAX_ERROR_SIZE] = "";
+
             assembly_error = false;
 
-            LineEditDialog mLineEdit(this);
-            mLineEdit.setText(actual_inst);
-            mLineEdit.setWindowTitle("Assemble at " + addr_text);
-            mLineEdit.setCheckBoxText("&Fill with NOPs");
-            mLineEdit.enableCheckBox(true);
-            mLineEdit.setCheckBox(ConfigBool("Disassembler", "FillNOPs"));
-            if(mLineEdit.exec() != QDialog::Accepted)
+            assembleDialog.setSelectedInstrVa(wVA);
+            assembleDialog.setTextEditValue(actual_inst);
+            assembleDialog.setWindowTitle("Assemble at " + addr_text);
+            assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
+            assembleDialog.setKeepSizeChecked(ConfigBool("Disassembler", "KeepSize"));
+
+            if(assembleDialog.exec() != QDialog::Accepted)
                 return;
 
-            //if the instruction its unkown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(mLineEdit.editText == QString("???") || mLineEdit.editText.toLower() == instr.instStr.toLower() || mLineEdit.editText == QString(""))
+            //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
+            if(assembleDialog.editText == QString("???") || assembleDialog.editText.toLower() == instr.instStr.toLower() || assembleDialog.editText == QString(""))
                 break;
 
-            Config()->setBool("Disassembler", "FillNOPs", mLineEdit.bChecked);
+            Config()->setBool("Disassembler", "FillNOPs", assembleDialog.bFillWithNopsChecked);
+            Config()->setBool("Disassembler", "KeepSize", assembleDialog.bKeepSizeChecked);
 
-            char error[MAX_ERROR_SIZE] = "";
-            if(!DbgFunctions()->AssembleAtEx(wVA, mLineEdit.editText.toUtf8().constData(), error, mLineEdit.bChecked))
+            if(!DbgFunctions()->AssembleAtEx(wVA, assembleDialog.editText.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {
-                QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + mLineEdit.editText + "\" (" + error + ")");
+                QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to assemble instruction \"" + assembleDialog.editText + "\" (" + error + ")");
                 msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                 msg.exec();
-                actual_inst = mLineEdit.editText;
+                actual_inst = assembleDialog.editText;
                 assembly_error = true;
             }
         }
@@ -782,27 +849,52 @@ void CPUDisassembly::findReferencesSlot()
 
 void CPUDisassembly::findConstantSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindConstantRegion)
+        refFindType = 0;
+    else if(sender() == mFindConstantModule)
+        refFindType = 1;
+    else if(sender() == mFindConstantAll)
+        refFindType = 2;
+
     WordEditDialog wordEdit(this);
     wordEdit.setup("Enter Constant", 0, sizeof(dsint));
     if(wordEdit.exec() != QDialog::Accepted) //cancel pressed
         return;
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
     QString constText = QString("%1").arg(wordEdit.getVal(), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("findref " + constText + ", " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("findref " + constText + ", " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
 void CPUDisassembly::findStringsSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindStringsRegion)
+        refFindType = 0;
+    else if(sender() == mFindStringsModule)
+        refFindType = 1;
+    else if(sender() == mFindStringsAll)
+        refFindType = 2;
+
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("strref " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("strref " + addrText + ", 0, %1").arg(refFindType).toUtf8().constData());
     emit displayReferencesWidget();
 }
 
+
 void CPUDisassembly::findCallsSlot()
 {
+    int refFindType = 0;
+    if(sender() == mFindCallsRegion)
+        refFindType = 0;
+    else if(sender() == mFindCallsModule)
+        refFindType = 1;
+    else if(sender() == mFindCallsAll)
+        refFindType = 2;
+
     QString addrText = QString("%1").arg(rvaToVa(getInitialSelection()), sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-    DbgCmdExec(QString("modcallfind " + addrText).toUtf8().constData());
+    DbgCmdExec(QString("modcallfind " + addrText + ", 0, 0").toUtf8().constData());
     emit displayReferencesWidget();
 }
 
@@ -1072,10 +1164,18 @@ void CPUDisassembly::findCommandSlot()
     if(!DbgIsDebugging())
         return;
 
+    int refFindType = 0;
+    if(sender() == mFindCommandRegion)
+        refFindType = 0;
+    else if(sender() == mFindCommandModule)
+        refFindType = 1;
+    else if(sender() == mFindCommandAll)
+        refFindType = 2;
+
     LineEditDialog mLineEdit(this);
-    mLineEdit.enableCheckBox(true);
-    mLineEdit.setCheckBoxText("Entire &Block");
-    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.enableCheckBox(false);
+//    mLineEdit.setCheckBoxText("Entire &Block");
+//    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1098,13 +1198,8 @@ void CPUDisassembly::findCommandSlot()
 
     QString addr_text = QString("%1").arg(va, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
 
-    if(!mLineEdit.bChecked)
-    {
-        dsint size = mMemPage->getSize();
-        DbgCmdExec(QString("findasm \"%1\", %2, .%3").arg(mLineEdit.editText).arg(addr_text).arg(size).toUtf8().constData());
-    }
-    else
-        DbgCmdExec(QString("findasm \"%1\", %2").arg(mLineEdit.editText).arg(addr_text).toUtf8().constData());
+    dsint size = mMemPage->getSize();
+    DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType).toUtf8().constData());
 
     emit displayReferencesWidget();
 }
@@ -1137,6 +1232,11 @@ void CPUDisassembly::decompileFunctionSlot()
         emit displaySnowmanWidget();
         emit decompileAt(start, end);
     }
+}
+
+void CPUDisassembly::displayWarningSlot(QString title, QString text)
+{
+    QMessageBox::QMessageBox(QMessageBox::Information, title, text, QMessageBox::Ok).exec();
 }
 
 void CPUDisassembly::paintEvent(QPaintEvent* event)

@@ -13,6 +13,7 @@
 #include "bookmark.h"
 #include "function.h"
 #include "loop.h"
+#include "commandline.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -24,26 +25,44 @@ char dbbasepath[deflen];
 */
 char dbpath[deflen];
 
-void DBSave()
+enum LOAD_SAVE_DB_TYPE
+{
+    COMMAND_LINE_ONLY,
+    ALL_BUT_COMMAND_LINE,
+    ALL
+};
+
+void DBSave(LOAD_SAVE_DB_TYPE saveType)
 {
     dprintf("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
-    CommentCacheSave(root);
-    LabelCacheSave(root);
-    BookmarkCacheSave(root);
-    FunctionCacheSave(root);
-    LoopCacheSave(root);
-    BpCacheSave(root);
-    //save notes
-    char* text = nullptr;
-    GuiGetDebuggeeNotes(&text);
-    if (text)
+
+    // Save only command line
+    if (saveType == COMMAND_LINE_ONLY || saveType == ALL)
     {
-        json_object_set_new(root, "notes", json_string(text));
-        BridgeFree(text);
+        CmdLineCacheSave(root);
     }
-    GuiSetDebuggeeNotes("");
+
+    if (saveType == ALL_BUT_COMMAND_LINE || saveType == ALL)
+    {
+        CommentCacheSave(root);
+        LabelCacheSave(root);
+        BookmarkCacheSave(root);
+        FunctionCacheSave(root);
+        LoopCacheSave(root);
+        BpCacheSave(root);
+
+        //save notes
+        char* text = nullptr;
+        GuiGetDebuggeeNotes(&text);
+        if (text)
+        {
+            json_object_set_new(root, "notes", json_string(text));
+            BridgeFree(text);
+        }
+        GuiSetDebuggeeNotes("");
+    }
 
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if (json_object_size(root))
@@ -76,7 +95,7 @@ void DBSave()
     json_decref(root); //free root
 }
 
-void DBLoad()
+void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 {
     // If the file doesn't exist, there is no DB to load
     if (!FileExists(dbpath))
@@ -139,17 +158,26 @@ void DBLoad()
         return;
     }
 
-    // Finally load all structures
-    CommentCacheLoad(root);
-    LabelCacheLoad(root);
-    BookmarkCacheLoad(root);
-    FunctionCacheLoad(root);
-    LoopCacheLoad(root);
-    BpCacheLoad(root);
+    // Load only command line
+    if (loadType == COMMAND_LINE_ONLY || loadType == ALL)
+    {
+        CmdLineCacheLoad(root);
+    }
 
-    // Load notes
-    const char* text = json_string_value(json_object_get(root, "notes"));
-    GuiSetDebuggeeNotes(text);
+    if (loadType == ALL_BUT_COMMAND_LINE || loadType == ALL)
+    {
+        // Finally load all structures
+        CommentCacheLoad(root);
+        LabelCacheLoad(root);
+        BookmarkCacheLoad(root);
+        FunctionCacheLoad(root);
+        LoopCacheLoad(root);
+        BpCacheLoad(root);
+
+        // Load notes
+        const char* text = json_string_value(json_object_get(root, "notes"));
+        GuiSetDebuggeeNotes(text);
+    }
 
     // Free root
     json_decref(root);
@@ -158,7 +186,7 @@ void DBLoad()
 
 void DBClose()
 {
-    DBSave();
+    DBSave(ALL);
     CommentClear();
     LabelClear();
     BookmarkClear();

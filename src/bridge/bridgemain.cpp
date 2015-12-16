@@ -575,6 +575,16 @@ BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* us
     _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
+// FIXME all
+BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+{
+    SYMBOLCBINFO cbInfo;
+    cbInfo.base = base;
+    cbInfo.cbSymbolEnum = cbSymbolEnum;
+    cbInfo.user = user;
+    _dbg_sendmessage(DBG_SYMBOL_ENUM_FROMCACHE, &cbInfo, 0);
+}
+
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)
 {
     if(_dbg_sendmessage(DBG_ASSEMBLE_AT, (void*)addr, (void*)instruction))
@@ -1028,6 +1038,10 @@ BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress)
     _gui_sendmessage(GUI_REF_SETPROGRESS, (void*)(duint)progress, 0);
 }
 
+BRIDGE_IMPEXP void GuiReferenceSetCurrentTaskProgress(int progress, const char* taskTitle)
+{
+    _gui_sendmessage(GUI_REF_SETCURRENTTASKPROGRESS, (void*)(duint)progress, (void*)taskTitle);
+}
 
 BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col)
 {
@@ -1234,6 +1248,11 @@ BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text)
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index)
 {
     _gui_sendmessage(GUI_DUMP_AT_N, (void*)va, (void*)index);
+}
+
+BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text)
+{
+    _gui_sendmessage(GUI_DISPLAY_WARNING, (void*)title, (void*)text);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

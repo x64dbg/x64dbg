@@ -11,6 +11,7 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
+    bStackFrozen = false;
 
     mForceColumn = 1;
 
@@ -42,6 +43,8 @@ CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
     connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(stackDumpAt(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackGet(SELECTIONDATA*)), this, SLOT(selectionGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionStackSet(const SELECTIONDATA*)), this, SLOT(selectionSet(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
+
 
     Initialize();
 }
@@ -125,6 +128,10 @@ void CPUStack::setupContextMenu()
     connect(mGotoSp, SIGNAL(triggered()), this, SLOT(gotoSpSlot()));
     connect(mGotoBp, SIGNAL(triggered()), this, SLOT(gotoBpSlot()));
 
+    mFreezeStack = new QAction("Freeze stack", this);
+    this->addAction(mFreezeStack);
+    connect(mFreezeStack, SIGNAL(triggered()), this, SLOT(freezeStackSlot()));
+
     //Find Pattern
     mFindPatternAction = new QAction("&Find Pattern...", this);
     mFindPatternAction->setShortcutContext(Qt::WidgetShortcut);
@@ -156,6 +163,24 @@ void CPUStack::setupContextMenu()
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
 
+void CPUStack::updateFreezeStackAction()
+{
+    QFont font = mFreezeStack->font();
+
+    if(bStackFrozen)
+    {
+        font.setBold(true);
+        mFreezeStack->setFont(font);
+        mFreezeStack->setText("Unfreeze the stack");
+    }
+    else
+    {
+        font.setBold(false);
+        mFreezeStack->setFont(font);
+        mFreezeStack->setText("Freeze the stack");
+    }
+}
+
 void CPUStack::refreshShortcutsSlot()
 {
     mBinaryEditAction->setShortcut(ConfigShortcut("ActionBinaryEdit"));
@@ -179,6 +204,10 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     int wBytePerRowCount = getBytePerRowCount();
     dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
     duint wVa = rvaToVa(wRva);
+
+    // This sets the first visible row to be selected when stack is frozen, so that we can scroll the stack without it being reset to first selection
+    if(bStackFrozen && rowOffset == 0)
+        setSingleSelection(wRva);
 
     bool wIsSelected = isSelected(wRva);
     if(wIsSelected) //highlight if selected
@@ -320,6 +349,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
     wMenu->addAction(mFindPatternAction);
     wMenu->addAction(mGotoSp);
     wMenu->addAction(mGotoBp);
+    wMenu->addAction(mFreezeStack);
     wMenu->addAction(mGotoExpression);
 
     duint selectedData;
@@ -595,4 +625,24 @@ void CPUStack::modifySlot()
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
     reloadData();
+}
+
+void CPUStack::freezeStackSlot()
+{
+    if(bStackFrozen)
+        DbgCmdExec(QString("setfreezestack 0").toUtf8().constData());
+    else
+        DbgCmdExec(QString("setfreezestack 1").toUtf8().constData());
+
+    bStackFrozen = !bStackFrozen;
+
+    updateFreezeStackAction();
+}
+
+void CPUStack::dbgStateChangedSlot(DBGSTATE state)
+{
+    if(state == initialized)
+        bStackFrozen = false;
+
+    updateFreezeStackAction();
 }

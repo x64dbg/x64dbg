@@ -1,6 +1,7 @@
 #include "Disassembly.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "MainWindow.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {
@@ -1271,6 +1272,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 {
     dsint wBase = DbgMemFindBaseAddr(parVA, 0);
     dsint wSize = DbgMemGetPageSize(wBase);
+
     if(!wBase || !wSize)
         return;
     dsint wRVA = parVA - wBase;
@@ -1300,6 +1302,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
             mCurrentVa++;
             newHistory.va = selectionVA;
             newHistory.tableOffset = selectionTableOffset;
+            newHistory.windowTitle = MainWindow::windowTitle;
             mVaHistory.push_back(newHistory);
         }
     }
@@ -1360,6 +1363,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
             //new disassembled address
             newHistory.va = parVA;
             newHistory.tableOffset = getTableOffset();
+            newHistory.windowTitle = MainWindow::windowTitle;
             if(mVaHistory.size())
             {
                 if(mVaHistory.last().va != parVA) //not 2x the same va in history
@@ -1469,6 +1473,9 @@ void Disassembly::historyPrevious()
         return;
     mCurrentVa--;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+
+    // Update window title
+    emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
 }
 
 void Disassembly::historyNext()
@@ -1478,6 +1485,9 @@ void Disassembly::historyNext()
         return;
     mCurrentVa++;
     disassembleAt(mVaHistory.at(mCurrentVa).va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+
+    // Update window title
+    emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
 }
 
 bool Disassembly::historyHasPrevious()

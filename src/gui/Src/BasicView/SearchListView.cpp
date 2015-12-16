@@ -2,6 +2,8 @@
 #include "ui_SearchListView.h"
 #include "FlickerThread.h"
 
+#include <QMessageBox>
+
 SearchListView::SearchListView(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::SearchListView)
@@ -9,7 +11,7 @@ SearchListView::SearchListView(QWidget* parent) :
     ui->setupUi(this);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
-
+    mCursorPosition = 0;
     // Create the reference list
     mList = new SearchListViewTable();
 
@@ -50,15 +52,20 @@ SearchListView::SearchListView(QWidget* parent) :
     for(int i = 0; i < ui->mainSplitter->count(); i++)
         ui->mainSplitter->handle(i)->setEnabled(false);
 
+    // Install eventFilter
+    mList->installEventFilter(this);
+    mSearchList->installEventFilter(this);
+    mSearchBox->installEventFilter(this);
+
     // Setup search menu action
     mSearchAction = new QAction("Search...", this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // Slots
-    connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
+//    connect(mList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
-    connect(mSearchList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
+//    connect(mSearchList, SIGNAL(keyPressedSignal(QKeyEvent*)), this, SLOT(listKeyPressed(QKeyEvent*)));
     connect(mSearchList, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
@@ -67,29 +74,6 @@ SearchListView::SearchListView(QWidget* parent) :
 SearchListView::~SearchListView()
 {
     delete ui;
-}
-
-void SearchListView::listKeyPressed(QKeyEvent* event)
-{
-    char ch = event->text().toUtf8().constData()[0];
-    if(isprint(ch)) //add a char to the search box
-        mSearchBox->setText(mSearchBox->text().insert(mSearchBox->cursorPosition(), QString(QChar(ch))));
-    else if(event->key() == Qt::Key_Backspace) //remove a char from the search box
-    {
-        QString newText;
-        if(event->modifiers() == Qt::ControlModifier) //clear the search box
-            newText = "";
-        else
-        {
-            newText = mSearchBox->text();
-            newText.chop(1);
-        }
-        mSearchBox->setText(newText);
-    }
-    else if((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) //user pressed enter
-        emit enterPressedSignal();
-    else if(event->key() == Qt::Key_Escape) // Press escape, clears the search box
-        mSearchBox->clear();
 }
 
 bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)
@@ -168,6 +152,10 @@ void SearchListView::searchTextChanged(const QString & arg1)
             break;
         }
     }
+
+    if(rows == 0)
+        emit emptySearchResult();
+
     if(ui->checkBoxRegex->checkState() != Qt::Checked) //do not highlight with regex
         mSearchList->highlightText = arg1;
     mSearchList->reloadData();
@@ -197,6 +185,69 @@ void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
     searchTextChanged(ui->searchBox->text());
+}
+
+bool SearchListView::eventFilter(QObject *obj, QEvent *event)
+{
+    // Click in searchBox
+    if(obj == mSearchBox && event->type() == QEvent::MouseButtonPress)
+    {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent* >(event);
+        QLineEdit *lineEdit = static_cast<QLineEdit* >(obj);
+
+        mCursorPosition = lineEdit->cursorPositionAt(mouseEvent->pos());
+        lineEdit->setFocusPolicy(Qt::NoFocus);
+
+        return QObject::eventFilter(obj, event);
+    }
+    // KeyPress in List
+    else if((obj == mList || obj == mSearchList) && event->type() == QEvent::KeyPress)
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent* >(event);
+        char ch = keyEvent->text().toUtf8().constData()[0];
+
+        if(isprint(ch)) //add a char to the search box
+        {
+            mSearchBox->setText(mSearchBox->text().insert(mSearchBox->cursorPosition(), QString(QChar(ch))));
+            mCursorPosition++;
+        }
+        else if(keyEvent->key() == Qt::Key_Backspace) //remove a char from the search box
+        {
+            QString newText;
+            if(keyEvent->modifiers() == Qt::ControlModifier) //clear the search box
+            {
+                newText = "";
+                mCursorPosition = 0;
+            }
+            else
+            {
+                newText = mSearchBox->text();
+
+                if(mCursorPosition > 0)
+                    newText.remove(mCursorPosition-1, 1);
+
+                ((mCursorPosition - 1) < 0) ? mCursorPosition = 0 : mCursorPosition--;
+            }
+            mSearchBox->setText(newText);
+        }
+        else if((keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)) //user pressed enter
+        {
+            if(mCurList->getCellContent(mCurList->getInitialSelection(), 0).length())
+                emit enterPressedSignal();
+        }
+        else if(keyEvent->key() == Qt::Key_Escape) // Press escape, clears the search box
+        {
+            mSearchBox->clear();
+            mCursorPosition = 0;
+        }
+
+        // Update cursorPosition to avoid a weird bug
+        mSearchBox->setCursorPosition(mCursorPosition);
+
+        return true;
+    }
+    else
+        return QObject::eventFilter(obj, event);
 }
 
 void SearchListView::searchSlot()

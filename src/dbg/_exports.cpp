@@ -766,6 +766,13 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     }
     break;
 
+    case DBG_SYMBOL_ENUM_FROMCACHE:
+    {
+        SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
+        SymEnumFromCache(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
+    }
+    break;
+
     case DBG_ASSEMBLE_AT:
     {
         return assembleat((duint)param1, (const char*)param2, 0, 0, false);

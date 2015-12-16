@@ -45,6 +45,7 @@ public slots:
     void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
+    void setLabelAddressSlot();
     void setCommentSlot();
     void setBookmarkSlot();
     void toggleFunctionSlot();
@@ -82,6 +83,7 @@ public slots:
     void openSourceSlot();
     void decompileSelectionSlot();
     void decompileFunctionSlot();
+    void displayWarningSlot(QString title, QString text);
 
 protected:
     void paintEvent(QPaintEvent* event);
@@ -93,6 +95,21 @@ private:
 
     // Actions
     QAction* mReferenceSelectedAddressAction;
+    QAction* mFindCommandRegion;
+    QAction* mFindConstantRegion;
+    QAction* mFindStringsRegion;
+    QAction* mFindCallsRegion;
+
+    QAction* mFindCommandModule;
+    QAction* mFindConstantModule;
+    QAction* mFindStringsModule;
+    QAction* mFindCallsModule;
+
+    QAction* mFindCommandAll;
+    QAction* mFindConstantAll;
+    QAction* mFindStringsAll;
+    QAction* mFindCallsAll;
+
 
     // Goto dialog specific
     GotoDialog* mGoto;
@@ -101,6 +118,7 @@ private:
     CPUWidget *mParentCPUWindow;
 
     MenuBuilder* mMenuBuilder;
+
 };
 
 #endif // CPUDISASSEMBLY_H

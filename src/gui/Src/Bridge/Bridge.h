@@ -70,6 +70,7 @@ signals:
     void referenceReloadData();
     void referenceSetSingleSelection(int index, bool scroll);
     void referenceSetProgress(int progress);
+    void referenceSetCurrentTaskProgress(int progress, QString taskTitle);
     void referenceSetSearchStartCol(int col);
     void referenceInitialize(QString name);
     void stackDumpAt(duint va, duint csp);
@@ -114,6 +115,7 @@ signals:
     void setDebuggeeNotes(const QString text);
     void getDebuggeeNotes(void* text);
     void dumpAtN(duint va, int index);
+    void displayWarning(QString title, QString text);
 
 private:
     QMutex* mBridgeMutex;

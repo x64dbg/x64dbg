@@ -10,6 +10,8 @@ class CommandLineEdit : public HistoryLineEdit
 
 public:
     explicit CommandLineEdit(QWidget* parent = 0);
+    void keyPressEvent(QKeyEvent *event);
+    bool focusNextPrevChild(bool next);
 
 public slots:
     void autoCompleteAddCmd(const QString cmd);

@@ -59,6 +59,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_LABEL_SIZE 256
 #define MAX_COMMENT_SIZE 512
 #define MAX_MODULE_SIZE 256
+#define MAX_IMPORT_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
 #define MAX_SCRIPT_LINE_SIZE 2048
 #define MAX_THREAD_NAME_SIZE 256
@@ -66,6 +67,7 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define MAX_ERROR_SIZE 512
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
 #define MAX_SECTION_SIZE 10
+#define MAX_COMMAND_LINE_SIZE 256
 
 #define TYPE_VALUE 1
 #define TYPE_MEMORY 2
@@ -143,6 +145,7 @@ typedef enum
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
     DBG_SCRIPT_GETBRANCHINFO,       // param1=int line,                  param2=SCRIPTBRANCH* info
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
+    DBG_SYMBOL_ENUM_FROMCACHE,      // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
     DBG_DISASM_AT,                  // param1=duint addr,                 param2=DISASM_INSTR* instr
@@ -349,6 +352,7 @@ struct SYMBOLINFO_
     duint addr;
     char* decoratedSymbol;
     char* undecoratedSymbol;
+    bool isImported;
 };
 
 typedef struct
@@ -662,6 +666,7 @@ BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info);
 BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);
@@ -741,7 +746,8 @@ typedef enum
     GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
     GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
     GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
-    GUI_REF_SETPROGRESS,            // param1=int progress,            param2=unused
+    GUI_REF_SETPROGRESS,            // param1=int progress,         param2=unused
+    GUI_REF_SETCURRENTTASKPROGRESS, // param1=int progress,         param2=const char* taskTitle
     GUI_REF_SETSEARCHSTARTCOL,      // param1=int col               param2=unused
     GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
     GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
@@ -758,7 +764,7 @@ typedef enum
     GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
     GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
     GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,              param2=unused
+    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,               param2=unused
     GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
     GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
     GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
@@ -782,6 +788,7 @@ typedef enum
     GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
     GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
+    GUI_DISPLAY_WARNING             // param1=const char *text,     param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -843,6 +850,7 @@ BRIDGE_IMPEXP const char* GuiReferenceGetCellContent(int row, int col);
 BRIDGE_IMPEXP void GuiReferenceReloadData();
 BRIDGE_IMPEXP void GuiReferenceSetSingleSelection(int index, bool scroll);
 BRIDGE_IMPEXP void GuiReferenceSetProgress(int progress);
+BRIDGE_IMPEXP void GuiReferenceSetCurrentTaskProgress(int progress, const char* taskTitle);
 BRIDGE_IMPEXP void GuiReferenceSetSearchStartCol(int col);
 BRIDGE_IMPEXP void GuiStackDumpAt(duint addr, duint csp);
 BRIDGE_IMPEXP void GuiUpdateDumpView();
@@ -880,6 +888,7 @@ BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
+BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text);
 
 #ifdef __cplusplus
 }
