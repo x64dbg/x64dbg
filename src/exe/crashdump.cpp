@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <dbghelp.h>
 #include <stdio.h>
+#include <exception>
 #include "crashdump.h"
 
 BOOL
@@ -25,6 +26,15 @@ void CrashDumpInitialize()
 
     if(MiniDumpWriteDumpPtr)
         AddVectoredExceptionHandler(0, CrashDumpVectoredHandler);
+
+    // If building for release mode only
+#ifndef _DEBUG
+    // CRT invalid parameter callback
+    _set_invalid_parameter_handler(InvalidParameterHandler);
+
+    // CRT terminate() callback
+    set_terminate(TerminateHandler);
+#endif // _DEBUG
 }
 
 void CrashDumpFatal(const char* Format, ...)
@@ -100,10 +110,9 @@ LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
         switch(ExceptionInfo->ExceptionRecord->ExceptionCode)
         {
         case DBG_PRINTEXCEPTION_C:  // OutputDebugStringA
-        case 0x4001000A:        // OutputDebugStringW
+        case 0x4001000A:            // OutputDebugStringW
         case STATUS_INVALID_HANDLE: // Invalid TitanEngine handle
-        case 0xE06D7363:        // CPP_EH_EXCEPTION
-        case 0x406D1388:        // SetThreadName
+        case 0x406D1388:            // SetThreadName
             return EXCEPTION_CONTINUE_SEARCH;
         }
 
@@ -111,4 +120,25 @@ LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
     }
 
     return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, unsigned int Line, uintptr_t Reserved)
+{
+    // Notify user
+    CrashDumpFatal("Invalid parameter passed to CRT function! Program will now crash.\n\nFile: %ws\nFunction: %ws\nExpression: %ws",
+                   Function ? Function : L"???",
+                   File ? File : L"???",
+                   Expression ? Expression : L"???");
+
+    // Generate exception
+    throw;
+}
+
+void TerminateHandler()
+{
+    // Notify user
+    CrashDumpFatal("Process termination was requested in an unusual way. Program will now crash.");
+
+    // Generate exception
+    throw;
 }
