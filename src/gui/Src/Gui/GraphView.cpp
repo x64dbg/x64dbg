@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include "GraphEdge.h"
 #include "GraphNode.h"
+#include "QGraphScene.h"
 
 #include <ogdf/fileformats/GraphIO.h>
 #include <ogdf/layered/SugiyamaLayout.h>
@@ -72,7 +73,7 @@ void GraphView::setupGraph()
     SL.setLayout(OHL);
     SL.call(GA);
 
-    QGraphicsScene* scene = new QGraphicsScene(this);
+    QGraphScene* scene = new QGraphScene(this);
 
     //draw widget contents (nodes)
     forall_nodes(v, G)

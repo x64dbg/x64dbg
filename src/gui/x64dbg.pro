@@ -146,7 +146,9 @@ SOURCES += \
     Src/Gui/NotesManager.cpp \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
-    Src/Gui/GraphView.cpp
+    Src/Gui/GraphView.cpp \
+    Src/Graph/QGraphScene.cpp \
+    Src/QGraphView.cpp
 
 
 HEADERS += \
@@ -234,7 +236,9 @@ HEADERS += \
     Src/Graph/GraphNode.h \
     Src/Graph/Node.h \
     Src/Graph/Tree.h \
-    Src/Gui/GraphView.h
+    Src/Gui/GraphView.h \
+    Src/Graph/QGraphScene.h \
+    Src/QGraphView.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
