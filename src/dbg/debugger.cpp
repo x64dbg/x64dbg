@@ -522,8 +522,22 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     {
     case BPNORMAL:
     {
-        if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
-            dprintf("Could not set breakpoint " fhex "! (SetBPX)\n", bp->addr);
+        unsigned short oldbytes;
+        if (MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
+        {
+            if (oldbytes != bp->oldbytes)
+            {
+                dprintf("Breakpoint " fhex " has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n",
+                        bp->addr,
+                        ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
+                        ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
+                BpEnable(bp->addr, BPNORMAL, false);
+            }
+            else if (!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+                dprintf("Could not set breakpoint " fhex "! (SetBPX)\n", bp->addr);
+        }
+        else
+            dprintf("MemRead failed on breakpoint address" fhex "!\n", bp->addr);
     }
     break;
 

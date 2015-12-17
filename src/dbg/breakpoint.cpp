@@ -152,6 +152,13 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
         return false;
 
     bpInfo->enabled = Enable;
+
+    //Re-read oldbytes
+    if (Enable && Type == BPNORMAL)
+    {
+        if (!MemRead(Address, &bpInfo->oldbytes, sizeof(bpInfo->oldbytes)))
+            return false;
+    }
     return true;
 }
 
