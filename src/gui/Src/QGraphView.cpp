@@ -11,7 +11,10 @@ QGraphView::QGraphView(QWidget* parent)
 void QGraphView::wheelEvent(QWheelEvent* event)
 {
     if(!(event->modifiers() & Qt::ControlModifier))
+    {
         QGraphicsView::wheelEvent(event);
+        return;
+    }
 
     int numDegrees = event->delta() / 8;
     int numSteps = numDegrees / 15; // see QWheelEvent documentation

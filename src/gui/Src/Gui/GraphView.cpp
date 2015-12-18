@@ -219,11 +219,6 @@ void GraphView::addGraphToScene()
 
 //    mScene->setSceneRect(0, 0, mGA->boundingBox().width(), mGA->boundingBox().height());
     QTextStream out(stdout);
-    out << "*-----------------------------------*"<< endl;
-    out << mScene->sceneRect().x() << endl;
-    out << mScene->sceneRect().y() << endl;
-    out << mScene->sceneRect().width() << endl;
-    out << mScene->sceneRect().height() << endl;
     ui->graphicsView->ensureVisible(mScene->itemsBoundingRect());
     ui->graphicsView->setSceneRect(mScene->sceneRect());
 
@@ -338,6 +333,19 @@ void GraphView::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *> *paren
 
 GraphView::~GraphView()
 {
+    mScene->clear();
+
+    if(mOHL)
+        delete mOHL;
+    if(mSL)
+        delete mSL;
+    if(mTree)
+        mTree->clear();
+    if(mG)
+        delete mG;
+    if(mGA)
+        delete mGA;
+
     delete ui;
 }
 
