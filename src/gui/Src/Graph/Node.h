@@ -14,13 +14,13 @@ public:
         this->_GA = GA;
         this->_ogdfNode = ogdfNode;
         this->_data = data;
+        this->_left = nullptr;
+        this->_right = nullptr;
     }
-
     Node<T>* setLeft(Node* left)
     {
         return left ? this->_left = makeNodeWithEdge(left) : nullptr;
     }
-
     Node<T>* setRight(Node* right)
     {
         return right ? this->_right = makeNodeWithEdge(right) : nullptr;
@@ -36,17 +36,14 @@ public:
     {
         return this->_left;
     }
-
     Node<T>* right()
     {
         return this->_right;
     }
-
     T data()
     {
         return this->_data;
     }
-
     ogdf::node ogdfNode()
     {
         return this->_ogdfNode;

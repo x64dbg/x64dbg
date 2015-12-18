@@ -112,6 +112,7 @@ public slots:
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
     void executeOnGuiThread(void* cbGuiThread);
+    void drawGraphAtAddressSlot(dsint va);
 
 private:
     Ui::MainWindow* ui;

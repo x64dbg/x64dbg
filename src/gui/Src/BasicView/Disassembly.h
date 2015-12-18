@@ -98,6 +98,7 @@ public:
 signals:
     void selectionChanged(dsint parVA);
     void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
+    void drawGraphAtAddress(dsint va);
 
 public slots:
     void disassembleAt(dsint parVA, dsint parCIP);

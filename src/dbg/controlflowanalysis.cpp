@@ -81,6 +81,15 @@ void ControlFlowAnalysis::Analyse()
     ticks = GetTickCount();
 
     dprintf("Analysis finished!\n");
+
+    PARENTMAP *_parentsTemp = new PARENTMAP(_parentMap);
+    BASICBLOCKMAP *_blocksTemp = new BASICBLOCKMAP(_blocks);
+
+    CONTROLFLOWINFOS *ctrlFlow = new CONTROLFLOWINFOS;
+    ctrlFlow->blocks = (duint*) _blocksTemp;
+    ctrlFlow->parents = (duint*) _parentsTemp;
+
+    GuiSetControlFlowInfos(ctrlFlow);
 }
 
 void ControlFlowAnalysis::SetMarkers()
@@ -134,7 +143,7 @@ void ControlFlowAnalysis::SetMarkers()
 
 void ControlFlowAnalysis::BasicBlockStarts()
 {
-    _blockStarts.insert(_base);
+    //_blockStarts.insert(_base);
     bool bSkipFilling = false;
     for(duint i = 0; i < _size;)
     {
