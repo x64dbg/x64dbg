@@ -320,10 +320,9 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
 
 void SymClearMemoryCache()
 {
-    SYMBOLINFOMAP::iterator it = modulesCacheList.begin();
-    for (; it != modulesCacheList.end(); it++)
+    for (auto& itr : modulesCacheList)
     {
-        SYMBOLINFOVECTOR* pModuleVector = &((*it).second);
+        SYMBOLINFOVECTOR* pModuleVector = &itr.second;
 
         // Free up previously allocated memory
         for (duint i = 0; i < pModuleVector->size(); i++)
@@ -376,7 +375,7 @@ bool SymGetSymbolInfo(PSYMBOL_INFO SymInfo, SYMBOLINFO* curSymbol, bool isImport
 
 void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
 {
-    char buf[MAX_IMPORT_SIZE];
+    char modImportString[MAX_IMPORT_SIZE];
     char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME]; // Reserve enough space for symbol name, see msdn for this
     SYMBOLINFO curSymbol;
     PSYMBOL_INFO pSymInfo;
@@ -408,37 +407,52 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
     {
         for (duint i = 0; i < imports.size(); i++)
         {
-            // Can we get symbol for the import address
+            // Can we get symbol for the import address?
             if (SafeSymFromAddr(fdProcessInfo->hProcess, (duint)imports[i].addr, 0, pSymInfo))
             {
                 // Does the symbol point to the module base?
                 if (!SymGetSymbolInfo(pSymInfo, &curSymbol, true))
                     continue;
             }
-            // Otherwise just use import info from module itself
             else
             {
+                // Otherwise just use import info from module itself
                 curSymbol.addr = imports[i].addr;
                 curSymbol.isImported = true;
                 curSymbol.undecoratedSymbol = nullptr;
                 curSymbol.decoratedSymbol = imports[i].name;
             }
 
-            // Format so that we get : moduleName.importSymbol
-            duint lenWithoutExt = strlen(imports[i].moduleName) - 3; // Remove extension
-            strncpy_s(buf, lenWithoutExt, imports[i].moduleName, _TRUNCATE);
-            strcat_s(buf , ".");
+            // Format so that we get: moduleName.importSymbol
+            strcpy_s(modImportString, imports[i].moduleName);
+
+            // Trim the extension if present
+            char *modExt = strrchr(modImportString, '.');
+
+            if (modExt)
+                *modExt = '\0';
+
+            // Buffers to hold the decorated and undecorated strings. Must be declared
+            // outside of the if() scope.
+            char undecBuf[MAX_IMPORT_SIZE];
+            char decBuf[MAX_IMPORT_SIZE];
 
             if (curSymbol.undecoratedSymbol)
             {
-                strcat(buf, curSymbol.undecoratedSymbol);
-                curSymbol.undecoratedSymbol = buf;
+                // module.undecorated
+                strcpy_s(undecBuf, modImportString);
+                strncpy_s(undecBuf, curSymbol.undecoratedSymbol, _TRUNCATE);
+
+                curSymbol.undecoratedSymbol = undecBuf;
             }
 
             if (curSymbol.decoratedSymbol)
             {
-                strcat(buf, curSymbol.decoratedSymbol);
-                curSymbol.decoratedSymbol = buf;
+                // module.decorated
+                strcpy_s(decBuf, modImportString);
+                strncpy_s(decBuf, curSymbol.decoratedSymbol, _TRUNCATE);
+
+                curSymbol.decoratedSymbol = decBuf;
             }
 
             // Callback
