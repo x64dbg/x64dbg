@@ -2,6 +2,7 @@
 #define _GRAPH_NODE_H
 
 #include <QWidget>
+#include <QFrame>
 #include <QMouseEvent>
 #include <QMessageBox>
 #include <QFontMetrics>
@@ -11,7 +12,7 @@
 #include "capstone_gui.h"
 #include "QBeaEngine.h"
 
-class GraphNode : public QWidget
+class GraphNode : public QFrame
 {
     Q_OBJECT
 

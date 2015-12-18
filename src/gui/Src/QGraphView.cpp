@@ -1,14 +1,18 @@
 #include "QGraphView.h"
 #include <QTimeLine>
+#include <iostream>
 
 QGraphView::QGraphView(QWidget* parent)
     : QGraphicsView(parent)
 {
-
+    bAnimationFinished = false;
 }
 
 void QGraphView::wheelEvent(QWheelEvent* event)
 {
+    if(!(event->modifiers() & Qt::ControlModifier))
+        QGraphicsView::wheelEvent(event);
+
     int numDegrees = event->delta() / 8;
     int numSteps = numDegrees / 15; // see QWheelEvent documentation
     _numScheduledScalings += numSteps;
@@ -20,7 +24,15 @@ void QGraphView::wheelEvent(QWheelEvent* event)
 
     connect(anim, SIGNAL (valueChanged(qreal)), SLOT (scalingTime(qreal)));
     connect(anim, SIGNAL (finished()), SLOT (animFinished()));
+
+    QPointF mappedMousePos = this->mapToScene(event->pos().x(), event->pos().y());
+    if(scene()->itemsBoundingRect().contains(mappedMousePos.x(), mappedMousePos.y()))
+        centerOn(mappedMousePos.x(), mappedMousePos.y());
+//    std::cout << mappedMousePos.x() << " - " << mappedMousePos.y() << std::endl;
+
+
     anim->start();
+    bAnimationFinished = false;
 }
 
 void QGraphView::scalingTime(qreal x)
@@ -36,5 +48,7 @@ void QGraphView::animFinished()
         _numScheduledScalings--;
     else
         _numScheduledScalings++;
+
     sender()->~QObject();
+    bAnimationFinished = true;
 }

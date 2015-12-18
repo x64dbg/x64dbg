@@ -1,6 +1,8 @@
 #include "GraphNode.h"
 
-GraphNode::GraphNode()
+#include <QStyleOption>
+
+GraphNode::GraphNode() : QFrame()
 {
 }
 
@@ -12,7 +14,7 @@ GraphNode::GraphNode(std::vector<Instruction_t> &instructionsVector, duint addre
 
     updateTokensVector();
 
-    setStyleSheet("border: 1px solid black;");
+    setAttribute(Qt::WA_TranslucentBackground);
     setContentsMargins(0,0,0,0);
     setMouseTracking(true); // required for mouse move event
     installEventFilter(this);
@@ -41,17 +43,28 @@ void GraphNode::paintEvent(QPaintEvent* event)
 
     QPainter painter(this);
 
+    painter.fillRect(0, 0, mCachedWidth, mCachedHeight, Qt::white);
+
+    // Draw node borders
+    painter.setPen(QPen(Qt::black, 1));
+    painter.drawLine(0, mLineHeight, 0, mCachedHeight-1);
+    painter.drawLine(mCachedWidth-1, mLineHeight, mCachedWidth-1, mCachedHeight-1);
+    painter.drawLine(0, mCachedHeight-1, mCachedWidth-1, mCachedHeight-1);
+
+//    QStyleOption opt;
+//    opt.init(this);
+//    style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
+
     //draw node contents
-    painter.setPen(Qt::black);
     painter.setFont(this->mFont);
     int i = 0;
 
     int x = mSpacingX/2, y = mLineHeight + mSpacingY/2;
 
     // Block address
-    painter.fillRect(0, 0, mCachedWidth, mLineHeight, QBrush(Qt::magenta));
+    painter.fillRect(0, 0, mCachedWidth, mLineHeight, Qt::cyan);
     painter.setPen(Qt::black);
-    painter.drawText(0, 0, mCachedWidth, mLineHeight, Qt::AlignHCenter | Qt::AlignVCenter, "0x" + QString::number(mAddress, 16));
+    painter.drawText(0, 0, mCachedWidth, mLineHeight, Qt::AlignHCenter | Qt::AlignVCenter, "0x" + QString::number(mAddress, 16).toUpper());
 
     // Block instructions
     for(QList<RichTextPainter::CustomRichText_t> &richText : mRichTextVector)
@@ -64,6 +77,7 @@ void GraphNode::paintEvent(QPaintEvent* event)
         y += mLineHeight + mLineSpacingY;
         i++;
     }
+
 }
 
 dsint GraphNode::getInstructionIndexAtPos(const QPoint &pos) const

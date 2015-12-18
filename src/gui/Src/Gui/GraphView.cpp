@@ -1,9 +1,10 @@
 
 #include "GraphView.h"
 #include "ui_GraphView.h"
+#include "GraphEdge.h"
+#include "Configuration.h"
 #include <QDebug>
 
-#include "GraphEdge.h"
 
 GraphView::GraphView(QWidget *parent) :
     QWidget(parent),
@@ -22,7 +23,7 @@ GraphView::GraphView(QWidget *parent) :
     mGraphNodeVector = new GRAPHNODEVECTOR;
     bProgramInitialized = false;
 
-    mScene->setBackgroundBrush(QBrush(Qt::black));
+    mScene->setBackgroundBrush(ConfigColor("DisassemblyBackgroundColor"));
 //    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 //    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     ui->graphicsView->setScene(mScene);
@@ -155,7 +156,6 @@ void GraphView::addGraphToScene()
     using namespace ogdf;
 
     mScene->clear();
-    ui->graphicsView->viewport()->update();
 
     // adjust node size
     node v;
@@ -217,12 +217,15 @@ void GraphView::addGraphToScene()
 
 //    mScene->setSceneRect(mScene->itemsBoundingRect());
 
+//    mScene->setSceneRect(0, 0, mGA->boundingBox().width(), mGA->boundingBox().height());
     QTextStream out(stdout);
     out << "*-----------------------------------*"<< endl;
     out << mScene->sceneRect().x() << endl;
     out << mScene->sceneRect().y() << endl;
     out << mScene->sceneRect().width() << endl;
+    out << mScene->sceneRect().height() << endl;
     ui->graphicsView->ensureVisible(mScene->itemsBoundingRect());
+    ui->graphicsView->setSceneRect(mScene->sceneRect());
 
 //    ui->graphicsView->fitInView(mScene->sceneRect(), Qt::KeepAspectRatio);
 }
@@ -354,13 +357,6 @@ void GraphView::dbgStateChangedSlot(DBGSTATE state)
         bProgramInitialized = false;
 }
 
-void GraphView::sceneChangedSlot(QList<QRectF> rectList)
-{
-    Q_UNUSED(rectList);
-//    ui->graphicsView->fitInView(mScene->itemsBoundingRect(), Qt::KeepAspectRatio);
-}
-
-
 bool GraphView::findBasicBlock(duint &va)
 {
     if(!mBasicBlockInfo)
@@ -394,7 +390,6 @@ bool GraphView::findBasicBlock(duint &va)
 
 void GraphView::drawGraphAtSlot(duint va)
 {
-
     bool bFound = findBasicBlock(va);
 
     if(!bFound)

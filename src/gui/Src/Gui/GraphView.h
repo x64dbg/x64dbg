@@ -77,7 +77,6 @@ public slots:
     void disassembleAtSlot(dsint parVA, dsint CIP);
     void setControlFlowInfosSlot(duint *controlFlowInfos);
     void dbgStateChangedSlot(DBGSTATE state);
-    void sceneChangedSlot(QList<QRectF> rectList);
 
 private:
     void setupGraph();
@@ -98,8 +97,6 @@ private:
     Tree<GraphNode*> *mTree;
     Ui::GraphView *ui;
     bool bProgramInitialized;
-    int mIndex = 0;
-
 };
 
 #endif // GRAPHVIEW_H
