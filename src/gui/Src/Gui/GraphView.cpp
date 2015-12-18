@@ -71,7 +71,6 @@ void GraphView::setupGraph()
     //add nodes
     mTree = new Tree<GraphNode*>(mG, mGA);
 
-//    setupTree();
     setupTree();
 
     addGraphToScene();
@@ -113,6 +112,7 @@ void GraphView::setupTree(duint va)
     duint endAddr = it->second.end;
     duint baseAddr = DbgMemFindBaseAddr(addr, 0);
 
+    // Read basic block instructions
     for(startAddr; startAddr <= endAddr;)
     {
         if(!DbgMemRead(startAddr, (unsigned char*)byteArray.data(), 16))
@@ -180,6 +180,7 @@ void GraphView::addGraphToScene()
         }
     }
 
+    // Apply the graph layout after we've set the nodes sizes
     setupGraphLayout();
 
     //draw widget contents (nodes)
@@ -226,6 +227,7 @@ void GraphView::addGraphToScene()
         mScene->addItem(edge);
     }
 
+    // Change unconditionalBranches colors to something different than for conditional branches
     setUnconditionalBranchEdgeColor();
 
     ui->graphicsView->ensureVisible(mScene->itemsBoundingRect());
@@ -268,8 +270,9 @@ void GraphView::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *> *paren
         // If we found the basicblock for left or right
         if(itChild != mBasicBlockInfo->end())
         {
-            // If the Node doesn't exist yet;
             std::vector<Instruction_t> instructionsVector;
+
+            // If the Node doesn't exist yet;
             if(node == nullptr)
             {
                 duint startAddr = itChild->second.start;
@@ -388,7 +391,6 @@ bool GraphView::findBasicBlock(duint &va)
     {
         for(it = mBasicBlockInfo->begin(); it != mBasicBlockInfo->end(); it++)
         {
-
             if(va >= it->second.start && va <= it->second.end)
             {
                 va = it->first;
@@ -412,12 +414,6 @@ void GraphView::drawGraphAtSlot(duint va)
 
     setupTree(va);
     addGraphToScene();
-
-//    if(mScene->itemsBoundingRect().height() < ui->graphicsView->height())
-//        ui->graphicsView->verticalScrollBar()->hide();
-//    else
-//        ui->graphicsView->verticalScrollBar()->show();
-//    ui->graphicsView->fitInView(mScene->itemsBoundingRect(), Qt::KeepAspectRatio);
 }
 
 void GraphView::disassembleAtSlot(dsint parVA, dsint CIP)

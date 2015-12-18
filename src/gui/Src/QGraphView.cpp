@@ -28,11 +28,10 @@ void QGraphView::wheelEvent(QWheelEvent* event)
     connect(anim, SIGNAL (valueChanged(qreal)), SLOT (scalingTime(qreal)));
     connect(anim, SIGNAL (finished()), SLOT (animFinished()));
 
+    // Center the view on the mouse cursor before zooming, more convenient zoom
     QPointF mappedMousePos = this->mapToScene(event->pos().x(), event->pos().y());
     if(scene()->itemsBoundingRect().contains(mappedMousePos.x(), mappedMousePos.y()))
         centerOn(mappedMousePos.x(), mappedMousePos.y());
-//    std::cout << mappedMousePos.x() << " - " << mappedMousePos.y() << std::endl;
-
 
     anim->start();
     bAnimationFinished = false;

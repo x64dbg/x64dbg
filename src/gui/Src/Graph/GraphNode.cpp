@@ -82,6 +82,7 @@ void GraphNode::paintEvent(QPaintEvent* event)
 
 dsint GraphNode::getInstructionIndexAtPos(const QPoint &pos) const
 {
+    // Gets the instruction index at the cursor position
     duint instructionIndex = -1;
     for(duint i = 0; i < mInstructionsVector.size(); i++)
     {
