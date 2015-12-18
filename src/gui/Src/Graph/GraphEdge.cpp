@@ -1,9 +1,14 @@
 #include "GraphEdge.h"
 
 
-GraphEdge::GraphEdge(QPointF start, QPointF end, ogdf::DPolyline bends, QRectF sourceRect, QRectF targetRect, QBrush lineColor) : QAbstractGraphicsShapeItem()
+GraphEdge::GraphEdge(QPointF start, QPointF end, ogdf::DPolyline bends, QRectF sourceRect, QRectF targetRect, EDGE_TYPE edgeType) : QAbstractGraphicsShapeItem()
 {
-    _edgeColor = lineColor;
+    _edgeType = edgeType;
+
+    if(_edgeType == EDGE_LEFT)
+        _edgeColor = Qt::red;
+    else
+        _edgeColor = Qt::green;
 
     QList<QPointF> linePoints = calculateLine(start, end, bends, sourceRect, targetRect);
 //    for(auto p : linePoints)
@@ -237,5 +242,15 @@ void GraphEdge::preparePainterPaths(const QList<QPointF> & linePoints, const QLi
     for(auto p : arrowPoints)
         polyArrow << p;
     _arrow.addPolygon(polyArrow);
+}
+
+void GraphEdge::setEdgeColor(QBrush edgeColor)
+{
+    _edgeColor = edgeColor;
+}
+
+GraphEdge::EDGE_TYPE GraphEdge::getEdgeType()
+{
+    return _edgeType;
 }
 

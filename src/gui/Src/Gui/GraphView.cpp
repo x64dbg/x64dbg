@@ -1,7 +1,6 @@
 
 #include "GraphView.h"
 #include "ui_GraphView.h"
-#include "GraphEdge.h"
 #include "Configuration.h"
 #include <QDebug>
 
@@ -21,6 +20,7 @@ GraphView::GraphView(QWidget *parent) :
     mParentsInfo = nullptr;
     mBasicBlockInfo = nullptr;
     mGraphNodeVector = new GRAPHNODEVECTOR;
+//    mNodeGraphEdge = new GRAPHEDGEMAP;
     bProgramInitialized = false;
 
     mScene->setBackgroundBrush(ConfigColor("DisassemblyBackgroundColor"));
@@ -41,7 +41,16 @@ void GraphView::startControlFlowAnalysis()
 
 void GraphView::showEvent(QShowEvent *event)
 {
-//    ui->graphicsView->fitInView(mScene->itemsBoundingRect(), Qt::KeepAspectRatio);
+    //    ui->graphicsView->fitInView(mScene->itemsBoundingRect(), Qt::KeepAspectRatio);
+}
+
+void GraphView::setUnconditionalBranchEdgeColor()
+{
+    for(auto const &nodeGraphEdge : mNodeGraphEdge)
+    {
+        if(nodeGraphEdge.second.size() == 1)
+            nodeGraphEdge.second.at(0)->setEdgeColor(Qt::blue);
+    }
 }
 
 void GraphView::setupGraph()
@@ -155,6 +164,7 @@ void GraphView::addGraphToScene()
 {
     using namespace ogdf;
 
+    mNodeGraphEdge.clear();
     mScene->clear();
 
     // adjust node size
@@ -208,21 +218,18 @@ void GraphView::addGraphToScene()
 
         GraphEdge* edge = nullptr;
         if(mTree->findNode(source)->left() && mTree->findNode(source)->left()->data()->address() == targetGraphNode->address())
-            edge = new GraphEdge(start, end, bends, sourceRect, targetRect, Qt::green);
+            edge = new GraphEdge(start, end, bends, sourceRect, targetRect, GraphEdge::EDGE_LEFT);
         else
-            edge = new GraphEdge(start, end, bends, sourceRect, targetRect, Qt::red);
+            edge = new GraphEdge(start, end, bends, sourceRect, targetRect, GraphEdge::EDGE_RIGHT);
 
+        mNodeGraphEdge[source].push_back(edge);
         mScene->addItem(edge);
     }
 
-//    mScene->setSceneRect(mScene->itemsBoundingRect());
+    setUnconditionalBranchEdgeColor();
 
-//    mScene->setSceneRect(0, 0, mGA->boundingBox().width(), mGA->boundingBox().height());
-    QTextStream out(stdout);
     ui->graphicsView->ensureVisible(mScene->itemsBoundingRect());
     ui->graphicsView->setSceneRect(mScene->sceneRect());
-
-//    ui->graphicsView->fitInView(mScene->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void GraphView::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *> *parentNode)

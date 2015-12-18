@@ -16,6 +16,7 @@
 #include <ogdf/layered/OptimalRanking.h>
 #include <ogdf/layered/MedianHeuristic.h>
 #include <ogdf/layered/OptimalHierarchyLayout.h>
+#include "GraphEdge.h"
 
 namespace Ui
 {
@@ -61,6 +62,7 @@ typedef std::map<duint, BasicBlock> BASICBLOCKMAP; //start of block -> block
 typedef std::map<duint, std::set<duint> > PARENTMAP; //start child -> parents
 typedef std::vector<GraphNode* > GRAPHNODEVECTOR;
 typedef std::map<duint, Node<GraphNode *> * > NODEMAP;
+typedef std::map<ogdf::node, std::vector<GraphEdge *> > GRAPHEDGEMAP;
 
 class GraphView : public QWidget
 {
@@ -70,6 +72,7 @@ public:
     explicit GraphView(QWidget *parent = 0);
     void startControlFlowAnalysis();
     void showEvent(QShowEvent *event);
+    void setUnconditionalBranchEdgeColor();
     ~GraphView();
 
 public slots:
@@ -89,6 +92,7 @@ private:
     PARENTMAP *mParentsInfo;
     BASICBLOCKMAP *mBasicBlockInfo;
     GRAPHNODEVECTOR *mGraphNodeVector;
+    GRAPHEDGEMAP mNodeGraphEdge;
     ogdf::Graph *mG;
     ogdf::GraphAttributes *mGA;
     ogdf::SugiyamaLayout *mSL;

@@ -9,7 +9,13 @@
 class GraphEdge : public QAbstractGraphicsShapeItem
 {
 public:
-    GraphEdge(QPointF start, QPointF end, ogdf::DPolyline bends, QRectF sourceRect, QRectF targetRect, QBrush lineColor = Qt::green);
+    enum EDGE_TYPE
+    {
+        EDGE_RIGHT,
+        EDGE_LEFT
+    } ;
+
+    GraphEdge(QPointF start, QPointF end, ogdf::DPolyline bends, QRectF sourceRect, QRectF targetRect, EDGE_TYPE edgeType);
     QRectF boundingRect() const;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
     qreal calculateDistance(QPointF p1, QPointF p2);
@@ -18,12 +24,15 @@ public:
     QList<QPointF> calculateArrow(const QList<QPointF> & linePoints);
     QRectF calculateBoundingRect(const QList<QPointF> & linePoints, const QList<QPointF> & arrowPoints);
     void preparePainterPaths(const QList<QPointF> & linePoints, const QList<QPointF> & arrowPoints);
+    void setEdgeColor(QBrush edgeColor);
+    GraphEdge::EDGE_TYPE getEdgeType();
 
 private:
     QPainterPath _line;
     QPainterPath _arrow;
     QRectF _boundingRect;
     QBrush _edgeColor;
+    EDGE_TYPE _edgeType;
 };
 
 #endif //_GRAPH_EDGE_H
