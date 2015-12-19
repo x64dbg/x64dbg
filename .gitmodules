@@ -1,0 +1,3 @@
+[submodule "src/ogdf"]
+	path = src/ogdf
+	url = https://github.com/x64dbg/ogdf.git

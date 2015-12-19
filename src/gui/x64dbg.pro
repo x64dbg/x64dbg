@@ -8,17 +8,17 @@
 ## Pre-defined global variables
 ##
 
-OGDF_INCLUDE_DIR = C:/OGDF/include
+OGDF_INCLUDE_DIR = ../ogdf/include
 
 !contains(QMAKE_HOST.arch, x86_64) {
     X64_BIN_DIR = ../../bin/x32          # Relative BIN path, 32-bit
     X64_GEN_DIR = ../gui_build/out32     # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
-    OGDF_BIN_DIR = C:/OGDF/Win32/Release # OGDF
+    OGDF_BIN_DIR = ../ogdf/Win32/Release # OGDF
     TARGET = x32gui                      # Build x32gui
 } else {
     X64_BIN_DIR = ../../bin/x64        # Relative BIN path, 64-bit
     X64_GEN_DIR = ../gui_build/out64   # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
-    OGDF_BIN_DIR = C:/OGDF/x64/Release # OGDF
+    OGDF_BIN_DIR = ../ogdf/x64/Release # OGDF
     TARGET = x64gui                    # Build x64gui
 }
 
