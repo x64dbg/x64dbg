@@ -48,6 +48,8 @@ private:
     };
 
     typedef std::set<duint> UintSet;
+    typedef std::map<duint, UintSet> PARENTMAP;
+    typedef std::map<duint, BasicBlock> BASICBLOCKMAP;
 
     duint _moduleBase;
     duint _functionInfoSize;

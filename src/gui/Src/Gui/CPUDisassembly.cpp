@@ -1132,6 +1132,7 @@ void CPUDisassembly::decompileFunctionSlot()
     dsint addr = rvaToVa(getInitialSelection());
     duint start;
     duint end;
+
     if(DbgFunctionGet(addr, &start, &end))
     {
         emit displaySnowmanWidget();

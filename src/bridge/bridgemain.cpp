@@ -1236,6 +1236,12 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index)
     _gui_sendmessage(GUI_DUMP_AT_N, (void*)va, (void*)index);
 }
 
+BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS *ctrlFlow)
+{
+    _gui_sendmessage(GUI_SET_CONTROLFLOWINFOS, (void*) ctrlFlow, nullptr);
+}
+
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

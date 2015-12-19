@@ -2,93 +2,53 @@
 #define _GRAPH_NODE_H
 
 #include <QWidget>
+#include <QFrame>
+#include <QMouseEvent>
 #include <QMessageBox>
 #include <QFontMetrics>
+#include <vector>
+#include "Imports.h"
+#include "RichTextPainter.h"
+#include "capstone_gui.h"
+#include "QBeaEngine.h"
 
-class GraphNode : public QWidget
+class GraphNode : public QFrame
 {
+    Q_OBJECT
+
 public:
-    GraphNode()
-    {
-    }
+    GraphNode();
+    GraphNode(std::vector<Instruction_t> &instructionsVector, duint address = 0);
+    GraphNode(const GraphNode & other);
+    GraphNode & operator=(const GraphNode & other);
+    QRectF boundingRect() const;
+    void paintEvent(QPaintEvent* event);
+    dsint getInstructionIndexAtPos(const QPoint &pos) const;
+    bool eventFilter(QObject *object, QEvent *event);
+//    void mousePressEvent(QMouseEvent* event);
+    void updateTokensVector();
+    void setInstructionsVector(const std::vector<Instruction_t> &instructionsVector);
+    void updateCache();
+    void updateRichText();
+    QString getLongestInstruction();
+    duint address();
 
-    GraphNode(QString label)
-    {
-        setLabel(label);
-        setStyleSheet("border: 1px solid blue");
-        setContentsMargins(0,0,0,0);
-    }
-
-    GraphNode(const GraphNode & other)
-    {
-        setLabel(other._label);
-    }
-
-    GraphNode & operator=(const GraphNode & other)
-    {
-        setLabel(other._label);
-        return *this;
-    }
-
-    QRectF boundingRect() const
-    {
-        return QRectF(0, 0, _cachedWidth, _cachedHeight);
-    }
-
-    void paintEvent(QPaintEvent* event)
-    {
-        Q_UNUSED(event);
-
-        QPainter painter(this);
-
-        painter.save();
-
-        //draw bounding rectangle
-        QRectF rect = boundingRect();
-        painter.setPen(Qt::red);
-        //painter.drawRect(rect);
-
-        //draw node contents
-        painter.setPen(Qt::black);
-        painter.setFont(this->_font);
-        QRect textRect = QRect(_spacingX, _spacingY, rect.width() - _spacingX, rect.height() - _spacingY);
-        painter.drawText(textRect, _label);
-
-        painter.restore();
-    }
-
-    void mousePressEvent(QMouseEvent* event)
-    {
-        Q_UNUSED(event);
-
-        QMessageBox::information(nullptr, "clicked", _label);
-    }
-
-    void setLabel(const QString & label)
-    {
-        _label = label;
-        updateCache();
-    }
-
-    void updateCache()
-    {
-        QFontMetrics metrics(this->_font);
-        _cachedWidth = metrics.width(this->_label) + _spacingX * 2;
-        _cachedHeight = metrics.height() + _spacingY * 2;
-    }
-
-    QString label()
-    {
-        return _label;
-    }
+signals:
+    void drawGraphAt(duint va);
 
 private:
-    QString _label;
-    QFont _font = QFont("Lucida Console", 8, QFont::Normal, false);
-    const qreal _spacingX = 3;
-    const qreal _spacingY = 3;
-    qreal _cachedWidth;
-    qreal _cachedHeight;
+    duint mHighlightInstructionAt;
+    duint mAddress;
+    duint mLineHeight;
+    qreal mCachedWidth;
+    qreal mCachedHeight;
+    const duint mSpacingX = 12;
+    const duint mSpacingY = 12;
+    const duint mLineSpacingY = 3;
+    QFont mFont = QFont("Lucida Console", 8, QFont::Normal, false);
+    std::vector<Instruction_t> mInstructionsVector;
+    std::vector<CapstoneTokenizer::InstructionToken> mTokensVector;
+    std::vector<QList<RichTextPainter::CustomRichText_t> > mRichTextVector;
 };
 
 #endif //_GRAPH_NODE_H

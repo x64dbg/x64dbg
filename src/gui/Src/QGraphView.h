@@ -16,6 +16,8 @@ private slots:
     void animFinished();
 
 private:
+    QPoint mMousePos;
+    bool bAnimationFinished;
     int _numScheduledScalings;
 };
 

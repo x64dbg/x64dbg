@@ -148,7 +148,9 @@ SOURCES += \
     Src/Gui/CPUMultiDump.cpp \
     Src/Gui/GraphView.cpp \
     Src/Graph/QGraphScene.cpp \
-    Src/QGraphView.cpp
+    Src/QGraphView.cpp \
+    Src/Graph/GraphEdge.cpp \
+    Src/Graph/GraphNode.cpp
 
 
 HEADERS += \

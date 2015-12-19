@@ -524,6 +524,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit dumpAtN((duint)param1, (int)param2);
     }
     break;
+    case GUI_SET_CONTROLFLOWINFOS:
+    {
+        emit setControlFlowInfos((duint*)param1);
+    }
+    break;
     }
     return nullptr;
 }

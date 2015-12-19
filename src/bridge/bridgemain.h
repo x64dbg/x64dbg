@@ -782,6 +782,7 @@ typedef enum
     GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
     GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
+    GUI_SET_CONTROLFLOWINFOS        // param1=duint *infos,         param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -806,6 +807,12 @@ typedef struct
     const void* data;
     duint size;
 } ICONDATA;
+
+typedef struct
+{
+    duint *blocks;
+    duint *parents;
+} CONTROLFLOWINFOS;
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
@@ -880,6 +887,7 @@ BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
+BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS *ctrlFlow);
 
 #ifdef __cplusplus
 }

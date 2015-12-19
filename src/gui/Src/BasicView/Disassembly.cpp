@@ -1,6 +1,7 @@
 #include "Disassembly.h"
 #include "Configuration.h"
 #include "Bridge.h"
+#include "GraphView.h"
 
 Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {
@@ -1408,6 +1409,7 @@ const dsint Disassembly::currentEIP() const
 
 void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
 {
+    emit drawGraphAtAddress(parVA);
     disassembleAt(parVA, parCIP, true, -1);
 }
 
