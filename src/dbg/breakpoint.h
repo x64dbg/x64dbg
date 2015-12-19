@@ -22,7 +22,7 @@ struct BREAKPOINT
     bool enabled;
     bool singleshoot;
     bool active;
-    short oldbytes;
+    unsigned short oldbytes;
     BP_TYPE type;
     DWORD titantype;
     char name[MAX_BREAKPOINT_SIZE];
