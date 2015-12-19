@@ -35,6 +35,7 @@ copy bin\x32\TitanEngine.dll %RELEASEDIR%\bin_base\x32\TitanEngine.dll
 copy bin\x32\XEDParse.dll %RELEASEDIR%\bin_base\x32\XEDParse.dll
 copy bin\x32\yara.dll %RELEASEDIR%\bin_base\x32\yara.dll
 copy bin\x32\snowman.dll %RELEASEDIR%\bin_base\x32\snowman.dll
+copy bin\x32\ogdf.dll %RELEASEDIR%\bin_base\x32\ogdf.dll
 copy bin\x64\x64_bridge.dll %RELEASEDIR%\bin_base\x64\x64_bridge.dll
 copy bin\x64\x64_dbg.dll %RELEASEDIR%\bin_base\x64\x64_dbg.dll
 copy bin\x64\capstone.dll %RELEASEDIR%\bin_base\x64\capstone.dll
@@ -48,6 +49,7 @@ copy bin\x64\TitanEngine.dll %RELEASEDIR%\bin_base\x64\TitanEngine.dll
 copy bin\x64\XEDParse.dll %RELEASEDIR%\bin_base\x64\XEDParse.dll
 copy bin\x64\yara.dll %RELEASEDIR%\bin_base\x64\yara.dll
 copy bin\x64\snowman.dll %RELEASEDIR%\bin_base\x64\snowman.dll
+copy bin\x64\ogdf.dll %RELEASEDIR%\bin_base\x64\ogdf.dll
 
 echo help
 
