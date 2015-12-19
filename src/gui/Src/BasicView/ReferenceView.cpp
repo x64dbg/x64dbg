@@ -10,25 +10,41 @@ ReferenceView::ReferenceView()
     mSearchStartCol = 1;
     mFollowDumpDefault = false;
 
-    QHBoxLayout* layout = new QHBoxLayout();
+    QHBoxLayout* layoutTotalProgress = new QHBoxLayout();
+    QHBoxLayout* layoutCurrentTaskProgress = new QHBoxLayout();
 
-    // Create search progress bar
-    mSearchProgress = new QProgressBar();
-    mSearchProgress->setRange(0, 100);
-    mSearchProgress->setTextVisible(false);
-    mSearchProgress->setMaximumHeight(15);
-    layout->addWidget(mSearchProgress);
+    // Create current task search progress bar
+    mSearchCurrentTaskProgress = new QProgressBar();
+    mSearchCurrentTaskProgress->setRange(0, 100);
+    mSearchCurrentTaskProgress->setTextVisible(true);
+    mSearchCurrentTaskProgress->setMaximumHeight(15);
+    layoutCurrentTaskProgress->addWidget(mSearchCurrentTaskProgress);
+
+    // Create total search progress bar
+    mSearchTotalProgress = new QProgressBar();
+    mSearchTotalProgress->setRange(0, 100);
+    mSearchTotalProgress->setTextVisible(true);
+    mSearchTotalProgress->setMaximumHeight(15);
+    layoutTotalProgress->addWidget(mSearchTotalProgress);
 
     // Label for the number of references
-    mCountLabel = new QLabel("tst");
-    mCountLabel->setAlignment(Qt::AlignCenter);
-    mCountLabel->setMaximumHeight(16);
-    mCountLabel->setMinimumWidth(40);
-    mCountLabel->setContentsMargins(2, 0, 5, 0);
-    layout->addWidget(mCountLabel);
+    mCountTotalLabel = new QLabel("tst");
+    mCountTotalLabel->setAlignment(Qt::AlignCenter);
+    mCountTotalLabel->setMaximumHeight(16);
+    mCountTotalLabel->setMinimumWidth(40);
+    mCountTotalLabel->setContentsMargins(2, 0, 5, 0);
+    layoutTotalProgress->addWidget(mCountTotalLabel);
+
+    mCountCurrentTaskLabel = new QLabel("");
+    mCountCurrentTaskLabel->setAlignment(Qt::AlignCenter);
+    mCountCurrentTaskLabel->setMaximumHeight(16);
+    mCountCurrentTaskLabel->setMinimumWidth(40);
+    mCountCurrentTaskLabel->setContentsMargins(2, 0, 5, 0);
+    layoutCurrentTaskProgress->addWidget(mCountCurrentTaskLabel);
 
     // Add the progress bar and label to the main layout
-    mMainLayout->addLayout(layout);
+    mMainLayout->addLayout(layoutCurrentTaskProgress);
+    mMainLayout->addLayout(layoutTotalProgress);
 
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
@@ -36,7 +52,8 @@ ReferenceView::ReferenceView()
     connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
+    connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int,QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int,QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(referenceContextMenu(QMenu*)));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
@@ -80,7 +97,7 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSingleSelection(int, bool)), this, SLOT(setSingleSelection(int, bool)));
-    disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchProgress, SLOT(setValue(int)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), mSearchTotalProgress, SLOT(setValue(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
 }
 
@@ -88,6 +105,20 @@ void ReferenceView::refreshShortcutsSlot()
 {
     mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
     mToggleBookmark->setShortcut(ConfigShortcut("ActionToggleBookmark"));
+}
+
+void ReferenceView::referenceSetProgressSlot(int progress)
+{
+    mSearchTotalProgress->setValue(progress);
+    mSearchTotalProgress->setAlignment(Qt::AlignCenter);
+    mSearchTotalProgress->setFormat("Total Progress " + QString::number(progress) + "%");
+}
+
+void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle)
+{
+    mSearchCurrentTaskProgress->setValue(progress);
+    mSearchCurrentTaskProgress->setAlignment(Qt::AlignCenter);
+    mSearchCurrentTaskProgress->setFormat(taskTitle + " " + QString::number(progress) + "%");
 }
 
 void ReferenceView::addColumnAt(int width, QString title)
@@ -109,7 +140,7 @@ void ReferenceView::addColumnAt(int width, QString title)
 
 void ReferenceView::setRowCount(dsint count)
 {
-    emit mCountLabel->setText(QString("%1").arg(count));
+    emit mCountTotalLabel->setText(QString("%1").arg(count));
     mSearchBox->setText("");
     mList->setRowCount(count);
 }

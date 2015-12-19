@@ -146,9 +146,10 @@ SOURCES += \
     Src/Gui/NotesManager.cpp \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
+    Src/Gui/AssembleDialog.cpp \
     Src/Gui/GraphView.cpp \
     Src/Graph/QGraphScene.cpp \
-    Src/QGraphView.cpp \
+    Src/Graph/QGraphView.cpp \
     Src/Graph/GraphEdge.cpp \
     Src/Graph/GraphNode.cpp
 
@@ -232,6 +233,7 @@ HEADERS += \
     Src/Utils/MenuBuilder.h \
     Src/Utils/QActionLambda.h \
     Src/Gui/CPUMultiDump.h \
+    Src/Gui/AssembleDialog.h \
     Src/BasicView/HeaderButton.h \
     Src/ThirdPartyLibs/snowman/SnowmanView.h \
     Src/Graph/GraphEdge.h \
@@ -240,7 +242,7 @@ HEADERS += \
     Src/Graph/Tree.h \
     Src/Gui/GraphView.h \
     Src/Graph/QGraphScene.h \
-    Src/QGraphView.h
+    Src/Graph/QGraphView.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -266,6 +268,7 @@ FORMS += \
     Src/Gui/YaraRuleSelectionDialog.ui \
     Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
+    Src/Gui/AssembleDialog.ui \
     Src/Gui/GraphView.ui
 
 ##

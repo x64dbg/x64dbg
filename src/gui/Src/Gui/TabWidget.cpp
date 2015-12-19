@@ -11,6 +11,7 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
     connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
+    connect(m_tabBar, SIGNAL(tabMoved(int,int)), this, SLOT(tabMoved(int, int)));
 
     setTabBar(m_tabBar);
     setMovable(true);
@@ -130,6 +131,11 @@ void MHTabWidget::MoveTab(int fromIndex, int toIndex)
 void MHTabWidget::DeleteTab(int index)
 {
     removeTab(index);
+}
+
+void MHTabWidget::tabMoved(int from, int to)
+{
+    emit tabMovedTabWidget(from, to);
 }
 
 void MHTabWidget::setCurrentIndex(int index)

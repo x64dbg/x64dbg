@@ -228,6 +228,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit referenceSetProgress((int)param1);
         break;
 
+    case GUI_REF_SETCURRENTTASKPROGRESS:
+        emit referenceSetCurrentTaskProgress((int)param1, QString((const char*)param2));
+        break;
+
     case GUI_REF_SETSEARCHSTARTCOL:
         emit referenceSetSearchStartCol((int)param1);
         break;
@@ -522,6 +526,14 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_DUMP_AT_N:
     {
         emit dumpAtN((duint)param1, (int)param2);
+    }
+    break;
+
+    case GUI_DISPLAY_WARNING:
+    {
+        QString title = QString((const char*)param1);
+        QString text = QString((const char*)param2);
+        emit displayWarning(title, text);
     }
     break;
     case GUI_SET_CONTROLFLOWINFOS:

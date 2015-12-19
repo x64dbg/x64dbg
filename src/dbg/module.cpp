@@ -45,6 +45,9 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
         // Add entry to the vector
         Info.sections.push_back(curSection);
     }
+
+    // Clear imports by default
+    Info.imports.clear();
 }
 
 bool ModLoad(duint Base, duint Size, const char* FullPath)
@@ -292,6 +295,20 @@ bool ModSectionsFromAddr(duint Address, std::vector<MODSECTIONINFO>* Sections)
     return true;
 }
 
+bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    auto module = ModInfoFromAddr(Address);
+
+    if (!module)
+        return false;
+
+    // Copy vector <-> vector
+    *Imports = module->imports;
+    return true;
+}
+
 duint ModEntryFromAddr(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
@@ -328,4 +345,33 @@ void ModGetList(std::vector<MODINFO> & list)
     list.clear();
     for(const auto & mod : modinfo)
         list.push_back(mod.second);
+}
+
+bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo)
+{
+    SHARED_ACQUIRE(LockModules);
+
+    if (!Base || !importInfo.addr)
+        return false;
+
+    auto module = ModInfoFromAddr(Base);
+
+    if (!module)
+        return false;
+
+    // Search in Import Vector
+    std::vector<MODIMPORTINFO> *pImports = &(module->imports);
+    auto it = std::find_if(pImports->begin(), pImports->end(), [&importInfo](MODIMPORTINFO currentImportInfo)->bool
+    {
+        return (importInfo.addr == currentImportInfo.addr);
+    });
+
+    // Import in the list already
+    if (it != pImports->end())
+        return false;
+
+    // Add import to imports vector
+    pImports->push_back(importInfo);
+
+    return true;
 }

@@ -964,10 +964,16 @@ dsint AbstractTableView::getTableOffset()
 void AbstractTableView::setTableOffset(dsint val)
 {
     dsint wMaxOffset = getRowCount() - getViewableRowsCount() + 1;
-    wMaxOffset = wMaxOffset > 0 ? wMaxOffset : 0;
+    wMaxOffset = wMaxOffset > 0 ? getRowCount() : 0;
     if(val > wMaxOffset)
         return;
-    mTableOffset = val;
+
+    // If val is within the last ViewableRows, then set RVA to rowCount - ViewableRows + 1
+    if(wMaxOffset && val >= (getRowCount() - getViewableRowsCount() + 1))
+        mTableOffset = (getRowCount() - getViewableRowsCount()) + 1;
+    else
+        mTableOffset = val;
+
     emit tableOffsetChanged(val);
 
 #ifdef _WIN64

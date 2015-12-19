@@ -40,6 +40,7 @@ private slots:
     void toggleBookmark();
     void refreshShortcutsSlot();
     void moduleEntropy();
+    void emptySearchResultSlot();
 
 signals:
     void showCpu();

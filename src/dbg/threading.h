@@ -50,7 +50,11 @@ enum SectionLock
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
-    LockLast,
+    LockCmdLine,
+
+    // Number of elements in this enumeration. Must always be the last
+    // index.
+    LockLast
 };
 
 class SectionLockerGlobal

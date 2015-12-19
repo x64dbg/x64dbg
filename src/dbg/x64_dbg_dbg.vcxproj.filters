@@ -278,6 +278,9 @@
     <ClCompile Include="jit.cpp">
       <Filter>Source Files\Debugger Core</Filter>
     </ClCompile>
+    <ClCompile Include="commandline.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -645,6 +648,9 @@
     </ClInclude>
     <ClInclude Include="yara\yara\stream.h">
       <Filter>Header Files\Third Party\yara\yara</Filter>
+    </ClInclude>
+    <ClInclude Include="commandline.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

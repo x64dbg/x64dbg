@@ -94,6 +94,7 @@ static void registercommands()
     dbgcmdnew("setcmdline\1setcommandline", cbDebugSetCmdline, true); //Set CmdLine
     dbgcmdnew("loadlib", cbDebugLoadLib, true); //Load DLL
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
+    dbgcmdnew("setfreezestack", cbDebugSetfreezestack, false); //freeze the stack from auto updates
 
     //breakpoints
     dbgcmdnew("bplist", cbDebugBplist, true); //breakpoint list

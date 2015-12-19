@@ -1,6 +1,7 @@
 #include "CPUDump.h"
 #include <QMessageBox>
 #include <QClipboard>
+#include <QFileDialog>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "LineEditDialog.h"
@@ -9,6 +10,7 @@
 #include "DataCopyDialog.h"
 #include "EntropyDialog.h"
 #include "CPUMultiDump.h"
+#include <QToolTip>
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -131,6 +133,14 @@ void CPUDump::setupContextMenu()
     connect(mBinaryPasteIgnoreSizeAction, SIGNAL(triggered()), this, SLOT(binaryPasteIgnoreSizeSlot()));
     mBinaryMenu->addAction(mBinaryPasteIgnoreSizeAction);
 
+    //Binary->Save To a File
+    mBinarySaveToFile = new QAction("Save To a File", this);
+    mBinarySaveToFile->setShortcutContext(Qt::WidgetShortcut);
+    this->addAction(mBinarySaveToFile);
+    connect(mBinarySaveToFile, SIGNAL(triggered()), this, SLOT(binarySaveToFileSlot()));
+    mBinaryMenu->addAction(mBinarySaveToFile);
+
+
     // Restore Selection
     mUndoSelection = new QAction("&Restore selection", this);
     mUndoSelection->setShortcutContext(Qt::WidgetShortcut);
@@ -241,7 +251,7 @@ void CPUDump::setupContextMenu()
     mMemoryAccessSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryAccessSingleshoot, SIGNAL(triggered()), this, SLOT(memoryAccessSingleshootSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessSingleshoot);
-    mMemoryAccessRestore = new QAction("&Restore", this);
+    mMemoryAccessRestore = new QAction("&Restore on hit", this);
     connect(mMemoryAccessRestore, SIGNAL(triggered()), this, SLOT(memoryAccessRestoreSlot()));
     mMemoryAccessMenu->addAction(mMemoryAccessRestore);
     mBreakpointMenu->addMenu(mMemoryAccessMenu);
@@ -251,7 +261,7 @@ void CPUDump::setupContextMenu()
     mMemoryWriteSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryWriteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryWriteSingleshootSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteSingleshoot);
-    mMemoryWriteRestore = new QAction("&Restore", this);
+    mMemoryWriteRestore = new QAction("&Restore on hit", this);
     connect(mMemoryWriteRestore, SIGNAL(triggered()), this, SLOT(memoryWriteRestoreSlot()));
     mMemoryWriteMenu->addAction(mMemoryWriteRestore);
     mBreakpointMenu->addMenu(mMemoryWriteMenu);
@@ -261,7 +271,7 @@ void CPUDump::setupContextMenu()
     mMemoryExecuteSingleshoot = new QAction("&Singleshoot", this);
     connect(mMemoryExecuteSingleshoot, SIGNAL(triggered()), this, SLOT(memoryExecuteSingleshootSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteSingleshoot);
-    mMemoryExecuteRestore = new QAction("&Restore", this);
+    mMemoryExecuteRestore = new QAction("&Restore on hit", this);
     connect(mMemoryExecuteRestore, SIGNAL(triggered()), this, SLOT(memoryExecuteRestoreSlot()));
     mMemoryExecuteMenu->addAction(mMemoryExecuteRestore);
     mBreakpointMenu->addMenu(mMemoryExecuteMenu);
@@ -448,6 +458,7 @@ void CPUDump::setupContextMenu()
     mCopyRva = new QAction("&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyMenu->addAction(mCopyRva);
+
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -684,6 +695,47 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
     break;
     }
+}
+
+void CPUDump::mouseMoveEvent(QMouseEvent *event)
+{
+    dsint ptr = 0, ptrValue = 0;
+
+    // Get mouse pointer relative position
+    int x = event->x();
+    int y = event->y();
+
+    // Get HexDump own RVA address, then VA in memory
+    int rva = getItemStartingAddress(x, y);
+    int va = rvaToVa(rva);
+
+    // Read VA
+    DbgMemRead(va, (unsigned char*)&ptr, sizeof(dsint));
+
+    // Check if its a pointer
+    if(DbgMemIsValidReadPtr(ptr))
+    {
+        // Get the value at the address pointed by the ptr
+        DbgMemRead(ptr, (unsigned char*)&ptrValue, sizeof(dsint));
+
+        // Format text like this : [ptr] = ptrValue
+        QString strPtrValue;
+#ifdef _WIN64
+        strPtrValue.sprintf("[0x%016X] = 0x%016X", ptr, ptrValue);
+#else
+        strPtrValue.sprintf("[0x%08X] = 0x%08X", ptr, ptrValue);
+#endif
+
+        // Show tooltip
+        QToolTip::showText(event->globalPos(), strPtrValue);
+    }
+    // If not a pointer, hide tooltips
+    else
+    {
+        QToolTip::hideText();
+    }
+
+    HexDump::mouseMoveEvent(event);
 }
 
 void CPUDump::addVaToHistory(dsint parVa)
@@ -1487,6 +1539,22 @@ void CPUDump::binaryPasteIgnoreSizeSlot()
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
+}
+
+void CPUDump::binarySaveToFileSlot()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save to file", QDir::currentPath(), tr("All files (*.*)"));
+    if(fileName.length())
+    {
+        // Get starting selection and selection size, then convert selStart to VA
+        dsint rvaSelStart = getSelectionStart();
+        dsint selSize = getSelectionEnd() - rvaSelStart + 1;
+        dsint vaSelStart = rvaToVa(rvaSelStart);
+
+        // Prepare command
+        QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(vaSelStart, 16), QString::number(selSize));
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
 }
 
 void CPUDump::findPattern()

@@ -30,11 +30,15 @@ public:
     int count() const;
     QList<QWidget*> windows();
 
+signals:
+    void tabMovedTabWidget(int from, int to);
+
 public slots:
     void AttachTab(QWidget* parent);
     void DetachTab(int index, QPoint &);
     void MoveTab(int fromIndex, int toIndex);
     void DeleteTab(int index);
+    void tabMoved(int from, int to);
 
 public Q_SLOTS:
     void setCurrentIndex(int index);

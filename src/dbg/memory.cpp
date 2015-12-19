@@ -497,6 +497,9 @@ bool MemPageRightsToString(DWORD Protect, char* Rights)
     case PAGE_EXECUTE_WRITECOPY:
         strcpy_s(Rights, RIGHTS_STRING_SIZE, "ERWC");
         break;
+    default:
+        memset(Rights, 0, RIGHTS_STRING_SIZE);
+        break;
     }
 
     strcat_s(Rights, RIGHTS_STRING_SIZE, ((Protect & PAGE_GUARD) == PAGE_GUARD) ? "G" : "-");

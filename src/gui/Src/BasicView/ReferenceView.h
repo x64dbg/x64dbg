@@ -29,19 +29,23 @@ private slots:
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
+    void referenceSetProgressSlot(int progress);
+    void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
 
 signals:
     void showCpu();
 
 private:
-    QProgressBar* mSearchProgress;
+    QProgressBar* mSearchTotalProgress;
+    QProgressBar* mSearchCurrentTaskProgress;
     QAction* mFollowAddress;
     QAction* mFollowDumpAddress;
     QAction* mFollowApiAddress;
     QAction* mToggleBreakpoint;
     QAction* mToggleBookmark;
     bool mFollowDumpDefault;
-    QLabel* mCountLabel;
+    QLabel* mCountTotalLabel;
+    QLabel* mCountCurrentTaskLabel;
 
     dsint apiAddressFromString(const QString & s);
 };
