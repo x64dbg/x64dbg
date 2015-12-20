@@ -660,7 +660,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
+    GuiDumpAt(MemFindBaseAddr(GetContextDataEx(CreateProcessInfo->hThread, UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     // Init program database
     DBSetPath(nullptr, szFileName);
