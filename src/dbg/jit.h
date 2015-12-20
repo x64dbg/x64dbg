@@ -3,7 +3,7 @@
 #include "_global.h"
 
 #define ATTACH_CMD_LINE     "\" -a %ld -e %ld"
-#define JIT_REG_KEY         TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug")
+#define JIT_REG_KEY         L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug"
 
 #define JIT_ENTRY_MAX_SIZE  512
 #define JIT_ENTRY_DEF_SIZE  (MAX_PATH + sizeof(ATTACH_CMD_LINE) + 2)
