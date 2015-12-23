@@ -449,8 +449,6 @@ void CPUDisassembly::toggleInt3BPActionSlot()
 
     DbgCmdExec(wCmd.toUtf8().constData());
     //emit Disassembly::repainted();
-
-    repaint();
 }
 
 
@@ -470,8 +468,6 @@ void CPUDisassembly::toggleHwBpActionSlot()
     }
 
     DbgCmdExec(wCmd.toUtf8().constData());
-
-    repaint();
 }
 
 
@@ -531,8 +527,6 @@ void CPUDisassembly::setHwBpAt(duint va, int slot)
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);
-
-    repaint();
 }
 
 void CPUDisassembly::setNewOriginHereActionSlot()
@@ -566,8 +560,6 @@ void CPUDisassembly::setLabelSlot()
         msg.exec();
     }
 
-    repaint();
-
     GuiUpdateAllViews();
 }
 
@@ -597,8 +589,6 @@ void CPUDisassembly::setLabelAddressSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
-
-    repaint();
 
     GuiUpdateAllViews();
 }
@@ -651,8 +641,6 @@ void CPUDisassembly::setBookmarkSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
-
-    repaint();
 
     GuiUpdateAllViews();
 }
@@ -708,7 +696,6 @@ void CPUDisassembly::toggleFunctionSlot()
         DbgCmdExec(cmd.toUtf8().constData());
     }
 
-    repaint();
 }
 
 void CPUDisassembly::assembleSlot()
@@ -964,8 +951,6 @@ void CPUDisassembly::enableHighlightingModeSlot()
     else
         mHighlightingMode = true;
     reloadData();
-
-    repaint();
 }
 
 void CPUDisassembly::binaryEditSlot()

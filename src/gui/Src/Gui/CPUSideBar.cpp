@@ -272,8 +272,6 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
     }
-
-    mDisas->repaint();
 }
 
 void CPUSideBar::mouseMoveEvent(QMouseEvent *event)

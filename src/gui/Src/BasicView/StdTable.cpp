@@ -50,7 +50,7 @@ void StdTable::mouseMoveEvent(QMouseEvent* event)
                 else
                     setSingleSelection(wRowIndex);
 
-                repaint();
+                updateViewport();
 
                 wAccept = false;
             }
@@ -82,7 +82,7 @@ void StdTable::mousePressEvent(QMouseEvent* event)
 
                     mGuiState = StdTable::MultiRowsSelectionState;
 
-                    repaint();
+                    updateViewport();
 
                     wAccept = true;
                 }
@@ -111,7 +111,7 @@ void StdTable::mouseReleaseEvent(QMouseEvent* event)
         {
             mGuiState = StdTable::NoState;
 
-            repaint();
+            updateViewport();
 
             wAccept = false;
         }
@@ -145,7 +145,7 @@ void StdTable::keyPressEvent(QKeyEvent* event)
             setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
         }
 
-        repaint();
+        updateViewport();
     }
     else
     {

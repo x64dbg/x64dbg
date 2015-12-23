@@ -189,10 +189,6 @@ void BreakpointsView::reloadData()
     }
     mMemBPTable->reloadData();
 
-    mMemBPTable->repaint();
-    mSoftBPTable->repaint();
-    mHardBPTable->repaint();
-
     if(wBPList.count)
         BridgeFree(wBPList.bp);
 }

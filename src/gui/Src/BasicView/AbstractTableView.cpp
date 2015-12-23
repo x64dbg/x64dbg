@@ -282,7 +282,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
             int wNewSize = getColumnWidth(mColResizeData.index) + delta;
             setColumnWidth(mColResizeData.index, wNewSize);
             mColResizeData.lastPosX = event->x();
-            repaint();
+            updateViewport();
         }
     }
     break;
@@ -353,7 +353,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
 
             mGuiState = AbstractTableView::HeaderButtonPressed;
 
-            repaint();
+            updateViewport();
         }
     }
 
@@ -397,7 +397,7 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
             mColumnList[i].header.isPressed = false;
         }
 
-        repaint();
+        updateViewport();
     }
 }
 
@@ -992,11 +992,11 @@ void AbstractTableView::reloadData()
 {
     mShouldReload = true;
     emit tableOffsetChanged(mTableOffset);
-    update();
+    this->viewport()->update();
 }
 
 
-void AbstractTableView::repaint()
+void AbstractTableView::updateViewport()
 {
     this->viewport()->update();
 }
