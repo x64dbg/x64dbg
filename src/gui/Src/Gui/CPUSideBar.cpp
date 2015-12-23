@@ -1,6 +1,7 @@
 #include "CPUSideBar.h"
 #include "Configuration.h"
 #include "Breakpoints.h"
+#include <QToolTip>
 
 CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)
 {
@@ -8,13 +9,16 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
     selectedVA = -1;
     viewableRows = 0;
 
-    CodePtr = Ptr;
+    mDisas = Ptr;
 
-    InstrBuffer = CodePtr->instructionsBuffer();
+    InstrBuffer = mDisas->instructionsBuffer();
 
     memset(&regDump, 0, sizeof(REGDUMP));
 
     updateSlots();
+
+    this->setMouseTracking(true);
+
 }
 
 CPUSideBar::~CPUSideBar()
@@ -51,12 +55,15 @@ void CPUSideBar::updateColors()
 
 void CPUSideBar::updateFonts()
 {
-    m_DefaultFont = CodePtr->font();
+    m_DefaultFont = mDisas->font();
     this->setFont(m_DefaultFont);
 
     QFontMetrics metrics(m_DefaultFont);
     fontWidth  = metrics.width(' ');
     fontHeight = metrics.height();
+
+    mBulletRadius = fontHeight / 2;
+    mBulletYOffset = (fontHeight - mBulletRadius) / 2;
 }
 
 QSize CPUSideBar::sizeHint() const
@@ -74,7 +81,7 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 
 void CPUSideBar::repaint()
 {
-    fontHeight = CodePtr->getRowHeight();
+    fontHeight = mDisas->getRowHeight();
     viewport()->update();
 }
 
@@ -109,8 +116,8 @@ bool CPUSideBar::isJump(int i) const
     auto branchType = instr.branchType;
     if(branchType != Instruction_t::None)
     {
-        duint start = CodePtr->getBase();
-        duint end = start + CodePtr->getSize();
+        duint start = mDisas->getBase();
+        duint end = start + mDisas->getSize();
         duint addr = instr.branchDestination;
         return addr >= start && addr < end; //do not draw jumps that go out of the section
     }
@@ -135,15 +142,15 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
     int jumpoffset = 0;
 
-    dsint last_va = InstrBuffer->last().rva + CodePtr->getBase();
-    dsint first_va = InstrBuffer->first().rva + CodePtr->getBase();
+    dsint last_va = InstrBuffer->last().rva + mDisas->getBase();
+    dsint first_va = InstrBuffer->first().rva + mDisas->getBase();
 
     for(int line = 0; line < viewableRows; line++)
     {
         if(line >= InstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
         Instruction_t instr = InstrBuffer->at(line);
-        dsint instrVA = instr.rva + CodePtr->getBase();
+        dsint instrVA = instr.rva + mDisas->getBase();
 
         // draw bullet
         drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
@@ -155,7 +162,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             bool isConditional = instr.branchType == Instruction_t::Conditional;
 
             /*
-            if(CodePtr->currentEIP() != InstrBuffer->at(line).rva) //create a setting for this
+            if(mDisas->currentEIP() != InstrBuffer->at(line).rva) //create a setting for this
                 isJumpGoingToExecute=false;
             */
 
@@ -168,13 +175,13 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
                 continue;
 
             // Do not draw jumps that leave the memory range
-            if(destVA >= CodePtr->getBase() + CodePtr->getSize() || destVA < CodePtr->getBase())
+            if(destVA >= mDisas->getBase() + mDisas->getSize() || destVA < mDisas->getBase())
                 continue;
 
             if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine > -1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva + CodePtr->getBase() != destVA)
+                while(destLine > -1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva + mDisas->getBase() != destVA)
                 {
                     if(destVA > instrVA) //jump goes up
                         destLine++;
@@ -190,9 +197,9 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         }
 
         // Register label line positions
-        const dsint cur_VA = CodePtr->getBase() + InstrBuffer->at(line).rva;
+        const dsint cur_VA = mDisas->getBase() + InstrBuffer->at(line).rva;
 
-        if(InstrBuffer->at(line).rva == CodePtr->currentEIP())
+        if(InstrBuffer->at(line).rva == mDisas->currentEIP())
             registerLines[0] = line;
 
         if(cur_VA == regDump.regcontext.cax) registerLines[1] = line;
@@ -242,8 +249,8 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     if(y < bulletY || y > bulletY + bulletRadius)
         return;
 
-    // calculate virtual adress of clicked line
-    duint wVA = InstrBuffer->at(line).rva + CodePtr->getBase();
+    // calculate virtual address of clicked line
+    duint wVA = InstrBuffer->at(line).rva + mDisas->getBase();
 
     QString wCmd;
     // create --> disable --> delete --> create --> ...
@@ -264,7 +271,50 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
         wCmd = "bp " + QString("%1").arg(wVA, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
         DbgCmdExec(wCmd.toUtf8().constData());
         break;
+    }
 
+    mDisas->repaint();
+}
+
+void CPUSideBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if(!DbgIsDebugging())
+    {
+        QAbstractScrollArea::mouseMoveEvent(event);
+        return;
+    }
+
+    QPoint mousePos = event->pos();
+    QPoint globalMousePos = event->globalPos();
+
+    const int mLine = mousePos.y() / fontHeight;
+    const int mBulletX = viewport()->width() - mBulletXOffset;
+    const int mBulletY = mLine * fontHeight + mBulletYOffset;
+
+    const int mouseBulletXOffset = abs(mBulletX - mousePos.x());
+    const int mouseBulletYOffset = abs(mBulletY - mousePos.y());
+
+    // mouseCursor not on a bullet
+    if(mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius)
+    {
+        QToolTip::hideText();
+        return;
+    }
+
+    // calculate virtual address of clicked line
+    duint wVA = InstrBuffer->at(mLine).rva + mDisas->getBase();
+
+    switch(Breakpoints::BPState(bp_normal, wVA))
+    {
+    case bp_enabled:
+        QToolTip::showText(globalMousePos, "BP enabled");
+        break;
+    case bp_disabled:
+        QToolTip::showText(globalMousePos, "BP disabled");
+        break;
+    case bp_non_existent:
+        QToolTip::showText(globalMousePos, "No BP set");
+        break;
     }
 }
 
@@ -413,15 +463,14 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     painter->setPen(mBackgroundColor);
 
-    const int radius = fontHeight / 2; //14/2=7
+    const int x = viewport()->width() - mBulletXOffset; //initial x
     const int y = line * fontHeight; //initial y
-    const int yAdd = (fontHeight - radius) / 2;
-    const int x = viewport()->width() - 10; //initial x
 
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
         painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
-    painter->drawEllipse(x, y + yAdd, radius, radius);
+
+    painter->drawEllipse(x, y + mBulletYOffset, mBulletRadius, mBulletRadius);
 
     painter->restore();
 }

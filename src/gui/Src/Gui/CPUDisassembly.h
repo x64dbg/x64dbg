@@ -83,7 +83,6 @@ public slots:
     void openSourceSlot();
     void decompileSelectionSlot();
     void decompileFunctionSlot();
-    void displayWarningSlot(QString title, QString text);
 
 protected:
     void paintEvent(QPaintEvent* event);

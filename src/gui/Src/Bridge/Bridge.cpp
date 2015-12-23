@@ -528,14 +528,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit dumpAtN((duint)param1, (int)param2);
     }
     break;
-
-    case GUI_DISPLAY_WARNING:
-    {
-        QString title = QString((const char*)param1);
-        QString text = QString((const char*)param2);
-        emit displayWarning(title, text);
-    }
-    break;
     }
     return nullptr;
 }

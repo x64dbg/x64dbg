@@ -33,8 +33,9 @@ public slots:
     void setSelection(dsint selVA);
 
 protected:
-    virtual void paintEvent(QPaintEvent* event);
-    virtual void mouseReleaseEvent(QMouseEvent* e);
+    void paintEvent(QPaintEvent* event);
+    void mouseReleaseEvent(QMouseEvent* e);
+    void mouseMoveEvent(QMouseEvent* event);
 
     void drawLabel(QPainter* painter, int Line, QString Text);
     void drawBullets(QPainter* painter, int line, bool ispb, bool isbpdisabled, bool isbookmark);
@@ -47,8 +48,12 @@ private:
     QFont m_DefaultFont;
     int fontWidth, fontHeight;
     int viewableRows;
+    int mBulletRadius;
+    int mBulletYOffset = 10;
+    const int mBulletXOffset = 10;
 
-    CPUDisassembly* CodePtr;
+
+    CPUDisassembly* mDisas;
     QList<Instruction_t>* InstrBuffer;
     REGDUMP regDump;
 
