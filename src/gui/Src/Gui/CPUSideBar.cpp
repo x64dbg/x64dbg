@@ -11,7 +11,7 @@ CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollAr
 
     mDisas = Ptr;
 
-    InstrBuffer = mDisas->instructionsBuffer();
+    mInstrBuffer = mDisas->instructionsBuffer();
 
     memset(&regDump, 0, sizeof(REGDUMP));
 
@@ -112,15 +112,20 @@ void CPUSideBar::setSelection(dsint selVA)
 
 bool CPUSideBar::isJump(int i) const
 {
-    const auto & instr = InstrBuffer->at(i);
-    auto branchType = instr.branchType;
+    const Instruction_t & instr = mInstrBuffer->at(i);
+    Instruction_t::BranchType branchType = instr.branchType;
     if(branchType != Instruction_t::None)
     {
         duint start = mDisas->getBase();
         duint end = start + mDisas->getSize();
-        duint addr = instr.branchDestination;
+        duint addr = DbgGetBranchDestination(start + instr.rva);
+
+        if(!addr)
+            return false;
+
         return addr >= start && addr < end; //do not draw jumps that go out of the section
     }
+
     return false;
 }
 
@@ -134,7 +139,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     painter.fillRect(painter.viewport(), mBackgroundColor);
 
     // Don't draw anything if there aren't any instructions to draw
-    if(InstrBuffer->size() == 0)
+    if(mInstrBuffer->size() == 0)
         return;
 
     // Line numbers to draw each register label
@@ -142,14 +147,14 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
     int jumpoffset = 0;
 
-    dsint last_va = InstrBuffer->last().rva + mDisas->getBase();
-    dsint first_va = InstrBuffer->first().rva + mDisas->getBase();
+    dsint last_va = mInstrBuffer->last().rva + mDisas->getBase();
+    dsint first_va = mInstrBuffer->first().rva + mDisas->getBase();
 
     for(int line = 0; line < viewableRows; line++)
     {
-        if(line >= InstrBuffer->size()) //at the end of the page it will crash otherwise
+        if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
-        Instruction_t instr = InstrBuffer->at(line);
+        Instruction_t instr = mInstrBuffer->at(line);
         dsint instrVA = instr.rva + mDisas->getBase();
 
         // draw bullet
@@ -162,13 +167,15 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             bool isConditional = instr.branchType == Instruction_t::Conditional;
 
             /*
-            if(mDisas->currentEIP() != InstrBuffer->at(line).rva) //create a setting for this
+            if(mDisas->currentEIP() != mInstrBuffer->at(line).rva) //create a setting for this
                 isJumpGoingToExecute=false;
             */
 
             jumpoffset++;
 
-            dsint destVA = instr.branchDestination;
+            dsint baseAddr = mDisas->getBase();
+
+            dsint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
 
             // Do not try to draw EBFE (Jump to the same line)
             if(destVA == instrVA)
@@ -181,7 +188,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             if(destVA <= last_va && destVA >= first_va)
             {
                 int destLine = line;
-                while(destLine > -1 && destLine < InstrBuffer->size() && InstrBuffer->at(destLine).rva + mDisas->getBase() != destVA)
+                while(destLine > -1 && destLine < mInstrBuffer->size() && mInstrBuffer->at(destLine).rva + mDisas->getBase() != destVA)
                 {
                     if(destVA > instrVA) //jump goes up
                         destLine++;
@@ -197,9 +204,9 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         }
 
         // Register label line positions
-        const dsint cur_VA = mDisas->getBase() + InstrBuffer->at(line).rva;
+        const dsint cur_VA = mDisas->getBase() + mInstrBuffer->at(line).rva;
 
-        if(InstrBuffer->at(line).rva == mDisas->currentEIP())
+        if(mInstrBuffer->at(line).rva == mDisas->currentEIP())
             registerLines[0] = line;
 
         if(cur_VA == regDump.regcontext.cax) registerLines[1] = line;
@@ -250,7 +257,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
         return;
 
     // calculate virtual address of clicked line
-    duint wVA = InstrBuffer->at(line).rva + mDisas->getBase();
+    duint wVA = mInstrBuffer->at(line).rva + mDisas->getBase();
 
     QString wCmd;
     // create --> disable --> delete --> create --> ...
@@ -276,7 +283,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
 
 void CPUSideBar::mouseMoveEvent(QMouseEvent *event)
 {
-    if(!DbgIsDebugging() || !InstrBuffer->size())
+    if(!DbgIsDebugging() || !mInstrBuffer->size())
     {
         QAbstractScrollArea::mouseMoveEvent(event);
         return;
@@ -300,7 +307,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent *event)
     }
 
     // calculate virtual address of clicked line
-    duint wVA = InstrBuffer->at(mLine).rva + mDisas->getBase();
+    duint wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
 
     switch(Breakpoints::BPState(bp_normal, wVA))
     {

@@ -87,7 +87,7 @@ public:
     //disassemble
     void disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
 
-    QList<Instruction_t>* instructionsBuffer();
+    QList<Instruction_t>* instructionsBuffer(); // ugly
     const dsint baseAddress() const;
     const dsint currentEIP() const;
 

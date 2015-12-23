@@ -391,7 +391,7 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         // Enable All
         wMenu->addAction(mSoftBPEnableAllAction);
 
-        // Enable All
+        // Disable All
         wMenu->addAction(mSoftBPDisableAllAction);
 
         // Remove All

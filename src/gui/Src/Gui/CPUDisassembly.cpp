@@ -1240,6 +1240,11 @@ void CPUDisassembly::decompileFunctionSlot()
     }
 }
 
+void CPUDisassembly::displayWarningSlot(QString title, QString text)
+{
+    QMessageBox::QMessageBox(QMessageBox::Information, title, text, QMessageBox::Ok).exec();
+}
+
 void CPUDisassembly::paintEvent(QPaintEvent* event)
 {
     // Hook/hack to update the sidebar at the same time as this widget.

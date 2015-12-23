@@ -54,7 +54,7 @@ private:
 
 
     CPUDisassembly* mDisas;
-    QList<Instruction_t>* InstrBuffer;
+    QList<Instruction_t>* mInstrBuffer;
     REGDUMP regDump;
 
 private:
