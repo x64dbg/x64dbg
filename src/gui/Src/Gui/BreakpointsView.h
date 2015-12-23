@@ -34,6 +34,8 @@ public slots:
     void removeSoftBPActionSlot();
     void removeAllSoftBPActionSlot();
     void enableDisableSoftBPActionSlot();
+    void enableAllSoftBPActionSlot();
+    void disableAllSoftBPActionSlot();
     void doubleClickSoftwareSlot();
 
     // Memory
@@ -59,6 +61,8 @@ private:
     QAction* mSoftBPRemoveAction;
     QAction* mSoftBPRemoveAllAction;
     QAction* mSoftBPEnableDisableAction;
+    QAction* mSoftBPEnableAllAction;
+    QAction* mSoftBPDisableAllAction;
 
     // Memory BP Context Menu
     QAction* mMemBPRemoveAction;

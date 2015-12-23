@@ -278,7 +278,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
 
 void CPUSideBar::mouseMoveEvent(QMouseEvent *event)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || !InstrBuffer->size())
     {
         QAbstractScrollArea::mouseMoveEvent(event);
         return;

@@ -279,6 +279,34 @@ void Breakpoints::toggleBPByDisabling(BPXTYPE type, duint va)
         BridgeFree(wBPList.bp);
 }
 
+void Breakpoints::toggleAllBP(BPXTYPE type, bool bEnable)
+{
+    BPMAP wBPList;
+
+    // Get breakpoints list
+    DbgGetBpList(type, &wBPList);
+
+    if(bEnable)
+    {
+        // Find breakpoint at address VA
+        for(int wI = 0; wI < wBPList.count; wI++)
+        {
+            enableBP(wBPList.bp[wI]);
+        }
+    }
+    else
+    {
+        // Find breakpoint at address VA
+        for(int wI = 0; wI < wBPList.count; wI++)
+        {
+            disableBP(wBPList.bp[wI]);
+        }
+    }
+
+    if(wBPList.count)
+        BridgeFree(wBPList.bp);
+}
+
 /**
  * @brief       returns if a breakpoint is disabled or not
  *
