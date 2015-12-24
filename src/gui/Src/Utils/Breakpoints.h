@@ -26,6 +26,7 @@ public:
     static void removeBP(BPXTYPE type, duint va);
     static void toggleBPByDisabling(const BRIDGEBP & bp);
     static void toggleBPByDisabling(BPXTYPE type, duint va);
+    static void toggleAllBP(BPXTYPE type, bool bEnable);
     static void toggleBPByRemoving(BPXTYPE type, duint va);
     static BPXSTATE BPState(BPXTYPE type, duint va);
 };

@@ -306,6 +306,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction("Label Current Address", SLOT(setLabelSlot()), "ActionSetLabel"));
     QAction* labelAddress = makeAction("Label", SLOT(setLabelAddressSlot()));
+
     labelMenu->addAction(labelAddress, [this, labelAddress](QMenu*)
     {
         BASIC_INSTRUCTION_INFO instr_info;
@@ -558,6 +559,7 @@ void CPUDisassembly::setLabelSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -587,6 +589,7 @@ void CPUDisassembly::setLabelAddressSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -616,6 +619,7 @@ void CPUDisassembly::setCommentSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -637,6 +641,7 @@ void CPUDisassembly::setBookmarkSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -690,6 +695,7 @@ void CPUDisassembly::toggleFunctionSlot()
         QString cmd = "functiondel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
+
 }
 
 void CPUDisassembly::assembleSlot()

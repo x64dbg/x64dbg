@@ -145,7 +145,7 @@ void HexDump::mouseMoveEvent(QMouseEvent* event)
 
                         mGuiState = HexDump::MultiRowsSelectionState;
 
-                        repaint();
+                        updateViewport();
                     }
                 }
             }
@@ -215,7 +215,7 @@ void HexDump::mousePressEvent(QMouseEvent* event)
 
                         mGuiState = HexDump::MultiRowsSelectionState;
 
-                        repaint();
+                        updateViewport();
                     }
                 }
 
@@ -238,7 +238,7 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
         {
             mGuiState = HexDump::NoState;
 
-            repaint();
+            updateViewport();
 
             wAccept = false;
         }

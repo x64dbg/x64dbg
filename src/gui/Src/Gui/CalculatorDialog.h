@@ -28,6 +28,7 @@ class CalculatorDialog : public QDialog
 public:
     explicit CalculatorDialog(QWidget* parent = 0);
     ~CalculatorDialog();
+    void validateExpression(QString expression);
     void setExpressionFocus();
     void showEvent(QShowEvent* event);
     void hideEvent(QHideEvent* event);

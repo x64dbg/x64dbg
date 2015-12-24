@@ -130,7 +130,7 @@ public slots:
 
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();
-    void repaint();
+    void updateViewport();
 
     // ScrollBar Management
     void vertSliderActionSlot(int action);

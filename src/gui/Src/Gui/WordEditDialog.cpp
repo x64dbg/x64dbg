@@ -14,9 +14,19 @@ WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Wo
     ui->unsignedLineEdit->setValidator(new QRegExpValidator(QRegExp("^\\d*(\\d+)?$"), this));// No signs, 0-9
 
     mValidateThread = new ValidateExpressionThread(this);
+    mValidateThread->setOnExpressionChangedCallback(std::bind(&WordEditDialog::validateExpression, this, std::placeholders::_1));
+
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->expressionLineEdit, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
+}
+
+void WordEditDialog::validateExpression(QString expression)
+{
+    duint value;
+    bool validExpression = DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
+    bool validPointer = validExpression && DbgMemIsValidReadPtr(value);
+    this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
 }
 
 WordEditDialog::~WordEditDialog()
