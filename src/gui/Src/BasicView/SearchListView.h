@@ -47,6 +47,8 @@ private:
     QWidget* mListPlaceHolder;
     QAction* mSearchAction;
     int mCursorPosition;
+    void addCharToSearchBox(char ch);
+    void deleteTextFromSearchBox(QKeyEvent *keyEvent);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event);
