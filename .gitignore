@@ -12,6 +12,7 @@ debug/
 doxygen*/
 doc/
 COV/
+minidump/
 
 # Global filetypes to ignore
 *.depend

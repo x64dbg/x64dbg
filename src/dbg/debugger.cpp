@@ -660,7 +660,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    GuiDumpAt(MemFindBaseAddr(GetContextData(UE_CIP), 0) + PAGE_SIZE); //dump somewhere
+    GuiDumpAt(MemFindBaseAddr(GetContextDataEx(CreateProcessInfo->hThread, UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     // Init program database
     DBSetPath(nullptr, szFileName);
@@ -929,7 +929,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     if((bBreakOnNextDll || settingboolget("Events", "DllEntry")) && !bAlreadySetEntry)
     {
-        duint oep = GetPE32Data(DLLDebugFileName, 0, UE_OEP);
+        duint oep = GetPE32DataW(StringUtils::Utf8ToUtf16(DLLDebugFileName).c_str(), 0, UE_OEP);
         if(oep)
         {
             char command[256] = "";
@@ -1463,7 +1463,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     static PROCESS_INFORMATION pi_attached;
     fdProcessInfo = &pi_attached;
     //do some init stuff
-    bFileIsDll = IsFileDLL(szFileName, 0);
+    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szFileName).c_str(), 0);
     GuiAddRecentFile(szFileName);
     ecount = 0;
     //NOTE: set custom handlers

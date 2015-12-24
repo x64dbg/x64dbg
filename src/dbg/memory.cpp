@@ -53,17 +53,16 @@ void MemUpdateMap()
                     if (!ModNameFromAddr(pageStart, curPage.info, true))
                     {
                         // Module lookup failed; check if it's a file mapping
+                        wchar_t szMappedName[sizeof(curPage.info)] = L"";
                         if ((mbi.Type == MEM_MAPPED) &&
-                                (GetMappedFileName(fdProcessInfo->hProcess, mbi.AllocationBase, curPage.info, MAX_MODULE_SIZE) != 0))
+                                (GetMappedFileNameW(fdProcessInfo->hProcess, mbi.AllocationBase, szMappedName, MAX_MODULE_SIZE) != 0))
                         {
-                            // Get the file name only
-                            char* fileStart = strrchr(curPage.info, '\\');
-                            size_t fileLen = strlen(fileStart);
-
-                            if (fileStart)
-                                memmove(curPage.info, fileStart + 1, fileLen);
-
-                            curPage.info[fileLen] = '\0';
+                            bool bFileNameOnly = false; //TODO: setting for this
+                            auto fileStart = wcsrchr(szMappedName, L'\\');
+                            if (bFileNameOnly && fileStart)
+                                strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(fileStart + 1).c_str());
+                            else
+                                strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(szMappedName).c_str());
                         }
                     }
 

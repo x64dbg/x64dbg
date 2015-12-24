@@ -357,7 +357,7 @@ void BpCacheLoad(JSON Root)
         memset(&breakpoint, 0, sizeof(BREAKPOINT));
 
         if(breakpoint.type == BPNORMAL)
-            breakpoint.oldbytes = (short)json_hex_value(json_object_get(value, "oldbytes"));
+            breakpoint.oldbytes = (unsigned short)(json_hex_value(json_object_get(value, "oldbytes")) & 0xFFFF);
         breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));

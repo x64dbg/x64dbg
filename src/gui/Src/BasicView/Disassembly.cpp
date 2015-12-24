@@ -495,7 +495,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
                     else
                         expandSelectionUpTo(wRowIndex);
 
-                    repaint();
+                    updateViewport();
 
                     wAccept = false;
                 }
@@ -575,7 +575,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
 
                     mGuiState = Disassembly::MultiRowsSelectionState;
 
-                    repaint();
+                    updateViewport();
 
                     wAccept = true;
                 }
@@ -606,7 +606,7 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
         {
             mGuiState = Disassembly::NoState;
 
-            repaint();
+            updateViewport();
 
             wAccept = false;
         }
@@ -654,7 +654,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
             setTableOffset(getInstructionRVA(getSelectionEnd(), -getNbrOfLineToPrint() + 2));
         }
 
-        repaint();
+        updateViewport();
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
@@ -1343,7 +1343,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
 
             if(wIsAligned == true)
             {
-                repaint();
+                updateViewport();
             }
             else
             {

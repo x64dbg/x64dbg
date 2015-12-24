@@ -319,6 +319,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/label.png"), "Label"), labelMenu);
 
+
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/comment.png"), "Comment", SLOT(setCommentSlot()), "ActionSetComment"));
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/bookmark.png"), "Bookmark", SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     QAction* toggleFunctionAction = makeShortcutAction(QIcon(":/icons/images/functions.png"), "Function", SLOT(toggleFunctionSlot()), "ActionToggleFunction");
@@ -558,6 +559,7 @@ void CPUDisassembly::setLabelSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -616,6 +618,7 @@ void CPUDisassembly::setCommentSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -637,6 +640,7 @@ void CPUDisassembly::setBookmarkSlot()
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
     }
+
     GuiUpdateAllViews();
 }
 
@@ -690,6 +694,7 @@ void CPUDisassembly::toggleFunctionSlot()
         QString cmd = "functiondel " + start_text;
         DbgCmdExec(cmd.toUtf8().constData());
     }
+
 }
 
 void CPUDisassembly::assembleSlot()

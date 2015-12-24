@@ -18,6 +18,7 @@ class WordEditDialog : public QDialog
 public:
     explicit WordEditDialog(QWidget* parent = 0);
     ~WordEditDialog();
+    void validateExpression(QString expression);
     void setup(QString title, duint defVal, int byteCount);
     duint getVal();
     void showEvent(QShowEvent* event);

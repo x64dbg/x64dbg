@@ -73,7 +73,7 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
 
     if (write)
     {
-        lRv = RegCreateKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
+        lRv = RegCreateKeyExW(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
         if (lRv != ERROR_SUCCESS)
             return false;
 
@@ -81,7 +81,7 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
     }
     else
     {
-        lRv = RegOpenKeyEx(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
+        lRv = RegOpenKeyExW(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
         if (lRv != ERROR_SUCCESS)
         {
             if (error != NULL)

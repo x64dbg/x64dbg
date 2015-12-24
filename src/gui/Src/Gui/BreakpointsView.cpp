@@ -188,6 +188,7 @@ void BreakpointsView::reloadData()
             mMemBPTable->setCellContent(wI, 4, "");
     }
     mMemBPTable->reloadData();
+
     if(wBPList.count)
         BridgeFree(wBPList.bp);
 }
@@ -333,6 +334,16 @@ void BreakpointsView::setupSoftBPRightClickContextMenu()
     mSoftBPEnableDisableAction->setShortcutContext(Qt::WidgetShortcut);
     mSoftBPTable->addAction(mSoftBPEnableDisableAction);
     connect(mSoftBPEnableDisableAction, SIGNAL(triggered()), this, SLOT(enableDisableSoftBPActionSlot()));
+
+    // Enable All
+    mSoftBPEnableAllAction = new QAction("Enable All", this);
+    mSoftBPTable->addAction(mSoftBPEnableAllAction);
+    connect(mSoftBPEnableAllAction, SIGNAL(triggered()), this, SLOT(enableAllSoftBPActionSlot()));
+
+    // Disable All
+    mSoftBPDisableAllAction = new QAction("Disable All", this);
+    mSoftBPTable->addAction(mSoftBPDisableAllAction);
+    connect(mSoftBPDisableAllAction, SIGNAL(triggered()), this, SLOT(disableAllSoftBPActionSlot()));
 }
 
 void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
@@ -377,6 +388,12 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
         // Separator
         wMenu->addSeparator();
 
+        // Enable All
+        wMenu->addAction(mSoftBPEnableAllAction);
+
+        // Disable All
+        wMenu->addAction(mSoftBPDisableAllAction);
+
         // Remove All
         wMenu->addAction(mSoftBPRemoveAllAction);
 
@@ -410,6 +427,16 @@ void BreakpointsView::enableDisableSoftBPActionSlot()
     StdTable* table = mSoftBPTable;
     Breakpoints::toggleBPByDisabling(bp_normal, table->getCellContent(table->getInitialSelection(), 0).toULongLong(0, 16));
     table->selectNext();
+}
+
+void BreakpointsView::enableAllSoftBPActionSlot()
+{
+    Breakpoints::toggleAllBP(bp_normal, true);
+}
+
+void BreakpointsView::disableAllSoftBPActionSlot()
+{
+    Breakpoints::toggleAllBP(bp_normal, false);
 }
 
 void BreakpointsView::doubleClickSoftwareSlot()

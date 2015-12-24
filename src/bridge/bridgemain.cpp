@@ -1250,12 +1250,12 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index)
     _gui_sendmessage(GUI_DUMP_AT_N, (void*)va, (void*)index);
 }
 
-BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text)
+BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text)
 {
     _gui_sendmessage(GUI_DISPLAY_WARNING, (void*)title, (void*)text);
 }
 
-BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS *ctrlFlow)
+BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS* ctrlFlow)
 {
     _gui_sendmessage(GUI_SET_CONTROLFLOWINFOS, (void*) ctrlFlow, nullptr);
 }
