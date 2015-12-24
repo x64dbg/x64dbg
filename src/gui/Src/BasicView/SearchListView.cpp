@@ -192,6 +192,9 @@ bool SearchListView::eventFilter(QObject *obj, QEvent *event)
     // Click in searchBox
     if(obj == mSearchBox && event->type() == QEvent::MouseButtonPress)
     {
+        // Give focus to current list to avoid having it elsewhere when you click on a different searchbox
+        mCurList->setFocus();
+
         QMouseEvent *mouseEvent = static_cast<QMouseEvent* >(event);
         QLineEdit *lineEdit = static_cast<QLineEdit* >(obj);
 
@@ -201,7 +204,7 @@ bool SearchListView::eventFilter(QObject *obj, QEvent *event)
         return QObject::eventFilter(obj, event);
     }
     // KeyPress in List
-    else if((obj == mList || obj == mSearchList) && event->type() == QEvent::KeyPress)
+    else if((obj == mList || obj == mSearchList || obj == mSearchBox) && event->type() == QEvent::KeyPress)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent* >(event);
         char ch = keyEvent->text().toUtf8().constData()[0];
