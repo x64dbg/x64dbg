@@ -151,7 +151,8 @@ SOURCES += \
     Src/Graph/QGraphScene.cpp \
     Src/Graph/QGraphView.cpp \
     Src/Graph/GraphEdge.cpp \
-    Src/Graph/GraphNode.cpp
+    Src/Graph/GraphNode.cpp \
+    Src/Gui/ControlFlowGraph.cpp
 
 
 HEADERS += \
@@ -242,7 +243,8 @@ HEADERS += \
     Src/Graph/Tree.h \
     Src/Gui/GraphView.h \
     Src/Graph/QGraphScene.h \
-    Src/Graph/QGraphView.h
+    Src/Graph/QGraphView.h \
+    Src/Gui/ControlFlowGraph.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -281,11 +283,11 @@ LIBS += -luser32
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge -lcapstone_wrapper
-    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
+    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf -lcoin
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge -lcapstone_wrapper
-    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
+    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf -lcoin
 }

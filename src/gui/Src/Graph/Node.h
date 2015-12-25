@@ -9,58 +9,59 @@ class Node
 {
 public:
     explicit Node(ogdf::Graph* G, ogdf::GraphAttributes* GA, ogdf::node ogdfNode, T data)
-    {
-        this->_G = G;
-        this->_GA = GA;
-        this->_ogdfNode = ogdfNode;
-        this->_data = data;
-        this->_left = nullptr;
-        this->_right = nullptr;
-    }
+        :
+        mG(G),
+        mGA(GA),
+        mData(data),
+        mOgdfNode(ogdfNode),
+        mLeft(nullptr),
+        mRight(nullptr)
+    {}
+
     Node<T>* setLeft(Node* left)
     {
-        return left ? this->_left = makeNodeWithEdge(left) : nullptr;
+        return left ? mLeft = makeNodeWithEdge(left) : nullptr;
     }
     Node<T>* setRight(Node* right)
     {
-        return right ? this->_right = makeNodeWithEdge(right) : nullptr;
+        return right ? mRight = makeNodeWithEdge(right) : nullptr;
     }
 
     Node<T>* setData(T data)
     {
-        this->_data = data;
+        mData = data;
         return this;
     }
 
-    Node<T>* left()
+    Node<T>* left() const
     {
-        return this->_left;
+        return mLeft;
     }
-    Node<T>* right()
+    Node<T>* right() const
     {
-        return this->_right;
+        return mRight;
     }
-    T data()
+    T data() const
     {
-        return this->_data;
+        return mData;
     }
-    ogdf::node ogdfNode()
+    ogdf::node ogdfNode() const
     {
-        return this->_ogdfNode;
+        return mOgdfNode;
     }
 
 private:
-    Node<T>* _left;
-    Node<T>* _right;
-    T _data;
-    ogdf::Graph* _G;
-    ogdf::GraphAttributes* _GA;
-    ogdf::node _ogdfNode;
+    T mData;
+    Node<T>* mLeft;
+    Node<T>* mRight;
+    ogdf::Graph* mG;
+    ogdf::GraphAttributes* mGA;
+    ogdf::node mOgdfNode;
 
     Node* makeNodeWithEdge(Node<T>* node)
     {
-        auto edge = this->_G->newEdge(this->_ogdfNode, node->_ogdfNode);
-        this->_GA->arrowType(edge) = ogdf::EdgeArrow::eaLast;
+        auto edge = mG->newEdge(mOgdfNode, node->mOgdfNode);
+        mGA->arrowType(edge) = ogdf::EdgeArrow::eaLast;
         return node;
     }
 };
