@@ -1,5 +1,7 @@
 # x64dbg
 
+[![Join the chat at https://gitter.im/x64dbg/x64dbg](https://badges.gitter.im/x64dbg/x64dbg.svg)](https://gitter.im/x64dbg/x64dbg?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Note
 Please run `install.bat` before you start committing code, this ensures your code is auto-formatted to the *x64dbg* [standards](https://github.com/x64dbg/x64dbg/wiki/Coding-Guidelines).
 
