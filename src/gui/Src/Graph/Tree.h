@@ -11,39 +11,36 @@
 #include <ogdf/basic/GraphAttributes.h>
 #include "Imports.h"
 
-using namespace std;
 
 template <typename T>
 class Tree
 {
 public:
-    explicit Tree(ogdf::Graph* G, ogdf::GraphAttributes* GA)
-    {
-        this->_G = G;
-        this->_GA = GA;
-    }
+    explicit Tree(ogdf::Graph* G, ogdf::GraphAttributes* GA) : mG(G), mGA(GA)
+    {}
+
     Node<T>* newNode(T data)
     {
-        ogdf::node ogdfNode = _G->newNode();
-        Node<T> *node = new Node<T>(_G, _GA, ogdfNode, data);
-        _ogdfDataMap[ogdfNode] = node;
-        _nodePool.push_back(unique_ptr<Node<T>>(node));
+        ogdf::node ogdfNode = mG->newNode();
+        auto node = new Node<T>(mG, mGA, ogdfNode, data);
+        mOgdfDataMap[ogdfNode] = node;
+        mNodePool.push_back(std::unique_ptr<Node<T>>(node));
         return node;
     }
     Node<T>* findNode(ogdf::node ogdfNode)
     {
-        auto found = _ogdfDataMap.find(ogdfNode);
-        return found != _ogdfDataMap.end() ? found->second : nullptr;
+        auto found = mOgdfDataMap.find(ogdfNode);
+        return found != mOgdfDataMap.end() ? found->second : nullptr;
     }
     Node<T>* findNodeByAddress(duint address)
     {
-        auto it = std::find_if(_ogdfDataMap.begin(), _ogdfDataMap.end(), [address](const pair<ogdf::node, Node<T>* > &itr)
+        auto it = std::find_if(mOgdfDataMap.begin(), mOgdfDataMap.end(), [address](const std::pair<ogdf::node, Node<T>* > &itr)
         {
-            return itr.second->data()->address() == address;
+            return itr.second && itr.second->data() && itr.second->data()->address() == address;
         });
 
         // If found
-        if(it != _ogdfDataMap.end())
+        if(it != mOgdfDataMap.end())
         {
             return it->second;
         }
@@ -55,23 +52,18 @@ public:
 
     void clear()
     {
-        for(duint i=0; i < _nodePool.size(); i++)
-            _nodePool[i].reset();
+        for(duint i=0; i < mNodePool.size(); i++)
+            mNodePool[i].reset();
 
-        _nodePool.clear();
-
-        map<ogdf::node, Node<T>*>::iterator it = _ogdfDataMap.begin();
-        for(it; it != _ogdfDataMap.end(); it++)
-            delete it->second;
-
-        _ogdfDataMap.clear();
+        mNodePool.clear();
+        mOgdfDataMap.clear();
     }
 
 private:
-    ogdf::Graph* _G;
-    ogdf::GraphAttributes* _GA;
-    vector<unique_ptr<Node<T>>> _nodePool;
-    map<ogdf::node, Node<T>*> _ogdfDataMap;
+    ogdf::Graph* mG;
+    ogdf::GraphAttributes* mGA;
+    std::vector<std::unique_ptr<Node<T>>> mNodePool;
+    std::map<ogdf::node, Node<T>*> mOgdfDataMap;
 };
 
 #endif //_TREE_H

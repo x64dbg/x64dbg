@@ -7,11 +7,11 @@ GraphNode::GraphNode() : QFrame()
 }
 
 GraphNode::GraphNode(std::vector<Instruction_t> &instructionsVector, duint address)
+    :
+    mAddress(address),
+    mInstructionsVector(instructionsVector),
+    mHighlightInstructionAt(-1)
 {
-    mAddress = address;
-    mInstructionsVector = instructionsVector;
-    mHighlightInstructionAt = -1;
-
     updateTokensVector();
 
     setAttribute(Qt::WA_TranslucentBackground);
