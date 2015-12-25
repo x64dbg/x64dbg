@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class SelectFields;
+    class SelectFields;
 }
 
 class SelectFields : public QDialog

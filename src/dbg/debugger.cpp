@@ -242,10 +242,10 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
 
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump)
 {
-    if (!forceDump && bFreezeStack)
+    if(!forceDump && bFreezeStack)
     {
         SELECTIONDATA selection;
-        if (GuiSelectionGet(GUI_STACK, &selection))
+        if(GuiSelectionGet(GUI_STACK, &selection))
             dumpAddr = selection.start;
     }
     GuiStackDumpAt(dumpAddr, csp);
@@ -523,9 +523,9 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     case BPNORMAL:
     {
         unsigned short oldbytes;
-        if (MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
+        if(MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
         {
-            if (oldbytes != bp->oldbytes)
+            if(oldbytes != bp->oldbytes)
             {
                 dprintf("Breakpoint " fhex " has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n",
                         bp->addr,
@@ -533,7 +533,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
                         ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
                 BpEnable(bp->addr, BPNORMAL, false);
             }
-            else if (!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+            else if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
                 dprintf("Could not set breakpoint " fhex "! (SetBPX)\n", bp->addr);
         }
         else
@@ -1158,12 +1158,12 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     DBSetPath(nullptr, szFileName);
     DBLoad(COMMAND_LINE_ONLY);
 
-    if (!isCmdLineEmpty())
+    if(!isCmdLineEmpty())
     {
         char* commandLineArguments = NULL;
         commandLineArguments = getCommandLineArgs();
 
-        if (commandLineArguments)
+        if(commandLineArguments)
             init->commandline = commandLineArguments;
     }
 

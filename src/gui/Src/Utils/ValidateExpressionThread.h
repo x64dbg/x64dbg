@@ -6,7 +6,7 @@
 #include <functional>
 #include "Imports.h"
 
-typedef std::function<void(QString expression) > EXPRESSIONCHANGEDCB;
+typedef std::function<void(QString expression)> EXPRESSIONCHANGEDCB;
 
 class ValidateExpressionThread : public QThread
 {

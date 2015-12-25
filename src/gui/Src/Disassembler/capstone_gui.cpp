@@ -382,7 +382,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const cs_x86_op & op)
 
 bool CapstoneTokenizer::tokenizeImmOperand(const cs_x86_op & op)
 {
-    duint value = duint (op.imm);
+    duint value = duint(op.imm);
     auto valueType = TokenType::Value;
     if(_cp.InGroup(CS_GRP_JUMP) || _cp.InGroup(CS_GRP_CALL) || _cp.IsLoop())
     {
@@ -440,7 +440,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
     //stuff inside the brackets
     if(mem.base == X86_REG_RIP)   //rip-relative (#replacement)
     {
-        duint addr = _cp.Address() + duint (mem.disp) + _cp.Size();
+        duint addr = _cp.Address() + duint(mem.disp) + _cp.Size();
         TokenValue value = TokenValue(op.size, addr);
         auto displacementType = DbgMemIsValidReadPtr(addr) ? TokenType::Address : TokenType::Value;
         addToken(displacementType, printValue(value, false, _maxModuleLength), value);
@@ -468,13 +468,13 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
         if(mem.disp)
         {
             char operatorText = '+';
-            TokenValue value(op.size, duint (mem.disp));
-            auto displacementType = DbgMemIsValidReadPtr(duint (mem.disp)) ? TokenType::Address : TokenType::Value;
+            TokenValue value(op.size, duint(mem.disp));
+            auto displacementType = DbgMemIsValidReadPtr(duint(mem.disp)) ? TokenType::Address : TokenType::Value;
             QString valueText;
             if(mem.disp < 0)
             {
                 operatorText = '-';
-                valueText = printValue(TokenValue(op.size, duint (mem.disp * -1)), false, _maxModuleLength);
+                valueText = printValue(TokenValue(op.size, duint(mem.disp * -1)), false, _maxModuleLength);
             }
             else
                 valueText = printValue(value, false, _maxModuleLength);

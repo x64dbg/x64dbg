@@ -9,7 +9,7 @@
 
 namespace Ui
 {
-class SearchListView;
+    class SearchListView;
 }
 
 class SearchListView : public QWidget
@@ -48,10 +48,10 @@ private:
     QAction* mSearchAction;
     int mCursorPosition;
     void addCharToSearchBox(char ch);
-    void deleteTextFromSearchBox(QKeyEvent *keyEvent);
+    void deleteTextFromSearchBox(QKeyEvent* keyEvent);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject* obj, QEvent* event);
 };
 
 #endif // SEARCHLISTVIEW_H

@@ -60,7 +60,7 @@ void* erealloc(void* ptr, size_t size, const char* reason)
     ASSERT_NONZERO(size);
 
     // Free the memory if the pointer was set (as per documentation).
-    if (ptr)
+    if(ptr)
         efree(ptr);
 
     return emalloc(size, reason);

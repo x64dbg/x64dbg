@@ -5,7 +5,7 @@
 
 namespace Ui
 {
-class LineEditDialog;
+    class LineEditDialog;
 }
 
 class LineEditDialog : public QDialog

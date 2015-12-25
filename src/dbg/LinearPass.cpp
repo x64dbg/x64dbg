@@ -33,7 +33,7 @@ bool LinearPass::Analyse()
     // Initialize thread vector
     auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = m_VirtualStart + (workAmount * i);
         duint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
@@ -95,7 +95,7 @@ void LinearPass::AnalyseOverlaps()
     // Initialize thread vectors
     auto threadInserts = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = (workAmount * i);
         duint threadWorkStop = min((threadWorkStart + workAmount), workTotal);
@@ -208,16 +208,16 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                 lastBlock->InstrCount = insnCount;
                 insnCount = 0;
 
-                if (!padding)
+                if(!padding)
                 {
                     // Check if absolute jump, regardless of operand
-                    if (disasm.GetId() == X86_INS_JMP)
+                    if(disasm.GetId() == X86_INS_JMP)
                         block->SetFlag(BASIC_BLOCK_FLAG_ABSJMP);
 
                     // Figure out the operand type(s)
-                    const auto& operand = disasm.x86().operands[0];
+                    const auto & operand = disasm.x86().operands[0];
 
-                    if (operand.type == X86_OP_IMM)
+                    if(operand.type == X86_OP_IMM)
                     {
                         // Branch target immediate
                         block->Target = (duint)operand.imm;
@@ -227,7 +227,7 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
                         // Indirects (no operand, register, or memory)
                         block->SetFlag(BASIC_BLOCK_FLAG_INDIRECT);
 
-                        if (operand.type == X86_OP_MEM &&
+                        if(operand.type == X86_OP_MEM &&
                                 operand.mem.base == X86_REG_RIP &&
                                 operand.mem.index == X86_REG_INVALID &&
                                 operand.mem.scale == 1)
@@ -288,13 +288,13 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
         {
             removal = FindBBlockInRange(curr->Target);
 
-            if (removal)
+            if(removal)
             {
-                if (curr->GetFlag(BASIC_BLOCK_FLAG_CALL))
+                if(curr->GetFlag(BASIC_BLOCK_FLAG_CALL))
                     removal->SetFlag(BASIC_BLOCK_FLAG_CALL_TARGET);
 
                 // If the target does not equal the block start...
-                if (curr->Target != removal->VirtualStart)
+                if(curr->Target != removal->VirtualStart)
                 {
                     // Mark for deletion
                     removal->SetFlag(BASIC_BLOCK_FLAG_DELETE);

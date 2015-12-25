@@ -8,7 +8,7 @@
 
 namespace Ui
 {
-class PatchDialog;
+    class PatchDialog;
 }
 
 class PatchDialog : public QDialog

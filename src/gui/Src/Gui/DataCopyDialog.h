@@ -7,7 +7,7 @@
 
 namespace Ui
 {
-class DataCopyDialog;
+    class DataCopyDialog;
 }
 
 class DataCopyDialog : public QDialog

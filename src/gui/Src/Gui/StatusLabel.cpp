@@ -49,13 +49,13 @@ void StatusLabel::debugStateChangedSlot(DBGSTATE state)
 
 void StatusLabel::logUpdate(QString message)
 {
-    if (labelText.contains('\n'))
+    if(labelText.contains('\n'))
         labelText = "";
 
     // Split each newline into a separate string
     QStringList lineList = message.split('\n', QString::SkipEmptyParts);
 
-    if (lineList.size() > 0)
+    if(lineList.size() > 0)
     {
         // Get a substring for the last line only
         labelText += lineList[lineList.size() - 1] + "\n";

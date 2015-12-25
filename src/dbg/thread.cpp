@@ -78,7 +78,7 @@ void ThreadGetList(THREADLIST* List)
     List->count = (int)threadList.size();
     List->list = nullptr;
 
-    if (List->count <= 0)
+    if(List->count <= 0)
         return;
 
     // Allocate C-style array

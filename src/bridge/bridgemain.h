@@ -145,7 +145,6 @@ typedef enum
     DBG_SCRIPT_SETIP,               // param1=int line,                  param2=unused
     DBG_SCRIPT_GETBRANCHINFO,       // param1=int line,                  param2=SCRIPTBRANCH* info
     DBG_SYMBOL_ENUM,                // param1=SYMBOLCBINFO* cbInfo,      param2=unused
-    DBG_SYMBOL_ENUM_FROMCACHE,      // param1=SYMBOLCBINFO* cbInfo,      param2=unused
     DBG_ASSEMBLE_AT,                // param1=duint addr,                param2=const char* instruction
     DBG_MODBASE_FROM_NAME,          // param1=const char* modname,       param2=unused
     DBG_DISASM_AT,                  // param1=duint addr,                 param2=DISASM_INSTR* instr
@@ -178,7 +177,8 @@ typedef enum
     DBG_WIN_EVENT_GLOBAL,           // param1=MSG* message,              param2=unused
     DBG_INITIALIZE_LOCKS,           // param1=unused,                    param2=unused
     DBG_DEINITIALIZE_LOCKS,         // param1=unused,                    param2=unused
-    DBG_GET_TIME_WASTED_COUNTER     // param1=unused,                    param2=unused
+    DBG_GET_TIME_WASTED_COUNTER,    // param1=unused,                    param2=unused
+    DBG_SYMBOL_ENUM_FROMCACHE,      // param1=SYMBOLCBINFO* cbInfo,      param2=unused
 } DBGMSG;
 
 typedef enum
@@ -888,7 +888,7 @@ BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
-BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text);
+BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
 
 #ifdef __cplusplus
 }

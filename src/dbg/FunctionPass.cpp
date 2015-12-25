@@ -75,7 +75,7 @@ bool FunctionPass::Analyse()
     // Initialize thread vector
     auto threadFunctions = new std::vector<FunctionDef>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint (0), IdealThreadCount(), [&](duint i)
+    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
         // Memory allocation optimization
         // TODO: Option to conserve memory
@@ -174,23 +174,23 @@ void FunctionPass::AnalysisWorker(duint Start, duint End, std::vector<FunctionDe
     BasicBlock* finalBlock = &m_MainBlocks.back();
 
     duint virtEnd = 0;
-    for (duint i = Start; i < End; i++, ++blockItr)
+    for(duint i = Start; i < End; i++, ++blockItr)
     {
-        if (blockItr->VirtualStart < virtEnd)
+        if(blockItr->VirtualStart < virtEnd)
             continue;
 
         // Skip padding
-        if (blockItr->GetFlag(BASIC_BLOCK_FLAG_PAD))
+        if(blockItr->GetFlag(BASIC_BLOCK_FLAG_PAD))
             continue;
 
         // Is the block untouched?
-        if (blockItr->GetFlag(BASIC_BLOCK_FLAG_FUNCTION))
+        if(blockItr->GetFlag(BASIC_BLOCK_FLAG_FUNCTION))
             continue;
 
         // Try to define a function
         FunctionDef def { blockItr->VirtualStart, 0, 0, 0, 0 };
 
-        if (ResolveFunctionEnd(&def, finalBlock))
+        if(ResolveFunctionEnd(&def, finalBlock))
         {
             Blocks->push_back(def);
             virtEnd = def.VirtualEnd;
@@ -268,7 +268,7 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
     Function->BBlockEnd = FindBBlockIndex(endBlock);
 
     // Set the flag for blocks that have been scanned
-    for (BasicBlock* block = startBlock; (duint)block <= (duint)endBlock; block++)
+    for(BasicBlock* block = startBlock; (duint)block <= (duint)endBlock; block++)
     {
         // Block now in use
         block->SetFlag(BASIC_BLOCK_FLAG_FUNCTION);
@@ -302,7 +302,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
     // Loop forever until the end is found
     for(; (duint)block <= (duint)LastBlock; block++)
     {
-        if (block->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET) && block->VirtualStart != Function->VirtualStart)
+        if(block->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET) && block->VirtualStart != Function->VirtualStart)
         {
             block--;
             break;
@@ -320,14 +320,14 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
         // Find maximum jump target
         if(!block->GetFlag(BASIC_BLOCK_FLAG_CALL) && !block->GetFlag(BASIC_BLOCK_FLAG_INDIRECT))
         {
-            if (block->Target != 0 && block->Target >= maximumAddr)
+            if(block->Target != 0 && block->Target >= maximumAddr)
             {
                 // Here's a problem: Compilers add tail-call elimination with a jump.
                 // Solve this by creating a maximum jump limit.
                 auto targetBlock = FindBBlockInRange(block->Target);
 
                 // If (target block found) and (target block is not called)
-                if (targetBlock && !targetBlock->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET))
+                if(targetBlock && !targetBlock->GetFlag(BASIC_BLOCK_FLAG_CALL_TARGET))
                 {
                     duint blockEnd = targetBlock->VirtualEnd;
 
@@ -344,19 +344,19 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
                     // Where INT3 will align "some_func" to 4, 8, 12, or 16.
                     // INT3 padding is also optional (if the jump fits perfectly).
                     //
-                    if (true/*block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP)*/)
+                    if(true/*block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP)*/)
                     {
 
                         {
                             // Check if padding is aligned to 4
                             auto nextBlock = block + 1;
 
-                            if ((duint)nextBlock <= (duint)LastBlock)
+                            if((duint)nextBlock <= (duint)LastBlock)
                             {
-                                if (nextBlock->GetFlag(BASIC_BLOCK_FLAG_PAD))
+                                if(nextBlock->GetFlag(BASIC_BLOCK_FLAG_PAD))
                                 {
                                     // If this block is aligned to 4 bytes at the end
-                                    if ((nextBlock->VirtualEnd + 1) % 4 == 0)
+                                    if((nextBlock->VirtualEnd + 1) % 4 == 0)
                                         blockEnd = block->VirtualEnd;
                                 }
                             }
@@ -392,7 +392,7 @@ bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlo
                 if(block->GetFlag(BASIC_BLOCK_FLAG_ABSJMP))
                 {
                     // 2.
-                    if (block->VirtualEnd == maximumAddr)
+                    if(block->VirtualEnd == maximumAddr)
                         break;
 
                     // 3.
@@ -422,7 +422,7 @@ void FunctionPass::EnumerateFunctionRuntimeEntries64(std::function<bool (PRUNTIM
     size_t totalCount = (m_FunctionInfoSize / sizeof(RUNTIME_FUNCTION));
 
     // Enumerate each entry
-    for (size_t i = 0; i < totalCount; i++)
+    for(size_t i = 0; i < totalCount; i++)
     {
         if(!Callback(&functionTable[i]))
             break;

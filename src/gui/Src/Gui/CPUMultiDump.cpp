@@ -41,7 +41,7 @@ void CPUMultiDump::getTabNames(QList<QString> & names)
 {
     bool addedDetachedWindows = false;
     names.clear();
-    for(int i=0; i<count(); i++)
+    for(int i = 0; i < count(); i++)
     {
         // If empty name, then widget is detached
         if(this->tabBar()->tabText(i).length() == 0)
@@ -52,7 +52,7 @@ void CPUMultiDump::getTabNames(QList<QString> & names)
 
             QString windowName;
             // Loop through all detached widgets
-            for(int n=0; n < this->windows().size(); n++)
+            for(int n = 0; n < this->windows().size(); n++)
             {
                 // Get the name and add it to the list
                 windowName = ((MHDetachedWindow*)this->windows().at(n)->parent())->windowTitle();

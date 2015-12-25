@@ -12,7 +12,7 @@
 void dputs(const char* Text)
 {
     // Only append the newline if the caller didn't
-    if (Text[strlen(Text) - 1] != '\n')
+    if(Text[strlen(Text) - 1] != '\n')
         dprintf("%s\n", Text);
     else
         dprintf("%s", Text);

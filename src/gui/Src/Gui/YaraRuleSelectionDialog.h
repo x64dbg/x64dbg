@@ -5,7 +5,7 @@
 
 namespace Ui
 {
-class YaraRuleSelectionDialog;
+    class YaraRuleSelectionDialog;
 }
 
 class YaraRuleSelectionDialog : public QDialog

@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class HexEditDialog;
+    class HexEditDialog;
 }
 
 class HexEditDialog : public QDialog

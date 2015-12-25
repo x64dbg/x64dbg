@@ -11,7 +11,7 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
     connect(m_tabBar, SIGNAL(OnDetachTab(int, QPoint &)), this, SLOT(DetachTab(int, QPoint &)));
     connect(m_tabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     connect(m_tabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
-    connect(m_tabBar, SIGNAL(tabMoved(int,int)), this, SLOT(tabMoved(int, int)));
+    connect(m_tabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
 
     setTabBar(m_tabBar);
     setMovable(true);
@@ -47,7 +47,7 @@ int MHTabWidget::count() const
     return QTabWidget::count() + m_Windows.size();
 }
 
-QList<QWidget *> MHTabWidget::windows()
+QList<QWidget*> MHTabWidget::windows()
 {
     return m_Windows;
 }

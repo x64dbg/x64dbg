@@ -178,9 +178,9 @@ void CPUDump::setupContextMenu()
 #endif //_WIN64
 
     int maxDumps = mMultiDump->getMaxCPUTabs();
-    for(int i=0; i<maxDumps; i++)
+    for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(QString("Dump %1").arg(i+1), this);
+        QAction* action = new QAction(QString("Dump %1").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(followInDumpNSlot()));
         mFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
@@ -626,7 +626,7 @@ void CPUDump::contextMenuEvent(QContextMenuEvent* event)
 
     QList<QString> tabNames;
     mMultiDump->getTabNames(tabNames);
-    for(int i=0; i<tabNames.length(); i++)
+    for(int i = 0; i < tabNames.length(); i++)
         mFollowInDumpActions[i]->setText(tabNames[i]);
 
     if((DbgGetBpxTypeAt(selectedAddr) & bp_hardware) == bp_hardware) //hardware breakpoint set
@@ -697,7 +697,7 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUDump::mouseMoveEvent(QMouseEvent *event)
+void CPUDump::mouseMoveEvent(QMouseEvent* event)
 {
     dsint ptr = 0, ptrValue = 0;
 
@@ -1676,7 +1676,7 @@ void CPUDump::copyRvaSlot()
 
 void CPUDump::followInDumpNSlot()
 {
-    for(int i=0; i<mFollowInDumpActions.length(); i++)
+    for(int i = 0; i < mFollowInDumpActions.length(); i++)
     {
         if(mFollowInDumpActions[i] == sender())
         {

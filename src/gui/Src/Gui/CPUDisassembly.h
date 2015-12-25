@@ -115,7 +115,7 @@ private:
     GotoDialog* mGoto;
 
     // Parent CPU window
-    CPUWidget *mParentCPUWindow;
+    CPUWidget* mParentCPUWindow;
 
     MenuBuilder* mMenuBuilder;
 

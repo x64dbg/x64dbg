@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class SymbolView;
+    class SymbolView;
 }
 
 class SymbolView : public QWidget

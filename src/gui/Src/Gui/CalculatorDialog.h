@@ -7,7 +7,7 @@
 
 namespace Ui
 {
-class CalculatorDialog;
+    class CalculatorDialog;
 }
 
 class CalculatorDialog : public QDialog

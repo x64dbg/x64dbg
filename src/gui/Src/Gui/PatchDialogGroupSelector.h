@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class PatchDialogGroupSelector;
+    class PatchDialogGroupSelector;
 }
 
 class PatchDialogGroupSelector : public QDialog

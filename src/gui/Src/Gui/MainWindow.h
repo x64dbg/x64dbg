@@ -28,7 +28,7 @@
 
 namespace Ui
 {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -192,7 +192,7 @@ private:
 
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;
-    QVector<QWidget* > mWidgetList;
+    QVector<QWidget*> mWidgetList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

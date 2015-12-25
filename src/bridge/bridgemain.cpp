@@ -249,7 +249,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
         return false;
     }
 
-    if (!_dbg_memread(va, dest, size, 0))
+    if(!_dbg_memread(va, dest, size, 0))
     {
         // Zero the buffer on failure
         memset(dest, 0, size);
@@ -1251,7 +1251,7 @@ BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index)
 }
 
 
-BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text)
+BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text)
 {
     _gui_sendmessage(GUI_DISPLAY_WARNING, (void*) title, (void*) text);
 }

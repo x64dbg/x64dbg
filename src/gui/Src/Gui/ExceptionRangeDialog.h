@@ -5,7 +5,7 @@
 
 namespace Ui
 {
-class ExceptionRangeDialog;
+    class ExceptionRangeDialog;
 }
 
 class ExceptionRangeDialog : public QDialog

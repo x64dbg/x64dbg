@@ -281,7 +281,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     }
 }
 
-void CPUSideBar::mouseMoveEvent(QMouseEvent *event)
+void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
 {
     if(!DbgIsDebugging() || !mInstrBuffer->size())
     {
@@ -486,8 +486,8 @@ void CPUSideBar::drawLabel(QPainter* painter, int Line, QString Text)
     const int LineCoordinate = fontHeight * (1 + Line);
     int length = Text.length();
 
-    const QColor& IPLabel = mCipLabelColor;
-    const QColor& IPLabelBG = mCipLabelBackgroundColor;
+    const QColor & IPLabel = mCipLabelColor;
+    const QColor & IPLabelBG = mCipLabelBackgroundColor;
 
     int width = length * fontWidth + 2;
     int x = 1;

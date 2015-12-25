@@ -75,11 +75,11 @@ void cmdfree()
 */
 bool cmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
 {
-    if (!cmd_list || !cbCommand || !name || !*name || cmdfind(name, 0))
+    if(!cmd_list || !cbCommand || !name || !*name || cmdfind(name, 0))
         return false;
     COMMAND* cmd;
     bool nonext = false;
-    if (!cmd_list->name)
+    if(!cmd_list->name)
     {
         cmd = cmd_list;
         nonext = true;
@@ -156,7 +156,7 @@ bool cmddel(const char* name)
     if(!found)
         return false;
     efree(found->name, "cmddel:found->name");
-    if (found == cmd_list)
+    if(found == cmd_list)
     {
         COMMAND* next = cmd_list->next;
         if(next)

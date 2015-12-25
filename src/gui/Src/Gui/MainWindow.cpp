@@ -249,7 +249,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(decompileAt(dsint, dsint)), this, SLOT(decompileAt(dsint, dsint)));
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-    connect(mTabWidget, SIGNAL(tabMovedTabWidget(int,int)), this, SLOT(tabMovedSlot(int, int)));
+    connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
 
@@ -319,7 +319,7 @@ void MainWindow::loadTabDefaultOrder()
     clearTabWidget();
 
     // Setup tabs
-    for(int i=0; i < mWidgetList.size(); i++)
+    for(int i = 0; i < mWidgetList.size(); i++)
         addQWidgetTab(mWidgetList[i]);
 }
 
@@ -327,10 +327,10 @@ void MainWindow::loadTabSavedOrder()
 {
     clearTabWidget();
 
-    QMap<duint, QWidget* > tabIndexToWidget;
+    QMap<duint, QWidget*> tabIndexToWidget;
 
     // Get tabIndex for each widget and add them to tabIndexToWidget
-    for(int i=0; i < mWidgetList.size(); i++)
+    for(int i = 0; i < mWidgetList.size(); i++)
     {
         QString tabName = mWidgetList[i]->windowTitle();
         tabName = tabName.replace(" ", "") + "Tab";
@@ -339,7 +339,7 @@ void MainWindow::loadTabSavedOrder()
     }
 
     // Setup tabs
-    QMap<duint, QWidget* >::iterator it = tabIndexToWidget.begin();
+    QMap<duint, QWidget*>::iterator it = tabIndexToWidget.begin();
     for(it; it != tabIndexToWidget.end(); it++)
     {
         addQWidgetTab(it.value());
@@ -351,7 +351,7 @@ void MainWindow::clearTabWidget()
     if(!mTabWidget->count())
         return;
 
-    for(int i=mTabWidget->count()-1; i >= 0; i--)
+    for(int i = mTabWidget->count() - 1; i >= 0; i--)
     {
         mTabWidget->removeTab(i);
     }
@@ -527,7 +527,7 @@ QString MainWindow::getMRUEntry(int index)
 
 void MainWindow::executeCommand()
 {
-    QString& wCmd = mCmdLineEdit->text();
+    QString & wCmd = mCmdLineEdit->text();
 
     DbgCmdExec(wCmd.toUtf8().constData());
 
@@ -764,7 +764,7 @@ void MainWindow::displaySnowmanWidget()
 
 void MainWindow::openSettings()
 {
-    SettingsDialog *settings = new SettingsDialog(this);
+    SettingsDialog* settings = new SettingsDialog(this);
     connect(settings, SIGNAL(chkSaveLoadTabOrderStateChanged(bool)), this, SLOT(chkSaveloadTabSavedOrderStateChangedSlot(bool)));
     settings->lastException = lastException;
     settings->exec();
@@ -1215,7 +1215,7 @@ void MainWindow::executeOnGuiThread(void* cbGuiThread)
 
 void MainWindow::tabMovedSlot(int from, int to)
 {
-    for(int i=0; i < mTabWidget->count(); i++)
+    for(int i = 0; i < mTabWidget->count(); i++)
     {
         // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)
         QString tabName = mTabWidget->tabText(i).replace(" ", "") + "Tab";

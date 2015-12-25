@@ -36,9 +36,9 @@ typedef struct
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
-typedef duint (*MODBASEFROMADDR)(duint addr);
-typedef duint (*MODBASEFROMNAME)(const char* modname);
-typedef duint (*MODSIZEFROMADDR)(duint addr);
+typedef duint(*MODBASEFROMADDR)(duint addr);
+typedef duint(*MODBASEFROMNAME)(const char* modname);
+typedef duint(*MODSIZEFROMADDR)(duint addr);
 typedef bool (*ASSEMBLE)(duint addr, unsigned char* dest, int* size, const char* instruction, char* error);
 typedef bool (*PATCHGET)(duint addr);
 typedef bool (*PATCHINRANGE)(duint start, duint end);
@@ -63,9 +63,9 @@ typedef bool (*PAGERIGHTSTOSTRING)(DWORD protect, char* rights);
 typedef bool (*ISPROCESSELEVATED)();
 typedef bool (*GETCMDLINE)(char* cmdline, size_t* cbsize);
 typedef bool (*SETCMDLINE)(const char* cmdline);
-typedef duint (*FILEOFFSETTOVA)(const char* modname, duint offset);
-typedef duint (*VATOFILEOFFSET)(duint va);
-typedef duint (*GETADDRFROMLINE)(const char* szSourceFile, int line);
+typedef duint(*FILEOFFSETTOVA)(const char* modname, duint offset);
+typedef duint(*VATOFILEOFFSET)(duint va);
+typedef duint(*GETADDRFROMLINE)(const char* szSourceFile, int line);
 typedef bool (*GETSOURCEFROMADDR)(duint addr, char* szSourceFile, int* line);
 typedef bool (*VALFROMSTRING)(const char* string, duint* value);
 

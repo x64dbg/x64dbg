@@ -50,16 +50,16 @@ void MemUpdateMap()
                     memset(&curPage, 0, sizeof(MEMPAGE));
                     memcpy(&curPage.mbi, &mbi, sizeof(mbi));
 
-                    if (!ModNameFromAddr(pageStart, curPage.info, true))
+                    if(!ModNameFromAddr(pageStart, curPage.info, true))
                     {
                         // Module lookup failed; check if it's a file mapping
                         wchar_t szMappedName[sizeof(curPage.info)] = L"";
-                        if ((mbi.Type == MEM_MAPPED) &&
+                        if((mbi.Type == MEM_MAPPED) &&
                                 (GetMappedFileNameW(fdProcessInfo->hProcess, mbi.AllocationBase, szMappedName, MAX_MODULE_SIZE) != 0))
                         {
                             bool bFileNameOnly = false; //TODO: setting for this
                             auto fileStart = wcsrchr(szMappedName, L'\\');
-                            if (bFileNameOnly && fileStart)
+                            if(bFileNameOnly && fileStart)
                                 strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(fileStart + 1).c_str());
                             else
                                 strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(szMappedName).c_str());
@@ -160,26 +160,26 @@ void MemUpdateMap()
     THREADLIST threadList;
     ThreadGetList(&threadList);
 
-    for (auto & page : pageVector)
+    for(auto & page : pageVector)
     {
         const duint pageBase = (duint)page.mbi.BaseAddress;
         const duint pageSize = (duint)page.mbi.RegionSize;
 
         // Check for windows specific data
-        if (pageBase == 0x7FFE0000)
+        if(pageBase == 0x7FFE0000)
         {
             strcpy_s(page.info, "KUSER_SHARED_DATA");
             continue;
         }
 
         // Check in threads
-        for (int i = 0; i < threadList.count; i++)
+        for(int i = 0; i < threadList.count; i++)
         {
             duint tebBase = threadList.list[i].BasicInfo.ThreadLocalBase;
             DWORD threadId = threadList.list[i].BasicInfo.ThreadId;
 
             // Mark TEB
-            if (pageBase == tebBase)
+            if(pageBase == tebBase)
             {
                 sprintf_s(page.info, "Thread %X TEB", threadId);
                 break;
@@ -187,19 +187,19 @@ void MemUpdateMap()
 
             // Read the TEB to get stack information
             TEB teb;
-            if (!ThreadGetTeb(tebBase, &teb))
+            if(!ThreadGetTeb(tebBase, &teb))
                 continue;
 
             // The stack will be a specific range only, not always the base address
             duint stackAddr = (duint)teb.Tib.StackLimit;
 
-            if (stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
+            if(stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
                 sprintf_s(page.info, "Thread %X Stack", threadId);
         }
     }
 
     // Only free thread data if it was allocated
-    if (threadList.list)
+    if(threadList.list)
         BridgeFree(threadList.list);
 
     // Convert the vector to a map
@@ -360,9 +360,9 @@ bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
     }
 
     // Are we able to write on this page?
-    if (MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten))
+    if(MemWrite(BaseAddress, Buffer, Size, NumberOfBytesWritten))
     {
-        for (duint i = 0; i < Size; i++)
+        for(duint i = 0; i < Size; i++)
             PatchSet(BaseAddress + i, oldData()[i], ((const unsigned char*)Buffer)[i]);
 
         // Done
