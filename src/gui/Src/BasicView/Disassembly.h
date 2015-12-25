@@ -166,6 +166,7 @@ protected:
 
     QColor mBytesColor;
     QColor mModifiedBytesColor;
+    QColor mRestoredBytesColor;
 
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;

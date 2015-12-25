@@ -420,6 +420,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selection", "DisassemblySelectionColor", "");
     colorInfoListAppend("Bytes", "DisassemblyBytesColor", "");
     colorInfoListAppend("Modified Bytes", "DisassemblyModifiedBytesColor", "");
+    colorInfoListAppend("Restored Bytes", "DisassemblyRestoredBytesColor", "");
 #ifdef _WIN64
     colorInfoListAppend("RIP", "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
 #else //x86
