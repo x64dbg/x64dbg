@@ -150,6 +150,9 @@ void PatchDialog::updatePatches()
             if(!isPartOfPreviousGroup(curPatchList, j))
                 group++;
             curPatchList[j].status.group = group;
+            unsigned char byte;
+            if(DbgMemRead(curPatchList[j].patch.addr, &byte, sizeof(byte)))
+                curPatchList[j].status.checked = byte == curPatchList[j].patch.newbyte;
         }
         ui->listModules->addItem(i.key());
     }
@@ -379,12 +382,8 @@ void PatchDialog::on_btnRestoreSelected_clicked()
     mIsWorking = false;
     updatePatches();
     if(removed != total)
-    {
         ui->listModules->setCurrentRow(selModIdx);
-        on_btnDeselectAll_clicked(); //deselect everything
-    }
-    else
-        GuiUpdateAllViews();
+    GuiUpdateAllViews();
 }
 
 void PatchDialog::on_listPatches_itemSelectionChanged()
