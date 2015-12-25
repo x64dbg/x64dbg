@@ -161,7 +161,13 @@ INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned cha
                     BOOL bPermanentDep;
 
                     // DEP is disabled if lpFlagsDep == 0
-                    if (GetProcessDEPPolicy(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
+                    typedef BOOL (WINAPI *GETPROCESSDEPPOLICY)(
+                        _In_  HANDLE  hProcess,
+                        _Out_ LPDWORD lpFlags,
+                        _Out_ PBOOL   lpPermanent
+                    );
+                    static GETPROCESSDEPPOLICY GPDP = (GETPROCESSDEPPOLICY)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy");
+                    if (GPDP && GPDP(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
                         return EX_MEMORY;
 #else
                     // DEP enabled on x64
