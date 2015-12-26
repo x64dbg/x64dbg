@@ -13,6 +13,7 @@
 #include "GraphEdge.h"
 #include "QBeaEngine.h"
 #include "capstone_gui.h"
+#include "QGraphView.h"
 #include <ogdf/fileformats/GraphIO.h>
 #include <ogdf/layered/SugiyamaLayout.h>
 #include <ogdf/layered/OptimalRanking.h>
@@ -100,7 +101,7 @@ private:
     std::unique_ptr<Tree<GraphNode*>> mTree;
     QVBoxLayout *mVLayout;
     QGraphicsScene *mScene;
-    QGraphicsView *mGraphicsView;
+    QGraphView *mGraphicsView;
 
 };
 
