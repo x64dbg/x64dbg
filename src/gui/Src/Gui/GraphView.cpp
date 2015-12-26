@@ -9,13 +9,16 @@ void deleteControlFlowGraph(ControlFlowGraph* ctrlFlowGraph)
 
 GraphView::GraphView(QWidget *parent) :
     QWidget(parent),
-    bProgramInitialized(false),
     mVLayout(new QVBoxLayout()),
     mControlFlowGraph(new ControlFlowGraph, deleteControlFlowGraph)
 {
-    mVLayout->addWidget(mControlFlowGraph.get());
+    mButton = new QPushButton("Run the cfanalyze command or click this button to start analysis", this);
+
+//    mVLayout->addWidget(mControlFlowGraph.get());
+    mVLayout->addWidget(mButton);
     setLayout(mVLayout);
 
+    connect(mButton, SIGNAL(clicked()), this, SLOT(startControlFlowAnalysis()));
     connect(Bridge::getBridge(), SIGNAL(setControlFlowInfos(duint*)), this, SLOT(setControlFlowInfosSlot(duint*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 }
@@ -37,7 +40,6 @@ void GraphView::setControlFlowInfosSlot(duint *controlFlowInfos)
             mVLayout->addWidget(mControlFlowGraph.get());
         }
 
-
         auto controlFlowStruct = reinterpret_cast<CONTROLFLOWINFOS*>(controlFlowInfos);
         auto basicBlockInfo = reinterpret_cast<BASICBLOCKMAP*>(controlFlowStruct->blocks);
         mControlFlowGraph->setBasicBlocks(basicBlockInfo);
@@ -45,16 +47,19 @@ void GraphView::setControlFlowInfosSlot(duint *controlFlowInfos)
     }
 }
 
+void GraphView::startControlFlowAnalysis()
+{
+    if(!DbgIsDebugging())
+    {
+        QMessageBox::information(this, "Not debugging", "This only works on a debugged process !");
+        return;
+    }
+    mButton->hide();
+    mControlFlowGraph->startControlFlowAnalysis();
+}
+
 void GraphView::drawGraphAtSlot(duint va)
 {
-
-    // TODO : Fix this, start analysis from debugger rather than from GUI
-    if(!bProgramInitialized)
-    {
-        mControlFlowGraph->startControlFlowAnalysis();
-        bProgramInitialized = true;
-    }
-
     mControlFlowGraph->drawGraphAtSlot(va);
 }
 
@@ -65,13 +70,12 @@ void GraphView::dbgStateChangedSlot(DBGSTATE state)
         if(mControlFlowGraph.get() == nullptr)
             mControlFlowGraph = std::make_unique<ControlFlowGraph>();
 
-        mVLayout->addWidget(mControlFlowGraph.get());
+        mButton->show();
     }
     else if(state == stopped)
     {
-        mVLayout->removeWidget(mControlFlowGraph.get());
+        mButton->show();
         mControlFlowGraph.reset();
-        bProgramInitialized = false;
     }
 }
 

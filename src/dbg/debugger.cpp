@@ -828,14 +828,6 @@ static void cbSystemBreakpoint(void* ExceptionData)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
 
-
-    //duint size = 0;
-    //duint base = MemFindBaseAddr((duint) pCreateProcessBase, &size);
-    //dprintf("Base 1 : %X - Base 2 : %X\n", baseAddr, (duint) pCreateProcessBase);
-
-    ////ControlFlowAnalysis anal(baseAddr, size, false);
-    ////anal.Analyse();
-
     //log message
     if(bIsAttached)
         dputs("Attach breakpoint reached!");
