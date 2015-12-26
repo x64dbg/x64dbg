@@ -11,8 +11,8 @@ GraphEdge::GraphEdge(QPointF start, QPointF end, ogdf::DPolyline bends, QRectF s
         _edgeColor = Qt::green;
 
     QList<QPointF> linePoints = calculateLine(start, end, bends, sourceRect, targetRect);
-//    for(auto p : linePoints)
-//        qDebug() << p;
+    //    for(auto p : linePoints)
+    //        qDebug() << p;
     QList<QPointF> arrowPoints = calculateArrow(linePoints);
     _boundingRect = calculateBoundingRect(linePoints, arrowPoints);
     preparePainterPaths(linePoints, arrowPoints);
@@ -71,7 +71,7 @@ QPointF GraphEdge::calculateNearestIntersect(QRectF rect, QPointF p1, QPointF p2
     //a = dy/dx = (p1.y-p2.y)/(p1.x-p2.x)
     //b = p1.y - p1.x;
 
-    qreal div = p1.x()-p2.x();
+    qreal div = p1.x() - p2.x();
 
     if(div == 0)
     {
@@ -90,7 +90,7 @@ QPointF GraphEdge::calculateNearestIntersect(QRectF rect, QPointF p1, QPointF p2
         QPointF result;
         qreal bestDist = 10e99;
 
-        qreal a = (p1.y()-p2.y()) / div;
+        qreal a = (p1.y() - p2.y()) / div;
         qreal b = p1.y() - a * p1.x();
         //qDebug() << "a" << a << "b" << b;
 
@@ -169,10 +169,10 @@ QList<QPointF> GraphEdge::calculateLine(QPointF start, QPointF end, ogdf::DPolyl
     linePoints << end;
 
     QPointF nearestI = calculateNearestIntersect(sourceRect, linePoints[0], linePoints[1]);
-    linePoints[0]=nearestI;
+    linePoints[0] = nearestI;
     int len = linePoints.length();
-    nearestI = calculateNearestIntersect(targetRect, linePoints[len-1], linePoints[len-2]);
-    linePoints[len-1]=nearestI;
+    nearestI = calculateNearestIntersect(targetRect, linePoints[len - 1], linePoints[len - 2]);
+    linePoints[len - 1] = nearestI;
 
     return linePoints;
 }
@@ -180,18 +180,18 @@ QList<QPointF> GraphEdge::calculateLine(QPointF start, QPointF end, ogdf::DPolyl
 QList<QPointF> GraphEdge::calculateArrow(const QList<QPointF> & linePoints)
 {
     //arrow
-    int len=linePoints.length();
-    QLineF perpLine = QLineF(linePoints[len-1], linePoints[len-2]).normalVector();
+    int len = linePoints.length();
+    QLineF perpLine = QLineF(linePoints[len - 1], linePoints[len - 2]).normalVector();
 
     qreal arrowLen = 6;
 
     QLineF a;
-    a.setP1(linePoints[len-1]);
+    a.setP1(linePoints[len - 1]);
     a.setAngle(perpLine.angle() - 45);
     a.setLength(arrowLen);
 
     QLineF b;
-    b.setP1(linePoints[len-1]);
+    b.setP1(linePoints[len - 1]);
     b.setAngle(perpLine.angle() - 135);
     b.setLength(arrowLen);
 

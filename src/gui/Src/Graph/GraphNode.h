@@ -18,16 +18,16 @@ class GraphNode : public QFrame
 
 public:
     GraphNode();
-    GraphNode(std::vector<Instruction_t> &instructionsVector, duint address = 0);
+    GraphNode(std::vector<Instruction_t> & instructionsVector, duint address = 0);
     GraphNode(const GraphNode & other);
     GraphNode & operator=(const GraphNode & other);
     QRectF boundingRect() const;
     void paintEvent(QPaintEvent* event);
-    dsint getInstructionIndexAtPos(const QPoint &pos) const;
-    bool eventFilter(QObject *object, QEvent *event);
-//    void mousePressEvent(QMouseEvent* event);
+    dsint getInstructionIndexAtPos(const QPoint & pos) const;
+    bool eventFilter(QObject* object, QEvent* event);
+    //    void mousePressEvent(QMouseEvent* event);
     void updateTokensVector();
-    void setInstructionsVector(const std::vector<Instruction_t> &instructionsVector);
+    void setInstructionsVector(const std::vector<Instruction_t> & instructionsVector);
     void updateCache();
     void updateRichText();
     QString getLongestInstruction();
@@ -48,7 +48,7 @@ private:
     QFont mFont = QFont("Lucida Console", 8, QFont::Normal, false);
     std::vector<Instruction_t> mInstructionsVector;
     std::vector<CapstoneTokenizer::InstructionToken> mTokensVector;
-    std::vector<QList<RichTextPainter::CustomRichText_t> > mRichTextVector;
+    std::vector<QList<RichTextPainter::CustomRichText_t>> mRichTextVector;
 };
 
 #endif //_GRAPH_NODE_H

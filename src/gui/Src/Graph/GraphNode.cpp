@@ -6,7 +6,7 @@ GraphNode::GraphNode() : QFrame()
 {
 }
 
-GraphNode::GraphNode(std::vector<Instruction_t> &instructionsVector, duint address)
+GraphNode::GraphNode(std::vector<Instruction_t> & instructionsVector, duint address)
     :
     mAddress(address),
     mInstructionsVector(instructionsVector),
@@ -15,7 +15,7 @@ GraphNode::GraphNode(std::vector<Instruction_t> &instructionsVector, duint addre
     updateTokensVector();
 
     setAttribute(Qt::WA_TranslucentBackground);
-    setContentsMargins(0,0,0,0);
+    setContentsMargins(0, 0, 0, 0);
     setMouseTracking(true); // required for mouse move event
     installEventFilter(this);
 }
@@ -47,19 +47,19 @@ void GraphNode::paintEvent(QPaintEvent* event)
 
     // Draw node borders
     painter.setPen(QPen(Qt::black, 1));
-    painter.drawLine(0, mLineHeight, 0, mCachedHeight-1);
-    painter.drawLine(mCachedWidth-1, mLineHeight, mCachedWidth-1, mCachedHeight-1);
-    painter.drawLine(0, mCachedHeight-1, mCachedWidth-1, mCachedHeight-1);
+    painter.drawLine(0, mLineHeight, 0, mCachedHeight - 1);
+    painter.drawLine(mCachedWidth - 1, mLineHeight, mCachedWidth - 1, mCachedHeight - 1);
+    painter.drawLine(0, mCachedHeight - 1, mCachedWidth - 1, mCachedHeight - 1);
 
-//    QStyleOption opt;
-//    opt.init(this);
-//    style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
+    //    QStyleOption opt;
+    //    opt.init(this);
+    //    style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
 
     //draw node contents
     painter.setFont(this->mFont);
     int i = 0;
 
-    int x = mSpacingX/2, y = mLineHeight + mSpacingY/2;
+    int x = mSpacingX / 2, y = mLineHeight + mSpacingY / 2;
 
     // Block address
     painter.fillRect(0, 0, mCachedWidth, mLineHeight, Qt::cyan);
@@ -67,7 +67,7 @@ void GraphNode::paintEvent(QPaintEvent* event)
     painter.drawText(0, 0, mCachedWidth, mLineHeight, Qt::AlignHCenter | Qt::AlignVCenter, "0x" + QString::number(mAddress, 16).toUpper());
 
     // Block instructions
-    for(QList<RichTextPainter::CustomRichText_t> &richText : mRichTextVector)
+    for(QList<RichTextPainter::CustomRichText_t> & richText : mRichTextVector)
     {
         RichTextPainter::paintRichText(&painter, x, y, mCachedWidth, mLineHeight, 0, &richText, QFontMetrics(this->mFont).width(QChar(' ')));
 
@@ -80,14 +80,14 @@ void GraphNode::paintEvent(QPaintEvent* event)
 
 }
 
-dsint GraphNode::getInstructionIndexAtPos(const QPoint &pos) const
+dsint GraphNode::getInstructionIndexAtPos(const QPoint & pos) const
 {
     // Gets the instruction index at the cursor position
     duint instructionIndex = -1;
     for(duint i = 0; i < mInstructionsVector.size(); i++)
     {
-        dsint currentInstructionMinHeight = (i+1) * (mLineHeight + mLineSpacingY) + (mSpacingY/2);
-        dsint currentInstructionMaxHeight = (i+2) * (mLineHeight+mLineSpacingY) + (mSpacingY/2);
+        dsint currentInstructionMinHeight = (i + 1) * (mLineHeight + mLineSpacingY) + (mSpacingY / 2);
+        dsint currentInstructionMaxHeight = (i + 2) * (mLineHeight + mLineSpacingY) + (mSpacingY / 2);
 
         if(pos.y() >= currentInstructionMinHeight && pos.y() <= currentInstructionMaxHeight)
         {
@@ -99,12 +99,12 @@ dsint GraphNode::getInstructionIndexAtPos(const QPoint &pos) const
     return instructionIndex;
 }
 
-bool GraphNode::eventFilter(QObject *object, QEvent *event)
+bool GraphNode::eventFilter(QObject* object, QEvent* event)
 {
     // Mouse click
     if(event->type() == QEvent::MouseButtonPress)
     {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
         if(mouseEvent->button() != Qt::LeftButton)
             return true;
 
@@ -124,7 +124,7 @@ bool GraphNode::eventFilter(QObject *object, QEvent *event)
     // Mouse move
     else if(event->type() == QEvent::MouseMove)
     {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
         mHighlightInstructionAt = getInstructionIndexAtPos(mouseEvent->pos());
         repaint();
         return true;
@@ -143,7 +143,7 @@ bool GraphNode::eventFilter(QObject *object, QEvent *event)
 
 void GraphNode::updateTokensVector()
 {
-    for(duint i=0; i < mInstructionsVector.size(); i++)
+    for(duint i = 0; i < mInstructionsVector.size(); i++)
     {
         mTokensVector.push_back(mInstructionsVector[i].tokens);
     }
@@ -152,7 +152,7 @@ void GraphNode::updateTokensVector()
     updateRichText();
 }
 
-void GraphNode::setInstructionsVector(const std::vector<Instruction_t> &instructionsVector)
+void GraphNode::setInstructionsVector(const std::vector<Instruction_t> & instructionsVector)
 {
     mInstructionsVector = instructionsVector;
 }
@@ -163,13 +163,13 @@ void GraphNode::updateCache()
 
     QFontMetrics metrics(this->mFont);
     mCachedWidth = metrics.width(maxInstruction) + mSpacingX;
-    mCachedHeight =((metrics.height() + mLineSpacingY) * mInstructionsVector.size()) + metrics.height() + mSpacingY; // +metrics.height() => for block address line
+    mCachedHeight = ((metrics.height() + mLineSpacingY) * mInstructionsVector.size()) + metrics.height() + mSpacingY; // +metrics.height() => for block address line
     mLineHeight = metrics.height();
 }
 
 void GraphNode::updateRichText()
 {
-    for(CapstoneTokenizer::InstructionToken &token : mTokensVector)
+    for(CapstoneTokenizer::InstructionToken & token : mTokensVector)
     {
         QList<RichTextPainter::CustomRichText_t> richText;
         CapstoneTokenizer::TokenToRichText(token, richText, 0);
@@ -182,11 +182,11 @@ QString GraphNode::getLongestInstruction()
     dsint maxInstructionLength = 0;
     QString maxInstruction = "";
 
-    for(CapstoneTokenizer::InstructionToken &token : mTokensVector)
+    for(CapstoneTokenizer::InstructionToken & token : mTokensVector)
     {
         dsint currentInstructionLength = 0;
         QString currentInstruction = "";
-        for(CapstoneTokenizer::SingleToken &singleToken : token.tokens)
+        for(CapstoneTokenizer::SingleToken & singleToken : token.tokens)
         {
             currentInstructionLength += singleToken.text.length();
             currentInstruction += singleToken.text;

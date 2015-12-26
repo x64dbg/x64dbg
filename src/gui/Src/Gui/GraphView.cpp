@@ -7,7 +7,7 @@ void deleteControlFlowGraph(ControlFlowGraph* ctrlFlowGraph)
 }
 
 
-GraphView::GraphView(QWidget *parent) :
+GraphView::GraphView(QWidget* parent) :
     QWidget(parent),
     bProgramInitialized(false),
     mVLayout(new QVBoxLayout()),

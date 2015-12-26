@@ -54,16 +54,16 @@ struct BasicBlock
 };
 
 typedef std::map<duint, BasicBlock> BASICBLOCKMAP;
-typedef std::map<duint, std::set<duint> > PARENTMAP;
-typedef std::map<duint, Node<GraphNode *> * > NODEMAP;
+typedef std::map<duint, std::set<duint>> PARENTMAP;
+typedef std::map<duint, Node<GraphNode*> *> NODEMAP;
 typedef std::vector<std::unique_ptr<GraphNode>> GRAPHNODEVECTOR;
-typedef std::map<ogdf::node, std::vector<std::unique_ptr<GraphEdge>> > GRAPHEDGEMAP;
+typedef std::map<ogdf::node, std::vector<std::unique_ptr<GraphEdge>>> GRAPHEDGEMAP;
 
 class ControlFlowGraph : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ControlFlowGraph(QWidget *parent = 0);
+    explicit ControlFlowGraph(QWidget* parent = 0);
     void startControlFlowAnalysis();
     void setUnconditionalBranchEdgeColor();
     ~ControlFlowGraph();
@@ -78,19 +78,19 @@ private:
     void addEdgesToScene();
 
 
-    void addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *> *parentNode);
-    bool findBasicBlock(duint& va);
-    void readBasicBlockInstructions(BASICBLOCKMAP::iterator it, std::vector<Instruction_t>& instructionsVector);
+    void addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode*>* parentNode);
+    bool findBasicBlock(duint & va);
+    void readBasicBlockInstructions(BASICBLOCKMAP::iterator it, std::vector<Instruction_t> & instructionsVector);
 
 public slots:
     void drawGraphAtSlot(duint va);
-    void setControlFlowInfosSlot(duint *controlFlowInfos);
+    void setControlFlowInfosSlot(duint* controlFlowInfos);
 
 private:
     bool bProgramInitialized;
-    QBeaEngine *mDisas;
-    PARENTMAP *mParentsInfo;
-    BASICBLOCKMAP *mBasicBlockInfo;
+    QBeaEngine* mDisas;
+    PARENTMAP* mParentsInfo;
+    BASICBLOCKMAP* mBasicBlockInfo;
     std::unique_ptr<GRAPHNODEVECTOR, std::function<void(GRAPHNODEVECTOR*)>> mGraphNodeVector;
     GRAPHEDGEMAP mNodeGraphEdge;
     ogdf::Graph mG;
@@ -98,9 +98,9 @@ private:
     std::unique_ptr<ogdf::SugiyamaLayout> mSL;
     std::unique_ptr<ogdf::OptimalHierarchyLayout> mOHL;
     std::unique_ptr<Tree<GraphNode*>> mTree;
-    QVBoxLayout *mVLayout;
-    QGraphicsScene *mScene;
-    QGraphicsView *mGraphicsView;
+    QVBoxLayout* mVLayout;
+    QGraphicsScene* mScene;
+    QGraphicsView* mGraphicsView;
 
 };
 

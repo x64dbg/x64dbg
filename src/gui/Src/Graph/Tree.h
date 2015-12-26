@@ -34,7 +34,7 @@ public:
     }
     Node<T>* findNodeByAddress(duint address)
     {
-        auto it = std::find_if(mOgdfDataMap.begin(), mOgdfDataMap.end(), [address](const std::pair<ogdf::node, Node<T>* > &itr)
+        auto it = std::find_if(mOgdfDataMap.begin(), mOgdfDataMap.end(), [address](const std::pair<ogdf::node, Node<T>*> & itr)
         {
             return itr.second && itr.second->data() && itr.second->data()->address() == address;
         });
@@ -52,7 +52,7 @@ public:
 
     void clear()
     {
-        for(duint i=0; i < mNodePool.size(); i++)
+        for(duint i = 0; i < mNodePool.size(); i++)
             mNodePool[i].reset();
 
         mNodePool.clear();

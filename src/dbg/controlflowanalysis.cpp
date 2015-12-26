@@ -83,10 +83,10 @@ void ControlFlowAnalysis::Analyse()
     dprintf("Analysis finished!\n");
 
     // TODO : Fix this
-    PARENTMAP *_parentsTemp = new PARENTMAP(_parentMap);
-    BASICBLOCKMAP *_blocksTemp = new BASICBLOCKMAP(_blocks);
+    PARENTMAP* _parentsTemp = new PARENTMAP(_parentMap);
+    BASICBLOCKMAP* _blocksTemp = new BASICBLOCKMAP(_blocks);
 
-    CONTROLFLOWINFOS *ctrlFlow = new CONTROLFLOWINFOS;
+    CONTROLFLOWINFOS* ctrlFlow = new CONTROLFLOWINFOS;
     ctrlFlow->blocks = (duint*) _blocksTemp;
     ctrlFlow->parents = (duint*) _parentsTemp;
 

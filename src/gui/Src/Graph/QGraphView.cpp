@@ -19,14 +19,14 @@ void QGraphView::wheelEvent(QWheelEvent* event)
     int numDegrees = event->delta() / 8;
     int numSteps = numDegrees / 15; // see QWheelEvent documentation
     _numScheduledScalings += numSteps;
-    if (_numScheduledScalings * numSteps < 0) // if user moved the wheel in another direction, we reset previously scheduled scalings
+    if(_numScheduledScalings * numSteps < 0)  // if user moved the wheel in another direction, we reset previously scheduled scalings
         _numScheduledScalings = numSteps;
 
-    QTimeLine *anim = new QTimeLine(350, this);
+    QTimeLine* anim = new QTimeLine(350, this);
     anim->setUpdateInterval(20);
 
-    connect(anim, SIGNAL (valueChanged(qreal)), SLOT (scalingTime(qreal)));
-    connect(anim, SIGNAL (finished()), SLOT (animFinished()));
+    connect(anim, SIGNAL(valueChanged(qreal)), SLOT(scalingTime(qreal)));
+    connect(anim, SIGNAL(finished()), SLOT(animFinished()));
 
     // Center the view on the mouse cursor before zooming, more convenient zoom
     QPointF mappedMousePos = this->mapToScene(event->pos().x(), event->pos().y());
@@ -46,7 +46,7 @@ void QGraphView::scalingTime(qreal x)
 
 void QGraphView::animFinished()
 {
-    if (_numScheduledScalings > 0)
+    if(_numScheduledScalings > 0)
         _numScheduledScalings--;
     else
         _numScheduledScalings++;

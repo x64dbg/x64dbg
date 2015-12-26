@@ -3,11 +3,11 @@
 
 void deleteGraphNodeVector(GRAPHNODEVECTOR* graphNodeVector)
 {
-    for(auto& ptr : *graphNodeVector)
+    for(auto & ptr : *graphNodeVector)
         ptr->deleteLater();
 }
 
-ControlFlowGraph::ControlFlowGraph(QWidget *parent) : QWidget(parent),
+ControlFlowGraph::ControlFlowGraph(QWidget* parent) : QWidget(parent),
     mParentsInfo(nullptr),
     mBasicBlockInfo(nullptr),
     mDisas(new QBeaEngine(-1)),
@@ -26,7 +26,7 @@ ControlFlowGraph::ControlFlowGraph(QWidget *parent) : QWidget(parent),
 
 
     connect(Bridge::getBridge(), SIGNAL(setControlFlowInfos(duint*)), this, SLOT(setControlFlowInfosSlot(duint*)));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint,dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
 
 }
 
@@ -38,7 +38,7 @@ void ControlFlowGraph::startControlFlowAnalysis()
 
 void ControlFlowGraph::setUnconditionalBranchEdgeColor()
 {
-    for(auto const &nodeGraphEdge : mNodeGraphEdge)
+    for(auto const & nodeGraphEdge : mNodeGraphEdge)
     {
         if(nodeGraphEdge.second.size() == 1)
             nodeGraphEdge.second.at(0)->setEdgeColor(Qt::blue);
@@ -121,10 +121,10 @@ void ControlFlowGraph::setupTree(duint va)
 
     // Add root node first
     duint addr = it->first;
-    mGraphNodeVector->push_back( make_unique<GraphNode>(instructionsVector, addr) );
+    mGraphNodeVector->push_back(make_unique<GraphNode>(instructionsVector, addr));
     connect(mGraphNodeVector->back().get(), SIGNAL(drawGraphAt(duint)), this, SLOT(drawGraphAtSlot(duint)), Qt::QueuedConnection);
 
-    Node<GraphNode *> *rootNode = mTree->newNode(mGraphNodeVector->back().get());
+    Node<GraphNode*>* rootNode = mTree->newNode(mGraphNodeVector->back().get());
     addAllNodes(it, rootNode);
 }
 
@@ -163,8 +163,8 @@ void ControlFlowGraph::adjustNodesSize()
     ogdf::node v;
     forall_nodes(v, mG)
     {
-        Node<GraphNode* > *node = mTree->findNode(v);
-        if (node)
+        Node<GraphNode*>* node = mTree->findNode(v);
+        if(node)
         {
             QRectF rect = node->data()->boundingRect();
             mGA->width(v) = rect.width();
@@ -204,13 +204,13 @@ void ControlFlowGraph::addNodesToScene()
     ogdf::node v;
     forall_nodes(v, mG)
     {
-        Node<GraphNode* > *node = mTree->findNode(v);
-        if (node)
+        Node<GraphNode*>* node = mTree->findNode(v);
+        if(node)
         {
             //draw node using x,y
             QRectF rect = node->data()->boundingRect();
-            qreal x = mGA->x(v) - (rect.width()/2);
-            qreal y = mGA->y(v) - (rect.height()/2);
+            qreal x = mGA->x(v) - (rect.width() / 2);
+            qreal y = mGA->y(v) - (rect.height() / 2);
             node->data()->setGeometry(x, y, rect.width(), rect.height());
             mScene->addWidget(node->data());
         }
@@ -251,7 +251,7 @@ void ControlFlowGraph::addEdgesToScene()
     }
 }
 
-void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *> *parentNode)
+void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode*>* parentNode)
 {
     using namespace std;
 
@@ -263,7 +263,7 @@ void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *>
     if(!left && !right)
         return;
 
-    for(int i=0; i < 2; i++)
+    for(int i = 0; i < 2; i++)
     {
         // If not left or right child continue..
         if((i == 0 && !left) || (i == 1 && !right))
@@ -301,7 +301,7 @@ void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *>
                 std::vector<Instruction_t> instructionsVector;
                 readBasicBlockInstructions(itChild, instructionsVector);
 
-                mGraphNodeVector->push_back( make_unique<GraphNode>(instructionsVector, childNodeAddr) );
+                mGraphNodeVector->push_back(make_unique<GraphNode>(instructionsVector, childNodeAddr));
 
                 node = mTree->newNode(mGraphNodeVector->back().get());
 
@@ -332,7 +332,7 @@ void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *>
 
 }
 
-void ControlFlowGraph::setControlFlowInfosSlot(duint *controlFlowInfos)
+void ControlFlowGraph::setControlFlowInfosSlot(duint* controlFlowInfos)
 {
     if(controlFlowInfos)
     {
@@ -342,7 +342,7 @@ void ControlFlowGraph::setControlFlowInfosSlot(duint *controlFlowInfos)
     }
 }
 
-bool ControlFlowGraph::findBasicBlock(duint& va)
+bool ControlFlowGraph::findBasicBlock(duint & va)
 {
     if(mBasicBlockInfo == nullptr)
         return false;
@@ -372,7 +372,7 @@ bool ControlFlowGraph::findBasicBlock(duint& va)
     return bFound;
 }
 
-void ControlFlowGraph::readBasicBlockInstructions(BASICBLOCKMAP::iterator it, std::vector<Instruction_t> &instructionsVector)
+void ControlFlowGraph::readBasicBlockInstructions(BASICBLOCKMAP::iterator it, std::vector<Instruction_t> & instructionsVector)
 {
     duint addr = it->first;
     duint startAddr = it->second.start;
@@ -387,7 +387,7 @@ void ControlFlowGraph::readBasicBlockInstructions(BASICBLOCKMAP::iterator it, st
             return;
 
         // Add instruction to the vector
-        Instruction_t wInstruction = mDisas->DisassembleAt(reinterpret_cast<byte_t*>(byteArray.data()), byteArray.length(), 0, baseAddr, startAddr-baseAddr);
+        Instruction_t wInstruction = mDisas->DisassembleAt(reinterpret_cast<byte_t*>(byteArray.data()), byteArray.length(), 0, baseAddr, startAddr - baseAddr);
 
         instructionsVector.push_back(wInstruction);
         startAddr += wInstruction.length;

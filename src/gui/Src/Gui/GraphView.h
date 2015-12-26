@@ -10,7 +10,7 @@ class GraphView : public QWidget
     Q_OBJECT
 
 public:
-    explicit GraphView(QWidget *parent = 0);
+    explicit GraphView(QWidget* parent = 0);
     ~GraphView();
 
 public slots:
@@ -18,9 +18,9 @@ public slots:
     void drawGraphAtSlot(duint va);
 
 private:
-    QVBoxLayout *mVLayout;
+    QVBoxLayout* mVLayout;
     bool bProgramInitialized;
-    std::unique_ptr<ControlFlowGraph, std::function<void(ControlFlowGraph *ctrlFlowGraph)>> mControlFlowGraph;
+    std::unique_ptr<ControlFlowGraph, std::function<void(ControlFlowGraph* ctrlFlowGraph)>> mControlFlowGraph;
 };
 
 #endif // GRAPHVIEW_H

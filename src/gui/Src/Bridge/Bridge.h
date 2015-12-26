@@ -116,7 +116,7 @@ signals:
     void getDebuggeeNotes(void* text);
     void dumpAtN(duint va, int index);
     void displayWarning(QString title, QString text);
-    void setControlFlowInfos(duint *controlFlowInfos);
+    void setControlFlowInfos(duint* controlFlowInfos);
 
 private:
     QMutex* mBridgeMutex;
