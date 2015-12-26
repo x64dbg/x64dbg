@@ -818,7 +818,6 @@ typedef struct
 typedef struct
 {
     duint *blocks;
-    duint *parents;
 } CONTROLFLOWINFOS;
 
 //GUI functions

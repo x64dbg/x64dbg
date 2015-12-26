@@ -8,7 +8,6 @@ void deleteGraphNodeVector(GRAPHNODEVECTOR* graphNodeVector)
 }
 
 ControlFlowGraph::ControlFlowGraph(QWidget *parent) : QWidget(parent),
-    mParentsInfo(nullptr),
     mBasicBlockInfo(nullptr),
     mDisas(new QBeaEngine(-1)),
     mScene(new QGraphicsScene()),
@@ -57,7 +56,6 @@ ControlFlowGraph::~ControlFlowGraph()
     mSL.reset();
     mGA.reset();
     delete mBasicBlockInfo;
-    delete mParentsInfo;
     delete mDisas;
 }
 
@@ -331,15 +329,7 @@ void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode *>
 
 }
 
-void ControlFlowGraph::setControlFlowInfosSlot(duint *controlFlowInfos)
-{
-    if(controlFlowInfos)
-    {
-        mParentsInfo = (PARENTMAP*)(((CONTROLFLOWINFOS*)controlFlowInfos)->parents);
-        mBasicBlockInfo = (BASICBLOCKMAP*)(((CONTROLFLOWINFOS*)controlFlowInfos)->blocks);
-        setupGraph();
-    }
-}
+
 
 bool ControlFlowGraph::findBasicBlock(duint& va)
 {
@@ -402,6 +392,11 @@ void ControlFlowGraph::drawGraphAtSlot(duint va)
 
     setupTree(va);
     addGraphToScene();
+}
+
+void ControlFlowGraph::setBasicBlocks(BASICBLOCKMAP *basicBlockInfo)
+{
+    mBasicBlockInfo = basicBlockInfo;
 }
 
 

@@ -21,6 +21,7 @@
 #include "error.h"
 #include "module.h"
 #include "commandline.h"
+#include "controlflowanalysis.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -729,6 +730,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     }
     GuiUpdateBreakpointsView();
 
+
+
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
     callbackInfo.CreateProcessInfo = CreateProcessInfo;
@@ -824,6 +827,14 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
+
+
+    //duint size = 0;
+    //duint base = MemFindBaseAddr((duint) pCreateProcessBase, &size);
+    //dprintf("Base 1 : %X - Base 2 : %X\n", baseAddr, (duint) pCreateProcessBase);
+
+    ////ControlFlowAnalysis anal(baseAddr, size, false);
+    ////anal.Analyse();
 
     //log message
     if(bIsAttached)
