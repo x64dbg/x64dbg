@@ -223,7 +223,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     QAction* replaceSlot2Action  = makeMenuAction(replaceSlotMenu, "Replace Slot 2 (Free)", SLOT(setHwBpOnSlot2ActionSlot()));
     QAction* replaceSlot3Action  = makeMenuAction(replaceSlotMenu, "Replace Slot 3 (Free)", SLOT(setHwBpOnSlot3ActionSlot()));
 
-    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), "Breakpoint"), [=](QMenu* menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/breakpoint.png"), "Breakpoint"), [ = ](QMenu * menu)
     {
         BPXTYPE bpType = DbgGetBpxTypeAt(rvaToVa(getInitialSelection()));
 
@@ -281,7 +281,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu("&Follow in Dump"), [this](QMenu* menu)
+    mMenuBuilder->addMenu(makeMenu("&Follow in Dump"), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false);
         return true;
@@ -404,7 +404,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
     mReferenceSelectedAddressAction->setFont(QFont("Courier New", 8));
 
-    mMenuBuilder->addMenu(makeMenu("Find &references to"), [this](QMenu* menu)
+    mMenuBuilder->addMenu(makeMenu("Find &references to"), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, true);
         return true;
@@ -415,7 +415,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
 
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu* menu)
+    mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
         menu->addActions(mPluginMenu->actions());
         return true;
@@ -1179,8 +1179,8 @@ void CPUDisassembly::findCommandSlot()
 
     LineEditDialog mLineEdit(this);
     mLineEdit.enableCheckBox(false);
-//    mLineEdit.setCheckBoxText("Entire &Block");
-//    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    //    mLineEdit.setCheckBoxText("Entire &Block");
+    //    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -1251,7 +1251,7 @@ void CPUDisassembly::paintEvent(QPaintEvent* event)
     // Ensures the two widgets are synced and prevents "draw lag"
     auto sidebar = mParentCPUWindow->getSidebarWidget();
 
-    if (sidebar)
+    if(sidebar)
         sidebar->repaint();
 
     // Signal to render the original content

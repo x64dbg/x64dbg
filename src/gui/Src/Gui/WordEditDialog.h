@@ -8,7 +8,7 @@
 
 namespace Ui
 {
-class WordEditDialog;
+    class WordEditDialog;
 }
 
 class WordEditDialog : public QDialog

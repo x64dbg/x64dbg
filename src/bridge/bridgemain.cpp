@@ -249,7 +249,7 @@ BRIDGE_IMPEXP bool DbgMemRead(duint va, unsigned char* dest, duint size)
         return false;
     }
 
-    if (!_dbg_memread(va, dest, size, 0))
+    if(!_dbg_memread(va, dest, size, 0))
     {
         // Zero the buffer on failure
         memset(dest, 0, size);

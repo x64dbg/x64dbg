@@ -4,15 +4,15 @@
 
 namespace ValueType
 {
-enum ValueType
-{
-    Unknown,
-    SignedDecimal,
-    UnsignedDecimal,
-    Hex,
-    Pointer,
-    String
-};
+    enum ValueType
+    {
+        Unknown,
+        SignedDecimal,
+        UnsignedDecimal,
+        Hex,
+        Pointer,
+        String
+    };
 }
 
 static String printValue(FormatValueType value, ValueType::ValueType type)

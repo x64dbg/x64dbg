@@ -1027,10 +1027,10 @@ CMDRESULT cbDebugDump(int argc, char* argv[])
         dprintf("Invalid address \"%s\"!\n", argv[1]);
         return STATUS_ERROR;
     }
-    if (argc > 2)
+    if(argc > 2)
     {
         duint index = 0;
-        if (!valfromstring(argv[2], &index))
+        if(!valfromstring(argv[2], &index))
         {
             dprintf("Invalid address \"%s\"!\n", argv[2]);
             return STATUS_ERROR;
@@ -2105,7 +2105,7 @@ CMDRESULT cbDebugSkip(int argc, char* argv[])
 
 CMDRESULT cbDebugSetfreezestack(int argc, char* argv[])
 {
-    if (argc < 2)
+    if(argc < 2)
     {
         dputs("Not enough arguments!");
         return STATUS_ERROR;

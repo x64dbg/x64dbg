@@ -16,12 +16,12 @@ char* getCommandLineArgs()
     char* commandLineArguments = NULL;
     char* extensionPtr = strchr(commandLine, '.');
 
-    if (!extensionPtr)
+    if(!extensionPtr)
         return NULL;
 
     commandLineArguments = strchr(extensionPtr, ' ');
 
-    if (!commandLineArguments)
+    if(!commandLineArguments)
         return NULL;
 
     return (commandLineArguments + 1);
@@ -33,7 +33,7 @@ void CmdLineCacheSave(JSON Root)
     EXCLUSIVE_ACQUIRE(LockCmdLine);
 
     // return if command line is empty
-    if (!strlen(commandLine))
+    if(!strlen(commandLine))
         return;
 
     // Create a JSON array to store each sub-object with a breakpoint
@@ -56,10 +56,10 @@ void CmdLineCacheLoad(JSON Root)
     const JSON jsonCmdLine = json_object_get(Root, "commandLine");
 
     // Return if there was nothing to load
-    if (!jsonCmdLine)
+    if(!jsonCmdLine)
         return;
 
-    const char *cmdLine = json_string_value(json_object_get(jsonCmdLine, "cmdLine"));
+    const char* cmdLine = json_string_value(json_object_get(jsonCmdLine, "cmdLine"));
 
     strcpy_s(commandLine, cmdLine);
 
@@ -75,7 +75,7 @@ CMDRESULT SetCommandLine()
 {
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
-    if (!dbgsetcmdline(commandLine, &cmdline_error))
+    if(!dbgsetcmdline(commandLine, &cmdline_error))
     {
         showcommandlineerror(&cmdline_error);
         return STATUS_ERROR;

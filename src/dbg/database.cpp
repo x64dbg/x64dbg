@@ -39,12 +39,12 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
     JSON root = json_object();
 
     // Save only command line
-    if (saveType == COMMAND_LINE_ONLY || saveType == ALL)
+    if(saveType == COMMAND_LINE_ONLY || saveType == ALL)
     {
         CmdLineCacheSave(root);
     }
 
-    if (saveType == ALL_BUT_COMMAND_LINE || saveType == ALL)
+    if(saveType == ALL_BUT_COMMAND_LINE || saveType == ALL)
     {
         CommentCacheSave(root);
         LabelCacheSave(root);
@@ -56,7 +56,7 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
         //save notes
         char* text = nullptr;
         GuiGetDebuggeeNotes(&text);
-        if (text)
+        if(text)
         {
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
@@ -65,10 +65,10 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
     }
 
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
-    if (json_object_size(root))
+    if(json_object_size(root))
     {
         Handle hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-        if (!hFile)
+        if(!hFile)
         {
             dputs("\nFailed to open database for writing!");
             json_decref(root); //free root
@@ -77,7 +77,7 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
         SetEndOfFile(hFile);
         char* jsonText = json_dumps(root, JSON_INDENT(4));
         DWORD written = 0;
-        if (!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
+        if(!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
         {
             json_free(jsonText);
             dputs("\nFailed to write database file!");
@@ -86,7 +86,7 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
         }
         hFile.Close();
         json_free(jsonText);
-        if (!settingboolget("Engine", "DisableDatabaseCompression"))
+        if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
     else //remove database when nothing is in there
@@ -98,7 +98,7 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
 void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 {
     // If the file doesn't exist, there is no DB to load
-    if (!FileExists(dbpath))
+    if(!FileExists(dbpath))
         return;
 
     dprintf("Loading database...");
@@ -114,7 +114,7 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
         lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
         // Check return code
-        if (useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
+        if(useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
         {
             dputs("\nInvalid database file!");
             return;
@@ -123,14 +123,14 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 
     // Read the database file
     Handle hFile = CreateFileW(databasePathW.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if (!hFile)
+    if(!hFile)
     {
         dputs("\nFailed to open database file!");
         return;
     }
 
     unsigned int jsonFileSize = GetFileSize(hFile, 0);
-    if (!jsonFileSize)
+    if(!jsonFileSize)
     {
         dputs("\nEmpty database file!");
         return;
@@ -138,7 +138,7 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 
     Memory<char*> jsonText(jsonFileSize + 1);
     DWORD read = 0;
-    if (!ReadFile(hFile, jsonText(), jsonFileSize, &read, 0))
+    if(!ReadFile(hFile, jsonText(), jsonFileSize, &read, 0))
     {
         dputs("\nFailed to read database file!");
         return;
@@ -148,23 +148,23 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
     // Deserialize JSON
     JSON root = json_loads(jsonText(), 0, 0);
 
-    if (lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
+    if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
     // Validate JSON load status
-    if (!root)
+    if(!root)
     {
         dputs("\nInvalid database file (JSON)!");
         return;
     }
 
     // Load only command line
-    if (loadType == COMMAND_LINE_ONLY || loadType == ALL)
+    if(loadType == COMMAND_LINE_ONLY || loadType == ALL)
     {
         CmdLineCacheLoad(root);
     }
 
-    if (loadType == ALL_BUT_COMMAND_LINE || loadType == ALL)
+    if(loadType == ALL_BUT_COMMAND_LINE || loadType == ALL)
     {
         // Finally load all structures
         CommentCacheLoad(root);
@@ -196,10 +196,10 @@ void DBClose()
     PatchClear();
 }
 
-void DBSetPath(const char *Directory, const char *ModulePath)
+void DBSetPath(const char* Directory, const char* ModulePath)
 {
     // Initialize directory if it was only supplied
-    if (Directory)
+    if(Directory)
     {
         ASSERT_TRUE(strlen(Directory) > 0);
 
@@ -207,22 +207,22 @@ void DBSetPath(const char *Directory, const char *ModulePath)
         strcpy_s(dbbasepath, Directory);
 
         // Create directory
-        if (!CreateDirectoryW(StringUtils::Utf8ToUtf16(Directory).c_str(), nullptr))
+        if(!CreateDirectoryW(StringUtils::Utf8ToUtf16(Directory).c_str(), nullptr))
         {
-            if (GetLastError() != ERROR_ALREADY_EXISTS)
+            if(GetLastError() != ERROR_ALREADY_EXISTS)
                 dprintf("Warning: Failed to create database folder '%s'. Path may be read only.\n", Directory);
         }
     }
 
     // The database file path may be relative (dbbasepath) or a full path
-    if (ModulePath)
+    if(ModulePath)
     {
         ASSERT_TRUE(strlen(ModulePath) > 0);
 
 #ifdef _WIN64
-        const char *dbType = "dd64";
+        const char* dbType = "dd64";
 #else
-        const char *dbType = "dd32";
+        const char* dbType = "dd32";
 #endif // _WIN64
 
         // Get the module name and directory
@@ -235,7 +235,7 @@ void DBSetPath(const char *Directory, const char *ModulePath)
             // Find the last instance of a path delimiter (slash)
             char* fileStart = strrchr(fileDir, '\\');
 
-            if (fileStart)
+            if(fileStart)
             {
                 strcpy_s(dbName, fileStart + 1);
                 fileStart[0] = '\0';
@@ -247,7 +247,7 @@ void DBSetPath(const char *Directory, const char *ModulePath)
             }
         }
 
-        if (settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
+        if(settingboolget("Engine", "SaveDatabaseInProgramDirectory"))
         {
             // Absolute path in the program directory
             sprintf_s(dbpath, "%s\\%s.%s", fileDir, dbName, dbType);

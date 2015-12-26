@@ -154,9 +154,9 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
     bpInfo->enabled = Enable;
 
     //Re-read oldbytes
-    if (Enable && Type == BPNORMAL)
+    if(Enable && Type == BPNORMAL)
     {
-        if (!MemRead(Address, &bpInfo->oldbytes, sizeof(bpInfo->oldbytes)))
+        if(!MemRead(Address, &bpInfo->oldbytes, sizeof(bpInfo->oldbytes)))
             return false;
     }
     return true;
@@ -204,7 +204,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
     // Loop each entry, executing the user's callback
     bool callbackStatus = true;
 
-    for (auto i = breakpoints.begin(); i != breakpoints.end();)
+    for(auto i = breakpoints.begin(); i != breakpoints.end();)
     {
         auto j = i;
         ++i; // Increment here, because the callback might remove the current entry

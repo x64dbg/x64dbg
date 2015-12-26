@@ -183,7 +183,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             if(i < mNbrOfLineToPrint)
             {
                 // Don't draw cells if the flag is set, and no process is running
-                if (!mDrawDebugOnly || DbgIsDebugging())
+                if(!mDrawDebugOnly || DbgIsDebugging())
                 {
                     QString wStr = paintContent(&wPainter, mTableOffset, i, j, x, y, getColumnWidth(j), getRowHeight());
 

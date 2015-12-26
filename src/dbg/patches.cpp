@@ -216,14 +216,14 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     char modPath[MAX_PATH] = "";
     if(!ModPathFromAddr(moduleBase, modPath, MAX_PATH))
     {
-        if (Error)
+        if(Error)
             sprintf_s(Error, MAX_ERROR_SIZE, "Failed to get module path of module %s", moduleName);
 
         return -1;
     }
 
     // Create a temporary backup file
-    if (!CopyFileW(StringUtils::Utf8ToUtf16(modPath).c_str(), StringUtils::Utf8ToUtf16(FileName).c_str(), false))
+    if(!CopyFileW(StringUtils::Utf8ToUtf16(modPath).c_str(), StringUtils::Utf8ToUtf16(FileName).c_str(), false))
     {
         if(Error)
             strcpy_s(Error, MAX_ERROR_SIZE, "Failed to make a copy of the original file (patch target is in use?)");

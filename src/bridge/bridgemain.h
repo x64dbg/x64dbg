@@ -817,8 +817,8 @@ typedef struct
 
 typedef struct
 {
-    duint *blocks;
-    duint *parents;
+    duint* blocks;
+    duint* parents;
 } CONTROLFLOWINFOS;
 
 //GUI functions
@@ -895,8 +895,8 @@ BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
-BRIDGE_IMPEXP void GuiDisplayWarning(const char *title, const char *text);
-BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS *ctrlFlow);
+BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
+BRIDGE_IMPEXP void GuiSetControlFlowInfos(CONTROLFLOWINFOS* ctrlFlow);
 
 #ifdef __cplusplus
 }

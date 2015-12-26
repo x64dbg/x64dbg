@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class AppearanceDialog;
+    class AppearanceDialog;
 }
 
 class AppearanceDialog : public QDialog

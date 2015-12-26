@@ -8,7 +8,7 @@
 
 namespace Ui
 {
-class PatchDialog;
+    class PatchDialog;
 }
 
 class PatchDialog : public QDialog
@@ -21,13 +21,25 @@ class PatchDialog : public QDialog
         int group;
     };
 
-    typedef QPair<DBGPATCHINFO, STATUSINFO> PatchPair;
+    struct PatchPair
+    {
+        DBGPATCHINFO patch;
+        STATUSINFO status;
+
+        PatchPair(const DBGPATCHINFO & patch, const STATUSINFO & status)
+        {
+            this->patch = patch;
+            this->status = status;
+        }
+    };
+
+    //typedef QPair<DBGPATCHINFO, STATUSINFO> PatchPair;
     typedef QList<PatchPair> PatchInfoList;
     typedef QMap<QString, PatchInfoList> PatchMap;
 
     static bool PatchInfoLess(const PatchPair & a, const PatchPair & b)
     {
-        return a.first.addr < b.first.addr;
+        return a.patch.addr < b.patch.addr;
     }
 
 public:

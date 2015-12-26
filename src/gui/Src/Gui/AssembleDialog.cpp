@@ -4,7 +4,7 @@
 
 bool AssembleDialog::bWarningShowedOnce = false;
 
-AssembleDialog::AssembleDialog(QWidget *parent) :
+AssembleDialog::AssembleDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::AssembleDialog)
 {
@@ -24,7 +24,7 @@ AssembleDialog::AssembleDialog(QWidget *parent) :
     mValidateThread->setOnExpressionChangedCallback(std::bind(&AssembleDialog::validateInstruction, this, std::placeholders::_1));
 
     connect(ui->lineEdit, SIGNAL(textEdited(QString)), this, SLOT(textChangedSlot(QString)));
-    connect(mValidateThread, SIGNAL(instructionChanged(dsint,QString)), this, SLOT(instructionChangedSlot(dsint, QString)));
+    connect(mValidateThread, SIGNAL(instructionChanged(dsint, QString)), this, SLOT(instructionChangedSlot(dsint, QString)));
 }
 
 AssembleDialog::~AssembleDialog()
@@ -32,7 +32,7 @@ AssembleDialog::~AssembleDialog()
     delete ui;
 }
 
-void AssembleDialog::setTextEditValue(const QString &text)
+void AssembleDialog::setTextEditValue(const QString & text)
 {
     ui->lineEdit->setText(text);
 }
@@ -43,7 +43,7 @@ void AssembleDialog::setKeepSizeChecked(bool checked)
     bKeepSizeChecked = checked;
 }
 
-void AssembleDialog::setKeepSizeLabel(const QString &text)
+void AssembleDialog::setKeepSizeLabel(const QString & text)
 {
     ui->labelKeepSize->setText(text);
 }
@@ -54,7 +54,7 @@ void AssembleDialog::setFillWithNopsChecked(bool checked)
     bFillWithNopsChecked = checked;
 }
 
-void AssembleDialog::setFillWithNopsLabel(const QString &text)
+void AssembleDialog::setFillWithNopsLabel(const QString & text)
 {
     ui->labelFillWithNops->setText(text);
 }
@@ -99,7 +99,7 @@ void AssembleDialog::validateInstruction(QString expression)
     emit mValidateThread->emitInstructionChanged(sizeDifference, "");
 }
 
-void AssembleDialog::hideEvent(QHideEvent *event)
+void AssembleDialog::hideEvent(QHideEvent* event)
 {
     Q_UNUSED(event);
     mValidateThread->stop();
@@ -162,7 +162,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString error)
     }
 }
 
-void AssembleDialog::on_lineEdit_textChanged(const QString &arg1)
+void AssembleDialog::on_lineEdit_textChanged(const QString & arg1)
 {
     editText = arg1;
 

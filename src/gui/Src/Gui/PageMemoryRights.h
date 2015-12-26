@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class PageMemoryRights;
+    class PageMemoryRights;
 }
 
 class PageMemoryRights : public QDialog

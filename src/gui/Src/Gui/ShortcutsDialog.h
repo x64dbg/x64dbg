@@ -7,7 +7,7 @@
 
 namespace Ui
 {
-class ShortcutsDialog;
+    class ShortcutsDialog;
 }
 
 class ShortcutsDialog : public QDialog

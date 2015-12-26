@@ -16,7 +16,7 @@ extern GUISENDMESSAGEASYNC _gui_sendmessageasync;
 
 //DBG typedefs
 typedef const char* (*DBGDBGINIT)();
-typedef duint (*DBGMEMFINDBASEADDR)(duint addr, duint* size);
+typedef duint(*DBGMEMFINDBASEADDR)(duint addr, duint* size);
 typedef bool (*DBGMEMREAD)(duint addr, unsigned char* dest, duint size, duint* read);
 typedef bool (*DBGMEMWRITE)(duint addr, const unsigned char* src, duint size, duint* written);
 typedef bool (*DBGDBGCMDEXEC)(const char* cmd);
@@ -27,14 +27,14 @@ typedef bool (*DBGISDEBUGGING)();
 typedef bool (*DBGISJUMPGOINGTOEXECUTE)(duint addr);
 typedef bool (*DBGADDRINFOGET)(duint addr, SEGMENTREG segment, ADDRINFO* addrinfo);
 typedef bool (*DBGADDRINFOSET)(duint addr, ADDRINFO* addrinfo);
-typedef BPXTYPE (*DBGBPGETTYPEAT)(duint addr);
+typedef BPXTYPE(*DBGBPGETTYPEAT)(duint addr);
 typedef bool (*DBGGETREGDUMP)(REGDUMP* regdump);
 typedef bool (*DBGVALTOSTRING)(const char* string, duint value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
 typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
-typedef duint (*DBGGETBRANCHDESTINATION)(duint addr);
-typedef duint (*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
+typedef duint(*DBGGETBRANCHDESTINATION)(duint addr);
+typedef duint(*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
 
 //DBG functions
 extern DBGDBGINIT _dbg_dbginit;

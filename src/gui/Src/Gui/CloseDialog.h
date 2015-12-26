@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-class CloseDialog;
+    class CloseDialog;
 }
 
 class CloseDialog : public QDialog

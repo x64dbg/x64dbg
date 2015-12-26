@@ -77,6 +77,7 @@ void Disassembly::updateColors()
     mAddressColor = ConfigColor("DisassemblyAddressColor");
     mBytesColor = ConfigColor("DisassemblyBytesColor");
     mModifiedBytesColor = ConfigColor("DisassemblyModifiedBytesColor");
+    mRestoredBytesColor = ConfigColor("DisassemblyRestoredBytesColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
@@ -150,7 +151,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             {
                 if(bpxtype & bp_normal) //normal breakpoint
                 {
-                    QColor& bpColor = mBreakpointBackgroundColor;
+                    QColor & bpColor = mBreakpointBackgroundColor;
                     if(!bpColor.alpha()) //we don't want transparent text
                         bpColor = mBreakpointColor;
                     if(bpColor == mCipBackgroundColor)
@@ -360,12 +361,22 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         RichTextPainter::CustomRichText_t curByte;
         curByte.highlight = false;
         curByte.flags = RichTextPainter::FlagColor;
-        for(int i = 0; i < mInstBuffer.at(rowOffset).dump.size(); i++)
+        auto dump = mInstBuffer.at(rowOffset).dump;
+        for(int i = 0; i < dump.size(); i++)
         {
             if(i)
                 richBytes.push_back(space);
-            curByte.text = QString("%1").arg((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)), 2, 16, QChar('0')).toUpper();
-            curByte.textColor = DbgFunctions()->PatchGet(cur_addr + i) ? mModifiedBytesColor : mBytesColor;
+            auto byte = (unsigned char)dump.at(i);
+            curByte.text = QString("%1").arg(byte, 2, 16, QChar('0')).toUpper();
+            DBGPATCHINFO patchInfo;
+            if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
+            {
+                auto log = QString().sprintf("oldbyte: %02X, newbyte: %02X, byte: %02X\n", patchInfo.oldbyte, patchInfo.newbyte, byte);
+                GuiAddLogMessage(log.toUtf8().constData());
+                curByte.textColor = byte == patchInfo.newbyte ? mModifiedBytesColor : mRestoredBytesColor;
+            }
+            else
+                curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
         }
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, &richBytes, getCharWidth());

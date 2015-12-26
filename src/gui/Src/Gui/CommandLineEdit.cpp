@@ -11,20 +11,20 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     this->setCompleter(mCompleter);
 
     //Setup signals & slots
-    connect(mCompleter, SIGNAL(activated(const QString&)), this, SLOT(clear()), Qt::QueuedConnection);
+    connect(mCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()), Qt::QueuedConnection);
     connect(Bridge::getBridge(), SIGNAL(autoCompleteAddCmd(QString)), this, SLOT(autoCompleteAddCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
 }
 
-void CommandLineEdit::keyPressEvent(QKeyEvent *event)
+void CommandLineEdit::keyPressEvent(QKeyEvent* event)
 {
     if(event->type() == QEvent::KeyPress)
     {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
         if(keyEvent->key() == Qt::Key_Tab)
         {
-            QStringListModel *strListModel = (QStringListModel*)(mCompleter->model());
+            QStringListModel* strListModel = (QStringListModel*)(mCompleter->model());
             QStringList stringList = strListModel->stringList();
 
             if(stringList.size())
@@ -39,7 +39,7 @@ void CommandLineEdit::keyPressEvent(QKeyEvent *event)
                 // If popup list is not visible, selected next suggested command
                 if(!mCompleter->popup()->isVisible())
                 {
-                    for(int row=0; row < mCompleter->popup()->model()->rowCount(); row++)
+                    for(int row = 0; row < mCompleter->popup()->model()->rowCount(); row++)
                     {
                         QModelIndex modelIndex = mCompleter->popup()->model()->index(row, 0);
 

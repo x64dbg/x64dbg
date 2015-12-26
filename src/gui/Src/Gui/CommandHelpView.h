@@ -7,7 +7,7 @@
 
 namespace Ui
 {
-class CommandHelpView;
+    class CommandHelpView;
 }
 
 class CommandHelpView : public QWidget

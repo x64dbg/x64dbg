@@ -42,7 +42,7 @@ public:
 
     inline QMenu* addMenu(QMenu* submenu, BuildCallback callback)
     {
-        addBuilder(new MenuBuilder(submenu->parent(), [submenu, callback](QMenu* menu)
+        addBuilder(new MenuBuilder(submenu->parent(), [submenu, callback](QMenu * menu)
         {
             submenu->clear();
             if(callback(submenu))
@@ -54,7 +54,7 @@ public:
 
     inline QMenu* addMenu(QMenu* submenu, MenuBuilder* builder)
     {
-        addBuilder(new MenuBuilder(submenu->parent(), [submenu, builder](QMenu* menu)
+        addBuilder(new MenuBuilder(submenu->parent(), [submenu, builder](QMenu * menu)
         {
             submenu->clear();
             builder->build(submenu);

@@ -12,4 +12,4 @@ enum LOAD_SAVE_DB_TYPE
 void DBSave(LOAD_SAVE_DB_TYPE saveType);
 void DBLoad(LOAD_SAVE_DB_TYPE loadType);
 void DBClose();
-void DBSetPath(const char *Directory, const char *ModulePath);
+void DBSetPath(const char* Directory, const char* ModulePath);

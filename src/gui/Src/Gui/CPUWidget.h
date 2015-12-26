@@ -12,7 +12,7 @@
 
 namespace Ui
 {
-class CPUWidget;
+    class CPUWidget;
 }
 
 class CPUWidget : public QWidget

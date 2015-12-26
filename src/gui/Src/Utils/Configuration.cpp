@@ -37,6 +37,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("DisassemblyUnconditionalJumpLineColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyBytesColor", QColor("#000000"));
     defaultColors.insert("DisassemblyModifiedBytesColor", QColor("#FF0000"));
+    defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#008000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyAutoCommentColor", QColor("#808080"));

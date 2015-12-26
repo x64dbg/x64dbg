@@ -8,7 +8,7 @@
 
 namespace Ui
 {
-class AssembleDialog;
+    class AssembleDialog;
 }
 
 class AssembleDialog : public QDialog
@@ -16,7 +16,7 @@ class AssembleDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AssembleDialog(QWidget *parent = 0);
+    explicit AssembleDialog(QWidget* parent = 0);
     ~AssembleDialog();
     QString editText;
     static bool bWarningShowedOnce;
@@ -34,19 +34,19 @@ public:
     void setOkButtonEnabled(bool enabled);
 
     void validateInstruction(QString expression);
-    void hideEvent(QHideEvent *event);
+    void hideEvent(QHideEvent* event);
 
 private slots:
     void textChangedSlot(QString text);
     void instructionChangedSlot(dsint sizeDifference, QString error);
-    void on_lineEdit_textChanged(const QString &arg1);
+    void on_lineEdit_textChanged(const QString & arg1);
     void on_checkBoxKeepSize_clicked(bool checked);
     void on_checkBoxFillWithNops_clicked(bool checked);
 
 private:
-    Ui::AssembleDialog *ui;
+    Ui::AssembleDialog* ui;
     duint mSelectedInstrVa;
-    ValidateExpressionThread *mValidateThread;
+    ValidateExpressionThread* mValidateThread;
 
 };
 

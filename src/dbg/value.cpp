@@ -1641,7 +1641,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             *isvar = true;
         return true;
     }
-    else if (strstr(string, "sub_") == string) //then come sub_ functions
+    else if(strstr(string, "sub_") == string)  //then come sub_ functions
     {
         auto result = sscanf(string, "sub_%" fext "X", value) == 1;
         duint start;

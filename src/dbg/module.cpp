@@ -301,7 +301,7 @@ bool ModImportsFromAddr(duint Address, std::vector<MODIMPORTINFO>* Imports)
 
     auto module = ModInfoFromAddr(Address);
 
-    if (!module)
+    if(!module)
         return false;
 
     // Copy vector <-> vector
@@ -351,23 +351,23 @@ bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo)
 {
     SHARED_ACQUIRE(LockModules);
 
-    if (!Base || !importInfo.addr)
+    if(!Base || !importInfo.addr)
         return false;
 
     auto module = ModInfoFromAddr(Base);
 
-    if (!module)
+    if(!module)
         return false;
 
     // Search in Import Vector
-    std::vector<MODIMPORTINFO> *pImports = &(module->imports);
+    std::vector<MODIMPORTINFO>* pImports = &(module->imports);
     auto it = std::find_if(pImports->begin(), pImports->end(), [&importInfo](MODIMPORTINFO currentImportInfo)->bool
     {
         return (importInfo.addr == currentImportInfo.addr);
     });
 
     // Import in the list already
-    if (it != pImports->end())
+    if(it != pImports->end())
         return false;
 
     // Add import to imports vector

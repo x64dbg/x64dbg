@@ -4,11 +4,11 @@ bool IsProcessElevated()
 {
     SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
     PSID SecurityIdentifier;
-    if (!AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &SecurityIdentifier))
+    if(!AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &SecurityIdentifier))
         return 0;
 
     BOOL IsAdminMember;
-    if (!CheckTokenMembership(NULL, SecurityIdentifier, &IsAdminMember))
+    if(!CheckTokenMembership(NULL, SecurityIdentifier, &IsAdminMember))
         IsAdminMember = FALSE;
 
     FreeSid(SecurityIdentifier);
@@ -22,14 +22,14 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
     HKEY hKey;
     DWORD dwDisposition;
 
-    if (error != NULL)
+    if(error != NULL)
         *error = ERROR_RW;
 
-    if (write)
+    if(write)
     {
-        if (!IsProcessElevated())
+        if(!IsProcessElevated())
         {
-            if (error != NULL)
+            if(error != NULL)
                 *error = ERROR_RW_NOTADMIN;
             return false;
         }
@@ -38,9 +38,9 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
     else
         key_flags = KEY_READ;
 
-    if (arch_out != NULL)
+    if(arch_out != NULL)
     {
-        if (arch_in != x64 && arch_in != x32)
+        if(arch_in != x64 && arch_in != x32)
         {
 #ifdef _WIN64
             *arch_out = x64;
@@ -52,29 +52,29 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
             *arch_out = arch_in;
     }
 
-    if (arch_in == x64)
+    if(arch_in == x64)
     {
 #ifndef _WIN64
-        if (!IsWow64())
+        if(!IsWow64())
         {
-            if (error != NULL)
+            if(error != NULL)
                 *error = ERROR_RW_NOTWOW64;
             return false;
         }
         key_flags |= KEY_WOW64_64KEY;
 #endif //_WIN64
     }
-    else if (arch_in == x32)
+    else if(arch_in == x32)
     {
 #ifdef _WIN64
         key_flags |= KEY_WOW64_32KEY;
 #endif
     }
 
-    if (write)
+    if(write)
     {
         lRv = RegCreateKeyExW(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, NULL, REG_OPTION_NON_VOLATILE, key_flags, NULL, &hKey, &dwDisposition);
-        if (lRv != ERROR_SUCCESS)
+        if(lRv != ERROR_SUCCESS)
             return false;
 
         lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
@@ -82,17 +82,17 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
     else
     {
         lRv = RegOpenKeyExW(HKEY_LOCAL_MACHINE, JIT_REG_KEY, 0, key_flags, &hKey);
-        if (lRv != ERROR_SUCCESS)
+        if(lRv != ERROR_SUCCESS)
         {
-            if (error != NULL)
+            if(error != NULL)
                 *error = ERROR_RW_FILE_NOT_FOUND;
             return false;
         }
 
         lRv = RegQueryValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, NULL, (LPBYTE)jit_key_value, jit_key_vale_size);
-        if (lRv != ERROR_SUCCESS)
+        if(lRv != ERROR_SUCCESS)
         {
-            if (error != NULL)
+            if(error != NULL)
                 *error = ERROR_RW_FILE_NOT_FOUND;
         }
     }
@@ -107,19 +107,19 @@ bool dbggetjitauto(bool* auto_on, arch arch_in, arch* arch_out, readwritejitkey_
     DWORD jit_entry_size = sizeof(jit_entry) - 1;
     readwritejitkey_error_t rw_error;
 
-    if (!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
+    if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
     {
-        if (rw_error == ERROR_RW_FILE_NOT_FOUND)
+        if(rw_error == ERROR_RW_FILE_NOT_FOUND)
         {
-            if (rw_error_out != NULL)
+            if(rw_error_out != NULL)
                 *rw_error_out = rw_error;
             return true;
         }
         return false;
     }
-    if (_wcsicmp(jit_entry, L"1") == 0)
+    if(_wcsicmp(jit_entry, L"1") == 0)
         *auto_on = true;
-    else if (_wcsicmp(jit_entry, L"0") == 0)
+    else if(_wcsicmp(jit_entry, L"0") == 0)
         *auto_on = false;
     else
         return false;
@@ -130,19 +130,19 @@ bool dbgsetjitauto(bool auto_on, arch arch_in, arch* arch_out, readwritejitkey_e
 {
     DWORD auto_string_size = sizeof(L"1");
     readwritejitkey_error_t rw_error;
-    if (!auto_on)
+    if(!auto_on)
     {
         wchar_t jit_entry[4] = L"";
         DWORD jit_entry_size = sizeof(jit_entry) - 1;
-        if (!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
+        if(!readwritejitkey(jit_entry, &jit_entry_size, "Auto", arch_in, arch_out, &rw_error, false))
         {
-            if (rw_error == ERROR_RW_FILE_NOT_FOUND)
+            if(rw_error == ERROR_RW_FILE_NOT_FOUND)
                 return true;
         }
     }
-    if (!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey(auto_on ? L"1" : L"0", &auto_string_size, "Auto", arch_in, arch_out, &rw_error, true))
     {
-        if (rw_error_out != NULL)
+        if(rw_error_out != NULL)
             *rw_error_out = rw_error;
         return false;
     }
@@ -154,9 +154,9 @@ bool dbggetjit(char jit_entry[JIT_ENTRY_MAX_SIZE], arch arch_in, arch* arch_out,
     wchar_t wszJitEntry[JIT_ENTRY_MAX_SIZE] = L"";
     DWORD jit_entry_size = JIT_ENTRY_MAX_SIZE * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if (!readwritejitkey(wszJitEntry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
+    if(!readwritejitkey(wszJitEntry, &jit_entry_size, "Debugger", arch_in, arch_out, &rw_error, false))
     {
-        if (rw_error_out != NULL)
+        if(rw_error_out != NULL)
             *rw_error_out = rw_error;
         return false;
     }
@@ -180,9 +180,9 @@ bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_erro
 {
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;
-    if (!readwritejitkey((wchar_t*)StringUtils::Utf8ToUtf16(jit_cmd).c_str(), &jit_cmd_size, "Debugger", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey((wchar_t*)StringUtils::Utf8ToUtf16(jit_cmd).c_str(), &jit_cmd_size, "Debugger", arch_in, arch_out, &rw_error, true))
     {
-        if (rw_error_out != NULL)
+        if(rw_error_out != NULL)
             *rw_error_out = rw_error;
         return false;
     }

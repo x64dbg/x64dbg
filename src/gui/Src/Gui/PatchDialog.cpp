@@ -40,8 +40,8 @@ bool PatchDialog::isPartOfPreviousGroup(const PatchInfoList & patchList, int ind
 {
     if(!index)
         return true;
-    uint addr = patchList.at(index).first.addr;
-    uint prevAddr = patchList.at(index - 1).first.addr;
+    uint addr = patchList.at(index).patch.addr;
+    uint prevAddr = patchList.at(index - 1).patch.addr;
     for(int i = 1; i < 10; i++) //10 bytes in between groups
         if(addr - i == prevAddr)
             return true;
@@ -51,7 +51,7 @@ bool PatchDialog::isPartOfPreviousGroup(const PatchInfoList & patchList, int ind
 bool PatchDialog::isGroupEnabled(const PatchInfoList & patchList, int group)
 {
     for(int i = 0; i < patchList.size(); i++)
-        if(patchList.at(i).second.group == group && !patchList.at(i).second.checked)
+        if(patchList.at(i).status.group == group && !patchList.at(i).status.checked)
             return false;
     return true;
 }
@@ -59,7 +59,7 @@ bool PatchDialog::isGroupEnabled(const PatchInfoList & patchList, int group)
 bool PatchDialog::hasPreviousGroup(const PatchInfoList & patchList, int group)
 {
     for(int i = 0; i < patchList.size(); i++)
-        if(patchList.at(i).second.group < group)
+        if(patchList.at(i).status.group < group)
             return true;
     return false;
 }
@@ -67,7 +67,7 @@ bool PatchDialog::hasPreviousGroup(const PatchInfoList & patchList, int group)
 bool PatchDialog::hasNextGroup(const PatchInfoList & patchList, int group)
 {
     for(int i = 0; i < patchList.size(); i++)
-        if(patchList.at(i).second.group > group)
+        if(patchList.at(i).status.group > group)
             return true;
     return false;
 }
@@ -75,8 +75,8 @@ bool PatchDialog::hasNextGroup(const PatchInfoList & patchList, int group)
 dsint PatchDialog::getGroupAddress(const PatchInfoList & patchList, int group)
 {
     for(int i = 0; i < patchList.size(); i++)
-        if(patchList.at(i).second.group == group)
-            return patchList.at(i).first.addr;
+        if(patchList.at(i).status.group == group)
+            return patchList.at(i).patch.addr;
     return -1;
 }
 
@@ -149,7 +149,10 @@ void PatchDialog::updatePatches()
         {
             if(!isPartOfPreviousGroup(curPatchList, j))
                 group++;
-            curPatchList[j].second.group = group;
+            curPatchList[j].status.group = group;
+            unsigned char byte;
+            if(DbgMemRead(curPatchList[j].patch.addr, &byte, sizeof(byte)))
+                curPatchList[j].status.checked = byte == curPatchList[j].patch.newbyte;
         }
         ui->listModules->addItem(i.key());
     }
@@ -175,13 +178,13 @@ void PatchDialog::groupToggle()
     mIsWorking = true;
     for(int i = 0; i < curPatchList.size(); i++)
     {
-        if(curPatchList.at(i).second.group != group)
+        if(curPatchList.at(i).status.group != group)
             continue;
         ui->listPatches->item(i)->setCheckState(checkState);
-        curPatchList[i].second.checked = enabled;
+        curPatchList[i].status.checked = enabled;
         //change the byte to reflect the change for the user (cypherpunk reported this)
-        unsigned char writebyte = curPatchList[i].second.checked ? curPatchList[i].first.newbyte : curPatchList[i].first.oldbyte;
-        DbgMemWrite(curPatchList[i].first.addr, &writebyte, sizeof(writebyte));
+        unsigned char writebyte = curPatchList[i].status.checked ? curPatchList[i].patch.newbyte : curPatchList[i].patch.oldbyte;
+        DbgMemWrite(curPatchList[i].patch.addr, &writebyte, sizeof(writebyte));
     }
     GuiUpdateAllViews();
     mIsWorking = false;
@@ -259,11 +262,11 @@ void PatchDialog::on_listModules_itemSelectionChanged()
     ui->listPatches->clear();
     for(int i = 0; i < patchList.size(); i++)
     {
-        const DBGPATCHINFO curPatch = patchList.at(i).first;
+        const DBGPATCHINFO curPatch = patchList.at(i).patch;
         QString addrText = QString("%1").arg(curPatch.addr, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-        QListWidgetItem* item = new QListWidgetItem(QString().sprintf("%d", patchList.at(i).second.group).rightJustified(4, ' ', true) + "|" + addrText + QString().sprintf(":%.2X->%.2X", curPatch.oldbyte, curPatch.newbyte), ui->listPatches);
+        QListWidgetItem* item = new QListWidgetItem(QString().sprintf("%d", patchList.at(i).status.group).rightJustified(4, ' ', true) + "|" + addrText + QString().sprintf(":%.2X->%.2X", curPatch.oldbyte, curPatch.newbyte), ui->listPatches);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        Qt::CheckState state = patchList.at(i).second.checked ? Qt::Checked : Qt::Unchecked;
+        Qt::CheckState state = patchList.at(i).status.checked ? Qt::Checked : Qt::Unchecked;
         item->setCheckState(state);
     }
     mIsWorking = false;
@@ -280,26 +283,26 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
     bool checked = item->checkState() == Qt::Checked;
     PatchInfoList & curPatchList = found.value();
     PatchPair & patch = curPatchList[ui->listPatches->row(item)];
-    if(patch.second.checked == checked) //check state did not change
+    if(patch.status.checked == checked) //check state did not change
         return;
-    patch.second.checked = checked;
+    patch.status.checked = checked;
     //change the byte to reflect the change for the user (cypherpunk reported this)
-    unsigned char writebyte = patch.second.checked ? patch.first.newbyte : patch.first.oldbyte;
-    DbgMemWrite(patch.first.addr, &writebyte, sizeof(writebyte));
+    unsigned char writebyte = patch.status.checked ? patch.patch.newbyte : patch.patch.oldbyte;
+    DbgMemWrite(patch.patch.addr, &writebyte, sizeof(writebyte));
     //check state changed
     if((QApplication::keyboardModifiers() & Qt::ControlModifier) != Qt::ControlModifier)
     {
         mIsWorking = true;
         //check/uncheck the complete group
         for(int i = 0; i < curPatchList.size(); i++)
-            if(curPatchList.at(i).second.group == patch.second.group)
+            if(curPatchList.at(i).status.group == patch.status.group)
             {
                 //change the patch state
-                curPatchList[i].second.checked = checked;
+                curPatchList[i].status.checked = checked;
                 ui->listPatches->item(i)->setCheckState(item->checkState());
                 //change the byte to reflect the change for the user (cypherpunk reported this)
-                unsigned char writebyte = curPatchList[i].second.checked ? curPatchList[i].first.newbyte : curPatchList[i].first.oldbyte;
-                DbgMemWrite(curPatchList[i].first.addr, &writebyte, sizeof(writebyte));
+                unsigned char writebyte = curPatchList[i].status.checked ? curPatchList[i].patch.newbyte : curPatchList[i].patch.oldbyte;
+                DbgMemWrite(curPatchList[i].patch.addr, &writebyte, sizeof(writebyte));
             }
         mIsWorking = false;
     }
@@ -326,9 +329,9 @@ void PatchDialog::on_btnSelectAll_clicked()
     for(int i = 0; i < curPatchList.size(); i++)
     {
         ui->listPatches->item(i)->setCheckState(Qt::Checked);
-        curPatchList[i].second.checked = true;
+        curPatchList[i].status.checked = true;
         //change the byte to reflect the change for the user (cypherpunk reported this)
-        DbgMemWrite(curPatchList[i].first.addr, &curPatchList[i].first.newbyte, sizeof(unsigned char));
+        DbgMemWrite(curPatchList[i].patch.addr, &curPatchList[i].patch.newbyte, sizeof(unsigned char));
     }
     GuiUpdateAllViews();
     mIsWorking = false;
@@ -347,9 +350,9 @@ void PatchDialog::on_btnDeselectAll_clicked()
     for(int i = 0; i < curPatchList.size(); i++)
     {
         ui->listPatches->item(i)->setCheckState(Qt::Unchecked);
-        curPatchList[i].second.checked = false;
+        curPatchList[i].status.checked = false;
         //change the byte to reflect the change for the user (cypherpunk reported this)
-        DbgMemWrite(curPatchList[i].first.addr, &curPatchList[i].first.oldbyte, sizeof(unsigned char));
+        DbgMemWrite(curPatchList[i].patch.addr, &curPatchList[i].patch.oldbyte, sizeof(unsigned char));
     }
     GuiUpdateAllViews();
     mIsWorking = false;
@@ -370,9 +373,9 @@ void PatchDialog::on_btnRestoreSelected_clicked()
     int total = curPatchList.size();
     for(int i = 0; i < total; i++)
     {
-        if(curPatchList.at(i).second.checked)
+        if(curPatchList.at(i).status.checked)
         {
-            DbgFunctions()->PatchRestore(curPatchList.at(i).first.addr);
+            DbgFunctions()->PatchRestore(curPatchList.at(i).patch.addr);
             removed++;
         }
     }
@@ -393,7 +396,7 @@ void PatchDialog::on_listPatches_itemSelectionChanged()
         return;
     PatchInfoList & curPatchList = found.value();
     PatchPair & patch = curPatchList[ui->listPatches->row(ui->listPatches->selectedItems().at(0))]; //selected item
-    dsint groupStart = getGroupAddress(curPatchList, patch.second.group);
+    dsint groupStart = getGroupAddress(curPatchList, patch.status.group);
     if(!groupStart)
         return;
     QString addrText = QString("%1").arg(groupStart, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
@@ -440,8 +443,8 @@ void PatchDialog::on_btnPatchFile_clicked()
     //get patches to save
     QList<DBGPATCHINFO> patchList;
     for(int i = 0; i < curPatchList.size(); i++)
-        if(curPatchList.at(i).second.checked)
-            patchList.push_back(curPatchList.at(i).first);
+        if(curPatchList.at(i).status.checked)
+            patchList.push_back(curPatchList.at(i).patch);
     if(!curPatchList.size() || !patchList.size())
     {
         QMessageBox msg(QMessageBox::Information, "Information", "Nothing to patch!");
@@ -652,15 +655,15 @@ void PatchDialog::on_btnExport_clicked()
             continue;
         for(int j = 0; j < curPatchList.size(); j++)
         {
-            if(!curPatchList.at(j).second.checked) //skip unchecked patches
+            if(!curPatchList.at(j).status.checked) //skip unchecked patches
                 continue;
             if(!bModPlaced)
             {
                 lines.push_back(">" + i.key());
                 bModPlaced = true;
             }
-            QString addrText = QString("%1").arg(curPatchList.at(j).first.addr - modbase, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
-            lines.push_back(addrText + QString().sprintf(":%.2X->%.2X", curPatchList.at(j).first.oldbyte, curPatchList.at(j).first.newbyte));
+            QString addrText = QString("%1").arg(curPatchList.at(j).patch.addr - modbase, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
+            lines.push_back(addrText + QString().sprintf(":%.2X->%.2X", curPatchList.at(j).patch.oldbyte, curPatchList.at(j).patch.newbyte));
             patches++;
         }
     }

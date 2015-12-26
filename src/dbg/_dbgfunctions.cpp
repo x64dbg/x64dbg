@@ -235,4 +235,5 @@ void dbgfunctionsinit()
     _dbgfunctions.GetAddrFromLine = _getaddrfromline;
     _dbgfunctions.GetSourceFromAddr = _getsourcefromaddr;
     _dbgfunctions.ValFromString = _valfromstring;
+    _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
 }

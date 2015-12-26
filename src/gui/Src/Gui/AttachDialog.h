@@ -5,7 +5,7 @@
 
 namespace Ui
 {
-class AttachDialog;
+    class AttachDialog;
 }
 
 class AttachDialog : public QDialog

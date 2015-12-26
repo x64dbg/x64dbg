@@ -18,15 +18,15 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     REFINFO refInfo;
 
     // Search in current Region
-    if (type == CURRENT_REGION)
+    if(type == CURRENT_REGION)
     {
         duint regionSize = 0;
         duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
 
         // If the memory page wasn't found, fail
-        if (!regionBase || !regionSize)
+        if(!regionBase || !regionSize)
         {
-            if (!Silent)
+            if(!Silent)
                 dprintf("Invalid memory page 0x%p\n", Address);
 
             return 0;
@@ -47,7 +47,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Determine the full module name
-        if (ModNameFromAddr(scanStart, moduleName, true))
+        if(ModNameFromAddr(scanStart, moduleName, true))
             sprintf_s(fullName, "%s (Region %s)", Name, moduleName);
         else
             sprintf_s(fullName, "%s (Region %p)", Name, scanStart);
@@ -69,20 +69,20 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         GuiReferenceReloadData();
 
-        if (!refFindInRangeRet)
+        if(!refFindInRangeRet)
             return refFindInRangeRet;
 
         refInfo.refcount += refFindInRangeRet;
     }
 
     // Search in current Module
-    else if (type == CURRENT_MODULE)
+    else if(type == CURRENT_MODULE)
     {
-        MODINFO *modInfo = ModInfoFromAddr(Address);
+        MODINFO* modInfo = ModInfoFromAddr(Address);
 
-        if (!modInfo)
+        if(!modInfo)
         {
-            if (!Silent)
+            if(!Silent)
                 dprintf("Couldn't locate module for 0x%p\n", Address);
 
             return 0;
@@ -95,7 +95,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         scanSize  = modSize;
 
         // Determine the full module name
-        if (ModNameFromAddr(scanStart, moduleName, true))
+        if(ModNameFromAddr(scanStart, moduleName, true))
             sprintf_s(fullName, "%s (%s)", Name, moduleName);
         else
             sprintf_s(fullName, "%s (%p)", Name, scanStart);
@@ -115,22 +115,22 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         });
 
 
-        if (!refFindInRangeRet)
+        if(!refFindInRangeRet)
             return refFindInRangeRet;
 
         GuiReferenceReloadData();
     }
 
     // Search in all Modules
-    else if (type == ALL_MODULES)
+    else if(type == ALL_MODULES)
     {
         bool initCallBack = true;
-        std::vector<MODINFO > modList;
+        std::vector<MODINFO> modList;
         ModGetList(modList);
 
-        if (!modList.size())
+        if(!modList.size())
         {
-            if (!Silent)
+            if(!Silent)
                 dprintf("Couldn't get module list");
 
             return 0;
@@ -147,12 +147,12 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         refInfo.userinfo = UserData;
         refInfo.name = fullName;
 
-        for (duint i = 0; i < modList.size(); i++)
+        for(duint i = 0; i < modList.size(); i++)
         {
             scanStart = modList[i].base;
             scanSize  = modList[i].size;
 
-            if (i != 0)
+            if(i != 0)
                 initCallBack = false;
 
             refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
@@ -170,7 +170,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             });
 
 
-            if (!refFindInRangeRet)
+            if(!refFindInRangeRet)
                 return refFindInRangeRet;
 
             GuiReferenceReloadData();
@@ -183,7 +183,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 }
 
 
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO &refInfo, Capstone &cp, bool initCallBack, CBPROGRESS cbUpdateProgress)
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress)
 {
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
@@ -216,7 +216,7 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
         int disasmMaxSize = min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
         int disasmLen = 1;
 
-        if (cp.Disassemble(scanStart, data() + i, disasmMaxSize))
+        if(cp.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
             fillbasicinfo(&cp, &basicinfo);

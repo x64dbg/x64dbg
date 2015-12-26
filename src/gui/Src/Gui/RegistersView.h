@@ -18,7 +18,7 @@ typedef struct
 
 namespace Ui
 {
-class RegistersView;
+    class RegistersView;
 }
 
 class RegistersView : public QScrollArea

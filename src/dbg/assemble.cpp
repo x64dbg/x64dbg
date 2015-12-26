@@ -69,16 +69,16 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         *size = destSize;
 
     // Check if the instruction doesn't set IP to non-executable memory
-    if (isInstructionPointingToExMemory(addr, dest) == NX_MEMORY)
+    if(isInstructionPointingToExMemory(addr, dest) == NX_MEMORY)
         GuiDisplayWarning("Non-executable memory region", "Assembled instruction points to non-executable memory region !");
 
     bool ret = MemPatch(addr, dest, destSize);
 
-    if (ret)
+    if(ret)
     {
-        if (fillnop && nopsize)
+        if(fillnop && nopsize)
         {
-            if (size)
+            if(size)
                 *size += nopsize;
 
             // Ignored if the memory patch for NOPs fail (although it should not)
@@ -102,7 +102,7 @@ INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned cha
     MEMMAP wMemMapStruct;
     DISASM_ARG arg;
     DISASM_INSTR wDisasInstrStruct;
-    MEMORY_BASIC_INFORMATION *wMbiStruct = NULL;
+    MEMORY_BASIC_INFORMATION* wMbiStruct = NULL;
     duint instrArgCount;
     dsint instrMemValues[3] = {0};
     duint instrMemValuesIndex = 0;
@@ -111,20 +111,20 @@ INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned cha
     disasmget((unsigned char*)dest, 0, &wDisasInstrStruct);
 
     instrArgCount = wDisasInstrStruct.argcount;
-    if (instrArgCount)
+    if(instrArgCount)
     {
         // Loop through all arguements
-        for (int i = 0; i < wDisasInstrStruct.argcount; i++)
+        for(int i = 0; i < wDisasInstrStruct.argcount; i++)
         {
             arg = wDisasInstrStruct.arg[i];
 
             // Check if any of the arguments is a memory
-            if (arg.type == arg_memory)
+            if(arg.type == arg_memory)
             {
                 instrMemValues[instrMemValuesIndex] = addr + arg.memvalue; // add current instruction VA for rip-relative addressing
                 instrMemValuesIndex++;
             }
-            else if (wDisasInstrStruct.type == instr_branch)
+            else if(wDisasInstrStruct.type == instr_branch)
             {
                 instrMemValues[instrMemValuesIndex] = addr + arg.value;
                 instrMemValuesIndex++;
@@ -133,24 +133,25 @@ INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned cha
     }
 
     // No memory pointer in the instruction, no need to go further
-    if (!instrMemValuesIndex)
+    if(!instrMemValuesIndex)
         return NO_POINTER;
 
+    // TODO: this can be heavily optimized (both in code size and speed) by using memory.cpp (std::map)
     // Get memory map to locate the sections to which the instr memory address belongs to
     DbgMemMap(&wMemMapStruct);
 
     // For each memPointerValue
-    for (auto & memValue : instrMemValues)
+    for(auto & memValue : instrMemValues)
     {
         // Loop through the memMaps
-        for (int i = 0; i < wMemMapStruct.count; i++)
+        for(int i = 0; i < wMemMapStruct.count; i++)
         {
             wMbiStruct  = &(wMemMapStruct.page)[i].mbi;
             mbiBaseAddr = (dsint)wMbiStruct->BaseAddress;
             mbiEndAddr  = (dsint)wMbiStruct->BaseAddress + (dsint)wMbiStruct->RegionSize;
-            if (memValue >= mbiBaseAddr && memValue < mbiEndAddr)
+            if(memValue >= mbiBaseAddr && memValue < mbiEndAddr)
             {
-                if (wMbiStruct->Protect == PAGE_EXECUTE ||
+                if(wMbiStruct->Protect == PAGE_EXECUTE ||
                         wMbiStruct->Protect == PAGE_EXECUTE_READ ||
                         wMbiStruct->Protect == PAGE_EXECUTE_READWRITE ||
                         wMbiStruct->Protect == PAGE_EXECUTE_WRITECOPY)
@@ -161,7 +162,13 @@ INSTR_POINTING_TO isInstructionPointingToExMemory(duint addr, const unsigned cha
                     BOOL bPermanentDep;
 
                     // DEP is disabled if lpFlagsDep == 0
-                    if (GetProcessDEPPolicy(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
+                    typedef BOOL (WINAPI * GETPROCESSDEPPOLICY)(
+                        _In_  HANDLE  hProcess,
+                        _Out_ LPDWORD lpFlags,
+                        _Out_ PBOOL   lpPermanent
+                    );
+                    static GETPROCESSDEPPOLICY GPDP = (GETPROCESSDEPPOLICY)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy");
+                    if(GPDP && GPDP(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
                         return EX_MEMORY;
 #else
                     // DEP enabled on x64

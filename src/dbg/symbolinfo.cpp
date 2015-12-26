@@ -31,7 +31,7 @@ BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserCont
     // Convert from SYMBOL_INFO to SYMBOLINFO
     returnValue = SymGetSymbolInfo(SymInfo, &curSymbol, false);
 
-    if (!returnValue)
+    if(!returnValue)
         return false;
 
     // Add to the cache
@@ -62,12 +62,12 @@ void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     symbolCbData.user = UserData;
 
     // Check if this module is cached in the list
-    if (modulesCacheList.find(Base) != modulesCacheList.end())
+    if(modulesCacheList.find(Base) != modulesCacheList.end())
     {
         SymEnumImports(Base, &symbolCbData);
 
         // Callback
-        for (duint i = 0; i < modulesCacheList[Base].size(); i++)
+        for(duint i = 0; i < modulesCacheList[Base].size(); i++)
             symbolCbData.cbSymbolEnum(&modulesCacheList[Base].at(i), symbolCbData.user);
     }
     else
@@ -320,12 +320,12 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
 
 void SymClearMemoryCache()
 {
-    for (auto& itr : modulesCacheList)
+    for(auto & itr : modulesCacheList)
     {
         SYMBOLINFOVECTOR* pModuleVector = &itr.second;
 
         // Free up previously allocated memory
-        for (duint i = 0; i < pModuleVector->size(); i++)
+        for(duint i = 0; i < pModuleVector->size(); i++)
         {
             BridgeFree(pModuleVector->at(i).decoratedSymbol);
             BridgeFree(pModuleVector->at(i).undecoratedSymbol);
@@ -348,20 +348,20 @@ bool SymGetSymbolInfo(PSYMBOL_INFO SymInfo, SYMBOLINFO* curSymbol, bool isImport
     strcpy_s(curSymbol->decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
 
     // Skip bad ordinals
-    if (strstr(SymInfo->Name, "Ordinal"))
+    if(strstr(SymInfo->Name, "Ordinal"))
     {
         // Does the symbol point to the module base?
-        if (SymInfo->Address == SymInfo->ModBase)
+        if(SymInfo->Address == SymInfo->ModBase)
             return FALSE;
     }
 
     // Convert a mangled/decorated C++ name to a readable format
-    if (!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol->undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
+    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol->undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
     {
         BridgeFree(curSymbol->undecoratedSymbol);
         curSymbol->undecoratedSymbol = nullptr;
     }
-    else if (!strcmp(curSymbol->decoratedSymbol, curSymbol->undecoratedSymbol))
+    else if(!strcmp(curSymbol->decoratedSymbol, curSymbol->undecoratedSymbol))
     {
         BridgeFree(curSymbol->undecoratedSymbol);
         curSymbol->undecoratedSymbol = nullptr;
@@ -387,7 +387,7 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
     pSymInfo->MaxNameLen = MAX_SYM_NAME;
 
     // Enum imports if none found
-    if (ModImportsFromAddr(Base, &imports) && !imports.size())
+    if(ModImportsFromAddr(Base, &imports) && !imports.size())
     {
         // Enum imports from current module
         apienumimports(Base, [](duint Base, duint Address, char* name, char* moduleName)
@@ -403,15 +403,15 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
     }
 
     // Get imports
-    if (ModImportsFromAddr(Base, &imports) && imports.size())
+    if(ModImportsFromAddr(Base, &imports) && imports.size())
     {
-        for (duint i = 0; i < imports.size(); i++)
+        for(duint i = 0; i < imports.size(); i++)
         {
             // Can we get symbol for the import address?
-            if (SafeSymFromAddr(fdProcessInfo->hProcess, (duint)imports[i].addr, 0, pSymInfo))
+            if(SafeSymFromAddr(fdProcessInfo->hProcess, (duint)imports[i].addr, 0, pSymInfo))
             {
                 // Does the symbol point to the module base?
-                if (!SymGetSymbolInfo(pSymInfo, &curSymbol, true))
+                if(!SymGetSymbolInfo(pSymInfo, &curSymbol, true))
                     continue;
             }
             else
@@ -427,9 +427,9 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
             strcpy_s(modImportString, imports[i].moduleName);
 
             // Trim the extension if present
-            char *modExt = strrchr(modImportString, '.');
+            char* modExt = strrchr(modImportString, '.');
 
-            if (modExt)
+            if(modExt)
                 *modExt = '\0';
 
             // Buffers to hold the decorated and undecorated strings. Must be declared
@@ -437,7 +437,7 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
             char undecBuf[MAX_IMPORT_SIZE];
             char decBuf[MAX_IMPORT_SIZE];
 
-            if (curSymbol.undecoratedSymbol)
+            if(curSymbol.undecoratedSymbol)
             {
                 // module.undecorated
                 strcpy_s(undecBuf, modImportString);
@@ -446,7 +446,7 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
                 curSymbol.undecoratedSymbol = undecBuf;
             }
 
-            if (curSymbol.decoratedSymbol)
+            if(curSymbol.decoratedSymbol)
             {
                 // module.decorated
                 strcpy_s(decBuf, modImportString);

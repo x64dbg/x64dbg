@@ -5,7 +5,7 @@
 
 namespace Ui
 {
-class EntropyDialog;
+    class EntropyDialog;
 }
 
 class EntropyDialog : public QDialog
