@@ -283,11 +283,11 @@ LIBS += -luser32
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x86
     LIBS += -L"$${X64_BIN_DIR}/" -lx32bridge -lcapstone_wrapper
-    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf -lcoin
+    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../dbg/capstone/" -lcapstone_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman/" -lsnowman_x64
     LIBS += -L"$${X64_BIN_DIR}/" -lx64bridge -lcapstone_wrapper
-    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf -lcoin
+    LIBS += -L"$${OGDF_BIN_DIR}/" -logdf
 }
