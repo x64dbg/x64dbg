@@ -13,6 +13,7 @@
 #include "GraphEdge.h"
 #include "QBeaEngine.h"
 #include "capstone_gui.h"
+#include "QGraphView.h"
 #include <ogdf/fileformats/GraphIO.h>
 #include <ogdf/layered/SugiyamaLayout.h>
 #include <ogdf/layered/OptimalRanking.h>
@@ -54,7 +55,6 @@ struct BasicBlock
 };
 
 typedef std::map<duint, BasicBlock> BASICBLOCKMAP;
-typedef std::map<duint, std::set<duint>> PARENTMAP;
 typedef std::map<duint, Node<GraphNode*> *> NODEMAP;
 typedef std::vector<std::unique_ptr<GraphNode>> GRAPHNODEVECTOR;
 typedef std::map<ogdf::node, std::vector<std::unique_ptr<GraphEdge>>> GRAPHEDGEMAP;
@@ -66,10 +66,10 @@ public:
     explicit ControlFlowGraph(QWidget* parent = 0);
     void startControlFlowAnalysis();
     void setUnconditionalBranchEdgeColor();
+    void setupGraph();
     ~ControlFlowGraph();
 
 private:
-    void setupGraph();
     void setupGraphLayout();
     void setupTree(duint va = 0);
     void adjustNodesSize();
@@ -84,12 +84,11 @@ private:
 
 public slots:
     void drawGraphAtSlot(duint va);
-    void setControlFlowInfosSlot(duint* controlFlowInfos);
+    void setBasicBlocks(BASICBLOCKMAP* basicBlockInfo);
 
 private:
     bool bProgramInitialized;
     QBeaEngine* mDisas;
-    PARENTMAP* mParentsInfo;
     BASICBLOCKMAP* mBasicBlockInfo;
     std::unique_ptr<GRAPHNODEVECTOR, std::function<void(GRAPHNODEVECTOR*)>> mGraphNodeVector;
     GRAPHEDGEMAP mNodeGraphEdge;

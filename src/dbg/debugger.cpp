@@ -21,6 +21,7 @@
 #include "error.h"
 #include "module.h"
 #include "commandline.h"
+#include "controlflowanalysis.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -728,6 +729,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         }
     }
     GuiUpdateBreakpointsView();
+
+
 
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;

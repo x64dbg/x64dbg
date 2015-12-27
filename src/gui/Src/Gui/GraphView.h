@@ -13,14 +13,18 @@ public:
     explicit GraphView(QWidget* parent = 0);
     ~GraphView();
 
+
 public slots:
     void dbgStateChangedSlot(DBGSTATE state);
     void drawGraphAtSlot(duint va);
+    void setControlFlowInfosSlot(duint* controlFlowInfos);
+    void startControlFlowAnalysis();
 
 private:
     QVBoxLayout* mVLayout;
-    bool bProgramInitialized;
+    QPushButton* mButton;
     std::unique_ptr<ControlFlowGraph, std::function<void(ControlFlowGraph* ctrlFlowGraph)>> mControlFlowGraph;
+
 };
 
 #endif // GRAPHVIEW_H

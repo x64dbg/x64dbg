@@ -82,15 +82,7 @@ void ControlFlowAnalysis::Analyse()
 
     dprintf("Analysis finished!\n");
 
-    // TODO : Fix this
-    PARENTMAP* _parentsTemp = new PARENTMAP(_parentMap);
-    BASICBLOCKMAP* _blocksTemp = new BASICBLOCKMAP(_blocks);
-
-    CONTROLFLOWINFOS* ctrlFlow = new CONTROLFLOWINFOS;
-    ctrlFlow->blocks = (duint*) _blocksTemp;
-    ctrlFlow->parents = (duint*) _parentsTemp;
-
-    GuiSetControlFlowInfos(ctrlFlow);
+    sendBasicBlocksInfo();
 }
 
 void ControlFlowAnalysis::SetMarkers()
@@ -140,6 +132,15 @@ void ControlFlowAnalysis::SetMarkers()
         }
     }
     dprintf("}\n");*/
+}
+
+void ControlFlowAnalysis::sendBasicBlocksInfo()
+{
+    auto pBasicBlock = new BASICBLOCKMAP(_blocks);
+    auto ctrlFlow = std::make_unique<CONTROLFLOWINFOS>();
+    ctrlFlow->blocks = reinterpret_cast<duint*>(pBasicBlock);
+
+    GuiSetControlFlowInfos(ctrlFlow.get());
 }
 
 void ControlFlowAnalysis::BasicBlockStarts()
