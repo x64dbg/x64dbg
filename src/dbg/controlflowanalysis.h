@@ -5,6 +5,7 @@
 #include "analysis.h"
 #include "addrinfo.h"
 #include <functional>
+#include <memory>
 
 class ControlFlowAnalysis : public Analysis
 {
@@ -62,6 +63,7 @@ private:
     std::map<duint, UintSet> _functions; //function start -> function block starts
     std::vector<Range> _functionRanges; //function start -> function range TODO: smarter stuff with overlapping ranges
 
+    void sendBasicBlocksInfo();
     void BasicBlockStarts();
     void BasicBlocks();
     void Functions();
@@ -73,6 +75,7 @@ private:
     duint findFunctionStart(BasicBlock* block, UintSet* parents);
     String blockToString(BasicBlock* block);
     duint GetReferenceOperand();
+
 #ifdef _WIN64
     void EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback);
 #endif // _WIN64

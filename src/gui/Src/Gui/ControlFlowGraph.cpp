@@ -8,11 +8,10 @@ void deleteGraphNodeVector(GRAPHNODEVECTOR* graphNodeVector)
 }
 
 ControlFlowGraph::ControlFlowGraph(QWidget* parent) : QWidget(parent),
-    mParentsInfo(nullptr),
     mBasicBlockInfo(nullptr),
     mDisas(new QBeaEngine(-1)),
     mScene(new QGraphicsScene()),
-    mGraphicsView(new QGraphicsView()),
+    mGraphicsView(new QGraphView()),
     bProgramInitialized(false),
     mVLayout(new QVBoxLayout()),
     mGraphNodeVector(new GRAPHNODEVECTOR, deleteGraphNodeVector)
@@ -20,6 +19,7 @@ ControlFlowGraph::ControlFlowGraph(QWidget* parent) : QWidget(parent),
 
     mScene->setBackgroundBrush(ConfigColor("DisassemblyBackgroundColor"));
     mGraphicsView->setScene(mScene);
+    mGraphicsView->setDragMode(QGraphView::ScrollHandDrag);
 
     mVLayout->addWidget(mGraphicsView);
     setLayout(mVLayout);
@@ -56,7 +56,6 @@ ControlFlowGraph::~ControlFlowGraph()
     mSL.reset();
     mGA.reset();
     delete mBasicBlockInfo;
-    delete mParentsInfo;
     delete mDisas;
 }
 
@@ -85,7 +84,7 @@ void ControlFlowGraph::setupGraph()
 
     // Make sure there is some spacing
     QRectF sceneRect = mGraphicsView->sceneRect();
-    sceneRect.adjust(-20, -20, 20, 20);
+    sceneRect.adjust(-20, -40, 20, 40);
     mGraphicsView->setSceneRect(sceneRect);
 
     mGraphicsView->show();
@@ -194,8 +193,6 @@ void ControlFlowGraph::addGraphToScene()
 
     mGraphicsView->ensureVisible(mScene->itemsBoundingRect());
 
-    // Make sure there is some spacing
-    mScene->sceneRect().adjust(-20, -20, 20, 20);
     mGraphicsView->setSceneRect(mScene->sceneRect());
 }
 
@@ -332,15 +329,7 @@ void ControlFlowGraph::addAllNodes(BASICBLOCKMAP::iterator it, Node<GraphNode*>*
 
 }
 
-void ControlFlowGraph::setControlFlowInfosSlot(duint* controlFlowInfos)
-{
-    if(controlFlowInfos)
-    {
-        mParentsInfo = (PARENTMAP*)(((CONTROLFLOWINFOS*)controlFlowInfos)->parents);
-        mBasicBlockInfo = (BASICBLOCKMAP*)(((CONTROLFLOWINFOS*)controlFlowInfos)->blocks);
-        setupGraph();
-    }
-}
+
 
 bool ControlFlowGraph::findBasicBlock(duint & va)
 {
@@ -403,6 +392,11 @@ void ControlFlowGraph::drawGraphAtSlot(duint va)
 
     setupTree(va);
     addGraphToScene();
+}
+
+void ControlFlowGraph::setBasicBlocks(BASICBLOCKMAP* basicBlockInfo)
+{
+    mBasicBlockInfo = basicBlockInfo;
 }
 
 

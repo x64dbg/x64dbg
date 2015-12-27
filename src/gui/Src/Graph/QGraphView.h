@@ -18,7 +18,7 @@ private slots:
 private:
     QPoint mMousePos;
     bool bAnimationFinished;
-    int _numScheduledScalings;
+    int mNumScheduledScalings;
 };
 
 #endif // QGRAPHVIEW_H
