@@ -17,6 +17,7 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     ui->comboType->addItem("C-Style QWORD (Hex)");
     ui->comboType->addItem("C-Style String");
     ui->comboType->addItem("C-Style Unicode String");
+    ui->comboType->addItem("C-Style Shellcode String");
     ui->comboType->addItem("Pascal BYTE (Hex)");
     ui->comboType->addItem("Pascal WORD (Hex)");
     ui->comboType->addItem("Pascal DWORD (Hex)");
@@ -171,6 +172,18 @@ void DataCopyDialog::printData(DataType type)
                 bPrevWasHex = true;
                 data += QString().sprintf("\\x%04X", ch);
             }
+        }
+        data += "\"";
+    }
+    break;
+
+    case DataCShellcodeString:
+    {
+        data += "\"";
+        for(int i = 0; i < mData->size(); i++)
+        {
+            byte_t ch = mData->at(i);
+            data += QString().sprintf("\\x%02X", ch);
         }
         data += "\"";
     }

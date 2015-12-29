@@ -34,6 +34,7 @@ private:
         DataCQword,
         DataCString,
         DataCUnicodeString,
+        DataCShellcodeString,
         DataPascalByte,
         DataPascalWord,
         DataPascalDword,
