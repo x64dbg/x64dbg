@@ -703,7 +703,7 @@ void CPUDisassembly::assembleSlot()
     if(!DbgIsDebugging())
         return;
 
-    AssembleDialog assembleDialog;
+    AssembleDialog assembleDialog(this);
 
     do
     {

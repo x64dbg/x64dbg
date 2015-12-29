@@ -35,6 +35,7 @@ AssembleDialog::~AssembleDialog()
 void AssembleDialog::setTextEditValue(const QString & text)
 {
     ui->lineEdit->setText(text);
+    ui->lineEdit->selectAll();
 }
 
 void AssembleDialog::setKeepSizeChecked(bool checked)
