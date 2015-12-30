@@ -19,6 +19,7 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
     mSelectedInstrVa = 0;
     bKeepSizeChecked = false;
     bFillWithNopsChecked = false;
+    this->setKeepSizeLabel("");
 
     mValidateThread = new ValidateExpressionThread(this);
     mValidateThread->setOnExpressionChangedCallback(std::bind(&AssembleDialog::validateInstruction, this, std::placeholders::_1));
@@ -53,11 +54,6 @@ void AssembleDialog::setFillWithNopsChecked(bool checked)
 {
     ui->checkBoxFillWithNops->setChecked(checked);
     bFillWithNopsChecked = checked;
-}
-
-void AssembleDialog::setFillWithNopsLabel(const QString & text)
-{
-    ui->labelFillWithNops->setText(text);
 }
 
 void AssembleDialog::setSelectedInstrVa(const duint va)
