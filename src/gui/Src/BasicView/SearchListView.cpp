@@ -200,7 +200,8 @@ void SearchListView::addCharToSearchBox(char ch)
         if(indexOfSelectedText != -1)
         {
             newText.replace(indexOfSelectedText, selectedText.length(), QString(ch));
-            mCursorPosition = indexOfSelectedText;
+            mCursorPosition = indexOfSelectedText + 1;
+
             mSearchBox->setText(newText);
         }
 
