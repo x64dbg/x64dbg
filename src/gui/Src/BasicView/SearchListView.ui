@@ -46,10 +46,13 @@
    <widget class="QWidget" name="layoutWidget">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
-      <number>2</number>
+      <number>4</number>
      </property>
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="leftMargin">
+      <number>3</number>
      </property>
      <item>
       <widget class="QLabel" name="searchLabel">

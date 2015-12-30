@@ -45,7 +45,6 @@ private:
     QAction* mToggleBookmark;
     bool mFollowDumpDefault;
     QLabel* mCountTotalLabel;
-    QLabel* mCountCurrentTaskLabel;
 
     dsint apiAddressFromString(const QString & s);
 };

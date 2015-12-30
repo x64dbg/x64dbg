@@ -10,22 +10,24 @@ ReferenceView::ReferenceView()
     mSearchStartCol = 1;
     mFollowDumpDefault = false;
 
-    QHBoxLayout* layoutTotalProgress = new QHBoxLayout();
-    QHBoxLayout* layoutCurrentTaskProgress = new QHBoxLayout();
+    // Create the layout for the progress bars
+    QHBoxLayout* layoutProgress = new QHBoxLayout();
+    layoutProgress->setContentsMargins(2, 0, 0, 0);
+    layoutProgress->setSpacing(4);
 
     // Create current task search progress bar
     mSearchCurrentTaskProgress = new QProgressBar();
     mSearchCurrentTaskProgress->setRange(0, 100);
     mSearchCurrentTaskProgress->setTextVisible(true);
     mSearchCurrentTaskProgress->setMaximumHeight(15);
-    layoutCurrentTaskProgress->addWidget(mSearchCurrentTaskProgress);
+    layoutProgress->addWidget(mSearchCurrentTaskProgress);
 
     // Create total search progress bar
     mSearchTotalProgress = new QProgressBar();
     mSearchTotalProgress->setRange(0, 100);
     mSearchTotalProgress->setTextVisible(true);
     mSearchTotalProgress->setMaximumHeight(15);
-    layoutTotalProgress->addWidget(mSearchTotalProgress);
+    layoutProgress->addWidget(mSearchTotalProgress);
 
     // Label for the number of references
     mCountTotalLabel = new QLabel("tst");
@@ -33,18 +35,10 @@ ReferenceView::ReferenceView()
     mCountTotalLabel->setMaximumHeight(16);
     mCountTotalLabel->setMinimumWidth(40);
     mCountTotalLabel->setContentsMargins(2, 0, 5, 0);
-    layoutTotalProgress->addWidget(mCountTotalLabel);
-
-    mCountCurrentTaskLabel = new QLabel("");
-    mCountCurrentTaskLabel->setAlignment(Qt::AlignCenter);
-    mCountCurrentTaskLabel->setMaximumHeight(16);
-    mCountCurrentTaskLabel->setMinimumWidth(40);
-    mCountCurrentTaskLabel->setContentsMargins(2, 0, 5, 0);
-    layoutCurrentTaskProgress->addWidget(mCountCurrentTaskLabel);
+    layoutProgress->addWidget(mCountTotalLabel);
 
     // Add the progress bar and label to the main layout
-    mMainLayout->addLayout(layoutCurrentTaskProgress);
-    mMainLayout->addLayout(layoutTotalProgress);
+    mMainLayout->addLayout(layoutProgress);
 
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
