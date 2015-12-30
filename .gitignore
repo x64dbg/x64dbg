@@ -55,6 +55,8 @@ src/gui/build
 src/gui/Makefile*
 tools/
 RCa*
+RDa*
+RDb*
 src/build-*/
 
 # Exceptions
