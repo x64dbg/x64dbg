@@ -15,6 +15,7 @@
 #include "loop.h"
 #include "commandline.h"
 #include "database.h"
+#include "threading.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -28,6 +29,8 @@ char dbpath[deflen];
 
 void DbSave(DbLoadSaveType saveType)
 {
+    EXCLUSIVE_ACQUIRE(LockDatabase);
+
     dprintf("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
@@ -91,6 +94,8 @@ void DbSave(DbLoadSaveType saveType)
 
 void DbLoad(DbLoadSaveType loadType)
 {
+    EXCLUSIVE_ACQUIRE(LockDatabase);
+
     // If the file doesn't exist, there is no DB to load
     if(!FileExists(dbpath))
         return;
@@ -196,6 +201,8 @@ void DbClose()
 
 void DbSetPath(const char* Directory, const char* ModulePath)
 {
+    EXCLUSIVE_ACQUIRE(LockDatabase);
+
     // Initialize directory if it was only supplied
     if(Directory)
     {

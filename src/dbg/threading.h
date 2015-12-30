@@ -46,11 +46,12 @@ enum SectionLock
     LockPatches,
     LockThreads,
     LockSym,
+    LockCmdLine,
+    LockDatabase,
     LockPluginList,
     LockPluginCallbackList,
     LockPluginCommandList,
     LockPluginMenuList,
-    LockCmdLine,
 
     // Number of elements in this enumeration. Must always be the last
     // index.
