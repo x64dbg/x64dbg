@@ -155,6 +155,7 @@ void ReferenceView::reloadData()
 {
     mSearchBox->setText("");
     mList->reloadData();
+    mList->setFocus();
 }
 
 void ReferenceView::setSingleSelection(int index, bool scroll)
