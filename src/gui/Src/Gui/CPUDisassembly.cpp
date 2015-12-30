@@ -293,11 +293,12 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     MenuBuilder* decompileMenu = new MenuBuilder(this);
-    decompileMenu->addAction(makeShortcutAction("Selection", SLOT(decompileSelectionSlot()), "ActionDecompileSelection"), [this](QMenu*)
+    decompileMenu->addAction(makeShortcutAction("Selection", SLOT(decompileSelectionSlot()), "ActionDecompileSelection"));
+    decompileMenu->addAction(makeShortcutAction("Function", SLOT(decompileFunctionSlot()), "ActionDecompileFunction"), [this](QMenu*)
     {
         return DbgFunctionGet(rvaToVa(getInitialSelection()), 0, 0);
     });
-    decompileMenu->addAction(makeShortcutAction("Function", SLOT(decompileFunctionSlot()), "ActionDecompileFunction"));
+
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/snowman.png"), "Decompile"), decompileMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
