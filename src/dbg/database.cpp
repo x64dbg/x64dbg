@@ -14,6 +14,7 @@
 #include "function.h"
 #include "loop.h"
 #include "commandline.h"
+#include "database.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -25,26 +26,19 @@ char dbbasepath[deflen];
 */
 char dbpath[deflen];
 
-enum LOAD_SAVE_DB_TYPE
-{
-    COMMAND_LINE_ONLY,
-    ALL_BUT_COMMAND_LINE,
-    ALL
-};
-
-void DBSave(LOAD_SAVE_DB_TYPE saveType)
+void DbSave(DbLoadSaveType saveType)
 {
     dprintf("Saving database...");
     DWORD ticks = GetTickCount();
     JSON root = json_object();
 
     // Save only command line
-    if(saveType == COMMAND_LINE_ONLY || saveType == ALL)
+    if(saveType == DbLoadSaveType::CommandLine || saveType == DbLoadSaveType::All)
     {
         CmdLineCacheSave(root);
     }
 
-    if(saveType == ALL_BUT_COMMAND_LINE || saveType == ALL)
+    if(saveType == DbLoadSaveType::DebugData || saveType == DbLoadSaveType::All)
     {
         CommentCacheSave(root);
         LabelCacheSave(root);
@@ -95,13 +89,16 @@ void DBSave(LOAD_SAVE_DB_TYPE saveType)
     json_decref(root); //free root
 }
 
-void DBLoad(LOAD_SAVE_DB_TYPE loadType)
+void DbLoad(DbLoadSaveType loadType)
 {
     // If the file doesn't exist, there is no DB to load
     if(!FileExists(dbpath))
         return;
 
-    dprintf("Loading database...");
+    if(loadType == DbLoadSaveType::CommandLine)
+        dputs("Loading commandline...");
+    else
+        dprintf("Loading database...");
     DWORD ticks = GetTickCount();
 
     // Multi-byte (UTF8) file path converted to UTF16
@@ -159,12 +156,12 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
     }
 
     // Load only command line
-    if(loadType == COMMAND_LINE_ONLY || loadType == ALL)
+    if(loadType == DbLoadSaveType::CommandLine || loadType == DbLoadSaveType::All)
     {
         CmdLineCacheLoad(root);
     }
 
-    if(loadType == ALL_BUT_COMMAND_LINE || loadType == ALL)
+    if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
         // Finally load all structures
         CommentCacheLoad(root);
@@ -181,12 +178,13 @@ void DBLoad(LOAD_SAVE_DB_TYPE loadType)
 
     // Free root
     json_decref(root);
-    dprintf("%ums\n", GetTickCount() - ticks);
+    if(loadType != DbLoadSaveType::CommandLine)
+        dprintf("%ums\n", GetTickCount() - ticks);
 }
 
-void DBClose()
+void DbClose()
 {
-    DBSave(ALL);
+    DbSave(DbLoadSaveType::All);
     CommentClear();
     LabelClear();
     BookmarkClear();
@@ -196,7 +194,7 @@ void DBClose()
     PatchClear();
 }
 
-void DBSetPath(const char* Directory, const char* ModulePath)
+void DbSetPath(const char* Directory, const char* ModulePath)
 {
     // Initialize directory if it was only supplied
     if(Directory)

@@ -663,8 +663,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     GuiDumpAt(MemFindBaseAddr(GetContextDataEx(CreateProcessInfo->hThread, UE_CIP), 0) + PAGE_SIZE); //dump somewhere
 
     // Init program database
-    DBSetPath(nullptr, szFileName);
-    DBLoad(ALL_BUT_COMMAND_LINE);
+    DbLoad(DbLoadSaveType::DebugData);
 
     SafeSymSetOptions(SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
@@ -1155,8 +1154,8 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     strcpy_s(szFileName, init->exe);
 
     // Load command line if it exists in DB
-    DBSetPath(nullptr, szFileName);
-    DBLoad(COMMAND_LINE_ONLY);
+    DbSetPath(nullptr, szFileName);
+    DbLoad(DbLoadSaveType::CommandLine);
 
     if(!isCmdLineEmpty())
     {
@@ -1240,7 +1239,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    DBClose();
+    DbClose();
     ModClear();
     ThreadClear();
     SymClearMemoryCache();
@@ -1508,7 +1507,7 @@ DWORD WINAPI threadAttachLoop(void* lpParameter)
     //message the user/do final stuff
     RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
     //cleanup
-    DBClose();
+    DbClose();
     ModClear();
     ThreadClear();
     SymClearMemoryCache();

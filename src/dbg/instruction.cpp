@@ -416,14 +416,14 @@ CMDRESULT cbInstrBookmarkDel(int argc, char* argv[])
 
 CMDRESULT cbInstrLoaddb(int argc, char* argv[])
 {
-    DBLoad(ALL);
+    DbLoad(DbLoadSaveType::All);
     GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
 CMDRESULT cbInstrSavedb(int argc, char* argv[])
 {
-    DBSave(ALL);
+    DbSave(DbLoadSaveType::All);
     return STATUS_CONTINUE;
 }
 

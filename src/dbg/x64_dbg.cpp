@@ -284,7 +284,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     setalloctrace(alloctrace);
 
     // Create database directory in the local debugger folder
-    DBSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
+    DbSetPath(StringUtils::sprintf("%s\\db", dir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
     strcpy_s(szLocalSymbolPath, dir);
@@ -318,7 +318,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
             }
         }
     }
-    dputs(szSymbolCachePath);
+    dprintf("Symbol Path: %s\n", szSymbolCachePath);
     SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(dir).c_str());
     dputs("Allocating message stack...");
     gMsgStack = MsgAllocStack();
