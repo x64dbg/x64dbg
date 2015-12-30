@@ -16,6 +16,7 @@
 #include "commandline.h"
 #include "database.h"
 #include "threading.h"
+#include "filehelper.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -64,25 +65,22 @@ void DbSave(DbLoadSaveType saveType)
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
     if(json_object_size(root))
     {
-        Handle hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-        if(!hFile)
-        {
-            dputs("\nFailed to open database for writing!");
-            json_decref(root); //free root
-            return;
-        }
-        SetEndOfFile(hFile);
         char* jsonText = json_dumps(root, JSON_INDENT(4));
-        DWORD written = 0;
-        if(!WriteFile(hFile, jsonText, (DWORD)strlen(jsonText), &written, 0))
+
+        if(jsonText)
         {
+            // Dump JSON to disk (overwrite any old files)
+            if(!FileHelper::WriteAllText(dbpath, jsonText))
+            {
+                dputs("\nFailed to write database file!");
+                json_free(jsonText);
+                json_decref(root);
+                return;
+            }
+
             json_free(jsonText);
-            dputs("\nFailed to write database file!");
-            json_decref(root); //free root
-            return;
         }
-        hFile.Close();
-        json_free(jsonText);
+
         if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
@@ -124,36 +122,21 @@ void DbLoad(DbLoadSaveType loadType)
     }
 
     // Read the database file
-    Handle hFile = CreateFileW(databasePathW.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    if(!hFile)
-    {
-        dputs("\nFailed to open database file!");
-        return;
-    }
+    String databaseText;
 
-    unsigned int jsonFileSize = GetFileSize(hFile, 0);
-    if(!jsonFileSize)
-    {
-        dputs("\nEmpty database file!");
-        return;
-    }
-
-    Memory<char*> jsonText(jsonFileSize + 1);
-    DWORD read = 0;
-    if(!ReadFile(hFile, jsonText(), jsonFileSize, &read, 0))
+    if(!FileHelper::ReadAllText(dbpath, databaseText))
     {
         dputs("\nFailed to read database file!");
         return;
     }
-    hFile.Close();
 
-    // Deserialize JSON
-    JSON root = json_loads(jsonText(), 0, 0);
-
+    // Restore the old, compressed file
     if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
         LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
-    // Validate JSON load status
+    // Deserialize JSON and validate
+    JSON root = json_loads(databaseText.c_str(), 0, 0);
+
     if(!root)
     {
         dputs("\nInvalid database file (JSON)!");
@@ -183,6 +166,7 @@ void DbLoad(DbLoadSaveType loadType)
 
     // Free root
     json_decref(root);
+
     if(loadType != DbLoadSaveType::CommandLine)
         dprintf("%ums\n", GetTickCount() - ticks);
 }
@@ -203,7 +187,7 @@ void DbSetPath(const char* Directory, const char* ModulePath)
 {
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
-    // Initialize directory if it was only supplied
+    // Initialize directory only if it was supplied
     if(Directory)
     {
         ASSERT_TRUE(strlen(Directory) > 0);
