@@ -369,11 +369,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             curByte.text = QString("%1").arg(byte, 2, 16, QChar('0')).toUpper();
             DBGPATCHINFO patchInfo;
             if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-            {
-                auto log = QString().sprintf("oldbyte: %02X, newbyte: %02X, byte: %02X\n", patchInfo.oldbyte, patchInfo.newbyte, byte);
-                GuiAddLogMessage(log.toUtf8().constData());
                 curByte.textColor = byte == patchInfo.newbyte ? mModifiedBytesColor : mRestoredBytesColor;
-            }
             else
                 curByte.textColor = mBytesColor;
             richBytes.push_back(curByte);
