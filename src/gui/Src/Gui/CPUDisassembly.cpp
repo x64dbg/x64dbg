@@ -728,15 +728,17 @@ void CPUDisassembly::assembleSlot()
             assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
             assembleDialog.setKeepSizeChecked(ConfigBool("Disassembler", "KeepSize"));
 
-            if(assembleDialog.exec() != QDialog::Accepted)
+            auto exec = assembleDialog.exec();
+
+            Config()->setBool("Disassembler", "FillNOPs", assembleDialog.bFillWithNopsChecked);
+            Config()->setBool("Disassembler", "KeepSize", assembleDialog.bKeepSizeChecked);
+
+            if(exec != QDialog::Accepted)
                 return;
 
             //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
             if(assembleDialog.editText == QString("???") || assembleDialog.editText.toLower() == instr.instStr.toLower() || assembleDialog.editText == QString(""))
                 break;
-
-            Config()->setBool("Disassembler", "FillNOPs", assembleDialog.bFillWithNopsChecked);
-            Config()->setBool("Disassembler", "KeepSize", assembleDialog.bKeepSizeChecked);
 
             if(!DbgFunctions()->AssembleAtEx(wVA, assembleDialog.editText.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {

@@ -31,13 +31,13 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 
     // Setup symbol list
     mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
-    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Type", true);
+    mSearchListView->mList->addColumnAt(charwidth * 6 + 8, "Type", true);
     mSearchListView->mList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mList->addColumnAt(2000, "Symbol (undecorated)", true);
 
     // Setup search list
     mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Address", true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, "Type", true);
+    mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, "Type", true);
     mSearchListView->mSearchList->addColumnAt(charwidth * 80, "Symbol", true);
     mSearchListView->mSearchList->addColumnAt(2000, "Symbol (undecorated)", true);
 
