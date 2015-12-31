@@ -289,8 +289,8 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
         return;
     }
 
-    QPoint mousePos = event->pos();
-    QPoint globalMousePos = event->globalPos();
+    const QPoint & mousePos = event->pos();
+    const QPoint & globalMousePos = event->globalPos();
 
     const int mLine = mousePos.y() / fontHeight;
     const int mBulletX = viewport()->width() - mBulletXOffset;
@@ -299,8 +299,9 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     const int mouseBulletXOffset = abs(mBulletX - mousePos.x());
     const int mouseBulletYOffset = abs(mBulletY - mousePos.y());
 
-    // mouseCursor not on a bullet
-    if(mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius)
+    // if (mouseCursor not on a bullet) or (mLine not in bounds)
+    if((mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius) ||
+            (mLine < 0 || mLine >= mInstrBuffer->size()))
     {
         QToolTip::hideText();
         return;
@@ -318,7 +319,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
         QToolTip::showText(globalMousePos, "BP disabled");
         break;
     case bp_non_existent:
-        QToolTip::showText(globalMousePos, "No BP set");
+        QToolTip::showText(globalMousePos, "BP not set");
         break;
     }
 }
