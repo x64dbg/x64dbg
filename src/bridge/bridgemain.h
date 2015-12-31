@@ -68,10 +68,6 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 #define RIGHTS_STRING_SIZE (sizeof("ERWCG") + 1)
 #define MAX_SECTION_SIZE 10
 #define MAX_COMMAND_LINE_SIZE 256
-
-#define TYPE_VALUE 1
-#define TYPE_MEMORY 2
-#define TYPE_ADDR 4
 #define MAX_MNEMONIC_SIZE 64
 #define PAGE_SIZE 0x1000
 
@@ -586,23 +582,28 @@ typedef struct
 
 typedef struct
 {
-    ULONG_PTR value; //displacement / addrvalue (rip-relative)
+    duint value; //displacement / addrvalue (rip-relative)
     MEMORY_SIZE size; //byte/word/dword/qword
     char mnemonic[MAX_MNEMONIC_SIZE];
 } MEMORY_INFO;
 
 typedef struct
 {
-    ULONG_PTR value;
+    duint value;
     VALUE_SIZE size;
 } VALUE_INFO;
+
+//definitions for BASIC_INSTRUCTION_INFO.type
+#define TYPE_VALUE 1
+#define TYPE_MEMORY 2
+#define TYPE_ADDR 4
 
 typedef struct
 {
     DWORD type; //value|memory|addr
     VALUE_INFO value; //immediat
     MEMORY_INFO memory;
-    ULONG_PTR addr; //addrvalue (jumps + calls)
+    duint addr; //addrvalue (jumps + calls)
     bool branch; //jumps/calls
     bool call; //instruction is a call
     int size;

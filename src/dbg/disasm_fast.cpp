@@ -52,14 +52,14 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
             if(basicinfo->branch)
             {
                 basicinfo->type |= TYPE_ADDR;
-                basicinfo->addr = (duint)op.imm;
-                basicinfo->value.value = (duint)op.imm + basicinfo->size;
+                basicinfo->addr = duint(op.imm);
+                basicinfo->value.value = duint(op.imm);
             }
             else
             {
                 basicinfo->type |= TYPE_VALUE;
-                basicinfo->value.size = (VALUE_SIZE)op.size;
-                basicinfo->value.value = (duint)op.imm;
+                basicinfo->value.size = VALUE_SIZE(op.size);
+                basicinfo->value.value = duint(op.imm);
             }
         }
         break;
@@ -68,16 +68,16 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         {
             const x86_op_mem & mem = op.mem;
             strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
-            basicinfo->memory.size = (MEMORY_SIZE)op.size;
+            basicinfo->memory.size = MEMORY_SIZE(op.size);
             if(op.mem.base == X86_REG_RIP)  //rip-relative
             {
-                basicinfo->memory.value = (ULONG_PTR)(cp->GetInstr()->address + op.mem.disp + basicinfo->size);
+                basicinfo->memory.value = ULONG_PTR(cp->GetInstr()->address + op.mem.disp + basicinfo->size);
                 basicinfo->type |= TYPE_MEMORY;
             }
             else if(mem.disp)
             {
                 basicinfo->type |= TYPE_MEMORY;
-                basicinfo->memory.value = (ULONG_PTR)mem.disp;
+                basicinfo->memory.value = ULONG_PTR(mem.disp);
             }
         }
         break;
