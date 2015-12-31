@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>868</width>
     <height>600</height>
    </rect>
   </property>
@@ -22,7 +22,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>868</width>
      <height>21</height>
     </rect>
    </property>
@@ -95,6 +95,7 @@
     <addaction name="actionReportBug"/>
     <addaction name="separator"/>
     <addaction name="actionManual"/>
+    <addaction name="actionFaq"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuPlugins">
@@ -173,6 +174,9 @@
    <addaction name="actionCheckUpdates"/>
    <addaction name="actionDonate"/>
    <addaction name="actionReportBug"/>
+   <addaction name="separator"/>
+   <addaction name="actionManual"/>
+   <addaction name="actionFaq"/>
    <addaction name="actionAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar">
@@ -675,6 +679,18 @@
    </property>
    <property name="text">
     <string>&amp;Manual</string>
+   </property>
+  </action>
+  <action name="actionFaq">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/faq.png</normaloff>:/icons/images/faq.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;FAQ</string>
+   </property>
+   <property name="toolTip">
+    <string>FAQ</string>
    </property>
   </action>
  </widget>

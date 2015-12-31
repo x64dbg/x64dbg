@@ -1230,3 +1230,8 @@ void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
     else
         loadTabDefaultOrder();
 }
+
+void MainWindow::on_actionFaq_triggered()
+{
+    QDesktopServices::openUrl(QUrl("http://faq.x64dbg.com"));
+}

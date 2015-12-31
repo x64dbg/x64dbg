@@ -65,5 +65,6 @@
         <file>images/entropy.png</file>
         <file>images/notes.png</file>
         <file>images/win-help.png</file>
+        <file>images/faq.png</file>
     </qresource>
 </RCC>

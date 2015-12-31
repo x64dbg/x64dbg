@@ -200,6 +200,8 @@ protected:
 
 public:
     static QString windowTitle;
+private slots:
+    void on_actionFaq_triggered();
 };
 
 #endif // MAINWINDOW_H
