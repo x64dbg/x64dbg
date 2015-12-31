@@ -477,29 +477,10 @@ void MainWindow::removeMRUEntry(QString entry)
 
 void MainWindow::updateMRUMenu()
 {
-    if(mMaxMRU < 1) return;
-
-    QMenu* fileMenu = this->menuBar()->findChild<QMenu*>(QString::fromWCharArray(L"menuFile"));
-    if(fileMenu == NULL)
-    {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to find menu!");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+    if(mMaxMRU < 1)
         return;
-    }
-    fileMenu = fileMenu->findChild<QMenu*>(QString::fromWCharArray(L"menuRecent_Files"));
-    if(fileMenu == NULL)
-    {
-        QMessageBox msg(QMessageBox::Critical, "Error!", "Failed to find submenu!");
-        msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-        return;
-    }
 
+    QMenu* fileMenu = ui->menuRecentFiles;
     QList<QAction*> list = fileMenu->actions();
     for(int i = 1; i < list.length(); ++i)
         fileMenu->removeAction(list.at(i));

@@ -84,11 +84,14 @@ public slots:
     void decompileSelectionSlot();
     void decompileFunctionSlot();
     void displayWarningSlot(QString title, QString text);
+    void labelHelpSlot();
 
 protected:
     void paintEvent(QPaintEvent* event);
 
 private:
+    bool getLabelsFromInstruction(duint addr, QSet<QString> & labels);
+
     // Menus
     QMenu* mHwSlotSelectMenu;
     QMenu* mPluginMenu;
@@ -109,7 +112,6 @@ private:
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
-
 
     // Goto dialog specific
     GotoDialog* mGoto;

@@ -30,14 +30,18 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menuRecent_Files">
+    <widget class="QMenu" name="menuRecentFiles">
      <property name="title">
       <string>&amp;Recent Files</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../resource.qrc">
+       <normaloff>:/icons/images/recentfiles.png</normaloff>:/icons/images/recentfiles.png</iconset>
      </property>
      <addaction name="separator"/>
     </widget>
     <addaction name="actionOpen"/>
-    <addaction name="menuRecent_Files"/>
+    <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
     <addaction name="separator"/>

@@ -66,5 +66,10 @@
         <file>images/notes.png</file>
         <file>images/win-help.png</file>
         <file>images/faq.png</file>
+        <file>images/help.png</file>
+        <file>images/goto.png</file>
+        <file>images/neworigin.png</file>
+        <file>images/find.png</file>
+        <file>images/recentfiles.png</file>
     </qresource>
 </RCC>

@@ -44,6 +44,7 @@ ui_*
 help/x64*dbg.chm
 help/output/
 bin/x64*dbg.chm
+bin/win32.*
 
 # Debugger files to ignore
 CppCheckResults.xml

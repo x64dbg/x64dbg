@@ -1,6 +1,7 @@
 #include "CPUDisassembly.h"
 #include "CPUWidget.h"
 #include <QMessageBox>
+#include <QDesktopServices>
 #include <QClipboard>
 #include "Configuration.h"
 #include "Bridge.h"
@@ -281,7 +282,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu("&Follow in Dump"), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/memory-map.png"), "&Follow in Dump"), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false);
         return true;
@@ -300,6 +301,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/snowman.png"), "Decompile"), decompileMenu);
+
+    mMenuBuilder->addMenu(makeMenu(QIcon(":icons/images/help.png"), "Help on Symbolic Name"), [this](QMenu * menu)
+    {
+        QSet<QString> labels;
+        if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
+            return false;
+        for(auto label : labels)
+            menu->addAction(makeAction(label, SLOT(labelHelpSlot())));
+        return true;
+    });
 
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/highlight.png"), "&Highlighting mode", SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
     mMenuBuilder->addSeparator();
@@ -332,12 +343,12 @@ void CPUDisassembly::setupRightClickContextMenu()
             toggleFunctionAction->setText("Delete function");
         return true;
     });
-    mMenuBuilder->addAction(makeShortcutAction("Assemble", SLOT(assembleSlot()), "ActionAssemble"));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/compile.png"), "Assemble", SLOT(assembleSlot()), "ActionAssemble"));
     removeAction(mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/patch.png"), "Patches", SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
     mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/yara.png"), "&Yara...", SLOT(yaraSlot()), "ActionYara"));
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(makeShortcutAction("Set New Origin Here", SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/neworigin.png"), "Set New Origin Here", SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction("Origin", SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -357,7 +368,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
     gotoMenu->addAction(makeShortcutAction("Start of Page", SLOT(gotoStartSlot()), "ActionGotoStart"));
     gotoMenu->addAction(makeShortcutAction("End of Page", SLOT(gotoEndSlot()), "ActionGotoEnd"));
-    mMenuBuilder->addMenu(makeMenu("Go to"), gotoMenu);
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/goto.png"), "Go to"), gotoMenu);
     mMenuBuilder->addSeparator();
 
     MenuBuilder* searchMenu = new MenuBuilder(this);
@@ -405,7 +416,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mReferenceSelectedAddressAction = makeShortcutAction("&Selected Address(es)", SLOT(findReferencesSlot()), "ActionFindReferencesToSelectedAddress");
     mReferenceSelectedAddressAction->setFont(QFont("Courier New", 8));
 
-    mMenuBuilder->addMenu(makeMenu("Find &references to"), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/find.png"), "Find &references to"), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, true);
         return true;
@@ -1259,4 +1270,50 @@ void CPUDisassembly::paintEvent(QPaintEvent* event)
 
     // Signal to render the original content
     Disassembly::paintEvent(event);
+}
+
+bool CPUDisassembly::getLabelsFromInstruction(duint addr, QSet<QString> & labels)
+{
+    BASIC_INSTRUCTION_INFO basicinfo;
+    DbgDisasmFastAt(addr, &basicinfo);
+    std::vector<duint> values = { basicinfo.addr, basicinfo.value.value, basicinfo.memory.value};
+    for(auto value : values)
+    {
+        char label_[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(value, SEG_DEFAULT, label_))
+        {
+            //TODO: better cleanup of names
+            QString label(label_);
+            if(label.endsWith("A") || label.endsWith("W"))
+                label = label.left(label.length() - 1);
+            if(label.startsWith("&"))
+                label = label.right(label.length() - 1);
+            labels.insert(label);
+        }
+    }
+    return labels.size() != 0;
+}
+
+void CPUDisassembly::labelHelpSlot()
+{
+    QString topic = ((QAction*)sender())->text();
+    char setting[MAX_SETTING_SIZE] = "";
+    if(!BridgeSettingGet("Misc", "HelpOnSymbolicNameUrl", setting))
+    {
+        //"execute://winhlp32.exe -k@topic ..\\win32.hlp";
+        strcpy_s(setting, "https://www.google.com/search?q=@topic");
+        BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", setting);
+    }
+    QString baseUrl(setting);
+    QString fullUrl = baseUrl.replace("@topic", topic);
+
+    if(fullUrl.startsWith("execute://"))
+    {
+        QString command = fullUrl.right(fullUrl.length() - 10);
+        QProcess::execute(command);
+    }
+    else
+    {
+        QDesktopServices::openUrl(QUrl(fullUrl));
+    }
 }
