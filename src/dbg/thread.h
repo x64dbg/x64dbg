@@ -10,6 +10,7 @@ int ThreadGetCount();
 void ThreadGetList(THREADLIST* list);
 bool ThreadIsValid(DWORD ThreadId);
 bool ThreadSetName(DWORD ThreadId, const char* name);
+bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib);
 bool ThreadGetTeb(duint TEBAddress, TEB* Teb);
 int ThreadGetSuspendCount(HANDLE Thread);
 THREADPRIORITY ThreadGetPriority(HANDLE Thread);

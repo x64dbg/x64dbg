@@ -111,6 +111,15 @@ bool ThreadIsValid(DWORD ThreadId)
     return threadList.find(ThreadId) != threadList.end();
 }
 
+bool ThreadGetTib(duint TEBAddress, NT_TIB* Tib)
+{
+    // Calculate offset from structure member
+    TEBAddress += offsetof(TEB, Tib);
+
+    memset(Tib, 0, sizeof(NT_TIB));
+    return MemRead(TEBAddress, Tib, sizeof(NT_TIB));
+}
+
 bool ThreadGetTeb(duint TEBAddress, TEB* Teb)
 {
     memset(Teb, 0, sizeof(TEB));

@@ -21,6 +21,7 @@ std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 DWORD memMapThreadCounter = 0;
 
+#include "console.h"
 void MemUpdateMap()
 {
     // First gather all possible pages in the memory range
@@ -176,23 +177,40 @@ void MemUpdateMap()
         // Check in threads
         for(int i = 0; i < threadList.count; i++)
         {
-            duint tebBase = threadList.list[i].BasicInfo.ThreadLocalBase;
             DWORD threadId = threadList.list[i].BasicInfo.ThreadId;
 
             // Mark TEB
+            //
+            // TebBase:      Points to 32/64 TEB
+            // TebBaseWow64: Points to 64 TEB in a 32bit process
+            duint tebBase = threadList.list[i].BasicInfo.ThreadLocalBase;
+            duint tebBaseWow64 = tebBase - (2 * PAGE_SIZE);
+
             if(pageBase == tebBase)
             {
                 sprintf_s(page.info, "Thread %X TEB", threadId);
                 break;
             }
+            else if(pageBase == tebBaseWow64)
+            {
+#ifndef _WIN64
+                if(pageSize == (3 * PAGE_SIZE))
+                {
+                    sprintf_s(page.info, "Thread %X WoW64 TEB", threadId);
+                    break;
+                }
+#endif // ndef _WIN64
+            }
 
-            // Read the TEB to get stack information
-            TEB teb;
-            if(!ThreadGetTeb(tebBase, &teb))
+            // Mark stack
+            //
+            // Read TEB::Tib to get stack information
+            NT_TIB tib;
+            if(!ThreadGetTib(tebBase, &tib))
                 continue;
 
             // The stack will be a specific range only, not always the base address
-            duint stackAddr = (duint)teb.Tib.StackLimit;
+            duint stackAddr = (duint)tib.StackLimit;
 
             if(stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
                 sprintf_s(page.info, "Thread %X Stack", threadId);
