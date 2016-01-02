@@ -631,9 +631,6 @@
     <ClInclude Include="linearanalysis.h">
       <Filter>Header Files\Analysis</Filter>
     </ClInclude>
-    <ClInclude Include="dynamicptr.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="_scriptapi_flag.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>

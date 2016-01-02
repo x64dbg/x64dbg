@@ -121,7 +121,6 @@
     <ClInclude Include="disasm_fast.h" />
     <ClInclude Include="disasm_helper.h" />
     <ClInclude Include="dynamicmem.h" />
-    <ClInclude Include="dynamicptr.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exceptiondirectoryanalysis.h" />

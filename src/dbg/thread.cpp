@@ -7,7 +7,6 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
-#include "dynamicptr.h"
 
 std::unordered_map<DWORD, THREADINFO> threadList;
 
@@ -150,7 +149,12 @@ THREADWAITREASON ThreadGetWaitReason(HANDLE Thread)
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
 {
-    return RemoteMemberPtr(ThreadLocalBase, &TEB::LastErrorValue).get();
+    // Get the offset for the TEB::LastErrorValue and read it
+    DWORD lastError = 0;
+    duint structOffset = ThreadLocalBase + offsetof(TEB, LastErrorValue);
+
+    MemRead(structOffset, &lastError, sizeof(DWORD));
+    return lastError;
 }
 
 DWORD ThreadGetLastError(DWORD ThreadId)
