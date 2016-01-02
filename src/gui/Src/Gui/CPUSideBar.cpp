@@ -313,13 +313,13 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     switch(Breakpoints::BPState(bp_normal, wVA))
     {
     case bp_enabled:
-        QToolTip::showText(globalMousePos, "BP enabled");
+        QToolTip::showText(globalMousePos, "Breakpoint Enabled");
         break;
     case bp_disabled:
-        QToolTip::showText(globalMousePos, "BP disabled");
+        QToolTip::showText(globalMousePos, "Breakpoint Disabled");
         break;
     case bp_non_existent:
-        QToolTip::showText(globalMousePos, "BP not set");
+        QToolTip::showText(globalMousePos, "Breakpoint Not Set");
         break;
     }
 }

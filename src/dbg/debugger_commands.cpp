@@ -230,8 +230,11 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     const char* bpname = 0;
     if(*argname)
         bpname = argname;
-    if(BpGet(addr, BPNORMAL, bpname, 0))
+    BREAKPOINT bp;
+    if(BpGet(addr, BPNORMAL, bpname, &bp))
     {
+        if(!bp.enabled)
+            return DbgCmdExecDirect(StringUtils::sprintf("bpe " fhex, bp.addr).c_str()) ? STATUS_CONTINUE : STATUS_ERROR;
         dputs("Breakpoint already set!");
         return STATUS_CONTINUE;
     }
@@ -554,9 +557,12 @@ CMDRESULT cbDebugSetMemoryBpx(int argc, char* argv[])
     bool singleshoot = false;
     if(!restore)
         singleshoot = true;
-    if(BpGet(base, BPMEMORY, 0, 0))
+    BREAKPOINT bp;
+    if(BpGet(base, BPMEMORY, 0, &bp))
     {
-        dputs("Hardware breakpoint already set!");
+        if(!bp.enabled)
+            return DbgCmdExecDirect(StringUtils::sprintf("bpme " fhex, bp.addr).c_str()) ? STATUS_CONTINUE : STATUS_ERROR;
+        dputs("Memory breakpoint already set!");
         return STATUS_CONTINUE;
     }
     if(!BpNew(base, true, singleshoot, 0, BPMEMORY, type, 0))
@@ -714,8 +720,11 @@ CMDRESULT cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     TITANSETTYPE(titantype, type);
     TITANSETSIZE(titantype, titsize);
     //TODO: hwbp in multiple threads TEST
-    if(BpGet(addr, BPHARDWARE, 0, 0))
+    BREAKPOINT bp;
+    if(BpGet(addr, BPHARDWARE, 0, &bp))
     {
+        if(!bp.enabled)
+            return DbgCmdExecDirect(StringUtils::sprintf("bphwe " fhex, bp.addr).c_str()) ? STATUS_CONTINUE : STATUS_ERROR;
         dputs("Hardware breakpoint already set!");
         return STATUS_CONTINUE;
     }
