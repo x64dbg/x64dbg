@@ -19,6 +19,7 @@
 
 std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
+DWORD memMapThreadCounter = 0;
 
 void MemUpdateMap()
 {
@@ -212,6 +213,13 @@ void MemUpdateMap()
         duint size = (duint)page.mbi.RegionSize;
         memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), page));
     }
+}
+
+void MemUpdateMapAsync()
+{
+    // Setting the last tick to 0 will force the thread to execute MemUpdateMap()
+    // as soon as possible
+    InterlockedExchange((volatile LONG*)&memMapThreadCounter, 0);
 }
 
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
@@ -414,11 +422,6 @@ bool MemFreeRemote(duint Address)
     return VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE) == TRUE;
 }
 
-duint MemGetPageAligned(duint Address)
-{
-    return PAGE_ALIGN(Address);
-}
-
 bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh)
 {
     // Update the memory map if needed
@@ -443,7 +446,7 @@ bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh)
 bool MemSetPageRights(duint Address, const char* Rights)
 {
     // Align address to page base
-    Address = MemGetPageAligned(Address);
+    Address = PAGE_ALIGN(Address);
 
     // String -> bit mask
     DWORD protect;
@@ -457,7 +460,7 @@ bool MemSetPageRights(duint Address, const char* Rights)
 bool MemGetPageRights(duint Address, char* Rights)
 {
     // Align address to page base
-    Address = MemGetPageAligned(Address);
+    Address = PAGE_ALIGN(Address);
 
     MEMORY_BASIC_INFORMATION mbi;
     memset(&mbi, 0, sizeof(MEMORY_BASIC_INFORMATION));

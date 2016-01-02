@@ -6,6 +6,7 @@
 
 extern std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 extern bool bListAllPages;
+extern DWORD memMapThreadCounter;
 
 struct SimplePage
 {
@@ -20,6 +21,7 @@ struct SimplePage
 };
 
 void MemUpdateMap();
+void MemUpdateMapAsync();
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh = false);
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr);
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
@@ -29,7 +31,6 @@ bool MemIsCanonicalAddress(duint Address);
 bool MemIsCodePage(duint Address, bool Refresh);
 duint MemAllocRemote(duint Address, duint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);
 bool MemFreeRemote(duint Address);
-duint MemGetPageAligned(duint Address);
 bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh = false);
 bool MemSetPageRights(duint Address, const char* Rights);
 bool MemGetPageRights(duint Address, char* Rights);

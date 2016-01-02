@@ -63,12 +63,19 @@ static DWORD WINAPI memMapThread(void* ptr)
                 break;
             Sleep(1);
         }
-        if(bStopMemMapThread)
-            break;
-        MemUpdateMap();
-        GuiUpdateMemoryView();
-        Sleep(1000);
+
+        // Execute the update only if the delta if >= 1 second
+        if((GetTickCount() - memMapThreadCounter) >= 1000)
+        {
+            MemUpdateMap();
+            GuiUpdateMemoryView();
+
+            memMapThreadCounter = GetTickCount();
+        }
+
+        Sleep(50);
     }
+
     return 0;
 }
 
@@ -106,6 +113,7 @@ void dbginit()
 void dbgstop()
 {
     bStopMemMapThread = true;
+    memMapThreadCounter = 0;
     bStopTimeWastedCounterThread = true;
     WaitForThreadTermination(hMemMapThread);
     WaitForThreadTermination(hTimeWastedCounterThread);
@@ -867,9 +875,8 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     if(SafeSymGetModuleInfo64(fdProcessInfo->hProcess, (DWORD64)base, &modInfo))
         ModLoad((duint)base, modInfo.ImageSize, modInfo.ImageName);
 
-    //update memory map
-    MemUpdateMap();
-    GuiUpdateMemoryView();
+    // Update memory map
+    MemUpdateMapAsync();
 
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
@@ -995,8 +1002,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     ModUnload((duint)base);
 
     //update memory map
-    MemUpdateMap();
-    GuiUpdateMemoryView();
+    MemUpdateMapAsync();
 }
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
