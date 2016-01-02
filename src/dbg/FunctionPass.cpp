@@ -280,7 +280,6 @@ bool FunctionPass::ResolveKnownFunctionEnd(FunctionDef* Function)
     return true;
 }
 
-#include "console.h"
 bool FunctionPass::ResolveFunctionEnd(FunctionDef* Function, BasicBlock* LastBlock)
 {
     ASSERT_TRUE(Function->VirtualStart != 0);

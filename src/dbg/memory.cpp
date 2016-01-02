@@ -21,7 +21,6 @@ std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 DWORD memMapThreadCounter = 0;
 
-#include "console.h"
 void MemUpdateMap()
 {
     // First gather all possible pages in the memory range
