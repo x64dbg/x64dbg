@@ -77,6 +77,7 @@ public:
     } ColumnDescriptor_t;
 
     explicit HexDump(QWidget* parent = 0);
+    virtual ~HexDump();
 
     // Configuration
     virtual void updateColors();

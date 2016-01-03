@@ -25,8 +25,6 @@ public:
     void historyNext();
     void historyClear();
 
-
-
 signals:
     void displayReferencesWidget();
 

@@ -376,11 +376,11 @@ void Configuration::readBools()
     for(int i = 0; i < Bools.size(); i++)
     {
         QString category = Bools.keys().at(i);
-        QMap<QString, bool>* currentBool = &Bools[category];
-        for(int j = 0; j < currentBool->size(); j++)
+        QMap<QString, bool> & currentBool = Bools[category];
+        for(int j = 0; j < currentBool.size(); j++)
         {
-            QString id = (*currentBool).keys().at(j);
-            (*currentBool)[id] = boolFromConfig(category, id);
+            QString id = currentBool.keys().at(j);
+            currentBool[id] = boolFromConfig(category, id);
         }
     }
 }
@@ -407,11 +407,11 @@ void Configuration::readUints()
     for(int i = 0; i < Uints.size(); i++)
     {
         QString category = Uints.keys().at(i);
-        QMap<QString, duint>* currentUint = &Uints[category];
-        for(int j = 0; j < currentUint->size(); j++)
+        QMap<QString, duint> & currentUint = Uints[category];
+        for(int j = 0; j < currentUint.size(); j++)
         {
-            QString id = (*currentUint).keys().at(j);
-            (*currentUint)[id] = uintFromConfig(category, id);
+            QString id = currentUint.keys().at(j);
+            currentUint[id] = uintFromConfig(category, id);
         }
     }
 }

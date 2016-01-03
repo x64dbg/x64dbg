@@ -53,6 +53,12 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 }
 
+Disassembly::~Disassembly()
+{
+    delete mMemPage;
+    delete mDisasm;
+}
+
 void Disassembly::updateColors()
 {
     AbstractTableView::updateColors();

@@ -7,8 +7,8 @@
 #include "Bridge.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)
+    : QNetworkAccessManager(parent)
 {
-    mParent = parent;
     connect(this, SIGNAL(finished(QNetworkReply*)), this, SLOT(finishedSlot(QNetworkReply*)));
 }
 
