@@ -104,5 +104,7 @@ int main(int argc, char* argv[])
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
 
+    //TODO free capstone/config/bridge and prevent use after free.
+
     return result;
 }
