@@ -273,6 +273,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCpuWidget->setDisasmFocus();
 }
 
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     mCloseDialog->show();
@@ -293,11 +298,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
     else
         event->ignore();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::setTab(QWidget* widget)

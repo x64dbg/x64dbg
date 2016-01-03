@@ -38,7 +38,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
-    static DWORD WINAPI closeThread(void* ptr);
+
     void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
     void loadTabDefaultOrder();
