@@ -144,7 +144,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
     // Create the tab widget
-    mTabWidget = new MHTabWidget(NULL);
+    mTabWidget = new MHTabWidget();
 
     // Add all widgets to the list
     mWidgetList.push_back(mCpuWidget);
@@ -271,8 +271,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->setDisasmFocus();
-
-    GuiAddLogMessage(QString().sprintf("Thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -339,22 +337,18 @@ void MainWindow::loadTabSavedOrder()
     }
 
     // Setup tabs
-    QMap<duint, QWidget*>::iterator it = tabIndexToWidget.begin();
-    for(it; it != tabIndexToWidget.end(); it++)
-    {
-        addQWidgetTab(it.value());
-    }
+    for(auto & widget : tabIndexToWidget)
+        addQWidgetTab(widget);
 }
 
 void MainWindow::clearTabWidget()
 {
-    if(!mTabWidget->count())
+    if(mTabWidget->count() <= 0)
         return;
 
+    // Remove all tabs starting from the end
     for(int i = mTabWidget->count() - 1; i >= 0; i--)
-    {
         mTabWidget->removeTab(i);
-    }
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)

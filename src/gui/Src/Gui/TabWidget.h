@@ -23,7 +23,7 @@ class MHTabWidget: public QTabWidget
     Q_OBJECT
 
 public:
-    MHTabWidget(QWidget* parent, bool allowDetach = true, bool allowDelete = false);
+    MHTabWidget(QWidget* parent = nullptr, bool allowDetach = true, bool allowDelete = false);
     virtual ~MHTabWidget(void);
 
     QWidget* widget(int index) const;
