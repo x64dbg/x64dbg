@@ -1,5 +1,4 @@
 #include "CommandLineEdit.h"
-#include <QStringListModel>
 #include "Bridge.h"
 
 CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
@@ -11,6 +10,7 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     mCompleter = new QCompleter(QStringList(), this);
     mCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     mCompleter->setCompletionMode(QCompleter::PopupCompletion);
+    mCompleterModel = (QStringListModel*)mCompleter->model();
     this->setCompleter(mCompleter);
 
     // Initialize default script execute function
@@ -40,8 +40,7 @@ void CommandLineEdit::keyPressEvent(QKeyEvent* event)
     }
 
     // Tab autocompletes the command
-    QStringListModel* strListModel = (QStringListModel*)mCompleter->model();
-    QStringList stringList = strListModel->stringList();
+    QStringList stringList = mCompleterModel->stringList();
 
     if(stringList.size())
     {
@@ -83,71 +82,76 @@ bool CommandLineEdit::focusNextPrevChild(bool next)
 
 void CommandLineEdit::autoCompleteUpdate(const QString text)
 {
-    QStringListModel* model = (QStringListModel*)mCompleter->model();
-    SCRIPTCOMPLETER complete = mScriptInfo[mCurrentScriptIndex].CompleteCommand;
-
-    // Save current index
-    QModelIndex modelIndex = mCompleter->popup()->currentIndex();
-
-    if(complete)
+    // No command, no completer
+    if(text.length() <= 0)
     {
-        // This will hold an array of strings allocated by BridgeAlloc
-        char* completionList[32];
-        int completionCount = _countof(completionList);
-
-        complete(text.toUtf8().constData(), completionList, &completionCount);
-
-        if(completionCount > 0)
-        {
-            QStringList stringList;
-
-            // Append to the QCompleter string list and free the data
-            for(int i = 0; i < completionCount; i++)
-            {
-                stringList.append(completionList[i]);
-                BridgeFree(completionList[i]);
-            }
-
-            model->setStringList(stringList);
-        }
-        else
-        {
-            // Otherwise set the completer to nothing
-            model->setStringList(QStringList());
-        }
+        mCompleterModel->setStringList(QStringList());
     }
     else
     {
-        // Native auto-completion
-        if(mCurrentScriptIndex == 0)
-            model->setStringList(mDefaultScriptCompletes);
-    }
+        // Save current index
+        QModelIndex modelIndex = mCompleter->popup()->currentIndex();
 
-    // Restore index
-    mCompleter->popup()->setCurrentIndex(modelIndex);
+        // User supplied callback
+        SCRIPTCOMPLETER complete = mScriptInfo[mCurrentScriptIndex].CompleteCommand;
+
+        if(complete)
+        {
+            // This will hold an array of strings allocated by BridgeAlloc
+            char* completionList[32];
+            int completionCount = _countof(completionList);
+
+            complete(text.toUtf8().constData(), completionList, &completionCount);
+
+            if(completionCount > 0)
+            {
+                QStringList stringList;
+
+                // Append to the QCompleter string list and free the data
+                for(int i = 0; i < completionCount; i++)
+                {
+                    stringList.append(completionList[i]);
+                    BridgeFree(completionList[i]);
+                }
+
+                mCompleterModel->setStringList(stringList);
+            }
+            else
+            {
+                // Otherwise set the completer to nothing
+                mCompleterModel->setStringList(QStringList());
+            }
+        }
+        else
+        {
+            // Native auto-completion
+            if(mCurrentScriptIndex == 0)
+                mCompleterModel->setStringList(mDefaultCompletions);
+        }
+
+        // Restore index
+        mCompleter->popup()->setCurrentIndex(modelIndex);
+    }
 }
 
 void CommandLineEdit::autoCompleteAddCmd(const QString cmd)
 {
-    QStringList & stringList = mDefaultScriptCompletes;
-
-    stringList << cmd.split(QChar('\1'), QString::SkipEmptyParts);
-    stringList.removeDuplicates();
+    mDefaultCompletions << cmd.split(QChar('\1'), QString::SkipEmptyParts);
+    mDefaultCompletions.removeDuplicates();
 }
 
 void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
 {
-    QStringList & stringList = mDefaultScriptCompletes;
     QStringList deleteList = cmd.split(QChar('\1'), QString::SkipEmptyParts);
 
     for(int i = 0; i < deleteList.size(); i++)
-        stringList.removeAll(deleteList.at(i));
+        mDefaultCompletions.removeAll(deleteList.at(i));
 }
 
 void CommandLineEdit::autoCompleteClearAll()
 {
     // Update internal list only
-    mDefaultScriptCompletes.clear();
+    mDefaultCompletions.clear();
 }
 
 void CommandLineEdit::scriptTypeChanged(int index)

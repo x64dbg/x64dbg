@@ -4,6 +4,7 @@
 #include "HistoryLineEdit.h"
 #include <QCompleter>
 #include <QComboBox>
+#include <QStringListModel>
 
 typedef bool (* SCRIPTEXECUTE)(const char* Text);
 typedef void (* SCRIPTCOMPLETER)(const char* Text, char** Entries, int* EntryCount);
@@ -41,8 +42,9 @@ public slots:
 private:
     QComboBox* mCmdScriptType;
     QCompleter* mCompleter;
+    QStringListModel* mCompleterModel;
     QList<GUI_SCRIPT_INFO> mScriptInfo;
-    QStringList mDefaultScriptCompletes;
+    QStringList mDefaultCompletions;
     int mCurrentScriptIndex;
 };
 
