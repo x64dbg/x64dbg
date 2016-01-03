@@ -4,67 +4,74 @@
 
 CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
 {
+    // QComboBox
+    mCmdScriptType = new QComboBox(this);
+
     //Initialize QCompleter
     mCompleter = new QCompleter(QStringList(), this);
     mCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     mCompleter->setCompletionMode(QCompleter::PopupCompletion);
     this->setCompleter(mCompleter);
 
+    // Initialize default script execute function
+    GUI_SCRIPT_INFO info;
+    info.DisplayName = "Default";
+    info.AssignedId = 0;
+    info.Execute = DbgCmdExec;
+    info.CompleteCommand = nullptr;
+    registerScriptType(&info);
+
     //Setup signals & slots
     connect(mCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()), Qt::QueuedConnection);
+    connect(this, SIGNAL(textChanged(QString)), this, SLOT(autoCompleteUpdate(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteAddCmd(QString)), this, SLOT(autoCompleteAddCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
+    connect(mCmdScriptType, SIGNAL(currentIndexChanged(int)), this, SLOT(scriptTypeChanged(int)));
 }
 
 void CommandLineEdit::keyPressEvent(QKeyEvent* event)
 {
-    if(event->type() == QEvent::KeyPress)
+    // We only want key-press events for TAB
+    if(event->type() != QEvent::KeyPress || event->key() != Qt::Key_Tab)
     {
-        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-        if(keyEvent->key() == Qt::Key_Tab)
+        HistoryLineEdit::keyPressEvent(event);
+        return;
+    }
+
+    // Tab autocompletes the command
+    QStringListModel* strListModel = (QStringListModel*)mCompleter->model();
+    QStringList stringList = strListModel->stringList();
+
+    if(stringList.size())
+    {
+        QAbstractItemView* popup = mCompleter->popup();
+        QModelIndex currentModelIndex = popup->currentIndex();
+
+        // If not item selected, select first one in the list
+        if(currentModelIndex.row() < 0)
+            currentModelIndex = mCompleter->currentIndex();
+
+        // If popup list is not visible, selected next suggested command
+        if(!popup->isVisible())
         {
-            QStringListModel* strListModel = (QStringListModel*)(mCompleter->model());
-            QStringList stringList = strListModel->stringList();
-
-            if(stringList.size())
+            for(int row = 0; row < popup->model()->rowCount(); row++)
             {
-                QModelIndex currentModelIndex = mCompleter->popup()->currentIndex();
+                QModelIndex modelIndex = popup->model()->index(row, 0);
 
-                // If not item selected, select first one in the list
-                if(currentModelIndex.row() < 0)
-                    currentModelIndex = mCompleter->currentIndex();
-
-
-                // If popup list is not visible, selected next suggested command
-                if(!mCompleter->popup()->isVisible())
+                // If the lineedit contains a suggested command, get the next suggested one
+                if(popup->model()->data(modelIndex) == this->text())
                 {
-                    for(int row = 0; row < mCompleter->popup()->model()->rowCount(); row++)
-                    {
-                        QModelIndex modelIndex = mCompleter->popup()->model()->index(row, 0);
-
-                        // If the lineedit contains a suggested command, get the next suggested one
-                        if(mCompleter->popup()->model()->data(modelIndex) == this->text())
-                        {
-                            int nextModelIndexRow = (currentModelIndex.row() + 1) % mCompleter->popup()->model()->rowCount();
-                            currentModelIndex = mCompleter->popup()->model()->index(nextModelIndexRow, 0);
-                            break;
-                        }
-                    }
+                    int nextModelIndexRow = (currentModelIndex.row() + 1) % popup->model()->rowCount();
+                    currentModelIndex = popup->model()->index(nextModelIndexRow, 0);
+                    break;
                 }
-
-                mCompleter->popup()->setCurrentIndex(currentModelIndex);
-                mCompleter->popup()->hide();
-
-                int currentRow = mCompleter->currentRow();
-                mCompleter->setCurrentRow(currentRow);
             }
         }
-        else
-            HistoryLineEdit::keyPressEvent(event);
+
+        popup->setCurrentIndex(currentModelIndex);
+        popup->hide();
     }
-    else
-        HistoryLineEdit::keyPressEvent(event);
 }
 
 // Disables moving to Prev/Next child when pressing tab
@@ -74,27 +81,138 @@ bool CommandLineEdit::focusNextPrevChild(bool next)
     return false;
 }
 
+void CommandLineEdit::autoCompleteUpdate(const QString text)
+{
+    QStringListModel* model = (QStringListModel*)mCompleter->model();
+    SCRIPTCOMPLETER complete = mScriptInfo[mCurrentScriptIndex].CompleteCommand;
+
+    // Save current index
+    QModelIndex modelIndex = mCompleter->popup()->currentIndex();
+
+    if(complete)
+    {
+        // This will hold an array of strings allocated by BridgeAlloc
+        char* completionList[32];
+        int completionCount = _countof(completionList);
+
+        complete(text.toUtf8().constData(), completionList, &completionCount);
+
+        if(completionCount > 0)
+        {
+            QStringList stringList;
+
+            // Append to the QCompleter string list and free the data
+            for(int i = 0; i < completionCount; i++)
+            {
+                stringList.append(completionList[i]);
+                BridgeFree(completionList[i]);
+            }
+
+            model->setStringList(stringList);
+        }
+        else
+        {
+            // Otherwise set the completer to nothing
+            model->setStringList(QStringList());
+        }
+    }
+    else
+    {
+        // Native auto-completion
+        if(mCurrentScriptIndex == 0)
+            model->setStringList(mDefaultScriptCompletes);
+    }
+
+    // Restore index
+    mCompleter->popup()->setCurrentIndex(modelIndex);
+}
+
 void CommandLineEdit::autoCompleteAddCmd(const QString cmd)
 {
-    QStringListModel* model = (QStringListModel*)(mCompleter->model());
-    QStringList stringList = model->stringList();
+    QStringList & stringList = mDefaultScriptCompletes;
+
     stringList << cmd.split(QChar('\1'), QString::SkipEmptyParts);
     stringList.removeDuplicates();
-    model->setStringList(stringList);
 }
 
 void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
 {
-    QStringListModel* model = (QStringListModel*)(mCompleter->model());
-    QStringList stringList = model->stringList();
+    QStringList & stringList = mDefaultScriptCompletes;
     QStringList deleteList = cmd.split(QChar('\1'), QString::SkipEmptyParts);
+
     for(int i = 0; i < deleteList.size(); i++)
         stringList.removeAll(deleteList.at(i));
-    model->setStringList(stringList);
 }
 
 void CommandLineEdit::autoCompleteClearAll()
 {
-    QStringListModel* model = (QStringListModel*)(mCompleter->model());
-    model->setStringList(QStringList());
+    // Update internal list only
+    mDefaultScriptCompletes.clear();
+}
+
+void CommandLineEdit::scriptTypeChanged(int index)
+{
+    mCurrentScriptIndex = index;
+}
+
+void CommandLineEdit::registerScriptType(GUI_SCRIPT_INFO* info)
+{
+    // Must be valid pointer
+    if(!info)
+        return;
+
+    // Insert
+    info->AssignedId = mScriptInfo.size();
+    mScriptInfo.push_back(*info);
+
+    // Update
+    mCmdScriptType->addItem(info->DisplayName);
+
+    if(info->AssignedId == 0)
+        mCurrentScriptIndex = 0;
+}
+
+void CommandLineEdit::unregisterScriptType(int Id)
+{
+    // The default script type can't be unregistered
+    if(Id <= 0)
+        return;
+
+    // Loop through the vector and invalidate entry (validate id)
+    for(int i = 0; i < mScriptInfo.size(); i++)
+    {
+        if(mScriptInfo[i].AssignedId == Id)
+        {
+            mScriptInfo.removeAt(i);
+            mCmdScriptType->removeItem(i);
+            break;
+        }
+    }
+
+    // Update selected index
+    if(mCurrentScriptIndex > 0)
+        mCurrentScriptIndex--;
+
+    mCmdScriptType->setCurrentIndex(mCurrentScriptIndex);
+}
+
+void CommandLineEdit::execute()
+{
+    SCRIPTEXECUTE exec = mScriptInfo[mCurrentScriptIndex].Execute;
+    const QString & cmd = text();
+
+    if(exec)
+    {
+        // Send this string directly to the user
+        exec(cmd.toUtf8().constData());
+    }
+
+    // Add this line to the history and clear text, regardless if it was executed
+    addLineToHistory(cmd);
+    setText("");
+}
+
+QWidget* CommandLineEdit::selectorWidget()
+{
+    return mCmdScriptType;
 }

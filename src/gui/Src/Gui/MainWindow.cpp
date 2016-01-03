@@ -168,23 +168,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     setCentralWidget(mTabWidget);
 
-    // Setup the command bar
-    mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
-    ui->cmdBar->addWidget(new QLabel("Command: "));
-    ui->cmdBar->addWidget(mCmdLineEdit);
+    // Setup the command and status bars
+    setupCommandBar();
+    setupStatusBar();
 
-    // Status bar
-    mStatusLabel = new StatusLabel(ui->statusBar);
-    mStatusLabel->setText("Ready");
-    ui->statusBar->addWidget(mStatusLabel);
-    mLastLogLabel = new StatusLabel();
-    ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
-
-    // Time wasted counter
-    QLabel* timeWastedLabel = new QLabel(this);
-    ui->statusBar->addPermanentWidget(timeWastedLabel);
-    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
-
+    // Patch dialog
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
     connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
@@ -276,6 +264,30 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setupCommandBar()
+{
+    mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
+    ui->cmdBar->addWidget(mCmdLineEdit->selectorWidget());
+    ui->cmdBar->addWidget(mCmdLineEdit);
+}
+
+void MainWindow::setupStatusBar()
+{
+    // Status label (Ready, Paused, ...)
+    mStatusLabel = new StatusLabel(ui->statusBar);
+    mStatusLabel->setText("Ready");
+    ui->statusBar->addWidget(mStatusLabel);
+
+    // Log line
+    mLastLogLabel = new StatusLabel();
+    ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
+
+    // Time wasted counter
+    QLabel* timeWastedLabel = new QLabel(this);
+    ui->statusBar->addPermanentWidget(timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -502,12 +514,7 @@ QString MainWindow::getMRUEntry(int index)
 
 void MainWindow::executeCommand()
 {
-    QString & wCmd = mCmdLineEdit->text();
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-
-    mCmdLineEdit->addLineToHistory(wCmd);
-    mCmdLineEdit->setText("");
+    mCmdLineEdit->execute();
 }
 
 void MainWindow::execStepOver()

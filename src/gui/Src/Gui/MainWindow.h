@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDragEnterEvent>
+#include <QComboBox>
 #include "CloseDialog.h"
 #include "CommandLineEdit.h"
 #include "TabWidget.h"
@@ -39,6 +40,8 @@ public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
 
+    void setupCommandBar();
+    void setupStatusBar();
     void closeEvent(QCloseEvent* event);
     void setTab(QWidget* widget);
     void loadTabDefaultOrder();
