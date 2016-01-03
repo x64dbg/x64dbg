@@ -482,6 +482,8 @@ bool CapstoneTokenizer::tokenizeMemOperand(const cs_x86_op & op)
                 addMemoryOperator(operatorText);
             addToken(displacementType, valueText, value);
         }
+        else if(!prependPlus)
+            addToken(TokenType::Value, "0");
     }
 
     //closing bracket
