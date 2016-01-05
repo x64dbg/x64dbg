@@ -2,6 +2,7 @@
 #define COMMANDLINEEDIT_H
 
 #include "HistoryLineEdit.h"
+#include <QAbstractItemView>
 #include <QCompleter>
 #include <QComboBox>
 #include <QStringListModel>
