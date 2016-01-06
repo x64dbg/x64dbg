@@ -13,14 +13,6 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     mCompleterModel = (QStringListModel*)mCompleter->model();
     this->setCompleter(mCompleter);
 
-    // Initialize default script execute function
-    SCRIPTTYPEINFO info;
-    strcpy(info.name, "Default");
-    info.id = 0;
-    info.execute = DbgCmdExec;
-    info.completeCommand = nullptr;
-    registerScriptType(&info);
-
     //Setup signals & slots
     connect(mCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()), Qt::QueuedConnection);
     connect(this, SIGNAL(textChanged(QString)), this, SLOT(autoCompleteUpdate(QString)));
