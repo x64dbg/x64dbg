@@ -116,6 +116,8 @@ signals:
     void getDebuggeeNotes(void* text);
     void dumpAtN(duint va, int index);
     void displayWarning(QString title, QString text);
+    void registerScriptLang(SCRIPTTYPEINFO* info);
+    void unregisterScriptLang(int id);
 
 private:
     QMutex* mBridgeMutex;

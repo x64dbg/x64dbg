@@ -14,11 +14,11 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     this->setCompleter(mCompleter);
 
     // Initialize default script execute function
-    GUI_SCRIPT_INFO info;
-    info.DisplayName = "Default";
-    info.AssignedId = 0;
-    info.Execute = DbgCmdExec;
-    info.CompleteCommand = nullptr;
+    SCRIPTTYPEINFO info;
+    strcpy(info.name, "Default");
+    info.id = 0;
+    info.execute = DbgCmdExec;
+    info.completeCommand = nullptr;
     registerScriptType(&info);
 
     //Setup signals & slots
@@ -27,6 +27,8 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     connect(Bridge::getBridge(), SIGNAL(autoCompleteAddCmd(QString)), this, SLOT(autoCompleteAddCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
+    connect(Bridge::getBridge(), SIGNAL(registerScriptLang(SCRIPTTYPEINFO*)), this, SLOT(registerScriptType(SCRIPTTYPEINFO*)));
+    connect(Bridge::getBridge(), SIGNAL(unregisterScriptLang(SCRIPTTYPEINFO*)), this, SLOT(unregisterScriptType(SCRIPTTYPEINFO*)));
     connect(mCmdScriptType, SIGNAL(currentIndexChanged(int)), this, SLOT(scriptTypeChanged(int)));
 }
 
@@ -80,6 +82,27 @@ bool CommandLineEdit::focusNextPrevChild(bool next)
     return false;
 }
 
+void CommandLineEdit::execute()
+{
+    GUISCRIPTEXECUTE exec = mScriptInfo[mCurrentScriptIndex].execute;
+    const QString & cmd = text();
+
+    if(exec)
+    {
+        // Send this string directly to the user
+        exec(cmd.toUtf8().constData());
+    }
+
+    // Add this line to the history and clear text, regardless if it was executed
+    addLineToHistory(cmd);
+    setText("");
+}
+
+QWidget* CommandLineEdit::selectorWidget()
+{
+    return mCmdScriptType;
+}
+
 void CommandLineEdit::autoCompleteUpdate(const QString text)
 {
     // No command, no completer
@@ -93,7 +116,7 @@ void CommandLineEdit::autoCompleteUpdate(const QString text)
         QModelIndex modelIndex = mCompleter->popup()->currentIndex();
 
         // User supplied callback
-        SCRIPTCOMPLETER complete = mScriptInfo[mCurrentScriptIndex].CompleteCommand;
+        GUISCRIPTCOMPLETER complete = mScriptInfo[mCurrentScriptIndex].completeCommand;
 
         if(complete)
         {
@@ -154,38 +177,38 @@ void CommandLineEdit::autoCompleteClearAll()
     mDefaultCompletions.clear();
 }
 
-void CommandLineEdit::scriptTypeChanged(int index)
-{
-    mCurrentScriptIndex = index;
-}
-
-void CommandLineEdit::registerScriptType(GUI_SCRIPT_INFO* info)
+void CommandLineEdit::registerScriptType(SCRIPTTYPEINFO* info)
 {
     // Must be valid pointer
     if(!info)
+    {
+        Bridge::getBridge()->setResult(0);
         return;
+    }
 
     // Insert
-    info->AssignedId = mScriptInfo.size();
+    info->id = mScriptInfo.size();
     mScriptInfo.push_back(*info);
 
     // Update
-    mCmdScriptType->addItem(info->DisplayName);
+    mCmdScriptType->addItem(info->name);
 
-    if(info->AssignedId == 0)
+    if(info->id == 0)
         mCurrentScriptIndex = 0;
+
+    Bridge::getBridge()->setResult(1);
 }
 
-void CommandLineEdit::unregisterScriptType(int Id)
+void CommandLineEdit::unregisterScriptType(int id)
 {
     // The default script type can't be unregistered
-    if(Id <= 0)
+    if(id <= 0)
         return;
 
     // Loop through the vector and invalidate entry (validate id)
     for(int i = 0; i < mScriptInfo.size(); i++)
     {
-        if(mScriptInfo[i].AssignedId == Id)
+        if(mScriptInfo[i].id == id)
         {
             mScriptInfo.removeAt(i);
             mCmdScriptType->removeItem(i);
@@ -200,23 +223,7 @@ void CommandLineEdit::unregisterScriptType(int Id)
     mCmdScriptType->setCurrentIndex(mCurrentScriptIndex);
 }
 
-void CommandLineEdit::execute()
+void CommandLineEdit::scriptTypeChanged(int index)
 {
-    SCRIPTEXECUTE exec = mScriptInfo[mCurrentScriptIndex].Execute;
-    const QString & cmd = text();
-
-    if(exec)
-    {
-        // Send this string directly to the user
-        exec(cmd.toUtf8().constData());
-    }
-
-    // Add this line to the history and clear text, regardless if it was executed
-    addLineToHistory(cmd);
-    setText("");
-}
-
-QWidget* CommandLineEdit::selectorWidget()
-{
-    return mCmdScriptType;
+    mCurrentScriptIndex = index;
 }

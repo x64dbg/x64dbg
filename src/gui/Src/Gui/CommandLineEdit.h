@@ -1,22 +1,12 @@
 #ifndef COMMANDLINEEDIT_H
 #define COMMANDLINEEDIT_H
 
+#include "Bridge/bridgemain.h"
 #include "HistoryLineEdit.h"
 #include <QAbstractItemView>
 #include <QCompleter>
 #include <QComboBox>
 #include <QStringListModel>
-
-typedef bool (* SCRIPTEXECUTE)(const char* Text);
-typedef void (* SCRIPTCOMPLETER)(const char* Text, char** Entries, int* EntryCount);
-
-struct GUI_SCRIPT_INFO
-{
-    const char* DisplayName;
-    int AssignedId;
-    SCRIPTEXECUTE Execute;
-    SCRIPTCOMPLETER CompleteCommand;
-};
 
 class CommandLineEdit : public HistoryLineEdit
 {
@@ -27,10 +17,7 @@ public:
     void keyPressEvent(QKeyEvent* event);
     bool focusNextPrevChild(bool next);
 
-    void registerScriptType(GUI_SCRIPT_INFO* info);
-    void unregisterScriptType(int Id);
     void execute();
-
     QWidget* selectorWidget();
 
 public slots:
@@ -38,13 +25,15 @@ public slots:
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);
     void autoCompleteClearAll();
+    void registerScriptType(SCRIPTTYPEINFO* info);
+    void unregisterScriptType(int id);
     void scriptTypeChanged(int index);
 
 private:
     QComboBox* mCmdScriptType;
     QCompleter* mCompleter;
     QStringListModel* mCompleterModel;
-    QList<GUI_SCRIPT_INFO> mScriptInfo;
+    QList<SCRIPTTYPEINFO> mScriptInfo;
     QStringList mDefaultCompletions;
     int mCurrentScriptIndex;
 };
