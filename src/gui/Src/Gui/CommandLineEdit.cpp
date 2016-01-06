@@ -5,6 +5,7 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
 {
     // QComboBox
     mCmdScriptType = new QComboBox(this);
+    mCmdScriptType->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
     //Initialize QCompleter
     mCompleter = new QCompleter(QStringList(), this);
@@ -15,7 +16,7 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
 
     //Setup signals & slots
     connect(mCompleter, SIGNAL(activated(const QString &)), this, SLOT(clear()), Qt::QueuedConnection);
-    connect(this, SIGNAL(textChanged(QString)), this, SLOT(autoCompleteUpdate(QString)));
+    connect(this, SIGNAL(textEdited(QString)), this, SLOT(autoCompleteUpdate(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteAddCmd(QString)), this, SLOT(autoCompleteAddCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
@@ -218,4 +219,7 @@ void CommandLineEdit::unregisterScriptType(int id)
 void CommandLineEdit::scriptTypeChanged(int index)
 {
     mCurrentScriptIndex = index;
+
+    // Force reset autocompletion (blank string)
+    emit textEdited("");
 }
