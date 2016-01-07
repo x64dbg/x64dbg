@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
 
     // Build information
-    QString buildText = QString().sprintf("v%d, "__DATE__, BridgeGetDbgVersion());
+    QString buildText = QString(__DATE__).simplified();
     QAction* buildInfo = new QAction(buildText, this);
     buildInfo->setEnabled(false);
     ui->menuBar->addAction(buildInfo);
@@ -569,7 +569,7 @@ void MainWindow::displayAboutWidget()
     QString title = "About x32dbg";
 #endif
     title += QString().sprintf(" v%d", BridgeGetDbgVersion());
-    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>"__DATE__", "__TIME__);
+    QMessageBox msg(QMessageBox::Information, title, "Website:<br><a href=\"http://x64dbg.com\">http://x64dbg.com</a><br><br>Attribution:<br><a href=\"http://icons8.com\">Icons8</a><br><a href=\"http://p.yusukekamiyamane.com\">Yusuke Kamiyamane</a><br><br>Compiled on:<br>" + QString(__DATE__).simplified() + ", " __TIME__);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setTextFormat(Qt::RichText);
     msg.setParent(this, Qt::Dialog);

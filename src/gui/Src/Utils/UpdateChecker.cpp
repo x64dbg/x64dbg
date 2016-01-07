@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QIcon>
+#include <QDateTime>
 #include "Bridge.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)
@@ -14,7 +15,7 @@ UpdateChecker::UpdateChecker(QWidget* parent)
 
 void UpdateChecker::checkForUpdates()
 {
-    get(QNetworkRequest(QUrl("http://x64dbg.com/version.txt")));
+    get(QNetworkRequest(QUrl("http://jenkins.x64dbg.com/job/vs13/lastSuccessfulBuild/api/json")));
 }
 
 void UpdateChecker::finishedSlot(QNetworkReply* reply)
@@ -29,7 +30,11 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         return;
     }
     bool ok = false;
-    int version = QString(reply->readAll()).toInt(&ok);
+    QString json = QString(reply->readAll());
+    QRegExp regExp("\"timestamp\":([0-9]+)");
+    qulonglong timestamp;
+    if(regExp.indexIn(json) >= 0)
+        timestamp = regExp.cap(1).toULongLong(&ok) / 1000;
     reply->close();
     if(!ok)
     {
@@ -40,14 +45,16 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         msg.exec();
         return;
     }
+    auto server = QDateTime::fromMSecsSinceEpoch(timestamp);
+    auto build = QDateTime::fromString(QString(__DATE__).simplified(), "MMM d yyyy");
     QString info;
-    int dbgVersion = BridgeGetDbgVersion();
-    if(version > dbgVersion)
-        info = QString().sprintf("New version v%d available!\nDownload at http://x64dbg.com\n\nYou are now on version v%d", version, dbgVersion);
-    else if(version < dbgVersion)
-        info = QString().sprintf("You have a development version (v%d) of x64dbg!", dbgVersion);
+    auto dateFormat = "MMM d yyyy";
+    if(server > build)
+        info = QString("New build %1 available!\nDownload at http://x64dbg.com\n\nYou are now on build %2").arg(server.toString(dateFormat), build.toString(dateFormat));
+    else if(server < build)
+        info = QString("You have a development build (%1) of x64dbg!").arg(build.toString(dateFormat));
     else
-        info = QString().sprintf("You have the latest version (%d) of x64dbg!", version);
+        info = QString("You have the latest build (%1) of x64dbg!").arg(build.toString(dateFormat));
     QMessageBox msg(QMessageBox::Information, "Information", info);
     msg.setWindowIcon(QIcon(":/icons/images/information.png"));
     msg.setParent(mParent, Qt::Dialog);
