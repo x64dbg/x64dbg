@@ -88,6 +88,7 @@ void CommandLineEdit::execute()
 
     // Add this line to the history and clear text, regardless if it was executed
     addLineToHistory(cmd);
+    emit textEdited("");
     setText("");
 }
 
