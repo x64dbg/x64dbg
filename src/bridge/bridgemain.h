@@ -789,11 +789,15 @@ typedef enum
     GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
     GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
     GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
-    GUI_DISPLAY_WARNING             // param1=const char *text,     param2=unused
+    GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
+    GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
+    GUI_UNREGISTER_SCRIPT_LANG      // param1=int id,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
 typedef void (*GUICALLBACK)();
+typedef bool (*GUISCRIPTEXECUTE)(const char* text);
+typedef void (*GUISCRIPTCOMPLETER)(const char* text, char** entries, int* entryCount);
 
 //GUI structures
 typedef struct
@@ -814,6 +818,14 @@ typedef struct
     const void* data;
     duint size;
 } ICONDATA;
+
+typedef struct
+{
+    char name[64];
+    int id;
+    GUISCRIPTEXECUTE execute;
+    GUISCRIPTCOMPLETER completeCommand;
+} SCRIPTTYPEINFO;
 
 //GUI functions
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
@@ -890,6 +902,8 @@ BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
 BRIDGE_IMPEXP void GuiDumpAtN(duint va, int index);
 BRIDGE_IMPEXP void GuiDisplayWarning(const char* title, const char* text);
+BRIDGE_IMPEXP void GuiRegisterScriptLanguage(SCRIPTTYPEINFO* info);
+BRIDGE_IMPEXP void GuiUnregisterScriptLanguage(int id);
 
 #ifdef __cplusplus
 }

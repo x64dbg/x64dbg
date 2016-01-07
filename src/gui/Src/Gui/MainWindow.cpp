@@ -144,7 +144,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mNotesManager->setWindowIcon(QIcon(":/icons/images/notes.png"));
 
     // Create the tab widget
-    mTabWidget = new MHTabWidget(NULL);
+    mTabWidget = new MHTabWidget();
 
     // Add all widgets to the list
     mWidgetList.push_back(mCpuWidget);
@@ -168,23 +168,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     setCentralWidget(mTabWidget);
 
-    // Setup the command bar
-    mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
-    ui->cmdBar->addWidget(new QLabel("Command: "));
-    ui->cmdBar->addWidget(mCmdLineEdit);
+    // Setup the command and status bars
+    setupCommandBar();
+    setupStatusBar();
 
-    // Status bar
-    mStatusLabel = new StatusLabel(ui->statusBar);
-    mStatusLabel->setText("Ready");
-    ui->statusBar->addWidget(mStatusLabel);
-    mLastLogLabel = new StatusLabel();
-    ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
-
-    // Time wasted counter
-    QLabel* timeWastedLabel = new QLabel(this);
-    ui->statusBar->addPermanentWidget(timeWastedLabel);
-    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
-
+    // Patch dialog
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
     connect(mCalculatorDialog, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
@@ -271,8 +259,36 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCloseDialog = new CloseDialog(this);
 
     mCpuWidget->setDisasmFocus();
+}
 
-    GuiAddLogMessage(QString().sprintf("Thread id (GUI thread) %X\n", GetCurrentThreadId()).toUtf8().constData());
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::setupCommandBar()
+{
+    mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
+    ui->cmdBar->addWidget(new QLabel("Command: "));
+    ui->cmdBar->addWidget(mCmdLineEdit);
+    ui->cmdBar->addWidget(mCmdLineEdit->selectorWidget());
+}
+
+void MainWindow::setupStatusBar()
+{
+    // Status label (Ready, Paused, ...)
+    mStatusLabel = new StatusLabel(ui->statusBar);
+    mStatusLabel->setText("Ready");
+    ui->statusBar->addWidget(mStatusLabel);
+
+    // Log line
+    mLastLogLabel = new StatusLabel();
+    ui->statusBar->addPermanentWidget(mLastLogLabel, 1);
+
+    // Time wasted counter
+    QLabel* timeWastedLabel = new QLabel(this);
+    ui->statusBar->addPermanentWidget(timeWastedLabel);
+    mTimeWastedCounter = new TimeWastedCounter(this, timeWastedLabel);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -295,11 +311,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
     else
         event->ignore();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::setTab(QWidget* widget)
@@ -339,22 +350,18 @@ void MainWindow::loadTabSavedOrder()
     }
 
     // Setup tabs
-    QMap<duint, QWidget*>::iterator it = tabIndexToWidget.begin();
-    for(it; it != tabIndexToWidget.end(); it++)
-    {
-        addQWidgetTab(it.value());
-    }
+    for(auto & widget : tabIndexToWidget)
+        addQWidgetTab(widget);
 }
 
 void MainWindow::clearTabWidget()
 {
-    if(!mTabWidget->count())
+    if(mTabWidget->count() <= 0)
         return;
 
+    // Remove all tabs starting from the end
     for(int i = mTabWidget->count() - 1; i >= 0; i--)
-    {
         mTabWidget->removeTab(i);
-    }
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -508,12 +515,7 @@ QString MainWindow::getMRUEntry(int index)
 
 void MainWindow::executeCommand()
 {
-    QString & wCmd = mCmdLineEdit->text();
-
-    DbgCmdExec(wCmd.toUtf8().constData());
-
-    mCmdLineEdit->addLineToHistory(wCmd);
-    mCmdLineEdit->setText("");
+    mCmdLineEdit->execute();
 }
 
 void MainWindow::execStepOver()

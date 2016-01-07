@@ -328,6 +328,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     varinit();
     dputs("Registering debugger commands...");
     registercommands();
+    dputs("Registering GUI command handler...");
+    SCRIPTTYPEINFO info;
+    strcpy_s(info.name, "Default");
+    info.id = 0;
+    info.execute = DbgCmdExec;
+    info.completeCommand = nullptr;
+    GuiRegisterScriptLanguage(&info);
     dputs("Starting command loop...");
     hCommandLoopThread = CreateThread(0, 0, DbgCommandLoopThread, 0, 0, 0);
     char plugindir[deflen] = "";

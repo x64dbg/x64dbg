@@ -524,10 +524,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     break;
 
     case GUI_DUMP_AT_N:
-    {
         emit dumpAtN((duint)param1, (int)param2);
-    }
-    break;
+        break;
 
     case GUI_DISPLAY_WARNING:
     {
@@ -536,6 +534,18 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit displayWarning(title, text);
     }
     break;
+
+    case GUI_REGISTER_SCRIPT_LANG:
+    {
+        BridgeResult result;
+        emit registerScriptLang((SCRIPTTYPEINFO*)param1);
+        result.Wait();
+    }
+    break;
+
+    case GUI_UNREGISTER_SCRIPT_LANG:
+        emit unregisterScriptLang((int)param1);
+        break;
     }
     return nullptr;
 }
