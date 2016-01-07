@@ -1,0 +1,3 @@
+[submodule "src/dbg/capstone_wrapper"]
+	path = src/dbg/capstone_wrapper
+	url = https://github.com/x64dbg/capstone_wrapper.git
