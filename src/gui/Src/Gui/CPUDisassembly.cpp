@@ -1256,7 +1256,11 @@ void CPUDisassembly::decompileFunctionSlot()
 
 void CPUDisassembly::displayWarningSlot(QString title, QString text)
 {
-    QMessageBox::QMessageBox(QMessageBox::Information, title, text, QMessageBox::Ok).exec();
+    QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::Ok);
+    msg.setParent(this, Qt::Dialog);
+    msg.setWindowIcon(QIcon(":/icons/images/compile-warning.png"));
+    msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    msg.exec();
 }
 
 void CPUDisassembly::paintEvent(QPaintEvent* event)

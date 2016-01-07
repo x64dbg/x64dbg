@@ -39,7 +39,7 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
     if(!ok)
     {
         QMessageBox msg(QMessageBox::Critical, "Error!", "File on server could not be parsed...");
-        msg.setParent(mParent);
+        msg.setParent(mParent, Qt::Dialog);
         msg.setWindowIcon(QIcon(":/icons/images/compile-error.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
