@@ -31,6 +31,11 @@ HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 }
 
+HexDump::~HexDump()
+{
+    delete mMemPage;
+}
+
 void HexDump::updateColors()
 {
     AbstractTableView::updateColors();

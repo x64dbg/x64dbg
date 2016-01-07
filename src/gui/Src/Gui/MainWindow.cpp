@@ -254,7 +254,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // Setup close thread and dialog
     bCanClose = false;
-    mCloseThread = new MainWindowCloseThread();
+    mCloseThread = new MainWindowCloseThread(this);
     connect(mCloseThread, SIGNAL(canClose()), this, SLOT(canClose()));
     mCloseDialog = new CloseDialog(this);
 

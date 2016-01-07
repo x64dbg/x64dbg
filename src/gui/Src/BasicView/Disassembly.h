@@ -10,6 +10,7 @@ class Disassembly : public AbstractTableView
     Q_OBJECT
 public:
     explicit Disassembly(QWidget* parent = 0);
+    virtual ~Disassembly();
 
     // Configuration
     virtual void updateColors();

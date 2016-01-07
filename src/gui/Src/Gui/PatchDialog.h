@@ -48,7 +48,7 @@ public:
 
 private:
     Ui::PatchDialog* ui;
-    PatchMap* mPatches;
+    PatchMap mPatches;
     PatchDialogGroupSelector* mGroupSelector;
     bool mIsWorking;
 

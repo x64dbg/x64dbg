@@ -27,7 +27,6 @@ PatchDialog::PatchDialog(QWidget* parent) :
     connect(mGroupSelector, SIGNAL(groupPrevious()), this, SLOT(groupPrevious()));
     connect(mGroupSelector, SIGNAL(groupNext()), this, SLOT(groupNext()));
 
-    mPatches = new PatchMap();
     mIsWorking = false;
 }
 
@@ -97,8 +96,7 @@ void PatchDialog::updatePatches()
     //clear GUI
     ui->listModules->clear();
     ui->listPatches->clear();
-    delete mPatches;
-    mPatches = new PatchMap();
+    mPatches.clear();
 
     //get patches from DBG
     size_t cbsize;
@@ -127,20 +125,20 @@ void PatchDialog::updatePatches()
         if(!*patches[i].mod)
             continue;
         QString mod = patches[i].mod;
-        PatchMap::iterator found = mPatches->find(mod);
-        if(found != mPatches->end()) //found
-            (*mPatches)[mod].append(PatchPair(patches[i], defaultStatus));
+        PatchMap::iterator found = mPatches.find(mod);
+        if(found != mPatches.end()) //found
+            mPatches[mod].append(PatchPair(patches[i], defaultStatus));
         else //not found
         {
             PatchInfoList patchList;
             patchList.append(PatchPair(patches[i], defaultStatus));
-            mPatches->insert(mod, patchList);
+            mPatches.insert(mod, patchList);
         }
     }
     delete [] patches;
 
     //sort the patches by address
-    for(PatchMap::iterator i = mPatches->begin(); i != mPatches->end(); ++i)
+    for(PatchMap::iterator i = mPatches.begin(); i != mPatches.end(); ++i)
     {
         qSort(i.value().begin(), i.value().end(), PatchInfoLess);
         PatchInfoList & curPatchList = i.value();
@@ -157,7 +155,7 @@ void PatchDialog::updatePatches()
         ui->listModules->addItem(i.key());
     }
 
-    if(mPatches->size())
+    if(mPatches.size())
         ui->listModules->item(0)->setSelected(true); //select first module
 
     mIsWorking = false;
@@ -169,8 +167,8 @@ void PatchDialog::groupToggle()
     if(mIsWorking || !ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
     bool enabled = !isGroupEnabled(curPatchList, group);
@@ -205,8 +203,8 @@ void PatchDialog::groupPrevious()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
     if(!hasPreviousGroup(curPatchList, group))
@@ -230,8 +228,8 @@ void PatchDialog::groupNext()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
     if(!hasNextGroup(curPatchList, group))
@@ -254,8 +252,8 @@ void PatchDialog::on_listModules_itemSelectionChanged()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod(ui->listModules->selectedItems().at(0)->text());
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     mIsWorking = true;
     PatchInfoList & patchList = found.value();
@@ -277,8 +275,8 @@ void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox c
     if(mIsWorking || !ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     bool checked = item->checkState() == Qt::Checked;
     PatchInfoList & curPatchList = found.value();
@@ -321,8 +319,8 @@ void PatchDialog::on_btnSelectAll_clicked()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     mIsWorking = true;
     PatchInfoList & curPatchList = found.value();
@@ -342,8 +340,8 @@ void PatchDialog::on_btnDeselectAll_clicked()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     mIsWorking = true;
     PatchInfoList & curPatchList = found.value();
@@ -364,8 +362,8 @@ void PatchDialog::on_btnRestoreSelected_clicked()
         return;
     int selModIdx = ui->listModules->row(ui->listModules->selectedItems().at(0));
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     mIsWorking = true;
     PatchInfoList & curPatchList = found.value();
@@ -391,8 +389,8 @@ void PatchDialog::on_listPatches_itemSelectionChanged()
     if(!ui->listModules->selectedItems().size() || !ui->listPatches->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
     PatchPair & patch = curPatchList[ui->listPatches->row(ui->listPatches->selectedItems().at(0))]; //selected item
@@ -409,8 +407,8 @@ void PatchDialog::on_btnPickGroups_clicked()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
     if(!curPatchList.size())
@@ -435,8 +433,8 @@ void PatchDialog::on_btnPatchFile_clicked()
     if(!ui->listModules->selectedItems().size())
         return;
     QString mod = ui->listModules->selectedItems().at(0)->text();
-    PatchMap::iterator found = mPatches->find(mod);
-    if(found == mPatches->end()) //not found
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end()) //not found
         return;
     PatchInfoList & curPatchList = found.value();
 
@@ -635,7 +633,7 @@ void PatchDialog::on_btnImport_clicked()
 
 void PatchDialog::on_btnExport_clicked()
 {
-    if(!mPatches->size())
+    if(!mPatches.size())
         return;
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save patch"), "", tr("Patch files (*.1337)"));
@@ -646,7 +644,7 @@ void PatchDialog::on_btnExport_clicked()
     QStringList lines;
 
     int patches = 0;
-    for(PatchMap::iterator i = mPatches->begin(); i != mPatches->end(); ++i)
+    for(PatchMap::iterator i = mPatches.begin(); i != mPatches.end(); ++i)
     {
         const PatchInfoList & curPatchList = i.value();
         bool bModPlaced = false;
