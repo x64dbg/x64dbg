@@ -149,13 +149,13 @@ void ControlFlowAnalysis::BasicBlockStarts()
                     _blockStarts.insert(addr);
                 }
             }
-            else if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3) //RET/INT3 break control flow
+            else if(_cp.InGroup(CS_GRP_RET)) //RET breaks control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
             else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())   //branches
             {
-                duint dest1 = GetReferenceOperand();
+                duint dest1 = getReferenceOperand();
                 duint dest2 = 0;
                 if(_cp.GetId() != X86_INS_JMP)    //unconditional jump
                     dest2 = addr + _cp.Size();
@@ -169,7 +169,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
             }
             else if(_cp.InGroup(CS_GRP_CALL))
             {
-                duint dest1 = GetReferenceOperand();
+                duint dest1 = getReferenceOperand();
                 if(dest1)
                 {
                     _blockStarts.insert(dest1);
@@ -178,7 +178,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
             }
             else
             {
-                duint dest1 = GetReferenceOperand();
+                duint dest1 = getReferenceOperand();
                 if(dest1)
                     _blockStarts.insert(dest1);
             }
@@ -205,14 +205,14 @@ void ControlFlowAnalysis::BasicBlocks()
             prevaddr = addr;
             if(_cp.Disassemble(addr, TranslateAddress(addr), MAX_DISASM_BUFFER))
             {
-                if(_cp.InGroup(CS_GRP_RET) || _cp.GetId() == X86_INS_INT3)
+                if(_cp.InGroup(CS_GRP_RET))
                 {
                     insertBlock(BasicBlock(start, addr, 0, 0)); //leaf block
                     break;
                 }
                 else if(_cp.InGroup(CS_GRP_JUMP) || _cp.IsLoop())
                 {
-                    duint dest1 = GetReferenceOperand();
+                    duint dest1 = getReferenceOperand();
                     duint dest2 = _cp.GetId() != X86_INS_JMP ? addr + _cp.Size() : 0;
                     insertBlock(BasicBlock(start, addr, dest1, dest2));
                     insertParent(dest1, start);
@@ -235,7 +235,7 @@ void ControlFlowAnalysis::BasicBlocks()
 
 #ifdef _WIN64
     int count = 0;
-    EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
+    enumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
         const duint funcAddr = _moduleBase + Function->BeginAddress;
         const duint funcEnd = _moduleBase + Function->EndAddress;
@@ -410,7 +410,7 @@ String ControlFlowAnalysis::blockToString(BasicBlock* block)
     return block->toString();
 }
 
-duint ControlFlowAnalysis::GetReferenceOperand()
+duint ControlFlowAnalysis::getReferenceOperand() const
 {
     for(int i = 0; i < _cp.x86().op_count; i++)
     {
@@ -426,7 +426,7 @@ duint ControlFlowAnalysis::GetReferenceOperand()
 }
 
 #ifdef _WIN64
-void ControlFlowAnalysis::EnumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback)
+void ControlFlowAnalysis::enumerateFunctionRuntimeEntries64(std::function<bool(PRUNTIME_FUNCTION)> Callback)
 {
     if(!_functionInfoData)
         return;
