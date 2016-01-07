@@ -328,7 +328,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     varinit();
     dputs("Registering debugger commands...");
     registercommands();
-    dputs("Registering GUI commaner handler...");
+    dputs("Registering GUI command handler...");
     SCRIPTTYPEINFO info;
     strcpy_s(info.name, "Default");
     info.id = 0;

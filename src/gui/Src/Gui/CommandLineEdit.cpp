@@ -21,7 +21,7 @@ CommandLineEdit::CommandLineEdit(QWidget* parent) : HistoryLineEdit(parent)
     connect(Bridge::getBridge(), SIGNAL(autoCompleteDelCmd(QString)), this, SLOT(autoCompleteDelCmd(QString)));
     connect(Bridge::getBridge(), SIGNAL(autoCompleteClearAll()), this, SLOT(autoCompleteClearAll()));
     connect(Bridge::getBridge(), SIGNAL(registerScriptLang(SCRIPTTYPEINFO*)), this, SLOT(registerScriptType(SCRIPTTYPEINFO*)));
-    connect(Bridge::getBridge(), SIGNAL(unregisterScriptLang(SCRIPTTYPEINFO*)), this, SLOT(unregisterScriptType(SCRIPTTYPEINFO*)));
+    connect(Bridge::getBridge(), SIGNAL(unregisterScriptLang(int)), this, SLOT(unregisterScriptType(int)));
     connect(mCmdScriptType, SIGNAL(currentIndexChanged(int)), this, SLOT(scriptTypeChanged(int)));
 }
 
