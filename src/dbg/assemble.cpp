@@ -56,31 +56,34 @@ bool assemble(duint addr, unsigned char* dest, int* size, const char* instructio
 static bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
 {
     BASIC_INSTRUCTION_INFO basicinfo;
-    // CHeck if the instruction changes CIP and if it does if the destination is valid.
-    if(!disasmfast(dest, addr, &basicinfo) || !basicinfo.branch || !MemIsValidReadPtr(basicinfo.addr))
+    // Check if the instruction changes CIP and if it does not pretent it does point to valid executable memory.
+    if(!disasmfast(dest, addr, &basicinfo) || !basicinfo.branch)
+        return true;
+
+    // An instruction pointing to invalid memory does not point to executable memory.
+    if(!MemIsValidReadPtr(basicinfo.addr))
         return false;
 
     // Check if memory region is marked as executable
     if(MemIsCodePage(basicinfo.addr, false))
-    {
-#ifndef _WIN64
-        DWORD lpFlagsDep;
-        BOOL bPermanentDep;
-
-        // DEP is disabled if lpFlagsDep == 0
-        typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
-            _In_  HANDLE  hProcess,
-            _Out_ LPDWORD lpFlags,
-            _Out_ PBOOL   lpPermanent
-        );
-        static GETPROCESSDEPPOLICY GPDP = (GETPROCESSDEPPOLICY)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy");
-        if(GPDP && GPDP(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep != 0)
-            return true;
-#else
-        // DEP enabled on x64
         return true;
-#endif
-    }
+
+#ifndef _WIN64
+    DWORD lpFlagsDep;
+    BOOL bPermanentDep;
+
+    // DEP is disabled if lpFlagsDep == 0
+    typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
+        _In_  HANDLE  hProcess,
+        _Out_ LPDWORD lpFlags,
+        _Out_ PBOOL   lpPermanent
+    );
+    static auto GPDP = GETPROCESSDEPPOLICY(GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy"));
+
+    // If DEP is disabled it doesn't matter where the memory points because it's executable anyway.
+    if(GPDP && GPDP(fdProcessInfo->hProcess, &lpFlagsDep, &bPermanentDep) && lpFlagsDep == 0)
+        return true;
+#endif //_WIN64
 
     return false;
 }
