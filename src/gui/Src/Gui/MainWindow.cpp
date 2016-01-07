@@ -269,8 +269,9 @@ MainWindow::~MainWindow()
 void MainWindow::setupCommandBar()
 {
     mCmdLineEdit = new CommandLineEdit(ui->cmdBar);
-    ui->cmdBar->addWidget(mCmdLineEdit->selectorWidget());
+    ui->cmdBar->addWidget(new QLabel("Command: "));
     ui->cmdBar->addWidget(mCmdLineEdit);
+    ui->cmdBar->addWidget(mCmdLineEdit->selectorWidget());
 }
 
 void MainWindow::setupStatusBar()
