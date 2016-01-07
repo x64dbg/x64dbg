@@ -281,6 +281,18 @@
     <ClCompile Include="commandline.cpp">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="_scriptapi_label.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_comment.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_bookmark.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
+    <ClCompile Include="_scriptapi_function.cpp">
+      <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -648,6 +660,18 @@
     </ClInclude>
     <ClInclude Include="commandline.h">
       <Filter>Header Files\Information</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_label.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_comment.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_bookmark.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="_scriptapi_function.h">
+      <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

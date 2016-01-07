@@ -253,3 +253,30 @@ void FunctionClear()
     EXCLUSIVE_ACQUIRE(LockFunctions);
     functions.clear();
 }
+
+void FunctionGetList(std::vector<FUNCTIONSINFO> & list)
+{
+    SHARED_ACQUIRE(LockFunctions);
+    list.clear();
+    list.reserve(functions.size());
+    for(const auto & itr : functions)
+        list.push_back(itr.second);
+}
+
+bool FunctionGetInfo(duint Address, FUNCTIONSINFO* info)
+{
+    auto moduleBase = ModBaseFromAddr(Address);
+
+    // Lookup by module hash, then function range
+    SHARED_ACQUIRE(LockFunctions);
+
+    auto found = functions.find(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase)));
+
+    // Was this range found?
+    if(found == functions.end())
+        return false;
+
+    if(info)
+        memcpy(info, &found->second, sizeof(FUNCTIONSINFO));
+    return true;
+}

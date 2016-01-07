@@ -20,3 +20,5 @@ void FunctionCacheSave(JSON Root);
 void FunctionCacheLoad(JSON Root);
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);
 void FunctionClear();
+void FunctionGetList(std::vector<FUNCTIONSINFO> & list);
+bool FunctionGetInfo(duint Address, FUNCTIONSINFO* info);

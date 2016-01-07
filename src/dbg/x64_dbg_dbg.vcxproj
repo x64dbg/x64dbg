@@ -76,9 +76,13 @@
     <ClCompile Include="_global.cpp" />
     <ClCompile Include="_plugins.cpp" />
     <ClCompile Include="_scriptapi_assembler.cpp" />
+    <ClCompile Include="_scriptapi_bookmark.cpp" />
+    <ClCompile Include="_scriptapi_comment.cpp" />
     <ClCompile Include="_scriptapi_debug.cpp" />
     <ClCompile Include="_scriptapi_flag.cpp" />
+    <ClCompile Include="_scriptapi_function.cpp" />
     <ClCompile Include="_scriptapi_gui.cpp" />
+    <ClCompile Include="_scriptapi_label.cpp" />
     <ClCompile Include="_scriptapi_misc.cpp" />
     <ClCompile Include="_scriptapi_pattern.cpp" />
     <ClCompile Include="_scriptapi_memory.cpp" />
@@ -200,9 +204,13 @@
     <ClInclude Include="_plugins.h" />
     <ClInclude Include="_plugin_types.h" />
     <ClInclude Include="_scriptapi_assembler.h" />
+    <ClInclude Include="_scriptapi_bookmark.h" />
+    <ClInclude Include="_scriptapi_comment.h" />
     <ClInclude Include="_scriptapi_debug.h" />
     <ClInclude Include="_scriptapi_flag.h" />
+    <ClInclude Include="_scriptapi_function.h" />
     <ClInclude Include="_scriptapi_gui.h" />
+    <ClInclude Include="_scriptapi_label.h" />
     <ClInclude Include="_scriptapi_misc.h" />
     <ClInclude Include="_scriptapi_pattern.h" />
     <ClInclude Include="_scriptapi_memory.h" />

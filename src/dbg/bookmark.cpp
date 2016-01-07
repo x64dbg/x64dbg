@@ -197,3 +197,23 @@ void BookmarkClear()
     EXCLUSIVE_ACQUIRE(LockBookmarks);
     bookmarks.clear();
 }
+
+void BookmarkGetList(std::vector<BOOKMARKSINFO> & list)
+{
+    SHARED_ACQUIRE(LockBookmarks);
+    list.clear();
+    list.reserve(bookmarks.size());
+    for(const auto & itr : bookmarks)
+        list.push_back(itr.second);
+}
+
+bool BookmarkGetInfo(duint Address, BOOKMARKSINFO* info)
+{
+    SHARED_ACQUIRE(LockBookmarks);
+    auto found = bookmarks.find(Address);
+    if(found == bookmarks.end())
+        return false;
+    if(info)
+        memcpy(info, &found->second, sizeof(BOOKMARKSINFO));
+    return true;
+}

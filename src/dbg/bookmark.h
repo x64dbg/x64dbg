@@ -17,3 +17,5 @@ void BookmarkCacheSave(JSON Root);
 void BookmarkCacheLoad(JSON Root);
 bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size);
 void BookmarkClear();
+void BookmarkGetList(std::vector<BOOKMARKSINFO> & list);
+bool BookmarkGetInfo(duint Address, BOOKMARKSINFO* info);

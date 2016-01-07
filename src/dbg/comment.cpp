@@ -53,10 +53,13 @@ bool CommentGet(duint Address, char* Text)
     if(found == comments.end())
         return false;
 
-    if(found->second.manual)  //autocomment
-        strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
-    else
-        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", found->second.text);
+    if(Text)
+    {
+        if(found->second.manual)   //autocomment
+            strcpy_s(Text, MAX_COMMENT_SIZE, found->second.text);
+        else
+            sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", found->second.text);
+    }
 
     return true;
 }
@@ -233,4 +236,30 @@ void CommentClear()
 {
     EXCLUSIVE_ACQUIRE(LockComments);
     comments.clear();
+}
+
+void CommentGetList(std::vector<COMMENTSINFO> & list)
+{
+    SHARED_ACQUIRE(LockComments);
+    list.clear();
+    list.reserve(comments.size());
+    for(const auto & itr : comments)
+        list.push_back(itr.second);
+}
+
+bool CommentGetInfo(duint Address, COMMENTSINFO* info)
+{
+    SHARED_ACQUIRE(LockComments);
+
+    // Get an existing comment and copy the string buffer
+    auto found = comments.find(ModHashFromAddr(Address));
+
+    // Was it found?
+    if(found == comments.end())
+        return false;
+
+    if(info)
+        memcpy(info, &found->second, sizeof(COMMENTSINFO));
+
+    return true;
 }

@@ -19,3 +19,5 @@ void LabelCacheSave(JSON root);
 void LabelCacheLoad(JSON root);
 bool LabelEnum(LABELSINFO* List, size_t* Size);
 void LabelClear();
+void LabelGetList(std::vector<LABELSINFO> & list);
+bool LabelGetInfo(duint Address, LABELSINFO* info);

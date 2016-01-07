@@ -263,3 +263,29 @@ void LabelClear()
     EXCLUSIVE_ACQUIRE(LockLabels);
     labels.clear();
 }
+
+void LabelGetList(std::vector<LABELSINFO> & list)
+{
+    SHARED_ACQUIRE(LockLabels);
+    list.clear();
+    list.reserve(labels.size());
+    for(const auto & itr : labels)
+        list.push_back(itr.second);
+}
+
+bool LabelGetInfo(duint Address, LABELSINFO* info)
+{
+    SHARED_ACQUIRE(LockLabels);
+
+    // Was the label at this address exist?
+    auto found = labels.find(ModHashFromAddr(Address));
+
+    if(found == labels.end())
+        return false;
+
+    // Copy to user buffer
+    if(info)
+        memcpy(info, &found->second, sizeof(LABELSINFO));
+
+    return true;
+}
