@@ -85,7 +85,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
     }
 }
 
-bool disasmfast(unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
+bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo)
 {
     if(!data || !basicinfo)
         return false;
