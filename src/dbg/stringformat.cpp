@@ -38,7 +38,7 @@ static String printValue(FormatValueType value, ValueType::ValueType type)
         break;
     case ValueType::Pointer:
         if(validval)
-            sprintf_s(result, "0x%" fhex, valuint);
+            sprintf_s(result, "0x" fhex, valuint);
         break;
     case ValueType::String:
         if(validval)

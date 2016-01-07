@@ -375,18 +375,15 @@ bool SymGetSymbolInfo(PSYMBOL_INFO SymInfo, SYMBOLINFO* curSymbol, bool isImport
 
 void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
 {
-    char modImportString[MAX_IMPORT_SIZE];
     char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME]; // Reserve enough space for symbol name, see msdn for this
-    SYMBOLINFO curSymbol;
-    PSYMBOL_INFO pSymInfo;
-    std::vector<MODIMPORTINFO> imports;
 
     // SizeOfStruct and MaxNameLen need to be set or SymFromAddr() returns INVALID_PARAMETER
-    pSymInfo = (PSYMBOL_INFO)buffer;
+    auto pSymInfo = PSYMBOL_INFO(buffer);
     pSymInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
     pSymInfo->MaxNameLen = MAX_SYM_NAME;
 
     // Enum imports if none found
+    std::vector<MODIMPORTINFO> imports;
     if(ModImportsFromAddr(Base, &imports) && !imports.size())
     {
         // Enum imports from current module
@@ -407,6 +404,7 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
     {
         for(duint i = 0; i < imports.size(); i++)
         {
+            SYMBOLINFO curSymbol;
             // Can we get symbol for the import address?
             if(SafeSymFromAddr(fdProcessInfo->hProcess, (duint)imports[i].addr, 0, pSymInfo))
             {
@@ -424,6 +422,7 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
             }
 
             // Format so that we get: moduleName.importSymbol
+            char modImportString[MAX_IMPORT_SIZE];
             strcpy_s(modImportString, imports[i].moduleName);
 
             // Trim the extension if present

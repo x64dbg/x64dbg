@@ -47,7 +47,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         const cs_x86_op & op = cp->x86().operands[i];
         switch(op.type)
         {
-        case CS_OP_IMM:
+        case X86_OP_IMM:
         {
             if(basicinfo->branch)
             {
@@ -64,7 +64,7 @@ void fillbasicinfo(Capstone* cp, BASIC_INSTRUCTION_INFO* basicinfo)
         }
         break;
 
-        case CS_OP_MEM:
+        case X86_OP_MEM:
         {
             const x86_op_mem & mem = op.mem;
             strcpy_s(basicinfo->memory.mnemonic, cp->OperandText(i).c_str());
