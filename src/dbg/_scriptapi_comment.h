@@ -1,5 +1,5 @@
-#ifndef _SCRIPTAPI_MODULE_H
-#define _SCRIPTAPI_MODULE_H
+#ifndef _SCRIPTAPI_COMMENT_H
+#define _SCRIPTAPI_COMMENT_H
 
 #include "_scriptapi.h"
 
@@ -25,4 +25,4 @@ namespace Script
     }; //Comment
 }; //Script
 
-#endif //_SCRIPTAPI_MODULE_H
+#endif //_SCRIPTAPI_COMMENT_H

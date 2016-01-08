@@ -1,5 +1,5 @@
-#ifndef _SCRIPTAPI_MODULE_H
-#define _SCRIPTAPI_MODULE_H
+#ifndef _SCRIPTAPI_LABEL_H
+#define _SCRIPTAPI_LABEL_H
 
 #include "_scriptapi.h"
 
@@ -26,4 +26,4 @@ namespace Script
     }; //Label
 }; //Script
 
-#endif //_SCRIPTAPI_MODULE_H
+#endif //_SCRIPTAPI_LABEL_H

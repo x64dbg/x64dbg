@@ -1,5 +1,5 @@
-#ifndef _SCRIPTAPI_MODULE_H
-#define _SCRIPTAPI_MODULE_H
+#ifndef _SCRIPTAPI_FUNCTION_H
+#define _SCRIPTAPI_FUNCTION_H
 
 #include "_scriptapi.h"
 
@@ -27,4 +27,4 @@ namespace Script
     }; //Function
 }; //Script
 
-#endif //_SCRIPTAPI_MODULE_H
+#endif //_SCRIPTAPI_FUNCTION_H
