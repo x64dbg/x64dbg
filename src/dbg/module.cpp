@@ -347,7 +347,7 @@ void ModGetList(std::vector<MODINFO> & list)
         list.push_back(mod.second);
 }
 
-bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo)
+bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -360,8 +360,8 @@ bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo)
         return false;
 
     // Search in Import Vector
-    std::vector<MODIMPORTINFO>* pImports = &(module->imports);
-    auto it = std::find_if(pImports->begin(), pImports->end(), [&importInfo](MODIMPORTINFO currentImportInfo)->bool
+    auto pImports = &(module->imports);
+    auto it = std::find_if(pImports->begin(), pImports->end(), [importInfo](const MODIMPORTINFO & currentImportInfo)->bool
     {
         return (importInfo.addr == currentImportInfo.addr);
     });

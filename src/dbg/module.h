@@ -47,4 +47,4 @@ duint ModEntryFromAddr(duint Address);
 int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);
-bool ModAddImportToModule(duint Base, MODIMPORTINFO importInfo);
+bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);

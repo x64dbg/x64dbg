@@ -62,7 +62,8 @@ public:
         }
 
         TokenValue() :
-            size(0)
+            size(0),
+            value(0)
         {
         }
     };

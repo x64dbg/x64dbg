@@ -1,7 +1,12 @@
 #include "WordEditDialog.h"
 #include "ui_WordEditDialog.h"
 
-WordEditDialog::WordEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::WordEditDialog)
+WordEditDialog::WordEditDialog(QWidget* parent)
+    : QDialog(parent),
+      ui(new Ui::WordEditDialog),
+      mHexLineEditPos(0),
+      mSignedEditPos(0),
+      mUnsignedEditPos(0)
 {
     ui->setupUi(this);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)

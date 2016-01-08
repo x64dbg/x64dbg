@@ -5,9 +5,11 @@
 #include "memory.h"
 #include "function.h"
 
-ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionDirectory) : Analysis(base, size)
+ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionDirectory)
+    : Analysis(base, size),
+      _functionInfoSize(0),
+      _functionInfoData(nullptr)
 {
-    _functionInfoData = nullptr;
 #ifdef _WIN64
     // This will only be valid if the address range is within a loaded module
     _moduleBase = ModBaseFromAddr(base);
