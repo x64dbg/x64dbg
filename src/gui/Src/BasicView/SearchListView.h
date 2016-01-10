@@ -41,17 +41,14 @@ signals:
     void listContextMenuSignal(QMenu* wMenu);
     void emptySearchResult();
 
+protected:
+    bool eventFilter(QObject* obj, QEvent* event);
+
 private:
     Ui::SearchListView* ui;
     QVBoxLayout* mListLayout;
     QWidget* mListPlaceHolder;
     QAction* mSearchAction;
-    int mCursorPosition;
-    void addCharToSearchBox(char ch);
-    void deleteTextFromSearchBox(QKeyEvent* keyEvent);
-
-protected:
-    bool eventFilter(QObject* obj, QEvent* event);
 };
 
 #endif // SEARCHLISTVIEW_H
