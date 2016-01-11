@@ -1,9 +1,20 @@
 #include "_scriptapi_function.h"
+#include "_scriptapi_module.h"
 #include "function.h"
 
 SCRIPT_EXPORT bool Script::Function::Add(duint start, duint end, bool manual, duint instructionCount)
 {
     return FunctionAdd(start, end, manual, instructionCount);
+}
+
+bool Script::Function::Add(const FunctionInfo* info)
+{
+    if(!info)
+        return false;
+    auto base = Module::BaseFromName(info->mod);
+    if(!base)
+        return false;
+    return Add(base + info->rvaStart, base + info->rvaEnd, info->manual, info->instructioncount);
 }
 
 SCRIPT_EXPORT bool Script::Function::Get(duint addr, duint* start, duint* end, duint* instructionCount)
@@ -19,8 +30,8 @@ SCRIPT_EXPORT bool Script::Function::GetInfo(duint addr, FunctionInfo* info)
     if(info)
     {
         strcpy_s(info->mod, function.mod);
-        info->start = function.start;
-        info->end = function.end;
+        info->rvaStart = function.start;
+        info->rvaEnd = function.end;
         info->manual = function.manual;
         info->instructioncount = function.instructioncount;
     }
@@ -57,8 +68,8 @@ SCRIPT_EXPORT bool Script::Function::GetList(ListOf(FunctionInfo) listInfo)
     {
         FunctionInfo scriptFunction;
         strcpy_s(scriptFunction.mod, function.mod);
-        scriptFunction.start = function.start;
-        scriptFunction.end = function.end;
+        scriptFunction.rvaStart = function.start;
+        scriptFunction.rvaEnd = function.end;
         scriptFunction.manual = function.manual;
         scriptFunction.instructioncount = function.instructioncount;
         functionScriptList.push_back(scriptFunction);

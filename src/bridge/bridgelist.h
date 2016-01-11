@@ -26,7 +26,7 @@ public:
     \brief List constructor.
     \param _freeData (Optional) the free function.
     */
-    explicit inline List()
+    explicit List()
     {
         memset(&_listInfo, 0, sizeof(_listInfo));
     }
@@ -34,16 +34,16 @@ public:
     /**
     \brief List destructor.
     */
-    inline ~List()
+    ~List()
     {
-        cleanup();
+        Cleanup();
     }
 
     /**
     \brief Gets the list data.
     \return Returns ListInfo->data. Can be null if the list was never initialized. Will be destroyed once this object goes out of scope!
     */
-    inline Type* data() const
+    Type* Data() const
     {
         return reinterpret_cast<Type*>(_listInfo.data);
     }
@@ -52,7 +52,7 @@ public:
     \brief Gets the number of elements in the list. This will crash the program if the data is not consistent with the specified template argument.
     \return The number of elements in the list.
     */
-    inline int count() const
+    int Count() const
     {
         if(_listInfo.size != _listInfo.count * sizeof(Type))  //make sure the user is using the correct type.
             __debugbreak();
@@ -62,7 +62,7 @@ public:
     /**
     \brief Cleans up the list, freeing the list data when it is not null.
     */
-    inline void cleanup()
+    void Cleanup()
     {
         if(_listInfo.data)
         {
@@ -75,9 +75,9 @@ public:
     \brief Reference operator (cleans up the previous list)
     \return Pointer to the ListInfo.
     */
-    inline ListInfo* operator&()
+    ListInfo* operator&()
     {
-        cleanup();
+        Cleanup();
         return &_listInfo;
     }
 
@@ -86,11 +86,11 @@ public:
     \param index Zero-based index of the item you want to get.
     \return Reference to a value at that index.
     */
-    inline Type & operator[](size_t index) const
+    Type & operator[](size_t index) const
     {
-        if(index >= size_t(count()))  //make sure the out-of-bounds access is caught as soon as possible.
+        if(index >= size_t(Count()))  //make sure the out-of-bounds access is caught as soon as possible.
             __debugbreak();
-        return data()[index];
+        return Data()[index];
     }
 
     /**
@@ -99,7 +99,7 @@ public:
     \param listData Data to copy in the ListInfo structure.
     \return true if it succeeds, false if it fails.
     */
-    static inline bool CopyData(ListInfo* listInfo, const std::vector<Type> & listData)
+    static bool CopyData(ListInfo* listInfo, const std::vector<Type> & listData)
     {
         if(!listInfo)
             return false;

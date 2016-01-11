@@ -10,13 +10,14 @@ namespace Script
         struct CommentInfo
         {
             char mod[MAX_MODULE_SIZE];
-            duint addr;
+            duint rva;
             char text[MAX_LABEL_SIZE];
             bool manual;
         };
 
         SCRIPT_EXPORT bool Set(duint addr, const char* text, bool manual = false);
-        SCRIPT_EXPORT bool Get(duint addr, char* text);
+        SCRIPT_EXPORT bool Set(const CommentInfo* info);
+        SCRIPT_EXPORT bool Get(duint addr, char* text); //text[MAX_COMMENT_SIZE]
         SCRIPT_EXPORT bool GetInfo(duint addr, CommentInfo* info);
         SCRIPT_EXPORT bool Delete(duint addr);
         SCRIPT_EXPORT void DeleteRange(duint start, duint end);

@@ -10,11 +10,12 @@ namespace Script
         struct BookmarkInfo
         {
             char mod[MAX_MODULE_SIZE];
-            duint addr;
+            duint rva;
             bool manual;
         };
 
         SCRIPT_EXPORT bool Set(duint addr, bool manual = false);
+        SCRIPT_EXPORT bool Set(const BookmarkInfo* info);
         SCRIPT_EXPORT bool Get(duint addr);
         SCRIPT_EXPORT bool GetInfo(duint addr, BookmarkInfo* info);
         SCRIPT_EXPORT bool Delete(duint addr);

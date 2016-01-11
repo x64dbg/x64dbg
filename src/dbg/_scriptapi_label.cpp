@@ -1,9 +1,20 @@
 #include "_scriptapi_label.h"
+#include "_scriptapi_module.h"
 #include "label.h"
 
 SCRIPT_EXPORT bool Script::Label::Set(duint addr, const char* text, bool manual)
 {
     return LabelSet(addr, text, manual);
+}
+
+bool Script::Label::Set(const LabelInfo* info)
+{
+    if(!info)
+        return false;
+    auto base = Module::BaseFromName(info->mod);
+    if(!base)
+        return false;
+    return Set(base + info->rva, info->text, info->manual);
 }
 
 SCRIPT_EXPORT bool Script::Label::FromString(const char* label, duint* addr)
@@ -24,7 +35,7 @@ SCRIPT_EXPORT bool Script::Label::GetInfo(duint addr, LabelInfo* info)
     if(info)
     {
         strcpy_s(info->mod, label.mod);
-        info->addr = label.addr;
+        info->rva = label.addr;
         strcpy_s(info->text, label.text);
         info->manual = label.manual;
     }
@@ -56,7 +67,7 @@ SCRIPT_EXPORT bool Script::Label::GetList(ListOf(LabelInfo) listInfo)
     {
         LabelInfo scriptLabel;
         strcpy_s(scriptLabel.mod, label.mod);
-        scriptLabel.addr = label.addr;
+        scriptLabel.rva = label.addr;
         strcpy_s(scriptLabel.text, label.text);
         scriptLabel.manual = label.manual;
         labelScriptList.push_back(scriptLabel);
