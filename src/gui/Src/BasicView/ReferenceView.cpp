@@ -67,14 +67,14 @@ void ReferenceView::setupContextMenu()
     connect(mFollowApiAddress, SIGNAL(triggered()), this, SLOT(followApiAddress()));
 
     mToggleBreakpoint = new QAction("Toggle Breakpoint", this);
-    mToggleBreakpoint->setShortcutContext(Qt::WidgetShortcut);
+    mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBreakpoint);
     mList->addAction(mToggleBreakpoint);
     mSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
     mToggleBookmark = new QAction("Toggle Bookmark", this);
-    mToggleBookmark->setShortcutContext(Qt::WidgetShortcut);
+    mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBookmark);
     mList->addAction(mToggleBookmark);
     mSearchList->addAction(mToggleBookmark);

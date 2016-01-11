@@ -2,7 +2,6 @@
 #include "ui_SearchListView.h"
 #include "FlickerThread.h"
 
-
 SearchListView::SearchListView(QWidget* parent) :
     QWidget(parent),
     ui(new Ui::SearchListView)
@@ -50,9 +49,7 @@ SearchListView::SearchListView(QWidget* parent) :
     for(int i = 0; i < ui->mainSplitter->count(); i++)
         ui->mainSplitter->handle(i)->setEnabled(false);
 
-    // Install eventFilter
-    mList->installEventFilter(this);
-    mSearchList->installEventFilter(this);
+    // Install event filter
     mSearchBox->installEventFilter(this);
 
     // Setup search menu action
@@ -120,6 +117,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
         mList->show();
         mCurList = mList;
     }
+    mCurList->setSingleSelection(0);
     mSearchList->setRowCount(0);
     int rows = mList->getRowCount();
     int columns = mList->getColumnCount();
@@ -189,8 +187,8 @@ void SearchListView::on_checkBoxRegex_toggled(bool checked)
 
 bool SearchListView::eventFilter(QObject* obj, QEvent* event)
 {
-    // Keyboard button press being sent to the table views or the QLineEdit
-    if((obj == mList || obj == mSearchList || obj == mSearchBox) && event->type() == QEvent::KeyPress)
+    // Keyboard button press being sent to the QLineEdit
+    if(obj == mSearchBox && event->type() == QEvent::KeyPress)
     {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
 
@@ -203,11 +201,24 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
                 emit enterPressedSignal();
             return true;
 
-        // Clear the search box with the escape key
+        // Search box misc controls
         case Qt::Key_Escape:
             mSearchBox->clear();
-            return true;
+        case Qt::Key_Left:
+        case Qt::Key_Right:
+        case Qt::Key_Backspace:
+        case Qt::Key_Delete:
+            return QWidget::eventFilter(obj, event);
         }
+
+        // Printable characters go to the search box
+        char key = keyEvent->text().toUtf8().constData()[0];
+
+        if(isprint(key))
+            return QWidget::eventFilter(obj, event);
+
+        // By default, all other keys are forwarded to the search view
+        return QApplication::sendEvent(mCurList, event);
     }
 
     return QWidget::eventFilter(obj, event);
