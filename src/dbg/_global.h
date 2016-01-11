@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <functional>
 #include <unordered_map>
 #include <tlhelp32.h>
 #include "..\dbg_types.h"

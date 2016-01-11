@@ -289,3 +289,24 @@ bool LabelGetInfo(duint Address, LABELSINFO* info)
 
     return true;
 }
+
+void LabelEnumCb(std::function<void(const LABELSINFO & info)> cbEnum, const char* module)
+{
+    SHARED_ACQUIRE(LockLabels);
+
+    for(auto i = labels.begin(); i != labels.end();)
+    {
+        auto j = i;
+        ++i; // Increment here, because the callback might remove the current entry
+
+        if(module && module[0] != '\0')
+        {
+            if(strcmp(j->second.mod, module) != 0)
+                continue;
+        }
+
+        SHARED_RELEASE();
+        cbEnum(j->second);
+        SHARED_REACQUIRE();
+    }
+}

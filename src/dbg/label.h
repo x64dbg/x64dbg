@@ -21,3 +21,4 @@ bool LabelEnum(LABELSINFO* List, size_t* Size);
 void LabelClear();
 void LabelGetList(std::vector<LABELSINFO> & list);
 bool LabelGetInfo(duint Address, LABELSINFO* info);
+void LabelEnumCb(std::function<void(const LABELSINFO & info)> cbEnum, const char* module = nullptr);
