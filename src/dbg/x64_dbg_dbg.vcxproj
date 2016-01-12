@@ -89,6 +89,7 @@
     <ClCompile Include="_scriptapi_module.cpp" />
     <ClCompile Include="_scriptapi_register.cpp" />
     <ClCompile Include="_scriptapi_stack.cpp" />
+    <ClCompile Include="_scriptapi_symbol.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="addrinfo.h" />
@@ -207,6 +208,7 @@
     <ClInclude Include="_scriptapi_module.h" />
     <ClInclude Include="_scriptapi_register.h" />
     <ClInclude Include="_scriptapi_stack.h" />
+    <ClInclude Include="_scriptapi_symbol.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6548308-401E-3A8A-5819-905DB90522A6}</ProjectGuid>
