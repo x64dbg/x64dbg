@@ -141,7 +141,8 @@ SOURCES += \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
     Src/Gui/AssembleDialog.cpp \
-    Src/ThirdPartyLibs/float128/float128.cpp
+    Src/ThirdPartyLibs/float128/float128.cpp \
+    Src/Utils/StringUtil.cpp
 
 
 HEADERS += \

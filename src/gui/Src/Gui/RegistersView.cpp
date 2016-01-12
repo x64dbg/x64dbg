@@ -1,11 +1,11 @@
-#include "RegistersView.h"
 #include <QClipboard>
+#include <QMessageBox>
+#include <stdint.h>
+#include "RegistersView.h"
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
 #include "SelectFields.h"
-#include <QMessageBox>
-#include <stdint.h>
 
 void RegistersView::SetChangeButton(QPushButton* push_button)
 {
@@ -1357,70 +1357,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     return newText;
 }
 
-double readFloat80(const uint8_t buffer[10])
-{
-    /*
-     * WE ARE LOSSING 2 BYTES WITH THIS FUNCTION.
-     * TODO: CHANGE THIS FOR ONE BETTER.
-    */
-    //80 bit floating point value according to IEEE-754:
-    //1 bit sign, 15 bit exponent, 64 bit mantissa
-
-    const uint16_t SIGNBIT    = 1 << 15;
-    const uint16_t EXP_BIAS   = (1 << 14) - 1; // 2^(n-1) - 1 = 16383
-    const uint16_t SPECIALEXP = (1 << 15) - 1; // all bits set
-    const uint64_t HIGHBIT    = (uint64_t)1 << 63;
-    const uint64_t QUIETBIT   = (uint64_t)1 << 62;
-
-    // Extract sign, exponent and mantissa
-    uint16_t exponent = *((uint16_t*)&buffer[8]);
-    uint64_t mantissa = *((uint64_t*)&buffer[0]);
-
-    double sign = (exponent & SIGNBIT) ? -1.0 : 1.0;
-    exponent   &= ~SIGNBIT;
-
-    // Check for undefined values
-    if((!exponent && (mantissa & HIGHBIT)) || (exponent && !(mantissa & HIGHBIT)))
-    {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-
-    // Check for special values (infinity, NaN)
-    if(exponent == 0)
-    {
-        if(mantissa == 0)
-        {
-            return sign * 0.0;
-        }
-        else
-        {
-            // denormalized
-        }
-    }
-    else if(exponent == SPECIALEXP)
-    {
-        if(!(mantissa & ~HIGHBIT))
-        {
-            return sign * std::numeric_limits<double>::infinity();
-        }
-        else
-        {
-            if(mantissa & QUIETBIT)
-            {
-                return std::numeric_limits<double>::quiet_NaN();
-            }
-            else
-            {
-                return std::numeric_limits<double>::signaling_NaN();
-            }
-        }
-    }
-
-    //value = (-1)^s * (m / 2^63) * 2^(e - 16383)
-    double significand = ((double)mantissa / ((uint64_t)1 << 63));
-    return sign * ldexp(significand, exponent - EXP_BIAS);
-}
-
 QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, char* value)
 {
     QString valueText;
@@ -1815,7 +1751,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText += QString::number(readFloat80(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->data));
+            newText += ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->data);
             width = newText.length() * mCharWidth;
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
         }
@@ -2585,15 +2521,13 @@ void RegistersView::setRegisters(REGDUMP* reg)
         mCip = reg->regcontext.cip;
     }
 
-    QMap<REGISTER_NAME, QString>::const_iterator it = mRegisterMapping.begin();
     // iterate all ids (CAX, CBX, ...)
-    while(it != mRegisterMapping.end())
+    for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
     {
-        if(CompareRegisters(it.key(), reg, &wCipRegDumpStruct) != 0)
-            mRegisterUpdates.insert(it.key());
-        else if(mRegisterUpdates.contains(it.key())) //registers are equal
-            mRegisterUpdates.remove(it.key());
-        it++;
+        if(CompareRegisters(itr.key(), reg, &wCipRegDumpStruct) != 0)
+            mRegisterUpdates.insert(itr.key());
+        else if(mRegisterUpdates.contains(itr.key())) //registers are equal
+            mRegisterUpdates.remove(itr.key());
     }
 
     // now we can save the values
@@ -2604,5 +2538,4 @@ void RegistersView::setRegisters(REGDUMP* reg)
 
     // force repaint
     emit refresh();
-
 }

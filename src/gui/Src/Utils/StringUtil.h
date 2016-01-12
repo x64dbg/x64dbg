@@ -71,10 +71,6 @@ static QString ToDoubleString(void* buffer)
     return ToFloatingString<double>(buffer);
 }
 
-static QString ToLongDoubleString(void* buffer)
-{
-    //TODO: properly implement this because VS doesn't support it.
-    return ToDoubleString(buffer);
-}
+QString ToLongDoubleString(void* buffer);
 
 #endif // STRINGUTIL_H
