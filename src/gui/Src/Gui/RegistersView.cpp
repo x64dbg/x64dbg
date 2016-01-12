@@ -2265,171 +2265,314 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
     // TODO: add an array with something like: return array[reg].data, this is more fast :-)
-    if(reg == CAX) return (char*) & (regd->regcontext.cax);
-    if(reg == CBX) return (char*) & (regd->regcontext.cbx);
-    if(reg == CCX) return (char*) & (regd->regcontext.ccx);
-    if(reg == CDX) return (char*) & (regd->regcontext.cdx);
-    if(reg == CSI) return (char*) & (regd->regcontext.csi);
-    if(reg == CDI) return (char*) & (regd->regcontext.cdi);
-    if(reg == CBP) return (char*) & (regd->regcontext.cbp);
-    if(reg == CSP) return (char*) & (regd->regcontext.csp);
 
-    if(reg == CIP) return (char*) & (regd->regcontext.cip);
-    if(reg == EFLAGS) return (char*) & (regd->regcontext.eflags);
+    switch(reg)
+    {
+    case CAX:
+        return (char*) &regd->regcontext.cax;
+    case CBX:
+        return (char*) &regd->regcontext.cbx;
+    case CCX:
+        return (char*) &regd->regcontext.ccx;
+    case CDX:
+        return (char*) &regd->regcontext.cdx;
+    case CSI:
+        return (char*) &regd->regcontext.csi;
+    case CDI:
+        return (char*) &regd->regcontext.cdi;
+    case CBP:
+        return (char*) &regd->regcontext.cbp;
+    case CSP:
+        return (char*) &regd->regcontext.csp;
+
+    case CIP:
+        return (char*) &regd->regcontext.cip;
+    case EFLAGS:
+        return (char*) &regd->regcontext.eflags;
 #ifdef _WIN64
-    if(reg == R8) return (char*) & (regd->regcontext.r8);
-    if(reg == R9) return (char*) & (regd->regcontext.r9);
-    if(reg == R10) return (char*) & (regd->regcontext.r10);
-    if(reg == R11) return (char*) & (regd->regcontext.r11);
-    if(reg == R12) return (char*) & (regd->regcontext.r12);
-    if(reg == R13) return (char*) & (regd->regcontext.r13);
-    if(reg == R14) return (char*) & (regd->regcontext.r14);
-    if(reg == R15) return (char*) & (regd->regcontext.r15);
+    case R8:
+        return (char*) &regd->regcontext.r8;
+    case R9:
+        return (char*) &regd->regcontext.r9;
+    case R10:
+        return (char*) &regd->regcontext.r10;
+    case R11:
+        return (char*) &regd->regcontext.r11;
+    case R12:
+        return (char*) &regd->regcontext.r12;
+    case R13:
+        return (char*) &regd->regcontext.r13;
+    case R14:
+        return (char*) &regd->regcontext.r14;
+    case R15:
+        return (char*) &regd->regcontext.r15;
 #endif
     // CF,PF,AF,ZF,SF,TF,IF,DF,OF
-    if(reg == CF) return (char*) & (regd->flags.c);
-    if(reg == PF) return (char*) & (regd->flags.p);
-    if(reg == AF) return (char*) & (regd->flags.a);
-    if(reg == ZF) return (char*) & (regd->flags.z);
-    if(reg == SF) return (char*) & (regd->flags.s);
-    if(reg == TF) return (char*) & (regd->flags.t);
-    if(reg == IF) return (char*) & (regd->flags.i);
-    if(reg == DF) return (char*) & (regd->flags.d);
-    if(reg == OF) return (char*) & (regd->flags.o);
+    case CF:
+        return (char*) &regd->flags.c;
+    case PF:
+        return (char*) &regd->flags.p;
+    case AF:
+        return (char*) &regd->flags.a;
+    case ZF:
+        return (char*) &regd->flags.z;
+    case SF:
+        return (char*) &regd->flags.s;
+    case TF:
+        return (char*) &regd->flags.t;
+    case IF:
+        return (char*) &regd->flags.i;
+    case DF:
+        return (char*) &regd->flags.d;
+    case OF:
+        return (char*) &regd->flags.o;
 
     // GS,FS,ES,DS,CS,SS
-    if(reg == GS) return (char*) & (regd->regcontext.gs);
-    if(reg == FS) return (char*) & (regd->regcontext.fs);
-    if(reg == ES) return (char*) & (regd->regcontext.es);
-    if(reg == DS) return (char*) & (regd->regcontext.ds);
-    if(reg == CS) return (char*) & (regd->regcontext.cs);
-    if(reg == SS) return (char*) & (regd->regcontext.ss);
+    case GS:
+        return (char*) &regd->regcontext.gs;
+    case FS:
+        return (char*) &regd->regcontext.fs;
+    case ES:
+        return (char*) &regd->regcontext.es;
+    case DS:
+        return (char*) &regd->regcontext.ds;
+    case CS:
+        return (char*) &regd->regcontext.cs;
+    case SS:
+        return (char*) &regd->regcontext.ss;
 
-    if(reg == LastError) return (char*) & (regd->lastError);
+    case LastError:
+        return (char*) &regd->lastError;
 
-    if(reg == DR0) return (char*) & (regd->regcontext.dr0);
-    if(reg == DR1) return (char*) & (regd->regcontext.dr1);
-    if(reg == DR2) return (char*) & (regd->regcontext.dr2);
-    if(reg == DR3) return (char*) & (regd->regcontext.dr3);
-    if(reg == DR6) return (char*) & (regd->regcontext.dr6);
-    if(reg == DR7) return (char*) & (regd->regcontext.dr7);
+    case DR0:
+        return (char*) &regd->regcontext.dr0;
+    case DR1:
+        return (char*) &regd->regcontext.dr1;
+    case DR2:
+        return (char*) &regd->regcontext.dr2;
+    case DR3:
+        return (char*) &regd->regcontext.dr3;
+    case DR6:
+        return (char*) &regd->regcontext.dr6;
+    case DR7:
+        return (char*) &regd->regcontext.dr7;
 
-    if(reg == MM0) return (char*) & (regd->mmx[0]);
-    if(reg == MM1) return (char*) & (regd->mmx[1]);
-    if(reg == MM2) return (char*) & (regd->mmx[2]);
-    if(reg == MM3) return (char*) & (regd->mmx[3]);
-    if(reg == MM4) return (char*) & (regd->mmx[4]);
-    if(reg == MM5) return (char*) & (regd->mmx[5]);
-    if(reg == MM6) return (char*) & (regd->mmx[6]);
-    if(reg == MM7) return (char*) & (regd->mmx[7]);
+    case MM0:
+        return (char*) &regd->mmx[0];
+    case MM1:
+        return (char*) &regd->mmx[1];
+    case MM2:
+        return (char*) &regd->mmx[2];
+    case MM3:
+        return (char*) &regd->mmx[3];
+    case MM4:
+        return (char*) &regd->mmx[4];
+    case MM5:
+        return (char*) &regd->mmx[5];
+    case MM6:
+        return (char*) &regd->mmx[6];
+    case MM7:
+        return (char*) &regd->mmx[7];
 
-    if(reg == x87r0) return (char*) & (regd->x87FPURegisters[0]);
-    if(reg == x87r1) return (char*) & (regd->x87FPURegisters[1]);
-    if(reg == x87r2) return (char*) & (regd->x87FPURegisters[2]);
-    if(reg == x87r3) return (char*) & (regd->x87FPURegisters[3]);
-    if(reg == x87r4) return (char*) & (regd->x87FPURegisters[4]);
-    if(reg == x87r5) return (char*) & (regd->x87FPURegisters[5]);
-    if(reg == x87r6) return (char*) & (regd->x87FPURegisters[6]);
-    if(reg == x87r7) return (char*) & (regd->x87FPURegisters[7]);
+    case x87r0:
+        return (char*) &regd->x87FPURegisters[0];
+    case x87r1:
+        return (char*) &regd->x87FPURegisters[1];
+    case x87r2:
+        return (char*) &regd->x87FPURegisters[2];
+    case x87r3:
+        return (char*) &regd->x87FPURegisters[3];
+    case x87r4:
+        return (char*) &regd->x87FPURegisters[4];
+    case x87r5:
+        return (char*) &regd->x87FPURegisters[5];
+    case x87r6:
+        return (char*) &regd->x87FPURegisters[6];
+    case x87r7:
+        return (char*) &regd->x87FPURegisters[7];
 
-    if(reg == x87TagWord) return (char*) & (regd->regcontext.x87fpu.TagWord);
+    case x87TagWord:
+        return (char*) &regd->regcontext.x87fpu.TagWord;
 
-    if(reg == x87ControlWord) return (char*) & (regd->regcontext.x87fpu.ControlWord);
+    case x87ControlWord:
+        return (char*) &regd->regcontext.x87fpu.ControlWord;
 
-    if(reg == x87TW_0) return (char*) & (regd->x87FPURegisters[0].tag);
-    if(reg == x87TW_1) return (char*) & (regd->x87FPURegisters[1].tag);
-    if(reg == x87TW_2) return (char*) & (regd->x87FPURegisters[2].tag);
-    if(reg == x87TW_3) return (char*) & (regd->x87FPURegisters[3].tag);
-    if(reg == x87TW_4) return (char*) & (regd->x87FPURegisters[4].tag);
-    if(reg == x87TW_5) return (char*) & (regd->x87FPURegisters[5].tag);
-    if(reg == x87TW_6) return (char*) & (regd->x87FPURegisters[6].tag);
-    if(reg == x87TW_7) return (char*) & (regd->x87FPURegisters[7].tag);
+    case x87TW_0:
+        return (char*) &regd->x87FPURegisters[0].tag;
+    case x87TW_1:
+        return (char*) &regd->x87FPURegisters[1].tag;
+    case x87TW_2:
+        return (char*) &regd->x87FPURegisters[2].tag;
+    case x87TW_3:
+        return (char*) &regd->x87FPURegisters[3].tag;
+    case x87TW_4:
+        return (char*) &regd->x87FPURegisters[4].tag;
+    case x87TW_5:
+        return (char*) &regd->x87FPURegisters[5].tag;
+    case x87TW_6:
+        return (char*) &regd->x87FPURegisters[6].tag;
+    case x87TW_7:
+        return (char*) &regd->x87FPURegisters[7].tag;
 
-    if(reg == x87CW_IC) return (char*) & (regd->x87ControlWordFields.IC);
-    if(reg == x87CW_IEM) return (char*) & (regd->x87ControlWordFields.IEM);
-    if(reg == x87CW_PM) return (char*) & (regd->x87ControlWordFields.PM);
-    if(reg == x87CW_UM) return (char*) & (regd->x87ControlWordFields.UM);
-    if(reg == x87CW_OM) return (char*) & (regd->x87ControlWordFields.OM);
-    if(reg == x87CW_ZM) return (char*) & (regd->x87ControlWordFields.ZM);
-    if(reg == x87CW_DM) return (char*) & (regd->x87ControlWordFields.DM);
-    if(reg == x87CW_IM) return (char*) & (regd->x87ControlWordFields.IM);
-    if(reg == x87CW_RC) return (char*) & (regd->x87ControlWordFields.RC);
-    if(reg == x87CW_PC) return (char*) & (regd->x87ControlWordFields.PC);
+    case x87CW_IC:
+        return (char*) &regd->x87ControlWordFields.IC;
+    case x87CW_IEM:
+        return (char*) &regd->x87ControlWordFields.IEM;
+    case x87CW_PM:
+        return (char*) &regd->x87ControlWordFields.PM;
+    case x87CW_UM:
+        return (char*) &regd->x87ControlWordFields.UM;
+    case x87CW_OM:
+        return (char*) &regd->x87ControlWordFields.OM;
+    case x87CW_ZM:
+        return (char*) &regd->x87ControlWordFields.ZM;
+    case x87CW_DM:
+        return (char*) &regd->x87ControlWordFields.DM;
+    case x87CW_IM:
+        return (char*) &regd->x87ControlWordFields.IM;
+    case x87CW_RC:
+        return (char*) &regd->x87ControlWordFields.RC;
+    case x87CW_PC:
+        return (char*) &regd->x87ControlWordFields.PC;
 
-    if(reg == x87StatusWord) return (char*) & (regd->regcontext.x87fpu.StatusWord);
+    case x87StatusWord:
+        return (char*) &regd->regcontext.x87fpu.StatusWord;
 
-    if(reg == x87SW_B) return (char*) & (regd->x87StatusWordFields.B);
-    if(reg == x87SW_C3) return (char*) & (regd->x87StatusWordFields.C3);
-    if(reg == x87SW_C2) return (char*) & (regd->x87StatusWordFields.C2);
-    if(reg == x87SW_C1) return (char*) & (regd->x87StatusWordFields.C1);
-    if(reg == x87SW_O) return (char*) & (regd->x87StatusWordFields.O);
-    if(reg == x87SW_IR) return (char*) & (regd->x87StatusWordFields.IR);
-    if(reg == x87SW_SF) return (char*) & (regd->x87StatusWordFields.SF);
-    if(reg == x87SW_P) return (char*) & (regd->x87StatusWordFields.P);
-    if(reg == x87SW_U) return (char*) & (regd->x87StatusWordFields.U);
-    if(reg == x87SW_Z) return (char*) & (regd->x87StatusWordFields.Z);
-    if(reg == x87SW_D) return (char*) & (regd->x87StatusWordFields.D);
-    if(reg == x87SW_I) return (char*) & (regd->x87StatusWordFields.I);
-    if(reg == x87SW_C0) return (char*) & (regd->x87StatusWordFields.C0);
-    if(reg == x87SW_TOP) return (char*) & (regd->x87StatusWordFields.TOP);
+    case x87SW_B:
+        return (char*) &regd->x87StatusWordFields.B;
+    case x87SW_C3:
+        return (char*) &regd->x87StatusWordFields.C3;
+    case x87SW_C2:
+        return (char*) &regd->x87StatusWordFields.C2;
+    case x87SW_C1:
+        return (char*) &regd->x87StatusWordFields.C1;
+    case x87SW_O:
+        return (char*) &regd->x87StatusWordFields.O;
+    case x87SW_IR:
+        return (char*) &regd->x87StatusWordFields.IR;
+    case x87SW_SF:
+        return (char*) &regd->x87StatusWordFields.SF;
+    case x87SW_P:
+        return (char*) &regd->x87StatusWordFields.P;
+    case x87SW_U:
+        return (char*) &regd->x87StatusWordFields.U;
+    case x87SW_Z:
+        return (char*) &regd->x87StatusWordFields.Z;
+    case x87SW_D:
+        return (char*) &regd->x87StatusWordFields.D;
+    case x87SW_I:
+        return (char*) &regd->x87StatusWordFields.I;
+    case x87SW_C0:
+        return (char*) &regd->x87StatusWordFields.C0;
+    case x87SW_TOP:
+        return (char*) &regd->x87StatusWordFields.TOP;
 
-    if(reg == MxCsr) return (char*) & (regd->regcontext.MxCsr);
+    case MxCsr:
+        return (char*) &regd->regcontext.MxCsr;
 
-    if(reg == MxCsr_FZ) return (char*) & (regd->MxCsrFields.FZ);
-    if(reg == MxCsr_PM) return (char*) & (regd->MxCsrFields.PM);
-    if(reg == MxCsr_UM) return (char*) & (regd->MxCsrFields.UM);
-    if(reg == MxCsr_OM) return (char*) & (regd->MxCsrFields.OM);
-    if(reg == MxCsr_ZM) return (char*) & (regd->MxCsrFields.ZM);
-    if(reg == MxCsr_IM) return (char*) & (regd->MxCsrFields.IM);
-    if(reg == MxCsr_DM) return (char*) & (regd->MxCsrFields.DM);
-    if(reg == MxCsr_DAZ) return (char*) & (regd->MxCsrFields.DAZ);
-    if(reg == MxCsr_PE) return (char*) & (regd->MxCsrFields.PE);
-    if(reg == MxCsr_UE) return (char*) & (regd->MxCsrFields.UE);
-    if(reg == MxCsr_OE) return (char*) & (regd->MxCsrFields.OE);
-    if(reg == MxCsr_ZE) return (char*) & (regd->MxCsrFields.ZE);
-    if(reg == MxCsr_DE) return (char*) & (regd->MxCsrFields.DE);
-    if(reg == MxCsr_IE) return (char*) & (regd->MxCsrFields.IE);
-    if(reg == MxCsr_RC) return (char*) & (regd->MxCsrFields.RC);
+    case MxCsr_FZ:
+        return (char*) &regd->MxCsrFields.FZ;
+    case MxCsr_PM:
+        return (char*) &regd->MxCsrFields.PM;
+    case MxCsr_UM:
+        return (char*) &regd->MxCsrFields.UM;
+    case MxCsr_OM:
+        return (char*) &regd->MxCsrFields.OM;
+    case MxCsr_ZM:
+        return (char*) &regd->MxCsrFields.ZM;
+    case MxCsr_IM:
+        return (char*) &regd->MxCsrFields.IM;
+    case MxCsr_DM:
+        return (char*) &regd->MxCsrFields.DM;
+    case MxCsr_DAZ:
+        return (char*) &regd->MxCsrFields.DAZ;
+    case MxCsr_PE:
+        return (char*) &regd->MxCsrFields.PE;
+    case MxCsr_UE:
+        return (char*) &regd->MxCsrFields.UE;
+    case MxCsr_OE:
+        return (char*) &regd->MxCsrFields.OE;
+    case MxCsr_ZE:
+        return (char*) &regd->MxCsrFields.ZE;
+    case MxCsr_DE:
+        return (char*) &regd->MxCsrFields.DE;
+    case MxCsr_IE:
+        return (char*) &regd->MxCsrFields.IE;
+    case MxCsr_RC:
+        return (char*) &regd->MxCsrFields.RC;
 
-    if(reg == XMM0) return (char*) & (regd->regcontext.XmmRegisters[0]);
-    if(reg == XMM1) return (char*) & (regd->regcontext.XmmRegisters[1]);
-    if(reg == XMM2) return (char*) & (regd->regcontext.XmmRegisters[2]);
-    if(reg == XMM3) return (char*) & (regd->regcontext.XmmRegisters[3]);
-    if(reg == XMM4) return (char*) & (regd->regcontext.XmmRegisters[4]);
-    if(reg == XMM5) return (char*) & (regd->regcontext.XmmRegisters[5]);
-    if(reg == XMM6) return (char*) & (regd->regcontext.XmmRegisters[6]);
-    if(reg == XMM7) return (char*) & (regd->regcontext.XmmRegisters[7]);
+    case XMM0:
+        return (char*) &regd->regcontext.XmmRegisters[0];
+    case XMM1:
+        return (char*) &regd->regcontext.XmmRegisters[1];
+    case XMM2:
+        return (char*) &regd->regcontext.XmmRegisters[2];
+    case XMM3:
+        return (char*) &regd->regcontext.XmmRegisters[3];
+    case XMM4:
+        return (char*) &regd->regcontext.XmmRegisters[4];
+    case XMM5:
+        return (char*) &regd->regcontext.XmmRegisters[5];
+    case XMM6:
+        return (char*) &regd->regcontext.XmmRegisters[6];
+    case XMM7:
+        return (char*) &regd->regcontext.XmmRegisters[7];
 #ifdef _WIN64
-    if(reg == XMM8) return (char*) & (regd->regcontext.XmmRegisters[8]);
-    if(reg == XMM9) return (char*) & (regd->regcontext.XmmRegisters[9]);
-    if(reg == XMM10) return (char*) & (regd->regcontext.XmmRegisters[10]);
-    if(reg == XMM11) return (char*) & (regd->regcontext.XmmRegisters[11]);
-    if(reg == XMM12) return (char*) & (regd->regcontext.XmmRegisters[12]);
-    if(reg == XMM13) return (char*) & (regd->regcontext.XmmRegisters[13]);
-    if(reg == XMM14) return (char*) & (regd->regcontext.XmmRegisters[14]);
-    if(reg == XMM15) return (char*) & (regd->regcontext.XmmRegisters[15]);
+    case XMM8:
+        return (char*) &regd->regcontext.XmmRegisters[8];
+    case XMM9:
+        return (char*) &regd->regcontext.XmmRegisters[9];
+    case XMM10:
+        return (char*) &regd->regcontext.XmmRegisters[10];
+    case XMM11:
+        return (char*) &regd->regcontext.XmmRegisters[11];
+    case XMM12:
+        return (char*) &regd->regcontext.XmmRegisters[12];
+    case XMM13:
+        return (char*) &regd->regcontext.XmmRegisters[13];
+    case XMM14:
+        return (char*) &regd->regcontext.XmmRegisters[14];
+    case XMM15:
+        return (char*) &regd->regcontext.XmmRegisters[15];
 #endif //_WIN64
 
-    if(reg == YMM0) return (char*) & (regd->regcontext.YmmRegisters[0]);
-    if(reg == YMM1) return (char*) & (regd->regcontext.YmmRegisters[1]);
-    if(reg == YMM2) return (char*) & (regd->regcontext.YmmRegisters[2]);
-    if(reg == YMM3) return (char*) & (regd->regcontext.YmmRegisters[3]);
-    if(reg == YMM4) return (char*) & (regd->regcontext.YmmRegisters[4]);
-    if(reg == YMM5) return (char*) & (regd->regcontext.YmmRegisters[5]);
-    if(reg == YMM6) return (char*) & (regd->regcontext.YmmRegisters[6]);
-    if(reg == YMM7) return (char*) & (regd->regcontext.YmmRegisters[7]);
+    case YMM0:
+        return (char*) &regd->regcontext.YmmRegisters[0];
+    case YMM1:
+        return (char*) &regd->regcontext.YmmRegisters[1];
+    case YMM2:
+        return (char*) &regd->regcontext.YmmRegisters[2];
+    case YMM3:
+        return (char*) &regd->regcontext.YmmRegisters[3];
+    case YMM4:
+        return (char*) &regd->regcontext.YmmRegisters[4];
+    case YMM5:
+        return (char*) &regd->regcontext.YmmRegisters[5];
+    case YMM6:
+        return (char*) &regd->regcontext.YmmRegisters[6];
+    case YMM7:
+        return (char*) &regd->regcontext.YmmRegisters[7];
 #ifdef _WIN64
-    if(reg == YMM8) return (char*) & (regd->regcontext.YmmRegisters[8]);
-    if(reg == YMM9) return (char*) & (regd->regcontext.YmmRegisters[9]);
-    if(reg == YMM10) return (char*) & (regd->regcontext.YmmRegisters[10]);
-    if(reg == YMM11) return (char*) & (regd->regcontext.YmmRegisters[11]);
-    if(reg == YMM12) return (char*) & (regd->regcontext.YmmRegisters[12]);
-    if(reg == YMM13) return (char*) & (regd->regcontext.YmmRegisters[13]);
-    if(reg == YMM14) return (char*) & (regd->regcontext.YmmRegisters[14]);
-    if(reg == YMM15) return (char*) & (regd->regcontext.YmmRegisters[15]);
+    case YMM8:
+        return (char*) &regd->regcontext.YmmRegisters[8];
+    case YMM9:
+        return (char*) &regd->regcontext.YmmRegisters[9];
+    case YMM10:
+        return (char*) &regd->regcontext.YmmRegisters[10];
+    case YMM11:
+        return (char*) &regd->regcontext.YmmRegisters[11];
+    case YMM12:
+        return (char*) &regd->regcontext.YmmRegisters[12];
+    case YMM13:
+        return (char*) &regd->regcontext.YmmRegisters[13];
+    case YMM14:
+        return (char*) &regd->regcontext.YmmRegisters[14];
+    case YMM15:
+        return (char*) &regd->regcontext.YmmRegisters[15];
 #endif //_WIN64
+    }
 
-    return (char*) & null_value;
+    return (char*) &null_value;
 }
 
 void RegistersView::setRegisters(REGDUMP* reg)
