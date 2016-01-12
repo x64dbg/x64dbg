@@ -1,6 +1,8 @@
 #ifndef STRINGUTIL_H
 #define STRINGUTIL_H
 
+#include <sstream>
+#include <iomanip>
 #include <QString>
 #include "Imports.h"
 
@@ -48,6 +50,31 @@ static QString ToDecString(dsint Value)
 #endif // _WIN64
 
     return QString(temp);
+}
+
+template<typename T>
+static QString ToFloatingString(void* buffer)
+{
+    auto value = *(T*)buffer;
+    std::stringstream wFloatingStr;
+    wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << value;
+    return QString::fromStdString(wFloatingStr.str());
+}
+
+static QString ToFloatString(void* buffer)
+{
+    return ToFloatingString<float>(buffer);
+}
+
+static QString ToDoubleString(void* buffer)
+{
+    return ToFloatingString<double>(buffer);
+}
+
+static QString ToLongDoubleString(void* buffer)
+{
+    //TODO: properly implement this because VS doesn't support it.
+    return ToDoubleString(buffer);
 }
 
 #endif // STRINGUTIL_H

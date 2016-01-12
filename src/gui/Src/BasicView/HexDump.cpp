@@ -1,7 +1,7 @@
 #include "HexDump.h"
-#include <sstream>
 #include "Configuration.h"
 #include "Bridge.h"
+#include "StringUtil.h"
 
 HexDump::HexDump(QWidget* parent) : AbstractTableView(parent)
 {
@@ -568,8 +568,7 @@ QString HexDump::dwordToString(uint32 dword, DwordViewMode_e mode)
 
     case FloatDword:
     {
-        float* wPtr = (float*)&dword;
-        wStr = QString::number((double) * wPtr);
+        wStr = ToFloatString(&dword);
     }
     break;
 
@@ -609,8 +608,7 @@ QString HexDump::qwordToString(uint64 qword, QwordViewMode_e mode)
 
     case DoubleQword:
     {
-        double* wPtr = (double*)&qword;
-        wStr = QString::number((double) * wPtr);
+        wStr = ToDoubleString(&qword);
     }
     break;
 
@@ -632,10 +630,7 @@ QString HexDump::twordToString(long double tword, TwordViewMode_e mode)
     {
     case FloatTword:
     {
-        std::stringstream wlongDoubleStr;
-        wlongDoubleStr <<  std::scientific << (long double)tword;
-
-        wStr = QString::fromStdString(wlongDoubleStr.str());
+        wStr = ToLongDoubleString(&tword);
     }
     break;
 
