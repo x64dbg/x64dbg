@@ -55,12 +55,12 @@ INCLUDEPATH += \
     Src/Gui \
     Src/BasicView \
     Src/Disassembler \
-    Src/ThirdPartyLibs/capstone \
-    Src/ThirdPartyLibs/snowman \
     Src/Memory \
     Src/Bridge \
     Src/Global \
     Src/Utils \
+    Src/ThirdPartyLibs/snowman \
+    Src/ThirdPartyLibs/float128 \
     ../capstone_wrapper
 
 # Resources, sources, headers, and forms
@@ -140,7 +140,8 @@ SOURCES += \
     Src/Gui/NotesManager.cpp \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
-    Src/Gui/AssembleDialog.cpp
+    Src/Gui/AssembleDialog.cpp \
+    Src/ThirdPartyLibs/float128/float128.cpp
 
 
 HEADERS += \
@@ -222,7 +223,8 @@ HEADERS += \
     Src/Utils/MenuBuilder.h \
     Src/Utils/QActionLambda.h \
     Src/Gui/CPUMultiDump.h \
-    Src/Gui/AssembleDialog.h
+    Src/Gui/AssembleDialog.h \
+    Src/ThirdPartyLibs/float128/float128.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
