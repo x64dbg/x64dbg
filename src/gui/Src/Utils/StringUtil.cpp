@@ -13,8 +13,11 @@ QString ToLongDoubleString(void* buffer)
     const uint64_t HIGHBIT    = (uint64_t)1 << 63;
     const uint64_t QUIETBIT   = (uint64_t)1 << 62;
 
-    // Convert to pointer of array of bytes
-    uint8_t* bytes = (uint8_t*)buffer;
+    // Swap endianness (buffer is an array of bytes; not a true variable)
+    uint8_t bytes[10];
+
+    for(size_t k = 0; k < 10; k++)
+        bytes[k] = ((uint8_t*)buffer)[10 - k - 1];
 
     // Extract exponent and mantissa
     uint16_t exponent = *(uint16_t*)&bytes[8];
@@ -26,17 +29,13 @@ QString ToLongDoubleString(void* buffer)
 
     switch(exponent)
     {
-    // Default: exponent is ignored
-    default:
-        break;
-
     // If exponent zero
     case 0:
     {
         if((mantissa & HIGHBIT) == 0)
         {
             if((mantissa & QUIETBIT) == 0)
-                return (sign) ? "-0.0" : "0.0";
+                return (sign) ? "-0.000000000000000000" : "0.000000000000000000";
         }
 
         // Everything else psuedo denormal
@@ -75,6 +74,19 @@ QString ToLongDoubleString(void* buffer)
         return "NAN";
     }
     break;
+
+    // Default: exponent has maximum ranges
+    default:
+    {
+        // e+4932
+        if((exponent - EXP_BIAS) > 4932)
+            return "INF";
+
+        // e-4931
+        if((exponent - EXP_BIAS) < -4931)
+            return "-INF";
+    }
+    break;
     }
 
     // Convert both numbers to 128 bit types
@@ -87,12 +99,32 @@ QString ToLongDoubleString(void* buffer)
     dd_real significand = dd_mantissa / dd_divisor;
     dd_real exp = pown(2, exponent - EXP_BIAS);
 
-    // Calculate final result with sign
+    if(std::isnan(exp))
+        return "NAN";
+
     significand *= exp;
 
+    // Determine flags for rounding between scientific notation and standard notation (billions)
+    std::ios_base::fmtflags fmt = 0;
+    int digits = 19;
+    int leadingDigits = 0;
+
+    // Determine number of leading zeroes with log (log(0) is undefined)
+    if(significand == dd_real(0))
+        leadingDigits = 0;
+    else
+        leadingDigits = std::floor(std::log10(significand)).toInt() + 1;
+
+    if(leadingDigits <= 10 && leadingDigits >= -4)
+    {
+        fmt = std::ios_base::fixed;
+        digits = 20 - leadingDigits;
+    }
+
+    // Signed-ness
     if(sign)
         significand *= -1;
 
     // Print result
-    return QString::fromStdString(significand.to_string(16));
+    return QString::fromStdString(significand.to_string(digits, 0, fmt));
 }
