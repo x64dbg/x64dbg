@@ -1180,7 +1180,7 @@ DWORD WINAPI threadDebugLoop(void* lpParameter)
     if(!fdProcessInfo)
     {
         fdProcessInfo = &g_pi;
-        dputs("Error starting process (invalid pe?)!");
+        dputs("Error starting process (CreateProcess)!");
         unlock(WAITID_STOP);
         return 0;
     }
