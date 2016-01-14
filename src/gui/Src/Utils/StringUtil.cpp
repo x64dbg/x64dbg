@@ -2,6 +2,39 @@
 #include "StringUtil.h"
 #include "float128.h"
 
+dd_real pow2_fast(int exponent, int* exp10)
+{
+    // Significantly more precise than using std::XXX math functions
+    const static dd_real dd_loge10 = dd_real("2.30258509299404568401799145468436420760110148862");
+    const static dd_real dd_loge2  = dd_real("0.69314718055994530941723212145817656807550013436");
+    const static dd_real dd_sqrt10 = dd_real("3.16227766016837933199889354443271853371955513932");
+
+    // http://stackoverflow.com/questions/635183/fast-exponentiation-when-only-first-k-digits-are-required
+    dd_real integerPart;
+    dd_real identityCalc = std::abs(exponent) * (dd_loge2 / dd_loge10);
+    dd_real identityFrac = std::modf(identityCalc, &integerPart);
+
+    dd_real fraction = std::exp((identityFrac - 0.5) * dd_loge10) * dd_sqrt10;
+
+    // Fraction is returned; calculate the power of 10 here
+    if(exp10)
+        *exp10 = std::floor(identityCalc).toInt();
+
+    // Check for a reciprocal
+    if(exponent < 0)
+    {
+        // Use 10 to shift the exponent into 'exp10' only
+        //
+        // (1 / 2**3824) == 7.26e-1152 --> (10 / 2**3824) == 7.26e-1151
+        fraction = dd_real(10) / fraction;
+
+        if(exp10)
+            *exp10 = (-1 - *exp10);
+    }
+
+    return fraction;
+}
+
 QString ToLongDoubleString(void* buffer)
 {
     // Assumes that "buffer" is 10 bytes at the minimum
@@ -79,52 +112,58 @@ QString ToLongDoubleString(void* buffer)
     default:
     {
         // e+4932
-        if((exponent - EXP_BIAS) > 4932)
-            return "INF";
+        //if((exponent - EXP_BIAS) > 4932)
+        //    return "INF";
 
         // e-4931
-        if((exponent - EXP_BIAS) < -4931)
-            return "-INF";
+        //if((exponent - EXP_BIAS) < -4931)
+        //    return "-INF";
     }
     break;
     }
 
     // Convert both numbers to 128 bit types
-    dd_real dd_mantissa((double)mantissa);
+    dd_real dd_mantissa(mantissa);
     dd_real dd_divisor((uint64_t)1 << 63);
 
     // Calculate significand (m) and exponent (e)
     //
     // (-1)^s * (m / 2^63) * 2^(e - 16383)
     dd_real significand = dd_mantissa / dd_divisor;
-    dd_real exp = pown(2, exponent - EXP_BIAS);
 
-    if(std::isnan(exp))
-        return "NAN";
+    int exp10 = 0;
+    dd_real exp = pow2_fast(exponent - EXP_BIAS, &exp10);
 
     significand *= exp;
 
-    // Determine flags for rounding between scientific notation and standard notation (billions)
-    std::ios_base::fmtflags fmt = 0;
-    int digits = 19;
-    int leadingDigits = 0;
-
-    // Determine number of leading zeroes with log (log(0) is undefined)
-    if(significand == dd_real(0))
-        leadingDigits = 0;
-    else
-        leadingDigits = std::floor(std::log10(significand)).toInt() + 1;
-
-    if(leadingDigits <= 10 && leadingDigits >= -4)
+    // The above multiplication can introduce an extra tens place, so remove it
+    // (10.204) -> (1.0204) exp10++;
+    if(std::floor(std::log10(significand)).toInt() > 0)
     {
-        fmt = std::ios_base::fixed;
-        digits = 20 - leadingDigits;
+        significand /= dd_real(10);
+        exp10 += 1;
     }
 
     // Signed-ness
     if(sign)
         significand *= -1;
 
-    // Print result
-    return QString::fromStdString(significand.to_string(digits, 0, fmt));
+    // Print result (20 maximum digits)
+    if(exp10 <= 10 && exp10 >= -4)
+    {
+        // -10000000000.0000000
+        // 10000000000.00000000
+        significand *= pown(10, exp10);
+
+        return QString::fromStdString(significand.to_string(18 - exp10 - (int)sign, 0, std::ios_base::fixed));
+    }
+    else
+    {
+        // -1.00000000000000000e+11
+        // 1.000000000000000000e+11
+        QString expStr = QString().sprintf("e%+d", exp10);
+        QString sigStr = QString::fromStdString(significand.to_string(23 - expStr.length() - (int)sign, 0, std::ios_base::fixed));
+
+        return sigStr + expStr;
+    }
 }
