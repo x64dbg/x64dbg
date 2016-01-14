@@ -222,8 +222,11 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         return -1;
     }
 
-    // Create a temporary backup file
-    if(!CopyFileW(StringUtils::Utf8ToUtf16(modPath).c_str(), StringUtils::Utf8ToUtf16(FileName).c_str(), false))
+    // Create file copy at destination path with attributes
+    WString srcPath = StringUtils::Utf8ToUtf16(modPath);
+    WString dstPath = StringUtils::Utf8ToUtf16(FileName);
+
+    if(!CopyFileW(srcPath.c_str(), dstPath.c_str(), false))
     {
         if(Error)
             strcpy_s(Error, MAX_ERROR_SIZE, "Failed to make a copy of the original file (patch target is in use?)");
@@ -231,13 +234,29 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
         return -1;
     }
 
+    // Strip the READONLY flag from file so we can load it
+    DWORD fileAttrs = GetFileAttributesW(dstPath.c_str());
+
+    if(fileAttrs == INVALID_FILE_ATTRIBUTES)
+    {
+        if(Error)
+            strcpy_s(Error, MAX_ERROR_SIZE, "Unable to obtain attributes for copied file");
+
+        return -1;
+    }
+
+    SetFileAttributesW(dstPath.c_str(), fileAttrs & ~FILE_ATTRIBUTE_READONLY);
+
+    // Try loading (will fail if SetFileAttributesW fails)
     HANDLE fileHandle;
     DWORD loadedSize;
     HANDLE fileMap;
     ULONG_PTR fileMapVa;
-    if(!StaticFileLoadW(StringUtils::Utf8ToUtf16(FileName).c_str(), UE_ACCESS_ALL, false, &fileHandle, &loadedSize, &fileMap, &fileMapVa))
+    if(!StaticFileLoadW(dstPath.c_str(), UE_ACCESS_ALL, false, &fileHandle, &loadedSize, &fileMap, &fileMapVa))
     {
-        strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileLoad failed");
+        if(Error)
+            strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileLoad failed");
+
         return -1;
     }
 
@@ -258,7 +277,7 @@ int PatchFile(const PATCHINFO* List, int Count, const char* FileName, char* Erro
     }
 
     // Unload the file from memory and commit changes to disk
-    if(!StaticFileUnloadW(StringUtils::Utf8ToUtf16(FileName).c_str(), true, fileHandle, loadedSize, fileMap, fileMapVa))
+    if(!StaticFileUnloadW(dstPath.c_str(), true, fileHandle, loadedSize, fileMap, fileMapVa))
     {
         if(Error)
             strcpy_s(Error, MAX_ERROR_SIZE, "StaticFileUnload failed");
