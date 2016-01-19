@@ -1146,120 +1146,6 @@ static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
     plugincbcall(CB_DEBUGEVENT, &debugEventInfo);
 }
 
-DWORD WINAPI threadDebugLoop(void* lpParameter)
-{
-    lock(WAITID_STOP); //we are running
-    //initialize
-    bIsAttached = false;
-    bSkipExceptions = false;
-    bBreakOnNextDll = false;
-    bFreezeStack = false;
-    INIT_STRUCT* init = (INIT_STRUCT*)lpParameter;
-    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0);
-    pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
-    strcpy_s(szFileName, init->exe);
-
-    // Load command line if it exists in DB
-    DbSetPath(nullptr, szFileName);
-    DbLoad(DbLoadSaveType::CommandLine);
-
-    if(!isCmdLineEmpty())
-    {
-        char* commandLineArguments = NULL;
-        commandLineArguments = getCommandLineArgs();
-
-        if(commandLineArguments)
-            init->commandline = commandLineArguments;
-    }
-
-
-    if(bFileIsDll)
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), false, StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str(), 0);
-    else
-        fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str());
-    if(!fdProcessInfo)
-    {
-        fdProcessInfo = &g_pi;
-        dputs("Error starting process (CreateProcess)!");
-        unlock(WAITID_STOP);
-        return 0;
-    }
-    BOOL wow64 = false, mewow64 = false;
-    if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
-    {
-        dputs("IsWow64Process failed!");
-        StopDebug();
-        unlock(WAITID_STOP);
-        return 0;
-    }
-    if((mewow64 && !wow64) || (!mewow64 && wow64))
-    {
-#ifdef _WIN64
-        dputs("Use x32dbg to debug this process!");
-#else
-        dputs("Use x64dbg to debug this process!");
-#endif // _WIN64
-        unlock(WAITID_STOP);
-        return 0;
-    }
-    GuiAddRecentFile(szFileName);
-    varset("$hp", (duint)fdProcessInfo->hProcess, true);
-    varset("$pid", fdProcessInfo->dwProcessId, true);
-    ecount = 0;
-    //NOTE: set custom handlers
-    SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
-    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
-    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
-    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
-    SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
-    SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
-    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
-    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
-    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
-    //inform GUI we started without problems
-    GuiSetDebugState(initialized);
-    //set GUI title
-    strcpy_s(szBaseFileName, szFileName);
-    int len = (int)strlen(szBaseFileName);
-    while(szBaseFileName[len] != '\\' && len)
-        len--;
-    if(len)
-        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
-    GuiUpdateWindowTitle(szBaseFileName);
-    //call plugin callback
-    PLUG_CB_INITDEBUG initInfo;
-    initInfo.szFileName = szFileName;
-    plugincbcall(CB_INITDEBUG, &initInfo);
-    //run debug loop (returns when process debugging is stopped)
-    hProcess = fdProcessInfo->hProcess;
-    DebugLoop();
-    isDetachedByUser = false;
-    //call plugin callback
-    PLUG_CB_STOPDEBUG stopInfo;
-    stopInfo.reserved = 0;
-    plugincbcall(CB_STOPDEBUG, &stopInfo);
-    //cleanup dbghelp
-    SafeSymRegisterCallback64(hProcess, nullptr, 0);
-    SafeSymCleanup(hProcess);
-    //message the user/do final stuff
-    RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    //cleanup
-    DbClose();
-    ModClear();
-    ThreadClear();
-    SymClearMemoryCache();
-    GuiSetDebugState(stopped);
-    dputs("Debugging stopped!");
-    varset("$hp", (duint)0, true);
-    varset("$pid", (duint)0, true);
-    unlock(WAITID_STOP); //we are done
-    pDebuggedEntry = 0;
-    pDebuggedBase = 0;
-    pCreateProcessBase = 0;
-    return 0;
-}
-
 bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
     if(!BpDelete(bp->addr, BPNORMAL))
@@ -1456,73 +1342,6 @@ static void cbAttachDebugger()
     hProcess = fdProcessInfo->hProcess;
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
     varset("$pid", fdProcessInfo->dwProcessId, true);
-}
-
-DWORD WINAPI threadAttachLoop(void* lpParameter)
-{
-    lock(WAITID_STOP);
-    bIsAttached = true;
-    bSkipExceptions = false;
-    bFreezeStack = false;
-    DWORD pid = (DWORD)lpParameter;
-    static PROCESS_INFORMATION pi_attached;
-    fdProcessInfo = &pi_attached;
-    //do some init stuff
-    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szFileName).c_str(), 0);
-    GuiAddRecentFile(szFileName);
-    ecount = 0;
-    //NOTE: set custom handlers
-    SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
-    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
-    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
-    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
-    SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
-    SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
-    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
-    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
-    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
-    //inform GUI start we started without problems
-    GuiSetDebugState(initialized);
-    //set GUI title
-    strcpy_s(szBaseFileName, szFileName);
-    int len = (int)strlen(szBaseFileName);
-    while(szBaseFileName[len] != '\\' && len)
-        len--;
-    if(len)
-        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
-    GuiUpdateWindowTitle(szBaseFileName);
-    //call plugin callback (init)
-    PLUG_CB_INITDEBUG initInfo;
-    initInfo.szFileName = szFileName;
-    plugincbcall(CB_INITDEBUG, &initInfo);
-    //call plugin callback (attach)
-    PLUG_CB_ATTACH attachInfo;
-    attachInfo.dwProcessId = (DWORD)pid;
-    plugincbcall(CB_ATTACH, &attachInfo);
-    //run debug loop (returns when process debugging is stopped)
-    AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
-    isDetachedByUser = false;
-    //call plugin callback
-    PLUG_CB_STOPDEBUG stopInfo;
-    stopInfo.reserved = 0;
-    plugincbcall(CB_STOPDEBUG, &stopInfo);
-    //cleanup dbghelp
-    SafeSymRegisterCallback64(hProcess, nullptr, 0);
-    SafeSymCleanup(hProcess);
-    //message the user/do final stuff
-    RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
-    //cleanup
-    DbClose();
-    ModClear();
-    ThreadClear();
-    SymClearMemoryCache();
-    GuiSetDebugState(stopped);
-    dputs("debugging stopped!");
-    varset("$hp", (duint)0, true);
-    varset("$pid", (duint)0, true);
-    unlock(WAITID_STOP);
-    return 0;
 }
 
 void cbDetach()
@@ -1801,4 +1620,176 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 duint dbggetdebuggedbase()
 {
     return pDebuggedBase;
+}
+
+static void debugLoopFunction(void* lpParameter, bool attach)
+{
+    //we are running
+    lock(WAITID_STOP);
+
+    //initialize variables
+    bIsAttached = attach;
+    bSkipExceptions = false;
+    bBreakOnNextDll = false;
+    bFreezeStack = false;
+    ecount = 0;
+
+    //prepare attach/createprocess
+    DWORD pid;
+    INIT_STRUCT* init;
+    if(attach)
+    {
+        pid = DWORD(lpParameter);
+        static PROCESS_INFORMATION pi_attached;
+        memset(&pi_attached, 0, sizeof(pi_attached));
+        fdProcessInfo = &pi_attached;
+    }
+    else
+    {
+        init = (INIT_STRUCT*)lpParameter;
+        pDebuggedEntry = GetPE32DataW(StringUtils::Utf8ToUtf16(init->exe).c_str(), 0, UE_OEP);
+        strcpy_s(szFileName, init->exe);
+    }
+
+    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szFileName).c_str(), 0);
+    DbSetPath(nullptr, szFileName);
+
+    if(!attach)
+    {
+        // Load command line if it exists in DB
+        DbLoad(DbLoadSaveType::CommandLine);
+        if(!isCmdLineEmpty())
+        {
+            char* commandLineArguments = NULL;
+            commandLineArguments = getCommandLineArgs();
+
+            if(commandLineArguments)
+                init->commandline = commandLineArguments;
+        }
+
+        //start the process
+        if(bFileIsDll)
+            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), false, StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str(), 0);
+        else
+            fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(StringUtils::Utf8ToUtf16(init->exe).c_str(), StringUtils::Utf8ToUtf16(init->commandline).c_str(), StringUtils::Utf8ToUtf16(init->currentfolder).c_str());
+        if(!fdProcessInfo)
+        {
+            fdProcessInfo = &g_pi;
+            dputs("Error starting process (CreateProcess)!");
+            unlock(WAITID_STOP);
+            return;
+        }
+
+        //check for WOW64
+        BOOL wow64 = false, mewow64 = false;
+        if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
+        {
+            dputs("IsWow64Process failed!");
+            StopDebug();
+            unlock(WAITID_STOP);
+            return;
+        }
+        if((mewow64 && !wow64) || (!mewow64 && wow64))
+        {
+#ifdef _WIN64
+            dputs("Use x32dbg to debug this process!");
+#else
+            dputs("Use x64dbg to debug this process!");
+#endif // _WIN64
+            unlock(WAITID_STOP);
+            return;
+        }
+
+        //set script variables
+        varset("$hp", (duint)fdProcessInfo->hProcess, true);
+        varset("$pid", fdProcessInfo->dwProcessId, true);
+    }
+
+    //set custom handlers
+    SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
+    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
+    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
+    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
+    SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
+    SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
+    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
+    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
+
+    //inform GUI we started without problems
+    GuiSetDebugState(initialized);
+    GuiAddRecentFile(szFileName);
+
+    //set GUI title
+    strcpy_s(szBaseFileName, szFileName);
+    int len = (int)strlen(szBaseFileName);
+    while(szBaseFileName[len] != '\\' && len)
+        len--;
+    if(len)
+        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
+    GuiUpdateWindowTitle(szBaseFileName);
+
+    //call plugin callback
+    PLUG_CB_INITDEBUG initInfo;
+    initInfo.szFileName = szFileName;
+    plugincbcall(CB_INITDEBUG, &initInfo);
+
+    //call plugin callback (attach)
+    if(attach)
+    {
+        PLUG_CB_ATTACH attachInfo;
+        attachInfo.dwProcessId = (DWORD)pid;
+        plugincbcall(CB_ATTACH, &attachInfo);
+    }
+
+    //run debug loop (returns when process debugging is stopped)
+    if(attach)
+    {
+        AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger);
+    }
+    else
+    {
+        hProcess = fdProcessInfo->hProcess;
+        DebugLoop();
+    }
+
+    //call plugin callback
+    PLUG_CB_STOPDEBUG stopInfo;
+    stopInfo.reserved = 0;
+    plugincbcall(CB_STOPDEBUG, &stopInfo);
+
+    //cleanup dbghelp
+    SafeSymRegisterCallback64(hProcess, nullptr, 0);
+    SafeSymCleanup(hProcess);
+
+    //message the user/do final stuff
+    RemoveAllBreakPoints(UE_OPTION_REMOVEALL); //remove all breakpoints
+
+    //cleanup
+    DbClose();
+    ModClear();
+    ThreadClear();
+    SymClearMemoryCache();
+    GuiSetDebugState(stopped);
+    dputs("Debugging stopped!");
+    varset("$hp", (duint)0, true);
+    varset("$pid", (duint)0, true);
+    unlock(WAITID_STOP); //we are done
+    pDebuggedEntry = 0;
+    pDebuggedBase = 0;
+    pCreateProcessBase = 0;
+    isDetachedByUser = false;
+}
+
+DWORD WINAPI threadDebugLoop(void* lpParameter)
+{
+    debugLoopFunction(lpParameter, false);
+    return 0;
+}
+
+DWORD WINAPI threadAttachLoop(void* lpParameter)
+{
+    debugLoopFunction(lpParameter, true);
+    return 0;
 }
