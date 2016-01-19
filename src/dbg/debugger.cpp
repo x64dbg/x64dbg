@@ -829,8 +829,11 @@ static void cbSystemBreakpoint(void* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 
+    // Update GUI (this should be the first triggered event)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    GuiSetDebugState(running);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
+    DebugUpdateGui(cip, true);
 
     //log message
     if(bIsAttached)
@@ -846,10 +849,8 @@ static void cbSystemBreakpoint(void* ExceptionData)
 
     if(bIsAttached ? settingboolget("Events", "AttachBreakpoint") : settingboolget("Events", "SystemBreakpoint"))
     {
-        //update GUI
-        GuiSetDebugState(paused);
-        DebugUpdateGui(cip, true);
         //lock
+        GuiSetDebugState(paused);
         lock(WAITID_RUN);
         SetForegroundWindow(GuiGetWindowHandle());
         PLUG_CB_PAUSEDEBUG pauseInfo;
