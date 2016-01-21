@@ -523,7 +523,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         BridgeResult result;
         emit getFocusedCPUWindow();
-        result.Wait();
+        return (void*)result.Wait();
     }
     break;
 
