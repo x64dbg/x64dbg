@@ -47,7 +47,8 @@ protected:
     CPUStack* mStack;
     RegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
-
+private slots:
+    void getFocusedCPUWindow();
 private:
     Ui::CPUWidget* ui;
 };

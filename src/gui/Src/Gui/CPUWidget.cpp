@@ -13,6 +13,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(repaint()));
+    connect(Bridge::getBridge(), SIGNAL(getFocusedCPUWindow()), this, SLOT(getFocusedCPUWindow()));
 
     QSplitter* splitter = new QSplitter(this);
     splitter->addWidget(mSideBar);
@@ -145,4 +146,23 @@ CPUDump* CPUWidget::getDumpWidget()
 CPUStack* CPUWidget::getStackWidget()
 {
     return mStack;
+}
+
+void CPUWidget::getFocusedCPUWindow()
+{
+    QWidget* w = QApplication::focusWidget();
+    int r = -1;
+    if(w == mDisas)
+    {
+        r = GUI_DISASSEMBLY;
+    }
+    else if(w == mDump)
+    {
+        r = GUI_DUMP;
+    }
+    else if(w == mStack)
+    {
+        r = GUI_STACK;
+    }
+    Bridge::getBridge()->setResult(r);
 }
