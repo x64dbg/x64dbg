@@ -924,7 +924,7 @@ CMDRESULT cbDebugPause(int argc, char* argv[])
 
 static DWORD WINAPI scyllaThread(void* lpParam)
 {
-    typedef INT (WINAPI * SCYLLASTARTGUI)(DWORD pid, HINSTANCE mod);
+    typedef INT (WINAPI * SCYLLASTARTGUI)(DWORD pid, HINSTANCE mod, DWORD_PTR entrypoint);
     SCYLLASTARTGUI ScyllaStartGui = 0;
     HINSTANCE hScylla = LoadLibraryW(L"Scylla.dll");
     if(!hScylla)
@@ -942,10 +942,9 @@ static DWORD WINAPI scyllaThread(void* lpParam)
         FreeLibrary(hScylla);
         return 0;
     }
-    if(dbgisdll())
-        ScyllaStartGui(fdProcessInfo->dwProcessId, (HINSTANCE)dbgdebuggedbase());
-    else
-        ScyllaStartGui(fdProcessInfo->dwProcessId, 0);
+    auto cip = GetContextDataEx(fdProcessInfo->hThread, UE_CIP);
+    auto cipModBase = ModBaseFromAddr(cip);
+    ScyllaStartGui(fdProcessInfo->dwProcessId, (HINSTANCE)cipModBase, cip);
     FreeLibrary(hScylla);
     bScyllaLoaded = false;
     return 0;
