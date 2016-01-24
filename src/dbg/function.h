@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _FUNCTION_H
+#define _FUNCTION_H
 
 #include "addrinfo.h"
 
@@ -22,3 +23,5 @@ bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);
 void FunctionClear();
 void FunctionGetList(std::vector<FUNCTIONSINFO> & list);
 bool FunctionGetInfo(duint Address, FUNCTIONSINFO* info);
+
+#endif // _FUNCTION_H

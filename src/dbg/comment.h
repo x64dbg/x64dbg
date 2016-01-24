@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COMMENT_H
+#define _COMMENT_H
 
 #include "_global.h"
 
@@ -20,3 +21,5 @@ bool CommentEnum(COMMENTSINFO* List, size_t* Size);
 void CommentClear();
 void CommentGetList(std::vector<COMMENTSINFO> & list);
 bool CommentGetInfo(duint Address, COMMENTSINFO* info);
+
+#endif // _COMMENT_H

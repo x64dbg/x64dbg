@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _BREAKPOINT_H
+#define _BREAKPOINT_H
 
 #include "_global.h"
 
@@ -47,3 +48,5 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root);
 void BpClear();
+
+#endif // _BREAKPOINT_H

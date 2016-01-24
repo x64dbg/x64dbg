@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MODULE_H
+#define _MODULE_H
 
 #include "_global.h"
 
@@ -48,3 +49,5 @@ int ModPathFromAddr(duint Address, char* Path, int Size);
 int ModPathFromName(const char* Module, char* Path, int Size);
 void ModGetList(std::vector<MODINFO> & list);
 bool ModAddImportToModule(duint Base, const MODIMPORTINFO & importInfo);
+
+#endif // _MODULE_H

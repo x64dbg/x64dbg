@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SYMBOLINFO_H
+#define _SYMBOLINFO_H
 
 #include "_global.h"
 
@@ -23,3 +24,5 @@ void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData);
 \return true if it succeeds, false if it fails.
 */
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line);
+
+#endif // _SYMBOLINFO_H

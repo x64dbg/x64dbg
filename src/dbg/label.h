@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _LABEL_H
+#define _LABEL_H
 
 #include "_global.h"
 
@@ -22,3 +23,5 @@ void LabelClear();
 void LabelGetList(std::vector<LABELSINFO> & list);
 bool LabelGetInfo(duint Address, LABELSINFO* info);
 void LabelEnumCb(std::function<void(const LABELSINFO & info)> cbEnum, const char* module = nullptr);
+
+#endif // _LABEL_H

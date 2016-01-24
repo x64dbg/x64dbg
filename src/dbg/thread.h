@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _THREAD_H
+#define _THREAD_H
 
 #include "_global.h"
 #include "debugger.h"
@@ -22,3 +23,5 @@ HANDLE ThreadGetHandle(DWORD ThreadId);
 DWORD ThreadGetId(HANDLE Thread);
 int ThreadSuspendAll();
 int ThreadResumeAll();
+
+#endif // _THREAD_H

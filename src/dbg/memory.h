@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MEMORY_H
+#define _MEMORY_H
 
 #include "_global.h"
 #include "addrinfo.h"
@@ -39,3 +40,5 @@ bool MemPageRightsFromString(DWORD* Protect, const char* Rights);
 bool MemFindInPage(SimplePage page, duint startoffset, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults);
 bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<PatternByte> & pattern, std::vector<duint> & results, duint maxresults, bool progress = true);
 bool MemDecodePointer(duint* Pointer);
+
+#endif // _MEMORY_H

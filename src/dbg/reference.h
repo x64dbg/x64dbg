@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _REFERENCE_H
+#define _REFERENCE_H
 
 #include "_global.h"
 #include "disasm_fast.h"
@@ -24,3 +25,5 @@ typedef std::function<void(int)> CBPROGRESS;
 
 int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type);
 int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Capstone & cp, bool initCallBack, CBPROGRESS cbUpdateProgress);
+
+#endif // _REFERENCE_H

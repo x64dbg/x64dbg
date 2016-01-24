@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_H
-#define _GLOBAL_H
+#ifndef _BOOKMARK_H
+#define _BOOKMARK_H
 
 #include "_global.h"
 
@@ -21,4 +21,4 @@ void BookmarkClear();
 void BookmarkGetList(std::vector<BOOKMARKSINFO> & list);
 bool BookmarkGetInfo(duint Address, BOOKMARKSINFO* info);
 
-#endif // _GLOBAL_H
+#endif // _BOOKMARK_H
