@@ -1,5 +1,5 @@
-#ifndef _INSTRUCTIONS_H
-#define _INSTRUCTIONS_H
+#ifndef _INSTRUCTION_H
+#define _INSTRUCTION_H
 
 #include "command.h"
 
@@ -79,4 +79,4 @@ CMDRESULT cbInstrVirtualmod(int argc, char* argv[]);
 CMDRESULT cbInstrSetMaxFindResult(int argc, char* argv[]);
 CMDRESULT cbInstrSavedata(int argc, char* argv[]);
 
-#endif // _INSTRUCTIONS_H
+#endif // _INSTRUCTION_H

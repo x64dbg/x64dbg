@@ -1,7 +1,8 @@
-#include <windows.h>
-
 #ifndef _UNDOCUMENTED_H
 #define _UNDOCUMENTED_H
+
+#include <windows.h>
+
 //Thanks to: https://github.com/zer0fl4g/Nanomite
 
 typedef LONG NTSTATUS;
@@ -229,4 +230,4 @@ typedef struct _LdrpVectorHandlerList
     PVECTORED_EXCEPTION_HANDLER VectoredHandler;
 } VECTORED_HANDLER_LIST, *PVECTORED_HANDLER_LIST;
 
-#endif /* _UNDOCUMENTED_H */
+#endif // _UNDOCUMENTED_H

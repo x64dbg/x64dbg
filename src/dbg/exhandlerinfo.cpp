@@ -28,7 +28,7 @@ bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info)
         break;
 
     case EX_HANDLER_VCH:
-        ret = ExHandlerGetVCH(handlerEntries);
+        ret = ExHandlerGetVCH(handlerEntries, false);
         break;
 
     case EX_HANDLER_UNHANDLED:

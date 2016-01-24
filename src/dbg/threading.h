@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _THREADING_H
+#define _THREADING_H
 
 #include "_global.h"
 
@@ -149,3 +150,5 @@ protected:
 private:
     using Internal = SectionLockerGlobal;
 };
+
+#endif // _THREADING_H

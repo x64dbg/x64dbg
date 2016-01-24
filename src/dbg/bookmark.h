@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _GLOBAL_H
+#define _GLOBAL_H
 
 #include "_global.h"
 
@@ -19,3 +20,5 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size);
 void BookmarkClear();
 void BookmarkGetList(std::vector<BOOKMARKSINFO> & list);
 bool BookmarkGetInfo(duint Address, BOOKMARKSINFO* info);
+
+#endif // _GLOBAL_H
