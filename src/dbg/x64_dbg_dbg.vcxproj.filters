@@ -293,6 +293,9 @@
     <ClCompile Include="_scriptapi_symbol.cpp">
       <Filter>Source Files\Interfaces/Exports\_scriptapi</Filter>
     </ClCompile>
+    <ClCompile Include="exhandlerinfo.cpp">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="x64_dbg.h">
@@ -645,6 +648,9 @@
     </ClInclude>
     <ClInclude Include="_scriptapi_symbol.h">
       <Filter>Header Files\Interfaces/Exports\_scriptapi</Filter>
+    </ClInclude>
+    <ClInclude Include="exhandlerinfo.h">
+      <Filter>Header Files\Information</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

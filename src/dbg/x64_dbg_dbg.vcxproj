@@ -42,6 +42,7 @@
     <ClCompile Include="error.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exceptiondirectoryanalysis.cpp" />
+    <ClCompile Include="exhandlerinfo.cpp" />
     <ClCompile Include="expressionparser.cpp" />
     <ClCompile Include="filehelper.cpp" />
     <ClCompile Include="function.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="exception.h" />
     <ClInclude Include="exceptiondirectoryanalysis.h" />
+    <ClInclude Include="exhandlerinfo.h" />
     <ClInclude Include="expressionparser.h" />
     <ClInclude Include="filehelper.h" />
     <ClInclude Include="function.h" />

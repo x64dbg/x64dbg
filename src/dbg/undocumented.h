@@ -215,5 +215,18 @@ typedef struct _TEB
     PVOID                   StackReserved;
 } TEB, *PTEB;
 
+typedef struct _VECTORED_EXCEPTION_NODE
+{
+    LIST_ENTRY ListEntry;
+    PVECTORED_EXCEPTION_HANDLER handler;
+} VECTORED_EXCEPTION_NODE, *PVECTORED_EXCEPTION_NODE;
+
+typedef struct _LdrpVectorHandlerList
+{
+    struct _LdrpVectorHandlerList* Prev;
+    struct _LdrpVectorHandlerList* Next;
+    DWORD Depth;
+    PVECTORED_EXCEPTION_HANDLER VectoredHandler;
+} VECTORED_HANDLER_LIST, *PVECTORED_HANDLER_LIST;
 
 #endif /* _UNDOCUMENTED_H */
