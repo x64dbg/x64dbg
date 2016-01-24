@@ -608,3 +608,32 @@ bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<Patte
     }
     return true;
 }
+
+bool MemDecodePointer(duint* Pointer)
+{
+    // Decode a pointer that has been encoded with a special "process cookie"
+    // http://doxygen.reactos.org/dd/dc6/lib_2rtl_2process_8c_ad52c0f8f48ce65475a02a5c334b3e959.html
+    typedef NTSTATUS(NTAPI * pfnNtQueryInformationProcess)(
+        IN  HANDLE ProcessHandle,
+        IN  LONG ProcessInformationClass,
+        OUT PVOID ProcessInformation,
+        IN  ULONG ProcessInformationLength,
+        OUT PULONG ReturnLength
+    );
+
+    static auto NtQIP = (pfnNtQueryInformationProcess)GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationProcess");
+
+    // Verify
+    if(!NtQIP || !Pointer)
+        return false;
+
+    // Query the kernel for XOR key
+    ULONG cookie;
+
+    if(NtQIP(fdProcessInfo->hProcess, /* ProcessCookie */36, &cookie, sizeof(ULONG), nullptr) < 0)
+        return false;
+
+    // XOR pointer with key
+    *Pointer = (duint)((ULONG_PTR)(*Pointer) ^ cookie);
+    return true;
+}
