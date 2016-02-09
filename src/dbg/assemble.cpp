@@ -57,7 +57,7 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
 {
     BASIC_INSTRUCTION_INFO basicinfo;
     // Check if the instruction changes CIP and if it does not pretent it does point to valid executable memory.
-    if(!disasmfast(dest, addr, &basicinfo) || !basicinfo.branch)
+    if(!disasmfast(dest, addr, &basicinfo) || !basicinfo.branch || (basicinfo.type & TYPE_ADDR) == 0)
         return true;
 
     // An instruction pointing to invalid memory does not point to executable memory.
