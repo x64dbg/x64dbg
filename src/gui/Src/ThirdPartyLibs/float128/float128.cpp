@@ -948,6 +948,24 @@ dd_real::dd_real(std::wstring const & ws)
     }
 }
 
+int dd_real::toInt() const
+{
+    auto x = std::trunc(*this);
+    return static_cast<int>(static_cast<long long>(x._hi()) + static_cast<long long>(x._lo()));
+}
+
+long dd_real::toLong() const
+{
+    auto x = std::trunc(*this);
+    return static_cast<long>(static_cast<long long>(x._hi()) + static_cast<long long>(x._lo()));
+}
+
+long long dd_real::toLongLong() const
+{
+    auto x = std::trunc(*this);
+    return static_cast<long long>(x._hi()) + static_cast<long long>(x._lo());
+}
+
 dd_real dd_real::div(double a, double b)
 {
     if(QD_ISNAN(a))

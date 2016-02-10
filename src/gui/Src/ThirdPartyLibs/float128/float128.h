@@ -435,37 +435,37 @@ public:
     dd_real(int h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<int>(x[0]));
     }
 
     dd_real(unsigned int h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<unsigned int>(x[0]));
     }
 
     dd_real(long h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<long>(x[0]));
     }
 
     dd_real(unsigned long h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<unsigned long>(x[0]));
     }
 
     dd_real(long long h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<long long>(x[0]));
     }
 
     dd_real(unsigned long long h)
     {
         x[0] = static_cast<double>(h);
-        x[1] = x[0] - h;
+        x[1] = static_cast<double>(h - static_cast<unsigned long long>(x[0]));
     }
 
     dd_real(std::string const & s);
@@ -485,20 +485,9 @@ public:
         return _hi() + _lo();
     }
 
-    int toInt() const
-    {
-        return static_cast<int>(_hi()) + static_cast<int>(_lo());
-    }
-
-    long toLong() const
-    {
-        return static_cast<long>(_hi()) + static_cast<long>(_lo());
-    }
-
-    long long toLongLong() const
-    {
-        return static_cast<long long>(_hi()) + static_cast<long long>(_lo());
-    }
+    int toInt() const;
+    long toLong() const;
+    long long toLongLong() const;
 
     dd_real const & operator+() const
     {
