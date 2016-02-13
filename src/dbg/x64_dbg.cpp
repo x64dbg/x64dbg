@@ -27,6 +27,7 @@ static HANDLE hCommandLoopThread = 0;
 static bool bStopCommandLoopThread = false;
 static char alloctrace[MAX_PATH] = "";
 static bool bIsStopped = true;
+static char scriptDllDir[MAX_PATH] = "";
 static String notesFile;
 
 static CMDRESULT cbStrLen(int argc, char* argv[])
@@ -247,6 +248,84 @@ static DWORD WINAPI DbgCommandLoopThread(void* a)
     return 0;
 }
 
+typedef void(*SCRIPTDLLSTART)();
+
+struct DLLSCRIPTEXECTHREADINFO
+{
+    DLLSCRIPTEXECTHREADINFO(HINSTANCE hScriptDll, SCRIPTDLLSTART AsyncStart)
+        : hScriptDll(hScriptDll),
+          AsyncStart(AsyncStart)
+    {
+    }
+
+    HINSTANCE hScriptDll;
+    SCRIPTDLLSTART AsyncStart;
+};
+
+static DWORD WINAPI DbgScriptDllExecThread(void* a)
+{
+    auto info = (DLLSCRIPTEXECTHREADINFO*)a;
+    auto AsyncStart = info->AsyncStart;
+    auto hScriptDll = info->hScriptDll;
+    delete info;
+
+    dprintf("[Script DLL] Calling export \"AsyncStart\"...\n");
+    AsyncStart();
+    dprintf("[Script DLL] \"AsyncStart\" returned!\n");
+
+    dprintf("[Script DLL] Calling FreeLibrary...");
+    if(FreeLibrary(hScriptDll))
+        dprintf("success!\n");
+    else
+        dprintf("failure (%08X)...\n", GetLastError());
+
+    return 0;
+}
+
+static bool DbgScriptDllExec(const char* dll)
+{
+    String dllPath = dll;
+    if(dllPath.find('\\') == String::npos)
+        dllPath = String(scriptDllDir) + String(dll);
+
+    dprintf("[Script DLL] Loading Script DLL \"%s\"...\n", dllPath.c_str());
+
+    auto hScriptDll = LoadLibraryW(StringUtils::Utf8ToUtf16(dllPath).c_str());
+    if(hScriptDll)
+    {
+        dprintf("[Script DLL] DLL loaded on 0x%p!\n", hScriptDll);
+
+        auto AsyncStart = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "AsyncStart"));
+        if(AsyncStart)
+        {
+            dprintf("[Script DLL] Creating thread to call the export \"AsyncStart\"...\n");
+            CloseHandle(CreateThread(nullptr, 0, DbgScriptDllExecThread, new DLLSCRIPTEXECTHREADINFO(hScriptDll, AsyncStart), 0, nullptr)); //on-purpose memory leak here
+        }
+        else
+        {
+            auto Start = SCRIPTDLLSTART(GetProcAddress(hScriptDll, "Start"));
+            if(Start)
+            {
+                dprintf("[Script DLL] Calling export \"Start\"...\n");
+                Start();
+                dprintf("[Script DLL] \"Start\" returned!\n");
+            }
+            else
+                dprintf("[Script DLL] Failed to find the exports \"AsyncStart\" or \"Start\" (%08X)!\n", GetLastError());
+
+            dprintf("[Script DLL] Calling FreeLibrary...");
+            if(FreeLibrary(hScriptDll))
+                dprintf("success!\n");
+            else
+                dprintf("failure (%08X)...\n", GetLastError());
+        }
+    }
+    else
+        dprintf("[Script DLL] LoadLibary failed (%08X)!\n", GetLastError());
+
+    return true;
+}
+
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
@@ -280,6 +359,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dir[len] = 0;
     strcpy_s(alloctrace, dir);
     strcat_s(alloctrace, "\\alloctrace.txt");
+    strcpy_s(scriptDllDir, dir);
+    strcat_s(scriptDllDir, "\\scripts\\");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
 
@@ -333,6 +414,12 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(info.name, "Default");
     info.id = 0;
     info.execute = DbgCmdExec;
+    info.completeCommand = nullptr;
+    GuiRegisterScriptLanguage(&info);
+    SCRIPTTYPEINFO infoDll;
+    strcpy_s(info.name, "Script DLL");
+    infoDll.id = 0;
+    info.execute = DbgScriptDllExec;
     info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
     dputs("Starting command loop...");
