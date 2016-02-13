@@ -779,8 +779,7 @@ typedef enum
     GUI_SET_GLOBAL_NOTES,           // param1=const char* text,     param2=unused
     GUI_GET_GLOBAL_NOTES,           // param1=char** text,          param2=unused
     GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
-    GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
-    GUI_GET_FOCUSED_CPUWINDOW       // param1=unused,               param2=unused
+    GUI_GET_DEBUGGEE_NOTES          // param1=char** text,          param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -878,7 +877,6 @@ BRIDGE_IMPEXP void GuiSetGlobalNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetGlobalNotes(char** text);
 BRIDGE_IMPEXP void GuiSetDebuggeeNotes(const char* text);
 BRIDGE_IMPEXP void GuiGetDebuggeeNotes(char** text);
-BRIDGE_IMPEXP int GuiGetFocusedCPUWindow();
 
 #ifdef __cplusplus
 }

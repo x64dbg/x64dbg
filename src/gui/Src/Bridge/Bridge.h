@@ -113,7 +113,7 @@ signals:
     void getGlobalNotes(void* text);
     void setDebuggeeNotes(const QString text);
     void getDebuggeeNotes(void* text);
-    void getFocusedCPUWindow();
+
 private:
     QMutex* mBridgeMutex;
     dsint bridgeResult;
