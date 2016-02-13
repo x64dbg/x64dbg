@@ -1236,3 +1236,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     hInst = hinstDLL;
     return TRUE;
 }
+
+BRIDGE_IMPEXP int GuiGetFocusedCPUWindow()
+{
+    return (int)(duint)_gui_sendmessage(GUI_GET_FOCUSED_CPUWINDOW, nullptr, nullptr);
+}
