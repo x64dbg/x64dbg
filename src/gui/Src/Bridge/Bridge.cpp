@@ -518,15 +518,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         result.Wait();
     }
     break;
-
-    case GUI_GET_FOCUSED_CPUWINDOW:
-    {
-        BridgeResult result;
-        emit getFocusedCPUWindow();
-        return (void*)result.Wait();
-    }
-    break;
-
     }
     return nullptr;
 }
