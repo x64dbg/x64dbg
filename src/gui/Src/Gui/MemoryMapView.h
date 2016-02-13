@@ -35,6 +35,7 @@ public slots:
     void refreshMap();
     void entropy();
     void findPatternSlot();
+    void dumpMemory();
 
 private:
     QString getProtectionString(DWORD Protect);
@@ -44,6 +45,7 @@ private:
     QAction* mYara;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
+    QAction* mDumpMemory;
 
     QMenu* mBreakpointMenu;
     QMenu* mMemoryAccessMenu;
