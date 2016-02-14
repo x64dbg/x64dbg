@@ -461,6 +461,7 @@ void MemoryMapView::dumpMemory()
 
     if(fileName.length())
     {
+        fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata ""%1"",%2,%3").arg(fileName, getCellContent(getInitialSelection(), 0),
                       getCellContent(getInitialSelection(), 1));
         DbgCmdExec(cmd.toUtf8().constData());
