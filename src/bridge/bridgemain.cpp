@@ -826,6 +826,11 @@ BRIDGE_IMPEXP duint DbgGetTimeWastedCounter()
     return _dbg_sendmessage(DBG_GET_TIME_WASTED_COUNTER, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr)
+{
+    return ARG_NONE;
+}
+
 BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip)
 {
     _gui_sendmessage(GUI_DISASSEMBLE_AT, (void*)addr, (void*)cip);

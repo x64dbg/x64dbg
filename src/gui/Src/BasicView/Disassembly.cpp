@@ -432,8 +432,32 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     case 3: //draw comments
     {
+        int argsize = 0;
+        duint cur_addr = rvaToVa(mInstBuffer.at(rowOffset).rva);
+
+        ARGTYPE argType = DbgGetArgTypeAt(cur_addr);
+        if(argType != ARG_NONE)
+        {
+            Function_t funcType;
+            switch(argType)
+            {
+            case ARG_BEGIN:
+                funcType = Function_start;
+                break;
+            case ARG_MIDDLE:
+                funcType = Function_middle;
+                break;
+            case ARG_END:
+                funcType = Function_end;
+                break;
+            default:
+                break;
+            }
+            argsize += paintFunctionGraphic(painter, x, y, funcType, true);
+        }
+
         char comment[MAX_COMMENT_SIZE] = "";
-        if(DbgGetCommentAt(rvaToVa(mInstBuffer.at(rowOffset).rva), comment))
+        if(DbgGetCommentAt(cur_addr, comment))
         {
             QString commentText;
             QColor backgroundColor;
@@ -454,8 +478,8 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             if(width > w)
                 width = w;
             if(width)
-                painter->fillRect(QRect(x + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
+                painter->fillRect(QRect(x + argsize + 2, y, width, h), QBrush(backgroundColor)); //fill comment color
+            painter->drawText(QRect(x + argsize + 4, y , w - 4 , h), Qt::AlignVCenter | Qt::AlignLeft, commentText);
         }
     }
     break;

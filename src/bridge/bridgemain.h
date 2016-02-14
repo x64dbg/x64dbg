@@ -129,6 +129,14 @@ typedef enum
 
 typedef enum
 {
+    ARG_NONE,
+    ARG_BEGIN,
+    ARG_MIDDLE,
+    ARG_END
+} ARGTYPE;
+
+typedef enum
+{
     DBG_SCRIPT_LOAD,                // param1=const char* filename,      param2=unused
     DBG_SCRIPT_UNLOAD,              // param1=unused,                    param2=unused
     DBG_SCRIPT_RUN,                 // param1=int destline,              param2=unused
@@ -700,6 +708,7 @@ BRIDGE_IMPEXP bool DbgWinEvent(MSG* message, long* result);
 BRIDGE_IMPEXP bool DbgWinEventGlobal(MSG* message);
 BRIDGE_IMPEXP bool DbgIsRunning();
 BRIDGE_IMPEXP duint DbgGetTimeWastedCounter();
+BRIDGE_IMPEXP ARGTYPE DbgGetArgTypeAt(duint addr);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
