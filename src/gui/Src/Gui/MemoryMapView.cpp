@@ -113,7 +113,6 @@ void MemoryMapView::setupContextMenu()
 
     //Dump
     mDumpMemory = new QAction("&Dump Memory to File", this);
-    this->addAction(mDumpMemory);
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
 
     refreshShortcutsSlot();
@@ -458,14 +457,12 @@ void MemoryMapView::findPatternSlot()
 
 void MemoryMapView::dumpMemory()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save Mapped File", QDir::currentPath(), tr("All files (*.*)"));
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Memory Region", QDir::currentPath(), tr("All files (*.*)"));
 
     if(fileName.length())
     {
-        duint start_address = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-        duint size = getCellContent(getInitialSelection(), 1).toULongLong(0, 10);
-
-        QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(start_address, 16), QString::number(size));
+        QString cmd = QString("savedata ""%1"",%2,%3").arg(fileName, getCellContent(getInitialSelection(), 0),
+                      getCellContent(getInitialSelection(), 1));
         DbgCmdExec(cmd.toUtf8().constData());
     }
 }
