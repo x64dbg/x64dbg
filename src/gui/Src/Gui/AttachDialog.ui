@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>611</width>
-    <height>293</height>
+    <width>800</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,22 +38,6 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
-     <item>
-      <widget class="StdTable" name="listProcesses">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::StyledPanel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Sunken</enum>
-       </property>
-      </widget>
-     </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -119,14 +103,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>StdTable</class>
-   <extends>QFrame</extends>
-   <header>StdTable.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>
