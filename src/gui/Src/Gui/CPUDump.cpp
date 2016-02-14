@@ -1552,6 +1552,7 @@ void CPUDump::binarySaveToFileSlot()
         dsint vaSelStart = rvaToVa(rvaSelStart);
 
         // Prepare command
+        fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata %1,%2,%3").arg(fileName, QString::number(vaSelStart, 16), QString::number(selSize));
         DbgCmdExec(cmd.toUtf8().constData());
     }

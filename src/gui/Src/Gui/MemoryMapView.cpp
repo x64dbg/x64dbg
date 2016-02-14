@@ -1,3 +1,5 @@
+#include <QFileDialog>
+
 #include "MemoryMapView.h"
 #include "Configuration.h"
 #include "Bridge.h"
@@ -109,6 +111,10 @@ void MemoryMapView::setupContextMenu()
     mFindPattern->setShortcutContext(Qt::WidgetShortcut);
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
 
+    //Dump
+    mDumpMemory = new QAction("&Dump Memory to File", this);
+    connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -126,6 +132,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
     QMenu* wMenu = new QMenu(this); //create context menu
+    wMenu->addAction(mDumpMemory);
     wMenu->addAction(mFollowDisassembly);
     wMenu->addAction(mFollowDump);
     wMenu->addAction(mYara);
@@ -447,3 +454,17 @@ void MemoryMapView::findPatternSlot()
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
     emit showReferences();
 }
+
+void MemoryMapView::dumpMemory()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Memory Region", QDir::currentPath(), tr("All files (*.*)"));
+
+    if(fileName.length())
+    {
+        fileName = QDir::toNativeSeparators(fileName);
+        QString cmd = QString("savedata ""%1"",%2,%3").arg(fileName, getCellContent(getInitialSelection(), 0),
+                      getCellContent(getInitialSelection(), 1));
+        DbgCmdExec(cmd.toUtf8().constData());
+    }
+}
+
