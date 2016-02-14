@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTabWidget>
+#include <QVBoxLayout>
 #include "CPUSideBar.h"
 #include "CPUDisassembly.h"
 #include "CPUMultiDump.h"

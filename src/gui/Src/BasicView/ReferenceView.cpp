@@ -1,17 +1,22 @@
-#include "ReferenceView.h"
+#include <QHBoxLayout>
 #include <QMessageBox>
+#include <QLabel>
+#include "ReferenceView.h"
 #include "Configuration.h"
 #include "Bridge.h"
-#include <QLabel>
 
-ReferenceView::ReferenceView()
+ReferenceView::ReferenceView() : SearchListView()
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
     mFollowDumpDefault = false;
 
+    // Widget container for progress
+    QWidget* progressWidget = new QWidget();
+
     // Create the layout for the progress bars
     QHBoxLayout* layoutProgress = new QHBoxLayout();
+    progressWidget->setLayout(layoutProgress);
     layoutProgress->setContentsMargins(2, 0, 0, 0);
     layoutProgress->setSpacing(4);
 
@@ -38,7 +43,7 @@ ReferenceView::ReferenceView()
     layoutProgress->addWidget(mCountTotalLabel);
 
     // Add the progress bar and label to the main layout
-    mMainLayout->addLayout(layoutProgress);
+    layout()->addWidget(progressWidget);
 
     // Setup signals
     connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));

@@ -1,55 +1,90 @@
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QSplitter>
+#include <QLabel>
 #include "SearchListView.h"
-#include "ui_SearchListView.h"
 #include "FlickerThread.h"
 
-SearchListView::SearchListView(QWidget* parent) :
-    QWidget(parent),
-    ui(new Ui::SearchListView)
+SearchListView::SearchListView(bool EnableRegex, QWidget* parent) : QWidget(parent)
 {
-    ui->setupUi(this);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
-    // Create the reference list
-    mList = new SearchListViewTable();
+    // Create the main button/bar view with QSplitter
+    //
+    // |- Splitter ----------------------------|
+    // | LISTVIEW                              |
+    // | SEARCH: | SEARCH BOX | REGEX CHECKBOX |
+    // |---------------------------------------|
+    QSplitter* barSplitter = new QSplitter(Qt::Vertical);
+    {
+        // Create list layout (contains both ListViews)
+        {
+            // Create reference & search list
+            mList = new SearchListViewTable();
+            mSearchList = new SearchListViewTable();
+            mSearchList->hide();
 
-    // Create the search list
-    mSearchList = new SearchListViewTable();
-    mSearchList->hide();
+            // Vertical layout
+            QVBoxLayout* listLayout = new QVBoxLayout();
+            listLayout->setContentsMargins(0, 0, 0, 0);
+            listLayout->setSpacing(0);
+            listLayout->addWidget(mList);
+            listLayout->addWidget(mSearchList);
+
+            // Add list placeholder
+            QWidget* listPlaceholder = new QWidget();
+            listPlaceholder->setLayout(listLayout);
+
+            barSplitter->addWidget(listPlaceholder);
+        }
+
+        // Filtering elements
+        {
+            // Input box
+            mSearchBox = new QLineEdit();
+            mSearchBox->setPlaceholderText("Type here to filter results...");
+
+            // Regex parsing checkbox
+            mRegexCheckbox = new QCheckBox("Regex");
+
+            if(!EnableRegex)
+                mRegexCheckbox->hide();
+
+            // Horizontal layout
+            QHBoxLayout* horzLayout = new QHBoxLayout();
+            horzLayout->setContentsMargins(4, 0, (EnableRegex) ? 0 : 4, 0);
+            horzLayout->setSpacing(2);
+            horzLayout->addWidget(new QLabel("Search: "));
+            horzLayout->addWidget(mSearchBox);
+            horzLayout->addWidget(mRegexCheckbox);
+
+            // Add searchbar placeholder
+            QWidget* horzPlaceholder = new QWidget();
+            horzPlaceholder->setLayout(horzLayout);
+
+            barSplitter->addWidget(horzPlaceholder);
+        }
+
+        // Minimum size for the search box
+        barSplitter->setStretchFactor(0, 1000);
+        barSplitter->setStretchFactor(0, 1);
+
+        // Disable main splitter
+        for(int i = 0; i < barSplitter->count(); i++)
+            barSplitter->handle(i)->setEnabled(false);
+    }
+
+    // Set the main layout which holds the splitter
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->addWidget(barSplitter);
+    setLayout(mainLayout);
 
     // Set global variables
-    mSearchBox = ui->searchBox;
     mCurList = mList;
     mSearchStartCol = 0;
 
-    // Create list layout
-    mListLayout = new QVBoxLayout();
-    mListLayout->setContentsMargins(0, 0, 0, 0);
-    mListLayout->setSpacing(0);
-    mListLayout->addWidget(mList);
-    mListLayout->addWidget(mSearchList);
-
-    // Create list placeholder
-    mListPlaceHolder = new QWidget();
-    mListPlaceHolder->setLayout(mListLayout);
-
-    // Insert the placeholder
-    ui->mainSplitter->insertWidget(0, mListPlaceHolder);
-
-    // Set the main layout
-    mMainLayout = new QVBoxLayout();
-    mMainLayout->setContentsMargins(0, 0, 0, 0);
-    mMainLayout->addWidget(ui->mainSplitter);
-    setLayout(mMainLayout);
-
-    // Minimal size for the search box
-    ui->mainSplitter->setStretchFactor(0, 1000);
-    ui->mainSplitter->setStretchFactor(0, 1);
-
-    // Disable main splitter
-    for(int i = 0; i < ui->mainSplitter->count(); i++)
-        ui->mainSplitter->handle(i)->setEnabled(false);
-
-    // Install event filter
+    // Install input event filter
     mSearchBox->installEventFilter(this);
 
     // Setup search menu action
@@ -70,7 +105,6 @@ SearchListView::SearchListView(QWidget* parent) :
 
 SearchListView::~SearchListView()
 {
-    delete ui;
 }
 
 bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int row, int startcol, bool startswith)
@@ -88,7 +122,7 @@ bool SearchListView::findTextInList(SearchListViewTable* list, QString text, int
     {
         for(int i = startcol; i < count; i++)
         {
-            if(ui->checkBoxRegex->checkState() == Qt::Checked)
+            if(mRegexCheckbox->checkState() == Qt::Checked)
             {
                 if(list->getCellContent(row, i).contains(QRegExp(text)))
                     return true;
@@ -153,7 +187,7 @@ void SearchListView::searchTextChanged(const QString & arg1)
         emit emptySearchResult();
 
     // Do not highlight with regex
-    if(ui->checkBoxRegex->checkState() != Qt::Checked)
+    if(mRegexCheckbox->checkState() != Qt::Checked)
         mSearchList->highlightText = arg1;
     else
         mSearchList->highlightText = "";
@@ -182,7 +216,7 @@ void SearchListView::doubleClickedSlot()
 void SearchListView::on_checkBoxRegex_toggled(bool checked)
 {
     Q_UNUSED(checked);
-    searchTextChanged(ui->searchBox->text());
+    searchTextChanged(mSearchBox->text());
 }
 
 bool SearchListView::eventFilter(QObject* obj, QEvent* event)
@@ -226,7 +260,7 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
 
 void SearchListView::searchSlot()
 {
-    FlickerThread* thread = new FlickerThread(ui->searchBox, this);
-    connect(thread, SIGNAL(setStyleSheet(QString)), ui->searchBox, SLOT(setStyleSheet(QString)));
+    FlickerThread* thread = new FlickerThread(mSearchBox, this);
+    connect(thread, SIGNAL(setStyleSheet(QString)), mSearchBox, SLOT(setStyleSheet(QString)));
     thread->start();
 }

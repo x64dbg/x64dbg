@@ -234,7 +234,6 @@ FORMS += \
     Src/Gui/WordEditDialog.ui \
     Src/Gui/LineEditDialog.ui \
     Src/Gui/SymbolView.ui \
-    Src/BasicView/SearchListView.ui \
     Src/Gui/SettingsDialog.ui \
     Src/Gui/ExceptionRangeDialog.ui \
     Src/Gui/CommandHelpView.ui \

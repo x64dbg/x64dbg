@@ -2,6 +2,7 @@
 #define SYMBOLVIEW_H
 
 #include <QWidget>
+#include <QVBoxLayout>
 #include "Bridge.h"
 
 namespace Ui

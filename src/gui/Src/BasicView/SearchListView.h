@@ -2,9 +2,8 @@
 #define SEARCHLISTVIEW_H
 
 #include <QWidget>
-#include <QMenu>
-#include <QVBoxLayout>
 #include <QLineEdit>
+#include <QCheckBox>
 #include "SearchListViewTable.h"
 
 namespace Ui
@@ -17,10 +16,9 @@ class SearchListView : public QWidget
     Q_OBJECT
 
 public:
-    explicit SearchListView(QWidget* parent = 0);
+    explicit SearchListView(bool EnableRegex = true, QWidget* parent = 0);
     ~SearchListView();
 
-    QVBoxLayout* mMainLayout;
     SearchListViewTable* mList;
     SearchListViewTable* mSearchList;
     SearchListViewTable* mCurList;
@@ -45,8 +43,7 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event);
 
 private:
-    Ui::SearchListView* ui;
-    QVBoxLayout* mListLayout;
+    QCheckBox* mRegexCheckbox;
     QWidget* mListPlaceHolder;
     QAction* mSearchAction;
 };
