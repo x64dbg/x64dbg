@@ -10,6 +10,7 @@
 void RegistersView::SetChangeButton(QPushButton* push_button)
 {
     mChangeViewButton = push_button;
+    fontsUpdatedSlot();
 }
 
 void RegistersView::InitMappings()
@@ -1149,7 +1150,10 @@ RegistersView::~RegistersView()
 
 void RegistersView::fontsUpdatedSlot()
 {
-    setFont(ConfigFont("Registers"));
+    auto font = ConfigFont("Registers");
+    setFont(font);
+    if(mChangeViewButton)
+        mChangeViewButton->setFont(font);
     int wRowsHeight = QFontMetrics(this->font()).height();
     wRowsHeight = (wRowsHeight * 105) / 100;
     wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
