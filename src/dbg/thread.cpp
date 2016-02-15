@@ -16,10 +16,13 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     memset(&curInfo, 0, sizeof(THREADINFO));
 
     curInfo.ThreadNumber = ThreadGetCount();
-    curInfo.Handle = CreateThread->hThread;
+    curInfo.Handle = INVALID_HANDLE_VALUE;
     curInfo.ThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
     curInfo.ThreadStartAddress = (duint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase = (duint)CreateThread->lpThreadLocalBase;
+
+    // Duplicate the debug thread handle -> thread handle
+    DuplicateHandle(GetCurrentProcess(), CreateThread->hThread, GetCurrentProcess(), &curInfo.Handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
@@ -42,7 +45,10 @@ void ThreadExit(DWORD ThreadId)
     auto itr = threadList.find(ThreadId);
 
     if(itr != threadList.end())
+    {
+        CloseHandle(itr->second.Handle);
         threadList.erase(itr);
+    }
 
     EXCLUSIVE_RELEASE();
     GuiUpdateThreadView();
@@ -50,12 +56,17 @@ void ThreadExit(DWORD ThreadId)
 
 void ThreadClear()
 {
-    // Clear the current array of threads
     EXCLUSIVE_ACQUIRE(LockThreads);
+
+    // Close all handles first
+    for(auto & itr : threadList)
+        CloseHandle(itr.second.Handle);
+
+    // Empty the array
     threadList.clear();
-    EXCLUSIVE_RELEASE();
 
     // Update the GUI's list
+    EXCLUSIVE_RELEASE();
     GuiUpdateThreadView();
 }
 
