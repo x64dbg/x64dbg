@@ -222,7 +222,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
         // File offset
         curOffset = DbgFunctions()->VaToFileOffset(parVA);
-        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper() + " ";
+        info += QString("#%1 ").arg(curOffset, 0, 16, QChar('0')).toUpper();
     }
 
     // Function/label name
