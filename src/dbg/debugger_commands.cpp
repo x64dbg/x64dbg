@@ -124,11 +124,10 @@ CMDRESULT cbDebugStop(int argc, char* argv[])
 
 CMDRESULT cbDebugRun(int argc, char* argv[])
 {
+    // Don't "run" twice if the program is already running
     if(dbgisrunning())
-    {
-        dputs("Program is already running");
         return STATUS_ERROR;
-    }
+
     GuiSetDebugState(running);
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;
