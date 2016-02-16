@@ -4,6 +4,8 @@
 #include <exception>
 #include "crashdump.h"
 
+#define PROCESS_CALLBACK_FILTER_ENABLED 0x1
+
 BOOL
 (WINAPI*
  MiniDumpWriteDumpPtr)(
@@ -16,25 +18,58 @@ BOOL
      _In_opt_ PMINIDUMP_CALLBACK_INFORMATION CallbackParam
  );
 
+BOOL
+(WINAPI*
+ SetProcessUserModeExceptionPolicyPtr)(
+     _In_ DWORD PolicyFlags
+ );
+
+BOOL
+(WINAPI*
+ GetProcessUserModeExceptionPolicyPtr)(
+     _Out_ LPDWORD PolicyFlags
+ );
+
 void CrashDumpInitialize()
 {
-    // Find the DbgHelp module first
-    HMODULE module = LoadLibrary("dbghelp.dll");
+    // Get handles to kernel32 and dbghelp
+    HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+    HMODULE hDbghelp = LoadLibrary("dbghelp.dll");
 
-    if(module)
-        *(FARPROC*)&MiniDumpWriteDumpPtr = GetProcAddress(module, "MiniDumpWriteDump");
+    if(hDbghelp)
+        *(FARPROC*)&MiniDumpWriteDumpPtr = GetProcAddress(hDbghelp, "MiniDumpWriteDump");
+
+    if(hKernel32)
+    {
+        *(FARPROC*)&SetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "SetProcessUserModeExceptionPolicy");
+        *(FARPROC*)&GetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "GetProcessUserModeExceptionPolicy");
+    }
 
     if(MiniDumpWriteDumpPtr)
-        AddVectoredExceptionHandler(0, CrashDumpVectoredHandler);
+        SetUnhandledExceptionFilter(CrashDumpExceptionHandler);
 
-    // If building for release mode only
+    // --- WINDOWS OVERRIDES ---
+    // Ensure that exceptions are not swallowed when dispatching certain Windows
+    // messages.
+    //
+    // http://blog.paulbetts.org/index.php/2010/07/20/the-case-of-the-disappearing-onload-exception-user-mode-callback-exceptions-in-x64/
+    // https://support.microsoft.com/en-gb/kb/976038
+    if(SetProcessUserModeExceptionPolicyPtr && GetProcessUserModeExceptionPolicyPtr)
+    {
+        DWORD flags = 0;
+
+        if(GetProcessUserModeExceptionPolicyPtr(&flags))
+            SetProcessUserModeExceptionPolicyPtr(flags & ~PROCESS_CALLBACK_FILTER_ENABLED);
+    }
+
+    // --- CRT OVERRIDES ---
+    // If building for release mode, redirect the terminate() and
+    // invalid_parameter() callbacks to force generate a crashdump.
+    //
 #ifndef _DEBUG
-    // CRT invalid parameter callback
     _set_invalid_parameter_handler(InvalidParameterHandler);
-
-    // CRT terminate() callback
     set_terminate(TerminateHandler);
-#endif // _DEBUG
+#endif // ndef _DEBUG
 }
 
 void CrashDumpFatal(const char* Format, ...)
@@ -102,7 +137,7 @@ void CrashDumpCreate(EXCEPTION_POINTERS* ExceptionPointers)
     CloseHandle(fileHandle);
 }
 
-LONG CALLBACK CrashDumpVectoredHandler(EXCEPTION_POINTERS* ExceptionInfo)
+LONG CALLBACK CrashDumpExceptionHandler(EXCEPTION_POINTERS* ExceptionInfo)
 {
     // Any "exception" under 0x1000 is usually just a failed RPC call
     if(ExceptionInfo && ExceptionInfo->ExceptionRecord->ExceptionCode > 0x00001000)
