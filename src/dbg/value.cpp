@@ -1547,7 +1547,6 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             ptrstring += string[i];
         }
 
-        dprintf("string: %s, ptrstring: %s\n", string, ptrstring.c_str());
         if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
         {
             dprintf("noexpr failed on %s\n", ptrstring.c_str());
