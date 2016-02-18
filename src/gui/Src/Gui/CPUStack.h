@@ -4,11 +4,14 @@
 #include "HexDump.h"
 #include "GotoDialog.h"
 
+//forward declaration
+class CPUMultiDump;
+
 class CPUStack : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUStack(QWidget* parent = 0);
+    explicit CPUStack(CPUMultiDump* multiDump, QWidget* parent = 0);
 
     // Configuration
     virtual void updateColors();
@@ -33,6 +36,7 @@ public slots:
     void selectionSet(const SELECTIONDATA* selection);
     void followDisasmSlot();
     void followDumpSlot();
+    void followinDumpNSlot();
     void followStackSlot();
     void binaryEditSlot();
     void binaryFillSlot();
@@ -66,8 +70,11 @@ private:
     QAction* mFollowDump;
     QAction* mFollowStack;
     QMenu* mPluginMenu;
+    QMenu* mFollowInDumpMenu;
+    QList<QAction*> mFollowInDumpActions;
 
     GotoDialog* mGoto;
+    CPUMultiDump* mMultiDump;
 };
 
 #endif // CPUSTACK_H

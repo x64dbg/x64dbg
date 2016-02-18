@@ -1,17 +1,20 @@
 #include "CPUStack.h"
+#include "CPUDump.h"
 #include <QClipboard>
 #include "Configuration.h"
 #include "Bridge.h"
 #include "HexEditDialog.h"
 #include "WordEditDialog.h"
+#include "CPUMultiDump.h"
 
-CPUStack::CPUStack(QWidget* parent) : HexDump(parent)
+CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     setShowHeader(false);
     int charwidth = getCharWidth();
     ColumnDescriptor_t wColDesc;
     DataDescriptor_t dDesc;
     bStackFrozen = false;
+    mMultiDump = multiDump;
 
     mForceColumn = 1;
 
@@ -152,6 +155,21 @@ void CPUStack::setupContextMenu()
 
     mFollowDump = new QAction("Follow in &Dump", this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
+
+#ifdef _WIN64
+    mFollowInDumpMenu = new QMenu("&Follow QWORD in Dump", this);
+#else //x86
+    mFollowInDumpMenu = new QMenu("&Follow DWORD in Dump", this);
+#endif //_WIN64
+
+    int maxDumps = mMultiDump->getMaxCPUTabs();
+    for(int i = 0; i < maxDumps; i++)
+    {
+        QAction* action = new QAction(QString("Dump %1)").arg(i+1), this);
+        connect(action, SIGNAL(triggered()), this, SLOT(followinDumpNSlot()));
+        mFollowInDumpMenu->addAction(action);
+        mFollowInDumpActions.push_back(action);
+    }
 
     mFollowStack = new QAction("Follow in &Stack", this);
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
@@ -363,6 +381,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             else
                 wMenu->addAction(mFollowDisasm);
             wMenu->addAction(mFollowDump);
+            wMenu->addMenu(mFollowInDumpMenu);
         }
 
     wMenu->addSeparator();
@@ -487,6 +506,23 @@ void CPUStack::followDumpSlot()
         {
             QString addrText = QString("%1").arg(selectedData, sizeof(dsint) * 2, 16, QChar('0')).toUpper();
             DbgCmdExec(QString("dump " + addrText).toUtf8().constData());
+        }
+}
+
+void CPUStack::followinDumpNSlot()
+{
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
+        if(DbgMemIsValidReadPtr(selectedData))
+        {
+            for(int i = 0; i < mFollowInDumpActions.length(); i++)
+            {
+                if(mFollowInDumpActions[i] == sender())
+                {
+                    QString addrText = QString("%1").arg(selectedData, sizeof(duint)*2, 16, QChar('0')).toUpper();
+                    DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i).toUtf8().constData());
+                }
+            }
         }
 }
 
