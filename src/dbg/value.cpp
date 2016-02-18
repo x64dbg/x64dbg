@@ -1523,30 +1523,34 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         }
         int len = (int)strlen(string);
 
-        String newstring;
-        bool foundStart = false;
-        for(int i = 0; i < len; i++)
-        {
-            if(string[i] == '[')
-                foundStart = true;
-            else if(string[i] == ']')
-                break;
-            else if(foundStart)
-                newstring += string[i];
-        }
-
         int read_size = sizeof(duint);
         int add = 1;
-        if(string[1] == ':')  //n:[ (number of bytes to read)
+        if(string[1] == ':')   //n:[ (number of bytes to read)
         {
             add += 2;
             int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
         }
-        if(!valfromstring(newstring.c_str(), value, silent, baseonly))
+
+        String ptrstring;
+        for(auto i = add, depth = 1; i < len; i++)
         {
-            dprintf("noexpr failed on %s\n", newstring.c_str());
+            if(string[i] == '[')
+                depth++;
+            else if(string[i] == ']')
+            {
+                depth--;
+                if(!depth)
+                    break;
+            }
+            ptrstring += string[i];
+        }
+
+        dprintf("string: %s, ptrstring: %s\n", string, ptrstring.c_str());
+        if(!valfromstring(ptrstring.c_str(), value, silent, baseonly))
+        {
+            dprintf("noexpr failed on %s\n", ptrstring.c_str());
             return false;
         }
         duint addr = *value;
