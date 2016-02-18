@@ -29,7 +29,8 @@ public:
             OperatorShr,
             OperatorAnd,
             OperatorXor,
-            OperatorOr
+            OperatorOr,
+            Error
         };
 
         enum class Associativity

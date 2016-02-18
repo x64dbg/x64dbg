@@ -158,7 +158,7 @@ void ExpressionParser::tokenize(const String & expression)
                     addOperatorToken(ch, Token::Type::OperatorMod);
                     break;
                 case '+':
-                    if(!isUnaryOperator())   //skip all unary add operators
+                    if(!isUnaryOperator())    //skip all unary add operators
                         addOperatorToken(ch, Token::Type::OperatorAdd);
                     break;
                 case '-':
@@ -168,10 +168,22 @@ void ExpressionParser::tokenize(const String & expression)
                         addOperatorToken(ch, Token::Type::OperatorSub);
                     break;
                 case '<':
-                    addOperatorToken(ch, Token::Type::OperatorShl);
+                    if(i + 1 < len && expression[i + 1] == ch)
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorShl);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::Error);
                     break;
                 case '>':
-                    addOperatorToken(ch, Token::Type::OperatorShr);
+                    if(i + 1 < len && expression[i + 1] == ch)
+                    {
+                        addOperatorToken(ch, Token::Type::OperatorShr);
+                        i++;
+                    }
+                    else
+                        addOperatorToken(ch, Token::Type::Error);
                     break;
                 case '&':
                     addOperatorToken(ch, Token::Type::OperatorAnd);
@@ -434,6 +446,8 @@ bool ExpressionParser::calculate(duint & value, bool signedcalc, bool silent, bo
                     unsignedoperation(token.type(), op1, op2, result);
                 stack.push(result);
                 break;
+            case Token::Type::Error:
+                return false;
             default: //do nothing
                 break;
             }

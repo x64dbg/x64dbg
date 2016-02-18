@@ -305,23 +305,27 @@ static void specialformat(char* string)
     char str[deflen] = "";
     char backup[deflen] = "";
     strcpy_s(backup, string); //create a backup of the string
-    if(found) //contains =
+    if(found && found != string) //contains =
     {
-        char* a = (found - 1);
-        *found = 0;
+        auto a = found - 1;
+        *found = '\0';
         found++;
-        if(!*found)
-        {
-            *found = '=';
-            return;
-        }
 
         if(mathisoperator(*a)) //x*=3 -> x=x*3
         {
             char op = *a;
             *a = 0;
-            if(isvalidexpression(string))
-                sprintf_s(str, "mov %s,%s%c%s", string, string, op, found);
+            if(isvalidexpression(found))
+            {
+                len = int(strlen(string));
+                if(len > 1 && string[len - 1] == '<' || string[len - 1] == '>')  //TODO: never look at this again, ever (used for x<<=1 and x>>=1)
+                {
+                    string[len - 1] = '\0';
+                    sprintf_s(str, "mov %s,%s%c%c%s", string, string, op, op, found);
+                }
+                else
+                    sprintf_s(str, "mov %s,%s%c%s", string, string, op, found);
+            }
             else
                 strcpy_s(str, backup);
         }
