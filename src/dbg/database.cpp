@@ -59,7 +59,6 @@ void DbSave(DbLoadSaveType saveType)
             json_object_set_new(root, "notes", json_string(text));
             BridgeFree(text);
         }
-        GuiSetDebuggeeNotes("");
     }
 
     WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
@@ -181,6 +180,7 @@ void DbClose()
     LoopClear();
     BpClear();
     PatchClear();
+    GuiSetDebuggeeNotes("");
 }
 
 void DbSetPath(const char* Directory, const char* ModulePath)
