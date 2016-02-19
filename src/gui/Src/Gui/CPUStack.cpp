@@ -511,19 +511,19 @@ void CPUStack::followDumpSlot()
 
 void CPUStack::followinDumpNSlot()
 {
-    duint selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        if(DbgMemIsValidReadPtr(selectedData))
+    duint selectedData = rvaToVa(getInitialSelection());
+
+    if(DbgMemIsValidReadPtr(selectedData))
+    {
+        for(int i = 0; i < mFollowInDumpActions.length(); i++)
         {
-            for(int i = 0; i < mFollowInDumpActions.length(); i++)
+            if(mFollowInDumpActions[i] == sender())
             {
-                if(mFollowInDumpActions[i] == sender())
-                {
-                    QString addrText = QString("%1").arg(selectedData, sizeof(duint)*2, 16, QChar('0')).toUpper();
-                    DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i).toUtf8().constData());
-                }
+                QString addrText = QString("%1").arg(ToPtrString(selectedData));
+                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i).toUtf8().constData());
             }
         }
+    }
 }
 
 void CPUStack::followStackSlot()
