@@ -83,8 +83,10 @@ void DbSave(DbLoadSaveType saveType)
         if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
-    else //remove database when nothing is in there
-        DeleteFileW(wdbpath.c_str());
+    // TODO: Remove if this is the cause of bug #551
+    //else //remove database when nothing is in there
+    //    DeleteFileW(wdbpath.c_str());
+
     dprintf("%ums\n", GetTickCount() - ticks);
     json_decref(root); //free root
 }
