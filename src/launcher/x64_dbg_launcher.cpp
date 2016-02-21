@@ -153,7 +153,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
  */
 
 #define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64dbg\\Command"
-
+#define SHELLEXT_ICON_EXE_KEY L"exefile\\shell\\Debug with x64dbg"
 /**
  @def SHELLEXT_DLL_KEY
 
@@ -161,7 +161,7 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
  */
 
 #define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64dbg\\Command"
-
+#define SHELLEXT_ICON_DLL_KEY L"dllfile\\shell\\Debug with x64dbg"
 /**
  @fn static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
 
@@ -171,17 +171,36 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
  @param command The command.
  */
 
-static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
+static BOOL RegisterShellExtension(const wchar_t* key, const wchar_t* command)
 {
     HKEY hKey;
+	BOOL result = TRUE;
+	
     if(RegCreateKeyW(HKEY_CLASSES_ROOT, key, &hKey) != ERROR_SUCCESS)
     {
         MessageBoxW(0, L"RegCreateKeyA failed!", L"Running as Admin?", MB_ICONERROR);
-        return;
+        return !result;
     }
-    if(RegSetValueExW(hKey, 0, 0, REG_EXPAND_SZ, (LPBYTE)command, (wcslen(command) + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
-        MessageBoxW(0, L"RegSetValueExA failed!", L"Running as Admin?", MB_ICONERROR);
+	if (RegSetValueExW(hKey, 0, 0, REG_EXPAND_SZ, (LPBYTE)command, (wcslen(command) + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+	{
+		MessageBoxW(0, L"RegSetValueExA failed!", L"Running as Admin?", MB_ICONERROR);
+		result = !result;
+	}
     RegCloseKey(hKey);
+	return result;
+}
+
+static void AddIcon(const wchar_t* key, const wchar_t* command)
+{
+	HKEY pKey;
+	if (RegOpenKeyExW(HKEY_CLASSES_ROOT, key, 0, KEY_ALL_ACCESS, &pKey) != ERROR_SUCCESS)
+		MessageBoxW(0, L"RegOpenKeyExW Failed!", L"Running as Admin?", MB_ICONERROR);
+
+	if (RegSetValueExW(pKey, L"Icon", 0, REG_SZ, (LPBYTE)command, (wcslen(command) + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+		MessageBoxW(0, L"RegSetValueExA failed!", L"Running as Admin?", MB_ICONERROR);
+
+	RegCloseKey(pKey);
+	return;
 }
 
 static void CreateUnicodeFile(const wchar_t* file)
@@ -350,10 +369,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         if(MessageBoxW(0, L"Do you want to register a shell extension?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
-            wchar_t szLauncherCommand[MAX_PATH] = L"";
+			wchar_t szLauncherCommand[MAX_PATH] = L"";
+			wchar_t szIconCommand[MAX_PATH] = L"";
             swprintf_s(szLauncherCommand, _countof(szLauncherCommand), L"\"%s\" \"%%1\"", szModulePath);
-            RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
-            RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
+			swprintf_s(szIconCommand, _countof(szIconCommand), L"\"%s\",0", szModulePath);
+			if (RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
+				AddIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand);
+			if (RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
+				AddIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand);
         }
         if(bDoneSomething)
             MessageBoxW(0, L"New configuration written!", L"Done!", MB_ICONINFORMATION);
