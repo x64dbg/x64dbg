@@ -165,7 +165,7 @@ void CPUStack::setupContextMenu()
     int maxDumps = mMultiDump->getMaxCPUTabs();
     for(int i = 0; i < maxDumps; i++)
     {
-        QAction* action = new QAction(QString("Dump %1)").arg(i+1), this);
+        QAction* action = new QAction(QString("Dump %1)").arg(i + 1), this);
         connect(action, SIGNAL(triggered()), this, SLOT(followinDumpNSlot()));
         mFollowInDumpMenu->addAction(action);
         mFollowInDumpActions.push_back(action);
