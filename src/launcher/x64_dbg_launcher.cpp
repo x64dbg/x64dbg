@@ -162,14 +162,47 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
 
 #define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64dbg\\Command"
 
-/**
- @fn static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
+static wchar_t* GetDesktopPath()
+{
+    static wchar_t path[MAX_PATH + 1];
+    if (SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOPDIRECTORY, FALSE))
+        return path;
+    else
+        return NULL;
+}
 
- @brief Registers the shell extension.
+static HRESULT AddDesktopShortcut(wchar_t* szPathOfFile, const wchar_t* szNameOfLink)
+{
+    HRESULT hRes = NULL;
+    IShellLink* psl;
 
- @param key     The key.
- @param command The command.
- */
+    //Get the working directory
+    wchar_t pathFile[MAX_PATH + 1];
+    wcscpy(pathFile, szPathOfFile);
+    PathRemoveFileSpec(pathFile);
+
+    hRes = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if (SUCCEEDED(hRes))
+    {
+        IPersistFile* ppf;
+
+        psl->SetPath(szPathOfFile);
+        psl->SetDescription(L"A Debugger for the future!");
+        psl->SetIconLocation(szPathOfFile, 0);
+        psl->SetWorkingDirectory(pathFile);
+
+        hRes = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+        if (SUCCEEDED(hRes))
+        {
+            wchar_t path[MAX_PATH + 1];
+            _wmakepath_s(path, _MAX_PATH, NULL, GetDesktopPath(), szNameOfLink, L"lnk");
+            hRes = ppf->Save(path, TRUE);
+            ppf->Release();
+        }
+        psl->Release();
+    }
+    return hRes;
+}
 
 static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
 {
@@ -199,19 +232,6 @@ static void CreateUnicodeFile(const wchar_t* file)
     WriteFile(hFile, &wBOM, sizeof(WORD), &written, NULL);
     CloseHandle(hFile);
 }
-
-/**
- @fn int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-
- @brief Window main.
-
- @param hInstance     The instance.
- @param hPrevInstance The previous instance.
- @param lpCmdLine     The command line.
- @param nShowCmd      The show command.
-
- @return An APIENTRY.
- */
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
 static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
@@ -243,12 +263,38 @@ static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szRe
                 if(SUCCEEDED(hres))
                 {
                     //Get the path to the link target.
-                    char szGotPath[MAX_PATH] = {0};
+                    TCHAR szGotPath[MAX_PATH] = {0};
                     hres = psl->GetPath(szGotPath, _countof(szGotPath), NULL, SLGP_SHORTPATH);
 
                     if(SUCCEEDED(hres))
                     {
-                        strcpy_s(szResolvedPath, nSize, szGotPath);
+                        //or we could just use wide characters everywhere :)
+                        int required_len = WideCharToMultiByte(CP_UTF8, 0, szGotPath, MAX_PATH, NULL, 0, NULL, NULL);
+                        if (required_len <= 0)
+                        {
+                            MessageBox(NULL, L"Fail string convert", L"Error", MB_OK);
+                            return false;
+                        }
+
+                        char* local_buffer = (char*)LocalAlloc(LMEM_FIXED, required_len + 1);
+                        if (!local_buffer)
+                        {
+                            MessageBox(NULL, L"LocalAlloc failed", L"Error", MB_OK);
+                            return false;
+                        }
+
+                        required_len = WideCharToMultiByte(CP_UTF8, 0, szGotPath, MAX_PATH, local_buffer, required_len, NULL, NULL);
+                        if (required_len <= 0)
+                        {
+                            LocalFree(local_buffer);
+                            MessageBox(NULL, L"Error in WideChartoMultiByte!", L"Error", MB_OK);
+                            return false;
+                        }
+
+                        local_buffer[required_len] = '\0';
+                        strcpy_s(szResolvedPath, nSize, local_buffer);
+
+                        LocalFree(local_buffer);
                     }
                 }
             }
@@ -354,6 +400,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             swprintf_s(szLauncherCommand, _countof(szLauncherCommand), L"\"%s\" \"%%1\"", szModulePath);
             RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
             RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
+        }
+        if (MessageBoxW(0, L"Do you want to create Desktop Shortcuts?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
+        {
+            AddDesktopShortcut(sz32Path, L"x32dbg");
+            AddDesktopShortcut(sz64Path, L"x64dbg");
         }
         if(bDoneSomething)
             MessageBoxW(0, L"New configuration written!", L"Done!", MB_ICONINFORMATION);
