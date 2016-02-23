@@ -58,7 +58,7 @@ SCRIPT_EXPORT void Script::Function::Clear()
     FunctionClear();
 }
 
-SCRIPT_EXPORT bool Script::Function::GetList(ListOf(FunctionInfo) listInfo)
+SCRIPT_EXPORT bool Script::Function::GetList(ListOf(FunctionInfo) list)
 {
     std::vector<FUNCTIONSINFO> functionList;
     FunctionGetList(functionList);
@@ -74,5 +74,5 @@ SCRIPT_EXPORT bool Script::Function::GetList(ListOf(FunctionInfo) listInfo)
         scriptFunction.instructioncount = function.instructioncount;
         functionScriptList.push_back(scriptFunction);
     }
-    return List<FunctionInfo>::CopyData(listInfo, functionScriptList);
+    return BridgeList<FunctionInfo>::CopyData(list, functionScriptList);
 }

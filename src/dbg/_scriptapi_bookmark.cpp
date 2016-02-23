@@ -51,7 +51,7 @@ SCRIPT_EXPORT void Script::Bookmark::Clear()
     BookmarkClear();
 }
 
-SCRIPT_EXPORT bool Script::Bookmark::GetList(ListOf(CommentInfo) listInfo)
+SCRIPT_EXPORT bool Script::Bookmark::GetList(ListOf(BookmarkInfo) list)
 {
     std::vector<BOOKMARKSINFO> bookmarkList;
     BookmarkGetList(bookmarkList);
@@ -65,5 +65,5 @@ SCRIPT_EXPORT bool Script::Bookmark::GetList(ListOf(CommentInfo) listInfo)
         scriptComment.manual = bookmark.manual;
         bookmarkScriptList.push_back(scriptComment);
     }
-    return List<BookmarkInfo>::CopyData(listInfo, bookmarkScriptList);
+    return BridgeList<BookmarkInfo>::CopyData(list, bookmarkScriptList);
 }

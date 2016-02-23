@@ -3,7 +3,7 @@
 
 bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
 {
-    List<Label::LabelInfo> labels;
+    BridgeList<Label::LabelInfo> labels;
     if(!Label::GetList(&labels))
         return false;
     std::vector<SymbolInfo> symbols;
@@ -20,5 +20,5 @@ bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
         symbols.push_back(symbol);
     }
     //TODO: enumerate actual symbols + virtual symbols (sub_XXXXXX) + imports + exports in addition to user-defined labels.
-    return List<SymbolInfo>::CopyData(list, symbols);
+    return BridgeList<SymbolInfo>::CopyData(list, symbols);
 }

@@ -24,7 +24,7 @@ namespace Script
         SCRIPT_EXPORT bool Delete(duint address);
         SCRIPT_EXPORT void DeleteRange(duint start, duint end);
         SCRIPT_EXPORT void Clear();
-        SCRIPT_EXPORT bool GetList(ListOf(FunctionInfo) listInfo); //caller has the responsibility to free the list
+        SCRIPT_EXPORT bool GetList(ListOf(FunctionInfo) list); //caller has the responsibility to free the list
     }; //Function
 }; //Script
 

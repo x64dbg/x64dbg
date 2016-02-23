@@ -52,7 +52,7 @@ SCRIPT_EXPORT void Script::Comment::Clear()
     CommentClear();
 }
 
-SCRIPT_EXPORT bool Script::Comment::GetList(ListOf(CommentInfo) listInfo)
+SCRIPT_EXPORT bool Script::Comment::GetList(ListOf(CommentInfo) list)
 {
     std::vector<COMMENTSINFO> commentList;
     CommentGetList(commentList);
@@ -67,5 +67,5 @@ SCRIPT_EXPORT bool Script::Comment::GetList(ListOf(CommentInfo) listInfo)
         scriptComment.manual = comment.manual;
         commentScriptList.push_back(scriptComment);
     }
-    return List<CommentInfo>::CopyData(listInfo, commentScriptList);
+    return BridgeList<CommentInfo>::CopyData(list, commentScriptList);
 }

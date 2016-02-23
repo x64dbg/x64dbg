@@ -3,10 +3,10 @@
 #include "module.h"
 #include "debugger.h"
 
-SCRIPT_EXPORT bool Script::Module::InfoFromAddr(duint addr, Script::Module::ModuleInfo* info)
+SCRIPT_EXPORT bool Script::Module::InfoFromAddr(duint addr, ModuleInfo* info)
 {
     SHARED_ACQUIRE(LockModules);
-    MODINFO* modInfo = ModInfoFromAddr(addr);
+    auto modInfo = ModInfoFromAddr(addr);
     if(!info || !modInfo)
         return false;
     info->base = modInfo->base;
@@ -19,9 +19,9 @@ SCRIPT_EXPORT bool Script::Module::InfoFromAddr(duint addr, Script::Module::Modu
     return true;
 }
 
-SCRIPT_EXPORT bool Script::Module::InfoFromName(const char* name, Script::Module::ModuleInfo* info)
+SCRIPT_EXPORT bool Script::Module::InfoFromName(const char* name, ModuleInfo* info)
 {
-    return Module::InfoFromAddr(Module::BaseFromName(name), info);
+    return InfoFromAddr(BaseFromName(name), info);
 }
 
 SCRIPT_EXPORT duint Script::Module::BaseFromAddr(duint addr)
@@ -41,7 +41,7 @@ SCRIPT_EXPORT duint Script::Module::SizeFromAddr(duint addr)
 
 SCRIPT_EXPORT duint Script::Module::SizeFromName(const char* name)
 {
-    return Module::SizeFromAddr(Module::BaseFromName(name));
+    return SizeFromAddr(BaseFromName(name));
 }
 
 SCRIPT_EXPORT bool Script::Module::NameFromAddr(duint addr, char* name)
@@ -56,7 +56,7 @@ SCRIPT_EXPORT bool Script::Module::PathFromAddr(duint addr, char* path)
 
 SCRIPT_EXPORT bool Script::Module::PathFromName(const char* name, char* path)
 {
-    return Module::PathFromAddr(Module::BaseFromName(name), path);
+    return PathFromAddr(BaseFromName(name), path);
 }
 
 SCRIPT_EXPORT duint Script::Module::EntryFromAddr(duint addr)
@@ -66,28 +66,28 @@ SCRIPT_EXPORT duint Script::Module::EntryFromAddr(duint addr)
 
 SCRIPT_EXPORT duint Script::Module::EntryFromName(const char* name)
 {
-    return Module::EntryFromAddr(Module::BaseFromName(name));
+    return EntryFromAddr(BaseFromName(name));
 }
 
 SCRIPT_EXPORT int Script::Module::SectionCountFromAddr(duint addr)
 {
     SHARED_ACQUIRE(LockModules);
-    MODINFO* modInfo = ModInfoFromAddr(addr);
+    auto modInfo = ModInfoFromAddr(addr);
     return modInfo ? int(modInfo->sections.size()) : 0;
 }
 
 SCRIPT_EXPORT int Script::Module::SectionCountFromName(const char* name)
 {
-    return Module::SectionCountFromAddr(Module::BaseFromName(name));
+    return SectionCountFromAddr(BaseFromName(name));
 }
 
 SCRIPT_EXPORT bool Script::Module::SectionFromAddr(duint addr, int number, ModuleSectionInfo* section)
 {
     SHARED_ACQUIRE(LockModules);
-    MODINFO* modInfo = ModInfoFromAddr(addr);
+    auto modInfo = ModInfoFromAddr(addr);
     if(!section || !modInfo || number < 0 || number >= int(modInfo->sections.size()))
         return false;
-    const MODSECTIONINFO & secInfo = modInfo->sections.at(number);
+    const auto & secInfo = modInfo->sections.at(number);
     section->addr = secInfo.addr;
     section->size = secInfo.size;
     strcpy_s(section->name, secInfo.name);
@@ -96,13 +96,13 @@ SCRIPT_EXPORT bool Script::Module::SectionFromAddr(duint addr, int number, Modul
 
 SCRIPT_EXPORT bool Script::Module::SectionFromName(const char* name, int number, ModuleSectionInfo* section)
 {
-    return Module::SectionFromAddr(Module::BaseFromName(name), number, section);
+    return SectionFromAddr(BaseFromName(name), number, section);
 }
 
-SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(ModuleSectionInfo) listInfo)
+SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(ModuleSectionInfo) list)
 {
     SHARED_ACQUIRE(LockModules);
-    MODINFO* modInfo = ModInfoFromAddr(addr);
+    auto modInfo = ModInfoFromAddr(addr);
     if(!modInfo)
         return false;
     std::vector<ModuleSectionInfo> scriptSectionList;
@@ -115,17 +115,17 @@ SCRIPT_EXPORT bool Script::Module::SectionListFromAddr(duint addr, ListOf(Module
         strcpy_s(scriptSection.name, section.name);
         scriptSectionList.push_back(scriptSection);
     }
-    return List<ModuleSectionInfo>::CopyData(listInfo, scriptSectionList);
+    return BridgeList<ModuleSectionInfo>::CopyData(list, scriptSectionList);
 }
 
-SCRIPT_EXPORT bool Script::Module::SectionListFromName(const char* name, ListOf(ModuleSectionInfo) listInfo)
+SCRIPT_EXPORT bool Script::Module::SectionListFromName(const char* name, ListOf(ModuleSectionInfo) list)
 {
-    return Module::SectionListFromAddr(Module::BaseFromName(name), listInfo);
+    return SectionListFromAddr(BaseFromName(name), list);
 }
 
 SCRIPT_EXPORT bool Script::Module::GetMainModuleInfo(ModuleInfo* info)
 {
-    return Module::InfoFromAddr(Module::GetMainModuleBase(), info);
+    return InfoFromAddr(GetMainModuleBase(), info);
 }
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleBase()
@@ -135,35 +135,35 @@ SCRIPT_EXPORT duint Script::Module::GetMainModuleBase()
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleSize()
 {
-    return Module::SizeFromAddr(Module::GetMainModuleBase());
+    return SizeFromAddr(GetMainModuleBase());
 }
 
 SCRIPT_EXPORT duint Script::Module::GetMainModuleEntry()
 {
-    return Module::EntryFromAddr(Module::GetMainModuleBase());
+    return EntryFromAddr(GetMainModuleBase());
 }
 
 SCRIPT_EXPORT int Script::Module::GetMainModuleSectionCount()
 {
-    return Module::SectionCountFromAddr(Module::GetMainModuleBase());
+    return SectionCountFromAddr(GetMainModuleBase());
 }
 
 SCRIPT_EXPORT bool Script::Module::GetMainModuleName(char* name)
 {
-    return Module::NameFromAddr(Module::GetMainModuleBase(), name);
+    return NameFromAddr(GetMainModuleBase(), name);
 }
 
 SCRIPT_EXPORT bool Script::Module::GetMainModulePath(char* path)
 {
-    return Module::PathFromAddr(Module::GetMainModuleBase(), path);
+    return PathFromAddr(GetMainModuleBase(), path);
 }
 
-SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListOf(ModuleSectionInfo) listInfo)
+SCRIPT_EXPORT bool Script::Module::GetMainModuleSectionList(ListOf(ModuleSectionInfo) list)
 {
-    return Module::SectionListFromAddr(Module::GetMainModuleBase(), listInfo);
+    return SectionListFromAddr(GetMainModuleBase(), list);
 }
 
-SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) listInfo)
+SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) list)
 {
     std::vector<MODINFO> modList;
     ModGetList(modList);
@@ -181,5 +181,5 @@ SCRIPT_EXPORT bool Script::Module::GetList(ListOf(ModuleInfo) listInfo)
         strcpy_s(scriptMod.path, mod.path);
         modScriptList.push_back(scriptMod);
     }
-    return List<ModuleInfo>::CopyData(listInfo, modScriptList);
+    return BridgeList<ModuleInfo>::CopyData(list, modScriptList);
 }

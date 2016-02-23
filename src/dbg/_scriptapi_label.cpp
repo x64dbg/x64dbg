@@ -57,7 +57,7 @@ SCRIPT_EXPORT void Script::Label::Clear()
     LabelClear();
 }
 
-SCRIPT_EXPORT bool Script::Label::GetList(ListOf(LabelInfo) listInfo)
+SCRIPT_EXPORT bool Script::Label::GetList(ListOf(LabelInfo) list)
 {
     std::vector<LABELSINFO> labelList;
     LabelGetList(labelList);
@@ -72,5 +72,5 @@ SCRIPT_EXPORT bool Script::Label::GetList(ListOf(LabelInfo) listInfo)
         scriptLabel.manual = label.manual;
         labelScriptList.push_back(scriptLabel);
     }
-    return List<LabelInfo>::CopyData(listInfo, labelScriptList);
+    return BridgeList<LabelInfo>::CopyData(list, labelScriptList);
 }

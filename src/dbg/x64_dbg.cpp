@@ -56,6 +56,18 @@ static CMDRESULT cbPrintf(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+static bool DbgScriptDllExec(const char* dll);
+
+static CMDRESULT cbScriptDll(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dputs("not enough arguments!");
+        return STATUS_ERROR;
+    }
+    return DbgScriptDllExec(argv[1]) ? STATUS_CONTINUE : STATUS_ERROR;
+}
+
 static void registercommands()
 {
     cmdinit();
@@ -215,6 +227,7 @@ static void registercommands()
     dbgcmdnew("findallmem\1findmemall", cbInstrFindMemAll, true); //memory map pattern find
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)

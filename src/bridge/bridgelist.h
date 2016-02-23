@@ -5,7 +5,7 @@ typedef struct
 {
     int count; //Number of element in the list.
     size_t size; //Size of list in bytes (used for type checking).
-    void* data; //Pointer to the list contents. Must be deleted by the caller using BridgeFree (or List::Free).
+    void* data; //Pointer to the list contents. Must be deleted by the caller using BridgeFree (or BridgeList::Free).
 } ListInfo;
 
 #define ListOf(Type) ListInfo*
@@ -16,25 +16,25 @@ typedef struct
 
 /**
 \brief A list object. This object is NOT thread safe.
-\tparam Type List contents type.
+\tparam Type BridgeList contents type.
 */
 template<typename Type>
-class List
+class BridgeList
 {
 public:
     /**
-    \brief List constructor.
+    \brief BridgeList constructor.
     \param _freeData (Optional) the free function.
     */
-    explicit List()
+    explicit BridgeList()
     {
         memset(&_listInfo, 0, sizeof(_listInfo));
     }
 
     /**
-    \brief List destructor.
+    \brief BridgeList destructor.
     */
-    ~List()
+    ~BridgeList()
     {
         Cleanup();
     }
