@@ -52,7 +52,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);
 
-    mStack = new CPUStack(mDump,0); //stack widget
+    mStack = new CPUStack(mDump, 0); //stack widget
     ui->mBotRightFrameLayout->addWidget(mStack);
 }
 
