@@ -1266,11 +1266,6 @@ CMDRESULT cbInstrFindAll(int argc, char* argv[])
 
 CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
 {
-    dprintf("argc: %d\n", argc);
-    for(int i = 0; i < argc; i++)
-    {
-        dprintf("%d:\"%s\"\n", i, argv[i]);
-    }
     if(argc < 3)
     {
         dputs("not enough arguments!");
@@ -1310,6 +1305,8 @@ CMDRESULT cbInstrFindMemAll(int argc, char* argv[])
     std::vector<SimplePage> searchPages;
     for(auto & itr : memoryPages)
     {
+        if(itr.second.mbi.State != MEM_COMMIT)
+            continue;
         SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
         if(page.address >= addr && page.address + page.size <= endAddr)
             searchPages.push_back(page);

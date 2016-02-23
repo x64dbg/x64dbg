@@ -1678,7 +1678,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         if(!fdProcessInfo)
         {
             fdProcessInfo = &g_pi;
-            dputs("Error starting process (CreateProcess)!");
+            dprintf("Error starting process (CreateProcess, %s)!\n", ErrorCodeToName(GetLastError()));
             unlock(WAITID_STOP);
             return;
         }
