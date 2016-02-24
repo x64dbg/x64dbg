@@ -151,9 +151,6 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
     if (szResolvedPath == NULL)
         return SUCCEEDED(E_INVALIDARG);
 
-    //Initialize COM stuff
-    CoInitialize(NULL);
-
     //Get a pointer to the IShellLink interface.
     CComPtr<IShellLink> psl;
     HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
