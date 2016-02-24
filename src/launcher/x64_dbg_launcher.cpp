@@ -1,91 +1,31 @@
-/**
-@file x64_dbg_launcher.cpp
-
-@brief Implements the 64 debug launcher class.
-*/
-
+#define UNICODE
 #include <stdio.h>
 #include <windows.h>
 #include <string>
 #include <shlwapi.h>
 #include <objbase.h>
 #include <shlobj.h>
+#include <atlcomcli.h>
 
-/**
-@enum arch
-
-@brief Values that represent arch.
-*/
 
 enum arch
 {
-    /**
-    @property notfound, invalid, x32, x64 }
-
-    @brief Gets the.
-
-    @return The.
-    */
-
     notfound,
-
-    /**
-    @property invalid, x32, x64 }
-
-    @brief Gets the.
-
-    @return The.
-    */
-
     invalid,
-
-    /**
-    @property x32, x64 }
-
-    @brief Gets the.
-
-    @return The.
-    */
-
     x32,
-
-    /**
-    @brief .
-    */
-
     x64
 };
 
-/**
-@fn static bool FileExists(const wchar_t* file)
-
-@brief Queries if a given file exists.
-
-@param file The file.
-
-@return true if it succeeds, false if it fails.
-*/
-
-static bool FileExists(const wchar_t* file)
+static bool FileExists(const TCHAR* file)
 {
-    DWORD attrib = GetFileAttributesW(file);
+    DWORD attrib = GetFileAttributes(file);
     return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-/**
-@fn static arch GetFileArchitecture(const wchar_t* szFileName)
-
-@brief Gets file architecture.
-
-@param szFileName Filename of the file.
-
-@return The file architecture.
-*/
-
-static arch GetFileArchitecture(const wchar_t* szFileName)
+static arch GetFileArchitecture(const TCHAR* szFileName)
 {
     arch retval = notfound;
-    HANDLE hFile = CreateFileW(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+    HANDLE hFile = CreateFile(szFileName, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if (hFile != INVALID_HANDLE_VALUE)
     {
         unsigned char data[0x1000];
@@ -115,24 +55,9 @@ static arch GetFileArchitecture(const wchar_t* szFileName)
     return retval;
 }
 
-/**
-@fn static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
-
-@brief Queries if a given browse file open.
-
-@param owner             Handle of the owner.
-@param filter            Specifies the filter.
-@param defext            The defext.
-@param [in,out] filename If non-null, filename of the file.
-@param filename_size     Size of the filename.
-@param init_dir          The initialise dir.
-
-@return true if it succeeds, false if it fails.
-*/
-
-static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* defext, wchar_t* filename, int filename_size, const wchar_t* init_dir)
+static bool BrowseFileOpen(HWND owner, const TCHAR* filter, const TCHAR* defext, TCHAR* filename, int filename_size, const TCHAR* init_dir)
 {
-    OPENFILENAMEW ofstruct;
+    OPENFILENAME ofstruct;
     memset(&ofstruct, 0, sizeof(ofstruct));
     ofstruct.lStructSize = sizeof(ofstruct);
     ofstruct.hwndOwner = owner;
@@ -143,81 +68,68 @@ static bool BrowseFileOpen(HWND owner, const wchar_t* filter, const wchar_t* def
     ofstruct.lpstrInitialDir = init_dir;
     ofstruct.lpstrDefExt = defext;
     ofstruct.Flags = OFN_EXTENSIONDIFFERENT | OFN_HIDEREADONLY | OFN_NONETWORKBUTTON;
-    return !!GetOpenFileNameW(&ofstruct);
+    return !!GetOpenFileName(&ofstruct);
 }
 
-/**
-@def SHELLEXT_EXE_KEY
 
-@brief A macro that defines shellext executable key.
-*/
+#define SHELLEXT_EXE_KEY TEXT("exefile\\shell\\Debug with x64dbg\\Command")
+#define SHELLEXT_DLL_KEY TEXT("dllfile\\shell\\Debug with x64dbg\\Command")
 
-#define SHELLEXT_EXE_KEY L"exefile\\shell\\Debug with x64dbg\\Command"
-
-/**
-@def SHELLEXT_DLL_KEY
-
-@brief A macro that defines shellext DLL key.
-*/
-
-#define SHELLEXT_DLL_KEY L"dllfile\\shell\\Debug with x64dbg\\Command"
-
-static wchar_t* GetDesktopPath()
+static TCHAR* GetDesktopPath()
 {
-    static wchar_t path[MAX_PATH + 1];
+    static TCHAR path[MAX_PATH + 1];
     if (SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOPDIRECTORY, FALSE))
         return path;
     else
         return NULL;
 }
 
-static HRESULT AddDesktopShortcut(wchar_t* szPathOfFile, const wchar_t* szNameOfLink)
+static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink)
 {
     HRESULT hRes = NULL;
-    IShellLink* psl;
 
     //Get the working directory
-    wchar_t pathFile[MAX_PATH + 1];
-    wcscpy(pathFile, szPathOfFile);
+    TCHAR pathFile[MAX_PATH + 1];
+    _tcscpy(pathFile, szPathOfFile);
     PathRemoveFileSpec(pathFile);
 
+    CComPtr<IShellLink> psl;
     hRes = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
     if (SUCCEEDED(hRes))
     {
-        IPersistFile* ppf;
+        CComPtr<IPersistFile> ppf;
 
         psl->SetPath(szPathOfFile);
-        psl->SetDescription(L"A Debugger for the future!");
+        psl->SetDescription(TEXT("A Debugger for the future!"));
         psl->SetIconLocation(szPathOfFile, 0);
         psl->SetWorkingDirectory(pathFile);
 
         hRes = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
         if (SUCCEEDED(hRes))
         {
-            wchar_t path[MAX_PATH + 1];
-            _wmakepath_s(path, _MAX_PATH, NULL, GetDesktopPath(), szNameOfLink, L"lnk");
-            hRes = ppf->Save(path, TRUE);
-            ppf->Release();
+            TCHAR path[MAX_PATH + 1] = TEXT("");
+            _tmakepath(path, NULL, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
+            CComBSTR tmp(path);
+            hRes = ppf->Save(tmp, TRUE);
         }
-        psl->Release();
     }
     return hRes;
 }
 
-static void RegisterShellExtension(const wchar_t* key, const wchar_t* command)
+static void RegisterShellExtension(const TCHAR* key, const TCHAR* command)
 {
     HKEY hKey;
-    if (RegCreateKeyW(HKEY_CLASSES_ROOT, key, &hKey) != ERROR_SUCCESS)
+    if (RegCreateKey(HKEY_CLASSES_ROOT, key, &hKey) != ERROR_SUCCESS)
     {
-        MessageBoxW(0, L"RegCreateKeyA failed!", L"Running as Admin?", MB_ICONERROR);
+        MessageBox(0, TEXT("RegCreateKeyA failed!"), TEXT("Running as Admin?"), MB_ICONERROR);
         return;
     }
-    if (RegSetValueExW(hKey, 0, 0, REG_EXPAND_SZ, (LPBYTE)command, (wcslen(command) + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
-        MessageBoxW(0, L"RegSetValueExA failed!", L"Running as Admin?", MB_ICONERROR);
+    if (RegSetValueEx(hKey, 0, 0, REG_EXPAND_SZ, (LPBYTE)command, (_tcslen(command) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+        MessageBox(0, TEXT("RegSetValueExA failed!"), TEXT("Running as Admin?"), MB_ICONERROR);
     RegCloseKey(hKey);
 }
 
-static void CreateUnicodeFile(const wchar_t* file)
+static void CreateUnicodeFile(const TCHAR* file)
 {
     //Taken from: http://www.codeproject.com/Articles/9071/Using-Unicode-in-INI-files
     if (FileExists(file))
@@ -225,7 +137,7 @@ static void CreateUnicodeFile(const wchar_t* file)
 
     // UTF16-LE BOM(FFFE)
     WORD wBOM = 0xFEFF;
-    HANDLE hFile = CreateFileW(file, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile = CreateFile(file, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE)
         return;
     DWORD written = 0;
@@ -234,26 +146,24 @@ static void CreateUnicodeFile(const wchar_t* file)
 }
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
-static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szResolvedPath, size_t nSize)
+static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szResolvedPath, size_t nSize)
 {
     if (szResolvedPath == NULL)
         return SUCCEEDED(E_INVALIDARG);
 
-    //Initialize COM stuff
-    CoInitialize(NULL);
-
     //Get a pointer to the IShellLink interface.
-    IShellLink* psl = NULL;
+    CComPtr<IShellLink> psl;
     HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
     if (SUCCEEDED(hres))
     {
         //Get a pointer to the IPersistFile interface.
-        IPersistFile* ppf = NULL;
+        CComPtr<IPersistFile> ppf;
         hres = psl->QueryInterface(IID_IPersistFile, (void**)&ppf);
         if (SUCCEEDED(hres))
         {
             //Load the shortcut.
-            hres = ppf->Load(szShortcutPath, STGM_READ);
+            CComBSTR tmp(szShortcutPath);
+            hres = ppf->Load(tmp, STGM_READ);
 
             if (SUCCEEDED(hres))
             {
@@ -268,53 +178,12 @@ static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szRe
 
                     if (SUCCEEDED(hres))
                     {
-                        //or we could just use wide characters everywhere :)
-                        int required_len = WideCharToMultiByte(CP_UTF8, 0, szGotPath, MAX_PATH, NULL, 0, NULL, NULL);
-                        if (required_len <= 0)
-                        {
-                            MessageBox(NULL, L"Error in WideChartoMultiByte!", L"Error", MB_OK);
-                            ppf->Release();
-                            psl->Release();
-                            return false;
-                        }
-
-                        char* local_buffer = (char*)LocalAlloc(LMEM_FIXED, required_len + 1);
-                        if (!local_buffer)
-                        {
-                            MessageBox(NULL, L"LocalAlloc failed", L"Error", MB_OK);
-                            ppf->Release();
-                            psl->Release();
-                            return false;
-                        }
-
-                        required_len = WideCharToMultiByte(CP_UTF8, 0, szGotPath, MAX_PATH, local_buffer, required_len, NULL, NULL);
-                        if (required_len <= 0)
-                        {
-                            LocalFree(local_buffer);
-                            MessageBox(NULL, L"Error in WideChartoMultiByte!", L"Error", MB_OK);
-                            ppf->Release();
-                            psl->Release();
-                            return false;
-                        }
-
-                        local_buffer[required_len] = '\0';
-                        strcpy_s(szResolvedPath, nSize, local_buffer);
-
-                        LocalFree(local_buffer);
+                        _tcscpy_s(szResolvedPath, nSize, szGotPath);
                     }
                 }
             }
-
-            //Release the pointer to the IPersistFile interface.
-            ppf->Release();
         }
-
-        //Release the pointer to the IShellLink interface.
-        psl->Release();
     }
-
-    //Uninitialize COM stuff
-    CoUninitialize();
     return SUCCEEDED(hres);
 }
 
@@ -322,131 +191,128 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     CoInitialize(NULL); //fixed some crash
     //Get INI file path
-    wchar_t szModulePath[MAX_PATH] = L"";
-    if (!GetModuleFileNameW(0, szModulePath, MAX_PATH))
+    TCHAR szModulePath[MAX_PATH] = TEXT("");
+    if (!GetModuleFileName(0, szModulePath, MAX_PATH))
     {
-        MessageBoxW(0, L"Error getting module path!", L"Error", MB_ICONERROR | MB_SYSTEMMODAL);
+        MessageBox(0, TEXT("Error getting module path!"), TEXT("Error"), MB_ICONERROR | MB_SYSTEMMODAL);
         return 0;
     }
-    wchar_t szIniPath[MAX_PATH] = L"";
-    wcscpy_s(szIniPath, szModulePath);
-    wchar_t szCurrentDir[MAX_PATH] = L"";
-    wcscpy_s(szCurrentDir, szModulePath);
-    int len = (int)wcslen(szCurrentDir);
-    while (szCurrentDir[len] != L'\\' && len)
+    TCHAR szIniPath[MAX_PATH] = TEXT("");
+    _tcscpy_s(szIniPath, szModulePath);
+    TCHAR szCurrentDir[MAX_PATH] = TEXT("");
+    _tcscpy_s(szCurrentDir, szModulePath);
+    int len = (int)_tcslen(szCurrentDir);
+    while (szCurrentDir[len] != TEXT('\\') && len)
         len--;
     if (len)
-        szCurrentDir[len] = L'\0';
-    len = (int)wcslen(szIniPath);
-    while (szIniPath[len] != L'.' && szIniPath[len] != L'\\' && len)
+        szCurrentDir[len] = TEXT('\0');
+    len = (int)_tcslen(szIniPath);
+    while (szIniPath[len] != TEXT('.') && szIniPath[len] != TEXT('\\') && len)
         len--;
-    if (szIniPath[len] == L'\\')
-        wcscat_s(szIniPath, L".ini");
+    if (szIniPath[len] == TEXT('\\'))
+        _tcscat_s(szIniPath, TEXT(".ini"));
     else
-        wcscpy(&szIniPath[len], L".ini");
+        _tcscpy(&szIniPath[len], TEXT(".ini"));
     CreateUnicodeFile(szIniPath);
 
     //Load settings
     bool bDoneSomething = false;
-    wchar_t sz32Path[MAX_PATH] = L"";
-    if (!GetPrivateProfileStringW(L"Launcher", L"x32dbg", L"", sz32Path, MAX_PATH, szIniPath))
+    TCHAR sz32Path[MAX_PATH] = TEXT("");
+    if (!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
     {
-        wcscpy_s(sz32Path, szCurrentDir);
-        PathAppendW(sz32Path, L"x32\\x32dbg.exe");
+        _tcscpy_s(sz32Path, szCurrentDir);
+        PathAppend(sz32Path, TEXT("x32\\x32dbg.exe"));
         if (FileExists(sz32Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
     }
-    wchar_t sz32Dir[MAX_PATH] = L"";
-    wcscpy_s(sz32Dir, sz32Path);
-    len = (int)wcslen(sz32Dir);
-    while (sz32Dir[len] != L'\\' && len)
-        len--;
-    if (len)
-        sz32Dir[len] = L'\0';
-    wchar_t sz64Path[MAX_PATH] = L"";
-    if (!GetPrivateProfileStringW(L"Launcher", L"x64dbg", L"", sz64Path, MAX_PATH, szIniPath))
+
+    TCHAR sz32Dir[MAX_PATH] = TEXT("");
+    _tcscpy_s(sz32Dir, sz32Path);
+    PathRemoveFileSpec(sz32Dir);
+
+    TCHAR sz64Path[MAX_PATH] = TEXT("");
+    if (!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), sz64Path, MAX_PATH, szIniPath))
     {
-        wcscpy_s(sz64Path, szCurrentDir);
-        PathAppendW(sz64Path, L"x64\\x64dbg.exe");
+        _tcscpy_s(sz64Path, szCurrentDir);
+        PathAppend(sz64Path, TEXT("x64\\x64dbg.exe"));
         if (FileExists(sz64Path))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
         }
     }
-    wchar_t sz64Dir[MAX_PATH] = L"";
-    wcscpy_s(sz64Dir, sz64Path);
-    len = (int)wcslen(sz64Dir);
-    while (sz64Dir[len] != L'\\' && len)
-        len--;
-    if (len)
-        sz64Dir[len] = L'\0';
+
+    TCHAR sz64Dir[MAX_PATH] = TEXT("");
+    _tcscpy_s(sz64Dir, sz64Path);
+    PathRemoveFileSpec(sz64Dir);
 
     //Handle command line
     int argc = 0;
-    wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
     if (argc <= 1) //no arguments -> set configuration
     {
-        if (!FileExists(sz32Path) && BrowseFileOpen(0, L"x32dbg.exe\0x32dbg.exe\0\0", 0, sz32Path, MAX_PATH, szCurrentDir))
+        if (!FileExists(sz32Path) && BrowseFileOpen(0, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), 0, sz32Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x32dbg", sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
-        if (!FileExists(sz64Path) && BrowseFileOpen(0, L"x64dbg.exe\0x64dbg.exe\0\0", 0, sz64Path, MAX_PATH, szCurrentDir))
+        if (!FileExists(sz64Path) && BrowseFileOpen(0, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), 0, sz64Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileStringW(L"Launcher", L"x64dbg", sz64Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
             bDoneSomething = true;
         }
-        if (MessageBoxW(0, L"Do you want to register a shell extension?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
+        if (MessageBox(0, TEXT("Do you want to register a shell extension?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
-            wchar_t szLauncherCommand[MAX_PATH] = L"";
-            swprintf_s(szLauncherCommand, _countof(szLauncherCommand), L"\"%s\" \"%%1\"", szModulePath);
+            TCHAR szLauncherCommand[MAX_PATH] = TEXT("");
+            _stprintf_s(szLauncherCommand, _countof(szLauncherCommand), TEXT("\"%s\" \"%%1\""), szModulePath);
             RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand);
             RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand);
         }
-        if (MessageBoxW(0, L"Do you want to create Desktop Shortcuts?", L"Question", MB_YESNO | MB_ICONQUESTION) == IDYES)
+        if (MessageBox(0, TEXT("Do you want to create Desktop Shortcuts?"), TEXT("Question"), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
-            AddDesktopShortcut(sz32Path, L"x32dbg");
-            AddDesktopShortcut(sz64Path, L"x64dbg");
+            AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
+            AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
         }
         if (bDoneSomething)
-            MessageBoxW(0, L"New configuration written!", L"Done!", MB_ICONINFORMATION);
+            MessageBox(0, TEXT("New configuration written!"), TEXT("Done!"), MB_ICONINFORMATION);
     }
     if (argc == 2) //one argument -> execute debugger
     {
-        wchar_t szPath[MAX_PATH] = L"";
-        wcscpy_s(szPath, argv[1]);
-        char szResolvedPath[MAX_PATH] = "";
-        if (ResolveShortcut(0, szPath, szResolvedPath, _countof(szResolvedPath)))
-            MultiByteToWideChar(CP_ACP, 0, szResolvedPath, -1, szPath, _countof(szPath));
-        std::wstring cmdLine = L"\"";
+        TCHAR szPath[MAX_PATH] = TEXT("");
+        _tcscpy_s(szPath, argv[1]);
+        TCHAR szResolvedPath[MAX_PATH] = TEXT("");
+
+        ResolveShortcut(0, szPath, szResolvedPath, _countof(szResolvedPath));
+
+        //TODO: Use WinAPI here so we can avoid having to compile in Unicode
+        std::wstring cmdLine = TEXT("\"");
         cmdLine += szPath;
         cmdLine += L"\"";
         switch (GetFileArchitecture(szPath))
         {
         case x32:
             if (sz32Path[0])
-                ShellExecuteW(0, L"open", sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
+                ShellExecute(0, TEXT("open"), sz32Path, cmdLine.c_str(), sz32Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x32dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBox(0, TEXT("Path to x32dbg not specified in launcher configuration..."), TEXT("Error!"), MB_ICONERROR);
             break;
 
         case x64:
             if (sz64Path[0])
-                ShellExecuteW(0, L"open", sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
+                ShellExecute(0, TEXT("open"), sz64Path, cmdLine.c_str(), sz64Dir, SW_SHOWNORMAL);
             else
-                MessageBoxW(0, L"Path to x64dbg not specified in launcher configuration...", L"Error!", MB_ICONERROR);
+                MessageBox(0, TEXT("Path to x64dbg not specified in launcher configuration..."), TEXT("Error!"), MB_ICONERROR);
             break;
 
         case invalid:
-            MessageBoxW(0, argv[1], L"Invalid PE File!", MB_ICONERROR);
+            MessageBox(0, argv[1], TEXT("Invalid PE File!"), MB_ICONERROR);
             break;
 
         case notfound:
-            MessageBoxW(0, argv[1], L"File not found or in use!", MB_ICONERROR);
+            MessageBox(0, argv[1], TEXT("File not found or in use!"), MB_ICONERROR);
             break;
         }
     }
