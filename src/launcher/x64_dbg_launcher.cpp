@@ -272,7 +272,9 @@ static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szRe
                         int required_len = WideCharToMultiByte(CP_UTF8, 0, szGotPath, MAX_PATH, NULL, 0, NULL, NULL);
                         if (required_len <= 0)
                         {
-                            MessageBox(NULL, L"Fail string convert", L"Error", MB_OK);
+                            MessageBox(NULL, L"Error in WideChartoMultiByte!", L"Error", MB_OK);
+                            ppf->Release();
+                            psl->Release();
                             return false;
                         }
 
@@ -280,6 +282,8 @@ static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szRe
                         if (!local_buffer)
                         {
                             MessageBox(NULL, L"LocalAlloc failed", L"Error", MB_OK);
+                            ppf->Release();
+                            psl->Release();
                             return false;
                         }
 
@@ -288,6 +292,8 @@ static bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, char* szRe
                         {
                             LocalFree(local_buffer);
                             MessageBox(NULL, L"Error in WideChartoMultiByte!", L"Error", MB_OK);
+                            ppf->Release();
+                            psl->Release();
                             return false;
                         }
 
