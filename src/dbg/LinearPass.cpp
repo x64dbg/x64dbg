@@ -154,7 +154,7 @@ void LinearPass::AnalysisWorker(duint Start, duint End, BBlockArray* Blocks)
 
     for(duint i = Start; i < End;)
     {
-        if(!disasm.Disassemble(i, TranslateAddress(i), End - i))
+        if(!disasm.Disassemble(i, TranslateAddress(i), int(End - i)))
         {
             // Skip instructions that can't be determined
             i++;

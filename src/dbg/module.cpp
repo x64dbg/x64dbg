@@ -100,23 +100,29 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     strcpy_s(info.name, file);
     info.base = Base;
     info.size = Size;
+    info.fileHandle = nullptr;
+    info.loadedSize = 0;
+    info.fileMap = nullptr;
+    info.fileMapVA = 0;
 
     // Load module data
     bool virtualModule = strstr(FullPath, "virtual:\\") == FullPath;
 
     if(!virtualModule)
     {
-        HANDLE fileHandle;
-        DWORD loadedSize;
-        HANDLE fileMap;
-        ULONG_PTR fileMapVA;
-        WString wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
+        auto wszFullPath = StringUtils::Utf8ToUtf16(FullPath);
 
         // Load the physical module from disk
-        if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &fileHandle, &loadedSize, &fileMap, &fileMapVA))
+        if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.fileHandle, &info.loadedSize, &info.fileMap, &info.fileMapVA))
         {
-            GetModuleInfo(info, fileMapVA);
-            StaticFileUnloadW(wszFullPath.c_str(), false, fileHandle, loadedSize, fileMap, fileMapVA);
+            GetModuleInfo(info, info.fileMapVA);
+        }
+        else
+        {
+            info.fileHandle = nullptr;
+            info.loadedSize = 0;
+            info.fileMap = nullptr;
+            info.fileMapVA = 0;
         }
     }
     else
@@ -159,6 +165,11 @@ bool ModUnload(duint Base)
 
     if(found == modinfo.end())
         return false;
+
+    // Unload the mapped file from memory
+    const auto & info = found->second;
+    if(info.fileMapVA)
+        StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
 
     // Remove it from the list
     modinfo.erase(found);

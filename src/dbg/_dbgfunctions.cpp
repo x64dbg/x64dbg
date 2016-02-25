@@ -30,29 +30,17 @@ static bool _assembleatex(duint addr, const char* instruction, char* error, bool
 
 static bool _sectionfromaddr(duint addr, char* section)
 {
-    HMODULE hMod = (HMODULE)ModBaseFromAddr(addr);
-    if(!hMod)
-        return false;
-    wchar_t curModPath[MAX_PATH] = L"";
-    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, hMod, curModPath, MAX_PATH))
-        return false;
-    HANDLE FileHandle;
-    DWORD LoadedSize;
-    HANDLE FileMap;
-    ULONG_PTR FileMapVA;
-    if(StaticFileLoadW(curModPath, UE_ACCESS_READ, false, &FileHandle, &LoadedSize, &FileMap, &FileMapVA))
+    std::vector<MODSECTIONINFO> sections;
+    if(ModSectionsFromAddr(addr, &sections))
     {
-        duint rva = addr - (duint)hMod;
-        int sectionNumber = GetPE32SectionNumberFromVA(FileMapVA, GetPE32DataFromMappedFile(FileMapVA, 0, UE_IMAGEBASE) + rva);
-        if(sectionNumber >= 0)
+        for(const auto & cur : sections)
         {
-            const char* name = (const char*)GetPE32DataFromMappedFile(FileMapVA, sectionNumber, UE_SECTIONNAME);
-            if(section)
-                strcpy_s(section, MAX_SECTION_SIZE, name); //maxi
-            StaticFileUnloadW(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
-            return true;
+            if(addr >= cur.addr && addr < cur.addr + (cur.size + (0x1000 - 1) & ~(0x1000 - 1)))
+            {
+                strcpy_s(section, MAX_SECTION_SIZE, cur.name);
+                return true;
+            }
         }
-        StaticFileUnloadW(curModPath, false, FileHandle, LoadedSize, FileMap, FileMapVA);
     }
     return false;
 }

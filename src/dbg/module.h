@@ -30,6 +30,11 @@ struct MODINFO
 
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODIMPORTINFO> imports;
+
+    HANDLE fileHandle;
+    DWORD loadedSize;
+    HANDLE fileMap;
+    ULONG_PTR fileMapVA;
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);
