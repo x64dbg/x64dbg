@@ -46,12 +46,12 @@ void UpdateChecker::finishedSlot(QNetworkReply* reply)
         msg.exec();
         return;
     }
-    auto server = QDateTime::fromTime_t(timestamp);
-    auto build = QDateTime::fromString(QString(__DATE__).simplified(), "MMM d yyyy");
+    auto server = QDateTime::fromTime_t(timestamp).date();
+    auto build = QDateTime::fromString(QString(__DATE__).simplified(), "MMM d yyyy").date();
     QString info;
     auto dateFormat = "MMM d yyyy";
     if(server > build)
-        info = QString("New build %1 available!<br>Download <a href=\"http://x64dbg.com\">here</a><br><br>You are now on build %2").arg(server.toString(dateFormat), build.toString(dateFormat));
+        info = QString("New build %1 available!<br>Download <a href=\"http://releases.x64dbg.com\">here</a><br><br>You are now on build %2").arg(server.toString(dateFormat), build.toString(dateFormat));
     else if(server < build)
         info = QString("You have a development build (%1) of x64dbg!").arg(build.toString(dateFormat));
     else
