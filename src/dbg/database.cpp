@@ -61,7 +61,8 @@ void DbSave(DbLoadSaveType saveType)
         }
     }
 
-    WString wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    auto wdbpath = StringUtils::Utf8ToUtf16(dbpath);
+    CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
     if(json_object_size(root))
     {
         char* jsonText = json_dumps(root, JSON_INDENT(4));
@@ -83,9 +84,8 @@ void DbSave(DbLoadSaveType saveType)
         if(!settingboolget("Engine", "DisableDatabaseCompression"))
             LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
     }
-    // TODO: Remove if this is the cause of bug #551
-    //else //remove database when nothing is in there
-    //    DeleteFileW(wdbpath.c_str());
+    else //remove database when nothing is in there
+        DeleteFileW(wdbpath.c_str());
 
     dprintf("%ums\n", GetTickCount() - ticks);
     json_decref(root); //free root
