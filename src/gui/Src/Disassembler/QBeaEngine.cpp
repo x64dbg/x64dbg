@@ -157,7 +157,6 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint instInde
         switch(cp.GetId())
         {
         case X86_INS_JMP:
-        case X86_INS_LOOP:
             branchType = Instruction_t::Unconditional;
             break;
         default:
