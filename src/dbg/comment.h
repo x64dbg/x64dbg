@@ -14,7 +14,7 @@ struct COMMENTSINFO
 bool CommentSet(duint Address, const char* Text, bool Manual);
 bool CommentGet(duint Address, char* Text);
 bool CommentDelete(duint Address);
-void CommentDelRange(duint Start, duint End);
+void CommentDelRange(duint Start, duint End, bool Manual);
 void CommentCacheSave(JSON Root);
 void CommentCacheLoad(JSON Root);
 bool CommentEnum(COMMENTSINFO* List, size_t* Size);

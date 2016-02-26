@@ -90,7 +90,7 @@ bool LabelDelete(duint Address)
     return (labels.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void LabelDelRange(duint Start, duint End)
+void LabelDelRange(duint Start, duint End, bool Manual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -112,8 +112,8 @@ void LabelDelRange(duint Start, duint End)
         for(auto itr = labels.begin(); itr != labels.end();)
         {
             const auto & currentLabel = itr->second;
-            // Ignore manually set entries
-            if(currentLabel.manual)
+            // Ignore non-matching entries
+            if(Manual ? !currentLabel.manual : currentLabel.manual)
             {
                 ++itr;
                 continue;

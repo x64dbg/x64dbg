@@ -183,6 +183,9 @@ typedef enum
     DBG_DEINITIALIZE_LOCKS,         // param1=unused,                    param2=unused
     DBG_GET_TIME_WASTED_COUNTER,    // param1=unused,                    param2=unused
     DBG_SYMBOL_ENUM_FROMCACHE,      // param1=SYMBOLCBINFO* cbInfo,      param2=unused
+    DBG_DELETE_COMMENT_RANGE,       // param1=duint start,               param2=duint end
+    DBG_DELETE_LABEL_RANGE,         // param1=duint start,               param2=duint end
+    DBG_DELETE_BOOKMARK_RANGE,      // param1=duint start,               param2=duint end
 } DBGMSG;
 
 typedef enum
@@ -649,10 +652,13 @@ BRIDGE_IMPEXP bool DbgIsDebugging();
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr);
 BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text);
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text);
+BRIDGE_IMPEXP void DbgClearLabelRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text);
 BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text);
+BRIDGE_IMPEXP void DbgClearCommentRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetBookmarkAt(duint addr);
 BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark);
+BRIDGE_IMPEXP void DbgClearBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 BRIDGE_IMPEXP duint DbgValFromString(const char* string);
