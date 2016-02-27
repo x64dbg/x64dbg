@@ -108,6 +108,10 @@ void LabelDelRange(duint Start, duint End, bool Manual)
         if(moduleBase != ModBaseFromAddr(End))
             return;
 
+        // Virtual -> relative offset
+        Start -= moduleBase;
+        End -= moduleBase;
+
         EXCLUSIVE_ACQUIRE(LockLabels);
         for(auto itr = labels.begin(); itr != labels.end();)
         {
