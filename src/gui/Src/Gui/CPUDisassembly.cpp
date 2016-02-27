@@ -101,7 +101,7 @@ void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
-    if (isFollowInCPU)
+    if(isFollowInCPU)
         newAction->setObjectName(QString("CPU|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
     else
         newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
@@ -117,10 +117,13 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         menu->removeAction(list.at(i));
 
     //most basic follow action
-    if(isReferences && !isFollowInCPU)
-        menu->addAction(mReferenceSelectedAddressAction);
-    else
-        addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences, isFollowInCPU);
+    if(!isFollowInCPU)
+    {
+        if(isReferences)
+            menu->addAction(mReferenceSelectedAddressAction);
+        else
+            addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences, isFollowInCPU);
+    }
 
     //add follow actions
     DISASM_INSTR instr;
@@ -292,10 +295,10 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addMenu(makeMenu("&Follow in Disassembler"), [this](QMenu * menu)
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/processor-cpu.png"), "&Follow in Disassembler"), [this](QMenu * menu)
     {
         setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, true);
-        return true;
+        return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
     mMenuBuilder->addAction(makeAction(QIcon(":/icons/images/source.png"), "Open Source File", SLOT(openSourceSlot())), [this](QMenu*)

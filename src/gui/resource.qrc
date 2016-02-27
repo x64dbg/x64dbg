@@ -73,5 +73,6 @@
         <file>images/eraser.png</file>
         <file>images/processor32.png</file>
         <file>images/processor64.png</file>
+        <file>images/processor-cpu.png</file>
     </qresource>
 </RCC>
