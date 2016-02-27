@@ -403,7 +403,7 @@
   <action name="actionCpu">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/processor-cpu.png</normaloff>:/icons/images/processor-cpu.png</iconset>
+     <normaloff>:/icons/images/processor64.png</normaloff>:/icons/images/processor64.png</iconset>
    </property>
    <property name="text">
     <string>&amp;CPU</string>

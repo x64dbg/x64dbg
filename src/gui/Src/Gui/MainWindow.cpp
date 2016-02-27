@@ -119,7 +119,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // CPU view
     mCpuWidget = new CPUWidget();
     mCpuWidget->setWindowTitle("CPU");
-    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor-cpu.png"));
+#ifdef _WIN64
+    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor64.png"));
+#else
+    mCpuWidget->setWindowIcon(QIcon(":/icons/images/processor32.png"));
+    ui->actionCpu->setIcon(QIcon(":/icons/images/processor32.png"));
+#endif //_WIN64
 
     // Reference manager
     mReferenceManager = new ReferenceManager(this);

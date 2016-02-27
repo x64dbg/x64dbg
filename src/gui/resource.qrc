@@ -12,7 +12,6 @@
         <file>images/control-stop.png</file>
         <file>images/terminal-command.png</file>
         <file>images/memory-map.png</file>
-        <file>images/processor-cpu.png</file>
         <file>images/ui-combo-box-edit.png</file>
         <file>images/scylla.png</file>
         <file>images/compile-error.png</file>
@@ -71,5 +70,8 @@
         <file>images/neworigin.png</file>
         <file>images/find.png</file>
         <file>images/recentfiles.png</file>
+        <file>images/eraser.png</file>
+        <file>images/processor32.png</file>
+        <file>images/processor64.png</file>
     </qresource>
 </RCC>

@@ -207,7 +207,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction("Disassembly", SLOT(copyDisassemblySlot())));
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/copy.png"), "&Copy"), copyMenu);
 
-    mMenuBuilder->addAction(makeShortcutAction("&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(QIcon(":/icons/images/eraser.png"), "&Restore selection", SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
     {
         dsint start = rvaToVa(getSelectionStart());
         dsint end = rvaToVa(getSelectionEnd());
@@ -388,7 +388,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchRegionMenu->addAction(makeShortcutAction("&Pattern", SLOT(findPatternSlot()), "ActionFindPattern"));
 
     // Search in Current Module menu
-    mFindCommandModule = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindCommandModule = makeAction("C&ommand", SLOT(findCommandSlot()));
     mFindConstantModule = makeAction("&Constant", SLOT(findConstantSlot()));
     mFindStringsModule = makeAction("&String references", SLOT(findStringsSlot()));
     mFindCallsModule = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
@@ -399,7 +399,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
 
     // Search in All Modules menu
-    mFindCommandAll = makeShortcutAction("C&ommand", SLOT(findCommandSlot()), "ActionFind");
+    mFindCommandAll = makeAction("C&ommand", SLOT(findCommandSlot()));
     mFindConstantAll = makeAction("&Constant", SLOT(findConstantSlot()));
     mFindStringsAll = makeAction("&String references", SLOT(findStringsSlot()));
     mFindCallsAll = makeAction("&Intermodular calls", SLOT(findCallsSlot()));
