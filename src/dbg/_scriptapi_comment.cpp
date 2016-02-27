@@ -44,7 +44,7 @@ SCRIPT_EXPORT bool Script::Comment::Delete(duint addr)
 
 SCRIPT_EXPORT void Script::Comment::DeleteRange(duint start, duint end)
 {
-    CommentDelRange(start, end);
+    CommentDelRange(start, end, false);
 }
 
 SCRIPT_EXPORT void Script::Comment::Clear()

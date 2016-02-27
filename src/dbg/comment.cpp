@@ -72,7 +72,7 @@ bool CommentDelete(duint Address)
     return (comments.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void CommentDelRange(duint Start, duint End)
+void CommentDelRange(duint Start, duint End, bool Manual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -98,8 +98,8 @@ void CommentDelRange(duint Start, duint End)
         for(auto itr = comments.begin(); itr != comments.end();)
         {
             const auto & currentComment = itr->second;
-            // Ignore manually set entries
-            if(currentComment.manual)
+            // Ignore non-matching entries
+            if(Manual ? !currentComment.manual : currentComment.manual)
             {
                 ++itr;
                 continue;

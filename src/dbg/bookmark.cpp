@@ -46,7 +46,7 @@ bool BookmarkDelete(duint Address)
     return (bookmarks.erase(ModHashFromAddr(Address)) > 0);
 }
 
-void BookmarkDelRange(duint Start, duint End)
+void BookmarkDelRange(duint Start, duint End, bool Manual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -73,8 +73,8 @@ void BookmarkDelRange(duint Start, duint End)
         {
             const auto & currentBookmark = itr->second;
 
-            // Ignore manually set entries
-            if(currentBookmark.manual)
+            // Ignore non-matching entries
+            if(Manual ? !currentBookmark.manual : currentBookmark.manual)
             {
                 ++itr;
                 continue;

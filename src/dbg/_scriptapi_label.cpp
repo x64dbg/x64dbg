@@ -49,7 +49,7 @@ SCRIPT_EXPORT bool Script::Label::Delete(duint addr)
 
 SCRIPT_EXPORT void Script::Label::DeleteRange(duint start, duint end)
 {
-    LabelDelRange(start, end);
+    LabelDelRange(start, end, false);
 }
 
 SCRIPT_EXPORT void Script::Label::Clear()

@@ -955,7 +955,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_DELETE_AUTO_COMMENT_RANGE:
     {
-        CommentDelRange((duint)param1, (duint)param2);
+        CommentDelRange((duint)param1, (duint)param2, false);
     }
     break;
 
@@ -967,7 +967,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_DELETE_AUTO_LABEL_RANGE:
     {
-        LabelDelRange((duint)param1, (duint)param2);
+        LabelDelRange((duint)param1, (duint)param2, false);
     }
     break;
 
@@ -979,7 +979,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_DELETE_AUTO_BOOKMARK_RANGE:
     {
-        BookmarkDelRange((duint)param1, (duint)param2);
+        BookmarkDelRange((duint)param1, (duint)param2, false);
     }
     break;
 
@@ -1043,6 +1043,24 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_TIME_WASTED_COUNTER:
         return dbggettimewastedcounter();
+
+    case DBG_DELETE_COMMENT_RANGE:
+    {
+        CommentDelRange((duint)param1, (duint)param2, true);
+    }
+    break;
+
+    case DBG_DELETE_LABEL_RANGE:
+    {
+        LabelDelRange((duint)param1, (duint)param2, true);
+    }
+    break;
+
+    case DBG_DELETE_BOOKMARK_RANGE:
+    {
+        BookmarkDelRange((duint)param1, (duint)param2, true);
+    }
+    break;
     }
     return 0;
 }

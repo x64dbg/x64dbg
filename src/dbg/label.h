@@ -15,7 +15,7 @@ bool LabelSet(duint Address, const char* Text, bool Manual);
 bool LabelFromString(const char* Text, duint* Address);
 bool LabelGet(duint Address, char* Text);
 bool LabelDelete(duint Address);
-void LabelDelRange(duint Start, duint End);
+void LabelDelRange(duint Start, duint End, bool Manual);
 void LabelCacheSave(JSON root);
 void LabelCacheLoad(JSON root);
 bool LabelEnum(LABELSINFO* List, size_t* Size);

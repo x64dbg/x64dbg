@@ -345,6 +345,11 @@ BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text)
     return true;
 }
 
+BRIDGE_IMPEXP void DbgClearLabelRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_LABEL_RANGE, (void*)start, (void*)end);
+}
+
 // FIXME required size of arg _text_?
 BRIDGE_IMPEXP bool DbgGetCommentAt(duint addr, char* text) //comment (not live)
 {
@@ -370,6 +375,11 @@ BRIDGE_IMPEXP bool DbgSetCommentAt(duint addr, const char* text)
     if(!_dbg_addrinfoset(addr, &info))
         return false;
     return true;
+}
+
+BRIDGE_IMPEXP void DbgClearCommentRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_COMMENT_RANGE, (void*)start, (void*)end);
 }
 
 // FIXME required size of arg _text_?
@@ -407,6 +417,11 @@ BRIDGE_IMPEXP bool DbgSetBookmarkAt(duint addr, bool isbookmark)
     info.flags = flagbookmark;
     info.isbookmark = isbookmark;
     return _dbg_addrinfoset(addr, &info);
+}
+
+BRIDGE_IMPEXP void DbgClearBookmarkRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_BOOKMARK_RANGE, (void*)start, (void*)end);
 }
 
 // FIXME return on success?
