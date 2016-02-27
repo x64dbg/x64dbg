@@ -8,17 +8,16 @@
 #include "memory.h"
 #include "console.h"
 #include "module.h"
+#include "threading.h"
 
 int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Silent, const char* Name, REFFINDTYPE type)
 {
     char fullName[deflen];
     char moduleName[MAX_MODULE_SIZE];
-    int refFindInRangeRet;
     duint scanStart, scanSize;
     REFINFO refInfo;
 
-    // Search in current Region
-    if(type == CURRENT_REGION)
+    if(type == CURRENT_REGION) // Search in current Region
     {
         duint regionSize = 0;
         duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
@@ -60,25 +59,16 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         refInfo.userinfo = UserData;
         refInfo.name = fullName;
 
-
-        refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Region Search");
             GuiReferenceSetProgress(percent);
         });
-
-        GuiReferenceReloadData();
-
-        if(!refFindInRangeRet)
-            return refFindInRangeRet;
-
-        refInfo.refcount += refFindInRangeRet;
     }
-
-    // Search in current Module
-    else if(type == CURRENT_MODULE)
+    else if(type == CURRENT_MODULE) // Search in current Module
     {
-        MODINFO* modInfo = ModInfoFromAddr(Address);
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(Address);
 
         if(!modInfo)
         {
@@ -90,6 +80,8 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         duint modBase = modInfo->base;
         duint modSize = modInfo->size;
+
+        SHARED_RELEASE();
 
         scanStart = modBase;
         scanSize  = modSize;
@@ -108,21 +100,13 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         refInfo.userinfo = UserData;
         refInfo.name = fullName;
 
-        refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
         {
             GuiReferenceSetCurrentTaskProgress(percent, "Module Search");
             GuiReferenceSetProgress(percent);
         });
-
-
-        if(!refFindInRangeRet)
-            return refFindInRangeRet;
-
-        GuiReferenceReloadData();
     }
-
-    // Search in all Modules
-    else if(type == ALL_MODULES)
+    else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
         std::vector<MODINFO> modList;
@@ -155,7 +139,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             if(i != 0)
                 initCallBack = false;
 
-            refFindInRangeRet = RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
             {
                 float fPercent = (float)percent / 100.f;
                 float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
@@ -168,12 +152,6 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
                 GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
                 GuiReferenceSetProgress(totalPercent);
             });
-
-
-            if(!refFindInRangeRet)
-                return refFindInRangeRet;
-
-            GuiReferenceReloadData();
         }
     }
 
