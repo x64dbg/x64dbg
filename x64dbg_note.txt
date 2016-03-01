@@ -1,0 +1,59 @@
+DWORD EngineSetDebugPrivilege(HANDLE hProcess, bool bEnablePrivilege)
+{
+	DWORD dwLastError;
+	HANDLE hToken = 0;
+	if (!OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	{
+		dwLastError = GetLastError();
+		if (hToken)
+			CloseHandle(hToken);
+		return dwLastError;
+	}
+	TOKEN_PRIVILEGES tokenPrivileges;
+	memset(&tokenPrivileges, 0, sizeof(TOKEN_PRIVILEGES));
+	LUID luid;
+	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid))
+	{
+		dwLastError = GetLastError();
+		CloseHandle(hToken);
+		return dwLastError;
+	}
+	tokenPrivileges.PrivilegeCount = 1;
+	tokenPrivileges.Privileges[0].Luid = luid;
+	if (bEnablePrivilege)
+		tokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	else
+		tokenPrivileges.Privileges[0].Attributes = 0;
+	AdjustTokenPrivileges(hToken, FALSE, &tokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
+	dwLastError = GetLastError();
+	CloseHandle(hToken);
+	return dwLastError;
+}
+
+HANDLE _OpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId)
+{
+	HANDLE hCsrss = OpenProcess(PROCESS_DUP_HANDLE, FALSE, 428);
+	if (hCsrss == NULL) {
+		dprintf("Could not open csrss\n");
+		return NULL;
+	}
+	HANDLE h2;
+	if (!DuplicateHandle(hCsrss, (HANDLE)0xfa0, GetCurrentProcess(), &h2, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+		dprintf("DuplicateHandle() failed\n");
+		return NULL;
+	}
+
+	dprintf("OpenProcess() ok. handle = %x\n", h2);
+	return h2;
+	
+}
+
+HANDLE MyOpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId)
+{
+	EngineSetDebugPrivilege(GetCurrentProcess(), true);
+	HANDLE hProcess = _OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
+	DWORD dwLastError = GetLastError();
+	EngineSetDebugPrivilege(GetCurrentProcess(), false);
+	SetLastError(dwLastError);
+	return hProcess;
+}
