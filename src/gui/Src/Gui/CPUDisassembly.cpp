@@ -1141,9 +1141,9 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         if(DbgGetCommentAt(cur_addr, comment))
         {
             if(comment[0] == '\1') //automatic comment
-                fullComment = " ;" + QString(comment + 1);
+                fullComment = " " + QString(comment + 1);
             else
-                fullComment = " ;" + QString(comment);
+                fullComment = " " + QString(comment);
         }
         clipboard += address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
