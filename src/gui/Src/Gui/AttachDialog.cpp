@@ -75,7 +75,7 @@ void AttachDialog::refresh()
 
 void AttachDialog::on_btnAttach_clicked()
 {
-    QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mList->getInitialSelection(), 0);
+    QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
     DbgCmdExec(QString("attach " + pid).toUtf8().constData());
     accept();
 }
