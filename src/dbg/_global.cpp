@@ -205,7 +205,7 @@ bool FileExists(const char* file)
 bool DirExists(const char* dir)
 {
     DWORD attrib = GetFileAttributesW(StringUtils::Utf8ToUtf16(dir).c_str());
-    return (attrib == FILE_ATTRIBUTE_DIRECTORY);
+    return (attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
 /**
