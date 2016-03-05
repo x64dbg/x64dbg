@@ -23,7 +23,10 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
 
     // Delete the label if no text was supplied
     if(Text[0] == '\0')
-        return LabelDelete(Address);
+    {
+        LabelDelete(Address);
+        return true;
+    }
 
     // Fill out the structure data
     LABELSINFO labelInfo;
