@@ -184,7 +184,17 @@ void ModClear()
 {
     // Clean up all the modules
     EXCLUSIVE_ACQUIRE(LockModules);
+
+    for(const auto & mod : modinfo)
+    {
+        // Unload the mapped file from memory
+        const auto & info = mod.second;
+        if(info.fileMapVA)
+            StaticFileUnloadW(StringUtils::Utf8ToUtf16(info.path).c_str(), false, info.fileHandle, info.loadedSize, info.fileMap, info.fileMapVA);
+    }
+
     modinfo.clear();
+
     EXCLUSIVE_RELEASE();
 
     // Tell the symbol updater
