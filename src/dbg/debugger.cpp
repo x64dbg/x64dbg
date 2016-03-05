@@ -760,6 +760,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
     //unload main module
     SafeSymUnloadModule64(fdProcessInfo->hProcess, pCreateProcessBase);
+    ModUnload(pCreateProcessBase);
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
