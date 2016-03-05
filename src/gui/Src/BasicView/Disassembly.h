@@ -182,6 +182,12 @@ protected:
     QColor mLoopColor;
     QColor mFunctionColor;
 
+    QPen mLoopPen;
+    QPen mFunctionPen;
+    QPen mUnconditionalPen;
+    QPen mConditionalTruePen;
+    QPen mConditionalFalsePen;
+
     // Misc
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
