@@ -7,6 +7,7 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
+#include "console.h"
 
 std::unordered_map<DWORD, THREADINFO> threadList;
 
@@ -241,8 +242,10 @@ int ThreadSuspendAll()
     int count = 0;
     for(auto & entry : threadList)
     {
-        if(SuspendThread(entry.second.Handle) != -1)
-            count++;
+		if (SuspendThread(entry.second.Handle) != -1)
+			count++;
+		else
+			dprintf("thread(%d) cannot suspend. handle: %x", entry.second.ThreadId, entry.second.Handle);
     }
 
     return count;

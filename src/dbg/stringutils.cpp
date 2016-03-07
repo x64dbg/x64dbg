@@ -24,6 +24,9 @@ StringList StringUtils::Split(const String & s, char delim)
 
 String StringUtils::Escape(const String & s)
 {
+	// FIXME: bug
+	return s;
+
     String escaped = "";
     for(size_t i = 0; i < s.length(); i++)
     {
