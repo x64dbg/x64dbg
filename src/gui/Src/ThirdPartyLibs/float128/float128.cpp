@@ -1398,7 +1398,7 @@ std::string dd_real::to_string(std::streamsize precision, std::streamsize width,
     }
 
     /* Fill in the blanks */
-    int len = s.length();
+    int len = int(s.length());
     if(len < width)
     {
         int delta = static_cast<int>(width) - len;

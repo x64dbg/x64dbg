@@ -51,6 +51,9 @@ void CPUSideBar::updateColors()
 
     mCipLabelColor = ConfigColor("SideBarCipLabelColor");
     mCipLabelBackgroundColor = ConfigColor("SideBarCipLabelBackgroundColor");
+
+    mUnconditionalPen = QPen(mUnconditionalJumpLineFalseColor, 1, Qt::SolidLine);
+    mConditionalPen = QPen(mConditionalJumpLineFalseColor, 1, Qt::DashLine);
 }
 
 void CPUSideBar::updateFonts()
@@ -327,10 +330,10 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
 void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive)
 {
     painter->save();
-    if(!conditional)
-        painter->setPen(QPen(mConditionalJumpLineFalseColor, 1, Qt::SolidLine));  // jmp
+    if(conditional)
+        painter->setPen(mConditionalPen);
     else
-        painter->setPen(QPen(mUnconditionalJumpLineFalseColor, 1, Qt::DashLine));
+        painter->setPen(mUnconditionalPen); //JMP
 
     // Pixel adjustment to make drawing lines even
     int pixel_y_offs = 1;

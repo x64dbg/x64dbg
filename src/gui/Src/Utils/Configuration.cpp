@@ -62,6 +62,7 @@ Configuration::Configuration() : QObject()
     defaultColors.insert("RegistersModifiedColor", QColor("#FF0000"));
     defaultColors.insert("RegistersSelectionColor", QColor("#EEEEEE"));
     defaultColors.insert("RegistersLabelColor", QColor("#000000"));
+    defaultColors.insert("RegistersArgumentLabelColor", Qt::darkGreen);
     defaultColors.insert("RegistersExtraInfoColor", QColor("#000000"));
 
     defaultColors.insert("InstructionHighlightColor", QColor("#FF0000"));

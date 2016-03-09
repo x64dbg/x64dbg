@@ -93,6 +93,12 @@ void Disassembly::updateColors()
     mLoopColor = ConfigColor("DisassemblyLoopColor");
     mFunctionColor = ConfigColor("DisassemblyFunctionColor");
 
+    mLoopPen = QPen(mLoopColor, 2);
+    mFunctionPen = QPen(mFunctionColor, 2);
+    mUnconditionalPen = QPen(mUnconditionalJumpLineColor);
+    mConditionalTruePen = QPen(mConditionalJumpLineTrueColor);
+    mConditionalFalsePen = QPen(mConditionalJumpLineFalseColor);
+
     CapstoneTokenizer::UpdateColors();
     mDisasm->UpdateConfig();
 }
@@ -799,14 +805,14 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr)
 
     if(branchType == Instruction_t::Unconditional) //unconditional
     {
-        painter->setPen(mUnconditionalJumpLineColor);
+        painter->setPen(mUnconditionalPen);
     }
     else
     {
         if(bIsExecute)
-            painter->setPen(mConditionalJumpLineTrueColor);
+            painter->setPen(mConditionalTruePen);
         else
-            painter->setPen(mConditionalJumpLineFalseColor);
+            painter->setPen(mConditionalFalsePen);
     }
 
     if(wPict == GD_Vert)
@@ -872,9 +878,9 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     if(loop && funcType == Function_none)
         return 0;
     if(loop)
-        painter->setPen(QPen(mLoopColor, 2)); //thick black line
+        painter->setPen(mLoopPen); //thick black line
     else
-        painter->setPen(QPen(mFunctionColor, 2)); //thick black line
+        painter->setPen(mFunctionPen); //thick black line
     int height = getRowHeight();
     int x_add = 5;
     int y_add = 4;

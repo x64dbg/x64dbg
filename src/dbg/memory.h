@@ -24,10 +24,10 @@ struct SimplePage
 void MemUpdateMap();
 void MemUpdateMapAsync();
 duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh = false);
-bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr);
+bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr, bool cache = true);
 bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
 bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten = nullptr);
-bool MemIsValidReadPtr(duint Address);
+bool MemIsValidReadPtr(duint Address, bool cache = true);
 bool MemIsCanonicalAddress(duint Address);
 bool MemIsCodePage(duint Address, bool Refresh);
 duint MemAllocRemote(duint Address, duint Size, DWORD Type = MEM_RESERVE | MEM_COMMIT, DWORD Protect = PAGE_EXECUTE_READWRITE);

@@ -73,6 +73,9 @@ private:
 
     QColor mCipLabelColor;
     QColor mCipLabelBackgroundColor;
+
+    QPen mUnconditionalPen;
+    QPen mConditionalPen;
 };
 
 #endif // CPUSIDEBAR_H

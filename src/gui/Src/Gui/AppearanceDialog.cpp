@@ -463,6 +463,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend("Selection", "RegistersSelectionColor", "");
     colorInfoListAppend("Modified Registers", "RegistersModifiedColor", "");
     colorInfoListAppend("Register Names", "RegistersLabelColor", "");
+    colorInfoListAppend("Argument Register Names", "RegistersArgumentLabelColor", "");
     colorInfoListAppend("Extra Information", "RegistersExtraInfoColor", "");
 
     colorInfoListAppend("Instructions:", "", "");

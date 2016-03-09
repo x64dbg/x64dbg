@@ -93,7 +93,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences)
+void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu* menu, bool isReferences, bool isFollowInCPU)
 {
     foreach(QAction * action, menu->actions()) //check for duplicate action
     if(action->text() == name)
@@ -101,11 +101,15 @@ void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu
     QAction* newAction = new QAction(name, this);
     newAction->setFont(QFont("Courier New", 8));
     menu->addAction(newAction);
-    newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    if(isFollowInCPU)
+        newAction->setObjectName(QString("CPU|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+    else
+        newAction->setObjectName(QString(isReferences ? "REF|" : "DUMP|") + QString("%1").arg(value, sizeof(dsint) * 2, 16, QChar('0')).toUpper());
+
     connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
 }
 
-void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences)
+void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU)
 {
     //remove previous actions
     QList<QAction*> list = menu->actions();
@@ -113,10 +117,13 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
         menu->removeAction(list.at(i));
 
     //most basic follow action
-    if(isReferences)
-        menu->addAction(mReferenceSelectedAddressAction);
-    else
-        addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences);
+    if(!isFollowInCPU)
+    {
+        if(isReferences)
+            menu->addAction(mReferenceSelectedAddressAction);
+        else
+            addFollowReferenceMenuItem("&Selected Address", wVA, menu, isReferences, isFollowInCPU);
+    }
 
     //add follow actions
     DISASM_INSTR instr;
@@ -130,20 +137,20 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             if(arg.type == arg_memory)
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+                    addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
                     QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
                     if(DbgMemIsValidReadPtr(arg.constant))
-                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences);
+                        addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
-                    addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences);
+                    addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
             }
             else //arg_normal
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences);
+                    addFollowReferenceMenuItem(QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
             }
         }
     }
@@ -154,9 +161,9 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             const DISASM_ARG arg = instr.arg[i];
             QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
             if(DbgMemIsValidReadPtr(arg.constant))
-                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences);
+                addFollowReferenceMenuItem("Address: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
             else if(arg.constant)
-                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences);
+                addFollowReferenceMenuItem("Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
         }
     }
 }
@@ -284,8 +291,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/memory-map.png"), "&Follow in Dump"), [this](QMenu * menu)
     {
-        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false);
+        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, false);
         return true;
+    });
+
+    mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/processor-cpu.png"), "&Follow in Disassembler"), [this](QMenu * menu)
+    {
+        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, false, true);
+        return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
     mMenuBuilder->addAction(makeAction(QIcon(":/icons/images/source.png"), "Open Source File", SLOT(openSourceSlot())), [this](QMenu*)
@@ -418,7 +431,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(QIcon(":/icons/images/find.png"), "Find &references to"), [this](QMenu * menu)
     {
-        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, true);
+        setupFollowReferenceMenu(rvaToVa(getInitialSelection()), menu, true, false);
         return true;
     });
 
@@ -846,6 +859,11 @@ void CPUDisassembly::followActionSlot()
         DbgCmdExec(QString("findref \"" + value +  "\", " + addrText).toUtf8().constData());
         emit displayReferencesWidget();
     }
+    else if(action->objectName().startsWith("CPU|"))
+    {
+        QString value = action->objectName().mid(4);
+        DbgCmdExec(QString("disasm " + value).toUtf8().constData());
+    }
 }
 
 void CPUDisassembly::gotoPreviousSlot()
@@ -1123,9 +1141,9 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
         if(DbgGetCommentAt(cur_addr, comment))
         {
             if(comment[0] == '\1') //automatic comment
-                fullComment = " ;" + QString(comment + 1);
+                fullComment = " " + QString(comment + 1);
             else
-                fullComment = " ;" + QString(comment);
+                fullComment = " " + QString(comment);
         }
         clipboard += address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)

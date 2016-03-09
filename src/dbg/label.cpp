@@ -23,7 +23,10 @@ bool LabelSet(duint Address, const char* Text, bool Manual)
 
     // Delete the label if no text was supplied
     if(Text[0] == '\0')
-        return LabelDelete(Address);
+    {
+        LabelDelete(Address);
+        return true;
+    }
 
     // Fill out the structure data
     LABELSINFO labelInfo;
@@ -107,6 +110,10 @@ void LabelDelRange(duint Start, duint End, bool Manual)
 
         if(moduleBase != ModBaseFromAddr(End))
             return;
+
+        // Virtual -> relative offset
+        Start -= moduleBase;
+        End -= moduleBase;
 
         EXCLUSIVE_ACQUIRE(LockLabels);
         for(auto itr = labels.begin(); itr != labels.end();)

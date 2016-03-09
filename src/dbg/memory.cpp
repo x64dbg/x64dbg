@@ -271,9 +271,12 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh)
     return found->first.first;
 }
 
-bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
+bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead, bool cache)
 {
     if(!MemIsCanonicalAddress(BaseAddress))
+        return false;
+
+    if(cache && !MemIsValidReadPtr(BaseAddress))
         return false;
 
     // Buffer must be supplied and size must be greater than 0
@@ -409,10 +412,12 @@ bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
     return false;
 }
 
-bool MemIsValidReadPtr(duint Address)
+bool MemIsValidReadPtr(duint Address, bool cache)
 {
-    unsigned char a = 0;
-    return MemRead(Address, &a, sizeof(unsigned char));
+    if(cache)
+        return MemFindBaseAddr(Address, nullptr) != 0;
+    unsigned char ch;
+    return MemRead(Address, &ch, sizeof(ch), nullptr, false);
 }
 
 bool MemIsCanonicalAddress(duint Address)
@@ -610,7 +615,7 @@ bool MemFindInMap(const std::vector<SimplePage> & pages, const std::vector<Patte
     for(const auto page : pages)
     {
         if(!MemFindInPage(page, 0, pattern, results, maxresults))
-            return false;
+            continue;
         if(progress)
             GuiReferenceSetProgress(int(floor((float(count) / float(total)) * 100.0f)));
         if(results.size() >= maxresults)

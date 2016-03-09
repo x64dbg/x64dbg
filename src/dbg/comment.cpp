@@ -19,7 +19,10 @@ bool CommentSet(duint Address, const char* Text, bool Manual)
 
     // Delete the comment if no text was supplied
     if(Text[0] == '\0')
-        return CommentDelete(Address);
+    {
+        CommentDelete(Address);
+        return true;
+    }
 
     // Fill out the structure
     COMMENTSINFO comment;

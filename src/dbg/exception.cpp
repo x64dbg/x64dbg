@@ -10,6 +10,7 @@ void ExceptionCodeInit()
     ExceptionNames.insert(std::make_pair(0x0000071A, "RPC_S_CALL_CANCELLED"));
     ExceptionNames.insert(std::make_pair(0x04242420, "CLRDBG_NOTIFICATION_EXCEPTION_CODE"));
     ExceptionNames.insert(std::make_pair(0x40000005, "STATUS_SEGMENT_NOTIFICATION"));
+    ExceptionNames.insert(std::make_pair(0x40000015, "STATUS_FATAL_APP_EXIT"));
     ExceptionNames.insert(std::make_pair(0x4000001C, "STATUS_WX86_UNSIMULATE"));
     ExceptionNames.insert(std::make_pair(0x4000001D, "STATUS_WX86_CONTINUE"));
     ExceptionNames.insert(std::make_pair(0x4000001E, "STATUS_WX86_SINGLE_STEP"));
@@ -66,10 +67,13 @@ void ExceptionCodeInit()
     ExceptionNames.insert(std::make_pair(0xC00002B5, "STATUS_FLOAT_MULTIPLE_TRAPS"));
     ExceptionNames.insert(std::make_pair(0xC00002C5, "STATUS_DATATYPE_MISALIGNMENT_ERROR"));
     ExceptionNames.insert(std::make_pair(0xC00002C9, "STATUS_REG_NAT_CONSUMPTION"));
+    ExceptionNames.insert(std::make_pair(0xC0000374, "STATUS_HEAP_CORRUPTION"));
     ExceptionNames.insert(std::make_pair(0xC0000409, "STATUS_STACK_BUFFER_OVERRUN"));
     ExceptionNames.insert(std::make_pair(0xC0000417, "STATUS_INVALID_CRUNTIME_PARAMETER"));
     ExceptionNames.insert(std::make_pair(0xC000041D, "STATUS_USER_CALLBACK"));
     ExceptionNames.insert(std::make_pair(0xC0000420, "STATUS_ASSERTION_FAILURE"));
+    ExceptionNames.insert(std::make_pair(0xC015000F, "STATUS_SXS_EARLY_DEACTIVATION"));
+    ExceptionNames.insert(std::make_pair(0xC0150010, "STATUS_SXS_INVALID_DEACTIVATION"));
     ExceptionNames.insert(std::make_pair(0xE0434352, "CLR_EXCEPTION"));
     ExceptionNames.insert(std::make_pair(0xE06D7363, "CPP_EH_EXCEPTION"));
 }
