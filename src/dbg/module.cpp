@@ -82,6 +82,9 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
             strcpy_s(file, FullPath);
     }
 
+	if (file[0] == '\0')
+		return false;
+
     // Calculate module hash from full file name
     info.hash = ModHashFromName(file);
 
