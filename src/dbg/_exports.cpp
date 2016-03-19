@@ -38,7 +38,7 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return MemRead(addr, dest, size, read);
+    return MemRead(addr, dest, size, read, true);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
@@ -138,7 +138,7 @@ static bool getLabel(duint addr, char* label)
             if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value)  //thing is a JMP
             {
                 duint val = 0;
-                if(MemRead(basicinfo.memory.value, &val, sizeof(val)))
+                if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
                 {
                     if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
                     {
