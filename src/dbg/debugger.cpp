@@ -1171,16 +1171,16 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPNORMAL || bp->enabled)
         return true;
 
-    if(!BpEnable(bp->addr, BPNORMAL, true))
-    {
-        dprintf("Could not enable breakpoint " fhex " (BpEnable)\n", bp->addr);
-        return false;
-    }
     if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
     {
         if(!MemIsValidReadPtr(bp->addr))
             return true;
         dprintf("Could not enable breakpoint " fhex " (SetBPX)\n", bp->addr);
+        return false;
+    }
+    if(!BpEnable(bp->addr, BPNORMAL, true))
+    {
+        dprintf("Could not enable breakpoint " fhex " (BpEnable)\n", bp->addr);
         return false;
     }
     return true;

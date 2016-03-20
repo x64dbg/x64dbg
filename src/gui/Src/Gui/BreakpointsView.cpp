@@ -250,7 +250,8 @@ void BreakpointsView::hardwareBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mHardBPEnableDisableAction->setText("Enable");
+                    wMenu->addAction(mHardBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
@@ -368,7 +369,8 @@ void BreakpointsView::softwareBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mSoftBPEnableDisableAction->setText("Enable");
+                    wMenu->addAction(mSoftBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
@@ -492,7 +494,8 @@ void BreakpointsView::memoryBPContextMenuSlot(const QPoint & pos)
             {
                 if(wBPList.bp[wI].active == false)
                 {
-                    // Nothing
+                    mMemBPEnableDisableAction->setText("Enable");
+                    wMenu->addAction(mMemBPEnableDisableAction);
                 }
                 else if(wBPList.bp[wI].enabled == true)
                 {
