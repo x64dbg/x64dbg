@@ -620,18 +620,14 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         }
         curBp.addr = list[i].addr;
         curBp.enabled = list[i].enabled;
-        //TODO: fix this
-        if(MemIsValidReadPtr(curBp.addr))
-            curBp.active = true;
+        curBp.active = list[i].active;
         strcpy_s(curBp.mod, list[i].mod);
         strcpy_s(curBp.name, list[i].name);
         curBp.singleshoot = list[i].singleshoot;
         curBp.slot = slot;
-        if(curBp.active)
-        {
-            bridgeList.push_back(curBp);
-            retcount++;
-        }
+
+        bridgeList.push_back(curBp);
+        retcount++;
     }
     if(!retcount)
     {

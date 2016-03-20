@@ -252,13 +252,15 @@ CMDRESULT cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf("Error setting breakpoint at " fhex "! (bpnew)\n", addr);
         return STATUS_ERROR;
     }
-    else if(!SetBPX(addr, type, (void*)cbUserBreakpoint))
+    GuiUpdateAllViews();
+    if(!SetBPX(addr, type, (void*)cbUserBreakpoint))
     {
+        if(!MemIsValidReadPtr(addr))
+            return STATUS_CONTINUE;
         dprintf("Error setting breakpoint at " fhex "! (SetBPX)\n", addr);
         return STATUS_ERROR;
     }
     dprintf("Breakpoint at " fhex " set!\n", addr);
-    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -290,8 +292,10 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
         }
         else if(found.enabled && !DeleteBPX(found.addr))
         {
-            dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", found.addr);
             GuiUpdateAllViews();
+            if(!MemIsValidReadPtr(found.addr))
+                return STATUS_CONTINUE;
+            dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", found.addr);
             return STATUS_ERROR;
         }
         return STATUS_CONTINUE;
@@ -309,8 +313,10 @@ CMDRESULT cbDebugDeleteBPX(int argc, char* argv[])
     }
     else if(found.enabled && !DeleteBPX(found.addr))
     {
-        dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", found.addr);
         GuiUpdateAllViews();
+        if(!MemIsValidReadPtr(found.addr))
+            return STATUS_CONTINUE;
+        dprintf("Delete breakpoint failed (DeleteBPX): " fhex "\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Breakpoint deleted!");
@@ -341,12 +347,14 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
             dprintf("Could not enable breakpoint " fhex " (BpEnable)\n", found.addr);
             return STATUS_ERROR;
         }
+        GuiUpdateAllViews();
         if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
         {
+            if(!MemIsValidReadPtr(found.addr))
+                return STATUS_CONTINUE;
             dprintf("Could not enable breakpoint " fhex " (SetBPX)\n", found.addr);
             return STATUS_ERROR;
         }
-        GuiUpdateAllViews();
         return STATUS_CONTINUE;
     }
     duint addr = 0;
@@ -366,13 +374,15 @@ CMDRESULT cbDebugEnableBPX(int argc, char* argv[])
         dprintf("Could not enable breakpoint " fhex " (BpEnable)\n", found.addr);
         return STATUS_ERROR;
     }
+    GuiUpdateAllViews();
     if(!SetBPX(found.addr, found.titantype, (void*)cbUserBreakpoint))
     {
+        if(!MemIsValidReadPtr(found.addr))
+            return STATUS_CONTINUE;
         dprintf("Could not enable breakpoint " fhex " (SetBPX)\n", found.addr);
         return STATUS_ERROR;
     }
     dputs("Breakpoint enabled!");
-    GuiUpdateAllViews();
     return STATUS_CONTINUE;
 }
 
@@ -401,6 +411,9 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
         }
         if(!DeleteBPX(found.addr))
         {
+            GuiUpdateAllViews();
+            if(!MemIsValidReadPtr(found.addr))
+                return STATUS_CONTINUE;
             dprintf("Could not disable breakpoint " fhex " (DeleteBPX)\n", found.addr);
             return STATUS_ERROR;
         }
@@ -425,6 +438,9 @@ CMDRESULT cbDebugDisableBPX(int argc, char* argv[])
     }
     if(!DeleteBPX(found.addr))
     {
+        GuiUpdateAllViews();
+        if(!MemIsValidReadPtr(found.addr))
+            return STATUS_CONTINUE;
         dprintf("Could not disable breakpoint " fhex " (DeleteBPX)\n", found.addr);
         return STATUS_ERROR;
     }

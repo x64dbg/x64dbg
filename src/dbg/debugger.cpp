@@ -571,6 +571,8 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         BpSetTitanType(bp->addr, BPHARDWARE, titantype);
         if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
             dprintf("Could not set hardware breakpoint " fhex "! (SetHardwareBreakPoint)\n", bp->addr);
+        else
+            dprintf("Set hardware breakpoint on " fhex "!\n", bp->addr);
     }
     break;
 
@@ -690,6 +692,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     char modname[256] = "";
     if(ModNameFromAddr((duint)base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
+    BpEnumAll(cbSetModuleBreakpoints, "");
     GuiUpdateBreakpointsView();
     pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
     if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
@@ -1175,6 +1178,8 @@ bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     }
     if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
     {
+        if(!MemIsValidReadPtr(bp->addr))
+            return true;
         dprintf("Could not enable breakpoint " fhex " (SetBPX)\n", bp->addr);
         return false;
     }
@@ -1776,6 +1781,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     ThreadClear();
     SymClearMemoryCache();
     GuiSetDebugState(stopped);
+    GuiUpdateAllViews();
     dputs("Debugging stopped!");
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
