@@ -784,7 +784,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     callbackInfo.dwThreadId = dwThreadId;
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
 
-    dprintf("Thread %X created\n", dwThreadId);
+    dprintf("Thread %X created, Entry: " fhex "\n", dwThreadId, CreateThread->lpStartAddress);
 
     if(settingboolget("Events", "ThreadStart"))
     {
