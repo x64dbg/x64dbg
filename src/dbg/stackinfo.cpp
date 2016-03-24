@@ -11,9 +11,22 @@
 #include "_exports.h"
 #include "module.h"
 #include "thread.h"
+#include "exhandlerinfo.h"
 
 bool stackcommentget(duint addr, STACK_COMMENT* comment)
 {
+    std::vector<duint> SEHList;
+    ExHandlerGetSEH(SEHList);
+    std::vector<duint>::iterator iter = std::find(SEHList.begin(), SEHList.end(), addr);
+    if(iter != SEHList.end())
+    {
+        if(iter + 1 != SEHList.end())
+            sprintf_s(comment->comment, "Pointer to SEH_Record[%d]", iter - SEHList.begin() + 1);
+        else
+            sprintf_s(comment->comment, "End of SEH Chain");
+        strcpy_s(comment->color, "#AE81FF");
+        return true;
+    }
     duint data = 0;
     memset(comment, 0, sizeof(STACK_COMMENT));
     MemRead(addr, &data, sizeof(duint));

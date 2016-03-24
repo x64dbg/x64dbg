@@ -54,9 +54,21 @@ bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info)
 
 bool ExHandlerGetSEH(std::vector<duint> & Entries)
 {
-    // TODO: 32-bit
     // TODO: 64-bit
-    return false;
+    static duint nextSEH = 0;
+    NT_TIB tib;
+    if(ThreadGetTib((duint)GetTEBLocation(hActiveThread), &tib))
+    {
+        EXCEPTION_REGISTRATION_RECORD sehr;
+        duint addr_ExRegRecord = (duint)tib.ExceptionList;
+        while(addr_ExRegRecord != 0xFFFFFFFF)
+        {
+            Entries.push_back(addr_ExRegRecord);
+            MemRead(addr_ExRegRecord , &sehr, sizeof(EXCEPTION_REGISTRATION_RECORD));
+            addr_ExRegRecord = (duint)sehr.Next;
+        }
+    }
+    return true;
 }
 
 bool ExHandlerGetVEH(std::vector<duint> & Entries)
