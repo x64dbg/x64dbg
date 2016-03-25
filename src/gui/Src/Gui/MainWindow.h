@@ -10,6 +10,7 @@
 #include "CPUWidget.h"
 #include "MemoryMapView.h"
 #include "CallStackView.h"
+#include "SEHChainView.h"
 #include "LogView.h"
 #include "SymbolView.h"
 #include "BreakpointsView.h"
@@ -102,6 +103,7 @@ public slots:
     void displayFunctions();
     void checkUpdates();
     void displayCallstack();
+    void displaySEHChain();
     void setGlobalShortcut(QAction* action, const QKeySequence & key);
     void refreshShortcuts();
     void openShortcuts();
@@ -129,6 +131,7 @@ private:
     CPUWidget* mCpuWidget;
     MemoryMapView* mMemMapView;
     CallStackView* mCallStackView;
+    SEHChainView* mSEHChainView;
     LogView* mLogView;
     SymbolView* mSymbolView;
     SourceViewerManager* mSourceViewManager;

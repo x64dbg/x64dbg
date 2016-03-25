@@ -213,6 +213,12 @@ DWORD WINAPI updateCallStackThread(void* ptr)
     return 0;
 }
 
+DWORD WINAPI updateSEHChainThread(void* ptr)
+{
+    GuiUpdateSEHChain();
+    return 0;
+}
+
 void DebugUpdateGui(duint disasm_addr, bool stack)
 {
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
@@ -235,6 +241,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     {
         cacheCsp = csp;
         CloseHandle(CreateThread(0, 0, updateCallStackThread, 0, 0, 0));
+        CloseHandle(CreateThread(0, 0, updateSEHChainThread, 0, 0, 0));
     }
     char modname[MAX_MODULE_SIZE] = "";
     char modtext[MAX_MODULE_SIZE * 2] = "";

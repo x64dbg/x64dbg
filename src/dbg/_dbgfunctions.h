@@ -29,6 +29,18 @@ typedef struct
 
 typedef struct
 {
+    duint addr;
+    duint handler;
+} DBGSEHRECORD;
+
+typedef struct
+{
+    size_t total;
+    DBGSEHRECORD* records;
+} DBGSEHCHAIN;
+
+typedef struct
+{
     DWORD dwProcessId;
     char szExeFile[MAX_PATH];
 } DBGPROCESSINFO;
@@ -52,6 +64,7 @@ typedef int (*MODPATHFROMNAME)(const char* modname, char* path, int size);
 typedef bool (*DISASMFAST)(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* basicinfo);
 typedef void (*MEMUPDATEMAP)();
 typedef void (*GETCALLSTACK)(DBGCALLSTACK* callstack);
+typedef void (*GETSEHCHAIN)(DBGSEHCHAIN* sehchain);
 typedef void (*SYMBOLDOWNLOADALLSYMBOLS)(const char* szSymbolStore);
 typedef bool (*GETJIT)(char* jit, bool x64);
 typedef bool (*GETJITAUTO)(bool* jitauto);
@@ -91,6 +104,7 @@ typedef struct DBGFUNCTIONS_
     DISASMFAST DisasmFast;
     MEMUPDATEMAP MemUpdateMap;
     GETCALLSTACK GetCallStack;
+    GETSEHCHAIN GetSEHChain;
     SYMBOLDOWNLOADALLSYMBOLS SymbolDownloadAllSymbols;
     GETJITAUTO GetJitAuto;
     GETJIT GetJit;

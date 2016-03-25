@@ -15,6 +15,7 @@
 #include "stackinfo.h"
 #include "symbolinfo.h"
 #include "module.h"
+#include "exhandlerinfo.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -88,6 +89,22 @@ static bool _patchrestore(duint addr)
 static void _getcallstack(DBGCALLSTACK* callstack)
 {
     stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
+}
+
+static void _getsehchain(DBGSEHCHAIN* sehchain)
+{
+    std::vector<duint> SEHList;
+    ExHandlerGetSEH(SEHList);
+    sehchain->total = SEHList.size();
+    if(sehchain->total > 0)
+    {
+        sehchain->records = (DBGSEHRECORD*)BridgeAlloc(sehchain->total * sizeof(DBGSEHRECORD));
+        for(size_t i = 0; i < sehchain->total; i++)
+        {
+            sehchain->records[i].addr = SEHList[i];
+            MemRead(SEHList[i] + 4, &sehchain->records[i].handler, sizeof(duint));
+        }
+    }
 }
 
 static bool _getjitauto(bool* jit_auto)
@@ -207,6 +224,7 @@ void dbgfunctionsinit()
     _dbgfunctions.DisasmFast = disasmfast;
     _dbgfunctions.MemUpdateMap = _memupdatemap;
     _dbgfunctions.GetCallStack = _getcallstack;
+    _dbgfunctions.GetSEHChain = _getsehchain;
     _dbgfunctions.SymbolDownloadAllSymbols = SymDownloadAllSymbols;
     _dbgfunctions.GetJit = _getjit;
     _dbgfunctions.GetJitAuto = _getjitauto;

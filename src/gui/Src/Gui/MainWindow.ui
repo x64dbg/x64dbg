@@ -56,6 +56,7 @@
     <addaction name="actionBreakpoints"/>
     <addaction name="actionMemoryMap"/>
     <addaction name="actionCallStack"/>
+    <addaction name="actionSEHChain"/>
     <addaction name="actionScript"/>
     <addaction name="actionSymbolInfo"/>
     <addaction name="actionSource"/>
@@ -157,6 +158,7 @@
    <addaction name="actionBreakpoints"/>
    <addaction name="actionMemoryMap"/>
    <addaction name="actionCallStack"/>
+   <addaction name="actionSEHChain"/>
    <addaction name="actionScript"/>
    <addaction name="actionSymbolInfo"/>
    <addaction name="actionSource"/>
@@ -695,6 +697,15 @@
    </property>
    <property name="toolTip">
     <string>FAQ</string>
+   </property>
+  </action>
+  <action name="actionSEHChain">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/seh-chain.png</normaloff>:/icons/images/seh-chain.png</iconset>
+   </property>
+   <property name="text">
+    <string>SEH Chain</string>
    </property>
   </action>
  </widget>
