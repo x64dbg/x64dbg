@@ -34,6 +34,7 @@ public slots:
     void gotoExpressionSlot();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
+    void selectionUpdatedSlot();
     void followDisasmSlot();
     void followDumpSlot();
     void followinDumpNSlot();
