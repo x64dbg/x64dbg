@@ -50,6 +50,8 @@ void QHexEdit::fill(int index, const QString & pattern)
         if((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (wildcardEnabled() && ch == '?'))
             convert += ch;
     }
+    if(!convert.length())
+        return;
     if(convert.length() % 2) //odd length
         convert += "0";
     QByteArray data(convert.length(), 0);
