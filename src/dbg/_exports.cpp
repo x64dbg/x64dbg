@@ -987,7 +987,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_DELETE_AUTO_FUNCTION_RANGE:
     {
-        FunctionDelRange((duint)param1, (duint)param2);
+        FunctionDelRange((duint)param1, (duint)param2, false);
     }
     break;
 

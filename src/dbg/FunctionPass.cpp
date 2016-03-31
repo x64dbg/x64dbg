@@ -100,10 +100,10 @@ bool FunctionPass::Analyse()
 
     dprintf("%u functions\n", funcs.size());
 
-    FunctionClear();
+    FunctionDelRange(m_VirtualStart, m_VirtualEnd - 1, false);
     for(auto & func : funcs)
     {
-        FunctionAdd(func.VirtualStart, func.VirtualEnd, true, func.InstrCount);
+        FunctionAdd(func.VirtualStart, func.VirtualEnd, false, func.InstrCount);
     }
     GuiUpdateAllViews();
 

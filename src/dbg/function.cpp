@@ -88,7 +88,7 @@ bool FunctionDelete(duint Address)
     return (functions.erase(ModuleRange(ModHashFromAddr(moduleBase), Range(Address - moduleBase, Address - moduleBase))) > 0);
 }
 
-void FunctionDelRange(duint Start, duint End)
+void FunctionDelRange(duint Start, duint End, bool DeleteManual)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -116,7 +116,7 @@ void FunctionDelRange(duint Start, duint End)
             const auto & currentFunction = itr->second;
 
             // Ignore manually set entries
-            if(currentFunction.manual)
+            if(!DeleteManual && currentFunction.manual)
             {
                 ++itr;
                 continue;

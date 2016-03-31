@@ -228,6 +228,7 @@ static void registercommands()
     dbgcmdnew("setmaxfindresult\1findsetmaxresult", cbInstrSetMaxFindResult, false); //set the maximum number of occurences found
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
     dbgcmdnew("scriptdll\1dllscript", cbScriptDll, false); //execute a script DLL
+    dbgcmdnew("functionclear", cbInstrFunctionClear, false); //delete all functions
 }
 
 static bool cbCommandProvider(char* cmd, int maxlen)
