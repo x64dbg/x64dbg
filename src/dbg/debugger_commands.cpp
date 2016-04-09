@@ -1199,7 +1199,7 @@ CMDRESULT cbDebugAttach(int argc, char* argv[])
     if(!GetModuleFileNameExW(hProcess, 0, wszFileName, MAX_PATH))
     {
         dprintf("Could not get module filename %X!\n", pid);
-        return STATUS_ERROR;
+        // return STATUS_ERROR;
     }
     strcpy_s(szFileName, StringUtils::Utf16ToUtf8(wszFileName).c_str());
     CloseHandle(CreateThread(0, 0, threadAttachLoop, (void*)pid, 0, 0));
