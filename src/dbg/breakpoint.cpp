@@ -12,6 +12,14 @@
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
 std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
+static void setBpActive(BREAKPOINT & bp)
+{
+    if(bp.type == BPHARDWARE)  //TODO: properly implement this (check debug registers)
+        bp.active = true;
+    else
+        bp.active = MemIsValidReadPtr(bp.addr);
+}
+
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
 {
     //
@@ -39,7 +47,7 @@ int BpGetList(std::vector<BREAKPOINT>* List)
         {
             BREAKPOINT currentBp = i.second;
             currentBp.addr += ModBaseFromName(currentBp.mod);
-            currentBp.active = MemIsValidReadPtr(currentBp.addr);
+            setBpActive(currentBp);
 
             List->push_back(currentBp);
         }
@@ -105,7 +113,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
         *Bp = *bpInfo;
         Bp->addr += ModBaseFromAddr(Address);
-        Bp->active = MemIsValidReadPtr(Bp->addr);
+        setBpActive(*Bp);
         return true;
     }
 
@@ -121,7 +129,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         {
             *Bp = i.second;
             Bp->addr += ModBaseFromAddr(Address);
-            Bp->active = MemIsValidReadPtr(Bp->addr);
+            setBpActive(*Bp);
         }
 
         // Return true if the name was found at all
@@ -210,7 +218,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
         ++i; // Increment here, because the callback might remove the current entry
 
         // If a module name was sent, check it
-        if(Module && Module[0] != '\0')
+        if(Module)
         {
             if(strcmp(j->second.mod, Module) != 0)
                 continue;
@@ -218,7 +226,7 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module)
 
         BREAKPOINT bpInfo = j->second;
         bpInfo.addr += ModBaseFromName(bpInfo.mod);
-        bpInfo.active = MemIsValidReadPtr(bpInfo.addr);
+        setBpActive(bpInfo);
 
         // Lock must be released due to callback sub-locks
         SHARED_RELEASE();
@@ -356,27 +364,25 @@ void BpCacheLoad(JSON Root)
         BREAKPOINT breakpoint;
         memset(&breakpoint, 0, sizeof(BREAKPOINT));
 
+        breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         if(breakpoint.type == BPNORMAL)
             breakpoint.oldbytes = (unsigned short)(json_hex_value(json_object_get(value, "oldbytes")) & 0xFFFF);
-        breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
 
         // Name
         const char* name = json_string_value(json_object_get(value, "name"));
-
         if(name)
             strcpy_s(breakpoint.name, name);
 
         // Module
         const char* mod = json_string_value(json_object_get(value, "module"));
-
         if(mod && *mod && strlen(mod) < MAX_MODULE_SIZE)
             strcpy_s(breakpoint.mod, mod);
 
         // Build the hash map key: MOD_HASH + ADDRESS
-        const duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
+        duint key = ModHashFromName(breakpoint.mod) + breakpoint.addr;
         breakpoints.insert(std::make_pair(BreakpointKey(breakpoint.type, key), breakpoint));
     }
 }

@@ -502,6 +502,14 @@ CMDRESULT cbInstrFunctionDel(int argc, char* argv[])
     return STATUS_CONTINUE;
 }
 
+CMDRESULT cbInstrFunctionClear(int argc, char* argv[])
+{
+    FunctionClear();
+    GuiUpdateAllViews();
+    dputs("all functions deleted!");
+    return STATUS_CONTINUE;
+}
+
 CMDRESULT cbInstrCmp(int argc, char* argv[])
 {
     if(argc < 3)

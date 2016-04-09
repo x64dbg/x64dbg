@@ -21,6 +21,7 @@ CMDRESULT cbInstrSavedb(int argc, char* argv[]);
 CMDRESULT cbInstrAssemble(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionAdd(int argc, char* argv[]);
 CMDRESULT cbInstrFunctionDel(int argc, char* argv[]);
+CMDRESULT cbInstrFunctionClear(int argc, char* argv[]);
 
 CMDRESULT cbInstrCmp(int argc, char* argv[]);
 CMDRESULT cbInstrGpa(int argc, char* argv[]);

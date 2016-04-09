@@ -83,7 +83,7 @@ void ExceptionDirectoryAnalysis::Analyse()
 
 void ExceptionDirectoryAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size);
+    FunctionDelRange(_base, _base + _size - 1, false);
     for(const auto & function : _functions)
         FunctionAdd(function.first, function.second, false);
 }

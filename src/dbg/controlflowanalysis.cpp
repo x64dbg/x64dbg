@@ -87,7 +87,7 @@ void ControlFlowAnalysis::Analyse()
 
 void ControlFlowAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size);
+    FunctionDelRange(_base, _base + _size - 1, false);
     auto size = _functionRanges.size();
     for(size_t i = size - 1; i != -1; i--)
     {

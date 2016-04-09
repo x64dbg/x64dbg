@@ -38,7 +38,7 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return MemRead(addr, dest, size, read);
+    return MemRead(addr, dest, size, read, true);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
@@ -138,7 +138,7 @@ static bool getLabel(duint addr, char* label)
             if(disasmfast(addr, &basicinfo) && basicinfo.branch && !basicinfo.call && basicinfo.memory.value)  //thing is a JMP
             {
                 duint val = 0;
-                if(MemRead(basicinfo.memory.value, &val, sizeof(val)))
+                if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
                 {
                     if(SafeSymFromAddr(fdProcessInfo->hProcess, (DWORD64)val, &displacement, pSymbol) && !displacement)
                     {
@@ -620,18 +620,14 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
         }
         curBp.addr = list[i].addr;
         curBp.enabled = list[i].enabled;
-        //TODO: fix this
-        if(MemIsValidReadPtr(curBp.addr))
-            curBp.active = true;
+        curBp.active = list[i].active;
         strcpy_s(curBp.mod, list[i].mod);
         strcpy_s(curBp.name, list[i].name);
         curBp.singleshoot = list[i].singleshoot;
         curBp.slot = slot;
-        if(curBp.active)
-        {
-            bridgeList.push_back(curBp);
-            retcount++;
-        }
+
+        bridgeList.push_back(curBp);
+        retcount++;
     }
     if(!retcount)
     {
@@ -991,7 +987,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_DELETE_AUTO_FUNCTION_RANGE:
     {
-        FunctionDelRange((duint)param1, (duint)param2);
+        FunctionDelRange((duint)param1, (duint)param2, false);
     }
     break;
 

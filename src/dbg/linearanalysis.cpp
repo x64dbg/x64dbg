@@ -21,7 +21,7 @@ void LinearAnalysis::Analyse()
 
 void LinearAnalysis::SetMarkers()
 {
-    FunctionDelRange(_base, _base + _size);
+    FunctionDelRange(_base, _base + _size - 1, false);
     for(auto & function : _functions)
     {
         if(!function.end)

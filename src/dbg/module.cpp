@@ -267,15 +267,20 @@ duint ModHashFromName(const char* Module)
 {
     // return MODINFO.hash (based on the name)
     ASSERT_NONNULL(Module);
-    ASSERT_FALSE(Module[0] == '\0');
+    auto len = int(strlen(Module));
+    if(!len)
+        return 0;
 
-    return murmurhash(Module, (int)strlen(Module));
+    return murmurhash(Module, len);
 }
 
 duint ModBaseFromName(const char* Module)
 {
     ASSERT_NONNULL(Module);
-    ASSERT_TRUE(strlen(Module) < MAX_MODULE_SIZE);
+    auto len = int(strlen(Module));
+    if(!len)
+        return 0;
+    ASSERT_TRUE(len < MAX_MODULE_SIZE);
     SHARED_ACQUIRE(LockModules);
 
     for(const auto & i : modinfo)

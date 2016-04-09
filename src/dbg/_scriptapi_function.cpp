@@ -48,9 +48,9 @@ SCRIPT_EXPORT bool Script::Function::Delete(duint address)
     return FunctionDelete(address);
 }
 
-SCRIPT_EXPORT void Script::Function::DeleteRange(duint start, duint end)
+SCRIPT_EXPORT void Script::Function::DeleteRange(duint start, duint end, bool deleteManual)
 {
-    FunctionDelRange(start, end);
+    FunctionDelRange(start, end, deleteManual);
 }
 
 SCRIPT_EXPORT void Script::Function::Clear()
