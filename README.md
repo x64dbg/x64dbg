@@ -57,7 +57,7 @@ Jenkins build server can be found [here](http://jenkins.x64dbg.com).
 
 ## Credits
 
-- Debugger core by [TitanEngine Community Edition](https://bitbucket.org/mrexodia/titanengine-update)
+- Debugger core by [TitanEngine Community Edition](https://bitbucket.org/titanengineupdate/titanengine-update)
 - Disassembly powered by [Capstone](http://capstone-engine.org)
 - Assembly powered by [XEDParse](https://bitbucket.org/mrexodia/xedparse)
 - Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)
