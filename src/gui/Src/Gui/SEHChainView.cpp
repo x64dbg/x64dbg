@@ -32,7 +32,7 @@ void SEHChainView::updateSEHChain()
     memset(&sehchain, 0, sizeof(DBGSEHCHAIN));
     DbgFunctions()->GetSEHChain(&sehchain);
     setRowCount(sehchain.total);
-    for(size_t i = 0; i < sehchain.total; i++)
+    for(duint i = 0; i < sehchain.total; i++)
     {
         QString cellText = QString("%1").arg(sehchain.records[i].addr, sizeof(duint) * 2, 16, QChar('0')).toUpper();
         setCellContent(i, 0, cellText);

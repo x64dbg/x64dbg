@@ -112,9 +112,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
-    mSEHChainView->setWindowTitle("SEH Chain");
+    mSEHChainView->setWindowTitle("SEH");
     mSEHChainView->setWindowIcon(QIcon(":/icons/images/seh-chain.png"));
     connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
+
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle("Script");

@@ -35,7 +35,7 @@ typedef struct
 
 typedef struct
 {
-    size_t total;
+    duint total;
     DBGSEHRECORD* records;
 } DBGSEHCHAIN;
 
