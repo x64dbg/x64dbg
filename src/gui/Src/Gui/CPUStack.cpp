@@ -151,8 +151,7 @@ void CPUStack::setupContextMenu()
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     this->addAction(mFollowDisasm);
     connect(mFollowDisasm, SIGNAL(triggered()), this, SLOT(followDisasmSlot()));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
-
+    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
     mFollowDump = new QAction("Follow in &Dump", this);
     connect(mFollowDump, SIGNAL(triggered()), this, SLOT(followDumpSlot()));
 
@@ -378,8 +377,7 @@ void CPUStack::contextMenuEvent(QContextMenuEvent* event)
             duint stackEnd = stackBegin + mMemPage->getSize();
             if(selectedData >= stackBegin && selectedData < stackEnd)
                 wMenu->addAction(mFollowStack);
-            else
-                wMenu->addAction(mFollowDisasm);
+            wMenu->addAction(mFollowDisasm);
             wMenu->addAction(mFollowDump);
             wMenu->addMenu(mFollowInDumpMenu);
         }
@@ -485,6 +483,30 @@ void CPUStack::selectionSet(const SELECTIONDATA* selection)
     expandSelectionUpTo(end - selMin);
     reloadData();
     Bridge::getBridge()->setResult(1);
+}
+void CPUStack::selectionUpdatedSlot()
+{
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
+        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        {
+            duint stackBegin = mMemPage->getBase();
+            duint stackEnd = stackBegin + mMemPage->getSize();
+            if(selectedData >= stackBegin && selectedData < stackEnd) //data is a pointer to stack address
+            {
+                this->disconnect(SIGNAL(enterPressedSignal()));
+                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followStackSlot()));
+                mFollowDisasm->setShortcut(QKeySequence(""));
+                mFollowStack->setShortcut(QKeySequence("enter"));
+            }
+            else
+            {
+                this->disconnect(SIGNAL(enterPressedSignal()));
+                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
+                mFollowStack->setShortcut(QKeySequence(""));
+                mFollowDisasm->setShortcut(QKeySequence("enter"));
+            }
+        }
 }
 
 void CPUStack::followDisasmSlot()

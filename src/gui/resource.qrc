@@ -74,5 +74,6 @@
         <file>images/processor32.png</file>
         <file>images/processor64.png</file>
         <file>images/processor-cpu.png</file>
+        <file>images/seh-chain.png</file>
     </qresource>
 </RCC>

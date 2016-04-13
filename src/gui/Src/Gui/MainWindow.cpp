@@ -110,6 +110,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mCallStackView->setWindowIcon(QIcon(":/icons/images/callstack.png"));
     connect(mCallStackView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
 
+    // SEH Chain view
+    mSEHChainView = new SEHChainView();
+    mSEHChainView->setWindowTitle("SEH Chain");
+    mSEHChainView->setWindowIcon(QIcon(":/icons/images/seh-chain.png"));
+    connect(mSEHChainView, SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle("Script");
@@ -158,6 +163,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     mWidgetList.push_back(mBreakpointsView);
     mWidgetList.push_back(mMemMapView);
     mWidgetList.push_back(mCallStackView);
+    mWidgetList.push_back(mSEHChainView);
     mWidgetList.push_back(mScriptView);
     mWidgetList.push_back(mSymbolView);
     mWidgetList.push_back(mSourceViewManager);
@@ -227,6 +233,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
     connect(ui->actionCheckUpdates, SIGNAL(triggered()), this, SLOT(checkUpdates()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
+    connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
@@ -1071,6 +1078,11 @@ void MainWindow::checkUpdates()
 void MainWindow::displayCallstack()
 {
     showQWidgetTab(mCallStackView);
+}
+
+void MainWindow::displaySEHChain()
+{
+    showQWidgetTab(mSEHChainView);
 }
 
 void MainWindow::donate()

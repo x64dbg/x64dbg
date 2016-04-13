@@ -100,6 +100,7 @@ signals:
     void repaintTableView();
     void updatePatches();
     void updateCallStack();
+    void updateSEHChain();
     void symbolRefreshCurrent();
     void loadSourceFile(const QString path, int line, int selection);
     void setIconMenuEntry(int hEntry, QIcon icon);

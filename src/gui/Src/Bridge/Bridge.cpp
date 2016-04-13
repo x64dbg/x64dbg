@@ -424,6 +424,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit updateCallStack();
         break;
 
+    case GUI_UPDATE_SEHCHAIN:
+        emit updateSEHChain();
+        break;
+
     case GUI_SYMBOL_REFRESH_CURRENT:
         emit symbolRefreshCurrent();
         break;

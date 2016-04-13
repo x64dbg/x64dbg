@@ -142,7 +142,8 @@ SOURCES += \
     Src/Gui/CPUMultiDump.cpp \
     Src/Gui/AssembleDialog.cpp \
     Src/ThirdPartyLibs/float128/float128.cpp \
-    Src/Utils/StringUtil.cpp
+    Src/Utils/StringUtil.cpp \
+    Src/Gui/SEHChainView.cpp
 
 
 HEADERS += \
@@ -225,7 +226,8 @@ HEADERS += \
     Src/Utils/QActionLambda.h \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
-    Src/ThirdPartyLibs/float128/float128.h
+    Src/ThirdPartyLibs/float128/float128.h \
+    Src/Gui/SEHChainView.h
 
 FORMS += \
     Src/Gui/MainWindow.ui \
