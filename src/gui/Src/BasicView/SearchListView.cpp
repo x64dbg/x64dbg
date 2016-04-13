@@ -242,7 +242,19 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
         case Qt::Key_Right:
         case Qt::Key_Backspace:
         case Qt::Key_Delete:
+        case Qt::Key_Home:
+        case Qt::Key_End:
+        case Qt::Key_Insert:
             return QWidget::eventFilter(obj, event);
+
+        // Search box shortcuts
+        case Qt::Key_V: //Ctrl+V
+        case Qt::Key_X: //Ctrl+X
+        case Qt::Key_Z: //Ctrl+Z
+        case Qt::Key_A: //Ctrl+A
+        case Qt::Key_Y: //Ctrl+Y
+            if(keyEvent->modifiers() == Qt::CTRL)
+                return QWidget::eventFilter(obj, event);
         }
 
         // Printable characters go to the search box
