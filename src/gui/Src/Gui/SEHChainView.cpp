@@ -6,7 +6,7 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
     int charWidth = getCharWidth();
 
     addColumnAt(8 + charWidth * sizeof(dsint) * 2, "Address", true); //address in the stack
-    addColumnAt(8 + charWidth * 18, "Exception Handler", true); // Exception Handler
+    addColumnAt(8 + charWidth * sizeof(dsint) * 2, "Handler", true); // Exception Handler
     addColumnAt(8 + charWidth * 50, "Module/Label", false);
     addColumnAt(charWidth * 10, "Comment", false);
     connect(Bridge::getBridge(), SIGNAL(updateSEHChain()), this, SLOT(updateSEHChain()));

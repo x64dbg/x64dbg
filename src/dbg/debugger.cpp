@@ -21,6 +21,7 @@
 #include "error.h"
 #include "module.h"
 #include "commandline.h"
+#include "stackinfo.h"
 
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
 static char szBaseFileName[MAX_PATH] = "";
@@ -216,6 +217,8 @@ DWORD WINAPI updateCallStackThread(void* ptr)
 DWORD WINAPI updateSEHChainThread(void* ptr)
 {
     GuiUpdateSEHChain();
+    stackupdateseh();
+    GuiUpdateDumpView();
     return 0;
 }
 
