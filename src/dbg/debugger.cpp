@@ -1789,7 +1789,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     DbClose();
     ModClear();
     ThreadClear();
-    SymClearMemoryCache();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs("Debugging stopped!");

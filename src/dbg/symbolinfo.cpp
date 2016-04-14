@@ -1,8 +1,8 @@
 /**
- @file symbolinfo.cpp
+@file symbolinfo.cpp
 
- @brief Implements the symbolinfo class.
- */
+@brief Implements the symbolinfo class.
+*/
 
 #include "symbolinfo.h"
 #include "debugger.h"
@@ -17,29 +17,52 @@ struct SYMBOLCBDATA
     void* user;
 };
 
-typedef std::vector<SYMBOLINFO> SYMBOLINFOVECTOR;
-typedef std::map<ULONG64, SYMBOLINFOVECTOR> SYMBOLINFOMAP;
-SYMBOLINFOMAP modulesCacheList;
-
-
 BOOL CALLBACK EnumSymbols(PSYMBOL_INFO SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
-    bool returnValue;
     SYMBOLINFO curSymbol;
     memset(&curSymbol, 0, sizeof(SYMBOLINFO));
 
-    // Convert from SYMBOL_INFO to SYMBOLINFO
-    returnValue = SymGetSymbolInfo(SymInfo, &curSymbol, false);
+    curSymbol.addr = (duint)SymInfo->Address;
+    curSymbol.decoratedSymbol = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
+    curSymbol.undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
+    strcpy_s(curSymbol.decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
 
-    if(!returnValue)
-        return false;
+    // Skip bad ordinals
+    if(strstr(SymInfo->Name, "Ordinal"))
+    {
+        // Does the symbol point to the module base?
+        if(SymInfo->Address == SymInfo->ModBase)
+            return TRUE;
+    }
 
-    // Add to the cache
-    modulesCacheList[SymInfo->ModBase].push_back(curSymbol);
+    // Convert a mangled/decorated C++ name to a readable format
+    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
+    {
+        BridgeFree(curSymbol.undecoratedSymbol);
+        curSymbol.undecoratedSymbol = nullptr;
+    }
+    else if(!strcmp(curSymbol.decoratedSymbol, curSymbol.undecoratedSymbol))
+    {
+        BridgeFree(curSymbol.undecoratedSymbol);
+        curSymbol.undecoratedSymbol = nullptr;
+    }
 
     SYMBOLCBDATA* cbData = (SYMBOLCBDATA*)UserContext;
     cbData->cbSymbolEnum(&curSymbol, cbData->user);
     return TRUE;
+}
+
+void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
+{
+    SYMBOLINFO symbol;
+    memset(&symbol, 0, sizeof(SYMBOLINFO));
+    symbol.isImported = true;
+    apienumimports(Base, [&](duint base, duint addr, char* name, char* moduleName)
+    {
+        symbol.addr = addr;
+        symbol.decoratedSymbol = name;
+        EnumCallback(&symbol, UserData);
+    });
 }
 
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
@@ -48,33 +71,16 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
     symbolCbData.cbSymbolEnum = EnumCallback;
     symbolCbData.user = UserData;
 
-    SymEnumImports(Base, &symbolCbData);
-
     // Enumerate every single symbol for the module in 'base'
     if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, Base, "*", EnumSymbols, &symbolCbData))
         dputs("SymEnumSymbols failed!");
+
+    SymEnumImports(Base, EnumCallback, UserData);
 }
 
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
-    SYMBOLCBDATA symbolCbData;
-    symbolCbData.cbSymbolEnum = EnumCallback;
-    symbolCbData.user = UserData;
-
-    // Check if this module is cached in the list
-    if(modulesCacheList.find(Base) != modulesCacheList.end())
-    {
-        SymEnumImports(Base, &symbolCbData);
-
-        // Callback
-        for(duint i = 0; i < modulesCacheList[Base].size(); i++)
-            symbolCbData.cbSymbolEnum(&modulesCacheList[Base].at(i), symbolCbData.user);
-    }
-    else
-    {
-        // Then get the symbols and cache them
-        SymEnum(Base, EnumCallback, UserData);
-    }
+    SymEnum(Base, EnumCallback, UserData);
 }
 
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
@@ -316,146 +322,4 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line)
     }
 
     return true;
-}
-
-void SymClearMemoryCache()
-{
-    for(auto & itr : modulesCacheList)
-    {
-        SYMBOLINFOVECTOR* pModuleVector = &itr.second;
-
-        // Free up previously allocated memory
-        for(duint i = 0; i < pModuleVector->size(); i++)
-        {
-            BridgeFree(pModuleVector->at(i).decoratedSymbol);
-            BridgeFree(pModuleVector->at(i).undecoratedSymbol);
-        }
-    }
-
-    // Clear the whole map
-    modulesCacheList.clear();
-}
-
-bool SymGetSymbolInfo(PSYMBOL_INFO SymInfo, SYMBOLINFO* curSymbol, bool isImported)
-{
-    // SYMBOL_INFO is a structure used by Sym* functions
-    // SYMBOLINFO is the custom structure used by the debugger
-    // This functions fills SYMBOLINFO fields from SYMBOL_INFO data
-
-    curSymbol->addr = (duint)SymInfo->Address;
-    curSymbol->decoratedSymbol = (char*)BridgeAlloc(strlen(SymInfo->Name) + 1);
-    curSymbol->undecoratedSymbol = (char*)BridgeAlloc(MAX_SYM_NAME);
-    strcpy_s(curSymbol->decoratedSymbol, strlen(SymInfo->Name) + 1, SymInfo->Name);
-
-    // Skip bad ordinals
-    if(strstr(SymInfo->Name, "Ordinal"))
-    {
-        // Does the symbol point to the module base?
-        if(SymInfo->Address == SymInfo->ModBase)
-            return FALSE;
-    }
-
-    // Convert a mangled/decorated C++ name to a readable format
-    if(!SafeUnDecorateSymbolName(SymInfo->Name, curSymbol->undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
-    {
-        BridgeFree(curSymbol->undecoratedSymbol);
-        curSymbol->undecoratedSymbol = nullptr;
-    }
-    else if(!strcmp(curSymbol->decoratedSymbol, curSymbol->undecoratedSymbol))
-    {
-        BridgeFree(curSymbol->undecoratedSymbol);
-        curSymbol->undecoratedSymbol = nullptr;
-    }
-
-    // Symbol is exported
-    curSymbol->isImported = isImported;
-
-    return true;
-}
-
-void SymEnumImports(duint Base, SYMBOLCBDATA* pSymbolCbData)
-{
-    char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME]; // Reserve enough space for symbol name, see msdn for this
-
-    // SizeOfStruct and MaxNameLen need to be set or SymFromAddr() returns INVALID_PARAMETER
-    auto pSymInfo = PSYMBOL_INFO(buffer);
-    pSymInfo->SizeOfStruct = sizeof(SYMBOL_INFO);
-    pSymInfo->MaxNameLen = MAX_SYM_NAME;
-
-    // Enum imports if none found
-    std::vector<MODIMPORTINFO> imports;
-    if(ModImportsFromAddr(Base, &imports) && !imports.size())
-    {
-        // Enum imports from current module
-        apienumimports(Base, [](duint Base, duint Address, char* name, char* moduleName)
-        {
-            MODIMPORTINFO importInfo;
-            importInfo.addr = Address;
-            strcpy_s(importInfo.name, MAX_IMPORT_SIZE, name);
-            strcpy_s(importInfo.moduleName, MAX_MODULE_SIZE, moduleName);
-
-            // Add import to the module structure
-            ModAddImportToModule(Base, importInfo);
-        });
-    }
-
-    // Get imports
-    if(ModImportsFromAddr(Base, &imports) && imports.size())
-    {
-        for(duint i = 0; i < imports.size(); i++)
-        {
-            SYMBOLINFO curSymbol;
-            // Can we get symbol for the import address?
-            if(SafeSymFromAddr(fdProcessInfo->hProcess, (duint)imports[i].addr, 0, pSymInfo))
-            {
-                // Does the symbol point to the module base?
-                if(!SymGetSymbolInfo(pSymInfo, &curSymbol, true))
-                    continue;
-            }
-            else
-            {
-                // Otherwise just use import info from module itself
-                curSymbol.addr = imports[i].addr;
-                curSymbol.isImported = true;
-                curSymbol.undecoratedSymbol = nullptr;
-                curSymbol.decoratedSymbol = imports[i].name;
-            }
-
-            // Format so that we get: moduleName.importSymbol
-            char modImportString[MAX_IMPORT_SIZE];
-            strcpy_s(modImportString, imports[i].moduleName);
-
-            // Trim the extension if present
-            char* modExt = strrchr(modImportString, '.');
-
-            if(modExt)
-                *modExt = '\0';
-
-            // Buffers to hold the decorated and undecorated strings. Must be declared
-            // outside of the if() scope.
-            char undecBuf[MAX_IMPORT_SIZE];
-            char decBuf[MAX_IMPORT_SIZE];
-
-            if(curSymbol.undecoratedSymbol)
-            {
-                // module.undecorated
-                strcpy_s(undecBuf, modImportString);
-                strncpy_s(undecBuf, curSymbol.undecoratedSymbol, _TRUNCATE);
-
-                curSymbol.undecoratedSymbol = undecBuf;
-            }
-
-            if(curSymbol.decoratedSymbol)
-            {
-                // module.decorated
-                strcpy_s(decBuf, modImportString);
-                strncpy_s(decBuf, curSymbol.decoratedSymbol, _TRUNCATE);
-
-                curSymbol.decoratedSymbol = decBuf;
-            }
-
-            // Callback
-            pSymbolCbData->cbSymbolEnum(&curSymbol, pSymbolCbData->user);
-        }
-    }
 }
