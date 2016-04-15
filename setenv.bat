@@ -2,13 +2,13 @@
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%QT32PATH%"=="" set QT32PATH=c:\Qt\qt-4.8.6-x86-msvc2013\qt-4.8.6-x86-msvc2013\bin
-if "%QT64PATH%"=="" set QT64PATH=c:\Qt\qt-4.8.6-x64-msvc2013\qt-4.8.6-x64-msvc2013\bin
-if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-3.1.1\bin
+if "%QT32PATH%"=="" set QT32PATH=d:\Qt\Qt5.5.1_x86\5.5\msvc2013\bin
+if "%QT64PATH%"=="" set QT64PATH=d:\Qt\Qt5.5.1_x64\5.5\msvc2013_64\bin
+if "%QTCREATORPATH%"=="" set QTCREATORPATH=d:\Qt\Qt5.5.1_x64\Tools\QtCreator\bin
 if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
 if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
 if "%DOXYGENPATH%"=="" set DOXYGENPATH=C:\Program Files\doxygen\bin
-if "%CHMPATH%"=="" set CHMPATH=c:\Program Files (x86)\Softany\WinCHM
+if "%CHMPATH%"=="" set CHMPATH=d:\tools\winchm
 
 if "%1"=="x32" (
     goto x32

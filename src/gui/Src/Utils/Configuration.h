@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QColor>
 #include <QFont>
+#include <QTextCodec>
 #include "Imports.h"
 
 #define Config() (Configuration::instance())
@@ -74,6 +75,8 @@ public:
     QMap<QString, QMap<QString, duint>> Uints;
     QMap<QString, QFont> Fonts;
     QMap<QString, Shortcut> Shortcuts;
+
+    QTextCodec* mSystemCodec;
 
     static Configuration* mPtr;
 

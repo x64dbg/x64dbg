@@ -3,11 +3,20 @@
 #include <QFontInfo>
 #include <QMessageBox>
 #include <QIcon>
+#include <QDebug>
 
 Configuration* Configuration::mPtr = NULL;
 
 Configuration::Configuration() : QObject()
 {
+    CPINFOEX   cpinfo = {0};
+    GetCPInfoEx(CP_ACP, 0, &cpinfo);
+    OutputDebugString(cpinfo.CodePageName);
+    mSystemCodec = QTextCodec::codecForName("CP936");
+
+    QString str = QTextCodec::availableCodecs().join("\n");
+    qDebug() << str;
+
     //setup default color map
     defaultColors.clear();
     defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
