@@ -181,22 +181,26 @@ Configuration::Configuration() : QObject()
     QMap<QString, duint> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
     defaultUints.insert("HexDump", hexdumpUint);
+
     QMap<QString, duint> disasmUint;
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
+
     QMap<QString, duint> tabOrderUint;
-    tabOrderUint.insert("CPUTab", 0);
-    tabOrderUint.insert("LogTab", 1);
-    tabOrderUint.insert("NotesTab", 2);
-    tabOrderUint.insert("BreakpointsTab", 3);
-    tabOrderUint.insert("MemoryMapTab", 4);
-    tabOrderUint.insert("CallStackTab", 5);
-    tabOrderUint.insert("ScriptTab", 6);
-    tabOrderUint.insert("SymbolsTab", 7);
-    tabOrderUint.insert("SourceTab", 8);
-    tabOrderUint.insert("ReferencesTab", 9);
-    tabOrderUint.insert("ThreadsTab", 10);
-    tabOrderUint.insert("SnowmanTab", 11);
+    int curTab = 0;
+    tabOrderUint.insert("CPUTab", curTab++);
+    tabOrderUint.insert("LogTab", curTab++);
+    tabOrderUint.insert("NotesTab", curTab++);
+    tabOrderUint.insert("BreakpointsTab", curTab++);
+    tabOrderUint.insert("MemoryMapTab", curTab++);
+    tabOrderUint.insert("CallStackTab", curTab++);
+    tabOrderUint.insert("SEHTab", curTab++);
+    tabOrderUint.insert("ScriptTab", curTab++);
+    tabOrderUint.insert("SymbolsTab", curTab++);
+    tabOrderUint.insert("SourceTab", curTab++);
+    tabOrderUint.insert("ReferencesTab", curTab++);
+    tabOrderUint.insert("ThreadsTab", curTab++);
+    tabOrderUint.insert("SnowmanTab", curTab++);
     defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings
