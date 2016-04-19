@@ -916,7 +916,7 @@ void CPUDump::hexUnicodeSlot()
     dDesc.itemSize = Word;
     dDesc.wordMode = UnicodeWord;
     wColDesc.data = dDesc;
-    appendDescriptor(8 + charwidth * 8, "UNICODE", false, wColDesc);
+    appendDescriptor(8 + charwidth * 16, "UNICODE", false, wColDesc);
 
     wColDesc.isData = false; //empty column
     wColDesc.itemCount = 0;

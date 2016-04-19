@@ -273,7 +273,11 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         printSelected(painter, rowBase, rowOffset, col, x, y, w, h);
         QList<RichTextPainter::CustomRichText_t> richText;
         getString(col - 1, wRva, &richText);
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
+        for(auto & ix : richText)
+        {
+            ix.charwidth = getCharWidth(ix.text);
+        }
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText);
     }
 
     return wStr;
@@ -521,8 +525,8 @@ QString HexDump::wordToString(uint16 word, WordViewMode_e mode)
 
     case UnicodeWord:
     {
-        QChar wChar = QChar::fromLatin1((char)word & 0xFF);
-        if(wChar.isPrint() == true && (word >> 8) == 0)
+        QChar wChar = word/*QChar::fromLatin1((char)word & 0xFF)*/;
+        if(wChar.isPrint() == true /*&& (word >> 8) == 0*/)
             wStr = QString(wChar);
         else
             wStr = ".";

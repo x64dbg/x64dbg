@@ -332,7 +332,11 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                 richText[i].textColor = inactiveColor;
             }
         }
-        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText, getCharWidth());
+        for(auto & ix : richText)
+        {
+            ix.charwidth = getCharWidth(ix.text);
+        }
+        RichTextPainter::paintRichText(painter, x, y, w, h, 4, &richText);
     }
     else if(DbgStackCommentGet(rvaToVa(wRva), &comment)) //paint stack comments
     {
