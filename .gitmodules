@@ -1,3 +1,9 @@
 [submodule "src/capstone_wrapper"]
 	path = src/capstone_wrapper
-	url = https://github.com/x64dbg/capstone_wrapper.git
+	url = https://github.com/polelf/capstone_wrapper.git
+[submodule "deps/snowman"]
+	path = deps/snowman
+	url = https://github.com/polelf/snowman.git
+[submodule "deps/titanengine"]
+	path = deps/titanengine
+	url = https://github.com/polelf/titanengine.git
