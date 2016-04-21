@@ -1,9 +1,9 @@
-@echo off
+rem @echo off
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%QT32PATH%"=="" set QT32PATH=d:\Qt\Qt5.5.1_x86\5.5\msvc2013\bin
-if "%QT64PATH%"=="" set QT64PATH=d:\Qt\Qt5.5.1_x64\5.5\msvc2013_64\bin
+if "%QT32PATH%"=="" set QT32PATH=d:\Qt\Qt5.6.0\5.6\msvc2013\bin
+if "%QT64PATH%"=="" set QT64PATH=d:\Qt\Qt5.6.0\5.6\msvc2013_64\bin
 if "%QTCREATORPATH%"=="" set QTCREATORPATH=d:\Qt\Qt5.5.1_x64\Tools\QtCreator\bin
 if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
 if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
