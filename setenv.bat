@@ -1,6 +1,7 @@
-rem @echo off
+@echo off
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
+if exist usrenv.bat (call usrenv.bat)
 
 if "%QT32PATH%"=="" set QT32PATH=d:\Qt\Qt5.6.0\5.6\msvc2013\bin
 if "%QT64PATH%"=="" set QT64PATH=d:\Qt\Qt5.6.0\5.6\msvc2013_64\bin
