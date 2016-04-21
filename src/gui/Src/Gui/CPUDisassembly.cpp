@@ -136,8 +136,16 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             const DISASM_ARG arg = instr.arg[i];
             if(arg.type == arg_memory)
             {
+                QString segment = "";
+#ifdef _WIN64
+                if(arg.segment == SEG_GS)
+                    segment = "gs:";
+#else //x32
+                if(arg.segment == SEG_FS)
+                    segment = "fs:";
+#endif //_WIN64
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem("&Address: " + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem("&Address: " + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 if(arg.value != arg.constant)
                 {
                     QString constant = QString("%1").arg(arg.constant, 1, 16, QChar('0')).toUpper();
@@ -145,7 +153,7 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                         addFollowReferenceMenuItem("&Constant: " + constant, arg.constant, menu, isReferences, isFollowInCPU);
                 }
                 if(DbgMemIsValidReadPtr(arg.memvalue))
-                    addFollowReferenceMenuItem("&Value: [" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem("&Value: " + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
             }
             else //arg_normal
             {

@@ -541,12 +541,12 @@ typedef struct
 
 typedef struct
 {
-    DISASM_ARGTYPE type;
+    DISASM_ARGTYPE type; //normal/memory
     SEGMENTREG segment;
     char mnemonic[64];
-    duint constant;
-    duint value;
-    duint memvalue;
+    duint constant; //constant in the instruction (imm/disp)
+    duint value; //equal to constant or equal to the register value
+    duint memvalue; //memsize:[value]
 } DISASM_ARG;
 
 typedef struct

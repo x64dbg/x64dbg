@@ -8,7 +8,7 @@
 #include "memory.h"
 #include "threading.h"
 
-std::unordered_map<DWORD, THREADINFO> threadList;
+static std::unordered_map<DWORD, THREADINFO> threadList;
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
@@ -261,4 +261,11 @@ int ThreadResumeAll()
     }
 
     return count;
+}
+
+ULONG_PTR ThreadGetLocalBase(DWORD ThreadId)
+{
+    SHARED_ACQUIRE(LockThreads);
+    auto found = threadList.find(ThreadId);
+    return found != threadList.end() ? found->second.ThreadLocalBase : 0;
 }
